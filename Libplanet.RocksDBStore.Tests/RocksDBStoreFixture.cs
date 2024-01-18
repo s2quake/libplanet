@@ -9,7 +9,7 @@ namespace Libplanet.RocksDBStore.Tests
 {
     public class RocksDBStoreFixture : StoreFixture
     {
-        public RocksDBStoreFixture(IAction blockAction = null)
+        public RocksDBStoreFixture(IAction? blockAction = null)
             : base(blockAction)
         {
             Path = System.IO.Path.Combine(
