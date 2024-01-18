@@ -26,15 +26,13 @@ namespace Libplanet.Net.Tests.Messages
                     new PingMsg(),
                     apvOption.AppProtocolVersion,
                     peer,
-                    DateTimeOffset.UtcNow + buffer.Divide(2),
-                    null));
+                    DateTimeOffset.UtcNow + buffer.Divide(2)));
             messageValidator.ValidateTimestamp(
                 new Message(
                     new PingMsg(),
                     apvOption.AppProtocolVersion,
                     peer,
-                    DateTimeOffset.UtcNow - buffer.Divide(2),
-                    null));
+                    DateTimeOffset.UtcNow - buffer.Divide(2)));
 
             // Outside buffer throws an exception.
             Assert.Throws<InvalidMessageTimestampException>(() =>
@@ -43,16 +41,14 @@ namespace Libplanet.Net.Tests.Messages
                         new PingMsg(),
                         apvOption.AppProtocolVersion,
                         peer,
-                        DateTimeOffset.UtcNow + buffer.Multiply(2),
-                        null)));
+                        DateTimeOffset.UtcNow + buffer.Multiply(2))));
             Assert.Throws<InvalidMessageTimestampException>(() =>
                 messageValidator.ValidateTimestamp(
                     new Message(
                         new PingMsg(),
                         apvOption.AppProtocolVersion,
                         peer,
-                        DateTimeOffset.UtcNow - buffer.Multiply(2),
-                        null)));
+                        DateTimeOffset.UtcNow - buffer.Multiply(2))));
 
             // If buffer is null, no exception gets thrown.
             messageValidator = new MessageValidator(apvOption, null);
@@ -61,15 +57,13 @@ namespace Libplanet.Net.Tests.Messages
                     new PingMsg(),
                     apvOption.AppProtocolVersion,
                     peer,
-                    DateTimeOffset.MaxValue,
-                    null));
+                    DateTimeOffset.MaxValue));
             messageValidator.ValidateTimestamp(
                 new Message(
                     new PingMsg(),
                     apvOption.AppProtocolVersion,
                     peer,
-                    DateTimeOffset.MinValue,
-                    null));
+                    DateTimeOffset.MinValue));
         }
 
         [Fact]
@@ -110,38 +104,32 @@ namespace Libplanet.Net.Tests.Messages
                 new PingMsg(),
                 trustedApv,
                 peer,
-                DateTimeOffset.UtcNow,
-                null);
+                DateTimeOffset.UtcNow);
             var trustedDifferentVersionPing = new Message(
                 new PingMsg(),
                 trustedDifferentVersionApv,
                 peer,
-                DateTimeOffset.UtcNow,
-                null);
+                DateTimeOffset.UtcNow);
             var trustedDifferentExtraPing = new Message(
                 new PingMsg(),
                 trustedDifferentExtraApv,
                 peer,
-                DateTimeOffset.UtcNow,
-                null);
+                DateTimeOffset.UtcNow);
             var unknownPing = new Message(
                 new PingMsg(),
                 unknownApv,
                 peer,
-                DateTimeOffset.UtcNow,
-                null);
+                DateTimeOffset.UtcNow);
             var unknownDifferentVersionPing = new Message(
                 new PingMsg(),
                 unknownDifferentVersionApv,
                 peer,
-                DateTimeOffset.UtcNow,
-                null);
+                DateTimeOffset.UtcNow);
             var unknownDifferentExtraPing = new Message(
                 new PingMsg(),
                 unknownDifferentExtraApv,
                 peer,
-                DateTimeOffset.UtcNow,
-                null);
+                DateTimeOffset.UtcNow);
 
             DifferentAppProtocolVersionException exception;
             AppProtocolVersionOptions appProtocolVersionOptions;

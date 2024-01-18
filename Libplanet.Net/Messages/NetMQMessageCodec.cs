@@ -166,7 +166,7 @@ namespace Libplanet.Net.Messages
                     signature);
             }
 
-            byte[]? identity = reply ? null : encoded[0].Buffer.ToArray();
+            byte[] identity = reply ? Array.Empty<byte>() : encoded[0].Buffer.ToArray();
 
             return new Message(content, version, remote, timestamp, identity);
         }

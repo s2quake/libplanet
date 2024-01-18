@@ -8,8 +8,20 @@ namespace Libplanet.Net.Messages
             MessageContent content,
             AppProtocolVersion version,
             BoundPeer remote,
+            DateTimeOffset timestamp)
+        {
+            Content = content;
+            Version = version;
+            Remote = remote;
+            Timestamp = timestamp;
+        }
+
+        public Message(
+            MessageContent content,
+            AppProtocolVersion version,
+            BoundPeer remote,
             DateTimeOffset timestamp,
-            byte[]? identity)
+            byte[] identity)
         {
             Content = content;
             Version = version;
@@ -42,6 +54,6 @@ namespace Libplanet.Net.Messages
         /// The byte array identifies the message to match between
         /// message and its respond used in <see cref="NetMQ"/>.
         /// </summary>
-        public byte[]? Identity { get; }
+        public byte[] Identity { get; } = Array.Empty<byte>();
     }
 }

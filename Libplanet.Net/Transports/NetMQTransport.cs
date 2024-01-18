@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,12 +36,12 @@ namespace Libplanet.Net.Transports
         private readonly Task _runtimeProcessor;
         private readonly AsyncManualResetEvent _runningEvent;
 
-        private NetMQQueue<(AsyncManualResetEvent, NetMQMessage)> _replyQueue;
+        private NetMQQueue<(AsyncManualResetEvent, NetMQMessage)>? _replyQueue;
 
-        private RouterSocket _router;
-        private NetMQPoller _routerPoller;
-        private TurnClient _turnClient;
-        private DnsEndPoint _hostEndPoint;
+        private RouterSocket? _router;
+        private NetMQPoller? _routerPoller;
+        private TurnClient? _turnClient;
+        private DnsEndPoint? _hostEndPoint;
 
         private CancellationTokenSource _runtimeCancellationTokenSource;
         private CancellationTokenSource _turnCancellationTokenSource;
@@ -129,7 +128,7 @@ namespace Libplanet.Net.Transports
         /// <inheritdoc/>
         public BoundPeer AsPeer => _turnClient is TurnClient turnClient
             ? new BoundPeer(_privateKey.PublicKey, turnClient.EndPoint, turnClient.PublicAddress)
-            : new BoundPeer(_privateKey.PublicKey, _hostEndPoint);
+            : new BoundPeer(_privateKey.PublicKey, _hostEndPoint!);
 
         /// <inheritdoc/>
         public DateTimeOffset? LastMessageTimestamp { get; private set; }
@@ -202,9 +201,9 @@ namespace Libplanet.Net.Transports
                 CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             _replyQueue = new NetMQQueue<(AsyncManualResetEvent, NetMQMessage)>();
-            _routerPoller = new NetMQPoller { _router, _replyQueue };
+            _routerPoller = new NetMQPoller { _router!, _replyQueue };
 
-            _router.ReceiveReady += ReceiveMessage;
+            _router!.ReceiveReady += ReceiveMessage;
             _replyQueue.ReceiveReady += DoReply;
 
             Task pollerTask = RunPoller(_routerPoller);
@@ -236,10 +235,10 @@ namespace Libplanet.Net.Transports
             {
                 await Task.Delay(waitFor, cancellationToken);
 
-                _replyQueue.ReceiveReady -= DoReply;
-                _router.ReceiveReady -= ReceiveMessage;
+                _replyQueue!.ReceiveReady -= DoReply;
+                _router!.ReceiveReady -= ReceiveMessage;
 
-                if (_routerPoller.IsRunning)
+                if (_routerPoller!.IsRunning)
                 {
                     _routerPoller.Stop();
                 }
@@ -461,7 +460,7 @@ namespace Libplanet.Net.Transports
             }
             catch (ChannelClosedException ce)
             {
-                throw WrapCommunicationFailException(ce.InnerException, peer, content, reqId);
+                throw WrapCommunicationFailException(ce.InnerException!, peer, content, reqId);
             }
             catch (Exception e)
             {
@@ -524,7 +523,7 @@ namespace Libplanet.Net.Transports
             _logger.Debug("Reply {Content} to {Identity}...", content, reqId);
 
             var ev = new AsyncManualResetEvent();
-            _replyQueue.Enqueue(
+            _replyQueue!.Enqueue(
                 (
                     ev,
                     _messageCodec.Encode(
@@ -582,7 +581,7 @@ namespace Libplanet.Net.Transports
             }
         }
 
-        private void ReceiveMessage(object sender, NetMQSocketEventArgs e)
+        private void ReceiveMessage(object? sender, NetMQSocketEventArgs e)
         {
             try
             {
@@ -700,7 +699,7 @@ namespace Libplanet.Net.Transports
         }
 
         private void DoReply(
-            object sender,
+            object? sender,
             NetMQQueueEventArgs<(AsyncManualResetEvent, NetMQMessage)> e
         )
         {
@@ -711,7 +710,7 @@ namespace Libplanet.Net.Transports
 
             // FIXME The current timeout value(1 sec) is arbitrary.
             // We should make this configurable or fix it to an unneeded structure.
-            if (_router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), message))
+            if (_router!.TrySendMultipartMessage(TimeSpan.FromSeconds(1), message))
             {
                 _logger.Debug(
                     "{Message} as a reply to {Identity} sent", messageType, reqId);

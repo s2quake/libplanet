@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -261,7 +260,7 @@ namespace Libplanet.Net
             try
             {
                 var blocksMsg = (GetBlocksMsg)message.Content;
-                string reqId = !(message.Identity is null) && message.Identity.Length == 16
+                string reqId = message.Identity.Length == 16
                     ? new Guid(message.Identity).ToString()
                     : "unknown";
                 _logger.Verbose(
