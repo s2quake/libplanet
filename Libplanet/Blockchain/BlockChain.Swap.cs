@@ -95,7 +95,7 @@ namespace Libplanet.Blockchain
                     HashSet<TxId> txIdsToUnstage = GetTxIdsWithRange(other, fastForwardPath);
                     foreach (TxId txId in txIdsToStage)
                     {
-                        StagePolicy.Stage(this, Store.GetTransaction(txId));
+                        StagePolicy.Stage(this, Store.GetTransaction(txId)!);
                     }
 
                     Store.SetCanonicalChainId(other.Id);
@@ -170,7 +170,7 @@ namespace Libplanet.Blockchain
 
                 foreach (BlockHash hash in fastForwardPath)
                 {
-                    Block block = Store.GetBlock(hash);
+                    Block block = Store.GetBlock(hash)!;
                     HashDigest<SHA256>? baseStateRootHash =
                         Store.GetStateRootHash(block.PreviousHash);
                     IReadOnlyList<ICommittedActionEvaluation> evaluations =

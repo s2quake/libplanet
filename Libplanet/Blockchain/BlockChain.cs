@@ -493,7 +493,7 @@ namespace Libplanet.Blockchain
         /// <see cref="Transaction.Id"/>.</param>
         /// <returns>The recorded <see cref="TxExecution"/>.  If the transaction has never been
         /// executed within the block, it returns <see langword="null"/> instead.</returns>
-        public TxExecution GetTxExecution(BlockHash blockHash, TxId txid) =>
+        public TxExecution? GetTxExecution(BlockHash blockHash, TxId txid) =>
             Store.GetTxExecution(blockHash, txid);
 
         /// <summary>
@@ -748,7 +748,7 @@ namespace Libplanet.Blockchain
                 Store.ForkBlockIndexes(Id, forkedId, point);
                 if (GetBlockCommit(point) is { } p)
                 {
-                    Store.PutChainBlockCommit(forkedId, GetBlockCommit(point));
+                    Store.PutChainBlockCommit(forkedId, GetBlockCommit(point)!);
                 }
 
                 Store.ForkTxNonces(Id, forked.Id);

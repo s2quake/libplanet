@@ -212,7 +212,7 @@ namespace Libplanet.Net
                 if (previousHash != null)
                 {
                     branchpoint = BlockChain.Store.GetBlock(
-                        (BlockHash)previousHash);
+                        (BlockHash)previousHash)!;
                     branchpointCommit = BlockChain.GetBlockCommit(branchpoint.Hash);
                 }
                 else
