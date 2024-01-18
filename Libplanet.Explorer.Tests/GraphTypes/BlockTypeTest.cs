@@ -83,8 +83,8 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                 blockType,
                 source: block
             );
-            Dictionary<string, object> resultData =
-                (Dictionary<string, object>)((ExecutionNode) result.Data!)?.ToValue()!;
+            Dictionary<string, object?> resultData =
+                (Dictionary<string, object?>)((ExecutionNode) result.Data!)?.ToValue()!;
             Assert.Null(result.Errors);
             Assert.Equal(block.Index, resultData["index"]);
             Assert.Equal(
@@ -103,14 +103,14 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                 ByteUtil.Hex(block.PreEvaluationHash.ToByteArray()),
                 resultData["preEvaluationHash"]);
 
-            var expectedLastCommit = new Dictionary<string, object>()
+            var expectedLastCommit = new Dictionary<string, object?>()
             {
                 { "height", lastBlockCommit.Height },
                 { "round", lastBlockCommit.Round },
                 { "blockHash", lastBlockCommit.BlockHash.ToString() },
                 { "votes", new object[]
                     {
-                        new Dictionary<string, object>()
+                        new Dictionary<string, object?>()
                         {
                             { "height", lastVotes[0].Height },
                             { "round", lastVotes[0].Round },

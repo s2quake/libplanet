@@ -1,4 +1,3 @@
-#nullable disable
 using System.Runtime.CompilerServices;
 using GraphQL.Types;
 using Libplanet.Action;
@@ -20,7 +19,7 @@ namespace Libplanet.Explorer.Interfaces
 
         Swarm Swarm { get; }
 
-        IBlockChainIndex Index { get; }
+        IBlockChainIndex? Index { get; }
     }
 
     public static class BlockChainContext
