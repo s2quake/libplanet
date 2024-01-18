@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -257,9 +256,9 @@ namespace Libplanet.Net.Tests
                 .ToImmutableArray();
             bc.Demand(initialDemands);
             _logger.Verbose("Initial demands: {0}", initialDemands);
-            IAsyncEnumerable<Tuple<Block, BlockCommit, char>> rv = bc.Complete(
+            IAsyncEnumerable<Tuple<Block, BlockCommit?, char>> rv = bc.Complete(
                 new[] { 'A', 'B', 'C', 'D' },
-                (peer, hashes, token) => new AsyncEnumerable<(Block, BlockCommit)>(
+                (peer, hashes, token) => new AsyncEnumerable<(Block, BlockCommit?)>(
                     async yield =>
                     {
                         var blocksPeerHas = peerBlocks[peer];
@@ -278,7 +277,7 @@ namespace Libplanet.Net.Tests
                     })
             );
 
-            var downloadedBlocks = new HashSet<Tuple<Block, BlockCommit>>();
+            var downloadedBlocks = new HashSet<Tuple<Block, BlockCommit?>>();
             var sourcePeers = new HashSet<char>();
             await AsyncEnumerable.ForEachAsync(rv, triple =>
             {
@@ -312,7 +311,7 @@ namespace Libplanet.Net.Tests
             long counter = 0;
             BlockCompletion<char>.BlockFetcher wrongBlockFetcher =
                 (peer, blockHashes, token) =>
-                    new AsyncEnumerable<(Block, BlockCommit)>(async yield =>
+                    new AsyncEnumerable<(Block, BlockCommit?)>(async yield =>
                     {
                         // Provides a wrong block (i.e., not corresponding to the demand)
                         // at first call, and then provide a proper block later calls.
@@ -322,9 +321,9 @@ namespace Libplanet.Net.Tests
                         Interlocked.Increment(ref counter);
                     });
 
-            Tuple<Block, BlockCommit, char>[] expected =
-                new[] { Tuple.Create(demand, demandCommit, 'A') };
-            Tuple<Block, BlockCommit, char>[] result =
+            Tuple<Block, BlockCommit?, char>[] expected =
+                new[] { Tuple.Create<Block, BlockCommit?, char>(demand, demandCommit, 'A') };
+            Tuple<Block, BlockCommit?, char>[] result =
                 await AsyncEnumerable.ToArrayAsync(bc.Complete(new[] { 'A' }, wrongBlockFetcher));
 
             Assert.Equal(expected, result);
@@ -339,7 +338,7 @@ namespace Libplanet.Net.Tests
 
             BlockCompletion<char>.BlockFetcher blockFetcher =
                 (peer, blockHashes, token) =>
-                    new AsyncEnumerable<(Block, BlockCommit)>(async yield =>
+                    new AsyncEnumerable<(Block, BlockCommit?)>(async yield =>
                     {
                         // Peer A does not respond and Peer B does respond.
                         if (peer == 'A')
@@ -361,7 +360,7 @@ namespace Libplanet.Net.Tests
                         }
                     });
 
-            Tuple<Block, BlockCommit, char>[] result =
+            Tuple<Block, BlockCommit?, char>[] result =
                 await AsyncEnumerable.ToArrayAsync(
                     bc.Complete(new[] { 'A', 'B' }, blockFetcher));
             Assert.Equal(
@@ -378,7 +377,7 @@ namespace Libplanet.Net.Tests
 
             BlockCompletion<char>.BlockFetcher blockFetcher =
                 (peer, blockHashes, token) =>
-                    new AsyncEnumerable<(Block, BlockCommit)>(async yield =>
+                    new AsyncEnumerable<(Block, BlockCommit?)>(async yield =>
                     {
                         // Peer A does crash and Peer B does respond.
                         if (peer == 'A')
@@ -395,7 +394,7 @@ namespace Libplanet.Net.Tests
                         }
                     });
 
-            Tuple<Block, BlockCommit, char>[] result =
+            Tuple<Block, BlockCommit?, char>[] result =
                 await AsyncEnumerable.ToArrayAsync(bc.Complete(new[] { 'A', 'B' }, blockFetcher));
             Assert.Equal(
                 fixture.Select(b => (b, 'B')).ToHashSet(),

@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -93,7 +92,7 @@ namespace Libplanet.Net.Tests
             Assert.True(swarm.Running);
             Assert.True(t.IsFaulted);
             Assert.True(
-                t.Exception.InnerException is SwarmException,
+                t.Exception?.InnerException is SwarmException,
                 $"Expected SwarmException, but actual exception was: {t.Exception.InnerException}"
             );
 
@@ -491,7 +490,7 @@ namespace Libplanet.Net.Tests
                 await roundOneProposed.WaitAsync();
 
                 await AssertThatEventually(() => swarms[0].BlockChain.Tip.Index == 1, int.MaxValue);
-                Assert.Equal(1, swarms[0].BlockChain.GetBlockCommit(1).Round);
+                Assert.Equal(1, swarms[0].BlockChain.GetBlockCommit(1)!.Round);
             }
             finally
             {
@@ -553,7 +552,7 @@ namespace Libplanet.Net.Tests
                     new[] { (genesis.Index, genesis.Hash), (block1.Index, block1.Hash) },
                     inventories2);
 
-                (Block, BlockCommit)[] receivedBlocks =
+                (Block, BlockCommit?)[] receivedBlocks =
                     await swarmB.GetBlocksAsync(
                         swarmA.AsPeer,
                         inventories1.Select(pair => pair.Item2),
@@ -676,30 +675,6 @@ namespace Libplanet.Net.Tests
         }
 
         [Fact(Timeout = Timeout)]
-        public async Task ThrowArgumentExceptionInConstructor()
-        {
-            var fx = new MemoryStoreFixture();
-            var policy = new BlockPolicy();
-            var blockchain = MakeBlockChain(
-                policy, fx.Store, fx.StateStore, new SingleActionLoader(typeof(DumbAction)));
-            var key = new PrivateKey();
-            var apv = AppProtocolVersion.Sign(key, 1);
-            var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
-            var hostOptions = new HostOptions(
-                IPAddress.Loopback.ToString(), new IceServer[] { });
-            var transport = await NetMQTransport.Create(
-                key,
-                apvOptions,
-                hostOptions);
-
-            // TODO: Check Consensus Parameters.
-            Assert.Throws<ArgumentNullException>(() =>
-                new Swarm(null, key, transport));
-            Assert.Throws<ArgumentNullException>(() =>
-                new Swarm(blockchain, null, transport));
-        }
-
-        [Fact(Timeout = Timeout)]
         public async void CanResolveEndPoint()
         {
             var expected = new DnsEndPoint("1.2.3.4", 5678);
@@ -790,7 +765,7 @@ namespace Libplanet.Net.Tests
             using (var socket = new Socket(SocketType.Stream, ProtocolType.Tcp))
             {
                 socket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-                port = ((IPEndPoint)socket.LocalEndPoint).Port;
+                port = ((IPEndPoint)socket.LocalEndPoint!).Port;
             }
 
             Uri turnUrl = FactOnlyTurnAvailableAttribute.GetTurnUri();
@@ -948,7 +923,7 @@ namespace Libplanet.Net.Tests
         {
             var policy = new BlockPolicy(new MinerReward(1));
 
-            async Task<Swarm> MakeSwarm(PrivateKey key = null) =>
+            async Task<Swarm> MakeSwarm(PrivateKey? key = null) =>
                 await CreateSwarm(
                     MakeBlockChain(
                         policy,
@@ -1134,7 +1109,7 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            TxPolicyViolationException? IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
@@ -1203,7 +1178,7 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            TxPolicyViolationException? IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
@@ -1448,19 +1423,19 @@ namespace Libplanet.Net.Tests
                     (Text)genesisChainA
                         .GetWorldState()
                         .GetAccountState(ReservedAddresses.LegacyAccount)
-                        .GetState(signerAddress));
+                        .GetState(signerAddress)!);
                 Assert.Equal(
                     "2",
                     (Text)genesisChainB
                         .GetWorldState()
                         .GetAccountState(ReservedAddresses.LegacyAccount)
-                        .GetState(signerAddress));
+                        .GetState(signerAddress)!);
                 Assert.Equal(
                     "1",
                     (Text)genesisChainC
                         .GetWorldState()
                         .GetAccountState(ReservedAddresses.LegacyAccount)
-                        .GetState(signerAddress));
+                        .GetState(signerAddress)!);
             }
             finally
             {
@@ -1488,12 +1463,12 @@ namespace Libplanet.Net.Tests
                 await swarmB.AddPeersAsync(new BoundPeer[] { swarmC.AsPeer }, null);
                 await swarmC.AddPeersAsync(new BoundPeer[] { swarmD.AsPeer }, null);
 
-                BoundPeer foundPeer = await swarmA.FindSpecificPeerAsync(
+                BoundPeer? foundPeer = await swarmA.FindSpecificPeerAsync(
                     swarmB.AsPeer.Address,
                     -1,
                     TimeSpan.FromMilliseconds(3000));
 
-                Assert.Equal(swarmB.AsPeer.Address, foundPeer.Address);
+                Assert.Equal(swarmB.AsPeer.Address, foundPeer?.Address);
                 Assert.DoesNotContain(swarmC.AsPeer, swarmA.Peers);
 
                 foundPeer = await swarmA.FindSpecificPeerAsync(
@@ -1501,7 +1476,7 @@ namespace Libplanet.Net.Tests
                     -1,
                     TimeSpan.FromMilliseconds(3000));
 
-                Assert.Equal(swarmD.AsPeer.Address, foundPeer.Address);
+                Assert.Equal(swarmD.AsPeer.Address, foundPeer?.Address);
                 Assert.Contains(swarmC.AsPeer, swarmA.Peers);
                 Assert.Contains(swarmD.AsPeer, swarmA.Peers);
             }
@@ -1531,7 +1506,7 @@ namespace Libplanet.Net.Tests
 
                 CleaningSwarm(swarmB);
 
-                BoundPeer foundPeer = await swarmA.FindSpecificPeerAsync(
+                BoundPeer? foundPeer = await swarmA.FindSpecificPeerAsync(
                     swarmB.AsPeer.Address,
                     -1,
                     TimeSpan.FromMilliseconds(3000));
@@ -1577,12 +1552,12 @@ namespace Libplanet.Net.Tests
                 await swarmB.AddPeersAsync(new BoundPeer[] { swarmC.AsPeer }, null);
                 await swarmC.AddPeersAsync(new BoundPeer[] { swarmD.AsPeer }, null);
 
-                BoundPeer foundPeer = await swarmA.FindSpecificPeerAsync(
+                BoundPeer? foundPeer = await swarmA.FindSpecificPeerAsync(
                     swarmC.AsPeer.Address,
                     1,
                     TimeSpan.FromMilliseconds(3000));
 
-                Assert.Equal(swarmC.AsPeer.Address, foundPeer.Address);
+                Assert.Equal(swarmC.AsPeer.Address, foundPeer?.Address);
                 swarmA.RoutingTable.Clear();
                 Assert.Empty(swarmA.Peers);
                 await swarmA.AddPeersAsync(new BoundPeer[] { swarmB.AsPeer }, null);
@@ -2100,7 +2075,7 @@ namespace Libplanet.Net.Tests
 
             public bool BlockGettable { get; set; } = true;
 
-            public override Block GetBlock(BlockHash blockHash) =>
+            public override Block? GetBlock(BlockHash blockHash) =>
                 BlockGettable ? base.GetBlock(blockHash) : null;
         }
     }

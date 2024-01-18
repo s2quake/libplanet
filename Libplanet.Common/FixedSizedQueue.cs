@@ -47,7 +47,6 @@ namespace Libplanet.Common
                 {
                     // Ensure we don't exceed the maximum size.
                     TryDequeue(out T _);
-#nullable restore
                 }
             }
         }

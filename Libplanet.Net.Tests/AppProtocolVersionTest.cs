@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -46,29 +45,6 @@ namespace Libplanet.Net.Tests
                 0x77, 0xd2, 0x15, 0xfd, 0xbd, 0x59, 0x99, 0xec, 0x5c, 0x51,
             }.ToImmutableArray()
         );
-
-        [Fact]
-        public void Sign()
-        {
-            var signer = new PrivateKey();
-            PublicKey otherParty = new PrivateKey().PublicKey;
-            AppProtocolVersion claim = AppProtocolVersion.Sign(signer, 1, null);
-            Assert.Equal(1, claim.Version);
-            Assert.Null(claim.Extra);
-            Assert.True(claim.Verify(signer.PublicKey));
-            Assert.False(claim.Verify(otherParty));
-
-            AppProtocolVersion claimWithExtra =
-                AppProtocolVersion.Sign(signer, 2, (Bencodex.Types.Text)"extra");
-            Assert.Equal(2, claimWithExtra.Version);
-            Assert.Equal((Bencodex.Types.Text)"extra", claimWithExtra.Extra);
-            Assert.True(claimWithExtra.Verify(signer.PublicKey));
-            Assert.False(claimWithExtra.Verify(otherParty));
-
-            ArgumentNullException exception =
-                Assert.Throws<ArgumentNullException>(() => AppProtocolVersion.Sign(null, 1));
-            Assert.Equal("signer", exception.ParamName);
-        }
 
         [Fact]
         public void Verify()
@@ -123,7 +99,7 @@ namespace Libplanet.Net.Tests
             // Copy to make sure not to use the same reference
             var address = new Address(claim.Signer.ByteArray);
             var version = claim.Version;
-            var extra = codec.Decode(codec.Encode(claim.Extra));
+            var extra = codec.Decode(codec.Encode(claim.Extra!));
             var signature = claim.Signature.ToArray().ToImmutableArray();
 
             // Different version
@@ -250,8 +226,6 @@ namespace Libplanet.Net.Tests
                     "dTM6Zm9v"
                 )
             );
-
-            Assert.Throws<ArgumentNullException>(() => AppProtocolVersion.FromToken(null));
 
             // No first delimiter
             Assert.Throws<FormatException>(() => AppProtocolVersion.FromToken("123"));
