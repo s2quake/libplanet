@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 #if !NETSTANDARD2_1
@@ -36,7 +35,7 @@ namespace Libplanet.Common
             foreach (TSource element in source)
             {
                 TComparable value = selector(element);
-                if (first || value.CompareTo(greatestValue) > 0)
+                if (first || value.CompareTo(greatestValue!) > 0)
                 {
                     greatestValue = value;
                     greatestElement = element;
@@ -50,7 +49,7 @@ namespace Libplanet.Common
                 throw new InvalidOperationException("Sequence contains no elements.");
             }
 
-            return greatestElement;
+            return greatestElement!;
         }
 
 #if !NETSTANDARD2_1
@@ -78,7 +77,7 @@ namespace Libplanet.Common
 
             var queue = new Queue<TSource>();
 
-            using IEnumerator<TSource> e = source.GetEnumerator();
+            using IEnumerator<TSource> e = source!.GetEnumerator();
             while (e.MoveNext())
             {
                 if (queue.Count == count)
