@@ -89,7 +89,7 @@ namespace Libplanet.Action.Tests
 
             foreach (KeyValuePair<T1, T2> pair in expected)
             {
-                if (!actual.TryGetValue(pair.Key, out var value) || !pair.Value.Equals(value))
+                if (!actual.TryGetValue(pair.Key, out var value) || !pair.Value!.Equals(value))
                 {
                     return false;
                 }
