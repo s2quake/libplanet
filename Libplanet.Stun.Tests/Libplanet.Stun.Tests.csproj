@@ -5,8 +5,7 @@
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsTestProject>true</IsTestProject>
-    <LangVersion>8.0</LangVersion>
-    <Nullable>enable</Nullable>
+    <LangVersion>10</LangVersion>
     <CodeAnalysisRuleSet>..\Libplanet.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 

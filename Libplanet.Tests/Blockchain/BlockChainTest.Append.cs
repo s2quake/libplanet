@@ -33,9 +33,9 @@ namespace Libplanet.Tests.Blockchain
         [InlineData(false)]
         public void Append(bool getTxExecutionViaStore)
         {
-            Func<BlockHash, TxId, TxExecution> getTxExecution
+            Func<BlockHash, TxId, TxExecution?> getTxExecution
                 = getTxExecutionViaStore
-                ? (Func<BlockHash, TxId, TxExecution>)_blockChain.Store.GetTxExecution
+                ? (Func<BlockHash, TxId, TxExecution?>)_blockChain.Store.GetTxExecution
                 : _blockChain.GetTxExecution;
 
             PrivateKey[] keys = Enumerable.Repeat(0, 5).Select(_ => new PrivateKey()).ToArray();
@@ -82,14 +82,14 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal("foo", actions[0].Item);
             Assert.Equal(2, renders[0].Context.BlockIndex);
             Assert.Equal(
-                new IValue[] { null, null, null, null, (Integer)1 },
+                new IValue?[] { null, null, null, null, (Integer)1 },
                 addresses.Select(_blockChain
                     .GetWorldState(renders[0].Context.PreviousState)
                     .GetAccountState(ReservedAddresses.LegacyAccount)
                     .GetState)
             );
             Assert.Equal(
-                new IValue[] { (Text)"foo", null, null, null, (Integer)1 },
+                new IValue?[] { (Text)"foo", null, null, null, (Integer)1 },
                 addresses.Select(_blockChain
                     .GetWorldState(renders[0].NextState)
                     .GetAccountState(ReservedAddresses.LegacyAccount)
@@ -108,7 +108,7 @@ namespace Libplanet.Tests.Blockchain
                     .GetState)
             );
             Assert.Equal(
-                new IValue[] { (Text)"foo", (Text)"bar", null, null, (Integer)1 },
+                new IValue?[] { (Text)"foo", (Text)"bar", null, null, (Integer)1 },
                 addresses.Select(
                     _blockChain.GetWorldState(renders[1].NextState)
                         .GetAccountState(ReservedAddresses.LegacyAccount).GetState)
@@ -124,7 +124,7 @@ namespace Libplanet.Tests.Blockchain
                         .GetAccountState(ReservedAddresses.LegacyAccount).GetState)
             );
             Assert.Equal(
-                new IValue[] { (Text)"foo", (Text)"bar", (Text)"baz", null, (Integer)1 },
+                new IValue?[] { (Text)"foo", (Text)"bar", (Text)"baz", null, (Integer)1 },
                 addresses.Select(
                     _blockChain
                         .GetWorldState(renders[2].NextState)
@@ -166,7 +166,7 @@ namespace Libplanet.Tests.Blockchain
                 (Integer)_blockChain
                     .GetWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(minerAddress));
+                    .GetState(minerAddress)!);
             Assert.Equal(2, blockRenders.Length);
             Assert.True(blockRenders.All(r => r.Render));
             Assert.Equal(1, blockRenders[0].Context.BlockIndex);
@@ -177,21 +177,21 @@ namespace Libplanet.Tests.Blockchain
                 (Integer)_blockChain
                     .GetWorldState(blockRenders[0].NextState)
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(minerAddress)
+                    .GetState(minerAddress)!
             );
             Assert.Equal(
                 (Integer)1,
                 (Integer)_blockChain
                     .GetWorldState(blockRenders[1].Context.PreviousState)
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(minerAddress)
+                    .GetState(minerAddress)!
             );
             Assert.Equal(
                 (Integer)2,
                 (Integer)_blockChain
                     .GetWorldState(blockRenders[1].NextState)
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(minerAddress)
+                    .GetState(minerAddress)!
             );
 
             foreach (Transaction tx in txs)
@@ -199,7 +199,7 @@ namespace Libplanet.Tests.Blockchain
                 Assert.Null(getTxExecution(genesis.Hash, tx.Id));
                 Assert.Null(getTxExecution(block1.Hash, tx.Id));
 
-                TxExecution e = getTxExecution(block2.Hash, tx.Id);
+                TxExecution e = getTxExecution(block2.Hash, tx.Id)!;
                 Assert.False(e.Fail);
                 Assert.Equal(block2.Hash, e.BlockHash);
                 Assert.Equal(tx.Id, e.TxId);
@@ -246,7 +246,7 @@ namespace Libplanet.Tests.Blockchain
                 new[] { tx1Transfer, tx2Error, tx3Transfer }.ToImmutableList(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip));
             _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
-            var txExecution1 = getTxExecution(block3.Hash, tx1Transfer.Id);
+            var txExecution1 = getTxExecution(block3.Hash, tx1Transfer.Id)!;
             _logger.Verbose(nameof(txExecution1) + " = {@TxExecution}", txExecution1);
             Assert.False(txExecution1.Fail);
             var inputAccount1 = _blockChain.GetWorldState(
@@ -281,7 +281,7 @@ namespace Libplanet.Tests.Blockchain
                 DumbAction.DumbCurrency * 20,
                 outputAccount1.GetBalance(addresses[2], DumbAction.DumbCurrency));
 
-            var txExecution2 = getTxExecution(block3.Hash, tx2Error.Id);
+            var txExecution2 = getTxExecution(block3.Hash, tx2Error.Id)!;
             _logger.Verbose(nameof(txExecution2) + " = {@TxExecution}", txExecution2);
             Assert.True(txExecution2.Fail);
             Assert.Equal(block3.Hash, txExecution2.BlockHash);
@@ -290,7 +290,7 @@ namespace Libplanet.Tests.Blockchain
                 $"{nameof(System)}.{nameof(ArgumentOutOfRangeException)}",
                 txExecution2.ExceptionNames);
 
-            var txExecution3 = getTxExecution(block3.Hash, tx3Transfer.Id);
+            var txExecution3 = getTxExecution(block3.Hash, tx3Transfer.Id)!;
             _logger.Verbose(nameof(txExecution3) + " = {@TxExecution}", txExecution3);
             Assert.False(txExecution3.Fail);
             var outputAccount3 = _blockChain.GetWorldState(
@@ -348,7 +348,7 @@ namespace Libplanet.Tests.Blockchain
         {
             DumbAction[] manyActions =
                 Enumerable.Repeat(new DumbAction(default, "_"), 200).ToArray();
-            PrivateKey signer = null;
+            PrivateKey? signer = null;
             int nonce = 0;
             var heavyTxs = new List<Transaction>();
             for (int i = 0; i < 100; i++)
@@ -444,7 +444,7 @@ namespace Libplanet.Tests.Blockchain
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            TxPolicyViolationException? IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;

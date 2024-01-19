@@ -5,8 +5,8 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <IsPublishable>false</IsPublishable>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+        <LangVersion>10</LangVersion>
+        </PropertyGroup>
 
 
     <ItemGroup>

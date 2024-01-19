@@ -26,7 +26,7 @@ namespace Libplanet.Tests.Store
 {
     public abstract class StoreTest
     {
-        private ILogger _logger = null;
+        private ILogger? _logger = null;
 
         protected abstract ITestOutputHelper TestOutputHelper { get; }
 
@@ -392,9 +392,9 @@ namespace Libplanet.Tests.Store
         [SkippableFact]
         public void TxExecution()
         {
-            void AssertTxExecutionEqual(TxExecution expected, TxExecution actual)
+            void AssertTxExecutionEqual(TxExecution expected, TxExecution? actual)
             {
-                Assert.Equal(expected.Fail, actual.Fail);
+                Assert.Equal(expected.Fail, actual!.Fail);
                 Assert.Equal(expected.TxId, actual.TxId);
                 Assert.Equal(expected.BlockHash, actual.BlockHash);
                 Assert.Equal(expected.InputState, actual.InputState);
@@ -413,7 +413,7 @@ namespace Libplanet.Tests.Store
                 false,
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { string.Empty });
+                new List<string?>() { string.Empty });
             Fx.Store.PutTxExecution(inputA);
 
             AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
@@ -427,7 +427,7 @@ namespace Libplanet.Tests.Store
                 true,
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnExceptionName" });
+                new List<string?>() { "AnExceptionName" });
             Fx.Store.PutTxExecution(inputB);
 
             AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
@@ -441,7 +441,7 @@ namespace Libplanet.Tests.Store
                 true,
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnotherExceptionName", "YetAnotherExceptionName" });
+                new List<string?>() { "AnotherExceptionName", "YetAnotherExceptionName" });
             Fx.Store.PutTxExecution(inputC);
 
             AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
@@ -1060,7 +1060,7 @@ namespace Libplanet.Tests.Store
                     miner: fx.Proposer);
 
                 fx.Store.PutBlock(block);
-                Block storedBlock =
+                Block? storedBlock =
                     fx.Store.GetBlock(block.Hash);
 
                 Assert.Equal(block, storedBlock);
@@ -1089,7 +1089,7 @@ namespace Libplanet.Tests.Store
 
                 BlockCommit commit = new BlockCommit(height, round, hash, votes);
                 fx.Store.PutBlockCommit(commit);
-                BlockCommit storedCommitVotes =
+                BlockCommit? storedCommitVotes =
                     fx.Store.GetBlockCommit(commit.BlockHash);
 
                 Assert.Equal(commit, storedCommitVotes);
@@ -1132,7 +1132,7 @@ namespace Libplanet.Tests.Store
                 IEnumerable<BlockHash> indices = fx.Store.GetBlockCommitHashes();
 
                 HashSet<long> indicesFromOperation = indices
-                    .Select(hash => fx.Store.GetBlockCommit(hash).Height)
+                    .Select(hash => fx.Store.GetBlockCommit(hash)!.Height)
                     .ToHashSet();
                 HashSet<long> expectedIndices = new HashSet<long>() { 1, 2 };
 

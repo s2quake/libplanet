@@ -6,9 +6,8 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <RootNamespace>Libplanet.Explorer.Cocona.Tests</RootNamespace>
-        <LangVersion>8</LangVersion>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+        <LangVersion>10</LangVersion>
+        </PropertyGroup>
 
     <PropertyGroup Condition=" '$(TestsTargetFramework)'!='' ">
         <TargetFramework>$(TestsTargetFramework)</TargetFramework>

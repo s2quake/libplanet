@@ -139,7 +139,7 @@ namespace Libplanet.Tests.Blockchain
                         txHash: null,
                         // ReSharper disable once PossibleInvalidOperationException
                         lastCommit: TestUtils.CreateBlockCommit(
-                            _validNext.PreviousHash.Value, 1, 0))).Propose(),
+                            _validNext.PreviousHash!.Value, 1, 0))).Propose(),
                 _fx.Proposer);
             Assert.Throws<InvalidBlockPreviousHashException>(() =>
                     _blockChain.Append(
@@ -470,7 +470,7 @@ namespace Libplanet.Tests.Blockchain
                 _fx.Proposer);
 
             Assert.Throws<InvalidBlockCommitException>(() =>
-                _blockChain.Append(validNextBlock, null));
+                _blockChain.Append(validNextBlock, null!));
         }
 
         [SkippableFact]

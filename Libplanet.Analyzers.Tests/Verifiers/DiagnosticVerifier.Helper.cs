@@ -48,8 +48,8 @@ namespace Libplanet.Analyzers.Tests.Verifiers
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
             {
-                Compilation result = project.GetCompilationAsync().Result;
-                EmitResult emitted = result.Emit(new MemoryStream());
+                Compilation? result = project.GetCompilationAsync().Result;
+                EmitResult emitted = result!.Emit(new MemoryStream());
                 if (!emitted.Success)
                 {
                     throw new InvalidOperationException(
@@ -208,7 +208,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                 count++;
             }
 
-            return solution.GetProject(projectId);
+            return solution!.GetProject(projectId)!;
         }
 
         private static IEnumerable<Assembly> GetAssemblies(params Type[] rootTypes)
@@ -217,12 +217,12 @@ namespace Libplanet.Analyzers.Tests.Verifiers
 
             void Register(Assembly assembly)
             {
-                if (assembly.IsDynamic || registry.ContainsKey(assembly.FullName))
+                if (assembly.IsDynamic || registry.ContainsKey(assembly.FullName!))
                 {
                     return;
                 }
 
-                registry.Add(assembly.FullName, assembly);
+                registry.Add(assembly.FullName!, assembly);
                 foreach (AssemblyName @ref in assembly.GetReferencedAssemblies())
                 {
                     if (!registry.ContainsKey(@ref.FullName))

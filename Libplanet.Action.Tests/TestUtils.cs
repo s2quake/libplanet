@@ -41,7 +41,7 @@ namespace Libplanet.Action.Tests
             string diff = string.Join(
                 Environment.NewLine,
                 diffModel.Lines.Select(line =>
-                    (prefixes.TryGetValue(line.Type, out string prefix) ? prefix : " ") + line.Text
+                    (prefixes.TryGetValue(line.Type, out var prefix) ? prefix : " ") + line.Text
                 )
             );
             throw new XunitException(
@@ -89,7 +89,7 @@ namespace Libplanet.Action.Tests
 
             foreach (KeyValuePair<T1, T2> pair in expected)
             {
-                if (!actual.TryGetValue(pair.Key, out T2 value) || !pair.Value.Equals(value))
+                if (!actual.TryGetValue(pair.Key, out var value) || !pair.Value.Equals(value))
                 {
                     return false;
                 }

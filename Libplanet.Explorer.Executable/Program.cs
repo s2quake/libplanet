@@ -124,7 +124,7 @@ consecutive blocks.")]
                 "app-protocol-version",
                 new[] { 'V' },
                 Description = "An app protocol version token.")]
-            string appProtocolVersionToken = null,
+            string? appProtocolVersionToken = null,
             [Option(
                 "max-transactions-per-block",
                 Description = @"The number of maximum transactions able to be included
@@ -147,12 +147,14 @@ in the genesis block.")]
 seed is a comma-separated triple of a peer's hexadecimal public key, host, and port number.
 E.g., `02ed49dbe0f2c34d9dff8335d6dd9097f7a3ef17dfb5f048382eebc7f451a50aa1,example.com,31234'.
 If omitted (default) explorer only the local blockchain store.")]
-            string[] seedStrings = null,
+#pragma warning disable SA1011 // NullableTypeSymbolsMustNotBePrecededBySpace
+            string[]? seedStrings = null,
+#pragma warning restore SA101 // NullableTypeSymbolsMustNotBePrecededBySpace
             [Option(
                 "ice-server",
                 new[] { 'I' },
                 Description = "URL to ICE server (TURN/STUN) to work around NAT.")]
-            string iceServerUrl = null
+            string? iceServerUrl = null
         )
         {
             Options options = new Options(
@@ -161,12 +163,12 @@ If omitted (default) explorer only the local blockchain store.")]
                 port,
                 blockIntervalMilliseconds,
                 difficultyBoundDivisor,
-                appProtocolVersionToken,
+                appProtocolVersionToken ?? string.Empty,
                 maxTransactionsPerBlock,
                 maxTransactionsBytes,
                 maxGenesisTransactionsBytes,
-                seedStrings,
-                iceServerUrl,
+                seedStrings ?? Array.Empty<string>(),
+                iceServerUrl ?? string.Empty,
                 storePath,
                 storeType,
                 genesisBlockPath);
@@ -213,7 +215,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     .UseUrls($"http://{options.Host}:{options.Port}/")
                     .Build();
 
-                Swarm swarm = null;
+                Swarm? swarm = null;
                 if (!(options.Seeds is null))
                 {
                     string aggregatedSeedStrings =
@@ -289,12 +291,12 @@ If omitted (default) explorer only the local blockchain store.")]
                     {
                         await Task.WhenAll(
                             webHost.RunAsync(cts.Token),
-                            StartSwarmAsync(swarm, cts.Token)
+                            StartSwarmAsync(swarm!, cts.Token)
                         );
                     }
                     catch (OperationCanceledException)
                     {
-                        await swarm?.StopAsync(waitFor: TimeSpan.FromSeconds(1))
+                        await swarm!.StopAsync(waitFor: TimeSpan.FromSeconds(1))
                             .ContinueWith(_ => NetMQConfig.Cleanup(false));
                     }
                 }
@@ -384,7 +386,7 @@ If omitted (default) explorer only the local blockchain store.")]
                 _impl = blockPolicy;
             }
 
-            public IAction BlockAction => _impl.BlockAction;
+            public IAction? BlockAction => _impl.BlockAction;
 
             public int GetMinTransactionsPerBlock(long index) =>
                 _impl.GetMinTransactionsPerBlock(index);
@@ -397,12 +399,12 @@ If omitted (default) explorer only the local blockchain store.")]
 
             public long GetNextBlockDifficulty(BlockChain blocks) => 0;
 
-            public TxPolicyViolationException ValidateNextBlockTx(
+            public TxPolicyViolationException? ValidateNextBlockTx(
                 BlockChain blockChain,
                 Transaction transaction) =>
                 _impl.ValidateNextBlockTx(blockChain, transaction);
 
-            public BlockPolicyViolationException ValidateNextBlock(
+            public BlockPolicyViolationException? ValidateNextBlock(
                 BlockChain blockChain,
                 Block nextBlock
             ) => _impl.ValidateNextBlock(blockChain, nextBlock);
@@ -415,36 +417,40 @@ If omitted (default) explorer only the local blockchain store.")]
         {
             public bool Preloaded => PreloadedSingleton;
 
-            public BlockChain BlockChain => BlockChainSingleton;
+            public BlockChain BlockChain => BlockChainSingleton ??
+                throw new InvalidOperationException();
 
-            public IStore Store => StoreSingleton;
+            public IStore Store => StoreSingleton ??
+                throw new InvalidOperationException();
 
-            public Swarm Swarm => SwarmSingleton;
+            public Swarm Swarm => SwarmSingleton ?? throw new InvalidOperationException();
 
             // XXX workaround for build; we decided to decommission Libplanet.Explorer.Executable
             // project, but it will be removed after we move the schema command. As this project
             // does not work as is, this change is barely enough to allow the build.
             // See also: https://github.com/planetarium/libplanet/discussions/2588
-            public IBlockChainIndex Index => null;
+            public IBlockChainIndex? Index => null;
 
             internal static bool PreloadedSingleton { get; set; }
 
-            internal static BlockChain BlockChainSingleton { get; set; }
+            internal static BlockChain? BlockChainSingleton { get; set; }
 
-            internal static IStore StoreSingleton { get; set; }
+            internal static IStore? StoreSingleton { get; set; }
 
-            internal static Swarm SwarmSingleton { get; set; }
+            internal static Swarm? SwarmSingleton { get; set; }
         }
 
         private class NoOpStateStore : IStateStore
         {
-            public ITrie GetStateRoot(HashDigest<SHA256>? stateRootHash) => null;
+            public ITrie GetStateRoot(HashDigest<SHA256>? stateRootHash) =>
+                throw new NotSupportedException();
 
             public void PruneStates(IImmutableSet<HashDigest<SHA256>> survivingStateRootHashes)
             {
             }
 
-            public ITrie Commit(ITrie trie) => null;
+            public ITrie Commit(ITrie trie) =>
+                throw new NotSupportedException();
 
             public void Dispose()
             {

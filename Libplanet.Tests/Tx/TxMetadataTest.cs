@@ -196,6 +196,8 @@ namespace Libplanet.Tests.Tx
 
         private class MetadataTransaction : ITransaction
         {
+            private PublicKey? _publicKey;
+
             public TxId Id { get; set; } = default(TxId);
 
             public long Nonce { get; set; } = 0L;
@@ -207,7 +209,11 @@ namespace Libplanet.Tests.Tx
 
             public DateTimeOffset Timestamp { get; set; }
 
-            public PublicKey PublicKey { get; set; }
+            public PublicKey PublicKey
+            {
+                get => _publicKey ?? throw new InvalidOperationException();
+                set => _publicKey = value;
+            }
 
             public BlockHash? GenesisHash { get; set; }
 
@@ -219,11 +225,11 @@ namespace Libplanet.Tests.Tx
 
             public long? GasLimit => null;
 
-            bool IEquatable<ITxInvoice>.Equals(ITxInvoice other) => false;
+            bool IEquatable<ITxInvoice>.Equals(ITxInvoice? other) => false;
 
-            bool IEquatable<ITxSigningMetadata>.Equals(ITxSigningMetadata other) => false;
+            bool IEquatable<ITxSigningMetadata>.Equals(ITxSigningMetadata? other) => false;
 
-            bool IEquatable<IUnsignedTx>.Equals(IUnsignedTx other) => false;
+            bool IEquatable<IUnsignedTx>.Equals(IUnsignedTx? other) => false;
         }
     }
 }

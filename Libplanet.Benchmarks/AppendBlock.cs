@@ -15,9 +15,9 @@ namespace Libplanet.Benchmarks
     {
         private Libplanet.Blockchain.BlockChain _blockChain;
         private PrivateKey _privateKey;
-        private BlockCommit _lastCommit;
-        private Block _block;
-        private BlockCommit _commit;
+        private BlockCommit? _lastCommit;
+        private Block? _block;
+        private BlockCommit? _commit;
 
         public AppendBlock()
         {
@@ -90,25 +90,25 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void AppendBlockOneTransactionNoAction()
         {
-            _blockChain.Append(_block, blockCommit: _commit);
+            _blockChain.Append(_block!, blockCommit: _commit!);
         }
 
         [Benchmark]
         public void AppendBlockTenTransactionsNoAction()
         {
-            _blockChain.Append(_block, blockCommit: _commit);
+            _blockChain.Append(_block!, blockCommit: _commit!);
         }
 
         [Benchmark]
         public void AppendBlockOneTransactionWithActions()
         {
-            _blockChain.Append(_block, blockCommit: _commit);
+            _blockChain.Append(_block!, blockCommit: _commit!);
         }
 
         [Benchmark]
         public void AppendBlockTenTransactionsWithActions()
         {
-            _blockChain.Append(_block, blockCommit: _commit);
+            _blockChain.Append(_block!, blockCommit: _commit!);
         }
 
         private void PrepareAppend()

@@ -244,7 +244,7 @@ namespace Libplanet.Types.Tx
         /// </exception>
         public static Transaction Create(
             long nonce,
-            PrivateKey privateKey,
+            PrivateKey? privateKey,
             BlockHash? genesisHash,
             IEnumerable<IValue> actions,
             FungibleAssetValue? maxGasPrice = null,
@@ -301,7 +301,7 @@ namespace Libplanet.Types.Tx
 
         private static Transaction Create(
             long nonce,
-            PrivateKey privateKey,
+            PrivateKey? privateKey,
             BlockHash? genesisHash,
             TxActionList actions,
             FungibleAssetValue? maxGasPrice = null,

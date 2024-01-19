@@ -78,7 +78,7 @@ namespace Libplanet.Tests.Blockchain.Policies
         {
             var validKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            TxPolicyViolationException? IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
@@ -107,7 +107,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            TxPolicyViolationException? IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
@@ -117,7 +117,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             }
 
             //Invalid Transaction with inner-exception
-            TxPolicyViolationException IsSignerValidWithInnerException(
+            TxPolicyViolationException? IsSignerValidWithInnerException(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
@@ -136,7 +136,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             var invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
             var expected = policy.ValidateNextBlockTx(_chain, invalidTx);
             Assert.NotNull(expected);
-            Assert.Null(expected.InnerException);
+            Assert.Null(expected!.InnerException);
 
             // Invalid Transaction with Inner-exception.
             policy = new BlockPolicy(
@@ -145,7 +145,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
             expected = policy.ValidateNextBlockTx(_chain, invalidTx);
             Assert.NotNull(expected);
-            Assert.NotNull(expected.InnerException);
+            Assert.NotNull(expected!.InnerException);
         }
 
         [Fact]

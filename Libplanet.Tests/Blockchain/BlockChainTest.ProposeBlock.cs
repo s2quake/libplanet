@@ -90,7 +90,7 @@ namespace Libplanet.Tests.Blockchain
             // according to the right size.
             DumbAction[] manyActions =
                 Enumerable.Repeat(new DumbAction(default, "_"), 200).ToArray();
-            PrivateKey signer = null;
+            PrivateKey? signer = null;
             int nonce = 0;
             for (int i = 0; i < 100; i++)
             {
@@ -354,7 +354,7 @@ namespace Libplanet.Tests.Blockchain
                 ((string)(Text)_blockChain
                     .GetWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(addrD)).Split(new[] { ',' }).ToHashSet()
+                    .GetState(addrD)!).Split(new[] { ',' }).ToHashSet()
             );
             Assert.Equal(
                 new Text("5b"),
@@ -365,7 +365,7 @@ namespace Libplanet.Tests.Blockchain
 
             foreach (Transaction tx in new[] { txs[0], txs[1], txs[4] })
             {
-                TxExecution txx = _blockChain.GetTxExecution(block.Hash, tx.Id);
+                TxExecution txx = _blockChain.GetTxExecution(block.Hash, tx.Id)!;
                 _logger.Debug(
                     nameof(_blockChain.GetTxExecution) + "({Hash}, {Id}) = {TxExecution}",
                     block.Hash,
@@ -385,7 +385,7 @@ namespace Libplanet.Tests.Blockchain
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            TxPolicyViolationException? IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;

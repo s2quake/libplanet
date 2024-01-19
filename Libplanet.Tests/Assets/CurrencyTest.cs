@@ -40,14 +40,14 @@ namespace Libplanet.Tests.Assets
             Assert.Equal("BAR", bar.Ticker);
             Assert.Equal(0, bar.DecimalPlaces);
             Assert.Equal(new FungibleAssetValue(bar, 100, 0), bar.MaximumSupply);
-            Assert.True(bar.Minters.SetEquals(new[] { AddressA, AddressB }));
+            Assert.True(bar.Minters!.SetEquals(new[] { AddressA, AddressB }));
             Assert.True(bar.TotalSupplyTrackable);
 
             var baz = Currency.Uncapped("baz", 1, AddressA);
             Assert.Equal("baz", baz.Ticker);
             Assert.Equal(1, baz.DecimalPlaces);
             Assert.Null(baz.MaximumSupply);
-            Assert.True(baz.Minters.SetEquals(new[] { AddressA }));
+            Assert.True(baz.Minters!.SetEquals(new[] { AddressA }));
             Assert.True(baz.TotalSupplyTrackable);
 
             var qux = Currency.Uncapped("QUX", 0, null);

@@ -15,8 +15,8 @@ namespace Libplanet.Benchmarks
     {
         private Libplanet.Blockchain.BlockChain _blockChain;
         private PrivateKey _privateKey;
-        private BlockCommit _lastCommit;
-        private Block _block;
+        private BlockCommit? _lastCommit;
+        private Block? _block;
 
         public ProposeBlock()
         {
@@ -53,7 +53,7 @@ namespace Libplanet.Benchmarks
         public void CleanupPropose()
         {
             // To unstaging transactions, a block is appended to blockchain.
-            _blockChain.Append(_block, TestUtils.CreateBlockCommit(_block));
+            _blockChain.Append(_block!, TestUtils.CreateBlockCommit(_block!));
         }
 
         [IterationSetup(Target = nameof(ProposeBlockOneTransactionNoAction))]

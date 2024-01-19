@@ -70,13 +70,13 @@ namespace Libplanet.Explorer.Executable
         {
             get
             {
-                return Seeds?.Select(seed => $"{ByteUtil.Hex(seed.PublicKey.Format(true))}," +
+                return Seeds.Select(seed => $"{ByteUtil.Hex(seed.PublicKey.Format(true))}," +
                                              $"{seed.EndPoint.Host},{seed.EndPoint.Port}");
             }
 
             set
             {
-                Seeds = value?.Select(str =>
+                Seeds = value.Select(str =>
                 {
                     string[] parts = str.Split(',');
                     if (parts.Length != 3)
@@ -93,15 +93,15 @@ namespace Libplanet.Explorer.Executable
             }
         }
 
-        public IEnumerable<BoundPeer> Seeds { get; set; }
+        public IEnumerable<BoundPeer> Seeds { get; set; } = Array.Empty<BoundPeer>();
 
         public string IceServerUrl
         {
-            get => IceServer is null ? null : IceServer.Url.ToString();
+            get => IceServer is null ? string.Empty : IceServer.Url.ToString();
             set => IceServer = value is null ? null : new IceServer(value);
         }
 
-        public IceServer IceServer { get; set; }
+        public IceServer? IceServer { get; set; }
 
         public string StorePath { get; set; }
 

@@ -244,13 +244,13 @@ namespace Libplanet.Tests.Blockchain
             chain.StageTransaction(tx1);
             Block block1 = chain.ProposeBlock(new PrivateKey());
             chain.Append(block1, CreateBlockCommit(block1));
-            IValue state = chain
+            IValue? state = chain
                 .GetWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
                 .GetState(_fx.Address1);
             Assert.NotNull(state);
 
-            var result = BattleResult.FromBencodex((Bencodex.Types.Dictionary)state);
+            var result = BattleResult.FromBencodex((Bencodex.Types.Dictionary)state!);
             Assert.Contains("sword", result.UsedWeapons);
             Assert.Contains("staff", result.UsedWeapons);
             Assert.Contains("orc", result.Targets);
@@ -281,7 +281,7 @@ namespace Libplanet.Tests.Blockchain
                 .GetWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
                 .GetState(_fx.Address1);
-            result = BattleResult.FromBencodex((Bencodex.Types.Dictionary)state);
+            result = BattleResult.FromBencodex((Bencodex.Types.Dictionary)state!);
             Assert.Contains("bow", result.UsedWeapons);
 
             var tx3 = Transaction.Create(
@@ -792,7 +792,7 @@ namespace Libplanet.Tests.Blockchain
         [InlineData(false)]
         public void Swap(bool render)
         {
-            Assert.Throws<ArgumentNullException>(() => _blockChain.Swap(null, render)());
+            Assert.Throws<ArgumentNullException>(() => _blockChain.Swap(null!, render)());
 
             (var addresses, Transaction[] txs1) =
                 MakeFixturesForAppendTests();
@@ -943,7 +943,7 @@ namespace Libplanet.Tests.Blockchain
                     (Integer)_blockChain
                         .GetWorldState()
                         .GetAccountState(ReservedAddresses.LegacyAccount)
-                        .GetState(minerAddress)
+                        .GetState(minerAddress)!
                 );
                 Assert.Single(blockActionRenders); // #1 -> #2'
                 Assert.True(blockActionRenders.All(r => r.Render));
@@ -1216,7 +1216,7 @@ namespace Libplanet.Tests.Blockchain
 
             tracker.ClearLogs();
             Address nonexistent = new PrivateKey().Address;
-            IValue result = chain
+            IValue? result = chain
                 .GetWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
                 .GetState(nonexistent);
@@ -1249,7 +1249,7 @@ namespace Libplanet.Tests.Blockchain
                 (Text)chain
                     .GetWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(_fx.Address1));
+                    .GetState(_fx.Address1)!);
 
             chain.MakeTransaction(
                 privateKey,
@@ -1270,7 +1270,7 @@ namespace Libplanet.Tests.Blockchain
                 (Text)chain
                     .GetWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(_fx.Address1));
+                    .GetState(_fx.Address1)!);
 
             var forked = chain.Fork(chain.Tip.Hash);
             Assert.Equal(2, forked.Count);
@@ -1286,7 +1286,7 @@ namespace Libplanet.Tests.Blockchain
                 (Text)forked
                     .GetWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetState(_fx.Address1));
+                    .GetState(_fx.Address1)!);
         }
 
         [SkippableFact]
@@ -1705,15 +1705,15 @@ namespace Libplanet.Tests.Blockchain
             IValue miner1state = _blockChain
                 .GetWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(miner1.Address);
+                .GetState(miner1.Address)!;
             IValue miner2state = _blockChain
                 .GetWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(miner2.Address);
+                .GetState(miner2.Address)!;
             IValue rewardState = _blockChain
                 .GetWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(rewardRecordAddress);
+                .GetState(rewardRecordAddress)!;
 
             AssertBencodexEqual((Integer)2, miner1state);
             AssertBencodexEqual((Integer)1, miner2state);
@@ -1762,7 +1762,7 @@ namespace Libplanet.Tests.Blockchain
             MakeIncompleteBlockStates(
                 IStore store,
                 IStateStore stateStore,
-                IRenderer renderer = null)
+                IRenderer? renderer = null)
         {
             List<int> presentIndices = new List<int>() { 4, 7 };
             List<Block> presentBlocks = new List<Block>();
@@ -1805,7 +1805,7 @@ namespace Libplanet.Tests.Blockchain
             Block b = chain.Genesis;
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             const int accountsCount = 5;
-            Address[] addresses = Enumerable.Repeat<object>(null, accountsCount)
+            Address[] addresses = Enumerable.Repeat<object?>(null, accountsCount)
                 .Select(_ => new PrivateKey().Address)
                 .ToArray();
             for (int i = 0; i < 2; ++i)
@@ -1858,13 +1858,13 @@ namespace Libplanet.Tests.Blockchain
         /// </summary>
         /// <param name="blockAction">The block action to use.</param>
         /// <returns>The store fixture that every test in this class depends on.</returns>
-        protected virtual StoreFixture GetStoreFixture(IAction blockAction) =>
+        protected virtual StoreFixture GetStoreFixture(IAction? blockAction) =>
             new MemoryStoreFixture(blockAction: blockAction);
 
         private (Address[], Transaction[]) MakeFixturesForAppendTests(
-            PrivateKey privateKey = null,
+            PrivateKey? privateKey = null,
             DateTimeOffset epoch = default,
-            PrivateKey[] keys = null
+            PrivateKey[]? keys = null
         )
         {
             Address[] addresses = keys is PrivateKey[] ks
@@ -2034,7 +2034,7 @@ namespace Libplanet.Tests.Blockchain
                 .ToArray();
             for (int i = 0; i < states.Length; ++i)
             {
-                Assert.Equal((Text)states[i], i.ToString());
+                Assert.Equal((Text)states[i]!, i.ToString());
             }
         }
 
@@ -2323,7 +2323,7 @@ namespace Libplanet.Tests.Blockchain
                 _hook = hook;
             }
 
-            public override TxPolicyViolationException ValidateNextBlockTx(
+            public override TxPolicyViolationException? ValidateNextBlockTx(
                 BlockChain blockChain,
                 Transaction transaction
             )
@@ -2332,7 +2332,7 @@ namespace Libplanet.Tests.Blockchain
                 return base.ValidateNextBlockTx(blockChain, transaction);
             }
 
-            public override BlockPolicyViolationException ValidateNextBlock(
+            public override BlockPolicyViolationException? ValidateNextBlock(
                 BlockChain blocks,
                 Block nextBlock
             )

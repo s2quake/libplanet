@@ -40,7 +40,7 @@ namespace Libplanet.Tests.JsonConverters
             var reader = new Utf8JsonReader(jsonBytes);
             reader.Read();
             var converter = new ByteArrayJsonConverter();
-            IReadOnlyList<byte> actual = converter.Read(ref reader, typeof(byte[]), null);
+            IReadOnlyList<byte>? actual = converter.Read(ref reader, typeof(byte[]), null);
             Assert.IsType<byte[]>(actual);
             Assert.Equal(new byte[] { 0xc4, 0x92, 0xa0 }, actual);
 

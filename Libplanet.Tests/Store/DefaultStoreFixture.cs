@@ -8,7 +8,10 @@ namespace Libplanet.Tests.Store
 {
     public class DefaultStoreFixture : StoreFixture, IDisposable
     {
-        public DefaultStoreFixture(bool memory = true, IAction blockAction = null)
+        private readonly IStore _store;
+        private readonly IStateStore _stateStore;
+
+        public DefaultStoreFixture(bool memory = true, IAction? blockAction = null)
             : base(blockAction)
         {
             if (memory)
@@ -25,12 +28,21 @@ namespace Libplanet.Tests.Store
 
             Scheme = "default+file://";
 
-            var store = new DefaultStore(Path, blockCacheSize: 2, txCacheSize: 2);
-            Store = store;
-            StateStore = LoadTrieStateStore(Path);
+            _store = new DefaultStore(Path, blockCacheSize: 2, txCacheSize: 2);
+            _stateStore = LoadTrieStateStore(Path);
         }
 
-        public IStateStore LoadTrieStateStore(string path)
+        public override IStore Store => _store;
+
+        public override IStateStore StateStore => _stateStore;
+
+        public override IKeyValueStore StateHashKeyValueStore =>
+            throw new NotSupportedException();
+
+        public override IKeyValueStore StateKeyValueStore =>
+            throw new NotSupportedException();
+
+        public IStateStore LoadTrieStateStore(string? path)
         {
             IKeyValueStore stateKeyValueStore =
                 new DefaultKeyValueStore(path is null

@@ -77,7 +77,7 @@ namespace Libplanet.Tests.Blocks
                     new BlockMetadata(
                         index: _contents.Block1Content.Index,
                         timestamp: DateTimeOffset.UtcNow,
-                        publicKey: _contents.Block1Content.PublicKey,
+                        publicKey: _contents.Block1Content.PublicKey!,
                         previousHash: genesis.Hash,
                         txHash: BlockContent.DeriveTxHash(txs),
                         lastCommit: null),
@@ -152,7 +152,7 @@ namespace Libplanet.Tests.Blocks
                     new BlockMetadata(
                         index: _contents.Block1Content.Index,
                         timestamp: DateTimeOffset.UtcNow,
-                        publicKey: _contents.Block1Content.PublicKey,
+                        publicKey: _contents.Block1Content.PublicKey!,
                         previousHash: genesis.Hash,
                         txHash: BlockContent.DeriveTxHash(txs),
                         lastCommit: null),

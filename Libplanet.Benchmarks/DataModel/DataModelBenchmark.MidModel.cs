@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,6 +11,8 @@ namespace Libplanet.Benchmarks.DataModel
     {
         public class MidModel : StoreDataModel
         {
+            private LeafModel? _leafModel;
+
             public MidModel()
                 : base()
             {
@@ -32,11 +35,17 @@ namespace Libplanet.Benchmarks.DataModel
             {
             }
 
-            public LeafModel LeafModel { get; private set; }
+            public LeafModel LeafModel
+            {
+                get => _leafModel ?? throw new InvalidOperationException();
+                private set => _leafModel = value;
+            }
 
-            public ImmutableList<int> BigList { get; private set; }
+            public ImmutableList<int> BigList { get; private set; } =
+                ImmutableList.Create<int>();
 
-            public ImmutableDictionary<Address, string> BigDict { get; private set; }
+            public ImmutableDictionary<Address, string> BigDict { get; private set; } =
+                ImmutableDictionary.Create<Address, string>();
         }
     }
 }

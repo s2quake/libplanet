@@ -5,13 +5,13 @@ namespace Libplanet.Tests
 {
     public class AnonymousComparer<T> : IComparer<T>
     {
-        private Func<T, T, int> _comparer;
+        private readonly Func<T?, T?, int> _comparer;
 
-        public AnonymousComparer(Func<T, T, int> comparer)
+        public AnonymousComparer(Func<T?, T?, int> comparer)
         {
             _comparer = comparer;
         }
 
-        public int Compare(T x, T y) => _comparer(x, y);
+        public int Compare(T? x, T? y) => _comparer(x, y);
     }
 }

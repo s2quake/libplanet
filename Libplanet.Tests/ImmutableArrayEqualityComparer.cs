@@ -16,7 +16,7 @@ namespace Libplanet.Tests
             {
                 foreach (T el in obj)
                 {
-                    code = (code * 397) ^ el.GetHashCode();
+                    code = (code * 397) ^ el!.GetHashCode();
                 }
             }
 

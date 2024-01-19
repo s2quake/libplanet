@@ -9,6 +9,9 @@ namespace Libplanet.RocksDBStore.Tests
 {
     public class RocksDBStoreFixture : StoreFixture
     {
+        private readonly IStore _store;
+        private readonly IStateStore _stateStore;
+
         public RocksDBStoreFixture(IAction? blockAction = null)
             : base(blockAction)
         {
@@ -19,10 +22,19 @@ namespace Libplanet.RocksDBStore.Tests
 
             Scheme = "rocksdb+file://";
 
-            var store = new RocksDBStore(Path, blockCacheSize: 2, txCacheSize: 2);
-            Store = store;
-            StateStore = LoadTrieStateStore(Path);
+            _store = new RocksDBStore(Path, blockCacheSize: 2, txCacheSize: 2);
+            _stateStore = LoadTrieStateStore(Path);
         }
+
+        public override IStore Store => _store;
+
+        public override IStateStore StateStore => _stateStore;
+
+        public override IKeyValueStore StateHashKeyValueStore =>
+            throw new NotSupportedException();
+
+        public override IKeyValueStore StateKeyValueStore =>
+            throw new NotSupportedException();
 
         public IStateStore LoadTrieStateStore(string path)
         {

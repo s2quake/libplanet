@@ -15,13 +15,29 @@ namespace Libplanet.Tests.Store.Trie
 
         private const int PreStoredDataValueSize = 32;
 
-        protected IKeyValueStore KeyValueStore { get; set; }
+        private IKeyValueStore? _keyValueStore;
+        private KeyBytes[]? _preStoredDataKeys;
+        private byte[][]? _preStoredDataValues;
+
+        protected IKeyValueStore KeyValueStore
+        {
+            get => _keyValueStore ?? throw new InvalidOperationException();
+            set => _keyValueStore = value;
+        }
 
         protected Random Random { get; } = new Random();
 
-        private KeyBytes[] PreStoredDataKeys { get; set; }
+        private KeyBytes[] PreStoredDataKeys
+        {
+            get => _preStoredDataKeys ?? throw new InvalidOperationException();
+            set => _preStoredDataKeys = value;
+        }
 
-        private byte[][] PreStoredDataValues { get; set; }
+        private byte[][] PreStoredDataValues
+        {
+            get => _preStoredDataValues ?? throw new InvalidOperationException();
+            set => _preStoredDataValues = value;
+        }
 
         [SkippableFact]
         public void Get()

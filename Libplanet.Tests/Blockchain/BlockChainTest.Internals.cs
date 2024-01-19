@@ -125,11 +125,11 @@ namespace Libplanet.Tests.Blockchain
                 { MinerReward.RewardRecordAddress, (Text)$"{minerAddress},{minerAddress}" },
             };
 
-            IValue legacyStateRootRaw = _fx.StateStore.GetStateRoot(block1.StateRootHash)
+            IValue? legacyStateRootRaw = _fx.StateStore.GetStateRoot(block1.StateRootHash)
                 .Get(ToStateKey(ReservedAddresses.LegacyAccount));
             Assert.NotNull(legacyStateRootRaw);
             var legacyStateRoot =
-                new HashDigest<SHA256>(((Binary)legacyStateRootRaw).ByteArray);
+                new HashDigest<SHA256>(((Binary)legacyStateRootRaw!).ByteArray);
             foreach (KeyValuePair<Address, IValue> pair in expectedStates)
             {
                 AssertBencodexEqual(
@@ -156,9 +156,9 @@ namespace Libplanet.Tests.Blockchain
                 Assert.Equal(expected.ExceptionNames, actual.ExceptionNames);
             }
 
-            Func<BlockHash, TxId, TxExecution> getTxExecution
+            Func<BlockHash, TxId, TxExecution?> getTxExecution
                 = getTxExecutionViaStore
-                ? (Func<BlockHash, TxId, TxExecution>)_blockChain.Store.GetTxExecution
+                ? (Func<BlockHash, TxId, TxExecution?>)_blockChain.Store.GetTxExecution
                 : _blockChain.GetTxExecution;
 
             Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId1));
@@ -173,26 +173,26 @@ namespace Libplanet.Tests.Blockchain
                 false,
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { string.Empty });
+                new List<string?>() { string.Empty });
             var inputB = new TxExecution(
                 _fx.Hash1,
                 _fx.TxId2,
                 true,
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnExceptionName" });
+                new List<string?>() { "AnExceptionName" });
             var inputC = new TxExecution(
                 _fx.Hash2,
                 _fx.TxId1,
                 true,
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
                 new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnotherExceptionName", "YetAnotherExceptionName" });
+                new List<string?>() { "AnotherExceptionName", "YetAnotherExceptionName" });
             _blockChain.UpdateTxExecutions(new TxExecution[] { inputA, inputB, inputC });
 
-            AssertTxExecutionEqual(inputA, getTxExecution(_fx.Hash1, _fx.TxId1));
-            AssertTxExecutionEqual(inputB, getTxExecution(_fx.Hash1, _fx.TxId2));
-            AssertTxExecutionEqual(inputC, getTxExecution(_fx.Hash2, _fx.TxId1));
+            AssertTxExecutionEqual(inputA, getTxExecution(_fx.Hash1, _fx.TxId1)!);
+            AssertTxExecutionEqual(inputB, getTxExecution(_fx.Hash1, _fx.TxId2)!);
+            AssertTxExecutionEqual(inputC, getTxExecution(_fx.Hash2, _fx.TxId1)!);
             Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId2));
         }
     }

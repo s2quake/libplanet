@@ -32,9 +32,11 @@ namespace Libplanet.Benchmarks.DataModel
             {
             }
 
-            public ImmutableList<int> BigList { get; private set; }
+            public ImmutableList<int> BigList { get; private set; } =
+                ImmutableList.Create<int>();
 
-            public ImmutableDictionary<Address, string> BigDict { get; private set; }
+            public ImmutableDictionary<Address, string> BigDict { get; private set; } =
+                ImmutableDictionary.Create<Address, string>();
         }
 
         public class RawLeafModel
