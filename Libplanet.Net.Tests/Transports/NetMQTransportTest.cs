@@ -57,7 +57,7 @@ namespace Libplanet.Net.Tests.Transports
             try
             {
                 // An arbitrary number to fit one transport testing.
-                NetMQConfig.MaxSockets = 12;
+                NetMQConfig.MaxSockets = 14;
                 NetMQTransport transport = await NetMQTransport.Create(
                     new PrivateKey(),
                     new AppProtocolVersionOptions(),
