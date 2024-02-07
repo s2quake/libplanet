@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace Libplanet.Net.Tests
     public class NullableSemaphoreTest
     {
         [Fact]
-        public async void WaitAsync()
+        public async Task WaitAsync()
         {
             var semaphore = new NullableSemaphore(3);
             int count = 0;
@@ -17,7 +18,7 @@ namespace Libplanet.Net.Tests
                 if (await sema.WaitAsync(TimeSpan.Zero, default))
                 {
                     await Task.Delay(1000);
-                    count += 1;
+                    Interlocked.Increment(ref count);
                 }
             }
 
@@ -34,7 +35,7 @@ namespace Libplanet.Net.Tests
         }
 
         [Fact]
-        public async void WaitAsyncZero()
+        public async Task WaitAsyncZero()
         {
             var semaphore = new NullableSemaphore(0);
             int count = 0;
@@ -43,7 +44,7 @@ namespace Libplanet.Net.Tests
                 if (await sema.WaitAsync(TimeSpan.Zero, default))
                 {
                     await Task.Delay(1000);
-                    count += 1;
+                    Interlocked.Increment(ref count);
                 }
             }
 
@@ -59,7 +60,7 @@ namespace Libplanet.Net.Tests
         }
 
         [Fact]
-        public async void Release()
+        public async Task Release()
         {
             var semaphore = new NullableSemaphore(3);
             int count = 0;
@@ -68,7 +69,7 @@ namespace Libplanet.Net.Tests
                 if (await sema.WaitAsync(TimeSpan.Zero, default))
                 {
                     await Task.Delay(1000);
-                    count += 1;
+                    Interlocked.Increment(ref count);
                     sema.Release();
                 }
             }

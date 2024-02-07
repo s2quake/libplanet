@@ -44,7 +44,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void SendHigherMessage()
+        public async Task SendHigherMessage()
         {
             MemoryStoreFixture fx = new MemoryStoreFixture();
             int nPreVoteReceived = 0;
@@ -109,7 +109,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void ReceiveHigherMessage()
+        public async Task ReceiveHigherMessage()
         {
             MemoryStoreFixture fx = new MemoryStoreFixture();
             int nHigherPreVoteReceived = 0;

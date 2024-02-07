@@ -10,13 +10,14 @@ using Libplanet.Types.Consensus;
 using Libplanet.Explorer.GraphTypes;
 using Xunit;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using System.Threading.Tasks;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {
     public class VoteTypeTest
     {
         [Fact]
-        public async void Query()
+        public async Task Query()
         {
 
             var privateKey = new PrivateKey();

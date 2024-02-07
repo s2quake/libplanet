@@ -135,7 +135,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void EnterPreCommitNilTwoThird()
+        public async Task EnterPreCommitNilTwoThird()
         {
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
             var preCommitSent = new AsyncAutoResetEvent();
@@ -450,7 +450,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void TimeoutPropose()
+        public async Task TimeoutPropose()
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             var preVoteSent = new AsyncAutoResetEvent();

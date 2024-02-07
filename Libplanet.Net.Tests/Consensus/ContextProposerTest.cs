@@ -72,7 +72,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void EnterPreCommitBlock()
+        public async Task EnterPreCommitBlock()
         {
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
             ConsensusProposalMsg? proposal = null;
@@ -135,7 +135,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void EnterNewRoundNil()
+        public async Task EnterNewRoundNil()
         {
             var roundChangedToOne = new AsyncAutoResetEvent();
 
@@ -224,7 +224,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void EnterPreVoteNil()
+        public async Task EnterPreVoteNil()
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             var nilPreVoteSent = new AsyncAutoResetEvent();
@@ -254,7 +254,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void EnterPreVoteBlock()
+        public async Task EnterPreVoteBlock()
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             ConsensusProposalMsg? proposal = null;
@@ -297,7 +297,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void VoteNilOnSelfProposedInvalidBlock()
+        public async Task VoteNilOnSelfProposedInvalidBlock()
         {
             var privateKey = new PrivateKey();
             ConsensusProposalMsg? proposal = null;

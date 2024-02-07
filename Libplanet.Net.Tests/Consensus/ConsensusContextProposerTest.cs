@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Consensus;
 using Nito.AsyncEx;
@@ -27,7 +28,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void IncreaseRoundWhenTimeout()
+        public async Task IncreaseRoundWhenTimeout()
         {
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),

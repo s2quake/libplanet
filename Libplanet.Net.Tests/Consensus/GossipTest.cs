@@ -42,7 +42,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void PublishMessage()
+        public async Task PublishMessage()
         {
             MemoryStoreFixture fx = new MemoryStoreFixture();
             bool received1 = false;
@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void AddMessage()
+        public async Task AddMessage()
         {
             // It has no difference with PublishMessage() test,
             // since two methods only has timing difference.
@@ -150,7 +150,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void AddMessages()
+        public async Task AddMessages()
         {
             MemoryStoreFixture fx = new MemoryStoreFixture();
             int received1 = 0;
@@ -215,7 +215,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void AddPeerWithHaveMessage()
+        public async Task AddPeerWithHaveMessage()
         {
             var key1 = new PrivateKey();
             var key2 = new PrivateKey();
@@ -266,7 +266,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void DoNotBroadcastToSeedPeers()
+        public async Task DoNotBroadcastToSeedPeers()
         {
             bool received = false;
             async Task ProcessMessage(Message msg)
@@ -305,7 +305,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void DoNotSendDuplicateMessageRequest()
+        public async Task DoNotSendDuplicateMessageRequest()
         {
             int received = 0;
             async Task ProcessMessage(Message msg)

@@ -36,7 +36,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void NewHeightIncreasing()
+        public async Task NewHeightIncreasing()
         {
             ConsensusProposalMsg? proposal = null;
             var proposalMessageSent = new AsyncAutoResetEvent();
@@ -122,7 +122,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void NewHeightWhenTipChanged()
+        public async Task NewHeightWhenTipChanged()
         {
             var newHeightDelay = TimeSpan.FromSeconds(1);
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
@@ -192,7 +192,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void VoteSetGetOnlyProposeCommitHash()
+        public async Task VoteSetGetOnlyProposeCommitHash()
         {
             ConsensusProposalMsg? proposal = null;
             var heightOneProposalSent = new AsyncAutoResetEvent();
@@ -261,8 +261,8 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(expectedVotes, actualVotesWithoutInvalid);
         }
 
-        [Fact]
-        public async void GetVoteSetBits()
+        [Fact(Timeout = Timeout)]
+        public async Task GetVoteSetBits()
         {
             PrivateKey proposer = TestUtils.PrivateKeys[1];
             AsyncAutoResetEvent stepChanged = new AsyncAutoResetEvent();
@@ -334,8 +334,8 @@ namespace Libplanet.Net.Tests.Consensus
                 voteSetBits.VoteBits.SequenceEqual(new[] { true, false, false, false }));
         }
 
-        [Fact]
-        public async void HandleVoteSetBits()
+        [Fact(Timeout = Timeout)]
+        public async Task HandleVoteSetBits()
         {
             PrivateKey proposer = TestUtils.PrivateKeys[1];
             ConsensusStep step = ConsensusStep.Default;
@@ -404,8 +404,8 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(TestUtils.PrivateKeys[1].PublicKey, votes[1].ValidatorPublicKey);
         }
 
-        [Fact]
-        public async void HandleProposalClaim()
+        [Fact(Timeout = Timeout)]
+        public async Task HandleProposalClaim()
         {
             PrivateKey proposer = TestUtils.PrivateKeys[1];
             ConsensusStep step = ConsensusStep.Default;

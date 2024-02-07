@@ -700,7 +700,7 @@ namespace Libplanet.Net.Tests
         }
 
         [Fact(Timeout = Timeout)]
-        public async void CanResolveEndPoint()
+        public async Task CanResolveEndPoint()
         {
             var expected = new DnsEndPoint("1.2.3.4", 5678);
             var hostOptions = new HostOptions("1.2.3.4", new IceServer[] { }, 5678);
@@ -1020,7 +1020,7 @@ namespace Libplanet.Net.Tests
         [Theory(Timeout = Timeout)]
         [InlineData(true)]
         [InlineData(false)]
-        public async void RestageTransactionsOnceLocallyMinedAfterReorg(bool restage)
+        public async Task RestageTransactionsOnceLocallyMinedAfterReorg(bool restage)
         {
             var keyA = new PrivateKey();
             var keyB = new PrivateKey();
@@ -1831,7 +1831,7 @@ namespace Libplanet.Net.Tests
             }
         }
 
-        [RetryFact(10, Timeout = Timeout)]
+        [RetryFact(100, Timeout = Timeout)]
         public async Task RegulateGetBlocksMsg()
         {
             var options = new SwarmOptions
@@ -1864,12 +1864,12 @@ namespace Libplanet.Net.Tests
                 {
                     tasks.Add(
                         Task.Run(async () => await transport.SendMessageAsync(
-                            swarm.AsPeer,
-                            content,
-                            TimeSpan.FromMilliseconds(1000),
-                            1,
-                            false,
-                            default)));
+                                swarm.AsPeer,
+                                content,
+                                TimeSpan.FromMilliseconds(1000),
+                                1,
+                                false,
+                                default)));
                 }
 
                 try

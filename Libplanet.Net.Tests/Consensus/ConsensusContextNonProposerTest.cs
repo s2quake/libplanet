@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Bencodex;
 using Bencodex.Types;
 using Libplanet.Crypto;
@@ -35,7 +36,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void NewHeightWithLastCommit()
+        public async Task NewHeightWithLastCommit()
         {
             var codec = new Codec();
             var tipChanged = new AsyncAutoResetEvent();
@@ -105,7 +106,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void HandleMessageFromHigherHeight()
+        public async Task HandleMessageFromHigherHeight()
         {
             var codec = new Codec();
             ConsensusProposalMsg? proposal = null;
@@ -240,7 +241,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void UseLastCommitCacheIfHeightContextIsEmpty()
+        public async Task UseLastCommitCacheIfHeightContextIsEmpty()
         {
             var codec = new Codec();
             var heightTwoProposalSent = new AsyncAutoResetEvent();
@@ -280,7 +281,7 @@ namespace Libplanet.Net.Tests.Consensus
 
         // Retry: This calculates delta time.
         [RetryFact(10, Timeout = Timeout)]
-        public async void NewHeightDelay()
+        public async Task NewHeightDelay()
         {
             var newHeightDelay = TimeSpan.FromSeconds(1);
             // The maximum error margin. (macos-netcore-test)

@@ -45,7 +45,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void StartAsProposer()
+        public async Task StartAsProposer()
         {
             var proposalSent = new AsyncAutoResetEvent();
             var stepChangedToPreVote = new AsyncAutoResetEvent();
@@ -74,7 +74,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void StartAsProposerWithLastCommit()
+        public async Task StartAsProposerWithLastCommit()
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             ConsensusProposalMsg? proposal = null;
@@ -451,8 +451,8 @@ namespace Libplanet.Net.Tests.Consensus
         /// receiving <see cref="ConsensusMaj23Msg"/> message from peer C or D.
         /// </para>
         /// </summary>
-        [Fact]
-        public async void CanReplaceProposal()
+        [Fact(Timeout = Timeout)]
+        public async Task CanReplaceProposal()
         {
             var codec = new Codec();
             var privateKeys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToArray();
