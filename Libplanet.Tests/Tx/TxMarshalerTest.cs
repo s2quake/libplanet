@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Bencodex;
 using Bencodex.Types;
 using Libplanet.Action.Loader;
@@ -217,7 +218,9 @@ namespace Libplanet.Tests.Tx
                 TxMarshaler.UnmarshalTransaction(_marshaledTransaction);
 
             Assert.Equal(publicKey, tx.PublicKey);
-            Assert.Equal(ImmutableHashSet<Address>.Empty, tx.UpdatedAddresses);
+            Assert.Equal(
+                ImmutableHashSet<Address>.Empty.OrderBy(item => item),
+                tx.UpdatedAddresses.OrderBy(item => item));
             Assert.Equal(new Address(publicKey), tx.Signer);
             Assert.Equal(new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero), tx.Timestamp);
             AssertBytesEqual(
@@ -266,8 +269,8 @@ namespace Libplanet.Tests.Tx
 
             Assert.Equal(publicKey, tx.PublicKey);
             Assert.Equal(
-                ImmutableHashSet.Create(new Address(publicKey)),
-                tx.UpdatedAddresses
+                ImmutableHashSet.Create(new Address(publicKey)).OrderBy(item => item),
+                tx.UpdatedAddresses.OrderBy(item => item)
             );
             Assert.Equal(new Address(publicKey), tx.Signer);
             Assert.Equal(new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero), tx.Timestamp);

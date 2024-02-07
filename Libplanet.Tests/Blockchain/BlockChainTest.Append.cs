@@ -511,7 +511,7 @@ namespace Libplanet.Tests.Blockchain
                 ImmutableList<Transaction>.Empty.Add(txs[0]),
                 TestUtils.CreateBlockCommit(_blockChain.Tip));
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
-            Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
+            Assert.Single(_blockChain.GetStagedTransactionIds());
 
             // Two txs with nonce 1 are staged.
             var actions = new[] { new DumbAction(addresses[0], "foobar") };

@@ -658,8 +658,8 @@ namespace Libplanet.Tests.Blockchain
                 );
 
                 // Creation does not render anything
-                Assert.Equal(0, renderer.ActionRecords.Count);
-                Assert.Equal(0, renderer.BlockRecords.Count);
+                Assert.Empty(renderer.ActionRecords);
+                Assert.Empty(renderer.BlockRecords);
 
                 Block block1 = blockChain.ProposeBlock(miner);
                 blockChain.Append(block1, CreateBlockCommit(block1));

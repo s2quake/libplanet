@@ -172,13 +172,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
             if (!expected.SequenceEqual(actual))
             {
-                throw new AssertActualExpectedException(
-                    ByteUtil.Hex(expected),
-                    ByteUtil.Hex(actual),
-                    msg,
-                    "Expected (hex)",
-                    "Actual (hex)"
-                );
+                Assert.Equal(ByteUtil.Hex(expected), ByteUtil.Hex(actual));
             }
 
             string Repr(byte[] bytes)

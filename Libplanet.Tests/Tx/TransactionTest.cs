@@ -248,7 +248,9 @@ namespace Libplanet.Tests.Tx
                 new Address(privateKey.PublicKey),
                 tx.Signer
             );
-            Assert.Equal(ImmutableHashSet<Address>.Empty, tx.UpdatedAddresses);
+            Assert.Equal(
+                ImmutableHashSet<Address>.Empty.OrderBy(item => item),
+                tx.UpdatedAddresses.OrderBy(item => item));
             Assert.Equal(privateKey.PublicKey, tx.PublicKey);
             Assert.Equal(timestamp, tx.Timestamp);
             AssertBytesEqual(

@@ -955,7 +955,9 @@ namespace Libplanet.Tests.Action
             foreach (var signer in signers)
             {
                 var signerTxs = orderedTxs.Where(tx => tx.Signer == signer.Address);
-                Assert.Equal(signerTxs.OrderBy(tx => tx.Nonce).ToArray(), signerTxs.ToArray());
+                Assert.Equal(
+                    signerTxs.OrderBy(tx => tx.Nonce).ToArray(),
+                    signerTxs.ToArray());
             }
 
             // Check according to spec.

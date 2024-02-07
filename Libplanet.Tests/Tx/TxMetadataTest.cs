@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
@@ -131,8 +132,8 @@ namespace Libplanet.Tests.Tx
             Assert.Equal(0L, meta2.Nonce);
             AssertBytesEqual(_key2.Address, meta2.Signer);
             Assert.Equal(
-                new[] { _key1.Address, _key2.Address }.ToImmutableHashSet(),
-                meta2.UpdatedAddresses);
+                new[] { _key1.Address, _key2.Address }.ToImmutableHashSet().OrderBy(item => item),
+                meta2.UpdatedAddresses.OrderBy(item => item));
             Assert.Equal(
                 new DateTimeOffset(2022, 1, 12, 4, 56, 7, 890, default),
                 meta2.Timestamp);

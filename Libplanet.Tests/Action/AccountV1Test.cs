@@ -55,7 +55,14 @@ namespace Libplanet.Tests.Action
             Assert.Equal(Value(0, 6), a.GetBalance(_addr[1], _currencies[0]));
         }
 
+#pragma warning disable S2699
         [Fact]
+        public void TransferAssetInBlockTestV1()
+        {
+            TransferAssetInBlock();
+        }
+#pragma warning restore S2699
+
         public override BlockChain TransferAssetInBlock()
         {
             BlockChain chain = base.TransferAssetInBlock();

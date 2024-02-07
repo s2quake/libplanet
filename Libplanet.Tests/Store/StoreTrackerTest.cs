@@ -24,7 +24,7 @@ namespace Libplanet.Tests.Store
         public void MethodCallsAreLogged()
         {
             _tracker.ListChainIds();
-            Assert.Equal(1, _tracker.Logs.Count);
+            Assert.Single(_tracker.Logs);
             Assert.Equal(
                 StoreTrackLog.Create("ListChainIds"),
                 _tracker.Logs[0]);

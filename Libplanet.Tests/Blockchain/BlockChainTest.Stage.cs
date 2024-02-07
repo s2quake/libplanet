@@ -45,11 +45,11 @@ namespace Libplanet.Tests.Blockchain
                 new List<DumbAction>().ToPlainValues());
 
             Assert.True(_blockChain.StageTransaction(tx1));
-            Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
+            Assert.Single(_blockChain.GetStagedTransactionIds());
             Assert.Throws<InvalidTxGenesisHashException>(() => _blockChain.StageTransaction(tx2));
-            Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
+            Assert.Single(_blockChain.GetStagedTransactionIds());
             Assert.Throws<InvalidTxGenesisHashException>(() => _blockChain.StageTransaction(tx3));
-            Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
+            Assert.Single(_blockChain.GetStagedTransactionIds());
         }
 
         [SkippableFact]
