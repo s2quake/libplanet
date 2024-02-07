@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -1858,19 +1859,18 @@ namespace Libplanet.Net.Tests
                 await StartAsync(swarm);
                 _ = transport.StartAsync();
                 await transport.WaitForRunningAsync();
-                var tasks = new List<Task>();
+                var tasks = new ConcurrentBag<Task>();
                 var content = new GetBlocksMsg(new[] { swarm.BlockChain.Genesis.Hash });
-                for (int i = 0; i < 5; i++)
+                Parallel.ForEach(Enumerable.Repeat(0, 5), item =>
                 {
-                    tasks.Add(
-                        Task.Run(async () => await transport.SendMessageAsync(
+                    tasks.Add(transport.SendMessageAsync(
                                 swarm.AsPeer,
                                 content,
                                 TimeSpan.FromMilliseconds(1000),
                                 1,
                                 false,
-                                default)));
-                }
+                                default));
+                });
 
                 try
                 {
