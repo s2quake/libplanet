@@ -454,6 +454,7 @@ namespace Libplanet.Tests.Store.Trie
                 .Range(0, 100)
                 .Select(_ => TestUtils.GetRandomBytes(random.Next(2, 10)))
                 .Select(bytes => (new KeyBytes(bytes), new Text(ByteUtil.Hex(bytes))))
+                .DistinctBy(kv => kv.Item1)
                 .ToList();
             Stack<(HashDigest<SHA256>, int, int)> expected =
                 new Stack<(HashDigest<SHA256>, int, int)>();
