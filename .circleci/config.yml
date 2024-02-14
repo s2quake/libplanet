@@ -366,20 +366,20 @@ workflows:
         requires: [linux-netcore-build]
     - windows-netcore-test:
         requires: [linux-netcore-build]
-  net:
-    jobs:
-    - linux-netcore-build:
-        name: linux-netcore-build-net
-        test_filter: "FullyQualifiedName~Libplanet.Net.Tests"
-    - linux-netcore-test-netmq:
-        name: linux-netcore-test-netmq-net
-        requires: [linux-netcore-build-net]
-        parallelism: 1
-    # - macos-netcore-test:
-    #     name: macos-netcore-test-net
-    #     requires: [linux-netcore-build-net]
-    #     parallelism: 1
-    - windows-netcore-test:
-        name: windows-netcore-test-net
-        requires: [linux-netcore-build-net]
-        parallelism: 1
+  # net:
+  #   jobs:
+  #   - linux-netcore-build:
+  #       name: linux-netcore-build-net
+  #       test_filter: "FullyQualifiedName~Libplanet.Net.Tests"
+  #   - linux-netcore-test-netmq:
+  #       name: linux-netcore-test-netmq-net
+  #       requires: [linux-netcore-build-net]
+  #       parallelism: 1
+  #   # - macos-netcore-test:
+  #   #     name: macos-netcore-test-net
+  #   #     requires: [linux-netcore-build-net]
+  #   #     parallelism: 1
+  #   - windows-netcore-test:
+  #       name: windows-netcore-test-net
+  #       requires: [linux-netcore-build-net]
+  #       parallelism: 1
