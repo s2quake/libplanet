@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using GraphQL.Types;
 using Libplanet.Action.State;
@@ -16,32 +17,32 @@ namespace Libplanet.Explorer.Queries
 {
     public class ExplorerQuery : ObjectGraphType
     {
-        private static IBlockChainContext? _chainContext;
+        private IBlockChainContext? _chainContext;
 
         public ExplorerQuery(IBlockChainContext chainContext)
         {
             _chainContext = chainContext;
             Field<BlockQuery>("blockQuery", resolve: context => new { });
             Field<TransactionQuery>("transactionQuery", resolve: context => new { });
-            Field<StateQuery>("stateQuery", resolve: context => chainContext.BlockChain);
+            Field<StateQuery>("stateQuery", resolve: context => _chainContext.BlockChain);
             Field<NonNullGraphType<NodeStateType>>(
                 "nodeState",
-                resolve: context => chainContext
+                resolve: context => _chainContext
             );
             Field<HelperQuery>("helperQuery", resolve: context => new { });
 
             Name = "ExplorerQuery";
         }
 
-        private static IBlockChainContext ChainContext => _chainContext!;
+        private IBlockChainContext ChainContext => _chainContext!;
 
-        private static BlockChain Chain => ChainContext.BlockChain;
+        private BlockChain Chain => ChainContext.BlockChain;
 
-        private static IStore Store => ChainContext.Store;
+        private IStore Store => ChainContext.Store;
 
-        private static IBlockChainIndex Index => ChainContext.Index;
+        private IBlockChainIndex Index => ChainContext.Index;
 
-        internal static IEnumerable<Block> ListBlocks(
+        internal IEnumerable<Block> ListBlocks(
             bool desc,
             long offset,
             long? limit,
@@ -99,7 +100,7 @@ namespace Libplanet.Explorer.Queries
             }
         }
 
-        internal static IEnumerable<Transaction> ListTransactions(
+        internal IEnumerable<Transaction> ListTransactions(
             Address? signer, bool desc, long offset, int? limit)
         {
             Block tip = Chain.Tip;
@@ -120,7 +121,7 @@ namespace Libplanet.Explorer.Queries
             {
                 foreach (var tx in desc ? block.Transactions.Reverse() : block.Transactions)
                 {
-                    if (IsValidTransaction(tx, signer))
+                                        if (IsValidTransaction(tx, signer))
                     {
                         yield return tx;
                         limit--;
@@ -135,7 +136,7 @@ namespace Libplanet.Explorer.Queries
             }
         }
 
-        internal static IEnumerable<Transaction> ListStagedTransactions(
+        internal IEnumerable<Transaction> ListStagedTransactions(
             Address? signer, bool desc, int offset, int? limit)
         {
             if (offset < 0)
@@ -157,13 +158,13 @@ namespace Libplanet.Explorer.Queries
             return stagedTxs;
         }
 
-        internal static Block? GetBlockByHash(BlockHash hash) => Store.GetBlock(hash);
+        internal Block? GetBlockByHash(BlockHash hash) => Store.GetBlock(hash);
 
-        internal static Block GetBlockByIndex(long index) => Chain[index];
+        internal Block GetBlockByIndex(long index) => Chain[index];
 
-        internal static Transaction GetTransaction(TxId id) => Chain.GetTransaction(id);
+        internal Transaction GetTransaction(TxId id) => Chain.GetTransaction(id);
 
-        private static Block? GetNextBlock(Block block, bool desc)
+        private Block? GetNextBlock(Block block, bool desc)
         {
             if (desc && block.PreviousHash is { } prev)
             {
@@ -177,7 +178,7 @@ namespace Libplanet.Explorer.Queries
             return null;
         }
 
-        private static bool IsValidTransaction(
+        private bool IsValidTransaction(
             Transaction tx,
             Address? signer)
         {

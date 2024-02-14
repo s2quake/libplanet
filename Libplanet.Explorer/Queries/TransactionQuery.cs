@@ -19,6 +19,7 @@ namespace Libplanet.Explorer.Queries
     {
         private static readonly Codec _codec = new Codec();
         private readonly IBlockChainContext _context;
+        private readonly ExplorerQuery _explorerQuery;
 
         // FIXME should be refactored to reduce LoC of constructor.
         #pragma warning disable MEN003
@@ -26,6 +27,7 @@ namespace Libplanet.Explorer.Queries
         #pragma warning restore MEN003
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _explorerQuery = new ExplorerQuery(_context);
 
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<TransactionType>>>>(
                 "transactions",
@@ -59,7 +61,7 @@ namespace Libplanet.Explorer.Queries
                     long offset = context.GetArgument<long>("offset");
                     int? limit = context.GetArgument<int?>("limit");
 
-                    return ExplorerQuery.ListTransactions(signer, desc, offset, limit);
+                    return _explorerQuery.ListTransactions(signer, desc, offset, limit);
                 }
             );
 
@@ -95,7 +97,7 @@ namespace Libplanet.Explorer.Queries
                     int offset = context.GetArgument<int>("offset");
                     int? limit = context.GetArgument<int?>("limit", null);
 
-                    return ExplorerQuery.ListStagedTransactions(
+                    return _explorerQuery.ListStagedTransactions(
                         signer,
                         desc,
                         offset,
@@ -109,7 +111,7 @@ namespace Libplanet.Explorer.Queries
                 arguments: new QueryArguments(
                     new QueryArgument<NonNullGraphType<IdGraphType>> { Name = "id" }
                 ),
-                resolve: context => ExplorerQuery.GetTransaction(
+                resolve: context => _explorerQuery.GetTransaction(
                     new TxId(ByteUtil.ParseHex(context.GetArgument<string>("id"))))
             );
 

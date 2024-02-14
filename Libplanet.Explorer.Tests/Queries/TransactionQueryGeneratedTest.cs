@@ -13,14 +13,15 @@ using Libplanet.Types.Tx;
 using Libplanet.Explorer.Queries;
 using Xunit;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using System;
 
 namespace Libplanet.Explorer.Tests.Queries;
 
 public class TransactionQueryGeneratedTest
 {
     protected readonly GeneratedBlockChainFixture Fx;
-    protected MockBlockChainContext Source;
-    protected TransactionQuery QueryGraph;
+    private MockBlockChainContext? _source;
+    private TransactionQuery? _queryGraph;
 
     public TransactionQueryGeneratedTest()
     {
@@ -39,10 +40,13 @@ public class TransactionQueryGeneratedTest
                         .Add(new SimpleAction0()))) // Failed action transaction
                 .Add(ImmutableArray<ImmutableArray<SimpleAction>>.Empty
                     .Add(ImmutableArray<SimpleAction>.Empty))); // Empty action transaction
-        Source = new MockBlockChainContext(Fx.Chain);
-        var _ = new ExplorerQuery(Source);
-        QueryGraph = new TransactionQuery(Source);
     }
+
+    protected virtual MockBlockChainContext Source
+        => _source ??= new MockBlockChainContext(Fx.Chain);
+
+    protected virtual TransactionQuery QueryGraph
+        => _queryGraph ??= new TransactionQuery(Source);
 
     [Fact]
     public async Task TransactionResult()
@@ -65,7 +69,7 @@ public class TransactionQueryGeneratedTest
         Assert.Equal("SUCCESS", queryResult.TxStatus);
         Assert.Equal(successBlock.Index, queryResult.BlockIndex);
         Assert.Equal(successBlock.Hash.ToString(), queryResult.BlockHash);
-        Assert.Equal(new string?[] { null , null }, queryResult.ExceptionNames);
+        Assert.Equal(new string?[] { null, null }, queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(failTx.Id);
         Assert.Equal("FAILURE", queryResult.TxStatus);
         Assert.Equal(failBlock.Index, queryResult.BlockIndex);
@@ -93,17 +97,17 @@ public class TransactionQueryGeneratedTest
     [Fact]
     public virtual async Task Transactions()
     {
-        var allBlocks = Fx.Chain.IterateBlocks().ToImmutableArray();
-        await AssertTransactionsQueryPermutation(allBlocks, null, null);
-        foreach (var signer in Fx.PrivateKeys.Select(pk => pk.Address))
-        {
-            await AssertTransactionsQueryPermutation(allBlocks, signer, null);
-            await AssertTransactionsQueryPermutation(allBlocks, null, signer);
-            foreach (var involved in Fx.PrivateKeys.Select(pk => pk.Address))
+            var allBlocks = Fx.Chain.IterateBlocks().ToImmutableArray();
+            await AssertTransactionsQueryPermutation(allBlocks, null, null);
+            foreach (var signer in Fx.PrivateKeys.Select(pk => pk.Address))
             {
-                await AssertTransactionsQueryPermutation(allBlocks, signer, involved);
+                await AssertTransactionsQueryPermutation(allBlocks, signer, null);
+                await AssertTransactionsQueryPermutation(allBlocks, null, signer);
+                foreach (var involved in Fx.PrivateKeys.Select(pk => pk.Address))
+                {
+                    await AssertTransactionsQueryPermutation(allBlocks, signer, involved);
+                }
             }
-        }
     }
 
     private async Task AssertTransactionsQueryPermutation(

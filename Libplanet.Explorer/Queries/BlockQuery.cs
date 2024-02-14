@@ -1,15 +1,21 @@
+using System;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Crypto;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.Explorer.Interfaces;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Explorer.Queries
 {
     public class BlockQuery : ObjectGraphType
     {
-        public BlockQuery()
+        private readonly ExplorerQuery _explorerQuery;
+
+        public BlockQuery(IBlockChainContext context)
         {
+            _explorerQuery = new ExplorerQuery(context);
+
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<BlockType>>>>(
                 "blocks",
                 arguments: new QueryArguments(
@@ -57,7 +63,7 @@ namespace Libplanet.Explorer.Queries
                     int? limit = context.GetArgument<int?>("limit", null);
                     bool excludeEmptyTxs = context.GetArgument<bool>("excludeEmptyTxs");
                     Address? miner = context.GetArgument<Address?>("miner", null);
-                    return ExplorerQuery.ListBlocks(desc, offset, limit, excludeEmptyTxs, miner);
+                    return _explorerQuery.ListBlocks(desc, offset, limit, excludeEmptyTxs, miner);
                 }
             );
 
@@ -81,12 +87,12 @@ namespace Libplanet.Explorer.Queries
 
                     if (hash is { } nonNullHash)
                     {
-                        return ExplorerQuery.GetBlockByHash(BlockHash.FromString(nonNullHash));
+                        return _explorerQuery.GetBlockByHash(BlockHash.FromString(nonNullHash));
                     }
 
                     if (index is { } nonNullIndex)
                     {
-                        return ExplorerQuery.GetBlockByIndex(nonNullIndex);
+                        return _explorerQuery.GetBlockByIndex(nonNullIndex);
                     }
 
                     throw new GraphQL.ExecutionError("Unexpected block query");
