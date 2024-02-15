@@ -383,6 +383,7 @@ namespace Libplanet.Net.Tests
             );
 
             await Task.Delay(100);
+            Assert.False(task.IsCompleted);
             cts.Cancel();
             await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
             CleaningSwarm(swarm);
@@ -392,7 +393,7 @@ namespace Libplanet.Net.Tests
         public async Task BootstrapContext()
         {
             var collectedTwoMessages = Enumerable.Range(0, 4).Select(i =>
-                new AsyncAutoResetEvent()).ToList();
+    new AsyncAutoResetEvent()).ToList();
             var stepChangedToPreCommits = Enumerable.Range(0, 4).Select(i =>
                 new AsyncAutoResetEvent()).ToList();
             var roundChangedToOnes = Enumerable.Range(0, 4).Select(i =>
@@ -402,9 +403,9 @@ namespace Libplanet.Net.Tests
             var genesis = new MemoryStoreFixture(policy.BlockAction).GenesisBlock;
 
             var consensusPeers = Enumerable.Range(0, 4).Select(i =>
-                new BoundPeer(
-                    TestUtils.PrivateKeys[i].PublicKey,
-                    new DnsEndPoint("127.0.0.1", 6000 + i))).ToImmutableList();
+    new BoundPeer(
+        TestUtils.PrivateKeys[i].PublicKey,
+        new DnsEndPoint("127.0.0.1", 6000 + i))).ToImmutableList();
             var reactorOpts = Enumerable.Range(0, 4).Select(i =>
                 new ConsensusReactorOption
                 {
@@ -453,12 +454,12 @@ namespace Libplanet.Net.Tests
                 // Bring swarm[2] online.
                 _ = swarms[2].StartAsync();
                 swarms[0].ConsensusReactor.ConsensusContext.StateChanged += (_, eventArgs) =>
-                {
-                    if (eventArgs.Step == ConsensusStep.PreCommit)
-                    {
-                        stepChangedToPreCommits[0].Set();
-                    }
-                };
+{
+    if (eventArgs.Step == ConsensusStep.PreCommit)
+    {
+        stepChangedToPreCommits[0].Set();
+    }
+};
                 swarms[2].ConsensusReactor.ConsensusContext.StateChanged += (_, eventArgs) =>
                 {
                     if (eventArgs.Step == ConsensusStep.PreCommit)
@@ -480,14 +481,14 @@ namespace Libplanet.Net.Tests
                 // at which point the round will move to 1 where swarm[2] is the proposer.
                 _ = swarms[1].StartAsync();
                 swarms[2].ConsensusReactor.ConsensusContext.MessagePublished += (_, eventArgs) =>
-                {
-                    if (eventArgs.Message is ConsensusProposalMsg proposalMsg &&
-                        proposalMsg.Round == 1 &&
-                        proposalMsg.ValidatorPublicKey.Equals(TestUtils.PrivateKeys[2].PublicKey))
-                    {
-                        roundOneProposed.Set();
-                    }
-                };
+{
+    if (eventArgs.Message is ConsensusProposalMsg proposalMsg &&
+        proposalMsg.Round == 1 &&
+        proposalMsg.ValidatorPublicKey.Equals(TestUtils.PrivateKeys[2].PublicKey))
+    {
+        roundOneProposed.Set();
+    }
+};
 
                 await roundOneProposed.WaitAsync();
 

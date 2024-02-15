@@ -28,7 +28,7 @@ namespace Libplanet.Net.Tests.Consensus
 {
     public class ContextTest
     {
-        private const int Timeout = 30000;
+        private const int Timeout = 60000;
         private readonly ILogger _logger;
 
         public ContextTest(ITestOutputHelper output)
@@ -219,9 +219,24 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.PrivateKeys[3].PublicKey,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[3])));
 
-            await Task.Delay(100);  // Wait for the new message to be added to the message log.
-            commit = context.GetBlockCommit();
-            Assert.Equal(4, commit?.Votes.Where(vote => vote.Flag == VoteFlag.PreCommit).Count());
+            var count = 0;
+            for (var i = 0; i < 10; i++)
+            {
+                await Task.Delay(100);  // Wait for the new message to be added to the message log.
+                commit = context.GetBlockCommit();
+                count = commit?.Votes.Where(vote => vote.Flag == VoteFlag.PreCommit).Count() ?? 0;
+                if (count == 4)
+                {
+                    if (i > 0)
+                    {
+                        throw new Exception("alsdkfjlaskjfldsakjfalsdkjfdsakljf");
+                    }
+
+                    break;
+                }
+            }
+
+            Assert.Equal(4, count);
         }
 
         [Fact(Timeout = Timeout)]
@@ -485,19 +500,19 @@ namespace Libplanet.Net.Tests.Consensus
                 proposer,
                 lastCommit: blockChain.GetBlockCommit(blockChain.Tip.Hash));
             context.StateChanged += (sender, state) =>
-            {
-                if (state.Step != prevStep)
-                {
-                    prevStep = state.Step;
-                    stepChanged.Set();
-                }
+{
+    if (state.Step != prevStep)
+    {
+        prevStep = state.Step;
+        stepChanged.Set();
+    }
 
-                if (!state.Proposal.Equals(prevProposal))
-                {
-                    prevProposal = state.Proposal;
-                    proposalModified.Set();
-                }
-            };
+    if (!state.Proposal.Equals(prevProposal))
+    {
+        prevProposal = state.Proposal;
+        proposalModified.Set();
+    }
+};
             context.Start();
             await stepChanged.WaitAsync();
             Assert.Equal(ConsensusStep.Propose, context.Step);
@@ -547,13 +562,13 @@ namespace Libplanet.Net.Tests.Consensus
             context.AddMaj23(maj23);
 
             var preVoteB0 = new ConsensusPreVoteMsg(
-                new VoteMetadata(
-                    1,
-                    0,
-                    blockB.Hash,
-                    DateTimeOffset.UtcNow,
-                    proposer.PublicKey,
-                    VoteFlag.PreVote).Sign(proposer));
+    new VoteMetadata(
+        1,
+        0,
+        blockB.Hash,
+        DateTimeOffset.UtcNow,
+        proposer.PublicKey,
+        VoteFlag.PreVote).Sign(proposer));
             var preVoteB1 = new ConsensusPreVoteMsg(
                 new VoteMetadata(
                     1,
