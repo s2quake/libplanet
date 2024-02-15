@@ -1260,7 +1260,10 @@ namespace Libplanet.Net
                         break;
                     case Exception e:
                         _logger.Error(
-                            e, "An unexpected exception occurred while dialing {Peer} {Type}", peer, e.GetType().Name);
+                            e,
+                            "An unexpected exception occurred while dialing {Peer} {Type}",
+                            peer,
+                            e.GetType().Name);
                         break;
                     default:
                         break;
