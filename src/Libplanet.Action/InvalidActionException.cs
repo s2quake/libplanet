@@ -1,6 +1,5 @@
 using System;
 using Bencodex.Types;
-using Libplanet.Action.Loader;
 
 namespace Libplanet.Action
 {

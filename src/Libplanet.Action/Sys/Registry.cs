@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Bencodex.Types;
@@ -8,7 +8,7 @@ namespace Libplanet.Action.Sys
 {
     public static class Registry
     {
-        public static readonly Dictionary<IValue, Type> Types;
+        public static readonly ImmutableDictionary<IValue, Type> Types;
 
         static Registry()
         {
@@ -17,7 +17,7 @@ namespace Libplanet.Action.Sys
                 .GetTypes()
                 .Where(type => type.Namespace == typeof(Registry).Namespace)
                 .Where(type => type.GetCustomAttribute<ActionTypeAttribute>() is { })
-                .ToDictionary(
+                .ToImmutableDictionary(
                     type => type.GetCustomAttribute<ActionTypeAttribute>()!.TypeIdentifier,
                     type => type);
         }

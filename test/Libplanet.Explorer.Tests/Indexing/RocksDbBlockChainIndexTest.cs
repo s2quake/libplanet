@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Libplanet.Action;
 using Xunit;
 
 namespace Libplanet.Explorer.Tests.Indexing;
@@ -19,7 +18,9 @@ public class RocksDbBlockChainIndexTest: BlockChainIndexTest
 
     [Theory]
     [MemberData(nameof(BooleanPermutation3))]
+#pragma warning disable S2699 // Tests should include assertions
     public async Task GetBlockHashesMultiByteIndex(bool fromHalfway, bool throughHalfway, bool desc)
+#pragma warning restore S2699 // Tests should include assertions
     {
         ChainFx = new GeneratedBlockChainFixture(
             RandomGenerator.Next(), byte.MaxValue + 2, 1, 1);
@@ -30,7 +31,9 @@ public class RocksDbBlockChainIndexTest: BlockChainIndexTest
 
     [Theory]
     [MemberData(nameof(BooleanPermutation3))]
+#pragma warning disable S2699 // Tests should include assertions
     public async Task GetBlockHashesByMinerMultiByteIndex(
+#pragma warning restore S2699 // Tests should include assertions
         bool fromHalfway, bool throughHalfway, bool desc)
     {
         ChainFx = new GeneratedBlockChainFixture(
@@ -54,7 +57,9 @@ public class RocksDbBlockChainIndexTest: BlockChainIndexTest
     }
 
     [Fact]
+#pragma warning disable S2699 // Tests should include assertions
     public async Task GetLastNonceByAddressMultiByteIndex()
+#pragma warning restore S2699 // Tests should include assertions
     {
         ChainFx = new GeneratedBlockChainFixture(
             RandomGenerator.Next(), 2, byte.MaxValue + 2, 1);
@@ -65,7 +70,9 @@ public class RocksDbBlockChainIndexTest: BlockChainIndexTest
 
     [Theory]
     [MemberData(nameof(BooleanPermutation3))]
+#pragma warning disable S2699 // Tests should include assertions
     public async Task GetSignedTxIdsByAddressMultiByteIndex(
+#pragma warning restore S2699 // Tests should include assertions
         bool fromHalfway, bool throughHalfway, bool desc)
     {
         ChainFx = new GeneratedBlockChainFixture(

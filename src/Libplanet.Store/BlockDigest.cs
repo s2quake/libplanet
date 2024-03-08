@@ -56,7 +56,7 @@ namespace Libplanet.Store
             StateRootHash = BlockMarshaler.UnmarshalBlockHeaderStateRootHash(headerDict);
             Signature = BlockMarshaler.UnmarshalBlockHeaderSignature(headerDict);
             Hash = BlockMarshaler.UnmarshalBlockHeaderHash(headerDict);
-            TxIds = dict.ContainsKey((Binary)TransactionIdsKey)
+            TxIds = dict.ContainsKey(TransactionIdsKey)
                 ? ((List)dict[TransactionIdsKey])
                     .Select(txId => ((Binary)txId).ByteArray).ToImmutableArray()
                 : ImmutableArray<ImmutableArray<byte>>.Empty;

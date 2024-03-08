@@ -265,7 +265,9 @@ namespace Libplanet.Tests.Action
         }
 
         [Fact]
+#pragma warning disable MEN003 // Method is too long
         public void EvaluateTxs()
+#pragma warning restore MEN003 // Method is too long
         {
             DumbAction MakeAction(Address address, char identifier, Address? transferTo = null)
             {

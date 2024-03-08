@@ -5,7 +5,6 @@ using Bencodex;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Common.Serialization;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Action

@@ -10,7 +10,6 @@ using Bencodex.Types;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Common;
-using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;

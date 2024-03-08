@@ -2,7 +2,6 @@ using BenchmarkDotNet.Attributes;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;
@@ -49,6 +48,7 @@ namespace Libplanet.Benchmarks
             {
                 _blockChain.MakeTransaction(new PrivateKey(), new DumbAction[] { });
             }
+
             PrepareAppend();
         }
 
@@ -84,6 +84,7 @@ namespace Libplanet.Benchmarks
                 };
                 _blockChain.MakeTransaction(privateKey, actions);
             }
+
             PrepareAppend();
         }
 

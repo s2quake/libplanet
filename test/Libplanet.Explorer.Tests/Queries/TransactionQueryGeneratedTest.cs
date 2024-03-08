@@ -312,6 +312,6 @@ public class TransactionQueryGeneratedTest
             (string)resultDict["txStatus"],
             (long?)resultDict["blockIndex"],
             (string?)resultDict["blockHash"],
-            (string?[]?)exceptionNames);
+            exceptionNames);
     }
 }

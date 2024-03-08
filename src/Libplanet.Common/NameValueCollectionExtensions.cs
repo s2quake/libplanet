@@ -29,9 +29,14 @@ namespace Libplanet.Common
         /// one entry for the specified <paramref name="name"/>.</remarks>
         public static T? GetEnum<T>(this NameValueCollection collection, string name)
             where T : struct, Enum
-            => collection.Get(name) is { } value
-                ? (T?)(Enum.TryParse(value, out T result) ? result : throw new ArgumentException())
-                : (T?)null;
+        {
+            if (collection.Get(name) is { } value)
+            {
+                return Enum.TryParse(value, out T result) ? result : throw new ArgumentException();
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Tries to get the text associated with the specified <paramref name="name"/> as

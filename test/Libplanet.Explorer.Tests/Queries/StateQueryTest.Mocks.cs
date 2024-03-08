@@ -83,7 +83,7 @@ public partial class StateQueryTest
 
         public bool Legacy => true;
 
-        public IWorldDelta Delta => throw new System.NotImplementedException();
+        public IWorldDelta Delta => throw new System.NotSupportedException();
 
         public IAccountState GetAccountState(Address address) =>
             _stateRootHash is { } && ReservedAddresses.LegacyAccount.Equals(address)
@@ -107,7 +107,7 @@ public partial class StateQueryTest
         public ITrie Trie => new MockTrie(_stateRootHash);
 
         public IImmutableSet<(Address, Currency)> TotalUpdatedFungibleAssets =>
-            throw new System.NotImplementedException();
+            throw new System.NotSupportedException();
 
         public IValue GetState(Address address) =>
             _stateRootHash is { } && Address.Equals(address)

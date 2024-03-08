@@ -3,7 +3,6 @@ using System.Diagnostics.Contracts;
 using System.Security.Cryptography;
 using Libplanet.Action.Loader;
 using Libplanet.Common;
-using Libplanet.Store;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Action

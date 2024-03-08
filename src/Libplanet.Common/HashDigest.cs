@@ -392,15 +392,15 @@ namespace Libplanet.Common
                 $"Failed to look up the {nameof(HashDigest<SHA1>.FromString)} method");
         }
 
-        /// <inheritdoc cref="TypeConverter.CanConvertFrom(ITypeDescriptorContext, Type)"/>
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) =>
+        /// <inheritdoc cref="TypeConverter.CanConvertFrom(ITypeDescriptorContext?, Type)"/>
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>
             sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
 
         /// <inheritdoc
-        /// cref="TypeConverter.ConvertFrom(ITypeDescriptorContext, CultureInfo, object)"/>
-        public override object ConvertFrom(
-            ITypeDescriptorContext context,
-            CultureInfo culture,
+        /// cref="TypeConverter.ConvertFrom(ITypeDescriptorContext?, CultureInfo?, object)"/>
+        public override object? ConvertFrom(
+            ITypeDescriptorContext? context,
+            CultureInfo? culture,
             object value
         )
         {
@@ -425,20 +425,20 @@ namespace Libplanet.Common
         }
 
         /// <inheritdoc cref="TypeConverter.CanConvertTo(ITypeDescriptorContext, Type)"/>
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) =>
+        public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType) =>
             destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
 
         /// <inheritdoc
-        /// cref="TypeConverter.ConvertTo(ITypeDescriptorContext, CultureInfo, object, Type)"/>
-        public override object ConvertTo(
-            ITypeDescriptorContext context,
-            CultureInfo culture,
-            object value,
+        /// cref="TypeConverter.ConvertTo(ITypeDescriptorContext?, CultureInfo?, object?, Type)"/>
+        public override object? ConvertTo(
+            ITypeDescriptorContext? context,
+            CultureInfo? culture,
+            object? value,
             Type destinationType
         )
         {
-            Type srcType = value.GetType();
-            if (destinationType == typeof(string) &&
+            if (value?.GetType() is { } srcType &&
+                destinationType == typeof(string) &&
                 srcType.IsConstructedGenericType &&
                 srcType.GetGenericTypeDefinition() == typeof(HashDigest<>))
             {

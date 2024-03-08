@@ -95,6 +95,7 @@ namespace Libplanet.Types.Tx
                 return true;
             }
 
+            actualValue = default;
             return false;
         }
 

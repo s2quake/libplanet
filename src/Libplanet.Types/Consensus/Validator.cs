@@ -12,7 +12,7 @@ namespace Libplanet.Types.Consensus
     /// A <see cref="Validator"/> consists of operator's <see cref="PublicKey"/>
     /// and its corresponding <see langword="Power"/>.
     /// </summary>
-    public class Validator : IEquatable<Validator>, IBencodable
+    public sealed class Validator : IEquatable<Validator>, IBencodable
     {
         private static readonly Binary PublicKeyKey = new Binary(new byte[] { 0x50 }); // 'P'
         private static readonly Binary PowerKey = new Binary(new byte[] { 0x70 });     // 'p'

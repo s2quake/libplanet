@@ -2,7 +2,6 @@ using System.Diagnostics.Contracts;
 using System.Security.Cryptography;
 using Libplanet.Common;
 using Libplanet.Crypto;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Action

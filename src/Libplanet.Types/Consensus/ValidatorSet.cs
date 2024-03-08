@@ -7,7 +7,6 @@ using System.Numerics;
 using Bencodex;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
 
 namespace Libplanet.Types.Consensus
 {
@@ -15,7 +14,7 @@ namespace Libplanet.Types.Consensus
     /// A wrapper class for a <see cref="List{T}"/> of <see cref="Validator"/>s.
     /// This standardizes the ordering of validators by <see cref="Address"/>.
     /// </summary>
-    public class ValidatorSet : IEquatable<ValidatorSet>, IBencodable
+    public sealed class ValidatorSet : IEquatable<ValidatorSet>, IBencodable
     {
         /// <summary>
         /// Creates an instance of an empty <see cref="ValidatorSet"/>.

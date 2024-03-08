@@ -1,7 +1,4 @@
 using GraphQL.Types;
-using Libplanet.Action;
-using Libplanet.Blockchain;
-using Libplanet.Types.Tx;
 
 namespace Libplanet.Explorer.GraphTypes
 {

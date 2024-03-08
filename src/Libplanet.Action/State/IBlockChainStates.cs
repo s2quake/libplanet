@@ -1,8 +1,5 @@
-using System;
 using System.Security.Cryptography;
 using Libplanet.Common;
-using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Action.State

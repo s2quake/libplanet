@@ -80,7 +80,7 @@ namespace Libplanet.Types.Assets
         /// The deterministic hash derived from other fields.
         /// </summary>
         [JsonInclude]
-        public readonly HashDigest<SHA1> Hash;
+        public HashDigest<SHA1> Hash => GetHash();
 
         /// <summary>
         /// Whether the total supply of this instance of <see cref="Currency"/> is trackable.
@@ -242,8 +242,6 @@ namespace Libplanet.Types.Assets
             {
                 Minters = null;
             }
-
-            Hash = GetHash();
         }
 
         /// <summary>
@@ -284,8 +282,6 @@ namespace Libplanet.Types.Assets
                       $"  maximumSupply: {MaximumSupply?.ToString() ?? "N/A"}";
                 throw new JsonException(msg);
             }
-
-            Hash = hash;
         }
 
         private Currency(SerializationInfo info, StreamingContext context)
@@ -348,8 +344,6 @@ namespace Libplanet.Types.Assets
                     throw new ArgumentException(msg, nameof(minor));
                 }
             }
-
-            Hash = GetHash();
         }
 
         /// <summary>
@@ -397,7 +391,7 @@ namespace Libplanet.Types.Assets
                 _maximumSupply = maximumSupply;
             }
 
-            Hash = GetHash();
+            // Hash = GetHash();
         }
 
         /// <summary>
@@ -435,7 +429,6 @@ namespace Libplanet.Types.Assets
             DecimalPlaces = decimalPlaces;
             _maximumSupply = null;
             TotalSupplyTrackable = totalSupplyTrackable;
-            Hash = GetHash();
         }
 
         /// <summary>
@@ -713,6 +706,9 @@ namespace Libplanet.Types.Assets
 
         private static SHA1 GetSHA1()
         {
+#if NET6_0_OR_GREATER
+            return SHA1.Create();
+#else
             try
             {
                 return new SHA1CryptoServiceProvider();
@@ -721,6 +717,7 @@ namespace Libplanet.Types.Assets
             {
                 return new SHA1Managed();
             }
+#endif
         }
 
         [Pure]

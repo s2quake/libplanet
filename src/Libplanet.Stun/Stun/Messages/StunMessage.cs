@@ -18,8 +18,12 @@ namespace Libplanet.Stun.Messages
         protected StunMessage()
         {
             var transactionId = new byte[12];
+#if NET6_0_OR_GREATER
+            RandomNumberGenerator.Fill(transactionId);
+#else
             using var rng = new RNGCryptoServiceProvider();
             rng.GetBytes(transactionId);
+#endif
             TransactionId = transactionId;
         }
 

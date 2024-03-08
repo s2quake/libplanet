@@ -22,7 +22,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using Serilog;
 using Xunit;
-using FAV = Libplanet.Types.Assets.FungibleAssetValue;
 
 namespace Libplanet.Tests.Blockchain
 {
@@ -31,7 +30,9 @@ namespace Libplanet.Tests.Blockchain
         [SkippableTheory]
         [InlineData(true)]
         [InlineData(false)]
+#pragma warning disable MEN003 // Method is too long
         public void Append(bool getTxExecutionViaStore)
+#pragma warning restore MEN003 // Method is too long
         {
             Func<BlockHash, TxId, TxExecution> getTxExecution
                 = getTxExecutionViaStore

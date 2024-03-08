@@ -4,12 +4,7 @@ namespace Libplanet.Explorer.Tests
 {
     public static class TestUtils
     {
-        private static readonly Random _random;
-
-        static TestUtils()
-        {
-            _random = new Random();
-        }
+        private static readonly Random _random = new Random();
 
         public static byte[] GetRandomBytes(int size)
         {

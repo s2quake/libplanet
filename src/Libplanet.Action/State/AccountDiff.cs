@@ -7,7 +7,6 @@ using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;
-using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Action.State

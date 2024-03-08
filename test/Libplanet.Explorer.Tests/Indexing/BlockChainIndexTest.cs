@@ -242,7 +242,7 @@ public abstract class BlockChainIndexTest
                     : (..^(blockCount / 4), ..(blockCount - blockCount / 4));
         }
 
-        throw new ArgumentOutOfRangeException();
+        throw new ArgumentOutOfRangeException(nameof(kind));
     }
 
     [Theory]
