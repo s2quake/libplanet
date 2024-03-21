@@ -39,6 +39,9 @@ namespace Libplanet.Types.Blocks
         private static readonly Binary PreEvaluationHashKey = new Binary(0x63); // 'c'
         private static readonly Binary LastCommitKey = new Binary(0x43); // 'C'
 
+        private static readonly Binary ProofKey =
+            new Binary(new byte[] { 0x52 }); // 'R'
+
         public static Dictionary MarshalBlockMetadata(IBlockMetadata metadata)
         {
             string timestamp =
@@ -69,6 +72,11 @@ namespace Libplanet.Types.Blocks
             if (metadata.LastCommit is { } commit)
             {
                 dict = dict.Add(LastCommitKey, commit.Bencoded);
+            }
+
+            if (metadata.Proof is { } proof)
+            {
+                dict = dict.Add(ProofKey, proof.Bencoded);
             }
 
             return dict;
@@ -180,7 +188,10 @@ namespace Libplanet.Types.Blocks
                     : (HashDigest<SHA256>?)null,
                 lastCommit: marshaled.ContainsKey(LastCommitKey)
                     ? new BlockCommit(marshaled[LastCommitKey])
-                    : (BlockCommit?)null);
+                    : (BlockCommit?)null,
+                proof: marshaled.ContainsKey(ProofKey)
+                    ? new Proof(marshaled[ProofKey])
+                    : (Proof?)null);
 #pragma warning restore SA1118
         }
 
