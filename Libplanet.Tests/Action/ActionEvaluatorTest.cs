@@ -22,6 +22,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Tests.Tx;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;
 using Serilog;
 using Xunit;
@@ -84,7 +85,8 @@ namespace Libplanet.Tests.Action
                     publicKey: GenesisProposer.PublicKey,
                     previousHash: null,
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null),
+                    lastCommit: null,
+                    proof: null),
                 transactions: txs).Propose();
             var actionEvaluator = new ActionEvaluator(
                 _ => null,
@@ -255,7 +257,8 @@ namespace Libplanet.Tests.Action
                     publicKey: new PrivateKey().PublicKey,
                     previousHash: genesis.Hash,
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null),
+                    lastCommit: null,
+                    proof: null),
                 transactions: txs).Propose();
             IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
 
@@ -557,7 +560,8 @@ namespace Libplanet.Tests.Action
                     publicKey: keys[0].PublicKey,
                     previousHash: default(BlockHash),
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null),
+                    lastCommit: null,
+                    proof: null),
                 transactions: txs).Propose();
             IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
             IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
@@ -671,7 +675,8 @@ namespace Libplanet.Tests.Action
                     publicKey: GenesisProposer.PublicKey,
                     previousHash: hash,
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: CreateBlockCommit(hash, 122, 0)),
+                    lastCommit: CreateBlockCommit(hash, 122, 0),
+                    proof: new LotMetadata(123L, 0, null).Prove(GenesisProposer).Proof),
                 transactions: txs).Propose();
             IWorld previousState = stateStore.GetWorld(null);
             var nextState = actionEvaluator.EvaluateTx(
@@ -822,7 +827,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                GenesisProposer,
+                txs.ToImmutableList(),
+                CreateBlockCommit(chain.Tip),
+                new LotMetadata(1L, 0, null).Prove(GenesisProposer).Proof);
 
             IWorld previousState = _storeFx.StateStore.GetWorld(null);
             var evaluation = actionEvaluator.EvaluatePolicyBlockAction(genesis, previousState);
