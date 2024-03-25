@@ -81,10 +81,15 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+            var block = blockChain.ProposeBlock(
+                TestUtils.PrivateKeys[1],
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, TestUtils.PrivateKeys[1]));
             var blockCommit = TestUtils.CreateBlockCommit(block);
             blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(
+                TestUtils.PrivateKeys[2],
+                blockCommit,
+                TestUtils.CreateZeroRoundProof(blockChain.Tip, TestUtils.PrivateKeys[2]));
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
             Assert.Equal(2, blockChain.Tip.Index);
 
@@ -141,7 +146,10 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.PrivateKeys[1]);
 
             Assert.Equal(-1, consensusContext.Height);
-            Block block = blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block = blockChain.ProposeBlock(
+                proposer,
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, proposer));
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
             Assert.Equal(-1, consensusContext.Height);
             await Task.Delay(newHeightDelay + TimeSpan.FromSeconds(1));
@@ -161,7 +169,10 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.True(consensusContext.Height == 1);
             Assert.False(consensusContext.HandleMessage(
                 TestUtils.CreateConsensusPropose(
-                    blockChain.ProposeBlock(TestUtils.PrivateKeys[0]),
+                    blockChain.ProposeBlock(
+                        TestUtils.PrivateKeys[0],
+                        proof: TestUtils.CreateZeroRoundProof(
+                            blockChain.Tip, TestUtils.PrivateKeys[0])),
                     TestUtils.PrivateKeys[0],
                     0)));
         }
@@ -180,18 +191,30 @@ namespace Libplanet.Net.Tests.Consensus
             // Create context of index 2.
             consensusContext.HandleMessage(
                 TestUtils.CreateConsensusPropose(
-                    blockChain.ProposeBlock(TestUtils.PrivateKeys[2]),
+                    blockChain.ProposeBlock(
+                        TestUtils.PrivateKeys[2],
+                        proof: TestUtils.CreateZeroRoundProof(
+                            blockChain.Tip, TestUtils.PrivateKeys[2])),
                     TestUtils.PrivateKeys[2],
                     2,
                     1));
 
-            var block = blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            var block = blockChain.ProposeBlock(
+                proposer,
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, proposer));
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
+            proposer = new PrivateKey();
             block = blockChain.ProposeBlock(
-                new PrivateKey(), TestUtils.CreateBlockCommit(blockChain.Tip));
+                proposer,
+                TestUtils.CreateBlockCommit(blockChain.Tip),
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, proposer));
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
+            proposer = new PrivateKey();
             block = blockChain.ProposeBlock(
-                new PrivateKey(), TestUtils.CreateBlockCommit(blockChain.Tip));
+                proposer,
+                TestUtils.CreateBlockCommit(blockChain.Tip),
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, proposer));
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
             // Create context of index 4, check if the context of 1 and 2 are removed correctly.
@@ -282,7 +305,9 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[0]);
             consensusContext.NewHeight(1);
-            var block = blockChain.ProposeBlock(proposer);
+            var block = blockChain.ProposeBlock(
+                proposer,
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, proposer));
             var proposal = new ProposalMetadata(
                 1,
                 0,
@@ -363,7 +388,9 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChanged.Set();
                 }
             };
-            var block = blockChain.ProposeBlock(proposer);
+            var block = blockChain.ProposeBlock(
+                proposer,
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, proposer));
             var proposal = new ProposalMetadata(
                 1,
                 0,
@@ -433,7 +460,9 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChanged.Set();
                 }
             };
-            var block = blockChain.ProposeBlock(proposer);
+            var block = blockChain.ProposeBlock(
+                proposer,
+                proof: TestUtils.CreateZeroRoundProof(blockChain.Tip, proposer));
             var proposal = new ProposalMetadata(
                 1,
                 0,
