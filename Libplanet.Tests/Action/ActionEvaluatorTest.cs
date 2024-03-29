@@ -11,7 +11,6 @@ using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
-using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Mocks;
 using Libplanet.Store;
@@ -1234,7 +1233,30 @@ namespace Libplanet.Tests.Action
             Assert.Equal(
                 typeof(InsufficientBalanceException),
                 evaluations.Single().Exception?.InnerException?.GetType());
-         }
+        }
+
+        [Fact]
+        public void GenerateRandomSeed()
+        {
+            byte[] proofBytes =
+            {
+                0x03, 0x47, 0xfc, 0xcb, 0x9f, 0x8b, 0x62, 0x8c, 0x00, 0x92,
+                0x62, 0x7a, 0x7b, 0x91, 0x1a, 0x8e, 0x5b, 0xfb, 0xb4, 0x0b,
+                0x5a, 0x25, 0xc1, 0x83, 0xf3, 0x4e, 0x91, 0x51, 0x3b, 0xaa,
+                0xbd, 0x11, 0xfd, 0x9f, 0x72, 0xcd, 0x88, 0xac, 0x09, 0xab,
+                0xe4, 0x97, 0xdb, 0x2b, 0x5e, 0x05, 0xb2, 0x52, 0x2c, 0x02,
+                0xab, 0xd9, 0xb8, 0x5c, 0x62, 0x37, 0xcb, 0x48, 0x54, 0x08,
+                0xd4, 0x6a, 0x13, 0x1e, 0xc1, 0xcd, 0xa7, 0xbc, 0xe3, 0x6c,
+                0xce, 0x94, 0xaa, 0xd4, 0xca, 0x00, 0xcb, 0x3a, 0x3f, 0x24,
+                0x9d, 0x4f, 0xaf, 0x76, 0x22, 0xa7, 0x28, 0x67, 0x2b, 0x08,
+                0xa9, 0x8c, 0xa0, 0x63, 0xda, 0x27, 0xfa,
+            };
+
+            Proof proof = new Proof(proofBytes);
+
+            int seed = proof.Seed;
+            Assert.Equal(-713621093, seed);
+        }
 
         [Fact]
         public void GenerateLegacyRandomSeed()
@@ -1263,7 +1285,7 @@ namespace Libplanet.Tests.Action
         }
 
         [Fact]
-        public void CheckLegacyRandomSeedInAction()
+        public void CheckRandomSeedInAction()
         {
             IntegerSet fx = new IntegerSet(new[] { 5, 10 });
 
@@ -1284,13 +1306,11 @@ namespace Libplanet.Tests.Action
                     .ToImmutableArray(),
                 stateStore: fx.StateStore).ToArray();
 
-            byte[] preEvaluationHashBytes = blockA.PreEvaluationHash.ToByteArray();
+            Assert.NotNull(blockA.Proof);
+            Proof proof = (Proof)blockA.Proof;
             int[] randomSeeds = Enumerable
                 .Range(0, txA.Actions.Count)
-                .Select(offset => ActionEvaluator.GenerateLegacyRandomSeed(
-                    preEvaluationHashBytes,
-                    txA.Signature,
-                    offset))
+                .Select(offset => proof.Seed + offset)
                 .ToArray();
 
             for (int i = 0; i < evalsA.Length; i++)
