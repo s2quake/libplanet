@@ -111,7 +111,7 @@ Released on April 17, 2024.
 Version 4.3.1
 -------------
 
-To be released.
+Released on April 18, 2024.
 
  -  Downgraded *LiteDB* from [5.0.15][LiteDB 5.0.15] to
     [4.1.4][LiteDB 4.1.4].  [[#3753]]
