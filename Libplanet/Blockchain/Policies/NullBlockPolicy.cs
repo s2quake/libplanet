@@ -55,5 +55,7 @@ namespace Libplanet.Blockchain.Policies
 
         public int GetMaxTransactionsPerSignerPerBlock(long index) =>
             GetMaxTransactionsPerBlock(index);
+
+        public long GetMaxEvidencePendingDuration(long index) => 10L;
     }
 }
