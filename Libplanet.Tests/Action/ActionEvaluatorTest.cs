@@ -21,6 +21,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Tests.Tx;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;
 using Serilog;
 using Xunit;
@@ -120,7 +121,8 @@ namespace Libplanet.Tests.Action
                     publicKey: GenesisProposer.PublicKey,
                     previousHash: null,
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null),
+                    lastCommit: null,
+                    evidences: ImmutableArray<Evidence>.Empty),
                 transactions: txs).Propose();
             var actionEvaluator = new ActionEvaluator(
                 new PolicyActionsRegistry(
@@ -265,7 +267,10 @@ namespace Libplanet.Tests.Action
 
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                proposer: GenesisProposer,
+                transactions: txs.ToImmutableList(),
+                lastCommit: CreateBlockCommit(chain.Tip),
+                evidences: ImmutableArray<Evidence>.Empty);
             var evaluations = actionEvaluator.Evaluate(
                 block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
@@ -337,7 +342,10 @@ namespace Libplanet.Tests.Action
 
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                GenesisProposer,
+                txs.ToImmutableList(),
+                CreateBlockCommit(chain.Tip),
+                ImmutableArray<Evidence>.Empty);
             var evaluations = actionEvaluator.Evaluate(
                 block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
@@ -422,7 +430,8 @@ namespace Libplanet.Tests.Action
                     publicKey: new PrivateKey().PublicKey,
                     previousHash: genesis.Hash,
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null),
+                    lastCommit: null,
+                    evidences: ImmutableArray<Evidence>.Empty),
                 transactions: txs).Propose();
             IWorld previousState = actionEvaluator.PrepareInitialDelta(genesis.StateRootHash);
 
@@ -728,7 +737,8 @@ namespace Libplanet.Tests.Action
                     publicKey: keys[0].PublicKey,
                     previousHash: default(BlockHash),
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null),
+                    lastCommit: null,
+                    evidences: ImmutableArray<Evidence>.Empty),
                 transactions: txs).Propose();
             IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
             IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
@@ -849,7 +859,8 @@ namespace Libplanet.Tests.Action
                     publicKey: GenesisProposer.PublicKey,
                     previousHash: hash,
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: CreateBlockCommit(hash, 122, 0)),
+                    lastCommit: CreateBlockCommit(hash, 122, 0),
+                    evidences: ImmutableArray<Evidence>.Empty),
                 transactions: txs).Propose();
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var nextState = actionEvaluator.EvaluateTx(
@@ -1002,7 +1013,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                GenesisProposer,
+                txs.ToImmutableList(),
+                CreateBlockCommit(chain.Tip),
+                ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyBeginBlockActions(
@@ -1050,7 +1064,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                proposer: GenesisProposer,
+                transactions: txs.ToImmutableList(),
+                lastCommit: CreateBlockCommit(chain.Tip),
+                evidences: ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyEndBlockActions(
@@ -1099,7 +1116,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                proposer: GenesisProposer,
+                transactions: txs.ToImmutableList(),
+                lastCommit: CreateBlockCommit(chain.Tip),
+                evidences: ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyBeginTxActions(
@@ -1151,7 +1171,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                GenesisProposer,
+                txs.ToImmutableList(),
+                CreateBlockCommit(chain.Tip),
+                ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyEndTxActions(

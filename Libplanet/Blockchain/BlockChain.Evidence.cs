@@ -122,7 +122,6 @@ namespace Libplanet.Blockchain
                     var hash = this[voteRef.Height].Hash;
                     var blockChainStates = _blockChainStates.GetWorldState(hash);
                     var validatorSet = blockChainStates
-                        .GetAccountState(ReservedAddresses.LegacyAccount)
                         .GetValidatorSet();
 
                     AddEvidence(
@@ -231,7 +230,6 @@ namespace Libplanet.Blockchain
             var hash = this[evidence.Height].Hash;
             var blockChainStates = _blockChainStates.GetWorldState(hash);
             var validatorSet = blockChainStates
-                .GetAccountState(ReservedAddresses.LegacyAccount)
                 .GetValidatorSet();
 
             if (!validatorSet.PublicKeys.Contains(evidence.VoteRef.ValidatorPublicKey))
