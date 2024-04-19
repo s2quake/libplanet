@@ -33,7 +33,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void CanProposeWithDuplicateVoteEvidence()
+        public async void Evidences_WithDuplicateVotes_Test()
         {
             ConsensusProposalMsg? proposal = null;
             var proposalMessageHeightThreeSent = new AsyncAutoResetEvent();

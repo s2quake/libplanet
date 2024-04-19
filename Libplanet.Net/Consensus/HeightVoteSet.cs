@@ -281,7 +281,7 @@ namespace Libplanet.Net.Consensus
             }
         }
 
-        internal IEnumerable<Tuple<Vote, Vote>> GetDuplicatedVotePairs()
+        internal IEnumerable<(Vote, Vote)> GetDuplicatedVotePairs()
             => _duplicatedVotePairPool.Exhaust();
 
         internal class RoundVoteSet

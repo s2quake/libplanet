@@ -198,7 +198,7 @@ namespace Libplanet.Net.Consensus
                     }
 
                     _blockChain.UpdateEvidence(
-                        lastContext?.GetDuplicatedVotePairs() ?? new List<Tuple<Vote, Vote>>(),
+                        lastContext?.GetDuplicatedVotePairs() ?? new List<(Vote, Vote)>(),
                         _blockChain[height - 1].Evidences ?? ImmutableArray<Evidence>.Empty);
 
                     commitEvidences = _blockChain.GetPendingEvidences();

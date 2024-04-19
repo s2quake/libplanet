@@ -378,7 +378,7 @@ namespace Libplanet.Net.Consensus
         /// <returns>Duplicated <see cref="Vote"/> pairs collected by
         /// <see cref="DuplicatedVotePairPool"/>.
         /// </returns>
-        internal IEnumerable<Tuple<Vote, Vote>> GetDuplicatedVotePairs()
+        internal IEnumerable<(Vote, Vote)> GetDuplicatedVotePairs()
             => _heightVoteSet.GetDuplicatedVotePairs();
 
         /// <summary>

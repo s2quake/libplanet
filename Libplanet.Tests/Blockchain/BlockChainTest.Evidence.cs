@@ -45,9 +45,9 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.ValidatorSet,
                 voteDup.Timestamp);
 
-            var duplicatedVoteSets = new List<Tuple<Vote, Vote>>()
+            var duplicatedVoteSets = new List<(Vote, Vote)>()
             {
-                Tuple.Create(voteRef, voteDup),
+                (voteRef, voteDup),
             };
 
             Assert.Empty(_blockChain.GetPendingEvidences());
@@ -133,9 +133,9 @@ namespace Libplanet.Tests.Blockchain
                     new List<Validator> { new Validator(key.PublicKey, BigInteger.One) }),
                 voteDup.Timestamp);
 
-            var duplicatedVoteSets = new List<Tuple<Vote, Vote>>()
+            var duplicatedVoteSets = new List<(Vote, Vote)>()
             {
-                Tuple.Create(voteRef, voteDup),
+                (voteRef, voteDup),
             };
 
             Assert.Empty(_blockChain.GetPendingEvidences());
@@ -175,9 +175,9 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.ValidatorSet,
                 voteDup.Timestamp);
 
-            var duplicatedVoteSets = new List<Tuple<Vote, Vote>>()
+            var duplicatedVoteSets = new List<(Vote, Vote)>()
             {
-                Tuple.Create(voteRef, voteDup),
+                (voteRef, voteDup),
             };
 
             Assert.Empty(_blockChain.GetPendingEvidences());

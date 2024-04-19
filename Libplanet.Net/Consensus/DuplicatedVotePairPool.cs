@@ -10,14 +10,14 @@ namespace Libplanet.Net.Consensus
     /// </summary>
     internal sealed class DuplicatedVotePairPool
     {
-        private ConcurrentDictionary<Tuple<Vote, Vote>, bool> _duplicatedVotePairs;
+        private ConcurrentDictionary<(Vote, Vote), bool> _duplicatedVotePairs;
 
         /// <summary>
         /// Creates a <see cref="DuplicatedVotePairPool"/> instance.
         /// </summary>
         public DuplicatedVotePairPool()
         {
-            _duplicatedVotePairs = new ConcurrentDictionary<Tuple<Vote, Vote>, bool>();
+            _duplicatedVotePairs = new ConcurrentDictionary<(Vote, Vote), bool>();
         }
 
         /// <summary>
@@ -78,22 +78,20 @@ namespace Libplanet.Net.Consensus
                     $"voteDup has invalid signature : {voteDup}, {voteDup.Signature}");
             }
 
-            _duplicatedVotePairs.TryAdd(
-                     Tuple.Create(voteRef, voteDup), true);
+            _duplicatedVotePairs.TryAdd((voteRef, voteDup), true);
         }
 
         /// <summary>
         /// Retrieve duplicated vote pairs from the <see cref="DuplicatedVotePairPool"/>.
-        /// <seealso cref="Blockchain.BlockChain.UpdateEvidence(
-        /// IEnumerable{Tuple{Vote, Vote}}, IEnumerable{Evidence}?)"/>
+        /// <seealso cref="Blockchain.BlockChain.UpdateEvidence"/>
         /// <seealso cref="Context.ProcessHeightOrRoundUponRules(Messages.ConsensusMsg)"/>
         /// </summary>
         /// <returns>Duplicated vote pairs retrieved from the
         /// <see cref="DuplicatedVotePairPool"/>.
         /// </returns>
-        public IEnumerable<Tuple<Vote, Vote>> Exhaust()
+        public IEnumerable<(Vote, Vote)> Exhaust()
         {
-            foreach (Tuple<Vote, Vote> key in _duplicatedVotePairs.Keys)
+            foreach ((Vote, Vote) key in _duplicatedVotePairs.Keys)
             {
                 if (_duplicatedVotePairs.TryRemove(key, out _))
                 {
