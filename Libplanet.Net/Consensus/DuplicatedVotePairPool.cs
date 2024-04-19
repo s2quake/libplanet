@@ -79,7 +79,7 @@ namespace Libplanet.Net.Consensus
             }
 
             _duplicatedVotePairs.TryAdd(
-                Tuple.Create(voteRef, voteDup), true);
+                     Tuple.Create(voteRef, voteDup), true);
         }
 
         /// <summary>

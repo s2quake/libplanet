@@ -436,7 +436,10 @@ namespace Libplanet.Net.Consensus
                 {
                     // ... and there's a conflicting vote.
                     // We're not even tracking this blockKey, so just forget it.
-                    throw new InvalidVoteException("There's a conflicting vote", vote);
+                    throw new DuplicatedVoteException(
+                        message: "There's a conflicting vote",
+                        voteRef: conflicting,
+                        voteDup: vote);
                 }
 
                 // ... and there's no conflicting vote.

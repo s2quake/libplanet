@@ -15,12 +15,6 @@ namespace Libplanet.Net.Consensus
     // unexpected.
     public partial class Context
     {
-        private Dictionary<int, Dictionary<PublicKey, ConsensusPreVoteMsg>> _preVotes
-            = new Dictionary<int, Dictionary<PublicKey, ConsensusPreVoteMsg>>();
-
-        private Dictionary<int, Dictionary<PublicKey, ConsensusPreCommitMsg>> _preCommits
-            = new Dictionary<int, Dictionary<PublicKey, ConsensusPreCommitMsg>>();
-
         /// <summary>
         /// Starts a new round.
         /// </summary>
@@ -126,7 +120,6 @@ namespace Libplanet.Net.Consensus
 
                         case ConsensusPreCommitMsg preCommit:
                             {
-                                Add(preCommit);
                                 _heightVoteSet.AddVote(preCommit.PreCommit);
                                 var args = (preCommit.Round, VoteFlag.PreCommit,
                                     _heightVoteSet.PreCommits(preCommit.Round).GetAllVotes());
@@ -180,38 +173,6 @@ namespace Libplanet.Net.Consensus
                 _logger.Error(icme, msg);
                 ExceptionOccurred?.Invoke(this, icme);
                 return false;
-            }
-        }
-
-        private void Add(ConsensusPreCommitMsg preCommit)
-        {
-            if (!_preCommits.ContainsKey(preCommit.Round))
-            {
-                _preCommits[preCommit.Round] =
-                    new Dictionary<PublicKey, ConsensusPreCommitMsg>();
-            }
-
-            if (_preCommits[preCommit.Round].ContainsKey(preCommit.ValidatorPublicKey))
-            {
-                try
-                {
-                    _duplicatedVotePairPool.Add(
-                        _preCommits[preCommit.Round][preCommit.ValidatorPublicKey]
-                        .PreCommit,
-                        preCommit.PreCommit);
-                }
-                catch (ArgumentException)
-                {
-                }
-
-                var msg =
-                    "There is already a precommit message for given precommit message's " +
-                    $"round {preCommit.Round} and validator {preCommit.ValidatorPublicKey}";
-                throw new InvalidConsensusMessageException(msg, preCommit);
-            }
-            else
-            {
-                _preCommits[preCommit.Round][preCommit.ValidatorPublicKey] = preCommit;
             }
         }
 

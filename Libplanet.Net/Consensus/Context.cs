@@ -91,7 +91,6 @@ namespace Libplanet.Net.Consensus
         private readonly HashSet<int> _preVoteTimeoutFlags;
         private readonly HashSet<int> _hasTwoThirdsPreVoteFlags;
         private readonly HashSet<int> _preCommitTimeoutFlags;
-        private readonly DuplicatedVotePairPool _duplicatedVotePairPool;
 
         private readonly CancellationTokenSource _cancellationTokenSource;
 
@@ -192,7 +191,6 @@ namespace Libplanet.Net.Consensus
             _preVoteTimeoutFlags = new HashSet<int>();
             _hasTwoThirdsPreVoteFlags = new HashSet<int>();
             _preCommitTimeoutFlags = new HashSet<int>();
-            _duplicatedVotePairPool = new DuplicatedVotePairPool();
             _validatorSet = validators;
             _cancellationTokenSource = new CancellationTokenSource();
             _blockValidationCache =
@@ -381,7 +379,7 @@ namespace Libplanet.Net.Consensus
         /// <see cref="DuplicatedVotePairPool"/>.
         /// </returns>
         internal IEnumerable<Tuple<Vote, Vote>> GetDuplicatedVotePairs()
-            => _duplicatedVotePairPool.Exhaust();
+            => _heightVoteSet.GetDuplicatedVotePairs();
 
         /// <summary>
         /// Gets the timeout of <see cref="ConsensusStep.PreVote"/> with the given
