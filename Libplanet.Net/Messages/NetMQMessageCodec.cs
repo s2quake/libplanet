@@ -197,6 +197,8 @@ namespace Libplanet.Net.Messages
                     return new BlocksMsg(dataframes);
                 case MessageContent.MessageType.Tx:
                     return new TxMsg(dataframes);
+                case MessageContent.MessageType.Evidence:
+                    return new EvidenceMsg(dataframes);
                 case MessageContent.MessageType.FindNeighbors:
                     return new FindNeighborsMsg(dataframes);
                 case MessageContent.MessageType.Neighbors:

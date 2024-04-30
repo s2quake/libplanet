@@ -26,7 +26,14 @@ namespace Libplanet.Net.Consensus
         private void AttachEventHandlers(Context context)
         {
             context.ExceptionOccurred += (sender, exception) =>
+            {
+                if (exception is EvidenceException evidenceException)
+                {
+                    _evidenceCollector.Handle(evidenceException);
+                }
+
                 ExceptionOccurred?.Invoke(this, (context.Height, exception));
+            };
             context.TimeoutProcessed += (sender, eventArgs) =>
                 TimeoutProcessed?.Invoke(this, (context.Height, eventArgs.Round, eventArgs.Step));
             context.StateChanged += (sender, eventArgs) =>

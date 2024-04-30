@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 
@@ -17,7 +16,7 @@ namespace Libplanet.Net.Consensus
 
         /// <summary>
         /// Method that will be called on the
-        /// <see cref="Context.Start(BlockCommit?, ImmutableArray{Types.Consensus.Evidence}?)"/>
+        /// <see cref="Context.Start(BlockCommit?)"/>
         /// call.
         /// </summary>
         /// <param name="height"><see cref="Context.Height"/>

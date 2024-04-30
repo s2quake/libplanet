@@ -108,7 +108,6 @@ namespace Libplanet.Net.Consensus
         private Block? _decision;
         private int _committedRound;
         private BlockCommit? _lastCommit;
-        private ImmutableArray<Evidence>? _commitEvidences;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Context"/> class.
@@ -372,16 +371,6 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// Gets the duplicated <see cref="Vote"/> pairs from it's
-        /// <see cref="DuplicatedVotePairPool"/>.
-        /// </summary>
-        /// <returns>Duplicated <see cref="Vote"/> pairs collected by
-        /// <see cref="DuplicatedVotePairPool"/>.
-        /// </returns>
-        internal IEnumerable<(Vote, Vote)> GetDuplicatedVotePairs()
-            => _heightVoteSet.GetDuplicatedVotePairs();
-
-        /// <summary>
         /// Gets the timeout of <see cref="ConsensusStep.PreVote"/> with the given
         /// round.
         /// </summary>
@@ -429,7 +418,8 @@ namespace Libplanet.Net.Consensus
         {
             try
             {
-                Block block = _blockChain.ProposeBlock(_privateKey, _lastCommit, _commitEvidences);
+                var evidences = _blockChain.GetPendingEvidences();
+                Block block = _blockChain.ProposeBlock(_privateKey, _lastCommit, evidences);
                 _blockChain.Store.PutBlock(block);
                 return block;
             }

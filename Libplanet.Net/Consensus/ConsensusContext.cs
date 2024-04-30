@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Action.State;
@@ -29,6 +28,7 @@ namespace Libplanet.Net.Consensus
         private readonly TimeSpan _newHeightDelay;
         private readonly ILogger _logger;
         private readonly Dictionary<long, Context> _contexts;
+        private readonly EvidenceCollector _evidenceCollector = new EvidenceCollector();
 
         private CancellationTokenSource? _newHeightCts;
 
@@ -171,7 +171,6 @@ namespace Libplanet.Net.Consensus
                 }
 
                 BlockCommit? lastCommit = null;
-                ImmutableArray<Evidence>? commitEvidences = null;
                 lock (_contextLock)
                 {
                     Context? lastContext = _contexts.ContainsKey(height - 1)
@@ -197,11 +196,10 @@ namespace Libplanet.Net.Consensus
                         }
                     }
 
-                    _blockChain.UpdateEvidence(
-                        lastContext?.GetDuplicatedVotePairs() ?? new List<(Vote, Vote)>(),
-                        _blockChain[height - 1].Evidences ?? ImmutableArray<Evidence>.Empty);
-
-                    commitEvidences = _blockChain.GetPendingEvidences();
+                    foreach (var evidence in _evidenceCollector.Exhaust(_blockChain))
+                    {
+                        _blockChain.AddEvidence(evidence);
+                    }
                 }
 
                 RemoveOldContexts(height);
@@ -216,7 +214,7 @@ namespace Libplanet.Net.Consensus
                         _contexts[height] = CreateContext(height);
                     }
 
-                    _contexts[height].Start(lastCommit, commitEvidences);
+                    _contexts[height].Start(lastCommit);
                 }
             }
         }

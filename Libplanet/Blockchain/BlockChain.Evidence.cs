@@ -107,53 +107,22 @@ namespace Libplanet.Blockchain
         }
 
         /// <summary>
-        /// Update <see cref="Store"/> with given <paramref name="duplicatedVotePairs"/>
-        /// and <paramref name="blockEvidences"/>.
-        /// Add <paramref name="duplicatedVotePairs"/> on the pending evidence pool,
-        /// and update <paramref name="blockEvidences"/> as committed.
+        /// Update <see cref="Store"/> with given <paramref name="evidences"/>.
+        /// and update <paramref name="evidences"/> as committed.
         /// </summary>
-        /// <param name="duplicatedVotePairs"><see cref="Vote"/>s that are found duplicated.</param>
-        /// <param name="blockEvidences"><see cref="Evidence"/>s committed on the block.</param>
+        /// <param name="evidences"><see cref="Evidence"/>s committed on the block.</param>
         public void UpdateEvidence(
-            IEnumerable<(Vote, Vote)> duplicatedVotePairs,
-            IEnumerable<Evidence> blockEvidences)
+            IEnumerable<Evidence> evidences)
         {
-            foreach ((Vote voteRef, Vote voteDup) in duplicatedVotePairs)
+            foreach (var evidence in evidences)
             {
                 try
                 {
-                    (_, Vote dup) = DuplicateVoteEvidence.OrderDuplicateVotePair(voteRef, voteDup);
-
-                    var hash = this[voteRef.Height].Hash;
-                    var blockChainStates = _blockChainStates.GetWorldState(hash);
-                    var validatorSet = blockChainStates
-                        .GetValidatorSet();
-
-                    AddEvidence(
-                        new DuplicateVoteEvidence(
-                            voteRef,
-                            voteDup,
-                            validatorSet,
-                            dup.Timestamp));
+                    CommitEvidence(evidence);
                 }
                 catch (Exception e)
                 {
-                    _logger.Debug(e, $"Evidence couldn't be added as pending : {e.Message}");
-                }
-            }
-
-            if (blockEvidences is { } evidences)
-            {
-                foreach (var evidence in evidences)
-                {
-                    try
-                    {
-                        CommitEvidence(evidence);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Debug(e, $"Evidence couldn't be committed : {e.Message}");
-                    }
+                    _logger.Debug(e, $"Evidence couldn't be committed : {e.Message}");
                 }
             }
 
@@ -216,7 +185,7 @@ namespace Libplanet.Blockchain
         {
             switch (evidence)
             {
-                case DuplicateVoteEvidence duplicateVoteEvidence:
+                case DuplicatedVoteEvidence duplicateVoteEvidence:
                     VerifyDuplicateVoteEvidence(duplicateVoteEvidence);
                     break;
                 default:
@@ -225,12 +194,12 @@ namespace Libplanet.Blockchain
         }
 
         /// <summary>
-        /// Verify if <paramref name="evidence"/> is valid <see cref="DuplicateVoteEvidence"/>.
+        /// Verify if <paramref name="evidence"/> is valid <see cref="DuplicatedVoteEvidence"/>.
         /// </summary>
-        /// <param name="evidence"><see cref="DuplicateVoteEvidence"/> to be verified.</param>
+        /// <param name="evidence"><see cref="DuplicatedVoteEvidence"/> to be verified.</param>
         /// <exception cref="InvalidEvidenceException">Thrown when given
         /// <paramref name="evidence"/> is invalid.</exception>
-        public void VerifyDuplicateVoteEvidence(DuplicateVoteEvidence evidence)
+        public void VerifyDuplicateVoteEvidence(DuplicatedVoteEvidence evidence)
         {
             var hash = this[evidence.Height].Hash;
             var blockChainStates = _blockChainStates.GetWorldState(hash);

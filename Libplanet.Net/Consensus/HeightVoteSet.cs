@@ -13,7 +13,6 @@ namespace Libplanet.Net.Consensus
     {
         private readonly ILogger _logger;
         private readonly object _lock;
-        private readonly DuplicatedVotePairPool _duplicatedVotePairPool;
         private long _height;
         private ValidatorSet _validatorSet;
         private Dictionary<int, RoundVoteSet> _roundVoteSets;
@@ -27,7 +26,6 @@ namespace Libplanet.Net.Consensus
                 .ForContext<HeightVoteSet>()
                 .ForContext("Source", nameof(HeightVoteSet));
             _lock = new object();
-            _duplicatedVotePairPool = new DuplicatedVotePairPool();
             lock (_lock)
             {
                 _height = height;
@@ -167,16 +165,7 @@ namespace Libplanet.Net.Consensus
                     voteSet = GetVoteSet(vote.Round, vote.Flag);
                 }
 
-                try
-                {
-                    voteSet.AddVote(vote);
-                }
-                catch (DuplicatedVoteException e)
-                {
-                    var voteRef = e.VoteRef;
-                    var voteDup = e.VoteDup;
-                    _duplicatedVotePairPool.Add(voteRef, voteDup);
-                }
+                voteSet.AddVote(vote);
             }
         }
 
@@ -280,9 +269,6 @@ namespace Libplanet.Net.Consensus
                 return voteSet.SetPeerMaj23(maj23);
             }
         }
-
-        internal IEnumerable<(Vote, Vote)> GetDuplicatedVotePairs()
-            => _duplicatedVotePairPool.Exhaust();
 
         internal class RoundVoteSet
         {

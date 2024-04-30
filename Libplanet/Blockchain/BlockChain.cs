@@ -977,6 +977,14 @@ namespace Libplanet.Blockchain
                         Store.PutChainBlockCommit(Id, blockCommit);
                     }
 
+                    if (block.Evidences is { } evidences)
+                    {
+                        foreach (var evidence in evidences)
+                        {
+                            Store.PutCommittedEvidence(evidence);
+                        }
+                    }
+
                     Store.AppendIndex(Id, block.Hash);
                 }
                 finally

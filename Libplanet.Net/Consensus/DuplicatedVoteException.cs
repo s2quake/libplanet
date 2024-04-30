@@ -1,5 +1,7 @@
 using System;
 using System.Runtime.Serialization;
+using Libplanet.Action.State;
+using Libplanet.Blockchain;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Net.Consensus
@@ -10,7 +12,7 @@ namespace Libplanet.Net.Consensus
     /// does not change the state of a <see cref="Context"/> in a meaningful way.
     /// </summary>
     [Serializable]
-    public class DuplicatedVoteException : Exception
+    public class DuplicatedVoteException : EvidenceException
     {
         /// <summary>
         /// Initializes a new instance of <see cref="InvalidConsensusMessageException"/> class.
@@ -61,6 +63,7 @@ namespace Libplanet.Net.Consensus
         /// that contains contextual information about the source or destination.
         /// </param>
         protected DuplicatedVoteException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
             VoteRef =
                 info.GetValue(nameof(VoteRef), typeof(Vote)) as Vote ??
@@ -82,6 +85,26 @@ namespace Libplanet.Net.Consensus
             base.GetObjectData(info, context);
             info.AddValue(nameof(Vote), VoteRef);
             info.AddValue(nameof(Vote), VoteDup);
+        }
+
+        public override Evidence CreateEvidence(BlockChain blockChain)
+        {
+            var voteRef = VoteRef;
+            var voteDup = VoteDup;
+            (_, Vote dup) = DuplicatedVoteEvidence.OrderDuplicateVotePair(voteRef, voteDup);
+
+            var hash = blockChain[voteRef.Height].Hash;
+            var worldState = blockChain.GetWorldState(hash);
+            var validatorSet = worldState
+                .GetValidatorSet();
+
+            return new DuplicatedVoteEvidence(
+                voteRef: voteRef,
+                voteDup: voteDup,
+                validatorSet: validatorSet,
+                timestamp: dup.Timestamp);
+
+            throw new NotSupportedException();
         }
     }
 }

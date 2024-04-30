@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
 
 namespace Libplanet.Net.Consensus
 {
@@ -15,11 +13,8 @@ namespace Libplanet.Net.Consensus
         /// </summary>
         /// <param name="lastCommit">A <see cref="Block.LastCommit"/> from previous block.
         /// </param>
-        /// <param name="commitEvidences">A <see cref="Block.Evidences"/> to be commited.
-        /// </param>
         public void Start(
-            BlockCommit? lastCommit = null,
-            ImmutableArray<Evidence>? commitEvidences = null)
+            BlockCommit? lastCommit = null)
         {
             _logger.Information(
                 "Starting context for height #{Height}, LastCommit: {LastCommit}",
@@ -27,7 +22,6 @@ namespace Libplanet.Net.Consensus
                 lastCommit);
             _lastCommit = lastCommit;
             _consensusMessageCommunicator.OnStartHeight(Height);
-            _commitEvidences = commitEvidences;
             ProduceMutation(() => StartRound(0));
 
             // FIXME: Exceptions inside tasks should be handled properly.
