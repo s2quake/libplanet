@@ -39,6 +39,11 @@ namespace Libplanet.Net.Messages
             TxIds = 0x31,
 
             /// <summary>
+            /// Inventory to transfer transactions.
+            /// </summary>
+            EvidenceIds = 0x32,
+
+            /// <summary>
             /// Request to query blocks.
             /// </summary>
             GetBlocks = 0x07,
@@ -47,6 +52,11 @@ namespace Libplanet.Net.Messages
             /// Request to query transactions.
             /// </summary>
             GetTxs = 0x08,
+
+            /// <summary>
+            /// Request to query transactions.
+            /// </summary>
+            GetEvidences = 0x09,
 
             /// <summary>
             /// Message containing serialized blocks.

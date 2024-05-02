@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography;
+using System.Transactions;
 using Bencodex;
 using Bencodex.Types;
 
@@ -107,6 +108,16 @@ namespace Libplanet.Types.Consensus
                 EvidenceType.DuplicateVoteEvidence => new DuplicateVoteEvidence(evidence),
                 _ => throw new InvalidCastException($"Given type {type} is not a valid evidence."),
             };
+        }
+
+        public static Evidence Deserialize(byte[] bytes)
+        {
+            return Decode(Codec.Decode(bytes));
+        }
+
+        public byte[] Serialize()
+        {
+            return Codec.Encode(Bencoded);
         }
 
         /// <inheritdoc/>

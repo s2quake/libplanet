@@ -185,10 +185,14 @@ namespace Libplanet.Net.Messages
                     return new GetBlockHashesMsg(dataframes);
                 case MessageContent.MessageType.TxIds:
                     return new TxIdsMsg(dataframes);
+                case MessageContent.MessageType.EvidenceIds:
+                    return new EvidenceIdsMsg(dataframes);
                 case MessageContent.MessageType.GetBlocks:
                     return new GetBlocksMsg(dataframes);
                 case MessageContent.MessageType.GetTxs:
                     return new GetTxsMsg(dataframes);
+                case MessageContent.MessageType.GetEvidences:
+                    return new GetEvidencesMsg(dataframes);
                 case MessageContent.MessageType.Blocks:
                     return new BlocksMsg(dataframes);
                 case MessageContent.MessageType.Tx:

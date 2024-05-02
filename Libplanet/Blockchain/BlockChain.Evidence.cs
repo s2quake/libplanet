@@ -25,6 +25,11 @@ namespace Libplanet.Blockchain
                     .OfType<Evidence>()
                     .ToImmutableArray();
 
+        public Evidence? GetPendingEvidence(EvidenceId evidenceId)
+        {
+            return Store.GetPendingEvidence(evidenceId);
+        }
+
         /// <summary>
         /// Delete pending <see cref="Evidence"/> from the <see cref="Store"/> with
         /// its <see cref="Evidence.Id"/>.
