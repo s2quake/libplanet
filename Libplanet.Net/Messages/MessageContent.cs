@@ -39,11 +39,6 @@ namespace Libplanet.Net.Messages
             TxIds = 0x31,
 
             /// <summary>
-            /// Inventory to transfer transactions.
-            /// </summary>
-            EvidenceIds = 0x32,
-
-            /// <summary>
             /// Request to query blocks.
             /// </summary>
             GetBlocks = 0x07,
@@ -52,11 +47,6 @@ namespace Libplanet.Net.Messages
             /// Request to query transactions.
             /// </summary>
             GetTxs = 0x08,
-
-            /// <summary>
-            /// Request to query transactions.
-            /// </summary>
-            GetEvidences = 0x09,
 
             /// <summary>
             /// Message containing serialized blocks.
@@ -145,6 +135,21 @@ namespace Libplanet.Net.Messages
             /// Consensus message that informs vote sets that the peer received new maj23 block.
             /// </summary>
             ConsensusProposalClaimMsg = 0x55,
+
+            /// <summary>
+            /// Inventory to transfer evidences.
+            /// </summary>
+            EvidenceIds = 0x56,
+
+            /// <summary>
+            /// Request to query evidences.
+            /// </summary>
+            GetEvidences = 0x57,
+
+            /// <summary>
+            /// Message containing serialized evidence.
+            /// </summary>
+            Evidence = 0x58,
         }
 
         /// <summary>
