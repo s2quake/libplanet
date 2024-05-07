@@ -180,6 +180,8 @@ namespace Libplanet.Net
         public AppProtocolVersion AppProtocolVersion =>
             Transport.AppProtocolVersion;
 
+        public AsyncAutoResetEvent EvidenceReceived => EvidenceCompletion?.EvidenceReceived;
+
         internal RoutingTable RoutingTable { get; }
 
         internal IProtocol PeerDiscovery { get; }
@@ -191,8 +193,6 @@ namespace Libplanet.Net
         internal EvidenceCompletion<BoundPeer> EvidenceCompletion { get; }
 
         internal AsyncAutoResetEvent TxReceived => TxCompletion?.TxReceived;
-
-        internal AsyncAutoResetEvent EvidenceReceived => EvidenceCompletion?.EvidenceReceived;
 
         internal AsyncAutoResetEvent BlockHeaderReceived { get; }
 
