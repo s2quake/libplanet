@@ -187,11 +187,12 @@ namespace Libplanet.Net
         {
             var evidenceIdsMsg = (EvidenceIdsMsg)message.Content;
             _logger.Information(
-                "Received a {MessageType} message with {TxIdCount} txIds",
-                nameof(TxIdsMsg),
+                "Received a {MessageType} message with {EvidenceIdCount} evidenceIds",
+                nameof(EvidenceIdsMsg),
                 evidenceIdsMsg.Ids.Count()
             );
 
+            Console.WriteLine($"ProcessEvidenceIds: {evidenceIdsMsg.Ids.Count()}");
             EvidenceCompletion.Demand(message.Remote, evidenceIdsMsg.Ids);
         }
     }

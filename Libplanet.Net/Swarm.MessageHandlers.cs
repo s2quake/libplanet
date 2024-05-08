@@ -87,6 +87,14 @@ namespace Libplanet.Net
                         default
                     );
 
+                case EvidenceIdsMsg evidenceIds:
+                    ProcessEvidenceIds(message);
+                    return Transport.ReplyMessageAsync(
+                        new PongMsg(),
+                        message.Identity,
+                        default
+                    );
+
                 case BlockHashesMsg _:
                     _logger.Error(
                         "{MessageType} messages are only for IBD",

@@ -120,7 +120,7 @@ namespace Libplanet.Types.Consensus
 
         public byte[] Serialize()
         {
-            return Codec.Encode(Bencoded);
+            return Codec.Encode(Bencode(this));
         }
 
         /// <inheritdoc/>
