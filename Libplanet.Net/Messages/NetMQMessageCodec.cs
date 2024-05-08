@@ -186,7 +186,11 @@ namespace Libplanet.Net.Messages
                 case MessageContent.MessageType.TxIds:
                     return new TxIdsMsg(dataframes);
                 case MessageContent.MessageType.EvidenceIds:
-                    return new EvidenceIdsMsg(dataframes);
+                    {
+                        Console.WriteLine($"CreateMessage: {type}");
+                        return new EvidenceIdsMsg(dataframes);
+                    }
+
                 case MessageContent.MessageType.GetBlocks:
                     return new GetBlocksMsg(dataframes);
                 case MessageContent.MessageType.GetTxs:

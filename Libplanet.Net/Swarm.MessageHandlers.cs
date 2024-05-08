@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Net
@@ -236,54 +235,6 @@ namespace Libplanet.Net
                         count,
                         Options.TaskRegulationOptions.MaxTransferTxsTaskCount,
                         nameof(TransferTxsAsync));
-                }
-            }
-        }
-
-        private async Task TransferEvidencesAsync(Message message)
-        {
-            if (!await _transferEvidencesSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
-            {
-                _logger.Debug(
-                    "Message {Message} is dropped due to task limit {Limit}",
-                    message,
-                    Options.TaskRegulationOptions.MaxTransferTxsTaskCount);
-                return;
-            }
-
-            try
-            {
-                var getEvidencesMsg = (GetEvidencesMsg)message.Content;
-                foreach (EvidenceId txid in getEvidencesMsg.EvidenceIds)
-                {
-                    try
-                    {
-                        Evidence tx = BlockChain.GetPendingEvidence(txid);
-
-                        if (tx is null)
-                        {
-                            continue;
-                        }
-
-                        MessageContent response = new EvidenceMsg(tx.Serialize());
-                        await Transport.ReplyMessageAsync(response, message.Identity, default);
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                        _logger.Warning("Requested TxId {TxId} does not exist", txid);
-                    }
-                }
-            }
-            finally
-            {
-                int count = _transferEvidencesSemaphore.Release();
-                if (count >= 0)
-                {
-                    _logger.Debug(
-                        "{Count}/{Limit} tasks are remaining for handling {FName}",
-                        count,
-                        Options.TaskRegulationOptions.MaxTransferTxsTaskCount,
-                        nameof(TransferEvidencesAsync));
                 }
             }
         }

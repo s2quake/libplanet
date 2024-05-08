@@ -19,22 +19,27 @@ namespace Libplanet.Net
 {
     public partial class Swarm
     {
+        public void BroadcastEvidences(IEnumerable<Evidence> evidences)
+        {
+            BroadcastEvidences(null, evidences);
+        }
+
         internal async IAsyncEnumerable<Evidence> GetEvidencesAsync(
             BoundPeer peer,
-            IEnumerable<EvidenceId> txIds,
+            IEnumerable<EvidenceId> evidenceIds,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var txIdsAsArray = txIds as EvidenceId[] ?? txIds.ToArray();
-            var request = new GetEvidencesMsg(txIdsAsArray);
-            int txCount = txIdsAsArray.Count();
+            var evidenceIdsAsArray = evidenceIds as EvidenceId[] ?? evidenceIds.ToArray();
+            var request = new GetEvidencesMsg(evidenceIdsAsArray);
+            int evidenceCount = evidenceIdsAsArray.Count();
 
-            _logger.Debug("Required evidence count: {Count}", txCount);
+            _logger.Debug("Required evidence count: {Count}", evidenceCount);
 
-            var txRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
-                + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(txCount);
-            if (txRecvTimeout > Options.TimeoutOptions.MaxTimeout)
+            var evidenceRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
+                + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(evidenceCount);
+            if (evidenceRecvTimeout > Options.TimeoutOptions.MaxTimeout)
             {
-                txRecvTimeout = Options.TimeoutOptions.MaxTimeout;
+                evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
             }
 
             IEnumerable<Message> replies;
@@ -43,8 +48,8 @@ namespace Libplanet.Net
                 replies = await Transport.SendMessageAsync(
                     peer,
                     request,
-                    txRecvTimeout,
-                    txCount,
+                    evidenceRecvTimeout,
+                    evidenceCount,
                     true,
                     cancellationToken
                 ).ConfigureAwait(false);
@@ -65,7 +70,8 @@ namespace Libplanet.Net
                 {
                     string errorMessage =
                         $"Expected {nameof(Transaction)} messages as response of " +
-                        $"the {nameof(GetTxsMsg)} message, but got a {message.GetType().Name} " +
+                        $"the {nameof(GetEvidencesMsg)} message, but got a " +
+                        $"{message.GetType().Name} " +
                         $"message instead: {message}";
                     throw new InvalidMessageContentException(errorMessage, message.Content);
                 }
@@ -125,6 +131,68 @@ namespace Libplanet.Net
         {
             var message = new EvidenceIdsMsg(evidenceIds);
             BroadcastMessage(except, message);
+            var items = string.Join(", ", evidenceIds.Select(e => e.ToString()));
+            Console.WriteLine($"BroadcastEvidenceIds: {items}");
+        }
+
+        private async Task TransferEvidencesAsync(Message message)
+        {
+            if (!await _transferEvidencesSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
+            {
+                _logger.Debug(
+                    "Message {Message} is dropped due to task limit {Limit}",
+                    message,
+                    Options.TaskRegulationOptions.MaxTransferTxsTaskCount);
+                return;
+            }
+
+            try
+            {
+                var getEvidencesMsg = (GetEvidencesMsg)message.Content;
+                foreach (EvidenceId txid in getEvidencesMsg.EvidenceIds)
+                {
+                    try
+                    {
+                        Evidence tx = BlockChain.GetPendingEvidence(txid);
+
+                        if (tx is null)
+                        {
+                            continue;
+                        }
+
+                        MessageContent response = new EvidenceMsg(tx.Serialize());
+                        await Transport.ReplyMessageAsync(response, message.Identity, default);
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        _logger.Warning("Requested TxId {TxId} does not exist", txid);
+                    }
+                }
+            }
+            finally
+            {
+                int count = _transferEvidencesSemaphore.Release();
+                if (count >= 0)
+                {
+                    _logger.Debug(
+                        "{Count}/{Limit} tasks are remaining for handling {FName}",
+                        count,
+                        Options.TaskRegulationOptions.MaxTransferTxsTaskCount,
+                        nameof(TransferEvidencesAsync));
+                }
+            }
+        }
+
+        private void ProcessEvidenceIds(Message message)
+        {
+            var evidenceIdsMsg = (EvidenceIdsMsg)message.Content;
+            _logger.Information(
+                "Received a {MessageType} message with {TxIdCount} txIds",
+                nameof(TxIdsMsg),
+                evidenceIdsMsg.Ids.Count()
+            );
+
+            EvidenceCompletion.Demand(message.Remote, evidenceIdsMsg.Ids);
         }
     }
 }
