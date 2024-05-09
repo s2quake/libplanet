@@ -30,6 +30,7 @@ namespace Libplanet.Net.Consensus
                 if (exception is EvidenceException evidenceException)
                 {
                     _evidenceCollector.Handle(evidenceException);
+                    return;
                 }
 
                 ExceptionOccurred?.Invoke(this, (context.Height, exception));

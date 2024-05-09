@@ -12,11 +12,6 @@ namespace Libplanet.Types.Evidences
     {
         public const string FalseEvidenceType = "FalseEvidence";
 
-        static FalseEvidence()
-        {
-            Register(FalseEvidenceType, value => new FalseEvidence(value));
-        }
-
         public FalseEvidence(IValue bencoded)
             : base(bencoded)
         {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Xunit;
 using static Libplanet.Tests.TestUtils;
 

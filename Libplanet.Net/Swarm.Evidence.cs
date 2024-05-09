@@ -190,7 +190,6 @@ namespace Libplanet.Net
                 evidenceIdsMsg.Ids.Count()
             );
 
-            Console.WriteLine($"ProcessEvidenceIds: {evidenceIdsMsg.Ids.Count()}");
             EvidenceCompletion.Demand(message.Remote, evidenceIdsMsg.Ids);
         }
     }

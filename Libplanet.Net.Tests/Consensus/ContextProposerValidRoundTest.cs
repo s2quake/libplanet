@@ -6,6 +6,7 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Nito.AsyncEx;
 using Serilog;
 using Xunit;

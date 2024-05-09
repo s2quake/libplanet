@@ -21,7 +21,7 @@ namespace Libplanet.Types.Evidences
         private const string TypeKey = "type";
         private const string DataKey = "data";
 
-        private static readonly Dictionary<string, Func<IValue, Evidence>> _creatorByType
+        private static readonly Dictionary<string, Func<IValue, Evidence>> CreatorByType
             = new Dictionary<string, Func<IValue, Evidence>>();
 
         private static readonly Codec Codec = new Codec();
@@ -29,6 +29,15 @@ namespace Libplanet.Types.Evidences
         private static readonly byte[] ValidatorKey = { 0x76, 0x61 };     // 'va'
         private static readonly byte[] TimestampKey = { 0x74 };           // 't'
         private EvidenceId? _id;
+
+        static Evidence()
+        {
+            Register(FalseEvidence.FalseEvidenceType, value =>
+                new FalseEvidence(value));
+
+            Register(DuplicateVoteEvidence.DuplicateVoteEvidenceType, value =>
+                new DuplicateVoteEvidence(value));
+        }
 
         protected Evidence(long height, Address targetAddress, DateTimeOffset timestamp)
         {
@@ -133,7 +142,7 @@ namespace Libplanet.Types.Evidences
 
         public static void Register(string evidenceType, Func<IValue, Evidence> creator)
         {
-            _creatorByType.Add(evidenceType, creator);
+            CreatorByType.Add(evidenceType, creator);
         }
 
         /// <summary>
@@ -148,7 +157,7 @@ namespace Libplanet.Types.Evidences
         {
             var type = (string)((Dictionary)value).GetValue<Text>(TypeKey);
             var data = ((Dictionary)value).GetValue<IValue>(DataKey);
-            if (_creatorByType.TryGetValue(type, out Func<IValue, Evidence>? creator))
+            if (CreatorByType.TryGetValue(type, out Func<IValue, Evidence>? creator))
             {
                 return creator(data);
             }

@@ -14,6 +14,7 @@ using Libplanet.Crypto;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 using Xunit;
 using static Libplanet.Tests.TestUtils;

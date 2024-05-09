@@ -2,7 +2,6 @@ using System;
 using System.Runtime.Serialization;
 using Libplanet.Action.State;
 using Libplanet.Blockchain;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Evidences;
 
@@ -14,7 +13,7 @@ namespace Libplanet.Net.Consensus
     /// does not change the state of a <see cref="Context"/> in a meaningful way.
     /// </summary>
     [Serializable]
-    public class DuplicatedVoteException : EvidenceException
+    public class DuplicateVoteException : EvidenceException
     {
         /// <summary>
         /// Initializes a new instance of <see cref="InvalidConsensusMessageException"/> class.
@@ -27,7 +26,7 @@ namespace Libplanet.Net.Consensus
         /// </param>
         /// <param name="innerException">The exception that is the cause of the current exception.
         /// </param>
-        public DuplicatedVoteException(
+        public DuplicateVoteException(
             string message,
             Vote voteRef,
             Vote voteDup,
@@ -47,7 +46,7 @@ namespace Libplanet.Net.Consensus
         /// </param>
         /// <param name="voteDup">The 1<see cref="Vote"/> that caused this exception.
         /// </param>
-        public DuplicatedVoteException(string message, Vote voteRef, Vote voteDup)
+        public DuplicateVoteException(string message, Vote voteRef, Vote voteDup)
             : base(message)
         {
             VoteRef = voteRef;
@@ -64,7 +63,7 @@ namespace Libplanet.Net.Consensus
         /// <param name="context">The <see cref="StreamingContext"/>
         /// that contains contextual information about the source or destination.
         /// </param>
-        protected DuplicatedVoteException(SerializationInfo info, StreamingContext context)
+        protected DuplicateVoteException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             VoteRef =

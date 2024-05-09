@@ -22,11 +22,6 @@ namespace Libplanet.Types.Evidences
         private static readonly byte[] ValidatorPowerKey = { 0x70 };      // 'p'
         private static readonly byte[] TotalPowerKey = { 0x50 };          // 'P'
 
-        static DuplicateVoteEvidence()
-        {
-            Register(DuplicateVoteEvidenceType, value => new DuplicateVoteEvidence(value));
-        }
-
         /// <summary>
         /// Creates a <see cref="DuplicateVoteEvidence"/> instance.
         /// </summary>

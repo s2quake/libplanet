@@ -20,6 +20,7 @@ using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 using Serilog;
 using Serilog.Events;

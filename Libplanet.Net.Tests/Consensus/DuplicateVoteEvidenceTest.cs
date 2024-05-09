@@ -1,5 +1,8 @@
+#pragma warning disable S125
 using System;
 using System.Numerics;
+using System.Threading;
+using System.Threading.Tasks;
 using Bencodex;
 using Bencodex.Types;
 using Libplanet.Net.Consensus;
@@ -69,49 +72,66 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
+            // #1
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var blockCommit = TestUtils.CreateBlockCommit(block);
             blockChain.Append(block, blockCommit);
+
+            // #2
             block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2], blockCommit);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
-            await proposalMessageHeightThreeSent.WaitAsync();
+            await WaitUntilHeightAsync(consensusContext, height: 3, default);
             Assert.NotNull(proposal?.BlockHash);
             var blockHash = proposal!.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[1],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[2],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[1],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[2],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
 
             // Next height starts normally.
             await heightFourStepChangedToPropose.WaitAsync();
             Assert.Equal(4, consensusContext.Height);
             Assert.Equal(0, consensusContext.Round);
+
+            Assert.Single(blockChain.GetPendingEvidences());
 
             blockCommit = blockChain.GetBlockCommit(blockChain.Tip.Hash);
             block = blockChain.ProposeBlock(TestUtils.PrivateKeys[0], blockCommit);
@@ -142,10 +162,9 @@ namespace Libplanet.Net.Tests.Consensus
                 actionLoader: null,
                 TestUtils.PrivateKeys[3]);
 
-            AsyncAutoResetEvent heightThreeStepChangedToPropose = new AsyncAutoResetEvent();
-            consensusContext.MessagePublished += (_, eventArgs) =>
+            consensusContext.MessagePublished += (h, e) =>
             {
-                if (eventArgs.Message is ConsensusProposalMsg proposalMsg)
+                if (e.Message is ConsensusProposalMsg proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalMessageSent.Set();
@@ -162,40 +181,61 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.NotNull(proposal?.BlockHash);
             var blockHash = proposal!.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 4,
-                round: 0,
-                hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[1],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[2],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
 
-            Assert.Empty(consensusContext.Contexts[3].GetDuplicatedVotePairs());
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 4,
+                    round: 0,
+                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[1],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[2],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
         }
 
         [Fact(Timeout = Timeout)]
-        public async void IgnoreDifferentRoundVote()
+        public async Task IgnoreDifferentRoundVote()
         {
             ConsensusProposalMsg? proposal = null;
             var proposalMessageSent = new AsyncAutoResetEvent();
@@ -225,36 +265,57 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.NotNull(proposal?.BlockHash);
             var blockHash = proposal!.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 1,
-                hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[1],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[2],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
 
-            Assert.Empty(consensusContext.Contexts[3].GetDuplicatedVotePairs());
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 1,
+                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[1],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[2],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
         }
 
         [Fact(Timeout = Timeout)]
@@ -288,36 +349,57 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.NotNull(proposal?.BlockHash);
             var blockHash = proposal!.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreVoteMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                flag: VoteFlag.PreVote)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[1],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[2],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
 
-            Assert.Empty(consensusContext.Contexts[3].GetDuplicatedVotePairs());
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreVoteMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    flag: VoteFlag.PreVote)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[1],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[2],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
         }
 
         [Fact(Timeout = Timeout)]
@@ -351,36 +433,57 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.NotNull(proposal?.BlockHash);
             var blockHash = proposal!.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[1],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[2],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: blockHash,
-                flag: VoteFlag.PreCommit)));
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
 
-            Assert.Empty(consensusContext.Contexts[3].GetDuplicatedVotePairs());
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[1],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[2],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: blockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
         }
 
         [Fact(Timeout = Timeout)]
@@ -413,36 +516,116 @@ namespace Libplanet.Net.Tests.Consensus
             await proposalMessageSent.WaitAsync();
             Assert.NotNull(proposal?.BlockHash);
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: proposal!.BlockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[0],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: default,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[1],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: proposal!.BlockHash,
-                flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
-                privateKey: TestUtils.PrivateKeys[2],
-                power: BigInteger.One,
-                height: 3,
-                round: 0,
-                hash: proposal!.BlockHash,
-                flag: VoteFlag.PreCommit)));
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: proposal!.BlockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
 
-            Assert.Empty(consensusContext.Contexts[3].GetDuplicatedVotePairs());
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[0],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: default,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[1],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: proposal!.BlockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+
+            // Not infracted
+            await HandleMessageAsync(
+                consensusContext: consensusContext,
+                consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
+                    privateKey: TestUtils.PrivateKeys[2],
+                    power: BigInteger.One,
+                    height: 3,
+                    round: 0,
+                    hash: proposal!.BlockHash,
+                    flag: VoteFlag.PreCommit)),
+                cancellationToken: default);
+            Assert.Empty(blockChain.GetPendingEvidences());
+        }
+
+        protected async Task HandleMessageAsync(
+            ConsensusContext consensusContext,
+            ConsensusMsg consensusMessage,
+            CancellationToken cancellationToken)
+        {
+            var asyncAuthoResetEvent = new AsyncAutoResetEvent(false);
+            consensusContext.MutationConsumed += ConsensusContext_MutationConsumed;
+            consensusContext.ExceptionOccurred += ConsensusContext_ExceptionOccurred;
+            try
+            {
+                consensusContext.HandleMessage(consensusMessage);
+                await asyncAuthoResetEvent.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                consensusContext.MutationConsumed -= ConsensusContext_MutationConsumed;
+                consensusContext.ExceptionOccurred -= ConsensusContext_ExceptionOccurred;
+            }
+
+            void ConsensusContext_MutationConsumed(object? sender, (long Height, System.Action) e)
+            {
+                asyncAuthoResetEvent.Set();
+            }
+
+            void ConsensusContext_ExceptionOccurred(object? sender, (long Height, Exception) e)
+            {
+                asyncAuthoResetEvent.Set();
+            }
+        }
+
+        protected async Task WaitUntilHeightAsync(
+            ConsensusContext consensusContext,
+            long height,
+            CancellationToken cancellationToken)
+        {
+            var asyncAuthoResetEvent = new AsyncAutoResetEvent(false);
+            consensusContext.MessagePublished += ConsensusContext_MessagePublished;
+            try
+            {
+                if (consensusContext.Height < height)
+                {
+                    await asyncAuthoResetEvent.WaitAsync(cancellationToken);
+                }
+            }
+            finally
+            {
+                consensusContext.MessagePublished += ConsensusContext_MessagePublished;
+            }
+
+            void ConsensusContext_MessagePublished(
+                object? sender, (long Height, ConsensusMsg Message) e)
+            {
+                if (e.Message is ConsensusProposalMsg proposalMsg && proposalMsg.Height == height)
+                {
+                    asyncAuthoResetEvent.Set();
+                }
+            }
         }
     }
 }

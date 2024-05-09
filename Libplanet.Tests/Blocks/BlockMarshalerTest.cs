@@ -3,7 +3,7 @@ using System.Linq;
 using Bencodex.Types;
 using Libplanet.Tests.Fixtures;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Xunit;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
