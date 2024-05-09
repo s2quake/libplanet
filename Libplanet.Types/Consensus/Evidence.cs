@@ -28,7 +28,10 @@ namespace Libplanet.Types.Consensus
         /// </summary>
         public enum EvidenceType : byte
         {
-            Empty = 0x01,
+            /// <summary>
+            /// Evidence for test.
+            /// </summary>
+            FalseEvidence = 0x01,
 
             /// <summary>
             /// Evidence for duplicated votes.
@@ -107,7 +110,7 @@ namespace Libplanet.Types.Consensus
             var evidence = ((Dictionary)value).GetValue<IValue>(EvidenceKey);
             return type switch
             {
-                EvidenceType.Empty => new EmptyEvidence(evidence),
+                EvidenceType.FalseEvidence => new FalseEvidence(evidence),
                 EvidenceType.DuplicateVoteEvidence => new DuplicatedVoteEvidence(evidence),
                 _ => throw new InvalidCastException($"Given type {type} is not a valid evidence."),
             };
