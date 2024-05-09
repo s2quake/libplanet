@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Blockchain
         }
 
         [Fact]
-        public void ProcessDuplicateVoteEvidence()
+        public void ProcessDuplicatedVoteEvidence()
         {
             var key = TestUtils.ValidatorPrivateKeys.First();
             var voteRef = new VoteMetadata(
@@ -45,7 +45,7 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.ValidatorSet,
                 voteDup.Timestamp);
 
-            var duplicatedVoteSets = new List<(Vote, Vote)>()
+            var duplicateVoteSets = new List<(Vote, Vote)>()
             {
                 (voteRef, voteDup),
             };
@@ -54,7 +54,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.False(_blockChain.IsEvidencePending(evidence.Id));
             Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
 
-            _blockChain.UpdateEvidence(duplicatedVoteSets, _blockChain.Tip.Evidences);
+            _blockChain.UpdateEvidence(duplicateVoteSets, _blockChain.Tip.Evidences);
 
             Assert.Single(_blockChain.GetPendingEvidences());
             Assert.Equal(evidence, _blockChain.GetPendingEvidences().First());
@@ -107,7 +107,7 @@ namespace Libplanet.Tests.Blockchain
         }
 
         [Fact]
-        public void CannotAddDuplicateVoteEvidenceFromNonValidator()
+        public void CannotAddDuplicatedVoteEvidenceFromNonValidator()
         {
             var key = new PrivateKey();
             var voteRef = new VoteMetadata(

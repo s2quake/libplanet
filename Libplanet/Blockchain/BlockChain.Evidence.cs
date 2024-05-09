@@ -185,8 +185,8 @@ namespace Libplanet.Blockchain
         {
             switch (evidence)
             {
-                case DuplicatedVoteEvidence duplicateVoteEvidence:
-                    VerifyDuplicateVoteEvidence(duplicateVoteEvidence);
+                case DuplicateVoteEvidence duplicateVoteEvidence:
+                    VerifyDuplicatedVoteEvidence(duplicateVoteEvidence);
                     break;
                 default:
                     break;
@@ -194,12 +194,12 @@ namespace Libplanet.Blockchain
         }
 
         /// <summary>
-        /// Verify if <paramref name="evidence"/> is valid <see cref="DuplicatedVoteEvidence"/>.
+        /// Verify if <paramref name="evidence"/> is valid <see cref="DuplicateVoteEvidence"/>.
         /// </summary>
-        /// <param name="evidence"><see cref="DuplicatedVoteEvidence"/> to be verified.</param>
+        /// <param name="evidence"><see cref="DuplicateVoteEvidence"/> to be verified.</param>
         /// <exception cref="InvalidEvidenceException">Thrown when given
         /// <paramref name="evidence"/> is invalid.</exception>
-        public void VerifyDuplicateVoteEvidence(DuplicatedVoteEvidence evidence)
+        public void VerifyDuplicatedVoteEvidence(DuplicateVoteEvidence evidence)
         {
             var hash = this[evidence.Height].Hash;
             var blockChainStates = _blockChainStates.GetWorldState(hash);

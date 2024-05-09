@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Libplanet.Tests.Consensus
 {
-    public class DuplicateVoteEvidenceTest
+    public class DuplicatedVoteEvidenceTest
     {
         [Fact]
         public void Create_WithDifferentHeight_FailTest()

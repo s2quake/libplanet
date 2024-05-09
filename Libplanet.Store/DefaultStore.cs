@@ -738,7 +738,7 @@ namespace Libplanet.Store
                 EvidenceId evidenceId;
                 try
                 {
-                    evidenceId = EvidenceId.FromHex(name);
+                    evidenceId = EvidenceId.Parse(name);
                 }
                 catch (Exception)
                 {
@@ -1013,12 +1013,12 @@ namespace Libplanet.Store
 
         private UPath PendingEvidencePath(in EvidenceId evidenceId)
         {
-            return UPath.Combine(UPath.Root, evidenceId.ToHex());
+            return UPath.Combine(UPath.Root, evidenceId.ToString());
         }
 
         private UPath CommittedEvidencePath(in EvidenceId evidenceId)
         {
-            return UPath.Combine(UPath.Root, evidenceId.ToHex());
+            return UPath.Combine(UPath.Root, evidenceId.ToString());
         }
 
         private UPath TxExecutionPath(in BlockHash blockHash, in TxId txid) =>

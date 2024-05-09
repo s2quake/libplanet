@@ -91,14 +91,14 @@ namespace Libplanet.Net.Consensus
         {
             var voteRef = VoteRef;
             var voteDup = VoteDup;
-            (_, Vote dup) = DuplicatedVoteEvidence.OrderDuplicateVotePair(voteRef, voteDup);
+            (_, Vote dup) = DuplicateVoteEvidence.OrderDuplicateVotePair(voteRef, voteDup);
 
             var hash = blockChain[voteRef.Height].Hash;
             var worldState = blockChain.GetWorldState(hash);
             var validatorSet = worldState
                 .GetValidatorSet();
 
-            return new DuplicatedVoteEvidence(
+            return new DuplicateVoteEvidence(
                 voteRef: voteRef,
                 voteDup: voteDup,
                 validatorSet: validatorSet,

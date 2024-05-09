@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Libplanet.Types.Consensus
 {
     /// <summary>
-    /// Serves as the base class for exceptions related <see cref="DuplicatedVoteEvidence"/>s'
+    /// Serves as the base class for exceptions related <see cref="DuplicateVoteEvidence"/>s'
     /// integrity and validity.
     /// </summary>
     public class InvalidEvidenceException : Exception

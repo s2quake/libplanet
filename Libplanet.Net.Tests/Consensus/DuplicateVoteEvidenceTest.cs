@@ -13,13 +13,13 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus
 {
-    public class DuplicateVoteEvidenceTest
+    public class DuplicatedVoteEvidenceTest
     {
         private const int Timeout = 30000;
         private static readonly Codec _codec = new Codec();
         private readonly ILogger _logger;
 
-        public DuplicateVoteEvidenceTest(ITestOutputHelper output)
+        public DuplicatedVoteEvidenceTest(ITestOutputHelper output)
         {
             const string outputTemplate =
                 "{Timestamp:HH:mm:ss:ffffffZ} - {Message} {Exception}";

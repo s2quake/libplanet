@@ -11,8 +11,8 @@ namespace Libplanet.Types.Consensus
     /// <summary>
     /// Represents a evidence of duplicate vote on consensus.
     /// </summary>
-    public class DuplicatedVoteEvidence
-        : Evidence, IEquatable<DuplicatedVoteEvidence>, IBencodable
+    public class DuplicateVoteEvidence
+        : Evidence, IEquatable<DuplicateVoteEvidence>, IBencodable
     {
         private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
         private static readonly byte[] HeightKey = { 0x68 };              // 'h'
@@ -23,14 +23,14 @@ namespace Libplanet.Types.Consensus
         private static readonly byte[] TimestampKey = { 0x74 };           // 't'
 
         /// <summary>
-        /// Creates a <see cref="DuplicatedVoteEvidence"/> instance.
+        /// Creates a <see cref="DuplicateVoteEvidence"/> instance.
         /// </summary>
         /// <param name="voteRef">Reference vote of conflicting <see cref="Vote"/>s.</param>
         /// <param name="voteDup">Duplicated vote of conflicting <see cref="Vote"/>s.</param>
         /// <param name="validatorSet"><see cref="ValidatorSet"/>
         /// from block of conflicting votes has been made.</param>
         /// <param name="timestamp">The timestamp of evidence.</param>
-        public DuplicatedVoteEvidence(
+        public DuplicateVoteEvidence(
             Vote voteRef,
             Vote voteDup,
             ValidatorSet validatorSet,
@@ -46,11 +46,11 @@ namespace Libplanet.Types.Consensus
         }
 
         /// <summary>
-        /// Creates a <see cref="DuplicatedVoteEvidence"/> instance from
+        /// Creates a <see cref="DuplicateVoteEvidence"/> instance from
         /// bencoded <see cref="IValue"/>.
         /// </summary>
         /// <param name="bencoded">Bencoded <see cref="IValue"/>.</param>
-        public DuplicatedVoteEvidence(Bencodex.Types.IValue bencoded)
+        public DuplicateVoteEvidence(Bencodex.Types.IValue bencoded)
             : this(bencoded is Bencodex.Types.Dictionary dict
                 ? dict
                 : throw new ArgumentException(
@@ -60,7 +60,7 @@ namespace Libplanet.Types.Consensus
         {
         }
 
-        private DuplicatedVoteEvidence(
+        private DuplicateVoteEvidence(
             long height,
             Vote voteRef,
             Vote voteDup,
@@ -169,7 +169,7 @@ namespace Libplanet.Types.Consensus
             TotalPower = totalPower;
         }
 
-        private DuplicatedVoteEvidence(Bencodex.Types.Dictionary bencoded)
+        private DuplicateVoteEvidence(Bencodex.Types.Dictionary bencoded)
             : this(
                 height: bencoded.GetValue<Integer>(HeightKey),
                 voteRef: new Vote(bencoded.GetValue<IValue>(VoteRefKey)),
@@ -267,8 +267,8 @@ namespace Libplanet.Types.Consensus
         }
 
         /// <inheritdoc/>
-        public bool Equals(DuplicatedVoteEvidence? other)
-            => other is DuplicatedVoteEvidence duplicateVoteEvidence &&
+    public bool Equals(DuplicateVoteEvidence? other)
+            => other is DuplicateVoteEvidence duplicateVoteEvidence &&
                 Height == duplicateVoteEvidence.Height &&
                 VoteRef.Equals(duplicateVoteEvidence.VoteRef) &&
                 VoteDup.Equals(duplicateVoteEvidence.VoteDup) &&
@@ -282,7 +282,7 @@ namespace Libplanet.Types.Consensus
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
-            => obj is DuplicatedVoteEvidence other && Equals(other);
+            => obj is DuplicateVoteEvidence other && Equals(other);
 
         /// <inheritdoc/>
         public override int GetHashCode()

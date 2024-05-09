@@ -29,14 +29,14 @@ namespace Libplanet.Types.Consensus
         public enum EvidenceType : byte
         {
             /// <summary>
-            /// Evidence for test.
-            /// </summary>
-            FalseEvidence = 0x01,
-
-            /// <summary>
             /// Evidence for duplicated votes.
             /// </summary>
             DuplicateVoteEvidence = 0x02,
+
+            /// <summary>
+            /// Evidence for test.
+            /// </summary>
+            FalseEvidence = 0xff,
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Libplanet.Types.Consensus
             return type switch
             {
                 EvidenceType.FalseEvidence => new FalseEvidence(evidence),
-                EvidenceType.DuplicateVoteEvidence => new DuplicatedVoteEvidence(evidence),
+                EvidenceType.DuplicateVoteEvidence => new DuplicateVoteEvidence(evidence),
                 _ => throw new InvalidCastException($"Given type {type} is not a valid evidence."),
             };
         }

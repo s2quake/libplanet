@@ -49,7 +49,7 @@ namespace Libplanet.Tests.Consensus
             );
 
             // Then
-            var actualEvidenceId = EvidenceId.FromHex(
+            var actualEvidenceId = EvidenceId.Parse(
                 "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
             Assert.Equal(expectedEvidenceId, actualEvidenceId);
         }
@@ -58,7 +58,7 @@ namespace Libplanet.Tests.Consensus
         [InlineData("0g")]
         public void FromHex_WithInvalidFormat_FailTest(string hex)
         {
-            Assert.Throws<FormatException>(() => EvidenceId.FromHex(hex));
+            Assert.Throws<FormatException>(() => EvidenceId.Parse(hex));
         }
 
         [Theory]
@@ -70,7 +70,7 @@ namespace Libplanet.Tests.Consensus
         {
             Assert.Throws<ArgumentOutOfRangeException>(
                 paramName: nameof(hex),
-                testCode: () => EvidenceId.FromHex(hex));
+                testCode: () => EvidenceId.Parse(hex));
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace Libplanet.Tests.Consensus
 
             // Then
             var expectedHex = "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc";
-            var actualHex = evidenceId.ToHex();
+            var actualHex = evidenceId.ToString();
             Assert.Equal(expectedHex, actualHex);
         }
 
@@ -207,8 +207,8 @@ namespace Libplanet.Tests.Consensus
             {
                 var left = evidenceIds[i - 1];
                 var right = evidenceIds[i];
-                var leftString = left.ToHex().ToLower();
-                var rightString = right.ToHex().ToLower();
+                var leftString = left.ToString().ToLower();
+                var rightString = right.ToString().ToLower();
                 Assert.Equal(
                     Math.Min(Math.Max(left.CompareTo(right), 1), -1),
                     Math.Min(Math.Max(leftString.CompareTo(rightString), 1), -1)
@@ -267,7 +267,7 @@ namespace Libplanet.Tests.Consensus
         [SkippableFact]
         public void JsonSerialization()
         {
-            EvidenceId evidenceId = EvidenceId.FromHex(
+            EvidenceId evidenceId = EvidenceId.Parse(
                 "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
             AssertJsonSerializable(
                 evidenceId,

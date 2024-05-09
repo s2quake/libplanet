@@ -6,7 +6,7 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Net.Consensus
 {
     /// <summary>
-    /// Serves as the base class for exceptions related <see cref="DuplicatedVoteEvidence"/>s'
+    /// Serves as the base class for exceptions related <see cref="DuplicateVoteEvidence"/>s'
     /// integrity and validity.
     /// </summary>
     public abstract class EvidenceException : Exception

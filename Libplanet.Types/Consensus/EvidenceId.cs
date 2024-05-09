@@ -134,14 +134,14 @@ namespace Libplanet.Types.Consensus
         /// </summary>
         /// <param name="hex">A hexadecimal string which encodes a <see cref="EvidenceId"/>.
         /// This has to contain 64 hexadecimal digits and must not be <see langword="null"/>
-        /// This is usually made by <see cref="ToHex()"/> method.</param>
+        /// This is usually made by <see cref="ToString()"/> method.</param>
         /// <returns>A corresponding <see cref="EvidenceId"/> value.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the given
         /// <paramref name="hex"/> is shorter or longer than 64 characters.</exception>
         /// <exception cref="FormatException">Thrown when the given <paramref name="hex"/> string is
         /// not a valid hexadecimal string.</exception>
-        /// <seealso cref="ToHex()"/>
-        public static EvidenceId FromHex(string hex)
+        /// <seealso cref="ToString()"/>
+        public static EvidenceId Parse(string hex)
         {
             ImmutableArray<byte> bytes = ByteUtil.ParseHexToImmutable(hex);
             try
@@ -153,6 +153,20 @@ namespace Libplanet.Types.Consensus
                 throw new ArgumentOutOfRangeException(
                     nameof(hex),
                     $"Expected {Size * 2} characters, but {hex.Length} characters given.");
+            }
+        }
+
+        public static bool TryParse(string hex, out EvidenceId? evidenceId)
+        {
+            try
+            {
+                evidenceId = Parse(hex);
+                return true;
+            }
+            catch (Exception)
+            {
+                evidenceId = null;
+                return false;
             }
         }
 
@@ -177,19 +191,12 @@ namespace Libplanet.Types.Consensus
         public byte[] ToByteArray() => ByteArray.ToArray();
 
         /// <summary>
-        /// Gets a hexadecimal form of a <see cref="EvidenceId"/>.
-        /// </summary>
-        /// <returns>64 hexadecimal characters.</returns>
-        [Pure]
-        public string ToHex() => ByteUtil.Hex(ToByteArray());
-
-        /// <summary>
         /// Gets a <see cref="EvidenceId"/>'s representative string.
         /// </summary>
         /// <returns>A string which represents this <see cref="EvidenceId"/>.
         /// </returns>
         [Pure]
-        public override string ToString() => ToHex();
+        public override string ToString() => ByteUtil.Hex(ToByteArray());
 
         /// <inheritdoc cref="IComparable{T}.CompareTo(T)"/>
         public int CompareTo(EvidenceId other)
@@ -235,7 +242,7 @@ namespace Libplanet.Types.Consensus
             string hex = reader.GetString() ?? throw new JsonException("Expected a string.");
             try
             {
-                return EvidenceId.FromHex(hex);
+                return EvidenceId.Parse(hex);
             }
             catch (ArgumentException e)
             {
@@ -248,6 +255,6 @@ namespace Libplanet.Types.Consensus
             EvidenceId value,
             JsonSerializerOptions options
         ) =>
-            writer.WriteStringValue(value.ToHex());
+            writer.WriteStringValue(value.ToString());
     }
 }
