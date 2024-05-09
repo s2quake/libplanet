@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Action
@@ -105,6 +107,14 @@ namespace Libplanet.Action
         /// </summary>
         [Pure]
         IReadOnlyList<ITransaction> Txs { get; }
+
+        /// <summary>
+        /// A list of <see cref="Evidence"/>s that are included in a <see cref="Block"/> as
+        /// the <see cref="IAction"/> to be evaluated. This information is provided only if
+        /// <see cref="IsBlockAction"/> is <see langword="true"/>, otherwise returns an empty set.
+        /// </summary>
+        [Pure]
+        ImmutableArray<Evidence> Evidences { get; }
 
         /// <summary>
         /// Consumes the specified amount of gas.

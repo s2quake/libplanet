@@ -979,7 +979,6 @@ namespace Libplanet.Blockchain
 
                     if (block.Evidences is { } evidences)
                     {
-                        Console.WriteLine($"Appending evidences: {evidences.Length}");
                         foreach (var evidence in evidences)
                         {
                             if (Store.GetPendingEvidence(evidence.Id) != null)

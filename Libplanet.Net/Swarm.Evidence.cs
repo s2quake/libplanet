@@ -9,7 +9,7 @@ using Libplanet.Blockchain;
 using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 #if NETSTANDARD2_0
 using Libplanet.Common;
@@ -131,8 +131,6 @@ namespace Libplanet.Net
         {
             var message = new EvidenceIdsMsg(evidenceIds);
             BroadcastMessage(except, message);
-            var items = string.Join(", ", evidenceIds.Select(e => e.ToString()));
-            Console.WriteLine($"BroadcastEvidenceIds: {items}");
         }
 
         private async Task TransferEvidencesAsync(Message message)

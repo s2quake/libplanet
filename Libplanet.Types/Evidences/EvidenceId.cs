@@ -10,7 +10,7 @@ using Bencodex;
 using Bencodex.Types;
 using Libplanet.Common;
 
-namespace Libplanet.Types.Consensus
+namespace Libplanet.Types.Evidences
 {
     /// <summary>
     /// <see cref="EvidenceId"/>, abbreviation of Evidence identifier,

@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using Libplanet.Action;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain.Policies

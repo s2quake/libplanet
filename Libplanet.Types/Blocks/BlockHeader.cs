@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using Libplanet.Common;
 using Libplanet.Crypto;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 
 namespace Libplanet.Types.Blocks
 {

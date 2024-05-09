@@ -2,7 +2,9 @@ using System;
 using System.Runtime.Serialization;
 using Libplanet.Action.State;
 using Libplanet.Blockchain;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 
 namespace Libplanet.Net.Consensus
 {

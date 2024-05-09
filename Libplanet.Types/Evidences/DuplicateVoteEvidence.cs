@@ -1,12 +1,13 @@
 using System;
 using System.Globalization;
 using System.Numerics;
-using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Misc;
 using Bencodex.Types;
+using Libplanet.Types.Blocks;
+using Libplanet.Types.Consensus;
 
-namespace Libplanet.Types.Consensus
+namespace Libplanet.Types.Evidences
 {
     /// <summary>
     /// Represents a evidence of duplicate vote on consensus.
@@ -14,13 +15,17 @@ namespace Libplanet.Types.Consensus
     public class DuplicateVoteEvidence
         : Evidence, IEquatable<DuplicateVoteEvidence>, IBencodable
     {
-        private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
-        private static readonly byte[] HeightKey = { 0x68 };              // 'h'
+        public const string DuplicateVoteEvidenceType = "DuplicateVoteEvidence";
+
         private static readonly byte[] VoteRefKey = { 0x76 };             // 'v'
         private static readonly byte[] VoteDupKey = { 0x56 };             // 'V'
         private static readonly byte[] ValidatorPowerKey = { 0x70 };      // 'p'
         private static readonly byte[] TotalPowerKey = { 0x50 };          // 'P'
-        private static readonly byte[] TimestampKey = { 0x74 };           // 't'
+
+        static DuplicateVoteEvidence()
+        {
+            Register(DuplicateVoteEvidenceType, value => new DuplicateVoteEvidence(value));
+        }
 
         /// <summary>
         /// Creates a <see cref="DuplicateVoteEvidence"/> instance.
@@ -50,14 +55,21 @@ namespace Libplanet.Types.Consensus
         /// bencoded <see cref="IValue"/>.
         /// </summary>
         /// <param name="bencoded">Bencoded <see cref="IValue"/>.</param>
-        public DuplicateVoteEvidence(Bencodex.Types.IValue bencoded)
-            : this(bencoded is Bencodex.Types.Dictionary dict
-                ? dict
-                : throw new ArgumentException(
-                    $"Given {nameof(bencoded)} must be of type " +
-                    $"{typeof(Bencodex.Types.Dictionary)}: {bencoded.GetType()}",
-                    nameof(bencoded)))
+        public DuplicateVoteEvidence(IValue bencoded)
+            : base(bencoded)
         {
+            if (bencoded is Dictionary dictionary)
+            {
+                VoteRef = new Vote(dictionary.GetValue<IValue>(VoteRefKey));
+                VoteDup = new Vote(dictionary.GetValue<IValue>(VoteDupKey));
+                ValidatorPower = dictionary.GetValue<Integer>(ValidatorPowerKey);
+                TotalPower = dictionary.GetValue<Integer>(TotalPowerKey);
+            }
+            else
+            {
+                throw new ArgumentException(
+                    "Given bencoded must be of type Dictionary.", nameof(bencoded));
+            }
         }
 
         private DuplicateVoteEvidence(
@@ -67,7 +79,7 @@ namespace Libplanet.Types.Consensus
             BigInteger validatorPower,
             BigInteger totalPower,
             DateTimeOffset timestamp)
-            : base(height, timestamp)
+            : base(height, voteRef.ValidatorPublicKey.Address, timestamp)
         {
             if (voteRef.Height != height)
             {
@@ -169,21 +181,7 @@ namespace Libplanet.Types.Consensus
             TotalPower = totalPower;
         }
 
-        private DuplicateVoteEvidence(Bencodex.Types.Dictionary bencoded)
-            : this(
-                height: bencoded.GetValue<Integer>(HeightKey),
-                voteRef: new Vote(bencoded.GetValue<IValue>(VoteRefKey)),
-                voteDup: new Vote(bencoded.GetValue<IValue>(VoteDupKey)),
-                validatorPower: bencoded.GetValue<Integer>(ValidatorPowerKey),
-                totalPower: bencoded.GetValue<Integer>(TotalPowerKey),
-                timestamp: DateTimeOffset.ParseExact(
-                    bencoded.GetValue<Text>(TimestampKey),
-                    TimestampFormat,
-                    CultureInfo.InvariantCulture))
-        {
-        }
-
-        public override EvidenceType Type => EvidenceType.DuplicateVoteEvidence;
+        public override string Type => DuplicateVoteEvidenceType;
 
         /// <summary>
         /// The reference vote of conflicting votes.
@@ -205,25 +203,6 @@ namespace Libplanet.Types.Consensus
         /// Total power of validators at the time that infraction has been occured.
         /// </summary>
         public BigInteger TotalPower { get; }
-
-        /// <inheritdoc/>
-        [JsonIgnore]
-        public override Bencodex.Types.IValue Bencoded
-        {
-            get
-            {
-                Dictionary bencoded = Bencodex.Types.Dictionary.Empty
-                    .Add(HeightKey, Height)
-                    .Add(VoteRefKey, VoteRef.Bencoded)
-                    .Add(VoteDupKey, VoteDup.Bencoded)
-                    .Add(ValidatorPowerKey, ValidatorPower)
-                    .Add(TotalPowerKey, TotalPower)
-                    .Add(
-                        TimestampKey,
-                        Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture));
-                return bencoded;
-            }
-        }
 
         public static (Vote, Vote) OrderDuplicateVotePair(Vote voteRef, Vote voteDup)
         {
@@ -267,18 +246,18 @@ namespace Libplanet.Types.Consensus
         }
 
         /// <inheritdoc/>
-    public bool Equals(DuplicateVoteEvidence? other)
-            => other is DuplicateVoteEvidence duplicateVoteEvidence &&
-                Height == duplicateVoteEvidence.Height &&
-                VoteRef.Equals(duplicateVoteEvidence.VoteRef) &&
-                VoteDup.Equals(duplicateVoteEvidence.VoteDup) &&
-                ValidatorPower == duplicateVoteEvidence.ValidatorPower &&
-                TotalPower == duplicateVoteEvidence.TotalPower &&
-                Timestamp
-                    .ToString(TimestampFormat, CultureInfo.InvariantCulture).Equals(
-                        duplicateVoteEvidence.Timestamp.ToString(
-                            TimestampFormat,
-                            CultureInfo.InvariantCulture));
+        public bool Equals(DuplicateVoteEvidence? other)
+        {
+            if (base.Equals(other) == true && other is DuplicateVoteEvidence duplicateVoteEvidence)
+            {
+                return VoteRef.Equals(duplicateVoteEvidence.VoteRef) &&
+                    VoteDup.Equals(duplicateVoteEvidence.VoteDup) &&
+                    ValidatorPower == duplicateVoteEvidence.ValidatorPower &&
+                    TotalPower == duplicateVoteEvidence.TotalPower;
+            }
+
+            return false;
+        }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -293,5 +272,18 @@ namespace Libplanet.Types.Consensus
                 ValidatorPower,
                 TotalPower,
                 Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture));
+
+        protected override Dictionary OnBencoded(Dictionary dictionary)
+        {
+            return dictionary.Add(VoteRefKey, VoteRef.Bencoded)
+                    .Add(VoteDupKey, VoteDup.Bencoded)
+                    .Add(ValidatorPowerKey, ValidatorPower)
+                    .Add(TotalPowerKey, TotalPower);
+        }
+
+        protected override void Verify(Block block)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

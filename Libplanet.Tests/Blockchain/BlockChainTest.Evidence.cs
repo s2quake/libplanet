@@ -54,8 +54,6 @@ namespace Libplanet.Tests.Blockchain
             Assert.False(_blockChain.IsEvidencePending(evidence.Id));
             Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
 
-            _blockChain.UpdateEvidence(duplicateVoteSets, _blockChain.Tip.Evidences);
-
             Assert.Single(_blockChain.GetPendingEvidences());
             Assert.Equal(evidence, _blockChain.GetPendingEvidences().First());
             Assert.True(_blockChain.IsEvidencePending(evidence.Id));
@@ -142,8 +140,6 @@ namespace Libplanet.Tests.Blockchain
             Assert.False(_blockChain.IsEvidencePending(evidence.Id));
             Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
 
-            _blockChain.UpdateEvidence(duplicatedVoteSets, _blockChain.Tip.Evidences);
-
             Assert.Empty(_blockChain.GetPendingEvidences());
             Assert.False(_blockChain.IsEvidencePending(evidence.Id));
             Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
@@ -183,8 +179,6 @@ namespace Libplanet.Tests.Blockchain
             Assert.Empty(_blockChain.GetPendingEvidences());
             Assert.False(_blockChain.IsEvidencePending(evidence.Id));
             Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
-
-            _blockChain.UpdateEvidence(duplicatedVoteSets, _blockChain.Tip.Evidences);
 
             Assert.Single(_blockChain.GetPendingEvidences());
             Assert.Equal(evidence, _blockChain.GetPendingEvidences().First());

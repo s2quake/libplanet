@@ -419,11 +419,6 @@ namespace Libplanet.Net.Consensus
             try
             {
                 var evidences = _blockChain.GetPendingEvidences();
-                if (evidences.Length > 0)
-                {
-                    Console.WriteLine("PropseBlock: {0} evidences", evidences.Length);
-                }
-
                 Block block = _blockChain.ProposeBlock(_privateKey, _lastCommit, evidences);
                 _blockChain.Store.PutBlock(block);
                 return block;

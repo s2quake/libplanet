@@ -1,12 +1,12 @@
 using System;
 using System.Runtime.Serialization;
 using Libplanet.Blockchain;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 
 namespace Libplanet.Net.Consensus
 {
     /// <summary>
-    /// Serves as the base class for exceptions related <see cref="DuplicateVoteEvidence"/>s'
+    /// Serves as the base class for exceptions related <see cref="Evidence"/>s'
     /// integrity and validity.
     /// </summary>
     public abstract class EvidenceException : Exception

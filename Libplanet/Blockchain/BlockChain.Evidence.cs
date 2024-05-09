@@ -6,7 +6,7 @@ using System.Numerics;
 using Libplanet.Action.State;
 using Libplanet.Consensus;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 
 namespace Libplanet.Blockchain
 {

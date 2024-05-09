@@ -5,7 +5,7 @@ using System.Linq;
 using Libplanet.Action;
 using Libplanet.Blocks;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain.Policies

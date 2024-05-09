@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Security.Cryptography;
-using System.Transactions;
+using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Types;
+using Libplanet.Crypto;
+using Libplanet.Types.Blocks;
 
-namespace Libplanet.Types.Consensus
+namespace Libplanet.Types.Evidences
 {
     /// <summary>
     /// Abstraction of evidence that abstracts common functionalities of various evidences.
@@ -12,42 +16,59 @@ namespace Libplanet.Types.Consensus
     public abstract class Evidence
         : IEquatable<Evidence>, IComparable<Evidence>, IComparable, IBencodable
     {
+        public const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
+
         private const string TypeKey = "type";
-        private const string EvidenceKey = "evidence";
+        private const string DataKey = "data";
+
+        private static readonly Dictionary<string, Func<IValue, Evidence>> _creatorByType
+            = new Dictionary<string, Func<IValue, Evidence>>();
+
         private static readonly Codec Codec = new Codec();
+        private static readonly byte[] HeightKey = { 0x68 };              // 'h'
+        private static readonly byte[] ValidatorKey = { 0x76, 0x61 };     // 'va'
+        private static readonly byte[] TimestampKey = { 0x74 };           // 't'
         private EvidenceId? _id;
 
-        protected Evidence(long height, DateTimeOffset timestamp)
+        protected Evidence(long height, Address targetAddress, DateTimeOffset timestamp)
         {
             Height = height;
+            TargetAddress = targetAddress;
             Timestamp = timestamp;
         }
 
-        /// <summary>
-        /// Types of evidences.
-        /// </summary>
-        public enum EvidenceType : byte
+        protected Evidence(IValue bencoded)
         {
-            /// <summary>
-            /// Evidence for duplicated votes.
-            /// </summary>
-            DuplicateVoteEvidence = 0x02,
-
-            /// <summary>
-            /// Evidence for test.
-            /// </summary>
-            FalseEvidence = 0xff,
+            if (bencoded is Dictionary dictionary)
+            {
+                Height = dictionary.GetValue<Integer>(HeightKey);
+                TargetAddress = new Address(dictionary.GetValue<IValue>(ValidatorKey));
+                Timestamp = DateTimeOffset.ParseExact(
+                    dictionary.GetValue<Text>(TimestampKey),
+                    TimestampFormat,
+                    CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                throw new ArgumentException(
+                    "Given bencoded must be of type Dictionary.", nameof(bencoded));
+            }
         }
 
         /// <summary>
         /// Type of current evidence.
         /// </summary>
-        public abstract EvidenceType Type { get; }
+        public abstract string Type { get; }
 
         /// <summary>
         /// Block height that infraction has been occured.
         /// </summary>
         public long Height { get; }
+
+        /// <summary>
+        /// Address of the target that committed the infraction.
+        /// </summary>
+        public Address TargetAddress { get; }
 
         /// <summary>
         /// Timestamp that indicates the time that evidence has been made.
@@ -78,7 +99,21 @@ namespace Libplanet.Types.Consensus
         /// without knowing the evidence type.
         /// For fully bencoded form, use <see cref="Bencode(Evidence)"/>.
         /// </summary>
-        public abstract IValue Bencoded { get; }
+        [JsonIgnore]
+        public IValue Bencoded
+        {
+            get
+            {
+                Dictionary bencoded = Dictionary.Empty
+                    .Add(HeightKey, Height)
+                    .Add(ValidatorKey, TargetAddress.Bencoded)
+                    .Add(
+                        TimestampKey,
+                        Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture));
+                bencoded = OnBencoded(bencoded);
+                return bencoded;
+            }
+        }
 
         /// <summary>
         /// Bencode <see cref="Evidence"/>.
@@ -90,10 +125,15 @@ namespace Libplanet.Types.Consensus
         /// <returns>Bencoded <see cref="IValue"/>.</returns>
         public static IValue Bencode(Evidence evidence)
         {
-            Dictionary bencoded = Bencodex.Types.Dictionary.Empty
-                .Add(TypeKey, (int)evidence.Type)
-                .Add(EvidenceKey, evidence.Bencoded);
+            Dictionary bencoded = Dictionary.Empty
+                .Add(TypeKey, evidence.Type)
+                .Add(DataKey, evidence.Bencoded);
             return bencoded;
+        }
+
+        public static void Register(string evidenceType, Func<IValue, Evidence> creator)
+        {
+            _creatorByType.Add(evidenceType, creator);
         }
 
         /// <summary>
@@ -106,14 +146,16 @@ namespace Libplanet.Types.Consensus
         /// cannot be decoded as an evidence.</exception>
         public static Evidence Decode(IValue value)
         {
-            var type = (EvidenceType)(int)((Dictionary)value).GetValue<Integer>(TypeKey);
-            var evidence = ((Dictionary)value).GetValue<IValue>(EvidenceKey);
-            return type switch
+            var type = (string)((Dictionary)value).GetValue<Text>(TypeKey);
+            var data = ((Dictionary)value).GetValue<IValue>(DataKey);
+            if (_creatorByType.TryGetValue(type, out Func<IValue, Evidence>? creator))
             {
-                EvidenceType.FalseEvidence => new FalseEvidence(evidence),
-                EvidenceType.DuplicateVoteEvidence => new DuplicateVoteEvidence(evidence),
-                _ => throw new InvalidCastException($"Given type {type} is not a valid evidence."),
-            };
+                return creator(data);
+            }
+            else
+            {
+                throw new ArgumentException($"Unknown evidence type: {type}");
+            }
         }
 
         public static Evidence Deserialize(byte[] bytes)
@@ -146,5 +188,9 @@ namespace Libplanet.Types.Consensus
             ? CompareTo(other: other)
             : throw new ArgumentException(
                 $"Argument {nameof(obj)} is not a ${nameof(Evidence)}.", nameof(obj));
+
+        protected abstract Dictionary OnBencoded(Dictionary dictionary);
+
+        protected abstract void Verify(Block block);
     }
 }

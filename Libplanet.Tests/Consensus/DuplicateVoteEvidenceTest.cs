@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Libplanet.Tests.Consensus
 {
-    public class DuplicatedVoteEvidenceTest
+    public class DuplicateVoteEvidenceTest
     {
         [Fact]
         public void Create_WithDifferentHeight_FailTest()
@@ -246,6 +246,49 @@ namespace Libplanet.Tests.Consensus
 
             // Then
             var actualEvidence = new DuplicateVoteEvidence(expectedEvidence.Bencoded);
+
+            Assert.Equal(expectedEvidence.Bencoded, actualEvidence.Bencoded);
+            Assert.Equal(expectedEvidence, actualEvidence);
+        }
+
+        [Fact]
+        public void Serialize_and_Deserialize_Test()
+        {
+            // Given
+            var privateKey = new PrivateKey();
+            var validatorPublicKey = privateKey.PublicKey;
+            var validatorList = new List<Validator>
+            {
+                new Validator(validatorPublicKey, BigInteger.One),
+            };
+
+            var voteRef = new VoteMetadata(
+                height: 1,
+                round: 2,
+                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                timestamp: DateTimeOffset.UtcNow,
+                validatorPublicKey: validatorPublicKey,
+                validatorPower: BigInteger.One,
+                flag: VoteFlag.PreCommit).Sign(privateKey);
+            var voteDup = new VoteMetadata(
+                height: 1,
+                round: 2,
+                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                timestamp: DateTimeOffset.UtcNow,
+                validatorPublicKey: validatorPublicKey,
+                validatorPower: BigInteger.One,
+                flag: VoteFlag.PreCommit).Sign(privateKey);
+
+            // When
+            var expectedEvidence = new DuplicateVoteEvidence(
+                voteRef: voteRef,
+                voteDup: voteDup,
+                validatorSet: new ValidatorSet(validatorList),
+                timestamp: voteDup.Timestamp);
+
+            // Then
+            var bencoded = expectedEvidence.Serialize();
+            var actualEvidence = Evidence.Deserialize(bencoded);
 
             Assert.Equal(expectedEvidence.Bencoded, actualEvidence.Bencoded);
             Assert.Equal(expectedEvidence, actualEvidence);

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Libplanet.Types.Consensus
+namespace Libplanet.Types.Evidences
 {
     /// <summary>
     /// Serves as the base class for exceptions related <see cref="DuplicateVoteEvidence"/>s'

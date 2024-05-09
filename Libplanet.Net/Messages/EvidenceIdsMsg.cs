@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 
 namespace Libplanet.Net.Messages
 {
