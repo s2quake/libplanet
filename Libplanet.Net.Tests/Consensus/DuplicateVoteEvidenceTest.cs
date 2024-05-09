@@ -85,6 +85,7 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.NotNull(proposal?.BlockHash);
             var blockHash = proposal!.BlockHash;
 
+            // Not infracted
             await HandleMessageAsync(
                 consensusContext: consensusContext,
                 consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
@@ -95,6 +96,7 @@ namespace Libplanet.Net.Tests.Consensus
                     hash: blockHash,
                     flag: VoteFlag.PreCommit)),
                 cancellationToken: default);
+            // Not infracted
             await HandleMessageAsync(
                 consensusContext: consensusContext,
                 consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
@@ -105,6 +107,7 @@ namespace Libplanet.Net.Tests.Consensus
                     hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                     flag: VoteFlag.PreCommit)),
                 cancellationToken: default);
+            // Not infracted
             await HandleMessageAsync(
                 consensusContext: consensusContext,
                 consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
@@ -115,6 +118,7 @@ namespace Libplanet.Net.Tests.Consensus
                     hash: blockHash,
                     flag: VoteFlag.PreCommit)),
                 cancellationToken: default);
+            // Infracted
             await HandleMessageAsync(
                 consensusContext: consensusContext,
                 consensusMessage: new ConsensusPreCommitMsg(TestUtils.CreateVote(
