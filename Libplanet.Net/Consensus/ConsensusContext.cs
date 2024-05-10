@@ -27,7 +27,6 @@ namespace Libplanet.Net.Consensus
         private readonly TimeSpan _newHeightDelay;
         private readonly ILogger _logger;
         private readonly Dictionary<long, Context> _contexts;
-        private readonly EvidenceCollector _evidenceCollector = new EvidenceCollector();
 
         private CancellationTokenSource? _newHeightCts;
 
@@ -195,9 +194,12 @@ namespace Libplanet.Net.Consensus
                         }
                     }
 
-                    foreach (var evidence in _evidenceCollector.Exhaust(_blockChain))
+                    foreach (var context in _contexts.Values)
                     {
-                        _blockChain.AddEvidence(evidence);
+                        foreach (var evidence in context.CollectEvidences())
+                        {
+                            _blockChain.AddEvidence(evidence);
+                        }
                     }
                 }
 

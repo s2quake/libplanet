@@ -81,6 +81,10 @@ namespace Libplanet.Net.Consensus
                     ExceptionOccurred?.Invoke(this, oce);
                     throw;
                 }
+                catch (EvidenceException e)
+                {
+                    _evidenceCollector.Handle(e);
+                }
                 catch (Exception e)
                 {
                     _logger.Error(
