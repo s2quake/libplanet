@@ -276,9 +276,36 @@ namespace Libplanet.Types.Evidences
                     .Add(TotalPowerKey, TotalPower);
         }
 
-        protected override void Verify(Block block)
+        protected override void OnVerify(IEvidenceContext evidenceContext)
         {
-            throw new NotImplementedException();
+            var validatorSet = evidenceContext.ValidatorSet;
+
+            if (!validatorSet.PublicKeys.Contains(VoteRef.ValidatorPublicKey))
+            {
+                throw new InvalidEvidenceException(
+                    $"Evidence public key is not a validator. " +
+                    $"PublicKey: {VoteRef.ValidatorPublicKey}");
+            }
+
+            BigInteger validatorPower
+                = validatorSet.GetValidator(VoteRef.ValidatorPublicKey).Power;
+            BigInteger totalPower = validatorSet.TotalPower;
+
+            if (ValidatorPower != validatorPower)
+            {
+                throw new InvalidEvidenceException(
+                    $"Evidence validator power is different from the actual. " +
+                    $"Expected: {validatorPower}, " +
+                    $"Actual: {ValidatorPower}");
+            }
+
+            if (TotalPower != validatorSet.TotalPower)
+            {
+                throw new InvalidEvidenceException(
+                    $"Evidence total power is different from the actual. " +
+                    $"Expected: {totalPower}, " +
+                    $"Actual: {TotalPower}");
+            }
         }
     }
 }

@@ -316,9 +316,13 @@ namespace Libplanet.Blockchain
                         "A PBFT block after protocol version 5 should have evidences.");
                 }
 
+                var hash = block.Hash;
+                var worldStates = _blockChainStates.GetWorldState(hash);
+                var validatorSet = worldStates.GetValidatorSet();
+                var evidenceContext = new EvidenceContext(block, validatorSet);
                 foreach (Evidence evidence in block.Evidences)
                 {
-                    VerifyEvidence(evidence);
+                    evidence.Verify(evidenceContext);
                 }
             }
         }

@@ -1,14 +1,12 @@
 using System.Collections.Generic;
-using Libplanet.Blockchain;
 using Libplanet.Types.Consensus;
-using Libplanet.Types.Evidences;
 
-namespace Libplanet.Net.Consensus
+namespace Libplanet.Types.Evidences
 {
     /// <summary>
     /// Pool that gathers duplicated <see cref="Vote"/> pairs.
     /// </summary>
-    internal sealed class EvidenceCollector
+    public sealed class EvidenceCollector
     {
         private readonly List<EvidenceException> _exceptionList
             = new List<EvidenceException>();
@@ -18,13 +16,13 @@ namespace Libplanet.Net.Consensus
             _exceptionList.Add(exception);
         }
 
-        public IEnumerable<Evidence> Exhaust(BlockChain blockChain)
+        public IEnumerable<Evidence> Exhaust(IEvidenceContext evidenceContext)
         {
             var evidenceExceptions = _exceptionList.ToArray();
             _exceptionList.Clear();
             foreach (var evidenceException in evidenceExceptions)
             {
-                yield return evidenceException.CreateEvidence(blockChain);
+                yield return evidenceException.CreateEvidence(evidenceContext);
             }
         }
     }

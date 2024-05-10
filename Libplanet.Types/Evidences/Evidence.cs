@@ -198,8 +198,10 @@ namespace Libplanet.Types.Evidences
             : throw new ArgumentException(
                 $"Argument {nameof(obj)} is not a ${nameof(Evidence)}.", nameof(obj));
 
+        public void Verify(IEvidenceContext evidenceContext) => OnVerify(evidenceContext);
+
         protected abstract Dictionary OnBencoded(Dictionary dictionary);
 
-        protected abstract void Verify(Block block);
+        protected abstract void OnVerify(IEvidenceContext evidenceContext);
     }
 }

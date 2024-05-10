@@ -1,11 +1,9 @@
 using System;
 using System.Runtime.Serialization;
-using Libplanet.Action.State;
-using Libplanet.Blockchain;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Libplanet.Types.Evidences;
 
-namespace Libplanet.Net.Consensus
+namespace Libplanet.Types.Evidences
 {
     /// <summary>
     /// An exception thrown when a duadskf <see cref="Vote"/> is invalid.  In particular,
@@ -88,16 +86,13 @@ namespace Libplanet.Net.Consensus
             info.AddValue(nameof(Vote), VoteDup);
         }
 
-        public override Evidence CreateEvidence(BlockChain blockChain)
+        public override Evidence CreateEvidence(IEvidenceContext evidenceContext)
         {
             var voteRef = VoteRef;
             var voteDup = VoteDup;
             (_, Vote dup) = DuplicateVoteEvidence.OrderDuplicateVotePair(voteRef, voteDup);
 
-            var hash = blockChain[voteRef.Height].Hash;
-            var worldState = blockChain.GetWorldState(hash);
-            var validatorSet = worldState
-                .GetValidatorSet();
+            var validatorSet = evidenceContext.ValidatorSet;
 
             return new DuplicateVoteEvidence(
                 voteRef: voteRef,

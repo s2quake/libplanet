@@ -374,7 +374,8 @@ namespace Libplanet.Net.Consensus
 
         public Evidence[] CollectEvidences()
         {
-            return _evidenceCollector.Exhaust(_blockChain).ToArray();
+            var evidenceContext = new EvidenceContext(_blockChain[Height], _validatorSet);
+            return _evidenceCollector.Exhaust(evidenceContext).ToArray();
         }
 
         /// <summary>

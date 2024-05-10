@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Evidences;
 
 namespace Libplanet.Net.Consensus
 {

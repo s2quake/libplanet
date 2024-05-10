@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Numerics;
 using Libplanet.Action.State;
-using Libplanet.Consensus;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidences;
 
@@ -60,8 +58,12 @@ namespace Libplanet.Blockchain
                 throw new ArgumentException($"Evidence {evidence.Id} is already pending.");
             }
 
-            VerifyEvidence(evidence);
-
+            var block = this[evidence.Height];
+            var hash = block.Hash;
+            var worldStates = _blockChainStates.GetWorldState(hash);
+            var validatorSet = worldStates.GetValidatorSet();
+            var evidenceContext = new EvidenceContext(block, validatorSet);
+            evidence.Verify(evidenceContext);
             Store.PutPendingEvidence(evidence);
         }
 
@@ -176,62 +178,5 @@ namespace Libplanet.Blockchain
         /// </returns>
         public bool IsEvidenceExpired(Evidence evidence, long height)
             => evidence.Height < EvidenceExpirationHeight(height);
-
-        /// <summary>
-        /// Verify if <paramref name="evidence"/> is valid.
-        /// </summary>
-        /// <param name="evidence"><see cref="Evidence"/> to be verified.</param>
-        public void VerifyEvidence(Evidence evidence)
-        {
-            switch (evidence)
-            {
-                case DuplicateVoteEvidence duplicateVoteEvidence:
-                    VerifyDuplicatedVoteEvidence(duplicateVoteEvidence);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Verify if <paramref name="evidence"/> is valid <see cref="DuplicateVoteEvidence"/>.
-        /// </summary>
-        /// <param name="evidence"><see cref="DuplicateVoteEvidence"/> to be verified.</param>
-        /// <exception cref="InvalidEvidenceException">Thrown when given
-        /// <paramref name="evidence"/> is invalid.</exception>
-        public void VerifyDuplicatedVoteEvidence(DuplicateVoteEvidence evidence)
-        {
-            var hash = this[evidence.Height].Hash;
-            var blockChainStates = _blockChainStates.GetWorldState(hash);
-            var validatorSet = blockChainStates
-                .GetValidatorSet();
-
-            if (!validatorSet.PublicKeys.Contains(evidence.VoteRef.ValidatorPublicKey))
-            {
-                throw new InvalidEvidenceException(
-                    $"Evidence public key is not a validator. " +
-                    $"PublicKey: {evidence.VoteRef.ValidatorPublicKey}");
-            }
-
-            BigInteger validatorPower
-                = validatorSet.GetValidator(evidence.VoteRef.ValidatorPublicKey).Power;
-            BigInteger totalPower = validatorSet.TotalPower;
-
-            if (evidence.ValidatorPower != validatorPower)
-            {
-                throw new InvalidEvidenceException(
-                    $"Evidence validator power is different from the actual. " +
-                    $"Expected: {validatorPower}, " +
-                    $"Actual: {evidence.ValidatorPower}");
-            }
-
-            if (evidence.TotalPower != validatorSet.TotalPower)
-            {
-                throw new InvalidEvidenceException(
-                    $"Evidence total power is different from the actual. " +
-                    $"Expected: {totalPower}, " +
-                    $"Actual: {evidence.TotalPower}");
-            }
-        }
     }
 }

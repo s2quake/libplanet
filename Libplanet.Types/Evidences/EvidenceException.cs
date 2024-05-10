@@ -1,9 +1,7 @@
 using System;
 using System.Runtime.Serialization;
-using Libplanet.Blockchain;
-using Libplanet.Types.Evidences;
 
-namespace Libplanet.Net.Consensus
+namespace Libplanet.Types.Evidences
 {
     /// <summary>
     /// Serves as the base class for exceptions related <see cref="Evidence"/>s'
@@ -29,6 +27,6 @@ namespace Libplanet.Net.Consensus
         {
         }
 
-        public abstract Evidence CreateEvidence(BlockChain blockChain);
+        public abstract Evidence CreateEvidence(IEvidenceContext evidenceContext);
     }
 }

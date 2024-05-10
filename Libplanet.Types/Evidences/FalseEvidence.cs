@@ -3,7 +3,6 @@ using System.Globalization;
 using Bencodex;
 using Bencodex.Types;
 using Libplanet.Crypto;
-using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Evidences
 {
@@ -51,9 +50,8 @@ namespace Libplanet.Types.Evidences
         protected override Dictionary OnBencoded(Dictionary dictionary)
             => dictionary;
 
-        protected override void Verify(Block block)
+        protected override void OnVerify(IEvidenceContext evidenceContext)
         {
-            throw new NotImplementedException();
         }
     }
 }
