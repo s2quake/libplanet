@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Libplanet.Action.State;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidences;
 
@@ -58,12 +57,6 @@ namespace Libplanet.Blockchain
                 throw new ArgumentException($"Evidence {evidence.Id} is already pending.");
             }
 
-            var block = this[evidence.Height];
-            var hash = block.Hash;
-            var worldStates = _blockChainStates.GetWorldState(hash);
-            var validatorSet = worldStates.GetValidatorSet();
-            var evidenceContext = new EvidenceContext(block, validatorSet);
-            evidence.Verify(evidenceContext);
             Store.PutPendingEvidence(evidence);
         }
 
