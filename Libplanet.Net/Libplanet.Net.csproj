@@ -56,7 +56,7 @@
       </IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
-    <PackageReference Include="Planetarium.NetMQ" Version="4.0.0.261-planetarium" />
+    <ProjectReference Include="../../.netmq/src/NetMQ/NetMQ.csproj" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.205">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>
