@@ -5,6 +5,7 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Tests.Store
@@ -203,5 +204,32 @@ namespace Libplanet.Tests.Store
         /// <inheritdoc cref="IStore.DeleteNextStateRootHash"/>
         public void DeleteNextStateRootHash(BlockHash blockHash) =>
             Store.DeleteNextStateRootHash(blockHash);
+
+        public IEnumerable<EvidenceId> IteratePendingEvidenceIds() =>
+            Store.IteratePendingEvidenceIds();
+
+        public Evidence GetPendingEvidence(EvidenceId evidenceId) =>
+            Store.GetPendingEvidence(evidenceId);
+
+        public Evidence GetCommittedEvidence(EvidenceId evidenceId) =>
+            Store.GetCommittedEvidence(evidenceId);
+
+        public void PutPendingEvidence(Evidence evidence) =>
+            Store.PutPendingEvidence(evidence);
+
+        public void PutCommittedEvidence(Evidence evidence) =>
+            Store.PutCommittedEvidence(evidence);
+
+        public void DeletePendingEvidence(EvidenceId evidenceId) =>
+            Store.DeletePendingEvidence(evidenceId);
+
+        public void DeleteCommittedEvidence(EvidenceId evidenceId) =>
+            Store.DeleteCommittedEvidence(evidenceId);
+
+        public bool ContainsPendingEvidence(EvidenceId evidenceId) =>
+            Store.ContainsPendingEvidence(evidenceId);
+
+        public bool ContainsCommittedEvidence(EvidenceId evidenceId) =>
+            Store.ContainsCommittedEvidence(evidenceId);
     }
 }
