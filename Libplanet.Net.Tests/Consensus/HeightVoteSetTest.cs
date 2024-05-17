@@ -7,6 +7,7 @@ using Libplanet.Net.Consensus;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Xunit;
 
 namespace Libplanet.Net.Tests.Consensus
@@ -117,9 +118,9 @@ namespace Libplanet.Net.Tests.Consensus
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[0]);
 
             _heightVoteSet.AddVote(preVote0);
-            Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote1));
+            Assert.Throws<DuplicateVoteException>(() => _heightVoteSet.AddVote(preVote1));
             _heightVoteSet.AddVote(preCommit0);
-            Assert.Throws<InvalidVoteException>(
+            Assert.Throws<DuplicateVoteException>(
                 () => _heightVoteSet.AddVote(preCommit1));
         }
 

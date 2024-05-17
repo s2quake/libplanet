@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Action.State;
@@ -9,6 +10,7 @@ using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Serilog;
 
 namespace Libplanet.Net.Consensus
@@ -28,6 +30,8 @@ namespace Libplanet.Net.Consensus
         private readonly TimeSpan _newHeightDelay;
         private readonly ILogger _logger;
         private readonly Dictionary<long, Context> _contexts;
+        private readonly EvidenceExceptionCollector _evidenceCollector
+            = new EvidenceExceptionCollector();
 
         private CancellationTokenSource? _newHeightCts;
 
@@ -172,9 +176,10 @@ namespace Libplanet.Net.Consensus
                 BlockCommit? lastCommit = null;
                 lock (_contextLock)
                 {
-                    lastCommit = _contexts.ContainsKey(height - 1)
-                        ? _contexts[height - 1].GetBlockCommit()
+                    Context? lastContext = _contexts.ContainsKey(height - 1)
+                        ? _contexts[height - 1]
                         : null;
+                    lastCommit = lastContext?.GetBlockCommit();
                     _logger.Debug(
                         "LastCommit of height #{Height} is: {LastCommit}",
                         Height,
@@ -405,6 +410,8 @@ namespace Libplanet.Net.Consensus
                     {
                         try
                         {
+                            HandleEvidenceExceptions();
+                            AddEvidencesToBlockChain(e.NewTip);
                             NewHeight(e.NewTip.Index + 1);
                         }
                         catch (Exception exc)
@@ -481,6 +488,41 @@ namespace Libplanet.Net.Consensus
                         ctx.Dispose();
                         _contexts.Remove(ctx.Height);
                     }
+                }
+            }
+        }
+
+        private void HandleEvidenceExceptions()
+        {
+            foreach (var context in _contexts.Values)
+            {
+                var evidenceExceptions = context.CollectEvidenceExceptions();
+                _evidenceCollector.AddRange(evidenceExceptions);
+            }
+        }
+
+        private void AddEvidencesToBlockChain(Block tip)
+        {
+            var height = tip.Index;
+            var evidenceExceptions
+                = _evidenceCollector.Flush().Where(item => item.Height <= height).ToArray();
+            foreach (var evidenceException in evidenceExceptions)
+            {
+                try
+                {
+                    var evidenceBlock = _blockChain[evidenceException.Height];
+                    var validatorSet = _blockChain.GetWorldState(evidenceBlock.Hash)
+                                                  .GetValidatorSet();
+                    var evidenceContext = new EvidenceContext(validatorSet);
+                    var evidence = evidenceException.CreateEvidence(evidenceContext);
+                    _blockChain.AddEvidence(evidence);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(
+                        exception: e,
+                        messageTemplate: "Unexpected exception occurred during {FName}()",
+                        propertyValue: nameof(BlockChain.AddEvidence));
                 }
             }
         }

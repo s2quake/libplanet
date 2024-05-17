@@ -14,6 +14,7 @@ using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 using Serilog;
 
@@ -90,6 +91,8 @@ namespace Libplanet.Net.Consensus
         private readonly HashSet<int> _preVoteTimeoutFlags;
         private readonly HashSet<int> _hasTwoThirdsPreVoteFlags;
         private readonly HashSet<int> _preCommitTimeoutFlags;
+        private readonly EvidenceExceptionCollector _evidenceCollector
+            = new EvidenceExceptionCollector();
 
         private readonly CancellationTokenSource _cancellationTokenSource;
 
@@ -365,6 +368,12 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
+        /// Collects <see cref="EvidenceException"/>s that are occurred during the consensus.
+        /// </summary>
+        /// <returns>A list of <see cref="EvidenceException"/>s.</returns>
+        public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
+
+        /// <summary>
         /// Gets the timeout of <see cref="ConsensusStep.PreVote"/> with the given
         /// round.
         /// </summary>
@@ -412,7 +421,8 @@ namespace Libplanet.Net.Consensus
         {
             try
             {
-                Block block = _blockChain.ProposeBlock(_privateKey, _lastCommit);
+                var evidences = _blockChain.GetPendingEvidences();
+                Block block = _blockChain.ProposeBlock(_privateKey, _lastCommit, evidences);
                 _blockChain.Store.PutBlock(block);
                 return block;
             }
