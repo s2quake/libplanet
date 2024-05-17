@@ -982,7 +982,25 @@ namespace Libplanet.Blockchain
                         Store.PutChainBlockCommit(Id, blockCommit);
                     }
 
+                    foreach (var evidence in block.Evidences)
+                    {
+                        if (Store.GetPendingEvidence(evidence.Id) != null)
+                        {
+                            Store.DeletePendingEvidence(evidence.Id);
+                        }
+
+                        Store.PutCommittedEvidence(evidence);
+                    }
+
                     Store.AppendIndex(Id, block.Hash);
+
+                    foreach (var evidence in GetPendingEvidences())
+                    {
+                        if (IsEvidenceExpired(evidence))
+                        {
+                            Store.DeletePendingEvidence(evidence.Id);
+                        }
+                    }
                 }
                 finally
                 {
@@ -1177,7 +1195,25 @@ namespace Libplanet.Blockchain
                         Store.PutChainBlockCommit(Id, blockCommit);
                     }
 
+                    foreach (var evidence in block.Evidences)
+                    {
+                        if (Store.GetPendingEvidence(evidence.Id) != null)
+                        {
+                            Store.DeletePendingEvidence(evidence.Id);
+                        }
+
+                        Store.PutCommittedEvidence(evidence);
+                    }
+
                     Store.AppendIndex(Id, block.Hash);
+
+                    foreach (var evidence in GetPendingEvidences())
+                    {
+                        if (IsEvidenceExpired(evidence))
+                        {
+                            Store.DeletePendingEvidence(evidence.Id);
+                        }
+                    }
                 }
                 finally
                 {

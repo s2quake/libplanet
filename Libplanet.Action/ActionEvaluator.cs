@@ -216,7 +216,8 @@ namespace Libplanet.Action
                     randomSeed: randomSeed,
                     isBlockAction: isBlockAction,
                     gasLimit: actionGasLimit,
-                    maxGasPrice: tx?.MaxGasPrice);
+                    maxGasPrice: tx?.MaxGasPrice,
+                    evidences: block.Evidences);
             }
 
             long gasLimit = tx?.GasLimit ?? long.MaxValue;
@@ -285,7 +286,8 @@ namespace Libplanet.Action
                     isBlockAction: isBlockAction,
                     gasLimit: inputContext.GasLimit(),
                     maxGasPrice: tx?.MaxGasPrice,
-                    txs: inputContext.Txs);
+                    txs: inputContext.Txs,
+                    evidences: inputContext.Evidences);
             }
 
             try

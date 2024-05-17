@@ -12,6 +12,7 @@ using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain
@@ -313,6 +314,17 @@ namespace Libplanet.Blockchain
                 {
                     throw new InvalidBlockLastCommitException(ibce.Message);
                 }
+            }
+
+            foreach (var evidence in block.Evidences)
+            {
+                var evidenceBlock = this[evidence.Height];
+                var worldState = GetNextWorldState(evidenceBlock.Hash) ??
+                    throw new InvalidOperationException(
+                        $"The world state of the block {evidenceBlock.Hash} is not found.");
+                var validatorSet = worldState.GetValidatorSet();
+                var evidenceContext = new EvidenceContext(validatorSet);
+                evidence.Verify(evidenceContext);
             }
         }
 

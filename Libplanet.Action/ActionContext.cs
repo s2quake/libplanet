@@ -7,6 +7,7 @@ using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Action
@@ -31,7 +32,8 @@ namespace Libplanet.Action
             bool isBlockAction,
             long gasLimit,
             FungibleAssetValue? maxGasPrice,
-            IReadOnlyList<ITransaction>? txs = null)
+            IReadOnlyList<ITransaction>? txs = null,
+            IReadOnlyList<Evidence>? evidences = null)
         {
             Signer = signer;
             TxId = txid;
@@ -45,6 +47,7 @@ namespace Libplanet.Action
             _gasLimit = gasLimit;
             MaxGasPrice = maxGasPrice;
             _txs = txs ?? ImmutableList<Transaction>.Empty;
+            Evidences = evidences ?? ImmutableList<Evidence>.Empty;
 
             GetGasMeter.Value = new GasMeter(_gasLimit);
         }
@@ -65,7 +68,7 @@ namespace Libplanet.Action
         public int BlockProtocolVersion { get; }
 
         /// <inheritdoc cref="IActionContext.LastCommit"/>
-        public BlockCommit? LastCommit { get;  }
+        public BlockCommit? LastCommit { get; }
 
         /// <inheritdoc cref="IActionContext.PreviousState"/>
         public IWorld PreviousState { get; }
@@ -84,6 +87,9 @@ namespace Libplanet.Action
         public IReadOnlyList<ITransaction> Txs => IsBlockAction
             ? _txs
             : ImmutableList<ITransaction>.Empty;
+
+        /// <inheritdoc cref="IActionContext.Evidences"/>
+        public IReadOnlyList<Evidence> Evidences { get; }
 
         /// <inheritdoc cref="IActionContext.UseGas(long)"/>
         public void UseGas(long gas) => GetGasMeter.Value?.UseGas(gas);
