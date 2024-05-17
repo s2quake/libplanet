@@ -264,7 +264,10 @@ namespace Libplanet.Tests.Action
 
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                proposer: GenesisProposer,
+                transactions: txs.ToImmutableList(),
+                lastCommit: CreateBlockCommit(chain.Tip),
+                evidences: ImmutableArray<Evidence>.Empty);
             var evaluations = actionEvaluator.Evaluate(
                 block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
@@ -334,7 +337,10 @@ namespace Libplanet.Tests.Action
 
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                GenesisProposer,
+                txs.ToImmutableList(),
+                CreateBlockCommit(chain.Tip),
+                ImmutableArray<Evidence>.Empty);
             var evaluations = actionEvaluator.Evaluate(
                 block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
@@ -1008,7 +1014,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                GenesisProposer,
+                txs.ToImmutableList(),
+                CreateBlockCommit(chain.Tip),
+                ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyBeginBlockActions(
@@ -1056,7 +1065,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                proposer: GenesisProposer,
+                transactions: txs.ToImmutableList(),
+                lastCommit: CreateBlockCommit(chain.Tip),
+                evidences: ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyEndBlockActions(
@@ -1105,7 +1117,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                proposer: GenesisProposer,
+                transactions: txs.ToImmutableList(),
+                lastCommit: CreateBlockCommit(chain.Tip),
+                evidences: ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyBeginTxActions(
@@ -1157,7 +1172,10 @@ namespace Libplanet.Tests.Action
             (_, Transaction[] txs) = MakeFixturesForAppendTests();
             var genesis = chain.Genesis;
             var block = chain.ProposeBlock(
-                GenesisProposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                GenesisProposer,
+                txs.ToImmutableList(),
+                CreateBlockCommit(chain.Tip),
+                ImmutableArray<Evidence>.Empty);
 
             IWorld previousState = actionEvaluator.PrepareInitialDelta(null);
             var evaluations = actionEvaluator.EvaluatePolicyEndTxActions(

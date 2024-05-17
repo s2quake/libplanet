@@ -6,6 +6,7 @@ using Libplanet.Crypto;
 using Libplanet.Tests.Tx;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Tests.Blocks
@@ -30,7 +31,8 @@ namespace Libplanet.Tests.Blocks
                 protocolVersion: ProtocolVersion,
                 stateRootHash: HashDigest<SHA256>.FromString(
                     "6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa"),
-                lastCommit: null
+                lastCommit: null,
+                evidences: ImmutableArray<Evidence>.Empty
             );
             HasTx = TestUtils.ProposeNextBlock(
                 Next,
@@ -56,7 +58,8 @@ namespace Libplanet.Tests.Blocks
                             Miner.PublicKey,
                             TestUtils.ValidatorSet.GetValidator(Miner.PublicKey).Power,
                             VoteFlag.PreCommit).Sign(Miner),
-                    }.ToImmutableArray())
+                    }.ToImmutableArray()),
+                evidences: ImmutableArray<Evidence>.Empty
             );
         }
 
