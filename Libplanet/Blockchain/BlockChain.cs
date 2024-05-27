@@ -380,7 +380,7 @@ namespace Libplanet.Blockchain
                 BlockMetadata.StateRootHashPostponeProtocolVersion)
             {
                 var preEval = new PreEvaluationBlock(
-                    genesisBlock.Header, genesisBlock.Transactions);
+                    genesisBlock.Header, genesisBlock.Transactions, genesisBlock.Evidences);
                 var computedStateRootHash =
                     actionEvaluator.Evaluate(preEval, null).Last().OutputState;
                 if (!genesisBlock.StateRootHash.Equals(computedStateRootHash))

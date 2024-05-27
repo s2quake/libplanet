@@ -13,6 +13,7 @@ using Libplanet.Store.Trie;
 using Libplanet.Tests.Fixtures;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Evidences;
 using Xunit;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
@@ -79,6 +80,7 @@ namespace Libplanet.Tests.Blocks
                         .GetState(address));
 
                 var txs = new[] { _contents.Block1Tx0 };
+                var evs = Array.Empty<Evidence>();
                 BlockContent content1 = new BlockContent(
                     new BlockMetadata(
                         index: _contents.Block1Content.Index,
@@ -86,8 +88,10 @@ namespace Libplanet.Tests.Blocks
                         publicKey: _contents.Block1Content.PublicKey,
                         previousHash: genesis.Hash,
                         txHash: BlockContent.DeriveTxHash(txs),
-                        lastCommit: null),
-                    transactions: txs);
+                        lastCommit: null,
+                        evidenceHash: null),
+                    transactions: txs,
+                    evidences: evs);
                 PreEvaluationBlock preEval1 = content1.Propose();
 
                 HashDigest<SHA256> b1StateRootHash =
@@ -156,6 +160,7 @@ namespace Libplanet.Tests.Blocks
                         .GetState(address));
 
                 var txs = new[] { _contents.Block1Tx0 };
+                var evs = Array.Empty<Evidence>();
                 BlockContent content1 = new BlockContent(
                     new BlockMetadata(
                         index: _contents.Block1Content.Index,
@@ -163,8 +168,10 @@ namespace Libplanet.Tests.Blocks
                         publicKey: _contents.Block1Content.PublicKey,
                         previousHash: genesis.Hash,
                         txHash: BlockContent.DeriveTxHash(txs),
-                        lastCommit: null),
-                    transactions: txs);
+                        lastCommit: null,
+                        evidenceHash: null),
+                    transactions: txs,
+                    evidences: evs);
                 PreEvaluationBlock preEval1 = content1.Propose();
 
                 HashDigest<SHA256> b1StateRootHash =

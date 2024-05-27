@@ -19,6 +19,7 @@ using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Evidences;
 using Libplanet.Types.Tx;
 using Serilog;
 using Xunit;
@@ -718,6 +719,7 @@ namespace Libplanet.Tests.Blockchain
                     genesisHash: _blockChain.Genesis.Hash,
                     actions: Array.Empty<DumbAction>().ToPlainValues()),
             }.OrderBy(tx => tx.Id);
+            var evs = Array.Empty<Evidence>();
 
             var metadata = new BlockMetadata(
                 index: 1L,
@@ -725,11 +727,13 @@ namespace Libplanet.Tests.Blockchain
                 publicKey: _fx.Proposer.PublicKey,
                 previousHash: _blockChain.Genesis.Hash,
                 txHash: BlockContent.DeriveTxHash(txs),
-                lastCommit: null);
+                lastCommit: null,
+                evidenceHash: null);
             var preEval = new PreEvaluationBlock(
-                new PreEvaluationBlockHeader(
+                preEvaluationBlockHeader: new PreEvaluationBlockHeader(
                     metadata, metadata.DerivePreEvaluationHash(default)),
-                txs);
+                transactions: txs,
+                evidences: evs);
             var block = preEval.Sign(
                 _fx.Proposer,
                 (HashDigest<SHA256>)_blockChain.GetNextStateRootHash(_blockChain.Tip.Hash));
@@ -774,6 +778,7 @@ namespace Libplanet.Tests.Blockchain
                     }.ToPlainValues(),
                     timestamp: DateTimeOffset.UtcNow),
             };
+            var evs = Array.Empty<Evidence>();
             PreEvaluationBlock preEvalGenesis = new BlockContent(
                 new BlockMetadata(
                     protocolVersion: BlockMetadata.WorldStateProtocolVersion - 1,
@@ -783,8 +788,10 @@ namespace Libplanet.Tests.Blockchain
                     publicKey: fx.Proposer.PublicKey,
                     previousHash: null,
                     txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null),
-                transactions: txs).Propose();
+                    lastCommit: null,
+                    evidenceHash: null),
+                transactions: txs,
+                evidences: evs).Propose();
             var genesis = preEvalGenesis.Sign(
                 fx.Proposer,
                 actionEvaluator.Evaluate(preEvalGenesis, null).Last().OutputState);

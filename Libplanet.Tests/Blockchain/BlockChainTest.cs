@@ -87,7 +87,8 @@ namespace Libplanet.Tests.Blockchain
                         publicKey: _fx.Proposer.PublicKey,
                         previousHash: _fx.GenesisBlock.Hash,
                         txHash: null,
-                        lastCommit: null)).Propose(),
+                        lastCommit: null,
+                        evidenceHash: null)).Propose(),
                 _fx.Proposer);
         }
 
