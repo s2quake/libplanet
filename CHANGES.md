@@ -8,11 +8,23 @@ Version DPoS
 
 ### Backward-incompatible API changes
 
- -  (Libplanet) Removed `IBlockPolicy.BlockAction` property. [[#3701]]
- -  (Libplanet) Added `IBlockPolicy.BeginBlockActions`. property. [[#3701]]
- -  (Libplanet) Added `IBlockPolicy.EndBlockActions`. property. [[#3701]]
- -  (Libplanet) Added `IBlockPolicy.BeginTxActions`. property. [[#3748]]
- -  (Libplanet) Added `IBlockPolicy.EndTxActions`. property. [[#3748]]
+ -  (Libplanet.Types) Added `IBlockMetadata.EvidenceHash` property and
+    the parameters required by the derived class's properties and constructors
+    have been added.
+    Affected classes are `Block`, `BlockContent`, `BlockHeader`,
+    `BlockMetadata`, `PreEvaluationBlockHeader`.  [[#3696]]
+ -  (Libplanet.Types) Added `IBlockContent.Evidences` property and the
+    parameters required by the derived class's properties and constructors
+    have been added.
+    Affected classes are `Block`, `BlockContent`, `BlockHeader`,
+    `PreEvaluationBlock`.  [[#3696]]
+ -  (Libplanet) Added `IBlockPolicy.GetMaxEvidencePendingDuration` method.
+    [[#3696]]
+ -  (Libplanet) Removed `IBlockPolicy.BlockAction` property.  [[#3701]]
+ -  (Libplanet) Added `IBlockPolicy.BeginBlockActions` property.  [[#3701]]
+ -  (Libplanet) Added `IBlockPolicy.EndBlockActions` property.  [[#3701]]
+ -  (Libplanet) Added `IBlockPolicy.BeginTxActions` property.  [[#3748]]
+ -  (Libplanet) Added `IBlockPolicy.EndTxActions` property.  [[#3748]]
  -  (Libplanet) `BlockPolicy` constructor requires `beginBlockActions`,
     `endBlockActions`, `beginTxActions` and `endTxActions` parameters
     instead of the `blockAction` parameter.
@@ -39,6 +51,42 @@ Version DPoS
 
 ### Added APIs
 
+ -  (Libplanet.Types) Added `InvalidBlockEvidencesException` class.  [[#3696]]
+ -  (Libplanet.Types) Added `InvalidBlockEvidencesPendingDurationException`
+    class.  [[#3696]]
+ -  (Libplanet.Types) Added `Evidence` class.  [[#3696]]
+ -  (Libplanet.Types) Added `DuplicateVoteEvidence` class.  [[#3696]]
+ -  (Libplanet.Types) Added `DuplicateVoteException` class.  [[#3696]]
+ -  (Libplanet.Types) Added `EvidenceContext` class.  [[#3696]]
+ -  (Libplanet.Types) Added `EvidenceException` class.  [[#3696]]
+ -  (Libplanet.Types) Added `EvidenceId` class.  [[#3696]]
+ -  (Libplanet.Types) Added `IEvidenceContext` class.  [[#3696]]
+ -  (Libplanet.Types) Added `InvalidEvidenceException` class.  [[#3696]]
+ -  (Libplanet.Net) Added `EvidenceCompletion` class.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.IteratePendingEvidenceIds`. method.
+    [[#3696]]
+ -  (Libplanet.Store) Added `IStore.GetPendingEvidence`. method.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.GetCommittedEvidence`. method.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.PutPendingEvidence`. method.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.PutCommittedEvidence`. method.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.DeletePendingEvidence`. method.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.DeleteCommittedEvidence`. method.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.ContainsPendingEvidence`. method.  [[#3696]]
+ -  (Libplanet.Store) Added `IStore.ContainsCommittedEvidence`. method.
+    [[#3696]]
+ -  (Libplanet) Added `BlockChain.GetPendingEvidences`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.GetPendingEvidence`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.GetCommittedEvidence`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.AddEvidence`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.CommitEvidence`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.IsEvidencePending`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.IsEvidenceCommitted`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.IsEvidenceExpired`. method.  [[#3696]]
+ -  (Libplanet) Added `BlockChain.DeletePendingEvidence`. method.  [[#3696]]
+ -  (Libplanet.Action) Added `IActionContext.Evidences`. property.  [[#3696]]
+ -  (Libplanet.Net) Added `Swarm.BroadcastEvidences`. property.  [[#3696]]
+ -  (Libplanet.Net) Added `Context.CollectEvidenceExceptions`. property.
+    [[#3696]]
  -  (Libplanet.Action) Added `PolicyActionsRegistry` class.  [[#3748]]
 
 ### Behavioral changes
@@ -49,6 +97,7 @@ Version DPoS
 
 ### CLI tools
 
+[#3696]: https://github.com/planetarium/libplanet/pull/3696
 [#3701]: https://github.com/planetarium/libplanet/pull/3701
 [#3730]: https://github.com/planetarium/libplanet/pull/3730
 [#3737]: https://github.com/planetarium/libplanet/pull/3737
