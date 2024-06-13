@@ -28,6 +28,21 @@ namespace Libplanet.Net.Consensus
         EndCommit,
 
         /// <summary>
+        /// Pre-proposing Step.
+        /// </summary>
+        PrePropose,
+
+        /// <summary>
+        /// Voting step for pre-proposal.
+        /// </summary>
+        PreProposeVote,
+
+        /// <summary>
+        /// Commit voting step for pre-proposal.
+        /// </summary>
+        PreProposeCommit,
+
+        /// <summary>
         /// Only when context does not exists.
         /// </summary>
         Null = 0x99,

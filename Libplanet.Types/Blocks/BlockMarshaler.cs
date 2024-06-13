@@ -20,6 +20,7 @@ namespace Libplanet.Types.Blocks
 
         // Block fields:
         private static readonly Binary HeaderKey = new Binary(new byte[] { 0x48 }); // 'H'
+        private static readonly Binary PreEvalHeaderKey = new Binary(new byte[] { 0x45 }); // 'E'
         private static readonly Binary TransactionsKey = new Binary(new byte[] { 0x54 }); // 'T'
 
         // Header fields:
@@ -38,6 +39,9 @@ namespace Libplanet.Types.Blocks
         private static readonly Binary SignatureKey = new Binary(0x53); // 'S'
         private static readonly Binary PreEvaluationHashKey = new Binary(0x63); // 'c'
         private static readonly Binary LastCommitKey = new Binary(0x43); // 'C'
+
+        private static readonly Binary ProofKey =
+            new Binary(new byte[] { 0x52 }); // 'R'
 
         public static Dictionary MarshalBlockMetadata(IBlockMetadata metadata)
         {
@@ -69,6 +73,11 @@ namespace Libplanet.Types.Blocks
             if (metadata.LastCommit is { } commit)
             {
                 dict = dict.Add(LastCommitKey, commit.Bencoded);
+            }
+
+            if (metadata.Proof is { } proof)
+            {
+                dict = dict.Add(ProofKey, proof.Bencoded);
             }
 
             return dict;
@@ -143,6 +152,27 @@ namespace Libplanet.Types.Blocks
                 MarshalBlockHeader(block.Header),
                 MarshalTransactions(block.Transactions));
 
+        public static Dictionary MarshalPreEvaluationBlock(
+            Dictionary marshaledPreEvaluationBlockHeader,
+            List marshaledTransactions
+        )
+        {
+            Dictionary dict = Dictionary.Empty
+                .Add(PreEvalHeaderKey, marshaledPreEvaluationBlockHeader);
+            if (marshaledTransactions.Any())
+            {
+                dict = dict.Add(TransactionsKey, marshaledTransactions);
+            }
+
+            return dict;
+        }
+
+        public static Dictionary MarshalPreEvaluationBlock(
+            this PreEvaluationBlock preEvaluationBlock) =>
+            MarshalPreEvaluationBlock(
+                MarshalPreEvaluationBlockHeader(preEvaluationBlock.Header),
+                MarshalTransactions(preEvaluationBlock.Transactions));
+
         public static long UnmarshalBlockMetadataIndex(Dictionary marshaledMetadata) =>
             (Integer)marshaledMetadata[IndexKey];
 
@@ -180,7 +210,8 @@ namespace Libplanet.Types.Blocks
                     : (HashDigest<SHA256>?)null,
                 lastCommit: marshaled.ContainsKey(LastCommitKey)
                     ? new BlockCommit(marshaled[LastCommitKey])
-                    : (BlockCommit?)null);
+                    : (BlockCommit?)null,
+                proof: UnmarshalProof(marshaled));
 #pragma warning restore SA1118
         }
 
@@ -242,5 +273,19 @@ namespace Libplanet.Types.Blocks
             IReadOnlyList<Transaction> txs = UnmarshalBlockTransactions(marshaled);
             return new Block(header, txs);
         }
+
+        public static PreEvaluationBlock UnmarshalPreEvaluationBlock(Dictionary marshaled)
+        {
+            PreEvaluationBlockHeader header
+                = UnmarshalPreEvaluationBlockHeader((Dictionary)marshaled[PreEvalHeaderKey]);
+            IReadOnlyList<Transaction> txs = UnmarshalBlockTransactions(marshaled);
+            return new PreEvaluationBlock(header, txs);
+        }
+
+        public static Proof? UnmarshalProof(Dictionary marshaled) =>
+            marshaled.ContainsKey(ProofKey)
+                ? new Proof(marshaled[ProofKey])
+                : (Proof?)null;
+
     }
 }
