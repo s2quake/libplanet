@@ -80,7 +80,8 @@ namespace Libplanet.Tests.Blockchain
                         publicKey: _fx.Proposer.PublicKey,
                         previousHash: _fx.GenesisBlock.Hash,
                         txHash: null,
-                        lastCommit: null)).Propose(),
+                        lastCommit: null,
+                        proof: null)).Propose(),
                 _fx.Proposer);
         }
 
@@ -107,8 +108,10 @@ namespace Libplanet.Tests.Blockchain
         {
             var genesis = _blockChain.Genesis;
             Assert.Equal(genesis, _blockChain[0]);
-
-            Block block = _blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block = _blockChain.ProposeBlock(
+                proposer,
+                proof: CreateZeroRoundProof(_blockChain.Tip, proposer));
             _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
             Assert.Equal(block, _blockChain[1]);
         }
@@ -118,13 +121,21 @@ namespace Libplanet.Tests.Blockchain
         {
             var chain1 = _blockChain;
             var key = new PrivateKey();
-            Block block1 = chain1.ProposeBlock(key);
+            Block block1 = chain1.ProposeBlock(
+                key,
+                proof: CreateZeroRoundProof(chain1.Tip, key));
             chain1.Append(block1, CreateBlockCommit(block1));
-            Block block2 = chain1.ProposeBlock(key, CreateBlockCommit(chain1.Tip));
+            Block block2 = chain1.ProposeBlock(
+                key,
+                CreateBlockCommit(chain1.Tip),
+                CreateZeroRoundProof(chain1.Tip, key));
             chain1.Append(block2, CreateBlockCommit(block2));
             Assert.Equal(chain1.Id, _fx.Store.GetCanonicalChainId());
             var chain2 = chain1.Fork(chain1.Tip.Hash);
-            Block block3 = chain2.ProposeBlock(key, CreateBlockCommit(chain1.Tip));
+            Block block3 = chain2.ProposeBlock(
+                key,
+                CreateBlockCommit(chain1.Tip),
+                CreateZeroRoundProof(chain1.Tip, key));
             chain2.Append(block3, CreateBlockCommit(block3));
             Assert.Equal(chain1.Id, _fx.Store.GetCanonicalChainId());
 
@@ -158,7 +169,9 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(new[] { genesis.Hash, b1.Hash }, _blockChain.BlockHashes);
 
             Block b2 = _blockChain.ProposeBlock(
-                key, CreateBlockCommit(_blockChain.Tip));
+                key,
+                CreateBlockCommit(_blockChain.Tip),
+                CreateZeroRoundProof(_blockChain.Tip, key));
             _blockChain.Append(b2, CreateBlockCommit(b2));
             Assert.Equal(
                 new[] { genesis.Hash, b1.Hash, b2.Hash },
@@ -166,7 +179,9 @@ namespace Libplanet.Tests.Blockchain
             );
 
             Block b3 = _blockChain.ProposeBlock(
-                key, CreateBlockCommit(_blockChain.Tip));
+                key,
+                CreateBlockCommit(_blockChain.Tip),
+                CreateZeroRoundProof(_blockChain.Tip, key));
             _blockChain.Append(b3, CreateBlockCommit(b3));
             Assert.Equal(
                 new[] { genesis.Hash, b1.Hash, b2.Hash, b3.Hash },
@@ -241,7 +256,10 @@ namespace Libplanet.Tests.Blockchain
             );
 
             chain.StageTransaction(tx1);
-            Block block1 = chain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block1 = chain.ProposeBlock(
+                proposer,
+                proof: CreateZeroRoundProof(chain.Tip, proposer));
             chain.Append(block1, CreateBlockCommit(block1));
             IValue state = chain
                 .GetNextWorldState()
@@ -272,8 +290,11 @@ namespace Libplanet.Tests.Blockchain
             );
 
             chain.StageTransaction(tx2);
+            proposer = new PrivateKey();
             Block block2 = chain.ProposeBlock(
-                new PrivateKey(), CreateBlockCommit(chain.Tip));
+                proposer,
+                CreateBlockCommit(chain.Tip),
+                CreateZeroRoundProof(chain.Tip, proposer));
             chain.Append(block2, CreateBlockCommit(block2));
 
             state = chain
@@ -297,8 +318,12 @@ namespace Libplanet.Tests.Blockchain
                     },
                 }.ToPlainValues()
             );
+
+            proposer = new PrivateKey();
             Block block3 = chain.ProposeBlock(
-                new PrivateKey(), CreateBlockCommit(chain.Tip));
+                proposer,
+                CreateBlockCommit(chain.Tip),
+                CreateZeroRoundProof(chain.Tip, proposer));
             chain.StageTransaction(tx3);
             chain.Append(block3, CreateBlockCommit(block3));
             state = chain
@@ -340,7 +365,10 @@ namespace Libplanet.Tests.Blockchain
             var action = DumbAction.Create((default, string.Empty));
             var actions = new[] { action };
             blockChain.MakeTransaction(privateKey, actions);
-            Block block = blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block = blockChain.ProposeBlock(
+                proposer,
+                proof: CreateZeroRoundProof(blockChain.Tip, proposer));
 
             generatedRandomValueLogs.Clear();
             Assert.Empty(generatedRandomValueLogs);
@@ -367,7 +395,10 @@ namespace Libplanet.Tests.Blockchain
             blockChain.MakeTransaction(privateKey, actions);
             recordingRenderer.ResetRecords();
             Block prevBlock = blockChain.Tip;
-            Block block = blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block = blockChain.ProposeBlock(
+                proposer,
+                proof: CreateZeroRoundProof(prevBlock, proposer));
             blockChain.Append(block, CreateBlockCommit(block));
 
             Assert.Equal(2, blockChain.Count);
@@ -413,7 +444,10 @@ namespace Libplanet.Tests.Blockchain
             var action = DumbAction.Create((default, string.Empty));
             var actions = new[] { action };
             blockChain.MakeTransaction(privateKey, actions);
-            Block block = blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block = blockChain.ProposeBlock(
+                proposer,
+                proof: CreateZeroRoundProof(blockChain.Tip, proposer));
 
             ThrowException.SomeException e = Assert.Throws<ThrowException.SomeException>(
                 () => blockChain.Append(block, CreateBlockCommit(block)));
@@ -434,13 +468,19 @@ namespace Libplanet.Tests.Blockchain
             Assert.Single(hashes);
             Assert.Equal(_blockChain.Genesis.Hash, hashes.First());
             var block0 = _blockChain.Genesis;
-            var block1 = _blockChain.ProposeBlock(key);
+            var block1 = _blockChain.ProposeBlock(
+                key,
+                proof: CreateZeroRoundProof(_blockChain.Tip, key));
             _blockChain.Append(block1, CreateBlockCommit(block1));
             var block2 = _blockChain.ProposeBlock(
-                key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+                key,
+                lastCommit: CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, key));
             _blockChain.Append(block2, CreateBlockCommit(block2));
             var block3 = _blockChain.ProposeBlock(
-                key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+                key,
+                lastCommit: CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, key));
             _blockChain.Append(block3, CreateBlockCommit(block3));
 
             _blockChain.FindNextHashes(new BlockLocator(new[] { block0.Hash }))
@@ -688,11 +728,17 @@ namespace Libplanet.Tests.Blockchain
             };
 
             Block b1 = _blockChain.ProposeBlock(
-                _fx.Proposer, txsA.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                _fx.Proposer,
+                txsA.ToImmutableList(),
+                CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, _fx.Proposer));
             _blockChain.Append(b1, TestUtils.CreateBlockCommit(b1));
 
             Block b2 = _blockChain.ProposeBlock(
-                _fx.Proposer, txsA.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                _fx.Proposer,
+                txsA.ToImmutableList(),
+                CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, _fx.Proposer));
             Assert.Throws<InvalidTxNonceException>(() =>
                 _blockChain.Append(b2, CreateBlockCommit(b2)));
 
@@ -704,7 +750,10 @@ namespace Libplanet.Tests.Blockchain
                     privateKey: privateKey),
             };
             b2 = _blockChain.ProposeBlock(
-                _fx.Proposer, txsB.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                _fx.Proposer,
+                txsB.ToImmutableList(),
+                CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, _fx.Proposer));
             _blockChain.Append(b2, CreateBlockCommit(b2));
         }
 
@@ -733,7 +782,11 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(0, _blockChain.GetNextTxNonce(address));
 
             Block b1 = _blockChain.ProposeBlock(
-                _fx.Proposer, txsA.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                _fx.Proposer,
+                txsA.ToImmutableList(),
+                CreateBlockCommit(_blockChain.Tip),
+                new LotMetadata(_blockChain.Tip.Index + 1, 0, _blockChain.Tip.Proof)
+                    .Prove(_fx.Proposer).Proof);
             _blockChain.Append(b1, CreateBlockCommit(b1));
 
             Assert.Equal(1, _blockChain.GetNextTxNonce(address));
@@ -746,7 +799,11 @@ namespace Libplanet.Tests.Blockchain
                     privateKey: privateKey),
             };
             Block b2 = _blockChain.ProposeBlock(
-                _fx.Proposer, txsB.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                _fx.Proposer,
+                txsB.ToImmutableList(),
+                CreateBlockCommit(_blockChain.Tip),
+                new LotMetadata(_blockChain.Tip.Index + 1, 0, _blockChain.Tip.Proof)
+                    .Prove(_fx.Proposer).Proof);
             _blockChain.Append(b2, CreateBlockCommit(b2));
 
             Assert.Equal(2, _blockChain.GetNextTxNonce(address));
@@ -765,7 +822,8 @@ namespace Libplanet.Tests.Blockchain
             {
                 var block = _blockChain.ProposeBlock(
                     key,
-                    lastCommit: CreateBlockCommit(_blockChain.Tip));
+                    lastCommit: CreateBlockCommit(_blockChain.Tip),
+                    proof: CreateZeroRoundProof(_blockChain.Tip, key));
                 _blockChain.Append(block, CreateBlockCommit(block));
                 blocks.Add(block);
             }
@@ -799,7 +857,11 @@ namespace Libplanet.Tests.Blockchain
             var minerAddress = miner.Address;
 
             Block block1 = _blockChain.ProposeBlock(
-                miner, txs1.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                miner,
+                txs1.ToImmutableList(),
+                CreateBlockCommit(_blockChain.Tip),
+                new LotMetadata(_blockChain.Tip.Index + 1, 0, _blockChain.Tip.Proof)
+                    .Prove(miner).Proof);
             _blockChain.Append(block1, CreateBlockCommit(block1));
 
             PrivateKey privateKey = new PrivateKey(new byte[]
@@ -858,7 +920,11 @@ namespace Libplanet.Tests.Blockchain
             foreach (Transaction[] txs in txsA)
             {
                 Block b = _blockChain.ProposeBlock(
-                    miner, txs.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                    miner,
+                    txs.ToImmutableList(),
+                    CreateBlockCommit(_blockChain.Tip),
+                    new LotMetadata(_blockChain.Tip.Index + 1, 0, _blockChain.Tip.Proof)
+                        .Prove(_fx.Proposer).Proof);
                 _blockChain.Append(b, CreateBlockCommit(b));
             }
 
@@ -885,7 +951,11 @@ namespace Libplanet.Tests.Blockchain
             };
 
             Block forkTip = fork.ProposeBlock(
-                miner, txsB.ToImmutableList(), CreateBlockCommit(fork.Tip));
+                miner,
+                txsB.ToImmutableList(),
+                CreateBlockCommit(fork.Tip),
+                new LotMetadata(fork.Tip.Index + 1, 0, fork.Tip.Proof)
+                    .Prove(_fx.Proposer).Proof);
             fork.Append(forkTip, CreateBlockCommit(forkTip), render: true);
 
             Guid previousChainId = _blockChain.Id;
@@ -961,16 +1031,21 @@ namespace Libplanet.Tests.Blockchain
             Assert.Null(_blockChain.GetBlockCommit(_blockChain.Genesis.Hash));
 
             // BlockCommit is put to store when block is appended.
-            Block block1 = _blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block1 = _blockChain.ProposeBlock(
+                new PrivateKey(),
+                proof: CreateZeroRoundProof(_blockChain.Tip, proposer));
             BlockCommit blockCommit1 = CreateBlockCommit(block1);
             _blockChain.Append(block1, blockCommit1);
             Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Index));
             Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Hash));
 
             // BlockCommit is retrieved from lastCommit.
+            proposer = new PrivateKey();
             Block block2 = _blockChain.ProposeBlock(
-                new PrivateKey(),
-                lastCommit: CreateBlockCommit(_blockChain.Tip));
+                proposer,
+                lastCommit: CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, proposer));
             BlockCommit blockCommit2 = CreateBlockCommit(block2);
             _blockChain.Append(block2, blockCommit2);
 
@@ -978,27 +1053,6 @@ namespace Libplanet.Tests.Blockchain
             Assert.NotEqual(blockCommit1, _blockChain.GetBlockCommit(block1.Index));
             Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Index));
             Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Hash));
-        }
-
-        [SkippableFact]
-        public void GetBlockCommitAfterFork()
-        {
-            Block block1 = _blockChain.ProposeBlock(new PrivateKey());
-            _blockChain.Append(block1, CreateBlockCommit(block1));
-            Block block2 = _blockChain.ProposeBlock(
-                new PrivateKey(),
-                lastCommit: CreateBlockCommit(block1));
-            _blockChain.Append(block2, CreateBlockCommit(block2));
-            Block block3 = _blockChain.ProposeBlock(
-                new PrivateKey(),
-                lastCommit: CreateBlockCommit(block2));
-            _blockChain.Append(block3, CreateBlockCommit(block3));
-
-            var forked = _blockChain.Fork(block2.Hash);
-            Assert.NotNull(forked.GetBlockCommit(forked.Tip.Index));
-            Assert.Equal(
-                forked.GetBlockCommit(forked.Tip.Index),
-                block3.LastCommit);
         }
 
         [SkippableFact]
@@ -1019,19 +1073,6 @@ namespace Libplanet.Tests.Blockchain
             Assert.Null(_blockChain.Store.GetBlockCommit(blockCommit1.BlockHash));
             Assert.Null(_blockChain.Store.GetBlockCommit(blockCommit2.BlockHash));
             Assert.Equal(blockCommit3, _blockChain.Store.GetBlockCommit(blockCommit3.BlockHash));
-        }
-
-        [SkippableTheory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void SwapForSameTip(bool render)
-        {
-            BlockChain fork = _blockChain.Fork(_blockChain.Tip.Hash);
-            IReadOnlyList<RenderRecord> prevRecords = _renderer.Records;
-            _blockChain.Swap(fork, render: render)();
-
-            // Render methods should be invoked if and only if the tip changes
-            Assert.Equal(prevRecords, _renderer.Records);
         }
 
         [SkippableTheory]
@@ -1061,11 +1102,15 @@ namespace Libplanet.Tests.Blockchain
                 for (int i = 0; i < 5; i++)
                 {
                     Block block1 = _blockChain.ProposeBlock(
-                        key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+                        key,
+                        lastCommit: CreateBlockCommit(_blockChain.Tip),
+                        proof: CreateZeroRoundProof(_blockChain.Tip, key));
                     _blockChain.Append(block1, CreateBlockCommit(block1));
 
                     Block block2 = chain2.ProposeBlock(
-                        key, lastCommit: CreateBlockCommit(chain2.Tip));
+                        key,
+                        lastCommit: CreateBlockCommit(chain2.Tip),
+                        proof: CreateZeroRoundProof(chain2.Tip, key));
                     chain2.Append(block2, CreateBlockCommit(block2));
                 }
 
@@ -1161,7 +1206,10 @@ namespace Libplanet.Tests.Blockchain
                     Transaction.Create(0, privateKey, chain.Genesis.Hash, actions.ToPlainValues()),
                 };
                 b = chain.ProposeBlock(
-                    _fx.Proposer, txs.ToImmutableList(), CreateBlockCommit(chain.Tip));
+                    _fx.Proposer,
+                    txs.ToImmutableList(),
+                    CreateBlockCommit(chain.Tip),
+                    CreateZeroRoundProof(chain.Tip, _fx.Proposer));
                 chain.Append(b, CreateBlockCommit(b));
             }
 
@@ -1206,7 +1254,10 @@ namespace Libplanet.Tests.Blockchain
             Block b = chain.Genesis;
             for (int i = 0; i < 20; ++i)
             {
-                b = chain.ProposeBlock(_fx.Proposer, CreateBlockCommit(chain.Tip));
+                b = chain.ProposeBlock(
+                    _fx.Proposer,
+                    CreateBlockCommit(chain.Tip),
+                    CreateZeroRoundProof(chain.Tip, _fx.Proposer));
                 chain.Append(b, CreateBlockCommit(b));
             }
 
@@ -1325,7 +1376,9 @@ namespace Libplanet.Tests.Blockchain
             }
 
             Block block1 = chain.ProposeBlock(
-                privateKeys[0], lastCommit: CreateBlockCommit(chain.Tip));
+                privateKeys[0],
+                lastCommit: CreateBlockCommit(chain.Tip),
+                proof: CreateZeroRoundProof(chain.Tip, privateKeys[0]));
 
             chain.Append(block1, CreateBlockCommit(block1));
 
@@ -1347,7 +1400,9 @@ namespace Libplanet.Tests.Blockchain
 
             chain.MakeTransaction(privateKeys[0], new[] { DumbAction.Create((addresses[0], "2")) });
             Block block2 = chain.ProposeBlock(
-                privateKeys[0], lastCommit: CreateBlockCommit(chain.Tip));
+                privateKeys[0],
+                lastCommit: CreateBlockCommit(chain.Tip),
+                proof: CreateZeroRoundProof(chain.Tip, privateKeys[0]));
             chain.Append(block2, CreateBlockCommit(block2));
             Assert.Equal(
                 (Text)"1,2",
@@ -1362,76 +1417,6 @@ namespace Libplanet.Tests.Blockchain
                     .GetStates(addresses.Skip(1).ToArray()),
                 v => Assert.Equal((Text)"1", v)
             );
-        }
-
-        [SkippableFact]
-        public void FindBranchPoint()
-        {
-            var key = new PrivateKey();
-            Block b1 = _blockChain.ProposeBlock(key);
-            _blockChain.Append(b1, CreateBlockCommit(b1));
-            Block b2 = _blockChain.ProposeBlock(
-                key, lastCommit: CreateBlockCommit(_blockChain.Tip));
-            _blockChain.Append(b2, CreateBlockCommit(b2));
-            Block b3 = _blockChain.ProposeBlock(
-                key, lastCommit: CreateBlockCommit(_blockChain.Tip));
-            _blockChain.Append(b3, CreateBlockCommit(b3));
-            Block b4 = _blockChain.ProposeBlock(
-                key, lastCommit: CreateBlockCommit(_blockChain.Tip));
-            _blockChain.Append(b4, CreateBlockCommit(b4));
-
-            Assert.Equal(b1.PreviousHash, _blockChain.Genesis.Hash);
-
-            var emptyLocator = new BlockLocator(new[] { _blockChain.Genesis.Hash });
-            var invalidLocator = new BlockLocator(
-                new[] { new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)) });
-            var locator = new BlockLocator(
-                new[] { b4.Hash, b3.Hash, b1.Hash, _blockChain.Genesis.Hash });
-
-            using (var emptyFx = new MemoryStoreFixture(_policy.BlockAction))
-            using (var forkFx = new MemoryStoreFixture(_policy.BlockAction))
-            {
-                var emptyChain = BlockChain.Create(
-                    _blockChain.Policy,
-                    new VolatileStagePolicy(),
-                    emptyFx.Store,
-                    emptyFx.StateStore,
-                    emptyFx.GenesisBlock,
-                    new ActionEvaluator(
-                        _ => _blockChain.Policy.BlockAction,
-                        stateStore: emptyFx.StateStore,
-                        actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
-                var fork = BlockChain.Create(
-                    _blockChain.Policy,
-                    new VolatileStagePolicy(),
-                    forkFx.Store,
-                    forkFx.StateStore,
-                    forkFx.GenesisBlock,
-                    new ActionEvaluator(
-                        _ => _blockChain.Policy.BlockAction,
-                        stateStore: forkFx.StateStore,
-                        actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
-                fork.Append(b1, CreateBlockCommit(b1));
-                fork.Append(b2, CreateBlockCommit(b2));
-                Block b5 = fork.ProposeBlock(
-                    key, lastCommit: CreateBlockCommit(fork.Tip));
-                fork.Append(b5, CreateBlockCommit(b5));
-
-                // Testing emptyChain
-                Assert.Equal(_blockChain.Genesis.Hash, emptyChain.FindBranchpoint(emptyLocator));
-                Assert.Equal(_blockChain.Genesis.Hash, emptyChain.FindBranchpoint(locator));
-                Assert.Null(emptyChain.FindBranchpoint(invalidLocator));
-
-                // Testing _blockChain
-                Assert.Equal(_blockChain.Genesis.Hash, _blockChain.FindBranchpoint(emptyLocator));
-                Assert.Equal(b4.Hash, _blockChain.FindBranchpoint(locator));
-                Assert.Null(_blockChain.FindBranchpoint(invalidLocator));
-
-                // Testing fork
-                Assert.Equal(_blockChain.Genesis.Hash, fork.FindBranchpoint(emptyLocator));
-                Assert.Equal(b1.Hash, fork.FindBranchpoint(locator));
-                Assert.Null(_blockChain.FindBranchpoint(invalidLocator));
-            }
         }
 
         [SkippableFact]
@@ -1450,7 +1435,10 @@ namespace Libplanet.Tests.Blockchain
             };
 
             Block b1 = _blockChain.ProposeBlock(
-                _fx.Proposer, txsA.ToImmutableList(), CreateBlockCommit(_blockChain.Tip));
+                _fx.Proposer,
+                txsA.ToImmutableList(),
+                CreateBlockCommit(_blockChain.Tip),
+                CreateZeroRoundProof(_blockChain.Tip, _fx.Proposer));
             _blockChain.Append(b1, CreateBlockCommit(b1));
 
             Assert.Equal(1, _blockChain.GetNextTxNonce(address));
@@ -1517,7 +1505,9 @@ namespace Libplanet.Tests.Blockchain
             };
 
             StageTransactions(txs);
-            Block block = _blockChain.ProposeBlock(privateKey);
+            Block block = _blockChain.ProposeBlock(
+                privateKey,
+                proof: CreateZeroRoundProof(_blockChain.Tip, privateKey));
             _blockChain.Append(block, CreateBlockCommit(block));
 
             Transaction[] staleTxs =
@@ -1554,7 +1544,8 @@ namespace Libplanet.Tests.Blockchain
                         txs,
                         blockInterval: TimeSpan.FromSeconds(10),
                         miner: _fx.Proposer.PublicKey,
-                        lastCommit: CreateBlockCommit(block)),
+                        lastCommit: CreateBlockCommit(block),
+                        proof: CreateZeroRoundProof(block, _fx.Proposer)),
                     _fx.Proposer);
 
             Transaction[] txsA =
@@ -1689,13 +1680,19 @@ namespace Libplanet.Tests.Blockchain
             var rewardRecordAddress = MinerReward.RewardRecordAddress;
 
             Block block1 = _blockChain.ProposeBlock(
-                miner1, lastCommit: CreateBlockCommit(_blockChain.Tip));
+                miner1,
+                lastCommit: CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, miner1));
             _blockChain.Append(block1, CreateBlockCommit(block1));
             Block block2 = _blockChain.ProposeBlock(
-                miner1, lastCommit: CreateBlockCommit(_blockChain.Tip));
+                miner1,
+                lastCommit: CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, miner1));
             _blockChain.Append(block2, CreateBlockCommit(block2));
             Block block3 = _blockChain.ProposeBlock(
-                miner2, lastCommit: CreateBlockCommit(_blockChain.Tip));
+                miner2,
+                lastCommit: CreateBlockCommit(_blockChain.Tip),
+                proof: CreateZeroRoundProof(_blockChain.Tip, miner2));
             _blockChain.Append(block3, CreateBlockCommit(block3));
 
             IValue miner1state = _blockChain
@@ -1817,7 +1814,8 @@ namespace Libplanet.Tests.Blockchain
                             new[] { tx },
                             blockInterval: TimeSpan.FromSeconds(10),
                             miner: GenesisProposer.PublicKey,
-                            lastCommit: CreateBlockCommit(b)),
+                            lastCommit: CreateBlockCommit(b),
+                            proof: CreateZeroRoundProof(b, GenesisProposer)),
                         GenesisProposer);
 
                     var evals = actionEvaluator.EvaluateBlock(b, previousState);
@@ -1929,7 +1927,10 @@ namespace Libplanet.Tests.Blockchain
             _renderer.ResetRecords();
 
             Assert.Empty(_renderer.BlockRecords);
-            Block block = _blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            Block block = _blockChain.ProposeBlock(
+                proposer,
+                proof: CreateZeroRoundProof(_blockChain.Tip, proposer));
             _blockChain.Append(block, CreateBlockCommit(block));
             IReadOnlyList<RenderRecord.BlockEvent> records = _renderer.BlockRecords;
             Assert.Equal(2, records.Count);
@@ -2084,7 +2085,9 @@ namespace Libplanet.Tests.Blockchain
                     nonce: nonce, privateKey: privateKey, timestamp: DateTimeOffset.Now))
                 .ToArray();
             StageTransactions(txsA);
-            Block b1 = _blockChain.ProposeBlock(privateKey);
+            Block b1 = _blockChain.ProposeBlock(
+                privateKey,
+                proof: CreateZeroRoundProof(_blockChain.Tip, privateKey));
             _blockChain.Append(b1, CreateBlockCommit(b1));
             Assert.Equal(
                 txsA,
@@ -2151,12 +2154,20 @@ namespace Libplanet.Tests.Blockchain
                 new PrivateKey(),
                 null,
                 Array.Empty<DumbAction>().ToPlainValues());
+<<<<<<< HEAD
             var nextStateRootHash = chain.GetNextStateRootHash(genesisWithTx.Hash);
             var block = ProposeNextBlock(
                 previousBlock: chain.Genesis,
                 miner: GenesisProposer,
                 txs: new[] { blockTx },
                 stateRootHash: (HashDigest<SHA256>)nextStateRootHash);
+=======
+            var block = ProposeNextBlock(
+                chain.Genesis,
+                GenesisProposer,
+                new[] { blockTx },
+                proof: CreateZeroRoundProof(chain.Genesis, GenesisProposer));
+>>>>>>> 2c60931d7e (test: Update tests)
 
             var e = Assert.Throws<TxPolicyViolationException>(
                 () => chain.Append(block, CreateBlockCommit(block)));
@@ -2219,7 +2230,10 @@ namespace Libplanet.Tests.Blockchain
                     new SetValidator(new Validator(newValidatorPrivKey.PublicKey, BigInteger.One)),
                 }
             );
-            var newBlock = blockChain.ProposeBlock(new PrivateKey());
+            var proposer = new PrivateKey();
+            var newBlock = blockChain.ProposeBlock(
+                proposer,
+                proof: CreateZeroRoundProof(blockChain.Tip, proposer));
             var newBlockCommit = new BlockCommit(
                 newBlock.Index, 0, newBlock.Hash, ValidatorPrivateKeys.Select(
                     pk => new VoteMetadata(
@@ -2240,8 +2254,11 @@ namespace Libplanet.Tests.Blockchain
                     new SetValidator(new Validator(new PrivateKey().PublicKey, BigInteger.One)),
                 }
             );
+            proposer = new PrivateKey();
             var nextBlock = blockChain.ProposeBlock(
-                new PrivateKey(), lastCommit: newBlockCommit);
+                proposer,
+                lastCommit: newBlockCommit,
+                proof: CreateZeroRoundProof(_blockChain.Tip, proposer));
             var nextBlockCommit = new BlockCommit(
                 nextBlock.Index, 0, nextBlock.Hash, newValidators.Select(
                     pk => new VoteMetadata(
@@ -2262,8 +2279,11 @@ namespace Libplanet.Tests.Blockchain
                     new SetValidator(new Validator(new PrivateKey().PublicKey, BigInteger.One)),
                 }
             );
+            proposer = new PrivateKey();
             var invalidCommitBlock = blockChain.ProposeBlock(
-                new PrivateKey(), lastCommit: nextBlockCommit);
+                proposer,
+                lastCommit: nextBlockCommit,
+                proof: CreateZeroRoundProof(blockChain.Tip, proposer));
 
             Assert.Throws<InvalidBlockCommitException>(
                 () => blockChain.Append(

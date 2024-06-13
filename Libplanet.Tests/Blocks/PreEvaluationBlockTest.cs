@@ -76,7 +76,8 @@ namespace Libplanet.Tests.Blocks
                         publicKey: _contents.Block1Content.PublicKey,
                         previousHash: genesis.Hash,
                         txHash: BlockContent.DeriveTxHash(txs),
-                        lastCommit: null),
+                        lastCommit: null,
+                        proof: null),
                     transactions: txs);
                 PreEvaluationBlock preEval1 = content1.Propose();
 
@@ -144,7 +145,8 @@ namespace Libplanet.Tests.Blocks
                         publicKey: _contents.Block1Content.PublicKey,
                         previousHash: genesis.Hash,
                         txHash: BlockContent.DeriveTxHash(txs),
-                        lastCommit: null),
+                        lastCommit: null,
+                        proof: null),
                     transactions: txs);
                 PreEvaluationBlock preEval1 = content1.Propose();
 
