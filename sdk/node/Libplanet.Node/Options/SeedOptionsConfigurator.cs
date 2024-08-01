@@ -1,11 +1,13 @@
-using System.ComponentModel.DataAnnotations;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Node.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Libplanet.Node.Options;
 
+[Singleton<IConfigureNamedOptions<SeedOptions>>]
+[Singleton<IConfigureOptions<SeedOptions>>]
 public sealed class SeedOptionsConfigurator(
     ILogger<SeedOptionsConfigurator> logger)
     : IConfigureNamedOptions<SeedOptions>
@@ -18,24 +20,26 @@ public sealed class SeedOptionsConfigurator(
         {
             if (options.PrivateKey == string.Empty)
             {
-                var message = """
+                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.ByteArray);
+                logger.LogWarning(
+                    """
                     BlocksyncSeed's private key is not set. A new private key is generated:
                     {PrivateKey}
-                    """;
-                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.ByteArray);
-                logger.LogWarning(message, options.PrivateKey);
+                    """,
+                    options.PrivateKey);
             }
         }
         else if (name == SeedOptions.ConsensusSeed)
         {
             if (options.PrivateKey == string.Empty)
             {
-                var message = """
+                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.ByteArray);
+                logger.LogWarning(
+                    """
                     ConsensusSeed's private key is not set. A new private key is generated:
                     {PrivateKey}
-                    """;
-                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.ByteArray);
-                logger.LogWarning(message, options.PrivateKey);
+                    """,
+                    options.PrivateKey);
             }
         }
         else

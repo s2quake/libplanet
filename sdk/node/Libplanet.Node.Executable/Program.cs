@@ -1,7 +1,9 @@
 using Libplanet.Node.API.Services;
 using Libplanet.Node.Extensions;
+using Libplanet.Node.Options;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
+SynchronizationContext.SetSynchronizationContext(new());
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole();
@@ -24,7 +26,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 builder.Services.AddLibplanetNode(builder.Configuration.GetSection("Libplanet"))
-    .WithSeed();
+    .WithSwarm();
 
 var app = builder.Build();
 var handlerMessage = """

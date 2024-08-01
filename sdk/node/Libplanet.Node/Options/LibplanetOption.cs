@@ -1,10 +1,14 @@
 namespace Libplanet.Node.Options;
 
-public class LibplanetOption
+public sealed class LibplanetOption
 {
-    public StoreOption Store { get; set; } = new StoreOption();
+    public StoreOptions Store { get; set; } = new StoreOptions();
 
     public SeedOptions BlocksyncSeed { get; set; } = new SeedOptions();
 
     public SeedOptions ConsensusSeed { get; set; } = new SeedOptions();
+
+    public GenesisOptions Genesis { get; set; } = new GenesisOptions();
+
+    public NodeOptions Node { get; set; } = new NodeOptions();
 }

@@ -1,4 +1,4 @@
-using System.Reflection;
+using Libplanet.Blockchain.Renderers;
 using Libplanet.Node.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,8 +11,21 @@ public class LibplanetNodeBuilder : ILibplanetNodeBuilder
         Services = services;
         Services.AddSingleton<PolicyService>();
         Services.AddSingleton<BlockChainService>();
+        Services.AddSingleton<IBlockChainService, BlockChainService>();
         Services.AddSingleton<IReadChainService, ReadChainService>();
         Services.AddSingleton<TransactionService>();
+
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var query = from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                    from type in assembly.GetTypes()
+                    where typeof(IActionLoaderProvider).IsAssignableFrom(type)
+                    where type.IsClass && !type.IsAbstract
+                    select type;
+
+        foreach (var type in query)
+        {
+            Services.AddTransient(typeof(IActionLoaderProvider), type);
+        }
     }
 
     public IServiceCollection Services
@@ -28,6 +41,8 @@ public class LibplanetNodeBuilder : ILibplanetNodeBuilder
 
     public ILibplanetNodeBuilder WithSwarm()
     {
+        Services.AddHostedService<NodeService>();
+        Services.AddSingleton<INodeService, NodeService>();
         return this;
     }
 
@@ -40,6 +55,7 @@ public class LibplanetNodeBuilder : ILibplanetNodeBuilder
         Services.AddSingleton<IConsensusSeedService, ConsensusSeedService>();
         Services.AddHostedService<BlocksyncSeedService>();
         Services.AddHostedService<ConsensusSeedService>();
+        Services.AddHostedService<NodeService>();
         return this;
     }
 }
