@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using Libplanet.Crypto;
 using Libplanet.Net;
 
@@ -17,9 +19,13 @@ public sealed class GenesisOptions
     {
     }
 
+    [Description("The key of the genesis block.")]
     public string GenesisKey { get; set; } = string.Empty;
 
+    [Description("The hash of the genesis block.")]
+    [RegularExpression("^(?:[0-9a-fA-F]{64})$")]
     public string[] Validators { get; set; } = [];
 
+    [Description("The timestamp of the genesis block.")]
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.MinValue;
 }

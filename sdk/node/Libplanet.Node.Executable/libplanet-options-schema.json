@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "LibplanetOption",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "Store": {
+      "description": "The options for the store.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/StoreOptions"
+        }
+      ]
+    },
+    "BlocksyncSeed": {
+      "description": "The options for the block sync.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/SeedOptions"
+        }
+      ]
+    },
+    "ConsensusSeed": {
+      "description": "The options for the consensus.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/SeedOptions"
+        }
+      ]
+    },
+    "Genesis": {
+      "description": "The options for creating a genesis block.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/GenesisOptions"
+        }
+      ]
+    },
+    "Node": {
+      "description": "The options for the node.",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/NodeOptions"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "StoreOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Type": {
+          "description": "The type of the store.",
+          "oneOf": [
+            {
+              "$ref": "#/definitions/StoreType"
+            }
+          ]
+        },
+        "RootPath": {
+          "type": "string",
+          "description": "The root directory path of the store."
+        },
+        "StoreName": {
+          "type": "string",
+          "description": "The directory name of the store to be created under RootPath. If not specified,\nthe default value is 'store'."
+        },
+        "StateStoreName": {
+          "type": "string",
+          "description": "The directory name of the state store to be created under RootPath. If not specified,\nthe default value is 'state'."
+        }
+      }
+    },
+    "StoreType": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Memory",
+        "Disk"
+      ],
+      "enum": [
+        0,
+        1
+      ]
+    },
+    "SeedOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "PrivateKey": {
+          "type": "string",
+          "description": "The private key of the seed node.",
+          "pattern": "^(?:[0-9a-fA-F]{32})$"
+        },
+        "EndPoint": {
+          "type": "string",
+          "description": "The endpoint of the seed node.",
+          "pattern": "^((([a-zA-Z0-9\\-\\.]+)|(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})):\\d{1,5})$"
+        },
+        "RefreshInterval": {
+          "type": "string",
+          "description": "The interval to refresh the peer list.",
+          "format": "duration"
+        },
+        "PeerLifetime": {
+          "type": "string",
+          "description": "The lifetime of a peer.",
+          "format": "duration"
+        },
+        "PingTimeout": {
+          "type": "string",
+          "description": "The timeout for a ping.",
+          "format": "duration"
+        }
+      }
+    },
+    "GenesisOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "GenesisKey": {
+          "type": "string",
+          "description": "The key of the genesis block."
+        },
+        "Validators": {
+          "type": "array",
+          "description": "The hash of the genesis block.",
+          "pattern": "^(?:[0-9a-fA-F]{64})$",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Timestamp": {
+          "type": "string",
+          "description": "The timestamp of the genesis block.",
+          "format": "date-time"
+        }
+      }
+    },
+    "NodeOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "PrivateKey": {
+          "type": "string",
+          "description": "The private key of the node."
+        },
+        "BlocksyncSeedPeer": {
+          "type": "string",
+          "description": "The endpoint of the node to block sync."
+        },
+        "ConsensusSeedPeer": {
+          "type": "string",
+          "description": "The endpoint of the node to consensus."
+        }
+      }
+    }
+  }
+}

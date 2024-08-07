@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Libplanet.Node.Options;
 
 public sealed class StoreOptions
@@ -11,20 +13,30 @@ public sealed class StoreOptions
     /// <summary>
     /// The type of the store.
     /// </summary>
+    [Description("The type of the store.")]
     public StoreType Type { get; set; } = StoreType.Memory;
 
     /// <summary>
     /// The root directory path of the store.
     /// </summary>
+    [Description("The root directory path of the store.")]
     public string RootPath { get; set; } = string.Empty;
 
     /// <summary>
     /// The directory name of the store to be created under <see cref="RootPath"/>.
     /// </summary>
+    [Description("""
+        The directory name of the store to be created under RootPath. If not specified,
+        the default value is 'store'.
+        """)]
     public string StoreName { get; set; } = string.Empty;
 
     /// <summary>
     /// The directory name of the state store to be created under <see cref="RootPath"/>.
     /// </summary>
+    [Description("""
+        The directory name of the state store to be created under RootPath. If not specified,
+        the default value is 'state'.
+        """)]
     public string StateStoreName { get; set; } = string.Empty;
 }
