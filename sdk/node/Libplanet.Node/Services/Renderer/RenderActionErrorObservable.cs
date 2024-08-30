@@ -34,7 +34,8 @@ public class RenderActionErrorObservable : IObservable<Output>, IActionRenderer,
     {
     }
 
-    public void RenderActionError(IValue action, ICommittedActionContext context, Exception exception)
+    public void RenderActionError(
+        IValue action, ICommittedActionContext context, Exception exception)
     {
         if (_disposable.IsDisposed)
         {

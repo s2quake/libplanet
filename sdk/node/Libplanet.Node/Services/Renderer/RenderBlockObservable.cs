@@ -41,7 +41,6 @@ public class RenderBlockObservable : IObservable<(Block, Block)>, IActionRendere
     {
     }
 
-
     public void RenderActionError(
         IValue action,
         ICommittedActionContext context,

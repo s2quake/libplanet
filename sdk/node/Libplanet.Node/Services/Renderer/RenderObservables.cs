@@ -9,7 +9,8 @@ public class RenderObservables(
 {
     public RenderActionObservable RenderActionObservable { get; } = renderActionObservable;
 
-    public RenderActionErrorObservable RenderActionErrorObservable { get; } = renderActionErrorObservable;
+    public RenderActionErrorObservable RenderActionErrorObservable { get; }
+        = renderActionErrorObservable;
 
     public RenderBlockObservable RenderBlockObservable { get; } = renderBlockObservable;
 

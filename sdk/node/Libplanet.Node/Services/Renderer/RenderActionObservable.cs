@@ -43,7 +43,8 @@ public class RenderActionObservable : IObservable<Output>, IActionRenderer, IDis
         }
     }
 
-    public void RenderActionError(IValue action, ICommittedActionContext context, Exception exception)
+    public void RenderActionError(
+        IValue action, ICommittedActionContext context, Exception exception)
     {
     }
 
