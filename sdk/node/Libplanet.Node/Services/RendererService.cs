@@ -9,30 +9,35 @@ using R3;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class RendererService : IRendererService, IActionRenderer, IDisposable
+internal sealed class RendererService : IRendererService, IActionRenderer, IAsyncDisposable
 {
     private readonly Subject<RenderBlockInfo> _renderBlock = new();
     private readonly Subject<RenderActionInfo> _renderAction = new();
     private readonly Subject<RenderActionErrorInfo> _renderActionError = new();
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
-    private readonly SynchronizationContext _synchronizationContext;
     private readonly ILogger<RendererService> _logger;
+    private readonly ActionQueue _renderBlockQueue = new();
+    private readonly ActionQueue _renderActionQueue = new();
+    private readonly ActionQueue _renderActionErrorQueue = new();
+    private readonly ActionQueue _renderBlockEndQueue = new();
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     private IObservable<RenderBlockInfo>? _renderBlockObservable;
     private IObservable<RenderActionInfo>? _renderActionObservable;
     private IObservable<RenderActionErrorInfo>? _renderActionErrorObservable;
     private IObservable<RenderBlockInfo>? _renderBlockEndObservable;
 
-    public RendererService(
-        SynchronizationContext synchronizationContext,
-        ILogger<RendererService> logger)
+    public RendererService(ILogger<RendererService> logger)
     {
-        _synchronizationContext = synchronizationContext;
         _logger = logger;
         _renderBlockObservable = _renderBlock.AsSystemObservable();
         _renderActionObservable = _renderAction.AsSystemObservable();
         _renderActionErrorObservable = _renderActionError.AsSystemObservable();
         _renderBlockEndObservable = _renderBlock.AsSystemObservable();
+        _ = _renderBlockQueue.RunAsync(_cancellationTokenSource.Token);
+        _ = _renderActionQueue.RunAsync(_cancellationTokenSource.Token);
+        _ = _renderActionErrorQueue.RunAsync(_cancellationTokenSource.Token);
+        _ = _renderBlockEndQueue.RunAsync(_cancellationTokenSource.Token);
     }
 
     IObservable<RenderBlockInfo> IRendererService.RenderBlock
@@ -47,71 +52,69 @@ internal sealed class RendererService : IRendererService, IActionRenderer, IDisp
     IObservable<RenderBlockInfo> IRendererService.RenderBlockEnd
         => _renderBlockEndObservable ??= _renderBlock.AsSystemObservable();
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
+        await _cancellationTokenSource.CancelAsync();
         _renderBlock.Dispose();
         _renderAction.Dispose();
         _renderActionError.Dispose();
         _renderBlockEnd.Dispose();
+        await _renderBlockQueue.DisposeAsync();
+        await _renderActionQueue.DisposeAsync();
+        await _renderActionErrorQueue.DisposeAsync();
+        await _renderBlockEndQueue.DisposeAsync();
+        _cancellationTokenSource.Dispose();
     }
 
     void IActionRenderer.RenderAction(
         IValue action, ICommittedActionContext context, HashDigest<SHA256> nextState)
     {
-        _synchronizationContext.Post(
-            state =>
-            {
-                _renderAction.OnNext(new(action, context, nextState));
-                _logger.LogDebug(
-                    "Rendered an action: {Action} {Context} {NextState}",
-                    action,
-                    context,
-                    nextState);
-            },
-            null);
+        _renderActionQueue.Add(() =>
+        {
+            _renderAction.OnNext(new(action, context, nextState));
+            _logger.LogDebug(
+                "Rendered an action: {Action} {Context} {NextState}",
+                action,
+                context,
+                nextState);
+        });
     }
 
     void IActionRenderer.RenderActionError(
         IValue action, ICommittedActionContext context, Exception exception)
     {
-        _synchronizationContext.Post(
-            state =>
-            {
-                _renderActionError.OnNext(new(action, context, exception));
-                _logger.LogError(
-                    exception,
-                    "Failed to render an action: {Action} {Context}",
-                    action,
-                    context);
-            },
-            null);
+        _renderActionErrorQueue.Add(() =>
+        {
+            _renderActionError.OnNext(new(action, context, exception));
+            _logger.LogError(
+                exception,
+                "Failed to render an action: {Action} {Context}",
+                action,
+                context);
+        });
     }
 
     void IRenderer.RenderBlock(Block oldTip, Block newTip)
     {
-        _synchronizationContext.Post(
-            state =>
-            {
-                _renderBlock.OnNext(new(oldTip, newTip));
-                _logger.LogDebug(
-                    "Rendered a block: {OldTip} {NewTip}",
-                    oldTip,
-                    newTip);
-            },
-            null);
+        _renderBlockQueue.Add(() =>
+        {
+            _renderBlock.OnNext(new(oldTip, newTip));
+            _logger.LogDebug(
+                "Rendered a block: {OldTip} {NewTip}",
+                oldTip,
+                newTip);
+        });
     }
 
     void IActionRenderer.RenderBlockEnd(Block oldTip, Block newTip)
     {
-        _synchronizationContext.Post(
-            state =>
-            {
-                _renderBlockEnd.OnNext(new(oldTip, newTip));
-                _logger.LogDebug(
-                    "Rendered a block end: {OldTip} {NewTip}",
-                    oldTip,
-                    newTip);
-            },
-            null);
+        _renderBlockEndQueue.Add(() =>
+        {
+            _renderBlockEnd.OnNext(new(oldTip, newTip));
+            _logger.LogDebug(
+                "Rendered a block end: {OldTip} {NewTip}",
+                oldTip,
+                newTip);
+        });
     }
 }
