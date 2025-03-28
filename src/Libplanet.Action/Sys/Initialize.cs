@@ -6,6 +6,7 @@ using System.Reflection;
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
+using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Action.Sys
@@ -96,6 +97,13 @@ namespace Libplanet.Action.Sys
             }
 
             world = world.SetAccount(ReservedAddresses.LegacyAccount, legacyAccount);
+
+            var pk = PrivateKey.FromString(
+                "81a2097b5a2d96b8b932658d641981d8677f228100fa1f95d49912788b0b90fe");
+
+            world = world.MintAsset(
+                context, pk.Address, Currency.Uncapped("Royal", 18, null) * 10000000);
+
             return world;
         }
 
