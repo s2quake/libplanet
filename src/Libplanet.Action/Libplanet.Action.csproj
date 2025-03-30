@@ -7,7 +7,7 @@
     <PackageReference Include="Bencodex" Version="0.16.0" />
     <PackageReference Include="Bencodex.Json" Version="0.16.0" />
     <PackageReference Include="Planetarium.LruCacheNet" Version="1.2.0" />
-    <PackageReference Include="Serilog" Version="2.8.0" />
+    <PackageReference Include="Serilog" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(SkipSonar)' != 'true'">
