@@ -21,6 +21,7 @@ using Libplanet.Store.Trie;
 using Xunit;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.Action.Loader;
+using System.Text;
 
 namespace Libplanet.Explorer.Tests.Queries;
 
@@ -57,7 +58,7 @@ public class TransactionQueryTest
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtil.Hex(tx.SerializeUnsignedTx())}"",
+                unsignedTransaction: ""{ByteUtil.Hex(Encoding.UTF8.GetBytes(tx.SerializeUnsignedTx()))}"",
                 signature: ""{ByteUtil.Hex(tx.Signature)}""
             )
          }}
@@ -89,7 +90,7 @@ public class TransactionQueryTest
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtil.Hex(tx.SerializeUnsignedTx())}"",
+                unsignedTransaction: ""{ByteUtil.Hex(Encoding.UTF8.GetBytes(tx.SerializeUnsignedTx()))}"",
                 signature: ""{ByteUtil.Hex(tx.Signature)}""
             )
          }}

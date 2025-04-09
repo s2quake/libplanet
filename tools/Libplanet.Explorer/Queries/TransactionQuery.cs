@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
 using Bencodex;
 using Bencodex.Types;
 using GraphQL;
@@ -196,7 +197,8 @@ namespace Libplanet.Explorer.Queries
                         context.GetArgument<string>("signature")
                     );
                     IUnsignedTx unsignedTx = TxMarshaler.DeserializeUnsignedTx(
-                        ByteUtil.ParseHex(context.GetArgument<string>("unsignedTransaction"))
+                        Encoding.UTF8.GetString(
+                            ByteUtil.ParseHex(context.GetArgument<string>("unsignedTransaction")))
                     );
                     var signedTransaction = unsignedTx.Verify(signature);
                     return ByteUtil.Hex(signedTransaction.Serialize());
