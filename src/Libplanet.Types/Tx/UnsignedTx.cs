@@ -182,7 +182,7 @@ namespace Libplanet.Types.Tx
         [Pure]
         private byte[] CreateMessage()
         {
-            var json = this.SerializeUnsignedTxToJson();
+            var json = this.SerializeUnsignedTx();
             return Encoding.UTF8.GetBytes(json);
         }
     }

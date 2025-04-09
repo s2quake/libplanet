@@ -78,7 +78,7 @@ namespace Libplanet.Tests.Tx
                 new PrivateKey("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
             var wrongKey = new PrivateKey();
             ImmutableArray<byte> signature = unsignedTx.CreateSignature(privateKey);
-            byte[] message = Encoding.UTF8.GetBytes(unsignedTx.SerializeUnsignedTxToJson());
+            byte[] message = Encoding.UTF8.GetBytes(unsignedTx.SerializeUnsignedTx());
             Assert.True(privateKey.PublicKey.Verify(message, signature));
             Assert.False(wrongKey.PublicKey.Verify(message, signature));
 

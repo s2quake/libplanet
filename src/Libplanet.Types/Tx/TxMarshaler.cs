@@ -91,7 +91,7 @@ namespace Libplanet.Types.Tx
                 .AddRange(unsignedTx.MarshalTxSigningMetadata());
 
         [Pure]
-        public static string SerializeUnsignedTxToJson(this IUnsignedTx unsignedTx)
+        public static string SerializeUnsignedTx(this IUnsignedTx unsignedTx)
         {
             var dict = unsignedTx.MarshalUnsignedTx();
             using var ms = new MemoryStream();
@@ -105,16 +105,6 @@ namespace Libplanet.Types.Tx
         [Pure]
         public static Dictionary MarshalTransaction(this Transaction transaction)
             => transaction.MarshalUnsignedTx().Add(SignatureKey, transaction.Signature);
-
-        [Pure]
-        public static ImmutableArray<byte> SerializeUnsignedTx(this IUnsignedTx unsignedTx)
-        {
-            Dictionary dict = unsignedTx.MarshalUnsignedTx();
-            byte[] encoded = Codec.Encode(dict);
-            ImmutableArray<byte> movedBytes =
-                Unsafe.As<byte[], ImmutableArray<byte>>(ref encoded);
-            return movedBytes;
-        }
 
         [Pure]
         public static ITxInvoice UnmarshalTxInvoice(Bencodex.Types.Dictionary dictionary)
@@ -193,7 +183,7 @@ namespace Libplanet.Types.Tx
         }
 
         [Pure]
-        public static IUnsignedTx DeserializeUnsignedTxFromJson(string json)
+        public static IUnsignedTx DeserializeUnsignedTx(string json)
         {
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(json));
             var reader = new Utf8JsonReader(ms.ToArray());
@@ -208,13 +198,6 @@ namespace Libplanet.Types.Tx
                 $"Expected a {typeof(Bencodex.Types.Dictionary).FullName}, " +
                 $"but {value.GetType().Name} given."
             );
-        }
-
-        [Pure]
-        public static IUnsignedTx DeserializeUnsignedTx(ImmutableArray<byte> bytes)
-        {
-            byte[] arrayView = Unsafe.As<ImmutableArray<byte>, byte[]>(ref bytes);
-            return DeserializeUnsignedTx(arrayView);
         }
 
         [Pure]
