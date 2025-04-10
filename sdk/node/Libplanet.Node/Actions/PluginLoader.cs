@@ -1,44 +1,26 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
-using Libplanet.Action;
-using Libplanet.Action.Loader;
+using Libplanet.Node.Services;
 
 namespace Libplanet.Node.Actions;
 
 internal static class PluginLoader
 {
-    public static IActionLoader LoadActionLoader(string modulePath, string typeName)
+    public static IActionProvider LoadActionProvider(string modulePath, string typeName)
     {
         if (Type.GetType(typeName) is { } type)
         {
-            if (Activator.CreateInstance(type) is not IActionLoader obj)
+            if (Activator.CreateInstance(type) is not IActionProvider obj)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("type is not IActionProvider");
             }
 
             return obj;
         }
 
         var assembly = LoadAssembly(modulePath);
-        return Create<IActionLoader>(assembly, typeName);
-    }
-
-    public static IPolicyActionsRegistry LoadPolicyActionRegistry(
-        string relativePath, string typeName)
-    {
-        if (Type.GetType(typeName) is { } type)
-        {
-            if (Activator.CreateInstance(type) is not IPolicyActionsRegistry obj)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return obj;
-        }
-
-        var assembly = LoadAssembly(relativePath);
-        return Create<IPolicyActionsRegistry>(assembly, typeName);
+        return Create<IActionProvider>(assembly, typeName);
     }
 
     private static T Create<T>(Assembly assembly, string typeName)
