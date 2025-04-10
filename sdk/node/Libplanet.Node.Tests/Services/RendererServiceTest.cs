@@ -28,9 +28,9 @@ public class RendererServiceTest
         var settings = new Dictionary<string, string?>
         {
             [$"{ActionOptions.Position}:{nameof(ActionOptions.ModulePath)}"]
-                = typeof(DumbActionLoader).Assembly.Location,
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionLoaderType)}"]
-                = typeof(DumbActionLoader).FullName,
+                = typeof(DumbActionProvider).Assembly.Location,
+            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionProviderType)}"]
+                = typeof(DumbActionProvider).FullName,
         };
 
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
@@ -62,9 +62,9 @@ public class RendererServiceTest
         var settings = new Dictionary<string, string?>
         {
             [$"{ActionOptions.Position}:{nameof(ActionOptions.ModulePath)}"]
-                = typeof(DumbActionLoader).Assembly.Location,
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionLoaderType)}"]
-                = typeof(DumbActionLoader).FullName,
+                = typeof(DumbActionProvider).Assembly.Location,
+            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionProviderType)}"]
+                = typeof(DumbActionProvider).FullName,
         };
 
         var serviceProvider = TestUtility.CreateServiceProvider(settings);

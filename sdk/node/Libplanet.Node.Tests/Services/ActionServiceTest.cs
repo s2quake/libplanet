@@ -24,6 +24,7 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
     [Fact]
     public void Base_WithModulePath_Test()
     {
+        var actionProviderType = "Libplanet.Node.DumbActions.DumbActionProvider";
         var actionLoaderType = "Libplanet.Node.DumbActions.DumbActionLoader";
         var policyActionRegistryType = "Libplanet.Node.DumbActions.DumbActionPolicyActionsRegistry";
         var codePath = "Libplanet.Node.Tests.Services.ActionServiceTestSource.cs";
@@ -38,10 +39,8 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
         {
             [$"{ActionOptions.Position}:{nameof(ActionOptions.ModulePath)}"]
                 = assemblyPath,
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionLoaderType)}"]
-                = actionLoaderType,
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.PolicyActionRegistryType)}"]
-                = policyActionRegistryType,
+            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionProviderType)}"]
+                = actionProviderType,
         };
 
         RuntimeCompiler.CompileCode(code, assemblyName, assemblyPath);

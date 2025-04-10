@@ -2,9 +2,9 @@ using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Crypto;
 
-namespace Libplanet.Node.Services;
+namespace Libplanet.Node;
 
-public interface IActionService
+public interface IActionProvider
 {
     IActionLoader ActionLoader { get; }
 

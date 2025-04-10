@@ -1,11 +1,16 @@
 // This code does not compile because it is used by ActionServiceTest test.
 #pragma warning disable MEN008 // A file's name should match or include the name of the main type it contains.
 using System.Collections.Immutable;
+using System.Numerics;
+using System.Linq;
 using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
+using Libplanet.Crypto;
+using Libplanet.Types.Consensus;
+using Libplanet.Node.Services;
 
 namespace Libplanet.Node.DumbActions;
 
@@ -60,4 +65,15 @@ public sealed class DumbActionPolicyActionsRegistry : IPolicyActionsRegistry
     public ImmutableArray<IAction> BeginTxActions => [new DumbBeginTxAction()];
 
     public ImmutableArray<IAction> EndTxActions => [new DumbEndTxAction()];
+}
+
+public sealed class DumbActionProvider : IActionProvider
+{
+    public IActionLoader ActionLoader { get; } = new DumbActionLoader();
+
+    public IPolicyActionsRegistry PolicyActionsRegistry { get; }
+        = new DumbActionPolicyActionsRegistry();
+
+    public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
+        => ActionProvider.Default.GetGenesisActions(genesisAddress, validatorKeys);
 }

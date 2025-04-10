@@ -32,32 +32,30 @@ internal sealed class BlockChainService(
 {
     private static readonly Codec _codec = new();
     private readonly BlockChain _blockChain = CreateBlockChain(
+        actionService: actionService,
         genesisOptions: genesisOptions.Value,
         store: storeService.Store,
         stateStore: storeService.StateStore,
-        actionLoader: actionService.ActionLoader,
-        policyActionsRegistry: actionService.PolicyActionsRegistry,
         stagePolicy: policyService.StagePolicy,
         renderers: [rendererService]);
 
     public BlockChain BlockChain => _blockChain;
 
     private static BlockChain CreateBlockChain(
+        IActionService actionService,
         GenesisOptions genesisOptions,
         IStore store,
         IStateStore stateStore,
-        IActionLoader actionLoader,
-        IPolicyActionsRegistry policyActionsRegistry,
         IStagePolicy stagePolicy,
         IRenderer[] renderers)
     {
         var actionEvaluator = new ActionEvaluator(
-            policyActionsRegistry: policyActionsRegistry,
+            policyActionsRegistry: actionService.PolicyActionsRegistry,
             stateStore,
-            actionLoader);
-        var genesisBlock = CreateGenesisBlock(genesisOptions, stateStore);
+            actionService.ActionLoader);
+        var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);
         var policy = new BlockPolicy(
-            policyActionsRegistry: policyActionsRegistry,
+            policyActionsRegistry: actionService.PolicyActionsRegistry,
             blockInterval: TimeSpan.FromSeconds(8),
             validateNextBlockTx: (chain, transaction) => null,
             validateNextBlock: (chain, block) => null,
@@ -94,6 +92,7 @@ internal sealed class BlockChainService(
 
     private static Block CreateGenesisBlock(
         GenesisOptions genesisOptions,
+        IActionService actionService,
         IStateStore stateStore)
     {
         if (genesisOptions.GenesisBlockPath != string.Empty)
@@ -127,26 +126,19 @@ internal sealed class BlockChainService(
         {
             var genesisKey = PrivateKey.FromString(genesisOptions.GenesisKey);
             var validatorKeys = genesisOptions.Validators.Select(PublicKey.FromHex).ToArray();
-            return CreateGenesisBlock(genesisKey, validatorKeys);
+            var actions = actionService.GetGenesisActions(
+                genesisAddress: genesisKey.Address,
+                validatorKeys: validatorKeys);
+            return CreateGenesisBlock(genesisKey, actions);
         }
 
         throw new UnreachableException("Genesis block path is not set.");
     }
 
-    private static Block CreateGenesisBlock(PrivateKey genesisKey, PublicKey[] validatorKeys)
+    private static Block CreateGenesisBlock(
+        PrivateKey genesisKey, IAction[] actions)
     {
-        var validators = validatorKeys
-            .Select(item => new Validator(item, new BigInteger(1000)))
-            .ToArray();
-        var validatorSet = new ValidatorSet(validators: [.. validators]);
         var nonce = 0L;
-        IAction[] actions =
-        [
-            new Initialize(
-                validatorSet: validatorSet,
-                states: ImmutableDictionary.Create<Address, IValue>()),
-        ];
-
         var transaction = Transaction.Create(
             nonce: nonce,
             privateKey: genesisKey,
