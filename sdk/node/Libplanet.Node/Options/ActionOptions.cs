@@ -7,7 +7,5 @@ public sealed class ActionOptions : OptionsBase<ActionOptions>
 
     public string ModulePath { get; set; } = string.Empty;
 
-    public string ActionLoaderType { get; set; } = string.Empty;
-
-    public string PolicyActionRegistryType { get; set; } = string.Empty;
+    public string ActionProviderType { get; set; } = string.Empty;
 }
