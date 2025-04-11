@@ -33,30 +33,4 @@ internal sealed class ActionService(IOptions<ActionOptions> options)
 
         return new ActionProvider();
     }
-
-    // private static IActionLoader GetActionLoader(ActionOptions options)
-    // {
-    //     if (options.ActionLoaderType != string.Empty)
-    //     {
-    //         var modulePath = options.ModulePath != string.Empty
-    //             ? Path.GetFullPath(options.ModulePath) : string.Empty;
-    //         var actionLoaderType = options.ActionLoaderType;
-    //         return PluginLoader.LoadActionLoader(modulePath, actionLoaderType);
-    //     }
-
-    //     return new AggregateTypedActionLoader();
-    // }
-
-    // private static IPolicyActionsRegistry GetPolicyActionsRegistry(ActionOptions options)
-    // {
-    //     if (options.PolicyActionRegistryType != string.Empty)
-    //     {
-    //         var modulePath = options.ModulePath != string.Empty
-    //             ? Path.GetFullPath(options.ModulePath) : string.Empty;
-    //         var policyActionRegistryType = options.PolicyActionRegistryType;
-    //         return PluginLoader.LoadPolicyActionRegistry(modulePath, policyActionRegistryType);
-    //     }
-
-    //     return new PolicyActionsRegistry();
-    // }
 }
