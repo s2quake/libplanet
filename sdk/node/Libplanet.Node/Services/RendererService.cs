@@ -26,6 +26,7 @@ internal sealed class RendererService : IRendererService, IActionRenderer, IAsyn
     private IObservable<RenderActionInfo>? _renderActionObservable;
     private IObservable<RenderActionErrorInfo>? _renderActionErrorObservable;
     private IObservable<RenderBlockInfo>? _renderBlockEndObservable;
+    private bool _isDisposed;
 
     public RendererService(ILogger<RendererService> logger)
     {
@@ -54,16 +55,20 @@ internal sealed class RendererService : IRendererService, IActionRenderer, IAsyn
 
     public async ValueTask DisposeAsync()
     {
-        await _cancellationTokenSource.CancelAsync();
-        _renderBlock.Dispose();
-        _renderAction.Dispose();
-        _renderActionError.Dispose();
-        _renderBlockEnd.Dispose();
-        await _renderBlockQueue.DisposeAsync();
-        await _renderActionQueue.DisposeAsync();
-        await _renderActionErrorQueue.DisposeAsync();
-        await _renderBlockEndQueue.DisposeAsync();
-        _cancellationTokenSource.Dispose();
+        if (!_isDisposed)
+        {
+            await _cancellationTokenSource.CancelAsync();
+            _renderBlock.Dispose();
+            _renderAction.Dispose();
+            _renderActionError.Dispose();
+            _renderBlockEnd.Dispose();
+            await _renderBlockQueue.DisposeAsync();
+            await _renderActionQueue.DisposeAsync();
+            await _renderActionErrorQueue.DisposeAsync();
+            await _renderBlockEndQueue.DisposeAsync();
+            _cancellationTokenSource.Dispose();
+            _isDisposed = true;
+        }
     }
 
     void IActionRenderer.RenderAction(
