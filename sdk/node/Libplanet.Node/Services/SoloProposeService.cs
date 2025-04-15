@@ -37,9 +37,9 @@ internal sealed class SoloProposeService : BackgroundService
         {
             await ProposeBlockAsync(stoppingToken);
         }
-        catch (OperationCanceledException e)
+        catch (OperationCanceledException)
         {
-            _logger.LogInformation(e, "Timed Hosted Service is stopping.");
+            _logger.LogInformation("Timed Hosted Service is stopping.");
         }
     }
 
