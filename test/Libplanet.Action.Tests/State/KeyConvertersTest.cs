@@ -19,20 +19,20 @@ namespace Libplanet.Action.State.Tests
             var currency = Currency.Uncapped("Foo", 2, new PrivateKey().Address);
 
             Assert.Equal(
-                new KeyBytes(ByteUtil.Hex(address.ByteArray)),
+                (KeyBytes)ByteUtil.Hex(address.ByteArray),
                 KeyConverters.ToStateKey(address));
 
             Assert.Equal(
-                new KeyBytes(
-                    $"_{ByteUtil.Hex(address.ByteArray)}_{ByteUtil.Hex(currency.Hash.ByteArray)}"),
+                (KeyBytes)
+                    $"_{ByteUtil.Hex(address.ByteArray)}_{ByteUtil.Hex(currency.Hash.ByteArray)}",
                 KeyConverters.ToFungibleAssetKey(address, currency));
 
             Assert.Equal(
-                new KeyBytes($"__{ByteUtil.Hex(currency.Hash.ByteArray)}"),
+                (KeyBytes)$"__{ByteUtil.Hex(currency.Hash.ByteArray)}",
                 KeyConverters.ToTotalSupplyKey(currency));
 
             Assert.Equal(
-                new KeyBytes("___"),
+                (KeyBytes)"___",
                 KeyConverters.ValidatorSetKey);
         }
     }
