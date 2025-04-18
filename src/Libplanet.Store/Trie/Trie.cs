@@ -11,40 +11,22 @@ using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
 
-/// <summary>
-/// An <see cref="ITrie"/> implementation implemented
-/// <see href="https://eth.wiki/fundamentals/patricia-tree">Merkle Patricia Trie</see>.
-/// </summary>
-/// <remarks>
-/// An <see cref="ITrie"/> implementation.
-/// </remarks>
-/// <param name="keyValueStore">The <see cref="IKeyValueStore"/> storage to store
-/// nodes.</param>
-/// <param name="node">The root node of <see cref="Trie"/>.  If it is
-/// <see langword="null"/>, it will be treated like empty trie.</param>
-/// <param name="cache">The <see cref="HashNodeCache"/> to use as cache.</param>
-// TODO: implement 'logs' for debugging.
 public sealed partial class Trie(INode node) : ITrie
 {
     private static readonly Codec _codec = new();
     private readonly NodeRemover _nodeRemover = new();
     private readonly NodeResolver _nodeResolver = new();
 
-    /// <inheritdoc cref="ITrie.Node"/>
     public INode Node { get; } = node;
 
-    /// <inheritdoc cref="ITrie.Hash"/>
     public HashDigest<SHA256> Hash => Node switch
     {
-        null => default,
         HashNode hashNode => hashNode.Hash,
         _ => HashDigest<SHA256>.DeriveFrom(_codec.Encode(Node.ToBencodex())),
     };
 
-    /// <inheritdoc cref="ITrie.IsCommitted"/>
     public bool IsCommitted { get; private set; } = node is not null && node is not HashNode;
 
-    /// <inheritdoc cref="ITrie.this[KeyBytes]"/>
     public IValue this[in KeyBytes key]
         => _nodeResolver.ResolveToValue(Node, PathCursor.Create(key));
 
@@ -75,18 +57,15 @@ public sealed partial class Trie(INode node) : ITrie
         return trie;
     }
 
-    /// <inheritdoc cref="ITrie.Set"/>
     public ITrie Set(in KeyBytes key, IValue value)
     {
         var node = Node;
         var cursor = PathCursor.Create(key);
         var valueNode = new ValueNode(value);
-        var inserter = new NodeInserter();
-        var newNode = inserter.Insert(node, cursor, valueNode);
+        var newNode = NodeInserter.Insert(node, cursor, valueNode);
         return new Trie(newNode) { IsCommitted = IsCommitted };
     }
 
-    /// <inheritdoc cref="ITrie.Remove"/>
     public ITrie? Remove(in KeyBytes key)
     {
         if (Node is not { } node)
@@ -103,7 +82,6 @@ public sealed partial class Trie(INode node) : ITrie
         return null;
     }
 
-    /// <inheritdoc cref="ITrie.GetNode(Nibbles)"/>
     public INode? GetNode(in Nibbles nibbles)
         => _nodeResolver.ResolveToNode(Node, new PathCursor(nibbles));
 

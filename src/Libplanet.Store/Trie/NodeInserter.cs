@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Immutable;
 using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
 
-internal sealed class NodeInserter
+internal static class NodeInserter
 {
-    public INode Insert(INode? node, in PathCursor cursor, ValueNode value) => node switch
+    public static INode Insert(INode? node, in PathCursor cursor, ValueNode value) => node switch
     {
         null => InsertToNullNode(cursor, value),
         HashNode hashNode => InsertToHashNode(hashNode, cursor, value),
@@ -17,10 +16,10 @@ internal sealed class NodeInserter
             $"Unsupported node value: {node.ToBencodex().Inspect()}"),
     };
 
-    private INode InsertToNullNode(in PathCursor cursor, ValueNode value)
+    private static INode InsertToNullNode(in PathCursor cursor, ValueNode value)
         => cursor.IsEnd ? value : new ShortNode(cursor.NextNibbles, value);
 
-    private INode InsertToValueNode(ValueNode valueNode, in PathCursor cursor, ValueNode value)
+    private static INode InsertToValueNode(ValueNode valueNode, in PathCursor cursor, ValueNode value)
     {
         if (cursor.IsEnd)
         {
@@ -32,7 +31,7 @@ internal sealed class NodeInserter
         return new FullNode(builder.ToImmutable(), valueNode);
     }
 
-    private INode InsertToShortNode(ShortNode shortNode, in PathCursor cursor, ValueNode value)
+    private static INode InsertToShortNode(ShortNode shortNode, in PathCursor cursor, ValueNode value)
     {
         var key = shortNode.Key;
         var nextCursor = cursor.SkipCommonPrefix(cursor.Position, key);
@@ -71,7 +70,7 @@ internal sealed class NodeInserter
         }
     }
 
-    private INode InsertToFullNode(FullNode fullNode, in PathCursor cursor, ValueNode value)
+    private static INode InsertToFullNode(FullNode fullNode, in PathCursor cursor, ValueNode value)
     {
         if (cursor.IsEnd)
         {
@@ -83,7 +82,7 @@ internal sealed class NodeInserter
         return fullNode.SetChild(index, node);
     }
 
-    private INode InsertToHashNode(HashNode hashNode, in PathCursor cursor, ValueNode value)
+    private static INode InsertToHashNode(HashNode hashNode, in PathCursor cursor, ValueNode value)
     {
         var unhashedNode = hashNode.Expand();
         return Insert(unhashedNode, cursor, value);

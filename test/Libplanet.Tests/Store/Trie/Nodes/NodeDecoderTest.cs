@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using Bencodex.Types;
@@ -92,10 +93,10 @@ public class NodeDecoderTest
         IValue shortNodeEncoded = new ShortNode(
             Nibbles.Parse("b4"),
             new ValueNode(new Text("bar"))).ToBencodex();
-        IValue fullNodeEncoded = FullNode.Empty
-            .SetChild(4, new ValueNode(new Text("4")))
-            .SetChild(10, new ValueNode(new Text("c")))
-            .ToBencodex();
+        var children = ImmutableDictionary<byte, INode>.Empty
+            .Add(4, new ValueNode(new Text("4")))
+            .Add(10, new ValueNode(new Text("c")));
+        IValue fullNodeEncoded = new FullNode(children, null).ToBencodex();
         IValue hashNodeEncoded =
             new HashNode(
                 new HashDigest<SHA256>(

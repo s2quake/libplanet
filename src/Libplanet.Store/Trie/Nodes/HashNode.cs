@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Bencodex;
 using Bencodex.Types;
@@ -8,9 +7,6 @@ using Libplanet.Common;
 
 namespace Libplanet.Store.Trie.Nodes;
 
-/// <summary>
-/// <see cref="HashDigest{T}"/>'s wrapper class, used in <see cref="ITrie"/> interface.
-/// </summary>
 internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
 {
     private static readonly Codec _codec = new();
@@ -27,7 +23,6 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
         }
     }
 
-    /// <inheritdoc cref="INode.ToBencodex()"/>
     public IValue ToBencodex() => Hash.Bencoded;
 
     public override int GetHashCode() => Hash.GetHashCode();

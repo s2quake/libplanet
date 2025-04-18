@@ -8,13 +8,6 @@ internal sealed record class ShortNode(in Nibbles Key, INode Value) : INode
 {
     public Nibbles Key { get; } = ValidateKey(Key);
 
-    /// <summary>
-    /// Represents an <see cref="INode"/> at the end of a <see cref="ShortNode"/>.
-    /// It can be a <see cref="ValueNode"/>, a <see cref="FullNode"/>,
-    /// or a <see cref="HashNode"/> of either a <see cref="ValueNode"/>
-    /// or a <see cref="FullNode"/>.  That is, this can be neither a <see cref="ShortNode"/>
-    /// nor a <see cref="HashNode"/> of a <see cref="ShortNode"/>.
-    /// </summary>
     public INode Value { get; } = ValidateValue(Value);
 
     IEnumerable<INode> INode.Children => [Value];
@@ -27,7 +20,6 @@ internal sealed record class ShortNode(in Nibbles Key, INode Value) : INode
         }
     }
 
-    /// <inheritdoc cref="INode.ToBencodex()"/>
     public IValue ToBencodex() => new List(new Binary(Key.ByteArray), Value.ToBencodex());
 
     private static Nibbles ValidateKey(in Nibbles key)

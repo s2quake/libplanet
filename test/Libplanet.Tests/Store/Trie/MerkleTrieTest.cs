@@ -37,6 +37,22 @@ public class MerkleTrieTest
     }
 
     [Fact]
+    public void CreateWithSingleKeyValue()
+    {
+        using var store = new MemoryKeyValueStore();
+        var keyValue = (KeyBytes.Create([0xbe, 0xef]), Dictionary.Empty);
+        var trie = Libplanet.Store.Trie.Trie.Create(keyValue);
+        Assert.Single(trie.ToDictionary());
+        Assert.Equal(Dictionary.Empty, trie[KeyBytes.Create([0xbe, 0xef])]);
+        Assert.Throws<KeyNotFoundException>(() => trie[KeyBytes.Create([0x01])]);
+
+        trie = new TrieStateStore(store).Commit(trie);
+        Assert.Single(trie.ToDictionary());
+        Assert.Equal(Dictionary.Empty, trie[KeyBytes.Create([0xbe, 0xef])]);
+        Assert.Throws<KeyNotFoundException>(() => trie[KeyBytes.Create([0x01])]);
+    }
+
+    [Fact]
     public void ToDictionary()
     {
         using var keyValueStore = new MemoryKeyValueStore();

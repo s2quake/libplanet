@@ -11,9 +11,6 @@ public sealed record class FullNode(ImmutableDictionary<byte, INode> Children, I
 {
     public const byte MaximumIndex = 16;
 
-    [Obsolete("This field will be removed in the future. Use Constructor instead.")]
-    public static readonly FullNode Empty = new(ImmutableDictionary<byte, INode>.Empty, null);
-
     public ImmutableDictionary<byte, INode> Children { get; } = ValidateChildren(Children);
 
     IEnumerable<INode> INode.Children
@@ -73,7 +70,6 @@ public sealed record class FullNode(ImmutableDictionary<byte, INode> Children, I
 
     public FullNode SetValue(INode? value) => new(Children, value);
 
-    /// <inheritdoc cref="IEquatable{T}.Equals"/>
     public bool Equals(FullNode? other)
     {
         if (other is not null)
@@ -86,7 +82,6 @@ public sealed record class FullNode(ImmutableDictionary<byte, INode> Children, I
 
     public override int GetHashCode() => Children.GetHashCode();
 
-    /// <inheritdoc cref="INode.ToBencodex()"/>
     public IValue ToBencodex()
     {
         var items = Enumerable.Repeat<IValue>(Null.Value, MaximumIndex + 1).ToArray();

@@ -103,13 +103,16 @@ namespace Libplanet.Tests.Store.Trie
 
             INode proofNode0010 = new ValueNode(V0010);
             INode proofNode001 = new ShortNode(n0, ToHashNode(proofNode0010));
-            INode proofNode00 = FullNode.Empty
-                .SetChild(0, new ShortNode(n0, new ValueNode(V0000)))
-                .SetChild(1, ToHashNode(proofNode001))
-                .SetValue(new ValueNode(V00));
-            INode proofNode0 = FullNode.Empty
-                .SetChild(0, ToHashNode(proofNode00))
-                .SetChild(1, new ValueNode(V01));
+            INode proofNode00 = new FullNode(
+                ImmutableDictionary<byte, INode>.Empty
+                    .Add(0, new ShortNode(n0, new ValueNode(V0000)))
+                    .Add(1, ToHashNode(proofNode001)),
+                new ValueNode(V00));
+            INode proofNode0 = new FullNode(
+                ImmutableDictionary<byte, INode>.Empty
+                    .Add(0, ToHashNode(proofNode00))
+                    .Add(1, new ValueNode(V01)),
+                null);
             INode proofRoot = new ShortNode(n0, ToHashNode(proofNode0));
             P00 = new List<INode>() { proofRoot, proofNode0, proofNode00 };
             P01 = new List<INode>() { proofRoot, proofNode0 };
