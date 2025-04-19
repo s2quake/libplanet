@@ -72,6 +72,13 @@ public static class NodeExtensions
             var value = valueNode.Value;
             yield return new(key, value);
         }
+        else if (node is HashNode hashNode)
+        {
+            foreach (var item in GetNodes(hashNode.Expand(), nibbles))
+            {
+                yield return item;
+            }
+        }
     }
 
     private static IEnumerable<INode> GetChildren(INode node)

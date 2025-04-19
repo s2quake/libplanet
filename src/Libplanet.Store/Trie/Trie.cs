@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
@@ -15,7 +16,6 @@ public sealed partial class Trie(INode node) : ITrie
 {
     private static readonly Codec _codec = new();
     private readonly NodeRemover _nodeRemover = new();
-    private readonly NodeResolver _nodeResolver = new();
 
     public INode Node { get; } = node;
 
@@ -28,13 +28,16 @@ public sealed partial class Trie(INode node) : ITrie
     public bool IsCommitted { get; private set; } = node is not null && node is not HashNode;
 
     public IValue this[in KeyBytes key]
-        => _nodeResolver.ResolveToValue(Node, PathCursor.Create(key));
+        => NodeResolver.ResolveToValue(Node, PathCursor.Create(key));
 
     public static Trie Create(HashDigest<SHA256> hashDigest)
     {
         var node = new HashNode(hashDigest);
         return new Trie(node) { IsCommitted = true };
     }
+
+    public static ITrie Create(params (ImmutableArray<byte> Key, IValue Value)[] keyValues)
+        => Create(keyValues.Select(kv => (new KeyBytes(kv.Key), kv.Value)).ToArray());
 
     public static ITrie Create(params (KeyBytes Key, IValue Value)[] keyValues)
     {
@@ -82,8 +85,8 @@ public sealed partial class Trie(INode node) : ITrie
         return null;
     }
 
-    public INode? GetNode(in Nibbles nibbles)
-        => _nodeResolver.ResolveToNode(Node, new PathCursor(nibbles));
+    public INode GetNode(in Nibbles key)
+        => NodeResolver.ResolveToNode(Node, new PathCursor(key));
 
     public INode GetNode(in KeyBytes key)
     {
@@ -99,7 +102,7 @@ public sealed partial class Trie(INode node) : ITrie
     }
 
     public bool ContainsKey(in KeyBytes key)
-        => _nodeResolver.ResolveToValue(Node, PathCursor.Create(key)) != null;
+        => NodeResolver.ResolveToValue(Node, PathCursor.Create(key)) != null;
 
     public IEnumerator<KeyValuePair<KeyBytes, IValue>> GetEnumerator()
     {

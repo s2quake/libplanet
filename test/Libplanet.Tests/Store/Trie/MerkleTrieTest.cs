@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -290,66 +291,55 @@ public class MerkleTrieTest
     [Fact]
     public void GetNode()
     {
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        ITrie trie = stateStore.GetStateRoot(default);
+        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var keyValues = new (ImmutableArray<byte>, IValue)[]
+        {
+            ([0x00], new Text("00")),
+            ([0x00, 0x00], new Text("0000")),
+            ([0x00, 0x10], new Text("00000000000000000000000000000000_0010")),
+        };
+        var trie1 = Libplanet.Store.Trie.Trie.Create(keyValues);
 
-        KeyBytes key00 = KeyBytes.Create([0x00]);
-        IValue value00 = new Text("00");
-        KeyBytes key0000 = KeyBytes.Create([0x00, 0x00]);
-        IValue value0000 = new Text("0000");
-        KeyBytes key0010 = KeyBytes.Create([0x00, 0x10]);
-        IValue value0010 = new Text("00000000000000000000000000000000_0010");
+        Assert.IsType<ShortNode>(trie1.GetNode(Nibbles.Parse(string.Empty)));
+        Assert.IsType<FullNode>(trie1.GetNode(Nibbles.Parse("00")));
+        Assert.Throws<KeyNotFoundException>(() => trie1.GetNode(Nibbles.Parse("01")));
+        Assert.IsType<ShortNode>(trie1.GetNode(Nibbles.Parse("000")));
+        Assert.IsType<ShortNode>(trie1.GetNode(Nibbles.Parse("001")));
+        Assert.IsType<ValueNode>(trie1.GetNode(Nibbles.Parse("0000")));
+        Assert.IsType<ValueNode>(trie1.GetNode(Nibbles.Parse("0010")));
 
-        trie = trie.Set(key00, value00);
-        trie = trie.Set(key0000, value0000);
-        trie = trie.Set(key0010, value0010);
-
-        Assert.IsType<ShortNode>(trie.GetNode(Nibbles.Parse(string.Empty)));
-        Assert.IsType<FullNode>(trie.GetNode(Nibbles.Parse("00")));
-        Assert.Null(trie.GetNode(Nibbles.Parse("01")));
-        Assert.IsType<ShortNode>(trie.GetNode(Nibbles.Parse("000")));
-        Assert.IsType<ShortNode>(trie.GetNode(Nibbles.Parse("001")));
-        Assert.IsType<ValueNode>(trie.GetNode(Nibbles.Parse("0000")));
-        Assert.IsType<ValueNode>(trie.GetNode(Nibbles.Parse("0010")));
-
-        trie = stateStore.Commit(trie);
-        Assert.IsType<HashNode>(trie.GetNode(Nibbles.Parse(string.Empty)));
-        Assert.IsType<HashNode>(trie.GetNode(Nibbles.Parse("00")));
-        Assert.Null(trie.GetNode(Nibbles.Parse("01")));
-        Assert.IsType<ShortNode>(trie.GetNode(Nibbles.Parse("000")));
-        Assert.IsType<HashNode>(trie.GetNode(Nibbles.Parse("001")));
-        Assert.IsType<ValueNode>(trie.GetNode(Nibbles.Parse("0000")));
-        Assert.IsType<HashNode>(trie.GetNode(Nibbles.Parse("0010")));
+        var trie2 = stateStore.Commit(trie1);
+        Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse(string.Empty)));
+        Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("00")));
+        Assert.Throws<KeyNotFoundException>(() => trie2.GetNode(Nibbles.Parse("01")));
+        Assert.IsType<ShortNode>(trie2.GetNode(Nibbles.Parse("000")));
+        Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("001")));
+        Assert.IsType<ValueNode>(trie2.GetNode(Nibbles.Parse("0000")));
+        Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("0010")));
     }
 
     [Fact]
     public void ResolveToValueAtTheEndOfShortNode()
     {
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        ITrie trie = stateStore.GetStateRoot(default);
+        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var trie = Libplanet.Store.Trie.Trie.Create(
+            (Key: [0x00], Value: new Text("00")));
 
-        KeyBytes key00 = KeyBytes.Create([0x00]);
-        IValue value00 = new Text("00");
-        KeyBytes key0000 = KeyBytes.Create([0x00, 0x00]);
-
-        trie = trie.Set(key00, value00);
         trie = stateStore.Commit(trie);
 
-        Assert.Null(trie[key0000]);
+        Assert.Throws<KeyNotFoundException>(() => trie[key: [0x00, 0x00]]);
     }
 
     [Fact]
     public void SetValueToExtendedKey()
     {
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        ITrie trie = stateStore.GetStateRoot(default);
-        KeyBytes key00 = KeyBytes.Create([0x00]);
-        IValue value00 = new Text("00");
-        KeyBytes key0000 = KeyBytes.Create([0x00, 0x00]);
-        IValue value0000 = new Text("0000");
+        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var value00 = new Text("00");
+        var value0000 = new Text("0000");
+        var trie = Libplanet.Store.Trie.Trie.Create(
+            (Key: [0x00], Value: value00),
+            (Key: [0x00, 0x00], Value: value0000));
 
-        trie = trie.Set(key00, value00);
-        trie = trie.Set(key0000, value0000);
         trie = stateStore.Commit(trie);
 
         Assert.Equal(2, trie.ToDictionary().Count);
