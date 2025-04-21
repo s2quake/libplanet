@@ -15,7 +15,7 @@ namespace Libplanet.Crypto;
 [TypeConverter(typeof(AddressTypeConverter))]
 [JsonConverter(typeof(AddressJsonConverter))]
 public readonly struct Address(in ImmutableArray<byte> bytes)
-    : IEquatable<Address>, IComparable<Address>, IComparable, IBencodable
+    : IEquatable<Address>, IComparable<Address>, IComparable, IBencodable, IFormattable
 {
     public const int Size = 20;
 
@@ -157,7 +157,7 @@ public readonly struct Address(in ImmutableArray<byte> bytes)
             hex = hex[2..];
         }
 
-        if (!hex.Equals(hex, StringComparison.CurrentCultureIgnoreCase) &&
+        if (hex.ToLower(CultureInfo.InvariantCulture) != hex &&
             ToChecksumAddress(hex.ToLower(CultureInfo.InvariantCulture)) != hex)
         {
             throw new ArgumentException("Address checksum is invalid", nameof(hex));
