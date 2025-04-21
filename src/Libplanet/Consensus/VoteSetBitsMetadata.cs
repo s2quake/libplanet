@@ -167,8 +167,7 @@ namespace Libplanet.Consensus
         public VoteSetBits Sign(PrivateKey signer) =>
             new VoteSetBits(this, signer.Sign(ByteArray).ToImmutableArray());
 
-        /// <inheritdoc/>
-        public bool Equals(VoteSetBitsMetadata? other)
+            public bool Equals(VoteSetBitsMetadata? other)
         {
             return other is { } metadata &&
                 Height == metadata.Height &&
@@ -184,12 +183,10 @@ namespace Libplanet.Consensus
                 VoteBits.SequenceEqual(other.VoteBits);
         }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj) =>
+            public override bool Equals(object? obj) =>
             obj is VoteSetBitsMetadata other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
         {
             int voteBitsHashCode = VoteBits.Aggregate(
                 0,

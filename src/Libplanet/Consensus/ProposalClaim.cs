@@ -120,8 +120,7 @@ namespace Libplanet.Consensus
                 _metadata.ByteArray.ToImmutableArray(),
                 Signature);
 
-        /// <inheritdoc/>
-        [Pure]
+            [Pure]
         public bool Equals(ProposalClaim? other)
         {
             return other is ProposalClaim proposalClaim &&
@@ -129,15 +128,13 @@ namespace Libplanet.Consensus
                    Signature.SequenceEqual(proposalClaim.Signature);
         }
 
-        /// <inheritdoc/>
-        [Pure]
+            [Pure]
         public override bool Equals(object? obj)
         {
             return obj is ProposalClaim other && Equals(other);
         }
 
-        /// <inheritdoc/>
-        [Pure]
+            [Pure]
         public override int GetHashCode()
         {
             return HashCode.Combine(

@@ -151,8 +151,7 @@ namespace Libplanet.Consensus
         public Maj23 Sign(PrivateKey signer) =>
             new Maj23(this, signer.Sign(ByteArray).ToImmutableArray());
 
-        /// <inheritdoc/>
-        public bool Equals(Maj23Metadata? other)
+            public bool Equals(Maj23Metadata? other)
         {
             return other is { } metadata &&
                 Height == metadata.Height &&
@@ -167,12 +166,10 @@ namespace Libplanet.Consensus
                 Flag == metadata.Flag;
         }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj) =>
+            public override bool Equals(object? obj) =>
             obj is Maj23Metadata other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
         {
             return HashCode.Combine(
                 Height,

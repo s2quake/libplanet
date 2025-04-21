@@ -36,11 +36,11 @@ namespace Libplanet.RocksDBStore.Tests
             var primaryRocksDb = new RocksDBKeyValueStore(basePath);
             var readonlyRocksDb = new RocksDBKeyValueStore(basePath, RocksDBInstanceType.ReadOnly);
 
-            var key = new KeyBytes("new");
+            var key = (KeyBytes)"new";
             var value = new byte[] { 1, 2, 3 };
-            primaryRocksDb.Set(key, value);
-            Assert.Equal(value, primaryRocksDb.Get(key));
-            Assert.Throws<KeyNotFoundException>(() => readonlyRocksDb.Get(key));
+            primaryRocksDb[key] = value;
+            Assert.Equal(value, primaryRocksDb[key]);
+            Assert.Throws<KeyNotFoundException>(() => readonlyRocksDb[key]);
             Assert.Throws<RocksDbException>(() => readonlyRocksDb.TryCatchUpWithPrimary());
         }
 
@@ -55,14 +55,14 @@ namespace Libplanet.RocksDBStore.Tests
                 basePath,
                 RocksDBInstanceType.Secondary);
 
-            var key = new KeyBytes("new");
+            var key = (KeyBytes)"new";
             var value = new byte[] { 1, 2, 3 };
-            primaryRocksDb.Set(key, value);
-            Assert.Equal(value, primaryRocksDb.Get(key));
-            Assert.Throws<KeyNotFoundException>(() => secondaryRocksDb.Get(key));
+            primaryRocksDb[key] = value;
+            Assert.Equal(value, primaryRocksDb[key]);
+            Assert.Throws<KeyNotFoundException>(() => secondaryRocksDb[key]);
 
             secondaryRocksDb.TryCatchUpWithPrimary();
-            Assert.Equal(value, secondaryRocksDb.Get(key));
+            Assert.Equal(value, secondaryRocksDb[key]);
         }
 
         public void Dispose()

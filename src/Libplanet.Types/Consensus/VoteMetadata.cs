@@ -136,29 +136,21 @@ namespace Libplanet.Types.Consensus
         }
 #pragma warning restore SA1118
 
-        /// <inheritdoc/>
-        public long Height { get; }
+            public long Height { get; }
 
-        /// <inheritdoc/>
-        public int Round { get; }
+            public int Round { get; }
 
-        /// <inheritdoc/>
-        public BlockHash BlockHash { get; }
+            public BlockHash BlockHash { get; }
 
-        /// <inheritdoc/>
-        public DateTimeOffset Timestamp { get; }
+            public DateTimeOffset Timestamp { get; }
 
-        /// <inheritdoc/>
-        public PublicKey ValidatorPublicKey { get; }
+            public PublicKey ValidatorPublicKey { get; }
 
-        /// <inheritdoc/>
-        public BigInteger? ValidatorPower { get; }
+            public BigInteger? ValidatorPower { get; }
 
-        /// <inheritdoc/>
-        public VoteFlag Flag { get; }
+            public VoteFlag Flag { get; }
 
-        /// <inheritdoc/>
-        [JsonIgnore]
+            [JsonIgnore]
         public Bencodex.Types.IValue Bencoded
         {
             get
@@ -201,8 +193,7 @@ namespace Libplanet.Types.Consensus
                 : new Vote(this, ImmutableArray<byte>.Empty);
         }
 
-        /// <inheritdoc/>
-        public bool Equals(VoteMetadata? other)
+            public bool Equals(VoteMetadata? other)
         {
             return other is VoteMetadata metadata &&
                 Height == metadata.Height &&
@@ -218,12 +209,10 @@ namespace Libplanet.Types.Consensus
                 Flag == metadata.Flag;
         }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj) =>
+            public override bool Equals(object? obj) =>
             obj is VoteMetadata other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
         {
             return HashCode.Combine(
                 Height,

@@ -186,8 +186,7 @@ namespace Libplanet.Consensus
         public Proposal Sign(PrivateKey signer) =>
             new Proposal(this, signer.Sign(ByteArray).ToImmutableArray());
 
-        /// <inheritdoc/>
-        public bool Equals(ProposalMetadata? other)
+            public bool Equals(ProposalMetadata? other)
         {
             return other is ProposalMetadata metadata &&
                 Height == metadata.Height &&
@@ -202,12 +201,10 @@ namespace Libplanet.Consensus
                 ValidRound == metadata.ValidRound;
         }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj) =>
+            public override bool Equals(object? obj) =>
             obj is ProposalMetadata other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
         {
             return HashCode.Combine(
                 Height,

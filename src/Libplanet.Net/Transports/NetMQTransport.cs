@@ -125,31 +125,24 @@ namespace Libplanet.Net.Transports
             ProcessMessageHandler = new AsyncDelegate<Message>();
         }
 
-        /// <inheritdoc/>
         public AsyncDelegate<Message> ProcessMessageHandler { get; }
 
-        /// <inheritdoc/>
         public BoundPeer AsPeer => _turnClient is TurnClient turnClient
-            ? new BoundPeer(_privateKey.PublicKey, turnClient.EndPoint, turnClient.PublicAddress)
-            : new BoundPeer(_privateKey.PublicKey, _hostEndPoint!);
+        ? new BoundPeer(_privateKey.PublicKey, turnClient.EndPoint, turnClient.PublicAddress)
+        : new BoundPeer(_privateKey.PublicKey, _hostEndPoint!);
 
-        /// <inheritdoc/>
         public DateTimeOffset? LastMessageTimestamp { get; private set; }
 
-        /// <inheritdoc/>
         public bool Running => _routerPoller?.IsRunning ?? false;
 
-        /// <inheritdoc/>
         public AppProtocolVersion AppProtocolVersion =>
-            _appProtocolVersionOptions.AppProtocolVersion;
+        _appProtocolVersionOptions.AppProtocolVersion;
 
-        /// <inheritdoc/>
         public IImmutableSet<PublicKey> TrustedAppProtocolVersionSigners =>
-            _appProtocolVersionOptions.TrustedAppProtocolVersionSigners;
+        _appProtocolVersionOptions.TrustedAppProtocolVersionSigners;
 
-        /// <inheritdoc/>
         public DifferentAppProtocolVersionEncountered DifferentAppProtocolVersionEncountered =>
-            _appProtocolVersionOptions.DifferentAppProtocolVersionEncountered;
+        _appProtocolVersionOptions.DifferentAppProtocolVersionEncountered;
 
         /// <summary>
         /// Creates an initialized <see cref="NetMQTransport"/> instance.
@@ -185,7 +178,6 @@ namespace Libplanet.Net.Transports
             return transport;
         }
 
-        /// <inheritdoc/>
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             if (_disposed)
@@ -223,11 +215,10 @@ namespace Libplanet.Net.Transports
             await pollerTask.ConfigureAwait(false);
         }
 
-        /// <inheritdoc/>
         public async Task StopAsync(
-            TimeSpan waitFor,
-            CancellationToken cancellationToken = default
-        )
+        TimeSpan waitFor,
+        CancellationToken cancellationToken = default
+    )
         {
             if (_disposed)
             {
@@ -253,7 +244,6 @@ namespace Libplanet.Net.Transports
             }
         }
 
-        /// <inheritdoc/>
         public void Dispose()
         {
             if (Running)
@@ -285,15 +275,13 @@ namespace Libplanet.Net.Transports
             }
         }
 
-        /// <inheritdoc/>
         public Task WaitForRunningAsync() => _runningEvent.WaitAsync();
 
-        /// <inheritdoc/>
         public async Task<Message> SendMessageAsync(
-            BoundPeer peer,
-            MessageContent content,
-            TimeSpan? timeout,
-            CancellationToken cancellationToken)
+        BoundPeer peer,
+        MessageContent content,
+        TimeSpan? timeout,
+        CancellationToken cancellationToken)
         {
             IEnumerable<Message> replies =
                 await SendMessageAsync(
@@ -308,15 +296,14 @@ namespace Libplanet.Net.Transports
             return reply;
         }
 
-        /// <inheritdoc/>
         public async Task<IEnumerable<Message>> SendMessageAsync(
-            BoundPeer peer,
-            MessageContent content,
-            TimeSpan? timeout,
-            int expectedResponses,
-            bool returnWhenTimeout,
-            CancellationToken cancellationToken
-        )
+        BoundPeer peer,
+        MessageContent content,
+        TimeSpan? timeout,
+        int expectedResponses,
+        bool returnWhenTimeout,
+        CancellationToken cancellationToken
+    )
         {
             if (_disposed)
             {
@@ -490,7 +477,6 @@ namespace Libplanet.Net.Transports
             }
         }
 
-        /// <inheritdoc/>
         public void BroadcastMessage(IEnumerable<BoundPeer> peers, MessageContent content)
         {
             if (_disposed)
@@ -525,11 +511,10 @@ namespace Libplanet.Net.Transports
             );
         }
 
-        /// <inheritdoc/>
         public async Task ReplyMessageAsync(
-            MessageContent content,
-            byte[] identity,
-            CancellationToken cancellationToken)
+        MessageContent content,
+        byte[] identity,
+        CancellationToken cancellationToken)
         {
             if (_disposed)
             {

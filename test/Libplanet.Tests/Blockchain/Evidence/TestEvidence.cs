@@ -22,15 +22,12 @@ namespace Libplanet.Tests.Blockchain.Evidence
 
         public Address ValidatorAddress => TargetAddress;
 
-        /// <inheritdoc/>
-        public bool Equals(TestEvidence other) => base.Equals(other);
+            public bool Equals(TestEvidence other) => base.Equals(other);
 
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
+            public override bool Equals(object obj)
             => obj is TestEvidence other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode() => base.GetHashCode();
+            public override int GetHashCode() => base.GetHashCode();
 
         protected override Dictionary OnBencoded(Dictionary dictionary)
             => dictionary;

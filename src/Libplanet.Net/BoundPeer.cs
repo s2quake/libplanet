@@ -96,16 +96,15 @@ namespace Libplanet.Net
 
         public string PeerString => $"{PublicKey},{EndPoint.Host},{EndPoint.Port}";
 
-        /// <inheritdoc/>
         [Pure]
         public Bencodex.Types.IValue Bencoded =>
-            Bencodex.Types.Dictionary.Empty
-                .Add(PublicKeyKey, PublicKey.Format(true))
-                .Add(EndPointHostKey, EndPoint.Host)
-                .Add(EndPointPortKey, EndPoint.Port)
-                .Add(
-                    PublicIpAddressKey,
-                    PublicIPAddress is IPAddress ip ? (IValue)(Text)ip.ToString() : Null.Value);
+        Bencodex.Types.Dictionary.Empty
+            .Add(PublicKeyKey, PublicKey.Format(true))
+            .Add(EndPointHostKey, EndPoint.Host)
+            .Add(EndPointPortKey, EndPoint.Port)
+            .Add(
+                PublicIpAddressKey,
+                PublicIPAddress is IPAddress ip ? (IValue)(Text)ip.ToString() : Null.Value);
 
         public static bool operator ==(BoundPeer left, BoundPeer right) => left.Equals(right);
 
@@ -182,7 +181,6 @@ namespace Libplanet.Net
         public override int GetHashCode() => HashCode.Combine(
             HashCode.Combine(PublicKey.GetHashCode(), PublicIPAddress?.GetHashCode()), EndPoint);
 
-        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{Address}.{EndPoint}.{PublicIPAddress}";

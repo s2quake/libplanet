@@ -119,8 +119,7 @@ namespace Libplanet.Types.Consensus
         /// </summary>
         public BigInteger OneThirdPower => TotalPower / 3;
 
-        /// <inheritdoc/>
-        public Bencodex.Types.IValue Bencoded =>
+            public Bencodex.Types.IValue Bencoded =>
             new Bencodex.Types.List(Validators.Select(validator => validator.Bencoded));
 
         /// <summary>
@@ -216,15 +215,12 @@ namespace Libplanet.Types.Consensus
             }
         }
 
-        /// <inheritdoc/>
-        public bool Equals(ValidatorSet? other) =>
+            public bool Equals(ValidatorSet? other) =>
             other is ValidatorSet validators && Validators.SequenceEqual(validators.Validators);
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj) => obj is ValidatorSet other && Equals(other);
+            public override bool Equals(object? obj) => obj is ValidatorSet other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
         {
             int hashCode = 17;
             foreach (Validator validator in Validators)
