@@ -231,23 +231,20 @@ namespace Libplanet.Net
             Signer.Equals(new Address(publicKey)) &&
             publicKey.Verify(GetMessage(Version, Extra), Signature.ToBuilder().ToArray());
 
-        /// <inheritdoc/>
         [Pure]
         public bool Equals(AppProtocolVersion other) =>
-            /* The reason why we need to check other fields than the Signature is that
-            this struct in itself does not guarantee its Signature is derived from
-            other field values.  A value of this struct can represent an invalid claim. */
-            Version == other.Version &&
-            Signer.Equals(other.Signer) &&
-            Equals(Extra, other.Extra) &&
-            Signature.SequenceEqual(other.Signature);
+        /* The reason why we need to check other fields than the Signature is that
+        this struct in itself does not guarantee its Signature is derived from
+        other field values.  A value of this struct can represent an invalid claim. */
+        Version == other.Version &&
+        Signer.Equals(other.Signer) &&
+        Equals(Extra, other.Extra) &&
+        Signature.SequenceEqual(other.Signature);
 
-        /// <inheritdoc/>
         [Pure]
         public override bool Equals(object? obj) =>
-            obj is AppProtocolVersion other && Equals(other);
+        obj is AppProtocolVersion other && Equals(other);
 
-        /// <inheritdoc/>
         [Pure]
         public override int GetHashCode()
         {
@@ -263,14 +260,13 @@ namespace Libplanet.Net
             return hash;
         }
 
-        /// <inheritdoc/>
         [Pure]
         public override string ToString() => string.Format(
-            CultureInfo.InvariantCulture,
-            Extra is null ? "{0}" : "{0} ({1})",
-            Version,
-            Extra
-        );
+        CultureInfo.InvariantCulture,
+        Extra is null ? "{0}" : "{0} ({1})",
+        Version,
+        Extra
+    );
 
         /// <summary>
         /// Gets a deterministic message to sign.

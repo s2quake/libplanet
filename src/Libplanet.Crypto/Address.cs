@@ -13,32 +13,6 @@ using Libplanet.Common;
 
 namespace Libplanet.Crypto
 {
-    /// <summary>
-    /// An identifier of 20 bytes (or 40 letters in hexadecimal, commonly with
-    /// a prefix <c>0x</c>) that refers to a unique account.
-    /// <para>It is derived from the corresponding <see cref="PublicKey"/>
-    /// of an account, but as a derivation loses information, it is always
-    /// unidirectional.</para>
-    /// <para>The address derivation from a public key is as follows:</para>
-    /// <list type="number">
-    /// <item><description>Calculates the Keccak-256, which is a previous form
-    /// of SHA-3 before NIST standardized it and does not follow
-    /// <a href="http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf"
-    /// >FIPS-202</a>, of the corresponding <see cref="PublicKey"/>.
-    /// </description></item>
-    /// <item><description>Takes only the last 20 bytes of the calculated
-    /// Keccak-256 hash.</description></item>
-    /// <item><description>When the address needs to be shown to end users,
-    /// displays these 20 bytes in hexadecimal, with a prefix <c>0x</c>.
-    /// </description></item>
-    /// </list>
-    /// <para>Since the scheme of the address derivation and the <see
-    /// cref="PrivateKey"/>/<see cref="PublicKey"/> is the same to
-    /// <a href="https://www.ethereum.org/">Ethereum</a>, Ethereum addresses
-    /// can be used by Libplanet-backed games/apps too.</para>
-    /// </summary>
-    /// <remarks>Every <see cref="Address"/> value is immutable.</remarks>
-    /// <seealso cref="PublicKey"/>
     [TypeConverter(typeof(AddressTypeConverter))]
     [JsonConverter(typeof(AddressJsonConverter))]
     public readonly struct Address
@@ -168,8 +142,7 @@ namespace Libplanet.Crypto
             ? _defaultByteArray
             : _byteArray;
 
-        /// <inheritdoc/>
-        public IValue Bencoded => new Binary(ByteArray);
+            public IValue Bencoded => new Binary(ByteArray);
 
         public static bool operator ==(Address left, Address right) => left.Equals(right);
 

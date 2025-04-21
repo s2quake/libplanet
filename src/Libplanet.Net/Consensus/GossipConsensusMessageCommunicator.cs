@@ -59,11 +59,9 @@ namespace Libplanet.Net.Consensus
         /// </summary>
         internal Gossip Gossip { get; }
 
-        /// <inheritdoc/>
         public void PublishMessage(ConsensusMsg message)
-            => Gossip.PublishMessage(message);
+        => Gossip.PublishMessage(message);
 
-        /// <inheritdoc/>
         public void OnStartHeight(long height)
         {
             _height = height;
@@ -71,7 +69,6 @@ namespace Libplanet.Net.Consensus
             Gossip.ClearDenySet();
         }
 
-        /// <inheritdoc/>
         public void OnStartRound(int round)
         {
             _round = round;

@@ -256,14 +256,11 @@ public static class Utils
             PlainValue = Null.Value;
         }
 
-        /// <inheritdoc/>
         public IValue PlainValue { get; private set; }
 
-        /// <inheritdoc/>
         public IWorld Execute(IActionContext context) =>
-            context.PreviousState;
+        context.PreviousState;
 
-        /// <inheritdoc/>
         public void LoadPlainValue(IValue plainValue)
         {
             PlainValue = plainValue;

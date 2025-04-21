@@ -176,41 +176,34 @@ namespace Libplanet.Blockchain.Policies
         /// </summary>
         public TimeSpan BlockInterval { get; }
 
-        /// <inheritdoc/>
         public virtual TxPolicyViolationException? ValidateNextBlockTx(
-            BlockChain blockChain, Transaction transaction)
+        BlockChain blockChain, Transaction transaction)
         {
             return _validateNextBlockTx(blockChain, transaction);
         }
 
-        /// <inheritdoc/>
         public virtual BlockPolicyViolationException? ValidateNextBlock(
-            BlockChain blockChain,
-            Block nextBlock)
+        BlockChain blockChain,
+        Block nextBlock)
         {
             return _validateNextBlock(blockChain, nextBlock);
         }
 
-        /// <inheritdoc/>
         [Pure]
         public long GetMaxTransactionsBytes(long index) => _getMaxTransactionsBytes(index);
 
-        /// <inheritdoc/>
         [Pure]
         public int GetMinTransactionsPerBlock(long index) => _getMinTransactionsPerBlock(index);
 
-        /// <inheritdoc/>
         [Pure]
         public int GetMaxTransactionsPerBlock(long index) => _getMaxTransactionsPerBlock(index);
 
-        /// <inheritdoc/>
         [Pure]
         public int GetMaxTransactionsPerSignerPerBlock(long index)
-            => _getMaxTransactionsPerSignerPerBlock(index);
+        => _getMaxTransactionsPerSignerPerBlock(index);
 
-        /// <inheritdoc/>
         [Pure]
         public long GetMaxEvidencePendingDuration(long index)
-            => _getMaxEvidencePendingDuration(index);
+        => _getMaxEvidencePendingDuration(index);
     }
 }

@@ -108,8 +108,7 @@ namespace Libplanet.Types.Tx
             ? _defaultByteArray
             : _byteArray;
 
-        /// <inheritdoc/>
-        public IValue Bencoded => new Binary(ByteArray);
+            public IValue Bencoded => new Binary(ByteArray);
 
         public static bool operator ==(TxId left, TxId right) => left.Equals(right);
 

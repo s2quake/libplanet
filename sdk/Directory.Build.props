@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Remove="StyleCop.Analyzers" />
-    <PackageReference Remove="Menees.Analyzers.2017" />
     <PackageReference Remove="Microsoft.DotNet.Analyzers.Compatibility" />
     <PackageReference Remove="SonarAnalyzer.CSharp" />
 
@@ -27,10 +26,6 @@
       <IncludeAssets>
         runtime; build; native; contentfiles; analyzers
       </IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Menees.Analyzers" Version="3.2.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="SonarAnalyzer.CSharp" Version="9.27.0.93347">
       <PrivateAssets>all</PrivateAssets>

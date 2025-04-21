@@ -32,14 +32,18 @@ namespace Libplanet.Store.Remote.Client
             _client = client;
         }
 
-        /// <inheritdoc/>
-        public void Dispose()
+            public void Dispose()
         {
             // Do nothing.
         }
 
-        /// <inheritdoc/>
-        public byte[] Get(in KeyBytes key)
+        public byte[] this[in KeyBytes key]
+        {
+            get => Get(key);
+            set => Set(key, value);
+        }
+
+            public byte[] Get(in KeyBytes key)
         {
             KeyValueStoreValue value;
             try
@@ -57,8 +61,7 @@ namespace Libplanet.Store.Remote.Client
             return value.Data.ToByteArray();
         }
 
-        /// <inheritdoc/>
-        public void Set(in KeyBytes key, byte[] value) =>
+            public void Set(in KeyBytes key, byte[] value) =>
             _client.SetValue(new SetValueRequest
             {
                 Item = new KeyValueStorePair
@@ -68,8 +71,7 @@ namespace Libplanet.Store.Remote.Client
                 },
             });
 
-        /// <inheritdoc/>
-        public void Set(IDictionary<KeyBytes, byte[]> values) =>
+            public void SetMany(IDictionary<KeyBytes, byte[]> values) =>
             _client.SetValues(new SetValuesRequest
             {
                 Items =
@@ -83,29 +85,29 @@ namespace Libplanet.Store.Remote.Client
                 },
             });
 
-        /// <inheritdoc/>
-        public void Delete(in KeyBytes key) =>
+            public bool Remove(in KeyBytes key)
+        {
             _client.DeleteValue(new DeleteValueRequest
             {
                 Key = key.ToKeyValueStoreKey(),
             });
 
-        /// <inheritdoc/>
-        public void Delete(IEnumerable<KeyBytes> keys) =>
+            return true;
+        }
+
+            public void RemoveMany(IEnumerable<KeyBytes> keys) =>
             _client.DeleteValues(new DeleteValuesRequest
             {
                 Keys = { keys.Select(KeyBytesExtensions.ToKeyValueStoreKey) },
             });
 
-        /// <inheritdoc/>
-        public bool Exists(in KeyBytes key) =>
+            public bool ContainsKey(in KeyBytes key) =>
             _client.ExistsKey(new ExistsKeyRequest
             {
                 Key = key.ToKeyValueStoreKey(),
             }).Exists;
 
-        /// <inheritdoc/>
-        public IEnumerable<KeyBytes> ListKeys() =>
+            public IEnumerable<KeyBytes> Keys =>
             _client
                 .ListKeys(new ListKeysRequest())
                 .Keys

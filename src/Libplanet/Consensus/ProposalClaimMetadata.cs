@@ -155,8 +155,7 @@ namespace Libplanet.Consensus
         public ProposalClaim Sign(PrivateKey signer) =>
             new ProposalClaim(this, signer.Sign(ByteArray).ToImmutableArray());
 
-        /// <inheritdoc/>
-        public bool Equals(ProposalClaimMetadata? other)
+            public bool Equals(ProposalClaimMetadata? other)
         {
             return other is ProposalClaimMetadata metadata &&
                 Height == metadata.Height &&
@@ -170,12 +169,10 @@ namespace Libplanet.Consensus
                 ValidatorPublicKey.Equals(metadata.ValidatorPublicKey);
         }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj) =>
+            public override bool Equals(object? obj) =>
             obj is ProposalMetadata other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
         {
             return HashCode.Combine(
                 Height,

@@ -116,8 +116,7 @@ namespace Libplanet.KeyStore.Kdfs
         /// </summary>
         public int BlockSize { get; }
 
-        /// <inheritdoc/>
-        [Pure]
+            [Pure]
         public ImmutableArray<byte> Derive(string passphrase)
         {
             var key = Norgerman.Cryptography.Scrypt.ScryptUtil.Scrypt(
@@ -126,8 +125,7 @@ namespace Libplanet.KeyStore.Kdfs
             return ImmutableArray.Create(key, 0, KeyLength);
         }
 
-        /// <inheritdoc/>
-        public string WriteJson(Utf8JsonWriter writer)
+            public string WriteJson(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
             writer.WriteNumber("dklen", KeyLength);

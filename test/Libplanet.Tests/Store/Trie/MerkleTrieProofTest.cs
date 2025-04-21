@@ -14,6 +14,7 @@ namespace Libplanet.Tests.Store.Trie
 {
     public class MerkleTrieProofTest
     {
+        public readonly IKeyValueStore KeyValueStore = new MemoryKeyValueStore();
         public readonly IStateStore StateStore;
 
         // "1b16b1df538ba12dc3f97edbb85caa7050d46c148134290feba80f8236c83db9"
@@ -64,10 +65,10 @@ namespace Libplanet.Tests.Store.Trie
         public readonly HashDigest<SHA256> FullTrieHash = new HashDigest<SHA256>(
             ByteUtil.ParseHex("979a00921d42d2ca63e98c1c2ac07f0eacbb99e363b8f2f7f8e4d19c854b6c20"));
 
-        public readonly KeyBytes K00 = KeyBytes.FromHex("00");
-        public readonly KeyBytes K01 = KeyBytes.FromHex("01");
-        public readonly KeyBytes K0000 = KeyBytes.FromHex("0000");
-        public readonly KeyBytes K0010 = KeyBytes.FromHex("0010");
+        public readonly KeyBytes K00 = KeyBytes.Parse("00");
+        public readonly KeyBytes K01 = KeyBytes.Parse("01");
+        public readonly KeyBytes K0000 = KeyBytes.Parse("0000");
+        public readonly KeyBytes K0010 = KeyBytes.Parse("0010");
 
         public readonly IValue V00 = new Text("00");
         public readonly IValue V01 = new Text("01");
@@ -83,8 +84,8 @@ namespace Libplanet.Tests.Store.Trie
 
         public MerkleTrieProofTest()
         {
-            StateStore = new TrieStateStore(new MemoryKeyValueStore());
-            ITrie trie = StateStore.GetStateRoot(null);
+            StateStore = new TrieStateStore(KeyValueStore);
+            ITrie trie = StateStore.GetStateRoot(default);
             EmptyTrie = trie;
 
             trie = trie.Set(K00, V00);
@@ -102,13 +103,16 @@ namespace Libplanet.Tests.Store.Trie
 
             INode proofNode0010 = new ValueNode(V0010);
             INode proofNode001 = new ShortNode(n0, ToHashNode(proofNode0010));
-            INode proofNode00 = FullNode.Empty
-                .SetChild(0, new ShortNode(n0, new ValueNode(V0000)))
-                .SetChild(1, ToHashNode(proofNode001))
-                .SetChild(FullNode.ChildrenCount - 1, new ValueNode(V00));
-            INode proofNode0 = FullNode.Empty
-                .SetChild(0, ToHashNode(proofNode00))
-                .SetChild(1, new ValueNode(V01));
+            INode proofNode00 = new FullNode(
+                ImmutableDictionary<byte, INode>.Empty
+                    .Add(0, new ShortNode(n0, new ValueNode(V0000)))
+                    .Add(1, ToHashNode(proofNode001)),
+                new ValueNode(V00));
+            INode proofNode0 = new FullNode(
+                ImmutableDictionary<byte, INode>.Empty
+                    .Add(0, ToHashNode(proofNode00))
+                    .Add(1, new ValueNode(V01)),
+                null);
             INode proofRoot = new ShortNode(n0, ToHashNode(proofNode0));
             P00 = new List<INode>() { proofRoot, proofNode0, proofNode00 };
             P01 = new List<INode>() { proofRoot, proofNode0 };
@@ -127,26 +131,26 @@ namespace Libplanet.Tests.Store.Trie
         [Fact]
         public void GetProof()
         {
-            var proof = ((MerkleTrie)FullTrie).GenerateProof(K00, V00);
+            var proof = ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V00);
             Assert.Equal(P00, proof);
 
-            proof = ((MerkleTrie)FullTrie).GenerateProof(K01, V01);
+            proof = ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K01, V01);
             Assert.Equal(P01, proof);
 
-            proof = ((MerkleTrie)FullTrie).GenerateProof(K0000, V0000);
+            proof = ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K0000, V0000);
             Assert.Equal(P0000, proof);
 
-            proof = ((MerkleTrie)FullTrie).GenerateProof(K0010, V0010);
+            proof = ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K0010, V0010);
             Assert.Equal(P0010, proof);
 
-            KeyBytes k = KeyBytes.FromHex(string.Empty);
+            KeyBytes k = KeyBytes.Parse(string.Empty);
             IValue v = new Text(string.Empty);
             var trie = StateStore.Commit(EmptyTrie.Set(k, v));
-            proof = ((MerkleTrie)trie).GenerateProof(k, v);
+            proof = ((Libplanet.Store.Trie.Trie)trie).GenerateProof(k, v);
             Assert.Equal(v, Assert.IsType<ValueNode>(Assert.Single(proof)).Value);
 
             trie = StateStore.Commit(FullTrie.Set(k, v));
-            proof = ((MerkleTrie)trie).GenerateProof(k, v);
+            proof = ((Libplanet.Store.Trie.Trie)trie).GenerateProof(k, v);
             Assert.Equal(
                 v,
                 Assert.IsType<ValueNode>(
@@ -157,18 +161,18 @@ namespace Libplanet.Tests.Store.Trie
         [Fact]
         public void DifferentRootsProduceDifferentProofs()
         {
-            var proof1 = ((MerkleTrie)FullTrie).GenerateProof(K00, V00);
-            var proof2 = ((MerkleTrie)HalfTrie).GenerateProof(K00, V00);
+            var proof1 = ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V00);
+            var proof2 = ((Libplanet.Store.Trie.Trie)HalfTrie).GenerateProof(K00, V00);
             Assert.NotEqual(proof1.Count, proof2.Count);
 
             Assert.True(
-                MerkleTrie.ValidateProof(FullTrieHash, proof1, K00, V00));
+                Libplanet.Store.Trie.Trie.ValidateProof(FullTrieHash, proof1, K00, V00));
             Assert.False(
-                MerkleTrie.ValidateProof(FullTrieHash, proof2, K00, V00));
+                Libplanet.Store.Trie.Trie.ValidateProof(FullTrieHash, proof2, K00, V00));
             Assert.False(
-                MerkleTrie.ValidateProof(HalfTrieHash, proof1, K00, V00));
+                Libplanet.Store.Trie.Trie.ValidateProof(HalfTrieHash, proof1, K00, V00));
             Assert.True(
-                MerkleTrie.ValidateProof(HalfTrieHash, proof2, K00, V00));
+                Libplanet.Store.Trie.Trie.ValidateProof(HalfTrieHash, proof2, K00, V00));
         }
 
         [Fact]
@@ -177,69 +181,69 @@ namespace Libplanet.Tests.Store.Trie
             Assert.Contains(
                 "recorded",
                 Assert.Throws<InvalidOperationException>(
-                    () => ((MerkleTrie)UncommittedTrie).GenerateProof(K00, V00)).Message);
+                    () => ((Libplanet.Store.Trie.Trie)UncommittedTrie).GenerateProof(K00, V00)).Message);
             Assert.Contains(
                 "non-null",
                 Assert.Throws<InvalidOperationException>(
-                    () => ((MerkleTrie)EmptyTrie).GenerateProof(K00, V00)).Message);
+                    () => ((Libplanet.Store.Trie.Trie)EmptyTrie).GenerateProof(K00, V00)).Message);
             Assert.Contains(
                 "does not match",
                 Assert.Throws<ArgumentException>(
-                    () => ((MerkleTrie)FullTrie).GenerateProof(K00, V01)).Message);
+                    () => ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V01)).Message);
             Assert.Contains(
                 "could not be fully resolved",
                 Assert.Throws<ArgumentException>(
-                    () => ((MerkleTrie)FullTrie).GenerateProof(
-                        KeyBytes.FromHex("000000"), V0000)).Message);
+                    () => ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(
+                        KeyBytes.Parse("000000"), V0000)).Message);
             Assert.Contains(
                 "could not be properly resolved",
                 Assert.Throws<ArgumentException>(
-                    () => ((MerkleTrie)FullTrie).GenerateProof(
-                        KeyBytes.FromHex("0020"), V0000)).Message);
+                    () => ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(
+                        KeyBytes.Parse("0020"), V0000)).Message);
         }
 
         [Fact]
         public void ValidateProof()
         {
-            Assert.True(MerkleTrie.ValidateProof(
+            Assert.True(Libplanet.Store.Trie.Trie.ValidateProof(
                 FullTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K00, V00),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V00),
                 K00,
                 V00));
-            Assert.True(MerkleTrie.ValidateProof(
+            Assert.True(Libplanet.Store.Trie.Trie.ValidateProof(
                 FullTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K01, V01),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K01, V01),
                 K01,
                 V01));
-            Assert.True(MerkleTrie.ValidateProof(
+            Assert.True(Libplanet.Store.Trie.Trie.ValidateProof(
                 FullTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K0000, V0000),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K0000, V0000),
                 K0000,
                 V0000));
-            Assert.True(MerkleTrie.ValidateProof(
+            Assert.True(Libplanet.Store.Trie.Trie.ValidateProof(
                 FullTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K0010, V0010),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K0010, V0010),
                 K0010,
                 V0010));
 
-            Assert.False(MerkleTrie.ValidateProof(
+            Assert.False(Libplanet.Store.Trie.Trie.ValidateProof(
                 HalfTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K00, V00),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V00),
                 K00,
                 V00));  // Wrong hash
-            Assert.False(MerkleTrie.ValidateProof(
+            Assert.False(Libplanet.Store.Trie.Trie.ValidateProof(
                 FullTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K00, V00),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V00),
                 K00,
                 V01));  // Wrong value
-            Assert.False(MerkleTrie.ValidateProof(
+            Assert.False(Libplanet.Store.Trie.Trie.ValidateProof(
                 FullTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K00, V00),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V00),
                 K01,
                 V00));  // Wrong key
-            Assert.False(MerkleTrie.ValidateProof(
+            Assert.False(Libplanet.Store.Trie.Trie.ValidateProof(
                 FullTrieHash,
-                ((MerkleTrie)FullTrie).GenerateProof(K00, V00),
+                ((Libplanet.Store.Trie.Trie)FullTrie).GenerateProof(K00, V00),
                 K01,
                 V01));  // Wrong proof
         }

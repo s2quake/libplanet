@@ -75,8 +75,7 @@ namespace Libplanet.Types.Consensus
         [JsonIgnore]
         public Address OperatorAddress => PublicKey.Address;
 
-        /// <inheritdoc/>
-        [JsonIgnore]
+            [JsonIgnore]
         public Bencodex.Types.IValue Bencoded => Dictionary.Empty
             .Add(PublicKeyKey, PublicKey.Format(true))
             .Add(PowerKey, Power);
@@ -91,8 +90,7 @@ namespace Libplanet.Types.Consensus
             return !(obj == other);
         }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj)
+            public override bool Equals(object? obj)
         {
             if (obj is Validator other)
             {
@@ -102,19 +100,16 @@ namespace Libplanet.Types.Consensus
             return false;
         }
 
-        /// <inheritdoc/>
-        public bool Equals(Validator? other)
+            public bool Equals(Validator? other)
         {
             return PublicKey.Equals(other?.PublicKey) && Power.Equals(other?.Power);
         }
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
         {
             return HashCode.Combine(PublicKey, Power);
         }
 
-        /// <inheritdoc/>
-        public override string ToString() => $"{PublicKey}:{Power}";
+            public override string ToString() => $"{PublicKey}:{Power}";
     }
 }

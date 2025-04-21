@@ -111,8 +111,7 @@ namespace Libplanet.Types.Evidence
             ? DefaultByteArray
             : _byteArray;
 
-        /// <inheritdoc/>
-        public IValue Bencoded => new Binary(ByteArray);
+            public IValue Bencoded => new Binary(ByteArray);
 
         public static bool operator ==(EvidenceId left, EvidenceId right) => left.Equals(right);
 

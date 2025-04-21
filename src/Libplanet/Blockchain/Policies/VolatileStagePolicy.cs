@@ -74,7 +74,6 @@ namespace Libplanet.Blockchain.Policies
         /// </remarks>
         public TimeSpan Lifetime { get; }
 
-        /// <inheritdoc/>
         public bool Stage(BlockChain blockChain, Transaction transaction)
         {
             if (Expired(transaction))
@@ -133,7 +132,6 @@ namespace Libplanet.Blockchain.Policies
             return result;
         }
 
-        /// <inheritdoc/>
         public bool Unstage(BlockChain blockChain, TxId id)
         {
             bool result;
@@ -150,7 +148,6 @@ namespace Libplanet.Blockchain.Policies
             return result;
         }
 
-        /// <inheritdoc/>
         public void Ignore(BlockChain blockChain, TxId id)
         {
             _lock.EnterUpgradeableReadLock();
@@ -180,7 +177,6 @@ namespace Libplanet.Blockchain.Policies
             }
         }
 
-        /// <inheritdoc/>
         public bool Ignores(BlockChain blockChain, TxId id)
         {
             _lock.EnterReadLock();
@@ -194,7 +190,6 @@ namespace Libplanet.Blockchain.Policies
             }
         }
 
-        /// <inheritdoc/>
         public Transaction? Get(BlockChain blockChain, TxId id, bool filtered = true)
         {
             _lock.EnterReadLock();
@@ -208,7 +203,6 @@ namespace Libplanet.Blockchain.Policies
             }
         }
 
-        /// <inheritdoc/>
         public IEnumerable<Transaction> Iterate(BlockChain blockChain, bool filtered = true)
         {
             List<Transaction> transactions = new List<Transaction>();
@@ -233,7 +227,6 @@ namespace Libplanet.Blockchain.Policies
             return transactions;
         }
 
-        /// <inheritdoc/>
         public long GetNextTxNonce(BlockChain blockChain, Address address)
         {
             long nonce = blockChain.Store.GetTxNonce(blockChain.Id, address);

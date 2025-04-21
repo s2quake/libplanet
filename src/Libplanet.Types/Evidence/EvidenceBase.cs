@@ -191,14 +191,11 @@ namespace Libplanet.Types.Evidence
         /// </returns>
         public byte[] Serialize() => Codec.Encode(Bencode(this));
 
-        /// <inheritdoc/>
-        public bool Equals(EvidenceBase? other) => Id.Equals(other?.Id);
+            public bool Equals(EvidenceBase? other) => Id.Equals(other?.Id);
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj) => obj is EvidenceBase other && Equals(other);
+            public override bool Equals(object? obj) => obj is EvidenceBase other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode() => unchecked((17 * 31 + Id.GetHashCode()) * 31);
+            public override int GetHashCode() => unchecked((17 * 31 + Id.GetHashCode()) * 31);
 
         /// <inheritdoc cref="IComparable{T}.CompareTo(T)"/>
         public int CompareTo(EvidenceBase? other) => Id.CompareTo(other?.Id);

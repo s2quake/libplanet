@@ -236,8 +236,7 @@ namespace Libplanet.Types.Evidence
             }
         }
 
-        /// <inheritdoc/>
-        public bool Equals(DuplicateVoteEvidence? other)
+            public bool Equals(DuplicateVoteEvidence? other)
         {
             if (base.Equals(other) == true && other is DuplicateVoteEvidence duplicateVoteEvidence)
             {
@@ -250,12 +249,10 @@ namespace Libplanet.Types.Evidence
             return false;
         }
 
-        /// <inheritdoc/>
-        public override bool Equals(object? obj)
+            public override bool Equals(object? obj)
             => obj is DuplicateVoteEvidence other && Equals(other);
 
-        /// <inheritdoc/>
-        public override int GetHashCode()
+            public override int GetHashCode()
             => HashCode.Combine(
                 Height,
                 VoteRef,
