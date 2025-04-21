@@ -85,7 +85,7 @@ namespace Libplanet.Tests.Tx
                     new TxInvoice(
                         genesisHash: genesisHash,
                         updatedAddresses: ImmutableHashSet.Create(
-                            new Address("c2a86014073d662a4a9bfcf9cb54263dfa4f5cbc")),
+                            Address.Parse("c2a86014073d662a4a9bfcf9cb54263dfa4f5cbc")),
                         timestamp: timestamp,
                         actions: new TxActionList(actions.ToPlainValues()),
                         maxGasPrice: null,

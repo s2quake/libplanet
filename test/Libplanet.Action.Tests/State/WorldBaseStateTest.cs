@@ -35,8 +35,8 @@ namespace Libplanet.Action.Tests.State
         [Fact]
         public void Metadata()
         {
-            var accountAddress = new Address(TestUtils.GetRandomBytes(20));
-            var address = new Address(TestUtils.GetRandomBytes(20));
+            var accountAddress = new Address([.. TestUtils.GetRandomBytes(20)]);
+            var address = new Address([.. TestUtils.GetRandomBytes(20)]);
             ITrie accountTrie = Trie.Create(hashDigest: default);
             accountTrie = accountTrie.Set(ToStateKey(address), (Text)"foo");
             accountTrie =
@@ -66,7 +66,7 @@ namespace Libplanet.Action.Tests.State
         public void MetadataLegacy()
         {
             var accountAddress = ReservedAddresses.LegacyAccount;
-            var address = new Address(TestUtils.GetRandomBytes(20));
+            var address = new Address([.. TestUtils.GetRandomBytes(20)]);
             ITrie accountTrie = Trie.Create(hashDigest: default);
             accountTrie = accountTrie.Set(ToStateKey(address), (Text)"foo");
             accountTrie = _stateStore.Commit(accountTrie);

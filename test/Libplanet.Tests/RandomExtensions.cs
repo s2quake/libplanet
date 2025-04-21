@@ -20,7 +20,7 @@ public static class RandomExtensions
 
     public static TxId NextTxId(this Random @this) => new(@this.NextBytes(TxId.Size));
 
-    public static Address NextAddress(this Random @this) => new(@this.NextBytes(Address.Size));
+    public static Address NextAddress(this Random @this) => new([.. @this.NextBytes(Address.Size)]);
 
     public static HashDigest<T> NextHashDigest<T>(this Random @this)
         where T : HashAlgorithm

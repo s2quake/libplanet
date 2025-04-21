@@ -1041,7 +1041,7 @@ public partial class RocksDBStore : BaseStore
             byte[] addressBytes = it.Key()
                 .Skip(prefix.Length)
                 .ToArray();
-            var address = new Address(addressBytes);
+            var address = new Address([.. addressBytes]);
             long nonce = RocksDBStoreBitConverter.ToInt64(it.Value());
             yield return new KeyValuePair<Address, long>(address, nonce);
         }
@@ -1137,7 +1137,7 @@ public partial class RocksDBStore : BaseStore
             foreach (Iterator it in IterateDb(_chainDb, prefix))
             {
                 exist = true;
-                Address address = new Address(it.Key().Skip(prefix.Length).ToArray());
+                Address address = new Address([.. it.Key().Skip(prefix.Length)]);
                 writeBatch.Put(TxNonceKey(destinationChainId, address), it.Value());
                 if (writeBatch.Count() >= ForkWriteBatchSize)
                 {

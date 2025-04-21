@@ -201,13 +201,13 @@ internal sealed class BlockChainService(
 
         foreach (var accountKv in data)
         {
-            var key = new Address(accountKv.Key);
+            var key = Address.Parse(accountKv.Key);
             IAccount account = world.GetAccount(key);
 
             foreach (var stateKv in accountKv.Value)
             {
                 account = account.SetState(
-                    new Address(stateKv.Key),
+                    Address.Parse(stateKv.Key),
                     codec.Decode(ByteUtil.ParseHex(stateKv.Value)));
             }
 

@@ -81,7 +81,7 @@ namespace Libplanet.Net
 
             _runningMutex = new AsyncLock();
 
-            string loggerId = _privateKey.Address.ToHex();
+            string loggerId = _privateKey.Address.ToString("raw", null);
             _logger = Log
                 .ForContext<Swarm>()
                 .ForContext("Source", nameof(Swarm))

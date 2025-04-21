@@ -18,7 +18,7 @@ namespace Libplanet.Explorer.Tests.Fixtures
         /// The <see cref="Crypto.Address"/> to have its state and balance set.
         /// </summary>
         public static readonly Address Address =
-            new Address("0x5003712B63baAB98094aD678EA2B24BcE445D076");
+            Address.Parse("0x5003712B63baAB98094aD678EA2B24BcE445D076");
 
         /// <summary>
         /// The <see cref="Types.Assets.Currency"/> of the balance

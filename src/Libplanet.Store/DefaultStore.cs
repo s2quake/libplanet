@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -187,7 +188,7 @@ public class DefaultStore : BaseStore
                 b => new TxId(b));
             _db.Mapper.RegisterType(
                 address => address.ToByteArray(),
-                b => new Address(b.AsBinary));
+                b => new Address([.. b.AsBinary]));
             _db.Mapper.RegisterType(
                 commit => Codec.Encode(commit.Bencoded),
                 b => new BlockCommit(Codec.Decode(b)));
@@ -570,7 +571,7 @@ public class DefaultStore : BaseStore
         {
             if (doc.TryGetValue("_id", out BsonValue id) && id.IsBinary)
             {
-                var address = new Address(id.AsBinary);
+                var address = new Address([.. id.AsBinary]);
                 if (doc.TryGetValue("v", out BsonValue v) && v.IsInt64 && v.AsInt64 > 0)
                 {
                     yield return new KeyValuePair<Address, long>(address, v.AsInt64);

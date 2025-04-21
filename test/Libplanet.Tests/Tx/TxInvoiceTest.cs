@@ -14,10 +14,10 @@ namespace Libplanet.Tests.Tx
     public class TxInvoiceTest
     {
         public static readonly Address AddressA =
-            new Address("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+            Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
 
         public static readonly Address AddressB =
-            new Address("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
+            Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
 
         [Fact]
         public void ConstructorGasConditions()

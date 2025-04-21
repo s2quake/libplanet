@@ -17,7 +17,7 @@ namespace Libplanet.Net.Messages
 
         public FindNeighborsMsg(byte[][] dataFrames)
         {
-            Target = new Address(dataFrames[0]);
+            Target = new Address([.. dataFrames[0]]);
         }
 
         public Address Target { get; }

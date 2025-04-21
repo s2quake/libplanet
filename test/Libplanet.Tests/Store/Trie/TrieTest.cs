@@ -42,7 +42,7 @@ public class TrieTest
 
         foreach (var address in addresses)
         {
-            states[address] = (Text)address.ToHex();
+            states[address] = (Text)address.ToString("raw", null);
             trie = trie.Set(new KeyBytes(address.ByteArray), states[address]);
             CheckAddressStates();
         }

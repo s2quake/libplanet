@@ -144,11 +144,11 @@ namespace Libplanet.Tests.Tx
             ITxInvoice invoiceB = TxMarshaler.UnmarshalTxInvoice(marshaledInvoiceB);
             Assert.Equal<ITxInvoice>(invoiceA, invoiceB);
             Assert.Equal<IEnumerable<Address>>(
-                new[] { default(Address), new Address("ffffffffffffffffffffffffffffffffffffffff") },
+                new[] { default(Address), Address.Parse("ffffffffffffffffffffffffffffffffffffffff") },
                 invoiceA.UpdatedAddresses
             );
             Assert.Equal<IEnumerable<Address>>(
-                new[] { new Address("ffffffffffffffffffffffffffffffffffffffff"), default(Address) },
+                new[] { Address.Parse("ffffffffffffffffffffffffffffffffffffffff"), default(Address) },
                 invoiceB.UpdatedAddresses
             );
             AssertBencodexEqual(marshaledInvoiceA, invoiceA.MarshalTxInvoice());

@@ -22,7 +22,7 @@ namespace Libplanet.Tests
             };
 
             Assert.Equal(
-                new Address("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"),
+                Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"),
                 new Address(addr.ToImmutableArray())
             );
         }
@@ -31,7 +31,7 @@ namespace Libplanet.Tests
         public void DefaultConstructor()
         {
             Address defaultValue = default;
-            Assert.Equal(new Address(new byte[20]), defaultValue);
+            Assert.Equal(new Address([.. new byte[20]]), defaultValue);
         }
 
         [Fact]
@@ -48,12 +48,11 @@ namespace Libplanet.Tests
             );
             Assert.Equal(
                 new Address(
-                    new byte[]
-                    {
+                    [
                         0xd4, 0x1f, 0xad, 0xf6, 0x1b, 0xad, 0xf5, 0xbe,
                         0x2d, 0xe6, 0x0e, 0x9f, 0xc3, 0x23, 0x0c, 0x0a,
                         0x8a, 0x43, 0x90, 0xf0,
-                    }
+                    ]
                 ),
                 new Address(key)
             );
@@ -64,24 +63,23 @@ namespace Libplanet.Tests
         {
             Assert.Equal(
                 new Address(
-                    new byte[20]
-                    {
+                    [
                         0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xab,
                         0xcd, 0xef, 0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef, 0xab,
                         0xcd, 0xef,
-                    }
+                    ]
                 ),
-                new Address(
+                Address.Parse(
                     "0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"
                 )
             );
 
-            var address = new Address(
+            var address = Address.Parse(
                 "45a22187e2d8850bb357886958bc3e8560929ccc"
             );
             Assert.Equal(
                 "45a22187e2D8850bb357886958bC3E8560929ccc",
-                address.ToHex()
+                address.ToString("raw", null)
             );
         }
 
@@ -89,25 +87,25 @@ namespace Libplanet.Tests
         public void DeriveFromHex()
         {
             Assert.Throws<ArgumentException>(
-                () => new Address("0123456789ABcdefABcdEfABcdEFabcDEFabCDE"));      // 39 chars
+                () => Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDE"));      // 39 chars
             Assert.Throws<ArgumentException>(
-                () => new Address("0123456789ABcdefABcdEfABcdEFabcDEFabCDEFF"));    // 41 chars
+                () => Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEFF"));    // 41 chars
             Assert.Throws<ArgumentException>(
-                () => new Address("1x0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"));   // bad prefix
+                () => Address.Parse("1x0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"));   // bad prefix
             Assert.Throws<ArgumentException>(
-                () => new Address("0x0123456789ABcdefABcdEfABcdEFabcDEFabCDE"));    // 41 chars
+                () => Address.Parse("0x0123456789ABcdefABcdEfABcdEFabcDEFabCDE"));    // 41 chars
             Assert.Throws<ArgumentException>(
-                () => new Address("0x0123456789ABcdefABcdEfABcdEFabcDEFabCDEFF"));  // 43 chars
+                () => Address.Parse("0x0123456789ABcdefABcdEfABcdEFabcDEFabCDEFF"));  // 43 chars
         }
 
         [Fact]
         public void HexAddressConstructorOnlyTakesHexadecimalCharacters()
         {
             Assert.Throws<ArgumentException>(
-                () => new Address("45a22187e2d8850bb357886958BC3E8560929ghi")
+                () => Address.Parse("45a22187e2d8850bb357886958BC3E8560929ghi")
             );
             Assert.Throws<ArgumentException>(
-                () => new Address("45a22187e2d8850bb357886958BC3E8560929£한글")
+                () => Address.Parse("45a22187e2d8850bb357886958BC3E8560929£한글")
             );
         }
 
@@ -115,7 +113,7 @@ namespace Libplanet.Tests
         public void CanDetectInvalidMixedCaseChecksum()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Address("45A22187E2D8850BB357886958BC3E8560929CCC")
+                Address.Parse("45A22187E2D8850BB357886958BC3E8560929CCC")
             );
         }
 
@@ -131,7 +129,7 @@ namespace Libplanet.Tests
 
                 byte[] addressBytes = GetRandomBytes(size);
                 Assert.Throws<ArgumentException>(() =>
-                    new Address(addressBytes)
+                    new Address([.. addressBytes])
                 );
             }
         }
@@ -147,7 +145,7 @@ namespace Libplanet.Tests
             };
 
             Assert.Equal(
-                new Address("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"),
+                Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"),
                 new Address((IValue)new Binary(addr))
             );
 
@@ -159,7 +157,7 @@ namespace Libplanet.Tests
         public void ToByteArray()
         {
             byte[] addressBytes = GetRandomBytes(20);
-            var address = new Address(addressBytes);
+            var address = new Address([.. addressBytes]);
             Assert.Equal(addressBytes, address.ToByteArray());
         }
 
@@ -167,11 +165,10 @@ namespace Libplanet.Tests
         public void ToByteArrayShouldNotExposeContents()
         {
             var address = new Address(
-                new byte[20]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                }
+                ]
             );
             address.ToByteArray()[0] = 0x00;
 
@@ -182,15 +179,14 @@ namespace Libplanet.Tests
         public void ToHex()
         {
             var address = new Address(
-                new byte[20]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                }
+                ]
             );
             Assert.Equal(
                 "45a22187e2D8850bb357886958bC3E8560929ccc",
-                address.ToHex()
+                address.ToString("raw", null)
             );
             Assert.Equal(
                 "0x45a22187e2D8850bb357886958bC3E8560929ccc",
@@ -202,25 +198,22 @@ namespace Libplanet.Tests
         public void Equals_()
         {
             var sameAddress1 = new Address(
-                new byte[20]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                }
+                ]
             );
             var sameAddress2 = new Address(
-                new byte[20]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                }
+                ]
             );
             var differentAddress = new Address(
-                new byte[20]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0x00,
-                }
+                ]
             );
 
             Assert.Equal(sameAddress1, sameAddress2);
@@ -249,14 +242,14 @@ namespace Libplanet.Tests
             Address[] addresses = Enumerable.Repeat(0, 50).Select(_ =>
             {
                 random.NextBytes(buffer);
-                return new Address(buffer);
+                return new Address([.. buffer]);
             }).ToArray();
             for (int i = 1; i < addresses.Length; i++)
             {
                 Address left = addresses[i - 1];
                 Address right = addresses[i];
-                string leftString = addresses[i - 1].ToHex().ToLower(),
-                       rightString = right.ToHex().ToLower();
+                string leftString = addresses[i - 1].ToString("raw", null).ToLower(),
+                       rightString = right.ToString("raw", null).ToLower();
                 Assert.Equal(
                     Math.Min(Math.Max(left.CompareTo(right), 1), -1),
                     Math.Min(Math.Max(leftString.CompareTo(rightString), 1), -1)
@@ -274,7 +267,7 @@ namespace Libplanet.Tests
         [Fact]
         public void ReplaceHexPrefixString()
         {
-            var address = new Address("0x0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
+            var address = Address.Parse("0x0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
 
             Assert.Equal(
                 "0x0123456789ABcdefABcdEfABcdEFabcDEFabCDEF",
@@ -286,14 +279,14 @@ namespace Libplanet.Tests
         public void ReplaceHexUpperCasePrefixString()
         {
             Assert.Throws<ArgumentException>(() =>
-                 new Address("0X0123456789ABcdefABcdEfABcdEFabcDEFabCDEF")
+                 Address.Parse("0X0123456789ABcdefABcdEfABcdEFabcDEFabCDEF")
             );
         }
 
         [Fact]
         public void Bencoded()
         {
-            var expected = new Address(TestUtils.GetRandomBytes(Address.Size));
+            var expected = new Address([.. TestUtils.GetRandomBytes(Address.Size)]);
             var deserialized = new Address(expected.Bencoded);
             Assert.Equal(expected, deserialized);
             expected = default(Address);
@@ -305,7 +298,7 @@ namespace Libplanet.Tests
         public void TypeConverter()
         {
             TypeConverter converter = TypeDescriptor.GetConverter(typeof(Address));
-            var address = new Address("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
+            var address = Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
             Assert.True(converter.CanConvertFrom(typeof(string)));
             Assert.Equal(
                 address,
@@ -324,7 +317,7 @@ namespace Libplanet.Tests
         [SkippableFact]
         public void JsonSerialization()
         {
-            var address = new Address("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
+            var address = Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
             AssertJsonSerializable(
                 address,
                 "\"0123456789ABcdefABcdEfABcdEFabcDEFabCDEF\""

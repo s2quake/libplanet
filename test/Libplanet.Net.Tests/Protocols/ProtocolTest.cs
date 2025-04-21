@@ -40,14 +40,14 @@ namespace Libplanet.Net.Tests.Protocols
         [Fact]
         public void KademliaTest()
         {
-            var addr1 = new Address("0000000000000000000000000000000000000000");
-            var addr2 = new Address("0000000000000000000000000000000000000001");
-            var addr3 = new Address("000000000000000000000000000000000000000c");
-            var addr4 = new Address("0000000001000001111110001000011001000001");
-            var addr5 = new Address("ffffffffffffffffffffffffffffffffffffffff");
+            var addr1 = Address.Parse("0000000000000000000000000000000000000000");
+            var addr2 = Address.Parse("0000000000000000000000000000000000000001");
+            var addr3 = Address.Parse("000000000000000000000000000000000000000c");
+            var addr4 = Address.Parse("0000000001000001111110001000011001000001");
+            var addr5 = Address.Parse("ffffffffffffffffffffffffffffffffffffffff");
 
             Assert.Equal(
-                new Address("000000000100000111111000100001100100000d"),
+                Address.Parse("000000000100000111111000100001100100000d"),
                 Kademlia.CalculateDifference(addr3, addr4));
             Assert.Equal(
                 Kademlia.CalculateDifference(addr2, addr4),
@@ -60,10 +60,10 @@ namespace Libplanet.Net.Tests.Protocols
             Assert.Equal(0, Kademlia.CalculateDistance(addr4, addr4));
             Assert.Equal(Address.Size * 8, Kademlia.CalculateDistance(addr1, addr5));
 
-            Assert.True(string.CompareOrdinal(addr1.ToHex(), addr2.ToHex()) < 1);
-            Assert.True(string.CompareOrdinal(addr2.ToHex(), addr3.ToHex()) < 1);
-            Assert.True(string.CompareOrdinal(addr3.ToHex(), addr4.ToHex()) < 1);
-            Assert.True(string.CompareOrdinal(addr4.ToHex(), addr4.ToHex()) == 0);
+            Assert.True(string.CompareOrdinal($"{addr1:raw}", $"{addr2:raw}") < 1);
+            Assert.True(string.CompareOrdinal($"{addr2:raw}", $"{addr3:raw}") < 1);
+            Assert.True(string.CompareOrdinal($"{addr3:raw}", $"{addr4:raw}") < 1);
+            Assert.True(string.CompareOrdinal($"{addr4:raw}", $"{addr4:raw}") == 0);
         }
 
         [Fact(Timeout = Timeout)]

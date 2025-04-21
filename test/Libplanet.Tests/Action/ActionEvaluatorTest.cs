@@ -40,16 +40,16 @@ namespace Libplanet.Tests.Action
         private readonly TxFixture _txFx;
 
         private readonly Address _beginBlockValueAddress =
-            new Address("0000000000000000000000000000000000000120");
+            Address.Parse("0000000000000000000000000000000000000120");
 
         private readonly Address _endBlockValueAddress =
-            new Address("0000000000000000000000000000000000000121");
+            Address.Parse("0000000000000000000000000000000000000121");
 
         private readonly Address _beginTxValueAddress =
-            new Address("0000000000000000000000000000000000000122");
+            Address.Parse("0000000000000000000000000000000000000122");
 
         private readonly Address _endTxValueAddress =
-            new Address("0000000000000000000000000000000000000123");
+            Address.Parse("0000000000000000000000000000000000000123");
 
         public ActionEvaluatorTest(ITestOutputHelper output)
         {
@@ -1592,10 +1592,10 @@ namespace Libplanet.Tests.Action
         private sealed class ModernAction : IAction
         {
             public static readonly Address AccountAddress
-                = new Address("1230000000000000000000000000000000000000");
+                = Address.Parse("1230000000000000000000000000000000000000");
 
             public static readonly Address Address
-                = new Address("1234000000000000000000000000000000000000");
+                = Address.Parse("1234000000000000000000000000000000000000");
 
             public string Memo { get; set; }
 

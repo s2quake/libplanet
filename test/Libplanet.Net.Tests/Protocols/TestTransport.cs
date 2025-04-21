@@ -48,7 +48,7 @@ namespace Libplanet.Net.Tests.Protocols
             _runningEvent = new TaskCompletionSource<object>();
             _privateKey = privateKey;
             _blockBroadcast = blockBroadcast;
-            var loggerId = _privateKey.Address.ToHex();
+            var loggerId = _privateKey.Address.ToString("raw", null);
             _logger = Log.ForContext<TestTransport>()
                 .ForContext("Address", loggerId);
 

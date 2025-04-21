@@ -87,7 +87,7 @@ namespace Libplanet.Net
                     Base64FormattingOptions.None
                 ).Replace('/', '.');
                 var prefix =
-                    $"{Version.ToString(CultureInfo.InvariantCulture)}/{Signer.ToHex()}/{sig}";
+                    $"{Version.ToString(CultureInfo.InvariantCulture)}/{Signer:raw}/{sig}";
                 if (Extra is null)
                 {
                     return prefix;
@@ -178,7 +178,7 @@ namespace Libplanet.Net
             Address signer;
             try
             {
-                signer = new Address(token.Substring(pos, pos2 - pos));
+                signer = Address.Parse(token.Substring(pos, pos2 - pos));
             }
             catch (ArgumentException e)
             {

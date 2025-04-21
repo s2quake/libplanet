@@ -44,7 +44,7 @@ namespace Libplanet.Tests.KeyStore
         };
 
         public static readonly Address AddressFixture =
-            new Address("d80d933db45cc0cf69e9632090f8aaff635dc8e5");
+            Address.Parse("d80d933db45cc0cf69e9632090f8aaff635dc8e5");
 
         public static readonly IKdf KdfFixture = new Pbkdf2<Sha256Digest>(10240, SaltFixture, 32);
 
@@ -74,7 +74,7 @@ namespace Libplanet.Tests.KeyStore
         public static readonly ICipher CipherFixture2 = new Aes128Ctr(IvFixture2);
 
         public static readonly Address AddressFixture2 =
-            new Address("89c2b1031ade56524ecb2fe73bf45f18e6d2f06d");
+            Address.Parse("89c2b1031ade56524ecb2fe73bf45f18e6d2f06d");
 
         public static readonly byte[] SaltFixture2 =
         {
@@ -172,7 +172,7 @@ namespace Libplanet.Tests.KeyStore
             }");
 
             Assert.Equal(
-                new Address("d80d933db45cc0cf69e9632090f8aaff635dc8e5"),
+                Address.Parse("d80d933db45cc0cf69e9632090f8aaff635dc8e5"),
                 key.Address
             );
             Assert.IsType<Aes128Ctr>(key.Cipher);
@@ -220,7 +220,7 @@ namespace Libplanet.Tests.KeyStore
                 ""version"": 3,
             }");
             Assert.Equal(
-                new Address("8e5f4b9b8f84ff90c559c6a4deb3c1febe551f29"),
+                Address.Parse("8e5f4b9b8f84ff90c559c6a4deb3c1febe551f29"),
                 key2.Address
             );
             Assert.IsType<Aes128Ctr>(key2.Cipher);

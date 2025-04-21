@@ -541,7 +541,7 @@ namespace Libplanet.Net.Consensus
                 _logger.Debug(
                     "{FName}: Updating peer table from seed(s) {Seeds}...",
                     nameof(RebuildTableAsync),
-                    _seeds.Select(s => s.Address.ToHex()));
+                    _seeds.Select(s => s.Address.ToString("raw", null)));
                 try
                 {
                     await _protocol.BootstrapAsync(

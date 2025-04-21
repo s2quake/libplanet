@@ -335,8 +335,8 @@ namespace Libplanet.Tests.Blockchain
                 new TrieStateStore(new MemoryKeyValueStore()),
                 new SingleActionLoader(typeof(DumbModernAction)));
             var genesis = _blockChain.Genesis;
-            var address1 = new Address(TestUtils.GetRandomBytes(20));
-            var address2 = new Address(TestUtils.GetRandomBytes(20));
+            var address1 = new Address([.. TestUtils.GetRandomBytes(20)]);
+            var address2 = new Address([.. TestUtils.GetRandomBytes(20)]);
             var miner = new PrivateKey();
             var action1 = DumbModernAction.Create((address1, "foo"));
             var action2 = DumbModernAction.Create((address2, "bar"));
@@ -747,7 +747,7 @@ namespace Libplanet.Tests.Blockchain
 
             // Append block before state root hash postpone
             var miner = new PrivateKey();
-            var action = DumbAction.Create((new Address(TestUtils.GetRandomBytes(20)), "foo"));
+            var action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "foo"));
             var tx = Transaction.Create(0, miner, genesis.Hash, new[] { action }.ToPlainValues());
             var preBlockBeforeBump = TestUtils.ProposeNext(
                 genesis,
@@ -763,7 +763,7 @@ namespace Libplanet.Tests.Blockchain
             blockChain.Append(blockBeforeBump, commitBeforeBump);
 
             // Append block after state root hash postpone - previous block is not bumped
-            action = DumbAction.Create((new Address(TestUtils.GetRandomBytes(20)), "bar"));
+            action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "bar"));
             tx = Transaction.Create(1, miner, genesis.Hash, new[] { action }.ToPlainValues());
             var blockAfterBump1 = blockChain.ProposeBlock(
                 miner,
@@ -778,7 +778,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(blockBeforeBump.StateRootHash, blockAfterBump1.StateRootHash);
 
             // Append block after state root hash postpone - previous block is bumped
-            action = DumbAction.Create((new Address(TestUtils.GetRandomBytes(20)), "baz"));
+            action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "baz"));
             tx = Transaction.Create(2, miner, genesis.Hash, new[] { action }.ToPlainValues());
             var blockAfterBump2 = blockChain.ProposeBlock(
                 miner,

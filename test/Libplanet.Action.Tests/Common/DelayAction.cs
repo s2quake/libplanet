@@ -8,7 +8,7 @@ namespace Libplanet.Action.Tests.Common
     public sealed class DelayAction : IAction
     {
         public static readonly Address TrivialUpdatedAddress =
-            new Address("3d94abf05556fdae0755ff4427869f80afd06b58");
+            Address.Parse("3d94abf05556fdae0755ff4427869f80afd06b58");
 
         public DelayAction()
         {

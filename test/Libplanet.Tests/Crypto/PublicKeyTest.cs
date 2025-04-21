@@ -64,7 +64,7 @@ namespace Libplanet.Tests.Crypto
             var privateKey = new PrivateKey(ByteUtil.ParseHex(
                 "bee6f9cc62412760b3696e05f6fb4abeb9e83c4f944f83fd62081b7454cbc038"));
             var publicKey = privateKey.PublicKey;
-            var expected = new Address("f45A22dD63f6428e85eE0a6E13a763278f57626d");
+            var expected = Address.Parse("f45A22dD63f6428e85eE0a6E13a763278f57626d");
             Assert.Equal(expected, publicKey.Address);
         }
 

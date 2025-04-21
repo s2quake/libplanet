@@ -16,28 +16,28 @@ namespace Libplanet.Action.Tests.Common
         /// will be recorded.
         /// </summary>
         public static readonly Address MinerRecordAddress =
-            new Address("1000000000000000000000000000000000000001");
+            Address.Parse("1000000000000000000000000000000000000001");
 
         /// <summary>
         /// The <see cref="Crypto.Address"/> where <see cref="IActionContext.Signer"/>
         /// will be recorded.
         /// </summary>
         public static readonly Address SignerRecordAddress =
-            new Address("1000000000000000000000000000000000000002");
+            Address.Parse("1000000000000000000000000000000000000002");
 
         /// <summary>
         /// The <see cref="Crypto.Address"/> where <see cref="IActionContext.BlockIndex"/>
         /// will be recorded.
         /// </summary>
         public static readonly Address BlockIndexRecordAddress =
-            new Address("1000000000000000000000000000000000000003");
+            Address.Parse("1000000000000000000000000000000000000003");
 
         /// <summary>
         /// The <see cref="Crypto.Address"/> where the next random integer from
         /// <see cref="IActionContext.GetRandom()"/> will be recorded.
         /// </summary>
         public static readonly Address RandomRecordAddress =
-            new Address("1000000000000000000000000000000000000004");
+            Address.Parse("1000000000000000000000000000000000000004");
 
         public ContextRecordingAction()
         {

@@ -89,11 +89,10 @@ namespace Libplanet.Net.Tests.Protocols
         {
             var table = new RoutingTable(
                 new Address(
-                    new byte[]
-                    {
+                    [
                         0xaa, 0xba, 0xf4, 0x9a, 0x08, 0x49, 0xaf, 0xa2, 0x43, 0x0b, 0x8e, 0x2b,
                         0xf7, 0xaf, 0x9c, 0x48, 0x05, 0xb7, 0x63, 0xb9,
-                    }));
+                    ]));
             const int targetBucket = 5;
             int count = 0;
             PublicKey publicKey;

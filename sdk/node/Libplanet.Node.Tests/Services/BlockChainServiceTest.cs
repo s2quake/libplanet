@@ -29,10 +29,10 @@ public class BlockChainServiceTest
         var genesisKey = new PrivateKey();
         string tempDirectory = Path.GetTempPath();
         string tempFilePath = Path.Combine(tempDirectory, Guid.NewGuid().ToString() + ".json");
-        Address accountA = new("0000000000000000000000000000000000000000");
-        Address accountB = new("0000000000000000000000000000000000000001");
-        Address addressA = new("0000000000000000000000000000000000000000");
-        Address addressB = new("0000000000000000000000000000000000000001");
+        var accountA = Address.Parse("0000000000000000000000000000000000000000");
+        var accountB = Address.Parse("0000000000000000000000000000000000000001");
+        var addressA = Address.Parse("0000000000000000000000000000000000000000");
+        var addressB = Address.Parse("0000000000000000000000000000000000000001");
         var codec = new Codec();
 
         try

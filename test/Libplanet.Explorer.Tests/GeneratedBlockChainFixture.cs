@@ -77,7 +77,7 @@ public class GeneratedBlockChainFixture
             TypedActionLoader.Create(typeof(SimpleAction).Assembly, typeof(SimpleAction)));
         Block genesisBlock = BlockChain.ProposeGenesisBlock(
             transactions: PrivateKeys
-                .OrderBy(pk => pk.Address.ToHex())
+                .OrderBy(pk => pk.Address.ToString("raw", null))
                 .Select(
                     (pk, i) => Transaction.Create(
                         nonce: i,
@@ -190,7 +190,7 @@ public class GeneratedBlockChainFixture
                 0,
                 block.Hash,
                 PrivateKeys
-                    .OrderBy(pk => pk.Address.ToHex())
+                    .OrderBy(pk => pk.Address.ToString("raw", null))
                     .Select(pk => new VoteMetadata(
                         Chain.Tip.Index + 1,
                         0,

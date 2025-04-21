@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.GraphTypes
             if (value is string str)
             {
                 // NOTE: 0x-prefixed *and* 0x-non-prefixed version should both be allowed.
-                return new Address(str);
+                return Address.Parse(str);
             }
 
             return ThrowValueConversionError(value);
