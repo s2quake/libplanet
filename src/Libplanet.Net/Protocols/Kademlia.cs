@@ -40,7 +40,7 @@ namespace Libplanet.Net.Protocols
         {
             byte[] dba = Enumerable.Zip(
                 left.ByteArray, right.ByteArray, (l, r) => (byte)(l ^ r)).ToArray();
-            return new Address(dba);
+            return new Address([.. dba]);
         }
 
         /// <summary>

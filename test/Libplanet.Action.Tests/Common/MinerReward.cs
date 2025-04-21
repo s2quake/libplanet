@@ -16,7 +16,7 @@ namespace Libplanet.Action.Tests.Common
         }
 
         public static Address RewardRecordAddress =>
-            new Address("0000000000000000000000000000000000000000");
+            Address.Parse("0000000000000000000000000000000000000000");
 
         public int Reward { get; private set; }
 

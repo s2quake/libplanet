@@ -170,7 +170,7 @@ namespace Libplanet.Action.State
                 buffer[i] = Pack(key.ByteArray[i * 2], key.ByteArray[i * 2 + 1]);
             }
 
-            return new Address(buffer);
+            return new Address([.. buffer]);
         }
 
         internal static Address ToAddress(byte[] bytes)
@@ -187,7 +187,7 @@ namespace Libplanet.Action.State
                 buffer[i] = Pack(bytes[i * 2], bytes[i * 2 + 1]);
             }
 
-            return new Address(buffer);
+            return new Address([.. buffer]);
         }
 
         // FIXME: Assumes both x and y are less than 16.

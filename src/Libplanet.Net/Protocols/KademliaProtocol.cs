@@ -243,7 +243,7 @@ namespace Libplanet.Net.Protocols
                 tasks.Add(FindPeerAsync(
                     history,
                     dialHistory,
-                    new Address(buffer),
+                    new Address([..buffer]),
                     null,
                     depth,
                     _requestTimeout,
@@ -729,8 +729,8 @@ namespace Libplanet.Net.Protocols
             {
                 if (closestKnownPeer is { } ckp &&
                    string.CompareOrdinal(
-                       Kademlia.CalculateDifference(peer.Address, target).ToHex(),
-                       Kademlia.CalculateDifference(ckp.Address, target).ToHex()
+                       Kademlia.CalculateDifference(peer.Address, target).ToString("raw", null),
+                       Kademlia.CalculateDifference(ckp.Address, target).ToString("raw", null)
                    ) >= 1)
                 {
                     break;

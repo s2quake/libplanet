@@ -19,7 +19,7 @@ namespace Libplanet.Action.State
         /// the total supply of the currency gets stored.
         /// </summary>
         public static readonly Address TotalSupplyAddress =
-            new Address("1000000000000000000000000000000000000000");
+            Address.Parse("1000000000000000000000000000000000000000");
 
         public CurrencyAccount(ITrie trie, int worldVersion, Currency currency)
         {

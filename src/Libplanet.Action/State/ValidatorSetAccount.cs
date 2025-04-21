@@ -16,7 +16,7 @@ namespace Libplanet.Action.State
         /// <see cref="ValidatorSet"/> gets stored.
         /// </summary>
         public static readonly Address ValidatorSetAddress =
-            new Address("1000000000000000000000000000000000000000");
+            Address.Parse("1000000000000000000000000000000000000000");
 
         public ValidatorSetAccount(ITrie trie, int worldVersion)
         {

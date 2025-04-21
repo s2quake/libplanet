@@ -15,7 +15,7 @@ namespace Libplanet.Tests.Tx
     public class TxActionListTest
     {
         public static readonly Address AddressA =
-            new Address("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+            Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
 
         private static readonly Currency FOO = Currency.Uncapped("FOO", 2, null);
 

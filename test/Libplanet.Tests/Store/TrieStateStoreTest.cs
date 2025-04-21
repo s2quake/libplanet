@@ -123,7 +123,7 @@ public class TrieStateStoreTest
         Random random = new();
         Dictionary<Address, List<(KeyBytes, IValue)>> data = Enumerable
             .Range(0, 20)
-            .Select(_ => new Address(GetRandomBytes(Address.Size)))
+            .Select(_ => new Address([.. GetRandomBytes(Address.Size)]))
             .ToDictionary(
                 address => address,
                 _ => Enumerable

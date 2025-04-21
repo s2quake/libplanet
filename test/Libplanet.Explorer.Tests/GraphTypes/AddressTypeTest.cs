@@ -15,7 +15,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Null(_type.ParseLiteral(new NullValue()));
 
             var bytes = TestUtils.GetRandomBytes(Address.Size);
-            var address = new Address(bytes);
+            var address = new Address([.. bytes]);
             var hex = ByteUtil.Hex(bytes);
             var prefixedHex = address.ToString();
             Assert.Equal(
@@ -37,7 +37,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Null(_type.ParseValue(null));
 
             var bytes = TestUtils.GetRandomBytes(Address.Size);
-            var address = new Address(bytes);
+            var address = new Address([.. bytes]);
             var hex = ByteUtil.Hex(bytes);
             var prefixedHex = address.ToString();
             Assert.Equal(address, _type.ParseValue(prefixedHex));
@@ -54,7 +54,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Null(_type.Serialize(null));
 
             var bytes = TestUtils.GetRandomBytes(Address.Size);
-            var address = new Address(bytes);
+            var address = new Address([.. bytes]);
             var hex = ByteUtil.Hex(bytes);
             var prefixedHex = address.ToString();
             Assert.Equal(prefixedHex, _type.Serialize(address));

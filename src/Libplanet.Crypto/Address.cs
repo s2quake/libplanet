@@ -1,374 +1,176 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Types;
 using Libplanet.Common;
+using Libplanet.Crypto.Converters;
+using Libplanet.Crypto.JsonConverters;
 
-namespace Libplanet.Crypto
+namespace Libplanet.Crypto;
+
+[TypeConverter(typeof(AddressTypeConverter))]
+[JsonConverter(typeof(AddressJsonConverter))]
+public readonly struct Address(in ImmutableArray<byte> bytes)
+    : IEquatable<Address>, IComparable<Address>, IComparable, IBencodable
 {
-    [TypeConverter(typeof(AddressTypeConverter))]
-    [JsonConverter(typeof(AddressJsonConverter))]
-    public readonly struct Address
-        : IEquatable<Address>, IComparable<Address>, IComparable, IBencodable
+    public const int Size = 20;
+
+    private static readonly ImmutableArray<byte> _defaultByteArray =
+        ImmutableArray.Create(new byte[Size]);
+
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(bytes);
+
+    public Address(PublicKey publicKey)
+        : this(DeriveAddress(publicKey))
     {
-        /// <summary>
-        /// The <see cref="byte"/>s size that each <see cref="Address"/> takes.
-        /// <para>It is 20 <see cref="byte"/>s.</para>
-        /// </summary>
-        public const int Size = 20;
+    }
 
-        private static readonly Codec _codec = new Codec();
+    public Address(IValue bencoded)
+        : this(GetBytes(bencoded))
+    {
+    }
 
-        private static readonly ImmutableArray<byte> _defaultByteArray =
-            ImmutableArray.Create<byte>(new byte[Size]);
+    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? _defaultByteArray : _bytes;
 
-        private readonly ImmutableArray<byte> _byteArray;
+    public IValue Bencoded => new Binary(ByteArray);
 
-        /// <summary>
-        /// Creates an <see cref="Address"/> instance from the given immutable <see
-        /// cref="byte"/> array (i.e., <paramref name="address"/>).
-        /// </summary>
-        /// <param name="address">An immutable array of 20 <see cref="byte"/>s which
-        /// represents an <see cref="Address"/>.</param>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref
-        /// name="address"/> array did not lengthen 20 bytes.</exception>
-        /// <remarks>A valid <see cref="byte"/> array which represents an
-        /// <see cref="Address"/> can be gotten using <see cref="ToByteArray()"
-        /// /> method.</remarks>
-        /// <seealso cref="ByteArray"/>
-        public Address(in ImmutableArray<byte> address)
+    public static bool operator ==(Address left, Address right) => left.Equals(right);
+
+    public static bool operator !=(Address left, Address right) => !left.Equals(right);
+
+    public static Address Parse(string hex) => new(DeriveAddress(hex));
+
+    public bool Equals(Address other) => ByteArray.SequenceEqual(other.ByteArray);
+
+    public override bool Equals(object? obj) => obj is Address other && Equals(other);
+
+    public override int GetHashCode() => ByteUtil.CalculateHashCode(ToByteArray());
+
+    public byte[] ToByteArray() => [.. ByteArray];
+
+    public override string ToString() => $"0x{ToChecksumAddress(ByteUtil.Hex(ToByteArray()))}";
+
+    public string ToString(string? format, IFormatProvider? formatProvider) => format switch
+    {
+        "raw" => ToChecksumAddress(ByteUtil.Hex(ToByteArray())),
+        _ => ToString(),
+    };
+
+    public int CompareTo(Address other)
+    {
+        var self = ByteArray;
+        var operand = other.ByteArray;
+
+        for (var i = 0; i < Size; i++)
         {
-            if (address.Length != Size)
+            var cmp = self[i].CompareTo(operand[i]);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+        }
+
+        return 0;
+    }
+
+    public int CompareTo(object? obj) => obj is Address other
+        ? CompareTo(other)
+        : throw new ArgumentException(
+            $"Argument {nameof(obj)} is not an ${nameof(Address)}.", nameof(obj));
+
+    private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
+    {
+        if (bytes.Length != Size)
+        {
+            throw new ArgumentException(
+                $"Given {nameof(bytes)} must be 20 bytes", nameof(bytes));
+        }
+
+        return bytes;
+    }
+
+    private static ImmutableArray<byte> GetBytes(IValue value)
+    {
+        if (value is Binary binary)
+        {
+            return binary.ByteArray;
+        }
+
+        throw new ArgumentException(
+            $"Given {nameof(value)} must be a {nameof(Binary)}: {value.GetType()}",
+            nameof(value));
+    }
+
+    private static string ToChecksumAddress(string hex)
+    {
+        var value = new Nethereum.Util.AddressUtil().ConvertToChecksumAddress(hex);
+        if (value.StartsWith("0x"))
+        {
+            return value[2..];
+        }
+
+        return value;
+    }
+
+    private static ImmutableArray<byte> DeriveAddress(PublicKey key)
+    {
+        var initaddr = new Nethereum.Util.Sha3Keccack().CalculateHash(
+            GetPubKeyNoPrefix(key, false));
+        var addr = new byte[initaddr.Length - 12];
+        Array.Copy(initaddr, 12, addr, 0, initaddr.Length - 12);
+        var address = ToChecksumAddress(
+            Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(addr));
+        return ByteUtil.ParseHexToImmutable(address);
+    }
+
+    private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
+    {
+        var pubKey = publicKey.Format(compressed);
+        var arr = new byte[pubKey.Length - 1];
+        Array.Copy(pubKey, 1, arr, 0, arr.Length);
+        return arr;
+    }
+
+    private static ImmutableArray<byte> DeriveAddress(string hex)
+    {
+        if (hex.Length != 40 && hex.Length != 42)
+        {
+            throw new ArgumentException(
+                $"Address hex must be either 42 chars or 40 chars, " +
+                $"but given {nameof(hex)} is of length {hex.Length}: {hex}",
+                nameof(hex));
+        }
+
+        if (hex.Length == 42)
+        {
+            if (!hex.StartsWith("0x"))
             {
                 throw new ArgumentException(
-                    $"Given {nameof(address)} must be 20 bytes", nameof(address));
-            }
-
-            _byteArray = address;
-        }
-
-        /// <summary>
-        /// Creates an <see cref="Address"/> instance from the given <see
-        /// cref="byte"/> array (i.e., <paramref name="address"/>).
-        /// </summary>
-        /// <param name="address">An array of 20 <see cref="byte"/>s which
-        /// represents an <see cref="Address"/>.</param>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref
-        /// name="address"/> array did not lengthen 20 bytes.</exception>
-        /// <remarks>A valid <see cref="byte"/> array which represents an
-        /// <see cref="Address"/> can be gotten using <see cref="ToByteArray()"
-        /// /> method.</remarks>
-        /// <seealso cref="ToByteArray()"/>
-        public Address(byte[] address)
-            : this(address.ToImmutableArray())
-        {
-        }
-
-        /// <summary>
-        /// Derives the corresponding <see cref="Address"/> from a <see
-        /// cref="PublicKey"/>.
-        /// <para>Note that there is an equivalent extension method
-        /// <see cref="AddressExtensions.ToAddress(PublicKey)"/>, which enables
-        /// a code like <c>publicKey.Address</c> instead of
-        /// <c>new Address(publicKey)</c>, for convenience.</para>
-        /// </summary>
-        /// <param name="publicKey">A <see cref="PublicKey"/> to derive
-        /// the corresponding <see cref="Address"/> from.</param>
-        /// <seealso cref="AddressExtensions.ToAddress(PublicKey)"/>
-        public Address(PublicKey publicKey)
-            : this(DeriveAddress(publicKey))
-        {
-        }
-
-        /// <summary>
-        /// Derives the corresponding <see cref="Address"/> from a hexadecimal
-        /// address string.
-        /// </summary>
-        /// <exception cref="ArgumentException">Thrown when given <paramref name="hex"/>
-        /// is neither 40 chars long nor 42 chars long with 0x prefix.</exception>
-        /// <exception cref="ArgumentException">Thrown when given <paramref name="hex"/>
-        /// is mixed-case and the checksum is invalid.</exception>
-        /// <exception cref="ArgumentException">Thrown when given <paramref name="hex"/>
-        /// does not consist of ASCII characters.</exception>
-        /// <param name="hex">A 40 characters or included 0x prefix hexadecimal
-        /// address string to derive the corresponding <see cref="Address"/> from.
-        /// The string should be all lower-case or mixed-case which follows <a
-        /// href="https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md"
-        /// >EIP 55</a>.</param>
-        public Address(string hex)
-            : this(DeriveAddress(hex))
-        {
-        }
-
-        /// <summary>
-        /// Creates an <see cref="Address"/> instance from given <paramref name="bencoded"/>.
-        /// </summary>
-        /// <param name="bencoded">A Bencodex <see cref="Binary"/> of 20 <see cref="byte"/>s which
-        /// represents an <see cref="Address"/>.
-        /// </param>
-        /// <exception cref="ArgumentException">Thrown when given <paramref name="bencoded"/>
-        /// is not of type <see cref="Binary"/>.</exception>
-        /// <seealso cref="Address(in ImmutableArray{byte})"/>
-        public Address(IValue bencoded)
-            : this(bencoded is Binary binary
-                ? binary
-                : throw new ArgumentException(
-                    $"Given {nameof(bencoded)} must be of type " +
-                    $"{typeof(Binary)}: {bencoded.GetType()}",
-                    nameof(bencoded)))
-        {
-        }
-
-        private Address(Binary bencoded)
-            : this(bencoded.ByteArray)
-        {
-        }
-
-        /// <summary>
-        /// An immutable array of 20 <see cref="byte"/>s that represent this
-        /// <see cref="Address"/>.
-        /// </summary>
-        /// <remarks>This is immutable.  For a mutable array, call <see
-        /// cref="ToByteArray()"/> method.</remarks>
-        /// <seealso cref="ToByteArray()"/>
-        public ImmutableArray<byte> ByteArray => _byteArray.IsDefault
-            ? _defaultByteArray
-            : _byteArray;
-
-            public IValue Bencoded => new Binary(ByteArray);
-
-        public static bool operator ==(Address left, Address right) => left.Equals(right);
-
-        public static bool operator !=(Address left, Address right) => !left.Equals(right);
-
-        public bool Equals(Address other) => ByteArray.SequenceEqual(other.ByteArray);
-
-        public override bool Equals(object? obj) => obj is Address other && Equals(other);
-
-        public override int GetHashCode() => ByteUtil.CalculateHashCode(ToByteArray());
-
-        /// <summary>
-        /// Gets a mutable array of 20 <see cref="byte"/>s that represent
-        /// this <see cref="Address"/>.
-        /// </summary>
-        /// <returns>A new mutable array which represents this
-        /// <see cref="Address"/>.  Since it is created every time the method
-        /// is called, any mutation on that does not affect internal states of
-        /// this <see cref="Address"/>.</returns>
-        /// <seealso cref="ByteArray"/>
-        /// <seealso cref="Address(byte[])"/>
-        [Pure]
-        public byte[] ToByteArray() => ByteArray.ToArray();
-
-        /// <summary>
-        /// Gets a mixed-case hexadecimal string of 40 letters that represent
-        /// this <see cref="Address"/>. The returned hexadecimal string follows
-        /// <a
-        /// href="https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md"
-        /// >EIP 55</a>.
-        /// </summary>
-        /// <example>A returned string looks like
-        /// <c>87Ae4774E20963fd6caC967CF47aDCF880C3e89B</c>.</example>
-        /// <returns>A hexadecimal string of 40 letters that represent
-        /// this <see cref="Address"/>.  Note that it does not start with
-        /// a prefix.</returns>
-        /// <remarks>As the returned string has no prefix, for
-        /// <c>0x</c>-prefixed hexadecimal, call <see cref="ToString()"/>
-        /// method instead.</remarks>
-        /// <seealso cref="ToString()"/>
-        [Pure]
-        public string ToHex() => ToChecksumAddress(ByteUtil.Hex(ToByteArray()));
-
-        /// <summary>
-        /// Gets a <c>0x</c>-prefixed mixed-case hexadecimal string of
-        /// 42 letters that represent this <see cref="Address"/>. The returned
-        /// hexadecimal string follows
-        /// <a
-        /// href="https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md"
-        /// >EIP 55</a>.
-        /// </summary>
-        /// <example>A returned string looks like
-        /// <c>0x87Ae4774E20963fd6caC967CF47aDCF880C3e89B</c>.</example>
-        /// <returns>A <c>0x</c>-hexadecimal string of 42 letters that represent
-        /// this <see cref="Address"/>.</returns>
-        /// <remarks>As the returned string is <c>0x</c>-prefixed, for
-        /// hexadecimal without prefix, call <see cref="ToHex()"/> method
-        /// instead.</remarks>
-        /// <seealso cref="ToHex()"/>
-        [Pure]
-        public override string ToString() => $"0x{ToHex()}";
-
-        /// <inheritdoc cref="IComparable{T}.CompareTo(T)"/>
-        public int CompareTo(Address other)
-        {
-            ImmutableArray<byte> self = ByteArray, operand = other.ByteArray;
-
-            for (int i = 0; i < Size; i++)
-            {
-                int cmp = ((IComparable<byte>)self[i]).CompareTo(operand[i]);
-                if (cmp != 0)
-                {
-                    return cmp;
-                }
-            }
-
-            return 0;
-        }
-
-        /// <inheritdoc cref="IComparable.CompareTo(object)"/>
-        public int CompareTo(object? obj) => obj is Address other
-            ? this.CompareTo(other)
-            : throw new ArgumentException(
-                $"Argument {nameof(obj)} is not an ${nameof(Address)}.", nameof(obj));
-
-        private static string ToChecksumAddress(string hex)
-        {
-            var value = new Nethereum.Util.AddressUtil().ConvertToChecksumAddress(hex);
-            if (value.StartsWith("0x"))
-            {
-                return value.Substring(2);
-            }
-
-            return value;
-        }
-
-        private static ImmutableArray<byte> DeriveAddress(PublicKey key)
-        {
-            var initaddr = new Nethereum.Util.Sha3Keccack().CalculateHash(
-                GetPubKeyNoPrefix(key, false));
-            var addr = new byte[initaddr.Length - 12];
-            Array.Copy(initaddr, 12, addr, 0, initaddr.Length - 12);
-            var address = ToChecksumAddress(
-                Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(addr));
-            return ByteUtil.ParseHexToImmutable(address);
-        }
-
-        private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
-        {
-            var pubKey = publicKey.Format(compressed);
-            var arr = new byte[pubKey.Length - 1];
-            Array.Copy(pubKey, 1, arr, 0, arr.Length);
-            return arr;
-        }
-
-        private static ImmutableArray<byte> DeriveAddress(string hex)
-        {
-            if (hex.Length != 40 && hex.Length != 42)
-            {
-                throw new ArgumentException(
-                    $"Address hex must be either 42 chars or 40 chars, " +
-                    $"but given {nameof(hex)} is of length {hex.Length}: {hex}",
+                    $"Address hex of length 42 chars must start with \"0x\" prefix: {hex}",
                     nameof(hex));
             }
 
-            if (hex.Length == 42)
-            {
-                if (hex.StartsWith("0x"))
-                {
-                    hex = hex.Substring(2);
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"Address hex of length 42 chars must start with \"0x\" prefix: {hex}",
-                        nameof(hex));
-                }
-            }
-
-            if (hex.ToLower(CultureInfo.InvariantCulture) != hex &&
-                ToChecksumAddress(hex.ToLower(CultureInfo.InvariantCulture)) != hex)
-            {
-                throw new ArgumentException("Address checksum is invalid", nameof(hex));
-            }
-
-            try
-            {
-                return ByteUtil.ParseHexToImmutable(hex);
-            }
-            catch (FormatException fe)
-            {
-                throw new ArgumentException(
-                    "Address hex must only consist of ASCII characters", fe);
-            }
+            hex = hex[2..];
         }
-    }
 
-    /// <summary>
-    /// The <see cref="TypeConverter"/> implementation for <see cref="Address"/>.
-    /// </summary>
-    [SuppressMessage(
-        "StyleCop.CSharp.MaintainabilityRules",
-        "SA1402:FileMayOnlyContainASingleClass",
-        Justification = "It's okay to have non-public classes together in a single file."
-    )]
-    internal class AddressTypeConverter : TypeConverter
-    {
-        /// <inheritdoc cref="TypeConverter.CanConvertFrom(ITypeDescriptorContext?, Type)"/>
-        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>
-            sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
-
-        /// <inheritdoc
-        /// cref="TypeConverter.ConvertFrom(ITypeDescriptorContext?, CultureInfo?, object)"/>
-        public override object? ConvertFrom(
-            ITypeDescriptorContext? context,
-            CultureInfo? culture,
-            object value
-        ) =>
-            value is string v ? new Address(v) : base.ConvertFrom(context, culture, value);
-
-        /// <inheritdoc cref="TypeConverter.CanConvertTo(ITypeDescriptorContext?, Type?)"/>
-        public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType) =>
-            destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
-
-        /// <inheritdoc
-        /// cref="TypeConverter.ConvertTo(ITypeDescriptorContext?, CultureInfo?, object?, Type)"/>
-        public override object? ConvertTo(
-            ITypeDescriptorContext? context,
-            CultureInfo? culture,
-            object? value,
-            Type destinationType
-        ) =>
-            value is Address address && destinationType == typeof(string)
-                ? address.ToHex()
-                : base.ConvertTo(context, culture, value, destinationType);
-    }
-
-    [SuppressMessage(
-        "StyleCop.CSharp.MaintainabilityRules",
-        "SA1402:FileMayOnlyContainASingleClass",
-        Justification = "It's okay to have non-public classes together in a single file."
-    )]
-    internal class AddressJsonConverter : JsonConverter<Address>
-    {
-        public override Address Read(
-            ref Utf8JsonReader reader,
-            Type typeToConvert,
-            JsonSerializerOptions options
-        )
+        if (!hex.Equals(hex, StringComparison.CurrentCultureIgnoreCase) &&
+            ToChecksumAddress(hex.ToLower(CultureInfo.InvariantCulture)) != hex)
         {
-            string hex = reader.GetString() ?? throw new JsonException("Expected a string.");
-            try
-            {
-                return new Address(hex);
-            }
-            catch (ArgumentException e)
-            {
-                throw new JsonException(e.Message);
-            }
+            throw new ArgumentException("Address checksum is invalid", nameof(hex));
         }
 
-        public override void Write(
-            Utf8JsonWriter writer,
-            Address value,
-            JsonSerializerOptions options
-        ) =>
-            writer.WriteStringValue(value.ToHex());
+        try
+        {
+            return ByteUtil.ParseHexToImmutable(hex);
+        }
+        catch (FormatException e)
+        {
+            throw new ArgumentException(
+                "Address hex must only consist of ASCII characters", nameof(hex), e);
+        }
     }
 }

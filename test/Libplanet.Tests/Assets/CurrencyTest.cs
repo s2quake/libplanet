@@ -13,10 +13,10 @@ namespace Libplanet.Tests.Assets
     public class CurrencyTest
     {
         public static readonly Address AddressA =
-            new Address("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+            Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
 
         public static readonly Address AddressB =
-            new Address("5003712B63baAB98094aD678EA2B24BcE445D076");
+            Address.Parse("5003712B63baAB98094aD678EA2B24BcE445D076");
 
         [Fact]
         public void Constructor()

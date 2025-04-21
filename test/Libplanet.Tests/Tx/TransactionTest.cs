@@ -112,11 +112,10 @@ namespace Libplanet.Tests.Tx
             var timestamp =
                 new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
             Address stateStore = new Address(
-                new byte[]
-                {
+                [
                     0xe6, 0x95, 0x1c, 0x43, 0x02, 0xdf, 0x13, 0xf9, 0x29, 0xfc,
                     0xdb, 0xc5, 0x56, 0xd9, 0xac, 0x20, 0x41, 0xfe, 0xf9, 0x5f,
-                }
+                ]
             );
             Transaction tx = Transaction.Create(
                 0,
@@ -288,8 +287,8 @@ namespace Libplanet.Tests.Tx
         {
             var genesisHash = BlockHash.Parse(
                 "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-            Address addressA = new Address("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
-            Address addressB = new Address("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
+            Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+            Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
             var updatedAddresses = ImmutableHashSet.Create(addressA, addressB);
             var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
             var actions = new TxActionList(new IAction[]
@@ -368,8 +367,8 @@ namespace Libplanet.Tests.Tx
         {
             var genesisHash = BlockHash.Parse(
                 "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-            Address addressA = new Address("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
-            Address addressB = new Address("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
+            Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+            Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
             var updatedAddresses = ImmutableHashSet.Create(addressA, addressB);
             var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
             var actions = new TxActionList(new IAction[]

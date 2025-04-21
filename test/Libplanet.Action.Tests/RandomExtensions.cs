@@ -17,7 +17,7 @@ namespace Libplanet.Action.Tests
             new TxId(random.NextBytes(TxId.Size));
 
         public static Address NextAddress(this System.Random random) =>
-            new Address(random.NextBytes(Address.Size));
+            new Address([.. random.NextBytes(Address.Size)]);
 
         public static BlockHash NextBlockHash(this System.Random random) =>
             new BlockHash(random.NextBytes(BlockHash.Size));

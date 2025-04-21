@@ -16,7 +16,7 @@ namespace Libplanet.Action.Tests.Common
         public static readonly Text TypeId = new Text(nameof(DumbAction));
 
         public static readonly Address DumbModernAddress =
-            new Address("0123456789abcdef0123456789abcdef12345678");
+            Address.Parse("0123456789abcdef0123456789abcdef12345678");
 
         public static readonly Currency DumbCurrency =
             Currency.Uncapped("DUMB", 0, null);

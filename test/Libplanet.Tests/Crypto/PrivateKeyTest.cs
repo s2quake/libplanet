@@ -131,7 +131,7 @@ namespace Libplanet.Tests.Crypto
                     0x83, 0xfd, 0x62, 0x08, 0x1b, 0x74, 0x54, 0xcb, 0xc0, 0x38,
                 }
             );
-            var expected = new Address("f45A22dD63f6428e85eE0a6E13a763278f57626d");
+            var expected = Address.Parse("f45A22dD63f6428e85eE0a6E13a763278f57626d");
             Assert.Equal(expected, privateKey.Address);
         }
 

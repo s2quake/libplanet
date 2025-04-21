@@ -18,29 +18,28 @@ namespace Libplanet.Tests.Tx
         public void Constructor()
         {
             Address[] addresses =
-            {
-                new Address("4000000000000000000000000000000000000000"),
-                new Address("3000000000000000000000000000000000000001"),
-                new Address("2000000000000000000000000000000000000002"),
-                new Address("1000000000000000000000000000000000000003"),
-                new Address("0000000000000000000000000000000000000004"),
+            [
+                Address.Parse("4000000000000000000000000000000000000000"),
+                Address.Parse("3000000000000000000000000000000000000001"),
+                Address.Parse("2000000000000000000000000000000000000002"),
+                Address.Parse("1000000000000000000000000000000000000003"),
+                Address.Parse("0000000000000000000000000000000000000004"),
 
                 // dups:
-                new Address("0000000000000000000000000000000000000004"),
-                new Address("2000000000000000000000000000000000000002"),
-                new Address("4000000000000000000000000000000000000000"),
-            };
+                Address.Parse("0000000000000000000000000000000000000004"),
+                Address.Parse("2000000000000000000000000000000000000002"),
+                Address.Parse("4000000000000000000000000000000000000000"),
+            ];
             var set = new AddressSet(addresses);
             Assert.Equal(5, set.Count);
             Assert.Equal<IEnumerable<Address>>(
-                new[]
-                {
-                    new Address("4000000000000000000000000000000000000000"),
-                    new Address("3000000000000000000000000000000000000001"),
-                    new Address("2000000000000000000000000000000000000002"),
-                    new Address("1000000000000000000000000000000000000003"),
-                    new Address("0000000000000000000000000000000000000004"),
-                },
+                [
+                    Address.Parse("4000000000000000000000000000000000000000"),
+                    Address.Parse("3000000000000000000000000000000000000001"),
+                    Address.Parse("2000000000000000000000000000000000000002"),
+                    Address.Parse("1000000000000000000000000000000000000003"),
+                    Address.Parse("0000000000000000000000000000000000000004"),
+                ],
                 set
             );
         }
@@ -48,21 +47,21 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void TryGetValue()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
 
             bool found = set.TryGetValue(
-                new Address("1000000000000000000000000000000000000001"),
+                Address.Parse("1000000000000000000000000000000000000001"),
                 out Address value);
             Assert.True(found);
-            Assert.Equal(new Address("1000000000000000000000000000000000000001"), value);
+            Assert.Equal(Address.Parse("1000000000000000000000000000000000000001"), value);
 
             found = set.TryGetValue(
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
                 out Address value2);
             Assert.False(found);
             Assert.Equal(default(Address), value2);
@@ -71,29 +70,28 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void SymmetricExcept()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
 
-            IImmutableSet<Address> result = set.SymmetricExcept(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
+            IImmutableSet<Address> result = set.SymmetricExcept(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
                 default(Address),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("1000000000000000000000000000000000000001"),
                 default(Address),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-            });
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+            ]);
             Assert.Equal<IEnumerable<Address>>(
-                new Address[]
-                {
-                    new Address("2000000000000000000000000000000000000000"),
-                    new Address("ffffffffffffffffffffffffffffffffffffffff"),
+                [
+                    Address.Parse("2000000000000000000000000000000000000000"),
+                    Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
                     default(Address),
-                },
+                ],
                 result
             );
         }
@@ -101,259 +99,259 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void IsProperSubsetOf()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
 
-            bool result = set.IsProperSubsetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-            });
+            bool result = set.IsProperSubsetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+            ]);
             Assert.True(result);
 
-            result = set.IsProperSubsetOf(new Address[]
-            {
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-            });
+            result = set.IsProperSubsetOf(
+            [
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+            ]);
             Assert.False(result);
 
-            result = set.IsProperSubsetOf(new Address[]
-            {
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            result = set.IsProperSubsetOf(
+            [
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
             Assert.False(result);
 
-            result = set.IsProperSubsetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-            });
+            result = set.IsProperSubsetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+            ]);
             Assert.False(result);
         }
 
         [Fact]
         public void IsProperSupersetOf()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
 
-            bool result = set.IsProperSupersetOf(new Address[]
-            {
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-            });
+            bool result = set.IsProperSupersetOf(
+            [
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+            ]);
             Assert.True(result);
 
-            result = set.IsProperSupersetOf(new Address[]
-            {
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-            });
+            result = set.IsProperSupersetOf(
+            [
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+            ]);
             Assert.False(result);
 
-            result = set.IsProperSupersetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-            });
+            result = set.IsProperSupersetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+            ]);
             Assert.False(result);
 
-            result = set.IsProperSupersetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-            });
+            result = set.IsProperSupersetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+            ]);
             Assert.False(result);
         }
 
         [Fact]
         public void IsSubsetOf()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
 
-            bool result = set.IsSubsetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-            });
+            bool result = set.IsSubsetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+            ]);
             Assert.True(result);
 
-            result = set.IsSubsetOf(new Address[]
-            {
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-            });
+            result = set.IsSubsetOf(
+            [
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+            ]);
             Assert.True(result);
 
-            result = set.IsSubsetOf(new Address[]
-            {
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            result = set.IsSubsetOf(
+            [
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
             Assert.False(result);
 
-            result = set.IsSubsetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-            });
+            result = set.IsSubsetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+            ]);
             Assert.False(result);
         }
 
         [Fact]
         public void IsSupersetOf()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
 
-            bool result = set.IsSupersetOf(new Address[]
-            {
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            bool result = set.IsSupersetOf(
+            [
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
             Assert.True(result);
 
-            result = set.IsSupersetOf(new Address[]
-            {
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            result = set.IsSupersetOf(
+            [
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
             Assert.True(result);
 
-            result = set.IsSupersetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-            });
+            result = set.IsSupersetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+            ]);
             Assert.False(result);
 
-            result = set.IsSupersetOf(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-            });
+            result = set.IsSupersetOf(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+            ]);
             Assert.False(result);
         }
 
         [Fact]
         public void Overlaps()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
 
-            bool result = set.Overlaps(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
+            bool result = set.Overlaps(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
                 default(Address),
-            });
+            ]);
             Assert.True(result);
 
-            result = set.Overlaps(new Address[]
-            {
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
+            result = set.Overlaps(
+            [
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
                 default(Address),
                 default(Address),
-            });
+            ]);
             Assert.False(result);
         }
 
         [Fact]
         public void Equality()
         {
-            var set = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
-            var set2 = new AddressSet(new Address[]
-            {
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-            });
-            var set3 = new AddressSet(new Address[]
-            {
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-                new Address("0000000000000000000000000000000000000002"),
-            });
-            var set4 = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-            });
-            var set5 = new AddressSet(new Address[]
-            {
-                new Address("2000000000000000000000000000000000000000"),
-                new Address("1000000000000000000000000000000000000001"),
-                new Address("0000000000000000000000000000000000000002"),
-                new Address("ffffffffffffffffffffffffffffffffffffffff"),
-            });
+            var set = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
+            var set2 = new AddressSet(
+            [
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+            ]);
+            var set3 = new AddressSet(
+            [
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+            ]);
+            var set4 = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+            ]);
+            var set5 = new AddressSet(
+            [
+                Address.Parse("2000000000000000000000000000000000000000"),
+                Address.Parse("1000000000000000000000000000000000000001"),
+                Address.Parse("0000000000000000000000000000000000000002"),
+                Address.Parse("ffffffffffffffffffffffffffffffffffffffff"),
+            ]);
             (AddressSet A, AddressSet B, bool Equal)[] truthTable =
-            {
+            [
                 (set, set, true),
                 (set, set2, true),
                 (set, set3, false),
@@ -362,7 +360,7 @@ namespace Libplanet.Tests.Tx
                 (set2, set3, false),
                 (set2, set4, false),
                 (set2, set5, false),
-            };
+            ];
             foreach ((AddressSet a, AddressSet b, bool equal) in truthTable)
             {
                 if (equal)

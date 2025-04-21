@@ -52,7 +52,7 @@ namespace Libplanet.Tests.Store
                 new Guid(((BTypes.Binary)rootEncoded[nameof(root.Guid)]).ToByteArray()));
             Assert.Equal(
                 root.Addr,
-                new Address(((BTypes.Binary)rootEncoded[nameof(root.Addr)]).ToByteArray()));
+                new Address([.. ((BTypes.Binary)rootEncoded[nameof(root.Addr)]).ToByteArray()]));
             Assert.Equal(
                 root.Str,
                 ((BTypes.Text)rootEncoded[nameof(root.Str)]).Value);
@@ -608,37 +608,48 @@ namespace Libplanet.Tests.Store
             public ImmutableList<string> ListStr { get; private set; }
 
             public ImmutableDictionary<string, string>
-                DictEmpty { get; private set; }
+                DictEmpty
+            { get; private set; }
 
             public ImmutableDictionary<ImmutableArray<byte>, bool>
-                DictBytesBool { get; private set; }
+                DictBytesBool
+            { get; private set; }
 
             public ImmutableDictionary<ImmutableArray<byte>, int>
-                DictBytesInt { get; private set; }
+                DictBytesInt
+            { get; private set; }
 
             public ImmutableDictionary<ImmutableArray<byte>, long>
-                DictBytesLong { get; private set; }
+                DictBytesLong
+            { get; private set; }
 
             public ImmutableDictionary<ImmutableArray<byte>, BigInteger>
-                DictBytesBigInt { get; private set; }
+                DictBytesBigInt
+            { get; private set; }
 
             public ImmutableDictionary<ImmutableArray<byte>, ImmutableArray<byte>>
-                DictBytesBytes { get; private set; }
+                DictBytesBytes
+            { get; private set; }
 
             public ImmutableDictionary<ImmutableArray<byte>, Address>
-                DictBytesAddr { get; private set; }
+                DictBytesAddr
+            { get; private set; }
 
             public ImmutableDictionary<ImmutableArray<byte>, string>
-                DictBytesStr { get; private set; }
+                DictBytesStr
+            { get; private set; }
 
             public ImmutableDictionary<Guid, string>
-                DictGuidStr { get; private set; }
+                DictGuidStr
+            { get; private set; }
 
             public ImmutableDictionary<Address, string>
-                DictAddrStr { get; private set; }
+                DictAddrStr
+            { get; private set; }
 
             public ImmutableDictionary<string, string>
-                DictStrStr { get; private set; }
+                DictStrStr
+            { get; private set; }
 
             public MidModel Mid { get; private set; }
 
@@ -813,7 +824,7 @@ namespace Libplanet.Tests.Store
             public HasNullableAddressType()
                 : base()
             {
-                Value = new Address("0000000000000000000000000000000000000001");
+                Value = Address.Parse("0000000000000000000000000000000000000001");
             }
 
             public HasNullableAddressType(BTypes.Dictionary encoded)

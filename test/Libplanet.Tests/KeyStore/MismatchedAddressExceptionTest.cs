@@ -11,7 +11,7 @@ namespace Libplanet.Tests.KeyStore
         {
             Address
                 expectedAddress = default,
-                actualAddress = new Address("01234567789aBcdEF01234567789ABCdeF012345");
+                actualAddress = Address.Parse("01234567789aBcdEF01234567789ABCdeF012345");
             var e = new MismatchedAddressException(
                 "Some message.",
                 expectedAddress,

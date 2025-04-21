@@ -38,9 +38,9 @@ namespace Libplanet.Tests.Action
             ITrie targetTrie = stateStore.GetStateRoot(default);
             ITrie sourceTrie = stateStore.GetStateRoot(default);
 
-            Address addr1 = new Address(TestUtils.GetRandomBytes(Address.Size));
-            Address addr2 = new Address(TestUtils.GetRandomBytes(Address.Size));
-            Address addr3 = new Address(TestUtils.GetRandomBytes(Address.Size));
+            Address addr1 = new Address([.. TestUtils.GetRandomBytes(Address.Size)]);
+            Address addr2 = new Address([.. TestUtils.GetRandomBytes(Address.Size)]);
+            Address addr3 = new Address([.. TestUtils.GetRandomBytes(Address.Size)]);
 
             AccountDiff diff = AccountDiff.Create(targetTrie, sourceTrie);
             Assert.Empty(diff.StateDiffs);

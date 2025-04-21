@@ -254,7 +254,7 @@ namespace Libplanet.KeyStore
             Address address;
             try
             {
-                address = new Address(addressBytes);
+                address = new Address([.. addressBytes]);
             }
             catch (ArgumentException e)
             {
@@ -353,7 +353,7 @@ namespace Libplanet.KeyStore
                 "id",
                 (id ?? Guid.NewGuid()).ToString().ToLower(CultureInfo.InvariantCulture)
             );
-            writer.WriteString("address", Address.ToHex().ToLower(CultureInfo.InvariantCulture));
+            writer.WriteString("address", $"{Address:raw}".ToLower(CultureInfo.InvariantCulture));
             writer.WriteStartObject("crypto");
             writer.WriteString("ciphertext", ByteUtil.Hex(Ciphertext));
             writer.WritePropertyName("cipherparams");
