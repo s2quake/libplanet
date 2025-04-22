@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
 using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Types;
@@ -92,7 +91,7 @@ namespace Libplanet.Consensus
                     TimestampFormat,
                     CultureInfo.InvariantCulture),
                 validatorPublicKey: new PublicKey(
-                    ((Binary)encoded[ValidatorPublicKeyKey]).ByteArray.ToArray()))
+                    [.. ((Binary)encoded[ValidatorPublicKeyKey]).ByteArray]))
         {
         }
 #pragma warning restore SA1118
@@ -137,7 +136,7 @@ namespace Libplanet.Consensus
                     .Add(
                         TimestampKey,
                         Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
-                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.Format(compress: true));
+                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.ToByteArray(compress: true));
 
                 return encoded;
             }
@@ -155,7 +154,7 @@ namespace Libplanet.Consensus
         public ProposalClaim Sign(PrivateKey signer) =>
             new ProposalClaim(this, signer.Sign(ByteArray).ToImmutableArray());
 
-            public bool Equals(ProposalClaimMetadata? other)
+        public bool Equals(ProposalClaimMetadata? other)
         {
             return other is ProposalClaimMetadata metadata &&
                 Height == metadata.Height &&
@@ -169,10 +168,10 @@ namespace Libplanet.Consensus
                 ValidatorPublicKey.Equals(metadata.ValidatorPublicKey);
         }
 
-            public override bool Equals(object? obj) =>
-            obj is ProposalMetadata other && Equals(other);
+        public override bool Equals(object? obj) =>
+        obj is ProposalMetadata other && Equals(other);
 
-            public override int GetHashCode()
+        public override int GetHashCode()
         {
             return HashCode.Combine(
                 Height,

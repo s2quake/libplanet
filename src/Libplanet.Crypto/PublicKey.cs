@@ -2,346 +2,131 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Globalization;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Libplanet.Common;
+using Libplanet.Crypto.Converters;
+using Libplanet.Crypto.JsonConverters;
 using Secp256k1Net;
 
-namespace Libplanet.Crypto
+namespace Libplanet.Crypto;
+
+[TypeConverter(typeof(PublicKeyTypeConverter))]
+[JsonConverter(typeof(PublicKeyJsonConverter))]
+public sealed class PublicKey : IEquatable<PublicKey>, IFormattable
 {
-    /// <summary>
-    /// A public part of a key pair involved in
-    /// <a href="https://en.wikipedia.org/wiki/ECDSA">ECDSA</a>, the digital
-    /// signature algorithm on which the Libplanet is based.
-    /// It can be used to verify signatures created with the corresponding
-    /// <see cref="PrivateKey"/> and to encrypt messages for someone
-    /// possessing the corresponding <see cref="PrivateKey"/>.
-    /// This can be distributed publicly, hence the name.
-    /// <para>Note that it uses <a href="https://en.bitcoin.it/wiki/Secp256k1"
-    /// >secp256k1</a> as the parameters of the elliptic curve, which is same to
-    /// <a href="https://bitcoin.org/">Bitcoin</a> and
-    /// <a href="https://www.ethereum.org/">Ethereum</a>.
-    /// It means public keys generated for Bitcoin/Ethereum can be used by
-    /// Libplanet-backed games/apps too.</para>
-    /// </summary>
-    /// <remarks>Every <see cref="PublicKey"/> object is immutable.</remarks>
-    /// <seealso cref="PrivateKey"/>
-    /// <seealso cref="Address"/>
-    [TypeConverter(typeof(PublicKeyTypeConverter))]
-    [JsonConverter(typeof(PublicKeyJsonConverter))]
-    public class PublicKey : IEquatable<PublicKey>
+    private readonly ImmutableArray<byte> _bytes;
+
+    public PublicKey(ImmutableArray<byte> bytes)
+        : this(bytes, verify: true)
     {
-        private readonly ImmutableArray<byte> _bytes;
+    }
 
-        /// <summary>
-        /// Creates a <see cref="PublicKey"/> instance from the given
-        /// <see cref="byte"/> array (i.e., <paramref name="bytes"/>),
-        /// which encodes a valid <a href="https://en.wikipedia.org/wiki/ECDSA">
-        /// ECDSA</a> public key.
-        /// </summary>
-        /// <param name="bytes">A valid <see cref="byte"/> array that
-        /// encodes an ECDSA public key.  It can be either compressed or
-        /// not.</param>
-        /// <remarks>A valid <see cref="byte"/> array for
-        /// a <see cref="PublicKey"/> can be encoded using
-        /// <see cref="Format(bool)"/> method.
-        /// </remarks>
-        /// <seealso cref="Format(bool)"/>
-        public PublicKey(byte[] bytes)
-            : this(bytes, verify: true)
+    internal PublicKey(ImmutableArray<byte> bytes, bool verify)
+    {
+        if (verify)
         {
+            if (!TryGetPublicKey(bytes, out var publicKey))
+            {
+                throw new ArgumentException("Invalid public key bytes.", nameof(bytes));
+            }
+
+            _bytes = [.. publicKey];
         }
-
-        internal PublicKey(byte[] bytes, bool verify)
+        else
         {
-            if (verify)
-            {
-                if (!TryGetPublicKey(bytes, out var publicKey))
-                {
-                    throw new ArgumentException("Invalid public key bytes.", nameof(bytes));
-                }
-
-                _bytes = publicKey!.ToImmutableArray();
-            }
-            else
-            {
-                _bytes = bytes.ToImmutableArray();
-            }
-        }
-
-        /// <summary>
-        /// The corresponding <see cref="Crypto.Address"/> derived from a <see cref="PublicKey"/>.
-        /// </summary>
-        public Address Address => new Address(this);
-
-        internal ImmutableArray<byte> Raw => _bytes;
-
-        public static bool operator ==(PublicKey left, PublicKey right) => left.Equals(right);
-
-        public static bool operator !=(PublicKey left, PublicKey right) => !left.Equals(right);
-
-        /// <summary>
-        /// Creates a <see cref="PublicKey"/> instance from its hexadecimal representation.
-        /// </summary>
-        /// <param name="hex">The hexadecimal representation of the public key to load.
-        /// Case insensitive, and accepts either compressed or uncompressed.</param>
-        /// <returns>The parsed <see cref="PublicKey"/>.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the length of the given
-        /// <paramref name="hex"/> string is an odd number.</exception>
-        /// <exception cref="FormatException">Thrown when the given <paramref name="hex"/> string
-        /// is not a valid hexadecimal string.</exception>
-        /// <seealso cref="ToHex(bool)"/>
-        public static PublicKey FromHex(string hex) =>
-            new PublicKey(ByteUtil.ParseHex(hex), verify: true);
-
-        public static bool Verify(
-            Address signer, ImmutableArray<byte> message, ImmutableArray<byte> signature)
-        {
-            if (signature.IsDefaultOrEmpty)
-            {
-                return false;
-            }
-
-            try
-            {
-                // var hashed = HashDigest<SHA256>.DeriveFrom(message);
-                return CryptoConfig.CryptoBackend.Verify(
-                    message.ToArray(), signature.ToArray(), signer);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        public bool Equals(PublicKey? other)
-            => other is not null && _bytes.SequenceEqual(other._bytes);
-
-        public override bool Equals(object? obj) => obj is PublicKey other && Equals(other);
-
-        public override int GetHashCode()
-        {
-            HashCode hash = default;
-            foreach (byte b in _bytes)
-            {
-                hash.Add(b);
-            }
-
-            return hash.ToHashCode();
-        }
-
-        /// <summary>
-        /// Encodes this public key into a mutable <see cref="byte"/> array representation.
-        /// <para>To get an immutable one, use <see cref="ToImmutableArray(bool)"/> method
-        /// instead.</para>
-        /// </summary>
-        /// <param name="compress">Returns a short length representation if it is
-        /// <see langword="true"/>.  This option does not lose any information.</param>
-        /// <returns>An encoded mutable <see cref="byte"/> array representation.  It can be
-        /// recovered to a <see cref="PublicKey"/> instance again using
-        /// <see cref="PublicKey(IReadOnlyList{byte})"/> constructor whether it is compressed
-        /// or not.</returns>
-        /// <seealso cref="ToImmutableArray(bool)"/>
-        /// <seealso cref="PublicKey(IReadOnlyList{byte})"/>
-        [Pure]
-        public byte[] Format(bool compress) => PrivateKey.GetPublicKey(_bytes, compress);
-
-        /// <summary>
-        /// Encodes this public key into a immutable <see cref="byte"/> array representation.
-        /// <para>To get an mutable one, use <see cref="Format(bool)"/> method instead.</para>
-        /// </summary>
-        /// <param name="compress">Returns a short length representation if it is
-        /// <see langword="true"/>.  This option does not lose any information.</param>
-        /// <returns>An encoded immutable <see cref="byte"/> array representation.  It can be
-        /// recovered to a <see cref="PublicKey"/> instance again using
-        /// <see cref="PublicKey(IReadOnlyList{byte})"/> constructor whether it is compressed
-        /// or not.</returns>
-        /// <seealso cref="Format(bool)"/>
-        /// <seealso cref="PublicKey(IReadOnlyList{byte})"/>
-        [Pure]
-        public ImmutableArray<byte> ToImmutableArray(bool compress) =>
-            Format(compress).ToImmutableArray();
-
-        [Pure]
-        public byte[] ToArray() => Format(false);
-
-        /// <summary>
-        /// Encrypts a plaintext <paramref name="message"/> to a ciphertext, which can be decrypted
-        /// with the corresponding <see cref="PrivateKey"/>.
-        /// </summary>
-        /// <param name="message">A binary data to encrypt.</param>
-        /// <returns>
-        /// A ciphertext that was encrypted from the original <paramref name="message"/>.
-        /// This can be decrypted with the corresponding <see cref="PrivateKey" />.
-        /// </returns>
-        /// <remarks>Although the word &#x201c;ciphertext&#x201d; has the word &#x201c;text&#x201d;,
-        /// a returned ciphertext is not a Unicode <see cref="string"/>, but a mutable
-        /// <see cref="byte"/> array.</remarks>
-        /// <seealso cref="PrivateKey.Decrypt(byte[])"/>
-        public byte[] Encrypt(byte[] message)
-        {
-            PrivateKey disposablePrivateKey = new PrivateKey();
-            SymmetricKey aes = disposablePrivateKey.ExchangeKey(this);
-
-            return aes.Encrypt(
-                message,
-                disposablePrivateKey.PublicKey.Format(true)
-            );
-        }
-
-        /// <summary>
-        /// Encrypts a plaintext <paramref name="message"/> to a ciphertext, which can be decrypted
-        /// with the corresponding <see cref="PrivateKey"/>.
-        /// </summary>
-        /// <param name="message">A binary data to encrypt.</param>
-        /// <returns>
-        /// A ciphertext that was encrypted from the original <paramref name="message"/>.
-        /// This can be decrypted with the corresponding <see cref="PrivateKey" />.
-        /// </returns>
-        /// <remarks>Although the word &#x201c;ciphertext&#x201d; has the word &#x201c;text&#x201d;,
-        /// a returned ciphertext is not a Unicode <see cref="string"/>, but a mutable
-        /// <see cref="byte"/> array.</remarks>
-        /// <seealso cref="PrivateKey.Decrypt(ImmutableArray{byte})"/>
-        public ImmutableArray<byte> Encrypt(ImmutableArray<byte> message) =>
-            Encrypt(message.ToBuilder().ToArray()).ToImmutableArray();
-
-        /// <summary>
-        /// Verifies whether a <paramref name="signature"/> proves authenticity of
-        /// <paramref name="message"/> with the corresponding <see cref="PrivateKey"/>.
-        /// </summary>
-        /// <param name="message">A original plaintext message that the <paramref name="signature"/>
-        /// tries to prove its authenticity.  I.e., an argument data passed to
-        /// <see cref="PrivateKey.Sign(byte[])"/> or <see
-        /// cref="PrivateKey.Sign(ImmutableArray{byte})" /> methods.</param>
-        /// <param name="signature">A signature which tries to authenticity of
-        /// <paramref name="message"/>.  I.e., a data that <see cref="PrivateKey.Sign(byte[])"/> or
-        /// <see cref="PrivateKey.Sign(ImmutableArray{byte})"/> methods returned.</param>
-        /// <returns><see langword="true"/> if the <paramref name="signature"/> proves authenticity
-        /// of the <paramref name="message"/> with the corresponding <see cref="PrivateKey"/>.
-        /// Otherwise <see langword="false"/>.</returns>
-        [Pure]
-        public bool Verify(IReadOnlyList<byte> message, IReadOnlyList<byte> signature)
-            => Verify(Address, message.ToImmutableArray(), signature.ToImmutableArray());
-
-        /// <summary>
-        /// Gets the public key's hexadecimal representation in compressed form.
-        /// </summary>
-        /// <param name="compress">Returns a short length representation if it is
-        /// <see langword="true"/>.  This option does not lose any information.</param>
-        /// <returns>The hexadecimal string of the public key's compressed bytes.</returns>
-        /// <seealso cref="FromHex(string)"/>
-        public string ToHex(bool compress) => ByteUtil.Hex(Format(compress));
-
-        /// <inheritdoc cref="object.ToString()"/>
-        public override string ToString() => ToHex(true);
-
-        private static bool TryGetPublicKey(
-            byte[] bytes, [MaybeNullWhen(false)] out byte[] publicKey)
-        {
-            lock (PrivateKey._secpLock)
-            {
-                using var secp256k1 = new Secp256k1();
-                publicKey = new byte[Secp256k1.PUBKEY_LENGTH];
-                if (secp256k1.PublicKeyParse(publicKey, bytes))
-                {
-                    return true;
-                }
-
-                publicKey = null;
-                return false;
-            }
+            _bytes = bytes;
         }
     }
 
-    /// <summary>
-    /// The <see cref="TypeConverter"/> implementation for <see cref="PublicKey"/>.
-    /// </summary>
-    [SuppressMessage(
-        "StyleCop.CSharp.MaintainabilityRules",
-        "SA1402:FileMayOnlyContainASingleClass",
-        Justification = "It's okay to have non-public classes together in a single file."
-    )]
-    internal class PublicKeyTypeConverter : TypeConverter
+    public Address Address => new(this);
+
+    internal ImmutableArray<byte> Raw => _bytes;
+
+    public static bool operator ==(PublicKey left, PublicKey right) => left.Equals(right);
+
+    public static bool operator !=(PublicKey left, PublicKey right) => !left.Equals(right);
+
+    public static PublicKey Parse(string hex) => new([.. ByteUtil.ParseHex(hex)], verify: true);
+
+    public static bool Verify(
+        Address signer, ImmutableArray<byte> message, ImmutableArray<byte> signature)
     {
-        /// <inheritdoc cref="TypeConverter.CanConvertFrom(ITypeDescriptorContext?, Type)"/>
-        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>
-            sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
-
-        /// <inheritdoc
-        /// cref="TypeConverter.ConvertFrom(ITypeDescriptorContext?, CultureInfo?, object)"/>
-        public override object? ConvertFrom(
-            ITypeDescriptorContext? context,
-            CultureInfo? culture,
-            object value
-        )
+        if (signature.IsDefaultOrEmpty)
         {
-            if (value is string v)
-            {
-                try
-                {
-                    return PublicKey.FromHex(v);
-                }
-                catch (Exception e) when (e is ArgumentException || e is FormatException)
-                {
-                    throw new ArgumentException(e.Message, e);
-                }
-            }
-
-            return base.ConvertFrom(context, culture, value);
+            return false;
         }
 
-        /// <inheritdoc cref="TypeConverter.CanConvertTo(ITypeDescriptorContext?, Type?)"/>
-        public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType) =>
-            destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
-
-        /// <inheritdoc
-        /// cref="TypeConverter.ConvertTo(ITypeDescriptorContext?, CultureInfo?, object?, Type)"/>
-        public override object? ConvertTo(
-            ITypeDescriptorContext? context,
-            CultureInfo? culture,
-            object? value,
-            Type destinationType
-        ) =>
-            value is PublicKey key && destinationType == typeof(string)
-                ? key.ToHex(true)
-                : base.ConvertTo(context, culture, value, destinationType);
+        try
+        {
+            return CryptoConfig.CryptoBackend.Verify([.. message], [.. signature], signer);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
-    [SuppressMessage(
-        "StyleCop.CSharp.MaintainabilityRules",
-        "SA1402:FileMayOnlyContainASingleClass",
-        Justification = "It's okay to have non-public classes together in a single file."
-    )]
-    internal class PublicKeyJsonConverter : JsonConverter<PublicKey>
+    public bool Equals(PublicKey? other)
+        => other is not null && _bytes.SequenceEqual(other._bytes);
+
+    public override bool Equals(object? obj) => obj is PublicKey other && Equals(other);
+
+    public override int GetHashCode()
     {
-        public override PublicKey Read(
-            ref Utf8JsonReader reader,
-            Type typeToConvert,
-            JsonSerializerOptions options
-        )
+        HashCode hash = default;
+        foreach (byte @byte in _bytes)
         {
-            string? hex = reader.GetString();
-            try
-            {
-                return PublicKey.FromHex(hex!);
-            }
-            catch (Exception e) when (e is ArgumentException || e is FormatException)
-            {
-                throw new JsonException(e.Message);
-            }
+            hash.Add(@byte);
         }
 
-        public override void Write(
-            Utf8JsonWriter writer,
-            PublicKey value,
-            JsonSerializerOptions options
-        ) =>
-            writer.WriteStringValue(value.ToHex(true));
+        return hash.ToHashCode();
+    }
+
+    public ImmutableArray<byte> ToImmutableArray(bool compress)
+        => [.. ToByteArray(compress)];
+
+    public byte[] ToByteArray() => ToByteArray(compress: false);
+
+    public byte[] ToByteArray(bool compress) => PrivateKey.GetPublicKey(_bytes, compress);
+
+    public byte[] Encrypt(byte[] message)
+    {
+        var disposablePrivateKey = new PrivateKey();
+        var aes = disposablePrivateKey.ExchangeKey(this);
+
+        return aes.Encrypt(message, disposablePrivateKey.PublicKey.ToByteArray(true));
+    }
+
+    public ImmutableArray<byte> Encrypt(ImmutableArray<byte> message)
+        => [.. Encrypt(message.ToBuilder().ToArray())];
+
+    public bool Verify(IReadOnlyList<byte> message, IReadOnlyList<byte> signature)
+        => Verify(Address, [.. message], [.. signature]);
+
+    public override string ToString() => ByteUtil.Hex(ToByteArray(compress: false));
+
+    public string ToString(string? format, IFormatProvider? formatProvider) => format switch
+    {
+        "c" => ByteUtil.Hex(ToByteArray(compress: true)),
+        _ => ToString(),
+    };
+
+    private static bool TryGetPublicKey(
+        ImmutableArray<byte> bytes, [MaybeNullWhen(false)] out byte[] publicKey)
+    {
+        lock (PrivateKey._secpLock)
+        {
+            using var secp256k1 = new Secp256k1();
+            publicKey = new byte[Secp256k1.PUBKEY_LENGTH];
+            if (secp256k1.PublicKeyParse(publicKey, bytes.ToArray()))
+            {
+                return true;
+            }
+
+            publicKey = null;
+            return false;
+        }
     }
 }

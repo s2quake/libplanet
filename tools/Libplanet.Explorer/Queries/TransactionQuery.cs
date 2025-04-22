@@ -139,9 +139,7 @@ namespace Libplanet.Explorer.Queries
                     BlockChain chain = _context.BlockChain;
                     string plainValueString = context.GetArgument<string>("plainValue");
                     IValue plainValue = _codec.Decode(ByteUtil.ParseHex(plainValueString));
-                    var publicKey = new PublicKey(
-                        ByteUtil.ParseHex(context.GetArgument<string>("publicKey"))
-                    );
+                    var publicKey = PublicKey.Parse(context.GetArgument<string>("publicKey"));
                     Address signer = publicKey.Address;
                     long nonce = context.GetArgument<long?>("nonce") ??
                         chain.GetNextTxNonce(signer);

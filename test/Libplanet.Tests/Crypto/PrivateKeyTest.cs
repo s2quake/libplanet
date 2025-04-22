@@ -113,10 +113,10 @@ namespace Libplanet.Tests.Crypto
                 0xd7, 0xaf, 0x32, 0x29, 0x74,
             };
 
-            Assert.Equal(expected, new PrivateKey(keyBytes).PublicKey.Format(false));
+            Assert.Equal(expected, new PrivateKey(keyBytes).PublicKey.ToByteArray(false));
             Assert.Equal(
                 expected,
-                new PrivateKey(keyBytes.ToImmutableArray().ToArray()).PublicKey.Format(false)
+                new PrivateKey(keyBytes.ToImmutableArray().ToArray()).PublicKey.ToByteArray(false)
             );
         }
 

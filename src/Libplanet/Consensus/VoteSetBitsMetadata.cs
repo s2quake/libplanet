@@ -87,7 +87,7 @@ namespace Libplanet.Consensus
                     TimestampFormat,
                     CultureInfo.InvariantCulture),
                 validatorPublicKey: new PublicKey(
-                    ((Binary)encoded[ValidatorPublicKeyKey]).ByteArray.ToArray()),
+                    [.. ((Binary)encoded[ValidatorPublicKeyKey]).ByteArray]),
                 flag: (VoteFlag)(int)(Integer)encoded[FlagKey],
                 voteBits: ((List)encoded[VoteBitsKey])
                     .Select(bit => (bool)(Bencodex.Types.Boolean)bit))
@@ -144,7 +144,7 @@ namespace Libplanet.Consensus
                     .Add(
                         TimestampKey,
                         Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
-                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.Format(compress: true))
+                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.ToByteArray(compress: true))
                     .Add(BlockHashKey, BlockHash.ByteArray)
                     .Add(FlagKey, (int)Flag)
                     .Add(
@@ -167,7 +167,7 @@ namespace Libplanet.Consensus
         public VoteSetBits Sign(PrivateKey signer) =>
             new VoteSetBits(this, signer.Sign(ByteArray).ToImmutableArray());
 
-            public bool Equals(VoteSetBitsMetadata? other)
+        public bool Equals(VoteSetBitsMetadata? other)
         {
             return other is { } metadata &&
                 Height == metadata.Height &&
@@ -183,10 +183,10 @@ namespace Libplanet.Consensus
                 VoteBits.SequenceEqual(other.VoteBits);
         }
 
-            public override bool Equals(object? obj) =>
-            obj is VoteSetBitsMetadata other && Equals(other);
+        public override bool Equals(object? obj) =>
+        obj is VoteSetBitsMetadata other && Equals(other);
 
-            public override int GetHashCode()
+        public override int GetHashCode()
         {
             int voteBitsHashCode = VoteBits.Aggregate(
                 0,

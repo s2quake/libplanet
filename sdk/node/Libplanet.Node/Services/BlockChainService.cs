@@ -125,7 +125,7 @@ internal sealed class BlockChainService(
         if (genesisOptions.GenesisKey != string.Empty)
         {
             var genesisKey = PrivateKey.FromString(genesisOptions.GenesisKey);
-            var validatorKeys = genesisOptions.Validators.Select(PublicKey.FromHex).ToArray();
+            var validatorKeys = genesisOptions.Validators.Select(PublicKey.Parse).ToArray();
             var actions = actionService.GetGenesisActions(
                 genesisAddress: genesisKey.Address,
                 validatorKeys: validatorKeys);

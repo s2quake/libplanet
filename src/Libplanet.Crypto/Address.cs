@@ -24,6 +24,11 @@ public readonly struct Address(in ImmutableArray<byte> bytes)
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(bytes);
 
+    public Address(Span<byte> bytes)
+        : this(ValidateBytes(bytes.ToImmutableArray()))
+    {
+    }
+
     public Address(PublicKey publicKey)
         : this(DeriveAddress(publicKey))
     {
@@ -129,7 +134,7 @@ public readonly struct Address(in ImmutableArray<byte> bytes)
 
     private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
     {
-        var pubKey = publicKey.Format(compressed);
+        var pubKey = publicKey.ToByteArray(compressed);
         var arr = new byte[pubKey.Length - 1];
         Array.Copy(pubKey, 1, arr, 0, arr.Length);
         return arr;

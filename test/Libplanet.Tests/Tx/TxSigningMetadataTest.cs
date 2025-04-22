@@ -1,5 +1,4 @@
 using System;
-using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Types.Tx;
 using Xunit;
@@ -8,9 +7,8 @@ namespace Libplanet.Tests.Tx
 {
     public class TxSigningMetadataTest
     {
-        private static readonly PublicKey PublicKey = new PublicKey(
-            ByteUtil.ParseHex(
-                "03f804c12768bf9e05978ee37c56d037f68523fd9079642691eec82e233e1559bf"));
+        private static readonly PublicKey PublicKey = PublicKey.Parse(
+            "03f804c12768bf9e05978ee37c56d037f68523fd9079642691eec82e233e1559bf");
 
         [Fact]
         public void Constructor()

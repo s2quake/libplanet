@@ -113,7 +113,7 @@ namespace Libplanet.Crypto
                         using var secp256k1 = new Secp256k1();
                         var publicKey = new byte[Secp256k1.PUBKEY_LENGTH];
                         secp256k1.PublicKeyCreate(publicKey, _bytes.ToArray());
-                        _publicKey = new PublicKey(publicKey, verify: false);
+                        _publicKey = new PublicKey([.. publicKey], verify: false);
                     }
                 }
 
@@ -263,7 +263,7 @@ namespace Libplanet.Crypto
         [Pure]
         public byte[] Decrypt(byte[] ciphertext)
         {
-            PublicKey pubKey = new PublicKey(ciphertext.Take(33).ToArray());
+            PublicKey pubKey = new PublicKey([.. ciphertext.Take(33)]);
             SymmetricKey aes = ExchangeKey(pubKey);
 
             return aes.Decrypt(ciphertext, 33);

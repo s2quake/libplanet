@@ -81,7 +81,7 @@ internal sealed class SwarmService(
         var privateKey = PrivateKey.FromString(nodeOptions.PrivateKey);
         var appProtocolVersion = AppProtocolVersion.FromToken(nodeOptions.AppProtocolVersion);
         var trustedAppProtocolVersionSigners = nodeOptions.TrustedAppProtocolVersionSigners
-            .Select(PublicKey.FromHex).ToArray();
+            .Select(PublicKey.Parse).ToArray();
         var swarmEndPoint = (DnsEndPoint)EndPointUtility.Parse(nodeOptions.EndPoint);
         var swarmTransport = await CreateTransport(
             privateKey: privateKey,

@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using Bencodex;
 using Bencodex.Types;
@@ -60,7 +59,7 @@ namespace Libplanet.Net
 
         private BoundPeer(Bencodex.Types.Dictionary bencoded)
             : this(
-                new PublicKey(((Binary)bencoded[PublicKeyKey]).ByteArray.ToArray()),
+                new PublicKey([.. ((Binary)bencoded[PublicKeyKey]).ByteArray]),
                 new DnsEndPoint(
                     (Text)bencoded[EndPointHostKey], (Integer)bencoded[EndPointPortKey]),
                 bencoded[PublicIpAddressKey] is Text text ? IPAddress.Parse(text) : null)
@@ -99,7 +98,7 @@ namespace Libplanet.Net
         [Pure]
         public Bencodex.Types.IValue Bencoded =>
         Bencodex.Types.Dictionary.Empty
-            .Add(PublicKeyKey, PublicKey.Format(true))
+            .Add(PublicKeyKey, PublicKey.ToByteArray(true))
             .Add(EndPointHostKey, EndPoint.Host)
             .Add(EndPointPortKey, EndPoint.Port)
             .Add(
@@ -140,7 +139,7 @@ namespace Libplanet.Net
 
             try
             {
-                var pubKey = PublicKey.FromHex(tokens[0]);
+                var pubKey = PublicKey.Parse(tokens[0]);
                 var host = tokens[1];
                 var port = int.Parse(tokens[2], CultureInfo.InvariantCulture);
 

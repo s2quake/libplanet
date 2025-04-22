@@ -26,7 +26,7 @@ internal sealed class GenesisOptionsConfigurator(
             if (options.Validators.Length == 0)
             {
                 var privateKey = PrivateKey.FromString(nodeOptions.Value.PrivateKey);
-                options.Validators = [privateKey.PublicKey.ToHex(compress: false)];
+                options.Validators = [privateKey.PublicKey.ToString()];
                 logger.LogWarning(
                     "Validators are not set. Use the node's private key as a validator.");
             }

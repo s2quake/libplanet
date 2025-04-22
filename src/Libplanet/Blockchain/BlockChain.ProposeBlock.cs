@@ -8,7 +8,6 @@ using Bencodex.Types;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Common;
 using Libplanet.Crypto;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;

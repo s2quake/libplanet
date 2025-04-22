@@ -381,7 +381,7 @@ namespace Libplanet.Types.Blocks
             // property in this class guarantees that its ProtocolVersion is <= 1 when it is null
             // and its ProtocolVersion is >= 2 when it is not null:
             dict = PublicKey is { } pubKey && ProtocolVersion >= 2
-                ? dict.Add("public_key", pubKey.Format(compress: true)) // ProtocolVersion >= 2
+                ? dict.Add("public_key", pubKey.ToByteArray(compress: true)) // ProtocolVersion >= 2
                 : dict.Add("reward_beneficiary", Miner.Bencoded); /////// ProtocolVersion <= 1
 
             return dict;

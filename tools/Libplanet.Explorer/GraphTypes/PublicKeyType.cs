@@ -37,7 +37,7 @@ namespace Libplanet.Explorer.GraphTypes
             if (value is string str)
             {
                 // NOTE: Compressed and uncompressed should both be allowed.
-                return new PublicKey(ByteUtil.ParseHex(str));
+                return PublicKey.Parse(str);
             }
 
             return ThrowValueConversionError(value);

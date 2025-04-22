@@ -87,19 +87,19 @@ namespace Libplanet.Types.Consensus
         }
 #pragma warning restore SA1118
 
-            public long Height => _metadata.Height;
+        public long Height => _metadata.Height;
 
-            public int Round => _metadata.Round;
+        public int Round => _metadata.Round;
 
-            public BlockHash BlockHash => _metadata.BlockHash;
+        public BlockHash BlockHash => _metadata.BlockHash;
 
-            public DateTimeOffset Timestamp => _metadata.Timestamp;
+        public DateTimeOffset Timestamp => _metadata.Timestamp;
 
-            public PublicKey ValidatorPublicKey => _metadata.ValidatorPublicKey;
+        public PublicKey ValidatorPublicKey => _metadata.ValidatorPublicKey;
 
-            public BigInteger? ValidatorPower => _metadata.ValidatorPower;
+        public BigInteger? ValidatorPower => _metadata.ValidatorPower;
 
-            public VoteFlag Flag => _metadata.Flag;
+        public VoteFlag Flag => _metadata.Flag;
 
         /// <summary>
         /// The signature for the <see cref="Vote"/>.  Lack of signature for a <see cref="Vote"/>
@@ -107,11 +107,11 @@ namespace Libplanet.Types.Consensus
         /// </summary>
         public ImmutableArray<byte> Signature { get; }
 
-            [JsonIgnore]
+        [JsonIgnore]
         public Bencodex.Types.IValue Bencoded =>
-            !Signature.IsEmpty
-                ? ((Bencodex.Types.Dictionary)_metadata.Bencoded).Add(SignatureKey, Signature)
-                : _metadata.Bencoded;
+        !Signature.IsEmpty
+            ? ((Bencodex.Types.Dictionary)_metadata.Bencoded).Add(SignatureKey, Signature)
+            : _metadata.Bencoded;
 
         /// <summary>
         /// Verifies whether the <see cref="Vote"/>'s payload is properly signed by
@@ -126,7 +126,7 @@ namespace Libplanet.Types.Consensus
             ValidatorPublicKey.Verify(
                 _codec.Encode(_metadata.Bencoded).ToImmutableArray(), Signature);
 
-            [Pure]
+        [Pure]
         public bool Equals(Vote? other)
         {
             return other is Vote vote &&
@@ -134,13 +134,13 @@ namespace Libplanet.Types.Consensus
                 Signature.SequenceEqual(vote.Signature);
         }
 
-            [Pure]
+        [Pure]
         public override bool Equals(object? obj)
         {
             return obj is Vote other && Equals(other);
         }
 
-            [Pure]
+        [Pure]
         public override int GetHashCode()
         {
             return HashCode.Combine(
@@ -148,7 +148,7 @@ namespace Libplanet.Types.Consensus
                 ByteUtil.CalculateHashCode(Signature.ToArray()));
         }
 
-            [Pure]
+        [Pure]
         public override string ToString()
         {
             var dict = new Dictionary<string, object>

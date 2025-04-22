@@ -123,7 +123,7 @@ namespace Libplanet.Consensus
                 _voteSetBitsMetadata.ByteArray.ToImmutableArray(),
                 Signature);
 
-            [Pure]
+        [Pure]
         public bool Equals(VoteSetBits? other)
         {
             return other is { } voteSetBits &&
@@ -131,13 +131,13 @@ namespace Libplanet.Consensus
                    Signature.SequenceEqual(voteSetBits.Signature);
         }
 
-            [Pure]
+        [Pure]
         public override bool Equals(object? obj)
         {
             return obj is VoteSetBits other && Equals(other);
         }
 
-            [Pure]
+        [Pure]
         public override int GetHashCode()
         {
             return HashCode.Combine(

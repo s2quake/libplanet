@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
 using System.Text.Json.Serialization;
@@ -54,7 +55,7 @@ namespace Libplanet.Types.Consensus
 
         private Validator(Bencodex.Types.Dictionary bencoded)
             : this(
-                new PublicKey(((Binary)bencoded[PublicKeyKey]).ByteArray.ToArray()),
+                new PublicKey([.. ((Binary)bencoded[PublicKeyKey]).ByteArray]),
                 (Integer)bencoded[PowerKey])
         {
         }
@@ -75,10 +76,10 @@ namespace Libplanet.Types.Consensus
         [JsonIgnore]
         public Address OperatorAddress => PublicKey.Address;
 
-            [JsonIgnore]
+        [JsonIgnore]
         public Bencodex.Types.IValue Bencoded => Dictionary.Empty
-            .Add(PublicKeyKey, PublicKey.Format(true))
-            .Add(PowerKey, Power);
+        .Add(PublicKeyKey, PublicKey.ToByteArray(true))
+        .Add(PowerKey, Power);
 
         public static bool operator ==(Validator obj, Validator other)
         {
@@ -90,7 +91,7 @@ namespace Libplanet.Types.Consensus
             return !(obj == other);
         }
 
-            public override bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Validator other)
             {
@@ -100,16 +101,16 @@ namespace Libplanet.Types.Consensus
             return false;
         }
 
-            public bool Equals(Validator? other)
+        public bool Equals(Validator? other)
         {
             return PublicKey.Equals(other?.PublicKey) && Power.Equals(other?.Power);
         }
 
-            public override int GetHashCode()
+        public override int GetHashCode()
         {
             return HashCode.Combine(PublicKey, Power);
         }
 
-            public override string ToString() => $"{PublicKey}:{Power}";
+        public override string ToString() => $"{PublicKey}:{Power}";
     }
 }

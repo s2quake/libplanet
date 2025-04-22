@@ -125,7 +125,7 @@ namespace Libplanet.Consensus
                 _proposalMetadata.ByteArray.ToImmutableArray(),
                 Signature);
 
-            [Pure]
+        [Pure]
         public bool Equals(Proposal? other)
         {
             return other is Proposal proposal &&
@@ -133,13 +133,13 @@ namespace Libplanet.Consensus
                    Signature.SequenceEqual(proposal.Signature);
         }
 
-            [Pure]
+        [Pure]
         public override bool Equals(object? obj)
         {
             return obj is Proposal other && Equals(other);
         }
 
-            [Pure]
+        [Pure]
         public override int GetHashCode()
         {
             return HashCode.Combine(

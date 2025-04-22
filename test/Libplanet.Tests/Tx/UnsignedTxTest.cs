@@ -19,9 +19,8 @@ namespace Libplanet.Tests.Tx
         private static readonly Address AddressB =
             Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
 
-        private static readonly PublicKey PublicKey = new PublicKey(
-            ByteUtil.ParseHex(
-                "03f804c12768bf9e05978ee37c56d037f68523fd9079642691eec82e233e1559bf"));
+        private static readonly PublicKey PublicKey = PublicKey.Parse(
+            "03f804c12768bf9e05978ee37c56d037f68523fd9079642691eec82e233e1559bf");
 
         private readonly TxInvoice _invoice;
         private readonly TxSigningMetadata _signingMetadata;
