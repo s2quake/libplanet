@@ -121,7 +121,7 @@ namespace Libplanet.Tests.Tx
 
             // Note: Actual format for sDelta and updatedFAVs doesn't really matter,
             // it is important decoding doesn't throw an exception.
-            var currency = Currency.Uncapped("FOO", 0, null);
+            var currency = new Currency("FOO", 0);
             Dictionary legacyEncoded = Dictionary.Empty
                 .Add("fail", false)
                 .Add("sDelta", Dictionary.Empty

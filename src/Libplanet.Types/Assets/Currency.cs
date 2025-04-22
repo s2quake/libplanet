@@ -12,14 +12,33 @@ using Libplanet.Crypto;
 
 namespace Libplanet.Types.Assets;
 
-public readonly record struct Currency(string Ticker, ImmutableArray<Address> Minters)
+public readonly record struct Currency(
+    string Ticker, byte DecimalPlaces, BigInteger MaximumSupply, ImmutableArray<Address> Minters)
     : IEquatable<Currency>
 {
+    public Currency(string ticker, byte decimalPlaces)
+        : this(ticker, decimalPlaces, 0, [])
+    {
+    }
+
+    public Currency(string ticker, byte decimalPlaces, BigInteger maximumSupply)
+        : this(ticker, decimalPlaces, maximumSupply, [])
+    {
+    }
+
+    public Currency(string ticker, byte decimalPlaces, ImmutableArray<Address> minters)
+        : this(ticker, decimalPlaces, 0, minters)
+    {
+    }
+
     [JsonInclude]
     public string Ticker { get; } = ValidateTicker(Ticker);
 
     [JsonInclude]
-    public byte DecimalPlaces { get; init; } = 16;
+    public byte DecimalPlaces { get; } = DecimalPlaces;
+
+    [JsonInclude]
+    public BigInteger MaximumSupply { get; } = ValidateMaximumSupply(MaximumSupply);
 
     [JsonInclude]
     public ImmutableArray<Address> Minters { get; } = ValidateMinters(Minters);
@@ -29,9 +48,6 @@ public readonly record struct Currency(string Ticker, ImmutableArray<Address> Mi
 
     [JsonIgnore]
     public HashDigest<SHA1> Hash => GetHash();
-
-    [JsonInclude]
-    public (BigInteger Major, BigInteger Minor) MaximumSupply { get; init; }
 
     public static FungibleAssetValue operator *(Currency currency, BigInteger quantity)
         => new(currency, majorUnit: quantity, minorUnit: 0);
@@ -53,15 +69,12 @@ public readonly record struct Currency(string Ticker, ImmutableArray<Address> Mi
         }
 
         var ticker = ((Text)list[0]).Value;
-        var minters = ((List)list[1]).Select(x => new Address(x)).ToImmutableArray();
-        var decimalPlaces = (byte)((Integer)list[2]).Value;
-        var major = ((Integer)list[3]).Value;
-        var minor = ((Integer)list[4]).Value;
+        var decimalPlaces = (byte)((Integer)list[1]).Value;
+        var maximumSupply = ((Integer)list[2]).Value;
+        var minters = ((List)list[3]).Select(x => new Address(x)).ToImmutableArray();
         var isTrackable = ((Bencodex.Types.Boolean)list[5]).Value;
-        return new Currency(ticker, minters)
+        return new Currency(ticker, decimalPlaces, maximumSupply, minters)
         {
-            DecimalPlaces = decimalPlaces,
-            MaximumSupply = (major, minor),
             IsTrackable = isTrackable,
         };
     }
@@ -78,10 +91,9 @@ public readonly record struct Currency(string Ticker, ImmutableArray<Address> Mi
     {
         return new List(
             new Text(Ticker),
-            ToBencodex(Minters),
             new Integer(DecimalPlaces),
-            new Integer(MaximumSupply.Major),
-            new Integer(MaximumSupply.Minor),
+            new Integer(MaximumSupply),
+            ToBencodex(Minters),
             new Bencodex.Types.Boolean(IsTrackable));
     }
 
@@ -106,6 +118,19 @@ public readonly record struct Currency(string Ticker, ImmutableArray<Address> Mi
         return ticker;
     }
 
+    private static BigInteger ValidateMaximumSupply(BigInteger maximumSupply)
+    {
+        if (maximumSupply < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maximumSupply),
+                "Maximum supply must be non-negative."
+            );
+        }
+
+        return maximumSupply;
+    }
+
     private static ImmutableArray<Address> ValidateMinters(ImmutableArray<Address> minters)
     {
         if (minters.IsDefaultOrEmpty)
@@ -118,7 +143,7 @@ public readonly record struct Currency(string Ticker, ImmutableArray<Address> Mi
             throw new ArgumentException("Minters must be unique.", nameof(minters));
         }
 
-        return minters;
+        return [.. minters.Order()];
     }
 
     private static SHA1 GetSHA1()

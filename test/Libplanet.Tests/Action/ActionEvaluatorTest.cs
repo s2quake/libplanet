@@ -1348,17 +1348,13 @@ namespace Libplanet.Tests.Action
         {
             var privateKey = new PrivateKey();
             var address = privateKey.Address;
-            Currency foo = Currency.Uncapped(
-                "FOO",
-                18,
-                null
-            );
+            Currency foo = new Currency("FOO", 18);
 
             var freeGasAction = new UseGasAction()
             {
                 GasUsage = 0,
                 Memo = "FREE",
-                MintValue = FungibleAssetValue.FromRawValue(foo, 10),
+                MintValue = new FungibleAssetValue(foo, 10),
                 Receiver = address,
             };
 
@@ -1380,7 +1376,7 @@ namespace Libplanet.Tests.Action
                 nonce: 0,
                 privateKey: privateKey,
                 genesisHash: chain.Genesis.Hash,
-                maxGasPrice: FungibleAssetValue.FromRawValue(foo, 1),
+                maxGasPrice: new FungibleAssetValue(foo, 1),
                 gasLimit: 3,
                 actions: new[]
                 {
@@ -1406,17 +1402,13 @@ namespace Libplanet.Tests.Action
         {
             var privateKey = new PrivateKey();
             var address = privateKey.Address;
-            Currency foo = Currency.Uncapped(
-                "FOO",
-                18,
-                null
-            );
+            Currency foo = new Currency("FOO", 18);
 
             var freeGasAction = new UseGasAction()
             {
                 GasUsage = 0,
                 Memo = "FREE",
-                MintValue = FungibleAssetValue.FromRawValue(foo, 10),
+                MintValue = new FungibleAssetValue(foo, 10),
                 Receiver = address,
             };
 
@@ -1441,7 +1433,7 @@ namespace Libplanet.Tests.Action
                 nonce: 0,
                 privateKey: privateKey,
                 genesisHash: chain.Genesis.Hash,
-                maxGasPrice: FungibleAssetValue.FromRawValue(foo, 1),
+                maxGasPrice: new FungibleAssetValue(foo, 1),
                 gasLimit: 5,
                 actions: new[]
                 {
@@ -1630,7 +1622,7 @@ namespace Libplanet.Tests.Action
             public IValue PlainValue => new List(
                 (Integer)GasUsage,
                 (Text)Memo,
-                MintValue is null ? (IValue)default(Null) : MintValue.Value.Serialize(),
+                MintValue is null ? (IValue)default(Null) : MintValue.Value.ToBencodex(),
                 Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.ByteArray
                 );
 
@@ -1641,7 +1633,7 @@ namespace Libplanet.Tests.Action
                 Memo = (Text)asList[1];
                 if (!(asList[2] is Bencodex.Types.Null))
                 {
-                    MintValue = new FungibleAssetValue(asList[2]);
+                    MintValue = FungibleAssetValue.Create(asList[2]);
                 }
 
                 if (!(asList[3] is Bencodex.Types.Null))

@@ -26,7 +26,7 @@ namespace Libplanet.Explorer.Tests.Fixtures
         /// </summary>
 #pragma warning disable CS0618  // Obsolete.
         public static readonly Currency Currency =
-            Currency.Legacy("ABC", 2, null);
+            new Currency("ABC", 2);
 #pragma warning restore CS0618
 
         /// <summary>

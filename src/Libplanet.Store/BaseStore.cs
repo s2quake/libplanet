@@ -263,11 +263,11 @@ public abstract class BaseStore : IStore
         serialized.Select(pList =>
         {
             var pair = (List)pList;
-            var currency = new Currency(pair[0]);
+            var currency = Currency.Create(pair[0]);
             BigInteger rawValue = (Bencodex.Types.Integer)pair[1];
             return new KeyValuePair<Currency, FAV>(
                 currency,
-                FAV.FromRawValue(currency, rawValue)
+                new FAV(currency, rawValue)
             );
         }).ToImmutableDictionary();
 }

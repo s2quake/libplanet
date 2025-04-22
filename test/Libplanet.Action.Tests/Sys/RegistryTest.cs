@@ -26,7 +26,7 @@ namespace Libplanet.Action.Tests.Sys
                 [default] = (Text)"initial value",
             }.ToImmutableDictionary();
 
-        private static readonly Currency FooCurrency = Currency.Uncapped("FOO", 2, null);
+        private static readonly Currency FooCurrency = new("FOO", 2);
 
         [Fact]
         public void Deserialize()

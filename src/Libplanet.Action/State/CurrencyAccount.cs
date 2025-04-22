@@ -38,7 +38,7 @@ namespace Libplanet.Action.State
         {
             CheckCurrency(currency);
 #pragma warning disable SA1118  // The parameter spans multiple lines
-            return FungibleAssetValue.FromRawValue(
+            return new FungibleAssetValue(
                 Currency,
                 WorldVersion >= BlockMetadata.CurrencyAccountProtocolVersion
                     ? GetRawBalanceV7(address)
@@ -50,7 +50,7 @@ namespace Libplanet.Action.State
         {
             CheckCurrency(currency);
 #pragma warning disable SA1118  // The parameter spans multiple lines
-            return FungibleAssetValue.FromRawValue(
+            return new FungibleAssetValue(
                 Currency,
                 WorldVersion >= BlockMetadata.CurrencyAccountProtocolVersion
                     ? GetRawTotalSupplyV7()
@@ -145,13 +145,13 @@ namespace Libplanet.Action.State
             if (Currency.IsTrackable)
             {
                 BigInteger prevTotalSupplyRawValue = currencyAccount.GetRawTotalSupplyV0();
-                if (Currency.MaximumSupply is { } maximumSupply &&
-                    maximumSupply.RawValue < prevTotalSupplyRawValue + rawValue)
+                if (Currency.MaximumSupply != BigInteger.Zero &&
+                    Currency.MaximumSupply < prevTotalSupplyRawValue + rawValue)
                 {
                     FungibleAssetValue prevTotalSupply =
-                        FungibleAssetValue.FromRawValue(Currency, prevTotalSupplyRawValue);
+                        new FungibleAssetValue(Currency, prevTotalSupplyRawValue);
                     FungibleAssetValue value =
-                        FungibleAssetValue.FromRawValue(Currency, rawValue);
+                        new FungibleAssetValue(Currency, rawValue);
                     throw new SupplyOverflowException(
                         $"Cannot mint {value} in addition to " +
                         $"the current total supply of {prevTotalSupply} as it would exceed " +
@@ -176,13 +176,13 @@ namespace Libplanet.Action.State
                 currencyAccount.WriteRawBalanceV7(recipient, prevBalanceRawValue + rawValue);
 
             BigInteger prevTotalSupplyRawValue = currencyAccount.GetRawTotalSupplyV7();
-            if (Currency.MaximumSupply is { } maximumSupply &&
-                maximumSupply.RawValue < prevTotalSupplyRawValue + rawValue)
+            if (Currency.MaximumSupply != BigInteger.Zero &&
+                Currency.MaximumSupply < prevTotalSupplyRawValue + rawValue)
             {
                 FungibleAssetValue prevTotalSupply =
-                    FungibleAssetValue.FromRawValue(Currency, prevTotalSupplyRawValue);
+                    new FungibleAssetValue(Currency, prevTotalSupplyRawValue);
                 FungibleAssetValue value =
-                    FungibleAssetValue.FromRawValue(Currency, rawValue);
+                    new FungibleAssetValue(Currency, rawValue);
                 throw new SupplyOverflowException(
                     $"Cannot mint {value} in addition to " +
                     $"the current total supply of {prevTotalSupply} as it would exceed " +
@@ -205,8 +205,8 @@ namespace Libplanet.Action.State
             if (prevBalanceRawValue - rawValue < 0)
             {
                 FungibleAssetValue prevBalance =
-                    FungibleAssetValue.FromRawValue(Currency, prevBalanceRawValue);
-                FungibleAssetValue value = FungibleAssetValue.FromRawValue(Currency, rawValue);
+                    new FungibleAssetValue(Currency, prevBalanceRawValue);
+                FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
                 throw new InsufficientBalanceException(
                     $"Cannot burn or transfer {value} from {owner} as the current balance " +
                     $"of {owner} is {prevBalance}.",
@@ -236,8 +236,8 @@ namespace Libplanet.Action.State
             if (prevBalanceRawValue - rawValue < 0)
             {
                 FungibleAssetValue prevBalance =
-                    FungibleAssetValue.FromRawValue(Currency, prevBalanceRawValue);
-                FungibleAssetValue value = FungibleAssetValue.FromRawValue(Currency, rawValue);
+                    new FungibleAssetValue(Currency, prevBalanceRawValue);
+                FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
                 throw new InsufficientBalanceException(
                     $"Cannot burn or transfer {value} from {owner} as the current balance " +
                     $"of {owner} is {prevBalance}.",
@@ -265,8 +265,8 @@ namespace Libplanet.Action.State
             if (prevSenderBalanceRawValue - rawValue < 0)
             {
                 FungibleAssetValue prevSenderBalance =
-                    FungibleAssetValue.FromRawValue(Currency, prevSenderBalanceRawValue);
-                FungibleAssetValue value = FungibleAssetValue.FromRawValue(Currency, rawValue);
+                    new FungibleAssetValue(Currency, prevSenderBalanceRawValue);
+                FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
                 throw new InsufficientBalanceException(
                     $"Cannot burn or transfer {value} from {sender} as the current balance " +
                     $"of {sender} is {prevSenderBalance}.",
@@ -294,8 +294,8 @@ namespace Libplanet.Action.State
             if (prevSenderBalanceRawValue - rawValue < 0)
             {
                 FungibleAssetValue prevSenderBalance =
-                    FungibleAssetValue.FromRawValue(Currency, prevSenderBalanceRawValue);
-                FungibleAssetValue value = FungibleAssetValue.FromRawValue(Currency, rawValue);
+                    new FungibleAssetValue(Currency, prevSenderBalanceRawValue);
+                FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
                 throw new InsufficientBalanceException(
                     $"Cannot burn or transfer {value} from {sender} as the current balance " +
                     $"of {sender} is {prevSenderBalance}.",
@@ -326,8 +326,8 @@ namespace Libplanet.Action.State
             if (prevSenderBalanceRawValue - rawValue < 0)
             {
                 FungibleAssetValue prevSenderBalance =
-                    FungibleAssetValue.FromRawValue(Currency, prevSenderBalanceRawValue);
-                FungibleAssetValue value = FungibleAssetValue.FromRawValue(Currency, rawValue);
+                    new FungibleAssetValue(Currency, prevSenderBalanceRawValue);
+                FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
                 throw new InsufficientBalanceException(
                     $"Cannot burn or transfer {value} from {sender} as the current balance " +
                     $"of {sender} is {prevSenderBalance}.",

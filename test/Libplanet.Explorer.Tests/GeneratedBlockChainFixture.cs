@@ -21,7 +21,7 @@ namespace Libplanet.Explorer.Tests;
 
 public class GeneratedBlockChainFixture
 {
-    public static Currency TestCurrency => Currency.Uncapped("TEST", 0, null);
+    public static Currency TestCurrency => new Currency("TEST", 0);
 
     public BlockChain Chain { get; }
 

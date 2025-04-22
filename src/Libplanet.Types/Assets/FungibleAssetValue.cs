@@ -1,79 +1,22 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Assets;
 
-/// <summary>
-/// Holds a fungible asset value which holds its <see cref="Currency"/> together.
-/// </summary>
-/// <remarks>
-/// It behaves like numbers except for division operator (<c>/</c>) to prevent to forget
-/// to handle its remainder; use <see cref="DivRem(FungibleAssetValue)"/> and <see
-/// cref="DivRem(BigInteger)"/> methods instead.
-/// </remarks>
 [JsonConverter(typeof(FungibleAssetValueJsonConverter))]
-public readonly record struct FungibleAssetValue
+public readonly record struct FungibleAssetValue(Currency Currency, BigInteger RawValue)
     : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable
 {
-    /// <summary>
-    /// The currency of the fungible asset.
-    /// </summary>
-    public readonly Currency Currency;
-
-    /// <summary>
-    /// The internal representation of the fungible asset.
-    /// </summary>
-    /// <remarks>
-    /// Since this is an internal representation, this does not guarantee forward compatibility.
-    /// Therefore, do not depend on this value for permanent uses but only for volatile data.
-    /// </remarks>
-    /// <seealso cref="FromRawValue"/>
-    public readonly BigInteger RawValue;
-
-    public FungibleAssetValue(IValue value)
-    {
-        if (!(value is Bencodex.Types.List list))
-        {
-            throw new ArgumentException(
-                $"The given value is not a list: {value}",
-                nameof(value)
-            );
-        }
-
-        Currency = new Currency(list[0]);
-        RawValue = (Bencodex.Types.Integer)list[1];
-    }
-
-    /// <summary>
-    /// Creates a zero value of the <paramref name="currency"/>.
-    /// </summary>
-    /// <param name="currency">The currency to create a zero value.</param>
     public FungibleAssetValue(Currency currency)
         : this(currency, BigInteger.Zero)
     {
     }
 
-    /// <summary>
-    /// Creates a value of the <paramref name="currency"/> from the given
-    /// <paramref name="majorUnit"/> and <paramref name="minorUnit"/>.
-    /// </summary>
-    /// <param name="currency">The currency to create a value.</param>
-    /// <param name="majorUnit">The major unit of the fungible asset value,
-    /// i.e., digits <em>before</em> the decimal separator.</param>
-    /// <param name="minorUnit">The minor unit of the fungible asset value,
-    /// i.e., digits <em>after</em> the decimal separator.</param>
-    /// <exception cref="ArgumentException">Thrown when the negativity sign is ambiguous
-    /// (e.g., both units have signs) or too big for the <paramref name="currency"/>.
-    /// </exception>
-    /// <seealso cref="Currency.DecimalPlaces"/>
     public FungibleAssetValue(Currency currency, BigInteger majorUnit, BigInteger minorUnit)
         : this(
             currency,
@@ -86,34 +29,12 @@ public readonly record struct FungibleAssetValue
         {
             throw new ArgumentException(
                 "Unless the major unit is zero, the minor unit cannot be negative.",
-                nameof(minorUnit)
-            );
+                nameof(minorUnit));
         }
     }
 
-    /// <summary>
-    /// Creates a value of the <paramref name="currency"/> from the given <paramref
-    /// name="sign"/>, <paramref name="majorUnit"/> and <paramref name="minorUnit"/>.
-    /// </summary>
-    /// <param name="currency">The currency to create a value.</param>
-    /// <param name="sign">Indicates the sign (negative, positive, or zero) of the value.
-    /// <c>-1</c> indicates negative, <c>1</c> indicates positive, and <c>0</c> indicates
-    /// zero.</param>
-    /// <param name="majorUnit">The major unit of the fungible asset value,
-    /// i.e., digits <em>before</em> the decimal separator.  Must not be negative.</param>
-    /// <param name="minorUnit">The minor unit of the fungible asset value,
-    /// i.e., digits <em>after</em> the decimal separator.  Must not be negative.</param>
-    /// <exception cref="ArgumentException">Thrown when the <paramref name="sign"/> is not
-    /// one of <c>1</c>, <c>0</c>, and <c>-1</c>, or <paramref name="majorUnit"/> or
-    /// <paramref name="minorUnit"/> is negative.
-    /// </exception>
-    /// <seealso cref="Currency.DecimalPlaces"/>
     public FungibleAssetValue(
-        Currency currency,
-        int sign,
-        BigInteger majorUnit,
-        BigInteger minorUnit
-    )
+        Currency currency, int sign, BigInteger majorUnit, BigInteger minorUnit)
         : this(
             currency,
             sign * (majorUnit * BigInteger.Pow(10, currency.DecimalPlaces) + minorUnit)
@@ -161,32 +82,6 @@ public readonly record struct FungibleAssetValue
         }
     }
 
-    /// <summary>
-    /// Creates a value of the <paramref name="currency"/> with the specified <paramref
-    /// name="rawValue"/>.
-    /// </summary>
-    /// <param name="currency">The currency to create a value.</param>
-    /// <param name="rawValue">The raw quantity of the value to create.</param>
-    internal FungibleAssetValue(Currency currency, BigInteger rawValue)
-    {
-        Currency = currency;
-        RawValue = rawValue;
-    }
-
-    /// <summary>
-    /// Gets a number that indicates the sign (negative, positive, or zero) of the value.
-    /// </summary>
-    /// <value>
-    /// A number that indicates the sign of the fungible asset value, as shown in the following
-    /// table:
-    /// <list type="table">
-    /// <listheader><term>Number</term><description>Description</description></listheader>
-    /// <item><term>-1</term><description>The value is negative.</description></item>
-    /// <item><term>0</term><description>The value is zero.</description></item>
-    /// <item><term>1</term><description>The value is positive.</description></item>
-    /// </list>
-    /// </value>
-    [Pure]
     public int Sign
     {
         get
@@ -205,244 +100,102 @@ public readonly record struct FungibleAssetValue
         }
     }
 
-    /// <summary>
-    /// The major unit of the fungible asset value, i.e., digits <em>before</em> the decimal
-    /// separator, in absolute value.
-    /// </summary>
-    /// <remarks>It is absolute value, which lacks <see cref="Sign"/>.</remarks>
-    /// <seealso cref="Currency.DecimalPlaces"/>
-    [Pure]
-    public BigInteger MajorUnit =>
-        BigInteger.Abs(RawValue) / BigInteger.Pow(10, Currency.DecimalPlaces);
+    public BigInteger MajorUnit
+        => BigInteger.Abs(RawValue) / BigInteger.Pow(10, Currency.DecimalPlaces);
 
-    /// <summary>
-    /// The minor unit of the fungible asset value, i.e., digits <em>after</em> the decimal
-    /// separator, in absolute value.
-    /// </summary>
-    /// <remarks>It is absolute value, which lacks <see cref="Sign"/>.</remarks>
-    /// <seealso cref="Currency.DecimalPlaces"/>
-    [Pure]
-    public BigInteger MinorUnit =>
-        BigInteger.Abs(RawValue) % BigInteger.Pow(10, Currency.DecimalPlaces);
+    public BigInteger MinorUnit
+        => BigInteger.Abs(RawValue) % BigInteger.Pow(10, Currency.DecimalPlaces);
 
-    /// <summary>
-    /// Tests if two values are equal.
-    /// </summary>
-    /// <param name="obj">A value.</param>
-    /// <param name="other">Another value.</param>
-    /// <returns><see langword="true"/> if two values are equal.
-    /// Otherwise <see langword="false"/>.</returns>
-    [Pure]
-    public static bool operator ==(FungibleAssetValue obj, FungibleAssetValue other) =>
-        obj.Equals(other);
+    public static bool operator <(FungibleAssetValue obj, FungibleAssetValue other)
+        => obj.CompareTo(other) < 0;
 
-    /// <summary>
-    /// Tests if two values are unequal.
-    /// </summary>
-    /// <param name="obj">A value.</param>
-    /// <param name="other">Another value.</param>
-    /// <returns><see langword="false"/> if two values are equal.
-    /// Otherwise <see langword="true"/>.</returns>
-    [Pure]
-    public static bool operator !=(FungibleAssetValue obj, FungibleAssetValue other) =>
-        !(obj == other);
+    public static bool operator <=(FungibleAssetValue obj, FungibleAssetValue other)
+        => obj.CompareTo(other) <= 0;
 
-    /// <summary>
-    /// Tests if the left operand (<paramref name="obj"/>) is less than the right operand
-    /// (<paramref name="other"/>).
-    /// </summary>
-    /// <param name="obj">The left operand to compare.</param>
-    /// <param name="other">The right operand to compare.</param>
-    /// <returns><see langword="true"/>
-    /// if the left operand (<paramref name="obj"/>) is less than the right
-    /// operand (<paramref name="other"/>).  Otherwise (even if two operands are equal)
-    /// <see langword="false"/>.</returns>
-    [Pure]
-    public static bool operator <(FungibleAssetValue obj, FungibleAssetValue other) =>
-        obj.CompareTo(other) < 0;
+    public static bool operator >(FungibleAssetValue obj, FungibleAssetValue other)
+        => other < obj;
 
-    /// <summary>
-    /// Tests if the left operand (<paramref name="obj"/>) is less than or equal to the right
-    /// operand (<paramref name="other"/>).
-    /// </summary>
-    /// <param name="obj">The left operand to compare.</param>
-    /// <param name="other">The right operand to compare.</param>
-    /// <returns><see langword="true"/>
-    /// if the left operand (<paramref name="obj"/>) is less than or equal
-    /// to the right operand (<paramref name="other"/>).  Otherwise <see langword="false"/>.
-    /// </returns>
-    [Pure]
-    public static bool operator <=(FungibleAssetValue obj, FungibleAssetValue other) =>
-        obj.CompareTo(other) <= 0;
+    public static bool operator >=(FungibleAssetValue obj, FungibleAssetValue other)
+        => other <= obj;
 
-    /// <summary>
-    /// Tests if the left operand (<paramref name="obj"/>) is greater than the right operand
-    /// (<paramref name="other"/>).
-    /// </summary>
-    /// <param name="obj">The left operand to compare.</param>
-    /// <param name="other">The right operand to compare.</param>
-    /// <returns><see langword="true"/>
-    /// if the left operand (<paramref name="obj"/>) is greater than
-    /// the right operand (<paramref name="other"/>).  Otherwise (even if two operands are
-    /// equal) <see langword="false"/>.</returns>
-    [Pure]
-    public static bool operator >(FungibleAssetValue obj, FungibleAssetValue other) =>
-        other < obj;
+    public static FungibleAssetValue operator -(FungibleAssetValue value)
+        => new(value.Currency, -value.RawValue);
 
-    /// <summary>
-    /// Tests if the left operand (<paramref name="obj"/>) is greater than or equal to the right
-    /// operand (<paramref name="other"/>).
-    /// </summary>
-    /// <param name="obj">The left operand to compare.</param>
-    /// <param name="other">The right operand to compare.</param>
-    /// <returns><see langword="true"/>
-    /// if the left operand (<paramref name="obj"/>) is greater than or
-    /// equal to the right operand (<paramref name="other"/>).
-    /// Otherwise <see langword="false"/>.</returns>
-    [Pure]
-    public static bool operator >=(FungibleAssetValue obj, FungibleAssetValue other) =>
-        other <= obj;
+    public static FungibleAssetValue operator +(FungibleAssetValue left, FungibleAssetValue right)
+    {
+        if (!left.Currency.Equals(right.Currency))
+        {
+            var message = $"Unable to add heterogeneous currencies: " +
+                          $"{left.Currency} \u2260 {right.Currency}.";
+            throw new ArgumentException(message, nameof(right));
+        }
 
-    /// <summary>
-    /// Negates a <paramref name="value"/>.
-    /// <para>Adds a negative sign to the <paramref name="value"/> if it's positive.
-    /// Removes a negative sign from the <paramref name="value"/> if it's already negative.
-    /// Does nothing if the <paramref name="value"/> is zero.</para>
-    /// </summary>
-    /// <param name="value">A value to negate.</param>
-    /// <returns>A negated <paramref name="value"/>.</returns>
-    [Pure]
-    public static FungibleAssetValue operator -(FungibleAssetValue value) =>
-        new FungibleAssetValue(value.Currency, -value.RawValue);
+        return new FungibleAssetValue(left.Currency, left.RawValue + right.RawValue);
+    }
 
-    /// <summary>
-    /// Adds two values and returns the result.
-    /// </summary>
-    /// <param name="left">The first value to add.</param>
-    /// <param name="right">The second value to add.</param>
-    /// <returns>The sum of <paramref name="left"/> and <paramref name="right"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when two values do not have the same
-    /// <see cref="Currency"/>.</exception>
-    [Pure]
-    public static FungibleAssetValue operator +(
-        FungibleAssetValue left,
-        FungibleAssetValue right
-    ) => left.Currency.Equals(right.Currency)
-        ? new FungibleAssetValue(left.Currency, left.RawValue + right.RawValue)
-        : throw new ArgumentException(
-            "Unable to add heterogeneous currencies: " +
-            $"{left.Currency} \u2260 {right.Currency}.",
-            nameof(right));
+    public static FungibleAssetValue operator -(FungibleAssetValue left, FungibleAssetValue right)
+    {
+        if (!left.Currency.Equals(right.Currency))
+        {
+            var message = $"Unable to subtract heterogeneous currencies: " +
+                          $"{left.Currency} \u2260 {right.Currency}.";
+            throw new ArgumentException(message, nameof(right));
+        }
 
-    /// <summary>
-    /// Subtracts the <paramref name="right"/> value from the <paramref name="left"/> value.
-    /// </summary>
-    /// <param name="left">The value to subtract from (the minuend).</param>
-    /// <param name="right">The value to subtract (the subtrahend).</param>
-    /// <returns>The result of subtracting <paramref name="right"/> from
-    /// <paramref name="left"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when two values do not have the same
-    /// <see cref="Currency"/>.</exception>
-    [Pure]
-    public static FungibleAssetValue operator -(
-        FungibleAssetValue left,
-        FungibleAssetValue right
-    ) => left.Currency.Equals(right.Currency)
-        ? new FungibleAssetValue(left.Currency, left.RawValue - right.RawValue)
-        : throw new ArgumentException(
-            "Unable to subtract heterogeneous currencies: " +
-            $"{left.Currency} \u2260 {right.Currency}.",
-            nameof(right));
+        return new FungibleAssetValue(left.Currency, left.RawValue - right.RawValue);
+    }
 
-    /// <summary>
-    /// Multiplies <paramref name="right"/> times the <paramref name="left"/> value.
-    /// </summary>
-    /// <param name="left">The value to multiply.</param>
-    /// <param name="right">The times to multiply.</param>
-    /// <returns>The multiplied value.</returns>
-    [Pure]
-    public static FungibleAssetValue operator *(FungibleAssetValue left, BigInteger right) =>
-        new FungibleAssetValue(left.Currency, left.RawValue * right);
+    public static FungibleAssetValue operator *(FungibleAssetValue left, BigInteger right)
+        => new(left.Currency, left.RawValue * right);
 
-    /// <summary>
-    /// Multiplies <paramref name="left"/> times the <paramref name="right"/> value.
-    /// </summary>
-    /// <param name="left">The times to multiply.</param>
-    /// <param name="right">The value to multiply.</param>
-    /// <returns>The multiplied value.</returns>
-    [Pure]
-    public static FungibleAssetValue operator *(BigInteger left, FungibleAssetValue right) =>
-        new FungibleAssetValue(right.Currency, left * right.RawValue);
+    public static FungibleAssetValue operator *(BigInteger left, FungibleAssetValue right)
+        => new(right.Currency, left * right.RawValue);
 
-    /// <summary>
-    /// Divides the value (<paramref name="dividend"/>) by <paramref name="divisor"/>,
-    /// and returns the remainder.
-    /// </summary>
-    /// <param name="dividend">The value to be divided.</param>
-    /// <param name="divisor">The number to divide by.</param>
-    /// <returns>The remainder after dividing <paramref name="dividend"/>
-    /// by <paramref name="divisor"/>.</returns>
-    /// <exception cref="DivideByZeroException">Thrown when the <paramref name="divisor"/> is
-    /// <c>0</c> (zero).</exception>
-    [Pure]
     public static FungibleAssetValue operator %(FungibleAssetValue dividend, BigInteger divisor)
-        => new FungibleAssetValue(dividend.Currency, dividend.RawValue % divisor);
+        => new(dividend.Currency, dividend.RawValue % divisor);
 
-    /// <summary>
-    /// Divides the value (<paramref name="dividend"/>) by <paramref name="divisor"/>,
-    /// and returns the remainder.
-    /// </summary>
-    /// <param name="dividend">The value to be divided.</param>
-    /// <param name="divisor">The value to divide by.</param>
-    /// <returns>The remainder after dividing <paramref name="dividend"/>
-    /// by <paramref name="divisor"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when two values do not have the same
-    /// <see cref="Currency"/>.</exception>
-    /// <exception cref="DivideByZeroException">Thrown when the <paramref name="divisor"/> is
-    /// zero.</exception>
-    [Pure]
     public static FungibleAssetValue operator %(
-        FungibleAssetValue dividend,
-        FungibleAssetValue divisor)
+        FungibleAssetValue dividend, FungibleAssetValue divisor)
     {
         if (!dividend.Currency.Equals(divisor.Currency))
         {
-            throw new ArgumentException(
-                "Cannot be divided by a heterogeneous currency: " +
-                $"{dividend.Currency} \u2260 {divisor.Currency}."
-            );
+            var message = $"Cannot be divided by a heterogeneous currency: " +
+                          $"{dividend.Currency} \u2260 {divisor.Currency}.";
+            throw new ArgumentException(message, nameof(divisor));
         }
 
         return new FungibleAssetValue(dividend.Currency, dividend.RawValue % divisor.RawValue);
     }
 
-    /// <summary>
-    /// Parses a numeric string and returns a corresponding <see cref="FungibleAssetValue"/>.
-    /// </summary>
-    /// <param name="currency">The currency of the value to parse.</param>
-    /// <param name="value">A numeric string to parse.  Can consist of digits, plus (+),
-    /// minus (-), and decimal separator (.).</param>
-    /// <returns>The parsed asset value.</returns>
-    /// <exception cref="FormatException">Thrown when the given <paramref name="value"/> is not
-    /// a valid numeric string.</exception>
+    public static FungibleAssetValue Create(IValue value)
+    {
+        if (value is not List list)
+        {
+            throw new ArgumentException($"The given value is not a list: {value}", nameof(value));
+        }
+
+        var currency = Currency.Create(list[0]);
+        var rawValue = (Integer)list[1];
+        return new FungibleAssetValue(currency, rawValue);
+    }
+
     public static FungibleAssetValue Parse(Currency currency, string value)
     {
         int sign = 1;
         if (value[0] == '-' || value[0] == '+')
         {
             sign = value[0] == '-' ? -1 : 1;
-            value = value.Remove(0, 1);
+            value = value[1..];
         }
 
-        if (value.IndexOfAny(new[] { '+', '-' }) >= 0)
+        if (value.IndexOfAny(['+', '-']) >= 0)
         {
-            const string msg =
-                "Plus (+) or minus (-) sign can be appeared only at first and cannot be " +
-                "more than one.";
-            throw new FormatException(msg);
+            var message = "Plus (+) or minus (-) sign can be appeared only at first and " +
+                          "cannot be more than one.";
+            throw new FormatException(message);
         }
 
-        string[] parts = value.Split(new[] { '.' }, count: 2);
+        string[] parts = value.Split(['.'], count: 2);
         bool minorExist = parts.Length > 1;
         if (minorExist && parts[1].IndexOf('.') >= 0)
         {
@@ -474,28 +227,6 @@ public readonly record struct FungibleAssetValue
         return new FungibleAssetValue(currency, sign, major, minor);
     }
 
-    /// <summary>
-    /// Restores a value from a <paramref name="rawValue"/> of a <paramref name="currency"/>.
-    /// </summary>
-    /// <param name="currency">The currency to create a value.</param>
-    /// <param name="rawValue">The <see cref="RawValue"/> to restore.</param>
-    /// <returns>The value restored from the given <paramref name="rawValue"/>.</returns>
-    /// <seealso cref="RawValue"/>
-    public static FungibleAssetValue FromRawValue(Currency currency, BigInteger rawValue) =>
-        new FungibleAssetValue(currency, rawValue: rawValue);
-
-    /// <summary>
-    /// Divides the value by <paramref name="divisor"/>, returns the quotient, and returns
-    /// the <paramref name="remainder"/> in an output parameter.
-    /// </summary>
-    /// <param name="divisor">The number to divide by.</param>
-    /// <param name="remainder">When this method returns (without any exception), the remainder
-    /// after dividing the value by <paramref name="divisor"/>.  This parameter is passed
-    /// uninitialized.</param>
-    /// <returns>The quotient of the division.</returns>
-    /// <exception cref="DivideByZeroException">Thrown when the <paramref name="divisor"/> is
-    /// <c>0</c> (zero).</exception>
-    [Pure]
     public FungibleAssetValue DivRem(BigInteger divisor, out FungibleAssetValue remainder)
     {
         BigInteger q = BigInteger.DivRem(RawValue, divisor, out BigInteger rem);
@@ -503,20 +234,6 @@ public readonly record struct FungibleAssetValue
         return new FungibleAssetValue(Currency, q);
     }
 
-    /// <summary>
-    /// Divides the value by <paramref name="divisor"/>, returns the quotient, and returns
-    /// the <paramref name="remainder"/> in an output parameter.
-    /// </summary>
-    /// <param name="divisor">The value to divide by.</param>
-    /// <param name="remainder">When this method returns (without any exception), the remainder
-    /// after dividing the value by <paramref name="divisor"/>.  This parameter is passed
-    /// uninitialized.</param>
-    /// <returns>The quotient of the division.</returns>
-    /// <exception cref="ArgumentException">Thrown when two values do not have the same
-    /// <see cref="Currency"/>.</exception>
-    /// <exception cref="DivideByZeroException">Thrown when the <paramref name="divisor"/> is
-    /// zero.</exception>
-    [Pure]
     public BigInteger DivRem(FungibleAssetValue divisor, out FungibleAssetValue remainder)
     {
         if (!Currency.Equals(divisor.Currency))
@@ -532,51 +249,14 @@ public readonly record struct FungibleAssetValue
         return d;
     }
 
-    /// <summary>
-    /// Divides the value by <paramref name="divisor"/>, and returns a pair of the quotient
-    /// and the remainder.
-    /// </summary>
-    /// <param name="divisor">The number to divide by.</param>
-    /// <returns>A tuple of the <c>Quotient</c> and <c>Remainder</c> of the division.</returns>
-    /// <exception cref="DivideByZeroException">Thrown when the <paramref name="divisor"/> is
-    /// <c>0</c> (zero).</exception>
-    [Pure]
-    public (FungibleAssetValue Quotient, FungibleAssetValue Remainder)
-    DivRem(BigInteger divisor) =>
-        (DivRem(divisor, out FungibleAssetValue remainder), remainder);
+    public (FungibleAssetValue Quotient, FungibleAssetValue Remainder) DivRem(BigInteger divisor)
+        => (DivRem(divisor, out FungibleAssetValue remainder), remainder);
 
-    /// <summary>
-    /// Divides the value by <paramref name="divisor"/>, and returns a pair of the quotient
-    /// and the remainder.
-    /// </summary>
-    /// <param name="divisor">The value to divide by.</param>
-    /// <returns>A tuple of the <c>Quotient</c> and <c>Remainder</c> of the division.</returns>
-    /// <exception cref="ArgumentException">Thrown when two values do not have the same
-    /// <see cref="Currency"/>.</exception>
-    /// <exception cref="DivideByZeroException">Thrown when the <paramref name="divisor"/> is
-    /// zero.</exception>
-    [Pure]
-    public (BigInteger Quotient, FungibleAssetValue Remainder)
-    DivRem(FungibleAssetValue divisor) =>
-        (DivRem(divisor, out FungibleAssetValue remainder), remainder);
+    public (BigInteger Quotient, FungibleAssetValue Remainder) DivRem(FungibleAssetValue divisor)
+        => (DivRem(divisor, out FungibleAssetValue remainder), remainder);
 
-    /// <summary>
-    /// Gets the absolute value.
-    /// <para>Removes the negative sign if it's negative.  Otherwise does nothing.</para>
-    /// </summary>
-    /// <returns>Its absolute value.</returns>
-    [Pure]
-    public FungibleAssetValue Abs()
-        => new FungibleAssetValue(Currency, BigInteger.Abs(RawValue));
+    public FungibleAssetValue Abs() => new(Currency, BigInteger.Abs(RawValue));
 
-    /// <summary>
-    /// Gets the value quantity without its <see cref="Currency"/> in <see cref="string"/>.
-    /// </summary>
-    /// <param name="minorUnit">Whether to show all possible decimal places even
-    /// if they are zeros.</param>
-    /// <returns>A quantity string in decimal system.  Consists of an optional sign (minus),
-    /// digits and an optional decimal separator (period).</returns>
-    [Pure]
     public string GetQuantityString(bool minorUnit = false)
     {
         var signedString = Sign < 0 ? "-" : string.Empty;
@@ -592,43 +272,31 @@ public readonly record struct FungibleAssetValue
             : (MajorUnit * Sign).ToString(CultureInfo.InvariantCulture);
     }
 
-    /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-    [Pure]
-    public bool Equals(FungibleAssetValue other) =>
-        Currency.Equals(other.Currency) && RawValue.Equals(other.RawValue);
+    public bool Equals(FungibleAssetValue other)
+        => Currency.Equals(other.Currency) && RawValue.Equals(other.RawValue);
 
-    /// <inheritdoc cref="object.Equals(object)"/>
-    [Pure]
-    public override bool Equals(object? obj) =>
-        obj is FungibleAssetValue other && Equals(other);
+    public override int GetHashCode()
+        => unchecked((Currency.GetHashCode() * 397) ^ RawValue.GetHashCode());
 
-    /// <inheritdoc cref="object.GetHashCode()"/>
-    [Pure]
-    public override int GetHashCode() =>
-        unchecked((Currency.GetHashCode() * 397) ^ RawValue.GetHashCode());
-
-    /// <inheritdoc cref="IComparable.CompareTo(object)"/>
-    [Pure]
     public int CompareTo(object? obj) => obj is FungibleAssetValue o
         ? CompareTo(o)
         : throw new ArgumentException(
             $"Unable to compare with other than {nameof(FungibleAssetValue)}",
             nameof(obj));
 
-    /// <inheritdoc cref="IComparable{T}.CompareTo(T)"/>
-    [Pure]
     public int CompareTo(FungibleAssetValue other) => Currency.Equals(other.Currency)
         ? RawValue.CompareTo(other.RawValue)
         : throw new ArgumentException(
             $"Unable to compare heterogeneous currencies: {Currency} \u2260 {other.Currency}.",
             nameof(other));
 
-    /// <inheritdoc cref="object.ToString()"/>
-    [Pure]
-    public override string ToString() =>
-        $"{GetQuantityString()} {Currency.Ticker}";
+    public override string ToString()
+        => $"{GetQuantityString()} {Currency.Ticker}";
 
-    public IValue Serialize() => Bencodex.Types.List.Empty
-            .Add(Currency.ToBencodex())
-            .Add((Bencodex.Types.Integer)RawValue);
+    public IValue ToBencodex()
+    {
+        return new List(
+            Currency.ToBencodex(),
+            (Integer)RawValue);
+    }
 }
