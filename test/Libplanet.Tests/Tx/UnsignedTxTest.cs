@@ -78,8 +78,8 @@ public class UnsignedTxTest
         var wrongKey = new PrivateKey();
         ImmutableArray<byte> signature = unsignedTx.CreateSignature(privateKey);
         byte[] message = Encoding.UTF8.GetBytes(unsignedTx.SerializeUnsignedTx());
-        Assert.True(privateKey.PublicKey.Verify(message, signature));
-        Assert.False(wrongKey.PublicKey.Verify(message, signature));
+        Assert.True(privateKey.PublicKey.Verify([.. message], signature));
+        Assert.False(wrongKey.PublicKey.Verify([.. message], signature));
 
         ArgumentException e = Assert.Throws<ArgumentException>(
             () => unsignedTx.CreateSignature(wrongKey));

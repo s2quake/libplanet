@@ -142,26 +142,24 @@ namespace Libplanet.Action.State
             BigInteger prevBalanceRawValue = currencyAccount.GetRawBalanceV0(recipient);
             currencyAccount =
                 currencyAccount.WriteRawBalanceV0(recipient, prevBalanceRawValue + rawValue);
-            if (Currency.IsTrackable)
-            {
-                BigInteger prevTotalSupplyRawValue = currencyAccount.GetRawTotalSupplyV0();
-                if (Currency.MaximumSupply != BigInteger.Zero &&
-                    Currency.MaximumSupply < prevTotalSupplyRawValue + rawValue)
-                {
-                    FungibleAssetValue prevTotalSupply =
-                        new FungibleAssetValue(Currency, prevTotalSupplyRawValue);
-                    FungibleAssetValue value =
-                        new FungibleAssetValue(Currency, rawValue);
-                    throw new SupplyOverflowException(
-                        $"Cannot mint {value} in addition to " +
-                        $"the current total supply of {prevTotalSupply} as it would exceed " +
-                        $"the maximum supply {Currency.MaximumSupply}.",
-                        value);
-                }
 
-                currencyAccount =
-                    currencyAccount.WriteRawTotalSupplyV0(prevTotalSupplyRawValue + rawValue);
+            BigInteger prevTotalSupplyRawValue = currencyAccount.GetRawTotalSupplyV0();
+            if (Currency.MaximumSupply != BigInteger.Zero &&
+                Currency.MaximumSupply < prevTotalSupplyRawValue + rawValue)
+            {
+                FungibleAssetValue prevTotalSupply =
+                    new FungibleAssetValue(Currency, prevTotalSupplyRawValue);
+                FungibleAssetValue value =
+                    new FungibleAssetValue(Currency, rawValue);
+                throw new SupplyOverflowException(
+                    $"Cannot mint {value} in addition to " +
+                    $"the current total supply of {prevTotalSupply} as it would exceed " +
+                    $"the maximum supply {Currency.MaximumSupply}.",
+                    value);
             }
+
+            currencyAccount =
+                currencyAccount.WriteRawTotalSupplyV0(prevTotalSupplyRawValue + rawValue);
 
             return currencyAccount;
         }
@@ -217,12 +215,9 @@ namespace Libplanet.Action.State
             currencyAccount =
                 currencyAccount.WriteRawBalanceV0(owner, prevBalanceRawValue - rawValue);
 
-            if (Currency.IsTrackable)
-            {
-                BigInteger prevTotalSupply = currencyAccount.GetRawTotalSupplyV0();
-                currencyAccount =
-                    currencyAccount.WriteRawTotalSupplyV0(prevTotalSupply - rawValue);
-            }
+            BigInteger prevTotalSupply = currencyAccount.GetRawTotalSupplyV0();
+            currencyAccount =
+                currencyAccount.WriteRawTotalSupplyV0(prevTotalSupply - rawValue);
 
             return currencyAccount;
         }

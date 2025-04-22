@@ -197,18 +197,15 @@ namespace Libplanet.Mocks
                 KeyBytes totalSupplyKey = ToTotalSupplyKey(currency);
 
                 ITrie trie = GetAccountState(accountAddress).Trie;
-                if (currency.IsTrackable)
-                {
-                    Integer balance = trie[balanceKey] is Integer b
-                        ? b
-                        : new Integer(0);
-                    Integer totalSupply = trie[totalSupplyKey] is Integer t
-                        ? t
-                        : new Integer(0);
-                    trie = trie.Set(
-                        totalSupplyKey,
-                        new Integer(totalSupply.Value - balance.Value + rawValue.Value));
-                }
+                Integer balance = trie[balanceKey] is Integer b
+                    ? b
+                    : new Integer(0);
+                Integer totalSupply = trie[totalSupplyKey] is Integer t
+                    ? t
+                    : new Integer(0);
+                trie = trie.Set(
+                    totalSupplyKey,
+                    new Integer(totalSupply.Value - balance.Value + rawValue.Value));
 
                 trie = trie.Set(balanceKey, rawValue);
                 return SetAccount(accountAddress, new AccountState(trie));

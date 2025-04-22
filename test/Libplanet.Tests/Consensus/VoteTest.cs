@@ -27,7 +27,8 @@ namespace Libplanet.Tests.Consensus
                 VoteFlag.PreCommit);
             Vote vote = voteMetadata.Sign(privateKey);
             Assert.True(
-                privateKey.PublicKey.Verify(_codec.Encode(voteMetadata.Bencoded), vote.Signature));
+                privateKey.PublicKey.Verify(
+                    _codec.Encode(voteMetadata.Bencoded), vote.Signature.AsSpan()));
 
             var nullPowerVoteMetadata = new VoteMetadata(
                 1,
@@ -41,7 +42,7 @@ namespace Libplanet.Tests.Consensus
             Assert.True(
                 privateKey.PublicKey.Verify(
                     _codec.Encode(nullPowerVoteMetadata.Bencoded),
-                    nullPowerVote.Signature));
+                    nullPowerVote.Signature.AsSpan()));
         }
 
         [Fact]

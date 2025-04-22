@@ -1,556 +1,532 @@
-#pragma warning disable S1764
 using System;
 using Libplanet.Types.Assets;
 using Xunit;
 using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests.Assets
+namespace Libplanet.Tests.Assets;
+
+public class FungibleAssetValueTest
 {
-    public class FungibleAssetValueTest
+    private static readonly Currency FOO = new("FOO", 2);
+    private static readonly Currency BAR = new("BAR", 0);
+    private static readonly Currency BARMAX = new("BAR", 0, 100000);
+
+    [Fact]
+    public void Constructor()
     {
-        private static readonly Currency FOO = new Currency("FOO", 2);
-        private static readonly Currency BAR = new Currency("BAR", 0);
-        private static readonly Currency BARMAX = new Currency("BAR", 0, 100000);
-#pragma warning disable CS0618  // must test obsoleted new Currency() for backwards compatibility
-        private static readonly Currency BARNOTRACK = new Currency("BAR", 0);
-#pragma warning restore CS0618  // must test obsoleted new Currency() for backwards compatibility
+        FungibleAssetValue v;
+        v = new FungibleAssetValue(FOO, 123, 45);
+        Assert.Equal(new FungibleAssetValue(FOO, 1, 123, 45), v);
+        Assert.Equal(12345, v.RawValue);
+        Assert.Equal(123, v.MajorUnit);
+        Assert.Equal(45, v.MinorUnit);
+        Assert.Equal(1, v.Sign);
 
-        [Fact]
-        public void Constructor()
-        {
-            FungibleAssetValue v;
-            v = new FungibleAssetValue(FOO, 123, 45);
-            Assert.Equal(new FungibleAssetValue(FOO, 1, 123, 45), v);
-            Assert.Equal(12345, v.RawValue);
-            Assert.Equal(123, v.MajorUnit);
-            Assert.Equal(45, v.MinorUnit);
-            Assert.Equal(1, v.Sign);
+        v = new FungibleAssetValue(FOO, 456, 9);
+        Assert.Equal(new FungibleAssetValue(FOO, 1, 456, 9), v);
+        Assert.Equal(45609, v.RawValue);
+        Assert.Equal(456, v.MajorUnit);
+        Assert.Equal(9, v.MinorUnit);
+        Assert.Equal(1, v.Sign);
 
-            v = new FungibleAssetValue(FOO, 456, 9);
-            Assert.Equal(new FungibleAssetValue(FOO, 1, 456, 9), v);
-            Assert.Equal(45609, v.RawValue);
-            Assert.Equal(456, v.MajorUnit);
-            Assert.Equal(9, v.MinorUnit);
-            Assert.Equal(1, v.Sign);
+        v = new FungibleAssetValue(FOO, 0, 10);
+        Assert.Equal(new FungibleAssetValue(FOO, 1, 0, 10), v);
+        Assert.Equal(10, v.RawValue);
+        Assert.Equal(0, v.MajorUnit);
+        Assert.Equal(10, v.MinorUnit);
+        Assert.Equal(1, v.Sign);
 
-            v = new FungibleAssetValue(FOO, 0, 10);
-            Assert.Equal(new FungibleAssetValue(FOO, 1, 0, 10), v);
-            Assert.Equal(10, v.RawValue);
-            Assert.Equal(0, v.MajorUnit);
-            Assert.Equal(10, v.MinorUnit);
-            Assert.Equal(1, v.Sign);
+        v = new FungibleAssetValue(FOO, 0, 9);
+        Assert.Equal(new FungibleAssetValue(FOO, 1, 0, 9), v);
+        Assert.Equal(9, v.RawValue);
+        Assert.Equal(0, v.MajorUnit);
+        Assert.Equal(9, v.MinorUnit);
+        Assert.Equal(1, v.Sign);
 
-            v = new FungibleAssetValue(FOO, 0, 9);
-            Assert.Equal(new FungibleAssetValue(FOO, 1, 0, 9), v);
-            Assert.Equal(9, v.RawValue);
-            Assert.Equal(0, v.MajorUnit);
-            Assert.Equal(9, v.MinorUnit);
-            Assert.Equal(1, v.Sign);
+        v = new FungibleAssetValue(FOO, -789, 1);
+        Assert.Equal(new FungibleAssetValue(FOO, -1, 789, 1), v);
+        Assert.Equal(-78901, v.RawValue);
+        Assert.Equal(789, v.MajorUnit);
+        Assert.Equal(1, v.MinorUnit);
+        Assert.Equal(-1, v.Sign);
 
-            v = new FungibleAssetValue(FOO, -789, 1);
-            Assert.Equal(new FungibleAssetValue(FOO, -1, 789, 1), v);
-            Assert.Equal(-78901, v.RawValue);
-            Assert.Equal(789, v.MajorUnit);
-            Assert.Equal(1, v.MinorUnit);
-            Assert.Equal(-1, v.Sign);
+        v = new FungibleAssetValue(FOO, 0, -2);
+        Assert.Equal(new FungibleAssetValue(FOO, -1, 0, 2), v);
+        Assert.Equal(-2, v.RawValue);
+        Assert.Equal(0, v.MajorUnit);
+        Assert.Equal(2, v.MinorUnit);
+        Assert.Equal(-1, v.Sign);
 
-            v = new FungibleAssetValue(FOO, 0, -2);
-            Assert.Equal(new FungibleAssetValue(FOO, -1, 0, 2), v);
-            Assert.Equal(-2, v.RawValue);
-            Assert.Equal(0, v.MajorUnit);
-            Assert.Equal(2, v.MinorUnit);
-            Assert.Equal(-1, v.Sign);
+        v = new FungibleAssetValue(FOO, 123, 0);
+        Assert.Equal(new FungibleAssetValue(FOO, 1, 123, 0), v);
+        Assert.Equal(12300, v.RawValue);
+        Assert.Equal(123, v.MajorUnit);
+        Assert.Equal(0, v.MinorUnit);
+        Assert.Equal(1, v.Sign);
 
-            v = new FungibleAssetValue(FOO, 123, 0);
-            Assert.Equal(new FungibleAssetValue(FOO, 1, 123, 0), v);
-            Assert.Equal(12300, v.RawValue);
-            Assert.Equal(123, v.MajorUnit);
-            Assert.Equal(0, v.MinorUnit);
-            Assert.Equal(1, v.Sign);
+        v = new FungibleAssetValue(BAR, 1, 0);
+        Assert.Equal(new FungibleAssetValue(BAR, 1, 1, 0), v);
+        Assert.Equal(new FungibleAssetValue(BAR, 1), v);
+        Assert.Equal(1, v.RawValue);
+        Assert.Equal(1, v.MajorUnit);
+        Assert.Equal(0, v.MinorUnit);
+        Assert.Equal(1, v.Sign);
 
-            v = new FungibleAssetValue(BAR, 1, 0);
-            Assert.Equal(new FungibleAssetValue(BAR, 1, 1, 0), v);
-            Assert.Equal(new FungibleAssetValue(BAR, 1), v);
-            Assert.Equal(1, v.RawValue);
-            Assert.Equal(1, v.MajorUnit);
-            Assert.Equal(0, v.MinorUnit);
-            Assert.Equal(1, v.Sign);
+        v = new FungibleAssetValue(FOO, 0, 0);
+        Assert.Equal(new FungibleAssetValue(FOO, 0, 0, 0), v);
+        Assert.Equal(new FungibleAssetValue(FOO), v);
+        Assert.Equal(0, v.RawValue);
+        Assert.Equal(0, v.MajorUnit);
+        Assert.Equal(0, v.MinorUnit);
+        Assert.Equal(0, v.Sign);
 
-            v = new FungibleAssetValue(FOO, 0, 0);
-            Assert.Equal(new FungibleAssetValue(FOO, 0, 0, 0), v);
-            Assert.Equal(new FungibleAssetValue(FOO), v);
-            Assert.Equal(0, v.RawValue);
-            Assert.Equal(0, v.MajorUnit);
-            Assert.Equal(0, v.MinorUnit);
-            Assert.Equal(0, v.Sign);
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, -2, 1, 0));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 2, 1, 0));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 0, 1, 0));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 0, 0, 1));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, -1, 0));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 1, -1));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 1, 100));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 10, -10));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, -10, -10));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 100));
+        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(BAR, 1, 2));
+    }
 
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, -2, 1, 0));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 2, 1, 0));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 0, 1, 0));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 0, 0, 1));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, -1, 0));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 1, -1));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 1, 100));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 10, -10));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, -10, -10));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 100));
-            Assert.Throws<ArgumentException>(() => new FungibleAssetValue(BAR, 1, 2));
-        }
+    [Fact]
+    public void Equality()
+    {
+        FungibleAssetValue foo100a = new(FOO, 100);
+        FungibleAssetValue foo100b = new(FOO, 100);
+        FungibleAssetValue foo200a = new(FOO, 200);
+        FungibleAssetValue foo200b = new(FOO, 200);
+        FungibleAssetValue bar100a = new(BAR, 100);
+        FungibleAssetValue bar100b = new(BAR, 100);
+        FungibleAssetValue bar200a = new(BAR, 200);
+        FungibleAssetValue bar200b = new(BAR, 200);
+        FungibleAssetValue barmax100 = new(BARMAX, 100);
 
-        [Fact]
-        public void Equality()
-        {
-            FungibleAssetValue foo100a = new FungibleAssetValue(FOO, 100);
-            FungibleAssetValue foo100b = new FungibleAssetValue(FOO, 100);
-            FungibleAssetValue foo200a = new FungibleAssetValue(FOO, 200);
-            FungibleAssetValue foo200b = new FungibleAssetValue(FOO, 200);
-            FungibleAssetValue bar100a = new FungibleAssetValue(BAR, 100);
-            FungibleAssetValue bar100b = new FungibleAssetValue(BAR, 100);
-            FungibleAssetValue bar200a = new FungibleAssetValue(BAR, 200);
-            FungibleAssetValue bar200b = new FungibleAssetValue(BAR, 200);
-            FungibleAssetValue barmax100 = new FungibleAssetValue(BARMAX, 100);
-            FungibleAssetValue barnotrack100 = new FungibleAssetValue(BARNOTRACK, 100);
+        Assert.Equal(foo100b, foo100a);
+        Assert.Equal(foo100b.GetHashCode(), foo100a.GetHashCode());
+        Assert.True(foo100b.Equals((object)foo100a));
+        Assert.True(foo100b == foo100a);
+        Assert.False(foo100b != foo100a);
+        Assert.Equal(foo200b, foo200a);
+        Assert.Equal(foo200b.GetHashCode(), foo200a.GetHashCode());
+        Assert.True(foo200b.Equals((object)foo200a));
+        Assert.True(foo200b == foo200a);
+        Assert.False(foo200b != foo200a);
+        Assert.Equal(bar100b, bar100a);
+        Assert.Equal(bar100b.GetHashCode(), bar100a.GetHashCode());
+        Assert.True(bar100b.Equals((object)bar100a));
+        Assert.True(bar100b == bar100a);
+        Assert.False(bar100b != bar100a);
+        Assert.Equal(bar200b, bar200a);
+        Assert.Equal(bar200b.GetHashCode(), bar200a.GetHashCode());
+        Assert.True(bar200b.Equals((object)bar200a));
+        Assert.True(bar200b == bar200a);
+        Assert.False(bar200b != bar200a);
 
-            Assert.Equal(foo100b, foo100a);
-            Assert.Equal(foo100b.GetHashCode(), foo100a.GetHashCode());
-            Assert.True(foo100b.Equals((object)foo100a));
-            Assert.True(foo100b == foo100a);
-            Assert.False(foo100b != foo100a);
-            Assert.Equal(foo200b, foo200a);
-            Assert.Equal(foo200b.GetHashCode(), foo200a.GetHashCode());
-            Assert.True(foo200b.Equals((object)foo200a));
-            Assert.True(foo200b == foo200a);
-            Assert.False(foo200b != foo200a);
-            Assert.Equal(bar100b, bar100a);
-            Assert.Equal(bar100b.GetHashCode(), bar100a.GetHashCode());
-            Assert.True(bar100b.Equals((object)bar100a));
-            Assert.True(bar100b == bar100a);
-            Assert.False(bar100b != bar100a);
-            Assert.Equal(bar200b, bar200a);
-            Assert.Equal(bar200b.GetHashCode(), bar200a.GetHashCode());
-            Assert.True(bar200b.Equals((object)bar200a));
-            Assert.True(bar200b == bar200a);
-            Assert.False(bar200b != bar200a);
+        Assert.NotEqual(foo100a, foo200a);
+        Assert.False(foo100a.Equals((object)foo200a));
+        Assert.False(foo100a == foo200a);
+        Assert.True(foo100a != foo200a);
+        Assert.NotEqual(foo100a, bar100a);
+        Assert.False(foo100a.Equals((object)bar100a));
+        Assert.False(foo100a == bar100a);
+        Assert.True(foo100a != bar100a);
+        Assert.NotEqual(foo100a, bar200a);
+        Assert.False(foo100a.Equals((object)bar200a));
+        Assert.False(foo100a == bar200a);
+        Assert.True(foo100a != bar200a);
+        Assert.NotEqual(bar100a, foo200a);
+        Assert.False(bar100a.Equals((object)foo200a));
+        Assert.False(bar100a == foo200a);
+        Assert.True(bar100a != foo200a);
+        Assert.NotEqual(foo100a, bar100a);
+        Assert.False(foo100a.Equals((object)bar100a));
+        Assert.False(foo100a == bar100a);
+        Assert.True(foo100a != bar100a);
+        Assert.NotEqual(foo100a, bar200a);
+        Assert.False(foo100a.Equals((object)bar200a));
+        Assert.False(foo100a == bar200a);
+        Assert.True(foo100a != bar200a);
+        Assert.NotEqual(bar100a, barmax100);
+        Assert.False(bar100a.Equals((object)barmax100));
+        Assert.False(bar100a == barmax100);
+        Assert.True(bar100a != barmax100);
 
-            Assert.NotEqual(foo100a, foo200a);
-            Assert.False(foo100a.Equals((object)foo200a));
-            Assert.False(foo100a == foo200a);
-            Assert.True(foo100a != foo200a);
-            Assert.NotEqual(foo100a, bar100a);
-            Assert.False(foo100a.Equals((object)bar100a));
-            Assert.False(foo100a == bar100a);
-            Assert.True(foo100a != bar100a);
-            Assert.NotEqual(foo100a, bar200a);
-            Assert.False(foo100a.Equals((object)bar200a));
-            Assert.False(foo100a == bar200a);
-            Assert.True(foo100a != bar200a);
-            Assert.NotEqual(bar100a, foo200a);
-            Assert.False(bar100a.Equals((object)foo200a));
-            Assert.False(bar100a == foo200a);
-            Assert.True(bar100a != foo200a);
-            Assert.NotEqual(foo100a, bar100a);
-            Assert.False(foo100a.Equals((object)bar100a));
-            Assert.False(foo100a == bar100a);
-            Assert.True(foo100a != bar100a);
-            Assert.NotEqual(foo100a, bar200a);
-            Assert.False(foo100a.Equals((object)bar200a));
-            Assert.False(foo100a == bar200a);
-            Assert.True(foo100a != bar200a);
-            Assert.NotEqual(bar100a, barmax100);
-            Assert.False(bar100a.Equals((object)barmax100));
-            Assert.False(bar100a == barmax100);
-            Assert.True(bar100a != barmax100);
-            Assert.NotEqual(bar100a, barnotrack100);
-            Assert.False(bar100a.Equals((object)barnotrack100));
-            Assert.False(bar100a == barnotrack100);
-            Assert.True(bar100a != barnotrack100);
+        Assert.False(foo100a.Equals(100));
+        Assert.False(foo200a.Equals(200));
+    }
 
-            Assert.False(foo100a.Equals(100));
-            Assert.False(foo200a.Equals(200));
-        }
+    [Fact]
+    public void Compare()
+    {
+        FungibleAssetValue foo100a = new(FOO, 100);
+        FungibleAssetValue foo100b = new(FOO, 100);
+        FungibleAssetValue foo200 = new(FOO, 200);
+        FungibleAssetValue bar100 = new(BAR, 100);
+        FungibleAssetValue barmax100 = new(BARMAX, 100);
 
-        [Fact]
-        public void Compare()
-        {
-            FungibleAssetValue foo100a = new FungibleAssetValue(FOO, 100);
-            FungibleAssetValue foo100b = new FungibleAssetValue(FOO, 100);
-            FungibleAssetValue foo200 = new FungibleAssetValue(FOO, 200);
-            FungibleAssetValue bar100 = new FungibleAssetValue(BAR, 100);
-            FungibleAssetValue barmax100 = new FungibleAssetValue(BARMAX, 100);
-            FungibleAssetValue barnotrack100 = new FungibleAssetValue(BARNOTRACK, 100);
+        Assert.Equal(0, foo100a.CompareTo(foo100b));
+        Assert.Equal(0, foo100a.CompareTo((object)foo100b));
+        Assert.False(foo100a < foo100b);
+        Assert.True(foo100a <= foo100b);
+        Assert.False(foo100a > foo100b);
+        Assert.True(foo100a >= foo100b);
 
-            Assert.Equal(0, foo100a.CompareTo(foo100b));
-            Assert.Equal(0, foo100a.CompareTo((object)foo100b));
-            Assert.False(foo100a < foo100b);
-            Assert.True(foo100a <= foo100b);
-            Assert.False(foo100a > foo100b);
-            Assert.True(foo100a >= foo100b);
+        Assert.True(foo100a.CompareTo(foo200) < 0);
+        Assert.True(foo100a.CompareTo((object)foo200) < 0);
+        Assert.True(foo100a < foo200);
+        Assert.True(foo100a <= foo200);
+        Assert.False(foo100a > foo200);
+        Assert.False(foo100a >= foo200);
 
-            Assert.True(foo100a.CompareTo(foo200) < 0);
-            Assert.True(foo100a.CompareTo((object)foo200) < 0);
-            Assert.True(foo100a < foo200);
-            Assert.True(foo100a <= foo200);
-            Assert.False(foo100a > foo200);
-            Assert.False(foo100a >= foo200);
+        Assert.True(foo200.CompareTo(foo100b) > 0);
+        Assert.True(foo200.CompareTo((object)foo100b) > 0);
+        Assert.False(foo200 < foo100b);
+        Assert.False(foo200 <= foo100b);
+        Assert.True(foo200 > foo100b);
+        Assert.True(foo200 >= foo100b);
 
-            Assert.True(foo200.CompareTo(foo100b) > 0);
-            Assert.True(foo200.CompareTo((object)foo100b) > 0);
-            Assert.False(foo200 < foo100b);
-            Assert.False(foo200 <= foo100b);
-            Assert.True(foo200 > foo100b);
-            Assert.True(foo200 >= foo100b);
+        Assert.Throws<ArgumentException>(() => foo100a.CompareTo(bar100));
+        Assert.Throws<ArgumentException>(() => foo100a.CompareTo((object)bar100));
+        Assert.Throws<ArgumentException>(() => foo100a < bar100);
+        Assert.Throws<ArgumentException>(() => foo100a <= bar100);
+        Assert.Throws<ArgumentException>(() => foo100a > bar100);
+        Assert.Throws<ArgumentException>(() => foo100a >= bar100);
 
-            Assert.Throws<ArgumentException>(() => foo100a.CompareTo(bar100));
-            Assert.Throws<ArgumentException>(() => foo100a.CompareTo((object)bar100));
-            Assert.Throws<ArgumentException>(() => foo100a < bar100);
-            Assert.Throws<ArgumentException>(() => foo100a <= bar100);
-            Assert.Throws<ArgumentException>(() => foo100a > bar100);
-            Assert.Throws<ArgumentException>(() => foo100a >= bar100);
+        Assert.Throws<ArgumentException>(() => bar100.CompareTo(barmax100));
+        Assert.Throws<ArgumentException>(() => bar100.CompareTo((object)barmax100));
+        Assert.Throws<ArgumentException>(() => bar100 < barmax100);
+        Assert.Throws<ArgumentException>(() => bar100 <= barmax100);
+        Assert.Throws<ArgumentException>(() => bar100 > barmax100);
+        Assert.Throws<ArgumentException>(() => bar100 >= barmax100);
 
-            Assert.Throws<ArgumentException>(() => bar100.CompareTo(barmax100));
-            Assert.Throws<ArgumentException>(() => bar100.CompareTo((object)barmax100));
-            Assert.Throws<ArgumentException>(() => bar100 < barmax100);
-            Assert.Throws<ArgumentException>(() => bar100 <= barmax100);
-            Assert.Throws<ArgumentException>(() => bar100 > barmax100);
-            Assert.Throws<ArgumentException>(() => bar100 >= barmax100);
+        Assert.Throws<ArgumentException>(() => foo100a.CompareTo(100));
+    }
 
-            Assert.Throws<ArgumentException>(() => bar100.CompareTo(barnotrack100));
-            Assert.Throws<ArgumentException>(() => bar100.CompareTo((object)barnotrack100));
-            Assert.Throws<ArgumentException>(() => bar100 < barnotrack100);
-            Assert.Throws<ArgumentException>(() => bar100 <= barnotrack100);
-            Assert.Throws<ArgumentException>(() => bar100 > barnotrack100);
-            Assert.Throws<ArgumentException>(() => bar100 >= barnotrack100);
+    [Fact]
+    public void Negate()
+    {
+        FungibleAssetValue foo_3 = new(FOO, -3);
+        FungibleAssetValue foo0 = new(FOO);
+        FungibleAssetValue foo3 = new(FOO, 3);
 
-            Assert.Throws<ArgumentException>(() => foo100a.CompareTo(100));
-        }
+        Assert.Equal(foo_3, -foo3);
+        Assert.Equal(foo3, -foo_3);
+        Assert.Equal(foo0, -foo0);
+    }
 
-        [Fact]
-        public void Negate()
-        {
-            FungibleAssetValue foo_3 = new FungibleAssetValue(FOO, -3);
-            FungibleAssetValue foo0 = new FungibleAssetValue(FOO);
-            FungibleAssetValue foo3 = new FungibleAssetValue(FOO, 3);
+    [Fact]
+    public void Add()
+    {
+        FungibleAssetValue foo_1 = new(FOO, -1);
+        FungibleAssetValue foo0 = new(FOO);
+        FungibleAssetValue foo1 = new(FOO, 1);
+        FungibleAssetValue foo2 = new(FOO, 2);
+        FungibleAssetValue foo3 = new(FOO, 3);
+        FungibleAssetValue bar3 = new(BAR, 3);
+        FungibleAssetValue barmax3 = new(BARMAX, 3);
 
-            Assert.Equal(foo_3, -foo3);
-            Assert.Equal(foo3, -foo_3);
-            Assert.Equal(foo0, -foo0);
-        }
+        Assert.Equal(foo1, foo1 + foo0);
+        Assert.Equal(foo1, foo0 + foo1);
+        Assert.Equal(foo2, foo1 + foo1);
+        Assert.Equal(foo3, foo1 + foo2);
+        Assert.Equal(foo3, foo2 + foo1);
+        Assert.Equal(foo1, foo2 + foo_1);
+        Assert.Equal(foo1, foo_1 + foo2);
+        Assert.Equal(foo_1, foo_1 + foo0);
+        Assert.Equal(foo_1, foo0 + foo_1);
 
-        [Fact]
-        public void Add()
-        {
-            FungibleAssetValue foo_1 = new FungibleAssetValue(FOO, -1);
-            FungibleAssetValue foo0 = new FungibleAssetValue(FOO);
-            FungibleAssetValue foo1 = new FungibleAssetValue(FOO, 1);
-            FungibleAssetValue foo2 = new FungibleAssetValue(FOO, 2);
-            FungibleAssetValue foo3 = new FungibleAssetValue(FOO, 3);
-            FungibleAssetValue bar3 = new FungibleAssetValue(BAR, 3);
-            FungibleAssetValue barmax3 = new FungibleAssetValue(BARMAX, 3);
-            FungibleAssetValue barnotrack3 = new FungibleAssetValue(BARNOTRACK, 3);
+        Assert.Throws<ArgumentException>(() => foo1 + bar3);
+        Assert.Throws<ArgumentException>(() => bar3 + barmax3);
+    }
 
-            Assert.Equal(foo1, foo1 + foo0);
-            Assert.Equal(foo1, foo0 + foo1);
-            Assert.Equal(foo2, foo1 + foo1);
-            Assert.Equal(foo3, foo1 + foo2);
-            Assert.Equal(foo3, foo2 + foo1);
-            Assert.Equal(foo1, foo2 + foo_1);
-            Assert.Equal(foo1, foo_1 + foo2);
-            Assert.Equal(foo_1, foo_1 + foo0);
-            Assert.Equal(foo_1, foo0 + foo_1);
+    [Fact]
+    public void Subtract()
+    {
+        FungibleAssetValue foo_1 = new(FOO, -1);
+        FungibleAssetValue foo0 = new(FOO);
+        FungibleAssetValue foo1 = new(FOO, 1);
+        FungibleAssetValue foo2 = new(FOO, 2);
+        FungibleAssetValue bar3 = new(BAR, 3);
+        FungibleAssetValue barmax3 = new(BARMAX, 3);
 
-            Assert.Throws<ArgumentException>(() => foo1 + bar3);
-            Assert.Throws<ArgumentException>(() => bar3 + barmax3);
-            Assert.Throws<ArgumentException>(() => bar3 + barnotrack3);
-        }
+        Assert.Equal(foo0, foo1 - foo1);
+        Assert.Equal(foo_1, foo1 - foo2);
+        Assert.Equal(foo2, foo1 - foo_1);
+        Assert.Equal(foo0, foo_1 - foo_1);
 
-        [Fact]
-        public void Subtract()
-        {
-            FungibleAssetValue foo_1 = new FungibleAssetValue(FOO, -1);
-            FungibleAssetValue foo0 = new FungibleAssetValue(FOO);
-            FungibleAssetValue foo1 = new FungibleAssetValue(FOO, 1);
-            FungibleAssetValue foo2 = new FungibleAssetValue(FOO, 2);
-            FungibleAssetValue bar3 = new FungibleAssetValue(BAR, 3);
-            FungibleAssetValue barmax3 = new FungibleAssetValue(BARMAX, 3);
-            FungibleAssetValue barnotrack3 = new FungibleAssetValue(BARNOTRACK, 3);
+        Assert.Throws<ArgumentException>(() => bar3 - foo1);
+        Assert.Throws<ArgumentException>(() => bar3 - barmax3);
+    }
 
-            Assert.Equal(foo0, foo1 - foo1);
-            Assert.Equal(foo_1, foo1 - foo2);
-            Assert.Equal(foo2, foo1 - foo_1);
-            Assert.Equal(foo0, foo_1 - foo_1);
+    [Fact]
+    public void Multiply()
+    {
+        FungibleAssetValue foo_2 = new(FOO, -2);
+        FungibleAssetValue foo_1 = new(FOO, -1);
+        FungibleAssetValue foo0 = new(FOO);
+        FungibleAssetValue foo1 = new(FOO, 1);
+        FungibleAssetValue foo2 = new(FOO, 2);
+        FungibleAssetValue foo4 = new(FOO, 4);
 
-            Assert.Throws<ArgumentException>(() => bar3 - foo1);
-            Assert.Throws<ArgumentException>(() => bar3 - barmax3);
-            Assert.Throws<ArgumentException>(() => bar3 - barnotrack3);
-        }
+        Assert.Equal(foo2, foo1 * 2);
+        Assert.Equal(foo2, 2 * foo1);
+        Assert.Equal(foo2, foo2 * 1);
+        Assert.Equal(foo2, 1 * foo2);
+        Assert.Equal(foo_2, foo2 * -1);
+        Assert.Equal(foo_2, -1 * foo2);
+        Assert.Equal(foo_2, foo_1 * 2);
+        Assert.Equal(foo_2, 2 * foo_1);
+        Assert.Equal(foo_1, foo_1 * 1);
+        Assert.Equal(foo_1, 1 * foo_1);
+        Assert.Equal(foo4, foo2 * 2);
+        Assert.Equal(foo4, 2 * foo2);
+        Assert.Equal(foo0, foo2 * 0);
+        Assert.Equal(foo0, 0 * foo2);
+        Assert.Equal(foo0, foo_1 * 0);
+        Assert.Equal(foo0, 0 * foo_1);
+    }
 
-        [Fact]
-        public void Multiply()
-        {
-            FungibleAssetValue foo_2 = new FungibleAssetValue(FOO, -2);
-            FungibleAssetValue foo_1 = new FungibleAssetValue(FOO, -1);
-            FungibleAssetValue foo0 = new FungibleAssetValue(FOO);
-            FungibleAssetValue foo1 = new FungibleAssetValue(FOO, 1);
-            FungibleAssetValue foo2 = new FungibleAssetValue(FOO, 2);
-            FungibleAssetValue foo4 = new FungibleAssetValue(FOO, 4);
+    [Fact]
+    public void DivRem()
+    {
+        FungibleAssetValue foo7 = new(FOO, 7);
+        FungibleAssetValue foo6 = new(FOO, 6);
+        FungibleAssetValue foo3 = new(FOO, 3);
+        FungibleAssetValue foo2 = new(FOO, 2);
+        FungibleAssetValue foo1 = new(FOO, 1);
+        FungibleAssetValue foo0 = new(FOO);
+        FungibleAssetValue rem;
 
-            Assert.Equal(foo2, foo1 * 2);
-            Assert.Equal(foo2, 2 * foo1);
-            Assert.Equal(foo2, foo2 * 1);
-            Assert.Equal(foo2, 1 * foo2);
-            Assert.Equal(foo_2, foo2 * -1);
-            Assert.Equal(foo_2, -1 * foo2);
-            Assert.Equal(foo_2, foo_1 * 2);
-            Assert.Equal(foo_2, 2 * foo_1);
-            Assert.Equal(foo_1, foo_1 * 1);
-            Assert.Equal(foo_1, 1 * foo_1);
-            Assert.Equal(foo4, foo2 * 2);
-            Assert.Equal(foo4, 2 * foo2);
-            Assert.Equal(foo0, foo2 * 0);
-            Assert.Equal(foo0, 0 * foo2);
-            Assert.Equal(foo0, foo_1 * 0);
-            Assert.Equal(foo0, 0 * foo_1);
-        }
+        Assert.Equal((foo6, foo0), foo6.DivRem(1));
+        Assert.Equal(foo6, foo6.DivRem(1, out rem));
+        Assert.Equal(foo0, rem);
+        Assert.Equal(foo0, foo6 % 1);
 
-        [Fact]
-        public void DivRem()
-        {
-            FungibleAssetValue foo7 = new FungibleAssetValue(FOO, 7);
-            FungibleAssetValue foo6 = new FungibleAssetValue(FOO, 6);
-            FungibleAssetValue foo3 = new FungibleAssetValue(FOO, 3);
-            FungibleAssetValue foo2 = new FungibleAssetValue(FOO, 2);
-            FungibleAssetValue foo1 = new FungibleAssetValue(FOO, 1);
-            FungibleAssetValue foo0 = new FungibleAssetValue(FOO);
-            FungibleAssetValue rem;
+        Assert.Equal((foo2, foo0), foo6.DivRem(3));
+        Assert.Equal(foo2, foo6.DivRem(3, out rem));
+        Assert.Equal(foo0, rem);
+        Assert.Equal(foo0, foo6 % 3);
 
-            Assert.Equal((foo6, foo0), foo6.DivRem(1));
-            Assert.Equal(foo6, foo6.DivRem(1, out rem));
-            Assert.Equal(foo0, rem);
-            Assert.Equal(foo0, foo6 % 1);
+        Assert.Equal((foo2, foo1), foo7.DivRem(3));
+        Assert.Equal(foo2, foo7.DivRem(3, out rem));
+        Assert.Equal(foo1, rem);
+        Assert.Equal(foo1, foo7 % 3);
 
-            Assert.Equal((foo2, foo0), foo6.DivRem(3));
-            Assert.Equal(foo2, foo6.DivRem(3, out rem));
-            Assert.Equal(foo0, rem);
-            Assert.Equal(foo0, foo6 % 3);
+        Assert.Equal((foo0, foo6), foo6.DivRem(7));
+        Assert.Equal(foo0, foo6.DivRem(7, out rem));
+        Assert.Equal(foo6, rem);
+        Assert.Equal(foo6, foo6 % 7);
 
-            Assert.Equal((foo2, foo1), foo7.DivRem(3));
-            Assert.Equal(foo2, foo7.DivRem(3, out rem));
-            Assert.Equal(foo1, rem);
-            Assert.Equal(foo1, foo7 % 3);
+        Assert.Equal((foo0, foo0), foo0.DivRem(2));
+        Assert.Equal(foo0, foo0.DivRem(2, out rem));
+        Assert.Equal(foo0, rem);
+        Assert.Equal(foo0, foo0 % 2);
 
-            Assert.Equal((foo0, foo6), foo6.DivRem(7));
-            Assert.Equal(foo0, foo6.DivRem(7, out rem));
-            Assert.Equal(foo6, rem);
-            Assert.Equal(foo6, foo6 % 7);
+        Assert.Equal((6, foo0), foo6.DivRem(foo1));
+        Assert.Equal(6, foo6.DivRem(foo1, out rem));
+        Assert.Equal(foo0, rem);
+        Assert.Equal(foo0, foo6 % foo1);
 
-            Assert.Equal((foo0, foo0), foo0.DivRem(2));
-            Assert.Equal(foo0, foo0.DivRem(2, out rem));
-            Assert.Equal(foo0, rem);
-            Assert.Equal(foo0, foo0 % 2);
+        Assert.Equal((2, foo0), foo6.DivRem(foo3));
+        Assert.Equal(2, foo6.DivRem(foo3, out rem));
+        Assert.Equal(foo0, rem);
+        Assert.Equal(foo0, foo6 % foo3);
 
-            Assert.Equal((6, foo0), foo6.DivRem(foo1));
-            Assert.Equal(6, foo6.DivRem(foo1, out rem));
-            Assert.Equal(foo0, rem);
-            Assert.Equal(foo0, foo6 % foo1);
+        Assert.Equal((2, foo1), foo7.DivRem(foo3));
+        Assert.Equal(2, foo7.DivRem(foo3, out rem));
+        Assert.Equal(foo1, rem);
+        Assert.Equal(foo1, foo7 % foo3);
 
-            Assert.Equal((2, foo0), foo6.DivRem(foo3));
-            Assert.Equal(2, foo6.DivRem(foo3, out rem));
-            Assert.Equal(foo0, rem);
-            Assert.Equal(foo0, foo6 % foo3);
+        Assert.Equal((0, foo6), foo6.DivRem(foo7));
+        Assert.Equal(0, foo6.DivRem(foo7, out rem));
+        Assert.Equal(foo6, rem);
+        Assert.Equal(foo6, foo6 % foo7);
 
-            Assert.Equal((2, foo1), foo7.DivRem(foo3));
-            Assert.Equal(2, foo7.DivRem(foo3, out rem));
-            Assert.Equal(foo1, rem);
-            Assert.Equal(foo1, foo7 % foo3);
+        Assert.Equal((0, foo0), foo0.DivRem(foo2));
+        Assert.Equal(0, foo0.DivRem(foo2, out rem));
+        Assert.Equal(foo0, rem);
+        Assert.Equal(foo0, foo0 % foo2);
 
-            Assert.Equal((0, foo6), foo6.DivRem(foo7));
-            Assert.Equal(0, foo6.DivRem(foo7, out rem));
-            Assert.Equal(foo6, rem);
-            Assert.Equal(foo6, foo6 % foo7);
+        Assert.Throws<DivideByZeroException>(() => foo1.DivRem(0));
+        Assert.Throws<DivideByZeroException>(() => foo1.DivRem(0, out rem));
+        Assert.Throws<DivideByZeroException>(() => foo1 % 0);
+        Assert.Throws<DivideByZeroException>(() => foo1.DivRem(foo0));
+        Assert.Throws<DivideByZeroException>(() => foo1.DivRem(foo0, out rem));
+        Assert.Throws<DivideByZeroException>(() => foo1 % foo0);
 
-            Assert.Equal((0, foo0), foo0.DivRem(foo2));
-            Assert.Equal(0, foo0.DivRem(foo2, out rem));
-            Assert.Equal(foo0, rem);
-            Assert.Equal(foo0, foo0 % foo2);
+        FungibleAssetValue bar1 = new(BAR, 1);
+        Assert.Throws<ArgumentException>(() => bar1.DivRem(foo1));
+        Assert.Throws<ArgumentException>(() => bar1.DivRem(foo1, out rem));
+        Assert.Throws<ArgumentException>(() => bar1 % foo1);
+    }
 
-            Assert.Throws<DivideByZeroException>(() => foo1.DivRem(0));
-            Assert.Throws<DivideByZeroException>(() => foo1.DivRem(0, out rem));
-            Assert.Throws<DivideByZeroException>(() => foo1 % 0);
-            Assert.Throws<DivideByZeroException>(() => foo1.DivRem(foo0));
-            Assert.Throws<DivideByZeroException>(() => foo1.DivRem(foo0, out rem));
-            Assert.Throws<DivideByZeroException>(() => foo1 % foo0);
+    [Fact]
+    public void Abs()
+    {
+        FungibleAssetValue foo_3 = new(FOO, -3);
+        FungibleAssetValue foo0 = new(FOO);
+        FungibleAssetValue foo3 = new(FOO, 3);
 
-            FungibleAssetValue bar1 = new FungibleAssetValue(BAR, 1);
-            Assert.Throws<ArgumentException>(() => bar1.DivRem(foo1));
-            Assert.Throws<ArgumentException>(() => bar1.DivRem(foo1, out rem));
-            Assert.Throws<ArgumentException>(() => bar1 % foo1);
-        }
+        Assert.Equal(foo3, foo3.Abs());
+        Assert.Equal(foo3, foo_3.Abs());
+        Assert.Equal(foo0, foo0.Abs());
+    }
 
-        [Fact]
-        public void Abs()
-        {
-            FungibleAssetValue foo_3 = new FungibleAssetValue(FOO, -3);
-            FungibleAssetValue foo0 = new FungibleAssetValue(FOO);
-            FungibleAssetValue foo3 = new FungibleAssetValue(FOO, 3);
+    [Fact]
+    public void GetQuantityString()
+    {
+        FungibleAssetValue v;
+        v = new FungibleAssetValue(FOO, 123, 45);
+        Assert.Equal("123.45", v.GetQuantityString());
+        Assert.Equal("123.45", v.GetQuantityString(true));
 
-            Assert.Equal(foo3, foo3.Abs());
-            Assert.Equal(foo3, foo_3.Abs());
-            Assert.Equal(foo0, foo0.Abs());
-        }
+        v = new FungibleAssetValue(FOO, 456, 9);
+        Assert.Equal("456.09", v.GetQuantityString());
+        Assert.Equal("456.09", v.GetQuantityString(true));
 
-        [Fact]
-        public void GetQuantityString()
-        {
-            FungibleAssetValue v;
-            v = new FungibleAssetValue(FOO, 123, 45);
-            Assert.Equal("123.45", v.GetQuantityString());
-            Assert.Equal("123.45", v.GetQuantityString(true));
+        v = new FungibleAssetValue(FOO, 0, 10);
+        Assert.Equal("0.1", v.GetQuantityString());
+        Assert.Equal("0.10", v.GetQuantityString(true));
 
-            v = new FungibleAssetValue(FOO, 456, 9);
-            Assert.Equal("456.09", v.GetQuantityString());
-            Assert.Equal("456.09", v.GetQuantityString(true));
+        v = new FungibleAssetValue(FOO, 0, 9);
+        Assert.Equal("0.09", v.GetQuantityString());
+        Assert.Equal("0.09", v.GetQuantityString(true));
 
-            v = new FungibleAssetValue(FOO, 0, 10);
-            Assert.Equal("0.1", v.GetQuantityString());
-            Assert.Equal("0.10", v.GetQuantityString(true));
+        v = new FungibleAssetValue(FOO, -789, 1);
+        Assert.Equal("-789.01", v.GetQuantityString());
+        Assert.Equal("-789.01", v.GetQuantityString(true));
 
-            v = new FungibleAssetValue(FOO, 0, 9);
-            Assert.Equal("0.09", v.GetQuantityString());
-            Assert.Equal("0.09", v.GetQuantityString(true));
+        v = new FungibleAssetValue(FOO, 0, -2);
+        Assert.Equal("-0.02", v.GetQuantityString());
+        Assert.Equal("-0.02", v.GetQuantityString(true));
 
-            v = new FungibleAssetValue(FOO, -789, 1);
-            Assert.Equal("-789.01", v.GetQuantityString());
-            Assert.Equal("-789.01", v.GetQuantityString(true));
+        v = new FungibleAssetValue(FOO, 123, 0);
+        Assert.Equal("123", v.GetQuantityString());
+        Assert.Equal("123.00", v.GetQuantityString(true));
 
-            v = new FungibleAssetValue(FOO, 0, -2);
-            Assert.Equal("-0.02", v.GetQuantityString());
-            Assert.Equal("-0.02", v.GetQuantityString(true));
+        v = new FungibleAssetValue(FOO, 0, 0);
+        Assert.Equal("0", v.GetQuantityString());
+        Assert.Equal("0.00", v.GetQuantityString(true));
+    }
 
-            v = new FungibleAssetValue(FOO, 123, 0);
-            Assert.Equal("123", v.GetQuantityString());
-            Assert.Equal("123.00", v.GetQuantityString(true));
+    [Fact]
+    public void String()
+    {
+        FungibleAssetValue foo100 = new(FOO, 100);
+        FungibleAssetValue bar90000000 = new(BAR, 90000000);
+        Assert.Equal("1 FOO", foo100.ToString());
+        Assert.Equal("90000000 BAR", bar90000000.ToString());
+    }
 
-            v = new FungibleAssetValue(FOO, 0, 0);
-            Assert.Equal("0", v.GetQuantityString());
-            Assert.Equal("0.00", v.GetQuantityString(true));
-        }
+    [Fact]
+    public void Parse()
+    {
+        var baz = new Currency("BAZ", 1);
+        FormatException e;
 
-        [Fact]
-        public void String()
-        {
-            FungibleAssetValue foo100 = new FungibleAssetValue(FOO, 100);
-            FungibleAssetValue bar90000000 = new FungibleAssetValue(BAR, 90000000);
-            Assert.Equal("1 FOO", foo100.ToString());
-            Assert.Equal("90000000 BAR", bar90000000.ToString());
-        }
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "abc"));
+        Assert.StartsWith("The value string must consist of digits", e.Message);
 
-        [Fact]
-        public void Parse()
-        {
-            var baz = new Currency("BAZ", 1);
-            FormatException e;
+        const string signError = "Plus (+) or minus (-) sign can be appeared only at";
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123.45"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123.45"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "23.4-5"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45.6+7"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "2-3"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45+6"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "+12-3"));
+        Assert.StartsWith(signError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "-45+6"));
+        Assert.StartsWith(signError, e.Message);
 
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "abc"));
-            Assert.StartsWith("The value string must consist of digits", e.Message);
+        const string decimalSeparatorError = "The decimal separator (.) cannot be appeared";
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123..4"));
+        Assert.Contains(decimalSeparatorError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.4.5"));
+        Assert.Contains(decimalSeparatorError, e.Message);
 
-            const string signError = "Plus (+) or minus (-) sign can be appeared only at";
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123.45"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123.45"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "23.4-5"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45.6+7"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "2-3"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45+6"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "+12-3"));
-            Assert.StartsWith(signError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "-45+6"));
-            Assert.StartsWith(signError, e.Message);
+        const string decimalsError = "does not allow more than";
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.456"));
+        Assert.Contains(decimalsError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(BAR, "123.0"));
+        Assert.Contains(decimalsError, e.Message);
+        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(baz, "123.12"));
+        Assert.Contains(decimalsError, e.Message);
 
-            const string decimalSeparatorError = "The decimal separator (.) cannot be appeared";
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123..4"));
-            Assert.Contains(decimalSeparatorError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.4.5"));
-            Assert.Contains(decimalSeparatorError, e.Message);
+        Assert.Equal(
+            new FungibleAssetValue(FOO, 123, 45),
+            FungibleAssetValue.Parse(FOO, "123.45")
+        );
+        Assert.Equal(
+            new FungibleAssetValue(FOO, 123, 45),
+            FungibleAssetValue.Parse(FOO, "+123.45")
+        );
+        Assert.Equal(
+            new FungibleAssetValue(FOO, -123, 45),
+            FungibleAssetValue.Parse(FOO, "-123.45")
+        );
+        Assert.Equal(
+            new FungibleAssetValue(FOO, 123, 40),
+            FungibleAssetValue.Parse(FOO, "123.4")
+        );
+        Assert.Equal(
+            new FungibleAssetValue(FOO, 123, 40),
+            FungibleAssetValue.Parse(FOO, "+123.4")
+        );
+        Assert.Equal(
+            new FungibleAssetValue(FOO, -123, 40),
+            FungibleAssetValue.Parse(FOO, "-123.4")
+        );
+        Assert.Equal(new FungibleAssetValue(FOO, 123, 0), FungibleAssetValue.Parse(FOO, "123"));
+        Assert.Equal(new FungibleAssetValue(FOO, 12, 0), FungibleAssetValue.Parse(FOO, "+12"));
+        Assert.Equal(new FungibleAssetValue(FOO, -12, 0), FungibleAssetValue.Parse(FOO, "-12"));
+    }
 
-            const string decimalsError = "does not allow more than";
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.456"));
-            Assert.Contains(decimalsError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(BAR, "123.0"));
-            Assert.Contains(decimalsError, e.Message);
-            e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(baz, "123.12"));
-            Assert.Contains(decimalsError, e.Message);
-
-            Assert.Equal(
-                new FungibleAssetValue(FOO, 123, 45),
-                FungibleAssetValue.Parse(FOO, "123.45")
-            );
-            Assert.Equal(
-                new FungibleAssetValue(FOO, 123, 45),
-                FungibleAssetValue.Parse(FOO, "+123.45")
-            );
-            Assert.Equal(
-                new FungibleAssetValue(FOO, -123, 45),
-                FungibleAssetValue.Parse(FOO, "-123.45")
-            );
-            Assert.Equal(
-                new FungibleAssetValue(FOO, 123, 40),
-                FungibleAssetValue.Parse(FOO, "123.4")
-            );
-            Assert.Equal(
-                new FungibleAssetValue(FOO, 123, 40),
-                FungibleAssetValue.Parse(FOO, "+123.4")
-            );
-            Assert.Equal(
-                new FungibleAssetValue(FOO, -123, 40),
-                FungibleAssetValue.Parse(FOO, "-123.4")
-            );
-            Assert.Equal(new FungibleAssetValue(FOO, 123, 0), FungibleAssetValue.Parse(FOO, "123"));
-            Assert.Equal(new FungibleAssetValue(FOO, 12, 0), FungibleAssetValue.Parse(FOO, "+12"));
-            Assert.Equal(new FungibleAssetValue(FOO, -12, 0), FungibleAssetValue.Parse(FOO, "-12"));
-        }
-
-        [SkippableFact]
-        public void JsonSerialization()
-        {
-            var v = new FungibleAssetValue(FOO, 123, 45);
-            AssertJsonSerializable(v, @"
-                {
-                    ""quantity"": ""123.45"",
-                    ""currency"": {
-                        ""hash"": ""946ea39b6f49926c0ed3df2a3aa0d2aba0f0fc25"",
-                        ""ticker"": ""FOO"",
-                        ""decimalPlaces"": 2,
-                        ""minters"": null,
-                        ""maximumSupply"": null,
-                        ""totalSupplyTrackable"": true,
-                    }
+    [SkippableFact]
+    public void JsonSerialization()
+    {
+        var v = new FungibleAssetValue(FOO, 123, 45);
+        AssertJsonSerializable(v, @"
+            {
+                ""quantity"": ""123.45"",
+                ""currency"": {
+                    ""hash"": ""b18bb67fceedc1f0664a4950138b7ef8e05f70e4"",
+                    ""ticker"": ""FOO"",
+                    ""decimalPlaces"": 2,
+                    ""minters"": [],
+                    ""maximumSupply"": ""0""
                 }
-            ");
+            }
+        ");
 
-            v = new FungibleAssetValue(FOO, -456, 0);
-            AssertJsonSerializable(v, @"
-                {
-                    ""quantity"": ""-456"",
-                    ""currency"": {
-                        ""hash"": ""946ea39b6f49926c0ed3df2a3aa0d2aba0f0fc25"",
-                        ""ticker"": ""FOO"",
-                        ""decimalPlaces"": 2,
-                        ""minters"": null,
-                        ""maximumSupply"": null,
-                        ""totalSupplyTrackable"": true,
-                    }
+        v = new FungibleAssetValue(FOO, -456, 0);
+        AssertJsonSerializable(v, @"
+            {
+                ""quantity"": ""-456"",
+                ""currency"": {
+                    ""hash"": ""b18bb67fceedc1f0664a4950138b7ef8e05f70e4"",
+                    ""ticker"": ""FOO"",
+                    ""decimalPlaces"": 2,
+                    ""minters"": [],
+                    ""maximumSupply"": ""0""
                 }
-            ");
-        }
+            }
+        ");
     }
 }
 

@@ -33,11 +33,6 @@ public class CurrencyType : ObjectGraphType<Currency>
                 "null means unlimited supply.",
             resolve: context => context.Source.MaximumSupply
         );
-        Field<NonNullGraphType<BooleanGraphType>>(
-            "totalSupplyTrackable",
-            "Whether the total supply of this currency is trackable.",
-            resolve: context => context.Source.IsTrackable
-        );
         Field<NonNullGraphType<ByteStringType>>(
             "hash",
             "The deterministic hash derived from other fields.",

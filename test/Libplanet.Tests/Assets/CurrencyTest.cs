@@ -25,35 +25,30 @@ public class CurrencyTest
         Assert.Equal(2, foo.DecimalPlaces);
         Assert.Equal(0, foo.MaximumSupply);
         Assert.Empty(foo.Minters);
-        Assert.False(foo.IsTrackable);
 
-        var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]) { IsTrackable = true };
+        var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]);
         Assert.Equal("BAR", bar.Ticker);
         Assert.Equal(0, bar.DecimalPlaces);
         Assert.Equal(100, bar.MaximumSupply);
         Assert.Equal<Address>(bar.Minters, [AddressB, AddressA]);
-        Assert.True(bar.IsTrackable);
 
-        var baz = new Currency("baz", 1, [AddressA]) { IsTrackable = true };
+        var baz = new Currency("baz", 1, [AddressA]);
         Assert.Equal("baz", baz.Ticker);
         Assert.Equal(1, baz.DecimalPlaces);
         Assert.Equal(0, baz.MaximumSupply);
         Assert.Equal<Address>(baz.Minters, [AddressA]);
-        Assert.True(baz.IsTrackable);
 
-        var qux = new Currency("QUX", 0) { IsTrackable = true };
+        var qux = new Currency("QUX", 0);
         Assert.Equal("QUX", qux.Ticker);
         Assert.Equal(0, qux.MaximumSupply);
         Assert.Equal(0, qux.DecimalPlaces);
         Assert.Empty(qux.Minters);
-        Assert.True(qux.IsTrackable);
 
-        var quux = new Currency("QUUX", 3, 100) { IsTrackable = true };
+        var quux = new Currency("QUUX", 3, 100);
         Assert.Equal("QUUX", quux.Ticker);
         Assert.Equal(3, quux.DecimalPlaces);
         Assert.Equal(100, quux.MaximumSupply);
         Assert.Empty(quux.Minters);
-        Assert.True(qux.IsTrackable);
 
         Assert.Throws<ArgumentException>(() => new Currency(string.Empty, 0));
         Assert.Throws<ArgumentException>(() => new Currency("   \n", 1));
@@ -201,24 +196,22 @@ public class CurrencyTest
                 ""ticker"": ""FOO"",
                 ""decimalPlaces"": 2,
                 ""maximumSupply"": ""0"",
-                ""minters"": [],
-                ""isTrackable"": false,
+                ""minters"": []
             }
         ");
 
-        var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]) { IsTrackable = true };
+        var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]);
         AssertJsonSerializable(bar, @"
-                {
-                    ""hash"": ""7c49633bf327762281895760a10ce31e9c3bac6d"",
-                    ""ticker"": ""BAR"",
-                    ""decimalPlaces"": 0,
-                    ""maximumSupply"": ""100"",
-                    ""minters"": [
-                        ""0x5003712B63baAB98094aD678EA2B24BcE445D076"",
-                        ""0xD6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9"",
-                    ],
-                    ""isTrackable"": true,
-                }
-            ");
+            {
+                ""hash"": ""7c49633bf327762281895760a10ce31e9c3bac6d"",
+                ""ticker"": ""BAR"",
+                ""decimalPlaces"": 0,
+                ""maximumSupply"": ""100"",
+                ""minters"": [
+                    ""0x5003712B63baAB98094aD678EA2B24BcE445D076"",
+                    ""0xD6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9"",
+                ]
+            }
+        ");
     }
 }

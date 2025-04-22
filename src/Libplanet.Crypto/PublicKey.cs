@@ -96,8 +96,11 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
     public ImmutableArray<byte> Encrypt(ImmutableArray<byte> message)
         => [.. Encrypt(message.ToBuilder().ToArray())];
 
-    public bool Verify(IReadOnlyList<byte> message, IReadOnlyList<byte> signature)
-        => Verify(Address, [.. message], [.. signature]);
+    public bool Verify(ImmutableArray<byte> message, ImmutableArray<byte> signature)
+        => Verify(Address, [.. message], signature.IsDefault ? [] : [.. signature]);
+
+    public bool Verify(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature)
+        => Verify(Address, message.ToImmutableArray(), signature.ToImmutableArray());
 
     public override string ToString() => ByteUtil.Hex(ToByteArray(compress: false));
 

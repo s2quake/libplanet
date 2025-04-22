@@ -272,8 +272,8 @@ public readonly record struct FungibleAssetValue(Currency Currency, BigInteger R
             : (MajorUnit * Sign).ToString(CultureInfo.InvariantCulture);
     }
 
-    public bool Equals(FungibleAssetValue other)
-        => Currency.Equals(other.Currency) && RawValue.Equals(other.RawValue);
+    public bool Equals(FungibleAssetValue? other)
+        => other is { } fav && Currency.Equals(fav.Currency) && RawValue.Equals(fav.RawValue);
 
     public override int GetHashCode()
         => unchecked((Currency.GetHashCode() * 397) ^ RawValue.GetHashCode());

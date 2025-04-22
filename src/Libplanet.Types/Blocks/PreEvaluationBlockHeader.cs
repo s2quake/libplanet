@@ -187,7 +187,7 @@ namespace Libplanet.Types.Blocks
         {
             if (PublicKey is { } pubKey && signature is { } sig)
             {
-                byte[] msg = Codec.Encode(MakeCandidateData(stateRootHash));
+                var msg = Codec.Encode(MakeCandidateData(stateRootHash)).ToImmutableArray();
                 return pubKey.Verify(msg, sig);
             }
             else if (PublicKey is null)

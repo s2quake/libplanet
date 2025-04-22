@@ -26,7 +26,6 @@ internal sealed class CurrencyJsonConverter : JsonConverter<Currency>
         var decimalPlaces = (byte)0;
         var maximumSupply = BigInteger.Zero;
         var minters = ImmutableArray<Address>.Empty;
-        var isTrackable = false;
         var hash = string.Empty;
 
         while (reader.TokenType != JsonTokenType.EndObject)
@@ -52,9 +51,6 @@ internal sealed class CurrencyJsonConverter : JsonConverter<Currency>
                 case "minters":
                     minters = ReadMinters(ref reader);
                     break;
-                case "isTrackable":
-                    isTrackable = reader.GetBoolean();
-                    break;
                 case "hash":
                     hash = reader.GetString() ?? throw new JsonException("Hash cannot be null.");
                     break;
@@ -65,10 +61,7 @@ internal sealed class CurrencyJsonConverter : JsonConverter<Currency>
             reader.Read();
         }
 
-        var currency = new Currency(ticker, decimalPlaces, maximumSupply, minters)
-        {
-            IsTrackable = isTrackable,
-        };
+        var currency = new Currency(ticker, decimalPlaces, maximumSupply, minters);
 
         if (currency.Hash.ToString() != hash)
         {
@@ -93,7 +86,6 @@ internal sealed class CurrencyJsonConverter : JsonConverter<Currency>
         }
 
         writer.WriteEndArray();
-        writer.WriteBoolean("isTrackable", value.IsTrackable);
         writer.WriteEndObject();
     }
 
