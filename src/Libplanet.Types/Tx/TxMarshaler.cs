@@ -44,7 +44,7 @@ namespace Libplanet.Types.Tx
         public static Bencodex.Types.Dictionary MarshalTxInvoice(this ITxInvoice invoice)
         {
             Bencodex.Types.List updatedAddresses = new Bencodex.Types.List(
-                invoice.UpdatedAddresses.Select<Address, IValue>(addr => addr.Bencoded)
+                invoice.UpdatedAddresses.Select<Address, IValue>(addr => addr.ToBencodex())
             );
             string timestamp = invoice.Timestamp
                 .ToUniversalTime()
@@ -83,7 +83,7 @@ namespace Libplanet.Types.Tx
             this ITxSigningMetadata metadata
         ) => Dictionary.Empty
             .Add(NonceKey, metadata.Nonce)
-            .Add(SignerKey, metadata.Signer.Bencoded);
+            .Add(SignerKey, metadata.Signer.ToBencodex());
 
         [Pure]
         public static Dictionary MarshalUnsignedTx(this IUnsignedTx unsignedTx)
@@ -116,7 +116,7 @@ namespace Libplanet.Types.Tx
                         : (BlockHash?)null,
                     updatedAddresses: new AddressSet(
                         ((Bencodex.Types.List)dictionary[UpdatedAddressesKey])
-                        .Select(v => new Address(v))),
+                        .Select(Address.Create)),
                     timestamp: DateTimeOffset.ParseExact(
                         (Text)dictionary[TimestampKey],
                         TimestampFormat,
@@ -138,7 +138,7 @@ namespace Libplanet.Types.Tx
             Bencodex.Types.Dictionary dictionary
         ) =>
             new TxSigningMetadata(
-                signer: new Address(dictionary[SignerKey]),
+                signer: Address.Create(dictionary[SignerKey]),
                 nonce: (Bencodex.Types.Integer)dictionary[NonceKey]
             );
 

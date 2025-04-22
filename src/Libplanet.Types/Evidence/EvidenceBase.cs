@@ -63,7 +63,7 @@ namespace Libplanet.Types.Evidence
             if (bencoded is Dictionary dictionary)
             {
                 Height = dictionary.GetValue<Integer>(HeightKey);
-                TargetAddress = new Address(dictionary.GetValue<IValue>(TargetAddressKey));
+                TargetAddress = Address.Create(dictionary.GetValue<IValue>(TargetAddressKey));
                 Timestamp = DateTimeOffset.ParseExact(
                     dictionary.GetValue<Text>(TimestampKey),
                     TimestampFormat,
@@ -123,7 +123,7 @@ namespace Libplanet.Types.Evidence
                 var timestamp = Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture);
                 var bencoded = Dictionary.Empty
                     .Add(HeightKey, Height)
-                    .Add(TargetAddressKey, TargetAddress.Bencoded)
+                    .Add(TargetAddressKey, TargetAddress.ToBencodex())
                     .Add(TimestampKey, timestamp);
                 bencoded = OnBencoded(bencoded);
                 return bencoded;

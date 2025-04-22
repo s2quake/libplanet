@@ -51,7 +51,7 @@ namespace Libplanet.Action.Sys
                     ? new Dictionary(
                         s.Select(
                             kv => new KeyValuePair<IKey, IValue>(
-                                (Binary)kv.Key.Bencoded,
+                                (Binary)kv.Key.ToBencodex(),
                                 kv.Value
                             )
                         )
@@ -141,7 +141,7 @@ namespace Libplanet.Action.Sys
             ValidatorSet = new ValidatorSet((List)valuesList[0]);
             States = ((Dictionary)valuesList[1])
                 .Select(kv => new KeyValuePair<Address, IValue>(
-                    new Address(kv.Key), kv.Value))
+                    Address.Create(kv.Key), kv.Value))
                 .ToImmutableDictionary();
         }
     }

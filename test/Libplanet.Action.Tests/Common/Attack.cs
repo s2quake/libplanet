@@ -13,7 +13,7 @@ namespace Libplanet.Action.Tests.Common
             .Add("values", Dictionary.Empty
                 .Add("weapon", Weapon)
                 .Add("target", Target)
-                .Add("target_address", TargetAddress.Bencoded));
+                .Add("target_address", TargetAddress.ToBencodex()));
 
         public string Weapon { get; set; }
 
@@ -26,7 +26,7 @@ namespace Libplanet.Action.Tests.Common
             Dictionary values = (Dictionary)GetValues(plainValue);
             Weapon = (Text)values["weapon"];
             Target = (Text)values["target"];
-            TargetAddress = new Address(values["target_address"]);
+            TargetAddress = Address.Create(values["target_address"]);
         }
 
         public override IWorld Execute(IActionContext context)

@@ -36,15 +36,15 @@ namespace Libplanet.Action.Tests.Common
                 if (Append is { } set)
                 {
                     plainValue = plainValue
-                        .Add("target_address", set.At.Bencoded)
+                        .Add("target_address", set.At.ToBencodex())
                         .Add("item", set.Item);
                 }
 
                 if (Transfer is { } transfer)
                 {
                     plainValue = plainValue
-                        .Add("transfer_from", transfer.From?.Bencoded ?? Null.Value)
-                        .Add("transfer_to", transfer.To?.Bencoded ?? Null.Value)
+                        .Add("transfer_from", transfer.From?.ToBencodex() ?? Null.Value)
+                        .Add("transfer_to", transfer.To?.ToBencodex() ?? Null.Value)
                         .Add("transfer_amount", transfer.Amount);
                 }
 
@@ -136,7 +136,7 @@ namespace Libplanet.Action.Tests.Common
                 plainValue.TryGetValue((Text)"item", out IValue item) &&
                 item is Text i)
             {
-                Append = (new Address(at), i);
+                Append = (Address.Create(at), i);
             }
 
             if (plainValue.TryGetValue((Text)"transfer_from", out IValue f) &&
@@ -144,8 +144,8 @@ namespace Libplanet.Action.Tests.Common
                 plainValue.TryGetValue((Text)"transfer_amount", out IValue a) &&
                 a is Integer amount)
             {
-                Address? from = f is Null ? null : new Address(f);
-                Address? to = t is Null ? null : new Address(t);
+                Address? from = f is Null ? null : Address.Create(f);
+                Address? to = t is Null ? null : Address.Create(t);
                 Transfer = (from, to, amount.Value);
             }
 

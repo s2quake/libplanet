@@ -232,7 +232,7 @@ public abstract class BaseStore : IStore
     private static IImmutableDictionary<Address, IImmutableDictionary<Currency, FAV>>
     DeserializeGroupedFAVs(Bencodex.Types.Dictionary serialized) =>
         serialized.ToImmutableDictionary(
-            kv => new Address((IValue)kv.Key),
+            kv => Address.Create(kv.Key),
             kv => DeserializeFAVs((List)kv.Value)
         );
 

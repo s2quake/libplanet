@@ -4,7 +4,6 @@ using System.Numerics;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;
-using Libplanet.Action.Tests;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;

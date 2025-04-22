@@ -25,7 +25,7 @@ namespace Libplanet.Action.Tests.Common
         }
 
         public IValue PlainValue => Bencodex.Types.Dictionary.Empty
-            .Add("address", _address.Bencoded)
+            .Add("address", _address.ToBencodex())
             .Add("value", _value)
             .Add("account_address", _accountAddress.ByteArray)
             .Add("block_index", _blockIndex);
@@ -33,9 +33,9 @@ namespace Libplanet.Action.Tests.Common
         public void LoadPlainValue(IValue plainValue)
         {
             var dict = (Bencodex.Types.Dictionary)plainValue;
-            _address = new Address(dict["address"]);
+            _address = Address.Create(dict["address"]);
             _value = dict["value"];
-            _accountAddress = new Address(dict["account_address"]);
+            _accountAddress = Address.Create(dict["account_address"]);
             _blockIndex = (Integer)dict["block_index"];
         }
 

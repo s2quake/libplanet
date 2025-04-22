@@ -185,13 +185,13 @@ namespace Libplanet.Tests.Action
                     .GetNextWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
                     .GetState(ContextRecordingAction.MinerRecordAddress),
-                block.Miner.Bencoded);
+                block.Miner.ToBencodex());
             Assert.Equal(
                 chain
                     .GetNextWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
                     .GetState(ContextRecordingAction.SignerRecordAddress),
-                tx.Signer.Bencoded);
+                tx.Signer.ToBencodex());
             Assert.Equal(
                 chain
                     .GetNextWorldState()
@@ -1638,7 +1638,7 @@ namespace Libplanet.Tests.Action
 
                 if (!(asList[3] is Bencodex.Types.Null))
                 {
-                    Receiver = new Address(asList[3]);
+                    Receiver = Address.Create(asList[3]);
                 }
             }
 

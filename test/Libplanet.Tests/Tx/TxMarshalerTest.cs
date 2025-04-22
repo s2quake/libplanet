@@ -263,7 +263,7 @@ namespace Libplanet.Tests.Tx
                     .Add("values", Dictionary.Empty
                         .Add("weapon", "wand")
                         .Add("target", "orc")
-                        .Add("target_address", new Address(publicKey).Bencoded)),
+                        .Add("target_address", new Address(publicKey).ToBencodex())),
                 action0.PlainValue
             );
 
