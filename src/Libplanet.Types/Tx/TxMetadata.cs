@@ -69,7 +69,7 @@ namespace Libplanet.Types.Tx
                     ? new BlockHash(v)
                     : (BlockHash?)null;
             UpdatedAddresses = ((List)dictionary[UpdatedAddressesKey])
-                .Select(v => new Address(v))
+                .Select(Address.Create)
                 .ToImmutableHashSet();
             Signer = new Address(((Binary)dictionary[SignerKey]).ByteArray);
             Timestamp = DateTimeOffset.ParseExact(
@@ -116,13 +116,13 @@ namespace Libplanet.Types.Tx
         public Bencodex.Types.Dictionary ToBencodex()
         {
             List updatedAddresses = new List(
-                UpdatedAddresses.Select<Address, IValue>(addr => addr.Bencoded));
+                UpdatedAddresses.Select<Address, IValue>(addr => addr.ToBencodex()));
             string timestamp = Timestamp
                 .ToUniversalTime()
                 .ToString(TimestampFormat, CultureInfo.InvariantCulture);
             Bencodex.Types.Dictionary dict = Dictionary.Empty
                 .Add(NonceKey, Nonce)
-                .Add(SignerKey, Signer.Bencoded)
+                .Add(SignerKey, Signer.ToBencodex())
                 .Add(UpdatedAddressesKey, updatedAddresses)
                 .Add(TimestampKey, timestamp);
 

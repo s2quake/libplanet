@@ -50,7 +50,7 @@ namespace Libplanet.Action.Tests.Common
         }
 
         public IValue PlainValue => Dictionary.Empty
-            .Add("address", Address.Bencoded)
+            .Add("address", Address.ToBencodex())
             .Add("value", Value);
 
         private Address Address { get; set; }
@@ -59,7 +59,7 @@ namespace Libplanet.Action.Tests.Common
 
         public void LoadPlainValue(IValue plainValue)
         {
-            Address = new Address(((Dictionary)plainValue)["address"]);
+            Address = Address.Create(((Dictionary)plainValue)["address"]);
             Value = ((Dictionary)plainValue)["value"];
         }
 

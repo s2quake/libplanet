@@ -69,7 +69,7 @@ namespace Libplanet.Types.Blocks
 
             dict = metadata.PublicKey is { } pubKey
                 ? dict.Add(PublicKeyKey, pubKey.ToByteArray(compress: true))
-                : dict.Add(MinerKey, metadata.Miner.Bencoded);
+                : dict.Add(MinerKey, metadata.Miner.ToBencodex());
 
             if (metadata.LastCommit is { } commit)
             {
@@ -180,7 +180,7 @@ namespace Libplanet.Types.Blocks
             }
             else
             {
-                miner = new Address(marshaled[MinerKey]);
+                miner = Address.Create(marshaled[MinerKey]);
             }
 
 #pragma warning disable SA1118 // The parameter spans multiple lines

@@ -9,9 +9,11 @@ using Bencodex;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Assets;
 
+[JsonConverter(typeof(CurrencyJsonConverter))]
 public readonly record struct Currency(
     string Ticker, byte DecimalPlaces, BigInteger MaximumSupply, ImmutableArray<Address> Minters)
     : IEquatable<Currency>
@@ -31,22 +33,16 @@ public readonly record struct Currency(
     {
     }
 
-    [JsonInclude]
     public string Ticker { get; } = ValidateTicker(Ticker);
 
-    [JsonInclude]
     public byte DecimalPlaces { get; } = DecimalPlaces;
 
-    [JsonInclude]
     public BigInteger MaximumSupply { get; } = ValidateMaximumSupply(MaximumSupply);
 
-    [JsonInclude]
     public ImmutableArray<Address> Minters { get; } = ValidateMinters(Minters);
 
-    [JsonInclude]
     public bool IsTrackable { get; init; }
 
-    [JsonIgnore]
     public HashDigest<SHA1> Hash => GetHash();
 
     public static FungibleAssetValue operator *(Currency currency, BigInteger quantity)
@@ -62,7 +58,7 @@ public readonly record struct Currency(
             throw new ArgumentException("Serialized value must be a list.", nameof(serialized));
         }
 
-        if (list.Count != 6)
+        if (list.Count != 5)
         {
             throw new ArgumentException(
                 "Serialized value must have exactly 6 elements.", nameof(serialized));
@@ -71,8 +67,8 @@ public readonly record struct Currency(
         var ticker = ((Text)list[0]).Value;
         var decimalPlaces = (byte)((Integer)list[1]).Value;
         var maximumSupply = ((Integer)list[2]).Value;
-        var minters = ((List)list[3]).Select(x => new Address(x)).ToImmutableArray();
-        var isTrackable = ((Bencodex.Types.Boolean)list[5]).Value;
+        var minters = FromBencodex((List)list[3]);
+        var isTrackable = ((Bencodex.Types.Boolean)list[4]).Value;
         return new Currency(ticker, decimalPlaces, maximumSupply, minters)
         {
             IsTrackable = isTrackable,
@@ -123,9 +119,7 @@ public readonly record struct Currency(
         if (maximumSupply < 0)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(maximumSupply),
-                "Maximum supply must be non-negative."
-            );
+                nameof(maximumSupply), "Maximum supply must be non-negative.");
         }
 
         return maximumSupply;
@@ -162,14 +156,20 @@ public readonly record struct Currency(
 #endif
     }
 
-    private static IValue ToBencodex(ImmutableArray<Address> minters)
+    private static List ToBencodex(ImmutableArray<Address> minters)
     {
         if (minters.Length == 0)
         {
-            return Null.Value;
+            return List.Empty;
         }
 
-        return new List(minters.Select(item => item.Bencoded));
+        var list = new List(minters.Select(item => item.ToBencodex()));
+        return list;
+    }
+
+    private static ImmutableArray<Address> FromBencodex(List list)
+    {
+        return [.. list.Select(Address.Create)];
     }
 
     private HashDigest<SHA1> GetHash()

@@ -46,7 +46,7 @@ namespace Libplanet.Action.Tests.Loader
                 .Add("values", Dictionary.Empty
                     .Add("weapon", "sword")
                     .Add("target", "dummy")
-                    .Add("target_address", new PrivateKey().Address.Bencoded)));
+                    .Add("target_address", new PrivateKey().Address.ToBencodex())));
             var action3 = new ContextRecordingAction(new PrivateKey().Address, new Text("Foo"));
 
             var loader = new IndexedActionLoader(

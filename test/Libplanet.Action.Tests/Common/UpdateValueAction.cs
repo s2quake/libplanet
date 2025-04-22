@@ -21,12 +21,12 @@ namespace Libplanet.Action.Tests.Common
         public Integer Increment { get; set; }
 
         public IValue PlainValue => Bencodex.Types.Dictionary.Empty
-            .Add("address", Address.Bencoded)
+            .Add("address", Address.ToBencodex())
             .Add("value", Increment);
 
         public void LoadPlainValue(IValue plainValue)
         {
-            Address = new Address(((Dictionary)plainValue)["address"]);
+            Address = Address.Create(((Dictionary)plainValue)["address"]);
             Increment = (Integer)((Dictionary)plainValue)["value"];
         }
 

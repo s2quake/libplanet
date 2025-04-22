@@ -133,7 +133,7 @@ namespace Libplanet.Tests.Blocks
                 Dictionary.Empty
                     .Add(IndexKey, 0L)
                     .Add(TimestampKey, "2021-09-06T04:46:39.123000Z")
-                    .Add(MinerKey, _content.GenesisContentPv0.Miner.Bencoded),
+                    .Add(MinerKey, _content.GenesisContentPv0.Miner.ToBencodex()),
                 BlockMarshaler.MarshalBlockMetadata(_content.GenesisContentPv0)
             );
             AssertBencodexEqual(
@@ -144,7 +144,7 @@ namespace Libplanet.Tests.Blocks
                         PreviousHashKey,
                         _content.Block1ContentPv1.PreviousHash.ByteArray)
                     .Add(TimestampKey, "2021-09-06T08:01:09.045000Z")
-                    .Add(MinerKey, _content.Block1ContentPv1.Miner.Bencoded)
+                    .Add(MinerKey, _content.Block1ContentPv1.Miner.ToBencodex())
                     .Add(TxHashKey, _content.Block1ContentPv1.TxHash?.ByteArray ?? default)
                     .Add(
                         EvidenceHashKey,

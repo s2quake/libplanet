@@ -136,10 +136,10 @@ public class AddressTest
 
         Assert.Equal(
             Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"),
-            new Address(new Binary(addr)));
+            Address.Create(new Binary(addr)));
 
         var invalidAddr = new byte[19];
-        Assert.Throws<ArgumentException>(() => new Address(new Binary(invalidAddr)));
+        Assert.Throws<ArgumentException>(() => Address.Create(new Binary(invalidAddr)));
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class AddressTest
     public void SerializeAndDeserializeWithDefault()
     {
         var defaultAddress = default(Address);
-        Address deserializedAddress = new Address(defaultAddress.Bencoded);
+        Address deserializedAddress = Address.Create(defaultAddress.ToBencodex());
         Assert.Equal(default, deserializedAddress);
     }
 
@@ -257,10 +257,10 @@ public class AddressTest
     public void Bencoded()
     {
         var expected = new Address([.. TestUtils.GetRandomBytes(Address.Size)]);
-        var deserialized = new Address(expected.Bencoded);
+        var deserialized = Address.Create(expected.ToBencodex());
         Assert.Equal(expected, deserialized);
         expected = default(Address);
-        deserialized = new Address(expected.Bencoded);
+        deserialized = Address.Create(expected.ToBencodex());
         Assert.Equal(expected, deserialized);
     }
 
