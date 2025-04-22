@@ -28,7 +28,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
     public PeerCollection Peers { get; } = new(seedOptions);
 
     public BoundPeer BoundPeer => new(
-        PrivateKey.FromString(seedOptions.PrivateKey).PublicKey,
+        PrivateKey.Parse(seedOptions.PrivateKey).PublicKey,
         (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint));
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -99,7 +99,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
 
     private async Task<NetMQTransport> CreateTransport()
     {
-        var privateKey = PrivateKey.FromString(seedOptions.PrivateKey);
+        var privateKey = PrivateKey.Parse(seedOptions.PrivateKey);
         var appProtocolVersion = AppProtocolVersion.FromToken(seedOptions.AppProtocolVersion);
         var appProtocolVersionOptions = new AppProtocolVersionOptions
         {

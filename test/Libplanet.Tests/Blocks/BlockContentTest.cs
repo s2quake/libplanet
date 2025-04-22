@@ -59,7 +59,7 @@ namespace Libplanet.Tests.Blocks
         [Fact]
         public void Transactions()
         {
-            var key = PrivateKey.FromString(
+            var key = PrivateKey.Parse(
                 "ea0493b0ed67fc97b2e5e85a1d145adea294112f09df15398cb10f2ed5ad1a83"
             );
             var tx2 = new Transaction(
@@ -173,7 +173,7 @@ namespace Libplanet.Tests.Blocks
         [Fact]
         public void TransactionsWithInconsistentGenesisHashes()
         {
-            var key = PrivateKey.FromString(
+            var key = PrivateKey.Parse(
                 "2ed05de0b35d93e4ae801ae40c8bb4257a771ff67c1e5d1754562e4191953710"
             );
             var differentGenesisHash = BlockHash.Parse(

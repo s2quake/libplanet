@@ -9,11 +9,10 @@ namespace Libplanet.Crypto;
 
 public sealed record class SymmetricKey(ImmutableArray<byte> Key) : IEquatable<SymmetricKey>
 {
+    private static readonly RandomNumberGenerator _secureRandom = RandomNumberGenerator.Create();
     private const int KeyByteSize = 32;
     private const int TagByteSize = 16;
     private const int NonceByteSize = 12;
-
-    private readonly RandomNumberGenerator _secureRandom = RandomNumberGenerator.Create();
 
     public SymmetricKey(Span<byte> key)
         : this(ValidateKey(key.ToImmutableArray()))
@@ -23,21 +22,9 @@ public sealed record class SymmetricKey(ImmutableArray<byte> Key) : IEquatable<S
     public ImmutableArray<byte> Key { get; } = ValidateKey(Key);
 
     public bool Equals(SymmetricKey? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
+        => other is not null && Key.SequenceEqual(other.Key);
 
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Key.SequenceEqual(other.Key);
-    }
-
-    public override int GetHashCode() => ByteUtil.CalculateHashCode(ToByteArray());
+    public override int GetHashCode() => ByteUtil.CalculateHashCode(Key);
 
     public byte[] Encrypt(byte[] message, byte[] nonSecret)
     {
@@ -91,8 +78,6 @@ public sealed record class SymmetricKey(ImmutableArray<byte> Key) : IEquatable<S
             throw new InvalidCiphertextException(message, e);
         }
     }
-
-    public byte[] ToByteArray() => [.. Key];
 
     private static ImmutableArray<byte> ValidateKey(ImmutableArray<byte> key)
     {

@@ -1319,13 +1319,13 @@ namespace Libplanet.Tests.Blockchain
                 throw new ArgumentException("The number of keys must 5.", nameof(keys));
             }
 
-            privateKey = privateKey ?? new PrivateKey(new byte[]
-            {
+            privateKey = privateKey ?? new PrivateKey(
+            [
                 0xa8, 0x21, 0xc7, 0xc2, 0x08, 0xa9, 0x1e, 0x53, 0xbb, 0xb2,
                 0x71, 0x15, 0xf4, 0x23, 0x5d, 0x82, 0x33, 0x44, 0xd1, 0x16,
                 0x82, 0x04, 0x13, 0xb6, 0x30, 0xe7, 0x96, 0x4f, 0x22, 0xe0,
                 0xec, 0xe0,
-            });
+            ]);
 
             Transaction[] txs =
             {

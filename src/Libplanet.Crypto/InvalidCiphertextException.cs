@@ -1,22 +1,20 @@
 using System;
 
-namespace Libplanet.Crypto
+namespace Libplanet.Crypto;
+
+public sealed class InvalidCiphertextException : Exception
 {
-    public class InvalidCiphertextException : Exception
+    public InvalidCiphertextException()
     {
-        public InvalidCiphertextException()
-        {
-        }
+    }
 
-        public InvalidCiphertextException(string message)
-            : base(message)
-        {
-        }
+    public InvalidCiphertextException(string message)
+        : base(message)
+    {
+    }
 
-        public InvalidCiphertextException(
-            string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+    public InvalidCiphertextException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

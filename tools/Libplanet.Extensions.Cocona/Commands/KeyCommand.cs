@@ -153,7 +153,7 @@ public class KeyCommand
     {
         ChangeKeyStorePath(path);
         PrivateKey key = UnprotectKey(keyId, passphrase);
-        byte[] rawKey = publicKey ? key.PublicKey.ToByteArray(true) : key.ToByteArray();
+        byte[] rawKey = publicKey ? key.PublicKey.ToByteArray(true) : [.. key.ByteArray];
         using Stream stdout = Console.OpenStandardOutput();
         if (bytes)
         {
@@ -336,7 +336,7 @@ public class KeyCommand
         PrivateKey key;
         try
         {
-            key = PrivateKey.FromString(rawKeyHex);
+            key = PrivateKey.Parse(rawKeyHex);
         }
         catch (FormatException)
         {

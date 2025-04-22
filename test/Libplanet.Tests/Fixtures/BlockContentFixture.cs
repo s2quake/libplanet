@@ -42,7 +42,7 @@ namespace Libplanet.Tests.Fixtures
         public BlockContentFixture()
         {
             TimeSpan kst = TimeSpan.FromHours(9);
-            GenesisKey = PrivateKey.FromString(
+            GenesisKey = PrivateKey.Parse(
                 "9bf4664ba09a89faeb684b94e69ffde01d26ae14b556204d3f6ab58f61f78418");
             Transaction genTx = Transaction.Create(
                 0,
@@ -77,9 +77,9 @@ namespace Libplanet.Tests.Fixtures
             GenesisHash = BlockHash.Parse(
                 "341e8f360597d5bc45ab96aabc5f1b0608063f30af7bd4153556c9536a07693a");
 
-            Block1Key = PrivateKey.FromString(
+            Block1Key = PrivateKey.Parse(
                 "fcf30b333d04ccfeb562f000a32df488e7154949d31ddcac3cf9278acb5786c7");
-            Block1Tx0Key = PrivateKey.FromString(
+            Block1Tx0Key = PrivateKey.Parse(
                 "2d5c20079bc4b2e6eab9ecbb405da8ba6590c436edfb07b7d4466563d7dac096");
             Block1Tx0 = new Transaction(
                 new UnsignedTx(
@@ -100,7 +100,7 @@ namespace Libplanet.Tests.Fixtures
                     "b80a751bbde0b4813bd94ecd8e63bafee4f18db787beb117a5fc1aa5c2af9ca1b"
                 )
             );
-            Block1Tx1Key = PrivateKey.FromString(
+            Block1Tx1Key = PrivateKey.Parse(
                 "105341c78dfb0dd313b961081630444c2586a1f01fb0c625368ffdc9136cfa30");
             Block1Tx1 = new Transaction(
                 new UnsignedTx(
