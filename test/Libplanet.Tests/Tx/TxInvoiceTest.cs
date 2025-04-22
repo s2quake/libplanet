@@ -37,7 +37,7 @@ namespace Libplanet.Tests.Tx
                 genesisHash: genesisHash,
                 timestamp: timestamp,
                 actions: actions,
-                maxGasPrice: Currency.Uncapped("DUMB", 0, null) * 100,
+                maxGasPrice: new Currency("DUMB", 0) * 100,
                 gasLimit: 100);
 
             Assert.Throws<ArgumentException>(() =>
@@ -45,7 +45,7 @@ namespace Libplanet.Tests.Tx
                     genesisHash: genesisHash,
                     timestamp: timestamp,
                     actions: actions,
-                    maxGasPrice: Currency.Uncapped("DUMB", 0, null) * 100,
+                    maxGasPrice: new Currency("DUMB", 0) * 100,
                     gasLimit: null));
             Assert.Throws<ArgumentException>(() =>
                 new TxInvoice(
@@ -59,14 +59,14 @@ namespace Libplanet.Tests.Tx
                     genesisHash: genesisHash,
                     timestamp: timestamp,
                     actions: actions,
-                    maxGasPrice: Currency.Uncapped("DUMB", 0, null) * -100,
+                    maxGasPrice: new Currency("DUMB", 0) * -100,
                     gasLimit: 100));
             Assert.Throws<ArgumentException>(() =>
                 new TxInvoice(
                     genesisHash: genesisHash,
                     timestamp: timestamp,
                     actions: actions,
-                    maxGasPrice: Currency.Uncapped("DUMB", 0, null) * 100,
+                    maxGasPrice: new Currency("DUMB", 0) * 100,
                     gasLimit: -100));
         }
 
@@ -193,8 +193,8 @@ namespace Libplanet.Tests.Tx
                     i == 2 ? DateTimeOffset.MinValue : timestamp,
                     i == 3 ? TxActionList.Empty : actions,
                     i == 4
-                        ? FungibleAssetValue.FromRawValue(
-                            Currency.Uncapped("FOO", 18, new PrivateKey().Address),
+                        ? new FungibleAssetValue(
+                            new Currency("FOO", 18, [new PrivateKey().Address]),
                             100)
                         : (FungibleAssetValue?)null,
                     i == 4 ? 10 : (long?)null);
@@ -222,7 +222,7 @@ namespace Libplanet.Tests.Tx
                 timestamp,
                 actions,
                 new FungibleAssetValue(
-                    Currency.Uncapped("FOO", 18, AddressA),
+                    new Currency("FOO", 18, [AddressA]),
                     1234,
                     5678),
                 100

@@ -90,9 +90,7 @@ public partial class StateQueryTest
     [InlineData(BlockMetadata.CurrentProtocolVersion)]
     public async Task TotalSupply(int version)
     {
-#pragma warning disable CS0618  // Legacy, which is obsolete, is the only way to test this:
-         var legacyToken = Currency.Legacy("LEG", 0, null);
-#pragma warning restore CS0618
+         var legacyToken = new Currency("LEG", 0);
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
@@ -278,9 +276,7 @@ public partial class StateQueryTest
     [InlineData(BlockMetadata.CurrentProtocolVersion)]
     public async Task TotalSupplyBySrh(int version)
     {
-#pragma warning disable CS0618  // Legacy, which is obsolete, is the only way to test this:
-         var legacyToken = Currency.Legacy("LEG", 0, null);
-#pragma warning restore CS0618
+         var legacyToken = new Currency("LEG", 0);
         (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{

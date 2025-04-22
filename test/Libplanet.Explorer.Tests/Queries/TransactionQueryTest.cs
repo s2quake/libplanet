@@ -73,7 +73,7 @@ public class TransactionQueryTest
     [Fact]
     public async Task BindSignatureWithSystemAction()
     {
-        var foo = Currency.Uncapped("FOO", 2, ImmutableHashSet<Address>.Empty);
+        var foo = new Currency("FOO", 2);
         var action = new Initialize(
             new ValidatorSet(new List<Validator>()
                 { new Validator(new PrivateKey().PublicKey, 1 )}),

@@ -25,9 +25,7 @@ public class CurrencyType : ObjectGraphType<Currency>
             "The addresses who can mint this currency.  If this is null anyone can " +
                 "mint the currency.  On the other hand, unlike null, an empty set means no one " +
                 "can mint the currency.",
-            resolve: context => context.Source.Minters
-                ?.OrderBy(a => a)
-                ?.ToList()
+            resolve: context => context.Source.Minters.ToList()
         );
         Field<FungibleAssetValueType>(
             "maximumSupply",

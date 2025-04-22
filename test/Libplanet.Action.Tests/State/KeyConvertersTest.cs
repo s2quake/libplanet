@@ -16,7 +16,7 @@ namespace Libplanet.Action.State.Tests
         public void ToKeysSpec()
         {
             var address = new PrivateKey().Address;
-            var currency = Currency.Uncapped("Foo", 2, new PrivateKey().Address);
+            var currency = new Currency("Foo", 2, [new PrivateKey().Address]);
 
             Assert.Equal(
                 (KeyBytes)ByteUtil.Hex(address.ByteArray),

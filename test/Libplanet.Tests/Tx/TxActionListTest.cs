@@ -17,7 +17,7 @@ namespace Libplanet.Tests.Tx
         public static readonly Address AddressA =
             Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
 
-        private static readonly Currency FOO = Currency.Uncapped("FOO", 2, null);
+        private static readonly Currency FOO = new Currency("FOO", 2);
 
         [Fact]
         public void Empty()

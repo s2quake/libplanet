@@ -30,8 +30,8 @@ namespace Libplanet.Types.Tx
         private static readonly Binary ActionsKey = new Binary(new byte[] { 0x61 }); // 'a'
         private static readonly Codec Codec = new Codec();
 
-        private static readonly BencodexJsonConverter BencodexJsonConverter = new ();
-        private static readonly JsonSerializerOptions SerializerOptions = new ()
+        private static readonly BencodexJsonConverter BencodexJsonConverter = new();
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
             WriteIndented = true,
             Converters =
@@ -67,7 +67,7 @@ namespace Libplanet.Types.Tx
 
             if (invoice.MaxGasPrice is { } maxGasPrice)
             {
-                dict = dict.Add(MaxGasPriceKey, maxGasPrice.Serialize());
+                dict = dict.Add(MaxGasPriceKey, maxGasPrice.ToBencodex());
             }
 
             if (invoice.GasLimit is { } gasLimit)
@@ -125,7 +125,7 @@ namespace Libplanet.Types.Tx
                         ? new TxActionList(dictionary[ActionsKey])
                         : TxActionList.Empty,
                     maxGasPrice: dictionary.TryGetValue(MaxGasPriceKey, out IValue mgpv)
-                        ? new FungibleAssetValue(mgpv)
+                        ? FungibleAssetValue.Create(mgpv)
                         : (FungibleAssetValue?)null,
                     gasLimit: dictionary.TryGetValue(GasLimitKey, out IValue glv)
                         ? (long)(Bencodex.Types.Integer)glv

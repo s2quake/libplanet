@@ -27,8 +27,8 @@ namespace Libplanet.Tests.Action
         public void Evaluate_WithGasTracer(
             bool cancelTrace, long goldAmount, long expectedGoldAmount)
         {
-            var gold = Currency.Uncapped("FOO", 18, null);
-            var gas = Currency.Uncapped("GAS", 18, null);
+            var gold = new Currency("FOO", 18);
+            var gas = new Currency("GAS", 18);
             var privateKey = new PrivateKey();
             var policy = new BlockPolicy(
                 new PolicyActionsRegistry(
@@ -145,8 +145,8 @@ namespace Libplanet.Tests.Action
                     beginTxActions: ImmutableArray<IAction>.Empty,
                     endTxActions: ImmutableArray<IAction>.Empty),
                 getMaxTransactionsBytes: _ => 50 * 1024);
-            var gold = Currency.Uncapped("FOO", 18, null);
-            var gas = Currency.Uncapped("GAS", 18, null);
+            var gold = new Currency("FOO", 18);
+            var gas = new Currency("GAS", 18);
             var privateKey = new PrivateKey();
 
             var store = new MemoryStore();
@@ -185,8 +185,8 @@ namespace Libplanet.Tests.Action
 
         private IReadOnlyList<ICommittedActionEvaluation> Evaluate_CancelTrace(BlockPolicy policy)
         {
-            var gold = Currency.Uncapped("FOO", 18, null);
-            var gas = Currency.Uncapped("GAS", 18, null);
+            var gold = new Currency("FOO", 18);
+            var gas = new Currency("GAS", 18);
             var privateKey = new PrivateKey();
 
             var store = new MemoryStore();
