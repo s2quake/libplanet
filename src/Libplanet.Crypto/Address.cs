@@ -14,15 +14,15 @@ namespace Libplanet.Crypto;
 
 [TypeConverter(typeof(AddressTypeConverter))]
 [JsonConverter(typeof(AddressJsonConverter))]
-public readonly struct Address(in ImmutableArray<byte> bytes)
+public readonly record struct Address(in ImmutableArray<byte> ByteArray)
     : IEquatable<Address>, IComparable<Address>, IComparable, IBencodable, IFormattable
 {
     public const int Size = 20;
 
-    private static readonly ImmutableArray<byte> _defaultByteArray =
-        ImmutableArray.Create(new byte[Size]);
+    private static readonly ImmutableArray<byte> _defaultByteArray
+        = ImmutableArray.Create(new byte[Size]);
 
-    private readonly ImmutableArray<byte> _bytes = ValidateBytes(bytes);
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
 
     public Address(Span<byte> bytes)
         : this(ValidateBytes(bytes.ToImmutableArray()))
@@ -43,15 +43,9 @@ public readonly struct Address(in ImmutableArray<byte> bytes)
 
     public IValue Bencoded => new Binary(ByteArray);
 
-    public static bool operator ==(Address left, Address right) => left.Equals(right);
-
-    public static bool operator !=(Address left, Address right) => !left.Equals(right);
-
     public static Address Parse(string hex) => new(DeriveAddress(hex));
 
     public bool Equals(Address other) => ByteArray.SequenceEqual(other.ByteArray);
-
-    public override bool Equals(object? obj) => obj is Address other && Equals(other);
 
     public override int GetHashCode() => ByteUtil.CalculateHashCode(ToByteArray());
 

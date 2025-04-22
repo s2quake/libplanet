@@ -7,7 +7,7 @@ using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
 
-public partial class Trie : ITrie
+public partial record class Trie : ITrie
 {
     public IEnumerable<(KeyBytes Path, IValue? TargetValue, IValue SourceValue)> Diff(ITrie other)
     {

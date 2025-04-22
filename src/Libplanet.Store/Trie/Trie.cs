@@ -12,7 +12,7 @@ using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
 
-public sealed partial class Trie(INode node) : ITrie
+public sealed partial record class Trie(INode node) : ITrie
 {
     private static readonly Codec _codec = new();
 
