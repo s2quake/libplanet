@@ -46,7 +46,7 @@ namespace Libplanet.Types.Consensus
                         nameof(signature));
                 }
                 else if (!metadata.ValidatorPublicKey.Verify(
-                    _codec.Encode(metadata.Bencoded), signature))
+                    [.. _codec.Encode(metadata.Bencoded)], signature))
                 {
                     throw new ArgumentException(
                         $"Given {nameof(signature)} is invalid.",

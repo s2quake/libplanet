@@ -139,17 +139,16 @@ namespace Libplanet.Tests.Blocks
             Assert.True(
                 key.PublicKey.Verify(
                     _codec.Encode(block1.MakeCandidateData(arbitraryHash)),
-                    validSig
-                )
+                    validSig.AsSpan())
             );
             Assert.False(
-                key.PublicKey.Verify(_codec.Encode(block1.MakeCandidateData(default)), validSig)
+                key.PublicKey.Verify(
+                    _codec.Encode(block1.MakeCandidateData(default)), validSig.AsSpan())
             );
             Assert.False(
                 new PrivateKey().PublicKey.Verify(
                     _codec.Encode(block1.MakeCandidateData(arbitraryHash)),
-                    validSig
-                )
+                    validSig.AsSpan())
             );
 
             ArgumentException e = Assert.Throws<ArgumentException>(

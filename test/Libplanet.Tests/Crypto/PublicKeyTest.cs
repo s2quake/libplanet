@@ -100,8 +100,8 @@ public class PublicKeyTest(ITestOutputHelper output)
             0x49, 0xfb, 0x58, 0xb7, 0x1b,
         };
         Assert.True(pubKey.Verify(payload, signature));
-        Assert.False(pubKey.Verify(payload, ImmutableArray<byte>.Empty));
-        Assert.False(pubKey.Verify(payload, default(ImmutableArray<byte>)));
+        Assert.False(pubKey.Verify([.. payload], ImmutableArray<byte>.Empty));
+        Assert.False(pubKey.Verify([.. payload], default(ImmutableArray<byte>)));
     }
 
     [Fact]
