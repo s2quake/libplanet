@@ -12,11 +12,9 @@ using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
 
-public sealed partial record class Trie(INode node) : ITrie
+public sealed partial record class Trie(INode Node) : ITrie
 {
     private static readonly Codec _codec = new();
-
-    public INode Node { get; } = node;
 
     public HashDigest<SHA256> Hash => Node switch
     {
@@ -24,7 +22,7 @@ public sealed partial record class Trie(INode node) : ITrie
         _ => HashDigest<SHA256>.DeriveFrom(_codec.Encode(Node.ToBencodex())),
     };
 
-    public bool IsCommitted { get; private set; } = node is not null && node is not HashNode;
+    public bool IsCommitted { get; private set; } = Node is not null && Node is not HashNode;
 
     public IValue this[in KeyBytes key]
         => NodeResolver.ResolveToValue(Node, PathCursor.Create(key));

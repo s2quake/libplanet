@@ -198,7 +198,7 @@ public class PublicKeyTest(ITestOutputHelper output)
     [Fact]
     public void EncryptTest()
     {
-        var prvKey = new PrivateKey(
+        var prvKey = PrivateKey.Parse(
             "281747f1f29309b061e4a36a28ddc8276aec353cc312d3d8619d23ccf36172a5");
         var pubKey = prvKey.PublicKey;
         var bs = Encoding.ASCII.GetBytes("hello world");

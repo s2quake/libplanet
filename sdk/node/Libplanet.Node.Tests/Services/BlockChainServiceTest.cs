@@ -52,7 +52,7 @@ public class BlockChainServiceTest
             var configDict = new Dictionary<string, string>
             {
                 { "Genesis:GenesisConfigurationPath", tempFilePath },
-                { "Genesis:GenesisKey", ByteUtil.Hex(genesisKey.ToByteArray()) },
+                { "Genesis:GenesisKey", ByteUtil.Hex(genesisKey.ByteArray.ToArray()) },
             };
 
             var configuration = new ConfigurationBuilder()

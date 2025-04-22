@@ -117,14 +117,14 @@ internal sealed class BlockChainService(
             };
 
             return CreateGenesisBlockFromConfiguration(
-                PrivateKey.FromString(genesisOptions.GenesisKey),
+                PrivateKey.Parse(genesisOptions.GenesisKey),
                 raw,
                 stateStore);
         }
 
         if (genesisOptions.GenesisKey != string.Empty)
         {
-            var genesisKey = PrivateKey.FromString(genesisOptions.GenesisKey);
+            var genesisKey = PrivateKey.Parse(genesisOptions.GenesisKey);
             var validatorKeys = genesisOptions.Validators.Select(PublicKey.Parse).ToArray();
             var actions = actionService.GetGenesisActions(
                 genesisAddress: genesisKey.Address,

@@ -23,7 +23,7 @@ internal sealed class SoloProposeService : BackgroundService
         var options = soloProposeOption.Value;
         _privateKey = options.PrivateKey is null
             ? new PrivateKey()
-            : PrivateKey.FromString(options.PrivateKey);
+            : PrivateKey.Parse(options.PrivateKey);
         _blockInterval = TimeSpan.FromMilliseconds(options.BlockInterval);
         _logger = logger;
         _logger.LogInformation(

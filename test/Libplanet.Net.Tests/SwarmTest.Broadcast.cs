@@ -521,11 +521,11 @@ namespace Libplanet.Net.Tests
         {
             // If the bucket stored peers are the same, the block may not propagate,
             // so specify private keys to make the buckets different.
-            PrivateKey keyA = PrivateKey.FromString(
+            PrivateKey keyA = PrivateKey.Parse(
                 "8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-            PrivateKey keyB = PrivateKey.FromString(
+            PrivateKey keyB = PrivateKey.Parse(
                 "c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-            PrivateKey keyC = PrivateKey.FromString(
+            PrivateKey keyC = PrivateKey.Parse(
                 "941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
 
             var autoBroadcastDisabled = new SwarmOptions
@@ -630,11 +630,11 @@ namespace Libplanet.Net.Tests
         {
             // If the bucket stored peers are the same, the block may not propagate,
             // so specify private keys to make the buckets different.
-            PrivateKey keyA = PrivateKey.FromString(
+            PrivateKey keyA = PrivateKey.Parse(
                 "8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-            PrivateKey keyB = PrivateKey.FromString(
+            PrivateKey keyB = PrivateKey.Parse(
                 "c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-            PrivateKey keyC = PrivateKey.FromString(
+            PrivateKey keyC = PrivateKey.Parse(
                 "941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
 
             var swarmA = await CreateSwarm(keyA).ConfigureAwait(false);

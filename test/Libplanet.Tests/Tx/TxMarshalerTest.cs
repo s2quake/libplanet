@@ -193,8 +193,8 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void UnmarshalTransaction()
         {
-            PublicKey publicKey = new PrivateKey(ByteUtil.ParseHex(
-                "cf36ecf9e47c879a0dbf46b2ecd83fd276182ade0265825e3b8c6ba214467b76")).PublicKey;
+            PublicKey publicKey = PrivateKey.Parse(
+                "cf36ecf9e47c879a0dbf46b2ecd83fd276182ade0265825e3b8c6ba214467b76").PublicKey;
             Transaction tx =
                 TxMarshaler.UnmarshalTransaction(_marshaledTransaction);
 

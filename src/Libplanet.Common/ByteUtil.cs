@@ -28,8 +28,8 @@ namespace Libplanet.Common
             '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
         };
 
-        private static readonly BencodexJsonConverter BencodexJsonConverter = new ();
-        private static readonly JsonSerializerOptions SerializerOptions = new ()
+        private static readonly BencodexJsonConverter BencodexJsonConverter = new();
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
             WriteIndented = true,
             Converters =
@@ -180,6 +180,25 @@ namespace Libplanet.Common
                 foreach (byte b in bytes)
                 {
                     code = (code * 397) ^ b.GetHashCode();
+                }
+            }
+
+            return code;
+        }
+
+        public static int CalculateHashCode(in ImmutableArray<byte> bytes)
+        {
+            if (bytes.IsDefaultOrEmpty)
+            {
+                return 0;
+            }
+
+            var code = 0;
+            unchecked
+            {
+                foreach (var @byte in bytes)
+                {
+                    code = (code * 397) ^ @byte.GetHashCode();
                 }
             }
 

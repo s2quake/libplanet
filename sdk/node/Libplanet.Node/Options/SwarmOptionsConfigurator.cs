@@ -29,7 +29,7 @@ internal sealed class SwarmOptionsConfigurator(
 
         if (options.AppProtocolVersion == string.Empty)
         {
-            var privateKey = PrivateKey.FromString(options.PrivateKey);
+            var privateKey = PrivateKey.Parse(options.PrivateKey);
             var version = 0;
             options.AppProtocolVersion = AppProtocolVersion.Sign(privateKey, version).Token;
             logger.LogWarning(

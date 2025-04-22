@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Nethereum.Util;
 using Secp256k1Net;
@@ -14,12 +14,12 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
 
     public byte[] Sign(byte[] message, PrivateKey privateKey)
     {
-        lock (PrivateKey._secpLock)
+        lock (PrivateKey._lock)
         {
             using var secp = new Secp256k1();
             var keccak = new Sha3Keccack();
             var messageHash = HashPrefixedMessage(message);
-            var keyBytes = privateKey.ToByteArray();
+            var keyBytes = privateKey.ByteArray.ToArray();
             var sig1 = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
             var sig2 = new byte[Secp256k1.SERIALIZED_SIGNATURE_SIZE];
             var signature = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
@@ -44,7 +44,7 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
 
     public bool Verify(byte[] message, byte[] signature, Address signer)
     {
-        lock (PrivateKey._secpLock)
+        lock (PrivateKey._lock)
         {
             using var secp = new Secp256k1();
             var keccak = new Sha3Keccack();

@@ -78,7 +78,7 @@ internal sealed class SwarmService(
         }
 
         var nodeOptions = _options;
-        var privateKey = PrivateKey.FromString(nodeOptions.PrivateKey);
+        var privateKey = PrivateKey.Parse(nodeOptions.PrivateKey);
         var appProtocolVersion = AppProtocolVersion.FromToken(nodeOptions.AppProtocolVersion);
         var trustedAppProtocolVersionSigners = nodeOptions.TrustedAppProtocolVersionSigners
             .Select(PublicKey.Parse).ToArray();

@@ -45,6 +45,6 @@ public sealed class SymmetricKeyTest
     public void ToByteArray()
     {
         var aes = new SymmetricKey(KeyBytes);
-        Assert.Equal(KeyBytes, aes.ToByteArray());
+        Assert.Equal(KeyBytes, aes.Key);
     }
 }
