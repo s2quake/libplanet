@@ -135,7 +135,7 @@ public class BlockCommand
 
         var validatorSet = new ValidatorSet(
             validatorKey
-                .Select(PublicKey.FromHex)
+                .Select(PublicKey.Parse)
                 .Select(k => new Validator(k, BigInteger.One))
                 .ToList());
         var emptyState =

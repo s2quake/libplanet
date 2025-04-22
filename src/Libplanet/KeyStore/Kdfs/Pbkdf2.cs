@@ -71,7 +71,7 @@ namespace Libplanet.KeyStore.Kdfs
         /// </summary>
         public ImmutableArray<byte> Salt { get; }
 
-            [Pure]
+        [Pure]
         public ImmutableArray<byte> Derive(string passphrase)
         {
             var pdb = new Pkcs5S2ParametersGenerator(new T());
@@ -84,7 +84,7 @@ namespace Libplanet.KeyStore.Kdfs
             return ImmutableArray.Create(key.GetKey(), 0, KeyLength);
         }
 
-            public string WriteJson(Utf8JsonWriter writer)
+        public string WriteJson(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
             writer.WriteNumber("c", Iterations);

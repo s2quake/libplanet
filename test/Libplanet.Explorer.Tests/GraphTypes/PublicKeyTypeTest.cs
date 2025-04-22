@@ -14,8 +14,8 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Null(_type.ParseLiteral(new NullValue()));
 
             var publicKey = new PrivateKey().PublicKey;
-            var compressed = publicKey.ToHex(true);
-            var uncompressed = publicKey.ToHex(false);
+            var compressed = publicKey.ToString("c", null);
+            var uncompressed = publicKey.ToString();
             Assert.Equal(
                 publicKey,
                 Assert.IsType<PublicKey>(_type.ParseLiteral(new StringValue(compressed))));
@@ -35,8 +35,8 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Null(_type.ParseValue(null));
 
             var publicKey = new PrivateKey().PublicKey;
-            var compressed = publicKey.ToHex(true);
-            var uncompressed = publicKey.ToHex(false);
+            var compressed = publicKey.ToString("c", null);
+            var uncompressed = publicKey.ToString();
             Assert.Equal(publicKey, _type.ParseValue(compressed));
             Assert.Equal(publicKey, _type.ParseValue(uncompressed));
 
@@ -52,8 +52,8 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Null(_type.Serialize(null));
 
             var publicKey = new PrivateKey().PublicKey;
-            var compressed = publicKey.ToHex(true);
-            var uncompressed = publicKey.ToHex(false);
+            var compressed = publicKey.ToString("c", null);
+            var uncompressed = publicKey.ToString();
             Assert.Equal(compressed, _type.Serialize(publicKey));
             Assert.NotEqual(uncompressed, _type.Serialize(publicKey));
 

@@ -68,7 +68,7 @@ namespace Libplanet.Types.Blocks
             }
 
             dict = metadata.PublicKey is { } pubKey
-                ? dict.Add(PublicKeyKey, pubKey.Format(compress: true))
+                ? dict.Add(PublicKeyKey, pubKey.ToByteArray(compress: true))
                 : dict.Add(MinerKey, metadata.Miner.Bencoded);
 
             if (metadata.LastCommit is { } commit)
@@ -175,7 +175,7 @@ namespace Libplanet.Types.Blocks
             PublicKey? publicKey = null;
             if (marshaled.ContainsKey(PublicKeyKey))
             {
-                publicKey = new PublicKey(((Binary)marshaled[PublicKeyKey]).ByteArray.ToArray());
+                publicKey = new PublicKey([.. ((Binary)marshaled[PublicKeyKey]).ByteArray]);
                 miner = publicKey.Address;
             }
             else

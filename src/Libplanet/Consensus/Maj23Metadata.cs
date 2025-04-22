@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
 using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Types;
@@ -81,7 +80,7 @@ namespace Libplanet.Consensus
                     TimestampFormat,
                     CultureInfo.InvariantCulture),
                 validatorPublicKey: new PublicKey(
-                    ((Binary)encoded[ValidatorPublicKeyKey]).ByteArray.ToArray()),
+                    [.. ((Binary)encoded[ValidatorPublicKeyKey]).ByteArray]),
                 flag: (VoteFlag)(int)(Integer)encoded[FlagKey])
         {
         }
@@ -131,7 +130,7 @@ namespace Libplanet.Consensus
                     .Add(
                         TimestampKey,
                         Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
-                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.Format(compress: true))
+                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.ToByteArray(compress: true))
                     .Add(BlockHashKey, BlockHash.ByteArray)
                     .Add(FlagKey, (int)Flag);
 
@@ -151,7 +150,7 @@ namespace Libplanet.Consensus
         public Maj23 Sign(PrivateKey signer) =>
             new Maj23(this, signer.Sign(ByteArray).ToImmutableArray());
 
-            public bool Equals(Maj23Metadata? other)
+        public bool Equals(Maj23Metadata? other)
         {
             return other is { } metadata &&
                 Height == metadata.Height &&
@@ -166,10 +165,10 @@ namespace Libplanet.Consensus
                 Flag == metadata.Flag;
         }
 
-            public override bool Equals(object? obj) =>
-            obj is Maj23Metadata other && Equals(other);
+        public override bool Equals(object? obj) =>
+        obj is Maj23Metadata other && Equals(other);
 
-            public override int GetHashCode()
+        public override int GetHashCode()
         {
             return HashCode.Combine(
                 Height,

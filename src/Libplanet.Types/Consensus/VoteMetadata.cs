@@ -127,7 +127,7 @@ namespace Libplanet.Types.Consensus
                     TimestampFormat,
                     CultureInfo.InvariantCulture),
                 validatorPublicKey: new PublicKey(
-                    ((Binary)bencoded[ValidatorPublicKeyKey]).ByteArray.ToArray()),
+                    [.. ((Binary)bencoded[ValidatorPublicKeyKey]).ByteArray]),
                 validatorPower: bencoded.ContainsKey(ValidatorPowerKey)
                     ? (Integer)bencoded[ValidatorPowerKey]
                     : (Integer?)null,
@@ -136,21 +136,21 @@ namespace Libplanet.Types.Consensus
         }
 #pragma warning restore SA1118
 
-            public long Height { get; }
+        public long Height { get; }
 
-            public int Round { get; }
+        public int Round { get; }
 
-            public BlockHash BlockHash { get; }
+        public BlockHash BlockHash { get; }
 
-            public DateTimeOffset Timestamp { get; }
+        public DateTimeOffset Timestamp { get; }
 
-            public PublicKey ValidatorPublicKey { get; }
+        public PublicKey ValidatorPublicKey { get; }
 
-            public BigInteger? ValidatorPower { get; }
+        public BigInteger? ValidatorPower { get; }
 
-            public VoteFlag Flag { get; }
+        public VoteFlag Flag { get; }
 
-            [JsonIgnore]
+        [JsonIgnore]
         public Bencodex.Types.IValue Bencoded
         {
             get
@@ -161,7 +161,7 @@ namespace Libplanet.Types.Consensus
                     .Add(
                         TimestampKey,
                         Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
-                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.Format(compress: true))
+                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.ToByteArray(compress: true))
                     .Add(FlagKey, (long)Flag);
 
                 if (BlockHash is { } blockHash)
@@ -193,7 +193,7 @@ namespace Libplanet.Types.Consensus
                 : new Vote(this, ImmutableArray<byte>.Empty);
         }
 
-            public bool Equals(VoteMetadata? other)
+        public bool Equals(VoteMetadata? other)
         {
             return other is VoteMetadata metadata &&
                 Height == metadata.Height &&
@@ -209,10 +209,10 @@ namespace Libplanet.Types.Consensus
                 Flag == metadata.Flag;
         }
 
-            public override bool Equals(object? obj) =>
-            obj is VoteMetadata other && Equals(other);
+        public override bool Equals(object? obj) =>
+        obj is VoteMetadata other && Equals(other);
 
-            public override int GetHashCode()
+        public override int GetHashCode()
         {
             return HashCode.Combine(
                 Height,

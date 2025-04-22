@@ -94,13 +94,13 @@ namespace Libplanet.KeyStore
         /// </summary>
         public string Path { get; }
 
-            public IEnumerable<Tuple<Guid, ProtectedPrivateKey>> List() =>
-            ListFiles().Select(pair => Tuple.Create(pair.Item1, Get(pair.Item2)));
+        public IEnumerable<Tuple<Guid, ProtectedPrivateKey>> List() =>
+        ListFiles().Select(pair => Tuple.Create(pair.Item1, Get(pair.Item2)));
 
-            public IEnumerable<Guid> ListIds() =>
-            ListFiles().Select(pair => pair.Item1);
+        public IEnumerable<Guid> ListIds() =>
+        ListFiles().Select(pair => pair.Item1);
 
-            public ProtectedPrivateKey Get(Guid id)
+        public ProtectedPrivateKey Get(Guid id)
         {
             IEnumerable<(Guid, string)> files = ListFiles();
             string keyPath;
@@ -116,7 +116,7 @@ namespace Libplanet.KeyStore
             return Get(keyPath);
         }
 
-            public Guid Add(ProtectedPrivateKey key)
+        public Guid Add(ProtectedPrivateKey key)
         {
             if (key is null)
             {
@@ -136,7 +136,7 @@ namespace Libplanet.KeyStore
             return keyId;
         }
 
-            public void Remove(Guid id)
+        public void Remove(Guid id)
         {
             foreach ((Guid keyId, string keyPath) in ListFiles())
             {

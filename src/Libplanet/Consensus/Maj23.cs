@@ -120,7 +120,7 @@ namespace Libplanet.Consensus
                 _maj23Metadata.ByteArray.ToImmutableArray(),
                 Signature);
 
-            [Pure]
+        [Pure]
         public bool Equals(Maj23? other)
         {
             return other is { } maj23 &&
@@ -128,13 +128,13 @@ namespace Libplanet.Consensus
                    Signature.SequenceEqual(maj23.Signature);
         }
 
-            [Pure]
+        [Pure]
         public override bool Equals(object? obj)
         {
             return obj is Maj23 other && Equals(other);
         }
 
-            [Pure]
+        [Pure]
         public override int GetHashCode()
         {
             return HashCode.Combine(

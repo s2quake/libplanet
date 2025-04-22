@@ -175,7 +175,7 @@ namespace Libplanet.Types.Blocks
                 Votes.SequenceEqual(commit.Votes);
         }
 
-            public override bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             return obj is BlockCommit other && Equals(other);
         }
@@ -192,7 +192,7 @@ namespace Libplanet.Types.Blocks
         public HashDigest<SHA256> ToHash() =>
             HashDigest<SHA256>.DeriveFrom(_codec.Encode(Bencoded));
 
-            [Pure]
+        [Pure]
         public override string ToString()
         {
             var dict = new Dictionary<string, object>

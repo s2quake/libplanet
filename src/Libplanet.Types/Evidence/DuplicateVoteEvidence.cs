@@ -236,7 +236,7 @@ namespace Libplanet.Types.Evidence
             }
         }
 
-            public bool Equals(DuplicateVoteEvidence? other)
+        public bool Equals(DuplicateVoteEvidence? other)
         {
             if (base.Equals(other) == true && other is DuplicateVoteEvidence duplicateVoteEvidence)
             {
@@ -249,17 +249,17 @@ namespace Libplanet.Types.Evidence
             return false;
         }
 
-            public override bool Equals(object? obj)
-            => obj is DuplicateVoteEvidence other && Equals(other);
+        public override bool Equals(object? obj)
+        => obj is DuplicateVoteEvidence other && Equals(other);
 
-            public override int GetHashCode()
-            => HashCode.Combine(
-                Height,
-                VoteRef,
-                VoteDup,
-                ValidatorPower,
-                TotalPower,
-                Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture));
+        public override int GetHashCode()
+        => HashCode.Combine(
+            Height,
+            VoteRef,
+            VoteDup,
+            ValidatorPower,
+            TotalPower,
+            Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture));
 
         protected override Dictionary OnBencoded(Dictionary dictionary)
         {
