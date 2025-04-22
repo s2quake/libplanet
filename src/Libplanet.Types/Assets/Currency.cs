@@ -1,719 +1,165 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 
-namespace Libplanet.Types.Assets
+namespace Libplanet.Types.Assets;
+
+public readonly record struct Currency(string Ticker, ImmutableArray<Address> Minters)
+    : IEquatable<Currency>
 {
-    /// <summary>
-    /// Represents a currency type.  Every single value of <see cref="Currency"/> defines
-    /// a distinct currency type.  To draw a parallel with real world monetary,
-    /// each <see cref="Currency"/> value represents such currencies as USD (US Dollar) or
-    /// EUR (Euro), <em>not values</em> like $100 or €100.
-    /// </summary>
-    /// <example>
-    /// Here is how US Dollar can be represented using <see cref="Currency"/>:
-    /// <code>
-    /// var USMint = new PrivateKey();
-    /// var USD = Currency.Uncapped(ticker: "USD", decimalPlaces: 2, minter: USMint.Address);
-    /// var twentyThreeBucks = 23 * USD;
-    /// // Or alternatively: USD * 23;
-    /// // Or explicitly: new FungibleAssetValue(USD, 23, 0)
-    /// </code>
-    /// </example>
-    /// <remarks>There are two types of <see cref="Currency">Currencies</see>: capped and uncapped.
-    /// Capped currencies have a hard limit on the maximum minted amount, and uncapped currencies
-    /// do not have the said limit. To define a <see cref="Currency"/> you may call either of the
-    /// following.
-    /// <list type="bullet">
-    /// <item><see
-    /// cref="Capped(string,byte,ValueTuple{BigInteger, BigInteger},IImmutableSet{Address}?)"/>
-    /// </item>
-    /// <item><see cref="Capped(string,byte,ValueTuple{BigInteger, BigInteger},Address)"/></item>
-    /// <item><see cref="Uncapped(string,byte,IImmutableSet{Address}?)"/></item>
-    /// <item><see cref="Uncapped(string,byte,Address)"/></item>
-    /// </list>
-    /// </remarks>
-    /// <seealso cref="FungibleAssetValue"/>
-    public readonly struct Currency : IEquatable<Currency>
+    [JsonInclude]
+    public string Ticker { get; } = ValidateTicker(Ticker);
+
+    [JsonInclude]
+    public byte DecimalPlaces { get; init; } = 16;
+
+    [JsonInclude]
+    public ImmutableArray<Address> Minters { get; } = ValidateMinters(Minters);
+
+    [JsonInclude]
+    public bool IsTrackable { get; init; }
+
+    [JsonIgnore]
+    public HashDigest<SHA1> Hash => GetHash();
+
+    [JsonInclude]
+    public (BigInteger Major, BigInteger Minor) MaximumSupply { get; init; }
+
+    public static FungibleAssetValue operator *(Currency currency, BigInteger quantity)
+        => new(currency, majorUnit: quantity, minorUnit: 0);
+
+    public static FungibleAssetValue operator *(BigInteger quantity, Currency currency)
+        => new(currency, majorUnit: quantity, minorUnit: 0);
+
+    public static Currency Create(IValue serialized)
     {
-        /// <summary>
-        /// The ticker symbol, e.g., <c>&quot;USD&quot;</c>.
-        /// </summary>
-        [JsonInclude]
-        public readonly string Ticker;
-
-        /// <summary>
-        /// The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.
-        /// </summary>
-        [JsonInclude]
-        public readonly byte DecimalPlaces;
-
-        /// <summary>
-        /// The <see cref="Address"/>es who can mint the currency.
-        /// If this is <see langword="null"/> <em>anyone</em> can mint the currency.
-        /// </summary>
-        /// <remarks>
-        /// Unlike <see langword="null"/>, an empty set means <em>no one</em> can mint the currency.
-        /// </remarks>
-        /// <seealso cref="Libplanet.Action.State.IAccount.MintAsset"/>
-        [JsonInclude]
-        public readonly IImmutableSet<Address>? Minters;
-
-        /// <summary>
-        /// The deterministic hash derived from other fields.
-        /// </summary>
-        [JsonInclude]
-        public readonly HashDigest<SHA1> Hash;
-
-        /// <summary>
-        /// Whether the total supply of this instance of <see cref="Currency"/> is trackable.
-        /// </summary>
-        [JsonInclude]
-        public readonly bool TotalSupplyTrackable;
-
-        private readonly (BigInteger Major, BigInteger Minor)? _maximumSupply;
-
-        /// <summary>
-        /// Deserializes a <see cref="Currency"/> type from a Bencodex value.
-        /// </summary>
-        /// <param name="serialized">The Bencodex value serialized by <see cref="Serialize()"/>
-        /// method.</param>
-        /// <seealso cref="Serialize()"/>
-        public Currency(IValue serialized)
+        if (serialized is not List list)
         {
-            BigInteger? maximumSupplyMajor = null, maximumSupplyMinor = null;
-
-            if (!(serialized is Dictionary d))
-            {
-                throw new ArgumentException("Expected a Bencodex dictionary.", nameof(serialized));
-            }
-
-            if (!(d.ContainsKey("ticker") && d["ticker"] is Text ticker))
-            {
-                throw new ArgumentException(
-                    "Expected a text field named \"ticker\".",
-                    nameof(serialized)
-                );
-            }
-
-            byte? nullableDecimals = null;
-            if (d.ContainsKey("decimals") && d["decimals"] is Integer decimals)
-            {
-                nullableDecimals = (byte)(long)decimals;
-            }
-
-            if (d.ContainsKey("decimalPlaces") && d["decimalPlaces"] is Binary decimalPlacesBinary)
-            {
-                nullableDecimals = decimalPlacesBinary.ByteArray[0];
-            }
-
-            if (!(nullableDecimals is { } decimalPlaces))
-            {
-                throw new ArgumentException(
-                    "Expected a byte field named \"decimalPlaces\" or \"decimals\".",
-                    nameof(serialized)
-                );
-            }
-
-            if (!d.ContainsKey("minters") ||
-                !(d["minters"] is { } minters) ||
-                !(minters is Null || minters is List))
-            {
-                throw new ArgumentException(
-                    "Expected a nullable list field named \"minters\".",
-                    nameof(serialized)
-                );
-            }
-
-            TotalSupplyTrackable = false;
-            if (d.ContainsKey("totalSupplyTrackable"))
-            {
-                if (d["totalSupplyTrackable"] is Bencodex.Types.Boolean totalSupplyTrackable
-                    && totalSupplyTrackable)
-                {
-                    TotalSupplyTrackable = totalSupplyTrackable;
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        "Field \"totalSupplyTrackable\" must have a boolean value of true"
-                        + " if it exists.",
-                        nameof(serialized));
-                }
-            }
-
-            if (d.ContainsKey("maximumSupplyMajor"))
-            {
-                if (d["maximumSupplyMajor"] is Integer maximumSupplyMajorValue
-                    && maximumSupplyMajorValue >= 0)
-                {
-                    maximumSupplyMajor = maximumSupplyMajorValue.Value;
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        "Field \"maximumSupplyMajor\" must be of non-negative integer type"
-                        + " if it exists.",
-                        nameof(serialized)
-                    );
-                }
-            }
-
-            if (d.ContainsKey("maximumSupplyMinor"))
-            {
-                if (d["maximumSupplyMinor"] is Integer maximumSupplyMinorValue
-                    && maximumSupplyMinorValue >= 0)
-                {
-                    maximumSupplyMinor = maximumSupplyMinorValue.Value;
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        "Field \"maximumSupplyMinor\" must be of non-negative integer type"
-                        + " if it exists.",
-                        nameof(serialized)
-                    );
-                }
-            }
-
-            if (maximumSupplyMajor is { } && maximumSupplyMinor is { })
-            {
-                if (!TotalSupplyTrackable)
-                {
-                    throw new ArgumentException(
-                        $"Maximum supply is not available for legacy untracked currencies.",
-                        nameof(serialized));
-                }
-
-                _maximumSupply = (maximumSupplyMajor.Value, maximumSupplyMinor.Value);
-            }
-            else if (maximumSupplyMajor is null && maximumSupplyMinor is null)
-            {
-                _maximumSupply = null;
-            }
-            else
-            {
-                throw new ArgumentException(
-                    "Both \"maximumSupplyMajor\" and \"maximumSupplyMinor\" must be "
-                    + " omitted or be non-negative integers.",
-                    nameof(serialized)
-                );
-            }
-
-            Ticker = ticker;
-            DecimalPlaces = decimalPlaces;
-
-            if (_maximumSupply is var (_, minor) && minor > 0 &&
-                Math.Floor(BigInteger.Log10(minor)) >= DecimalPlaces)
-            {
-                var msg = $"The given minor unit {minor} of the maximum supply value is too"
-                          + $" big for the given decimal places {DecimalPlaces}.";
-                throw new ArgumentException(msg, nameof(minor));
-            }
-
-            if (minters is List l)
-            {
-                Minters = l.Select(
-                    m => m is Binary b
-                        ? new Address(b.ByteArray)
-                        : throw new ArgumentException(
-                            "Expected \"minters\" to be a list of binary arrays.",
-                            nameof(serialized))
-                ).ToImmutableHashSet();
-            }
-            else
-            {
-                Minters = null;
-            }
-
-            Hash = GetHash(Minters, Ticker, DecimalPlaces, _maximumSupply, TotalSupplyTrackable);
+            throw new ArgumentException("Serialized value must be a list.", nameof(serialized));
         }
 
-        /// <summary>
-        /// An internal constructor for JSON deserialization.  Do not use this directly.
-        /// </summary>
-        [JsonConstructor]
-        [Obsolete]
-#pragma warning disable SA1611
-        public Currency(
-            HashDigest<SHA1> hash,
-            string ticker,
-            byte decimalPlaces,
-            IImmutableSet<Address>? minters,
-            bool totalSupplyTrackable,
-            FungibleAssetValue? maximumSupply
-        )
-#pragma warning restore SA1611
-#pragma warning disable SA1118
-            : this(
-                ticker,
-                decimalPlaces,
-                maximumSupply is { } v
-                    ? (v.MajorUnit, v.MinorUnit)
-                    : ((BigInteger, BigInteger)?)null,
-                minters
-            )
-#pragma warning restore SA1118
+        if (list.Count != 6)
         {
-            TotalSupplyTrackable = totalSupplyTrackable;
-            HashDigest<SHA1> expectedHash = GetHash(
-                Minters, Ticker, DecimalPlaces, _maximumSupply, TotalSupplyTrackable);
-            if (!expectedHash.Equals(hash))
-            {
-                var msg = $"Invalid currency hash; expected {expectedHash}, but got {hash}. " +
-                      "This probably means the given data is inconsistent with the given hash.\n" +
-                      $"  ticker: {Ticker}\n  decimalPlaces: {decimalPlaces}\n" +
-                      $"  minters: {(Minters is { } m ? string.Join(", ", m) : "N/A")}\n" +
-                      $"  totalSupplyTrackable: {TotalSupplyTrackable}\n" +
-                      $"  maximumSupply: {MaximumSupply?.ToString() ?? "N/A"}";
-                throw new JsonException(msg);
-            }
-
-            Hash = hash;
+            throw new ArgumentException(
+                "Serialized value must have exactly 6 elements.", nameof(serialized));
         }
 
-        /// <summary>
-        /// Private implementation to create a capped instance of <see cref="Currency"/> or
-        /// a deserialized instance.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="maximumSupply">The uppermost quantity of currency allowed to exist. For
-        /// example, a <paramref name="maximumSupply"/> parameter of <c>(123, 45)</c> means that the
-        /// token of the currency can be minted up to <c>123.45</c>. See also
-        /// <see cref="MaximumSupply"/> field which corresponds to this.</param>
-        /// <param name="minters">The <see cref="Address"/>es who can mint the currency.
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string, or when either the Major or the Minor values of
-        /// <paramref name="maximumSupply"/> is a negative number, or when the given Minor unit for
-        /// the <paramref name="maximumSupply"/> is too big for the given
-        /// <paramref name="decimalPlaces"/>.</exception>
-        private Currency(
-            string ticker,
-            byte decimalPlaces,
-            (BigInteger Major, BigInteger Minor)? maximumSupply,
-            IImmutableSet<Address>? minters)
-            : this(ticker, decimalPlaces, minters, true)
+        var ticker = ((Text)list[0]).Value;
+        var minters = ((List)list[1]).Select(x => new Address(x)).ToImmutableArray();
+        var decimalPlaces = (byte)((Integer)list[2]).Value;
+        var major = ((Integer)list[3]).Value;
+        var minor = ((Integer)list[4]).Value;
+        var isTrackable = ((Bencodex.Types.Boolean)list[5]).Value;
+        return new Currency(ticker, minters)
         {
-            if (maximumSupply is var (major, minor))
-            {
-                if (major < 0 || minor < 0)
-                {
-                    var msg = $"Both the major ({major}) and minor ({minor}) units of"
-                              + $" {nameof(maximumSupply)} must not be a negative number.";
-                    throw new ArgumentException(msg, nameof(maximumSupply));
-                }
-
-                if (minor > 0 && Math.Floor(BigInteger.Log10(minor)) >= decimalPlaces)
-                {
-                    var msg = $"The given minor unit {minor} of the maximum supply value is too"
-                              + $" big for the given decimal places {decimalPlaces}.";
-                    throw new ArgumentException(msg, nameof(minor));
-                }
-
-                _maximumSupply = maximumSupply;
-            }
-
-            Hash = GetHash(Minters, Ticker, DecimalPlaces, _maximumSupply, TotalSupplyTrackable);
-        }
-
-        /// <summary>
-        /// Private implementation to create a general instance of <see cref="Currency"/>.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="minters">The <see cref="Address"/>es who can mint the currency.
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <param name="totalSupplyTrackable">A feature flag whether this instance of
-        /// <see cref="Currency"/> supports total supply tracking. Legacy behavior is characterized
-        /// with a value of false.</param>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string.</exception>
-        private Currency(
-            string ticker,
-            byte decimalPlaces,
-            IImmutableSet<Address>? minters,
-            bool totalSupplyTrackable)
-        {
-            ticker = ticker.Trim();
-
-            if (string.IsNullOrEmpty(ticker))
-            {
-                throw new ArgumentException(
-                    "Currency ticker symbol cannot be empty.",
-                    nameof(ticker)
-                );
-            }
-
-            Ticker = ticker;
-            Minters = minters;
-            DecimalPlaces = decimalPlaces;
-            _maximumSupply = null;
-            TotalSupplyTrackable = totalSupplyTrackable;
-            Hash = GetHash(Minters, Ticker, DecimalPlaces, _maximumSupply, TotalSupplyTrackable);
-        }
-
-        /// <summary>
-        /// The uppermost quantity of currency allowed to exist.
-        /// <see langword="null"/> means unlimited supply.
-        /// </summary>
-        [JsonConverter(typeof(MaximumSupplyJsonConverter))]
-        public FungibleAssetValue? MaximumSupply =>
-            _maximumSupply.HasValue
-                ? new FungibleAssetValue(
-                    this,
-                    _maximumSupply.Value.Major,
-                    _maximumSupply.Value.Minor
-                    )
-                : (FungibleAssetValue?)null;
-
-        /// <summary>
-        /// Gets a fungible asset value with the given <paramref name="quantity"/> of the
-        /// specified <paramref name="currency"/>.
-        /// </summary>
-        /// <param name="currency">The currency to get a value.</param>
-        /// <param name="quantity">The major unit of the fungible asset value,
-        /// i.e., digits <em>before</em> the decimal separator.</param>
-        /// <returns>A fungible asset value with the given <paramref name="quantity"/> of the
-        /// specified <paramref name="currency"/>.</returns>
-        /// <remarks>This cannot specify <see cref="FungibleAssetValue.MinorUnit"/> but only
-        /// <see cref="FungibleAssetValue.MajorUnit"/>.  For more precision, directly use <see
-        /// cref="FungibleAssetValue"/>'s constructors instead.</remarks>
-        [Pure]
-        public static FungibleAssetValue operator *(Currency currency, BigInteger quantity) =>
-            new FungibleAssetValue(currency, majorUnit: quantity, minorUnit: 0);
-
-        /// <summary>
-        /// Gets a fungible asset value with the given <paramref name="quantity"/> of the
-        /// specified <paramref name="currency"/>.
-        /// </summary>
-        /// <param name="quantity">The major unit of the fungible asset value,
-        /// i.e., digits <em>before</em> the decimal separator.</param>
-        /// <param name="currency">The currency to get a value.</param>
-        /// <returns>A fungible asset value with the given <paramref name="quantity"/> of the
-        /// specified <paramref name="currency"/>.</returns>
-        /// <remarks>This cannot specify <see cref="FungibleAssetValue.MinorUnit"/> but only
-        /// <see cref="FungibleAssetValue.MajorUnit"/>.  For more precision, directly use <see
-        /// cref="FungibleAssetValue"/>'s constructors instead.</remarks>
-        [Pure]
-        public static FungibleAssetValue operator *(BigInteger quantity, Currency currency) =>
-            new FungibleAssetValue(currency, majorUnit: quantity, minorUnit: 0);
-
-        /// <summary>
-        /// Define a <see cref="Currency"/> with a maximum supply limit.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="maximumSupply">The uppermost quantity of currency allowed to exist. For
-        /// example, the <paramref name="maximumSupply"/> parameter in <c>Currency.Capped("ABC", 2,
-        /// (123, 45), ...)</c> means that the token <c>ABC</c> can be minted up to <c>123.45 ABC
-        /// </c>. See also <see cref="MaximumSupply"/> field which corresponds to this.</param>
-        /// <param name="minters">The <see cref="Address"/>es who can mint the currency.
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <returns>An instance of <see cref="Currency"/> with a maximum supply limit.</returns>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string, or when either the Major or the Minor values of
-        /// <paramref name="maximumSupply"/> is a negative number, or when the given Minor unit for
-        /// the <paramref name="maximumSupply"/> is too big for the given
-        /// <paramref name="decimalPlaces"/>.</exception>
-        public static Currency Capped(
-            string ticker,
-            byte decimalPlaces,
-            (BigInteger Major, BigInteger Minor) maximumSupply,
-            IImmutableSet<Address>? minters) =>
-            new Currency(ticker, decimalPlaces, maximumSupply, minters);
-
-        /// <summary>
-        /// Define a <see cref="Currency"/> with a maximum supply limit.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="maximumSupply">The uppermost quantity of currency allowed to exist. For
-        /// example, the <paramref name="maximumSupply"/> parameter in <c>Currency.Capped("ABC", 2,
-        /// (123, 45), ...)</c> means that the token <c>ABC</c> can be minted up to <c>123.45 ABC
-        /// </c>. See also <see cref="MaximumSupply"/> field which corresponds to this.</param>
-        /// <param name="minter">The address who can mint the currency.  To specify multiple
-        /// minters, use the <see
-        /// cref="Capped(string,byte,ValueTuple{BigInteger,BigInteger},IImmutableSet{Address}?)"/>
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <returns>An instance of <see cref="Currency"/> with a maximum supply limit.</returns>
-        /// <seealso
-        /// cref="Capped(string,byte,ValueTuple{BigInteger,BigInteger},IImmutableSet{Address}?)"/>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string, or when either the Major or the Minor values of
-        /// <paramref name="maximumSupply"/> is a negative number, or when the given Minor unit for
-        /// the <paramref name="maximumSupply"/> is too big for the given
-        /// <paramref name="decimalPlaces"/>.</exception>
-        public static Currency Capped(
-            string ticker,
-            byte decimalPlaces,
-            (BigInteger Major, BigInteger Minor) maximumSupply,
-            Address minter) =>
-            Capped(ticker, decimalPlaces, maximumSupply, ImmutableHashSet.Create(minter));
-
-        /// <summary>
-        /// Define a <see cref="Currency"/> without a maximum supply limit.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="minters">The <see cref="Address"/>es who can mint the currency.
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <returns>An instance of <see cref="Currency"/> without a maximum supply limit.</returns>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string.</exception>
-        public static Currency Uncapped(
-            string ticker,
-            byte decimalPlaces,
-            IImmutableSet<Address>? minters) =>
-            new Currency(ticker, decimalPlaces, minters, true);
-
-        /// <summary>
-        /// Define a <see cref="Currency"/> without a maximum supply limit.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="minter">The address who can mint the currency.  To specify multiple
-        /// minters, use the <see cref="Uncapped(string,byte,IImmutableSet{Address}?)"/>
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <returns>An instance of <see cref="Currency"/> without a maximum supply limit.</returns>
-        /// <seealso cref="Uncapped(string,byte,IImmutableSet{Address}?)"/>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string.</exception>
-        public static Currency Uncapped(
-            string ticker,
-            byte decimalPlaces,
-            Address minter) =>
-            Uncapped(ticker, decimalPlaces, ImmutableHashSet.Create(minter));
-
-        /// <summary>
-        /// <b>OBSOLETE! DO NOT USE.</b><br/><br/>(unless you are upgrading your project from an old
-        /// version of Libplanet that did not support total supply tracking for
-        /// <see cref="Currency">Currencies</see> and had a legacy <see cref="Currency"/> defined.)
-        /// <br/><br/>Define a legacy <see cref="Currency"/> without total supply tracking, which is
-        /// internally compatible with the legacy version.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="minters">The <see cref="Address"/>es who can mint the currency.
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <returns>An instance of legacy <see cref="Currency"/> without total supply tracking.
-        /// </returns>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string.</exception>
-        [Obsolete("Obsolete! Use Currency.Capped() or Currency.Uncapped() for new currencies.")]
-        public static Currency Legacy(
-            string ticker,
-            byte decimalPlaces,
-            IImmutableSet<Address>? minters) =>
-            new Currency(ticker, decimalPlaces, minters, false);
-
-        /// <summary>
-        /// <b>OBSOLETE! DO NOT USE.</b><br/><br/>(unless you are upgrading your project from an old
-        /// version of Libplanet that did not support total supply tracking for
-        /// <see cref="Currency">Currencies</see> and had a legacy <see cref="Currency"/> defined.)
-        /// <br/><br/>Define a legacy <see cref="Currency"/> without total supply tracking, which is
-        /// internally compatible with the legacy version.
-        /// </summary>
-        /// <param name="ticker">The ticker symbol, e.g., <c>&quot;USD&quot;</c>.</param>
-        /// <param name="decimalPlaces">The number of digits to treat as <a
-        /// href="https://w.wiki/ZXv#Treatment_of_minor_currency_units_(the_%22exponent%22)">minor
-        /// units (i.e., exponent)</a>.</param>
-        /// <param name="minter">The address who can mint the currency.  To specify multiple
-        /// minters, use the <see cref="Legacy(string,byte,IImmutableSet{Address}?)"/>
-        /// See also <see cref="Minters"/> field which corresponds to this.</param>
-        /// <returns>An instance of legacy <see cref="Currency"/> without total supply tracking.
-        /// </returns>
-        /// <seealso cref="Legacy(string,byte,IImmutableSet{Address}?)"/>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="ticker"/>
-        /// is an empty string.</exception>
-        [Obsolete("Obsolete! Use Currency.Capped() or Currency.Uncapped() for new currencies.")]
-        public static Currency Legacy(
-            string ticker,
-            byte decimalPlaces,
-            Address minter) =>
-            Legacy(ticker, decimalPlaces, ImmutableHashSet.Create(minter));
-
-        /// <summary>
-        /// Returns <see langword="true"/> if and only if
-        /// the given <paramref name="address"/> is allowed
-        /// to mint or burn assets of this currency.
-        /// </summary>
-        /// <param name="address">The account address to test.</param>
-        /// <returns><see langword="true"/> if and only if
-        /// the given <paramref name="address"/> is allowed to
-        /// mint or burn assets of this currency.</returns>
-        [Pure]
-        public bool AllowsToMint(Address address) => Minters is null || Minters.Contains(address);
-
-        /// <inheritdoc cref="object.ToString()"/>
-        [Pure]
-        public override string ToString() => $"{Ticker} ({Hash})";
-
-        /// <inheritdoc cref="object.GetHashCode()"/>
-        [Pure]
-        public override int GetHashCode() => Hash.GetHashCode();
-
-        /// <inheritdoc cref="object.Equals(object?)"/>
-        [Pure]
-        public override bool Equals(object? obj) =>
-            obj is IEquatable<Currency> other && other.Equals(this);
-
-        /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-        [Pure]
-        public bool Equals(Currency other) =>
-            Hash.Equals(other.Hash);
-
-        /// <summary>
-        /// Serializes the currency into a Bencodex value.
-        /// </summary>
-        /// <returns>The serialized Bencodex value.</returns>
-        [Pure]
-        public IValue Serialize()
-        {
-            IValue minters = Minters is IImmutableSet<Address> m
-                ? new Bencodex.Types.List(m.Select<Address, IValue>(a => a.Bencoded))
-                : (IValue)Null.Value;
-            var serialized = Bencodex.Types.Dictionary.Empty
-                .Add("ticker", Ticker)
-                .Add("minters", minters)
-                .Add("decimalPlaces", new[] { DecimalPlaces });
-            if (TotalSupplyTrackable)
-            {
-                serialized = serialized.Add("totalSupplyTrackable", true);
-                if (MaximumSupply is { } maximumSupply)
-                {
-                    serialized = serialized.Add(
-                        "maximumSupplyMajor",
-                        (IValue)new Integer(maximumSupply.MajorUnit)
-                    ).Add(
-                        "maximumSupplyMinor",
-                        (IValue)new Integer(maximumSupply.MinorUnit));
-                }
-            }
-
-            return serialized;
-        }
-
-        private static SHA1 GetSHA1()
-        {
-#if NETSTANDARD2_0_OR_GREATER || NETCOREAPP3_1
-            try
-            {
-                return new SHA1CryptoServiceProvider();
-            }
-            catch (PlatformNotSupportedException)
-            {
-                return new SHA1Managed();
-            }
-#elif NET6_0_OR_GREATER
-            return SHA1.Create();
-#endif
-        }
-
-        // NOTE: This uses a different serialization scheme from
-        // Serialize() due to backward compatibility issues.
-        private static HashDigest<SHA1> GetHash(
-            IImmutableSet<Address>? minters,
-            string ticker,
-            byte decimalPlaces,
-            (BigInteger Major, BigInteger Minor)? maximumSupply,
-            bool totalSupplyTrackable
-        )
-        {
-            using var buffer = new MemoryStream();
-            using var sha1 = GetSHA1();
-            using var stream = new CryptoStream(buffer, sha1, CryptoStreamMode.Write);
-            var codec = new Codec();
-            IValue mintersValue = minters is ImmutableHashSet<Address> a
-                ? new List(a.OrderBy(m => m).Select(m => m.Bencoded))
-                : (IValue)Null.Value;
-            var serialized = Dictionary.Empty
-                .Add("ticker", ticker)
-                .Add("decimals", (int)decimalPlaces)
-                .Add("minters", mintersValue);
-
-            if (maximumSupply is var (major, minor))
-            {
-                serialized = serialized.Add("maximumSupplyMajor", new Integer(major))
-                    .Add("maximumSupplyMinor", new Integer(minor));
-            }
-
-            if (totalSupplyTrackable)
-            {
-                serialized = serialized.Add("totalSupplyTrackable", true);
-            }
-
-            codec.Encode(serialized, stream);
-            stream.FlushFinalBlock();
-            if (sha1.Hash is { } hash)
-            {
-                return new HashDigest<SHA1>(sha1.Hash);
-            }
-
-            throw new InvalidOperationException("Failed to compute the hash.");
-        }
+            DecimalPlaces = decimalPlaces,
+            MaximumSupply = (major, minor),
+            IsTrackable = isTrackable,
+        };
     }
 
-    [SuppressMessage(
-        "StyleCop.CSharp.MaintainabilityRules",
-        "SA1402:FileMayOnlyContainASingleClass",
-        Justification = "It's okay to have non-public classes together in a single file."
-    )]
-    internal class MaximumSupplyJsonConverter : JsonConverter<FungibleAssetValue>
-    {
-        public override FungibleAssetValue Read(
-            ref Utf8JsonReader reader,
-            Type typeToConvert,
-            JsonSerializerOptions options
-        )
-        {
-            string? quantityString = reader.GetString();
-            if (!(quantityString is { } qs))
-            {
-                throw new JsonException("MaximumSupply must be a string.");
-            }
+    public bool CanMint(Address address) => Minters.Length is 0 || Minters.Contains(address);
 
-            int periodPos = qs.IndexOf('.');
-            byte decimalPlaces = periodPos < 0 ? (byte)0 : (byte)(qs.Length - periodPos - 1);
-            var fakeCurrency = Currency.Uncapped("FAKE", decimalPlaces, null);
-            return FungibleAssetValue.Parse(fakeCurrency, qs);
+    public override string ToString() => $"{Ticker} ({Hash})";
+
+    public override int GetHashCode() => Hash.GetHashCode();
+
+    public bool Equals(Currency other) => Hash.Equals(other.Hash);
+
+    public IValue ToBencodex()
+    {
+        return new List(
+            new Text(Ticker),
+            ToBencodex(Minters),
+            new Integer(DecimalPlaces),
+            new Integer(MaximumSupply.Major),
+            new Integer(MaximumSupply.Minor),
+            new Bencodex.Types.Boolean(IsTrackable));
+    }
+
+    private static string ValidateTicker(string ticker)
+    {
+        if (ticker == string.Empty)
+        {
+            throw new ArgumentException(
+                "Currency ticker symbol cannot be empty.",
+                nameof(ticker)
+            );
         }
 
-        public override void Write(
-            Utf8JsonWriter writer,
-            FungibleAssetValue value,
-            JsonSerializerOptions options
-        ) =>
-            writer.WriteStringValue(
-                value.GetQuantityString() + (value.MinorUnit.IsZero ? ".0" : string.Empty)
+        if (ticker.Trim() != ticker)
+        {
+            throw new ArgumentException(
+                "Currency ticker symbol cannot have leading or trailing spaces.",
+                nameof(ticker)
             );
+        }
+
+        return ticker;
+    }
+
+    private static ImmutableArray<Address> ValidateMinters(ImmutableArray<Address> minters)
+    {
+        if (minters.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        if (minters.Distinct().Count() != minters.Length)
+        {
+            throw new ArgumentException("Minters must be unique.", nameof(minters));
+        }
+
+        return minters;
+    }
+
+    private static SHA1 GetSHA1()
+    {
+#if NETSTANDARD2_0_OR_GREATER || NETCOREAPP3_1
+        try
+        {
+            return new SHA1CryptoServiceProvider();
+        }
+        catch (PlatformNotSupportedException)
+        {
+            return new SHA1Managed();
+        }
+#elif NET6_0_OR_GREATER
+        return SHA1.Create();
+#endif
+    }
+
+    private static IValue ToBencodex(ImmutableArray<Address> minters)
+    {
+        if (minters.Length == 0)
+        {
+            return Null.Value;
+        }
+
+        return new List(minters.Select(item => item.Bencoded));
+    }
+
+    private HashDigest<SHA1> GetHash()
+    {
+        using var buffer = new MemoryStream();
+        using var sha1 = GetSHA1();
+        using var stream = new CryptoStream(buffer, sha1, CryptoStreamMode.Write);
+        var codec = new Codec();
+        codec.Encode(ToBencodex(), stream);
+        stream.FlushFinalBlock();
+        if (sha1.Hash is { } hash)
+        {
+            return new HashDigest<SHA1>(sha1.Hash);
+        }
+
+        throw new InvalidOperationException("Failed to compute the hash.");
     }
 }

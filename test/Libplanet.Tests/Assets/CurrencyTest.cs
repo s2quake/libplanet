@@ -39,28 +39,28 @@ namespace Libplanet.Tests.Assets
             Assert.Equal(0, bar.DecimalPlaces);
             Assert.Equal(new FungibleAssetValue(bar, 100, 0), bar.MaximumSupply);
             Assert.True(bar.Minters.SetEquals(new[] { AddressA, AddressB }));
-            Assert.True(bar.TotalSupplyTrackable);
+            Assert.True(bar.IsTrackable);
 
             var baz = Currency.Uncapped("baz", 1, AddressA);
             Assert.Equal("baz", baz.Ticker);
             Assert.Equal(1, baz.DecimalPlaces);
             Assert.Null(baz.MaximumSupply);
             Assert.True(baz.Minters.SetEquals(new[] { AddressA }));
-            Assert.True(baz.TotalSupplyTrackable);
+            Assert.True(baz.IsTrackable);
 
             var qux = Currency.Uncapped("QUX", 0, null);
             Assert.Equal("QUX", qux.Ticker);
             Assert.Null(qux.MaximumSupply);
             Assert.Equal(0, qux.DecimalPlaces);
             Assert.Null(qux.Minters);
-            Assert.True(qux.TotalSupplyTrackable);
+            Assert.True(qux.IsTrackable);
 
             var quux = Currency.Capped("QUUX", 3, (100, 0), null);
             Assert.Equal("QUUX", quux.Ticker);
             Assert.Equal(3, quux.DecimalPlaces);
             Assert.Equal(new FungibleAssetValue(quux, 100, 0), quux.MaximumSupply);
             Assert.Null(quux.Minters);
-            Assert.True(qux.TotalSupplyTrackable);
+            Assert.True(qux.IsTrackable);
 
             Assert.Throws<ArgumentException>(() =>
                 Currency.Uncapped(string.Empty, 0, ImmutableHashSet<Address>.Empty)
@@ -124,24 +124,24 @@ namespace Libplanet.Tests.Assets
         {
             Address addressC = new PrivateKey().Address;
             Currency currency = Currency.Uncapped("FOO", 0, AddressA);
-            Assert.True(currency.AllowsToMint(AddressA));
-            Assert.False(currency.AllowsToMint(AddressB));
-            Assert.False(currency.AllowsToMint(addressC));
+            Assert.True(currency.CanMint(AddressA));
+            Assert.False(currency.CanMint(AddressB));
+            Assert.False(currency.CanMint(addressC));
 
             currency = Currency.Uncapped("BAR", 2, ImmutableHashSet.Create(AddressA, AddressB));
-            Assert.True(currency.AllowsToMint(AddressA));
-            Assert.True(currency.AllowsToMint(AddressB));
-            Assert.False(currency.AllowsToMint(addressC));
+            Assert.True(currency.CanMint(AddressA));
+            Assert.True(currency.CanMint(AddressB));
+            Assert.False(currency.CanMint(addressC));
 
             currency = Currency.Uncapped("BAZ", 0, ImmutableHashSet<Address>.Empty);
-            Assert.False(currency.AllowsToMint(AddressA));
-            Assert.False(currency.AllowsToMint(AddressB));
-            Assert.False(currency.AllowsToMint(addressC));
+            Assert.False(currency.CanMint(AddressA));
+            Assert.False(currency.CanMint(AddressB));
+            Assert.False(currency.CanMint(addressC));
 
             currency = Currency.Uncapped("QUX", 3, null);
-            Assert.True(currency.AllowsToMint(AddressA));
-            Assert.True(currency.AllowsToMint(AddressB));
-            Assert.True(currency.AllowsToMint(addressC));
+            Assert.True(currency.CanMint(AddressA));
+            Assert.True(currency.CanMint(AddressB));
+            Assert.True(currency.CanMint(addressC));
         }
 
         [Fact]
@@ -205,9 +205,9 @@ namespace Libplanet.Tests.Assets
                     .Add("ticker", "FOO")
                     .Add("decimalPlaces", new byte[] { 2 })
                     .Add("minters", Null.Value),
-                foo.Serialize());
+                foo.ToBencodex());
 
-            Assert.Equal(foo, new Currency(foo.Serialize()));
+            Assert.Equal(foo, new Currency(foo.ToBencodex()));
 
             var bar =
                 Currency.Capped("BAR", 0, (100, 0), ImmutableHashSet.Create(AddressA, AddressB));
@@ -222,9 +222,9 @@ namespace Libplanet.Tests.Assets
                         "minters",
                         List.Empty.Add(AddressB.ToByteArray()).Add(AddressA.ToByteArray()))
                     .Add("totalSupplyTrackable", true),
-                bar.Serialize());
+                bar.ToBencodex());
 
-            Assert.Equal(bar, new Currency(bar.Serialize()));
+            Assert.Equal(bar, new Currency(bar.ToBencodex()));
         }
 
         [SkippableFact]

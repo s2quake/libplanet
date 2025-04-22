@@ -38,7 +38,7 @@ public class CurrencyType : ObjectGraphType<Currency>
         Field<NonNullGraphType<BooleanGraphType>>(
             "totalSupplyTrackable",
             "Whether the total supply of this currency is trackable.",
-            resolve: context => context.Source.TotalSupplyTrackable
+            resolve: context => context.Source.IsTrackable
         );
         Field<NonNullGraphType<ByteStringType>>(
             "hash",

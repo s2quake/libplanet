@@ -197,7 +197,7 @@ namespace Libplanet.Mocks
                 KeyBytes totalSupplyKey = ToTotalSupplyKey(currency);
 
                 ITrie trie = GetAccountState(accountAddress).Trie;
-                if (currency.TotalSupplyTrackable)
+                if (currency.IsTrackable)
                 {
                     Integer balance = trie[balanceKey] is Integer b
                         ? b

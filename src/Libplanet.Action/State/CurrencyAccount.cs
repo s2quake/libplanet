@@ -142,7 +142,7 @@ namespace Libplanet.Action.State
             BigInteger prevBalanceRawValue = currencyAccount.GetRawBalanceV0(recipient);
             currencyAccount =
                 currencyAccount.WriteRawBalanceV0(recipient, prevBalanceRawValue + rawValue);
-            if (Currency.TotalSupplyTrackable)
+            if (Currency.IsTrackable)
             {
                 BigInteger prevTotalSupplyRawValue = currencyAccount.GetRawTotalSupplyV0();
                 if (Currency.MaximumSupply is { } maximumSupply &&
@@ -217,7 +217,7 @@ namespace Libplanet.Action.State
             currencyAccount =
                 currencyAccount.WriteRawBalanceV0(owner, prevBalanceRawValue - rawValue);
 
-            if (Currency.TotalSupplyTrackable)
+            if (Currency.IsTrackable)
             {
                 BigInteger prevTotalSupply = currencyAccount.GetRawTotalSupplyV0();
                 currencyAccount =

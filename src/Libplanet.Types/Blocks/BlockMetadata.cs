@@ -79,7 +79,7 @@ namespace Libplanet.Types.Blocks
         /// currency accounts instead of the legacy account.  Prior to this version,
         /// all fungible assets are stored in the legacy account.
         /// Moreover, starting with this version, every total supply of each currency is trackable
-        /// regardless of <see cref="Currency.TotalSupplyTrackable"/>.
+        /// regardless of <see cref="Currency.IsTrackable"/>.
         /// </summary>
         public const int CurrencyAccountProtocolVersion = 7;
 
