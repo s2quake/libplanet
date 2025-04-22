@@ -50,7 +50,7 @@ namespace Libplanet.Action.State
             this IWorld world,
             IActionContext context,
             Address recipient,
-            FungibleAssetValue value) => value.Currency.AllowsToMint(context.Signer)
+            FungibleAssetValue value) => value.Currency.CanMint(context.Signer)
                 ? world.SetCurrencyAccount(
                     world.GetCurrencyAccount(value.Currency).MintAsset(recipient, value))
                 : throw new CurrencyPermissionException(
@@ -82,7 +82,7 @@ namespace Libplanet.Action.State
             this IWorld world,
             IActionContext context,
             Address owner,
-            FungibleAssetValue value) => value.Currency.AllowsToMint(context.Signer)
+            FungibleAssetValue value) => value.Currency.CanMint(context.Signer)
                 ? world.SetCurrencyAccount(
                     world.GetCurrencyAccount(value.Currency).BurnAsset(owner, value))
                 : throw new CurrencyPermissionException(
@@ -147,7 +147,7 @@ namespace Libplanet.Action.State
         ///         If <see cref="IWorldState.Version"/> is less than
         ///         <see cref="BlockMetadata.CurrencyAccountProtocolVersion"/>,
         ///         it is the amount of total supply for the <see cref="Currency"/> in question
-        ///         if the value of <see cref="Currency.TotalSupplyTrackable"/>
+        ///         if the value of <see cref="Currency.IsTrackable"/>
         ///         is <see langword="true"/>, and zero otherwise.  That is, an untracked
         ///         <see cref="Currency"/>'s total supply is always considered zero.
         ///     </description></item>
@@ -155,7 +155,7 @@ namespace Libplanet.Action.State
         ///         If <see cref="IWorldState.Version"/> is greater than or equal to
         ///         <see cref="BlockMetadata.CurrencyAccountProtocolVersion"/>,
         ///         it is the amount of total supply for the <see cref="Currency"/> in question
-        ///         regardless of the value of <see cref="Currency.TotalSupplyTrackable"/>.
+        ///         regardless of the value of <see cref="Currency.IsTrackable"/>.
         ///     </description></item>
         /// </list>
         /// </para>

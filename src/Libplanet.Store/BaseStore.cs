@@ -253,7 +253,7 @@ public abstract class BaseStore : IStore
     ) =>
         new List(
             favs.Select(
-                kv => List.Empty.Add(kv.Key.Serialize()).Add(kv.Value.RawValue)
+                kv => List.Empty.Add(kv.Key.ToBencodex()).Add(kv.Value.RawValue)
             )
         );
 

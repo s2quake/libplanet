@@ -127,7 +127,7 @@ namespace Libplanet.Tests.Tx
                 .Add("sDelta", Dictionary.Empty
                     .Add(random.NextAddress().ByteArray, random.NextAddress().ByteArray))
                 .Add("updatedFAVs", List.Empty
-                    .Add(currency.Serialize())
+                    .Add(currency.ToBencodex())
                     .Add(123));
             var successExecution = new TxExecution(
                 blockHash,
