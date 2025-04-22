@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
 
 namespace Libplanet.Store.Trie;
 
-internal readonly struct PathCursor
+internal readonly record struct PathCursor
 {
     public PathCursor(in Nibbles nibbles)
         : this(nibbles, 0)

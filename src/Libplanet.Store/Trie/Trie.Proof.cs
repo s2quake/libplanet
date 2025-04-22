@@ -8,7 +8,7 @@ using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
 
-public partial class Trie
+public partial record class Trie
 {
     /// <summary>
     /// Checks whether given <paramref name="proof"/> is a valid proof

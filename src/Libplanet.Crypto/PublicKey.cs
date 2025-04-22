@@ -14,7 +14,7 @@ namespace Libplanet.Crypto;
 
 [TypeConverter(typeof(PublicKeyTypeConverter))]
 [JsonConverter(typeof(PublicKeyJsonConverter))]
-public sealed class PublicKey : IEquatable<PublicKey>, IFormattable
+public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
 {
     private readonly ImmutableArray<byte> _bytes;
 
@@ -44,10 +44,6 @@ public sealed class PublicKey : IEquatable<PublicKey>, IFormattable
 
     internal ImmutableArray<byte> Raw => _bytes;
 
-    public static bool operator ==(PublicKey left, PublicKey right) => left.Equals(right);
-
-    public static bool operator !=(PublicKey left, PublicKey right) => !left.Equals(right);
-
     public static PublicKey Parse(string hex) => new([.. ByteUtil.ParseHex(hex)], verify: true);
 
     public static bool Verify(
@@ -70,8 +66,6 @@ public sealed class PublicKey : IEquatable<PublicKey>, IFormattable
 
     public bool Equals(PublicKey? other)
         => other is not null && _bytes.SequenceEqual(other._bytes);
-
-    public override bool Equals(object? obj) => obj is PublicKey other && Equals(other);
 
     public override int GetHashCode()
     {

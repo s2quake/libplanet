@@ -7,11 +7,12 @@ using Libplanet.Common;
 
 namespace Libplanet.Store.Trie;
 
-public readonly struct KeyBytes(in ImmutableArray<byte> bytes) : IEquatable<KeyBytes>, IFormattable
+public readonly record struct KeyBytes(in ImmutableArray<byte> ByteArray)
+    : IEquatable<KeyBytes>, IFormattable
 {
     public static readonly KeyBytes Empty = default;
 
-    private readonly ImmutableArray<byte> _bytes = bytes;
+    private readonly ImmutableArray<byte> _bytes = ByteArray;
 
     public int Length => ByteArray.Length;
 
@@ -27,10 +28,6 @@ public readonly struct KeyBytes(in ImmutableArray<byte> bytes) : IEquatable<KeyB
         return new KeyBytes(CreateArray(str));
     }
 
-    public static bool operator ==(KeyBytes left, KeyBytes right) => left.Equals(right);
-
-    public static bool operator !=(KeyBytes left, KeyBytes right) => !left.Equals(right);
-
     public static KeyBytes Parse(string hex) => new(ByteUtil.ParseHexToImmutable(hex));
 
     public static KeyBytes Create(byte[] bytes)
@@ -41,8 +38,6 @@ public readonly struct KeyBytes(in ImmutableArray<byte> bytes) : IEquatable<KeyB
     public ReadOnlySpan<byte> AsSpan() => ByteArray.AsSpan();
 
     public bool Equals(KeyBytes other) => ByteArray.SequenceEqual(other.ByteArray);
-
-    public override bool Equals(object? obj) => obj is KeyBytes other && Equals(other);
 
     public override int GetHashCode()
     {

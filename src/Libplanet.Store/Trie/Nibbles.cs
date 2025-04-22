@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace Libplanet.Store.Trie;
 
-public readonly struct Nibbles : IEquatable<Nibbles>, IFormattable
+public readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
 {
     public static readonly Nibbles Empty = default;
 
@@ -24,10 +23,6 @@ public readonly struct Nibbles : IEquatable<Nibbles>, IFormattable
     public int Length => ByteArray.Length;
 
     public byte this[int index] => ByteArray[index];
-
-    public static bool operator ==(Nibbles left, Nibbles right) => left.Equals(right);
-
-    public static bool operator !=(Nibbles left, Nibbles right) => !left.Equals(right);
 
     public static Nibbles Parse(string hex)
     {
@@ -150,8 +145,6 @@ public readonly struct Nibbles : IEquatable<Nibbles>, IFormattable
     }
 
     public bool Equals(Nibbles other) => ByteArray.SequenceEqual(other.ByteArray);
-
-    public override bool Equals(object? obj) => obj is Nibbles other && Equals(other);
 
     public override int GetHashCode()
     {
