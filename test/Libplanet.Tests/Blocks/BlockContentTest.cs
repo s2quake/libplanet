@@ -64,11 +64,11 @@ namespace Libplanet.Tests.Blocks
             );
             var tx2 = new Transaction(
                 new UnsignedTx(
-                    new TxInvoice(
-                        genesisHash: GenesisHash,
-                        timestamp: new DateTimeOffset(
-                            2021, 9, 7, 10, 23, 12, 345, default)
-                    ),
+                    new TxInvoice
+                    {
+                        GenesisHash = GenesisHash,
+                        Timestamp = new DateTimeOffset(2021, 9, 7, 10, 23, 12, 345, default),
+                    },
                     new TxSigningMetadata(key.PublicKey, nonce: 0)
                 ),
                 signature: ByteUtil.ParseHexToImmutable(
@@ -99,13 +99,13 @@ namespace Libplanet.Tests.Blocks
         {
             var dupTx1 = new Transaction(
                 new UnsignedTx(
-                    new TxInvoice(
-                        genesisHash: GenesisHash,
-                        updatedAddresses: new AddressSet(new[] { Block1Tx1.Signer }),
-                        timestamp: Block1Tx1.Timestamp,
-                        actions: TxActionList.Empty,
-                        maxGasPrice: null,
-                        gasLimit: null),
+                    new TxInvoice
+                    {
+                        GenesisHash = GenesisHash,
+                        UpdatedAddresses = [Block1Tx1.Signer],
+                        Timestamp = Block1Tx1.Timestamp,
+                        Actions = [],
+                    },
                     new TxSigningMetadata(Block1Tx1.Signer, nonce: 1L)
                 ),
                 signature: ByteUtil.ParseHexToImmutable(
@@ -137,13 +137,13 @@ namespace Libplanet.Tests.Blocks
         {
             var dupTx1 = new Transaction(
                 new UnsignedTx(
-                    new TxInvoice(
-                        genesisHash: GenesisHash,
-                        updatedAddresses: new AddressSet(new[] { Block1Tx1.Signer }),
-                        timestamp: Block1Tx1.Timestamp,
-                        actions: TxActionList.Empty,
-                        maxGasPrice: null,
-                        gasLimit: null),
+                    new TxInvoice
+                    {
+                        GenesisHash = GenesisHash,
+                        UpdatedAddresses = [Block1Tx1.Signer],
+                        Timestamp = Block1Tx1.Timestamp,
+                        Actions = [],
+                    },
                     new TxSigningMetadata(Block1Tx1.Signer, nonce: 3L)
                 ),
                 signature: ByteUtil.ParseHexToImmutable(
@@ -181,12 +181,13 @@ namespace Libplanet.Tests.Blocks
             );
             var txWithDifferentGenesis = new Transaction(
                 new UnsignedTx(
-                    new TxInvoice(
-                        genesisHash: differentGenesisHash,
-                        timestamp: new DateTimeOffset(
+                    new TxInvoice
+                    {
+                        GenesisHash = differentGenesisHash,
+                        Timestamp = new DateTimeOffset(
                             2021, 9, 7, 12, 1, 12, 345, TimeSpan.FromHours(9)),
-                        actions: TxActionList.Empty
-                    ),
+                        Actions = [],
+                    },
                     new TxSigningMetadata(key.PublicKey, nonce: 0L)
                 ),
                 key

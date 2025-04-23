@@ -83,16 +83,15 @@ namespace Libplanet.Tests.Fixtures
                 "2d5c20079bc4b2e6eab9ecbb405da8ba6590c436edfb07b7d4466563d7dac096");
             Block1Tx0 = new Transaction(
                 new UnsignedTx(
-                    new TxInvoice(
-                        genesisHash: GenesisHash,
-                        updatedAddresses: new AddressSet(new[] { Block1Tx0Key.Address }),
-                        timestamp: new DateTimeOffset(2021, 9, 6, 17, 0, 1, 1, default),
-                        actions: new TxActionList(new IAction[]
-                        {
+                    new TxInvoice
+                    {
+                        GenesisHash = GenesisHash,
+                        UpdatedAddresses = [Block1Tx0Key.Address],
+                        Timestamp = new DateTimeOffset(2021, 9, 6, 17, 0, 1, 1, default),
+                        Actions = [.. ImmutableArray.Create<IAction>([
                             Arithmetic.Add(10), Arithmetic.Add(50), Arithmetic.Sub(25),
-                        }.ToPlainValues()),
-                        maxGasPrice: null,
-                        gasLimit: null),
+                        ]).ToPlainValues()],
+                    },
                     new TxSigningMetadata(Block1Tx0Key.PublicKey, nonce: 0L)
                 ),
                 signature: ByteUtil.ParseHexToImmutable(
@@ -104,16 +103,15 @@ namespace Libplanet.Tests.Fixtures
                 "105341c78dfb0dd313b961081630444c2586a1f01fb0c625368ffdc9136cfa30");
             Block1Tx1 = new Transaction(
                 new UnsignedTx(
-                    new TxInvoice(
-                        genesisHash: GenesisHash,
-                        updatedAddresses: new AddressSet(new[] { Block1Tx1Key.Address }),
-                        timestamp: new DateTimeOffset(2021, 9, 6, 17, 0, 1, 1, default),
-                        actions: new TxActionList(new IAction[]
-                        {
+                    new TxInvoice
+                    {
+                        GenesisHash = GenesisHash,
+                        UpdatedAddresses = [Block1Tx1Key.Address],
+                        Timestamp = new DateTimeOffset(2021, 9, 6, 17, 0, 1, 1, default),
+                        Actions = [.. ImmutableArray.Create<IAction>([
                             Arithmetic.Add(30),
-                        }.ToPlainValues()),
-                        maxGasPrice: null,
-                        gasLimit: null),
+                        ]).ToPlainValues()],
+                    },
                     new TxSigningMetadata(Block1Tx1Key.PublicKey, nonce: 1L)),
                 signature: ByteUtil.ParseHexToImmutable(
                     "f74609d91b9c5348ba248df1dcbce4114031971beb39c12874df3a8c4c8651540" +

@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Json;
+using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
@@ -70,7 +71,7 @@ namespace Libplanet.Types.Tx
         }
 
         /// <inheritdoc cref="ITxInvoice.UpdatedAddresses" />
-        public IImmutableSet<Address> UpdatedAddresses => _invoice.UpdatedAddresses;
+        public ImmutableSortedSet<Address> UpdatedAddresses => _invoice.UpdatedAddresses;
 
         /// <inheritdoc cref="ITxInvoice.Timestamp" />
         public DateTimeOffset Timestamp => _invoice.Timestamp;
@@ -79,8 +80,7 @@ namespace Libplanet.Types.Tx
         public BlockHash? GenesisHash => _invoice.GenesisHash;
 
         /// <inheritdoc cref="ITxInvoice.Actions" />
-        [JsonConverter(typeof(TxActionListJsonConverter))]
-        public TxActionList Actions => _invoice.Actions;
+        public ImmutableArray<IValue> Actions => _invoice.Actions;
 
         /// <inheritdoc cref="ITxInvoice.MaxGasPrice" />
         public FungibleAssetValue? MaxGasPrice => _invoice.MaxGasPrice;

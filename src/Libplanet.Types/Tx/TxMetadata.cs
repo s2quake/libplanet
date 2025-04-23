@@ -68,9 +68,7 @@ namespace Libplanet.Types.Tx
             GenesisHash = dictionary.TryGetValue(GenesisHashKey, out IValue v)
                     ? new BlockHash(v)
                     : (BlockHash?)null;
-            UpdatedAddresses = ((List)dictionary[UpdatedAddressesKey])
-                .Select(Address.Create)
-                .ToImmutableHashSet();
+            UpdatedAddresses = [.. ((List)dictionary[UpdatedAddressesKey]).Select(Address.Create)];
             Signer = new Address(((Binary)dictionary[SignerKey]).ByteArray);
             Timestamp = DateTimeOffset.ParseExact(
                 (Text)dictionary[TimestampKey],
@@ -97,8 +95,7 @@ namespace Libplanet.Types.Tx
         /// transaction.  However, it could be wrong.
         /// </summary>
         /// <remarks>See also https://github.com/planetarium/libplanet/issues/368 .</remarks>
-        public IImmutableSet<Address> UpdatedAddresses { get; set; } =
-            ImmutableHashSet<Address>.Empty;
+        public ImmutableSortedSet<Address> UpdatedAddresses { get; set; } = [];
 
         /// <summary>
         /// The time this transaction is created and signed.

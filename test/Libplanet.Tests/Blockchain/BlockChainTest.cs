@@ -1420,13 +1420,15 @@ namespace Libplanet.Tests.Blockchain
             {
                 new Transaction(
                     new UnsignedTx(
-                        new TxInvoice(
-                            genesisHash: null,
-                            updatedAddresses: addresses.ToImmutableHashSet(),
-                            timestamp: DateTimeOffset.UtcNow,
-                            actions: new TxActionList(customActions.ToPlainValues()),
-                            maxGasPrice: null,
-                            gasLimit: null),
+                        new TxInvoice
+                        {
+                            GenesisHash = null,
+                            UpdatedAddresses = [.. addresses],
+                            Timestamp = DateTimeOffset.UtcNow,
+                            Actions = [.. customActions.ToPlainValues()],
+                            MaxGasPrice = null,
+                            GasLimit = null,
+                        },
                         new TxSigningMetadata(privateKey.PublicKey, systemTxs.Length)),
                     privateKey),
             };
@@ -1455,8 +1457,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(
                 addresses,
                 blockChain.Genesis.Transactions.Single(
-                    tx => !(tx.Actions is null) &&
-                        tx.Actions.All(a => !Registry.IsSystemAction(a))).UpdatedAddresses);
+                    tx => tx.Actions.All(a => !Registry.IsSystemAction(a))).UpdatedAddresses);
 
             var states = addresses
                 .Select(address => blockChain

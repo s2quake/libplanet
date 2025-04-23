@@ -144,12 +144,11 @@ namespace Libplanet.Explorer.Queries
                     long nonce = context.GetArgument<long?>("nonce") ??
                         chain.GetNextTxNonce(signer);
                     var sigMeta = new TxSigningMetadata(publicKey, nonce);
-                    var invoice = new TxInvoice(
-                        chain.Genesis.Hash,
-                        actions: new TxActionList(new List<IValue>
-                        {
-                            plainValue,
-                        }));
+                    var invoice = new TxInvoice
+                    {
+                        GenesisHash = chain.Genesis.Hash,
+                        Actions = [plainValue],
+                    };
                     var unsignedTx = new UnsignedTx(invoice, sigMeta);
                     return unsignedTx.SerializeUnsignedTx();
                 }

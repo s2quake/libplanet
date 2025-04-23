@@ -58,6 +58,6 @@ internal static class BlockChainUtility
             nonce: nonce,
             privateKey: privateKey,
             genesisHash: genesisBlock.Hash,
-            actions: new TxActionList(values));
+            actions: values);
     }
 }
