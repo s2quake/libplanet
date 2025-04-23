@@ -24,7 +24,7 @@ public readonly record struct Address(in ImmutableArray<byte> ByteArray)
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
 
-    public Address(Span<byte> bytes)
+    public Address(ReadOnlySpan<byte> bytes)
         : this(ValidateBytes(bytes.ToImmutableArray()))
     {
     }

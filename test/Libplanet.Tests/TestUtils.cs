@@ -233,10 +233,10 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             AssertBytesEqual(ByteUtil.ParseHex(expectedHex), ByteUtil.ParseHex(actualHex));
 
         public static void AssertBytesEqual(TxId expected, TxId actual) =>
-            AssertBytesEqual(expected.ToByteArray(), actual.ToByteArray());
+            AssertBytesEqual(expected.ByteArray, actual.ByteArray);
 
         public static void AssertBytesEqual(TxId? expected, TxId? actual) =>
-            AssertBytesEqual(expected?.ToByteArray(), actual?.ToByteArray());
+            AssertBytesEqual(expected?.ByteArray ?? [], actual?.ByteArray ?? []);
 
         public static void AssertBytesEqual(BlockHash expected, BlockHash actual) =>
             AssertBytesEqual(expected.ToByteArray(), actual.ToByteArray());

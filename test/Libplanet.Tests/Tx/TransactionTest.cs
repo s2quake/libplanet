@@ -99,7 +99,7 @@ public class TransactionTest
             tx.Signature
         );
         AssertBytesEqual(
-            TxId.FromHex("babd317f0ce9961a528d9c923022fa4e0a360df0437463af7267ac40c5a889e6"),
+            TxId.Parse("babd317f0ce9961a528d9c923022fa4e0a360df0437463af7267ac40c5a889e6"),
             tx.Id
         );
     }

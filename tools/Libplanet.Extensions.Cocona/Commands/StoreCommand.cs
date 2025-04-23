@@ -95,7 +95,7 @@ public class StoreCommand
     )
     {
         using IStore store = Utils.LoadStoreFromUri(home);
-        var txId = TxId.FromHex(strTxId);
+        var txId = TxId.Parse(strTxId);
         if (!(store.GetFirstTxIdBlockHashIndex(txId) is { } ))
         {
             throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");

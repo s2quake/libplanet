@@ -683,7 +683,7 @@ namespace Libplanet.Action
                 .GroupBy(tx => tx.Signer)
                 .OrderBy(
                     group => maskInteger ^ group
-                        .Select(tx => new BigInteger(tx.Id.ToByteArray()))
+                        .Select(tx => new BigInteger(tx.Id.ByteArray.ToArray()))
                         .Aggregate((first, second) => first ^ second))
                 .SelectMany(group => group.OrderBy(tx => tx.Nonce));
         }

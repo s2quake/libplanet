@@ -236,7 +236,7 @@ public class TransactionQueryGeneratedTest
 
         foreach (var i in Enumerable.Range(0, actual.Length))
         {
-            Assert.Equal(expected[i].Id.ToHex(), actual[i].Id);
+            Assert.Equal(expected[i].Id.ToString(), actual[i].Id);
             if (Source.Index is not null)
             {
                 Assert.Equal(
@@ -292,7 +292,7 @@ public class TransactionQueryGeneratedTest
     {
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
-            transactionResult(txId: ""{txId.ToHex()}"")
+            transactionResult(txId: ""{txId}"")
             {{
                 txStatus
                 blockIndex

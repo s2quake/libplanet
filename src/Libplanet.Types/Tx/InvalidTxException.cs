@@ -18,7 +18,7 @@ namespace Libplanet.Types.Tx
         /// <see cref="Transaction.Id"/>.  It is automatically included to
         /// the <see cref="Exception.Message"/> string.</param>
         protected InvalidTxException(string message, TxId txid)
-            : base($"{txid.ToHex()}: {message}")
+            : base($"{txid}: {message}")
         {
             TxId = txid;
         }
@@ -35,7 +35,7 @@ namespace Libplanet.Types.Tx
             string message,
             TxId txid,
             Exception innerException)
-            : base($"{txid.ToHex()}: {message}", innerException)
+            : base($"{txid}: {message}", innerException)
         {
             TxId = txid;
         }
