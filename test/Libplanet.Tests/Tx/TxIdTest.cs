@@ -22,10 +22,10 @@ public class TxIdTest
             byte[] bytes = GetRandomBytes(size);
             ImmutableArray<byte> immutableBytes = bytes.ToImmutableArray();
             Assert.Throws<ArgumentOutOfRangeException>(
-                "txid",
+                "bytes",
                 () => new TxId(immutableBytes));
             Assert.Throws<ArgumentOutOfRangeException>(
-                "txid",
+                "bytes",
                 () => new TxId(bytes));
         }
     }
@@ -47,19 +47,13 @@ public class TxIdTest
         Assert.Equal(expected, actual);
 
         Assert.Throws<FormatException>(() => TxId.Parse("0g"));
-        Assert.Throws<ArgumentOutOfRangeException>("hex", () => TxId.Parse("1"));
-        Assert.Throws<ArgumentOutOfRangeException>(
-            "hex",
-            () => TxId.Parse(
-                "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9c"));
-        Assert.Throws<ArgumentOutOfRangeException>(
-            "hex",
-            () => TxId.Parse(
-                "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc0"));
-        Assert.Throws<ArgumentOutOfRangeException>(
-            "hex",
-            () => TxId.Parse(
-                "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc00"));
+        Assert.Throws<FormatException>(() => TxId.Parse("1"));
+        Assert.Throws<FormatException>(() =>
+            TxId.Parse("45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9c"));
+        Assert.Throws<FormatException>(() =>
+            TxId.Parse("45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc0"));
+        Assert.Throws<FormatException>(() =>
+            TxId.Parse("45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc00"));
     }
 
     [Fact]

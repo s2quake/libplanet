@@ -14,12 +14,17 @@ public readonly record struct TxId(in ImmutableArray<byte> ByteArray)
 {
     public const int Size = 32;
 
+    private static readonly ImmutableArray<byte> _defaultByteArray
+        = ImmutableArray.Create(new byte[Size]);
+
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
+
     public TxId(ReadOnlySpan<byte> bytes)
         : this(bytes.ToImmutableArray())
     {
     }
 
-    public ImmutableArray<byte> ByteArray { get; } = ValidateBytes(ByteArray);
+    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? _defaultByteArray : _bytes;
 
     public IValue ToBencodex() => new Binary(ByteArray);
 
