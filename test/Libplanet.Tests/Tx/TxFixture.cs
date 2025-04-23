@@ -82,13 +82,13 @@ public class TxFixture
         };
         TxWithActions = new Transaction(
             new UnsignedTx(
-                new TxInvoice(
-                    genesisHash: genesisHash,
-                    updatedAddresses: [Address.Parse("c2a86014073d662a4a9bfcf9cb54263dfa4f5cbc")],
-                    timestamp: timestamp,
-                    actions: new TxActionList(actions.ToPlainValues()),
-                    maxGasPrice: null,
-                    gasLimit: null),
+                new TxInvoice
+                {
+                    GenesisHash = genesisHash,
+                    UpdatedAddresses = [Address.Parse("c2a86014073d662a4a9bfcf9cb54263dfa4f5cbc")],
+                    Timestamp = timestamp,
+                    Actions = [.. actions.ToPlainValues()],
+                },
                 new TxSigningMetadata(PrivateKey1.PublicKey, 0)),
             PrivateKey1);
     }

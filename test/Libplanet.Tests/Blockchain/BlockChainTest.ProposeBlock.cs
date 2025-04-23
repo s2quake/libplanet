@@ -758,10 +758,12 @@ namespace Libplanet.Tests.Blockchain
             var keyA = new PrivateKey();
             var keyB = new PrivateKey();
             var unsignedInvalidTx = new UnsignedTx(
-                new TxInvoice(
-                    _blockChain.Genesis.Hash,
-                    DateTimeOffset.UtcNow,
-                    new TxActionList((IValue)List.Empty.Add(new Text("Foo")))), // Invalid action
+                new TxInvoice
+                {
+                    GenesisHash = _blockChain.Genesis.Hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Actions = [List.Empty.Add(new Text("Foo"))], // Invalid action
+                },
                 new TxSigningMetadata(keyB.PublicKey, 1));
             var txWithInvalidAction = new Transaction(
                 unsignedInvalidTx, unsignedInvalidTx.CreateSignature(keyB)

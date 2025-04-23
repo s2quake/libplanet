@@ -36,6 +36,30 @@ public sealed record class TxInvoice : ITxInvoice, IEquatable<TxInvoice>
 
     public long? GasLimit { get; init; }
 
+    public void Verify()
+    {
+        switch (MaxGasPrice, GasLimit)
+        {
+            case (null, null):
+                break;
+            case (null, { }):
+            case ({ }, null):
+                throw new ArgumentException(
+                    $"Either {nameof(MaxGasPrice)} (null: {MaxGasPrice is null}) and " +
+                    $"{nameof(GasLimit)} (null: {GasLimit is null}) must be both null " +
+                    $"or both non-null.");
+            case ({ } mgp, { } gl):
+                if (mgp.Sign < 0 || gl < 0)
+                {
+                    throw new ArgumentException(
+                        $"Both {nameof(MaxGasPrice)} ({mgp}) and {nameof(GasLimit)} ({gl}) " +
+                        $"must be non-negative.");
+                }
+
+                break;
+        }
+    }
+
     bool IEquatable<ITxInvoice>.Equals(ITxInvoice? other) =>
         other is { } o &&
         (o.GenesisHash is { } otherGenesisHash

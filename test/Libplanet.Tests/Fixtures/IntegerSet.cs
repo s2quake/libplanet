@@ -59,8 +59,10 @@ namespace Libplanet.Tests.Fixtures
                 .Select(pair =>
                     new Transaction(
                         new UnsignedTx(
-                            new TxInvoice(
-                                actions: new TxActionList(new[] { pair.Action.PlainValue })),
+                            new TxInvoice
+                            {
+                                Actions = [pair.Action.PlainValue],
+                            },
                             new TxSigningMetadata(pair.Key.PublicKey, 0)),
                         pair.Key))
                 .OrderBy(tx => tx.Id)
