@@ -75,7 +75,7 @@ namespace Libplanet.Tests.Tx
         {
             var random = new System.Random();
             var genesisHash = random.NextBlockHash();
-            var updatedAddresses = ImmutableHashSet.Create(
+            var updatedAddresses = ImmutableSortedSet.Create(
                 random.NextAddress(),
                 random.NextAddress());
             var timestamp = DateTimeOffset.UtcNow;
@@ -115,7 +115,7 @@ namespace Libplanet.Tests.Tx
         {
             var random = new System.Random();
             var genesisHash = random.NextBlockHash();
-            var updatedAddresses = ImmutableHashSet.Create(
+            var updatedAddresses = ImmutableSortedSet.Create(
                 random.NextAddress(),
                 random.NextAddress());
             var timestamp = DateTimeOffset.UtcNow;
@@ -152,7 +152,7 @@ namespace Libplanet.Tests.Tx
         {
             var genesisHash = BlockHash.Parse(
                 "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-            var updatedAddresses = ImmutableHashSet.Create(AddressA, AddressB);
+            var updatedAddresses = ImmutableSortedSet.Create(AddressA, AddressB);
             var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
             var actions = new TxActionList(new IAction[]
             {
@@ -189,7 +189,7 @@ namespace Libplanet.Tests.Tx
                 // mock object has respective values set to null.
                 var invoice = new TxInvoice(
                     i == 0 ? (BlockHash?)null : genesisHash,
-                    i == 1 ? (IImmutableSet<Address>)AddressSet.Empty : updatedAddresses,
+                    i == 1 ? ImmutableSortedSet<Address>.Empty : updatedAddresses,
                     i == 2 ? DateTimeOffset.MinValue : timestamp,
                     i == 3 ? TxActionList.Empty : actions,
                     i == 4
@@ -209,7 +209,7 @@ namespace Libplanet.Tests.Tx
         {
             var genesisHash = BlockHash.Parse(
                 "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-            var updatedAddresses = ImmutableHashSet.Create(AddressA, AddressB);
+            var updatedAddresses = ImmutableSortedSet.Create(AddressA, AddressB);
             var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
             var actions = new TxActionList(new IAction[]
             {
@@ -271,8 +271,7 @@ namespace Libplanet.Tests.Tx
 
         private class MockTxInvoice : ITxInvoice
         {
-            public IImmutableSet<Address> UpdatedAddresses =>
-                ImmutableHashSet.Create(AddressA, AddressB);
+            public ImmutableSortedSet<Address> UpdatedAddresses => [AddressA, AddressB];
 
             public DateTimeOffset Timestamp =>
                 new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);

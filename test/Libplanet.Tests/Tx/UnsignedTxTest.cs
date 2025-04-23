@@ -29,20 +29,19 @@ public class UnsignedTxTest
     {
         var genesisHash = BlockHash.Parse(
             "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-        var updatedAddresses = ImmutableHashSet.Create(AddressA, AddressB);
+        var updatedAddresses = ImmutableSortedSet.Create(AddressA, AddressB);
         var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-        var actions = new TxActionList(new IAction[]
-        {
+        var actions = ImmutableArray.Create<IAction>([
             DumbAction.Create((AddressA, "foo")),
             DumbAction.Create((AddressB, "bar")),
-        }.ToPlainValues());
-        _invoice = new TxInvoice(
-            genesisHash,
-            updatedAddresses,
-            timestamp,
-            actions,
-            null,
-            null);
+        ]).ToPlainValues();
+        _invoice = new TxInvoice
+        {
+            GenesisHash = genesisHash,
+            UpdatedAddresses = updatedAddresses,
+            Timestamp = timestamp,
+            Actions = [.. actions],
+        };
         _signingMetadata = new TxSigningMetadata(PublicKey, 123L);
     }
 
@@ -117,13 +116,13 @@ public class UnsignedTxTest
         var wrongKey = new PrivateKey();
         for (int i = 0; i < 6; i++)
         {
-            var diffInvoice = new TxInvoice(
-                i == 0 ? (BlockHash?)null : _invoice.GenesisHash,
-                i == 1 ? AddressSet.Empty : _invoice.UpdatedAddresses,
-                i == 2 ? DateTimeOffset.MinValue : _invoice.Timestamp,
-                i == 3 ? TxActionList.Empty : _invoice.Actions,
-                null,
-                null);
+            var diffInvoice = new TxInvoice
+            {
+                GenesisHash = i == 0 ? (BlockHash?)null : _invoice.GenesisHash,
+                UpdatedAddresses = i == 1 ? [] : _invoice.UpdatedAddresses,
+                Timestamp = i == 2 ? DateTimeOffset.MinValue : _invoice.Timestamp,
+                Actions = i == 3 ? [] : _invoice.Actions,
+            };
             var diffSigningMetadata = new TxSigningMetadata(
                 i == 4 ? wrongKey.Address : _signingMetadata.Signer,
                 i == 5 ? 456L : _signingMetadata.Nonce

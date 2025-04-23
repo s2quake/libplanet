@@ -214,7 +214,7 @@ public class TransactionTest
             0xe2, 0x7e, 0xeb, 0xa2, 0x0f, 0xb8, 0xa3, 0xff, 0x1c,
         };
         var unsignedTx = new UnsignedTx(
-            new TxInvoice(timestamp: timestamp),
+            new TxInvoice { Timestamp = timestamp },
             new TxSigningMetadata(privateKey.PublicKey, nonce: 0L));
         var tx = new Transaction(
             unsignedTx: unsignedTx,
@@ -289,20 +289,19 @@ public class TransactionTest
             "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
         Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
         Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
-        var updatedAddresses = ImmutableHashSet.Create(addressA, addressB);
+        var updatedAddresses = ImmutableSortedSet.Create(addressA, addressB);
         var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-        var actions = new TxActionList(new IAction[]
-        {
+        var actions = ImmutableArray.Create<IAction>([
             DumbAction.Create((addressA, "foo")),
             DumbAction.Create((addressB, "bar")),
-        }.ToPlainValues());
-        var invoice = new TxInvoice(
-            genesisHash,
-            updatedAddresses,
-            timestamp,
-            actions,
-            null,
-            null);
+        ]).ToPlainValues();
+        var invoice = new TxInvoice
+        {
+            GenesisHash = genesisHash,
+            UpdatedAddresses = updatedAddresses,
+            Timestamp = timestamp,
+            Actions = [.. actions],
+        };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         PublicKey publicKey = privateKey.PublicKey;
@@ -327,13 +326,13 @@ public class TransactionTest
         var wrongKey = new PrivateKey();
         for (int i = 0; i < 6; i++)
         {
-            var diffInvoice = new TxInvoice(
-                i == 0 ? (BlockHash?)null : invoice.GenesisHash,
-                i == 1 ? AddressSet.Empty : invoice.UpdatedAddresses,
-                i == 2 ? DateTimeOffset.MinValue : invoice.Timestamp,
-                i == 3 ? TxActionList.Empty : invoice.Actions,
-                null,
-                null);
+            var diffInvoice = new TxInvoice
+            {
+                GenesisHash = i == 0 ? (BlockHash?)null : invoice.GenesisHash,
+                UpdatedAddresses = i == 1 ? [] : invoice.UpdatedAddresses,
+                Timestamp = i == 2 ? DateTimeOffset.MinValue : invoice.Timestamp,
+                Actions = i == 3 ? [] : invoice.Actions,
+            };
             var diffSigningMetadata = new TxSigningMetadata(
                 i == 4 ? wrongKey.Address : signingMetadata.Signer,
                 i == 5 ? 456L : signingMetadata.Nonce
@@ -369,20 +368,19 @@ public class TransactionTest
             "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
         Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
         Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
-        var updatedAddresses = ImmutableHashSet.Create(addressA, addressB);
+        var updatedAddresses = ImmutableSortedSet.Create(addressA, addressB);
         var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-        var actions = new TxActionList(new IAction[]
-        {
+        var actions = ImmutableArray.Create<IAction>([
             DumbAction.Create((addressA, "foo")),
             DumbAction.Create((addressB, "bar")),
-        }.ToPlainValues());
-        var invoice = new TxInvoice(
-            genesisHash,
-            updatedAddresses,
-            timestamp,
-            actions,
-            null,
-            null);
+        ]).ToPlainValues();
+        var invoice = new TxInvoice
+        {
+            GenesisHash = genesisHash,
+            UpdatedAddresses = updatedAddresses,
+            Timestamp = timestamp,
+            Actions = [.. actions],
+        };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         PublicKey publicKey = privateKey.PublicKey;

@@ -76,11 +76,11 @@ namespace Libplanet.Tests.Tx
             {
                 PublicKey = _key2.PublicKey,
                 Nonce = 0L,
-                UpdatedAddresses = new[]
-                {
+                UpdatedAddresses =
+                [
                     _key1.Address,
                     _key2.Address,
-                }.ToImmutableHashSet(),
+                ],
                 Timestamp = new DateTimeOffset(2022, 1, 12, 4, 56, 7, 890, default),
                 GenesisHash = BlockHash.Parse(
                     "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"),
@@ -165,11 +165,11 @@ namespace Libplanet.Tests.Tx
             var meta2 = new TxMetadata(_key2.Address)
             {
                 Nonce = 0L,
-                UpdatedAddresses = new[]
-                {
+                UpdatedAddresses =
+                [
                     _key1.Address,
                     _key2.Address,
-                }.ToImmutableHashSet(),
+                ],
                 Timestamp = new DateTimeOffset(2022, 1, 12, 4, 56, 7, 890, default),
                 GenesisHash = BlockHash.Parse(
                     "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"),
@@ -200,8 +200,7 @@ namespace Libplanet.Tests.Tx
 
             public Address Signer => PublicKey.Address;
 
-            public IImmutableSet<Address> UpdatedAddresses { get; set; } =
-                ImmutableHashSet<Address>.Empty;
+            public ImmutableSortedSet<Address> UpdatedAddresses { get; set; } = [];
 
             public DateTimeOffset Timestamp { get; set; }
 
@@ -211,7 +210,7 @@ namespace Libplanet.Tests.Tx
 
             public byte[] Signature => Array.Empty<byte>();
 
-            public TxActionList Actions => TxActionList.Empty;
+            public ImmutableArray<IValue> Actions => [];
 
             public FungibleAssetValue? MaxGasPrice => null;
 

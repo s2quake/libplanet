@@ -1,17 +1,7 @@
 using System;
 
-namespace Libplanet.Types.Tx
+namespace Libplanet.Types.Tx;
+
+public interface IUnsignedTx : ITxInvoice, ITxSigningMetadata, IEquatable<IUnsignedTx>
 {
-    /// <summary>
-    /// <see cref="ITxInvoice"/> combined with <see cref="ITxSigningMetadata"/>, or
-    /// <see cref="ITransaction"/> minus its <see cref="ITransaction.Signature"/>.
-    /// Ready to be signed by the specified <see cref="ITxSigningMetadata.Signer"/>.
-    /// </summary>
-    /// <seealso cref="UnsignedTx"/>
-    /// <seealso cref="ITxInvoice"/>
-    /// <seealso cref="ITxSigningMetadata"/>
-    /// <seealso cref="ITransaction"/>
-    public interface IUnsignedTx : ITxInvoice, ITxSigningMetadata, IEquatable<IUnsignedTx>
-    {
-    }
 }
