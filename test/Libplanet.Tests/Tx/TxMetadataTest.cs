@@ -45,7 +45,7 @@ namespace Libplanet.Tests.Tx
         public void Constructor()
         {
             DateTimeOffset before = DateTimeOffset.UtcNow;
-            var meta = new TxMetadata(_key1.Address);
+            var meta = new TxMetadata { Signer = _key1.Address };
             DateTimeOffset after = DateTimeOffset.UtcNow;
             Assert.Equal(0L, meta.Nonce);
             AssertBytesEqual(_key1.Address, meta.Signer);
@@ -64,7 +64,7 @@ namespace Libplanet.Tests.Tx
                 Nonce = 123L,
                 Timestamp = new DateTimeOffset(2022, 5, 23, 10, 2, 0, default),
             };
-            var copy1 = new TxMetadata(meta1);
+            var copy1 = TxMetadata.Create(meta1);
             Assert.Equal(meta1.Nonce, copy1.Nonce);
             AssertBytesEqual(meta1.Signer, copy1.Signer);
             Assert.Equal(meta1.UpdatedAddresses, copy1.UpdatedAddresses);
@@ -85,7 +85,7 @@ namespace Libplanet.Tests.Tx
                 GenesisHash = BlockHash.Parse(
                     "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"),
             };
-            var copy2 = new TxMetadata(meta2);
+            var copy2 = TxMetadata.Create(meta2);
             Assert.Equal(meta2.Nonce, copy2.Nonce);
             AssertBytesEqual(meta2.Signer, copy2.Signer);
             Assert.Equal(meta2.UpdatedAddresses, copy2.UpdatedAddresses);
@@ -103,7 +103,7 @@ namespace Libplanet.Tests.Tx
                 .Add(new byte[] { 0x75 }, new List())
                 .Add(new byte[] { 0x74 }, "2022-05-23T10:02:00.000000Z")
                 .Add(new byte[] { 0x70 }, _key1.PublicKey.ToImmutableArray(compress: false));
-            var meta1 = new TxMetadata(dict1);
+            var meta1 = TxMetadata.Create(dict1);
             Assert.Equal(123L, meta1.Nonce);
             AssertBytesEqual(_key1.Address, meta1.Signer);
             Assert.Empty(meta1.UpdatedAddresses);
@@ -127,7 +127,7 @@ namespace Libplanet.Tests.Tx
                     new byte[] { 0x67 },
                     ByteUtil.ParseHex(
                         "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"));
-            var meta2 = new TxMetadata(dict2);
+            var meta2 = TxMetadata.Create(dict2);
             Assert.Equal(0L, meta2.Nonce);
             AssertBytesEqual(_key2.Address, meta2.Signer);
             Assert.Equal(
@@ -148,8 +148,9 @@ namespace Libplanet.Tests.Tx
         [MemberData(nameof(ToBencodexTheoryData))]
         public void ToBencodex(DateTimeOffset timestamp)
         {
-            var meta1 = new TxMetadata(_key1.Address)
+            var meta1 = new TxMetadata
             {
+                Signer = _key1.Address,
                 Nonce = 123L,
                 Timestamp = timestamp,
             };
@@ -162,8 +163,9 @@ namespace Libplanet.Tests.Tx
                 expected1,
                 meta1.ToBencodex());
 
-            var meta2 = new TxMetadata(_key2.Address)
+            var meta2 = new TxMetadata
             {
+                Signer = _key2.Address,
                 Nonce = 0L,
                 UpdatedAddresses =
                 [
