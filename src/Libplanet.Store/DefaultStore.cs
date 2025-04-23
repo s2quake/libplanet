@@ -184,8 +184,8 @@ public class DefaultStore : BaseStore
                 hash => hash.ToByteArray(),
                 b => new HashDigest<SHA256>(b));
             _db.Mapper.RegisterType(
-                txid => txid.ToByteArray(),
-                b => new TxId(b));
+                txid => txid.ByteArray.ToArray(),
+                b => new TxId([.. b.AsBinary]));
             _db.Mapper.RegisterType(
                 address => address.ToByteArray(),
                 b => new Address([.. b.AsBinary]));
@@ -1043,7 +1043,7 @@ public class DefaultStore : BaseStore
 
     private UPath TxPath(in TxId txid)
     {
-        string idHex = txid.ToHex();
+        string idHex = txid.ToString();
         return UPath.Root / idHex.Substring(0, 2) / idHex.Substring(2);
     }
 
@@ -1068,7 +1068,7 @@ public class DefaultStore : BaseStore
     }
 
     private UPath TxExecutionPath(in BlockHash blockHash, in TxId txid) =>
-        BlockPath(blockHash) / txid.ToHex();
+        BlockPath(blockHash) / txid.ToString();
 
     private UPath TxExecutionPath(TxExecution txExecution) =>
         TxExecutionPath(txExecution.BlockHash, txExecution.TxId);
