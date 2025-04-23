@@ -60,27 +60,27 @@ public class CurrencyTest
     public void Hash()
     {
         var currency = new Currency("GOLD", 2, [AddressA]);
-        var expected = HashDigest<SHA1>.Parse("3468baa41800b24d3b3b8d22b6b66808a00c6d30");
+        var expected = HashDigest<SHA1>.Parse("b74db4b0ce23048dd0523635711cf17e8c6ea6e6");
         AssertBytesEqual(expected, currency.Hash);
 
         currency = new Currency("NCG", 8, [AddressA, AddressB]);
-        expected = HashDigest<SHA1>.Parse("6e7bea7d64de1a3e1cd9debaa979906cb60eafe0");
+        expected = HashDigest<SHA1>.Parse("585647629cbbb9552c621fa588297287d0c995b3");
         AssertBytesEqual(expected, currency.Hash);
 
         currency = new Currency("FOO", 0);
-        expected = HashDigest<SHA1>.Parse("be81aec7bf9bf06aede3353c041c0bade9b2a328");
+        expected = HashDigest<SHA1>.Parse("b4a20e835105e48a591c8afeba850262790dfffc");
         AssertBytesEqual(expected, currency.Hash);
 
         currency = new Currency("BAR", 1);
-        expected = HashDigest<SHA1>.Parse("b6680f750b76fe91795b46e51e4ff8839c36a7c4");
+        expected = HashDigest<SHA1>.Parse("9f8707fb97946deda8514fc6be32317bc5422505");
         AssertBytesEqual(expected, currency.Hash);
 
         currency = new Currency("BAZ", 1);
-        expected = HashDigest<SHA1>.Parse("c852169ea14fff33fd21acd79709bfed2ef63ec6");
+        expected = HashDigest<SHA1>.Parse("8a354c6d2373a380c38b934bd83467c84cbc3fa5");
         AssertBytesEqual(expected, currency.Hash);
 
         currency = new Currency("BAZ", 1, 100);
-        expected = HashDigest<SHA1>.Parse("912979876d9b483f4cb96bba37bc9b274c387661");
+        expected = HashDigest<SHA1>.Parse("9527eff9d3e55d1129c88cd8f9aad90c21958e1c");
         AssertBytesEqual(expected, currency.Hash);
     }
 
@@ -113,13 +113,16 @@ public class CurrencyTest
     public void String()
     {
         var currency = new Currency("GOLD", 0, [AddressA]);
-        Assert.Equal("GOLD (8b57f3742306bd17af6aa888a97f39299aab37fe)", currency.ToString());
+        Assert.Equal("GOLD (1a6193b06a2b6f80dba6b8800462451794f4b9f7)", currency.ToString());
 
-        currency = new Currency("GOLD", 0, [AddressA]);
-        Assert.Equal("GOLD (8b57f3742306bd17af6aa888a97f39299aab37fe)", currency.ToString());
+        currency = new Currency("GOLD", 0, []);
+        Assert.Equal("GOLD (c3dc908202a667bc47e330b8c5b4781425aec3d2)", currency.ToString());
+
+        currency = new Currency("GOLD", 0);
+        Assert.Equal("GOLD (c3dc908202a667bc47e330b8c5b4781425aec3d2)", currency.ToString());
 
         currency = new Currency("GOLD", 0, 100, [AddressA]);
-        Assert.Equal("GOLD (0dd7d3783993eeefbff2a5b23b6dc04a6a82436b)", currency.ToString());
+        Assert.Equal("GOLD (07e4cf92498b170d91fa9b851212c92d8679c308)", currency.ToString());
     }
 
     [Fact]
@@ -152,6 +155,9 @@ public class CurrencyTest
         var foo = new Currency("FOO", 0);
         Assert.Equal(new FungibleAssetValue(foo, 123, 0), 123 * foo);
         Assert.Equal(new FungibleAssetValue(foo, -123, 0), foo * -123);
+
+        var bar = new Currency("BAR", 2);
+        Assert.Equal(new FungibleAssetValue(bar, 123, 1), 123.01m * bar);
     }
 
     [Fact]
@@ -164,8 +170,7 @@ public class CurrencyTest
                 new Text("FOO"),
                 new Integer(2),
                 new Integer(0),
-                List.Empty,
-                new Bencodex.Types.Boolean(false)),
+                List.Empty),
             foo.ToBencodex());
 
         Assert.Equal(foo, Currency.Create(foo.ToBencodex()));
@@ -179,8 +184,7 @@ public class CurrencyTest
                 new Integer(100),
                 new List(
                     AddressB.ToBencodex(),
-                    AddressA.ToBencodex()),
-                new Bencodex.Types.Boolean(false)),
+                    AddressA.ToBencodex())),
             bar.ToBencodex());
 
         Assert.Equal(bar, Currency.Create(bar.ToBencodex()));
@@ -192,7 +196,7 @@ public class CurrencyTest
         var foo = new Currency("FOO", 2);
         AssertJsonSerializable(foo, @"
             {
-                ""hash"": ""f5b3fa6590b1ab33c833f7b81fc1498b262ae2cd"",
+                ""hash"": ""b18bb67fceedc1f0664a4950138b7ef8e05f70e4"",
                 ""ticker"": ""FOO"",
                 ""decimalPlaces"": 2,
                 ""maximumSupply"": ""0"",
@@ -203,7 +207,7 @@ public class CurrencyTest
         var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]);
         AssertJsonSerializable(bar, @"
             {
-                ""hash"": ""7c49633bf327762281895760a10ce31e9c3bac6d"",
+                ""hash"": ""9ad8eac459906d7760e17e6b6e1a56d0bf87be5b"",
                 ""ticker"": ""BAR"",
                 ""decimalPlaces"": 0,
                 ""maximumSupply"": ""100"",

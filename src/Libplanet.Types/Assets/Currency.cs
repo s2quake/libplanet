@@ -43,11 +43,18 @@ public readonly record struct Currency(
 
     public HashDigest<SHA1> Hash => GetHash();
 
-    public static FungibleAssetValue operator *(Currency currency, BigInteger quantity)
-        => new(currency, majorUnit: quantity, minorUnit: 0);
+    public static FungibleAssetValue operator *(Currency currency, decimal value)
+    {
+        var major = Math.Floor(value);
+        var decimalPlaces = currency.DecimalPlaces;
+        var fractionalPart = value - major;
+        var minor = fractionalPart * (decimal)BigInteger.Pow(10, decimalPlaces);
+        var rawValue = currency.GetRawValue((BigInteger)major, (BigInteger)minor);
+        return new FungibleAssetValue(currency, rawValue);
+    }
 
-    public static FungibleAssetValue operator *(BigInteger quantity, Currency currency)
-        => new(currency, majorUnit: quantity, minorUnit: 0);
+    public static FungibleAssetValue operator *(decimal value, Currency currency)
+        => currency * value;
 
     public static Currency Create(IValue serialized)
     {
@@ -56,7 +63,7 @@ public readonly record struct Currency(
             throw new ArgumentException("Serialized value must be a list.", nameof(serialized));
         }
 
-        if (list.Count != 5)
+        if (list.Count != 4)
         {
             throw new ArgumentException(
                 "Serialized value must have exactly 6 elements.", nameof(serialized));

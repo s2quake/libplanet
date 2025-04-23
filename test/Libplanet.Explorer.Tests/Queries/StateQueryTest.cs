@@ -115,8 +115,7 @@ public partial class StateQueryTest
                     currency: {{
                         ticker: ""ABC""
                         decimalPlaces: 2
-                        minters: null
-                        totalSupplyTrackable: false }}) {{
+                        minters: null }}) {{
                     string
                 }}
             }}
@@ -148,8 +147,7 @@ public partial class StateQueryTest
                 totalSupply (currency: {{
                     ticker: ""ABC""
                     decimalPlaces: 2
-                    minters: null
-                    totalSupplyTrackable: false }}) {{
+                    minters: null}}) {{
                     string
                 }}
             }}

@@ -53,7 +53,7 @@ public partial class StateQueryTest
         {{
             balance(
                 owner: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
-                currency: {{ ticker: ""ABC"", decimalPlaces: 2, totalSupplyTrackable: false }}
+                currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
                 offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
                 currency {{ ticker, hash }}
                 sign
@@ -95,7 +95,7 @@ public partial class StateQueryTest
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             totalSupply(
-                currency: {{ ticker: ""ABC"", decimalPlaces: 2, totalSupplyTrackable: false }}
+                currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
                 offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
                 currency {{ ticker, hash }}
                 sign
@@ -139,7 +139,7 @@ public partial class StateQueryTest
         result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             totalSupply(
-                currency: {{ ticker: ""LEG"", decimalPlaces: 0, totalSupplyTrackable: false }}
+                currency: {{ ticker: ""LEG"", decimalPlaces: 0 }}
                 offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
                 quantity
             }}
@@ -238,7 +238,7 @@ public partial class StateQueryTest
         {{
             balance(
                 owner: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
-                currency: {{ ticker: ""ABC"", decimalPlaces: 2, totalSupplyTrackable: false }}
+                currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
                 offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}""
             ) {{
                 currency {{ ticker, hash }}
@@ -281,7 +281,7 @@ public partial class StateQueryTest
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             totalSupply(
-                currency: {{ ticker: ""ABC"", decimalPlaces: 2, totalSupplyTrackable: false }}
+                currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
                 offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}""
             ) {{
                 currency {{ ticker, hash }}
@@ -326,7 +326,7 @@ public partial class StateQueryTest
         result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             totalSupply(
-                currency: {{ ticker: ""LEG"", decimalPlaces: 0, totalSupplyTrackable: false }}
+                currency: {{ ticker: ""LEG"", decimalPlaces: 0 }}
                 offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}"") {{
                 quantity
             }}

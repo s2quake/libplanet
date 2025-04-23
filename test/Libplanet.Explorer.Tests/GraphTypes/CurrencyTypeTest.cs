@@ -38,7 +38,6 @@ public class CurrencyTypeTest
                 quantity
                 string
             }
-            totalSupplyTrackable
             hash
         }", source: currency);
         Assert.Null(result.Errors);
@@ -58,7 +57,6 @@ public class CurrencyTypeTest
         Assert.Equal(67, Assert.IsAssignableFrom<BigInteger>(maxSupplyDict["minorUnit"]));
         Assert.Equal("12345.67", maxSupplyDict["quantity"]);
         Assert.Equal("12345.67 ABC", maxSupplyDict["string"]);
-        Assert.True((bool)resultDict["totalSupplyTrackable"]);
         object[] minters = Assert.IsAssignableFrom<object[]>(resultDict["minters"]);
         Assert.All(minters, m => Assert.IsType<string>(m));
         Assert.Equal(minters.Cast<string>().ToArray(), new[]
@@ -73,7 +71,6 @@ public class CurrencyTypeTest
             @"{
                 minters
                 maximumSupply { quantity }
-                totalSupplyTrackable
             }",
             source: currency
         );
@@ -82,7 +79,6 @@ public class CurrencyTypeTest
         resultDict = Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
         Assert.Null(resultDict["minters"]);
         Assert.Null(resultDict["maximumSupply"]);
-        Assert.True((bool)resultDict["totalSupplyTrackable"]);
 
 #pragma warning disable CS0618
         currency = new Currency("LEGACY", 2);
@@ -90,7 +86,6 @@ public class CurrencyTypeTest
         result = await ExecuteQueryAsync<CurrencyType>(
             @"{
                 maximumSupply { quantity }
-                totalSupplyTrackable
             }",
             source: currency
         );
@@ -98,6 +93,5 @@ public class CurrencyTypeTest
         resultData = Assert.IsAssignableFrom<ExecutionNode>(result.Data);
         resultDict = Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
         Assert.Null(resultDict["maximumSupply"]);
-        Assert.False((bool)resultDict["totalSupplyTrackable"]);
     }
 }
