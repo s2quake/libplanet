@@ -66,11 +66,22 @@ public readonly record struct Currency(
         var decimalPlaces = (byte)((Integer)list[1]).Value;
         var maximumSupply = ((Integer)list[2]).Value;
         var minters = FromBencodex((List)list[3]);
-        var isTrackable = ((Bencodex.Types.Boolean)list[4]).Value;
         return new Currency(ticker, decimalPlaces, maximumSupply, minters);
     }
 
     public bool CanMint(Address address) => Minters.Length is 0 || Minters.Contains(address);
+
+    public BigInteger GetRawValue(BigInteger majorUnit, BigInteger minorUnit)
+    {
+        var factor = BigInteger.Pow(10, DecimalPlaces);
+        if (BigInteger.Abs(minorUnit) >= factor)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(minorUnit), $"Minor unit must be less than {10 ^ DecimalPlaces}.");
+        }
+
+        return majorUnit * factor + minorUnit;
+    }
 
     public override string ToString() => $"{Ticker} ({Hash})";
 
