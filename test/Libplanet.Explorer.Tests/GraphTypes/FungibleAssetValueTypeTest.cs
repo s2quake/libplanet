@@ -17,7 +17,7 @@ public class FungibleAssetValueTypeTest
     public async Task Query()
     {
         var currency = new Currency("ABC", 2);
-        var fav = new FungibleAssetValue(currency, -1, 123, 45);
+        var fav = new FungibleAssetValue(currency, -123, -45);
         ExecutionResult result = await ExecuteQueryAsync<FungibleAssetValueType>(
             @"{
                 currency {

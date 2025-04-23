@@ -16,56 +16,56 @@ public class FungibleAssetValueTest
     {
         FungibleAssetValue v;
         v = new FungibleAssetValue(FOO, 123, 45);
-        Assert.Equal(new FungibleAssetValue(FOO, 1, 123, 45), v);
+        Assert.Equal(new FungibleAssetValue(FOO, 123, 45), v);
         Assert.Equal(12345, v.RawValue);
         Assert.Equal(123, v.MajorUnit);
         Assert.Equal(45, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
         v = new FungibleAssetValue(FOO, 456, 9);
-        Assert.Equal(new FungibleAssetValue(FOO, 1, 456, 9), v);
+        Assert.Equal(new FungibleAssetValue(FOO, 456, 9), v);
         Assert.Equal(45609, v.RawValue);
         Assert.Equal(456, v.MajorUnit);
         Assert.Equal(9, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
         v = new FungibleAssetValue(FOO, 0, 10);
-        Assert.Equal(new FungibleAssetValue(FOO, 1, 0, 10), v);
+        Assert.Equal(new FungibleAssetValue(FOO, 0, 10), v);
         Assert.Equal(10, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
         Assert.Equal(10, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
         v = new FungibleAssetValue(FOO, 0, 9);
-        Assert.Equal(new FungibleAssetValue(FOO, 1, 0, 9), v);
+        Assert.Equal(new FungibleAssetValue(FOO, 0, 9), v);
         Assert.Equal(9, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
         Assert.Equal(9, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, -789, 1);
-        Assert.Equal(new FungibleAssetValue(FOO, -1, 789, 1), v);
+        v = new FungibleAssetValue(FOO, -789, -1);
+        Assert.Equal(new FungibleAssetValue(FOO, -789, -1), v);
         Assert.Equal(-78901, v.RawValue);
-        Assert.Equal(789, v.MajorUnit);
-        Assert.Equal(1, v.MinorUnit);
+        Assert.Equal(-789, v.MajorUnit);
+        Assert.Equal(-1, v.MinorUnit);
         Assert.Equal(-1, v.Sign);
 
         v = new FungibleAssetValue(FOO, 0, -2);
-        Assert.Equal(new FungibleAssetValue(FOO, -1, 0, 2), v);
+        Assert.Equal(new FungibleAssetValue(FOO, 0, -2), v);
         Assert.Equal(-2, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
-        Assert.Equal(2, v.MinorUnit);
+        Assert.Equal(-2, v.MinorUnit);
         Assert.Equal(-1, v.Sign);
 
         v = new FungibleAssetValue(FOO, 123, 0);
-        Assert.Equal(new FungibleAssetValue(FOO, 1, 123, 0), v);
+        Assert.Equal(new FungibleAssetValue(FOO, 123, 0), v);
         Assert.Equal(12300, v.RawValue);
         Assert.Equal(123, v.MajorUnit);
         Assert.Equal(0, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
         v = new FungibleAssetValue(BAR, 1, 0);
-        Assert.Equal(new FungibleAssetValue(BAR, 1, 1, 0), v);
+        Assert.Equal(new FungibleAssetValue(BAR, 1, 0), v);
         Assert.Equal(new FungibleAssetValue(BAR, 1), v);
         Assert.Equal(1, v.RawValue);
         Assert.Equal(1, v.MajorUnit);
@@ -73,24 +73,15 @@ public class FungibleAssetValueTest
         Assert.Equal(1, v.Sign);
 
         v = new FungibleAssetValue(FOO, 0, 0);
-        Assert.Equal(new FungibleAssetValue(FOO, 0, 0, 0), v);
+        Assert.Equal(new FungibleAssetValue(FOO, 0, 0), v);
         Assert.Equal(new FungibleAssetValue(FOO), v);
         Assert.Equal(0, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
         Assert.Equal(0, v.MinorUnit);
         Assert.Equal(0, v.Sign);
 
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, -2, 1, 0));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 2, 1, 0));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 0, 1, 0));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 0, 0, 1));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, -1, 0));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 1, -1));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 1, 100));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 10, -10));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, -10, -10));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(FOO, 1, 100));
-        Assert.Throws<ArgumentException>(() => new FungibleAssetValue(BAR, 1, 2));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FungibleAssetValue(FOO, 1, 100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FungibleAssetValue(BAR, 1, -100));
     }
 
     [Fact]
@@ -372,9 +363,9 @@ public class FungibleAssetValueTest
         FungibleAssetValue foo0 = new(FOO);
         FungibleAssetValue foo3 = new(FOO, 3);
 
-        Assert.Equal(foo3, foo3.Abs());
-        Assert.Equal(foo3, foo_3.Abs());
-        Assert.Equal(foo0, foo0.Abs());
+        Assert.Equal(foo3, FungibleAssetValue.Abs(foo3));
+        Assert.Equal(foo3, FungibleAssetValue.Abs(foo_3));
+        Assert.Equal(foo0, FungibleAssetValue.Abs(foo0));
     }
 
     [Fact]
@@ -397,7 +388,7 @@ public class FungibleAssetValueTest
         Assert.Equal("0.09", v.GetQuantityString());
         Assert.Equal("0.09", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, -789, 1);
+        v = new FungibleAssetValue(FOO, -789, -1);
         Assert.Equal("-789.01", v.GetQuantityString());
         Assert.Equal("-789.01", v.GetQuantityString(true));
 
@@ -427,46 +418,26 @@ public class FungibleAssetValueTest
     public void Parse()
     {
         var baz = new Currency("BAZ", 1);
-        FormatException e;
 
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "abc"));
-        Assert.StartsWith("The value string must consist of digits", e.Message);
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "abc"));
 
-        const string signError = "Plus (+) or minus (-) sign can be appeared only at";
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123.45"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123.45"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "23.4-5"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45.6+7"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "2-3"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45+6"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "+12-3"));
-        Assert.StartsWith(signError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "-45+6"));
-        Assert.StartsWith(signError, e.Message);
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "++123.45"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "--123.45"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "23.4-5"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45.6+7"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "2-3"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "45+6"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "+12-3"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "-45+6"));
 
-        const string decimalSeparatorError = "The decimal separator (.) cannot be appeared";
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123..4"));
-        Assert.Contains(decimalSeparatorError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.4.5"));
-        Assert.Contains(decimalSeparatorError, e.Message);
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123..4"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.4.5"));
 
-        const string decimalsError = "does not allow more than";
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.456"));
-        Assert.Contains(decimalsError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(BAR, "123.0"));
-        Assert.Contains(decimalsError, e.Message);
-        e = Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(baz, "123.12"));
-        Assert.Contains(decimalsError, e.Message);
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "123.456"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(BAR, "123.0"));
+        Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(baz, "123.12"));
 
         Assert.Equal(
             new FungibleAssetValue(FOO, 123, 45),
@@ -477,7 +448,7 @@ public class FungibleAssetValueTest
             FungibleAssetValue.Parse(FOO, "+123.45")
         );
         Assert.Equal(
-            new FungibleAssetValue(FOO, -123, 45),
+            new FungibleAssetValue(FOO, -123, -45),
             FungibleAssetValue.Parse(FOO, "-123.45")
         );
         Assert.Equal(
@@ -489,7 +460,7 @@ public class FungibleAssetValueTest
             FungibleAssetValue.Parse(FOO, "+123.4")
         );
         Assert.Equal(
-            new FungibleAssetValue(FOO, -123, 40),
+            new FungibleAssetValue(FOO, -123, -40),
             FungibleAssetValue.Parse(FOO, "-123.4")
         );
         Assert.Equal(new FungibleAssetValue(FOO, 123, 0), FungibleAssetValue.Parse(FOO, "123"));

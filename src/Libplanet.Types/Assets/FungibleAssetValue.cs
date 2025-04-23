@@ -1,8 +1,7 @@
 using System;
-using System.Globalization;
-using System.Linq;
 using System.Numerics;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Bencodex.Types;
 using Libplanet.Types.JsonConverters;
 
@@ -10,7 +9,7 @@ namespace Libplanet.Types.Assets;
 
 [JsonConverter(typeof(FungibleAssetValueJsonConverter))]
 public readonly record struct FungibleAssetValue(Currency Currency, BigInteger RawValue)
-    : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable
+    : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable, IFormattable
 {
     public FungibleAssetValue(Currency currency)
         : this(currency, BigInteger.Zero)
@@ -18,93 +17,21 @@ public readonly record struct FungibleAssetValue(Currency Currency, BigInteger R
     }
 
     public FungibleAssetValue(Currency currency, BigInteger majorUnit, BigInteger minorUnit)
-        : this(
-            currency,
-            majorUnit.IsZero ? minorUnit.Sign : majorUnit.Sign,
-            BigInteger.Abs(majorUnit),
-            BigInteger.Abs(minorUnit)
-        )
+        : this(currency, currency.GetRawValue(majorUnit, minorUnit))
     {
-        if (!majorUnit.IsZero && minorUnit < BigInteger.Zero)
-        {
-            throw new ArgumentException(
-                "Unless the major unit is zero, the minor unit cannot be negative.",
-                nameof(minorUnit));
-        }
     }
 
-    public FungibleAssetValue(
-        Currency currency, int sign, BigInteger majorUnit, BigInteger minorUnit)
-        : this(
-            currency,
-            sign * (majorUnit * BigInteger.Pow(10, currency.DecimalPlaces) + minorUnit)
-        )
-    {
-        if (sign > 1 || sign < -1)
-        {
-            throw new ArgumentException("The sign must be 1, 0, or -1.", nameof(sign));
-        }
-        else if (sign == 0 && !majorUnit.IsZero)
-        {
-            throw new ArgumentException(
-                "If the sign is zero, the major unit must be also zero.",
-                nameof(majorUnit)
-            );
-        }
-        else if (sign == 0 && !minorUnit.IsZero)
-        {
-            throw new ArgumentException(
-                "If the sign is zero, the minor unit must be also zero.",
-                nameof(minorUnit)
-            );
-        }
-        else if (majorUnit < 0)
-        {
-            throw new ArgumentException(
-                "The major unit must not be negative.",
-                nameof(majorUnit)
-            );
-        }
-        else if (minorUnit < 0)
-        {
-            throw new ArgumentException(
-                "The minor unit must not be negative.",
-                nameof(minorUnit)
-            );
-        }
-        else if (minorUnit > 0 &&
-                 (int)Math.Floor(BigInteger.Log10(minorUnit) + 1) > currency.DecimalPlaces)
-        {
-            string msg =
-                $"Since the currency {currency} allows upto {currency.DecimalPlaces} " +
-                $"decimal places, the given minor unit {minorUnit} is too big.";
-            throw new ArgumentException(msg, nameof(minorUnit));
-        }
-    }
+    public bool IsPositive => RawValue > 0;
 
-    public int Sign
-    {
-        get
-        {
-            if (RawValue < 0)
-            {
-                return -1;
-            }
+    public bool IsZero => RawValue == 0;
 
-            if (RawValue == 0)
-            {
-                return 0;
-            }
+    public bool IsNegative => RawValue < 0;
 
-            return 1;
-        }
-    }
+    public int Sign => RawValue == 0 ? 0 : RawValue < 0 ? -1 : 1;
 
-    public BigInteger MajorUnit
-        => BigInteger.Abs(RawValue) / BigInteger.Pow(10, Currency.DecimalPlaces);
+    public BigInteger MajorUnit => RawValue / BigInteger.Pow(10, Currency.DecimalPlaces);
 
-    public BigInteger MinorUnit
-        => BigInteger.Abs(RawValue) % BigInteger.Pow(10, Currency.DecimalPlaces);
+    public BigInteger MinorUnit => RawValue % BigInteger.Pow(10, Currency.DecimalPlaces);
 
     public static bool operator <(FungibleAssetValue obj, FungibleAssetValue other)
         => obj.CompareTo(other) < 0;
@@ -181,72 +108,53 @@ public readonly record struct FungibleAssetValue(Currency Currency, BigInteger R
 
     public static FungibleAssetValue Parse(Currency currency, string value)
     {
-        int sign = 1;
-        if (value[0] == '-' || value[0] == '+')
-        {
-            sign = value[0] == '-' ? -1 : 1;
-            value = value[1..];
-        }
-
-        if (value.IndexOfAny(['+', '-']) >= 0)
-        {
-            var message = "Plus (+) or minus (-) sign can be appeared only at first and " +
-                          "cannot be more than one.";
-            throw new FormatException(message);
-        }
-
-        string[] parts = value.Split(['.'], count: 2);
-        bool minorExist = parts.Length > 1;
-        if (minorExist && parts[1].IndexOf('.') >= 0)
+        var decimalPlaces = currency.DecimalPlaces;
+        var pattern = $"^(?<sign>[+-]?)(?<major>[0-9]+)(\\.(?<minor>[0-9]{{0,{decimalPlaces}}}))?$";
+        var match = Regex.Match(value, pattern);
+        if (!match.Success)
         {
             throw new FormatException(
-                "The decimal separator (.) cannot be appeared more than once."
-            );
-        }
-        else if (!parts[0].All(char.IsDigit) || (minorExist && !parts[1].All(char.IsDigit)))
-        {
-            const string msg =
                 "The value string must consist of digits, decimal separator (.), plus (+), " +
-                "and minus(-).";
-            throw new FormatException(msg);
-        }
-        else if (minorExist && parts[1].Length > currency.DecimalPlaces)
-        {
-            throw new FormatException(
-                $"The currency {currency} does not allow more than {currency.DecimalPlaces} " +
-                (currency.DecimalPlaces == 1 ? "decimal place" : "decimal places")
-            );
+                "and minus(-).");
         }
 
-        BigInteger major = BigInteger.Parse(parts[0], CultureInfo.InvariantCulture);
-        BigInteger minor = minorExist
-            ? BigInteger.Parse(parts[1], CultureInfo.InvariantCulture) * BigInteger.Pow(
-                10,
-                currency.DecimalPlaces - parts[1].Length)
-            : 0;
-        return new FungibleAssetValue(currency, sign, major, minor);
+        var sign = match.Groups["sign"].Value;
+        var isPositive = sign != "-";
+        var majorString = match.Groups["major"].Value.PadLeft(1, '0');
+        var minorString = match.Groups["minor"].Value.PadRight(decimalPlaces, '0');
+        var major = BigInteger.Parse(majorString);
+        var minor = BigInteger.Parse(minorString);
+        var rawValue = major * BigInteger.Pow(10, currency.DecimalPlaces) + minor;
+        if (!isPositive)
+        {
+            rawValue = -rawValue;
+        }
+
+        return new FungibleAssetValue(currency, rawValue);
     }
+
+    public static FungibleAssetValue Abs(FungibleAssetValue value)
+        => new(value.Currency, BigInteger.Abs(value.RawValue));
 
     public FungibleAssetValue DivRem(BigInteger divisor, out FungibleAssetValue remainder)
     {
-        BigInteger q = BigInteger.DivRem(RawValue, divisor, out BigInteger rem);
+        var value = BigInteger.DivRem(RawValue, divisor, out BigInteger rem);
         remainder = new FungibleAssetValue(Currency, rem);
-        return new FungibleAssetValue(Currency, q);
+        return new FungibleAssetValue(Currency, value);
     }
 
     public BigInteger DivRem(FungibleAssetValue divisor, out FungibleAssetValue remainder)
     {
         if (!Currency.Equals(divisor.Currency))
         {
-            throw new ArgumentException(
-                "Cannot be divided by a heterogeneous currency: " +
-                $"{Currency} \u2260 {divisor.Currency}."
-            );
+            var message = $"Cannot be divided by a heterogeneous currency: " +
+                          $"{Currency} \u2260 {divisor.Currency}.";
+            throw new ArgumentException(message, nameof(divisor));
         }
 
-        BigInteger d = BigInteger.DivRem(RawValue, divisor.RawValue, out BigInteger rem);
+        var value = BigInteger.DivRem(RawValue, divisor.RawValue, out var rem);
         remainder = new FungibleAssetValue(Currency, rem);
-        return d;
+        return value;
     }
 
     public (FungibleAssetValue Quotient, FungibleAssetValue Remainder) DivRem(BigInteger divisor)
@@ -255,21 +163,20 @@ public readonly record struct FungibleAssetValue(Currency Currency, BigInteger R
     public (BigInteger Quotient, FungibleAssetValue Remainder) DivRem(FungibleAssetValue divisor)
         => (DivRem(divisor, out FungibleAssetValue remainder), remainder);
 
-    public FungibleAssetValue Abs() => new(Currency, BigInteger.Abs(RawValue));
+    public string GetQuantityString() => GetQuantityString(false);
 
-    public string GetQuantityString(bool minorUnit = false)
+    public string GetQuantityString(bool fixedDecimalPlaces)
     {
-        var signedString = Sign < 0 ? "-" : string.Empty;
-        var endCharsToTrim = minorUnit ? ' ' : '0';
-        return minorUnit || MinorUnit > 0
-            ? string.Format(
-            CultureInfo.InvariantCulture,
-            "{0}{1}.{2:d" + Currency.DecimalPlaces.ToString(CultureInfo.InvariantCulture) + "}",
-            signedString,
-            MajorUnit,
-            MinorUnit
-            ).TrimEnd(endCharsToTrim)
-            : (MajorUnit * Sign).ToString(CultureInfo.InvariantCulture);
+        var sign = IsNegative ? "-" : string.Empty;
+        var decimalPlaces = Currency.DecimalPlaces;
+        var rawString = $"{BigInteger.Abs(RawValue)}".PadLeft(decimalPlaces + 1, '0');
+        rawString = rawString.Insert(rawString.Length - decimalPlaces, ".");
+        if (!fixedDecimalPlaces)
+        {
+            rawString = rawString.TrimEnd('0').TrimEnd('.');
+        }
+
+        return $"{sign}{rawString}";
     }
 
     public bool Equals(FungibleAssetValue? other)
@@ -278,20 +185,40 @@ public readonly record struct FungibleAssetValue(Currency Currency, BigInteger R
     public override int GetHashCode()
         => unchecked((Currency.GetHashCode() * 397) ^ RawValue.GetHashCode());
 
-    public int CompareTo(object? obj) => obj is FungibleAssetValue o
-        ? CompareTo(o)
-        : throw new ArgumentException(
-            $"Unable to compare with other than {nameof(FungibleAssetValue)}",
-            nameof(obj));
+    public int CompareTo(object? obj)
+    {
+        if (obj is not FungibleAssetValue o)
+        {
+            throw new ArgumentException(
+                $"Unable to compare with other than {nameof(FungibleAssetValue)}",
+                nameof(obj));
+        }
 
-    public int CompareTo(FungibleAssetValue other) => Currency.Equals(other.Currency)
-        ? RawValue.CompareTo(other.RawValue)
-        : throw new ArgumentException(
-            $"Unable to compare heterogeneous currencies: {Currency} \u2260 {other.Currency}.",
-            nameof(other));
+        return CompareTo(o);
+    }
 
-    public override string ToString()
-        => $"{GetQuantityString()} {Currency.Ticker}";
+    public int CompareTo(FungibleAssetValue other)
+    {
+        if (!Currency.Equals(other.Currency))
+        {
+            throw new ArgumentException(
+                $"Unable to compare heterogeneous currencies: {Currency} \u2260 {other.Currency}.",
+                nameof(other));
+        }
+
+        return RawValue.CompareTo(other.RawValue);
+    }
+
+    public override string ToString() => $"{GetQuantityString()} {Currency.Ticker}";
+
+    public string ToString(string? format, IFormatProvider? formatProvider) => format switch
+    {
+        "N" => GetQuantityString(),
+        "F" => GetQuantityString(fixedDecimalPlaces: true),
+        "C" => $"{GetQuantityString()} {Currency.Ticker}",
+        "G" => $"{GetQuantityString(fixedDecimalPlaces: true)} {Currency.Ticker}",
+        _ => ToString(),
+    };
 
     public IValue ToBencodex()
     {
