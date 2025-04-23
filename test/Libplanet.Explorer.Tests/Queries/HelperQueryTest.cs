@@ -20,7 +20,7 @@ public class HelperQueryTest
         ExecutionResult result = await ExecuteQueryAsync<HelperQuery>(@"
         {
             currencyHash (
-                currency: { ticker: ""ABC"", decimalPlaces: 2, totalSupplyTrackable: true }
+                currency: { ticker: ""ABC"", decimalPlaces: 2 }
             )
         }
         ");

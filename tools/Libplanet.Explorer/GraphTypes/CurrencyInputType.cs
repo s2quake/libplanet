@@ -30,10 +30,6 @@ public class CurrencyInputType : InputObjectGraphType<Currency>
         );
         Field<BigIntGraphType>("maximumSupplyMajorUnit");
         Field<BigIntGraphType>("maximumSupplyMinorUnit");
-        Field<BooleanGraphType>(
-            "totalSupplyTrackable",
-            "Whether the total supply of this currency is trackable."
-        );
     }
 
     public override object ParseDictionary(IDictionary<string, object?> value)
@@ -53,35 +49,9 @@ public class CurrencyInputType : InputObjectGraphType<Currency>
             }
         }
 
-        const bool DefaultTotalSupplyTrackable = false;
-        bool totalSupplyTrackable = value.TryGetValue(
-            "totalSupplyTrackable", out object? booleanValue)
-            ? (
-                booleanValue is bool boolean
-                    ? boolean
-                    : throw new ExecutionError("totalSupplyTrackable must be boolean value.")
-              )
-            : DefaultTotalSupplyTrackable;
         byte decimalPlaces = (byte)value["decimalPlaces"]!;
         var maximumSupply = GetMaximumSupply(value, decimalPlaces);
-        if (maximumSupply > 0 && !totalSupplyTrackable)
-        {
-            throw new ExecutionError(
-                "Maximum supply is not available for legacy untracked currencies.");
-        }
-
         string ticker = (string)value["ticker"]!;
-
-#pragma warning disable CS0618
-
-        if (!totalSupplyTrackable)
-        {
-            return new Currency(
-                ticker,
-                decimalPlaces,
-                minters);
-        }
-#pragma warning restore CS0618
 
         return new Currency(ticker, decimalPlaces, maximumSupply, minters);
     }

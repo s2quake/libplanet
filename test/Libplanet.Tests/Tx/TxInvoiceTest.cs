@@ -259,8 +259,7 @@ namespace Libplanet.Tests.Tx
                           ""minters"": [
                             ""D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9""
                           ],
-                          ""hash"": ""a0d19219acb8d69815b3d299393c48bc8a93e0ec"",
-                          ""totalSupplyTrackable"": true
+                          ""hash"": ""a0d19219acb8d69815b3d299393c48bc8a93e0ec""
                         }}
                       }},
                       ""gasLimit"": 100,
