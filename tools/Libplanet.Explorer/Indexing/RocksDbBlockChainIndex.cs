@@ -346,12 +346,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                     ref duplicateInvolvedTxTimestampOrdinalMemos);
             }
 
-            if (tx.Actions is not { } actions)
-            {
-                continue;
-            }
-
-            foreach (var action in actions)
+            foreach (var action in tx.Actions)
             {
                 if (stoppingToken.IsCancellationRequested)
                 {

@@ -244,7 +244,7 @@ namespace Libplanet.Tests.Tx
                 tx.Id
             );
 
-            Assert.Equal(2, tx.Actions.Count);
+            Assert.Equal(2, tx.Actions.Length);
 
             var actionLoader = TypedActionLoader.Create(
                 typeof(BaseAction).Assembly, typeof(BaseAction));

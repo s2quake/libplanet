@@ -25,49 +25,57 @@ namespace Libplanet.Tests.Tx
             var random = new System.Random();
             var genesisHash = random.NextBlockHash();
             var timestamp = DateTimeOffset.UtcNow;
-            var actions = new TxActionList(Array.Empty<IValue>());
+            var actions = ImmutableArray<IValue>.Empty;
 
-            _ = new TxInvoice(
-                genesisHash: genesisHash,
-                timestamp: timestamp,
-                actions: actions,
-                maxGasPrice: null,
-                gasLimit: null);
-            _ = new TxInvoice(
-                genesisHash: genesisHash,
-                timestamp: timestamp,
-                actions: actions,
-                maxGasPrice: new Currency("DUMB", 0) * 100,
-                gasLimit: 100);
+            _ = new TxInvoice
+            {
+                GenesisHash = genesisHash,
+                Timestamp = timestamp,
+                Actions = actions,
+            };
+            _ = new TxInvoice
+            {
+                GenesisHash = genesisHash,
+                Timestamp = timestamp,
+                Actions = actions,
+                MaxGasPrice = new Currency("DUMB", 0) * 100,
+                GasLimit = 100,
+            };
 
             Assert.Throws<ArgumentException>(() =>
-                new TxInvoice(
-                    genesisHash: genesisHash,
-                    timestamp: timestamp,
-                    actions: actions,
-                    maxGasPrice: new Currency("DUMB", 0) * 100,
-                    gasLimit: null));
+                new TxInvoice
+                {
+                    GenesisHash = genesisHash,
+                    Timestamp = timestamp,
+                    Actions = actions,
+                    MaxGasPrice = new Currency("DUMB", 0) * 100,
+                }.Verify());
             Assert.Throws<ArgumentException>(() =>
-                new TxInvoice(
-                    genesisHash: genesisHash,
-                    timestamp: timestamp,
-                    actions: actions,
-                    maxGasPrice: null,
-                    gasLimit: 100));
+                new TxInvoice
+                {
+                    GenesisHash = genesisHash,
+                    Timestamp = timestamp,
+                    Actions = actions,
+                    GasLimit = 100,
+                }.Verify());
             Assert.Throws<ArgumentException>(() =>
-                new TxInvoice(
-                    genesisHash: genesisHash,
-                    timestamp: timestamp,
-                    actions: actions,
-                    maxGasPrice: new Currency("DUMB", 0) * -100,
-                    gasLimit: 100));
+                new TxInvoice
+                {
+                    GenesisHash = genesisHash,
+                    Timestamp = timestamp,
+                    Actions = actions,
+                    MaxGasPrice = new Currency("DUMB", 0) * -100,
+                    GasLimit = 100,
+                }.Verify());
             Assert.Throws<ArgumentException>(() =>
-                new TxInvoice(
-                    genesisHash: genesisHash,
-                    timestamp: timestamp,
-                    actions: actions,
-                    maxGasPrice: new Currency("DUMB", 0) * 100,
-                    gasLimit: -100));
+                new TxInvoice
+                {
+                    GenesisHash = genesisHash,
+                    Timestamp = timestamp,
+                    Actions = actions,
+                    MaxGasPrice = new Currency("DUMB", 0) * 100,
+                    GasLimit = -100,
+                }.Verify());
         }
 
         [Fact]
@@ -79,18 +87,17 @@ namespace Libplanet.Tests.Tx
                 random.NextAddress(),
                 random.NextAddress());
             var timestamp = DateTimeOffset.UtcNow;
-            var actions = new TxActionList(new IAction[]
-            {
+            var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((random.NextAddress(), "foo")),
                 DumbAction.Create((random.NextAddress(), "bar")),
-            }.ToPlainValues());
-            var invoice = new TxInvoice(
-                genesisHash,
-                updatedAddresses,
-                timestamp,
-                actions,
-                null,
-                null);
+            ]).ToPlainValues().ToImmutableArray();
+            var invoice = new TxInvoice
+            {
+                GenesisHash = genesisHash,
+                UpdatedAddresses = updatedAddresses,
+                Timestamp = timestamp,
+                Actions = actions,
+            };
             Assert.Equal(genesisHash, invoice.GenesisHash);
             Assert.True(updatedAddresses.SetEquals(invoice.UpdatedAddresses));
             Assert.Equal(timestamp, invoice.Timestamp);
@@ -106,7 +113,6 @@ namespace Libplanet.Tests.Tx
             Assert.Null(invoice.GenesisHash);
             Assert.Empty(invoice.UpdatedAddresses);
             Assert.InRange(invoice.Timestamp, before, after);
-            Assert.IsType<TxActionList>(invoice.Actions);
             Assert.Empty(invoice.Actions);
         }
 
@@ -119,18 +125,17 @@ namespace Libplanet.Tests.Tx
                 random.NextAddress(),
                 random.NextAddress());
             var timestamp = DateTimeOffset.UtcNow;
-            var actions = new TxActionList(new IAction[]
-            {
+            var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((random.NextAddress(), "foo")),
                 DumbAction.Create((random.NextAddress(), "bar")),
-            }.ToPlainValues());
-            var original = new TxInvoice(
-                genesisHash,
-                updatedAddresses,
-                timestamp,
-                actions,
-                null,
-                null);
+            ]).ToPlainValues().ToImmutableArray();
+            var original = new TxInvoice
+            {
+                GenesisHash = genesisHash,
+                UpdatedAddresses = updatedAddresses,
+                Timestamp = timestamp,
+                Actions = actions,
+            };
             var copy = new TxInvoice(original);
             Assert.Equal(genesisHash, copy.GenesisHash);
             Assert.True(updatedAddresses.SetEquals(copy.UpdatedAddresses));
@@ -154,25 +159,24 @@ namespace Libplanet.Tests.Tx
                 "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
             var updatedAddresses = ImmutableSortedSet.Create(AddressA, AddressB);
             var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-            var actions = new TxActionList(new IAction[]
-            {
+            var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((AddressA, "foo")),
                 DumbAction.Create((AddressB, "bar")),
-            }.ToPlainValues());
-            var invoice1 = new TxInvoice(
-                genesisHash,
-                updatedAddresses,
-                timestamp,
-                actions,
-                null,
-                null);
-            var invoice2 = new TxInvoice(
-                genesisHash,
-                updatedAddresses,
-                timestamp,
-                actions,
-                null,
-                null);
+            ]).ToPlainValues().ToImmutableArray();
+            var invoice1 = new TxInvoice
+            {
+                GenesisHash = genesisHash,
+                UpdatedAddresses = updatedAddresses,
+                Timestamp = timestamp,
+                Actions = actions,
+            };
+            var invoice2 = new TxInvoice
+            {
+                GenesisHash = genesisHash,
+                UpdatedAddresses = updatedAddresses,
+                Timestamp = timestamp,
+                Actions = actions,
+            };
             Assert.True(invoice1.Equals(invoice2));
             Assert.True(invoice1.Equals((object)invoice2));
             Assert.Equal(invoice1.GetHashCode(), invoice2.GetHashCode());
@@ -187,17 +191,19 @@ namespace Libplanet.Tests.Tx
             {
                 // NOTE: Non-null cases for MaxGasPrice and GasLimit are flipped as existing
                 // mock object has respective values set to null.
-                var invoice = new TxInvoice(
-                    i == 0 ? (BlockHash?)null : genesisHash,
-                    i == 1 ? ImmutableSortedSet<Address>.Empty : updatedAddresses,
-                    i == 2 ? DateTimeOffset.MinValue : timestamp,
-                    i == 3 ? TxActionList.Empty : actions,
-                    i == 4
+                var invoice = new TxInvoice
+                {
+                    GenesisHash = i == 0 ? null : genesisHash,
+                    UpdatedAddresses = i == 1 ? [] : updatedAddresses,
+                    Timestamp = i == 2 ? DateTimeOffset.MinValue : timestamp,
+                    Actions = i == 3 ? [] : actions,
+                    MaxGasPrice = i == 4
                         ? new FungibleAssetValue(
                             new Currency("FOO", 18, [new PrivateKey().Address]),
                             100)
-                        : (FungibleAssetValue?)null,
-                    i == 4 ? 10 : (long?)null);
+                        : null,
+                    GasLimit = i == 4 ? 10 : null,
+                };
                 Assert.False(invoice1.Equals(invoice));
                 Assert.False(invoice1.Equals((object)invoice));
                 Assert.NotEqual(invoice1.GetHashCode(), invoice.GetHashCode());
@@ -211,22 +217,22 @@ namespace Libplanet.Tests.Tx
                 "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
             var updatedAddresses = ImmutableSortedSet.Create(AddressA, AddressB);
             var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-            var actions = new TxActionList(new IAction[]
-            {
+            var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((AddressA, "foo")),
                 DumbAction.Create((AddressB, "bar")),
-            }.ToPlainValues());
-            var invoice = new TxInvoice(
-                genesisHash,
-                updatedAddresses,
-                timestamp,
-                actions,
-                new FungibleAssetValue(
+            ]).ToPlainValues().ToImmutableArray();
+            var invoice = new TxInvoice
+            {
+                GenesisHash = genesisHash,
+                UpdatedAddresses = updatedAddresses,
+                Timestamp = timestamp,
+                Actions = actions,
+                MaxGasPrice = new FungibleAssetValue(
                     new Currency("FOO", 18, [AddressA]),
                     1234,
                     5678),
-                100
-            );
+                GasLimit = 100,
+            };
 #pragma warning disable MEN002  // Long lines are OK for test JSON data.
             TestUtils.AssertJsonSerializable(
                 invoice,
@@ -279,11 +285,10 @@ namespace Libplanet.Tests.Tx
             public BlockHash? GenesisHash => BlockHash.Parse(
                 "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
 
-            public TxActionList Actions => new TxActionList(new IAction[]
-            {
+            public ImmutableArray<IValue> Actions => [.. ImmutableArray.Create<IAction>([
                 DumbAction.Create((AddressA, "foo")),
                 DumbAction.Create((AddressB, "bar")),
-            }.ToPlainValues());
+            ]).ToPlainValues()];
 
             public FungibleAssetValue? MaxGasPrice => null;
 
