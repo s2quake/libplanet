@@ -9,11 +9,13 @@ using Bencodex;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Assets;
 
 [JsonConverter(typeof(CurrencyJsonConverter))]
+[Model(Version = 1)]
 public readonly record struct Currency(
     string Ticker, byte DecimalPlaces, BigInteger MaximumSupply, ImmutableArray<Address> Minters)
     : IEquatable<Currency>
@@ -33,12 +35,16 @@ public readonly record struct Currency(
     {
     }
 
+    [Property(0)]
     public string Ticker { get; } = ValidateTicker(Ticker);
 
+    [Property(1)]
     public byte DecimalPlaces { get; } = DecimalPlaces;
 
+    [Property(2)]
     public BigInteger MaximumSupply { get; } = ValidateMaximumSupply(MaximumSupply);
 
+    [Property(3)]
     public ImmutableArray<Address> Minters { get; } = ValidateMinters(Minters);
 
     public HashDigest<SHA1> Hash => GetHash();
@@ -92,9 +98,9 @@ public readonly record struct Currency(
 
     public override string ToString() => $"{Ticker} ({Hash})";
 
-    public override int GetHashCode() => Hash.GetHashCode();
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
-    public bool Equals(Currency other) => Hash.Equals(other.Hash);
+    public bool Equals(Currency? other) => ModelUtility.Equals(this, other);
 
     public IValue ToBencodex()
     {

@@ -5,12 +5,16 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Tx;
 
-public sealed record class UnsignedTx(TxInvoice Invoice, TxSigningMetadata SigningMetadata)
+[Model(Version = 1)]
+public sealed record class UnsignedTx(
+    [property: Property(0)] TxInvoice Invoice,
+    [property: Property(1)] TxSigningMetadata SigningMetadata)
 {
     public ImmutableSortedSet<Address> UpdatedAddresses => Invoice.UpdatedAddresses;
 

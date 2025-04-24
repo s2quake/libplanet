@@ -5,24 +5,31 @@ using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
 using Libplanet.Common;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using static Libplanet.Types.BencodexUtility;
 
 namespace Libplanet.Types.Tx;
 
+[Model(Version = 1)]
 public sealed record class TxExecution : IEquatable<TxExecution>
 {
+    [Property(0)]
     public BlockHash BlockHash { get; init; }
 
+    [Property(1)]
     public TxId TxId { get; init; }
 
     [JsonIgnore]
     public bool Fail => ExceptionNames.Length > 0;
 
+    [Property(2)]
     public HashDigest<SHA256> InputState { get; init; }
 
+    [Property(3)]
     public HashDigest<SHA256> OutputState { get; init; }
 
+    [Property(4)]
     public ImmutableArray<string> ExceptionNames { get; init; } = [];
 
     public static TxExecution Create(IValue value)
@@ -44,34 +51,9 @@ public sealed record class TxExecution : IEquatable<TxExecution>
         };
     }
 
-    public bool Equals(TxExecution? other)
-    {
-        if (other is { } o)
-        {
-            return BlockHash.Equals(o.BlockHash) &&
-                   TxId.Equals(o.TxId) &&
-                   InputState.Equals(o.InputState) &&
-                   OutputState.Equals(o.OutputState) &&
-                   ExceptionNames.SequenceEqual(o.ExceptionNames);
-        }
+    public bool Equals(TxExecution? other) => ModelUtility.Equals(this, other);
 
-        return base.Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        var hash = default(HashCode);
-        hash.Add(BlockHash);
-        hash.Add(TxId);
-        hash.Add(InputState);
-        hash.Add(OutputState);
-        foreach (string exceptionName in ExceptionNames)
-        {
-            hash.Add(exceptionName);
-        }
-
-        return hash.ToHashCode();
-    }
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public IValue ToBencodex()
     {

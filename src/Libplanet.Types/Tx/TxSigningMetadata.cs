@@ -1,8 +1,10 @@
 using System;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 
 namespace Libplanet.Types.Tx;
 
+[Model(Version = 1)]
 public sealed record class TxSigningMetadata(Address Signer, long Nonce)
 {
     public TxSigningMetadata(PublicKey publicKey, long nonce)
@@ -10,17 +12,11 @@ public sealed record class TxSigningMetadata(Address Signer, long Nonce)
     {
     }
 
+    [Property(0)]
     public Address Signer { get; } = Signer;
 
+    [Property(1)]
     public long Nonce { get; } = ValidateNonce(Nonce);
-
-    public override string ToString()
-    {
-        return nameof(TxMetadata) + " {\n" +
-            $"  {nameof(Nonce)} = {Nonce},\n" +
-            $"  {nameof(Signer)} = {Signer},\n" +
-            "}";
-    }
 
     private static long ValidateNonce(long nonce)
     {
