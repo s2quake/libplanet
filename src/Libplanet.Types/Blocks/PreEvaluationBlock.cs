@@ -6,9 +6,7 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Types.Blocks;
 
-public sealed record class PreEvaluationBlock(
-    BlockContent Content,
-    PreEvaluationBlockHeader Header)
+public sealed record class PreEvaluationBlock(BlockContent Content, PreEvaluationBlockHeader Header)
 {
     // public PreEvaluationBlock(
     //     PreEvaluationBlockHeader preEvaluationBlockHeader,
@@ -47,8 +45,8 @@ public sealed record class PreEvaluationBlock(
     public Block Sign(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
     {
         var signature = Header.MakeSignature(privateKey, stateRootHash);
-        var header = new BlockHeader
-        return new Block(
-            this, (stateRootHash, signature, Header.DeriveBlockHash(stateRootHash, signature)));
+        var blockHash = Header.DeriveBlockHash(stateRootHash, signature);
+        var header = new BlockHeader(Header, stateRootHash, signature, blockHash);
+        return new Block(header, this);
     }
 }

@@ -12,7 +12,7 @@ namespace Libplanet.Store;
 /// Class that store uses to save blocks. This contains:
 /// <see cref="BlockHeader"/>, and list of <see cref="TxId"/>s.
 /// </summary>
-public readonly struct BlockDigest : IBlockMetadata, IBlockExcerpt
+public readonly struct BlockDigest
 {
     private static readonly Codec _codec = new();
     private static readonly Binary HeaderKey = new("H"u8.ToArray());         // 'H'
