@@ -1,4 +1,3 @@
-using System;
 using GraphQL.Language.AST;
 using Libplanet.Common;
 using Libplanet.Crypto;

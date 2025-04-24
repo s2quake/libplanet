@@ -7,7 +7,6 @@ using Libplanet.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
-using System.Collections.Immutable;
 
 namespace Libplanet.Benchmarks
 {

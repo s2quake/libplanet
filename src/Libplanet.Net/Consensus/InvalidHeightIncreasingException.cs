@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Blockchain;
 
 namespace Libplanet.Net.Consensus

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using Libplanet.Action.State;
 using Libplanet.Crypto;

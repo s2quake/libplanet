@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Libplanet.Types.Evidence
 {
     public sealed class EvidenceIdComparer : IComparer<EvidenceId>

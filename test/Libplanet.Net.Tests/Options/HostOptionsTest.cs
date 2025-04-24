@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Net.Options;
 using Xunit;
 

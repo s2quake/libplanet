@@ -1,11 +1,8 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using Libplanet.Action;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Explorer.Tests.Queries;
 

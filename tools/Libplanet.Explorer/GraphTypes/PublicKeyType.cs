@@ -1,6 +1,5 @@
 using GraphQL.Language.AST;
 using GraphQL.Types;
-using Libplanet.Common;
 using Libplanet.Crypto;
 
 namespace Libplanet.Explorer.GraphTypes

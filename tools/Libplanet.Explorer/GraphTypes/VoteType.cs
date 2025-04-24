@@ -1,4 +1,3 @@
-using System.Linq;
 using GraphQL.Types;
 using Libplanet.Types.Consensus;
 

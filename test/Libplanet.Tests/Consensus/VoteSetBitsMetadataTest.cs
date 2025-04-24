@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Consensus;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;

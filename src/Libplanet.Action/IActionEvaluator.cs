@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Security.Cryptography;
 using Libplanet.Action.Loader;

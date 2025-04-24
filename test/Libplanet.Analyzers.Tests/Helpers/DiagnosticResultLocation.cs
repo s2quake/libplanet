@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Analyzers.Tests.Helpers
 {
     /// <summary>

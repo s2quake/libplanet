@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Crypto;
 using Libplanet.Net.Transports;
 

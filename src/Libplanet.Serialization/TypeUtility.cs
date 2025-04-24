@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection;
-using Bencodex;
 using Bencodex.Types;
 
 namespace Libplanet.Serialization;

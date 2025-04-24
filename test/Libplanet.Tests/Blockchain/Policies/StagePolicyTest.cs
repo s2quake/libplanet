@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;

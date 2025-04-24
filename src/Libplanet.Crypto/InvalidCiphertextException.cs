@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Crypto;
 
 public sealed class InvalidCiphertextException : Exception

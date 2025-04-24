@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Action
 {
     public class GasUseNegativeException : Exception

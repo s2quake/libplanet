@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using Bencodex.Types;
 using Libplanet.Action;

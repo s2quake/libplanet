@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Types.Tx;
 
 public abstract class InvalidTxException : Exception

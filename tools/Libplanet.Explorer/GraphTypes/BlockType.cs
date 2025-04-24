@@ -1,4 +1,3 @@
-using Bencodex;
 using GraphQL.Types;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Types.Blocks;

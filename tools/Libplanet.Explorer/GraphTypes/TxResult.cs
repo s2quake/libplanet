@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Security.Cryptography;
 using Libplanet.Common;
 

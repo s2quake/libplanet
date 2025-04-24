@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using LruCacheNet;
 
 namespace Libplanet.Store.Trie;

@@ -1,11 +1,9 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Bencodex.Types;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using Libplanet.Common;
-using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 

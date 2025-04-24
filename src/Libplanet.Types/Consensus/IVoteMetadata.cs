@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;

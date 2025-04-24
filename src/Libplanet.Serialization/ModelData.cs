@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Bencodex;
 using Bencodex.Types;
 
 namespace Libplanet.Serialization;

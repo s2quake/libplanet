@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using Libplanet.Action.State;

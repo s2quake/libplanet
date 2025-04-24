@@ -1,5 +1,4 @@
 #nullable disable
-using System;
 using System.Security.Cryptography;
 using GraphQL.Language.AST;
 using GraphQL.Types;

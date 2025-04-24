@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Types.Blocks
 {
     public class InvalidBlockTimestampException : InvalidBlockException

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Libplanet.Extensions.Cocona.Configuration
 {
     public struct MptConfiguration

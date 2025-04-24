@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 

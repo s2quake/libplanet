@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Net.Protocols
 {
     public class PingTimeoutException : TimeoutException

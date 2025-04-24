@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Libplanet.Crypto;
 using Libplanet.Net.Consensus;

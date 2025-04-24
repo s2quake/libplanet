@@ -1,4 +1,3 @@
-using Bencodex;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;

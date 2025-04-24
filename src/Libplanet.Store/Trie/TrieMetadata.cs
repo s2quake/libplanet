@@ -1,5 +1,3 @@
-using System;
-using Bencodex;
 using Bencodex.Types;
 using Libplanet.Types.Blocks;
 

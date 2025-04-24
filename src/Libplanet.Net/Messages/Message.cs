@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Net.Messages
 {
     public class Message

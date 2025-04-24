@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.Contracts;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;

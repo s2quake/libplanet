@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Common;
 using Libplanet.Common.Extensions;
 using Xunit;

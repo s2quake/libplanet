@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;

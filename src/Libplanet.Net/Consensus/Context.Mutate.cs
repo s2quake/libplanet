@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;

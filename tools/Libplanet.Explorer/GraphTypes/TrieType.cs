@@ -1,4 +1,3 @@
-using System.Linq;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Store.Trie;

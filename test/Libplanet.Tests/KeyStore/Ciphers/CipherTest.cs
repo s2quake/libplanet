@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Libplanet.KeyStore.Ciphers;
 using Xunit;
 using Random = System.Random;

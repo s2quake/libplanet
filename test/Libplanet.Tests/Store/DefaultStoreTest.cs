@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Libplanet.Store;
 using Libplanet.Store.Trie;

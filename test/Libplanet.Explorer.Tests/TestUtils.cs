@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Explorer.Tests
 {
     public static class TestUtils

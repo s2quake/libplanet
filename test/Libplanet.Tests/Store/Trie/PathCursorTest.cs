@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Store.Trie;
 using Xunit;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Explorer.Executable.Exceptions
 {
     public class InvalidOptionValueException : Exception
