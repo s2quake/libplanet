@@ -10,11 +10,11 @@ namespace Libplanet.Action.Sys;
 public sealed record class Initialize : ActionBase
 {
     [Property(0)]
-    public ImmutableDictionary<Address, IValue>? States { get; init; } = [];
+    public ImmutableDictionary<Address, IValue> States { get; init; }
+        = ImmutableDictionary<Address, IValue>.Empty;
 
     [Property(1)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
-
 
     // public IWorld Execute(IActionContext context)
     // {

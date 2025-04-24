@@ -70,7 +70,7 @@ public class StatsCommand
 
             Console.WriteLine(
                 $"{blockHeader.Index}," +
-                $"{blockHeader.Hash}," +
+                $"{blockHeader.BlockHash}," +
                 $"{blockHeader.Miner}," +
                 $"{blockDigest.TxIds.Length}," +
                 $"{blockHeader.Timestamp.ToUnixTimeMilliseconds()}");
