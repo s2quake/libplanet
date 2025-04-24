@@ -71,7 +71,7 @@ public class TransactionQueryTest
     {
         var foo = new Currency("FOO", 2);
         var action = new Initialize(
-            new ValidatorSet(new List<Validator>()
+            new ImmutableSortedSet<Validator>(new List<Validator>()
                 { new Validator(new PrivateKey().PublicKey, 1 )}),
             new Dictionary<Address, IValue>
             {

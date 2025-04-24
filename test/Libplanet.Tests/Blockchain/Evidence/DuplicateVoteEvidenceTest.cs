@@ -5,291 +5,302 @@ using Libplanet.Types.Consensus;
 using Libplanet.Types.Evidence;
 using Xunit;
 
-namespace Libplanet.Tests.Blockchain.Evidence
+namespace Libplanet.Tests.Blockchain.Evidence;
+
+public class DuplicateVoteEvidenceTest
 {
-    public class DuplicateVoteEvidenceTest
+    [Fact]
+    public void Create_WithDifferentHeight_FailTest()
     {
-        [Fact]
-        public void Create_WithDifferentHeight_FailTest()
+        // Given
+        var privateKey = new PrivateKey();
+        var validatorPublicKey = privateKey.PublicKey;
+        var validators = ImmutableSortedSet.Create(
+        [
+            new Validator(validatorPublicKey, BigInteger.One),
+        ]);
+
+        var voteRef = new VoteMetadata
         {
-            // Given
-            var privateKey = new PrivateKey();
-            var validatorPublicKey = privateKey.PublicKey;
-            var validatorList = new List<Validator>
-            {
-                new Validator(validatorPublicKey, BigInteger.One),
-            };
-
-            var voteRef = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-            var voteDup = new VoteMetadata(
-                height: 2,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-
-            // When, Then
-            Assert.Throws<ArgumentException>(() =>
-            {
-                new DuplicateVoteEvidence(
-                    voteRef,
-                    voteDup,
-                    new ValidatorSet(validatorList),
-                    DateTimeOffset.UtcNow);
-            });
-        }
-
-        [Fact]
-        public void Create_WithDifferentRound_FailTest()
+            Height = 1,
+            Round = 2,
+            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            ValidatorPublicKey = validatorPublicKey,
+            ValidatorPower = BigInteger.One,
+            Flag = VoteFlag.PreCommit,
+        }.Sign(privateKey);
+        var voteDup = new VoteMetadata
         {
-            // Given
-            var privateKey = new PrivateKey();
-            var validatorPublicKey = privateKey.PublicKey;
-            var validatorList = new List<Validator>
-            {
-                new Validator(validatorPublicKey, BigInteger.One),
-            };
+            Height = 2,
+            Round = 2,
+            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            ValidatorPublicKey = validatorPublicKey,
+            ValidatorPower = BigInteger.One,
+            Flag = VoteFlag.PreCommit,
+        }.Sign(privateKey);
 
-            var voteRef = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-            var voteDup = new VoteMetadata(
-                height: 1,
-                round: 3,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-
-            // When, Then
-            Assert.Throws<ArgumentException>(() =>
-            {
-                new DuplicateVoteEvidence(
-                    voteRef,
-                    voteDup,
-                    new ValidatorSet(validatorList),
-                    DateTimeOffset.UtcNow);
-            });
-        }
-
-        [Fact]
-        public void Create_WithDifferentPublicKey_FailTest()
+        // When, Then
+        Assert.Throws<ArgumentException>(() =>
         {
-            // Given
-            var privateKeys = new PrivateKey[]
-            {
-                new PrivateKey(),
-                new PrivateKey(),
-            };
-            var validatorPublicKeys = privateKeys.Select(item => item.PublicKey).ToArray();
-            var validatorList
-                = validatorPublicKeys.Select(item => new Validator(item, BigInteger.One)).ToList();
+            new DuplicateVoteEvidence(
+                voteRef,
+                voteDup,
+                validators,
+                DateTimeOffset.UtcNow);
+        });
+    }
 
-            var voteRef = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKeys[0],
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKeys[0]);
-            var voteDup = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKeys[1],
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKeys[1]);
-
-            // When, Then
-            Assert.Throws<ArgumentException>(() =>
-            {
-                new DuplicateVoteEvidence(
-                    voteRef: voteRef,
-                    voteDup: voteDup,
-                    validatorSet: new ValidatorSet(validatorList),
-                    timestamp: DateTimeOffset.UtcNow);
-            });
-        }
-
-        [Fact]
-        public void Create_WithDifferentFlag_FailTest()
+    [Fact]
+    public void Create_WithDifferentRound_FailTest()
+    {
+        // Given
+        var privateKey = new PrivateKey();
+        var validatorPublicKey = privateKey.PublicKey;
+        var validatorList = new List<Validator>
         {
-            // Given
-            var privateKey = new PrivateKey();
-            var validatorPublicKey = privateKey.PublicKey;
-            var validatorList = new List<Validator>
-            {
-                new Validator(validatorPublicKey, BigInteger.One),
-            };
+            new Validator(validatorPublicKey, BigInteger.One),
+        };
 
-            var voteRef = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-            var voteDup = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreVote).Sign(privateKey);
+        var voteRef = new VoteMetadata(
+            height: 1,
+            round: 2,
+            blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
+        var voteDup = new VoteMetadata(
+            height: 1,
+            round: 3,
+            blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
 
-            // When, Then
-            Assert.Throws<ArgumentException>(() =>
-            {
-                new DuplicateVoteEvidence(
-                    voteRef: voteRef,
-                    voteDup: voteDup,
-                    validatorSet: new ValidatorSet(validatorList),
-                    timestamp: DateTimeOffset.UtcNow);
-            });
-        }
-
-        [Fact]
-        public void Create_WithSameBlock_FailTest()
+        // When, Then
+        Assert.Throws<ArgumentException>(() =>
         {
-            // Given
-            var privateKey = new PrivateKey();
-            var validatorPublicKey = privateKey.PublicKey;
-            var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
-            var validatorList = new List<Validator>
-            {
-                new Validator(validatorPublicKey, BigInteger.One),
-            };
+            new DuplicateVoteEvidence(
+                voteRef,
+                voteDup,
+                new ImmutableSortedSet<Validator>(validatorList),
+                DateTimeOffset.UtcNow);
+        });
+    }
 
-            var voteRef = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: blockHash,
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-            var voteDup = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: blockHash,
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-
-            // When, Then
-            Assert.Throws<ArgumentException>(() =>
-            {
-                new DuplicateVoteEvidence(
-                    voteRef: voteRef,
-                    voteDup: voteDup,
-                    validatorSet: new ValidatorSet(validatorList),
-                    timestamp: DateTimeOffset.UtcNow);
-            });
-        }
-
-        [Fact]
-        public void Bencoded()
+    [Fact]
+    public void Create_WithDifferentPublicKey_FailTest()
+    {
+        // Given
+        var privateKeys = new PrivateKey[]
         {
-            // Given
-            var privateKey = new PrivateKey();
-            var validatorPublicKey = privateKey.PublicKey;
-            var validatorList = new List<Validator>
-            {
-                new Validator(validatorPublicKey, BigInteger.One),
-            };
+            new PrivateKey(),
+            new PrivateKey(),
+        };
+        var validatorPublicKeys = privateKeys.Select(item => item.PublicKey).ToArray();
+        var validators = validatorPublicKeys.Select(item => new Validator(item, BigInteger.One))
+            .ToImmutableSortedSet();
 
-            var voteRef = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-            var voteDup = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
+        var voteRef = new VoteMetadata
+        {
+            Height = 1,
+            Round = 2,
+            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            ValidatorPublicKey = validatorPublicKeys[0],
+            ValidatorPower = BigInteger.One,
+            Flag = VoteFlag.PreCommit,
+        }.Sign(privateKeys[0]);
+        var voteDup = new VoteMetadata
+        {
+            Height = 1,
+            Round = 2,
+            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            ValidatorPublicKey = validatorPublicKeys[1],
+            ValidatorPower = BigInteger.One,
+            Flag = VoteFlag.PreCommit,
+        }.Sign(privateKeys[1]);
 
-            // When
-            var expectedEvidence = new DuplicateVoteEvidence(
+        // When, Then
+        Assert.Throws<ArgumentException>(() =>
+        {
+            new DuplicateVoteEvidence(
                 voteRef: voteRef,
                 voteDup: voteDup,
-                validatorSet: new ValidatorSet(validatorList),
-                timestamp: voteDup.Timestamp);
+                validators: validators,
+                timestamp: DateTimeOffset.UtcNow);
+        });
+    }
 
-            // Then
-            var actualEvidence = new DuplicateVoteEvidence(expectedEvidence.Bencoded);
+    [Fact]
+    public void Create_WithDifferentFlag_FailTest()
+    {
+        // Given
+        var privateKey = new PrivateKey();
+        var validatorPublicKey = privateKey.PublicKey;
+        var validators = ImmutableSortedSet.Create(
+        [
+            new Validator(validatorPublicKey, BigInteger.One),
+        ]);
 
-            Assert.Equal(expectedEvidence.Bencoded, actualEvidence.Bencoded);
-            Assert.Equal(expectedEvidence, actualEvidence);
-        }
-
-        [Fact]
-        public void Serialize_and_Deserialize_Test()
+        var voteRef = new VoteMetadata
         {
-            // Given
-            var privateKey = new PrivateKey();
-            var validatorPublicKey = privateKey.PublicKey;
-            var validatorList = new List<Validator>
-            {
-                new Validator(validatorPublicKey, BigInteger.One),
-            };
+            Height = 1,
+            Round = 2,
+            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            ValidatorPublicKey = validatorPublicKey,
+            ValidatorPower = BigInteger.One,
+            Flag = VoteFlag.PreCommit,
+        }.Sign(privateKey);
+        var voteDup = new VoteMetadata
+        {
+            Height = 1,
+            Round = 2,
+            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            ValidatorPublicKey = validatorPublicKey,
+            ValidatorPower = BigInteger.One,
+            Flag = VoteFlag.PreVote,
+        }.Sign(privateKey);
 
-            var voteRef = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-            var voteDup = new VoteMetadata(
-                height: 1,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: validatorPublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(privateKey);
-
-            // When
-            var expectedEvidence = new DuplicateVoteEvidence(
+        // When, Then
+        Assert.Throws<ArgumentException>(() =>
+        {
+            new DuplicateVoteEvidence(
                 voteRef: voteRef,
                 voteDup: voteDup,
-                validatorSet: new ValidatorSet(validatorList),
-                timestamp: voteDup.Timestamp);
+                validators: validators,
+                timestamp: DateTimeOffset.UtcNow);
+        });
+    }
 
-            // Then
-            var bencoded = expectedEvidence.Serialize();
-            var actualEvidence = EvidenceBase.Deserialize(bencoded);
+    [Fact]
+    public void Create_WithSameBlock_FailTest()
+    {
+        // Given
+        var privateKey = new PrivateKey();
+        var validatorPublicKey = privateKey.PublicKey;
+        var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var validatorList = new List<Validator>
+        {
+            new Validator(validatorPublicKey, BigInteger.One),
+        };
 
-            Assert.Equal(expectedEvidence.Bencoded, actualEvidence.Bencoded);
-            Assert.Equal(expectedEvidence, actualEvidence);
-        }
+        var voteRef = new VoteMetadata(
+            height: 1,
+            round: 2,
+            blockHash: blockHash,
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
+        var voteDup = new VoteMetadata(
+            height: 1,
+            round: 2,
+            blockHash: blockHash,
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
+
+        // When, Then
+        Assert.Throws<ArgumentException>(() =>
+        {
+            new DuplicateVoteEvidence(
+                voteRef: voteRef,
+                voteDup: voteDup,
+                validators: new ImmutableSortedSet<Validator>(validatorList),
+                timestamp: DateTimeOffset.UtcNow);
+        });
+    }
+
+    [Fact]
+    public void Bencoded()
+    {
+        // Given
+        var privateKey = new PrivateKey();
+        var validatorPublicKey = privateKey.PublicKey;
+        var validatorList = new List<Validator>
+        {
+            new Validator(validatorPublicKey, BigInteger.One),
+        };
+
+        var voteRef = new VoteMetadata(
+            height: 1,
+            round: 2,
+            blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
+        var voteDup = new VoteMetadata(
+            height: 1,
+            round: 2,
+            blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
+
+        // When
+        var expectedEvidence = new DuplicateVoteEvidence(
+            voteRef: voteRef,
+            voteDup: voteDup,
+            validators: new ImmutableSortedSet<Validator>(validatorList),
+            timestamp: voteDup.Timestamp);
+
+        // Then
+        var actualEvidence = new DuplicateVoteEvidence(expectedEvidence.Bencoded);
+
+        Assert.Equal(expectedEvidence.Bencoded, actualEvidence.Bencoded);
+        Assert.Equal(expectedEvidence, actualEvidence);
+    }
+
+    [Fact]
+    public void Serialize_and_Deserialize_Test()
+    {
+        // Given
+        var privateKey = new PrivateKey();
+        var validatorPublicKey = privateKey.PublicKey;
+        var validatorList = new List<Validator>
+        {
+            new Validator(validatorPublicKey, BigInteger.One),
+        };
+
+        var voteRef = new VoteMetadata(
+            height: 1,
+            round: 2,
+            blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
+        var voteDup = new VoteMetadata(
+            height: 1,
+            round: 2,
+            blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            timestamp: DateTimeOffset.UtcNow,
+            validatorPublicKey: validatorPublicKey,
+            validatorPower: BigInteger.One,
+            flag: VoteFlag.PreCommit).Sign(privateKey);
+
+        // When
+        var expectedEvidence = new DuplicateVoteEvidence(
+            voteRef: voteRef,
+            voteDup: voteDup,
+            validators: new ImmutableSortedSet<Validator>(validatorList),
+            timestamp: voteDup.Timestamp);
+
+        // Then
+        var bencoded = expectedEvidence.Serialize();
+        var actualEvidence = EvidenceBase.Deserialize(bencoded);
+
+        Assert.Equal(expectedEvidence.Bencoded, actualEvidence.Bencoded);
+        Assert.Equal(expectedEvidence, actualEvidence);
     }
 }

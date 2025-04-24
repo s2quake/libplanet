@@ -23,6 +23,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Libplanet\Libplanet.csproj" />
-    <ProjectReference Include="..\Libplanet.Stun\Libplanet.Stun.csproj" />
   </ItemGroup>
 </Project>

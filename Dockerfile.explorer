@@ -6,7 +6,6 @@ WORKDIR /app
 COPY ./Directory.Build.props ./
 COPY ./src/Directory.Build.props ./src/
 COPY ./tools/Directory.Build.props ./tools/
-COPY ./src/Libplanet.Stun/Libplanet.Stun.csproj ./src/Libplanet.Stun/
 RUN dotnet restore src/Libplanet.Stun
 COPY ./src/Libplanet.RocksDBStore/Libplanet.RocksDBStore.csproj ./src/Libplanet.RocksDBStore/
 RUN dotnet restore src/Libplanet.RocksDBStore

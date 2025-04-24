@@ -126,7 +126,7 @@ namespace Libplanet.Tests.Blockchain
         }
 
         [SkippableFact]
-        public void ValidatorSet()
+        public void ImmutableSortedSet<Validator>()
         {
             var validatorSet = _blockChain
                 .GetNextWorldState()
@@ -135,7 +135,7 @@ namespace Libplanet.Tests.Blockchain
                 "GenesisBlock is {Hash}, Transactions: {Txs}",
                 _blockChain.Genesis,
                 _blockChain.Genesis.Transactions);
-            Assert.Equal(TestUtils.ValidatorSet.TotalCount, validatorSet.TotalCount);
+            Assert.Equal(TestUtils.ImmutableSortedSet<Validator>.TotalCount, validatorSet.TotalCount);
         }
 
         [SkippableFact]
@@ -192,7 +192,7 @@ namespace Libplanet.Tests.Blockchain
                 stateStore,
                 actionLoader);
             var nonce = 0;
-            var txs = TestUtils.ValidatorSet.Validators
+            var txs = TestUtils.ImmutableSortedSet<Validator>.Validators
                 .Select(validator => Transaction.Create(
                     nonce++,
                     GenesisProposer,
@@ -200,7 +200,7 @@ namespace Libplanet.Tests.Blockchain
                     actions: new IAction[]
                         {
                             new Initialize(
-                                validatorSet: TestUtils.ValidatorSet,
+                                validatorSet: TestUtils.ImmutableSortedSet<Validator>,
                                 states: ImmutableDictionary.Create<Address, IValue>()),
                         }.ToPlainValues(),
                     timestamp: DateTimeOffset.UtcNow))
@@ -1025,7 +1025,7 @@ namespace Libplanet.Tests.Blockchain
             var privateKey = new PrivateKey();
             Address address = privateKey.Address;
             var action = new Initialize(
-                new ValidatorSet(
+                new ImmutableSortedSet<Validator>(
                     new List<Validator>() { new Validator(new PrivateKey().PublicKey, 1) }),
                 new Dictionary<Address, IValue>
                 {
@@ -1391,7 +1391,7 @@ namespace Libplanet.Tests.Blockchain
             {
                 new Initialize(
                     states: ImmutableDictionary.Create<Address, IValue>(),
-                    validatorSet: new ValidatorSet(
+                    validators: new ImmutableSortedSet<Validator>(
                         new List<Validator>
                         {
                             new Validator(validatorPrivKey.PublicKey, BigInteger.One),
@@ -1604,9 +1604,9 @@ namespace Libplanet.Tests.Blockchain
 
             var newValidatorPrivateKey = new PrivateKey();
             var newValidators = ValidatorPrivateKeys.Append(newValidatorPrivateKey).ToArray();
-            var newValidatorPowers = TestUtils.ValidatorSet.Validators.Select(v => v.Power)
+            var newValidatorPowers = TestUtils.ImmutableSortedSet<Validator>.Validators.Select(v => v.Power)
                 .Append(BigInteger.One).ToArray();
-            var initialValidatorSet = new ValidatorSet(
+            var initialValidatorSet = new ImmutableSortedSet<Validator>(
                 ValidatorPrivateKeys.Select(
                     pk => new Validator(pk.PublicKey, BigInteger.One)
                 ).ToList()
@@ -1614,7 +1614,7 @@ namespace Libplanet.Tests.Blockchain
             var systemActions = new[]
             {
                 new Initialize(
-                    validatorSet: initialValidatorSet,
+                    validators: initialValidatorSet,
                     states: ImmutableDictionary.Create<Address, IValue>()
                 ),
             };
@@ -1659,7 +1659,7 @@ namespace Libplanet.Tests.Blockchain
                         newBlock.Hash,
                         DateTimeOffset.UtcNow,
                         pk.PublicKey,
-                        TestUtils.ValidatorSet.GetValidator(pk.PublicKey).Power,
+                        TestUtils.ImmutableSortedSet<Validator>.GetValidator(pk.PublicKey).Power,
                         VoteFlag.PreCommit).Sign(pk))
                 .OrderBy(vote => vote.ValidatorPublicKey.Address)
                 .ToImmutableArray());
@@ -1725,7 +1725,7 @@ namespace Libplanet.Tests.Blockchain
                 blockChain
                     .GetNextWorldState(0L)
                     .GetValidatorSet(),
-                new ValidatorSet(
+                new ImmutableSortedSet<Validator>(
                     ValidatorPrivateKeys.Select(
                         pk => new Validator(pk.PublicKey, BigInteger.One)).ToList()));
 
@@ -1733,7 +1733,7 @@ namespace Libplanet.Tests.Blockchain
                 blockChain
                     .GetNextWorldState(1L)
                     .GetValidatorSet(),
-                new ValidatorSet(
+                new ImmutableSortedSet<Validator>(
                     newValidators.Select(
                         pk => new Validator(pk.PublicKey, BigInteger.One)).ToList()));
         }

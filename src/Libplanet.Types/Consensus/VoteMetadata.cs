@@ -1,223 +1,68 @@
-using System.Globalization;
-using System.Numerics;
-using System.Text.Json.Serialization;
-using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Types.Consensus
+namespace Libplanet.Types.Consensus;
+
+[Model(Version = 1)]
+public sealed record class VoteMetadata
 {
-    /// <summary>
-    /// Represents a vote metadata from a validator for consensus.
-    /// </summary>
-    public class VoteMetadata : IVoteMetadata, IEquatable<VoteMetadata>, IBencodable
+    [Property(0)]
+    public required PublicKey ValidatorPublicKey { get; init; }
+
+    [Property(1)]
+    public long Height { get; init; }
+
+    [Property(2)]
+    public int Round { get; init; }
+
+    [Property(3)]
+    public BlockHash BlockHash { get; init; }
+
+    [Property(4)]
+    public DateTimeOffset Timestamp { get; init; }
+
+    [Property(5)]
+    public BigInteger ValidatorPower { get; init; }
+
+    [Property(6)]
+    public VoteFlag Flag { get; init; }
+
+    public void Verify()
     {
-        private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
-        private static readonly Binary HeightKey =
-            new Binary(new byte[] { 0x48 }); // 'H'
-
-        private static readonly Binary RoundKey =
-            new Binary(new byte[] { 0x52 }); // 'R'
-
-        private static readonly Binary TimestampKey =
-            new Binary(new byte[] { 0x74 }); // 't'
-
-        private static readonly Binary BlockHashKey =
-            new Binary(new byte[] { 0x68 }); // 'h'
-
-        private static readonly Binary ValidatorPublicKeyKey =
-            new Binary(new byte[] { 0x50 }); // 'P'
-
-        private static readonly Binary ValidatorPowerKey =
-            new Binary(new byte[] { 0x70 }); // 'p'
-
-        private static readonly Binary FlagKey =
-            new Binary(new byte[] { 0x46 }); // 'F'
-
-        private static readonly Codec _codec = new Codec();
-
-        /// <summary>
-        /// Creates a <see cref="VoteMetadata"/> instance.
-        /// </summary>
-        /// <param name="height">Height of the vote target block.</param>
-        /// <param name="round">Round of the vote in given height.</param>
-        /// <param name="blockHash"><see cref="BlockHash"/> of the block in vote.</param>
-        /// <param name="timestamp">The time at which the voting took place.</param>
-        /// <param name="validatorPublicKey">
-        /// <see cref="PublicKey"/> of the validator made the vote.
-        /// </param>
-        /// <param name="validatorPower">The voting power of the validator.</param>
-        /// <param name="flag"><see cref="VoteFlag"/> for the vote's status.</param>
-        /// <exception cref="ArgumentException">Thrown for any of the following reasons:
-        /// <list type="bullet">
-        /// <item><description>
-        ///     Either <paramref name="height"/> or <paramref name="round"/> is negative.
-        /// </description></item>
-        /// <item><description>
-        ///     Given <paramref name="blockHash"/> is <see langword="null"/> when
-        ///     <paramref name="flag"/> is either <see cref="VoteFlag.Null"/>
-        ///     or <see cref="VoteFlag.Unknown"/>.
-        /// </description></item>
-        /// </list>
-        /// </exception>
-        public VoteMetadata(
-            long height,
-            int round,
-            BlockHash blockHash,
-            DateTimeOffset timestamp,
-            PublicKey validatorPublicKey,
-            BigInteger? validatorPower,
-            VoteFlag flag)
+        if (Height < 0)
         {
-            if (height < 0)
-            {
-                throw new ArgumentException(
-                    $"Given {nameof(height)} cannot be negative: {height}");
-            }
-            else if (round < 0)
-            {
-                throw new ArgumentException(
-                    $"Given {nameof(round)} cannot be negative: {round}");
-            }
-            else if (validatorPower is { } power && power <= 0)
-            {
-                var msg = $"Given {nameof(validatorPower)} cannot be negative " +
-                          $"or equal to zero: {validatorPower}";
-                throw new ArgumentException(msg);
-            }
-            else if (
-                blockHash.Equals(default) && (flag == VoteFlag.Null || flag == VoteFlag.Unknown))
-            {
-                throw new ArgumentException(
-                    $"Given {nameof(blockHash)} cannot be default if {nameof(flag)} " +
-                    $"is {VoteFlag.Null} or {VoteFlag.Unknown}");
-            }
-
-            Height = height;
-            Round = round;
-            BlockHash = blockHash;
-            Timestamp = timestamp;
-            ValidatorPublicKey = validatorPublicKey;
-            ValidatorPower = validatorPower;
-            Flag = flag;
+            throw new ArgumentException(
+                $"Given {nameof(Height)} cannot be negative: {Height}");
         }
-
-        public VoteMetadata(Bencodex.Types.IValue bencoded)
-            : this(bencoded is Bencodex.Types.Dictionary dict
-                ? dict
-                : throw new ArgumentException(
-                    $"Given {nameof(bencoded)} must be of type " +
-                    $"{typeof(Bencodex.Types.Dictionary)}: {bencoded.GetType()}",
-                    nameof(bencoded)))
+        else if (Round < 0)
         {
+            throw new ArgumentException(
+                $"Given {nameof(Round)} cannot be negative: {Round}");
         }
-
-#pragma warning disable SA1118 // The parameter spans multiple lines
-        private VoteMetadata(Bencodex.Types.Dictionary bencoded)
-            : this(
-                height: (Integer)bencoded[HeightKey],
-                round: (Integer)bencoded[RoundKey],
-                blockHash: new BlockHash(bencoded[BlockHashKey]),
-                timestamp: DateTimeOffset.ParseExact(
-                    (Text)bencoded[TimestampKey],
-                    TimestampFormat,
-                    CultureInfo.InvariantCulture),
-                validatorPublicKey: new PublicKey(
-                    [.. ((Binary)bencoded[ValidatorPublicKeyKey]).ByteArray]),
-                validatorPower: bencoded.ContainsKey(ValidatorPowerKey)
-                    ? (Integer)bencoded[ValidatorPowerKey]
-                    : (Integer?)null,
-                flag: (VoteFlag)(int)(Integer)bencoded[FlagKey])
+        else if (ValidatorPower <= 0)
         {
+            var msg = $"Given {nameof(ValidatorPower)} cannot be negative " +
+                      $"or equal to zero: {ValidatorPower}";
+            throw new ArgumentException(msg);
         }
-#pragma warning restore SA1118
-
-        public long Height { get; }
-
-        public int Round { get; }
-
-        public BlockHash BlockHash { get; }
-
-        public DateTimeOffset Timestamp { get; }
-
-        public PublicKey ValidatorPublicKey { get; }
-
-        public BigInteger? ValidatorPower { get; }
-
-        public VoteFlag Flag { get; }
-
-        [JsonIgnore]
-        public Bencodex.Types.IValue Bencoded
+        else if (
+            BlockHash.Equals(default) && (Flag == VoteFlag.Null || Flag == VoteFlag.Unknown))
         {
-            get
-            {
-                Dictionary encoded = Bencodex.Types.Dictionary.Empty
-                    .Add(HeightKey, Height)
-                    .Add(RoundKey, Round)
-                    .Add(
-                        TimestampKey,
-                        Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
-                    .Add(ValidatorPublicKeyKey, ValidatorPublicKey.ToByteArray(compress: true))
-                    .Add(FlagKey, (long)Flag);
-
-                if (BlockHash is { } blockHash)
-                {
-                    encoded = encoded.Add(BlockHashKey, blockHash.ByteArray);
-                }
-
-                if (ValidatorPower is { } power)
-                {
-                    encoded = encoded.Add(ValidatorPowerKey, power);
-                }
-
-                return encoded;
-            }
+            throw new ArgumentException(
+                $"Given {nameof(BlockHash)} cannot be default if {nameof(Flag)} " +
+                $"is {VoteFlag.Null} or {VoteFlag.Unknown}");
         }
+    }
 
-        /// <summary>
-        /// Signs a <see cref="VoteMetadata"/> to create a <see cref="Vote"/>
-        /// using given <paramref name="signer"/>.
-        /// </summary>
-        /// <param name="signer">The <see cref="PrivateKey"/> to sign the data with.  This can be
-        /// <see langword="null"/> to create an unsigned <see cref="Vote"/> instance.</param>
-        /// <returns>A <see cref="Vote"/> with a (possibly <see langword="null"/>) signature.
-        /// </returns>
-        public Vote Sign(PrivateKey? signer)
-        {
-            return signer is PrivateKey key
-                ? new Vote(this, key.Sign(_codec.Encode(Bencoded)).ToImmutableArray())
-                : new Vote(this, ImmutableArray<byte>.Empty);
-        }
+    public bool Verify(ImmutableArray<byte> signature)
+    {
+        return ValidatorPublicKey.Verify([.. ModelSerializer.SerializeToBytes(this)], signature);
+    }
 
-        public bool Equals(VoteMetadata? other)
-        {
-            return other is VoteMetadata metadata &&
-                Height == metadata.Height &&
-                Round == metadata.Round &&
-                BlockHash.Equals(metadata.BlockHash) &&
-                Timestamp
-                    .ToString(TimestampFormat, CultureInfo.InvariantCulture).Equals(
-                        metadata.Timestamp.ToString(
-                            TimestampFormat,
-                            CultureInfo.InvariantCulture)) &&
-                ValidatorPublicKey.Equals(metadata.ValidatorPublicKey) &&
-                ValidatorPower == metadata.ValidatorPower &&
-                Flag == metadata.Flag;
-        }
-
-        public override bool Equals(object? obj) =>
-        obj is VoteMetadata other && Equals(other);
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(
-                Height,
-                Round,
-                BlockHash,
-                Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture),
-                ValidatorPublicKey,
-                ValidatorPower,
-                Flag);
-        }
+    public Vote Sign(PrivateKey signer)
+    {
+        var signature = signer.Sign(ModelSerializer.SerializeToBytes(this));
+        return new Vote(this, [.. signature]);
     }
 }

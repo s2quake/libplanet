@@ -12,7 +12,7 @@ namespace Libplanet.Action.Tests.Sys
 {
     public class InitializeTest
     {
-        private static readonly ValidatorSet _validatorSet = new ValidatorSet(
+        private static readonly ImmutableSortedSet<Validator> _validatorSet = new ImmutableSortedSet<Validator>(
             new List<Validator>()
             {
                 new Validator(new PrivateKey().PublicKey, BigInteger.One),
@@ -30,10 +30,10 @@ namespace Libplanet.Action.Tests.Sys
         public void Constructor()
         {
             var action = new Initialize(
-                validatorSet: _validatorSet,
+                validators: _validatorSet,
                 states: _states
             );
-            Assert.Equal(_validatorSet, action.ValidatorSet);
+            Assert.Equal(_validatorSet, action.ImmutableSortedSet<Validator>);
             Assert.Equal(_states, action.States);
         }
 
@@ -57,7 +57,7 @@ namespace Libplanet.Action.Tests.Sys
                 maxGasPrice: null);
             var initialize = new Initialize(
                 states: _states,
-                validatorSet: _validatorSet
+                validators: _validatorSet
             );
 
             var nextState = initialize.Execute(context);
@@ -105,7 +105,7 @@ namespace Libplanet.Action.Tests.Sys
                 maxGasPrice: null);
             var initialize = new Initialize(
                 states: _states,
-                validatorSet: _validatorSet
+                validators: _validatorSet
             );
 
             Assert.Throws<InvalidOperationException>(
@@ -148,7 +148,7 @@ namespace Libplanet.Action.Tests.Sys
             var action = new Initialize();
             action.LoadPlainValue(encoded);
 
-            Assert.Equal(_validatorSet, action.ValidatorSet);
+            Assert.Equal(_validatorSet, action.ImmutableSortedSet<Validator>);
             Assert.Equal(_states, action.States);
         }
     }

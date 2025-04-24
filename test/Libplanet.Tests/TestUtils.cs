@@ -47,7 +47,7 @@ namespace Libplanet.Tests
                 "91602d7091c5c7837ac8e71a8d6b1ed1355cfe311914d9a76107899add0ad56a"),
         }.ToImmutableList();  // The ordering here should match the ordering by address.
 
-        public static readonly ValidatorSet ValidatorSet = new ValidatorSet(
+        public static readonly ImmutableSortedSet<Validator> ImmutableSortedSet<Validator> = new ImmutableSortedSet<Validator>(
             ValidatorPrivateKeys.Select(
                 privateKey => new Validator(privateKey.PublicKey, BigInteger.One)).ToList());
 
@@ -401,7 +401,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 blockHash,
                 deterministicTimestamp ? DateTimeOffset.UnixEpoch : DateTimeOffset.UtcNow,
                 key.PublicKey,
-                useValidatorPower ? ValidatorSet.GetValidator(key.PublicKey).Power : null,
+                useValidatorPower ? ImmutableSortedSet<Validator>.GetValidator(key.PublicKey).Power : null,
                 VoteFlag.PreCommit).Sign(key)).ToImmutableArray();
 
             return new BlockCommit(
@@ -411,14 +411,14 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static PreEvaluationBlock ProposeGenesis(
             PublicKey proposer,
             IReadOnlyList<Transaction> transactions = null,
-            ValidatorSet validatorSet = null,
+            ImmutableSortedSet<Validator> validatorSet = null,
             DateTimeOffset? timestamp = null,
             int protocolVersion = Block.CurrentProtocolVersion
         )
         {
             var txs = transactions?.ToList() ?? new List<Transaction>();
             long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposer.Address));
-            validatorSet = validatorSet ?? ValidatorSet;
+            validatorSet = validatorSet ?? ImmutableSortedSet<Validator>;
             txs.Add(
                 Transaction.Create(
                     nonce++,
@@ -427,7 +427,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     actions: new IAction[]
                     {
                         new Initialize(
-                            validatorSet: validatorSet,
+                            validators: validatorSet,
                             states: ImmutableDictionary.Create<Address, IValue>()),
                     }.Select(x => x.PlainValue),
                     timestamp: DateTimeOffset.MinValue));
@@ -549,7 +549,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         /// </param>
         /// <param name="actions"><see cref="Action{T}"/>s to be included in genesis block.
         /// Works only if <paramref name="genesisBlock"/> is null.</param>
-        /// <param name="validatorSet"><see cref="ValidatorSet"/> to be included in genesis block.
+        /// <param name="validatorSet"><see cref="ImmutableSortedSet<Validator>"/> to be included in genesis block.
         /// Works only if <paramref name="genesisBlock"/> is null.</param>
         /// <param name="privateKey">A <see cref="PrivateKey"/> to sign genesis actions.
         /// Works only if <paramref name="genesisBlock"/> is null.</param>
@@ -568,7 +568,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             IStateStore stateStore,
             IActionLoader actionLoader,
             IEnumerable<IAction> actions = null,
-            ValidatorSet validatorSet = null,
+            ImmutableSortedSet<Validator> validatorSet = null,
             PrivateKey privateKey = null,
             DateTimeOffset? timestamp = null,
             IEnumerable<IRenderer> renderers = null,
@@ -598,7 +598,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             IStateStore stateStore,
             IActionLoader actionLoader,
             IEnumerable<IAction> actions = null,
-            ValidatorSet validatorSet = null,
+            ImmutableSortedSet<Validator> validatorSet = null,
             PrivateKey privateKey = null,
             DateTimeOffset? timestamp = null,
             IEnumerable<IRenderer> renderers = null,

@@ -1326,7 +1326,7 @@ namespace Libplanet.Blockchain
         internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) =>
             GetNextStateRootHash(this[blockHash]);
 
-        internal ValidatorSet GetValidatorSet(long index)
+        internal ImmutableSortedSet<Validator> GetValidatorSet(long index)
         {
             if (index == 0)
             {
@@ -1336,7 +1336,7 @@ namespace Libplanet.Blockchain
             if (GetBlockCommit(index) is { } commit)
             {
                 var validatorList = commit.Votes.Select(CreateValidator).ToList();
-                return new ValidatorSet(validatorList);
+                return new ImmutableSortedSet<Validator>(validatorList);
             }
 
             throw new ArgumentException("Cannot find a validator set for the given index.");

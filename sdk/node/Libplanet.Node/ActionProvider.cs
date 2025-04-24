@@ -20,13 +20,13 @@ public sealed class ActionProvider : IActionProvider
     {
         var validators = validatorKeys
             .Select(item => new Validator(item, new BigInteger(1000)))
-            .ToArray();
-        var validatorSet = new ValidatorSet(validators: [.. validators]);
+            .ToImmutableSortedSet();
         return
         [
-            new Initialize(
-                validatorSet: validatorSet,
-                states: ImmutableDictionary.Create<Address, IValue>()),
+            new Initialize
+            {
+                Validators = validators,
+            },
         ];
     }
 }

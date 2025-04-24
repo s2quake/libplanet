@@ -173,21 +173,21 @@ namespace Libplanet.Action.State
         /// Returns the validator set.
         /// </summary>
         /// <param name="worldState">The <see cref="IWorldState"/> to read from.</param>
-        /// <returns>The validator set of type <see cref="ValidatorSet"/>.
+        /// <returns>The validator set of type <see cref="ImmutableSortedSet<Validator>"/>.
         /// </returns>
         [Pure]
-        public static ValidatorSet GetValidatorSet(this IWorldState worldState) =>
+        public static ImmutableSortedSet<Validator> GetValidatorSet(this IWorldState worldState) =>
             worldState.GetValidatorSetAccount().GetValidatorSet();
 
         /// <summary>
-        /// Sets <paramref name="validatorSet"/> to the stored <see cref="ValidatorSet"/>.
+        /// Sets <paramref name="validatorSet"/> to the stored <see cref="ImmutableSortedSet<Validator>"/>.
         /// </summary>
         /// <param name="world">The <see cref="IWorld"/> to manipulate.</param>
-        /// <param name="validatorSet">The <see cref="ValidatorSet"/> instance to write.</param>
+        /// <param name="validatorSet">The <see cref="ImmutableSortedSet<Validator>"/> instance to write.</param>
         /// <returns>A new <see cref="IWorld"/> instance with
         /// <paramref name="validator"/> set.</returns>
         [Pure]
-        public static IWorld SetValidatorSet(this IWorld world, ValidatorSet validatorSet) =>
+        public static IWorld SetValidatorSet(this IWorld world, ImmutableSortedSet<Validator> validatorSet) =>
             world.SetValidatorSetAccount(
                 world.GetValidatorSetAccount().SetValidatorSet(validatorSet));
 

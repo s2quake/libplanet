@@ -78,7 +78,7 @@ namespace Libplanet.Net.Consensus
 
         private readonly BlockChain _blockChain;
         private readonly Codec _codec;
-        private readonly ValidatorSet _validatorSet;
+        private readonly ImmutableSortedSet<Validator> _validatorSet;
         private readonly Channel<ConsensusMsg> _messageRequests;
         private readonly Channel<System.Action> _mutationRequests;
         private readonly HeightVoteSet _heightVoteSet;
@@ -120,7 +120,7 @@ namespace Libplanet.Net.Consensus
         /// <seealso cref="ProcessGenericUponRules"/>
         /// <seealso cref="MakeVote"/>
         /// </param>
-        /// <param name="validators">The <see cref="ValidatorSet"/> for
+        /// <param name="validators">The <see cref="ImmutableSortedSet<Validator>"/> for
         /// given <paramref name="height"/>.</param>
         /// <param name="contextOption">A <see cref="ContextOption"/> for
         /// configuring a timeout and delay for each <see cref="ConsensusStep"/>.</param>
@@ -129,7 +129,7 @@ namespace Libplanet.Net.Consensus
             long height,
             BlockCommit? lastCommit,
             PrivateKey privateKey,
-            ValidatorSet validators,
+            ImmutableSortedSet<Validator> validators,
             ContextOption contextOption)
             : this(
                 blockChain,
@@ -149,7 +149,7 @@ namespace Libplanet.Net.Consensus
             long height,
             BlockCommit? lastCommit,
             PrivateKey privateKey,
-            ValidatorSet validators,
+            ImmutableSortedSet<Validator> validators,
             ConsensusStep consensusStep,
             int round = -1,
             int cacheSize = 128,

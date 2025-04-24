@@ -41,7 +41,7 @@ namespace Libplanet.Net.Tests
             new BoundPeer(PrivateKeys[3].PublicKey, new DnsEndPoint("1.0.0.3", 1003)),
         };
 
-        public static readonly ValidatorSet ValidatorSet = Libplanet.Tests.TestUtils.ValidatorSet;
+        public static readonly ImmutableSortedSet<Validator> ImmutableSortedSet<Validator> = Libplanet.Tests.TestUtils.ImmutableSortedSet<Validator>;
 
         public static readonly IBlockPolicy Policy = new BlockPolicy(
             new PolicyActionsRegistry(
@@ -136,7 +136,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ValidatorSet.Validators.Select(v => v.Power),
+                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -164,7 +164,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ValidatorSet.Validators.Select(v => v.Power),
+                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -192,7 +192,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ValidatorSet.Validators.Select(v => v.Power),
+                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -220,7 +220,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ValidatorSet.Validators.Select(v => v.Power),
+                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -278,7 +278,7 @@ namespace Libplanet.Net.Tests
             BlockCommit? lastCommit = null,
             PrivateKey? privateKey = null,
             ContextOption? contextOption = null,
-            ValidatorSet? validatorSet = null)
+            ImmutableSortedSet<Validator>? validatorSet = null)
         {
             Context? context = null;
             privateKey ??= PrivateKeys[0];
@@ -303,7 +303,7 @@ namespace Libplanet.Net.Tests
                 IActionLoader? actionLoader = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null,
-                ValidatorSet? validatorSet = null)
+                ImmutableSortedSet<Validator>? validatorSet = null)
         {
             Context? context = null;
             privateKey ??= PrivateKeys[1];

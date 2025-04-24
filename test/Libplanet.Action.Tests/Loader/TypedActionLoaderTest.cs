@@ -45,7 +45,7 @@ namespace Libplanet.Action.Tests.Loader
                 .Add(
                     "values",
                     new List(
-                        new ValidatorSet(
+                        new ImmutableSortedSet<Validator>(
                             new List<Validator>()
                                 { new Validator(new PrivateKey().PublicKey, 1) }).Bencoded,
                         Dictionary.Empty.Add(

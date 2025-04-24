@@ -39,12 +39,12 @@ namespace Libplanet.Action.State
             addresses.Select(address => GetState(address)).ToList();
 
         /// <inheritdoc cref="IAccountState.GetValidatorSet"/>
-        public ValidatorSet GetValidatorSet()
+        public ImmutableSortedSet<Validator> GetValidatorSet()
         {
             IValue? value = Trie[ValidatorSetKey];
             return value is List list
-                ? new ValidatorSet(list)
-                : new ValidatorSet();
+                ? new ImmutableSortedSet<Validator>(list)
+                : new ImmutableSortedSet<Validator>();
         }
     }
 }

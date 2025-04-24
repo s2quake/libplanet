@@ -11,7 +11,7 @@ namespace Libplanet.Action.Tests.Sys
 {
     public class RegistryTest
     {
-        private static readonly ValidatorSet _validatorSet = new ValidatorSet(
+        private static readonly ImmutableSortedSet<Validator> _validatorSet = new ImmutableSortedSet<Validator>(
             new List<Validator>()
             {
                 new Validator(new PrivateKey().PublicKey, BigInteger.One),
@@ -41,7 +41,7 @@ namespace Libplanet.Action.Tests.Sys
                             "initial value")));
             IAction action = Registry.Deserialize(value);
             var initialize = Assert.IsType<Initialize>(action);
-            Assert.Equal(_validatorSet, initialize.ValidatorSet);
+            Assert.Equal(_validatorSet, initialize.ImmutableSortedSet<Validator>);
             Assert.Equal(_states, initialize.States);
 
             ArgumentException e;

@@ -485,7 +485,7 @@ namespace Libplanet.Net.Consensus
             var nextStateRootHash = _blockChain.GetNextStateRootHash(height - 1) ??
                 throw new NullReferenceException(
                     $"Could not find the next state root hash for index {height - 1}");
-            ValidatorSet validatorSet = _blockChain
+            ImmutableSortedSet<Validator> validatorSet = _blockChain
                 .GetWorldState(nextStateRootHash)
                 .GetValidatorSet();
 

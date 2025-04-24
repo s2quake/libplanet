@@ -14,7 +14,7 @@ namespace Libplanet.Net.Consensus
         private readonly long _height;
         private readonly int _round;
         private readonly VoteFlag _voteType;
-        private readonly ValidatorSet _validatorSet;
+        private readonly ImmutableSortedSet<Validator> _validatorSet;
         private readonly object _lock;
         private readonly Dictionary<PublicKey, Vote> _votes; // Primary votes to share
         private readonly Dictionary<BlockHash, BlockVotes> _votesByBlock;
@@ -25,7 +25,7 @@ namespace Libplanet.Net.Consensus
             long height,
             int round,
             VoteFlag voteType,
-            ValidatorSet validatorSet)
+            ImmutableSortedSet<Validator> validatorSet)
         {
             _logger = Log
                 .ForContext("Tag", "Consensus")
@@ -497,7 +497,7 @@ namespace Libplanet.Net.Consensus
                 Sum += power;
             }
 
-            public List<Vote> MappedList(long height, int round, ValidatorSet validatorSet) =>
+            public List<Vote> MappedList(long height, int round, ImmutableSortedSet<Validator> validatorSet) =>
                 validatorSet.PublicKeys.Select(
                     key => Votes.ContainsKey(key)
                         ? Votes[key]

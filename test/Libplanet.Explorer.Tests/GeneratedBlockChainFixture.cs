@@ -83,7 +83,7 @@ public class GeneratedBlockChainFixture
                         actions: new IAction[]
                             {
                                 new Initialize(
-                                    new ValidatorSet(
+                                    new ImmutableSortedSet<Validator>(
                                         ImmutableList<Validator>.Empty.Add(
                                             new Validator(pk.PublicKey, 1)).ToList()),
                                     ImmutableDictionary.Create<Address, IValue>())

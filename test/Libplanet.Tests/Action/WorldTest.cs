@@ -103,7 +103,7 @@ namespace Libplanet.Tests.Action
                 .SetBalance(_addr[0], _currencies[4], 5)
                 .SetBalance(_addr[1], _currencies[2], 15)
                 .SetBalance(_addr[1], _currencies[3], 20)
-                .SetValidatorSet(new ValidatorSet(_keys
+                .SetValidatorSet(new ImmutableSortedSet<Validator>(_keys
                     .Select(key => new Validator(key.PublicKey, 1))
                     .ToList())));
 
@@ -412,7 +412,7 @@ namespace Libplanet.Tests.Action
                 .Select(i => new PrivateKey())
                 .ToList();
 
-            var validatorSet = new ValidatorSet(
+            var validatorSet = new ImmutableSortedSet<Validator>(
                 keys.Select(key => new Validator(key.PublicKey, 1)).ToList());
             world = world.SetValidatorSet(validatorSet);
             Assert.Equal(newValidatorCount, world.GetValidatorSet().TotalCount);
@@ -434,7 +434,7 @@ namespace Libplanet.Tests.Action
                 Assert.Null(newValidatorSetRawValue);
             }
 
-            world = world.SetValidatorSet(new ValidatorSet());
+            world = world.SetValidatorSet(new ImmutableSortedSet<Validator>());
             Assert.Equal(0, world.GetValidatorSet().TotalCount);
             oldValidatorSetRawValue =
                 world.GetAccountState(ReservedAddresses.LegacyAccount).Trie[

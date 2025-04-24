@@ -24,7 +24,7 @@ namespace Libplanet.Net.Tests.Consensus
             _blockChain = TestUtils.CreateDummyBlockChain();
             var block = _blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             _lastCommit = TestUtils.CreateBlockCommit(block);
-            _heightVoteSet = new HeightVoteSet(2, TestUtils.ValidatorSet);
+            _heightVoteSet = new HeightVoteSet(2, TestUtils.ImmutableSortedSet<Validator>);
             _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
         }
 
@@ -37,7 +37,7 @@ namespace Libplanet.Net.Tests.Consensus
                 default,
                 DateTimeOffset.UtcNow,
                 TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.ValidatorSet[0].Power,
+                TestUtils.ImmutableSortedSet<Validator>[0].Power,
                 VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
@@ -67,8 +67,8 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 default,
                 DateTimeOffset.UtcNow,
-                TestUtils.ValidatorSet[0].PublicKey,
-                TestUtils.ValidatorSet[0].Power + 1,
+                TestUtils.ImmutableSortedSet<Validator>[0].PublicKey,
+                TestUtils.ImmutableSortedSet<Validator>[0].Power + 1,
                 VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
@@ -84,7 +84,7 @@ namespace Libplanet.Net.Tests.Consensus
                 default,
                 DateTimeOffset.UtcNow,
                 TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.ValidatorSet[0].Power,
+                TestUtils.ImmutableSortedSet<Validator>[0].Power,
                 VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
             var preVote1 = new VoteMetadata(
                 2,
@@ -92,7 +92,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 DateTimeOffset.UtcNow,
                 TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.ValidatorSet[0].Power,
+                TestUtils.ImmutableSortedSet<Validator>[0].Power,
                 VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
             var preCommit0 = new VoteMetadata(
                 2,
@@ -100,7 +100,7 @@ namespace Libplanet.Net.Tests.Consensus
                 default,
                 DateTimeOffset.UtcNow,
                 TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.ValidatorSet[0].Power,
+                TestUtils.ImmutableSortedSet<Validator>[0].Power,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[0]);
             var preCommit1 = new VoteMetadata(
                 2,
@@ -108,7 +108,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 DateTimeOffset.UtcNow,
                 TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.ValidatorSet[0].Power,
+                TestUtils.ImmutableSortedSet<Validator>[0].Power,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[0]);
 
             _heightVoteSet.AddVote(preVote0);
@@ -146,7 +146,7 @@ namespace Libplanet.Net.Tests.Consensus
                             default,
                             DateTimeOffset.UtcNow,
                             TestUtils.PrivateKeys[index].PublicKey,
-                            TestUtils.ValidatorSet[index].Power,
+                            TestUtils.ImmutableSortedSet<Validator>[index].Power,
                             VoteFlag.PreVote)
                         .Sign(TestUtils.PrivateKeys[index]))
                 .ToList();
@@ -156,7 +156,7 @@ namespace Libplanet.Net.Tests.Consensus
                     default,
                     DateTimeOffset.UtcNow,
                     TestUtils.PrivateKeys[0].PublicKey,
-                    TestUtils.ValidatorSet[0].Power,
+                    TestUtils.ImmutableSortedSet<Validator>[0].Power,
                     VoteFlag.PreCommit)
                 .Sign(TestUtils.PrivateKeys[0]);
 
