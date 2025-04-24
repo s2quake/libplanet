@@ -670,7 +670,7 @@ namespace Libplanet.Tests.Blockchain
                     actions: new IAction[]
                     {
                         new Initialize(
-                            validatorSet: TestUtils.ValidatorSet,
+                            validatorSet: TestUtils.ImmutableSortedSet<Validator>,
                             states: ImmutableDictionary.Create<Address, IValue>()),
                     }.ToPlainValues(),
                     timestamp: DateTimeOffset.UtcNow),

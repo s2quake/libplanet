@@ -59,7 +59,7 @@ public partial class RawStateQueryTest
         value =
             Assert.IsAssignableFrom<IDictionary<string, object>>(trie["value"]);
         Assert.Equal(
-            ByteUtil.Hex(_codec.Encode(Fixture.ValidatorSet.Bencoded)),
+            ByteUtil.Hex(_codec.Encode(Fixture.ImmutableSortedSet<Validator>.Bencoded)),
             Assert.IsAssignableFrom<string>(value["hex"]));
     }
 }

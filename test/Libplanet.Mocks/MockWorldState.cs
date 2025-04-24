@@ -211,7 +211,7 @@ namespace Libplanet.Mocks
             }
         }
 
-        public MockWorldState SetValidatorSet(ValidatorSet validatorSet)
+        public MockWorldState SetValidatorSet(ImmutableSortedSet<Validator> validatorSet)
         {
             var validatorSetAccount = this.GetValidatorSetAccount();
             validatorSetAccount = validatorSetAccount.SetValidatorSet(validatorSet);

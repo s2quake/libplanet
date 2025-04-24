@@ -6,14 +6,14 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Action.State
 {
     /// <summary>
-    /// A special "account" for managing <see cref="ValidatorSet"/> starting with
+    /// A special "account" for managing <see cref="ImmutableSortedSet<Validator>"/> starting with
     /// <see cref="BlockMetadata.ValidatorSetAccountProtocolVersion"/>.
     /// </summary>
     public class ValidatorSetAccount
     {
         /// <summary>
         /// The <see cref="Address"/> location within the account where a
-        /// <see cref="ValidatorSet"/> gets stored.
+        /// <see cref="ImmutableSortedSet<Validator>"/> gets stored.
         /// </summary>
         public static readonly Address ValidatorSetAddress =
             Address.Parse("1000000000000000000000000000000000000000");
@@ -28,23 +28,23 @@ namespace Libplanet.Action.State
 
         public int WorldVersion { get; }
 
-        public ValidatorSet GetValidatorSet()
+        public ImmutableSortedSet<Validator> GetValidatorSet()
         {
             if (WorldVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
             {
                 return Trie[KeyConverters.ToStateKey(ValidatorSetAddress)] is { } value
-                    ? new ValidatorSet(value)
-                    : new ValidatorSet();
+                    ? new ImmutableSortedSet<Validator>(value)
+                    : new ImmutableSortedSet<Validator>();
             }
             else
             {
                 return Trie[KeyConverters.ValidatorSetKey] is { } value
-                    ? new ValidatorSet(value)
-                    : new ValidatorSet();
+                    ? new ImmutableSortedSet<Validator>(value)
+                    : new ImmutableSortedSet<Validator>();
             }
         }
 
-        public ValidatorSetAccount SetValidatorSet(ValidatorSet validatorSet)
+        public ValidatorSetAccount SetValidatorSet(ImmutableSortedSet<Validator> validatorSet)
         {
             if (WorldVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
             {

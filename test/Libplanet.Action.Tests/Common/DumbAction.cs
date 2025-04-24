@@ -115,7 +115,7 @@ namespace Libplanet.Action.Tests.Common
 
             if (Validators is { } validators)
             {
-                world = world.SetValidatorSet(new ValidatorSet(validators.ToList()));
+                world = world.SetValidatorSet(new ImmutableSortedSet<Validator>(validators.ToList()));
             }
 
             return world;

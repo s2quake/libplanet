@@ -15,7 +15,6 @@
             "src/Libplanet.RocksDBStore/Libplanet.RocksDBStore.csproj",
             "src/Libplanet.Store/Libplanet.Store.csproj",
             "src/Libplanet.Store.Remote/Libplanet.Store.Remote.csproj",
-            "src/Libplanet.Stun/Libplanet.Stun.csproj",
             "src/Libplanet.Types/Libplanet.Types.csproj"
           ],
           "exclude": ["**/bin/**", "**/obj/**"],

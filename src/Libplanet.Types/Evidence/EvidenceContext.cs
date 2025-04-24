@@ -10,17 +10,17 @@ namespace Libplanet.Types.Evidence
         /// <summary>
         /// Initializes a new instance of the <see cref="EvidenceContext"/> class.
         /// </summary>
-        /// <param name="validatorSet">
-        /// Indicates the <see cref="ValidatorSet" /> where the infraction occurred at the height.
+        /// <param name="validators">
+        /// Indicates the <see cref="ImmutableSortedSet<Validator>" /> where the infraction occurred at the height.
         /// </param>
-        public EvidenceContext(ValidatorSet validatorSet)
+        public EvidenceContext(ImmutableSortedSet<Validator> validators)
         {
-            ValidatorSet = validatorSet;
+            Validators = validators;
         }
 
         /// <summary>
-        /// Indicates the <see cref="ValidatorSet" /> where the infraction occurred at the height.
+        /// Indicates the <see cref="ImmutableSortedSet<Validator>" /> where the infraction occurred at the height.
         /// </summary>
-        public ValidatorSet ValidatorSet { get; }
+        public ImmutableSortedSet<Validator> Validators { get; }
     }
 }

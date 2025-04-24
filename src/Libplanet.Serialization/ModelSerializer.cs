@@ -14,6 +14,7 @@ public static class ModelSerializer
     private const int ObjectValue = 0x_0000_0001;
     private const int ArrayValue = 0x_0000_0002;
     private const int ImmutableArrayValue = 0x_0000_0003;
+    private static readonly Codec _codec = new();
 
     public static bool TryGetType(IValue value, [MaybeNullWhen(false)] out Type type)
     {
@@ -62,8 +63,7 @@ public static class ModelSerializer
         return false;
     }
 
-    public static IValue Serialize(object? obj)
-        => Serialize(obj, ModelOptions.Default);
+    public static IValue Serialize(object? obj) => Serialize(obj, ModelOptions.Default);
 
     public static IValue Serialize(object? obj, ModelOptions options)
     {
@@ -102,6 +102,8 @@ public static class ModelSerializer
         };
         return data.Bencoded;
     }
+
+    public static byte[] SerializeToBytes(object? obj) => _codec.Encode(Serialize(obj));
 
     public static object? Deserialize(IValue value, Type type)
         => Deserialize(value, type, ModelOptions.Default);

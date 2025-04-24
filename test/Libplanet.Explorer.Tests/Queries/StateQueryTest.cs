@@ -194,7 +194,7 @@ public partial class StateQueryTest
                 Assert.IsAssignableFrom<IDictionary<string, object>>(
                     resultDict["world"])["validatorSet"]);
         Assert.Equal(
-            ByteUtil.Hex(_codec.Encode(Fixture.ValidatorSet.Bencoded)),
+            ByteUtil.Hex(_codec.Encode(Fixture.ImmutableSortedSet<Validator>.Bencoded)),
             Assert.IsAssignableFrom<string>(validatorSet["hex"]));
     }
 

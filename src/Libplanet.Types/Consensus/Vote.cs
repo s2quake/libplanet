@@ -1,162 +1,74 @@
-using System.Diagnostics.Contracts;
-using System.Globalization;
-using System.Numerics;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Bencodex.Types;
-using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Types.Consensus
+namespace Libplanet.Types.Consensus;
+
+[Model(Version = 1)]
+public sealed record class Vote(VoteMetadata Metadata, ImmutableArray<byte> Signature)
+    : IEquatable<Vote>
 {
-    /// <summary>
-    /// Represents a <see cref="Vote"/> from a validator for consensus.
-    /// </summary>
-    public class Vote : IVoteMetadata, IEquatable<Vote>, IBencodable
+    [Property(0)]
+    public VoteMetadata Metadata { get; } = Metadata;
+
+    [Property(1)]
+    public ImmutableArray<byte> Signature { get; } = Validate(Metadata, Signature);
+
+    public long Height => Metadata.Height;
+
+    public int Round => Metadata.Round;
+
+    public BlockHash BlockHash => Metadata.BlockHash;
+
+    public DateTimeOffset Timestamp => Metadata.Timestamp;
+
+    public PublicKey ValidatorPublicKey => Metadata.ValidatorPublicKey;
+
+    public BigInteger ValidatorPower => Metadata.ValidatorPower;
+
+    public VoteFlag Flag => Metadata.Flag;
+
+    public bool Equals(Vote? other) => ModelUtility.Equals(this, other);
+
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+
+    public bool Verify() => Metadata.Verify(Signature);
+
+    private static ImmutableArray<byte> Validate(
+        VoteMetadata metadata, ImmutableArray<byte> signature)
     {
-        private static readonly Binary SignatureKey = new Binary(new byte[] { 0x53 }); // 'S'
-
-        private static readonly Codec _codec = new Codec();
-        private readonly VoteMetadata _metadata;
-
-        public Vote(
-            VoteMetadata metadata,
-            ImmutableArray<byte> signature)
+        if (signature.IsDefault)
         {
-            if (signature.IsDefault)
+            throw new ArgumentException(
+                $"Given {nameof(signature)} should not be set to default; use " +
+                $"an empty array to represent a lack of signature for a {nameof(Vote)}.",
+                nameof(signature));
+        }
+        else if (!signature.IsEmpty)
+        {
+            if (metadata.Flag != VoteFlag.PreVote && metadata.Flag != VoteFlag.PreCommit)
             {
                 throw new ArgumentException(
-                    $"Given {nameof(signature)} should not be set to default; use " +
-                    $"an empty array to represent a lack of signature for a {nameof(Vote)}.",
+                    $"If {nameof(signature)} is not empty, {metadata.Flag} should be either " +
+                    $"{VoteFlag.PreVote} or {VoteFlag.PreCommit}",
                     nameof(signature));
             }
-            else if (!signature.IsEmpty)
-            {
-                if (metadata.Flag != VoteFlag.PreVote && metadata.Flag != VoteFlag.PreCommit)
-                {
-                    throw new ArgumentException(
-                        $"If {nameof(signature)} is not empty, {metadata.Flag} should be either " +
-                        $"{VoteFlag.PreVote} or {VoteFlag.PreCommit}",
-                        nameof(signature));
-                }
-                else if (!metadata.ValidatorPublicKey.Verify(
-                    [.. _codec.Encode(metadata.Bencoded)], signature))
-                {
-                    throw new ArgumentException(
-                        $"Given {nameof(signature)} is invalid.",
-                        nameof(signature));
-                }
-            }
-            else if (signature.IsEmpty &&
-                (metadata.Flag != VoteFlag.Null && metadata.Flag != VoteFlag.Unknown))
+            else if (!metadata.Verify(signature))
             {
                 throw new ArgumentException(
-                    $"If {nameof(signature)} is empty, {metadata.Flag} should be either " +
-                    $"{VoteFlag.Null} or {VoteFlag.Unknown}",
+                    $"Given {nameof(signature)} is invalid.",
                     nameof(signature));
             }
-
-            _metadata = metadata;
-            Signature = signature;
         }
-
-        public Vote(Bencodex.Types.IValue bencoded)
-            : this(bencoded is Bencodex.Types.Dictionary dict
-                ? dict
-                : throw new ArgumentException(
-                    $"Given {nameof(bencoded)} must be of type " +
-                    $"{typeof(Bencodex.Types.Dictionary)}: {bencoded.GetType()}",
-                    nameof(bencoded)))
+        else if (signature.IsEmpty &&
+            metadata.Flag != VoteFlag.Null && metadata.Flag != VoteFlag.Unknown)
         {
+            throw new ArgumentException(
+                $"If {nameof(signature)} is empty, {metadata.Flag} should be either " +
+                $"{VoteFlag.Null} or {VoteFlag.Unknown}",
+                nameof(signature));
         }
 
-#pragma warning disable SA1118 // The parameter spans multiple lines
-        private Vote(Bencodex.Types.Dictionary encoded)
-            : this(
-                new VoteMetadata((IValue)encoded),
-                encoded.ContainsKey(SignatureKey)
-                    ? ((Binary)encoded[SignatureKey]).ByteArray
-                    : ImmutableArray<byte>.Empty)
-        {
-        }
-#pragma warning restore SA1118
-
-        public long Height => _metadata.Height;
-
-        public int Round => _metadata.Round;
-
-        public BlockHash BlockHash => _metadata.BlockHash;
-
-        public DateTimeOffset Timestamp => _metadata.Timestamp;
-
-        public PublicKey ValidatorPublicKey => _metadata.ValidatorPublicKey;
-
-        public BigInteger? ValidatorPower => _metadata.ValidatorPower;
-
-        public VoteFlag Flag => _metadata.Flag;
-
-        /// <summary>
-        /// The signature for the <see cref="Vote"/>.  Lack of signature for a <see cref="Vote"/>
-        /// is represented by an empty array <em>not</em> <see langword="default"/>.
-        /// </summary>
-        public ImmutableArray<byte> Signature { get; }
-
-        [JsonIgnore]
-        public Bencodex.Types.IValue Bencoded =>
-        !Signature.IsEmpty
-            ? ((Bencodex.Types.Dictionary)_metadata.Bencoded).Add(SignatureKey, Signature)
-            : _metadata.Bencoded;
-
-        /// <summary>
-        /// Verifies whether the <see cref="Vote"/>'s payload is properly signed by
-        /// <see cref="Validator"/>.
-        /// </summary>
-        /// <returns><see langword="true"/> if the <see cref="Signature"/> is not empty
-        /// and is a valid signature signed by <see cref="Validator"/>,
-        /// <see langword="false"/> otherwise.</returns>
-        [Pure]
-        public bool Verify() =>
-            !Signature.IsEmpty &&
-            ValidatorPublicKey.Verify(
-                _codec.Encode(_metadata.Bencoded).ToImmutableArray(), Signature);
-
-        [Pure]
-        public bool Equals(Vote? other)
-        {
-            return other is Vote vote &&
-                _metadata.Equals(vote._metadata) &&
-                Signature.SequenceEqual(vote.Signature);
-        }
-
-        [Pure]
-        public override bool Equals(object? obj)
-        {
-            return obj is Vote other && Equals(other);
-        }
-
-        [Pure]
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(
-                _metadata.GetHashCode(),
-                ByteUtil.CalculateHashCode(Signature.ToArray()));
-        }
-
-        [Pure]
-        public override string ToString()
-        {
-            var dict = new Dictionary<string, object>
-            {
-                { "validator_public_key", ValidatorPublicKey.ToString() },
-                { "validator_power", $"{ValidatorPower}" },
-                { "vote_flag", Flag.ToString() },
-                { "block_hash", BlockHash.ToString() },
-                { "height", Height },
-                { "round", Round },
-                { "timestamp", Timestamp.ToString(CultureInfo.InvariantCulture) },
-            };
-            return JsonSerializer.Serialize(dict);
-        }
+        return signature;
     }
 }

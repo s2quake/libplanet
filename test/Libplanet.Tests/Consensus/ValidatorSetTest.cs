@@ -17,7 +17,7 @@ namespace Libplanet.Tests.Consensus
                 .Select(publicKey => new Validator(publicKey, BigInteger.One))
                 .Append(new Validator(publicKeys.Last(), BigInteger.One))
                 .ToList();
-            Assert.Throws<ArgumentException>(() => new ValidatorSet(validators));
+            Assert.Throws<ArgumentException>(() => new ImmutableSortedSet<Validator>(validators));
         }
 
         [Fact]
@@ -30,7 +30,7 @@ namespace Libplanet.Tests.Consensus
                 .Select(publicKey => new Validator(publicKey, BigInteger.One))
                 .Append(zeroPowerValidator)
                 .ToList();
-            Assert.Throws<ArgumentException>(() => new ValidatorSet(validators));
+            Assert.Throws<ArgumentException>(() => new ImmutableSortedSet<Validator>(validators));
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace Libplanet.Tests.Consensus
                 .Range(0, 10)
                 .Select(_ => new PrivateKey().PublicKey)
                 .ToList();
-            ValidatorSet validatorSet = new ValidatorSet(publicKeys.Select(
+            ImmutableSortedSet<Validator> validatorSet = new ImmutableSortedSet<Validator>(publicKeys.Select(
                 publicKey => new Validator(publicKey, BigInteger.One)).ToList());
             TestUtils.AssertSorted(validatorSet.Validators.Select(
                 validator => validator.OperatorAddress));
@@ -53,7 +53,7 @@ namespace Libplanet.Tests.Consensus
                 .Range(0, 10)
                 .Select(_ => new PrivateKey().PublicKey)
                 .ToList();
-            ValidatorSet validatorSet = new ValidatorSet(publicKeys.Select(
+            ImmutableSortedSet<Validator> validatorSet = new ImmutableSortedSet<Validator>(publicKeys.Select(
                 publicKey => new Validator(publicKey, BigInteger.One)).ToList());
             Assert.Equal(10, validatorSet.TotalCount);
             Assert.Equal(6, validatorSet.TwoThirdsCount);
@@ -67,7 +67,7 @@ namespace Libplanet.Tests.Consensus
                 .Range(0, 10)
                 .Select(_ => new PrivateKey().PublicKey)
                 .ToList();
-            ValidatorSet validatorSet = new ValidatorSet(publicKeys.Select(
+            ImmutableSortedSet<Validator> validatorSet = new ImmutableSortedSet<Validator>(publicKeys.Select(
                 publicKey => new Validator(publicKey, BigInteger.One)).ToList());
             Assert.Equal(10, validatorSet.TotalPower);
             Assert.Equal(6, validatorSet.TwoThirdsPower);
@@ -81,7 +81,7 @@ namespace Libplanet.Tests.Consensus
                 .Range(0, 10)
                 .Select(_ => new Validator(new PrivateKey().PublicKey, BigInteger.One))
                 .ToList();
-            ValidatorSet validatorSet = new ValidatorSet(validators);
+            ImmutableSortedSet<Validator> validatorSet = new ImmutableSortedSet<Validator>(validators);
 
             Assert.True(validatorSet.Validators.All(v => v.Power.Equals(BigInteger.One)));
 
@@ -124,7 +124,7 @@ namespace Libplanet.Tests.Consensus
             var orderedPrivateKeys = unorderedPrivateKeys
                 .OrderBy(key => key.Address)
                 .ToList();
-            var validatorSet = new ValidatorSet(unorderedPrivateKeys.Select(
+            var validatorSet = new ImmutableSortedSet<Validator>(unorderedPrivateKeys.Select(
                 key => new Validator(key.PublicKey, BigInteger.One)).ToList());
             var unorderedVotes = unorderedPrivateKeys
                 .Select(

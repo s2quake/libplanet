@@ -128,7 +128,7 @@ public class BlockCommand
         // FIXME: Declare a ICommandParameterSet type taking key ID and keystore path instead:
         PrivateKey key = new KeyCommand().UnprotectKey(keyId, passphrase, ignoreStdin: true);
 
-        var validatorSet = new ValidatorSet(
+        var validatorSet = new ImmutableSortedSet<Validator>(
             validatorKey
                 .Select(PublicKey.Parse)
                 .Select(k => new Validator(k, BigInteger.One))

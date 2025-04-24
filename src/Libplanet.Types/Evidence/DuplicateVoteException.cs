@@ -59,12 +59,10 @@ namespace Libplanet.Types.Evidence
             var voteDup = VoteDup;
             (_, Vote dup) = DuplicateVoteEvidence.OrderDuplicateVotePair(voteRef, voteDup);
 
-            var validatorSet = evidenceContext.ValidatorSet;
-
             return new DuplicateVoteEvidence(
                 voteRef: voteRef,
                 voteDup: voteDup,
-                validatorSet: validatorSet,
+                validators: evidenceContext.Validators,
                 timestamp: dup.Timestamp);
         }
     }

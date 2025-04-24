@@ -12,7 +12,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Net\Libplanet.Net.csproj" />
-    <ProjectReference Include="..\..\src\Libplanet.Stun\Libplanet.Stun.csproj" />
     <ProjectReference Include="..\Libplanet.Tests\Libplanet.Tests.csproj" />
   </ItemGroup>
 

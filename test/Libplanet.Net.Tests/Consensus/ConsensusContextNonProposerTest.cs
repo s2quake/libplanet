@@ -68,8 +68,8 @@ namespace Libplanet.Net.Tests.Consensus
                     0,
                     block1.Hash,
                     DateTimeOffset.UtcNow,
-                    TestUtils.ValidatorSet[i].PublicKey,
-                    TestUtils.ValidatorSet[i].Power,
+                    TestUtils.ImmutableSortedSet<Validator>[i].PublicKey,
+                    TestUtils.ImmutableSortedSet<Validator>[i].Power,
                     VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[i]);
                 consensusContext.HandleMessage(new ConsensusPreVoteMsg(expectedVotes[i]));
             }
@@ -83,8 +83,8 @@ namespace Libplanet.Net.Tests.Consensus
                     0,
                     block1.Hash,
                     DateTimeOffset.UtcNow,
-                    TestUtils.ValidatorSet[i].PublicKey,
-                    TestUtils.ValidatorSet[i].Power,
+                    TestUtils.ImmutableSortedSet<Validator>[i].PublicKey,
+                    TestUtils.ImmutableSortedSet<Validator>[i].Power,
                     VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[i]);
                 consensusContext.HandleMessage(new ConsensusPreCommitMsg(expectedVotes[i]));
             }
@@ -176,7 +176,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             foreach ((PrivateKey privateKey, BigInteger power)
                      in TestUtils.PrivateKeys.Zip(
-                         TestUtils.ValidatorSet.Validators.Select(v => v.Power),
+                         TestUtils.ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == TestUtils.PrivateKeys[2])
@@ -199,7 +199,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             foreach ((PrivateKey privateKey, BigInteger power)
                      in TestUtils.PrivateKeys.Zip(
-                         TestUtils.ValidatorSet.Validators.Select(v => v.Power),
+                         TestUtils.ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == TestUtils.PrivateKeys[2])

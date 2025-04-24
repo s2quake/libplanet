@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;
@@ -8,13 +9,15 @@ namespace Libplanet.Types;
 
 public static class BencodexUtility
 {
-    private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
+    private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
 
     public static IValue ToValue(IBencodable value) => value.Bencoded;
 
     public static IValue ToValue(int value) => new Integer(value);
 
     public static IValue ToValue(long value) => new Integer(value);
+
+    public static IValue ToValue(BigInteger value) => new Integer(value);
 
     public static IValue ToValue(string value) => new Text(value);
 
@@ -31,6 +34,8 @@ public static class BencodexUtility
 
     public static IValue ToValue(Address? address) => address?.ToBencodex() ?? Null.Value;
 
+    public static IValue ToValue(PublicKey? publicKey) => publicKey?.ToBencodex() ?? Null.Value;
+
     public static IValue ToValue(TxId? txId) => txId?.ToBencodex() ?? Null.Value;
 
     public static IValue ToValue(BlockHash? blockHash) => blockHash?.Bencoded ?? Null.Value;
@@ -44,11 +49,15 @@ public static class BencodexUtility
 
     public static Address ToAddress(List list, int index) => Address.Create(list[index]);
 
+    public static PublicKey ToPublicKey(List list, int index) => PublicKey.Create(list[index]);
+
     public static TxId ToTxId(List list, int index) => TxId.Create(list[index]);
 
     public static int ToInt32(List list, int index) => (int)(Integer)list[index];
 
     public static long ToInt64(List list, int index) => (long)(Integer)list[index];
+
+    public static BigInteger ToBigInteger(List list, int index) => ((Integer)list[index]).Value;
 
     public static string GetString(List list, int index) => (Text)list[index];
 

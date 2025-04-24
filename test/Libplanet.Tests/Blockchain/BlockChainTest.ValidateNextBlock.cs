@@ -430,7 +430,7 @@ namespace Libplanet.Tests.Blockchain
 
             var invalidValidator = new PrivateKey();
             var validators = TestUtils.ValidatorPrivateKeys.Append(invalidValidator).ToList();
-            var validatorPowers = TestUtils.ValidatorSet.Validators.Select(v => v.Power)
+            var validatorPowers = TestUtils.ImmutableSortedSet<Validator>.Validators.Select(v => v.Power)
                 .Append(BigInteger.One)
                 .ToList();
             var votes = Enumerable.Range(0, validators.Count).Select(index => new VoteMetadata(
@@ -482,7 +482,7 @@ namespace Libplanet.Tests.Blockchain
                 block1.Hash,
                 DateTimeOffset.UtcNow,
                 key.PublicKey,
-                TestUtils.ValidatorSet.GetValidator(key.PublicKey).Power,
+                TestUtils.ImmutableSortedSet<Validator>.GetValidator(key.PublicKey).Power,
                 VoteFlag.PreCommit).Sign(key)).ToImmutableArray();
             var blockCommit = new BlockCommit(1, 0, block1.Hash, votes);
             Block block2 = _blockChain.EvaluateAndSign(
@@ -519,7 +519,7 @@ namespace Libplanet.Tests.Blockchain
                         _fx.GenesisBlock.Hash,
                         DateTimeOffset.UtcNow,
                         x.PublicKey,
-                        TestUtils.ValidatorSet.GetValidator(x.PublicKey).Power,
+                        TestUtils.ImmutableSortedSet<Validator>.GetValidator(x.PublicKey).Power,
                         VoteFlag.PreCommit).Sign(x)).ToImmutableArray())));
         }
 
@@ -593,7 +593,7 @@ namespace Libplanet.Tests.Blockchain
                         1,
                         0,
                         validNextBlock.Hash,
-                        Enumerable.Range(0, TestUtils.ValidatorSet.TotalCount)
+                        Enumerable.Range(0, TestUtils.ImmutableSortedSet<Validator>.TotalCount)
                             .Select(x => new PrivateKey())
                             .Select(x => new VoteMetadata(
                             1,
@@ -635,7 +635,7 @@ namespace Libplanet.Tests.Blockchain
             var validator2 = new Validator(privateKey2.PublicKey, 1);
             var validator3 = new Validator(privateKey3.PublicKey, 1);
             var validator4 = new Validator(privateKey4.PublicKey, 1);
-            var validatorSet = new ValidatorSet(
+            var validatorSet = new ImmutableSortedSet<Validator>(
                 new[] { validator1, validator2, validator3, validator4 }.ToList());
             BlockChain blockChain = TestUtils.MakeBlockChain(
                 new NullBlockPolicy(),

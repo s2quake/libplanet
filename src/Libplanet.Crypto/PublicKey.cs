@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto.Converters;
 using Libplanet.Crypto.JsonConverters;
@@ -59,6 +60,20 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
             return false;
         }
     }
+
+    public static PublicKey Create(IValue bencoded)
+    {
+        if (bencoded is not Binary binary)
+        {
+            var message = $"Given {nameof(bencoded)} must be of type " +
+                          $"{typeof(Binary)}: {bencoded.GetType()}";
+            throw new ArgumentException(message, nameof(bencoded));
+        }
+
+        return new PublicKey(binary.ByteArray);
+    }
+
+    public IValue ToBencodex() => new Binary(_bytes);
 
     public bool Equals(PublicKey? other)
         => other is not null && _bytes.SequenceEqual(other._bytes);
