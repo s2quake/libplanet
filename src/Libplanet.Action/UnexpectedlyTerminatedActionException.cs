@@ -19,7 +19,7 @@ namespace Libplanet.Action
         /// <param name="message">Specifies a <see cref="Exception.Message"/>.</param>
         /// <param name="preEvaluationHash">The <see cref="Block.PreEvaluationHash"/> of the
         /// <see cref="Block"/> that <paramref name="action"/> belongs to.</param>
-        /// <param name="blockIndex">The <see cref="Block.Index"/> of the <see cref="Block"/>
+        /// <param name="blockHeight">The <see cref="Block.Index"/> of the <see cref="Block"/>
         /// that <paramref name="action"/> belongs to.</param>
         /// <param name="txid">The <see cref="Transaction.Id"/> of
         /// the <see cref="Transaction"/> that <paramref name="action"/> belongs to.
@@ -35,7 +35,7 @@ namespace Libplanet.Action
         public UnexpectedlyTerminatedActionException(
             string message,
             HashDigest<SHA256> preEvaluationHash,
-            long blockIndex,
+            long blockHeight,
             TxId? txid,
             HashDigest<SHA256>? previousStateRootHash,
             IAction action,
@@ -44,7 +44,7 @@ namespace Libplanet.Action
             : base(message, innerException)
         {
             PreEvaluationHash = preEvaluationHash;
-            BlockIndex = blockIndex;
+            BlockHeight = blockHeight;
             TxId = txid;
             PreviousStateRootHash = previousStateRootHash;
             Action = action;
@@ -60,7 +60,7 @@ namespace Libplanet.Action
         /// The <see cref="Block.Index"/> of the <see cref="Block"/> that <see cref="Action"/>
         /// belongs to.
         /// </summary>
-        public long BlockIndex { get; }
+        public long BlockHeight { get; }
 
         /// <summary>
         /// The <see cref="Transaction.Id"/> of the <see cref="Transaction"/> that

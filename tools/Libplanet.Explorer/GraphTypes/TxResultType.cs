@@ -14,9 +14,9 @@ namespace Libplanet.Explorer.GraphTypes
             );
 
             Field<LongGraphType>(
-                nameof(TxResult.BlockIndex),
-                description: "The block index which the target transaction executed.",
-                resolve: context => context.Source.BlockIndex
+                nameof(TxResult.BlockHeight),
+                description: "The block height which the target transaction executed.",
+                resolve: context => context.Source.BlockHeight
             );
 
             Field<StringGraphType>(

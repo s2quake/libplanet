@@ -13,7 +13,7 @@ namespace Libplanet.Action
                 signer: context.Signer,
                 txId: context.TxId,
                 miner: context.Miner,
-                blockIndex: context.BlockIndex,
+                blockHeight: context.BlockHeight,
                 blockProtocolVersion: context.BlockProtocolVersion,
                 previousState: context.PreviousState.Trie.Hash,
                 randomSeed: context.RandomSeed,
@@ -25,7 +25,7 @@ namespace Libplanet.Action
             Address signer,
             TxId? txId,
             Address miner,
-            long blockIndex,
+            long blockHeight,
             int blockProtocolVersion,
             HashDigest<SHA256> previousState,
             int randomSeed,
@@ -34,7 +34,7 @@ namespace Libplanet.Action
             Signer = signer;
             TxId = txId;
             Miner = miner;
-            BlockIndex = blockIndex;
+            BlockHeight = blockHeight;
             BlockProtocolVersion = blockProtocolVersion;
             PreviousState = previousState;
             RandomSeed = randomSeed;
@@ -53,9 +53,9 @@ namespace Libplanet.Action
         [Pure]
         public Address Miner { get; }
 
-        /// <inheritdoc cref="ICommittedActionContext.BlockIndex"/>
+        /// <inheritdoc cref="ICommittedActionContext.BlockHeight"/>
         [Pure]
-        public long BlockIndex { get; }
+        public long BlockHeight { get; }
 
         /// <inheritdoc cref="ICommittedActionContext.BlockProtocolVersion"/>
         [Pure]

@@ -3,7 +3,7 @@ using Bencodex.Types;
 namespace Libplanet.Action.Loader
 {
     /// <summary>
-    /// An interface to load actions branched by block index.
+    /// An interface to load actions branched by block height.
     /// </summary>
     public interface IActionLoader
     {

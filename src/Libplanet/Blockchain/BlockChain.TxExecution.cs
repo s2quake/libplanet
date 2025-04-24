@@ -78,7 +78,7 @@ namespace Libplanet.Blockchain
 
             _logger.Verbose(
                 "Prepared " + nameof(TxExecution) +
-                "s for {Txs} transactions within the block #{BlockIndex} {BlockHash}",
+                "s for {Txs} transactions within the block #{BlockHeight} {BlockHash}",
                 count,
                 block.Index,
                 block.Hash);

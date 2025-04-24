@@ -10,7 +10,7 @@ public static class TransactionExtensions
 {
     public static void ValidateTxNonces(
         this IEnumerable<Transaction> transactions,
-        long blockIndex)
+        long blockHeight)
     {
         IEnumerable<IGrouping<Address, Transaction>> signerTxs =
             transactions.OrderBy(tx => tx.Nonce).GroupBy(tx => tx.Signer);
@@ -33,7 +33,7 @@ public static class TransactionExtensions
                 if (genesisHash is { } g && !tx.GenesisHash.Equals(g))
                 {
                     throw new InvalidTxGenesisHashException(
-                        $"Transactions in the block #{blockIndex} are inconsistent.",
+                        $"Transactions in the block #{blockHeight} are inconsistent.",
                         tx.Id,
                         g,
                         tx.GenesisHash

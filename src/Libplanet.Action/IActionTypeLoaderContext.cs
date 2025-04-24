@@ -6,7 +6,7 @@ namespace Libplanet.Action
     public interface IActionTypeLoaderContext
     {
         /// <summary>
-        /// A block index.
+        /// A block height.
         /// </summary>
         long Index { get; }
     }

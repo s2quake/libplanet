@@ -573,7 +573,7 @@ namespace Libplanet.Tests.Action
                     eval.Action.PlainValue);
                 Assert.Equal(expect.Signer, eval.InputContext.Signer);
                 Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
-                Assert.Equal(block1.Index, eval.InputContext.BlockIndex);
+                Assert.Equal(block1.Index, eval.InputContext.BlockHeight);
             }
 
             previousState = stateStore.GetWorld(genesis.StateRootHash);
@@ -719,7 +719,7 @@ namespace Libplanet.Tests.Action
                     eval.Action.PlainValue);
                 Assert.Equal(expect.Signer, eval.InputContext.Signer);
                 Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
-                Assert.Equal(block2.Index, eval.InputContext.BlockIndex);
+                Assert.Equal(block2.Index, eval.InputContext.BlockHeight);
                 Assert.Null(eval.Exception);
             }
 
@@ -813,7 +813,7 @@ namespace Libplanet.Tests.Action
                 Assert.Equal(_txFx.Address1, eval.InputContext.Signer);
                 Assert.Equal(tx.Id, eval.InputContext.TxId);
                 Assert.Equal(addresses[0], eval.InputContext.Miner);
-                Assert.Equal(1, eval.InputContext.BlockIndex);
+                Assert.Equal(1, eval.InputContext.BlockHeight);
                 IActionEvaluation prevEval = i > 0 ? evaluations[i - 1] : null;
                 Assert.Equal(
                     prevEval is null
@@ -939,7 +939,7 @@ namespace Libplanet.Tests.Action
                 Assert.Equal(txA.Actions[i], eval.Action);
                 Assert.Equal(txA.Id, context.TxId);
                 Assert.Equal(blockA.Miner, context.Miner);
-                Assert.Equal(blockA.Index, context.BlockIndex);
+                Assert.Equal(blockA.Index, context.BlockHeight);
                 Assert.Equal(txA.Signer, context.Signer);
                 Assert.False(context.IsPolicyAction);
                 Assert.Equal(
@@ -997,7 +997,7 @@ namespace Libplanet.Tests.Action
                 Assert.Equal(txB.Actions[i], eval.Action);
                 Assert.Equal(txB.Id, context.TxId);
                 Assert.Equal(blockB.Miner, context.Miner);
-                Assert.Equal(blockB.Index, context.BlockIndex);
+                Assert.Equal(blockB.Index, context.BlockHeight);
                 Assert.Equal(txB.Signer, context.Signer);
                 Assert.False(context.IsPolicyAction);
                 Assert.Equal(

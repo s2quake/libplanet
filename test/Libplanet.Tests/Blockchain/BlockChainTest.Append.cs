@@ -83,7 +83,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(4, renders.Length);
             Assert.True(renders.All(r => r.Render));
             Assert.Equal("foo", actions[0].Append?.Item);
-            Assert.Equal(2, renders[0].Context.BlockIndex);
+            Assert.Equal(2, renders[0].Context.BlockHeight);
             Assert.Equal(
                 new IValue[] { null, null, null, null, (Integer)1 },
                 addresses.Select(_blockChain
@@ -99,7 +99,7 @@ namespace Libplanet.Tests.Blockchain
                     .GetState)
             );
             Assert.Equal("bar", actions[1].Append?.Item);
-            Assert.Equal(2, renders[1].Context.BlockIndex);
+            Assert.Equal(2, renders[1].Context.BlockHeight);
             Assert.Equal(
                 addresses.Select(_blockChain
                     .GetWorldState(renders[0].NextState)
@@ -117,7 +117,7 @@ namespace Libplanet.Tests.Blockchain
                         .GetAccountState(ReservedAddresses.LegacyAccount).GetState)
             );
             Assert.Equal("baz", actions[2].Append?.Item);
-            Assert.Equal(2, renders[2].Context.BlockIndex);
+            Assert.Equal(2, renders[2].Context.BlockHeight);
             Assert.Equal(
                 addresses.Select(
                     _blockChain.GetWorldState(renders[1].NextState)
@@ -135,7 +135,7 @@ namespace Libplanet.Tests.Blockchain
                         .GetState)
             );
             Assert.Equal("qux", actions[3].Append?.Item);
-            Assert.Equal(2, renders[3].Context.BlockIndex);
+            Assert.Equal(2, renders[3].Context.BlockHeight);
             Assert.Equal(
                 addresses.Select(
                     _blockChain
@@ -172,8 +172,8 @@ namespace Libplanet.Tests.Blockchain
                     .GetState(minerAddress));
             Assert.Equal(2, blockRenders.Length);
             Assert.True(blockRenders.All(r => r.Render));
-            Assert.Equal(1, blockRenders[0].Context.BlockIndex);
-            Assert.Equal(2, blockRenders[1].Context.BlockIndex);
+            Assert.Equal(1, blockRenders[0].Context.BlockHeight);
+            Assert.Equal(2, blockRenders[1].Context.BlockHeight);
 
             Assert.Equal(
                 (Integer)1,

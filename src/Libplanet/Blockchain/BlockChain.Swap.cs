@@ -29,7 +29,7 @@ namespace Libplanet.Blockchain
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             _logger.Debug(
-                "Rendering actions in block #{BlockIndex} {BlockHash}...",
+                "Rendering actions in block #{BlockHeight} {BlockHash}...",
                 block.Index,
                 block.Hash);
 
@@ -62,7 +62,7 @@ namespace Libplanet.Blockchain
                 .ForContext("Subtag", "BlockRenderDuration")
                 .Debug(
                     "Finished rendering {RenderCount} renders for actions in " +
-                    "block #{BlockIndex} {BlockHash} in {DurationMs} ms",
+                    "block #{BlockHeight} {BlockHash} in {DurationMs} ms",
                     count,
                     block.Index,
                     block.Hash,

@@ -798,7 +798,7 @@ namespace Libplanet.Blockchain
             }
 
             _logger.Information(
-                "Trying to append block #{BlockIndex} {BlockHash}...", block.Index, block.Hash);
+                "Trying to append block #{BlockHeight} {BlockHash}...", block.Index, block.Hash);
 
             if (validate)
             {
@@ -857,7 +857,7 @@ namespace Libplanet.Blockchain
                         .ForContext("Tag", "Metric")
                         .ForContext("Subtag", "BlockAppendTimestamp")
                         .Information(
-                            "Block #{BlockIndex} {BlockHash} with " +
+                            "Block #{BlockHeight} {BlockHash} with " +
                             "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
                             block.Index,
                             block.Hash,
@@ -912,7 +912,7 @@ namespace Libplanet.Blockchain
                 if (IsCanonical)
                 {
                     _logger.Information(
-                        "Unstaging {TxCount} transactions from block #{BlockIndex} {BlockHash}...",
+                        "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
                         block.Index,
                         block.Hash);
@@ -922,7 +922,7 @@ namespace Libplanet.Blockchain
                     }
 
                     _logger.Information(
-                        "Unstaged {TxCount} transactions from block #{BlockIndex} {BlockHash}...",
+                        "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
                         block.Index,
                         block.Hash);
@@ -930,7 +930,7 @@ namespace Libplanet.Blockchain
                 else
                 {
                     _logger.Information(
-                        "Skipping unstaging transactions from block #{BlockIndex} {BlockHash} " +
+                        "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
                         "for non-canonical chain {ChainID}",
                         block.Index,
                         block.Hash,
@@ -939,7 +939,7 @@ namespace Libplanet.Blockchain
 
                 TipChanged?.Invoke(this, (prevTip, block));
                 _logger.Information(
-                    "Appended the block #{BlockIndex} {BlockHash}",
+                    "Appended the block #{BlockHeight} {BlockHash}",
                     block.Index,
                     block.Hash);
 
@@ -955,7 +955,7 @@ namespace Libplanet.Blockchain
                 {
                     _logger.Information(
                         "Invoking {RendererCount} renderers and " +
-                        "{ActionRendererCount} action renderers for #{BlockIndex} {BlockHash}",
+                        "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
                         block.Index,
@@ -976,7 +976,7 @@ namespace Libplanet.Blockchain
 
                     _logger.Information(
                         "Invoked {RendererCount} renderers and " +
-                        "{ActionRendererCount} action renderers for #{BlockIndex} {BlockHash}",
+                        "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
                         block.Index,
@@ -1011,7 +1011,7 @@ namespace Libplanet.Blockchain
             }
 
             _logger.Information(
-                "Trying to append block #{BlockIndex} {BlockHash}...", block.Index, block.Hash);
+                "Trying to append block #{BlockHeight} {BlockHash}...", block.Index, block.Hash);
 
             block.ValidateTimestamp();
 
@@ -1051,12 +1051,12 @@ namespace Libplanet.Blockchain
                     if (actionEvaluations is null)
                     {
                         _logger.Information(
-                            "Executing actions in block #{BlockIndex} {BlockHash}...",
+                            "Executing actions in block #{BlockHeight} {BlockHash}...",
                             block.Index,
                             block.Hash);
                         ValidateBlockPrecededStateRootHash(block, out actionEvaluations);
                         _logger.Information(
-                            "Executed actions in block #{BlockIndex} {BlockHash}",
+                            "Executed actions in block #{BlockHeight} {BlockHash}",
                             block.Index,
                             block.Hash);
                     }
@@ -1067,7 +1067,7 @@ namespace Libplanet.Blockchain
                         .ForContext("Tag", "Metric")
                         .ForContext("Subtag", "BlockAppendTimestamp")
                         .Information(
-                            "Block #{BlockIndex} {BlockHash} with " +
+                            "Block #{BlockHeight} {BlockHash} with " +
                             "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
                             block.Index,
                             block.Hash,
@@ -1125,7 +1125,7 @@ namespace Libplanet.Blockchain
                 if (IsCanonical)
                 {
                     _logger.Information(
-                        "Unstaging {TxCount} transactions from block #{BlockIndex} {BlockHash}...",
+                        "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
                         block.Index,
                         block.Hash);
@@ -1135,7 +1135,7 @@ namespace Libplanet.Blockchain
                     }
 
                     _logger.Information(
-                        "Unstaged {TxCount} transactions from block #{BlockIndex} {BlockHash}...",
+                        "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
                         block.Index,
                         block.Hash);
@@ -1143,7 +1143,7 @@ namespace Libplanet.Blockchain
                 else
                 {
                     _logger.Information(
-                        "Skipping unstaging transactions from block #{BlockIndex} {BlockHash} " +
+                        "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
                         "for non-canonical chain {ChainID}",
                         block.Index,
                         block.Hash,
@@ -1152,7 +1152,7 @@ namespace Libplanet.Blockchain
 
                 TipChanged?.Invoke(this, (prevTip, block));
                 _logger.Information(
-                    "Appended the block #{BlockIndex} {BlockHash}",
+                    "Appended the block #{BlockHeight} {BlockHash}",
                     block.Index,
                     block.Hash);
 
@@ -1160,7 +1160,7 @@ namespace Libplanet.Blockchain
                 {
                     _logger.Information(
                         "Invoking {RendererCount} renderers and " +
-                        "{ActionRendererCount} action renderers for #{BlockIndex} {BlockHash}",
+                        "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
                         block.Index,
@@ -1181,7 +1181,7 @@ namespace Libplanet.Blockchain
 
                     _logger.Information(
                         "Invoked {RendererCount} renderers and " +
-                        "{ActionRendererCount} action renderers for #{BlockIndex} {BlockHash}",
+                        "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
                         block.Index,
