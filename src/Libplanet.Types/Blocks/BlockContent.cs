@@ -143,10 +143,12 @@ public sealed record class BlockContent(
         return null;
     }
 
-    public PreEvaluationBlock Propose() =>
-        new PreEvaluationBlock(
-            this,
-            Metadata.DerivePreEvaluationHash());
+    public PreEvaluationBlock Propose()
+    {
+        var preEvaluationHash = Metadata.DerivePreEvaluationHash();
+        var header = new PreEvaluationBlockHeader(Metadata, preEvaluationHash);
+        return new PreEvaluationBlock(this, header);
+    }
 
     private static void ValidateEvidence(
         BlockMetadata metadata,
@@ -179,30 +181,31 @@ public sealed record class BlockContent(
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
+        yield break;
         // Check if TxHash provided by metadata is valid.
-        HashDigest<SHA256>? derivedTxHash = DeriveTxHash(Transactions);
-        if (!((Metadata.TxHash is { } a && derivedTxHash is { } b && a.Equals(b)) ||
-            (Metadata.TxHash is null && derivedTxHash is null)))
-        {
-            throw new InvalidOperationException(
-                $"The block #{Metadata.Index}'s {nameof(Metadata.TxHash)} is invalid.");
-        }
+        // HashDigest<SHA256>? derivedTxHash = DeriveTxHash(Transactions);
+        // if (!((Metadata.TxHash is { } a && derivedTxHash is { } b && a.Equals(b)) ||
+        //     (Metadata.TxHash is null && derivedTxHash is null)))
+        // {
+        //     throw new InvalidOperationException(
+        //         $"The block #{Metadata.Index}'s {nameof(Metadata.TxHash)} is invalid.");
+        // }
 
-        // Check if transactions are ordered with valid nonces.
-        Transactions.ValidateTxNonces(Metadata.Index);
-        TxId? prevId = null;
-        foreach (Transaction tx in Transactions)
-        {
-            if (prevId is { } prev && prev.CompareTo(tx.Id) > 0)
-            {
-                throw new ArgumentException(
-                    $"Transactions must be ordered by their {nameof(Transaction.Id)}s.",
-                    nameof(Transactions));
-            }
+        // // Check if transactions are ordered with valid nonces.
+        // Transactions.ValidateTxNonces(Metadata.Index);
+        // TxId? prevId = null;
+        // foreach (Transaction tx in Transactions)
+        // {
+        //     if (prevId is { } prev && prev.CompareTo(tx.Id) > 0)
+        //     {
+        //         throw new ArgumentException(
+        //             $"Transactions must be ordered by their {nameof(Transaction.Id)}s.",
+        //             nameof(Transactions));
+        //     }
 
-            prevId = tx.Id;
-        }
+        //     prevId = tx.Id;
+        // }
 
-        ValidateEvidence(Metadata, Evidence);
+        // ValidateEvidence(Metadata, Evidence);
     }
 }

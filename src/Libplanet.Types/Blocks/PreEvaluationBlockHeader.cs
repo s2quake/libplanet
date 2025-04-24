@@ -37,14 +37,15 @@ public sealed record class PreEvaluationBlockHeader(
         HashDigest<SHA256> stateRootHash,
         ImmutableArray<byte>? signature = null)
     {
-        Dictionary dict = Metadata.MakeCandidateData()
-            .Add("state_root_hash", stateRootHash.ByteArray);
-        if (signature is { } sig)
-        {
-            dict = dict.Add("signature", sig);
-        }
+        throw new NotImplementedException();
+        // Dictionary dict = Metadata.MakeCandidateData()
+        //     .Add("state_root_hash", stateRootHash.ByteArray);
+        // if (signature is { } sig)
+        // {
+        //     dict = dict.Add("signature", sig);
+        // }
 
-        return dict;
+        // return dict;
     }
 
     public ImmutableArray<byte> MakeSignature(
