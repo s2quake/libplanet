@@ -11,7 +11,6 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Types.Tx;
 
 public sealed record class UnsignedTx(TxInvoice Invoice, TxSigningMetadata SigningMetadata)
-    : IEquatable<UnsignedTx>
 {
     public ImmutableSortedSet<Address> UpdatedAddresses => Invoice.UpdatedAddresses;
 
@@ -47,23 +46,6 @@ public sealed record class UnsignedTx(TxInvoice Invoice, TxSigningMetadata Signi
 
     public bool VerifySignature(ImmutableArray<byte> signature) =>
         PublicKey.Verify(Signer, CreateMessage().ToImmutableArray(), signature);
-
-    // bool IEquatable<TxInvoice>.Equals(TxInvoice? other) =>
-    //     other is { } o && Invoice.Equals(o);
-
-    // bool IEquatable<TxSigningMetadata>.Equals(TxSigningMetadata? other) =>
-    //     other is { } o && _signingMetadata.Equals(o);
-
-    // bool IEquatable<UnsignedTx>.Equals(UnsignedTx? other) =>
-    //     other is { } o &&
-    //     ((IEquatable<TxInvoice>)this).Equals(o) &&
-    //     ((IEquatable<TxSigningMetadata>)this).Equals(o);
-
-    public bool Equals(UnsignedTx? other) =>
-        other is { } o && ((IEquatable<UnsignedTx>)this).Equals(o);
-
-    public override int GetHashCode() =>
-        HashCode.Combine(Invoice, SigningMetadata);
 
     public override string ToString()
     {

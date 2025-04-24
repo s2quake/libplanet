@@ -4,7 +4,6 @@ using Libplanet.Crypto;
 namespace Libplanet.Types.Tx;
 
 public sealed record class TxSigningMetadata(Address Signer, long Nonce)
-    : IEquatable<TxSigningMetadata>
 {
     public TxSigningMetadata(PublicKey publicKey, long nonce)
         : this(publicKey.Address, nonce)
@@ -14,14 +13,6 @@ public sealed record class TxSigningMetadata(Address Signer, long Nonce)
     public Address Signer { get; } = Signer;
 
     public long Nonce { get; } = ValidateNonce(Nonce);
-
-    bool IEquatable<TxSigningMetadata>.Equals(TxSigningMetadata? other)
-        => other is { } o && o.Signer.Equals(Signer) && o.Nonce == Nonce;
-
-    public bool Equals(TxSigningMetadata? other)
-        => other is TxSigningMetadata otherMetadata && otherMetadata.Equals(this);
-
-    public override int GetHashCode() => HashCode.Combine(Signer, Nonce);
 
     public override string ToString()
     {
