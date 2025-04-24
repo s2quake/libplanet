@@ -40,7 +40,7 @@ public readonly struct BlockDigest : IBlockMetadata, IBlockExcerpt
         _preEvaluationHash = header.PreEvaluationHash;
         StateRootHash = header.StateRootHash;
         Signature = header.Signature;
-        Hash = header.Hash;
+        Hash = header.BlockHash;
         TxIds = txIds;
         EvidenceIds = evidenceIds;
     }

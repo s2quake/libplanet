@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Blocks
             {
                 var preEval = new PreEvaluationBlockHeader(fx);
                 var header = new BlockHeader(preEval, (fx.StateRootHash, fx.Signature, fx.Hash));
-                AssertBytesEqual(header.Hash, fx.Hash);
+                AssertBytesEqual(header.BlockHash, fx.Hash);
                 AssertPreEvaluationBlockHeadersEqual(fx, header);
                 AssertBytesEqual(fx.StateRootHash, header.StateRootHash);
 

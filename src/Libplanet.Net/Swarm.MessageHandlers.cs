@@ -149,7 +149,7 @@ namespace Libplanet.Net
                     e,
                     "Received header #{BlockHeight} {BlockHash} has invalid timestamp: {Timestamp}",
                     header.Index,
-                    header.Hash,
+                    header.BlockHash,
                     header.Timestamp
                 );
                 return;
@@ -159,7 +159,7 @@ namespace Libplanet.Net
             _logger.Information(
                 "Received " + nameof(BlockHeader) + " #{ReceivedIndex} {ReceivedHash}",
                 header.Index,
-                header.Hash);
+                header.BlockHash);
 
             if (needed)
             {
@@ -167,7 +167,7 @@ namespace Libplanet.Net
                     "Adding received header #{BlockHeight} {BlockHash} from peer {Peer} to " +
                     nameof(BlockDemandTable) + "...",
                     header.Index,
-                    header.Hash,
+                    header.BlockHash,
                     message.Remote);
                 BlockDemandTable.Add(
                     BlockChain,
@@ -181,7 +181,7 @@ namespace Libplanet.Net
                     "Discarding received header #{ReceivedIndex} {ReceivedHash} from peer {Peer} " +
                     "as it is not needed for the current chain with tip #{TipIndex} {TipHash}",
                     header.Index,
-                    header.Hash,
+                    header.BlockHash,
                     message.Remote,
                     BlockChain.Tip.Index,
                     BlockChain.Tip.Hash);

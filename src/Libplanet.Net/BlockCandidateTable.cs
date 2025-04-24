@@ -60,7 +60,7 @@ namespace Libplanet.Net
                     tip.Index,
                     tip.Hash,
                     blockHeader.Index,
-                    blockHeader.Hash);
+                    blockHeader.BlockHash);
                 return;
             }
 

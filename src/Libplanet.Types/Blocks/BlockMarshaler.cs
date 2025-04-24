@@ -213,8 +213,8 @@ namespace Libplanet.Types.Blocks
             Dictionary marshaled)
         {
             return new PreEvaluationBlockHeader(
-                    metadata: UnmarshalBlockMetadata(marshaled),
-                    preEvaluationHash: UnmarshalPreEvaluationHash(marshaled));
+                    Metadata: UnmarshalBlockMetadata(marshaled),
+                    PreEvaluationHash: UnmarshalPreEvaluationHash(marshaled));
         }
 
         public static BlockHash UnmarshalBlockHash(Dictionary marshaledBlock)
