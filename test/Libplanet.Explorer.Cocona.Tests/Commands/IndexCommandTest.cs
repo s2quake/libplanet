@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Libplanet.Explorer.Cocona.Commands;
 using Xunit;

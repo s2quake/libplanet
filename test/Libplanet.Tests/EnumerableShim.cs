@@ -1,5 +1,4 @@
 #pragma warning disable S1128
-using System.Collections.Generic;
 #pragma warning restore S1128 // S1128: Remove this unnecessary 'using'
 
 namespace Libplanet.Tests

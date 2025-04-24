@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
 using Libplanet.Action;
 using Libplanet.Action.Loader;

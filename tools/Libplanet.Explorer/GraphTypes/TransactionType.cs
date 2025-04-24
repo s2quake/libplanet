@@ -1,4 +1,3 @@
-using System;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Explorer.Indexing;

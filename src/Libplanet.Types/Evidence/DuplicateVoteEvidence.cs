@@ -1,10 +1,7 @@
-using System;
 using System.Globalization;
 using System.Numerics;
-using Bencodex;
 using Bencodex.Misc;
 using Bencodex.Types;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Types.Evidence

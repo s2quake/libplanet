@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Bencodex.Types;
 using Libplanet.Store.Trie.Nodes;
 

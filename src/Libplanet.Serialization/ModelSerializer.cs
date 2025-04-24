@@ -1,10 +1,8 @@
 ﻿using System.Collections;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection;
-using Bencodex;
 using Bencodex.Types;
 using static Libplanet.Serialization.ArrayUtility;
 using static Libplanet.Serialization.TypeUtility;

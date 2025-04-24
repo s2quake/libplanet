@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Libplanet.Tests.Store.Trie
 {
     internal class BytesEqualityComparer : IEqualityComparer<byte[]>

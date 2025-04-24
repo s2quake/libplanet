@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Libplanet.Consensus;
 
 namespace Libplanet.Net.Messages

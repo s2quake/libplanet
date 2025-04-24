@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using Libplanet.Store.Trie;
 using Libplanet.Tests.Store.Trie;

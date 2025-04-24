@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;

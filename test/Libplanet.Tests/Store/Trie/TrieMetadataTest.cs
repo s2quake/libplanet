@@ -1,4 +1,3 @@
-using System;
 using Bencodex.Types;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;

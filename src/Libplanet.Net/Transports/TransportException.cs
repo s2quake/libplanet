@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Net.Transports
 {
     public class TransportException : Exception

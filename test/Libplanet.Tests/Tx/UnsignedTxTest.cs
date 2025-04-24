@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using System.Text;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;

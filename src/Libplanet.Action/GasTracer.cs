@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Libplanet.Types.Tx;
 

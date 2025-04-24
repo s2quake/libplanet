@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
 using Libplanet.Common;
 using Libplanet.Crypto;

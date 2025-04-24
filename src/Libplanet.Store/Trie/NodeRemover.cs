@@ -1,6 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.Linq;
 using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;

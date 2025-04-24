@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Libplanet.Consensus;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;

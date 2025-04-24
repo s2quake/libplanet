@@ -1,4 +1,3 @@
-using System;
 using Bencodex.Types;
 
 namespace Libplanet.Action

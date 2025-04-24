@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Linq;
 using Bencodex.Types;
 using Libplanet.Tests.Fixtures;
 using Libplanet.Types.Blocks;

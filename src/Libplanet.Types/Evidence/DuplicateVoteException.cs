@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Types.Evidence

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;

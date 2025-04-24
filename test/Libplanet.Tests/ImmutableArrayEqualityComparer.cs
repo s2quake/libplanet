@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-
 namespace Libplanet.Tests
 {
     public class ImmutableArrayEqualityComparer<T> : IEqualityComparer<ImmutableArray<T>>

@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Common.Extensions;
 
 public static class TimeSpanExtensions

@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Store.Trie;
 
 namespace Libplanet.Tests.Store.Trie

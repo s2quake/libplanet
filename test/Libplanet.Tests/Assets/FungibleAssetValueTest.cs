@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Types.Assets;
 using Xunit;
 using static Libplanet.Tests.TestUtils;

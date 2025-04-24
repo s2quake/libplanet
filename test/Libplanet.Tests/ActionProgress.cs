@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Tests
 {
     public sealed class ActionProgress<T> : IProgress<T>

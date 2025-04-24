@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-
 namespace Libplanet.Tests.Store
 {
     public abstract class BaseTracker

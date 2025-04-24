@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using Bencodex;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Common;

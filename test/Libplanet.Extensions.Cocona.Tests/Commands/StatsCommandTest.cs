@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using System.IO;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.RocksDBStore.Tests;

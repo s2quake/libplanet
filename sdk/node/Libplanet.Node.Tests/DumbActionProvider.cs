@@ -1,7 +1,6 @@
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Crypto;
-using Libplanet.Node.Services;
 
 namespace Libplanet.Node.Tests;
 

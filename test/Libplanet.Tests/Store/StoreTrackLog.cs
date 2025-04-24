@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-
 namespace Libplanet.Tests.Store
 {
     public sealed class StoreTrackLog : IEquatable<StoreTrackLog>

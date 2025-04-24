@@ -1,4 +1,3 @@
-using System.Linq;
 using Bencodex.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;

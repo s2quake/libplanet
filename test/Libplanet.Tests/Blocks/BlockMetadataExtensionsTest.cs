@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Crypto;
 using Libplanet.Tests.Fixtures;
 using Libplanet.Types.Blocks;

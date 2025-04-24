@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Libplanet.Crypto;
 using Libplanet.Types.Tx;
 

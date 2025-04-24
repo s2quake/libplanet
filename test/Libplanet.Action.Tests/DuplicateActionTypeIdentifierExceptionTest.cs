@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Libplanet.Action.Tests.Common;
 using Xunit;
 

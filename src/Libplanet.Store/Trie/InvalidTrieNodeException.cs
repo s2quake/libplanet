@@ -1,5 +1,3 @@
-using System;
-
 namespace Libplanet.Store.Trie;
 
 public class InvalidTrieNodeException : Exception

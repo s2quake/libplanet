@@ -1,6 +1,5 @@
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Crypto;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types.Blocks;
 

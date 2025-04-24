@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Libplanet.Tests
 {
     public static class HashSetExtensions

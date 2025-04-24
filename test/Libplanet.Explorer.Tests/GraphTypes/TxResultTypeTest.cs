@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Execution;

@@ -1,5 +1,3 @@
-using System;
-using Bencodex;
 using Libplanet.Consensus;
 using Libplanet.Crypto;
 using Libplanet.Tests.Store;

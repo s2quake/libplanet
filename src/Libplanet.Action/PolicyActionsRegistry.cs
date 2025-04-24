@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 

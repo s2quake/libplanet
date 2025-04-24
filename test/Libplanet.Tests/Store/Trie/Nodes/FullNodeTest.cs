@@ -1,6 +1,4 @@
 #nullable enable
-using System.Collections.Immutable;
-using System.Linq;
 using Bencodex.Types;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;

@@ -3,8 +3,6 @@ using Libplanet.Node.API.Explorer;
 using Libplanet.Node.API.Services;
 using Libplanet.Node.Extensions;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Serilog;
-using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddConsole();

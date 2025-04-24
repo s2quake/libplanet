@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using Libplanet.Store.Trie;
 using Xunit;
 using static Libplanet.Tests.TestUtils;

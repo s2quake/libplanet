@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using System.Numerics;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;

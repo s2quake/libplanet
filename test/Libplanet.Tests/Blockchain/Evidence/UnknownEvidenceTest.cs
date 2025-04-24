@@ -1,4 +1,3 @@
-using System;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Types.Evidence;

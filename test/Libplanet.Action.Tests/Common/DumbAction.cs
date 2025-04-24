@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections.Immutable;
 using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Action.State;

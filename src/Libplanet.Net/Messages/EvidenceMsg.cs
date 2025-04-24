@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Libplanet.Net.Messages
 {
     internal class EvidenceMsg : MessageContent

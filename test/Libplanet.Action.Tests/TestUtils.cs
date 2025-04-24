@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Bencodex.Types;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;

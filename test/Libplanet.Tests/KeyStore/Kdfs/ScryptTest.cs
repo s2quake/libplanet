@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Libplanet.KeyStore;

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Libplanet.Net.Consensus;
 using Libplanet.Types.Consensus;
 

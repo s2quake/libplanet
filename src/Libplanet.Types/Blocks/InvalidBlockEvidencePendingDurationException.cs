@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blocks

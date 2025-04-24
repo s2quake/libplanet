@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 

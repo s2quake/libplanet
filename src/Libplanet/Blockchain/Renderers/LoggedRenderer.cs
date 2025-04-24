@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Types.Blocks;
 using Serilog;
 using Serilog.Events;

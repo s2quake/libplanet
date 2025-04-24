@@ -1,4 +1,3 @@
-using System;
 using GraphQL.Language.AST;
 using Libplanet.Crypto;
 using Libplanet.Explorer.GraphTypes;

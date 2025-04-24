@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Libplanet.KeyStore;
 using Xunit;
 using static Libplanet.Tests.TestUtils;

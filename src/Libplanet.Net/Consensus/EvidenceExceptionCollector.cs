@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Libplanet.Blockchain;
 using Libplanet.Types.Evidence;
 

@@ -1,4 +1,3 @@
-using System;
 using Libplanet.Types.Assets;
 
 namespace Libplanet.Action.State

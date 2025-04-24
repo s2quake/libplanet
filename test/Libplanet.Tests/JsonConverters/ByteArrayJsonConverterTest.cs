@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using Libplanet.Common.JsonConverters;

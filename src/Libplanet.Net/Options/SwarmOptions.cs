@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Immutable;
 using Libplanet.Blockchain;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;

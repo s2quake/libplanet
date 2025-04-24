@@ -1,7 +1,5 @@
 #nullable enable
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;
