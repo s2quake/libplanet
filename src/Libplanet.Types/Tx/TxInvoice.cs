@@ -60,16 +60,20 @@ public sealed record class TxInvoice : IEquatable<TxInvoice>
         }
     }
 
-    bool IEquatable<TxInvoice>.Equals(TxInvoice? other) =>
-        other is { } o &&
-        (o.GenesisHash is { } otherGenesisHash
-            ? otherGenesisHash.Equals(GenesisHash)
-            : GenesisHash is null) &&
-        o.UpdatedAddresses.SetEquals(UpdatedAddresses) &&
-        o.Timestamp.Equals(Timestamp) &&
-        o.Actions.Equals(Actions) &&
-        o.MaxGasPrice.Equals(MaxGasPrice) &&
-        o.GasLimit.Equals(GasLimit);
+    bool IEquatable<TxInvoice>.Equals(TxInvoice? other)
+    {
+        if (other is { } o)
+        {
+            return Equals(GenesisHash, o.GenesisHash) &&
+                   UpdatedAddresses.SetEquals(o.UpdatedAddresses) &&
+                   Timestamp.Equals(o.Timestamp) &&
+                   Actions.SequenceEqual(o.Actions) &&
+                   Equals(MaxGasPrice, o.MaxGasPrice) &&
+                   Equals(GasLimit, o.GasLimit);
+        }
+
+        return base.Equals(other);
+    }
 
     public bool Equals(TxInvoice? other) =>
         other is TxInvoice otherInvoice && otherInvoice.Equals(this);

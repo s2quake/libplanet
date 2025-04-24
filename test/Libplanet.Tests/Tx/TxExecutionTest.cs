@@ -15,7 +15,7 @@ namespace Libplanet.Tests.Tx
         [Theory]
         [InlineData("")]
         [InlineData("SomeException")]
-        public void Constructor( string exceptionName)
+        public void Constructor(string exceptionName)
         {
             var random = new Random();
             var blockHash = random.NextBlockHash();
@@ -52,15 +52,13 @@ namespace Libplanet.Tests.Tx
             };
             var encoded = execution.ToBencodex();
             var decoded = TxExecution.Create(
-                execution.BlockHash,
-                execution.TxId,
                 encoded);
             Assert.Equal(execution.BlockHash, decoded.BlockHash);
             Assert.Equal(execution.TxId, decoded.TxId);
             Assert.Equal(execution.Fail, decoded.Fail);
             Assert.Equal(execution.InputState, decoded.InputState);
             Assert.Equal(execution.OutputState, decoded.OutputState);
-            Assert.Equal(execution.ExceptionNames, decoded.ExceptionNames);
+            Assert.Equal<string>(execution.ExceptionNames, decoded.ExceptionNames);
         }
 
         [Fact]
@@ -78,7 +76,7 @@ namespace Libplanet.Tests.Tx
                 TxId = txId,
                 InputState = inputState,
                 OutputState = outputState,
-                ExceptionNames = [.. exceptions.Select(item => item.GetType().Name)],
+                ExceptionNames = [.. exceptions.Select(item => item.GetType().FullName)],
             };
             Assert.Equal(blockHash, execution.BlockHash);
             Assert.Equal(txId, execution.TxId);
@@ -91,57 +89,6 @@ namespace Libplanet.Tests.Tx
                         ? e.GetType().FullName
                         : null),
                 execution.ExceptionNames);
-        }
-
-        [Fact]
-        public void DecodeFailLegacy()
-        {
-            var random = new Random();
-            var blockHash = random.NextBlockHash();
-            var txId = random.NextTxId();
-
-            Dictionary legacyEncoded = Dictionary.Empty
-                .Add("fail", true)
-                .Add("exc", "SomeException");
-            var failExecution = TxExecution.Create(
-                blockHash,
-                txId,
-                legacyEncoded);
-            Assert.Equal(blockHash, failExecution.BlockHash);
-            Assert.Equal(txId, failExecution.TxId);
-            Assert.True(failExecution.Fail);
-            Assert.Null(failExecution.InputState);
-            Assert.Null(failExecution.OutputState);
-            Assert.Null(failExecution.ExceptionNames);
-        }
-
-        [Fact]
-        public void DecodeSuccessLegacy()
-        {
-            var random = new Random();
-            var blockHash = random.NextBlockHash();
-            var txId = random.NextTxId();
-
-            // Note: Actual format for sDelta and updatedFAVs doesn't really matter,
-            // it is important decoding doesn't throw an exception.
-            var currency = new Currency("FOO", 0);
-            Dictionary legacyEncoded = Dictionary.Empty
-                .Add("fail", false)
-                .Add("sDelta", Dictionary.Empty
-                    .Add(random.NextAddress().ByteArray, random.NextAddress().ByteArray))
-                .Add("updatedFAVs", List.Empty
-                    .Add(currency.ToBencodex())
-                    .Add(123));
-            var successExecution = TxExecution.Create(
-                blockHash,
-                txId,
-                legacyEncoded);
-            Assert.Equal(blockHash, successExecution.BlockHash);
-            Assert.Equal(txId, successExecution.TxId);
-            Assert.False(successExecution.Fail);
-            Assert.Null(successExecution.InputState);
-            Assert.Null(successExecution.OutputState);
-            Assert.Null(successExecution.ExceptionNames);
         }
     }
 }

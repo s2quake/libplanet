@@ -206,7 +206,7 @@ public abstract class BaseStore : IStore
 
         try
         {
-            return TxExecution.Create(blockHash, txid, d);
+            return TxExecution.Create(d);
         }
         catch (Exception e)
         {

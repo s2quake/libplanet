@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Types;
@@ -12,10 +11,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Types.Tx;
 
 public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byte> Signature)
-    : IEquatable<Transaction>,
-    IEquatable<TxInvoice>,
-    IEquatable<TxSigningMetadata>,
-    IEquatable<UnsignedTx>
+    : IEquatable<Transaction>
 {
     private static readonly Codec Codec = new();
     private TxId? _id;
@@ -80,15 +76,6 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
             timestamp);
 
     public byte[] Serialize() => Codec.Encode(TxMarshaler.MarshalTransaction(this));
-
-    bool IEquatable<TxInvoice>.Equals(TxInvoice? other) =>
-        other is { } o && o.Equals(UnsignedTx);
-
-    bool IEquatable<TxSigningMetadata>.Equals(TxSigningMetadata? other) =>
-        other is { } o && o.Equals(UnsignedTx);
-
-    bool IEquatable<UnsignedTx>.Equals(UnsignedTx? other) =>
-        other is { } o && o.Equals(UnsignedTx);
 
     public bool Equals(Transaction? other) => Id.Equals(other?.Id);
 
