@@ -29,71 +29,72 @@ public sealed record class TxExecution
                 nameof(value));
         }
 
-        if (!dictionary.TryGetValue(FailKey, out IValue fail))
-        {
-            throw new ArgumentException(
-                $"Given {nameof(value)} is missing fail value",
-                nameof(value));
-        }
-        else if (fail is not Bencodex.Types.Boolean failBoolean)
-        {
-            throw new ArgumentException(
-                $"Given {nameof(value)} has an invalid fail value: {fail}",
-                nameof(value));
-        }
-        else
-        {
-            Fail = failBoolean.Value;
-        }
+        throw new NotImplementedException();
+        // if (!dictionary.TryGetValue(FailKey, out IValue fail))
+        // {
+        //     throw new ArgumentException(
+        //         $"Given {nameof(value)} is missing fail value",
+        //         nameof(value));
+        // }
+        // else if (fail is not Bencodex.Types.Boolean failBoolean)
+        // {
+        //     throw new ArgumentException(
+        //         $"Given {nameof(value)} has an invalid fail value: {fail}",
+        //         nameof(value));
+        // }
+        // else
+        // {
+        //     Fail = failBoolean.Value;
+        // }
 
-        if (dictionary.TryGetValue(InputStateKey, out IValue input) &&
-            input is Binary inputBinary)
-        {
-            InputState = new HashDigest<SHA256>(inputBinary.ByteArray);
-        }
-        else
-        {
-            InputState = null;
-        }
+        // if (dictionary.TryGetValue(InputStateKey, out IValue input) &&
+        //     input is Binary inputBinary)
+        // {
+        //     InputState = new HashDigest<SHA256>(inputBinary.ByteArray);
+        // }
+        // else
+        // {
+        //     InputState = null;
+        // }
 
-        if (dictionary.TryGetValue(OutputStateKey, out IValue output) &&
-            output is Binary outputBinary)
-        {
-            OutputState = new HashDigest<SHA256>(outputBinary.ByteArray);
-        }
-        else
-        {
-            OutputState = null;
-        }
+        // if (dictionary.TryGetValue(OutputStateKey, out IValue output) &&
+        //     output is Binary outputBinary)
+        // {
+        //     OutputState = new HashDigest<SHA256>(outputBinary.ByteArray);
+        // }
+        // else
+        // {
+        //     OutputState = null;
+        // }
 
-        if (dictionary.TryGetValue(ExceptionNamesKey, out IValue exceptions) &&
-            exceptions is List exceptionsList)
-        {
-            ExceptionNames = exceptionsList
-                .Select(value => value is Text t
-                    ? (string?)t.Value
-                    : value is Null
-                        ? (string?)null
-                        : throw new ArgumentException(
-                            $"Expected either {nameof(Text)} or {nameof(Null)} " +
-                            $"but got {value.GetType()}"))
-                .ToList();
-        }
-        else
-        {
-            ExceptionNames = null;
-        }
+        // if (dictionary.TryGetValue(ExceptionNamesKey, out IValue exceptions) &&
+        //     exceptions is List exceptionsList)
+        // {
+        //     ExceptionNames = exceptionsList
+        //         .Select(value => value is Text t
+        //             ? (string?)t.Value
+        //             : value is Null
+        //                 ? (string?)null
+        //                 : throw new ArgumentException(
+        //                     $"Expected either {nameof(Text)} or {nameof(Null)} " +
+        //                     $"but got {value.GetType()}"))
+        //         .ToList();
+        // }
+        // else
+        // {
+        //     ExceptionNames = null;
+        // }
     }
 
     public BlockHash BlockHash { get; init; }
 
-    public TxId TxId { get; }
+    public TxId TxId { get; init; }
 
-    public bool Fail { get; }
+    public bool Fail => ExceptionNames.Length > 0;
 
-    public HashDigest<SHA256>? InputState { get; init; }
+    public HashDigest<SHA256> InputState { get; init; }
 
-    public HashDigest<SHA256>? OutputState { get; init; }
+    public HashDigest<SHA256> OutputState { get; init; }
 
     public ImmutableArray<string> ExceptionNames { get; init; } = [];
 

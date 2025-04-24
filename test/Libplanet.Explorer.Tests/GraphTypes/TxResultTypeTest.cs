@@ -42,16 +42,17 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         public static IEnumerable<object[]> TestCases() {
             return new object[][] {
                 new object[] {
-                    new TxResult(
-                        TxStatus.SUCCESS,
-                        0,
-                        "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
-                        HashDigest<SHA256>.Parse(
+                    new TxResult
+                    {
+                        TxStatus = TxStatus.SUCCESS,
+                        BlockIndex = 0,
+                        BlockHash = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
+                        InputState = HashDigest<SHA256>.Parse(
                             "7146ddfb3594089795f6992a668a3ce7fde089aacdda68075e1bc37b14ebb06f"),
-                        HashDigest<SHA256>.Parse(
+                        OutputState = HashDigest<SHA256>.Parse(
                             "72bb2e17da644cbca9045f5e689fae0323b6af56a0acab9fd828d2243b50df1c"),
-                        new List<string>() { "" }
-                    ),
+                        ExceptionNames = [],
+                    },
                     new Dictionary<string, object> {
                         ["txStatus"] = "SUCCESS",
                         ["blockIndex"] = 0L,
@@ -65,16 +66,17 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     }
                 },
                 new object[] {
-                    new TxResult(
-                        TxStatus.FAILURE,
-                        0,
-                        "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
-                        HashDigest<SHA256>.Parse(
+                    new TxResult
+                    {
+                        TxStatus = TxStatus.FAILURE,
+                        BlockIndex = 0,
+                        BlockHash = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
+                        InputState = HashDigest<SHA256>.Parse(
                             "7146ddfb3594089795f6992a668a3ce7fde089aacdda68075e1bc37b14ebb06f"),
-                        HashDigest<SHA256>.Parse(
+                        OutputState = HashDigest<SHA256>.Parse(
                             "7146ddfb3594089795f6992a668a3ce7fde089aacdda68075e1bc37b14ebb06f"),
-                        new List<string>() { "SomeException" }
-                    ),
+                        ExceptionNames = ["SomeException"],
+                    },
                     new Dictionary<string, object> {
                         ["txStatus"] = "FAILURE",
                         ["blockIndex"] = 0L,
@@ -88,14 +90,13 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     }
                 },
                 new object[] {
-                    new TxResult(
-                        TxStatus.INCLUDED,
-                        0,
-                        "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
-                        null,
-                        null,
-                        new List<string>() { "" }
-                    ),
+                    new TxResult
+                    {
+                        TxStatus = TxStatus.INCLUDED,
+                        BlockIndex = 0,
+                        BlockHash = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
+                        ExceptionNames = [],
+                    },
                     new Dictionary<string, object> {
                         ["txStatus"] = "INCLUDED",
                         ["blockIndex"] = 0L,
@@ -107,14 +108,11 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     }
                 },
                 new object[] {
-                    new TxResult(
-                        TxStatus.INVALID,
-                        null,
-                        null,
-                        null,
-                        null,
-                        new List<string>() { "" }
-                    ),
+                    new TxResult
+                    {
+                        TxStatus = TxStatus.INVALID,
+                        ExceptionNames = [],
+                    },
                     new Dictionary<string, object> {
                         ["txStatus"] = "INVALID",
                         ["blockIndex"] = null,
@@ -125,14 +123,11 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     }
                 },
                 new object[] {
-                    new TxResult(
-                        TxStatus.STAGING,
-                        null,
-                        null,
-                        null,
-                        null,
-                        new List<string>() { "" }
-                    ),
+                    new TxResult
+                    {
+                        TxStatus = TxStatus.STAGING,
+                        ExceptionNames = [],
+                    },
                     new Dictionary<string, object> {
                         ["txStatus"] = "STAGING",
                         ["blockIndex"] = null,

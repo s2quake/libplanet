@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Bencodex;
 using Bencodex.Types;
@@ -221,38 +222,33 @@ namespace Libplanet.Explorer.Queries
                     if (GetBlockContainingTx(_context, txId) is { } block)
                     {
                         return _context.BlockChain.GetTxExecution(block.Hash, txId) is { } execution
-                            ? new TxResult(
-                                execution.Fail ? TxStatus.FAILURE : TxStatus.SUCCESS,
-                                block.Index,
-                                block.Hash.ToString(),
-                                execution.InputState,
-                                execution.OutputState,
-                                execution.ExceptionNames)
-                            : new TxResult(
-                                TxStatus.INCLUDED,
-                                block.Index,
-                                block.Hash.ToString(),
-                                null,
-                                null,
-                                null);
+                            ? new TxResult
+                            {
+                                TxStatus = execution.Fail ? TxStatus.FAILURE : TxStatus.SUCCESS,
+                                BlockIndex = block.Index,
+                                BlockHash = block.Hash.ToString(),
+                                InputState = execution.InputState,
+                                OutputState = execution.OutputState,
+                                ExceptionNames = execution.ExceptionNames,
+                            }
+                            : new TxResult
+                            {
+                                TxStatus = TxStatus.INCLUDED,
+                                BlockIndex = block.Index,
+                                BlockHash = block.Hash.ToString(),
+                            };
                     }
                     else
                     {
                         return blockChain.GetStagedTransactionIds().Contains(txId)
-                            ? new TxResult(
-                                TxStatus.STAGING,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null)
-                            : new TxResult(
-                                TxStatus.INVALID,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null);
+                            ? new TxResult
+                            {
+                                TxStatus = TxStatus.STAGING,
+                            }
+                            : new TxResult
+                            {
+                                TxStatus = TxStatus.INVALID,
+                            };
                     }
                 }
             );
