@@ -409,13 +409,14 @@ namespace Libplanet.Tests.Store
             Assert.Null(Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId1));
             Assert.Null(Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
 
-            var inputA = new TxExecution(
-                Fx.Hash1,
-                Fx.TxId1,
-                false,
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { string.Empty });
+            var inputA = new TxExecution
+            {
+                BlockHash = Fx.Hash1,
+                TxId = Fx.TxId1,
+                InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+                OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+                ExceptionNames = [],
+            };
             Fx.Store.PutTxExecution(inputA);
 
             AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
@@ -423,13 +424,14 @@ namespace Libplanet.Tests.Store
             Assert.Null(Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId1));
             Assert.Null(Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
 
-            var inputB = new TxExecution(
-                Fx.Hash1,
-                Fx.TxId2,
-                true,
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnExceptionName" });
+            var inputB = new TxExecution
+            {
+                BlockHash = Fx.Hash1,
+                TxId = Fx.TxId2,
+                InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+                OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+                ExceptionNames = ["AnExceptionName"],
+            };
             Fx.Store.PutTxExecution(inputB);
 
             AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
@@ -437,13 +439,14 @@ namespace Libplanet.Tests.Store
             Assert.Null(Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId1));
             Assert.Null(Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
 
-            var inputC = new TxExecution(
-                Fx.Hash2,
-                Fx.TxId1,
-                true,
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnotherExceptionName", "YetAnotherExceptionName" });
+            var inputC = new TxExecution
+            {
+                BlockHash = Fx.Hash2,
+                TxId = Fx.TxId1,
+                InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+                OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+                ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
+            };
             Fx.Store.PutTxExecution(inputC);
 
             AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));

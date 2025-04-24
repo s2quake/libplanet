@@ -55,20 +55,22 @@ namespace Libplanet.Blockchain
                 if (group.Item1 is { } txId)
                 {
                     // If txId is not null, group has at least one element.
-                    List<Exception?> exceptions = group.Item2
+                    List<Exception> exceptions = group.Item2
                         .Select(eval => eval.Exception)
                         .Select(exception => exception is { } e && e.InnerException is { } i
                             ? i
                             : exception)
+                        .OfType<Exception>()
                         .ToList();
 
-                    yield return new TxExecution(
-                        block.Hash,
-                        txId,
-                        exceptions.Any(exception => exception is { }),
-                        group.Item2.First().InputContext.PreviousState,
-                        group.Item2.Last().OutputState,
-                        exceptions.ToList());
+                    yield return new TxExecution
+                    {
+                        BlockHash = block.Hash,
+                        TxId = txId,
+                        InputState = group.Item2.First().InputContext.PreviousState,
+                        OutputState = group.Item2.Last().OutputState,
+                        ExceptionNames = [.. exceptions.Select(item => item.Message)],
+                    };
 
                     count++;
                 }

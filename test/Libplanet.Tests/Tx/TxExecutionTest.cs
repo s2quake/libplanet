@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
 using Bencodex.Types;
@@ -12,9 +13,9 @@ namespace Libplanet.Tests.Tx
     public class TxExecutionTest
     {
         [Theory]
-        [InlineData(false, "")]
-        [InlineData(true, "SomeException")]
-        public void Constructor(bool fail, string exceptionName)
+        [InlineData("")]
+        [InlineData("SomeException")]
+        public void Constructor( string exceptionName)
         {
             var random = new Random();
             var blockHash = random.NextBlockHash();
@@ -22,16 +23,16 @@ namespace Libplanet.Tests.Tx
             var inputState = random.NextHashDigest<SHA256>();
             var outputState = random.NextHashDigest<SHA256>();
             var exceptionNames = new List<string>() { exceptionName };
-            var execution = new TxExecution(
-                blockHash,
-                txId,
-                fail,
-                inputState,
-                outputState,
-                exceptionNames);
+            var execution = new TxExecution
+            {
+                BlockHash = blockHash,
+                TxId = txId,
+                InputState = inputState,
+                OutputState = outputState,
+                ExceptionNames = [.. exceptionNames],
+            };
             Assert.Equal(blockHash, execution.BlockHash);
             Assert.Equal(txId, execution.TxId);
-            Assert.Equal(fail, execution.Fail);
             Assert.Equal(inputState, execution.InputState);
             Assert.Equal(outputState, execution.OutputState);
             Assert.Equal(exceptionNames, execution.ExceptionNames);
@@ -41,15 +42,16 @@ namespace Libplanet.Tests.Tx
         public void EncodeDecode()
         {
             var random = new Random();
-            var execution = new TxExecution(
-                random.NextBlockHash(),
-                random.NextTxId(),
-                true,
-                random.NextHashDigest<SHA256>(),
-                random.NextHashDigest<SHA256>(),
-                new List<string>() { null, "SomeException", "AnotherException" });
+            var execution = new TxExecution
+            {
+                BlockHash = random.NextBlockHash(),
+                TxId = random.NextTxId(),
+                InputState = random.NextHashDigest<SHA256>(),
+                OutputState = random.NextHashDigest<SHA256>(),
+                ExceptionNames = ["SomeException", "AnotherException"],
+            };
             var encoded = execution.ToBencodex();
-            var decoded = new TxExecution(
+            var decoded = TxExecution.Create(
                 execution.BlockHash,
                 execution.TxId,
                 encoded);
@@ -69,14 +71,15 @@ namespace Libplanet.Tests.Tx
             var txId = random.NextTxId();
             var inputState = random.NextHashDigest<SHA256>();
             var outputState = random.NextHashDigest<SHA256>();
-            var exceptions = new List<Exception>() { null, new ArgumentException("Message") };
-            var execution = new TxExecution(
-                blockHash,
-                txId,
-                true,
-                inputState,
-                outputState,
-                exceptions);
+            var exceptions = new List<Exception>() { new ArgumentException("Message") };
+            var execution = new TxExecution
+            {
+                BlockHash = blockHash,
+                TxId = txId,
+                InputState = inputState,
+                OutputState = outputState,
+                ExceptionNames = [.. exceptions.Select(item => item.GetType().Name)],
+            };
             Assert.Equal(blockHash, execution.BlockHash);
             Assert.Equal(txId, execution.TxId);
             Assert.True(execution.Fail);
@@ -100,7 +103,7 @@ namespace Libplanet.Tests.Tx
             Dictionary legacyEncoded = Dictionary.Empty
                 .Add("fail", true)
                 .Add("exc", "SomeException");
-            var failExecution = new TxExecution(
+            var failExecution = TxExecution.Create(
                 blockHash,
                 txId,
                 legacyEncoded);
@@ -129,7 +132,7 @@ namespace Libplanet.Tests.Tx
                 .Add("updatedFAVs", List.Empty
                     .Add(currency.ToBencodex())
                     .Add(123));
-            var successExecution = new TxExecution(
+            var successExecution = TxExecution.Create(
                 blockHash,
                 txId,
                 legacyEncoded);

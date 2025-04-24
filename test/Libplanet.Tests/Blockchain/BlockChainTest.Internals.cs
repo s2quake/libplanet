@@ -172,27 +172,30 @@ namespace Libplanet.Tests.Blockchain
             Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId2));
 
             var random = new System.Random();
-            var inputA = new TxExecution(
-                _fx.Hash1,
-                _fx.TxId1,
-                false,
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { string.Empty });
-            var inputB = new TxExecution(
-                _fx.Hash1,
-                _fx.TxId2,
-                true,
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnExceptionName" });
-            var inputC = new TxExecution(
-                _fx.Hash2,
-                _fx.TxId1,
-                true,
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new List<string>() { "AnotherExceptionName", "YetAnotherExceptionName" });
+            var inputA = new TxExecution
+            {
+                BlockHash = _fx.Hash1,
+                TxId = _fx.TxId1,
+                InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                ExceptionNames = [],
+            };
+            var inputB = new TxExecution
+            {
+                BlockHash = _fx.Hash1,
+                TxId = _fx.TxId2,
+                InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                ExceptionNames = ["AnExceptionName"],
+            };
+            var inputC = new TxExecution
+            {
+                BlockHash = _fx.Hash2,
+                TxId = _fx.TxId1,
+                InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
+            };
             _blockChain.UpdateTxExecutions(new TxExecution[] { inputA, inputB, inputC });
 
             AssertTxExecutionEqual(inputA, getTxExecution(_fx.Hash1, _fx.TxId1));
