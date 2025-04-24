@@ -20,7 +20,7 @@ public sealed record class TxMetadata
     private static readonly Binary UpdatedAddressesKey = new("u"u8.ToArray()); // 'u'
     private static readonly Binary TimestampKey = new("t"u8.ToArray()); // 't'
 
-    public static TxMetadata Create(ITransaction metadata)
+    public static TxMetadata Create(Transaction metadata)
     {
         return new TxMetadata
         {

@@ -83,28 +83,32 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void MarshalTxInvoice()
         {
-            AssertBencodexEqual(_marshaledTxInvoice, _fx.Tx.MarshalTxInvoice());
+            AssertBencodexEqual(_marshaledTxInvoice, _fx.Tx.UnsignedTx.Invoice.MarshalTxInvoice());
             AssertBencodexEqual(
                 _marshaledTxInvoiceWithCustomActions,
-                _fx.TxWithActions.MarshalTxInvoice());
+                _fx.TxWithActions.UnsignedTx.Invoice.MarshalTxInvoice());
         }
 
         [Fact]
         public void MarshalTxSigningMetadata()
         {
-            AssertBencodexEqual(_marshaledTxSigningMetadata, _fx.Tx.MarshalTxSigningMetadata());
             AssertBencodexEqual(
                 _marshaledTxSigningMetadata,
-                _fx.TxWithActions.MarshalTxSigningMetadata());
+                _fx.Tx.UnsignedTx.SigningMetadata.MarshalTxSigningMetadata());
+            AssertBencodexEqual(
+                _marshaledTxSigningMetadata,
+                _fx.TxWithActions.UnsignedTx.SigningMetadata.MarshalTxSigningMetadata());
         }
 
         [Fact]
         public void MarshalUnsignedTx()
         {
-            AssertBencodexEqual(_marshaledUnsignedTx, _fx.Tx.MarshalUnsignedTx());
+            AssertBencodexEqual(
+                _marshaledUnsignedTx,
+                _fx.Tx.UnsignedTx.MarshalUnsignedTx());
             AssertBencodexEqual(
                 _marshaledUnsignedTxWithCustomActions,
-                _fx.TxWithActions.MarshalUnsignedTx());
+                _fx.TxWithActions.UnsignedTx.MarshalUnsignedTx());
         }
 
         [Fact]
@@ -119,12 +123,12 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void UnmarshalTxInvoice()
         {
-            Assert.Equal<ITxInvoice>(
+            Assert.Equal<TxInvoice>(
                 TxMarshaler.UnmarshalTxInvoice(_marshaledTxInvoice),
-                _fx.Tx);
-            Assert.Equal<ITxInvoice>(
+                _fx.Tx.UnsignedTx.Invoice);
+            Assert.Equal<TxInvoice>(
                 TxMarshaler.UnmarshalTxInvoice(_marshaledTxInvoiceWithCustomActions),
-                _fx.TxWithActions);
+                _fx.TxWithActions.UnsignedTx.Invoice);
         }
 
         [Fact]
@@ -140,9 +144,9 @@ namespace Libplanet.Tests.Tx
                 Bencodex.Types.List.Empty
                     .Add(ByteUtil.ParseHex("ffffffffffffffffffffffffffffffffffffffff"))
                     .Add(ByteUtil.ParseHex("0000000000000000000000000000000000000000")));
-            ITxInvoice invoiceA = TxMarshaler.UnmarshalTxInvoice(marshaledInvoiceA);
-            ITxInvoice invoiceB = TxMarshaler.UnmarshalTxInvoice(marshaledInvoiceB);
-            Assert.Equal<ITxInvoice>(invoiceA, invoiceB);
+            TxInvoice invoiceA = TxMarshaler.UnmarshalTxInvoice(marshaledInvoiceA);
+            TxInvoice invoiceB = TxMarshaler.UnmarshalTxInvoice(marshaledInvoiceB);
+            Assert.Equal<TxInvoice>(invoiceA, invoiceB);
             Assert.Equal<IEnumerable<Address>>(
                 new[] { default(Address), Address.Parse("ffffffffffffffffffffffffffffffffffffffff") },
                 invoiceA.UpdatedAddresses
@@ -158,24 +162,24 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void UnmarshalTxSigningMetadata()
         {
-            Assert.Equal<ITxSigningMetadata>(
+            Assert.Equal<TxSigningMetadata>(
                 TxMarshaler.UnmarshalTxSigningMetadata(_marshaledTxSigningMetadata),
-                _fx.Tx);
-            Assert.Equal<ITxSigningMetadata>(
+                _fx.Tx.UnsignedTx.SigningMetadata);
+            Assert.Equal<TxSigningMetadata>(
                 TxMarshaler.UnmarshalTxSigningMetadata(_marshaledTxSigningMetadata),
-                _fx.TxWithActions);
+                _fx.TxWithActions.UnsignedTx.SigningMetadata);
         }
 
         [Fact]
         public void UnmarshalUnsignedTx()
         {
-            Assert.Equal<IUnsignedTx>(
+            Assert.Equal(
                 TxMarshaler.UnmarshalUnsignedTx(_marshaledUnsignedTx),
-                _fx.Tx);
-            Assert.Equal<IUnsignedTx>(
+                _fx.Tx.UnsignedTx);
+            Assert.Equal(
                 TxMarshaler.UnmarshalUnsignedTx(
                     _marshaledUnsignedTxWithCustomActions),
-                _fx.TxWithActions);
+                _fx.TxWithActions.UnsignedTx);
         }
 
         [Fact]

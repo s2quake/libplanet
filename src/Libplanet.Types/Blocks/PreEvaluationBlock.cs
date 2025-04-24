@@ -55,7 +55,7 @@ namespace Libplanet.Types.Blocks
         public IReadOnlyList<Transaction> Transactions => _content.Transactions;
 
         /// <inheritdoc cref="IBlockContent.Transactions" />
-        IReadOnlyList<ITransaction> IBlockContent.Transactions => _content.Transactions;
+        IReadOnlyList<Transaction> IBlockContent.Transactions => _content.Transactions;
 
         public IReadOnlyList<EvidenceBase> Evidence => _content.Evidence;
 

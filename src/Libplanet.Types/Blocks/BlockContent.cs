@@ -169,7 +169,7 @@ namespace Libplanet.Types.Blocks
         /// <remarks>This is always ordered by <see cref="Transaction.Id"/>.</remarks>
         public IReadOnlyList<Transaction> Transactions => _transactions;
 
-        IReadOnlyList<ITransaction> IBlockContent.Transactions => _transactions;
+        IReadOnlyList<Transaction> IBlockContent.Transactions => _transactions;
 
         /// <summary>
         /// Derives <see cref="IBlockMetadata.TxHash"/> from given <paramref name="transactions"/>.

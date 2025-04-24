@@ -120,7 +120,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
     /// <inheritdoc />
     async Task IBlockChainIndex.IndexAsync(
-        BlockDigest blockDigest, IEnumerable<ITransaction> txs, CancellationToken stoppingToken) =>
+        BlockDigest blockDigest, IEnumerable<Transaction> txs, CancellationToken stoppingToken) =>
         await IndexAsyncImpl(blockDigest, txs, null, stoppingToken).ConfigureAwait(false);
 
     async Task IBlockChainIndex.SynchronizeForeverAsync(
@@ -150,7 +150,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
     protected abstract Task IndexAsyncImpl(
         BlockDigest blockDigest,
-        IEnumerable<ITransaction> txs,
+        IEnumerable<Transaction> txs,
         IIndexingContext? context,
         CancellationToken token);
 
@@ -298,7 +298,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
             }
 
             var blockDigest = store.GetBlockDigest(indexEnumerator.Current);
-            ITransaction[] txs = blockDigest.TxIds
+            Transaction[] txs = blockDigest.TxIds
                 .Select(txId => store.GetTransaction(new TxId(txId))
                     ?? throw new InvalidOperationException(
                         $"Could not find transaction with txid {txId} in store."))

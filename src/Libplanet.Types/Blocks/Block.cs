@@ -138,7 +138,7 @@ namespace Libplanet.Types.Blocks
         public IReadOnlyList<Transaction> Transactions => _preEvaluationBlock.Transactions;
 
         /// <inheritdoc cref="IBlockContent.Transactions"/>
-        IReadOnlyList<ITransaction> IBlockContent.Transactions => _preEvaluationBlock.Transactions;
+        IReadOnlyList<Transaction> IBlockContent.Transactions => _preEvaluationBlock.Transactions;
 
         /// <summary>
         /// Equivalent to <see cref="IEquatable{T}.Equals(T)"/>.

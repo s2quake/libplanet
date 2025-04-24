@@ -49,23 +49,23 @@ public class UnsignedTxTest
     public void Constructor()
     {
         var unsignedTx = new UnsignedTx(_invoice, _signingMetadata);
-        Assert.Equal<ITxInvoice>(_invoice, unsignedTx);
-        Assert.Equal<ITxSigningMetadata>(_signingMetadata, unsignedTx);
+        Assert.Equal(_invoice, unsignedTx.Invoice);
+        Assert.Equal(_signingMetadata, unsignedTx.SigningMetadata);
 
         unsignedTx = new UnsignedTx(
-            (ITxInvoice)_invoice,
-            (ITxSigningMetadata)_signingMetadata);
-        Assert.Equal<ITxInvoice>(_invoice, unsignedTx);
-        Assert.Equal<ITxSigningMetadata>(_signingMetadata, unsignedTx);
+            _invoice,
+            _signingMetadata);
+        Assert.Equal(_invoice, unsignedTx.Invoice);
+        Assert.Equal(_signingMetadata, unsignedTx.SigningMetadata);
     }
 
     [Fact]
     public void CopyConstructor()
     {
         var original = new UnsignedTx(_invoice, _signingMetadata);
-        var copy = new UnsignedTx(original);
-        Assert.Equal<ITxInvoice>(_invoice, copy);
-        Assert.Equal<ITxSigningMetadata>(_signingMetadata, copy);
+        var copy = original with { };
+        Assert.Equal(_invoice, copy.Invoice);
+        Assert.Equal(_signingMetadata, copy.SigningMetadata);
     }
 
     [Fact]
@@ -105,11 +105,11 @@ public class UnsignedTxTest
     public void Equality()
     {
         var unsignedTx = new UnsignedTx(_invoice, _signingMetadata);
-        Assert.Equal<ITxInvoice>(_invoice, unsignedTx);
-        Assert.Equal<ITxSigningMetadata>(_signingMetadata, unsignedTx);
-        var copy = new UnsignedTx(unsignedTx);
-        Assert.Equal<IUnsignedTx>(unsignedTx, copy);
-        Assert.Equal<UnsignedTx>(unsignedTx, copy);
+        Assert.Equal(_invoice, unsignedTx.Invoice);
+        Assert.Equal(_signingMetadata, unsignedTx.SigningMetadata);
+        var copy = unsignedTx with { };
+        Assert.Equal(unsignedTx.Invoice, copy.Invoice);
+        Assert.Equal(unsignedTx, copy);
         Assert.True(unsignedTx.Equals((object)copy));
         Assert.Equal(unsignedTx.GetHashCode(), copy.GetHashCode());
 
@@ -118,7 +118,7 @@ public class UnsignedTxTest
         {
             var diffInvoice = new TxInvoice
             {
-                GenesisHash = i == 0 ? (BlockHash?)null : _invoice.GenesisHash,
+                GenesisHash = i == 0 ? null : _invoice.GenesisHash,
                 UpdatedAddresses = i == 1 ? [] : _invoice.UpdatedAddresses,
                 Timestamp = i == 2 ? DateTimeOffset.MinValue : _invoice.Timestamp,
                 Actions = i == 3 ? [] : _invoice.Actions,
@@ -130,18 +130,17 @@ public class UnsignedTxTest
 
             if (i < 4)
             {
-                Assert.NotEqual<ITxInvoice>(diffInvoice, unsignedTx);
-                Assert.Equal<ITxSigningMetadata>(diffSigningMetadata, unsignedTx);
+                Assert.NotEqual(diffInvoice, unsignedTx.Invoice);
+                Assert.Equal(diffSigningMetadata, unsignedTx.SigningMetadata);
             }
             else
             {
-                Assert.Equal<ITxInvoice>(diffInvoice, unsignedTx);
-                Assert.NotEqual<ITxSigningMetadata>(diffSigningMetadata, unsignedTx);
+                Assert.Equal(diffInvoice, unsignedTx.Invoice);
+                Assert.NotEqual(diffSigningMetadata, unsignedTx.SigningMetadata);
             }
 
             var diffUnsignedTx = new UnsignedTx(diffInvoice, diffSigningMetadata);
-            Assert.NotEqual<IUnsignedTx>(unsignedTx, diffUnsignedTx);
-            Assert.NotEqual<UnsignedTx>(unsignedTx, diffUnsignedTx);
+            Assert.NotEqual(unsignedTx, diffUnsignedTx);
             Assert.False(unsignedTx.Equals((object)diffUnsignedTx));
             Assert.NotEqual(unsignedTx.GetHashCode(), diffUnsignedTx.GetHashCode());
         }

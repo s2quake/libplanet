@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Crypto;
@@ -39,8 +38,9 @@ public class TransactionExtensionsTest
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         Transaction tx = invoice.Sign(privateKey, 123L);
-        Assert.Equal<ITxInvoice>(invoice, tx);
-        Assert.Equal<ITxSigningMetadata>(new TxSigningMetadata(privateKey.PublicKey, 123L), tx);
-        Assert.True(new UnsignedTx(tx).VerifySignature(tx.Signature.ToImmutableArray()));
+        Assert.Equal(invoice, tx.UnsignedTx.Invoice);
+        Assert.Equal(
+            new TxSigningMetadata(privateKey.PublicKey, 123L), tx.UnsignedTx.SigningMetadata);
+        Assert.True(tx.UnsignedTx.VerifySignature(tx.Signature.ToImmutableArray()));
     }
 }

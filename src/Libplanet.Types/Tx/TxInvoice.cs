@@ -8,13 +8,13 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Tx;
 
-public sealed record class TxInvoice : ITxInvoice, IEquatable<TxInvoice>
+public sealed record class TxInvoice : IEquatable<TxInvoice>
 {
     public TxInvoice()
     {
     }
 
-    public TxInvoice(ITxInvoice invoice)
+    public TxInvoice(TxInvoice invoice)
     {
         Actions = invoice.Actions;
         GenesisHash = invoice.GenesisHash;
@@ -60,7 +60,7 @@ public sealed record class TxInvoice : ITxInvoice, IEquatable<TxInvoice>
         }
     }
 
-    bool IEquatable<ITxInvoice>.Equals(ITxInvoice? other) =>
+    bool IEquatable<TxInvoice>.Equals(TxInvoice? other) =>
         other is { } o &&
         (o.GenesisHash is { } otherGenesisHash
             ? otherGenesisHash.Equals(GenesisHash)
@@ -72,7 +72,7 @@ public sealed record class TxInvoice : ITxInvoice, IEquatable<TxInvoice>
         o.GasLimit.Equals(GasLimit);
 
     public bool Equals(TxInvoice? other) =>
-        other is ITxInvoice otherInvoice && otherInvoice.Equals(this);
+        other is TxInvoice otherInvoice && otherInvoice.Equals(this);
 
     public override int GetHashCode() =>
         HashCode.Combine(

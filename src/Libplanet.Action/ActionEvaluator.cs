@@ -74,7 +74,7 @@ namespace Libplanet.Action
         [Pure]
         public static int GenerateRandomSeed(
             byte[] preEvaluationHashBytes,
-            byte[] signature,
+            in ImmutableArray<byte> signature,
             int actionOffset)
         {
             using (var sha1 = SHA1.Create())
@@ -87,7 +87,7 @@ namespace Libplanet.Action
                             $"Given {nameof(preEvaluationHashBytes)} cannot be empty",
                             nameof(preEvaluationHashBytes)))
                     ^ (signature.Any()
-                        ? BitConverter.ToInt32(sha1.ComputeHash(signature), 0)
+                        ? BitConverter.ToInt32(sha1.ComputeHash([.. signature]), 0)
                         : 0))
                     + actionOffset;
                 }
@@ -197,7 +197,7 @@ namespace Libplanet.Action
         [Pure]
         internal static IEnumerable<ActionEvaluation> EvaluateActions(
             IPreEvaluationBlock block,
-            ITransaction? tx,
+            Transaction tx,
             IWorld previousState,
             IImmutableList<IAction> actions,
             IStateStore stateStore,
@@ -224,7 +224,7 @@ namespace Libplanet.Action
             }
 
             byte[] preEvaluationHashBytes = block.PreEvaluationHash.ToByteArray();
-            byte[] signature = tx?.Signature ?? Array.Empty<byte>();
+            var signature = tx.Signature;
             int seed = GenerateRandomSeed(preEvaluationHashBytes, signature, 0);
 
             IWorld state = previousState;
@@ -253,7 +253,7 @@ namespace Libplanet.Action
 
         internal static ActionEvaluation EvaluateAction(
             IPreEvaluationBlock block,
-            ITransaction? tx,
+            Transaction? tx,
             IActionContext context,
             IAction action,
             IStateStore stateStore,
@@ -376,18 +376,18 @@ namespace Libplanet.Action
         /// </summary>
         /// <param name="protocolVersion">The <see cref="IBlockMetadata.ProtocolVersion"/>
         /// that <paramref name="txs"/> belong to.</param>
-        /// <param name="txs">The list of <see cref="ITransaction"/>s to shuffle.</param>
+        /// <param name="txs">The list of <see cref="Transaction"/>s to shuffle.</param>
         /// <param name="preEvaluationHashBytes">The
         /// <see cref="IPreEvaluationBlockHeader.PreEvaluationHash"/>
         /// to use as a random seed when
         /// shuffling.</param>
-        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="ITransaction"/>s in evaluation
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="Transaction"/>s in evaluation
         /// order with the following properties:
         /// <list type="bullet">
-        /// <item><see cref="ITransaction"/>s with the same <see cref="ITxSigningMetadata.Signer"/>
+        /// <item><see cref="Transaction"/>s with the same <see cref="TxSigningMetadata.Signer"/>
         /// value appear consecutive in the list.</item>
-        /// <item><see cref="ITransaction"/>s with the same <see cref="ITxSigningMetadata.Signer"/>
-        /// value are ordered by <see cref="ITxSigningMetadata.Nonce"/> value in ascending order.
+        /// <item><see cref="Transaction"/>s with the same <see cref="TxSigningMetadata.Signer"/>
+        /// value are ordered by <see cref="TxSigningMetadata.Nonce"/> value in ascending order.
         /// </item>
         /// </list>
         /// </returns>
@@ -395,9 +395,9 @@ namespace Libplanet.Action
         /// This is to prevent an attempt to gain a first move advantage by participants.
         /// </remarks>
         [Pure]
-        internal static IEnumerable<ITransaction> OrderTxsForEvaluation(
+        internal static IEnumerable<Transaction> OrderTxsForEvaluation(
             int protocolVersion,
-            IEnumerable<ITransaction> txs,
+            IEnumerable<Transaction> txs,
             ImmutableArray<byte> preEvaluationHashBytes)
         {
             return protocolVersion >= BlockMetadata.TransactionOrderingFixProtocolVersion
@@ -421,12 +421,12 @@ namespace Libplanet.Action
             IWorld previousState)
         {
             IWorld delta = previousState;
-            IEnumerable<ITransaction> orderedTxs = OrderTxsForEvaluation(
+            IEnumerable<Transaction> orderedTxs = OrderTxsForEvaluation(
                 block.ProtocolVersion,
                 block.Transactions,
                 block.PreEvaluationHash.ByteArray);
 
-            foreach (ITransaction tx in orderedTxs)
+            foreach (Transaction tx in orderedTxs)
             {
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
@@ -466,7 +466,7 @@ namespace Libplanet.Action
         [Pure]
         internal IEnumerable<ActionEvaluation> EvaluateTx(
             IPreEvaluationBlock block,
-            ITransaction tx,
+            Transaction tx,
             IWorld previousState)
         {
             GasTracer.Initialize(tx.GasLimit ?? long.MaxValue);
@@ -580,7 +580,7 @@ namespace Libplanet.Action
         [Pure]
         internal ActionEvaluation[] EvaluatePolicyBeginTxActions(
             IPreEvaluationBlock block,
-            ITransaction transaction,
+            Transaction transaction,
             IWorld previousState)
         {
             _logger.Information(
@@ -612,7 +612,7 @@ namespace Libplanet.Action
         [Pure]
         internal ActionEvaluation[] EvaluatePolicyEndTxActions(
             IPreEvaluationBlock block,
-            ITransaction transaction,
+            Transaction transaction,
             IWorld previousState)
         {
             _logger.Information(
@@ -667,8 +667,8 @@ namespace Libplanet.Action
         }
 
         [Pure]
-        private static IEnumerable<ITransaction> OrderTxsForEvaluationV0(
-            IEnumerable<ITransaction> txs,
+        private static IEnumerable<Transaction> OrderTxsForEvaluationV0(
+            IEnumerable<Transaction> txs,
             ImmutableArray<byte> preEvaluationHashBytes)
         {
             // As the order of transactions should be unpredictable until a block is mined,
@@ -689,8 +689,8 @@ namespace Libplanet.Action
         }
 
         [Pure]
-        private static IEnumerable<ITransaction> OrderTxsForEvaluationV3(
-            IEnumerable<ITransaction> txs,
+        private static IEnumerable<Transaction> OrderTxsForEvaluationV3(
+            IEnumerable<Transaction> txs,
             ImmutableArray<byte> preEvaluationHashBytes)
         {
             using SHA256 sha256 = SHA256.Create();
@@ -725,7 +725,7 @@ namespace Libplanet.Action
             return result.SelectMany(group => group.OrderBy(tx => tx.Nonce));
         }
 
-        private IEnumerable<IAction> LoadActions(long index, ITransaction tx)
+        private IEnumerable<IAction> LoadActions(long index, Transaction tx)
         {
             if (tx.Actions is { } actions)
             {

@@ -71,7 +71,7 @@ namespace Libplanet.Tests.Blocks
                     },
                     new TxSigningMetadata(key.PublicKey, nonce: 0)
                 ),
-                signature: ByteUtil.ParseHexToImmutable(
+                Signature: ByteUtil.ParseHexToImmutable(
                     "cd51a992907121083ae2da9b39f94063fe5eb1bb91bb96dc83ced6add8370fe36" +
                     "394d6db0fca60ebfe40284e4c4cf6096cf5aa4e18bdc5d4f732033ea692e7521c"
                 )
@@ -106,9 +106,9 @@ namespace Libplanet.Tests.Blocks
                         Timestamp = Block1Tx1.Timestamp,
                         Actions = [],
                     },
-                    new TxSigningMetadata(Block1Tx1.Signer, nonce: 1L)
+                    new TxSigningMetadata(Block1Tx1.Signer, Nonce: 1L)
                 ),
-                signature: ByteUtil.ParseHexToImmutable(
+                Signature: ByteUtil.ParseHexToImmutable(
                     "271c43e8c1a54c59686a49f13f1279765dd26a40a7b5e649a7dbf938bbcef3bf5" +
                     "e1d6be5b456506873fbd9d3e5b07a5f72bfeac19774cd8f8c7fd4f4f73abb6d1b"
                 )
@@ -144,9 +144,9 @@ namespace Libplanet.Tests.Blocks
                         Timestamp = Block1Tx1.Timestamp,
                         Actions = [],
                     },
-                    new TxSigningMetadata(Block1Tx1.Signer, nonce: 3L)
+                    new TxSigningMetadata(Block1Tx1.Signer, Nonce: 3L)
                 ),
-                signature: ByteUtil.ParseHexToImmutable(
+                Signature: ByteUtil.ParseHexToImmutable(
                     "299543707e52a2ba0a20f6dfd306ca6a87c8f0567134c83f1a078af064547b9f4" +
                     "72f3e6d2bb88c7e7cc46a6d70017117f5cb75fbb5cbd7239e042d1273072e861c"
                 )

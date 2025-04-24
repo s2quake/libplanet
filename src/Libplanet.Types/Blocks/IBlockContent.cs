@@ -14,7 +14,7 @@ namespace Libplanet.Types.Blocks
         /// <summary>
         /// Transactions belonging to the block.
         /// </summary>
-        IReadOnlyList<ITransaction> Transactions { get; }
+        IReadOnlyList<Transaction> Transactions { get; }
 
         IReadOnlyList<EvidenceBase> Evidence { get; }
     }

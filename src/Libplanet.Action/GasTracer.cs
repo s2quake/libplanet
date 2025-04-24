@@ -5,7 +5,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Action
 {
     /// <summary>
-    /// Provides a way to trace the gas usage of an <see cref="ITransaction"/>.
+    /// Provides a way to trace the gas usage of an <see cref="Transaction"/>.
     /// It will be initialize each transaction.
     ///
     /// <see cref="GasTracer"/> is thread-local, so it can be used in a multi-threaded environment.
