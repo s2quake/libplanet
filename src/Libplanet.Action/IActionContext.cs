@@ -100,12 +100,12 @@ namespace Libplanet.Action
         FungibleAssetValue? MaxGasPrice { get; }
 
         /// <summary>
-        /// A list of <see cref="ITransaction"/>s that are included in a <see cref="Block"/> as
+        /// A list of <see cref="Transaction"/>s that are included in a <see cref="Block"/> as
         /// the <see cref="IAction"/> to be evaluated.  This information is provided only if
         /// <see cref="IsPolicyAction"/> is <see langword="true"/>, otherwise returns an empty set.
         /// </summary>
         [Pure]
-        IReadOnlyList<ITransaction> Txs { get; }
+        IReadOnlyList<Transaction> Txs { get; }
 
         /// <summary>
         /// A list of <see cref="EvidenceBase"/>s that are included in a

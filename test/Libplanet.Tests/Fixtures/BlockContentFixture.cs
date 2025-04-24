@@ -94,7 +94,7 @@ namespace Libplanet.Tests.Fixtures
                     },
                     new TxSigningMetadata(Block1Tx0Key.PublicKey, nonce: 0L)
                 ),
-                signature: ByteUtil.ParseHexToImmutable(
+                Signature: ByteUtil.ParseHexToImmutable(
                     "6054008481425278039421becc25fcb030d12714dc53490fdd5d43bcc8fe2d2a5" +
                     "b80a751bbde0b4813bd94ecd8e63bafee4f18db787beb117a5fc1aa5c2af9ca1b"
                 )
@@ -113,7 +113,7 @@ namespace Libplanet.Tests.Fixtures
                         ]).ToPlainValues()],
                     },
                     new TxSigningMetadata(Block1Tx1Key.PublicKey, nonce: 1L)),
-                signature: ByteUtil.ParseHexToImmutable(
+                Signature: ByteUtil.ParseHexToImmutable(
                     "f74609d91b9c5348ba248df1dcbce4114031971beb39c12874df3a8c4c8651540" +
                     "b31c9460da2b673cae61502036f6054353303be3c0b210ad9659afc6e9f5ce71b")
             );

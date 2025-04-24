@@ -56,45 +56,6 @@ namespace Libplanet.Tests.Tx
         }
 
         [Fact]
-        public void CopyConstructor()
-        {
-            var meta1 = new MetadataTransaction
-            {
-                PublicKey = _key1.PublicKey,
-                Nonce = 123L,
-                Timestamp = new DateTimeOffset(2022, 5, 23, 10, 2, 0, default),
-            };
-            var copy1 = TxMetadata.Create(meta1);
-            Assert.Equal(meta1.Nonce, copy1.Nonce);
-            AssertBytesEqual(meta1.Signer, copy1.Signer);
-            Assert.Equal(meta1.UpdatedAddresses, copy1.UpdatedAddresses);
-            Assert.Equal(meta1.Timestamp, copy1.Timestamp);
-            Assert.Equal(meta1.Signer, copy1.Signer);
-            AssertBytesEqual(meta1.GenesisHash, copy1.GenesisHash);
-
-            var meta2 = new MetadataTransaction
-            {
-                PublicKey = _key2.PublicKey,
-                Nonce = 0L,
-                UpdatedAddresses =
-                [
-                    _key1.Address,
-                    _key2.Address,
-                ],
-                Timestamp = new DateTimeOffset(2022, 1, 12, 4, 56, 7, 890, default),
-                GenesisHash = BlockHash.Parse(
-                    "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"),
-            };
-            var copy2 = TxMetadata.Create(meta2);
-            Assert.Equal(meta2.Nonce, copy2.Nonce);
-            AssertBytesEqual(meta2.Signer, copy2.Signer);
-            Assert.Equal(meta2.UpdatedAddresses, copy2.UpdatedAddresses);
-            Assert.Equal(meta2.Timestamp, copy2.Timestamp);
-            Assert.Equal(meta2.Signer, copy2.Signer);
-            AssertBytesEqual(meta2.GenesisHash, copy2.GenesisHash);
-        }
-
-        [Fact]
         public void Deserialize()
         {
             Bencodex.Types.Dictionary dict1 = Dictionary.Empty
@@ -192,37 +153,6 @@ namespace Libplanet.Tests.Tx
             AssertBencodexEqual(
                 expected2,
                 meta2.ToBencodex());
-        }
-
-        private class MetadataTransaction : ITransaction
-        {
-            public TxId Id { get; set; } = default(TxId);
-
-            public long Nonce { get; set; } = 0L;
-
-            public Address Signer => PublicKey.Address;
-
-            public ImmutableSortedSet<Address> UpdatedAddresses { get; set; } = [];
-
-            public DateTimeOffset Timestamp { get; set; }
-
-            public PublicKey PublicKey { get; set; }
-
-            public BlockHash? GenesisHash { get; set; }
-
-            public byte[] Signature => Array.Empty<byte>();
-
-            public ImmutableArray<IValue> Actions => [];
-
-            public FungibleAssetValue? MaxGasPrice => null;
-
-            public long? GasLimit => null;
-
-            bool IEquatable<ITxInvoice>.Equals(ITxInvoice other) => false;
-
-            bool IEquatable<ITxSigningMetadata>.Equals(ITxSigningMetadata other) => false;
-
-            bool IEquatable<IUnsignedTx>.Equals(IUnsignedTx other) => false;
         }
     }
 }

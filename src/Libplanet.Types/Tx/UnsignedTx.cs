@@ -1,189 +1,90 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.Contracts;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Bencodex;
-using Bencodex.Json;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Types.Tx
+namespace Libplanet.Types.Tx;
+
+public sealed record class UnsignedTx(TxInvoice Invoice, TxSigningMetadata SigningMetadata)
+    : IEquatable<UnsignedTx>
 {
-    /// <summary>
-    /// A concrete implementation of <see cref="IUnsignedTx"/>.
-    /// </summary>
-    /// <seealso cref="IUnsignedTx"/>
-    /// <seealso cref="TxInvoice"/>
-    /// <seealso cref="TxSigningMetadata"/>
-    /// <seealso cref="Transaction"/>
-    public sealed class UnsignedTx : IUnsignedTx, IEquatable<UnsignedTx>
+    public ImmutableSortedSet<Address> UpdatedAddresses => Invoice.UpdatedAddresses;
+
+    public DateTimeOffset Timestamp => Invoice.Timestamp;
+
+    public BlockHash? GenesisHash => Invoice.GenesisHash;
+
+    public ImmutableArray<IValue> Actions => Invoice.Actions;
+
+    public FungibleAssetValue? MaxGasPrice => Invoice.MaxGasPrice;
+
+    public long? GasLimit => Invoice.GasLimit;
+
+    public long Nonce => SigningMetadata.Nonce;
+
+    public Address Signer => SigningMetadata.Signer;
+
+    public ImmutableArray<byte> CreateSignature(PrivateKey privateKey)
     {
-        private static readonly Codec _codec = new Codec();
-        private readonly TxInvoice _invoice;
-        private readonly TxSigningMetadata _signingMetadata;
-
-        /// <summary>
-        /// Creates a new <see cref="UnsignedTx"/> instance by combining an <see cref="TxInvoice"/>
-        /// and an <see cref="TxSigningMetadata"/>.
-        /// </summary>
-        /// <param name="invoice">The invoice to combine with <paramref name="signingMetadata"/>.
-        /// </param>
-        /// <param name="signingMetadata">The signing metadata to combine with
-        /// <paramref name="invoice"/>.</param>
-        public UnsignedTx(TxInvoice invoice, TxSigningMetadata signingMetadata)
+        if (!privateKey.Address.Equals(Signer))
         {
-            _invoice = invoice;
-            _signingMetadata = signingMetadata;
+            throw new ArgumentException(
+                "The given private key does not correspond to the public key.",
+                paramName: nameof(privateKey)
+            );
         }
 
-        /// <summary>
-        /// Creates a new <see cref="UnsignedTx"/> instance by copying everything from another
-        /// <paramref name="unsignedTx"/>.
-        /// </summary>
-        /// <param name="unsignedTx">The <see cref="IUnsignedTx"/> instance to copy.</param>
-        public UnsignedTx(IUnsignedTx unsignedTx)
-            : this(unsignedTx, unsignedTx)
-        {
-        }
+        byte[] sig = privateKey.Sign(CreateMessage());
+        ImmutableArray<byte> movedImmutableArray =
+            Unsafe.As<byte[], ImmutableArray<byte>>(ref sig);
+        return movedImmutableArray;
+    }
 
-        /// <summary>
-        /// Creates a new <see cref="UnsignedTx"/> instance by combining an <see cref="ITxInvoice"/>
-        /// and an <see cref="ITxSigningMetadata"/>.  Note that when the arguments are not instances
-        /// of <see cref="TxInvoice"/> or <see cref="TxSigningMetadata"/>, this constructor creates
-        /// new instances of <see cref="TxInvoice"/> and <see cref="TxSigningMetadata"/> by copying.
-        /// </summary>
-        /// <param name="invoice">The invoice to combine with <paramref name="signingMetadata"/>.
-        /// </param>
-        /// <param name="signingMetadata">The signing metadata to combine with
-        /// <paramref name="invoice"/>.</param>
-        public UnsignedTx(ITxInvoice invoice, ITxSigningMetadata signingMetadata)
-            : this(
-                invoice is TxInvoice i ? i : new TxInvoice(invoice),
-                signingMetadata is TxSigningMetadata m ? m : new TxSigningMetadata(signingMetadata))
-        {
-        }
+    public bool VerifySignature(ImmutableArray<byte> signature) =>
+        PublicKey.Verify(Signer, CreateMessage().ToImmutableArray(), signature);
 
-        /// <inheritdoc cref="ITxInvoice.UpdatedAddresses" />
-        public ImmutableSortedSet<Address> UpdatedAddresses => _invoice.UpdatedAddresses;
+    // bool IEquatable<TxInvoice>.Equals(TxInvoice? other) =>
+    //     other is { } o && Invoice.Equals(o);
 
-        /// <inheritdoc cref="ITxInvoice.Timestamp" />
-        public DateTimeOffset Timestamp => _invoice.Timestamp;
+    // bool IEquatable<TxSigningMetadata>.Equals(TxSigningMetadata? other) =>
+    //     other is { } o && _signingMetadata.Equals(o);
 
-        /// <inheritdoc cref="ITxInvoice.GenesisHash" />
-        public BlockHash? GenesisHash => _invoice.GenesisHash;
+    // bool IEquatable<UnsignedTx>.Equals(UnsignedTx? other) =>
+    //     other is { } o &&
+    //     ((IEquatable<TxInvoice>)this).Equals(o) &&
+    //     ((IEquatable<TxSigningMetadata>)this).Equals(o);
 
-        /// <inheritdoc cref="ITxInvoice.Actions" />
-        public ImmutableArray<IValue> Actions => _invoice.Actions;
+    public bool Equals(UnsignedTx? other) =>
+        other is { } o && ((IEquatable<UnsignedTx>)this).Equals(o);
 
-        /// <inheritdoc cref="ITxInvoice.MaxGasPrice" />
-        public FungibleAssetValue? MaxGasPrice => _invoice.MaxGasPrice;
+    public override int GetHashCode() =>
+        HashCode.Combine(Invoice, SigningMetadata);
 
-        /// <inheritdoc cref="ITxInvoice.GasLimit" />
-        public long? GasLimit => _invoice.GasLimit;
+    public override string ToString()
+    {
+        string actions = Actions.ToString() ?? string.Empty;
+        string indentedActions = actions.Replace("\n", "\n  ");
+        return nameof(TxInvoice) + " {\n" +
+            $"  {nameof(UpdatedAddresses)} = ({UpdatedAddresses.Count})" +
+            (UpdatedAddresses.Any()
+                ? $"\n    {string.Join("\n    ", UpdatedAddresses)};\n"
+                : ";\n") +
+            $"  {nameof(Timestamp)} = {Timestamp},\n" +
+            $"  {nameof(GenesisHash)} = {GenesisHash?.ToString() ?? "(null)"},\n" +
+            $"  {nameof(Actions)} = {indentedActions},\n" +
+            $"  {nameof(Nonce)} = {Nonce},\n" +
+            $"  {nameof(Signer)} = {Signer},\n" +
+            "}";
+    }
 
-        /// <inheritdoc cref="ITxSigningMetadata.Nonce" />
-        public long Nonce => _signingMetadata.Nonce;
-
-        /// <inheritdoc cref="ITxSigningMetadata.Signer" />
-        public Address Signer => _signingMetadata.Signer;
-
-        /// <summary>
-        /// Creates a signature for this transaction with the given <paramref name="privateKey"/>.
-        /// </summary>
-        /// <param name="privateKey">The private key to sign this transaction.</param>
-        /// <returns>A signature for this transaction.</returns>
-        /// <exception cref="ArgumentException">Thrown when the given <paramref name="privateKey"/>
-        /// does not correspond to the <see cref="Address"/> of this transaction.</exception>
-        [Pure]
-        public ImmutableArray<byte> CreateSignature(PrivateKey privateKey)
-        {
-            if (!privateKey.Address.Equals(Signer))
-            {
-                throw new ArgumentException(
-                    "The given private key does not correspond to the public key.",
-                    paramName: nameof(privateKey)
-                );
-            }
-
-            byte[] sig = privateKey.Sign(CreateMessage());
-            ImmutableArray<byte> movedImmutableArray =
-                Unsafe.As<byte[], ImmutableArray<byte>>(ref sig);
-            return movedImmutableArray;
-        }
-
-        /// <summary>
-        /// Verifies the given <paramref name="signature"/> for this transaction.
-        /// </summary>
-        /// <param name="signature">The signature to verify.</param>
-        /// <returns><see langword="true"/> if the given <paramref name="signature"/> is valid for
-        /// this transaction, otherwise <see langword="false"/>.</returns>
-        [Pure]
-        public bool VerifySignature(ImmutableArray<byte> signature) =>
-            PublicKey.Verify(Signer, CreateMessage().ToImmutableArray(), signature);
-
-        /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-        [Pure]
-        bool IEquatable<ITxInvoice>.Equals(ITxInvoice? other) =>
-            other is { } o && _invoice.Equals(o);
-
-        /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-        [Pure]
-        bool IEquatable<ITxSigningMetadata>.Equals(ITxSigningMetadata? other) =>
-            other is { } o && _signingMetadata.Equals(o);
-
-        /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-        [Pure]
-        bool IEquatable<IUnsignedTx>.Equals(IUnsignedTx? other) =>
-            other is { } o &&
-            ((IEquatable<ITxInvoice>)this).Equals(o) &&
-            ((IEquatable<ITxSigningMetadata>)this).Equals(o);
-
-        /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-        [Pure]
-        public bool Equals(UnsignedTx? other) =>
-            other is { } o && ((IEquatable<IUnsignedTx>)this).Equals(o);
-
-        /// <inheritdoc cref="object.Equals(object?)"/>
-        [Pure]
-        public override bool Equals(object? obj) =>
-            obj is IUnsignedTx other && ((IUnsignedTx)this).Equals(other);
-
-        /// <inheritdoc cref="object.GetHashCode()"/>
-        [Pure]
-        public override int GetHashCode() =>
-            HashCode.Combine(_invoice, _signingMetadata);
-
-        /// <inheritdoc cref="object.ToString()"/>
-        [Pure]
-        public override string ToString()
-        {
-            string actions = Actions.ToString() ?? string.Empty;
-            string indentedActions = actions.Replace("\n", "\n  ");
-            return nameof(TxInvoice) + " {\n" +
-                $"  {nameof(UpdatedAddresses)} = ({UpdatedAddresses.Count})" +
-                (UpdatedAddresses.Any()
-                    ? $"\n    {string.Join("\n    ", UpdatedAddresses)};\n"
-                    : ";\n") +
-                $"  {nameof(Timestamp)} = {Timestamp},\n" +
-                $"  {nameof(GenesisHash)} = {GenesisHash?.ToString() ?? "(null)"},\n" +
-                $"  {nameof(Actions)} = {indentedActions},\n" +
-                $"  {nameof(Nonce)} = {Nonce},\n" +
-                $"  {nameof(Signer)} = {Signer},\n" +
-                "}";
-        }
-
-        [Pure]
-        private byte[] CreateMessage()
-        {
-            var json = this.SerializeUnsignedTx();
-            return Encoding.UTF8.GetBytes(json);
-        }
+    private byte[] CreateMessage()
+    {
+        var json = this.SerializeUnsignedTx();
+        return Encoding.UTF8.GetBytes(json);
     }
 }

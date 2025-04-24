@@ -141,15 +141,6 @@ namespace Libplanet.Tests.Tx
             Assert.True(updatedAddresses.SetEquals(copy.UpdatedAddresses));
             Assert.Equal(timestamp, copy.Timestamp);
             Assert.Equal(actions, copy.Actions);
-
-            var mock = new MockTxInvoice();
-            var copyFromInterface = new TxInvoice(mock);
-            Assert.Equal(mock.GenesisHash, copyFromInterface.GenesisHash);
-            Assert.True(mock.UpdatedAddresses.SetEquals(copyFromInterface.UpdatedAddresses));
-            Assert.Equal(mock.Timestamp, copyFromInterface.Timestamp);
-            Assert.Equal(mock.Actions, copyFromInterface.Actions);
-            Assert.Equal(mock.MaxGasPrice, copyFromInterface.MaxGasPrice);
-            Assert.Equal(mock.GasLimit, copyFromInterface.GasLimit);
         }
 
         [Fact]
@@ -180,10 +171,6 @@ namespace Libplanet.Tests.Tx
             Assert.True(invoice1.Equals(invoice2));
             Assert.True(invoice1.Equals((object)invoice2));
             Assert.Equal(invoice1.GetHashCode(), invoice2.GetHashCode());
-
-            var mock = new MockTxInvoice();
-            Assert.True(invoice1.Equals(mock));
-            Assert.True(invoice1.Equals((object)mock));
 
             Assert.False(invoice1.Equals(null));
 
@@ -273,28 +260,6 @@ namespace Libplanet.Tests.Tx
                 ",
                 false);
 #pragma warning restore MEN002
-        }
-
-        private class MockTxInvoice : ITxInvoice
-        {
-            public ImmutableSortedSet<Address> UpdatedAddresses => [AddressA, AddressB];
-
-            public DateTimeOffset Timestamp =>
-                new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-
-            public BlockHash? GenesisHash => BlockHash.Parse(
-                "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-
-            public ImmutableArray<IValue> Actions => [.. ImmutableArray.Create<IAction>([
-                DumbAction.Create((AddressA, "foo")),
-                DumbAction.Create((AddressB, "bar")),
-            ]).ToPlainValues()];
-
-            public FungibleAssetValue? MaxGasPrice => null;
-
-            public long? GasLimit => null;
-
-            bool IEquatable<ITxInvoice>.Equals(ITxInvoice other) => false;
         }
     }
 }

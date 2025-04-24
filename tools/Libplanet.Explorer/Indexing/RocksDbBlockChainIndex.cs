@@ -194,7 +194,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
     /// <inheritdoc />
     protected override async Task IndexAsyncImpl(
         BlockDigest blockDigest,
-        IEnumerable<ITransaction> txs,
+        IEnumerable<Transaction> txs,
         IIndexingContext? context,
         CancellationToken stoppingToken) =>
         await Task.Run(() => IndexImpl(blockDigest, txs, context, stoppingToken), stoppingToken)
@@ -258,7 +258,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
 
     private void IndexImpl(
         BlockDigest blockDigest,
-        IEnumerable<ITransaction> txs,
+        IEnumerable<Transaction> txs,
         IIndexingContext? context,
         CancellationToken stoppingToken)
     {

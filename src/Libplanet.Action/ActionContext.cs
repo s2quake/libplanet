@@ -12,7 +12,7 @@ namespace Libplanet.Action
 {
     internal class ActionContext : IActionContext
     {
-        private readonly IReadOnlyList<ITransaction> _txs;
+        private readonly IReadOnlyList<Transaction> _txs;
 
         public ActionContext(
             Address signer,
@@ -25,7 +25,7 @@ namespace Libplanet.Action
             int randomSeed,
             bool isPolicyAction,
             FungibleAssetValue? maxGasPrice,
-            IReadOnlyList<ITransaction>? txs = null,
+            IReadOnlyList<Transaction>? txs = null,
             IReadOnlyList<EvidenceBase>? evidence = null)
         {
             Signer = signer;
@@ -74,9 +74,9 @@ namespace Libplanet.Action
         public FungibleAssetValue? MaxGasPrice { get; }
 
         /// <inheritdoc cref="IActionContext.Txs"/>
-        public IReadOnlyList<ITransaction> Txs => IsPolicyAction
+        public IReadOnlyList<Transaction> Txs => IsPolicyAction
             ? _txs
-            : ImmutableList<ITransaction>.Empty;
+            : ImmutableList<Transaction>.Empty;
 
         /// <inheritdoc cref="IActionContext.Evidence"/>
         public IReadOnlyList<EvidenceBase> Evidence { get; }

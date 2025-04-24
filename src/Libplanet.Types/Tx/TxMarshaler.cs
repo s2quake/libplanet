@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Bencodex;
@@ -20,16 +21,16 @@ namespace Libplanet.Types.Tx;
 public static class TxMarshaler
 {
     private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
-    private static readonly Binary UpdatedAddressesKey = new Binary(new byte[] { 0x75 }); // 'u'
-    private static readonly Binary TimestampKey = new Binary(new byte[] { 0x74 }); // 't'
-    private static readonly Binary GenesisHashKey = new Binary(new byte[] { 0x67 }); // 'g'
-    private static readonly Binary MaxGasPriceKey = new Binary(new byte[] { 0x6d }); // 'm'
-    private static readonly Binary GasLimitKey = new Binary(new byte[] { 0x6c }); // 'l'
-    private static readonly Binary NonceKey = new Binary(new byte[] { 0x6e }); // 'n'
-    private static readonly Binary SignerKey = new Binary(new byte[] { 0x73 }); // 's'
-    private static readonly Binary SignatureKey = new Binary(new byte[] { 0x53 }); // 'S'
-    private static readonly Binary ActionsKey = new Binary(new byte[] { 0x61 }); // 'a'
-    private static readonly Codec Codec = new Codec();
+    private static readonly Binary UpdatedAddressesKey = new("u"u8.ToArray());
+    private static readonly Binary TimestampKey = new("t"u8.ToArray());
+    private static readonly Binary GenesisHashKey = new("g"u8.ToArray());
+    private static readonly Binary MaxGasPriceKey = new("m"u8.ToArray());
+    private static readonly Binary GasLimitKey = new("l"u8.ToArray());
+    private static readonly Binary NonceKey = new("n"u8.ToArray());
+    private static readonly Binary SignerKey = new("s"u8.ToArray());
+    private static readonly Binary SignatureKey = new("S"u8.ToArray());
+    private static readonly Binary ActionsKey = new("a"u8.ToArray());
+    private static readonly Codec Codec = new();
 
     private static readonly BencodexJsonConverter BencodexJsonConverter = new();
     private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -42,9 +43,9 @@ public static class TxMarshaler
     };
 
     [Pure]
-    public static Bencodex.Types.Dictionary MarshalTxInvoice(this ITxInvoice invoice)
+    public static Bencodex.Types.Dictionary MarshalTxInvoice(this TxInvoice invoice)
     {
-        Bencodex.Types.List updatedAddresses = new Bencodex.Types.List(
+        Bencodex.Types.List updatedAddresses = new(
             invoice.UpdatedAddresses.Select<Address, IValue>(addr => addr.ToBencodex())
         );
         string timestamp = invoice.Timestamp
@@ -78,18 +79,18 @@ public static class TxMarshaler
 
     [Pure]
     public static Bencodex.Types.Dictionary MarshalTxSigningMetadata(
-        this ITxSigningMetadata metadata
+        this TxSigningMetadata metadata
     ) => Dictionary.Empty
         .Add(NonceKey, metadata.Nonce)
         .Add(SignerKey, metadata.Signer.ToBencodex());
 
     [Pure]
-    public static Dictionary MarshalUnsignedTx(this IUnsignedTx unsignedTx)
-        => (Dictionary)unsignedTx.MarshalTxInvoice()
-            .AddRange(unsignedTx.MarshalTxSigningMetadata());
+    public static Dictionary MarshalUnsignedTx(this UnsignedTx unsignedTx)
+        => (Dictionary)MarshalTxInvoice(unsignedTx.Invoice)
+            .AddRange(MarshalTxSigningMetadata(unsignedTx.SigningMetadata));
 
     [Pure]
-    public static string SerializeUnsignedTx(this IUnsignedTx unsignedTx)
+    public static string SerializeUnsignedTx(this UnsignedTx unsignedTx)
     {
         var dict = unsignedTx.MarshalUnsignedTx();
         using var ms = new MemoryStream();
@@ -102,10 +103,22 @@ public static class TxMarshaler
 
     [Pure]
     public static Dictionary MarshalTransaction(this Transaction transaction)
-        => transaction.MarshalUnsignedTx().Add(SignatureKey, transaction.Signature);
+        => MarshalTransaction(transaction.UnsignedTx, transaction.Signature);
+
+    public static Dictionary MarshalTransaction(
+        UnsignedTx unsignedTx, ImmutableArray<byte> signature)
+        => MarshalUnsignedTx(unsignedTx).Add(SignatureKey, signature);
+
+    public static TxId GetTxId(
+        UnsignedTx unsignedTx, ImmutableArray<byte> signature)
+    {
+        var value = MarshalTransaction(unsignedTx, signature);
+        var payload = Codec.Encode(value);
+        return new TxId(SHA256.HashData(payload));
+    }
 
     [Pure]
-    public static ITxInvoice UnmarshalTxInvoice(Bencodex.Types.Dictionary dictionary)
+    public static TxInvoice UnmarshalTxInvoice(Bencodex.Types.Dictionary dictionary)
     {
         return new TxInvoice
         {
@@ -131,19 +144,19 @@ public static class TxMarshaler
     }
 
     [Pure]
-    public static ITxSigningMetadata UnmarshalTxSigningMetadata(
+    public static TxSigningMetadata UnmarshalTxSigningMetadata(
         Bencodex.Types.Dictionary dictionary
     ) =>
-        new TxSigningMetadata(
-            signer: Address.Create(dictionary[SignerKey]),
-            nonce: (Bencodex.Types.Integer)dictionary[NonceKey]
+        new(
+            Signer: Address.Create(dictionary[SignerKey]),
+            Nonce: (Bencodex.Types.Integer)dictionary[NonceKey]
         );
 
     [Pure]
     public static UnsignedTx UnmarshalUnsignedTx(Bencodex.Types.Dictionary dictionary) =>
-        new UnsignedTx(
-            invoice: UnmarshalTxInvoice(dictionary),
-            signingMetadata: UnmarshalTxSigningMetadata(dictionary));
+        new(
+            Invoice: UnmarshalTxInvoice(dictionary),
+            SigningMetadata: UnmarshalTxSigningMetadata(dictionary));
 
     [Pure]
     public static ImmutableArray<byte>? UnmarshalTransactionSignature(
@@ -166,7 +179,7 @@ public static class TxMarshaler
     }
 
     [Pure]
-    public static IUnsignedTx DeserializeUnsignedTx(byte[] bytes)
+    public static UnsignedTx DeserializeUnsignedTx(byte[] bytes)
     {
         IValue node = Codec.Decode(bytes);
         if (node is Bencodex.Types.Dictionary dict)
@@ -180,7 +193,7 @@ public static class TxMarshaler
     }
 
     [Pure]
-    public static IUnsignedTx DeserializeUnsignedTx(string json)
+    public static UnsignedTx DeserializeUnsignedTx(string json)
     {
         using var ms = new MemoryStream(Encoding.UTF8.GetBytes(json));
         var reader = new Utf8JsonReader(ms.ToArray());

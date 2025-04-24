@@ -179,7 +179,7 @@ public interface IBlockChainIndex
     /// <paramref name="blockDigest"/>.
     /// </summary>
     /// <param name="blockDigest">The block digest object to index.</param>
-    /// <param name="txs">An <see cref="IEnumerable{T}"/> containing the <see cref="ITransaction"/>
+    /// <param name="txs">An <see cref="IEnumerable{T}"/> containing the <see cref="Transaction"/>
     /// instances corresponding to <see cref="BlockDigest.TxIds"/> of given
     /// <paramref name="blockDigest"/>.</param>
     /// <param name="token">A token to mark the cancellation of processing.</param>
@@ -188,7 +188,7 @@ public interface IBlockChainIndex
     /// the height of the given block, but the hash of the indexed block and the given block is
     /// different.</exception>
     internal Task IndexAsync(
-        BlockDigest blockDigest, IEnumerable<ITransaction> txs, CancellationToken token);
+        BlockDigest blockDigest, IEnumerable<Transaction> txs, CancellationToken token);
 
     internal Task SynchronizeForeverAsync(
         IStore store, TimeSpan pollInterval, CancellationToken stoppingToken);

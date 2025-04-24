@@ -29,13 +29,13 @@ public class TransactionTest
     public void ConstructorWithVerification()
     {
         var tx = new Transaction(
-            _fx.Tx,
-            ImmutableArray.Create(_fx.Tx.Signature));
-        Assert.Equal<ITransaction>(_fx.Tx, tx);
+            _fx.Tx.UnsignedTx,
+            _fx.Tx.Signature);
+        Assert.Equal(_fx.Tx, tx);
 
-        var wrongSig = ImmutableArray.Create(_fx.TxWithActions.Signature);
+        var wrongSig = _fx.TxWithActions.Signature;
         InvalidTxSignatureException e = Assert.Throws<InvalidTxSignatureException>(
-            () => new Transaction(_fx.Tx, wrongSig));
+            () => new Transaction(_fx.Tx.UnsignedTx, wrongSig));
         TestUtils.AssertBytesEqual(
             "0a5b3d8ac9819ecd8343d6816a0632c20a669c45ad94ffc9f4005af3815a0f1b",
             e.TxId.ByteArray);
@@ -45,12 +45,12 @@ public class TransactionTest
     public void ConstructorWithSigning()
     {
         PrivateKey validKey = _fx.PrivateKey1;
-        var tx = new Transaction(_fx.Tx, validKey);
-        Assert.Equal<ITransaction>(_fx.Tx, tx);
+        var tx = new Transaction(_fx.Tx.UnsignedTx, validKey);
+        Assert.Equal<Transaction>(_fx.Tx, tx);
 
         var wrongKey = new PrivateKey();
         ArgumentException e = Assert.Throws<ArgumentException>(
-            () => new Transaction(_fx.Tx, wrongKey));
+            () => new Transaction(_fx.Tx.UnsignedTx, wrongKey));
         Assert.Equal("privateKey", e.ParamName);
     }
 
@@ -217,8 +217,8 @@ public class TransactionTest
             new TxInvoice { Timestamp = timestamp },
             new TxSigningMetadata(privateKey.PublicKey, nonce: 0L));
         var tx = new Transaction(
-            unsignedTx: unsignedTx,
-            signature: signature.ToImmutableArray()
+            UnsignedTx: unsignedTx,
+            Signature: signature.ToImmutableArray()
         );
 
         Assert.Equal(
@@ -262,7 +262,7 @@ public class TransactionTest
     {
         Assert.Throws<InvalidTxSignatureException>(() =>
             new Transaction(
-                (IUnsignedTx)_fx.Tx,
+                _fx.Tx.UnsignedTx,
                 new byte[_fx.Tx.Signature.Length].ToImmutableArray()
             )
         );
@@ -310,16 +310,15 @@ public class TransactionTest
         ImmutableArray<byte> signature = ByteUtil.ParseHexToImmutable(
             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
-        var tx = new Transaction(unsignedTx, signature: signature);
+        var tx = new Transaction(unsignedTx, signature);
 
-        Assert.Equal<ITxInvoice>(invoice, tx);
-        Assert.Equal<ITxSigningMetadata>(signingMetadata, tx);
-        Assert.Equal<IUnsignedTx>(unsignedTx, tx);
+        Assert.Equal(invoice, tx.UnsignedTx.Invoice);
+        Assert.Equal(signingMetadata, tx.UnsignedTx.SigningMetadata);
+        Assert.Equal(unsignedTx, tx.UnsignedTx);
 
-        var copy = new Transaction(unsignedTx, signature: signature);
-        Assert.Equal<IUnsignedTx>(tx, copy);
-        Assert.Equal<ITransaction>(tx, copy);
-        Assert.Equal<Transaction>(tx, copy);
+        var copy = new Transaction(unsignedTx, signature);
+        Assert.Equal(tx.UnsignedTx, copy.UnsignedTx);
+        Assert.Equal(tx, copy);
         Assert.True(tx.Equals((object)copy));
         Assert.Equal(tx.GetHashCode(), copy.GetHashCode());
 
@@ -340,22 +339,21 @@ public class TransactionTest
 
             if (i < 4)
             {
-                Assert.NotEqual<ITxInvoice>(diffInvoice, unsignedTx);
-                Assert.Equal<ITxSigningMetadata>(diffSigningMetadata, unsignedTx);
+                Assert.NotEqual<TxInvoice>(diffInvoice, unsignedTx.Invoice);
+                Assert.Equal<TxSigningMetadata>(diffSigningMetadata, unsignedTx.SigningMetadata);
             }
             else
             {
-                Assert.Equal<ITxInvoice>(diffInvoice, unsignedTx);
-                Assert.NotEqual<ITxSigningMetadata>(diffSigningMetadata, unsignedTx);
+                Assert.Equal(diffInvoice, unsignedTx.Invoice);
+                Assert.NotEqual(diffSigningMetadata, unsignedTx.SigningMetadata);
             }
 
             var diffUnsignedTx = new UnsignedTx(diffInvoice, diffSigningMetadata);
             var diffTx = new Transaction(
                 diffUnsignedTx,
                 i == 4 ? wrongKey : privateKey);
-            Assert.NotEqual<IUnsignedTx>(tx, diffTx);
-            Assert.NotEqual<ITransaction>(tx, diffTx);
-            Assert.NotEqual<Transaction>(tx, diffTx);
+            Assert.NotEqual(tx.UnsignedTx, diffTx.UnsignedTx);
+            Assert.NotEqual(tx, diffTx);
             Assert.False(tx.Equals((object)diffTx));
             Assert.NotEqual(tx.GetHashCode(), diffTx.GetHashCode());
         }
@@ -389,7 +387,7 @@ public class TransactionTest
         ImmutableArray<byte> signature = ByteUtil.ParseHexToImmutable(
             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
-        var tx = new Transaction(unsignedTx, signature: signature);
+        var tx = new Transaction(unsignedTx, signature);
 
 #pragma warning disable MEN002  // Long lines are OK for test JSON data.
         AssertJsonSerializable(
