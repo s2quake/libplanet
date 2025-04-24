@@ -2,21 +2,28 @@ using System;
 using System.Collections.Immutable;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using static Libplanet.Types.BencodexUtility;
 
 namespace Libplanet.Types.Tx;
 
+[Model(Version = 1)]
 public sealed record class TxMetadata : IEquatable<TxMetadata>
 {
+    [Property(0)]
     public long Nonce { get; init; }
 
+    [Property(1)]
     public required Address Signer { get; init; }
 
+    [Property(2)]
     public ImmutableSortedSet<Address> UpdatedAddresses { get; init; } = [];
 
+    [Property(3)]
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
+    [Property(4)]
     public BlockHash? GenesisHash { get; init; }
 
     public static TxMetadata Create(IValue value)
@@ -48,35 +55,9 @@ public sealed record class TxMetadata : IEquatable<TxMetadata>
         };
     }
 
-    public bool Equals(TxMetadata? other)
-    {
-        if (other is { } o)
-        {
-            return Nonce == other.Nonce &&
-                   Signer.Equals(other.Signer) &&
-                   UpdatedAddresses.SetEquals(other.UpdatedAddresses) &&
-                   Timestamp.Equals(other.Timestamp) &&
-                   Equals(GenesisHash, other.GenesisHash);
-        }
+    public bool Equals(TxMetadata? other) => ModelUtility.Equals(this, other);
 
-        return false;
-    }
-
-    public override int GetHashCode()
-    {
-        var hash = default(HashCode);
-        hash.Add(Nonce);
-        hash.Add(Signer);
-        foreach (var updatedAddress in UpdatedAddresses)
-        {
-            hash.Add(updatedAddress);
-        }
-
-        hash.Add(Timestamp);
-        hash.Add(GenesisHash);
-
-        return hash.ToHashCode();
-    }
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public IValue ToBencodex()
     {

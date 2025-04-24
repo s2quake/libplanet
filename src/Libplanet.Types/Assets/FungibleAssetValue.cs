@@ -3,12 +3,16 @@ using System.Numerics;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Bencodex.Types;
+using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Assets;
 
 [JsonConverter(typeof(FungibleAssetValueJsonConverter))]
-public readonly record struct FungibleAssetValue(Currency Currency, BigInteger RawValue)
+[Model(Version = 1)]
+public readonly record struct FungibleAssetValue(
+    [property: Property(0)] Currency Currency,
+    [property: Property(1)] BigInteger RawValue)
     : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable, IFormattable
 {
     public FungibleAssetValue(Currency currency)

@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
 using Libplanet.Common;
+using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Tx;
 
 [JsonConverter(typeof(TxIdJsonConverter))]
+[Model(Version = 1)]
 public readonly record struct TxId(in ImmutableArray<byte> ByteArray)
     : IEquatable<TxId>, IComparable<TxId>, IComparable
 {

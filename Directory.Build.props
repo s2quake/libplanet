@@ -67,4 +67,6 @@
     </PackageReference>
   </ItemGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)GlobalUsings.props" />
+
 </Project>

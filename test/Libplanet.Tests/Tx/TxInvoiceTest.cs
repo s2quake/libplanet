@@ -136,7 +136,7 @@ namespace Libplanet.Tests.Tx
                 Timestamp = timestamp,
                 Actions = actions,
             };
-            var copy = new TxInvoice(original);
+            var copy = original with { };
             Assert.Equal(genesisHash, copy.GenesisHash);
             Assert.True(updatedAddresses.SetEquals(copy.UpdatedAddresses));
             Assert.Equal(timestamp, copy.Timestamp);

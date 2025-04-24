@@ -13,7 +13,6 @@ using Dasync.Collections;
 using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Stun;
 using NetMQ;
 using NetMQ.Sockets;
 using Nito.AsyncEx;
@@ -42,7 +41,6 @@ namespace Libplanet.Net.Transports
 
         private RouterSocket? _router;
         private NetMQPoller? _routerPoller;
-        private TurnClient? _turnClient;
         private DnsEndPoint? _hostEndPoint;
 
         private CancellationTokenSource _runtimeCancellationTokenSource;
@@ -127,9 +125,7 @@ namespace Libplanet.Net.Transports
 
         public AsyncDelegate<Message> ProcessMessageHandler { get; }
 
-        public BoundPeer AsPeer => _turnClient is TurnClient turnClient
-        ? new BoundPeer(_privateKey.PublicKey, turnClient.EndPoint, turnClient.PublicAddress)
-        : new BoundPeer(_privateKey.PublicKey, _hostEndPoint!);
+        public BoundPeer AsPeer => new BoundPeer(_privateKey.PublicKey, _hostEndPoint!);
 
         public DateTimeOffset? LastMessageTimestamp { get; private set; }
 
@@ -266,7 +262,6 @@ namespace Libplanet.Net.Transports
                     // We omitted _router.Unbind() with intention due to hangs.
                     // See also: https://github.com/planetarium/libplanet/pull/2311
                     _router.Dispose();
-                    _turnClient?.Dispose();
                 }
 
                 _routerPoller?.Dispose();
@@ -571,16 +566,8 @@ namespace Libplanet.Net.Transports
             {
                 _hostEndPoint = new DnsEndPoint(host, listenPort);
             }
-            else
-            {
-                _turnClient = await TurnClient.Create(_hostOptions.IceServers, cancellationToken);
-                await _turnClient.StartAsync(listenPort, cancellationToken);
-                if (!_turnClient.BehindNAT)
-                {
-                    _hostEndPoint = new DnsEndPoint(
-                        _turnClient.PublicAddress.ToString(), listenPort);
-                }
-            }
+
+            await Task.CompletedTask;
         }
 
         private void ReceiveMessage(object? sender, NetMQSocketEventArgs e)

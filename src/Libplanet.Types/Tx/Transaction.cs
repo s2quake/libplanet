@@ -5,11 +5,13 @@ using System.Text.Json.Serialization;
 using Bencodex;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Tx;
 
+[Model(Version = 1)]
 public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byte> Signature)
     : IEquatable<Transaction>
 {
@@ -22,9 +24,11 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
     }
 
     [JsonIgnore]
+    [Property(0)]
     public UnsignedTx UnsignedTx { get; } = UnsignedTx;
 
     [JsonIgnore]
+    [Property(1)]
     public ImmutableArray<byte> Signature { get; } = ValidateSignature(UnsignedTx, Signature);
 
     public TxId Id => _id ??= TxMarshaler.GetTxId(UnsignedTx, Signature);

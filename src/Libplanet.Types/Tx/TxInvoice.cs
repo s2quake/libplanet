@@ -3,37 +3,31 @@ using System.Collections.Immutable;
 using System.Linq;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Tx;
 
+[Model(Version = 1)]
 public sealed record class TxInvoice : IEquatable<TxInvoice>
 {
-    public TxInvoice()
-    {
-    }
-
-    public TxInvoice(TxInvoice invoice)
-    {
-        Actions = invoice.Actions;
-        GenesisHash = invoice.GenesisHash;
-        UpdatedAddresses = invoice.UpdatedAddresses;
-        Timestamp = invoice.Timestamp;
-        MaxGasPrice = invoice.MaxGasPrice;
-        GasLimit = invoice.GasLimit;
-    }
-
+    [Property(0)]
     public ImmutableArray<IValue> Actions { get; init; } = [];
 
+    [Property(1)]
     public BlockHash? GenesisHash { get; init; }
 
+    [Property(2)]
     public ImmutableSortedSet<Address> UpdatedAddresses { get; init; } = [];
 
+    [Property(3)]
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
+    [Property(4)]
     public FungibleAssetValue? MaxGasPrice { get; init; }
 
+    [Property(5)]
     public long? GasLimit { get; init; }
 
     public void Verify()
@@ -60,45 +54,7 @@ public sealed record class TxInvoice : IEquatable<TxInvoice>
         }
     }
 
-    bool IEquatable<TxInvoice>.Equals(TxInvoice? other)
-    {
-        if (other is { } o)
-        {
-            return Equals(GenesisHash, o.GenesisHash) &&
-                   UpdatedAddresses.SetEquals(o.UpdatedAddresses) &&
-                   Timestamp.Equals(o.Timestamp) &&
-                   Actions.SequenceEqual(o.Actions) &&
-                   Equals(MaxGasPrice, o.MaxGasPrice) &&
-                   Equals(GasLimit, o.GasLimit);
-        }
+    public bool Equals(TxInvoice? other) => ModelUtility.Equals(this, other);
 
-        return base.Equals(other);
-    }
-
-    public bool Equals(TxInvoice? other) =>
-        other is TxInvoice otherInvoice && otherInvoice.Equals(this);
-
-    public override int GetHashCode() =>
-        HashCode.Combine(
-            GenesisHash,
-            UpdatedAddresses,
-            Timestamp,
-            Actions,
-            MaxGasPrice,
-            GasLimit);
-
-    public override string ToString()
-    {
-        string actions = Actions.ToString() ?? string.Empty;
-        string indentedActions = actions.Replace("\n", "\n  ");
-        return nameof(TxInvoice) + " {\n" +
-            $"  {nameof(UpdatedAddresses)} = ({UpdatedAddresses.Count})" +
-            (UpdatedAddresses.Any()
-                ? $"\n    {string.Join("\n    ", UpdatedAddresses)},\n"
-                : ",\n") +
-            $"  {nameof(Timestamp)} = {Timestamp},\n" +
-            $"  {nameof(GenesisHash)} = {GenesisHash?.ToString() ?? "(null)"},\n" +
-            $"  {nameof(Actions)} = {indentedActions},\n" +
-            "}";
-    }
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
 }

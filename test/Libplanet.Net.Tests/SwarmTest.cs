@@ -23,7 +23,6 @@ using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
-using Libplanet.Stun;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
@@ -799,9 +798,6 @@ namespace Libplanet.Net.Tests
                             TimeSpan.FromSeconds(1), cancellationToken);
                     }
                     catch (InvalidOperationException)
-                    {
-                    }
-                    catch (TurnClientException)
                     {
                     }
                 }

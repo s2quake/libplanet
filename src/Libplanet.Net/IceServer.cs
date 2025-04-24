@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
-using Libplanet.Stun;
 
 namespace Libplanet.Net
 {
-    public class IceServer : IIceServer
+    public class IceServer
     {
         public IceServer(string url)
             : this(new Uri(url))
