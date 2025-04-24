@@ -54,9 +54,9 @@ public class StoreCommand
     public void BuildIndexTxBlock(
         [Argument("STORE", Description = StoreArgumentDescription)]
         string home,
-        [Argument("OFFSET", Description = "block index")]
+        [Argument("OFFSET", Description = "block height")]
         int offset,
-        [Argument("LIMIT", Description = "block index")]
+        [Argument("LIMIT", Description = "block height")]
         int limit
     )
     {
@@ -110,12 +110,12 @@ public class StoreCommand
     public void BlockByIndex(
         [Argument("STORE", Description = StoreArgumentDescription)]
         string home,
-        [Argument("BLOCK-INDEX", Description = "block index")]
-        int blockIndex
+        [Argument("BLOCK-INDEX", Description = "block height")]
+        int blockHeight
     )
     {
         using IStore store = Utils.LoadStoreFromUri(home);
-        var blockHash = GetBlockHash(store, blockIndex);
+        var blockHash = GetBlockHash(store, blockHeight);
         var block = GetBlock(store, blockHash);
         Console.WriteLine(Utils.SerializeHumanReadable(block));
     }
@@ -170,17 +170,17 @@ public class StoreCommand
         return block;
     }
 
-    private static BlockHash GetBlockHash(IStore store, int blockIndex)
+    private static BlockHash GetBlockHash(IStore store, int blockHeight)
     {
         if (!(store.GetCanonicalChainId() is { } chainId))
         {
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
-        if (!(store.IndexBlockHash(chainId, blockIndex) is { } blockHash))
+        if (!(store.IndexBlockHash(chainId, blockHeight) is { } blockHash))
         {
             throw Utils.Error(
-                $"Cannot find the block with the height {blockIndex}" +
+                $"Cannot find the block with the height {blockHeight}" +
                 $" within the blockchain {chainId}."
             );
         }

@@ -71,7 +71,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
                     default,
                     123,
                     Block.CurrentProtocolVersion,
-                    // LastCommit should not be null if the block index is not 0, just for testing
+                    // LastCommit should not be null if the block height is not 0, just for testing
                     null,
                     _world,
                     default,
@@ -169,7 +169,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
             Assert.Equal(firstLog, logEvents[0]);
             Assert.Equal(LogEventLevel.Information, firstLog.Level);
             const string expected1stLog =
-                "Invoking {MethodName}() for an action {ActionType} at block #{BlockIndex}...";
+                "Invoking {MethodName}() for an action {ActionType} at block #{BlockHeight}...";
             Assert.Equal(
                 expected1stLog,
                 firstLog.MessageTemplate.Text
@@ -178,8 +178,8 @@ namespace Libplanet.Tests.Blockchain.Renderers
                 "Render" + "Action" + (error ? "Error" : string.Empty);
             Assert.Equal($"\"{methodName}\"", firstLog.Properties["MethodName"].ToString());
             Assert.Equal(
-                actionContext.BlockIndex.ToString(CultureInfo.InvariantCulture),
-                firstLog.Properties["BlockIndex"].ToString()
+                actionContext.BlockHeight.ToString(CultureInfo.InvariantCulture),
+                firstLog.Properties["BlockHeight"].ToString()
             );
             Assert.Equal(
                 $"\"{typeof(AnonymousActionRenderer).FullName}\"",
@@ -198,12 +198,12 @@ namespace Libplanet.Tests.Blockchain.Renderers
             {
                 expected2ndLog =
                     "An exception was thrown during {MethodName}() for an action {ActionType} at " +
-                    "block #{BlockIndex}";
+                    "block #{BlockHeight}";
             }
             else
             {
                 expected2ndLog =
-                    "Invoked {MethodName}() for an action {ActionType} at block #{BlockIndex}";
+                    "Invoked {MethodName}() for an action {ActionType} at block #{BlockHeight}";
             }
 
             Assert.Equal(
@@ -212,7 +212,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
             );
             Assert.Equal(firstLog.Properties["MethodName"], secondLog.Properties["MethodName"]);
             Assert.Equal(firstLog.Properties["ActionType"], secondLog.Properties["ActionType"]);
-            Assert.Equal(firstLog.Properties["BlockIndex"], secondLog.Properties["BlockIndex"]);
+            Assert.Equal(firstLog.Properties["BlockHeight"], secondLog.Properties["BlockHeight"]);
             Assert.Equal(
                 firstLog.Properties[Constants.SourceContextPropertyName],
                 secondLog.Properties[Constants.SourceContextPropertyName]

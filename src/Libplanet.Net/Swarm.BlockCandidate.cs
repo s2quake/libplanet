@@ -179,7 +179,7 @@ namespace Libplanet.Net
 
             _logger.Debug(
                 "{SessionId}: Downloading blocks from {Peer}; started " +
-                "to fetch the block #{BlockIndex} {BlockHash} at {MethodName}()",
+                "to fetch the block #{BlockHeight} {BlockHash} at {MethodName}()",
                 sessionId,
                 peer,
                 demand.Index,
@@ -210,7 +210,7 @@ namespace Libplanet.Net
             catch (InvalidBlockIndexException)
             {
                 const string msg =
-                    "{SessionId}: {Peer} sent an invalid block index";
+                    "{SessionId}: {Peer} sent an invalid block height";
                 _logger.Debug(msg, sessionId, peer);
                 return false;
             }

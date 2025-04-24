@@ -16,10 +16,10 @@ namespace Libplanet.Action.Tests.Common
         }
 
         public SetStatesAtBlock(
-            Address address, IValue value, Address accountAddress, long blockIndex)
+            Address address, IValue value, Address accountAddress, long blockHeight)
         {
             _address = address;
-            _blockIndex = blockIndex;
+            _blockIndex = blockHeight;
             _accountAddress = accountAddress;
             _value = value;
         }
@@ -43,7 +43,7 @@ namespace Libplanet.Action.Tests.Common
         {
             IWorld states = context.PreviousState;
             IAccount account = states.GetAccount(_accountAddress);
-            if (context.BlockIndex == _blockIndex)
+            if (context.BlockHeight == _blockIndex)
             {
                 states = states.SetAccount(_accountAddress, account.SetState(_address, _value));
             }

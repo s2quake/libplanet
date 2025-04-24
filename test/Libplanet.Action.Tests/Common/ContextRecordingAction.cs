@@ -26,7 +26,7 @@ namespace Libplanet.Action.Tests.Common
             Address.Parse("1000000000000000000000000000000000000002");
 
         /// <summary>
-        /// The <see cref="Crypto.Address"/> where <see cref="IActionContext.BlockIndex"/>
+        /// The <see cref="Crypto.Address"/> where <see cref="IActionContext.BlockHeight"/>
         /// will be recorded.
         /// </summary>
         public static readonly Address BlockIndexRecordAddress =
@@ -71,7 +71,7 @@ namespace Libplanet.Action.Tests.Common
                 .SetState(Address, Value)
                 .SetState(MinerRecordAddress, new Binary(context.Miner.ByteArray))
                 .SetState(SignerRecordAddress, new Binary(context.Signer.ByteArray))
-                .SetState(BlockIndexRecordAddress, new Integer(context.BlockIndex))
+                .SetState(BlockIndexRecordAddress, new Integer(context.BlockHeight))
                 .SetState(RandomRecordAddress, new Integer(context.GetRandom().Next()));
             return states.SetAccount(ReservedAddresses.LegacyAccount, account);
         }

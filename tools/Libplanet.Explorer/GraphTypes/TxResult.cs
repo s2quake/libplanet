@@ -8,7 +8,7 @@ public sealed record class TxResult
 {
     public TxStatus TxStatus { get; init; }
 
-    public long BlockIndex { get; init; } = -1;
+    public long BlockHeight { get; init; } = -1;
 
     public string BlockHash { get; init; } = string.Empty;
 

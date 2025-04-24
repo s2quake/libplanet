@@ -18,7 +18,7 @@ namespace Libplanet.Action
             Address signer,
             TxId? txid,
             Address miner,
-            long blockIndex,
+            long blockHeight,
             int blockProtocolVersion,
             BlockCommit? lastCommit,
             IWorld previousState,
@@ -31,7 +31,7 @@ namespace Libplanet.Action
             Signer = signer;
             TxId = txid;
             Miner = miner;
-            BlockIndex = blockIndex;
+            BlockHeight = blockHeight;
             BlockProtocolVersion = blockProtocolVersion;
             LastCommit = lastCommit;
             PreviousState = previousState;
@@ -51,8 +51,8 @@ namespace Libplanet.Action
         /// <inheritdoc cref="IActionContext.Miner"/>
         public Address Miner { get; }
 
-        /// <inheritdoc cref="IActionContext.BlockIndex"/>
-        public long BlockIndex { get; }
+        /// <inheritdoc cref="IActionContext.BlockHeight"/>
+        public long BlockHeight { get; }
 
         /// <inheritdoc cref="IActionContext.BlockProtocolVersion"/>
         public int BlockProtocolVersion { get; }

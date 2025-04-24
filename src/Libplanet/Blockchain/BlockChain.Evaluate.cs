@@ -49,7 +49,7 @@ namespace Libplanet.Blockchain
                 evaluations = EvaluateBlock(block);
 
                 _logger.Debug(
-                    "Took {DurationMs} ms to evaluate block #{BlockIndex} " +
+                    "Took {DurationMs} ms to evaluate block #{BlockHeight} " +
                     "hash {Hash} with {Count} action evaluations",
                     stopwatch.ElapsedMilliseconds,
                     block.Index,
@@ -134,7 +134,7 @@ namespace Libplanet.Blockchain
                 if (preEvaluationBlock.Index < 1)
                 {
                     throw new ArgumentException(
-                        $"Given {nameof(preEvaluationBlock)} must have block index " +
+                        $"Given {nameof(preEvaluationBlock)} must have block height " +
                         $"higher than 0");
                 }
                 else
@@ -181,7 +181,7 @@ namespace Libplanet.Blockchain
                 evaluations = EvaluateBlockPrecededStateRootHash(block);
 
                 _logger.Debug(
-                    "Took {DurationMs} ms to evaluate block #{BlockIndex} " +
+                    "Took {DurationMs} ms to evaluate block #{BlockHeight} " +
                     "pre-evaluation hash {PreEvaluationHash} with {Count} action evaluations",
                     stopwatch.ElapsedMilliseconds,
                     block.Index,

@@ -68,7 +68,7 @@ namespace Libplanet.Action.Sys
         {
             IWorld world = context.PreviousState;
 
-            if (context.BlockIndex != 0)
+            if (context.BlockHeight != 0)
             {
                 throw new InvalidOperationException(
                     $"{nameof(Initialize)} action can be executed only genesis block."

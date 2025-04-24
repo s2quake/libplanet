@@ -135,7 +135,7 @@ namespace Libplanet.Net
             {
                 _logger.Debug(
                     ibe,
-                    "Received header #{BlockIndex} {BlockHash} is invalid",
+                    "Received header #{BlockHeight} {BlockHash} is invalid",
                     blockHeaderMsg.HeaderHash,
                     blockHeaderMsg.HeaderIndex
                 );
@@ -150,7 +150,7 @@ namespace Libplanet.Net
             {
                 _logger.Debug(
                     e,
-                    "Received header #{BlockIndex} {BlockHash} has invalid timestamp: {Timestamp}",
+                    "Received header #{BlockHeight} {BlockHash} has invalid timestamp: {Timestamp}",
                     header.Index,
                     header.Hash,
                     header.Timestamp
@@ -167,7 +167,7 @@ namespace Libplanet.Net
             if (needed)
             {
                 _logger.Information(
-                    "Adding received header #{BlockIndex} {BlockHash} from peer {Peer} to " +
+                    "Adding received header #{BlockHeight} {BlockHash} from peer {Peer} to " +
                     nameof(BlockDemandTable) + "...",
                     header.Index,
                     header.Hash,

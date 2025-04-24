@@ -63,29 +63,29 @@ public class TransactionQueryGeneratedTest
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);
         Assert.Equal("SUCCESS", queryResult.TxStatus);
-        Assert.Equal(successBlock.Index, queryResult.BlockIndex);
+        Assert.Equal(successBlock.Index, queryResult.BlockHeight);
         Assert.Equal(successBlock.Hash.ToString(), queryResult.BlockHash);
         Assert.Equal(new string?[] { null , null }, queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(failTx.Id);
         Assert.Equal("FAILURE", queryResult.TxStatus);
-        Assert.Equal(failBlock.Index, queryResult.BlockIndex);
+        Assert.Equal(failBlock.Index, queryResult.BlockHeight);
         Assert.Equal(failBlock.Hash.ToString(), queryResult.BlockHash);
         Assert.Equal(
             new string?[] { null, "Libplanet.Action.State.CurrencyPermissionException", null },
             queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(emptyTx.Id);
         Assert.Equal("INCLUDED", queryResult.TxStatus);
-        Assert.Equal(emptyBlock.Index, queryResult.BlockIndex);
+        Assert.Equal(emptyBlock.Index, queryResult.BlockHeight);
         Assert.Equal(emptyBlock.Hash.ToString(), queryResult.BlockHash);
         Assert.Null(queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(new TxId());
         Assert.Equal("INVALID", queryResult.TxStatus);
-        Assert.Null(queryResult.BlockIndex);
+        Assert.Null(queryResult.BlockHeight);
         Assert.Null(queryResult.BlockHash);
         Assert.Null(queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(stagingTx.Id);
         Assert.Equal("STAGING", queryResult.TxStatus);
-        Assert.Null(queryResult.BlockIndex);
+        Assert.Null(queryResult.BlockHeight);
         Assert.Null(queryResult.BlockHash);
         Assert.Null(queryResult.ExceptionNames);
     }
@@ -287,7 +287,7 @@ public class TransactionQueryGeneratedTest
     }
 
     private async Task<
-            (string TxStatus, long? BlockIndex, string? BlockHash, string?[]? ExceptionNames)>
+            (string TxStatus, long? BlockHeight, string? BlockHash, string?[]? ExceptionNames)>
         ExecuteTransactionResultQueryAsync(TxId txId)
     {
         ExecutionResult result = await ExecuteQueryAsync(@$"
@@ -295,7 +295,7 @@ public class TransactionQueryGeneratedTest
             transactionResult(txId: ""{txId}"")
             {{
                 txStatus
-                blockIndex
+                blockHeight
                 blockHash
                 exceptionNames
             }}
@@ -310,7 +310,7 @@ public class TransactionQueryGeneratedTest
             name => name is { } n ? Assert.IsType<string>(n) : null).ToArray();
         return (
             (string)resultDict["txStatus"],
-            (long?)resultDict["blockIndex"],
+            (long?)resultDict["blockHeight"],
             (string?)resultDict["blockHash"],
             (string?[]?)exceptionNames);
     }

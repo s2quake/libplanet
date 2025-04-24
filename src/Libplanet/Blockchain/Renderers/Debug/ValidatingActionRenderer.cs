@@ -134,7 +134,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                         else if (record is RenderRecord.ActionBase actionBase &&
                                  actionBase.Render)
                         {
-                            long idx = actionBase.Context.BlockIndex;
+                            long idx = actionBase.Context.BlockHeight;
                             if (idx > blockState.NewTip.Index)
                             {
                                 throw BadRenderExc(

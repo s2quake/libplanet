@@ -42,7 +42,7 @@ namespace Libplanet.Action
         /// the <see cref="IAction"/>.
         /// </summary>
         [Pure]
-        long BlockIndex { get; }
+        long BlockHeight { get; }
 
         /// <summary>
         /// The <see cref="Block.ProtocolVersion"/> of the <see cref="Block"/> that contains

@@ -72,7 +72,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
 
             /// <inheritdoc cref="RenderRecord.ToString()"/>
             public override string ToString() =>
-                $"{base.ToString()} #{Context.BlockIndex} " +
+                $"{base.ToString()} #{Context.BlockHeight} " +
                 (Render ? "Render" : "Unrender") + "Action";
         }
 

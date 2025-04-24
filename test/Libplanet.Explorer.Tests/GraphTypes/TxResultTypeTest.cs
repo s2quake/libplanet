@@ -18,7 +18,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             var query =
                 @"{
                     txStatus
-                    blockIndex
+                    blockHeight
                     blockHash
                     inputState
                     outputState
@@ -45,7 +45,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     new TxResult
                     {
                         TxStatus = TxStatus.SUCCESS,
-                        BlockIndex = 0,
+                        BlockHeight = 0,
                         BlockHash = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
                         InputState = HashDigest<SHA256>.Parse(
                             "7146ddfb3594089795f6992a668a3ce7fde089aacdda68075e1bc37b14ebb06f"),
@@ -55,7 +55,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     },
                     new Dictionary<string, object> {
                         ["txStatus"] = "SUCCESS",
-                        ["blockIndex"] = 0L,
+                        ["blockHeight"] = 0L,
                         ["blockHash"]
                             = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
                         ["inputState"] =
@@ -69,7 +69,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     new TxResult
                     {
                         TxStatus = TxStatus.FAILURE,
-                        BlockIndex = 0,
+                        BlockHeight = 0,
                         BlockHash = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
                         InputState = HashDigest<SHA256>.Parse(
                             "7146ddfb3594089795f6992a668a3ce7fde089aacdda68075e1bc37b14ebb06f"),
@@ -79,7 +79,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     },
                     new Dictionary<string, object> {
                         ["txStatus"] = "FAILURE",
-                        ["blockIndex"] = 0L,
+                        ["blockHeight"] = 0L,
                         ["inputState"] =
                             "7146ddfb3594089795f6992a668a3ce7fde089aacdda68075e1bc37b14ebb06f",
                         ["outputState"] =
@@ -93,13 +93,13 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     new TxResult
                     {
                         TxStatus = TxStatus.INCLUDED,
-                        BlockIndex = 0,
+                        BlockHeight = 0,
                         BlockHash = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
                         ExceptionNames = [],
                     },
                     new Dictionary<string, object> {
                         ["txStatus"] = "INCLUDED",
-                        ["blockIndex"] = 0L,
+                        ["blockHeight"] = 0L,
                         ["blockHash"]
                             = "45bcaa4c0b00f4f31eb61577e595ea58fb69c7df3ee612aa6eea945bbb0ce39d",
                         ["inputState"] = null,
@@ -115,7 +115,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     },
                     new Dictionary<string, object> {
                         ["txStatus"] = "INVALID",
-                        ["blockIndex"] = null,
+                        ["blockHeight"] = null,
                         ["blockHash"] = null,
                         ["inputState"] = null,
                         ["outputState"] = null,
@@ -130,7 +130,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     },
                     new Dictionary<string, object> {
                         ["txStatus"] = "STAGING",
-                        ["blockIndex"] = null,
+                        ["blockHeight"] = null,
                         ["blockHash"] = null,
                         ["inputState"] = null,
                         ["outputState"] = null,

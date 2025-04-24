@@ -206,7 +206,7 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// A target height of this consensus state. This is also a block index now in consensus.
+        /// A target height of this consensus state. This is also a block height now in consensus.
         /// </summary>
         public long Height { get; }
 

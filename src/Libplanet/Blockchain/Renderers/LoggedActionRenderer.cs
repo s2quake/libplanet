@@ -103,13 +103,13 @@ namespace Libplanet.Blockchain.Renderers
         {
             Type actionType = action.GetType();
             const string startMessage =
-                "Invoking {MethodName}() for an action {ActionType} at block #{BlockIndex}...";
+                "Invoking {MethodName}() for an action {ActionType} at block #{BlockHeight}...";
             Logger.Write(
                 Level,
                 startMessage,
                 methodName,
                 actionType,
-                context.BlockIndex);
+                context.BlockHeight);
 
             try
             {
@@ -119,24 +119,24 @@ namespace Libplanet.Blockchain.Renderers
             {
                 const string errorMessage =
                     "An exception was thrown during {MethodName}() for an action {ActionType} at " +
-                    "block #{BlockIndex}";
+                    "block #{BlockHeight}";
                 Logger.Error(
                     e,
                     errorMessage,
                     methodName,
                     actionType,
-                    context.BlockIndex);
+                    context.BlockHeight);
                 throw;
             }
 
             const string endMessage =
-                "Invoked {MethodName}() for an action {ActionType} at block #{BlockIndex}";
+                "Invoked {MethodName}() for an action {ActionType} at block #{BlockHeight}";
             Logger.Write(
                 Level,
                 endMessage,
                 methodName,
                 actionType,
-                context.BlockIndex);
+                context.BlockHeight);
         }
     }
 }

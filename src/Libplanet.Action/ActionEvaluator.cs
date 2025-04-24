@@ -111,7 +111,7 @@ namespace Libplanet.Action
             }
 
             _logger.Information(
-                "Evaluating actions in the block #{BlockIndex} " +
+                "Evaluating actions in the block #{BlockHeight} " +
                 "pre-evaluation hash {PreEvaluationHash}...",
                 block.Index,
                 ByteUtil.Hex(block.PreEvaluationHash.ByteArray)
@@ -151,7 +151,7 @@ namespace Libplanet.Action
             catch (Exception e)
             {
                 const string errorMessage =
-                    "Failed to evaluate block #{BlockIndex} pre-evaluation hash " +
+                    "Failed to evaluate block #{BlockHeight} pre-evaluation hash " +
                     "pre-evaluation has {PreEvaluationHash}";
                 _logger.Error(
                     e,
@@ -166,7 +166,7 @@ namespace Libplanet.Action
                     .ForContext("Tag", "Metric")
                     .ForContext("Subtag", "BlockEvaluationDuration")
                     .Information(
-                        "Actions in {TxCount} transactions for block #{BlockIndex} " +
+                        "Actions in {TxCount} transactions for block #{BlockHeight} " +
                         "pre-evaluation hash {PreEvaluationHash} evaluated in {DurationMs} ms",
                         block.Transactions.Count,
                         block.Index,
@@ -212,7 +212,7 @@ namespace Libplanet.Action
                     signer: tx?.Signer ?? block.Miner,
                     txid: tx?.Id ?? null,
                     miner: block.Miner,
-                    blockIndex: block.Index,
+                    blockHeight: block.Index,
                     blockProtocolVersion: block.ProtocolVersion,
                     lastCommit: block.LastCommit,
                     txs: block.Transactions,
@@ -277,7 +277,7 @@ namespace Libplanet.Action
                     signer: inputContext.Signer,
                     txid: inputContext.TxId,
                     miner: inputContext.Miner,
-                    blockIndex: inputContext.BlockIndex,
+                    blockHeight: inputContext.BlockHeight,
                     blockProtocolVersion: inputContext.BlockProtocolVersion,
                     lastCommit: inputContext.LastCommit,
                     previousState: newPrevState,
@@ -312,7 +312,7 @@ namespace Libplanet.Action
                 // Because OutOfMemory is thrown non-deterministically depending on the state
                 // of the node, we should throw without further handling.
                 var message =
-                    "Action {Action} of tx {TxId} of block #{BlockIndex} with " +
+                    "Action {Action} of tx {TxId} of block #{BlockHeight} with " +
                     "pre-evaluation hash {PreEvaluationHash} threw an exception " +
                     "during execution";
                 logger?.Error(
@@ -327,7 +327,7 @@ namespace Libplanet.Action
             catch (Exception e)
             {
                 var message =
-                    "Action {Action} of tx {TxId} of block #{BlockIndex} with " +
+                    "Action {Action} of tx {TxId} of block #{BlockHeight} with " +
                     "pre-evaluation hash {PreEvaluationHash} threw an exception " +
                     "during execution";
                 logger?.Error(
@@ -648,7 +648,7 @@ namespace Libplanet.Action
                         signer: evaluation.InputContext.Signer,
                         txId: evaluation.InputContext.TxId,
                         miner: evaluation.InputContext.Miner,
-                        blockIndex: evaluation.InputContext.BlockIndex,
+                        blockHeight: evaluation.InputContext.BlockHeight,
                         blockProtocolVersion: evaluation.InputContext.BlockProtocolVersion,
                         previousState: evaluation.InputContext.PreviousState.Trie.IsCommitted
                             ? evaluation.InputContext.PreviousState.Trie.Hash

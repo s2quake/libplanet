@@ -75,7 +75,7 @@ namespace Libplanet.Action.Tests
             Assert.Equal(address, evaluation.InputContext.Signer);
             Assert.Equal(txid, evaluation.InputContext.TxId);
             Assert.Equal(address, evaluation.InputContext.Miner);
-            Assert.Equal(1, evaluation.InputContext.BlockIndex);
+            Assert.Equal(1, evaluation.InputContext.BlockHeight);
             Assert.Null(
                 evaluation.InputContext.PreviousState.GetAccount(
                     ReservedAddresses.LegacyAccount).GetState(address)

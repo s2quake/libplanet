@@ -127,8 +127,8 @@ namespace Libplanet.Blockchain
             if (block.Index != blockCommit.Height)
             {
                 throw new InvalidBlockCommitException(
-                    "BlockCommit has height value that is not same with block index. " +
-                    $"Block index is {block.Index}, however, BlockCommit height is " +
+                    "BlockCommit has height value that is not same with block height. " +
+                    $"Block height is {block.Index}, however, BlockCommit height is " +
                     $"{blockCommit.Height}.");
             }
 
@@ -283,7 +283,7 @@ namespace Libplanet.Blockchain
             else
             {
                 // Any block after a PoW block should not have a last commit regardless of
-                // the protocol version.  As we have the target block index > 2, if it is a PoW
+                // the protocol version.  As we have the target block height > 2, if it is a PoW
                 // block, the previous block would be a PoW block and is covered by this case.
                 if (lastBlock?.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
                 {
