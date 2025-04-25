@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Libplanet.Blockchain;
-using Libplanet.Types.Blocks;
 using Serilog;
 
 namespace Libplanet.Net

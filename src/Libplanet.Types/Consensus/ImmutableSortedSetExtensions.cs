@@ -35,8 +35,18 @@ public static class ImmutableSortedSetExtensions
     public static BigInteger GetTotalPower(this ImmutableSortedSet<Validator> @this)
         => @this.Aggregate(BigInteger.Zero, (acc, validator) => acc + validator.Power);
 
+    public static BigInteger GetOneThirdPower(this ImmutableSortedSet<Validator> @this)
+        => GetTotalPower(@this) / 3;
+
     public static BigInteger GetTwoThirdsPower(this ImmutableSortedSet<Validator> @this)
         => GetTotalPower(@this) * 2 / 3;
+
+    public static BigInteger GetValidatorsPower(
+        this ImmutableSortedSet<Validator> @this, IEnumerable<PublicKey> publicKeys)
+    {
+        return publicKeys.Select(item => GetValidator(@this, item)).Aggregate(
+            BigInteger.Zero, (total, next) => total + next.Power);
+    }
 
     public static void ValidateBlockCommitValidators(
         this ImmutableSortedSet<Validator> @this, BlockCommit blockCommit)

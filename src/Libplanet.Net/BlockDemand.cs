@@ -1,42 +1,35 @@
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Net
+namespace Libplanet.Net;
+
+public readonly struct BlockDemand : IBlockExcerpt
 {
-    /// <summary>
-    /// Struct represents <see cref="Swarm"/>'s block demand status.
-    /// </summary>
-    public readonly struct BlockDemand : IBlockExcerpt
+    public readonly IBlockExcerpt BlockExcerpt;
+
+    public readonly BoundPeer Peer;
+
+    public readonly DateTimeOffset Timestamp;
+
+    public BlockDemand(IBlockExcerpt blockExcerpt, BoundPeer peer, DateTimeOffset timestamp)
     {
-        /// <summary>
-        /// The <see cref="IBlockExcerpt"/> of the block to request.
-        /// </summary>
-        public readonly IBlockExcerpt BlockExcerpt;
+        BlockExcerpt = blockExcerpt;
+        Peer = peer;
+        Timestamp = timestamp;
+    }
 
-        /// <summary>
-        /// The <see cref="BoundPeer"/> to request block hash from.
-        /// </summary>
-        public readonly BoundPeer Peer;
+    public int ProtocolVersion => BlockExcerpt.ProtocolVersion;
 
-        /// <summary>
-        /// The <see cref="DateTimeOffset"/> when
-        /// the corresponding block information was received.
-        /// </summary>
-        public readonly DateTimeOffset Timestamp;
+    public long Index => BlockExcerpt.Index;
 
-        public BlockDemand(IBlockExcerpt blockExcerpt, BoundPeer peer, DateTimeOffset timestamp)
-        {
-            BlockExcerpt = blockExcerpt;
-            Peer = peer;
-            Timestamp = timestamp;
-        }
+    public BlockHash Hash => BlockExcerpt.Hash;
 
-        /// <inheritdoc cref="IBlockExcerpt.ProtocolVersion"/>
-        public int ProtocolVersion => BlockExcerpt.ProtocolVersion;
-
-        /// <inheritdoc cref="IBlockExcerpt.Index"/>
-        public long Index => BlockExcerpt.Index;
-
-        /// <inheritdoc cref="IBlockExcerpt.Hash"/>
-        public BlockHash Hash => BlockExcerpt.Hash;
+    public string ToExcerptString()
+    {
+        return
+            $"{GetType().Name} {{" +
+            $" {nameof(ProtocolVersion)} = {ProtocolVersion}," +
+            $" {nameof(Index)} = {Index}," +
+            $" {nameof(Hash)} = {Hash}," +
+            " }";
     }
 }

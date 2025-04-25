@@ -46,9 +46,10 @@ namespace Libplanet.Tests.Fixtures
                 null,
                 actions: new IAction[]
                     {
-                        new Initialize(
-                            validatorSet: TestUtils.ImmutableSortedSet<Validator>,
-                            states: ImmutableDictionary.Create<Address, IValue>()),
+                        new Initialize
+                        {
+                            Validators = TestUtils.Validators,
+                        },
                     }.ToPlainValues(),
                 timestamp: DateTimeOffset.MinValue
             );
@@ -58,18 +59,22 @@ namespace Libplanet.Tests.Fixtures
                 new TestEvidence(
                     0, GenesisKey.Address, new DateTimeOffset(2024, 5, 24, 14, 12, 9, 45, kst)),
             };
-            GenesisContent = new BlockContent(
-                new BlockMetadata(
-                    index: 0,
-                    timestamp: new DateTimeOffset(2021, 9, 6, 13, 46, 39, 123, kst),
-                    publicKey: GenesisKey.PublicKey,
-                    previousHash: default,
-                    txHash: BlockContent.DeriveTxHash(genTxs),
-                    lastCommit: null,
-                    evidenceHash: BlockContent.DeriveEvidenceHash(genEvidence)),
-                transactions: genTxs,
-                evidence: genEvidence);
-            GenesisMetadata = new BlockMetadata(GenesisContent);
+            GenesisContent = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    Index = 0,
+                    Timestamp = new DateTimeOffset(2021, 9, 6, 13, 46, 39, 123, kst),
+                    PublicKey = GenesisKey.PublicKey,
+                    PreviousHash = default,
+                    TxHash = BlockContent.DeriveTxHash(genTxs),
+                    LastCommit = null,
+                    EvidenceHash = BlockContent.DeriveEvidenceHash(genEvidence),
+                },
+                Transactions = [.. genTxs],
+                Evidence = [.. genEvidence],
+            };
+            GenesisMetadata = GenesisContent.Metadata;
             GenesisHash = BlockHash.Parse(
                 "341e8f360597d5bc45ab96aabc5f1b0608063f30af7bd4153556c9536a07693a");
 
@@ -122,49 +127,60 @@ namespace Libplanet.Tests.Fixtures
                 .OrderBy(tx => tx.Id).ToList();
             var block1Evidence = new List<EvidenceBase>() { Block1Ev0, Block1Ev1 }
                 .OrderBy(tx => tx.Id).ToList();
-            Block1Content = new BlockContent(
-                new BlockMetadata(
-                    index: 1,
-                    timestamp: new DateTimeOffset(2021, 9, 6, 17, 1, 9, 45, kst),
-                    publicKey: Block1Key.PublicKey,
-                    previousHash: GenesisHash,
-                    txHash: BlockContent.DeriveTxHash(block1Transactions),
-                    lastCommit: null,
-                    evidenceHash: BlockContent.DeriveEvidenceHash(block1Evidence)),
-                transactions: block1Transactions,
-                evidence: block1Evidence);
+            Block1Content = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    Index = 1,
+                    Timestamp = new DateTimeOffset(2021, 9, 6, 17, 1, 9, 45, kst),
+                    PublicKey = Block1Key.PublicKey,
+                    PreviousHash = GenesisHash,
+                    TxHash = BlockContent.DeriveTxHash(block1Transactions),
+                    LastCommit = null,
+                    EvidenceHash = BlockContent.DeriveEvidenceHash(block1Evidence),
+                },
+                Transactions = [.. block1Transactions],
+                Evidence = [.. block1Evidence],
+            };
             Block1TxHash = HashDigest<SHA256>.Parse(
                 "9d6457e7bdc4b19d1f341c45c787cf80a17c514da10d702606cc41f23387badb");
-            Block1Metadata = new BlockMetadata(Block1Content);
+            Block1Metadata = Block1Content.Metadata;
 
-            GenesisContentPv0 = new BlockContent(
-                new BlockMetadata(
-                    protocolVersion: 0,
-                    index: 0,
-                    timestamp: new DateTimeOffset(2021, 9, 6, 13, 46, 39, 123, kst),
-                    miner: GenesisKey.Address,
-                    publicKey: null,
-                    previousHash: default,
-                    txHash: null,
-                    lastCommit: null,
-                    evidenceHash: null),
-                transactions: new List<Transaction>(),
-                evidence: new List<EvidenceBase>()); // Tweaked GenesisContent
-            GenesisMetadataPv0 = new BlockMetadata(GenesisContentPv0);
-            Block1ContentPv1 = new BlockContent(
-                new BlockMetadata(
-                    protocolVersion: 1,
-                    index: 1,
-                    timestamp: new DateTimeOffset(2021, 9, 6, 17, 1, 9, 45, kst),
-                    miner: Block1Key.Address,
-                    publicKey: null,
-                    previousHash: GenesisHash,
-                    txHash: BlockContent.DeriveTxHash(block1Transactions),
-                    lastCommit: null,
-                    evidenceHash: BlockContent.DeriveEvidenceHash(block1Evidence)),
-                transactions: block1Transactions,
-                evidence: block1Evidence); // Tweaked Block1Content
-            Block1MetadataPv1 = new BlockMetadata(Block1ContentPv1);
+            GenesisContentPv0 = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    ProtocolVersion = 0,
+                    Index = 0,
+                    Timestamp = new DateTimeOffset(2021, 9, 6, 13, 46, 39, 123, kst),
+                    Miner = GenesisKey.Address,
+                    PublicKey = null,
+                    PreviousHash = default,
+                    LastCommit = null,
+                    EvidenceHash = null,
+                },
+                Transactions = [],
+                Evidence = [],
+            }; // Tweaked GenesisContent
+            GenesisMetadataPv0 = GenesisContentPv0.Metadata;
+            Block1ContentPv1 = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    ProtocolVersion = 1,
+                    Index = 1,
+                    Timestamp = new DateTimeOffset(2021, 9, 6, 17, 1, 9, 45, kst),
+                    Miner = Block1Key.Address,
+                    PublicKey = null,
+                    PreviousHash = GenesisHash,
+                    TxHash = BlockContent.DeriveTxHash(block1Transactions),
+                    LastCommit = null,
+                    EvidenceHash = BlockContent.DeriveEvidenceHash(block1Evidence),
+                },
+                Transactions = [.. block1Transactions],
+                Evidence = [.. block1Evidence],
+            }; // Tweaked Block1Content
+            Block1MetadataPv1 = Block1ContentPv1.Metadata;
         }
 
         [Fact]

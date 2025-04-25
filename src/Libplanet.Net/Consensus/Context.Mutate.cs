@@ -1,5 +1,6 @@
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 
@@ -43,7 +44,7 @@ namespace Libplanet.Net.Consensus
                         Round,
                         DateTimeOffset.UtcNow,
                         _privateKey.PublicKey,
-                        _codec.Encode(proposalValue.MarshalBlock()),
+                        ModelSerializer.SerializeToBytes(proposalValue),
                         _validRound).Sign(_privateKey);
 
                     PublishMessage(new ConsensusProposalMsg(proposal));
@@ -90,7 +91,7 @@ namespace Libplanet.Net.Consensus
                         message);
                 }
 
-                if (!_validatorSet.ContainsPublicKey(message.ValidatorPublicKey))
+                if (!_validatorSet.Contains(message.ValidatorPublicKey))
                 {
                     throw new InvalidConsensusMessageException(
                         $"Given message's validator {message.ValidatorPublicKey} is invalid",
