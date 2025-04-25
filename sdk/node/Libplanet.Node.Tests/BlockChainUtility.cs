@@ -14,7 +14,7 @@ internal static class BlockChainUtility
     public static async Task<Block> AppendBlockAsync(BlockChain blockChain, PrivateKey privateKey)
     {
         var tip = blockChain.Tip;
-        var height = tip.Index + 1;
+        var height = tip.Height + 1;
         var block = blockChain.ProposeBlock(
             proposer: privateKey,
             lastCommit: blockChain.GetBlockCommit(tip.Hash));
@@ -23,7 +23,7 @@ internal static class BlockChainUtility
             blockChain.GetBlockCommit(tip.Hash),
             validate: false);
 
-        while (blockChain.Tip.Index < height)
+        while (blockChain.Tip.Height < height)
         {
             await Task.Delay(100);
         }

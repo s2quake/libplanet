@@ -22,7 +22,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<LongGraphType>>(
             name: "Index",
             description: "The height of the block.",
-            resolve: x => x.Source.Index
+            resolve: x => x.Source.Height
         );
         Field<NonNullGraphType<AddressType>>(
             name: "Miner",

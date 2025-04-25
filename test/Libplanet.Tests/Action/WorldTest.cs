@@ -267,7 +267,7 @@ namespace Libplanet.Tests.Action
                 new[] { tx },
                 miner: privateKey.PublicKey,
                 protocolVersion: ProtocolVersion,
-                lastCommit: chain.GetBlockCommit(chain.Tip.Index));
+                lastCommit: chain.GetBlockCommit(chain.Tip.Height));
             stateRootHash = chain.DetermineBlockPrecededStateRootHash(block2PreEval, out _);
             hash = block2PreEval.Metadata.DeriveBlockHash(stateRootHash, []);
             Block block2 = chain.EvaluateAndSign(block2PreEval, privateKey);
@@ -295,7 +295,7 @@ namespace Libplanet.Tests.Action
                 new[] { tx },
                 miner: _keys[1].PublicKey,
                 protocolVersion: ProtocolVersion,
-                lastCommit: chain.GetBlockCommit(chain.Tip.Index));
+                lastCommit: chain.GetBlockCommit(chain.Tip.Height));
             stateRootHash = chain.DetermineBlockPrecededStateRootHash(block3PreEval, out _);
             hash = block3PreEval.Metadata.DeriveBlockHash(stateRootHash, []);
             Block block3 = chain.EvaluateAndSign(block3PreEval, _keys[1]);

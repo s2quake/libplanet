@@ -142,7 +142,7 @@ namespace Libplanet.Net.Tests
             BlockChain blockChain,
             long index)
         {
-            if (blockChain.Tip.Index < index)
+            if (blockChain.Tip.Height < index)
             {
                 var manualResetEvent = new ManualResetEvent(false);
                 var cancellationTokenSource = new CancellationTokenSource(Timeout);
@@ -163,7 +163,7 @@ namespace Libplanet.Net.Tests
 
                 void BlockChain_TipChanged(object? sender, (Block OldTip, Block NewTip) e)
                 {
-                    if (e.NewTip.Index >= index)
+                    if (e.NewTip.Height >= index)
                     {
                         manualResetEvent.Set();
                     }

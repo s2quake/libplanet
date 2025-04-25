@@ -175,7 +175,7 @@ namespace Libplanet.Net.Tests.Consensus
                     new BlockMetadata
                     {
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
-                        Index = blockChain.Tip.Index + 1,
+                        Height = blockChain.Tip.Height + 1,
                         Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                         Miner = key.Address,
                         PublicKey = key.PublicKey,

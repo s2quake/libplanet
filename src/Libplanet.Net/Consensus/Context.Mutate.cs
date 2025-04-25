@@ -458,7 +458,7 @@ namespace Libplanet.Net.Consensus
             {
                 _logger.Information(
                     "Committing block #{Index} {Hash} (context: {Context})",
-                    block.Index,
+                    block.Height,
                     block.Hash,
                     ToString());
 
@@ -470,7 +470,7 @@ namespace Libplanet.Net.Consensus
                 _logger.Error(
                     e,
                     "Failed to commit block #{Index} {Hash}",
-                    block.Index,
+                    block.Height,
                     block.Hash);
                 ExceptionOccurred?.Invoke(this, e);
                 return;
@@ -478,7 +478,7 @@ namespace Libplanet.Net.Consensus
 
             _logger.Information(
                 "Committed block #{Index} {Hash}",
-                block.Index,
+                block.Height,
                 block.Hash);
         }
 

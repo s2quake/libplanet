@@ -44,14 +44,14 @@ namespace Libplanet.Tests.Blocks
                     "aaeda4f1a6a4aee7fc9a29014cff005109176e83a8e5d28876f2d889680e6421"),
                 lastCommit: new BlockCommit
                 {
-                    Height = Next.Index,
+                    Height = Next.Height,
                     Round = 0,
                     BlockHash = Next.Hash,
                     Votes =
                     [
                         new VoteMetadata
                         {
-                            Height = Next.Index,
+                            Height = Next.Height,
                             Round = 0,
                             BlockHash = Next.Hash,
                             Timestamp = Next.Timestamp,

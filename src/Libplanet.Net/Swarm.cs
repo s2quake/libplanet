@@ -568,7 +568,7 @@ namespace Libplanet.Net
 
             _logger.Debug(
                 "Tip before preloading: #{TipIndex} {TipHash}",
-                BlockChain.Tip.Index,
+                BlockChain.Tip.Height,
                 BlockChain.Tip.Hash
             );
 
@@ -600,7 +600,7 @@ namespace Libplanet.Net
                 BlockExcerpt topmostTip = peersWithExcerpts
                     .Select(pair => pair.Item2)
                     .Aggregate((prev, next) => prev.Index > next.Index ? prev : next);
-                if (topmostTip.Index - (i > 0 ? tipDeltaThreshold : 0L) <= localTip.Index)
+                if (topmostTip.Index - (i > 0 ? tipDeltaThreshold : 0L) <= localTip.Height)
                 {
                     const string msg =
                         "As the local tip (#{LocalTipIndex} {LocalTipHash}) is close enough to " +
@@ -608,7 +608,7 @@ namespace Libplanet.Net
                         "preloading is no longer needed";
                     _logger.Information(
                         msg,
-                        localTip.Index,
+                        localTip.Height,
                         localTip.Hash,
                         topmostTip.Index,
                         topmostTip.Hash
@@ -623,7 +623,7 @@ namespace Libplanet.Net
                         "(#{TopmostTipIndex} {TopmostTipHash}), preload one more time...";
                     _logger.Information(
                         msg,
-                        localTip.Index,
+                        localTip.Height,
                         localTip.Hash,
                         topmostTip.Index,
                         topmostTip.Hash
@@ -1113,7 +1113,7 @@ namespace Libplanet.Net
         {
             _logger.Information(
                 "Trying to broadcast block #{Index} {Hash}...",
-                block.Index,
+                block.Height,
                 block.Hash);
             var message = new BlockHeaderMsg(BlockChain.Genesis.Hash, block.Header);
             BroadcastMessage(except, message);
@@ -1158,7 +1158,7 @@ namespace Libplanet.Net
                 .Where(
                     pair => pair.Item2 is { } chainStatus &&
                         genesisHash.Equals(chainStatus.GenesisHash) &&
-                        chainStatus.TipIndex > tip.Index)
+                        chainStatus.TipIndex > tip.Height)
                 .Select(pair => (pair.Item1, (BlockExcerpt)pair.Item2))
                 .OrderBy(_ => random.Next())
                 .ToList();
@@ -1330,7 +1330,7 @@ namespace Libplanet.Net
         /// <paramref name="target"/> is needed, otherwise, <see langword="false"/>.</returns>
         private bool IsBlockNeeded(BlockExcerpt target)
         {
-            return target.Index > BlockChain.Tip.Index;
+            return target.Index > BlockChain.Tip.Height;
         }
 
         private async Task RefreshTableAsync(

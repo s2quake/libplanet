@@ -33,7 +33,7 @@ public readonly record struct BlockDigest
 
     public int ProtocolVersion => _metadata.ProtocolVersion;
 
-    public long Index => _metadata.Index;
+    public long Index => _metadata.Height;
 
     public DateTimeOffset Timestamp => _metadata.Timestamp;
 

@@ -18,7 +18,7 @@ public sealed record class BlockMetadata
 
     public int ProtocolVersion { get; init; }
 
-    public long Index { get; init; }
+    public long Height { get; init; }
 
     public DateTimeOffset Timestamp { get; init; }
 
@@ -211,7 +211,7 @@ public sealed record class BlockMetadata
         return new BlockMetadata
         {
             ProtocolVersion = header.ProtocolVersion,
-            Index = header.Index,
+            Height = header.Height,
             Timestamp = header.Timestamp,
             Miner = header.Miner,
             PublicKey = header.PublicKey,
@@ -228,7 +228,7 @@ public sealed record class BlockMetadata
     {
         if (currentTime + TimestampThreshold < Timestamp)
         {
-            var message = $"The block #{Index}'s timestamp " +
+            var message = $"The block #{Height}'s timestamp " +
                 $"({Timestamp}) is later than now " +
                 $"({currentTime}, threshold: {TimestampThreshold}).";
             throw new InvalidOperationException(message);

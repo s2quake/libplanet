@@ -31,7 +31,7 @@ namespace Libplanet.Net
                     var chainStatus = new ChainStatusMsg(
                         tip.ProtocolVersion,
                         BlockChain.Genesis.Hash,
-                        tip.Index,
+                        tip.Height,
                         tip.Hash
                     );
 
@@ -148,7 +148,7 @@ namespace Libplanet.Net
                 _logger.Debug(
                     e,
                     "Received header #{BlockHeight} {BlockHash} has invalid timestamp: {Timestamp}",
-                    header.Index,
+                    header.Height,
                     header.BlockHash,
                     header.Timestamp
                 );
@@ -158,7 +158,7 @@ namespace Libplanet.Net
             bool needed = IsBlockNeeded(header);
             _logger.Information(
                 "Received " + nameof(BlockHeader) + " #{ReceivedIndex} {ReceivedHash}",
-                header.Index,
+                header.Height,
                 header.BlockHash);
 
             if (needed)
@@ -166,7 +166,7 @@ namespace Libplanet.Net
                 _logger.Information(
                     "Adding received header #{BlockHeight} {BlockHash} from peer {Peer} to " +
                     nameof(BlockDemandTable) + "...",
-                    header.Index,
+                    header.Height,
                     header.BlockHash,
                     message.Remote);
                 BlockDemandTable.Add(
@@ -180,10 +180,10 @@ namespace Libplanet.Net
                 _logger.Information(
                     "Discarding received header #{ReceivedIndex} {ReceivedHash} from peer {Peer} " +
                     "as it is not needed for the current chain with tip #{TipIndex} {TipHash}",
-                    header.Index,
+                    header.Height,
                     header.BlockHash,
                     message.Remote,
-                    BlockChain.Tip.Index,
+                    BlockChain.Tip.Height,
                     BlockChain.Tip.Hash);
                 return;
             }

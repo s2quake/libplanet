@@ -173,7 +173,7 @@ namespace Libplanet.Net.Tests.Consensus
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = blockChain.Tip.Index + 1,
+                        Height = blockChain.Tip.Height + 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = key.PublicKey,
                         PreviousHash = blockChain.Tip.Hash,
@@ -272,7 +272,7 @@ namespace Libplanet.Net.Tests.Consensus
                     new BlockMetadata
                     {
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
-                        Index = blockChain.Tip.Index + 2,
+                        Height = blockChain.Tip.Height + 2,
                         Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
                         Miner = TestUtils.PrivateKeys[1].Address,
                         PublicKey = TestUtils.PrivateKeys[1].PublicKey,
@@ -425,7 +425,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var metadata = new BlockMetadata
             {
-                Index = 1L,
+                Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
                 PublicKey = TestUtils.PrivateKeys[1].PublicKey,
                 PreviousHash = blockChain.Genesis.Hash,

@@ -133,11 +133,11 @@ namespace Libplanet.Blockchain.Renderers.Debug
                                  actionBase.Render)
                         {
                             long idx = actionBase.Context.BlockHeight;
-                            if (idx > blockState.NewTip.Index)
+                            if (idx > blockState.NewTip.Height)
                             {
                                 throw BadRenderExc(
                                     "An action is from a block which has an unexpected index " +
-                                    $"#{idx} (expected max: #{blockState.NewTip.Index})."
+                                    $"#{idx} (expected max: #{blockState.NewTip.Height})."
                                 );
                             }
 

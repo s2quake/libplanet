@@ -280,9 +280,9 @@ namespace Libplanet.Net.Tests
                 chainC.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Assert.Equal(initialSharedTipHeight, chainA.Tip.Index);
-            Assert.Equal(maliciousTipHeight, chainB.Tip.Index);
-            Assert.Equal(honestTipHeight, chainC.Tip.Index);
+            Assert.Equal(initialSharedTipHeight, chainA.Tip.Height);
+            Assert.Equal(maliciousTipHeight, chainB.Tip.Height);
+            Assert.Equal(honestTipHeight, chainC.Tip.Height);
 
             try
             {
@@ -303,7 +303,7 @@ namespace Libplanet.Net.Tests
                 }
 
                 // Makes sure preload failed.
-                Assert.Equal(initialSharedTipHeight, chainA.Tip.Index);
+                Assert.Equal(initialSharedTipHeight, chainA.Tip.Height);
 
                 // Checks swarmA can sync with an honest node with higher tip afterwards.
                 await swarmA.AddPeersAsync(new[] { swarmC.AsPeer }, null);
@@ -664,7 +664,7 @@ namespace Libplanet.Net.Tests
                 Assert.Equal(
                     (Text)string.Join(
                         ",",
-                        Enumerable.Range(0, (int)receiverChain.Tip.Index).Select(i =>
+                        Enumerable.Range(0, (int)receiverChain.Tip.Height).Select(i =>
                             string.Join(",", Enumerable.Range(0, 5).Select(j => $"Item{i}.{j}")))),
                     receiverChain
                         .GetNextWorldState()
@@ -725,7 +725,7 @@ namespace Libplanet.Net.Tests
 
             IEnumerable<BlockHash> expectedBlocks = minerChain
                 .IterateBlocks()
-                .Where(b => b.Index >= receiverChain.Tip.Index)
+                .Where(b => b.Height >= receiverChain.Tip.Height)
                 .Take(FindNextHashesChunkSize)
                 .Select(b => b.Hash);
             Assert.Equal(expectedBlocks, demands);
@@ -879,7 +879,7 @@ namespace Libplanet.Net.Tests
                 transactions.Add(transaction);
             }
 
-            Assert.Equal(10, seedChain.Tip.Index);
+            Assert.Equal(10, seedChain.Tip.Height);
 
             try
             {

@@ -14,7 +14,7 @@ public sealed record class BlockExcerpt
         => new()
         {
             ProtocolVersion = blockHeader.ProtocolVersion,
-            Index = blockHeader.Index,
+            Index = blockHeader.Height,
             Hash = blockHeader.BlockHash,
         };
 }

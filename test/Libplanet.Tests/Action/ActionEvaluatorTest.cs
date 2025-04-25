@@ -96,7 +96,7 @@ namespace Libplanet.Tests.Action
                 new BlockMetadata
                 {
                     ProtocolVersion = Block.CurrentProtocolVersion,
-                    Index = 0,
+                    Height = 0,
                     Timestamp = timestamp,
                     Miner = GenesisProposer.Address,
                     PublicKey = GenesisProposer.PublicKey,
@@ -198,7 +198,7 @@ namespace Libplanet.Tests.Action
                     .GetNextWorldState()
                     .GetAccountState(ReservedAddresses.LegacyAccount)
                     .GetState(ContextRecordingAction.BlockIndexRecordAddress),
-                new Integer(block.Index));
+                new Integer(block.Height));
             Assert.Equal(
                 chain
                     .GetNextWorldState()
@@ -407,7 +407,7 @@ namespace Libplanet.Tests.Action
             RawBlock block = RawBlock.Propose(
                 new BlockMetadata
                 {
-                    Index = 1L,
+                    Height = 1L,
                     Timestamp = DateTimeOffset.UtcNow,
                     PublicKey = new PrivateKey().PublicKey,
                     PreviousHash = genesis.Hash,
@@ -579,7 +579,7 @@ namespace Libplanet.Tests.Action
                     eval.Action.PlainValue);
                 Assert.Equal(expect.Signer, eval.InputContext.Signer);
                 Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
-                Assert.Equal(block1.Index, eval.InputContext.BlockHeight);
+                Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
             }
 
             previousState = stateStore.GetWorld(genesis.StateRootHash);
@@ -725,7 +725,7 @@ namespace Libplanet.Tests.Action
                     eval.Action.PlainValue);
                 Assert.Equal(expect.Signer, eval.InputContext.Signer);
                 Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
-                Assert.Equal(block2.Index, eval.InputContext.BlockHeight);
+                Assert.Equal(block2.Height, eval.InputContext.BlockHeight);
                 Assert.Null(eval.Exception);
             }
 
@@ -768,7 +768,7 @@ namespace Libplanet.Tests.Action
             var block = RawBlock.Propose(
                 new BlockMetadata
                 {
-                    Index = 1L,
+                    Height = 1L,
                     Timestamp = DateTimeOffset.UtcNow,
                     PublicKey = keys[0].PublicKey,
                     PreviousHash = default(BlockHash),
@@ -896,7 +896,7 @@ namespace Libplanet.Tests.Action
             var block = RawBlock.Propose(
                 new BlockMetadata
                 {
-                    Index = 123,
+                    Height = 123,
                     Timestamp = DateTimeOffset.UtcNow,
                     PublicKey = GenesisProposer.PublicKey,
                     PreviousHash = hash,
@@ -961,7 +961,7 @@ namespace Libplanet.Tests.Action
                 Assert.Equal(txA.Actions[i], eval.Action);
                 Assert.Equal(txA.Id, context.TxId);
                 Assert.Equal(blockA.Miner, context.Miner);
-                Assert.Equal(blockA.Index, context.BlockHeight);
+                Assert.Equal(blockA.Height, context.BlockHeight);
                 Assert.Equal(txA.Signer, context.Signer);
                 Assert.False(context.IsPolicyAction);
                 Assert.Equal(
@@ -1019,7 +1019,7 @@ namespace Libplanet.Tests.Action
                 Assert.Equal(txB.Actions[i], eval.Action);
                 Assert.Equal(txB.Id, context.TxId);
                 Assert.Equal(blockB.Miner, context.Miner);
-                Assert.Equal(blockB.Index, context.BlockHeight);
+                Assert.Equal(blockB.Height, context.BlockHeight);
                 Assert.Equal(txB.Signer, context.Signer);
                 Assert.False(context.IsPolicyAction);
                 Assert.Equal(

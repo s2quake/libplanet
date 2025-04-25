@@ -125,7 +125,7 @@ namespace Libplanet.Net.Tests.Messages
                     return new ChainStatusMsg(
                         0,
                         genesis.Hash,
-                        chain.Tip.Index,
+                        chain.Tip.Height,
                         chain.Tip.Hash);
                 case MessageContent.MessageType.DifferentVersion:
                     return new DifferentVersionMsg();

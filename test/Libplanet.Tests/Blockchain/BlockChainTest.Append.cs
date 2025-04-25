@@ -394,7 +394,7 @@ namespace Libplanet.Tests.Blockchain
                 heavyTxs.ToImmutableList(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 ImmutableArray<EvidenceBase>.Empty);
-            long maxBytes = _blockChain.Policy.GetMaxTransactionsBytes(block.Index);
+            long maxBytes = _blockChain.Policy.GetMaxTransactionsBytes(block.Height);
             Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
             var e = Assert.Throws<InvalidOperationException>(() =>
@@ -682,7 +682,7 @@ namespace Libplanet.Tests.Blockchain
             RawBlock preEvalGenesis = RawBlock.Propose(
                 new BlockMetadata
                 {
-                    Index = 0L,
+                    Height = 0L,
                     Timestamp = DateTimeOffset.UtcNow,
                     Miner = fx.Proposer.Address,
                     PublicKey = fx.Proposer.PublicKey,

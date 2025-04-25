@@ -55,7 +55,7 @@ namespace Libplanet.Net.Tests
 
                         Block block = chain.ProposeBlock(
                             miner, CreateBlockCommit(chain.Tip));
-                        Log.Logger.Information("  #{0,2} {1}", block.Index, block.Hash);
+                        Log.Logger.Information("  #{0,2} {1}", block.Height, block.Hash);
                         chain.Append(block, CreateBlockCommit(block));
                     }
 

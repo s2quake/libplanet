@@ -302,7 +302,7 @@ namespace Libplanet.Tests.Store
             store.ForkBlockIndexes(chainB, chainC, Fx.Block1.Hash);
             Assert.Equal(
                 Fx.Block1.Hash,
-                store.IndexBlockHash(chainC, Fx.Block1.Index)
+                store.IndexBlockHash(chainC, Fx.Block1.Height)
             );
         }
 
@@ -343,7 +343,7 @@ namespace Libplanet.Tests.Store
                 Fx.Store.GetBlock(Fx.Block1.Hash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block2.Hash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block3.Hash));
-            Assert.Equal(Fx.Block1.Index, Fx.Store.GetBlockIndex(Fx.Block1.Hash));
+            Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockIndex(Fx.Block1.Hash));
             Assert.Null(Fx.Store.GetBlockIndex(Fx.Block2.Hash));
             Assert.Null(Fx.Store.GetBlockIndex(Fx.Block3.Hash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block1.Hash));
@@ -362,8 +362,8 @@ namespace Libplanet.Tests.Store
                 Fx.Block2,
                 Fx.Store.GetBlock(Fx.Block2.Hash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block3.Hash));
-            Assert.Equal(Fx.Block1.Index, Fx.Store.GetBlockIndex(Fx.Block1.Hash));
-            Assert.Equal(Fx.Block2.Index, Fx.Store.GetBlockIndex(Fx.Block2.Hash));
+            Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockIndex(Fx.Block1.Hash));
+            Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockIndex(Fx.Block2.Hash));
             Assert.Null(Fx.Store.GetBlockIndex(Fx.Block3.Hash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block1.Hash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block2.Hash));
@@ -380,7 +380,7 @@ namespace Libplanet.Tests.Store
                 Fx.Store.GetBlock(Fx.Block2.Hash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block3.Hash));
             Assert.Null(Fx.Store.GetBlockIndex(Fx.Block1.Hash));
-            Assert.Equal(Fx.Block2.Index, Fx.Store.GetBlockIndex(Fx.Block2.Hash));
+            Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockIndex(Fx.Block2.Hash));
             Assert.Null(Fx.Store.GetBlockIndex(Fx.Block3.Hash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block1.Hash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block2.Hash));

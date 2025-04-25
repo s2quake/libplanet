@@ -171,7 +171,7 @@ public class GeneratedBlockChainFixture
             RawBlock.Propose(
                 new BlockMetadata
                 {
-                    Index = Chain.Tip.Index + 1,
+                    Height = Chain.Tip.Height + 1,
                     Timestamp = DateTimeOffset.UtcNow,
                     PublicKey = proposer.PublicKey,
                     PreviousHash = Chain.Tip.Hash,
@@ -189,14 +189,14 @@ public class GeneratedBlockChainFixture
             block,
             new BlockCommit
             {
-                Height = Chain.Tip.Index + 1,
+                Height = Chain.Tip.Height + 1,
                 Round = 0,
                 BlockHash = block.Hash,
                 Votes = PrivateKeys
                     .OrderBy(pk => pk.Address.ToString("raw", null))
                     .Select(pk => new VoteMetadata
                     {
-                        Height = Chain.Tip.Index + 1,
+                        Height = Chain.Tip.Height + 1,
                         Round = 0,
                         BlockHash = block.Hash,
                         Timestamp = DateTimeOffset.UtcNow,

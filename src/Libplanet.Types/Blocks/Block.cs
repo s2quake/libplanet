@@ -79,7 +79,7 @@ public sealed record class Block
 
     public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
 
-    public long Index => Header.Index;
+    public long Height => Header.Height;
 
     public Address Miner => Header.Miner;
 
@@ -113,7 +113,7 @@ public sealed record class Block
         return
             $"{GetType().Name} {{" +
             $" {nameof(ProtocolVersion)} = {ProtocolVersion}," +
-            $" {nameof(Index)} = {Index}," +
+            $" {nameof(Height)} = {Height}," +
             $" {nameof(Hash)} = {Hash}," +
             " }";
     }

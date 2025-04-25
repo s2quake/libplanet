@@ -74,7 +74,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             blockChain.TipChanged += (_, eventArgs) =>
             {
-                if (eventArgs.NewTip.Index == 3L)
+                if (eventArgs.NewTip.Height == 3L)
                 {
                     onTipChangedToThree.Set();
                 }
@@ -85,7 +85,7 @@ namespace Libplanet.Net.Tests.Consensus
             blockChain.Append(block, blockCommit);
             block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2], blockCommit);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-            Assert.Equal(2, blockChain.Tip.Index);
+            Assert.Equal(2, blockChain.Tip.Height);
 
             // Wait for context of height 3 to start.
             await heightThreeStepChangedToPropose.WaitAsync();
@@ -129,7 +129,7 @@ namespace Libplanet.Net.Tests.Consensus
             // Waiting for commit.
             await heightThreeStepChangedToEndCommit.WaitAsync();
             await onTipChangedToThree.WaitAsync();
-            Assert.Equal(3, blockChain.Tip.Index);
+            Assert.Equal(3, blockChain.Tip.Height);
 
             // Next height starts normally.
             await heightFourStepChangedToPropose.WaitAsync();

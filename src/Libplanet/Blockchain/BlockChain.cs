@@ -196,7 +196,7 @@ namespace Libplanet.Blockchain
         /// <remarks>
         /// This is only invoked when <see cref="Tip"/> is changed, <em>not</em> when
         /// a <see cref="BlockChain"/> is instantiated.  Furthermore, it is guaranteed
-        /// that the new tip event argument's <see cref="Block.Index"/> will always
+        /// that the new tip event argument's <see cref="Block.Height"/> will always
         /// be <em>increasing</em> for each invocation.
         /// </remarks>
         // FIXME: This should be completely replaced by IRenderer.RenderBlock() or any other
@@ -457,7 +457,7 @@ namespace Libplanet.Blockchain
                 return
                     _blocks.ContainsKey(blockHash) &&
                     Store.GetBlockIndex(blockHash) is { } branchPointIndex &&
-                    branchPointIndex <= Tip.Index &&
+                    branchPointIndex <= Tip.Height &&
                     Store.IndexBlockHash(Id, branchPointIndex).Equals(blockHash);
             }
             finally
@@ -741,7 +741,7 @@ namespace Libplanet.Blockchain
             //     return null;
             // }
 
-            return index == Tip.Index
+            return index == Tip.Height
                 ? Store.GetChainBlockCommit(Id)
                 : this[index + 1].LastCommit;
         }
@@ -760,7 +760,7 @@ namespace Libplanet.Blockchain
         /// <see cref="BlockCommit"/> because the genesis block is not committed by a consensus.
         /// </remarks>
         public BlockCommit GetBlockCommit(BlockHash blockHash) =>
-            GetBlockCommit(this[blockHash].Index);
+            GetBlockCommit(this[blockHash].Height);
 
 #pragma warning disable MEN003
         internal void Append(
@@ -774,15 +774,15 @@ namespace Libplanet.Blockchain
                 throw new ArgumentException(
                     "Cannot append a block to an empty chain.");
             }
-            else if (block.Index == 0)
+            else if (block.Height == 0)
             {
                 throw new ArgumentException(
-                    $"Cannot append genesis block #{block.Index} {block.Hash} to a chain.",
+                    $"Cannot append genesis block #{block.Height} {block.Hash} to a chain.",
                     nameof(block));
             }
 
             _logger.Information(
-                "Trying to append block #{BlockHeight} {BlockHash}...", block.Index, block.Hash);
+                "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.Hash);
 
             if (validate)
             {
@@ -841,7 +841,7 @@ namespace Libplanet.Blockchain
                         .Information(
                             "Block #{BlockHeight} {BlockHash} with " +
                             "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
-                            block.Index,
+                            block.Height,
                             block.Hash,
                             block.Timestamp.ToString(
                                 TimestampFormat, CultureInfo.InvariantCulture),
@@ -860,7 +860,7 @@ namespace Libplanet.Blockchain
                         Store.PutTxIdBlockHashIndex(tx.Id, block.Hash);
                     }
 
-                    if (block.Index != 0 && blockCommit is { })
+                    if (block.Height != 0 && blockCommit is { })
                     {
                         Store.PutChainBlockCommit(Id, blockCommit);
                     }
@@ -896,7 +896,7 @@ namespace Libplanet.Blockchain
                     _logger.Information(
                         "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
-                        block.Index,
+                        block.Height,
                         block.Hash);
                     foreach (Transaction tx in block.Transactions)
                     {
@@ -906,7 +906,7 @@ namespace Libplanet.Blockchain
                     _logger.Information(
                         "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
-                        block.Index,
+                        block.Height,
                         block.Hash);
                 }
                 else
@@ -914,7 +914,7 @@ namespace Libplanet.Blockchain
                     _logger.Information(
                         "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
                         "for non-canonical chain {ChainID}",
-                        block.Index,
+                        block.Height,
                         block.Hash,
                         Id);
                 }
@@ -922,7 +922,7 @@ namespace Libplanet.Blockchain
                 TipChanged?.Invoke(this, (prevTip, block));
                 _logger.Information(
                     "Appended the block #{BlockHeight} {BlockHash}",
-                    block.Index,
+                    block.Height,
                     block.Hash);
 
                 HashDigest<SHA256> nextStateRootHash =
@@ -940,7 +940,7 @@ namespace Libplanet.Blockchain
                         "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
-                        block.Index,
+                        block.Height,
                         block.Hash);
                     foreach (IRenderer renderer in Renderers)
                     {
@@ -961,7 +961,7 @@ namespace Libplanet.Blockchain
                         "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
-                        block.Index,
+                        block.Height,
                         block.Hash);
                 }
             }
@@ -985,15 +985,15 @@ namespace Libplanet.Blockchain
                 throw new ArgumentException(
                     "Cannot append a block to an empty chain.");
             }
-            else if (block.Index == 0)
+            else if (block.Height == 0)
             {
                 throw new ArgumentException(
-                    $"Cannot append genesis block #{block.Index} {block.Hash} to a chain.",
+                    $"Cannot append genesis block #{block.Height} {block.Hash} to a chain.",
                     nameof(block));
             }
 
             _logger.Information(
-                "Trying to append block #{BlockHeight} {BlockHash}...", block.Index, block.Hash);
+                "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.Hash);
 
             block.Header.Timestamp.ValidateTimestamp();
 
@@ -1032,12 +1032,12 @@ namespace Libplanet.Blockchain
                     {
                         _logger.Information(
                             "Executing actions in block #{BlockHeight} {BlockHash}...",
-                            block.Index,
+                            block.Height,
                             block.Hash);
                         ValidateBlockPrecededStateRootHash(block, out actionEvaluations);
                         _logger.Information(
                             "Executed actions in block #{BlockHeight} {BlockHash}",
-                            block.Index,
+                            block.Height,
                             block.Hash);
                     }
 
@@ -1049,7 +1049,7 @@ namespace Libplanet.Blockchain
                         .Information(
                             "Block #{BlockHeight} {BlockHash} with " +
                             "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
-                            block.Index,
+                            block.Height,
                             block.Hash,
                             block.Timestamp.ToString(
                                 TimestampFormat, CultureInfo.InvariantCulture),
@@ -1068,7 +1068,7 @@ namespace Libplanet.Blockchain
                         Store.PutTxIdBlockHashIndex(tx.Id, block.Hash);
                     }
 
-                    if (block.Index != 0 && blockCommit is { })
+                    if (block.Height != 0 && blockCommit is { })
                     {
                         Store.PutChainBlockCommit(Id, blockCommit);
                     }
@@ -1107,7 +1107,7 @@ namespace Libplanet.Blockchain
                     _logger.Information(
                         "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
-                        block.Index,
+                        block.Height,
                         block.Hash);
                     foreach (Transaction tx in block.Transactions)
                     {
@@ -1117,7 +1117,7 @@ namespace Libplanet.Blockchain
                     _logger.Information(
                         "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                         block.Transactions.Count(),
-                        block.Index,
+                        block.Height,
                         block.Hash);
                 }
                 else
@@ -1125,7 +1125,7 @@ namespace Libplanet.Blockchain
                     _logger.Information(
                         "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
                         "for non-canonical chain {ChainID}",
-                        block.Index,
+                        block.Height,
                         block.Hash,
                         Id);
                 }
@@ -1133,7 +1133,7 @@ namespace Libplanet.Blockchain
                 TipChanged?.Invoke(this, (prevTip, block));
                 _logger.Information(
                     "Appended the block #{BlockHeight} {BlockHash}",
-                    block.Index,
+                    block.Height,
                     block.Hash);
 
                 if (render)
@@ -1143,7 +1143,7 @@ namespace Libplanet.Blockchain
                         "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
-                        block.Index,
+                        block.Height,
                         block.Hash);
                     foreach (IRenderer renderer in Renderers)
                     {
@@ -1164,7 +1164,7 @@ namespace Libplanet.Blockchain
                         "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
                         Renderers.Count,
                         ActionRenderers.Count,
-                        block.Index,
+                        block.Height,
                         block.Hash);
                 }
             }
@@ -1330,9 +1330,9 @@ namespace Libplanet.Blockchain
 
         private HashDigest<SHA256>? GetNextStateRootHash(Block block)
         {
-            if (block.Index < Tip.Index)
+            if (block.Height < Tip.Height)
             {
-                return this[block.Index + 1].StateRootHash;
+                return this[block.Height + 1].StateRootHash;
             }
             else
             {

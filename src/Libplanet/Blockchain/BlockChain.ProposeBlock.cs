@@ -51,7 +51,7 @@ namespace Libplanet.Blockchain
 
             var metadata = new BlockMetadata
             {
-                Index = 0L,
+                Height = 0L,
                 Timestamp = timestamp ?? DateTimeOffset.UtcNow,
                 PublicKey = privateKey.PublicKey,
                 PreviousHash = default,
@@ -118,7 +118,7 @@ namespace Libplanet.Blockchain
                 evidence ?? ImmutableArray<EvidenceBase>.Empty);
             _logger.Debug(
                 "Proposed block #{Index} {Hash} with previous hash {PreviousHash}",
-                block.Index,
+                block.Height,
                 block.Hash,
                 block.PreviousHash);
 
@@ -166,7 +166,7 @@ namespace Libplanet.Blockchain
             var metadata = new BlockMetadata
             {
                 ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
-                Index = index,
+                Height = index,
                 Timestamp = DateTimeOffset.UtcNow,
                 Miner = proposer.Address,
                 PublicKey = proposer.PublicKey,

@@ -27,7 +27,7 @@ namespace Libplanet.Blockchain
         public Branch(IEnumerable<(Block, BlockCommit?)> blocks)
         {
             ImmutableArray<(Block, BlockCommit?)> sorted =
-                blocks.OrderBy(block => block.Item1.Index).ToImmutableArray();
+                blocks.OrderBy(block => block.Item1.Height).ToImmutableArray();
             if (!sorted.Any())
             {
                 throw new ArgumentException(
@@ -37,7 +37,7 @@ namespace Libplanet.Blockchain
                          .Zip(
                              sorted.Skip(1),
                              (prev, next) =>
-                                 prev.Item1.Index + 1 == next.Item1.Index &&
+                                 prev.Item1.Height + 1 == next.Item1.Height &&
                                  prev.Item1.Hash.Equals(next.Item1.PreviousHash))
                          .All(pred => pred))
             {
