@@ -14,24 +14,6 @@ public sealed record class BlockMetadata
 {
     public const int CurrentProtocolVersion = 9;
 
-    // public const int TransferFixProtocolVersion = 1;
-
-    // public const int SignatureProtocolVersion = 2;
-
-    // public const int TransactionOrderingFixProtocolVersion = 3;
-
-    // public const int PBFTProtocolVersion = 4;
-
-    // public const int WorldStateProtocolVersion = 5;
-
-    // public const int ValidatorSetAccountProtocolVersion = 6;
-
-    // public const int CurrencyAccountProtocolVersion = 7;
-
-    // public const int SlothProtocolVersion = 8;
-
-    // public const int EvidenceProtocolVersion = 9;
-
     private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
 
     public int ProtocolVersion { get; init; }
