@@ -6,6 +6,7 @@ using Libplanet.Explorer.Queries;
 using Xunit;
 using Fixture = Libplanet.Explorer.Tests.Fixtures.BlockChainStatesFixture;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using Libplanet.Serialization;
 
 namespace Libplanet.Explorer.Tests.Queries;
 
@@ -59,7 +60,7 @@ public partial class RawStateQueryTest
         value =
             Assert.IsAssignableFrom<IDictionary<string, object>>(trie["value"]);
         Assert.Equal(
-            ByteUtil.Hex(_codec.Encode(Fixture.ImmutableSortedSet<Validator>.Bencoded)),
+            ByteUtil.Hex(ModelSerializer.SerializeToBytes(Fixture.Validators)),
             Assert.IsAssignableFrom<string>(value["hex"]));
     }
 }

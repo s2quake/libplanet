@@ -19,14 +19,16 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var privateKey = new PrivateKey();
             var blockHash = new BlockHash(new byte[32]);
-            var vote = new VoteMetadata(
-                1,
-                0,
-                blockHash,
-                DateTimeOffset.Now,
-                privateKey.PublicKey,
-                123,
-                VoteFlag.PreCommit).Sign(privateKey);
+            var vote = new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = blockHash,
+                Timestamp = DateTimeOffset.Now,
+                ValidatorPublicKey =privateKey.PublicKey,
+                ValidatorPower = 123,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(privateKey);
 
             var query =
                 @"{
@@ -55,7 +57,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Equal(
                 new DateTimeOffsetGraphType().Serialize(vote.Timestamp), resultData["timestamp"]);
             Assert.Equal(vote.ValidatorPublicKey.ToString(), resultData["validatorPublicKey"]);
-            Assert.Equal(vote.ValidatorPower?.ToString(), resultData["validatorPower"]);
+            Assert.Equal(vote.ValidatorPower.ToString(), resultData["validatorPower"]);
             Assert.Equal(vote.Flag.ToString(), resultData["flag"]);
             Assert.Equal(ByteUtil.Hex(vote.Signature), resultData["signature"]);
         }

@@ -13,6 +13,7 @@ using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Store;
 using Xunit;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using Libplanet.Serialization;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;
 
@@ -24,29 +25,40 @@ public class BlockTypeTest
         var privateKey = new PrivateKey();
         var lastBlockHash = new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
         var lastVotes = ImmutableArray.Create(
-            new VoteMetadata(
-                1,
-                0,
-                lastBlockHash,
-                DateTimeOffset.Now,
-                privateKey.PublicKey,
-                BigInteger.One,
-                VoteFlag.PreCommit).Sign(privateKey));
-        var lastBlockCommit = new BlockCommit(1, 0, lastBlockHash, lastVotes);
-        var preEval = new BlockContent(
-            new BlockMetadata(
-                index: 2,
-                timestamp: DateTimeOffset.UtcNow,
-                publicKey: privateKey.PublicKey,
-                previousHash: lastBlockHash,
-                txHash: null,
-                lastCommit: lastBlockCommit,
-                evidenceHash: null)).Propose();
+            new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = lastBlockHash,
+                Timestamp = DateTimeOffset.Now,
+                ValidatorPublicKey = privateKey.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(privateKey));
+        var lastBlockCommit = new BlockCommit
+        {
+            Height = 1,
+            Round = 0,
+            BlockHash = lastBlockHash,
+            Votes = lastVotes,
+        };
+        var preEval = new BlockContent
+        {
+            Metadata = new BlockMetadata
+            {
+                Index = 2,
+                Timestamp = DateTimeOffset.UtcNow,
+                PublicKey = privateKey.PublicKey,
+                PreviousHash = lastBlockHash,
+                LastCommit = lastBlockCommit,
+                EvidenceHash = null,
+            },
+        }.Propose();
         var stateRootHash =
             new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
         var signature = preEval.Header.MakeSignature(privateKey, stateRootHash);
         var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
-        var block = new Block(preEval, (stateRootHash, signature, hash));
+        var block = Block.Create(preEval, (stateRootHash, signature, hash));
 
         // FIXME We need to test for `previousBlock` field too.
         var query =
@@ -101,10 +113,10 @@ public class BlockTypeTest
             new DateTimeOffsetGraphType().Serialize(block.Timestamp),
             resultData["timestamp"]);
         Assert.Equal(
-            ByteUtil.Hex(block.StateRootHash.ToByteArray()),
+            ByteUtil.Hex(block.StateRootHash.ByteArray.ToArray()),
             resultData["stateRootHash"]);
         Assert.Equal(
-            ByteUtil.Hex(block.RawHash.ToByteArray()),
+            ByteUtil.Hex(block.RawHash.ByteArray.ToArray()),
             resultData["preEvaluationHash"]);
 
         var expectedLastCommit = new Dictionary<string, object>()
@@ -126,7 +138,7 @@ public class BlockTypeTest
                             new DateTimeOffsetGraphType().Serialize(lastVotes[0].Timestamp)
                         },
                         { "validatorPublicKey", lastVotes[0].ValidatorPublicKey.ToString() },
-                        { "validatorPower", lastVotes[0].ValidatorPower?.ToString() },
+                        { "validatorPower", lastVotes[0].ValidatorPower.ToString() },
                         { "flag", lastVotes[0].Flag.ToString() },
                         { "signature", ByteUtil.Hex(lastVotes[0].Signature) },
                     }
@@ -142,7 +154,6 @@ public class BlockTypeTest
 
         Assert.Equal(
             block,
-            BlockMarshaler.UnmarshalBlock(
-                (Dictionary)new Codec().Decode(ByteUtil.ParseHex((string)resultData["raw"]))));
+            ModelSerializer.DeserializeFromBytes<Block>(ByteUtil.ParseHex((string)resultData["raw"])));
     }
 }

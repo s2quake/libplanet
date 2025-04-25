@@ -82,11 +82,11 @@ public class GeneratedBlockChainFixture
                         genesisHash: null,
                         actions: new IAction[]
                             {
-                                new Initialize(
-                                    new ImmutableSortedSet<Validator>(
-                                        ImmutableList<Validator>.Empty.Add(
-                                            new Validator(pk.PublicKey, 1)).ToList()),
-                                    ImmutableDictionary.Create<Address, IValue>())
+                                new Initialize
+                                {
+                                    Validators = [new Validator(pk.PublicKey, 1)],
+                                    States = ImmutableDictionary.Create<Address, IValue>()
+                                },
                             }.ToPlainValues()))
                 .ToImmutableList());
         Chain = BlockChain.Create(
@@ -168,34 +168,43 @@ public class GeneratedBlockChainFixture
     {
         var proposer = PrivateKeys[Random.Next(PrivateKeys.Length)];
         var block = Chain.EvaluateAndSign(
-            new BlockContent(
-                new BlockMetadata(
-                    Chain.Tip.Index + 1,
-                    DateTimeOffset.UtcNow,
-                    proposer.PublicKey,
-                    Chain.Tip.Hash,
-                    BlockContent.DeriveTxHash(transactions),
-                    Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
-                    evidenceHash: null),
-                transactions,
-                evidence: Array.Empty<EvidenceBase>()).Propose(),
+            new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    Index = Chain.Tip.Index + 1,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    PublicKey = proposer.PublicKey,
+                    PreviousHash = Chain.Tip.Hash,
+                    TxHash = BlockContent.DeriveTxHash(transactions),
+                    LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
+                    EvidenceHash = null,
+                },
+                Transactions = [.. transactions],
+                Evidence = [],
+            }.Propose(),
             proposer);
         Chain.Append(
             block,
-            new BlockCommit(
-                Chain.Tip.Index + 1,
-                0,
-                block.Hash,
-                PrivateKeys
+            new BlockCommit
+            {
+                Height = Chain.Tip.Index + 1,
+                Round = 0,
+                BlockHash = block.Hash,
+                Votes = PrivateKeys
                     .OrderBy(pk => pk.Address.ToString("raw", null))
-                    .Select(pk => new VoteMetadata(
-                        Chain.Tip.Index + 1,
-                        0,
-                        block.Hash,
-                        DateTimeOffset.UtcNow,
-                        pk.PublicKey,
-                        BigInteger.One,
-                        VoteFlag.PreCommit).Sign(pk)).ToImmutableArray()));
+                    .Select(pk => new VoteMetadata
+                    {
+                        Height = Chain.Tip.Index + 1,
+                        Round = 0,
+                        BlockHash = block.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = pk.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(pk))
+                    .ToImmutableArray(),
+            });
         MinedBlocks = MinedBlocks
             .SetItem(
                 proposer.Address,
