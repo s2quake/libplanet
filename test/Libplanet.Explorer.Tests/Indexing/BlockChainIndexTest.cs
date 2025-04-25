@@ -58,7 +58,7 @@ public abstract class BlockChainIndexTest
         var tip = await Fx.Index.GetTipAsync();
         Assert.Equal(tip, Fx.Index.Tip);
         Assert.Equal(ChainFx.Chain.Tip.Hash, tip.Hash);
-        Assert.Equal(ChainFx.Chain.Tip.Index, tip.Index);
+        Assert.Equal(ChainFx.Chain.Tip.Height, tip.Index);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public abstract class BlockChainIndexTest
         for (var i = 0; i < indexed.Length; i++)
         {
             Assert.Equal(inChain[i].Hash, indexed[i].Hash);
-            Assert.Equal(inChain[i].Index, indexed[i].Index);
+            Assert.Equal(inChain[i].Height, indexed[i].Index);
         }
     }
 
@@ -251,7 +251,7 @@ public abstract class BlockChainIndexTest
             for (var i = 0; i < indexed.Length; i++)
             {
                 Assert.Equal(inChain[i].Hash, indexed[i].Hash);
-                Assert.Equal(inChain[i].Index, indexed[i].Index);
+                Assert.Equal(inChain[i].Height, indexed[i].Index);
             }
         }
     }

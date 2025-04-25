@@ -77,7 +77,7 @@ namespace Libplanet.Blockchain
                 "Prepared " + nameof(TxExecution) +
                 "s for {Txs} transactions within the block #{BlockHeight} {BlockHash}",
                 count,
-                block.Index,
+                block.Height,
                 block.Hash);
         }
 

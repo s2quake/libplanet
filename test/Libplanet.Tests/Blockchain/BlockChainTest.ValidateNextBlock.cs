@@ -23,7 +23,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -47,7 +47,7 @@ namespace Libplanet.Tests.Blockchain
                     new BlockMetadata
                     {
                         ProtocolVersion = protocolVersion,
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Miner = _fx.Proposer.Address,
                         PublicKey = protocolVersion >= 2 ? _fx.Proposer.PublicKey : null,
@@ -65,7 +65,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 2L,
+                        Height = 2L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
                         Miner = _fx.Proposer.Address,
                         PublicKey = protocolVersion - 1 >= 2 ? _fx.Proposer.PublicKey : null,
@@ -85,7 +85,7 @@ namespace Libplanet.Tests.Blockchain
                         new BlockMetadata
                         {
                             ProtocolVersion = BlockMetadata.CurrentProtocolVersion + 1,
-                            Index = 2L,
+                            Height = 2L,
                             Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
                             Miner = _fx.Proposer.Address,
                             PublicKey = _fx.Proposer.PublicKey,
@@ -111,7 +111,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = prev.Index,
+                        Height = prev.Height,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = prev.Hash,
@@ -129,11 +129,11 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = prev.Index + 2,
+                        Height = prev.Height + 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = prev.Hash,
-                        LastCommit = TestUtils.CreateBlockCommit(prev.Hash, prev.Index + 1, 0),
+                        LastCommit = TestUtils.CreateBlockCommit(prev.Hash, prev.Height + 1, 0),
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -153,7 +153,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 2,
+                        Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         // Should be _validNext.Hash instead
@@ -179,7 +179,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 2,
+                        Height = 2,
                         Timestamp = _validNext.Timestamp.AddSeconds(-1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _validNext.Hash,
@@ -244,7 +244,7 @@ namespace Libplanet.Tests.Blockchain
                     new BlockMetadata
                     {
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
-                        Index = 1,
+                        Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
@@ -292,7 +292,7 @@ namespace Libplanet.Tests.Blockchain
                     new BlockMetadata
                     {
                         ProtocolVersion = beforePostponeBPV,
-                        Index = 1,
+                        Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
@@ -359,7 +359,7 @@ namespace Libplanet.Tests.Blockchain
             RawBlock preBlock1 = RawBlock.Propose(
                 new BlockMetadata
                 {
-                    Index = 1,
+                    Height = 1,
                     Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                     Miner = TestUtils.GenesisProposer.Address,
                     PublicKey = TestUtils.GenesisProposer.PublicKey,
@@ -389,7 +389,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -408,7 +408,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -423,7 +423,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 2L,
+                        Height = 2L,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = block1.Hash,
@@ -442,7 +442,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -479,7 +479,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 2L,
+                        Height = 2L,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = block1.Hash,
@@ -498,7 +498,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -531,7 +531,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 2,
+                        Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = block1.Hash,
@@ -577,7 +577,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -602,7 +602,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -627,7 +627,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -666,7 +666,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
@@ -702,7 +702,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Propose(
                     new BlockMetadata
                     {
-                        Index = 1L,
+                        Height = 1L,
                         Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = blockChain.Genesis.Hash,
@@ -828,7 +828,7 @@ namespace Libplanet.Tests.Blockchain
                     new BlockMetadata
                     {
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
-                        Index = newChain.Tip.Index + 1,
+                        Height = newChain.Tip.Height + 1,
                         Timestamp = newChain.Tip.Timestamp.AddSeconds(1),
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,

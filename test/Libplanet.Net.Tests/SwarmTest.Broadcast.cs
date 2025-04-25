@@ -58,7 +58,7 @@ namespace Libplanet.Net.Tests
                 chainA.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Assert.Equal(numBlocks, chainA.Tip.Index);
+            Assert.Equal(numBlocks, chainA.Tip.Height);
             Assert.NotEqual(chainA.Tip, chainB.Tip);
             Assert.NotNull(chainA.GetBlockCommit(chainA.Tip.Hash));
 

@@ -77,7 +77,7 @@ namespace Libplanet.Blockchain.Policies
         /// <summary>
         /// Gets the maximum length of <see cref="Block.Transactions"/> in bytes.
         /// </summary>
-        /// <param name="index">The <see cref="Block.Index"/> of the <see cref="Block"/>
+        /// <param name="index">The <see cref="Block.Height"/> of the <see cref="Block"/>
         /// for which this constraint should apply.</param>
         /// <returns>The maximum length of <see cref="Block.Transactions"/> in bytes
         /// to accept.</returns>
@@ -87,7 +87,7 @@ namespace Libplanet.Blockchain.Policies
         /// Gets the minimum number of <see cref="Transaction"/>s allowed for
         /// a valid <see cref="Block"/>.
         /// </summary>
-        /// <param name="index">The <see cref="Block.Index"/> of the <see cref="Block"/>
+        /// <param name="index">The <see cref="Block.Height"/> of the <see cref="Block"/>
         /// for which this constraint should apply.</param>
         /// <returns>The minimum number of <see cref="Transaction"/>s allowed for
         /// a valid <see cref="Block"/> can accept.</returns>
@@ -98,7 +98,7 @@ namespace Libplanet.Blockchain.Policies
         /// Gets the maximum number of <see cref="Transaction"/>s allowed for
         /// a valid <see cref="Block"/>.
         /// </summary>
-        /// <param name="index">The <see cref="Block.Index"/> of the <see cref="Block"/>
+        /// <param name="index">The <see cref="Block.Height"/> of the <see cref="Block"/>
         /// for which this constraint should apply.</param>
         /// <returns>The maximum number of <see cref="Transaction"/>s allowed for
         /// a valid <see cref="Block"/> can accept.</returns>
@@ -109,7 +109,7 @@ namespace Libplanet.Blockchain.Policies
         /// Gets the maximum number of <see cref="Transaction"/>s allowed per signer for
         /// a valid <see cref="Block"/>.
         /// </summary>
-        /// <param name="index">The <see cref="Block.Index"/> of the <see cref="Block"/>
+        /// <param name="index">The <see cref="Block.Height"/> of the <see cref="Block"/>
         /// for which this constraint should apply.</param>
         /// <returns>The maximum number of <see cref="Transaction"/>s allowed per signer for
         /// a valid <see cref="Block"/> can accept.</returns>
@@ -119,7 +119,7 @@ namespace Libplanet.Blockchain.Policies
         /// <summary>
         /// Gets the maximum duration of <see cref="EvidenceBase"/> before to be committed.
         /// </summary>
-        /// <param name="index">The <see cref="Block.Index"/> of the <see cref="Block"/>
+        /// <param name="index">The <see cref="Block.Height"/> of the <see cref="Block"/>
         /// for which this constraint should apply.</param>
         /// <returns>The maximum duration of <see cref="EvidenceBase"/>s before to be committed.
         /// </returns>

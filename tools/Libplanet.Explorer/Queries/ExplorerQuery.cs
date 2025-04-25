@@ -40,21 +40,21 @@ namespace Libplanet.Explorer.Queries
             long? limit)
         {
             Block tip = Chain.Tip;
-            long tipIndex = tip.Index;
+            long tipIndex = tip.Height;
 
             var blocks = ListBlocks(
                 Chain,
                 desc ? tipIndex - offset - (limit ?? 100) : offset,
                 limit ?? 100);
-            return desc ? blocks.OrderByDescending(x => x.Index)
-                : blocks.OrderBy(x => x.Index);
+            return desc ? blocks.OrderByDescending(x => x.Height)
+                : blocks.OrderBy(x => x.Height);
         }
 
         internal static IEnumerable<Transaction> ListTransactions(
             Address? signer, bool desc, long offset, int? limit)
         {
             Block tip = Chain.Tip;
-            long tipIndex = tip.Index;
+            long tipIndex = tip.Height;
 
             if (offset < 0)
             {
@@ -158,7 +158,7 @@ namespace Libplanet.Explorer.Queries
             }
             else if (!desc && block != Chain.Tip)
             {
-                return Chain[block.Index + 1];
+                return Chain[block.Height + 1];
             }
 
             return null;
@@ -166,15 +166,15 @@ namespace Libplanet.Explorer.Queries
 
         private static IEnumerable<Block> ListBlocks(BlockChain chain, long from, long limit)
         {
-            if (chain.Tip.Index < from)
+            if (chain.Tip.Height < from)
             {
                 return new List<Block>();
             }
 
-            var count = (int)Math.Min(limit, chain.Tip.Index - from + 1);
+            var count = (int)Math.Min(limit, chain.Tip.Height - from + 1);
             var blocks = Enumerable.Range(0, count)
                 .Select(offset => chain[from + offset])
-                .OrderBy(block => block.Index);
+                .OrderBy(block => block.Height);
 
             return blocks;
         }

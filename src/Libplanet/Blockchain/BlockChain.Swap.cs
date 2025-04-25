@@ -26,7 +26,7 @@ namespace Libplanet.Blockchain
             stopwatch.Start();
             _logger.Debug(
                 "Rendering actions in block #{BlockHeight} {BlockHash}...",
-                block.Index,
+                block.Height,
                 block.Hash);
 
             long count = 0;
@@ -60,7 +60,7 @@ namespace Libplanet.Blockchain
                     "Finished rendering {RenderCount} renders for actions in " +
                     "block #{BlockHeight} {BlockHash} in {DurationMs} ms",
                     count,
-                    block.Index,
+                    block.Height,
                     block.Hash,
                     stopwatch.ElapsedMilliseconds);
         }
@@ -94,9 +94,9 @@ namespace Libplanet.Blockchain
                     $"Given chain {chain.Id} must contain target hash {targetHash}");
             }
 
-            long target = chain[targetHash].Index;
+            long target = chain[targetHash].Height;
             List<BlockHash> path = new List<BlockHash>();
-            for (long idx = chain.Tip.Index; idx > target; idx--)
+            for (long idx = chain.Tip.Height; idx > target; idx--)
             {
                 path.Add(chain.Store.IndexBlockHash(chain.Id, idx) ??
                     throw new NullReferenceException(

@@ -57,7 +57,7 @@ namespace Libplanet.Tests.Blockchain
                 (_fx.Block1, CreateBlockCommit(_fx.Block1)),
             };
             var branch = new Branch(shuffledSet);
-            AssertSorted(branch.Blocks.Select(block => block.Item1.Index));
+            AssertSorted(branch.Blocks.Select(block => block.Item1.Height));
         }
     }
 }

@@ -73,7 +73,7 @@ public partial class BlockChainTest : IDisposable
                 new BlockMetadata
                 {
                     ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
-                    Index = 1,
+                    Height = 1,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
                     Miner = _fx.Proposer.Address,
                     PublicKey = _fx.Proposer.PublicKey,
@@ -533,7 +533,7 @@ public partial class BlockChainTest : IDisposable
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
         BlockCommit blockCommit1 = CreateBlockCommit(block1);
         _blockChain.Append(block1, blockCommit1);
-        Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Index));
+        Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Height));
         Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Hash));
 
         // BlockCommit is retrieved from lastCommit.
@@ -544,8 +544,8 @@ public partial class BlockChainTest : IDisposable
         _blockChain.Append(block2, blockCommit2);
 
         // These are different due to timestamps on votes.
-        Assert.NotEqual(blockCommit1, _blockChain.GetBlockCommit(block1.Index));
-        Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Index));
+        Assert.NotEqual(blockCommit1, _blockChain.GetBlockCommit(block1.Height));
+        Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Height));
         Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Hash));
     }
 
@@ -1261,7 +1261,7 @@ public partial class BlockChainTest : IDisposable
                 store.PutBlock(b);
                 BuildIndex(chain.Id, b);
                 Assert.Equal(b, chain[b.Hash]);
-                if (presentIndices.Contains((int)b.Index))
+                if (presentIndices.Contains((int)b.Height))
                 {
                     presentBlocks.Add(b);
                 }
@@ -1369,7 +1369,7 @@ public partial class BlockChainTest : IDisposable
         {
             Assert.Equal(genesis, record.OldTip);
             Assert.Equal(block, record.NewTip);
-            Assert.Equal(1, record.NewTip.Index);
+            Assert.Equal(1, record.NewTip.Height);
         }
 
         _renderer.ResetRecords();
@@ -1658,13 +1658,13 @@ public partial class BlockChainTest : IDisposable
         var newBlock = blockChain.ProposeBlock(new PrivateKey());
         var newBlockCommit = new BlockCommit
         {
-            Height = newBlock.Index,
+            Height = newBlock.Height,
             Round = 0,
             BlockHash = newBlock.Hash,
             Votes = [.. ValidatorPrivateKeys.Select(
                 pk => new VoteMetadata
                 {
-                    Height = newBlock.Index,
+                    Height = newBlock.Height,
                     Round = 0,
                     BlockHash = newBlock.Hash,
                     Timestamp = DateTimeOffset.UtcNow,
@@ -1687,14 +1687,14 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(), lastCommit: newBlockCommit);
         var nextBlockCommit = new BlockCommit
         {
-            Height = nextBlock.Index,
+            Height = nextBlock.Height,
             Round = 0,
             BlockHash = nextBlock.Hash,
             Votes = [.. Enumerable.Range(0, newValidators.Length)
                 .Select(
                     index => new VoteMetadata
                     {
-                        Height = nextBlock.Index,
+                        Height = nextBlock.Height,
                         Round = 0,
                         BlockHash = nextBlock.Hash,
                         Timestamp = DateTimeOffset.UtcNow,
@@ -1721,14 +1721,14 @@ public partial class BlockChainTest : IDisposable
                 invalidCommitBlock,
                 new BlockCommit
                 {
-                    Height = invalidCommitBlock.Index,
+                    Height = invalidCommitBlock.Height,
                     Round = 0,
                     BlockHash = invalidCommitBlock.Hash,
                     Votes = [.. Enumerable.Range(0, newValidators.Length)
                         .Select(
                             index => new VoteMetadata
                             {
-                                Height = invalidCommitBlock.Index,
+                                Height = invalidCommitBlock.Height,
                                 Round = 0,
                                 BlockHash = invalidCommitBlock.Hash,
                                 Timestamp = DateTimeOffset.UtcNow,

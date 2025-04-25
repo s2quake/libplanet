@@ -111,14 +111,14 @@ public interface IStore : IDisposable
     Block? GetBlock(BlockHash blockHash);
 
     /// <summary>
-    /// Gets a stored block's <see cref="Block.Index"/> by its <see cref="Block.Hash"/>.
+    /// Gets a stored block's <see cref="Block.Height"/> by its <see cref="Block.Hash"/>.
     /// </summary>
     /// <param name="blockHash"><see cref="Block.Hash"/> to find.</param>
     /// <remarks>
     /// It provides only limited information, but can be called without any type parameter
     /// unlike <see cref="GetBlock"/>.
     /// </remarks>
-    /// <returns>A found block's <see cref="Block.Index"/>, or <see langword="null"/> if
+    /// <returns>A found block's <see cref="Block.Height"/>, or <see langword="null"/> if
     /// no block having such <paramref name="blockHash"/> is stored.</returns>
     long? GetBlockIndex(BlockHash blockHash);
 

@@ -18,7 +18,7 @@ namespace Libplanet.Action
         /// <param name="message">Specifies a <see cref="Exception.Message"/>.</param>
         /// <param name="preEvaluationHash">The <see cref="Block.RawHash"/> of the
         /// <see cref="Block"/> that <paramref name="action"/> belongs to.</param>
-        /// <param name="blockHeight">The <see cref="Block.Index"/> of the <see cref="Block"/>
+        /// <param name="blockHeight">The <see cref="Block.Height"/> of the <see cref="Block"/>
         /// that <paramref name="action"/> belongs to.</param>
         /// <param name="txid">The <see cref="Transaction.Id"/> of
         /// the <see cref="Transaction"/> that <paramref name="action"/> belongs to.
@@ -56,7 +56,7 @@ namespace Libplanet.Action
         public HashDigest<SHA256> RawHash { get; }
 
         /// <summary>
-        /// The <see cref="Block.Index"/> of the <see cref="Block"/> that <see cref="Action"/>
+        /// The <see cref="Block.Height"/> of the <see cref="Block"/> that <see cref="Action"/>
         /// belongs to.
         /// </summary>
         public long BlockHeight { get; }

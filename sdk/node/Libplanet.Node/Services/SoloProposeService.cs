@@ -65,7 +65,7 @@ internal sealed class SoloProposeService : BackgroundService
 
         _logger.LogInformation(
             "Proposed block: {Height}: {Hash}",
-            block.Index,
+            block.Height,
             block.Hash);
     }
 }

@@ -320,7 +320,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             Assert.NotNull(expected);
             Assert.NotNull(actual);
             Assert.Equal(expected.ProtocolVersion, actual.ProtocolVersion);
-            Assert.Equal(expected.Index, actual.Index);
+            Assert.Equal(expected.Height, actual.Height);
             Assert.Equal(expected.Timestamp, actual.Timestamp);
             AssertBytesEqual(expected.Miner, actual.Miner);
             AssertBytesEqual(expected.PreviousHash, actual.PreviousHash);
@@ -364,7 +364,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         {
             var useValidatorPower = true;
             return CreateBlockCommit(
-                block.Hash, block.Index, 0, deterministicTimestamp, useValidatorPower);
+                block.Hash, block.Height, 0, deterministicTimestamp, useValidatorPower);
         }
 
         public static BlockCommit CreateBlockCommit(
@@ -431,7 +431,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var metadata = new BlockMetadata
             {
                 ProtocolVersion = protocolVersion,
-                Index = 0,
+                Height = 0,
                 Timestamp = timestamp ??
                         new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
                 Miner = (proposer ?? GenesisProposer.PublicKey).Address,
@@ -495,7 +495,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var metadata = new BlockMetadata
             {
                 ProtocolVersion = protocolVersion,
-                Index = previousBlock.Index + 1,
+                Height = previousBlock.Height + 1,
                 Timestamp = previousBlock.Timestamp.Add(
                         blockInterval ?? TimeSpan.FromSeconds(15)),
                 Miner = miner?.Address ?? previousBlock.Miner,

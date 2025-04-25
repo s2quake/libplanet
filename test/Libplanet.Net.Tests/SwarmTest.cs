@@ -482,7 +482,7 @@ namespace Libplanet.Net.Tests
 
                 await roundOneProposed.WaitAsync();
 
-                await AssertThatEventually(() => swarms[0].BlockChain.Tip.Index == 1, int.MaxValue);
+                await AssertThatEventually(() => swarms[0].BlockChain.Tip.Height == 1, int.MaxValue);
                 Assert.Equal(1, swarms[0].BlockChain.GetBlockCommit(1).Round);
             }
             finally
@@ -1278,7 +1278,7 @@ namespace Libplanet.Net.Tests
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Index);
+            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Height);
 
             try
             {
@@ -1318,7 +1318,7 @@ namespace Libplanet.Net.Tests
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Index);
+            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Height);
 
             try
             {
@@ -1359,7 +1359,7 @@ namespace Libplanet.Net.Tests
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Index);
+            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Height);
 
             try
             {

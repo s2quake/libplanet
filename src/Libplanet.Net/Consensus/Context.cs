@@ -406,7 +406,7 @@ public partial class Context : IDisposable
             // TODO: Remove ChainId, enhancing lock management.
             _blockChain._rwlock.EnterUpgradeableReadLock();
 
-            if (block.Index != Height)
+            if (block.Height != Height)
             {
                 _blockValidationCache.AddReplace(block.Hash, false);
                 return false;
@@ -449,7 +449,7 @@ public partial class Context : IDisposable
                 _logger.Debug(
                     e,
                     "Block #{Index} {Hash} is invalid",
-                    block.Index,
+                    block.Height,
                     block.Hash);
                 _blockValidationCache.AddReplace(block.Hash, false);
                 return false;

@@ -220,7 +220,7 @@ namespace Libplanet.Explorer.Queries
                             ? new TxResult
                             {
                                 TxStatus = execution.Fail ? TxStatus.FAILURE : TxStatus.SUCCESS,
-                                BlockHeight = block.Index,
+                                BlockHeight = block.Height,
                                 BlockHash = block.Hash.ToString(),
                                 InputState = execution.InputState,
                                 OutputState = execution.OutputState,
@@ -229,7 +229,7 @@ namespace Libplanet.Explorer.Queries
                             : new TxResult
                             {
                                 TxStatus = TxStatus.INCLUDED,
-                                BlockHeight = block.Index,
+                                BlockHeight = block.Height,
                                 BlockHash = block.Hash.ToString(),
                             };
                     }

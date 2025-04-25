@@ -48,7 +48,7 @@ namespace Libplanet.Blockchain
                     "Took {DurationMs} ms to evaluate block #{BlockHeight} " +
                     "hash {Hash} with {Count} action evaluations",
                     stopwatch.ElapsedMilliseconds,
-                    block.Index,
+                    block.Height,
                     block.Hash,
                     evaluations.Count);
 

@@ -208,7 +208,7 @@ namespace Libplanet.Net.Tests.Consensus
             // directly appending to the blockchain.
             Assert.NotNull(proposedBlock);
             blockChain.Append(proposedBlock!, TestUtils.CreateBlockCommit(proposedBlock!));
-            Assert.Equal(2, blockChain.Tip.Index);
+            Assert.Equal(2, blockChain.Tip.Height);
 
             // Make PreVotes to normally move to PreCommit step.
             foreach (int i in new int[] { 0, 1, 3 })
@@ -372,7 +372,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             blockChain.TipChanged += (_, eventArgs) =>
             {
-                if (eventArgs.NewTip.Index == 1L)
+                if (eventArgs.NewTip.Height == 1L)
                 {
                     blockHeightOneAppended.Set();
                 }
@@ -664,7 +664,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             blockChain.TipChanged += (_, eventArgs) =>
             {
-                if (eventArgs.NewTip.Index == 1L)
+                if (eventArgs.NewTip.Height == 1L)
                 {
                     onTipChanged.Set();
                 }
@@ -790,7 +790,7 @@ namespace Libplanet.Net.Tests.Consensus
                 context.ProduceMessage(
                     new ConsensusPreVoteMsg(new VoteMetadata
                     {
-                        Height = block.Index,
+                        Height = block.Height,
                         Round = 0,
                         BlockHash = block.Hash,
                         Timestamp = DateTimeOffset.UtcNow,
@@ -810,7 +810,7 @@ namespace Libplanet.Net.Tests.Consensus
                     context.ProduceMessage(
                         new ConsensusPreVoteMsg(new VoteMetadata
                         {
-                            Height = block.Index,
+                            Height = block.Height,
                             Round = 0,
                             BlockHash = block.Hash,
                             Timestamp = DateTimeOffset.UtcNow,

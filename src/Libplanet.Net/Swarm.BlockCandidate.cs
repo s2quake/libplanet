@@ -27,9 +27,9 @@ namespace Libplanet.Net
                         _logger.Information(
                             "Consuming branch with root #{RootIndex} {RootHash} " +
                             "and tip #{TipIndex} {TipHash}",
-                            root.Item1.Index,
+                            root.Item1.Height,
                             root.Item1.Hash,
-                            tip.Item1.Index,
+                            tip.Item1.Height,
                             tip.Item1.Hash);
                         _ = BlockCandidateProcess(
                             branch,
@@ -63,7 +63,7 @@ namespace Libplanet.Net
                 _logger.Debug(
                     "{MethodName}() starts to append; current tip is #{Index} {Hash}",
                     nameof(BlockCandidateProcess),
-                    BlockChain.Tip.Index,
+                    BlockChain.Tip.Height,
                     BlockChain.Tip.Hash);
                 AppendBranch(
                     blockChain: BlockChain,
@@ -74,7 +74,7 @@ namespace Libplanet.Net
                 _logger.Debug(
                     "{MethodName}() finished appending blocks; current tip is #{Index} {Hash}",
                     nameof(BlockCandidateProcess),
-                    BlockChain.Tip.Index,
+                    BlockChain.Tip.Height,
                     BlockChain.Tip.Hash);
                 return true;
             }
@@ -161,7 +161,7 @@ namespace Libplanet.Net
 
             int sessionId = sessionRandom.Next();
 
-            if (demand.Index <= BlockChain.Tip.Index)
+            if (demand.Index <= BlockChain.Tip.Height)
             {
                 return false;
             }

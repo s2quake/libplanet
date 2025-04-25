@@ -280,7 +280,7 @@ namespace Libplanet.Net.Tests.Consensus
             // by watching blockchain's Tip.
             await heightTwoProposalSent.WaitAsync();
             Assert.NotNull(proposedBlock);
-            Assert.Equal(2, proposedBlock!.Index);
+            Assert.Equal(2, proposedBlock!.Height);
             Assert.Equal(createdLastCommit, proposedBlock!.LastCommit);
         }
 

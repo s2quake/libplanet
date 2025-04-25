@@ -25,7 +25,7 @@ public sealed record class RawBlock
 
     public int ProtocolVersion => Metadata.ProtocolVersion;
 
-    public long Index => Metadata.Index;
+    public long Index => Metadata.Height;
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
@@ -80,7 +80,7 @@ public sealed record class RawBlock
             Signature = signature,
             BlockHash = blockHash,
             ProtocolVersion = Metadata.ProtocolVersion,
-            Index = Metadata.Index,
+            Height = Metadata.Height,
             Timestamp = Metadata.Timestamp,
             Miner = Metadata.Miner,
             PublicKey = Metadata.PublicKey,

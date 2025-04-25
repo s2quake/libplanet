@@ -61,11 +61,11 @@ namespace Libplanet.Blockchain
                     paramName: nameof(evidence));
             }
 
-            if (evidence.Height > Tip.Index)
+            if (evidence.Height > Tip.Height)
             {
                 throw new ArgumentException(
                     message: $"Evidence {evidence.Id} is from the future: " +
-                             $"{evidence.Height} > {Tip.Index + 1}",
+                             $"{evidence.Height} > {Tip.Height + 1}",
                     paramName: nameof(evidence));
             }
 
@@ -145,7 +145,7 @@ namespace Libplanet.Blockchain
         /// otherwise, <see langword="false"/>.
         /// </returns>
         public bool IsEvidenceExpired(EvidenceBase evidence)
-            => evidence.Height + Policy.GetMaxEvidencePendingDuration(evidence.Height) < Tip.Index;
+            => evidence.Height + Policy.GetMaxEvidencePendingDuration(evidence.Height) < Tip.Height;
 
         /// <summary>
         /// Delete pending <see cref="EvidenceBase"/> from the <see cref="Store"/> with

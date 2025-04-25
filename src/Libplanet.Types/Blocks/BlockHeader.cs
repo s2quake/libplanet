@@ -61,7 +61,7 @@ public sealed record class BlockHeader
 
     public int ProtocolVersion { get; init; }
 
-    public long Index { get; init; }
+    public long Height { get; init; }
 
     public DateTimeOffset Timestamp { get; init; }
 
@@ -79,7 +79,7 @@ public sealed record class BlockHeader
 
     public HashDigest<SHA256> RawHash { get; init; }
 
-    public override string ToString() => $"#{Index} {BlockHash}";
+    public override string ToString() => $"#{Height} {BlockHash}";
 
     // public void ValidateTimestamp() => RawBlockHeader.Metadata.ValidateTimestamp();
 

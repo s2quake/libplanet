@@ -69,7 +69,7 @@ public class StatsCommand
                 blockDigest.GetHeader();
 
             Console.WriteLine(
-                $"{blockHeader.Index}," +
+                $"{blockHeader.Height}," +
                 $"{blockHeader.BlockHash}," +
                 $"{blockHeader.Miner}," +
                 $"{blockDigest.TxIds.Length}," +

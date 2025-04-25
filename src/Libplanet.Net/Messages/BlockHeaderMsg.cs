@@ -24,7 +24,7 @@ namespace Libplanet.Net.Messages
 
         public IValue HeaderDictionary { get; }
 
-        public long HeaderIndex => ModelSerializer.Deserialize<BlockHeader>(HeaderDictionary).Index;
+        public long HeaderIndex => ModelSerializer.Deserialize<BlockHeader>(HeaderDictionary).Height;
 
         public BlockHash HeaderHash
             => ModelSerializer.Deserialize<BlockHeader>(HeaderDictionary).BlockHash;

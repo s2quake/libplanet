@@ -59,19 +59,19 @@ public class TransactionQueryGeneratedTest
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);
         Assert.Equal("SUCCESS", queryResult.TxStatus);
-        Assert.Equal(successBlock.Index, queryResult.BlockHeight);
+        Assert.Equal(successBlock.Height, queryResult.BlockHeight);
         Assert.Equal(successBlock.Hash.ToString(), queryResult.BlockHash);
         Assert.Equal(new string?[] { null , null }, queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(failTx.Id);
         Assert.Equal("FAILURE", queryResult.TxStatus);
-        Assert.Equal(failBlock.Index, queryResult.BlockHeight);
+        Assert.Equal(failBlock.Height, queryResult.BlockHeight);
         Assert.Equal(failBlock.Hash.ToString(), queryResult.BlockHash);
         Assert.Equal(
             new string?[] { null, "Libplanet.Action.State.CurrencyPermissionException", null },
             queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(emptyTx.Id);
         Assert.Equal("INCLUDED", queryResult.TxStatus);
-        Assert.Equal(emptyBlock.Index, queryResult.BlockHeight);
+        Assert.Equal(emptyBlock.Height, queryResult.BlockHeight);
         Assert.Equal(emptyBlock.Hash.ToString(), queryResult.BlockHash);
         Assert.Null(queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(new TxId());

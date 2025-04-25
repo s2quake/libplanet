@@ -39,7 +39,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.True(_blockChain.ContainsBlock(block.Hash));
             Assert.Equal(2, _blockChain.Count);
             Assert.True(
-                ModelSerializer.SerializeToBytes(block).Length <= getMaxTransactionsBytes(block.Index));
+                ModelSerializer.SerializeToBytes(block).Length <= getMaxTransactionsBytes(block.Height));
             AssertBencodexEqual(
                 (Text)$"{GenesisProposer.Address},{proposerA.Address}",
                 _blockChain
@@ -51,14 +51,14 @@ namespace Libplanet.Tests.Blockchain
             var proposerB = new PrivateKey();
             Block anotherBlock = _blockChain.ProposeBlock(
                 proposerB,
-                CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Index, 0),
+                CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
                 _blockChain.GetPendingEvidence());
             _blockChain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
             Assert.True(_blockChain.ContainsBlock(anotherBlock.Hash));
             Assert.Equal(3, _blockChain.Count);
             Assert.True(
                 ModelSerializer.SerializeToBytes(anotherBlock).Length <=
-                    getMaxTransactionsBytes(anotherBlock.Index));
+                    getMaxTransactionsBytes(anotherBlock.Height));
             Text expected = new Text(
                 $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}");
             AssertBencodexEqual(
@@ -71,12 +71,12 @@ namespace Libplanet.Tests.Blockchain
 
             Block block3 = _blockChain.ProposeBlock(
                 new PrivateKey(),
-                CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Index, 0),
+                CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
                 _blockChain.GetPendingEvidence());
             Assert.False(_blockChain.ContainsBlock(block3.Hash));
             Assert.Equal(3, _blockChain.Count);
             Assert.True(
-                ModelSerializer.SerializeToBytes(block3).Length <= getMaxTransactionsBytes(block3.Index));
+                ModelSerializer.SerializeToBytes(block3).Length <= getMaxTransactionsBytes(block3.Height));
             expected = new Text(
                 $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}");
             AssertBencodexEqual(
@@ -110,7 +110,7 @@ namespace Libplanet.Tests.Blockchain
 
             Block block4 = _blockChain.ProposeBlock(
                 new PrivateKey(),
-                CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Index, 0),
+                CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
                 _blockChain.GetPendingEvidence());
             Assert.False(_blockChain.ContainsBlock(block4.Hash));
             _logger.Debug(
@@ -118,11 +118,11 @@ namespace Libplanet.Tests.Blockchain
                 ModelSerializer.SerializeToBytes(block4).Length
             );
             _logger.Debug(
-                $"{nameof(getMaxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Index)}) = {0}",
-                getMaxTransactionsBytes(block4.Index)
+                $"{nameof(getMaxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Height)}) = {0}",
+                getMaxTransactionsBytes(block4.Height)
             );
             Assert.True(
-                ModelSerializer.SerializeToBytes(block4).Length <= getMaxTransactionsBytes(block4.Index));
+                ModelSerializer.SerializeToBytes(block4).Length <= getMaxTransactionsBytes(block4.Height));
             Assert.Equal(3, block4.Transactions.Count());
             expected = new Text(
                 $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}");
@@ -491,7 +491,7 @@ namespace Libplanet.Tests.Blockchain
                 new PrivateKey(),
                 CreateBlockCommit(
                     _blockChain.Tip.Hash,
-                    _blockChain.Tip.Index,
+                    _blockChain.Tip.Height,
                     0),
                 _blockChain.GetPendingEvidence());
             _blockChain.Append(block2, CreateBlockCommit(block2));
@@ -617,7 +617,7 @@ namespace Libplanet.Tests.Blockchain
             var keys = Enumerable.Range(0, 3).Select(_ => new PrivateKey()).ToList();
             var votes = keys.Select(key => new VoteMetadata
             {
-                Height = _blockChain.Tip.Index,
+                Height = _blockChain.Tip.Height,
                 Round = 0,
                 BlockHash = _blockChain.Tip.Hash,
                 Timestamp = DateTimeOffset.UtcNow,
@@ -627,7 +627,7 @@ namespace Libplanet.Tests.Blockchain
             }.Sign(key)).ToImmutableArray();
             var blockCommit = new BlockCommit
             {
-                Height = _blockChain.Tip.Index,
+                Height = _blockChain.Tip.Height,
                 Round = 0,
                 BlockHash = _blockChain.Tip.Hash,
                 Votes = votes,

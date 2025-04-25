@@ -22,7 +22,7 @@ namespace Libplanet.Tests.Blockchain
         {
             // Given
             var blockChain = _blockChain;
-            var height = blockChain.Tip.Index;
+            var height = blockChain.Tip.Height;
             var address = new PrivateKey().Address;
             var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
 
@@ -37,7 +37,7 @@ namespace Libplanet.Tests.Blockchain
         public void GetPendingEvidence_Throw_Test()
         {
             var blockChain = _blockChain;
-            var height = blockChain.Tip.Index;
+            var height = blockChain.Tip.Height;
             var address = new PrivateKey().Address;
             var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
             Assert.Throws<KeyNotFoundException>(
@@ -80,7 +80,7 @@ namespace Libplanet.Tests.Blockchain
         public void GetCommittedEvidence_Throw_Test()
         {
             var blockChain = _blockChain;
-            var height = blockChain.Tip.Index;
+            var height = blockChain.Tip.Height;
             var address = new PrivateKey().Address;
             var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
             Assert.Throws<KeyNotFoundException>(
@@ -147,7 +147,7 @@ namespace Libplanet.Tests.Blockchain
             var proposer = key;
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var height = blockChain.Tip.Index + 1;
+            var height = blockChain.Tip.Height + 1;
             var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
 
             // Then
@@ -164,7 +164,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
             var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-            var index = blockChain.Tip.Index;
+            var index = blockChain.Tip.Height;
             var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
                 index: index);
             var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
@@ -222,7 +222,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
             var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-            var index = blockChain.Tip.Index;
+            var index = blockChain.Tip.Height;
             var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
                 index: index);
             var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
@@ -327,7 +327,7 @@ namespace Libplanet.Tests.Blockchain
             var address = new PrivateKey().Address;
             var height = Random.Shared.Next(1, 6);
             var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-            var index = _blockChain.Tip.Index;
+            var index = _blockChain.Tip.Height;
             var pendingDuration = _blockChain.Policy.GetMaxEvidencePendingDuration(
                 index: index);
             var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
@@ -349,7 +349,7 @@ namespace Libplanet.Tests.Blockchain
             var address = new PrivateKey().Address;
             var height = Random.Shared.Next(1, 6);
             var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-            var index = _blockChain.Tip.Index;
+            var index = _blockChain.Tip.Height;
             var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
             // When
@@ -395,7 +395,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var voteRef = new VoteMetadata
             {
-                Height = blockChain.Tip.Index,
+                Height = blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -405,7 +405,7 @@ namespace Libplanet.Tests.Blockchain
             }.Sign(key);
             var voteDup = new VoteMetadata
             {
-                Height = blockChain.Tip.Index,
+                Height = blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -445,7 +445,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var voteRef = new VoteMetadata
             {
-                Height = blockChain.Tip.Index,
+                Height = blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -455,7 +455,7 @@ namespace Libplanet.Tests.Blockchain
             }.Sign(key);
             var voteDup = new VoteMetadata
             {
-                Height = blockChain.Tip.Index,
+                Height = blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -486,7 +486,7 @@ namespace Libplanet.Tests.Blockchain
             var key = new PrivateKey();
             var voteRef = new VoteMetadata
             {
-                Height = _blockChain.Tip.Index,
+                Height = _blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -496,7 +496,7 @@ namespace Libplanet.Tests.Blockchain
             }.Sign(key);
             var voteDup = new VoteMetadata
             {
-                Height = _blockChain.Tip.Index,
+                Height = _blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -530,7 +530,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var voteRef = new VoteMetadata
             {
-                Height = blockChain.Tip.Index,
+                Height = blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -540,7 +540,7 @@ namespace Libplanet.Tests.Blockchain
             }.Sign(key);
             var voteDup = new VoteMetadata
             {
-                Height = blockChain.Tip.Index,
+                Height = blockChain.Tip.Height,
                 Round = 2,
                 BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
@@ -566,7 +566,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
 
             var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
-                index: blockChain.Tip.Index);
+                index: blockChain.Tip.Height);
             var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
             for (var i = 0; i < pendingDuration; i++)

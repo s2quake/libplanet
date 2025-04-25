@@ -51,7 +51,7 @@ namespace Libplanet.Blockchain.Policies
         /// </param>
         /// <param name="getMaxTransactionsBytes">The function determining the maximum size of
         /// <see cref="Block.Transactions"/> in number of <c>byte</c>s given
-        /// its <see cref="Block.Index"/>.  Goes to <see cref="GetMaxTransactionsBytes"/>.
+        /// its <see cref="Block.Height"/>.  Goes to <see cref="GetMaxTransactionsBytes"/>.
         /// Set to a constant size of <c>100</c>KiB, i.e. <c>100 * 1024</c>, by default.</param>
         /// <param name="getMinTransactionsPerBlock">The function determining the minimum number of
         /// <see cref="Transaction"/>s that must be included in a <see cref="Block"/>.
@@ -101,19 +101,19 @@ namespace Libplanet.Blockchain.Policies
             {
                 _validateNextBlock = (blockchain, block) =>
                 {
-                    long maxTransactionsBytes = GetMaxTransactionsBytes(block.Index);
-                    int minTransactionsPerBlock = GetMinTransactionsPerBlock(block.Index);
-                    int maxTransactionsPerBlock = GetMaxTransactionsPerBlock(block.Index);
+                    long maxTransactionsBytes = GetMaxTransactionsBytes(block.Height);
+                    int minTransactionsPerBlock = GetMinTransactionsPerBlock(block.Height);
+                    int maxTransactionsPerBlock = GetMaxTransactionsPerBlock(block.Height);
                     int maxTransactionsPerSignerPerBlock =
-                        GetMaxTransactionsPerSignerPerBlock(block.Index);
-                    long maxEvidencePendingDuration = GetMaxEvidencePendingDuration(block.Index);
+                        GetMaxTransactionsPerSignerPerBlock(block.Height);
+                    long maxEvidencePendingDuration = GetMaxEvidencePendingDuration(block.Height);
 
                     long blockBytes = ModelSerializer.Serialize(block.Transactions)
                         .EncodingLength;
                     if (blockBytes > maxTransactionsBytes)
                     {
                         return new InvalidOperationException(
-                            $"The size of block #{block.Index} {block.Hash} is too large where " +
+                            $"The size of block #{block.Height} {block.Hash} is too large where " +
                             $"the maximum number of bytes allowed is {maxTransactionsBytes}: " +
                             $"{blockBytes}."
                         );
@@ -121,14 +121,14 @@ namespace Libplanet.Blockchain.Policies
                     else if (block.Transactions.Count < minTransactionsPerBlock)
                     {
                         return new InvalidOperationException(
-                            $"Block #{block.Index} {block.Hash} should include " +
+                            $"Block #{block.Height} {block.Hash} should include " +
                             $"at least {minTransactionsPerBlock} transaction(s): " +
                             $"{block.Transactions.Count}");
                     }
                     else if (block.Transactions.Count > maxTransactionsPerBlock)
                     {
                         return new InvalidOperationException(
-                            $"Block #{block.Index} {block.Hash} should include " +
+                            $"Block #{block.Height} {block.Hash} should include " +
                             $"at most {maxTransactionsPerBlock} transaction(s): " +
                             $"{block.Transactions.Count}");
                     }
@@ -141,7 +141,7 @@ namespace Libplanet.Blockchain.Policies
                         {
                             int offendingGroupCount = offendingGroup.Count();
                             return new InvalidOperationException(
-                                $"Block #{block.Index} {block.Hash} includes too many " +
+                                $"Block #{block.Height} {block.Hash} includes too many " +
                                 $"transactions from signer {offendingGroup.Key} where " +
                                 $"the maximum number of transactions allowed by a single signer " +
                                 $"per block is {maxTransactionsPerSignerPerBlock}: " +
@@ -149,11 +149,11 @@ namespace Libplanet.Blockchain.Policies
                         }
                     }
 
-                    long evidenceExpirationHeight = block.Index - maxEvidencePendingDuration;
+                    long evidenceExpirationHeight = block.Height - maxEvidencePendingDuration;
                     if (block.Evidence.Any(evidence => evidence.Height < evidenceExpirationHeight))
                     {
                         return new InvalidOperationException(
-                            $"Block #{block.Index} {block.Hash} includes evidence" +
+                            $"Block #{block.Height} {block.Hash} includes evidence" +
                             $"that is older than expiration height {evidenceExpirationHeight}");
                     }
 

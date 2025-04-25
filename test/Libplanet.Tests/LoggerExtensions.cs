@@ -59,8 +59,8 @@ namespace Libplanet.Tests
                 logger.Write(logLevel, $"{bar} {i,3} {bar} {x,-64} {bar} {y,-64} {bar}");
             }
 
-            var aTipIdx = (int)chainA[chainA.Count - 1].Index;
-            var bTipIdx = (int)chainB[chainB.Count - 1].Index;
+            var aTipIdx = (int)chainA[chainA.Count - 1].Height;
+            var bTipIdx = (int)chainB[chainB.Count - 1].Height;
             Print("Idx", $"{labelA} (tip: {aTipIdx})", $"{labelB} (tip: {bTipIdx})");
             int tipIdx = Math.Max(aTipIdx, bTipIdx);
             int idx = 0;

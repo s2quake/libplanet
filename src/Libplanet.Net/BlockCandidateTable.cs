@@ -55,9 +55,9 @@ namespace Libplanet.Net
                     "Given branch with root #{RootIndex} {RootHash} and " +
                     "tip #{TipIndex} {TipHash} will not be added as the table already contains " +
                     "blockheader #{Index} {BlockHash} as its key",
-                    root.Index,
+                    root.Height,
                     root.Hash,
-                    tip.Index,
+                    tip.Height,
                     tip.Hash,
                     blockHeader.Index,
                     blockHeader.Hash);
@@ -83,7 +83,7 @@ namespace Libplanet.Net
         /// <see cref="BlockCommit"/>s by
         /// <paramref name="thisRoundTip"/> if found, otherwise <see langword="null"/>.
         /// The result is guaranteed to be non-empty and consecutive sorted by
-        /// <see cref="Block.Index"/>.
+        /// <see cref="Block.Height"/>.
         /// </returns>
         /// <seealso cref="Add"/>
         public Branch? GetCurrentRoundCandidate(

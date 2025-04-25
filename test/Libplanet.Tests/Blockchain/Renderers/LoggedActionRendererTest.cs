@@ -291,12 +291,12 @@ namespace Libplanet.Tests.Blockchain.Renderers
             );
             Assert.Equal($"\"{methodName}\"", firstLog.Properties["MethodName"].ToString());
             Assert.Equal(
-                _blockA.Index.ToString(CultureInfo.InvariantCulture),
+                _blockA.Height.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["NewIndex"].ToString()
             );
             Assert.Equal($"\"{_blockA.Hash}\"", firstLog.Properties["NewHash"].ToString());
             Assert.Equal(
-                _genesis.Index.ToString(CultureInfo.InvariantCulture),
+                _genesis.Height.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["OldIndex"].ToString()
             );
             Assert.Equal($"\"{_genesis.Hash}\"", firstLog.Properties["OldHash"].ToString());

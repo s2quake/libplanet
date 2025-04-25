@@ -72,8 +72,8 @@ namespace Libplanet.Net.Consensus
 
             _contextOption = contextOption;
             _currentContext = CreateContext(
-                _blockChain.Tip.Index + 1,
-                _blockChain.GetBlockCommit(_blockChain.Tip.Index));
+                _blockChain.Tip.Height + 1,
+                _blockChain.GetBlockCommit(_blockChain.Tip.Height));
             AttachEventHandlers(_currentContext);
             _pendingMessages = new HashSet<ConsensusMsg>();
 
@@ -437,7 +437,7 @@ namespace Libplanet.Net.Consensus
                     await Task.Delay(_newHeightDelay, _newHeightCts.Token);
 
                     // Delay further until evaluation is ready.
-                    while (_blockChain.GetNextStateRootHash(e.NewTip.Index) is null)
+                    while (_blockChain.GetNextStateRootHash(e.NewTip.Height) is null)
                     {
                         // FIXME: Maybe interval should be adjustable?
                         await Task.Delay(100, _newHeightCts.Token);
@@ -449,7 +449,7 @@ namespace Libplanet.Net.Consensus
                         {
                             HandleEvidenceExceptions();
                             AddEvidenceToBlockChain(e.NewTip);
-                            NewHeight(e.NewTip.Index + 1);
+                            NewHeight(e.NewTip.Height + 1);
                         }
                         catch (Exception exc)
                         {
@@ -465,7 +465,7 @@ namespace Libplanet.Net.Consensus
                             "Did not invoke {FName}() for height " +
                             "#{Height} because cancellation is requested",
                             nameof(NewHeight),
-                            e.NewTip.Index + 1);
+                            e.NewTip.Height + 1);
                     }
                 },
                 _newHeightCts.Token);
@@ -507,7 +507,7 @@ namespace Libplanet.Net.Consensus
 
         private void AddEvidenceToBlockChain(Block tip)
         {
-            var height = tip.Index;
+            var height = tip.Height;
             var evidenceExceptions
                 = _evidenceCollector.Flush().Where(item => item.Height <= height).ToArray();
             foreach (var evidenceException in evidenceExceptions)

@@ -14,7 +14,7 @@ internal sealed class BlockChainRendererTracer(
         rendererService.RenderBlockEnd.Subscribe(
             info => _logger.LogInformation(
                 "-Pattern2- #{Height} Block end: {Hash}",
-                info.NewTip.Index,
+                info.NewTip.Height,
                 info.NewTip.Hash));
         return Task.CompletedTask;
     }

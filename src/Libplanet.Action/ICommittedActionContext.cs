@@ -38,7 +38,7 @@ namespace Libplanet.Action
         Address Miner { get; }
 
         /// <summary>
-        /// The <see cref="Block.Index"/> of the <see cref="Block"/> that contains
+        /// The <see cref="Block.Height"/> of the <see cref="Block"/> that contains
         /// the <see cref="IAction"/>.
         /// </summary>
         [Pure]

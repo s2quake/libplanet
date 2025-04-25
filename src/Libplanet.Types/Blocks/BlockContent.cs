@@ -170,7 +170,7 @@ public sealed record class BlockContent
             (evidenceHash is null && derivedEvidenceHash is null)))
         {
             throw new InvalidOperationException(
-                $"The block #{metadata.Index}'s {nameof(metadata.EvidenceHash)} is invalid.");
+                $"The block #{metadata.Height}'s {nameof(metadata.EvidenceHash)} is invalid.");
         }
 
         // Check if transactions are ordered with valid nonces.

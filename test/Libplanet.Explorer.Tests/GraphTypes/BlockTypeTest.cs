@@ -45,7 +45,7 @@ public class BlockTypeTest
         var preEval = RawBlock.Propose(
             new BlockMetadata
             {
-                Index = 2,
+                Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
                 PublicKey = privateKey.PublicKey,
                 PreviousHash = lastBlockHash,
@@ -103,7 +103,7 @@ public class BlockTypeTest
         Dictionary<string, object> resultData =
             (Dictionary<string, object>)((ExecutionNode)result.Data!)?.ToValue()!;
         Assert.Null(result.Errors);
-        Assert.Equal(block.Index, resultData["index"]);
+        Assert.Equal(block.Height, resultData["index"]);
         Assert.Equal(
             ByteUtil.Hex(block.Hash.Bytes.ToArray()),
             resultData["hash"]);

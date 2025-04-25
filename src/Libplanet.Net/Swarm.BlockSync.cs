@@ -94,7 +94,7 @@ namespace Libplanet.Net
                 {
                     _logger.Verbose(
                         "Got block #{BlockHeight} {BlockHash} from {Peer}",
-                        block.Index,
+                        block.Height,
                         block.Hash,
                         peer);
                     cancellationToken.ThrowIfCancellationRequested();

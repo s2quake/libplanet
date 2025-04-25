@@ -42,15 +42,15 @@ namespace Libplanet.Blockchain
         /// </summary>
         /// <param name="block">The target <see cref="Block"/> to validate.</param>
         /// <exception cref="ArgumentException">If <paramref name="block"/> has
-        /// <see cref="Block.Index"/> value anything other than 0.</exception>
+        /// <see cref="Block.Height"/> value anything other than 0.</exception>
         /// <exception cref="InvalidBlockException">Thrown when given <paramref name="block"/>
         /// is invalid.</exception>
         internal static void ValidateGenesis(Block block)
         {
-            if (block.Index != 0)
+            if (block.Height != 0)
             {
                 throw new ArgumentException(
-                    $"Given {nameof(block)} must have index 0 but has index {block.Index}",
+                    $"Given {nameof(block)} must have index 0 but has index {block.Height}",
                     nameof(block));
             }
 
@@ -60,7 +60,7 @@ namespace Libplanet.Blockchain
             {
                 throw new InvalidOperationException(
                     $"The protocol version ({actualProtocolVersion}) of the block " +
-                    $"#{block.Index} {block.Hash} is not supported by this node." +
+                    $"#{block.Height} {block.Hash} is not supported by this node." +
                     $"The highest supported protocol version is {currentProtocolVersion}.");
             }
 
@@ -97,7 +97,7 @@ namespace Libplanet.Blockchain
             //     }
             // }
 
-            if (block.Index == 0)
+            if (block.Height == 0)
             {
                 if (blockCommit is { })
                 {
@@ -110,17 +110,17 @@ namespace Libplanet.Blockchain
                 }
             }
 
-            if (block.Index != 0 && blockCommit == null)
+            if (block.Height != 0 && blockCommit == null)
             {
                 throw new InvalidOperationException(
                     $"Block #{block.Hash} BlockCommit is required except for the genesis block.");
             }
 
-            if (block.Index != blockCommit.Height)
+            if (block.Height != blockCommit.Height)
             {
                 throw new InvalidOperationException(
                     "BlockCommit has height value that is not same with block height. " +
-                    $"Block height is {block.Index}, however, BlockCommit height is " +
+                    $"Block height is {block.Height}, however, BlockCommit height is " +
                     $"{blockCommit.Height}.");
             }
 
@@ -189,26 +189,26 @@ namespace Libplanet.Blockchain
             {
                 foreach (IValue rawAction in tx.Actions)
                 {
-                    _ = ActionEvaluator.ActionLoader.LoadAction(block.Index, rawAction);
+                    _ = ActionEvaluator.ActionLoader.LoadAction(block.Height, rawAction);
                 }
             }
         }
 
         internal void ValidateBlock(Block block)
         {
-            if (block.Index <= 0)
+            if (block.Height <= 0)
             {
                 throw new ArgumentException(
-                    $"Given {nameof(block)} must have a positive index but has index {block.Index}",
+                    $"Given {nameof(block)} must have a positive index but has index {block.Height}",
                     nameof(block));
             }
 
             long index = Count;
-            if (block.Index != index)
+            if (block.Height != index)
             {
                 throw new InvalidOperationException(
                     $"The expected index of block {block.Hash} is #{index}, " +
-                    $"but its index is #{block.Index}.");
+                    $"but its index is #{block.Height}.");
             }
 
             int actualProtocolVersion = block.ProtocolVersion;
@@ -220,7 +220,7 @@ namespace Libplanet.Blockchain
             {
                 string message =
                     $"The protocol version ({actualProtocolVersion}) of the block " +
-                    $"#{block.Index} {block.Hash} is not supported by this node." +
+                    $"#{block.Height} {block.Hash} is not supported by this node." +
                     $"The highest supported protocol version is {currentProtocolVersion}.";
                 throw new InvalidOperationException(
                     message
@@ -256,7 +256,7 @@ namespace Libplanet.Blockchain
                     $"the block #{index - 1}'s ({prevTimestamp}).");
             }
 
-            if (block.Index <= 1)
+            if (block.Height <= 1)
             {
                 if (block.LastCommit is { })
                 {
@@ -340,7 +340,7 @@ namespace Libplanet.Blockchain
 
             if (!stateRootHash.Equals(block.StateRootHash))
             {
-                var message = $"Block #{block.Index} {block.Hash}'s state root hash " +
+                var message = $"Block #{block.Height} {block.Hash}'s state root hash " +
                     $"is {block.StateRootHash}, but the execution result is {stateRootHash}.";
                 throw new InvalidOperationException(
                     message);
@@ -374,7 +374,7 @@ namespace Libplanet.Blockchain
             var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
             if (!rootHash.Equals(block.StateRootHash))
             {
-                var message = $"Block #{block.Index} {block.Hash}'s state root hash " +
+                var message = $"Block #{block.Height} {block.Hash}'s state root hash " +
                     $"is {block.StateRootHash}, but the execution result is {rootHash}.";
                 throw new InvalidOperationException(
                     message);
