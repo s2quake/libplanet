@@ -105,7 +105,7 @@ public class BlockTypeTest
         Assert.Null(result.Errors);
         Assert.Equal(block.Index, resultData["index"]);
         Assert.Equal(
-            ByteUtil.Hex(block.Hash.ToByteArray()),
+            ByteUtil.Hex(block.Hash.ByteArray.ToArray()),
             resultData["hash"]);
         Assert.Equal(
             block.Miner.ToString(),

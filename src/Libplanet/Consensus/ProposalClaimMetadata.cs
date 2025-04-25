@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Consensus
@@ -82,7 +83,7 @@ namespace Libplanet.Consensus
             : this(
                 height: (Integer)encoded[HeightKey],
                 round: (Integer)encoded[RoundKey],
-                blockHash: new BlockHash(encoded[BlockHashKey]),
+                blockHash: ModelSerializer.Deserialize<BlockHash>(encoded[BlockHashKey]),
                 timestamp: DateTimeOffset.ParseExact(
                     (Text)encoded[TimestampKey],
                     TimestampFormat,

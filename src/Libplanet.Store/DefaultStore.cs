@@ -174,8 +174,8 @@ public class DefaultStore : BaseStore
         lock (_db.Mapper)
         {
             _db.Mapper.RegisterType(
-                hash => hash.ToByteArray(),
-                b => new BlockHash(b));
+                hash => ModelSerializer.SerializeToBytes(hash),
+                b => ModelSerializer.DeserializeFromBytes<BlockHash>(b));
             _db.Mapper.RegisterType(
                 hash => hash.ByteArray.ToArray(),
                 b => new HashDigest<SHA256>([.. b.AsBinary]));
@@ -533,7 +533,7 @@ public class DefaultStore : BaseStore
         var path = TxIdBlockHashIndexPath(txId, blockHash);
         var dirPath = path.GetDirectory();
         CreateDirectoryRecursively(_txIdBlockHashIndex, dirPath);
-        _txIdBlockHashIndex.WriteAllBytes(path, blockHash.ToByteArray());
+        _txIdBlockHashIndex.WriteAllBytes(path, blockHash.ByteArray.ToArray());
     }
 
     public override IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
