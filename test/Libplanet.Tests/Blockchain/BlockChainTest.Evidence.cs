@@ -514,7 +514,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.False(_blockChain.IsEvidencePending(evidence.Id));
             Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
 
-            Assert.Throws<InvalidEvidenceException>(
+            Assert.Throws<InvalidOperationException>(
                 () => _blockChain.AddEvidence(evidence));
 
             Assert.Empty(_blockChain.GetPendingEvidence());
