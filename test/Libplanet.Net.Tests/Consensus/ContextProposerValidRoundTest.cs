@@ -172,9 +172,8 @@ namespace Libplanet.Net.Tests.Consensus
 
             var key = new PrivateKey();
             var differentBlock = blockChain.EvaluateAndSign(
-                new BlockContent
-                {
-                    Metadata = new BlockMetadata
+                RawBlock.Propose(
+                    new BlockMetadata
                     {
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
                         Index = blockChain.Tip.Index + 1,
@@ -185,7 +184,9 @@ namespace Libplanet.Net.Tests.Consensus
                         LastCommit = null,
                         EvidenceHash = null,
                     },
-                }.Propose(),
+                    new BlockContent
+                    {
+                    }),
                 key);
 
             context.Start();

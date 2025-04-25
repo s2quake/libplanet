@@ -10,6 +10,11 @@ namespace Libplanet.Types;
 public static class BencodexUtility
 {
     private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
+    private static readonly Codec _codec = new();
+
+    public static byte[] Encode(IValue value) => _codec.Encode(value);
+
+    public static IValue Decode(byte[] bytes) => _codec.Decode(bytes);
 
     public static IValue ToValue(IBencodable value) => value.Bencoded;
 

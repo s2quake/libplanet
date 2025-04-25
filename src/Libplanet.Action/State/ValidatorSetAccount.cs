@@ -32,34 +32,16 @@ namespace Libplanet.Action.State
 
         public ImmutableSortedSet<Validator> GetValidatorSet()
         {
-            if (WorldVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
-            {
-                var value = Trie[KeyConverters.ToStateKey(ValidatorSetAddress)];
-                return [.. BencodexUtility.ToObjects(value, ModelSerializer.Deserialize<Validator>)];
-            }
-            else
-            {
-                var value = Trie[KeyConverters.ValidatorSetKey];
-                return [.. BencodexUtility.ToObjects(value, ModelSerializer.Deserialize<Validator>)];
-            }
+            var value = Trie[KeyConverters.ToStateKey(ValidatorSetAddress)];
+            return [.. BencodexUtility.ToObjects(value, ModelSerializer.Deserialize<Validator>)];
         }
 
         public ValidatorSetAccount SetValidatorSet(ImmutableSortedSet<Validator> validatorSet)
         {
-            if (WorldVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
-            {
-                var value = BencodexUtility.ToValue([.. validatorSet], ModelSerializer.Serialize);
-                return new ValidatorSetAccount(
-                    Trie.Set(KeyConverters.ToStateKey(ValidatorSetAddress), value),
-                    WorldVersion);
-            }
-            else
-            {
-                var value = BencodexUtility.ToValue([.. validatorSet], ModelSerializer.Serialize);
-                return new ValidatorSetAccount(
-                    Trie.Set(KeyConverters.ValidatorSetKey, value),
-                    WorldVersion);
-            }
+            var value = BencodexUtility.ToValue([.. validatorSet], ModelSerializer.Serialize);
+            return new ValidatorSetAccount(
+                Trie.Set(KeyConverters.ToStateKey(ValidatorSetAddress), value),
+                WorldVersion);
         }
 
         /// <summary>

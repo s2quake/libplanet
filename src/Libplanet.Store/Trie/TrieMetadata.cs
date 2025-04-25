@@ -7,12 +7,10 @@ public sealed record class TrieMetadata : IBencodable
 {
     public TrieMetadata(int version)
     {
-        if (version < BlockMetadata.WorldStateProtocolVersion ||
-            version > BlockMetadata.CurrentProtocolVersion)
+        if (version > BlockMetadata.CurrentProtocolVersion)
         {
             throw new ArgumentException(
                 $"Given {nameof(version)} cannot be less than " +
-                $"{BlockMetadata.WorldStateProtocolVersion} or greater than " +
                 $"{BlockMetadata.CurrentProtocolVersion}: {version}",
                 nameof(version));
         }

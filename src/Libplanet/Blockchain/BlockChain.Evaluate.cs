@@ -81,13 +81,9 @@ namespace Libplanet.Blockchain
         /// <seealso cref="ValidateBlockPrecededStateRootHash"/>
         [Pure]
         public IReadOnlyList<ICommittedActionEvaluation> EvaluateBlock(Block block) =>
-            block.ProtocolVersion >= BlockMetadata.SlothProtocolVersion
-                ? ActionEvaluator.Evaluate(
-                    block.RawBlock,
-                    Store.GetStateRootHash(block.Hash))
-                : ActionEvaluator.Evaluate(
-                    block.RawBlock,
-                    Store.GetStateRootHash(block.PreviousHash));
+                ActionEvaluator.Evaluate(
+                    (RawBlock)block,
+                    Store.GetStateRootHash(block.Hash));
 
         /// <summary>
         /// Evaluates all actions in the <see cref="RawBlock.Transactions"/> and
@@ -111,37 +107,19 @@ namespace Libplanet.Blockchain
         internal Block EvaluateAndSign(
             RawBlock rawBlock, PrivateKey privateKey)
         {
-            if (rawBlock.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
+            if (rawBlock.Index < 1)
             {
-                if (rawBlock.ProtocolVersion < BlockMetadata.SignatureProtocolVersion)
-                {
-                    throw new ArgumentException(
-                        $"Given {nameof(rawBlock)} must have protocol version " +
-                        $"2 or greater: {rawBlock.ProtocolVersion}");
-                }
-                else
-                {
-                    return rawBlock.Sign(
-                        privateKey,
-                        DetermineBlockPrecededStateRootHash(rawBlock, out _));
-                }
+                throw new ArgumentException(
+                    $"Given {nameof(rawBlock)} must have block height " +
+                    $"higher than 0");
             }
             else
             {
-                if (rawBlock.Index < 1)
-                {
-                    throw new ArgumentException(
-                        $"Given {nameof(rawBlock)} must have block height " +
-                        $"higher than 0");
-                }
-                else
-                {
-                    var prevBlock = _blocks[rawBlock.PreviousHash];
-                    var stateRootHash = GetNextStateRootHash(prevBlock.Hash)
-                        ?? throw new NullReferenceException(
-                            $"State root hash of block is not prepared");
-                    return rawBlock.Sign(privateKey, stateRootHash);
-                }
+                var prevBlock = _blocks[rawBlock.PreviousHash];
+                var stateRootHash = GetNextStateRootHash(prevBlock.Hash)
+                    ?? throw new NullReferenceException(
+                        $"State root hash of block is not prepared");
+                return rawBlock.Sign(privateKey, stateRootHash);
             }
         }
 

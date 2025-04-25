@@ -87,19 +87,19 @@ namespace Libplanet.Blockchain
             Block block,
             BlockCommit blockCommit)
         {
-            if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
-            {
-                if (blockCommit is { })
-                {
-                    throw new InvalidOperationException(
-                        "PoW Block doesn't have blockCommit.");
-                }
-                else
-                {
-                    // To allow the PoW block to be appended, we skips the validation.
-                    return;
-                }
-            }
+            // if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
+            // {
+            //     if (blockCommit is { })
+            //     {
+            //         throw new InvalidOperationException(
+            //             "PoW Block doesn't have blockCommit.");
+            //     }
+            //     else
+            //     {
+            //         // To allow the PoW block to be appended, we skips the validation.
+            //         return;
+            //     }
+            // }
 
             if (block.Index == 0)
             {
@@ -137,17 +137,13 @@ namespace Libplanet.Blockchain
 
             // FIXME: When the dynamic validator set is possible, the functionality of this
             // condition should be checked once more.
-            var validators = block.ProtocolVersion < BlockMetadata.SlothProtocolVersion
-                ? GetWorldState(
-                    block.PreviousHash != default ? block.PreviousHash : Genesis.Hash)
-                    .GetValidatorSet()
-                : GetWorldState(block.StateRootHash).GetValidatorSet();
+            var validators = GetWorldState(block.StateRootHash).GetValidatorSet();
 
-            if (block.ProtocolVersion < BlockMetadata.EvidenceProtocolVersion)
-            {
-                validators.ValidateLegacyBlockCommitValidators(blockCommit);
-            }
-            else
+            // if (block.ProtocolVersion < BlockMetadata.EvidenceProtocolVersion)
+            // {
+            //     validators.ValidateLegacyBlockCommitValidators(blockCommit);
+            // }
+            // else
             {
                 validators.ValidateBlockCommitValidators(blockCommit);
             }
@@ -280,15 +276,15 @@ namespace Libplanet.Blockchain
                 // Any block after a PoW block should not have a last commit regardless of
                 // the protocol version.  As we have the target block height > 2, if it is a PoW
                 // block, the previous block would be a PoW block and is covered by this case.
-                if (lastBlock?.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
-                {
-                    if (block.LastCommit is { })
-                    {
-                        throw new InvalidOperationException(
-                            "A block after a PoW block should not have lastCommit.");
-                    }
-                }
-                else
+                // if (lastBlock?.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
+                // {
+                //     if (block.LastCommit is { })
+                //     {
+                //         throw new InvalidOperationException(
+                //             "A block after a PoW block should not have lastCommit.");
+                //     }
+                // }
+                // else
                 {
                     if (block.LastCommit is null)
                     {
@@ -382,7 +378,7 @@ namespace Libplanet.Blockchain
         internal void ValidateBlockPrecededStateRootHash(
             Block block, out IReadOnlyList<ICommittedActionEvaluation> evaluations)
         {
-            var rootHash = DetermineBlockPrecededStateRootHash(block.RawBlock, out evaluations);
+            var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
             if (!rootHash.Equals(block.StateRootHash))
             {
                 var message = $"Block #{block.Index} {block.Hash}'s state root hash " +

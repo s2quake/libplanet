@@ -142,7 +142,7 @@ namespace Libplanet.Net
 
             try
             {
-                header.ValidateTimestamp();
+                header.Timestamp.ValidateTimestamp();
             }
             catch (InvalidOperationException e)
             {

@@ -92,9 +92,8 @@ namespace Libplanet.Tests.Action
             };
             var evs = Array.Empty<EvidenceBase>();
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-            var noStateRootBlock = new BlockContent
-            {
-                Metadata = new BlockMetadata
+            var noStateRootBlock = RawBlock.Propose(
+                new BlockMetadata
                 {
                     ProtocolVersion = Block.CurrentProtocolVersion,
                     Index = 0,
@@ -106,9 +105,11 @@ namespace Libplanet.Tests.Action
                     LastCommit = null,
                     EvidenceHash = null,
                 },
-                Transactions = [.. txs],
-                Evidence = [.. evs],
-            }.Propose();
+                new BlockContent
+                {
+                    Transactions = [.. txs],
+                    Evidence = [.. evs],
+                });
             var actionEvaluator = new ActionEvaluator(
                 new PolicyActionsRegistry(),
                 stateStore,
@@ -118,7 +119,7 @@ namespace Libplanet.Tests.Action
                 stateRootHash: default);
             var generatedRandomNumbers = new List<int>();
 
-            AssertPreEvaluationBlocksEqual(stateRootBlock.RawBlock, noStateRootBlock);
+            AssertPreEvaluationBlocksEqual((RawBlock)stateRootBlock, noStateRootBlock);
 
             for (int i = 0; i < repeatCount; ++i)
             {
@@ -128,7 +129,7 @@ namespace Libplanet.Tests.Action
                         stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
                             .GetAccountState(ReservedAddresses.LegacyAccount)
                             .GetState(ContextRecordingAction.RandomRecordAddress));
-                actionEvaluations = actionEvaluator.Evaluate(stateRootBlock.RawBlock, default);
+                actionEvaluations = actionEvaluator.Evaluate((RawBlock)stateRootBlock, default);
                 generatedRandomNumbers.Add(
                     (Integer)new WorldBaseState(
                         stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
@@ -169,7 +170,7 @@ namespace Libplanet.Tests.Action
             chain.Append(block, CreateBlockCommit(block));
 
             var evaluations = chain.ActionEvaluator.Evaluate(
-                chain.Tip.RawBlock, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
+                (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
 
             Assert.False(evaluations[0].InputContext.IsPolicyAction);
             Assert.Single(evaluations);
@@ -250,7 +251,7 @@ namespace Libplanet.Tests.Action
                 lastCommit: CreateBlockCommit(chain.Tip),
                 evidence: ImmutableArray<EvidenceBase>.Empty);
             var evaluations = actionEvaluator.Evaluate(
-                block.RawBlock, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
+                (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
             // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
             Assert.Equal(
@@ -326,7 +327,7 @@ namespace Libplanet.Tests.Action
                 CreateBlockCommit(chain.Tip),
                 ImmutableArray<EvidenceBase>.Empty);
             var evaluations = actionEvaluator.Evaluate(
-                block.RawBlock, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
+                (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
             // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
             Assert.Equal(
@@ -362,7 +363,7 @@ namespace Libplanet.Tests.Action
             Block block = chain.ProposeBlock(new PrivateKey());
             chain.Append(block, CreateBlockCommit(block));
             var evaluations = chain.ActionEvaluator.Evaluate(
-                chain.Tip.RawBlock, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
+                (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
 
             Assert.False(evaluations[0].InputContext.IsPolicyAction);
             Assert.Single(evaluations);
@@ -403,9 +404,8 @@ namespace Libplanet.Tests.Action
                 actions: new[] { action }.ToPlainValues());
             var txs = new Transaction[] { tx };
             var evs = Array.Empty<EvidenceBase>();
-            RawBlock block = new BlockContent
-            {
-                Metadata = new BlockMetadata
+            RawBlock block = RawBlock.Propose(
+                new BlockMetadata
                 {
                     Index = 1L,
                     Timestamp = DateTimeOffset.UtcNow,
@@ -415,9 +415,11 @@ namespace Libplanet.Tests.Action
                     LastCommit = null,
                     EvidenceHash = null,
                 },
-                Transactions = [.. txs],
-                Evidence = [.. evs],
-            }.Propose();
+                new BlockContent
+                {
+                    Transactions = [.. txs],
+                    Evidence = [.. evs],
+                });
             IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
 
             Assert.Throws<OutOfMemoryException>(

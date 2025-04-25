@@ -42,9 +42,8 @@ public class BlockTypeTest
             BlockHash = lastBlockHash,
             Votes = lastVotes,
         };
-        var preEval = new BlockContent
-        {
-            Metadata = new BlockMetadata
+        var preEval = RawBlock.Propose(
+            new BlockMetadata
             {
                 Index = 2,
                 Timestamp = DateTimeOffset.UtcNow,
@@ -53,11 +52,13 @@ public class BlockTypeTest
                 LastCommit = lastBlockCommit,
                 EvidenceHash = null,
             },
-        }.Propose();
+            new BlockContent
+            {
+            });
         var stateRootHash =
             new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
-        var signature = preEval.Header.MakeSignature(privateKey, stateRootHash);
-        var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
+        var signature = preEval.Metadata.MakeSignature(privateKey, stateRootHash);
+        var hash = preEval.Metadata.DeriveBlockHash(stateRootHash, signature);
         var block = Block.Create(preEval, (stateRootHash, signature, hash));
 
         // FIXME We need to test for `previousBlock` field too.

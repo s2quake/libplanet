@@ -114,14 +114,7 @@ namespace Libplanet.Net
                 foreach (var (block, commit) in blocks)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (block.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
-                    {
-                        blockChain.AppendStateRootHashPreceded(block, commit, render: render);
-                    }
-                    else
-                    {
-                        blockChain.Append(block, commit, render: render);
-                    }
+                    blockChain.Append(block, commit, render: render);
 
                     verifiedBlockCount++;
                 }

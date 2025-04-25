@@ -96,16 +96,6 @@ namespace Libplanet.Action
             RawBlock block,
             HashDigest<SHA256> baseStateRootHash)
         {
-            if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
-            {
-                throw new BlockProtocolVersionNotSupportedException(
-                    $"The native implementation does not support an evaluation of a block " +
-                    $"#{block.Index} pre-evaluation hash {block.RawHash} " +
-                    $"with protocol version less than {BlockMetadata.PBFTProtocolVersion}: " +
-                    $"{block.ProtocolVersion}",
-                    block.ProtocolVersion);
-            }
-
             _logger.Information(
                 "Evaluating actions in the block #{BlockHeight} " +
                 "pre-evaluation hash {RawHash}...",
@@ -396,9 +386,7 @@ namespace Libplanet.Action
             IEnumerable<Transaction> txs,
             ImmutableArray<byte> preEvaluationHashBytes)
         {
-            return protocolVersion >= BlockMetadata.TransactionOrderingFixProtocolVersion
-                ? OrderTxsForEvaluationV3(txs, preEvaluationHashBytes)
-                : OrderTxsForEvaluationV0(txs, preEvaluationHashBytes);
+            return OrderTxsForEvaluationV3(txs, preEvaluationHashBytes);
         }
 
         /// <summary>

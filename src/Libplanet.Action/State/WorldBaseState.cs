@@ -34,7 +34,7 @@ namespace Libplanet.Action.State
         public ITrie Trie { get; }
 
         /// <inheritdoc cref="IWorldState.Legacy"/>
-        public bool Legacy => Version < BlockMetadata.WorldStateProtocolVersion;
+        public bool Legacy => false;
 
         /// <inheritdoc cref="IWorldState.Version"/>
         public int Version { get; }

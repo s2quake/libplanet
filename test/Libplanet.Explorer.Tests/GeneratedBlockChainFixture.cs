@@ -168,9 +168,8 @@ public class GeneratedBlockChainFixture
     {
         var proposer = PrivateKeys[Random.Next(PrivateKeys.Length)];
         var block = Chain.EvaluateAndSign(
-            new BlockContent
-            {
-                Metadata = new BlockMetadata
+            RawBlock.Propose(
+                new BlockMetadata
                 {
                     Index = Chain.Tip.Index + 1,
                     Timestamp = DateTimeOffset.UtcNow,
@@ -180,9 +179,11 @@ public class GeneratedBlockChainFixture
                     LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
                     EvidenceHash = null,
                 },
-                Transactions = [.. transactions],
-                Evidence = [],
-            }.Propose(),
+                new BlockContent
+                {
+                    Transactions = [.. transactions],
+                    Evidence = [],
+                }),
             proposer);
         Chain.Append(
             block,
