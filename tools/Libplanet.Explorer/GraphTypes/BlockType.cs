@@ -1,5 +1,6 @@
 using GraphQL.Types;
 using Libplanet.Explorer.Interfaces;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Explorer.GraphTypes;
@@ -43,12 +44,12 @@ public class BlockType : ObjectGraphType<Block>
             name: "StateRootHash",
             description: "The hash of the resulting states after evaluating transactions " +
                          "and a block action (if exists)",
-            resolve: ctx => ctx.Source.StateRootHash.ToByteArray());
+            resolve: ctx => ctx.Source.StateRootHash.ByteArray.ToArray());
         Field<ByteStringType>(
             name: "Signature",
             description: "The digital signature of the whole block content (except for hash, " +
                          "which is derived from the signature and other contents)",
-            resolve: ctx => ctx.Source.Signature?.ToBuilder().ToArray());
+            resolve: ctx => ctx.Source.Signature.ToBuilder().ToArray());
         Field<NonNullGraphType<ListGraphType<NonNullGraphType<TransactionType>>>>(
             name: "transactions",
             description: "Transactions belonging to the block."
@@ -81,7 +82,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<ByteStringType>>(
             name: "RawHash",
             description: "The hash of RawBlock.",
-            resolve: ctx => ctx.Source.RawHash.ToByteArray());
+            resolve: ctx => ctx.Source.RawHash.ByteArray.ToArray());
         Field<NonNullGraphType<IntGraphType>>(
             name: "ProtocolVersion",
             description: "The protocol version number of the block.",
@@ -89,6 +90,6 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<ByteStringType>>(
             name: "Raw",
             description: "The bencodex serialization of the block",
-            resolve: ctx => _codec.Encode(ctx.Source.MarshalBlock()));
+            resolve: ctx => ModelSerializer.SerializeToBytes(ctx.Source));
     }
 }

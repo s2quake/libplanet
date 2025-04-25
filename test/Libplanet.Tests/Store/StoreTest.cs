@@ -1080,16 +1080,24 @@ namespace Libplanet.Tests.Store
                 var validators = Enumerable.Range(0, 4)
                     .Select(x => new PrivateKey())
                     .ToArray();
-                var votes = validators.Select(validator => new VoteMetadata(
-                    height,
-                    round,
-                    hash,
-                    DateTimeOffset.UtcNow,
-                    validator.PublicKey,
-                    BigInteger.One,
-                    VoteFlag.PreCommit).Sign(validator)).ToImmutableArray();
+                var votes = validators.Select(validator => new VoteMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = validator.PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(validator)).ToImmutableArray();
 
-                BlockCommit commit = new BlockCommit(height, round, hash, votes);
+                BlockCommit commit = new BlockCommit
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Votes = votes,
+                };
                 fx.Store.PutBlockCommit(commit);
                 BlockCommit storedCommitVotes =
                     fx.Store.GetBlockCommit(commit.BlockHash);
@@ -1104,28 +1112,44 @@ namespace Libplanet.Tests.Store
             using (StoreFixture fx = FxConstructor())
             {
                 var votesOne = ImmutableArray<Vote>.Empty
-                    .Add(new VoteMetadata(
-                        1,
-                        0,
-                        fx.Block1.Hash,
-                        DateTimeOffset.UtcNow,
-                        fx.Proposer.PublicKey,
-                        fx.ProposerPower,
-                        VoteFlag.PreCommit).Sign(fx.Proposer));
+                    .Add(new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block1.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = fx.Proposer.PublicKey,
+                        ValidatorPower = fx.ProposerPower,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(fx.Proposer));
                 var votesTwo = ImmutableArray<Vote>.Empty
-                    .Add(new VoteMetadata(
-                        2,
-                        0,
-                        fx.Block2.Hash,
-                        DateTimeOffset.UtcNow,
-                        fx.Proposer.PublicKey,
-                        fx.ProposerPower,
-                        VoteFlag.PreCommit).Sign(fx.Proposer));
+                    .Add(new VoteMetadata
+                    {
+                        Height = 2,
+                        Round = 0,
+                        BlockHash = fx.Block2.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = fx.Proposer.PublicKey,
+                        ValidatorPower = fx.ProposerPower,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(fx.Proposer));
 
                 BlockCommit[] blockCommits =
                 {
-                    new BlockCommit(1, 0, fx.Block1.Hash, votesOne),
-                    new BlockCommit(2, 0, fx.Block2.Hash, votesTwo),
+                    new BlockCommit
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block1.Hash,
+                        Votes = votesOne,
+                    },
+                    new BlockCommit
+                    {
+                        Height = 2,
+                        Round = 0,
+                        BlockHash = fx.Block2.Hash,
+                        Votes = votesTwo,
+                    },
                 };
 
                 foreach (var blockCommit in blockCommits)
@@ -1151,19 +1175,25 @@ namespace Libplanet.Tests.Store
             {
                 var validatorPrivateKey = new PrivateKey();
                 BlockCommit blockCommit =
-                    new BlockCommit(
-                        0,
-                        0,
-                        Fx.GenesisBlock.Hash,
-                        ImmutableArray<Vote>.Empty
-                            .Add(new VoteMetadata(
-                                0,
-                                0,
-                                Fx.GenesisBlock.Hash,
-                                DateTimeOffset.UtcNow,
-                                validatorPrivateKey.PublicKey,
-                                BigInteger.One,
-                                VoteFlag.PreCommit).Sign(validatorPrivateKey)));
+                    new BlockCommit
+                    {
+                        Height = 0,
+                        Round = 0,
+                        BlockHash = Fx.GenesisBlock.Hash,
+                        Votes =
+                        [
+                            new VoteMetadata
+                            {
+                                Height = 0,
+                                Round = 0,
+                                BlockHash = Fx.GenesisBlock.Hash,
+                                Timestamp = DateTimeOffset.UtcNow,
+                                ValidatorPublicKey = validatorPrivateKey.PublicKey,
+                                ValidatorPower = BigInteger.One,
+                                Flag = VoteFlag.PreCommit,
+                            }.Sign(validatorPrivateKey)
+                        ],
+                    };
 
                 fx.Store.PutBlockCommit(blockCommit);
                 Assert.NotNull(fx.Store.GetBlockCommit(blockCommit.BlockHash));
@@ -1180,48 +1210,56 @@ namespace Libplanet.Tests.Store
             {
                 var signer = TestUtils.ValidatorPrivateKeys[0];
                 var duplicateVoteOne = ImmutableArray<Vote>.Empty
-                    .Add(new VoteMetadata(
-                        height: 1,
-                        round: 0,
-                        blockHash: fx.Block1.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer))
-                    .Add(new VoteMetadata(
-                        height: 1,
-                        round: 0,
-                        blockHash: fx.Block2.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer));
+                    .Add(new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block1.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer))
+                    .Add(new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block2.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer));
                 var duplicateVoteTwo = ImmutableArray<Vote>.Empty
-                    .Add(new VoteMetadata(
-                        height: 2,
-                        round: 0,
-                        blockHash: fx.Block2.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer))
-                    .Add(new VoteMetadata(
-                        height: 2,
-                        round: 0,
-                        blockHash: fx.Block3.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer));
+                    .Add(new VoteMetadata
+                    {
+                        Height = 2,
+                        Round = 0,
+                        BlockHash = fx.Block2.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer))
+                    .Add(new VoteMetadata
+                    {
+                        Height = 2,
+                        Round = 0,
+                        BlockHash = fx.Block3.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer));
 
                 EvidenceBase[] evidence =
                 {
-                    new DuplicateVoteEvidence(
+                    DuplicateVoteEvidence.Create(
                         duplicateVoteOne[0],
                         duplicateVoteOne[1],
                         TestUtils.Validators,
                         duplicateVoteOne.Last().Timestamp),
-                    new DuplicateVoteEvidence(
+                    DuplicateVoteEvidence.Create(
                         duplicateVoteTwo[0],
                         duplicateVoteTwo[1],
                         TestUtils.Validators,
@@ -1245,23 +1283,27 @@ namespace Libplanet.Tests.Store
             {
                 var signer = TestUtils.ValidatorPrivateKeys[0];
                 var duplicateVote = ImmutableArray<Vote>.Empty
-                    .Add(new VoteMetadata(
-                        height: 1,
-                        round: 0,
-                        blockHash: fx.Block1.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer))
-                    .Add(new VoteMetadata(
-                        height: 1,
-                        round: 0,
-                        blockHash: fx.Block2.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer));
-                EvidenceBase evidence = new DuplicateVoteEvidence(
+                    .Add(new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block1.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer))
+                    .Add(new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block2.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer));
+                EvidenceBase evidence = DuplicateVoteEvidence.Create(
                     duplicateVote[0],
                     duplicateVote[1],
                     TestUtils.Validators,
@@ -1287,23 +1329,27 @@ namespace Libplanet.Tests.Store
             {
                 var signer = TestUtils.ValidatorPrivateKeys[0];
                 var duplicateVote = ImmutableArray<Vote>.Empty
-                    .Add(new VoteMetadata(
-                        height: 1,
-                        round: 0,
-                        blockHash: fx.Block1.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer))
-                    .Add(new VoteMetadata(
-                        height: 1,
-                        round: 0,
-                        blockHash: fx.Block2.Hash,
-                        timestamp: DateTimeOffset.UtcNow,
-                        validatorPublicKey: signer.PublicKey,
-                        validatorPower: BigInteger.One,
-                        flag: VoteFlag.PreCommit).Sign(signer));
-                EvidenceBase evidence = new DuplicateVoteEvidence(
+                    .Add(new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block1.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer))
+                    .Add(new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = fx.Block2.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = signer.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(signer));
+                EvidenceBase evidence = DuplicateVoteEvidence.Create(
                     duplicateVote[0],
                     duplicateVote[1],
                     TestUtils.Validators,

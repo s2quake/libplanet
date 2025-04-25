@@ -41,7 +41,7 @@ public sealed record class DuplicateVoteEvidence
         //       timestamp)
     {
         throw new NotImplementedException();
-    //     return new DuplicateVoteEvidence
+    //     return DuplicateVoteEvidence.Create
     //     {
 
     //     }

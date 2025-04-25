@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Xunit;
@@ -144,7 +145,9 @@ public class TrieStateStoreTest
             }
 
             trie = stateStore.Commit(trie);
-            worldTrie = worldTrie.Set(new KeyBytes(elem.Key.ByteArray), trie.Hash.Bencoded);
+            worldTrie = worldTrie.Set(
+                new KeyBytes(elem.Key.ByteArray), 
+                ModelSerializer.Serialize(trie.Hash));
             accountHashes.Add(trie.Hash);
         }
 

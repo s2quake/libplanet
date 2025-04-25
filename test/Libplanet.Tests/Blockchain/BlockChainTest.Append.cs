@@ -11,6 +11,7 @@ using Libplanet.Blockchain.Renderers;
 using Libplanet.Blockchain.Renderers.Debug;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
@@ -394,9 +395,9 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 ImmutableArray<EvidenceBase>.Empty);
             long maxBytes = _blockChain.Policy.GetMaxTransactionsBytes(block.Index);
-            Assert.True(block.MarshalBlock().EncodingLength > maxBytes);
+            Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
-            var e = Assert.Throws<InvalidBlockBytesLengthException>(() =>
+            var e = Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(block, TestUtils.CreateBlockCommit(block))
             );
         }
@@ -425,7 +426,7 @@ namespace Libplanet.Tests.Blockchain
                 ImmutableArray<EvidenceBase>.Empty);
             Assert.Equal(manyTxs.Count, block.Transactions.Count);
 
-            var e = Assert.Throws<InvalidBlockTxCountException>(() =>
+            var e = Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(block, TestUtils.CreateBlockCommit(block))
             );
         }
@@ -563,7 +564,7 @@ namespace Libplanet.Tests.Blockchain
         public void AppendValidatesBlock()
         {
             var policy = new NullBlockPolicy(
-                    new BlockPolicyViolationException(string.Empty));
+                    new InvalidOperationException(string.Empty));
             var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
             var blockChain = new BlockChain(
                 policy,
@@ -576,7 +577,7 @@ namespace Libplanet.Tests.Blockchain
                     policy.PolicyActionsRegistry,
                     _fx.StateStore,
                     new SingleActionLoader(typeof(DumbAction))));
-            Assert.Throws<BlockPolicyViolationException>(
+            Assert.Throws<InvalidOperationException>(
                 () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
         }
 
@@ -669,26 +670,32 @@ namespace Libplanet.Tests.Blockchain
                     null,
                     actions: new IAction[]
                     {
-                        new Initialize(
-                            validatorSet: TestUtils.Validators,
-                            states: ImmutableDictionary.Create<Address, IValue>()),
+                        new Initialize
+                        {
+                            Validators = TestUtils.Validators,
+                            States = ImmutableDictionary.Create<Address, IValue>(),
+                        },
                     }.ToPlainValues(),
                     timestamp: DateTimeOffset.UtcNow),
             };
             var evs = Array.Empty<EvidenceBase>();
-            RawBlock preEvalGenesis = new BlockContent(
-                new BlockMetadata(
-                    protocolVersion: BlockMetadata.WorldStateProtocolVersion - 1,
-                    index: 0L,
-                    timestamp: DateTimeOffset.UtcNow,
-                    miner: fx.Proposer.Address,
-                    publicKey: fx.Proposer.PublicKey,
-                    previousHash: default,
-                    txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null,
-                    evidenceHash: null),
-                transactions: txs,
-                evidence: evs).Propose();
+            RawBlock preEvalGenesis = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    ProtocolVersion = BlockMetadata.WorldStateProtocolVersion - 1,
+                    Index = 0L,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Miner = fx.Proposer.Address,
+                    PublicKey = fx.Proposer.PublicKey,
+                    PreviousHash = default,
+                    TxHash = BlockContent.DeriveTxHash(txs),
+                    LastCommit = null,
+                    EvidenceHash = null,
+                },
+                Transactions = [..txs],
+                Evidence = [..evs],
+            }.Propose();
             var genesis = preEvalGenesis.Sign(
                 fx.Proposer,
                 actionEvaluator.Evaluate(preEvalGenesis, default).Last().OutputState);
@@ -788,7 +795,7 @@ namespace Libplanet.Tests.Blockchain
             blockChain.Append(blockAfterBump2, commitAfterBump2);
             Assert.Equal(
                 actionEvaluator.Evaluate(
-                    blockAfterBump1, blockAfterBump1.StateRootHash).Last().OutputState,
+                    blockAfterBump1.RawBlock, blockAfterBump1.StateRootHash).Last().OutputState,
                 blockAfterBump2.StateRootHash);
         }
     }

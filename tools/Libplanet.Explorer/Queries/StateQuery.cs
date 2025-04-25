@@ -215,11 +215,11 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
             case (blockhash: not null, _):
                 return context.Source
                     .GetWorldState((BlockHash)offsetBlockHash)
-                    .GetValidatorSet().Validators;
+                    .GetValidatorSet();
             case (_, srh: not null):
                 return context.Source
                     .GetWorldState(offsetStateRootHash ?? default)
-                    .GetValidatorSet().Validators;
+                    .GetValidatorSet();
         }
     }
 }

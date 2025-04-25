@@ -3,6 +3,7 @@ using GraphQL;
 using GraphQL.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 
 namespace Libplanet.Explorer.GraphTypes
@@ -101,7 +102,7 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<IValueType>>(
                 name: "validatorSet",
                 description: "The validator set.",
-                resolve: context => context.Source.GetValidatorSet().Bencoded
+                resolve: context => ModelSerializer.Serialize(context.Source.GetValidatorSet())
             );
         }
     }

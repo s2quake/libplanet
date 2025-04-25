@@ -1,5 +1,6 @@
 using Libplanet.Consensus;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Serilog;
@@ -36,7 +37,7 @@ namespace Libplanet.Tests.Consensus
                 0,
                 DateTimeOffset.UtcNow,
                 new PrivateKey().PublicKey,
-                codec.Encode(fx.Block1.MarshalBlock()),
+                ModelSerializer.SerializeToBytes(fx.Block1),
                 -1);
 
             // Empty Signature
@@ -46,7 +47,7 @@ namespace Libplanet.Tests.Consensus
             // Invalid Signature
             var invSigBencodex = metadata.Encoded.Add(
                 Proposal.SignatureKey,
-                new PrivateKey().Sign(codec.Encode(fx.Block2.MarshalBlock())));
+                new PrivateKey().Sign(ModelSerializer.SerializeToBytes(fx.Block2)));
             Assert.Throws<ArgumentException>(() => new Proposal(invSigBencodex));
         }
 
@@ -62,7 +63,7 @@ namespace Libplanet.Tests.Consensus
                 0,
                 DateTimeOffset.UtcNow,
                 key.PublicKey,
-                codec.Encode(fx.Block1.MarshalBlock()),
+                ModelSerializer.SerializeToBytes(fx.Block1),
                 -1);
             Proposal proposal = metadata.Sign(key);
 

@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -26,19 +27,27 @@ namespace Libplanet.Tests.Blocks
             var randomHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
             var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
             var votes = keys.Select((key, index) =>
-                    new VoteMetadata(
-                        1,
-                        0,
-                        randomHash,
-                        DateTimeOffset.UtcNow,
-                        key.PublicKey,
-                        index == 0 ? (BigInteger?)null : BigInteger.One,
-                        VoteFlag.PreCommit).Sign(key))
+                    new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = randomHash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = key.PublicKey,
+                        ValidatorPower = index == 0 ? BigInteger.Zero : BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(key))
                 .ToImmutableArray();
-            var blockCommit = new BlockCommit(1, 0, randomHash, votes);
+            var blockCommit = new BlockCommit
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = randomHash,
+                Votes = votes,
+            };
 
             var commitHash = blockCommit.ToHash();
-            var expected = HashDigest<SHA256>.DeriveFrom(_codec.Encode(blockCommit.Bencoded));
+            var expected = HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(blockCommit));
 
             Assert.Equal(commitHash, expected);
         }
@@ -50,23 +59,36 @@ namespace Libplanet.Tests.Blocks
             var key = new PrivateKey();
             var votes = ImmutableArray<Vote>.Empty
                 .Add(
-                    new VoteMetadata(
-                            0,
-                            0,
-                            hash,
-                            DateTimeOffset.UtcNow,
-                            key.PublicKey,
-                            BigInteger.One,
-                            VoteFlag.PreCommit)
-                        .Sign(key));
+                    new VoteMetadata
+                    {
+                        Height = 0,
+                        Round = 0,
+                        BlockHash = hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = key.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(key));
 
             // Negative height is not allowed.
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new BlockCommit(-1, 0, hash, votes));
+                new BlockCommit
+                {
+                    Height = -1,
+                    Round = 0,
+                    BlockHash = hash,
+                    Votes = votes,
+                });
 
             // Negative round is not allowed.
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new BlockCommit(0, -1, hash, votes));
+                new BlockCommit
+                {
+                    Height = 0,
+                    Round = -1,
+                    BlockHash = hash,
+                    Votes = votes,
+                });
         }
 
         [Fact]
@@ -74,9 +96,21 @@ namespace Libplanet.Tests.Blocks
         {
             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
             Assert.Throws<ArgumentException>(() =>
-                new BlockCommit(0, 0, hash, default));
+                new BlockCommit
+                {
+                    Height = 0,
+                    Round = 0,
+                    BlockHash = hash,
+                    Votes = default,
+                });
             Assert.Throws<ArgumentException>(() =>
-                new BlockCommit(0, 0, hash, ImmutableArray<Vote>.Empty));
+                new BlockCommit
+                {
+                    Height = 0,
+                    Round = 0,
+                    BlockHash = hash,
+                    Votes = [],
+                });
         }
 
         [Fact]
@@ -89,29 +123,45 @@ namespace Libplanet.Tests.Blocks
 
             // Vote with different height is not allowed.
             var votes = ImmutableArray<Vote>.Empty
-                .Add(new VoteMetadata(
-                    height + 1,
-                    round,
-                    hash,
-                    DateTimeOffset.UtcNow,
-                    key.PublicKey,
-                    BigInteger.One,
-                    VoteFlag.PreCommit).Sign(key));
+                .Add(new VoteMetadata
+                {
+                    Height = height + 1,
+                    Round = round,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = key.PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key));
             Assert.Throws<ArgumentException>(() =>
-                new BlockCommit(height, round, hash, votes));
+                new BlockCommit
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Votes = votes,
+                });
 
             // Vote with different round is not allowed.
             votes = ImmutableArray<Vote>.Empty
-                .Add(new VoteMetadata(
-                    height,
-                    round + 1,
-                    hash,
-                    DateTimeOffset.UtcNow,
-                    key.PublicKey,
-                    BigInteger.One,
-                    VoteFlag.PreCommit).Sign(key));
+                .Add(new VoteMetadata
+                {
+                    Height = height,
+                    Round = round + 1,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = key.PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key));
             Assert.Throws<ArgumentException>(() =>
-                new BlockCommit(height, round, hash, votes));
+                new BlockCommit
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Votes = votes,
+                });
         }
 
         [Fact]
@@ -124,15 +174,23 @@ namespace Libplanet.Tests.Blocks
             var key = new PrivateKey();
 
             var votes = ImmutableArray<Vote>.Empty
-                .Add(new VoteMetadata(
-                    height,
-                    round,
-                    badHash,
-                    DateTimeOffset.UtcNow,
-                    key.PublicKey,
-                    BigInteger.One,
-                    VoteFlag.PreCommit).Sign(key));
-            Assert.Throws<ArgumentException>(() => new BlockCommit(height, round, hash, votes));
+                .Add(new VoteMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = badHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = key.PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key));
+            Assert.Throws<ArgumentException>(() => new BlockCommit
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Votes = votes,
+            });
         }
 
         [Fact]
@@ -143,64 +201,97 @@ namespace Libplanet.Tests.Blocks
             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
             var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
             var preCommitVotes = keys.Select(
-                    key => new VoteMetadata(
-                            height,
-                            round,
-                            hash,
-                            DateTimeOffset.UtcNow,
-                            key.PublicKey,
-                            BigInteger.One,
-                            VoteFlag.PreCommit)
-                        .Sign(key))
+                    key => new VoteMetadata
+                    {
+                        Height = height,
+                        Round = round,
+                        BlockHash = hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = key.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(key))
                 .ToList();
 
             var votes = ImmutableArray<Vote>.Empty
-                .Add(new VoteMetadata(
-                    height,
-                    round,
-                    hash,
-                    DateTimeOffset.UtcNow,
-                    keys[0].PublicKey,
-                    BigInteger.One,
-                    VoteFlag.Null).Sign(null))
+                .Add(new VoteMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = keys[0].PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.Null,
+                }.Sign(null))
                 .AddRange(preCommitVotes.Skip(1));
-            _ = new BlockCommit(height, round, hash, votes);
+            _ = new BlockCommit
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Votes = votes,
+            };
 
             votes = ImmutableArray<Vote>.Empty
-                .Add(new VoteMetadata(
-                    height,
-                    round,
-                    hash,
-                    DateTimeOffset.UtcNow,
-                    keys[0].PublicKey,
-                    BigInteger.One,
-                    VoteFlag.Unknown).Sign(null))
+                .Add(new VoteMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = keys[0].PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.Unknown,
+                }.Sign(null))
                 .AddRange(preCommitVotes.Skip(1));
-            Assert.Throws<ArgumentException>(() => new BlockCommit(height, round, hash, votes));
+            Assert.Throws<ArgumentException>(() => new BlockCommit
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Votes = votes,
+            });
 
             votes = ImmutableArray<Vote>.Empty
-                .Add(new VoteMetadata(
-                    height,
-                    round,
-                    hash,
-                    DateTimeOffset.UtcNow,
-                    keys[0].PublicKey,
-                    BigInteger.One,
-                    VoteFlag.PreVote).Sign(keys[0]))
+                .Add(new VoteMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = keys[0].PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreVote,
+                }.Sign(keys[0]))
                 .AddRange(preCommitVotes.Skip(1));
-            Assert.Throws<ArgumentException>(() => new BlockCommit(height, round, hash, votes));
+            Assert.Throws<ArgumentException>(() => new BlockCommit
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Votes = votes,
+            });
 
             votes = ImmutableArray<Vote>.Empty
-                .Add(new VoteMetadata(
-                    height,
-                    round,
-                    hash,
-                    DateTimeOffset.UtcNow,
-                    keys[0].PublicKey,
-                    BigInteger.One,
-                    VoteFlag.PreCommit).Sign(keys[0]))
+                .Add(new VoteMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = keys[0].PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(keys[0]))
                 .AddRange(preCommitVotes.Skip(1));
-            _ = new BlockCommit(height, round, hash, votes);
+            _ = new BlockCommit
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Votes = votes,
+            };
         }
 
         [Fact]
@@ -209,17 +300,25 @@ namespace Libplanet.Tests.Blocks
             var fx = new MemoryStoreFixture();
             var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
             var votes = keys.Select(key =>
-                new VoteMetadata(
-                    1,
-                    0,
-                    fx.Hash1,
-                    DateTimeOffset.Now,
-                    key.PublicKey,
-                    BigInteger.One,
-                    VoteFlag.PreCommit).Sign(key))
+                new VoteMetadata
+                {
+                    Height = 1,
+                    Round = 0,
+                    BlockHash = fx.Hash1,
+                    Timestamp = DateTimeOffset.Now,
+                    ValidatorPublicKey = key.PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key))
                 .ToImmutableArray();
-            var expected = new BlockCommit(1, 0, fx.Hash1, votes);
-            var decoded = new BlockCommit(expected.Bencoded);
+            var expected = new BlockCommit
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = fx.Hash1,
+                Votes = votes,
+            };
+            var decoded = ModelSerializer.Deserialize<BlockCommit>(ModelSerializer.Serialize(expected));
             Assert.Equal(expected, decoded);
         }
     }

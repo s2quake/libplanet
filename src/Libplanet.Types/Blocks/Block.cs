@@ -34,18 +34,20 @@ public sealed record class Block(
         return new Block(header, rawBlock);
     }
 
-    // public Block(
-    //     RawBlock rawBlock,
-    //     (
-    //         HashDigest<SHA256> StateRootHash,
-    //         ImmutableArray<byte>? Signature,
-    //         BlockHash Hash
-    //     ) proof
-    // )
-    // {
-    //     _header = new BlockHeader(rawBlock.Header, proof);
-    //     _preEvaluationBlock = rawBlock;
-    // }
+    public static Block Create(
+        RawBlock rawBlock,
+        (
+            HashDigest<SHA256> StateRootHash,
+            ImmutableArray<byte>? Signature,
+            BlockHash Hash
+        ) proof
+    )
+    {
+        return new Block(
+            new BlockHeader(
+                rawBlock.Header, proof.StateRootHash, proof.Signature ?? [], proof.Hash),
+            rawBlock);
+    }
 
     // [JsonIgnore]
     // public BlockHeader Header => _header;
@@ -87,7 +89,7 @@ public sealed record class Block(
     public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
     public void ValidateTimestamp(DateTimeOffset currentTime)
-        => Header.RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
+    => Header.RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
 
     public string ToExcerptString()
     {

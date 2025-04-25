@@ -47,4 +47,9 @@ public sealed record class RawBlock
         var header = new BlockHeader(Header, stateRootHash, signature, blockHash);
         return new Block(header, this);
     }
+
+    public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
+
+    public void ValidateTimestamp(DateTimeOffset currentTime)
+        => Header.Metadata.ValidateTimestamp(currentTime);
 }

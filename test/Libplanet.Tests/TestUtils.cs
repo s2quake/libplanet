@@ -651,15 +651,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     timestamp,
                     protocolVersion);
                 var evaluatedSrh = actionEvaluator.Evaluate(preEval, default).Last().OutputState;
-                genesisBlock = protocolVersion < BlockMetadata.SignatureProtocolVersion
-                    ? new Block(
-                        preEval,
-                        (
-                            evaluatedSrh,
-                            null,
-                            preEval.Header.DeriveBlockHash(evaluatedSrh, null)
-                        ))
-                    : protocolVersion < BlockMetadata.SlothProtocolVersion
+                genesisBlock = protocolVersion < BlockMetadata.SlothProtocolVersion
                         ? preEval.Sign(privateKey, evaluatedSrh)
                         : preEval.Sign(privateKey, default);
             }

@@ -17,7 +17,7 @@ namespace Libplanet.Tests.Store.Trie.Nodes
             var hashDigest = HashDigest<SHA256>.DeriveFrom(buf);
 
             var valueNode = new HashNode(hashDigest);
-            Assert.Equal((Binary)hashDigest.ToByteArray(), valueNode.ToBencodex());
+            Assert.Equal((Binary)hashDigest.ByteArray.ToArray(), valueNode.ToBencodex());
         }
     }
 }

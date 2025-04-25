@@ -763,17 +763,21 @@ namespace Libplanet.Tests.Action
                 Transaction.Create(0, _txFx.PrivateKey1, null, actions.ToPlainValues());
             var txs = new Transaction[] { tx };
             var evs = Array.Empty<EvidenceBase>();
-            var block = new BlockContent(
-                new BlockMetadata(
-                    index: 1L,
-                    timestamp: DateTimeOffset.UtcNow,
-                    publicKey: keys[0].PublicKey,
-                    previousHash: default(BlockHash),
-                    txHash: BlockContent.DeriveTxHash(txs),
-                    lastCommit: null,
-                    evidenceHash: null),
-                transactions: txs,
-                evidence: evs).Propose();
+            var block = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    Index = 1L,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    PublicKey = keys[0].PublicKey,
+                    PreviousHash = default(BlockHash),
+                    TxHash = BlockContent.DeriveTxHash(txs),
+                    LastCommit = null,
+                    EvidenceHash = null,
+                },
+                Transactions = [.. txs],
+                Evidence = [.. evs],
+            }.Propose();
             IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
             IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
                 .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)

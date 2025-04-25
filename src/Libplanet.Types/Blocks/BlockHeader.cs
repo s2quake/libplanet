@@ -46,7 +46,7 @@ public sealed record class BlockHeader(
     //     }
     //     else if (!proof.Hash.Equals(expectedHash))
     //     {
-    //         throw new InvalidBlockHashException(
+    //         throw new InvalidOperationException(
     //             $"The block #{preEvaluationBlockPreEvaluationBlockHeader.Index} {proof.Hash} has " +
     //             $"an invalid hash; expected: {expectedHash}.");
     //     }
