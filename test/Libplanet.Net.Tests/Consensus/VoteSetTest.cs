@@ -10,7 +10,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact]
         public void Majority()
         {
-            var voteSet = new VoteSet(0, 0, VoteFlag.PreCommit, TestUtils.ImmutableSortedSet<Validator>);
+            var voteSet = new VoteSet(0, 0, VoteFlag.PreCommit, TestUtils.Validators);
             Assert.False(voteSet.HasOneThirdsAny());
             Assert.False(voteSet.HasTwoThirdsAny());
             Assert.False(voteSet.HasTwoThirdsMajority());
@@ -23,8 +23,8 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 blockHash,
                 DateTimeOffset.UtcNow,
-                TestUtils.ImmutableSortedSet<Validator>[0].PublicKey,
-                TestUtils.ImmutableSortedSet<Validator>[0].Power,
+                TestUtils.Validators[0].PublicKey,
+                TestUtils.Validators[0].Power,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[0]));
             Assert.False(voteSet.HasOneThirdsAny());
             Assert.False(voteSet.HasTwoThirdsAny());
@@ -37,8 +37,8 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 blockHash,
                 DateTimeOffset.UtcNow,
-                TestUtils.ImmutableSortedSet<Validator>[1].PublicKey,
-                TestUtils.ImmutableSortedSet<Validator>[1].Power,
+                TestUtils.Validators[1].PublicKey,
+                TestUtils.Validators[1].Power,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[1]));
             Assert.True(voteSet.HasOneThirdsAny());
             Assert.False(voteSet.HasTwoThirdsAny());
@@ -51,8 +51,8 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 DateTimeOffset.UtcNow,
-                TestUtils.ImmutableSortedSet<Validator>[2].PublicKey,
-                TestUtils.ImmutableSortedSet<Validator>[2].Power,
+                TestUtils.Validators[2].PublicKey,
+                TestUtils.Validators[2].Power,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[2]));
             Assert.True(voteSet.HasOneThirdsAny());
             Assert.True(voteSet.HasTwoThirdsAny());
@@ -65,8 +65,8 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 blockHash,
                 DateTimeOffset.UtcNow,
-                TestUtils.ImmutableSortedSet<Validator>[3].PublicKey,
-                TestUtils.ImmutableSortedSet<Validator>[3].Power,
+                TestUtils.Validators[3].PublicKey,
+                TestUtils.Validators[3].Power,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[3]));
             Assert.True(voteSet.HasOneThirdsAny());
             Assert.True(voteSet.HasTwoThirdsAny());

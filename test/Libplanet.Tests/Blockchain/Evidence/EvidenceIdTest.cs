@@ -1,3 +1,4 @@
+using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
 using Xunit;
 using static Libplanet.Tests.TestUtils;
@@ -80,32 +81,9 @@ namespace Libplanet.Tests.Blockchain.Evidence
             var evidenceId = new EvidenceId(expectedBytes);
 
             // Then
-            var actualBytes = evidenceId.ToByteArray();
+            var actualBytes = evidenceId.ByteArray.ToArray();
 
             Assert.Equal(expectedBytes, actualBytes);
-        }
-
-        [Fact]
-        public void ToByteArray_ShouldNotExposeContents_Test()
-        {
-            // Given
-            var bytes = new byte[]
-            {
-                0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
-                0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                0x9c, 0xcc,
-            };
-            var evidenceId = new EvidenceId(bytes);
-            var index = Random.Shared.Next(bytes.Length);
-            var expectedByte = bytes[index];
-
-            // When
-            evidenceId.ToByteArray()[index] = 0x00;
-
-            // Then
-            var actualByte = evidenceId.ToByteArray()[index];
-            Assert.Equal(expectedByte, actualByte);
         }
 
         [Fact]
@@ -233,7 +211,8 @@ namespace Libplanet.Tests.Blockchain.Evidence
         public void Bencoded_Test()
         {
             var expectedEvidenceId = new EvidenceId(GetRandomBytes(EvidenceId.Size));
-            var actualEvidenceId = new EvidenceId(expectedEvidenceId.Bencoded);
+            var actualEvidenceId = ModelSerializer.Deserialize<EvidenceId>(
+                ModelSerializer.Serialize(expectedEvidenceId));
             Assert.Equal(expectedEvidenceId, actualEvidenceId);
         }
 
@@ -241,7 +220,8 @@ namespace Libplanet.Tests.Blockchain.Evidence
         public void Bencoded_WithDefaultInstance_Test()
         {
             var expectedEvidenceId = default(EvidenceId);
-            var actualEvidenceId = new EvidenceId(expectedEvidenceId.Bencoded);
+            var actualEvidenceId = ModelSerializer.Deserialize<EvidenceId>(
+                ModelSerializer.Serialize(expectedEvidenceId));
             Assert.Equal(expectedEvidenceId, actualEvidenceId);
         }
 

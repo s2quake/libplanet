@@ -1,6 +1,5 @@
 using System.Numerics;
 using Libplanet.Blockchain;
-using Libplanet.Blocks;
 using Libplanet.Crypto;
 using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Types.Blocks;
@@ -394,27 +393,34 @@ namespace Libplanet.Tests.Blockchain
             var key = TestUtils.ValidatorPrivateKeys.First();
             var proposer = key;
             var blockChain = _blockChain;
-            var voteRef = new VoteMetadata(
-                height: blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
-            var voteDup = new VoteMetadata(
-                height: blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
-            var evidence = new DuplicateVoteEvidence(
-                voteRef,
-                voteDup,
-                TestUtils.ImmutableSortedSet<Validator>,
-                voteDup.Timestamp);
+            var voteRef = new VoteMetadata
+            {
+                Height = blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
+            var voteDup = new VoteMetadata
+            {
+                Height = blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
+            var evidence = new DuplicateVoteEvidence
+            {
+                VoteRef = voteRef,
+                VoteDup = voteDup,
+                ValidatorPower = TestUtils.Validators.GetValidator(voteRef.ValidatorPublicKey).Power,
+                TotalPower = TestUtils.Validators.GetTotalPower(),
+                Timestamp = voteDup.Timestamp,
+            };
 
             Assert.Empty(blockChain.GetPendingEvidence());
             Assert.False(blockChain.IsEvidencePending(evidence.Id));
@@ -440,26 +446,30 @@ namespace Libplanet.Tests.Blockchain
         {
             var key = TestUtils.ValidatorPrivateKeys.First();
             var blockChain = _blockChain;
-            var voteRef = new VoteMetadata(
-                height: blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
-            var voteDup = new VoteMetadata(
-                height: blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
-            var evidence = new DuplicateVoteEvidence(
+            var voteRef = new VoteMetadata
+            {
+                Height = blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
+            var voteDup = new VoteMetadata
+            {
+                Height = blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
+            var evidence = DuplicateVoteEvidence.Create(
                 voteRef,
                 voteDup,
-                TestUtils.ImmutableSortedSet<Validator>,
+                TestUtils.Validators,
                 voteDup.Timestamp);
 
             Assert.Empty(blockChain.GetPendingEvidence());
@@ -477,22 +487,26 @@ namespace Libplanet.Tests.Blockchain
         public void AddEvidence_DuplicateVoteEvidence_FromNonValidator_ThrowTest()
         {
             var key = new PrivateKey();
-            var voteRef = new VoteMetadata(
-                height: _blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
-            var voteDup = new VoteMetadata(
-                height: _blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
+            var voteRef = new VoteMetadata
+            {
+                Height = _blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
+            var voteDup = new VoteMetadata
+            {
+                Height = _blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
             var evidence = new DuplicateVoteEvidence(
                 voteRef,
                 voteDup,
@@ -537,7 +551,7 @@ namespace Libplanet.Tests.Blockchain
             var evidence = new DuplicateVoteEvidence(
                 voteRef,
                 voteDup,
-                TestUtils.ImmutableSortedSet<Validator>,
+                TestUtils.Validators,
                 voteDup.Timestamp);
 
             Assert.Empty(blockChain.GetPendingEvidence());

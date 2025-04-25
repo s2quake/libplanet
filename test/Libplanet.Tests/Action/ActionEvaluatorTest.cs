@@ -524,9 +524,9 @@ namespace Libplanet.Tests.Action
                 GenesisProposer,
                 block1Txs);
             IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
-            var evals = actionEvaluator.Evaluate(
+            var evals = actionEvaluator.EvaluateBlock(
                 block1.RawBlock,
-                previousState.Trie.Hash).ToImmutableArray();
+                previousState).ToImmutableArray();
             // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
             // have to be updated, since the order may change due to different RawHash.
             (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[] expectations =
@@ -582,7 +582,7 @@ namespace Libplanet.Tests.Action
 
             previousState = stateStore.GetWorld(genesis.StateRootHash);
             ActionEvaluation[] evals1 =
-                actionEvaluator.Evaluate(block1.RawBlock, previousState.Trie.Hash).ToArray();
+                actionEvaluator.EvaluateBlock(block1.RawBlock, previousState).ToArray();
             var output1 = new WorldBaseState(evals1.Last().OutputState.Trie, stateStore);
             Assert.Equal(
                 (Text)"A",
@@ -669,9 +669,9 @@ namespace Libplanet.Tests.Action
 
             // Forcefully reset to null delta
             previousState = evals1.Last().OutputState;
-            evals = actionEvaluator.Evaluate(
+            evals = actionEvaluator.EvaluateBlock(
                 block2.RawBlock,
-                previousState.Trie.Hash).ToImmutableArray();
+                previousState).ToImmutableArray();
 
             // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
             // have to be updated, since the order may change due to different RawHash.
@@ -728,7 +728,7 @@ namespace Libplanet.Tests.Action
             }
 
             previousState = evals1.Last().OutputState;
-            var evals2 = actionEvaluator.Evaluate(block2, previousState.Trie.Hash).ToArray();
+            var evals2 = actionEvaluator.EvaluateBlock(block2.RawBlock, previousState).ToArray();
             var output2 = new WorldBaseState(evals2.Last().OutputState.Trie, stateStore);
             Assert.Equal(
                 (Text)"A,D",
@@ -1514,7 +1514,7 @@ namespace Libplanet.Tests.Action
                 stateStore: fx.StateStore,
                 isPolicyAction: false).ToArray();
 
-            byte[] preEvaluationHashBytes = blockA.RawHash.ToByteArray();
+            byte[] preEvaluationHashBytes = blockA.RawHash.ByteArray.ToArray();
             int[] randomSeeds = Enumerable
                 .Range(0, txA.Actions.Length)
                 .Select(offset => ActionEvaluator.GenerateRandomSeed(

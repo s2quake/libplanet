@@ -1,8 +1,8 @@
 using System.Numerics;
-using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Nito.AsyncEx;
@@ -63,14 +63,16 @@ namespace Libplanet.Net.Tests.Consensus
             // Enough votes are present to proceed even without Peer3's vote.
             for (int i = 0; i < 2; i++)
             {
-                expectedVotes[i] = new VoteMetadata(
-                    1,
-                    0,
-                    block1.Hash,
-                    DateTimeOffset.UtcNow,
-                    TestUtils.ImmutableSortedSet<Validator>[i].PublicKey,
-                    TestUtils.ImmutableSortedSet<Validator>[i].Power,
-                    VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[i]);
+                expectedVotes[i] = new VoteMetadata
+                {
+                    Height = 1,
+                    Round = 0,
+                    BlockHash = block1.Hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = TestUtils.Validators[i].PublicKey,
+                    ValidatorPower = TestUtils.Validators[i].Power,
+                    Flag = VoteFlag.PreVote,
+                }.Sign(TestUtils.PrivateKeys[i]);
                 consensusContext.HandleMessage(new ConsensusPreVoteMsg(expectedVotes[i]));
             }
 
@@ -78,22 +80,24 @@ namespace Libplanet.Net.Tests.Consensus
             // Enough votes are present to proceed even without Peer3's vote.
             for (int i = 0; i < 2; i++)
             {
-                expectedVotes[i] = new VoteMetadata(
-                    1,
-                    0,
-                    block1.Hash,
-                    DateTimeOffset.UtcNow,
-                    TestUtils.ImmutableSortedSet<Validator>[i].PublicKey,
-                    TestUtils.ImmutableSortedSet<Validator>[i].Power,
-                    VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[i]);
+                expectedVotes[i] = new VoteMetadata
+                {
+                    Height = 1,
+                    Round = 0,
+                    BlockHash = block1.Hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = TestUtils.Validators[i].PublicKey,
+                    ValidatorPower = TestUtils.Validators[i].Power,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(TestUtils.PrivateKeys[i]);
                 consensusContext.HandleMessage(new ConsensusPreCommitMsg(expectedVotes[i]));
             }
 
             await heightTwoProposalSent.WaitAsync();
             Assert.NotNull(proposal);
 
-            Block proposedBlock = BlockMarshaler.UnmarshalBlock(
-                (Dictionary)codec.Decode(proposal!.Proposal.MarshaledBlock));
+            Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
+                proposal!.Proposal.MarshaledBlock);
             ImmutableArray<Vote> votes = proposedBlock.LastCommit?.Votes is { } vs
                 ? vs
                 : throw new NullReferenceException();
@@ -176,7 +180,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             foreach ((PrivateKey privateKey, BigInteger power)
                      in TestUtils.PrivateKeys.Zip(
-                         TestUtils.ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
+                         TestUtils.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == TestUtils.PrivateKeys[2])
@@ -187,19 +191,21 @@ namespace Libplanet.Net.Tests.Consensus
 
                 consensusContext.HandleMessage(
                     new ConsensusPreVoteMsg(
-                        new VoteMetadata(
-                            2,
-                            0,
-                            proposal!.BlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            power,
-                            VoteFlag.PreVote).Sign(privateKey)));
+                        new VoteMetadata
+                        {
+                            Height = 2,
+                            Round = 0,
+                            BlockHash = proposal!.BlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = privateKey.PublicKey,
+                            ValidatorPower = power,
+                            Flag = VoteFlag.PreVote,
+                        }.Sign(privateKey)));
             }
 
             foreach ((PrivateKey privateKey, BigInteger power)
                      in TestUtils.PrivateKeys.Zip(
-                         TestUtils.ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
+                         TestUtils.Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == TestUtils.PrivateKeys[2])
@@ -210,21 +216,22 @@ namespace Libplanet.Net.Tests.Consensus
 
                 consensusContext.HandleMessage(
                     new ConsensusPreCommitMsg(
-                        new VoteMetadata(
-                            2,
-                            0,
-                            proposal!.BlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            power,
-                            VoteFlag.PreCommit).Sign(privateKey)));
+                        new VoteMetadata
+                        {
+                            Height = 2,
+                            Round = 0,
+                            BlockHash = proposal!.BlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = privateKey.PublicKey,
+                            ValidatorPower = power,
+                            Flag = VoteFlag.PreCommit,
+                        }.Sign(privateKey)));
             }
 
             await heightTwoStepChangedToEndCommit.WaitAsync();
 
-            var blockHeightTwo =
-                BlockMarshaler.UnmarshalBlock(
-                    (Dictionary)codec.Decode(proposal.Proposal.MarshaledBlock));
+            var blockHeightTwo = ModelSerializer.DeserializeFromBytes<Block>(
+                proposal.Proposal.MarshaledBlock);
             var blockHeightThree = blockChain.ProposeBlock(
                 TestUtils.PrivateKeys[3],
                 TestUtils.CreateBlockCommit(blockHeightTwo));
@@ -258,8 +265,8 @@ namespace Libplanet.Net.Tests.Consensus
                 if (eventArgs.Height == 2 &&
                     eventArgs.Message is ConsensusProposalMsg propose)
                 {
-                    proposedBlock = BlockMarshaler.UnmarshalBlock(
-                        (Dictionary)codec.Decode(propose!.Proposal.MarshaledBlock));
+                    proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
+                        propose!.Proposal.MarshaledBlock);
                     heightTwoProposalSent.Set();
                 }
             };

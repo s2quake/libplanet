@@ -430,7 +430,7 @@ namespace Libplanet.Tests.Blockchain
 
             var invalidValidator = new PrivateKey();
             var validators = TestUtils.ValidatorPrivateKeys.Append(invalidValidator).ToList();
-            var validatorPowers = TestUtils.ImmutableSortedSet<Validator>.Validators.Select(v => v.Power)
+            var validatorPowers = TestUtils.Validators.Select(v => v.Power)
                 .Append(BigInteger.One)
                 .ToList();
             var votes = Enumerable.Range(0, validators.Count).Select(index => new VoteMetadata(
@@ -482,7 +482,7 @@ namespace Libplanet.Tests.Blockchain
                 block1.Hash,
                 DateTimeOffset.UtcNow,
                 key.PublicKey,
-                TestUtils.ImmutableSortedSet<Validator>.GetValidator(key.PublicKey).Power,
+                TestUtils.Validators.GetValidator(key.PublicKey).Power,
                 VoteFlag.PreCommit).Sign(key)).ToImmutableArray();
             var blockCommit = new BlockCommit(1, 0, block1.Hash, votes);
             Block block2 = _blockChain.EvaluateAndSign(
@@ -519,7 +519,7 @@ namespace Libplanet.Tests.Blockchain
                         _fx.GenesisBlock.Hash,
                         DateTimeOffset.UtcNow,
                         x.PublicKey,
-                        TestUtils.ImmutableSortedSet<Validator>.GetValidator(x.PublicKey).Power,
+                        TestUtils.Validators.GetValidator(x.PublicKey).Power,
                         VoteFlag.PreCommit).Sign(x)).ToImmutableArray())));
         }
 
@@ -593,7 +593,7 @@ namespace Libplanet.Tests.Blockchain
                         1,
                         0,
                         validNextBlock.Hash,
-                        Enumerable.Range(0, TestUtils.ImmutableSortedSet<Validator>.TotalCount)
+                        Enumerable.Range(0, TestUtils.Validators.TotalCount)
                             .Select(x => new PrivateKey())
                             .Select(x => new VoteMetadata(
                             1,

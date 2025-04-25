@@ -93,10 +93,10 @@ public abstract class StoreFixture : IDisposable
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
         var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
         Proposer = TestUtils.GenesisProposer;
-        ProposerPower = TestUtils.ImmutableSortedSet<Validator>[0].Power;
+        ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(
             proposer: Proposer.PublicKey,
-            validatorSet: TestUtils.ImmutableSortedSet<Validator>);
+            validatorSet: TestUtils.Validators);
         var actionEvaluator = new ActionEvaluator(
             policyActionsRegistry ?? new PolicyActionsRegistry(),
             stateStore,
