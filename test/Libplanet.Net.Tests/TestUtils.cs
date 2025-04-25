@@ -14,6 +14,7 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Tests;
@@ -41,7 +42,8 @@ namespace Libplanet.Net.Tests
             new BoundPeer(PrivateKeys[3].PublicKey, new DnsEndPoint("1.0.0.3", 1003)),
         };
 
-        public static readonly ImmutableSortedSet<Validator> ImmutableSortedSet<Validator> = Libplanet.Tests.TestUtils.ImmutableSortedSet<Validator>;
+        public static readonly ImmutableSortedSet<Validator> Validators
+            = Libplanet.Tests.TestUtils.Validators;
 
         public static readonly IBlockPolicy Policy = new BlockPolicy(
             new PolicyActionsRegistry(
@@ -65,14 +67,16 @@ namespace Libplanet.Net.Tests
             int round,
             BlockHash hash,
             VoteFlag flag) =>
-            new VoteMetadata(
-                height,
-                round,
-                hash,
-                DateTimeOffset.Now,
-                privateKey.PublicKey,
-                power,
-                flag).Sign(privateKey);
+            new VoteMetadata
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Timestamp = DateTimeOffset.Now,
+                ValidatorPublicKey = privateKey.PublicKey,
+                ValidatorPower = power,
+                Flag = flag,
+            }.Sign(privateKey);
 
         public static PrivateKey GeneratePrivateKeyOfBucketIndex(Address tableAddress, int target)
         {
@@ -119,7 +123,7 @@ namespace Libplanet.Net.Tests
                     round,
                     DateTimeOffset.UtcNow,
                     privateKey.PublicKey,
-                    codec.Encode(block.MarshalBlock()),
+                    ModelSerializer.SerializeToBytes(block),
                     validRound).Sign(privateKey));
         }
 
@@ -136,7 +140,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
+                         Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -146,14 +150,16 @@ namespace Libplanet.Net.Tests
 
                 consensusContext.HandleMessage(
                     new ConsensusPreCommitMsg(
-                        new VoteMetadata(
-                            consensusContext.Height,
-                            (int)consensusContext.Round,
-                            roundBlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            power,
-                            VoteFlag.PreCommit).Sign(privateKey)));
+                        new VoteMetadata
+                        {
+                            Height = consensusContext.Height,
+                            Round = consensusContext.Round,
+                            BlockHash = roundBlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = privateKey.PublicKey,
+                            ValidatorPower = power,
+                            Flag = VoteFlag.PreCommit,
+                        }.Sign(privateKey)));
             }
         }
 
@@ -164,7 +170,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
+                         Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -174,14 +180,16 @@ namespace Libplanet.Net.Tests
 
                 context.ProduceMessage(
                     new ConsensusPreCommitMsg(
-                        new VoteMetadata(
-                            context.Height,
-                            context.Round,
-                            roundBlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            power,
-                            VoteFlag.PreCommit).Sign(privateKey)));
+                        new VoteMetadata
+                        {
+                            Height = context.Height,
+                            Round = context.Round,
+                            BlockHash = roundBlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = privateKey.PublicKey,
+                            ValidatorPower = power,
+                            Flag = VoteFlag.PreCommit,
+                        }.Sign(privateKey)));
             }
         }
 
@@ -192,7 +200,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
+                         Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -202,14 +210,16 @@ namespace Libplanet.Net.Tests
 
                 context.ProduceMessage(
                     new ConsensusPreVoteMsg(
-                        new VoteMetadata(
-                            context.Height,
-                            context.Round,
-                            roundBlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            power,
-                            VoteFlag.PreVote).Sign(privateKey)));
+                        new VoteMetadata
+                        {
+                            Height = context.Height,
+                            Round = context.Round,
+                            BlockHash = roundBlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = privateKey.PublicKey,
+                            ValidatorPower = power,
+                            Flag = VoteFlag.PreVote,
+                        }.Sign(privateKey)));
             }
         }
 
@@ -220,7 +230,7 @@ namespace Libplanet.Net.Tests
         {
             foreach ((PrivateKey privateKey, BigInteger power)
                      in PrivateKeys.Zip(
-                         ImmutableSortedSet<Validator>.Validators.Select(v => v.Power),
+                         Validators.Select(v => v.Power),
                          (first, second) => (first, second)))
             {
                 if (privateKey == nodePrivateKey)
@@ -230,14 +240,16 @@ namespace Libplanet.Net.Tests
 
                 consensusContext.HandleMessage(
                     new ConsensusPreVoteMsg(
-                        new VoteMetadata(
-                            consensusContext.Height,
-                            (int)consensusContext.Round,
-                            roundBlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            power,
-                            VoteFlag.PreVote).Sign(privateKey)));
+                        new VoteMetadata
+                        {
+                            Height = consensusContext.Height,
+                            Round = consensusContext.Round,
+                            BlockHash = roundBlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = privateKey.PublicKey,
+                            ValidatorPower = power,
+                            Flag = VoteFlag.PreVote,
+                        }.Sign(privateKey)));
             }
         }
 

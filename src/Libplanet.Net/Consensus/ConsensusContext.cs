@@ -112,7 +112,7 @@ namespace Libplanet.Net.Consensus
         /// <returns>If there is <see cref="Context"/> for <see cref="Height"/> returns the round
         /// of current <see cref="Context"/>, or otherwise returns -1.
         /// </returns>
-        public long Round => CurrentContext.Round;
+        public int Round => CurrentContext.Round;
 
         /// <summary>
         /// The current step of <see cref="Context"/> in current <see cref="Height"/>.
