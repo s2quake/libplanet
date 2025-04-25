@@ -16,7 +16,6 @@ namespace Libplanet.Net.Tests.Consensus
     public class DuplicateVoteEvidenceTest
     {
         private const int Timeout = 30000;
-        private static readonly Codec _codec = new Codec();
         private readonly ILogger _logger;
 
         public DuplicateVoteEvidenceTest(ITestOutputHelper output)

@@ -1585,34 +1585,6 @@ namespace Libplanet.Tests.Action
             return (addresses, txs);
         }
 
-        private sealed class ModernAction : IAction
-        {
-            public static readonly Address AccountAddress
-                = Address.Parse("1230000000000000000000000000000000000000");
-
-            public static readonly Address Address
-                = Address.Parse("1234000000000000000000000000000000000000");
-
-            public string Memo { get; set; }
-
-            public IValue PlainValue => new List((Text)Memo);
-
-            public void LoadPlainValue(IValue plainValue)
-            {
-                var asList = (List)plainValue;
-                Memo = ((Text)asList[0]).Value;
-            }
-
-            public IWorld Execute(IActionContext context)
-            {
-                return context.PreviousState
-                    .SetAccount(
-                        AccountAddress,
-                        context.PreviousState.GetAccount(AccountAddress)
-                            .SetState(Address, (Text)Memo));
-            }
-        }
-
         private sealed class UseGasAction : IAction
         {
             public long GasUsage { get; set; }

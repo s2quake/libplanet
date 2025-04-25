@@ -18,9 +18,6 @@ namespace Libplanet.Tests.Blockchain.Renderers
         private static DumbBlock _blockA =
             TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposer);
 
-        private static DumbBlock _blockB =
-            TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposer);
-
         private ILogger _logger;
 
         private ITestCorrelatorContext _context;

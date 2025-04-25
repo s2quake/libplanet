@@ -39,7 +39,6 @@ namespace Libplanet.Net.Tests
     public partial class SwarmTest : IDisposable
     {
         private const int Timeout = 60 * 1000;
-        private const int DisposeTimeout = 5 * 1000;
 
         private readonly ITestOutputHelper _output;
         private readonly ILogger _logger;
@@ -1731,34 +1730,6 @@ namespace Libplanet.Net.Tests
             Log.Debug("TurnProxy is canceled");
 
             await Task.WhenAny(tasks);
-        }
-
-        private class Sleep : IAction
-        {
-            public IValue PlainValue => Null.Value;
-
-            public IWorld Execute(IActionContext context)
-            {
-                Thread.Sleep(10);
-                return context.PreviousState;
-            }
-
-            public void LoadPlainValue(IValue plainValue)
-            {
-            }
-        }
-
-        private class EmulatingUnstableGetBlockStore : ProxyStore
-        {
-            public EmulatingUnstableGetBlockStore(IStore store)
-                : base(store)
-            {
-            }
-
-            public bool BlockGettable { get; set; } = true;
-
-            public override Block GetBlock(BlockHash blockHash) =>
-                BlockGettable ? base.GetBlock(blockHash) : null;
         }
     }
 }

@@ -13,7 +13,6 @@ namespace Libplanet.Tests.Blocks
 {
     public class BlockCommitTest
     {
-        private static readonly Bencodex.Codec _codec = new Bencodex.Codec();
         private readonly ITestOutputHelper _output;
 
         public BlockCommitTest(ITestOutputHelper output)

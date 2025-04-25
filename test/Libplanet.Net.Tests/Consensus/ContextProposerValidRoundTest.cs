@@ -15,7 +15,6 @@ namespace Libplanet.Net.Tests.Consensus
     public class ContextProposerValidRoundTest
     {
         private const int Timeout = 30000;
-        private static Bencodex.Codec _codec = new Bencodex.Codec();
         private readonly ILogger _logger;
 
         public ContextProposerValidRoundTest(ITestOutputHelper output)

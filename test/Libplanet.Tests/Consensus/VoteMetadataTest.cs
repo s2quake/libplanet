@@ -9,7 +9,6 @@ namespace Libplanet.Tests.Consensus
 {
     public class VoteMetadataTest
     {
-        private static Bencodex.Codec _codec = new Bencodex.Codec();
 
         [Fact]
         public void NullBlockHashNotAllowedForNullAndUnknown()
