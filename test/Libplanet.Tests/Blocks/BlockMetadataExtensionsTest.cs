@@ -21,7 +21,7 @@ namespace Libplanet.Tests.Blocks
                 txHash: null,
                 lastCommit: null,
                 evidenceHash: null);
-            Assert.Throws<InvalidBlockTimestampException>(() => metadata.ValidateTimestamp(now));
+            Assert.Throws<InvalidOperationException>(() => metadata.ValidateTimestamp(now));
 
             // It's okay because 3 seconds later.
             metadata.ValidateTimestamp(now + TimeSpan.FromSeconds(3));

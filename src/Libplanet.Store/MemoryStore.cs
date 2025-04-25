@@ -142,7 +142,7 @@ public sealed class MemoryStore : IStore
             .ToImmutableArray();
         IEnumerable<EvidenceBase> evidence
             = evidenceIds.Select(evId => _committedEvidence[evId]);
-        return new Block(header, txs, evidence);
+        return Block.Create(header, [.. txs], [.. evidence]);
     }
 
     long? IStore.GetBlockIndex(BlockHash blockHash) =>

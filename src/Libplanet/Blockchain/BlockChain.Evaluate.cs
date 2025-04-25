@@ -83,10 +83,10 @@ namespace Libplanet.Blockchain
         public IReadOnlyList<ICommittedActionEvaluation> EvaluateBlock(Block block) =>
             block.ProtocolVersion >= BlockMetadata.SlothProtocolVersion
                 ? ActionEvaluator.Evaluate(
-                    block,
+                    block.RawBlock,
                     Store.GetStateRootHash(block.Hash))
                 : ActionEvaluator.Evaluate(
-                    block,
+                    block.RawBlock,
                     Store.GetStateRootHash(block.PreviousHash));
 
         /// <summary>

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Common;
+using Libplanet.Serialization;
 
 namespace Libplanet.Store.Trie.Nodes;
 
@@ -23,7 +24,7 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
         }
     }
 
-    public IValue ToBencodex() => Hash.Bencoded;
+    public IValue ToBencodex() => ModelSerializer.Serialize(Hash);
 
     public override int GetHashCode() => Hash.GetHashCode();
 

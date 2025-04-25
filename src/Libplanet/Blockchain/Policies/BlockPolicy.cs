@@ -1,6 +1,6 @@
 using System.Diagnostics.Contracts;
 using Libplanet.Action;
-using Libplanet.Blocks;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
@@ -17,7 +17,7 @@ namespace Libplanet.Blockchain.Policies
         private readonly Func<BlockChain, Transaction, TxPolicyViolationException?>
             _validateNextBlockTx;
 
-        private readonly Func<BlockChain, Block, BlockPolicyViolationException?>
+        private readonly Func<BlockChain, Block, Exception?>
             _validateNextBlock;
 
         private readonly IPolicyActionsRegistry _policyActionsRegistry;
@@ -75,7 +75,7 @@ namespace Libplanet.Blockchain.Policies
             TimeSpan? blockInterval = null,
             Func<BlockChain, Transaction, TxPolicyViolationException?>?
                 validateNextBlockTx = null,
-            Func<BlockChain, Block, BlockPolicyViolationException?>?
+            Func<BlockChain, Block, Exception?>?
                 validateNextBlock = null,
             Func<long, long>? getMaxTransactionsBytes = null,
             Func<long, int>? getMinTransactionsPerBlock = null,
@@ -108,32 +108,29 @@ namespace Libplanet.Blockchain.Policies
                         GetMaxTransactionsPerSignerPerBlock(block.Index);
                     long maxEvidencePendingDuration = GetMaxEvidencePendingDuration(block.Index);
 
-                    long blockBytes = BlockMarshaler.MarshalTransactions(block.Transactions)
+                    long blockBytes = ModelSerializer.Serialize(block.Transactions)
                         .EncodingLength;
                     if (blockBytes > maxTransactionsBytes)
                     {
-                        return new InvalidBlockBytesLengthException(
+                        return new InvalidOperationException(
                             $"The size of block #{block.Index} {block.Hash} is too large where " +
                             $"the maximum number of bytes allowed is {maxTransactionsBytes}: " +
-                            $"{blockBytes}.",
-                            blockBytes
+                            $"{blockBytes}."
                         );
                     }
                     else if (block.Transactions.Count < minTransactionsPerBlock)
                     {
-                        return new InvalidBlockTxCountException(
+                        return new InvalidOperationException(
                             $"Block #{block.Index} {block.Hash} should include " +
                             $"at least {minTransactionsPerBlock} transaction(s): " +
-                            $"{block.Transactions.Count}",
-                            block.Transactions.Count);
+                            $"{block.Transactions.Count}");
                     }
                     else if (block.Transactions.Count > maxTransactionsPerBlock)
                     {
-                        return new InvalidBlockTxCountException(
+                        return new InvalidOperationException(
                             $"Block #{block.Index} {block.Hash} should include " +
                             $"at most {maxTransactionsPerBlock} transaction(s): " +
-                            $"{block.Transactions.Count}",
-                            block.Transactions.Count);
+                            $"{block.Transactions.Count}");
                     }
                     else
                     {
@@ -143,21 +140,19 @@ namespace Libplanet.Blockchain.Policies
                         if (groups.FirstOrDefault() is { } offendingGroup)
                         {
                             int offendingGroupCount = offendingGroup.Count();
-                            return new InvalidBlockTxCountPerSignerException(
+                            return new InvalidOperationException(
                                 $"Block #{block.Index} {block.Hash} includes too many " +
                                 $"transactions from signer {offendingGroup.Key} where " +
                                 $"the maximum number of transactions allowed by a single signer " +
                                 $"per block is {maxTransactionsPerSignerPerBlock}: " +
-                                $"{offendingGroupCount}",
-                                offendingGroup.Key,
-                                offendingGroupCount);
+                                $"{offendingGroupCount}");
                         }
                     }
 
                     long evidenceExpirationHeight = block.Index - maxEvidencePendingDuration;
                     if (block.Evidence.Any(evidence => evidence.Height < evidenceExpirationHeight))
                     {
-                        return new InvalidBlockEvidencePendingDurationException(
+                        return new InvalidOperationException(
                             $"Block #{block.Index} {block.Hash} includes evidence" +
                             $"that is older than expiration height {evidenceExpirationHeight}");
                     }
@@ -180,7 +175,7 @@ namespace Libplanet.Blockchain.Policies
             return _validateNextBlockTx(blockChain, transaction);
         }
 
-        public virtual BlockPolicyViolationException? ValidateNextBlock(
+        public virtual Exception? ValidateNextBlock(
         BlockChain blockChain,
         Block nextBlock)
         {

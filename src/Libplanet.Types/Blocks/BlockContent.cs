@@ -9,10 +9,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockContent(
-    [property: Property(0)] BlockMetadata Metadata,
-    [property: Property(1)] ImmutableSortedSet<Transaction> Transactions,
-    [property: Property(2)] ImmutableSortedSet<EvidenceBase> Evidence)
+public sealed record class BlockContent
     : IValidatableObject
 {
     // public BlockContent(
@@ -53,6 +50,15 @@ public sealed record class BlockContent(
     //     _evidence = evidence;
     // }
 
+    [Property(0)]
+    public required BlockMetadata Metadata { get; init; }
+
+    [Property(1)]
+    public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
+
+    [Property(2)]
+    public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
+
     public int ProtocolVersion => Metadata.ProtocolVersion;
 
     public long Index => Metadata.Index;
@@ -71,7 +77,7 @@ public sealed record class BlockContent(
 
     public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
-    public static HashDigest<SHA256>? DeriveTxHash(IEnumerable<Transaction> transactions)
+    public static HashDigest<SHA256> DeriveTxHash(IEnumerable<Transaction> transactions)
     {
         TxId? prevId = null;
         SHA256 hasher = SHA256.Create();
@@ -95,7 +101,7 @@ public sealed record class BlockContent(
 
         if (prevId is null)
         {
-            return null;
+            return default;
         }
 
         hasher.TransformFinalBlock(new byte[] { 0x65 }, 0, 1);  // "e"
@@ -104,7 +110,7 @@ public sealed record class BlockContent(
             return new HashDigest<SHA256>(hash);
         }
 
-        return null;
+        return default;
     }
 
     public static HashDigest<SHA256>? DeriveEvidenceHash(IEnumerable<EvidenceBase> evidence)
@@ -147,7 +153,7 @@ public sealed record class BlockContent(
     {
         var preEvaluationHash = Metadata.DerivePreEvaluationHash();
         var header = new RawBlockHeader(Metadata, preEvaluationHash);
-        return new RawBlock(this, header);
+        return new RawBlock { Header = header, Content = this };
     }
 
     private static void ValidateEvidence(

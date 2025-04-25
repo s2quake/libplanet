@@ -147,7 +147,7 @@ namespace Libplanet.Tests.Blockchain
                             _validNext.PreviousHash, 1, 0),
                         evidenceHash: null)).Propose(),
                 _fx.Proposer);
-            Assert.Throws<InvalidBlockPreviousHashException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                     _blockChain.Append(
                         invalidPreviousHashBlock,
                         TestUtils.CreateBlockCommit(invalidPreviousHashBlock)));
@@ -169,7 +169,7 @@ namespace Libplanet.Tests.Blockchain
                         lastCommit: TestUtils.CreateBlockCommit(_validNext),
                         evidenceHash: null)).Propose(),
                 _fx.Proposer);
-            Assert.Throws<InvalidBlockTimestampException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                     _blockChain.Append(
                         invalidPreviousTimestamp,
                         TestUtils.CreateBlockCommit(invalidPreviousTimestamp)));
@@ -235,7 +235,7 @@ namespace Libplanet.Tests.Blockchain
                         evidenceHash: null)).Propose(),
                 TestUtils.GenesisProposer);
 
-            Assert.Throws<InvalidBlockStateRootHashException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
 
             chain1.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -301,7 +301,7 @@ namespace Libplanet.Tests.Blockchain
                     stateStore,
                     new SingleActionLoader(typeof(DumbAction))));
 
-            Assert.Throws<InvalidBlockStateRootHashException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
 
             chain1.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -356,7 +356,7 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.GenesisProposer,
                 actionEvaluator.Evaluate(preBlock1, genesisBlock.StateRootHash).Last().OutputState);
 
-            Assert.Throws<InvalidBlockStateRootHashException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                 chain.Append(block2, TestUtils.CreateBlockCommit(block2)));
 
             chain.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -454,7 +454,7 @@ namespace Libplanet.Tests.Blockchain
                         lastCommit: blockCommit,
                         evidenceHash: null)).Propose(),
                 _fx.Proposer);
-            Assert.Throws<InvalidBlockLastCommitException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
         }
 
@@ -496,7 +496,7 @@ namespace Libplanet.Tests.Blockchain
                         lastCommit: blockCommit,
                         evidenceHash: null)).Propose(),
                 _fx.Proposer);
-            Assert.Throws<InvalidBlockLastCommitException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
         }
 
@@ -778,7 +778,7 @@ namespace Libplanet.Tests.Blockchain
 
             Assert.NotEqual(_validNext, newValidNext);
 
-            Assert.Throws<InvalidBlockStateRootHashException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
                 newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext)));
 
             newChain.Append(newValidNext, TestUtils.CreateBlockCommit(newValidNext));

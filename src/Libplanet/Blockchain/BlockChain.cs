@@ -175,10 +175,8 @@ namespace Libplanet.Blockchain
                     "store which is incompatible with this chain.  Or your network might " +
                     "restarted the chain with a new genesis block so that it is incompatible " +
                     "with your existing chain in the local store.";
-                throw new InvalidGenesisBlockException(
-                    message: msg,
-                    networkExpected: genesisBlock.Hash,
-                    stored: Genesis.Hash
+                throw new InvalidOperationException(
+                    message: msg
                 );
             }
 
@@ -394,18 +392,24 @@ namespace Libplanet.Blockchain
 
             if (genesisBlock.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
             {
-                var preEval = new RawBlock(
-                    genesisBlock.Header, genesisBlock.Transactions, genesisBlock.Evidence);
+                var preEval = new RawBlock
+                {
+                    Content = new BlockContent
+                    {
+                        Metadata = genesisBlock.RawBlock.Header.Metadata,
+                        Transactions = genesisBlock.Transactions,
+                        Evidence = genesisBlock.Evidence,
+                    },
+                    Header = genesisBlock.RawBlock.Header,
+                };
                 var computedStateRootHash =
                     actionEvaluator.Evaluate(preEval, default).Last().OutputState;
                 if (!genesisBlock.StateRootHash.Equals(computedStateRootHash))
                 {
-                    throw new InvalidBlockStateRootHashException(
+                    throw new InvalidOperationException(
                         $"Given block #{genesisBlock.Index} {genesisBlock.Hash} has " +
                         $"a state root hash {genesisBlock.StateRootHash} that is different " +
-                        $"from the calculated state root hash {computedStateRootHash}",
-                        genesisBlock.StateRootHash,
-                        computedStateRootHash);
+                        $"from the calculated state root hash {computedStateRootHash}");
                 }
             }
 
@@ -1335,14 +1339,13 @@ namespace Libplanet.Blockchain
 
             if (GetBlockCommit(index) is { } commit)
             {
-                var validatorList = commit.Votes.Select(CreateValidator).ToList();
-                return new ImmutableSortedSet<Validator>(validatorList);
+                return [.. commit.Votes.Select(CreateValidator)];
             }
 
             throw new ArgumentException("Cannot find a validator set for the given index.");
 
             static Validator CreateValidator(Vote vote)
-                => new Validator(vote.ValidatorPublicKey, vote.ValidatorPower ?? 0);
+                => new Validator(vote.ValidatorPublicKey, vote.ValidatorPower);
         }
 
         private HashDigest<SHA256>? GetNextStateRootHash(Block block)

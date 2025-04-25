@@ -62,23 +62,22 @@ namespace Libplanet.Blockchain
             const int currentProtocolVersion = Block.CurrentProtocolVersion;
             if (block.ProtocolVersion > Block.CurrentProtocolVersion)
             {
-                throw new InvalidBlockProtocolVersionException(
+                throw new InvalidOperationException(
                     $"The protocol version ({actualProtocolVersion}) of the block " +
                     $"#{block.Index} {block.Hash} is not supported by this node." +
-                    $"The highest supported protocol version is {currentProtocolVersion}.",
-                    actualProtocolVersion);
+                    $"The highest supported protocol version is {currentProtocolVersion}.");
             }
 
             if (block.PreviousHash != default)
             {
-                throw new InvalidBlockPreviousHashException(
+                throw new InvalidOperationException(
                     "A genesis block should not have previous hash, " +
                     $"but its value is {block.PreviousHash}.");
             }
 
             if (block.LastCommit is { } lastCommit)
             {
-                throw new InvalidBlockLastCommitException(
+                throw new InvalidOperationException(
                     "A genesis block should not have lastCommit, " +
                     $"but its value is {lastCommit}.");
             }
@@ -92,7 +91,7 @@ namespace Libplanet.Blockchain
             {
                 if (blockCommit is { })
                 {
-                    throw new InvalidBlockCommitException(
+                    throw new InvalidOperationException(
                         "PoW Block doesn't have blockCommit.");
                 }
                 else
@@ -106,7 +105,7 @@ namespace Libplanet.Blockchain
             {
                 if (blockCommit is { })
                 {
-                    throw new InvalidBlockCommitException(
+                    throw new InvalidOperationException(
                         "Genesis block does not have blockCommit.");
                 }
                 else
@@ -117,13 +116,13 @@ namespace Libplanet.Blockchain
 
             if (block.Index != 0 && blockCommit == null)
             {
-                throw new InvalidBlockCommitException(
+                throw new InvalidOperationException(
                     $"Block #{block.Hash} BlockCommit is required except for the genesis block.");
             }
 
             if (block.Index != blockCommit.Height)
             {
-                throw new InvalidBlockCommitException(
+                throw new InvalidOperationException(
                     "BlockCommit has height value that is not same with block height. " +
                     $"Block height is {block.Index}, however, BlockCommit height is " +
                     $"{blockCommit.Height}.");
@@ -131,7 +130,7 @@ namespace Libplanet.Blockchain
 
             if (!block.Hash.Equals(blockCommit.BlockHash))
             {
-                throw new InvalidBlockCommitException(
+                throw new InvalidOperationException(
                     $"BlockCommit has different block. Block hash is {block.Hash}, " +
                     $"however, BlockCommit block hash is {blockCommit.BlockHash}.");
             }
@@ -158,12 +157,12 @@ namespace Libplanet.Blockchain
                 (power, vote) => power + (vote.Flag == VoteFlag.PreCommit
                     ? validators.GetValidator(vote.ValidatorPublicKey).Power
                     : BigInteger.Zero));
-            if (validators.TwoThirdsPower >= commitPower)
+            if (validators.GetTwoThirdsPower() >= commitPower)
             {
-                throw new InvalidBlockCommitException(
+                throw new InvalidOperationException(
                     $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
                     $"has insufficient vote power {commitPower} compared to 2/3 of " +
-                    $"the total power {validators.TotalPower}");
+                    $"the total power {validators.GetTotalPower()}");
             }
         }
 
@@ -218,7 +217,7 @@ namespace Libplanet.Blockchain
             long index = Count;
             if (block.Index != index)
             {
-                throw new InvalidBlockIndexException(
+                throw new InvalidOperationException(
                     $"The expected index of block {block.Hash} is #{index}, " +
                     $"but its index is #{block.Index}.");
             }
@@ -234,9 +233,8 @@ namespace Libplanet.Blockchain
                     $"The protocol version ({actualProtocolVersion}) of the block " +
                     $"#{block.Index} {block.Hash} is not supported by this node." +
                     $"The highest supported protocol version is {currentProtocolVersion}.";
-                throw new InvalidBlockProtocolVersionException(
-                    message,
-                    actualProtocolVersion
+                throw new InvalidOperationException(
+                    message
                 );
             }
             else if (actualProtocolVersion < Tip.ProtocolVersion)
@@ -244,7 +242,7 @@ namespace Libplanet.Blockchain
                 string message =
                     "The protocol version is disallowed to be downgraded from the topmost block " +
                     $"in the chain ({actualProtocolVersion} < {Tip.ProtocolVersion}).";
-                throw new InvalidBlockProtocolVersionException(message, actualProtocolVersion);
+                throw new InvalidOperationException(message);
             }
 
             Block lastBlock = this[index - 1];
@@ -253,7 +251,7 @@ namespace Libplanet.Blockchain
 
             if (!block.PreviousHash.Equals(prevHash))
             {
-                throw new InvalidBlockPreviousHashException(
+                throw new InvalidOperationException(
                     $"The block #{index} {block.Hash} is not continuous from the " +
                     $"block #{index - 1}; while previous block's hash is " +
                     $"{prevHash}, the block #{index} {block.Hash}'s pointer to " +
@@ -263,7 +261,7 @@ namespace Libplanet.Blockchain
 
             if (block.Timestamp < prevTimestamp)
             {
-                throw new InvalidBlockTimestampException(
+                throw new InvalidOperationException(
                     $"The block #{index} {block.Hash}'s timestamp " +
                     $"({block.Timestamp}) is earlier than " +
                     $"the block #{index - 1}'s ({prevTimestamp}).");
@@ -273,7 +271,7 @@ namespace Libplanet.Blockchain
             {
                 if (block.LastCommit is { })
                 {
-                    throw new InvalidBlockLastCommitException(
+                    throw new InvalidOperationException(
                         "The genesis block and the next block should not have lastCommit.");
                 }
             }
@@ -286,7 +284,7 @@ namespace Libplanet.Blockchain
                 {
                     if (block.LastCommit is { })
                     {
-                        throw new InvalidBlockLastCommitException(
+                        throw new InvalidOperationException(
                             "A block after a PoW block should not have lastCommit.");
                     }
                 }
@@ -294,7 +292,7 @@ namespace Libplanet.Blockchain
                 {
                     if (block.LastCommit is null)
                     {
-                        throw new InvalidBlockLastCommitException(
+                        throw new InvalidOperationException(
                             "A PBFT block that does not have zero or one index or " +
                             "is not a block after a PoW block should have lastCommit.");
                     }
@@ -305,9 +303,9 @@ namespace Libplanet.Blockchain
                     var hash = block.PreviousHash == default ? Genesis.Hash : block.PreviousHash;
                     ValidateBlockCommit(this[hash], block.LastCommit);
                 }
-                catch (InvalidBlockCommitException ibce)
+                catch (InvalidOperationException ibce)
                 {
-                    throw new InvalidBlockLastCommitException(ibce.Message);
+                    throw new InvalidOperationException(ibce.Message);
                 }
             }
 
@@ -332,7 +330,7 @@ namespace Libplanet.Blockchain
         /// when the result of <see cref="GetNextStateRootHash(BlockHash)"/>
         /// is <see langword="null"/>.  This can happen if <paramref name="block"/>
         /// is an index higher than the tip but its result is not ready yet.</exception>
-        /// <exception cref="InvalidBlockStateRootHashException">If the state root hash
+        /// <exception cref="InvalidOperationException">If the state root hash
         /// calculated by committing to the <see cref="IStateStore"/> does not match
         /// the <paramref name="block"/>'s <see cref="Block.StateRootHash"/>.</exception>
         /// <seealso cref="EvaluateBlock"/>
@@ -355,10 +353,8 @@ namespace Libplanet.Blockchain
             {
                 var message = $"Block #{block.Index} {block.Hash}'s state root hash " +
                     $"is {block.StateRootHash}, but the execution result is {stateRootHash}.";
-                throw new InvalidBlockStateRootHashException(
-                    message,
-                    block.StateRootHash,
-                    stateRootHash);
+                throw new InvalidOperationException(
+                    message);
             }
         }
 
@@ -371,7 +367,7 @@ namespace Libplanet.Blockchain
         /// <param name="block">The <see cref="Block"/> to validate against.</param>
         /// <param name="evaluations">The list of <see cref="IActionEvaluation"/>s
         /// from which to extract the states to commit.</param>
-        /// <exception cref="InvalidBlockStateRootHashException">If the state root hash
+        /// <exception cref="InvalidOperationException">If the state root hash
         /// calculated by committing to the <see cref="IStateStore"/> does not match
         /// the <paramref name="block"/>'s <see cref="Block.StateRootHash"/>.</exception>
         /// <remarks>
@@ -386,15 +382,13 @@ namespace Libplanet.Blockchain
         internal void ValidateBlockPrecededStateRootHash(
             Block block, out IReadOnlyList<ICommittedActionEvaluation> evaluations)
         {
-            var rootHash = DetermineBlockPrecededStateRootHash(block, out evaluations);
+            var rootHash = DetermineBlockPrecededStateRootHash(block.RawBlock, out evaluations);
             if (!rootHash.Equals(block.StateRootHash))
             {
                 var message = $"Block #{block.Index} {block.Hash}'s state root hash " +
                     $"is {block.StateRootHash}, but the execution result is {rootHash}.";
-                throw new InvalidBlockStateRootHashException(
-                    message,
-                    block.StateRootHash,
-                    rootHash);
+                throw new InvalidOperationException(
+                    message);
             }
         }
     }

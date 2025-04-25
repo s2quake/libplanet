@@ -143,7 +143,7 @@ namespace Libplanet.Net
             {
                 header.ValidateTimestamp();
             }
-            catch (InvalidBlockTimestampException e)
+            catch (InvalidOperationException e)
             {
                 _logger.Debug(
                     e,

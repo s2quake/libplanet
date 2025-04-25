@@ -13,6 +13,7 @@ public sealed record class Block(
     [property: Property(1)] RawBlock RawBlock)
 {
     public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
+    private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
 
     // private readonly BlockHeader _header;
     // private readonly RawBlock _preEvaluationBlock;
@@ -24,8 +25,13 @@ public sealed record class Block(
     {
         var rawHeader = header.RawBlockHeader;
         var metadata = rawHeader.Metadata;
-        var blockContent = new BlockContent(metadata, transactions, evidence);
-        var rawBlock = new RawBlock(blockContent, rawHeader);
+        var blockContent = new BlockContent
+        {
+            Metadata = metadata,
+            Transactions = transactions,
+            Evidence = evidence,
+        };
+        var rawBlock = new RawBlock { Content = blockContent, Header = rawHeader };
         return new Block(header, rawBlock);
     }
 
@@ -78,4 +84,24 @@ public sealed record class Block(
     public override int GetHashCode() => unchecked((17 * 31 + Hash.GetHashCode()) * 31);
 
     public override string ToString() => Hash.ToString();
+
+    public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
+
+    public void ValidateTimestamp(DateTimeOffset currentTime)
+    {
+        if (currentTime + TimestampThreshold < Header.RawBlockHeader.Metadata.Timestamp)
+        {
+            var message = $"The block #{Header.Index}'s timestamp " +
+                $"({Header.RawBlockHeader.Metadata.Timestamp}) is later than now " +
+                $"({currentTime}, threshold: {TimestampThreshold}).";
+            throw new InvalidOperationException(message);
+            // string hash = metadata is IBlockExcerpt h
+            //     ? $" {h.Hash}"
+            //     : string.Empty;
+            // throw new InvalidOperationException(
+            //     $"The block #{metadata.Index}{hash}'s timestamp " +
+            //     $"({metadata.Timestamp}) is later than now ({currentTime}, " +
+            //     $"threshold: {TimestampThreshold}).");
+        }
+    }
 }

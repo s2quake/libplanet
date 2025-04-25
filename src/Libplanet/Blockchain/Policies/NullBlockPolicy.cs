@@ -8,10 +8,10 @@ namespace Libplanet.Blockchain.Policies
 {
     public class NullBlockPolicy : IBlockPolicy
     {
-        private readonly BlockPolicyViolationException _exceptionToThrow;
+        private readonly Exception _exceptionToThrow;
 
         public NullBlockPolicy(
-            BlockPolicyViolationException exceptionToThrow = null)
+            Exception exceptionToThrow = null)
         {
             _exceptionToThrow = exceptionToThrow;
         }
@@ -35,7 +35,7 @@ namespace Libplanet.Blockchain.Policies
         public virtual TxPolicyViolationException ValidateNextBlockTx(
             BlockChain blockChain, Transaction transaction) => null;
 
-        public virtual BlockPolicyViolationException ValidateNextBlock(
+        public virtual Exception ValidateNextBlock(
             BlockChain blockChain,
             Block nextBlock
         )
@@ -46,7 +46,7 @@ namespace Libplanet.Blockchain.Policies
             }
 
             return BlockedMiners.Contains(nextBlock.Miner)
-                ? new BlockPolicyViolationException(
+                ? new Exception(
                     $"Disallowed #{nextBlock.Index} {nextBlock.Hash} mined by {nextBlock.Miner}.")
                 : null;
         }
