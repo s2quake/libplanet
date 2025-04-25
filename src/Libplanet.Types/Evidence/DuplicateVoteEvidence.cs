@@ -233,7 +233,7 @@ public sealed record class DuplicateVoteEvidence
 
         if (!validators.Contains(VoteRef.ValidatorPublicKey))
         {
-            throw new InvalidEvidenceException(
+            throw new InvalidOperationException(
                 $"Evidence public key is not a validator. " +
                 $"PublicKey: {VoteRef.ValidatorPublicKey}");
         }
@@ -244,7 +244,7 @@ public sealed record class DuplicateVoteEvidence
 
         if (ValidatorPower != validatorPower)
         {
-            throw new InvalidEvidenceException(
+            throw new InvalidOperationException(
                 $"Evidence validator power is different from the actual. " +
                 $"Expected: {validatorPower}, " +
                 $"Actual: {ValidatorPower}");
@@ -252,7 +252,7 @@ public sealed record class DuplicateVoteEvidence
 
         if (TotalPower != totalPower)
         {
-            throw new InvalidEvidenceException(
+            throw new InvalidOperationException(
                 $"Evidence total power is different from the actual. " +
                 $"Expected: {totalPower}, " +
                 $"Actual: {TotalPower}");
