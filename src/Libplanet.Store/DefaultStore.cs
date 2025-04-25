@@ -6,6 +6,7 @@ using System.Web;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
@@ -176,8 +177,8 @@ public class DefaultStore : BaseStore
                 hash => hash.ToByteArray(),
                 b => new BlockHash(b));
             _db.Mapper.RegisterType(
-                hash => hash.ToByteArray(),
-                b => new HashDigest<SHA256>(b));
+                hash => hash.ByteArray.ToArray(),
+                b => new HashDigest<SHA256>([.. b.AsBinary]));
             _db.Mapper.RegisterType(
                 txid => txid.ByteArray.ToArray(),
                 b => new TxId([.. b.AsBinary]));
@@ -185,11 +186,11 @@ public class DefaultStore : BaseStore
                 address => address.ToByteArray(),
                 b => new Address([.. b.AsBinary]));
             _db.Mapper.RegisterType(
-                commit => Codec.Encode(commit.Bencoded),
-                b => new BlockCommit(Codec.Decode(b)));
+                commit => ModelSerializer.SerializeToBytes(commit),
+                b => ModelSerializer.DeserializeFromBytes<BlockCommit>(b));
             _db.Mapper.RegisterType(
-                evidence => Codec.Encode(evidence.Bencoded),
-                b => new EvidenceId(Codec.Decode(b)));
+                evidence => ModelSerializer.SerializeToBytes(evidence),
+                b => ModelSerializer.DeserializeFromBytes<EvidenceId>(b));
         }
 
         _root.CreateDirectory(TxRootPath);
@@ -426,7 +427,7 @@ public class DefaultStore : BaseStore
         BlockDigest blockDigest;
         try
         {
-            blockDigest = BlockDigest.Deserialize(_blocks.ReadAllBytes(path));
+            blockDigest = ModelSerializer.DeserializeFromBytes<BlockDigest>(_blocks.ReadAllBytes(path));
         }
         catch (FileNotFoundException)
         {
@@ -456,7 +457,7 @@ public class DefaultStore : BaseStore
         }
 
         BlockDigest digest = BlockDigest.FromBlock(block);
-        WriteContentAddressableFile(_blocks, path, digest.Serialize());
+        WriteContentAddressableFile(_blocks, path, ModelSerializer.SerializeToBytes(digest));
         _blockCache.AddOrUpdate(block.Hash, digest);
     }
 
@@ -630,7 +631,7 @@ public class DefaultStore : BaseStore
         var docId = new BsonValue("c");
         BsonDocument doc = collection.FindById(docId);
         return doc is { } d && d.TryGetValue("v", out BsonValue v)
-            ? new BlockCommit(Codec.Decode(v))
+            ? ModelSerializer.DeserializeFromBytes<BlockCommit>(v)
             : null;
     }
 
@@ -642,7 +643,7 @@ public class DefaultStore : BaseStore
         BsonDocument doc = collection.FindById(docId);
         collection.Upsert(
             docId,
-            new BsonDocument() { ["v"] = new BsonValue(Codec.Encode(blockCommit.Bencoded)) });
+            new BsonDocument() { ["v"] = new BsonValue(ModelSerializer.SerializeToBytes(blockCommit)) });
     }
 
     public override BlockCommit? GetBlockCommit(BlockHash blockHash)
@@ -663,7 +664,7 @@ public class DefaultStore : BaseStore
             return null;
         }
 
-        BlockCommit blockCommit = new BlockCommit(Codec.Decode(bytes));
+        BlockCommit blockCommit = ModelSerializer.DeserializeFromBytes<BlockCommit>(bytes);
         return blockCommit;
     }
 
@@ -676,7 +677,8 @@ public class DefaultStore : BaseStore
             return;
         }
 
-        WriteContentAddressableFile(_blockCommits, path, Codec.Encode(blockCommit.Bencoded));
+        WriteContentAddressableFile(
+            _blockCommits, path, ModelSerializer.SerializeToBytes(blockCommit));
     }
 
     /// <inheritdoc />
@@ -742,7 +744,7 @@ public class DefaultStore : BaseStore
         }
 
         WriteContentAddressableFile(
-            _nextStateRootHashes, path, nextStateRootHash.ToByteArray());
+            _nextStateRootHashes, path, nextStateRootHash.ByteArray.ToArray());
     }
 
     /// <inheritdoc />
@@ -797,7 +799,7 @@ public class DefaultStore : BaseStore
 
         try
         {
-            EvidenceBase evidence = EvidenceBase.Decode(Codec.Decode(bytes));
+            EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>(bytes);
             return evidence;
         }
         catch
@@ -821,7 +823,7 @@ public class DefaultStore : BaseStore
         WriteContentAddressableFile(
             _pendingEvidence,
             PendingEvidencePath(evidence.Id),
-            Codec.Encode(EvidenceBase.Bencode(evidence)));
+            ModelSerializer.SerializeToBytes(evidence));
     }
 
     public override void DeletePendingEvidence(EvidenceId evidenceId)
@@ -865,7 +867,7 @@ public class DefaultStore : BaseStore
 
         try
         {
-            EvidenceBase evidence = EvidenceBase.Decode(Codec.Decode(bytes));
+            EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>(bytes);
             return evidence;
         }
         catch
@@ -889,7 +891,7 @@ public class DefaultStore : BaseStore
         WriteContentAddressableFile(
             _committedEvidence,
             CommittedEvidencePath(evidence.Id),
-            Codec.Encode(EvidenceBase.Bencode(evidence)));
+            ModelSerializer.SerializeToBytes(evidence));
 
         _evidenceCache.AddOrUpdate(evidence.Id, evidence);
     }

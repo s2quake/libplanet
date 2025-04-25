@@ -336,7 +336,7 @@ namespace Libplanet.Tests.Blockchain
                 genesisBlock,
                 actionEvaluator);
 
-            PreEvaluationBlock preBlock1 = new BlockContent(
+            RawBlock preBlock1 = new BlockContent(
                 new BlockMetadata(
                     protocolVersion: BlockMetadata.SlothProtocolVersion,
                     index: 1,

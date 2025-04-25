@@ -44,7 +44,7 @@ public sealed class BlockSet(IStore store, int cacheSize = 4096)
             }
             else if (!block.Hash.Equals(key))
             {
-                throw new InvalidBlockHashException(
+                throw new InvalidOperationException(
                     $"The given hash[{key}] was not equal to actual[{block.Hash}].");
             }
 
@@ -55,7 +55,7 @@ public sealed class BlockSet(IStore store, int cacheSize = 4096)
         {
             if (!value.Hash.Equals(key))
             {
-                throw new InvalidBlockHashException(
+                throw new InvalidOperationException(
                     $"{value}.hash does not match to {key}");
             }
 

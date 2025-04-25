@@ -5,9 +5,8 @@ using Libplanet.Crypto;
 
 namespace Libplanet.Types.Blocks;
 
-public sealed record class PreEvaluationBlockHeader(
-        BlockMetadata Metadata,
-        HashDigest<SHA256> PreEvaluationHash)
+public sealed record class RawBlockHeader(
+    BlockMetadata Metadata, HashDigest<SHA256> RawHash)
 {
     private static readonly Codec Codec = new();
 
@@ -31,7 +30,7 @@ public sealed record class PreEvaluationBlockHeader(
 
     public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
-    public HashDigest<SHA256> PreEvaluationHash { get; } = CheckPreEvaluationHash(Metadata, PreEvaluationHash);
+    public HashDigest<SHA256> RawHash { get; } = CheckPreEvaluationHash(Metadata, RawHash);
 
     public Bencodex.Types.Dictionary MakeCandidateData(
         HashDigest<SHA256> stateRootHash,

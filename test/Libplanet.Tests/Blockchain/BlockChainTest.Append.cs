@@ -676,7 +676,7 @@ namespace Libplanet.Tests.Blockchain
                     timestamp: DateTimeOffset.UtcNow),
             };
             var evs = Array.Empty<EvidenceBase>();
-            PreEvaluationBlock preEvalGenesis = new BlockContent(
+            RawBlock preEvalGenesis = new BlockContent(
                 new BlockMetadata(
                     protocolVersion: BlockMetadata.WorldStateProtocolVersion - 1,
                     index: 0L,

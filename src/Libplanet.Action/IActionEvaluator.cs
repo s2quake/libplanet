@@ -17,7 +17,7 @@ namespace Libplanet.Action
         IActionLoader ActionLoader { get; }
 
         /// <summary>
-        /// The main entry point for evaluating a <see cref="IPreEvaluationBlock"/>.
+        /// The main entry point for evaluating a <see cref="RawBlock"/>.
         /// </summary>
         /// <param name="block">The block to evaluate.</param>
         /// <param name="baseStateRootHash">The base state to use when evaluating
@@ -37,12 +37,12 @@ namespace Libplanet.Action
         /// </para>
         /// </remarks>
         /// <exception cref="BlockProtocolVersionNotSupportedException">Thrown when
-        /// <paramref name="block"/> has a <see cref="IPreEvaluationBlock.ProtocolVersion"/>
+        /// <paramref name="block"/> has a <see cref="RawBlock.ProtocolVersion"/>
         /// that is not supported by an implementation of <see cref="IActionEvaluator"/>.
         /// </exception>
         [Pure]
         IReadOnlyList<ICommittedActionEvaluation> Evaluate(
-            IPreEvaluationBlock block,
+            RawBlock block,
             HashDigest<SHA256> baseStateRootHash);
     }
 }

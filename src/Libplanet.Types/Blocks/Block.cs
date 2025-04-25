@@ -1,32 +1,36 @@
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 using Libplanet.Common;
-using Libplanet.Common.JsonConverters;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Types.Blocks;
 
-public sealed record class Block(BlockHeader Header, PreEvaluationBlock PreEvaluationBlock)
+[Model(Version = 1)]
+public sealed record class Block(
+    [property: Property(0)] BlockHeader Header,
+    [property: Property(1)] RawBlock RawBlock)
 {
     public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
 
     // private readonly BlockHeader _header;
-    // private readonly PreEvaluationBlock _preEvaluationBlock;
+    // private readonly RawBlock _preEvaluationBlock;
+
+    public static Block Create(
+        BlockHeader header,
+        ImmutableSortedSet<Transaction> transactions,
+        ImmutableSortedSet<EvidenceBase> evidence)
+    {
+        var rawHeader = header.RawBlockHeader;
+        var metadata = rawHeader.Metadata;
+        var blockContent = new BlockContent(metadata, transactions, evidence);
+        var rawBlock = new RawBlock(blockContent, rawHeader);
+        return new Block(header, rawBlock);
+    }
 
     // public Block(
-    //     IBlockHeader header,
-    //     IEnumerable<Transaction> transactions,
-    //     IEnumerable<EvidenceBase> evidence)
-    //     : this(
-    //         new PreEvaluationBlock(header, transactions, evidence),
-    //         (header.StateRootHash, header.Signature, header.Hash))
-    // {
-    // }
-
-    // public Block(
-    //     PreEvaluationBlock preEvaluationBlock,
+    //     RawBlock rawBlock,
     //     (
     //         HashDigest<SHA256> StateRootHash,
     //         ImmutableArray<byte>? Signature,
@@ -34,42 +38,42 @@ public sealed record class Block(BlockHeader Header, PreEvaluationBlock PreEvalu
     //     ) proof
     // )
     // {
-    //     _header = new BlockHeader(preEvaluationBlock.Header, proof);
-    //     _preEvaluationBlock = preEvaluationBlock;
+    //     _header = new BlockHeader(rawBlock.Header, proof);
+    //     _preEvaluationBlock = rawBlock;
     // }
 
     // [JsonIgnore]
     // public BlockHeader Header => _header;
 
-    public int ProtocolVersion => PreEvaluationBlock.ProtocolVersion;
+    public int ProtocolVersion => RawBlock.ProtocolVersion;
 
     public BlockHash Hash => Header.BlockHash;
 
     public ImmutableArray<byte> Signature => Header.Signature;
 
-    public HashDigest<SHA256> PreEvaluationHash => PreEvaluationBlock.PreEvaluationHash;
+    public HashDigest<SHA256> RawHash => RawBlock.RawHash;
 
     public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
 
-    public long Index => PreEvaluationBlock.Index;
+    public long Index => RawBlock.Index;
 
-    public Address Miner => PreEvaluationBlock.Miner;
+    public Address Miner => RawBlock.Miner;
 
-    public PublicKey? PublicKey => PreEvaluationBlock.PublicKey;
+    public PublicKey? PublicKey => RawBlock.PublicKey;
 
-    public BlockHash PreviousHash => PreEvaluationBlock.PreviousHash;
+    public BlockHash PreviousHash => RawBlock.PreviousHash;
 
-    public DateTimeOffset Timestamp => PreEvaluationBlock.Timestamp;
+    public DateTimeOffset Timestamp => RawBlock.Timestamp;
 
-    public HashDigest<SHA256>? TxHash => PreEvaluationBlock.TxHash;
+    public HashDigest<SHA256>? TxHash => RawBlock.TxHash;
 
-    public BlockCommit? LastCommit => PreEvaluationBlock.LastCommit;
+    public BlockCommit? LastCommit => RawBlock.LastCommit;
 
-    public HashDigest<SHA256>? EvidenceHash => PreEvaluationBlock.EvidenceHash;
+    public HashDigest<SHA256>? EvidenceHash => RawBlock.EvidenceHash;
 
-    public ImmutableSortedSet<EvidenceBase> Evidence => PreEvaluationBlock.Evidence;
+    public ImmutableSortedSet<EvidenceBase> Evidence => RawBlock.Evidence;
 
-    public ImmutableSortedSet<Transaction> Transactions => PreEvaluationBlock.Transactions;
+    public ImmutableSortedSet<Transaction> Transactions => RawBlock.Transactions;
 
     public override int GetHashCode() => unchecked((17 * 31 + Hash.GetHashCode()) * 31);
 

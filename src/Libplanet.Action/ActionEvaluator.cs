@@ -93,14 +93,14 @@ namespace Libplanet.Action
         /// <inheritdoc cref="IActionEvaluator.Evaluate"/>
         [Pure]
         public IReadOnlyList<ICommittedActionEvaluation> Evaluate(
-            IPreEvaluationBlock block,
+            RawBlock block,
             HashDigest<SHA256> baseStateRootHash)
         {
             if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
             {
                 throw new BlockProtocolVersionNotSupportedException(
                     $"The native implementation does not support an evaluation of a block " +
-                    $"#{block.Index} pre-evaluation hash {block.PreEvaluationHash} " +
+                    $"#{block.Index} pre-evaluation hash {block.RawHash} " +
                     $"with protocol version less than {BlockMetadata.PBFTProtocolVersion}: " +
                     $"{block.ProtocolVersion}",
                     block.ProtocolVersion);
@@ -108,9 +108,9 @@ namespace Libplanet.Action
 
             _logger.Information(
                 "Evaluating actions in the block #{BlockHeight} " +
-                "pre-evaluation hash {PreEvaluationHash}...",
+                "pre-evaluation hash {RawHash}...",
                 block.Index,
-                ByteUtil.Hex(block.PreEvaluationHash.ByteArray)
+                ByteUtil.Hex(block.RawHash.ByteArray)
             );
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -148,12 +148,12 @@ namespace Libplanet.Action
             {
                 const string errorMessage =
                     "Failed to evaluate block #{BlockHeight} pre-evaluation hash " +
-                    "pre-evaluation has {PreEvaluationHash}";
+                    "pre-evaluation has {RawHash}";
                 _logger.Error(
                     e,
                     errorMessage,
                     block.Index,
-                    ByteUtil.Hex(block.PreEvaluationHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.ByteArray));
                 throw;
             }
             finally
@@ -163,10 +163,10 @@ namespace Libplanet.Action
                     .ForContext("Subtag", "BlockEvaluationDuration")
                     .Information(
                         "Actions in {TxCount} transactions for block #{BlockHeight} " +
-                        "pre-evaluation hash {PreEvaluationHash} evaluated in {DurationMs} ms",
+                        "pre-evaluation hash {RawHash} evaluated in {DurationMs} ms",
                         block.Transactions.Count,
                         block.Index,
-                        ByteUtil.Hex(block.PreEvaluationHash.ByteArray),
+                        ByteUtil.Hex(block.RawHash.ByteArray),
                         stopwatch.ElapsedMilliseconds);
             }
         }
@@ -175,7 +175,7 @@ namespace Libplanet.Action
         /// Executes <see cref="IAction"/>s in <paramref name="actions"/>.  All other evaluation
         /// calls resolve to this method.
         /// </summary>
-        /// <param name="block">The <see cref="IPreEvaluationBlock"/> to evaluate.</param>
+        /// <param name="block">The <see cref="RawBlock"/> to evaluate.</param>
         /// <param name="tx">The <see cref="Transaction"/> that <paramref name="actions"/>
         /// belong to.  This should be <see langword="null"/> if <paramref name="actions"/>
         /// do not belong to a <see cref="Transaction"/>, i.e.
@@ -192,7 +192,7 @@ namespace Libplanet.Action
         /// </returns>
         [Pure]
         internal static IEnumerable<ActionEvaluation> EvaluateActions(
-            IPreEvaluationBlock block,
+            RawBlock block,
             Transaction tx,
             IWorld previousState,
             IImmutableList<IAction> actions,
@@ -219,7 +219,7 @@ namespace Libplanet.Action
                     evidence: block.Evidence);
             }
 
-            byte[] preEvaluationHashBytes = block.PreEvaluationHash.ToByteArray();
+            byte[] preEvaluationHashBytes = block.RawHash.ByteArray.ToArray();
             var signature = tx.Signature;
             int seed = GenerateRandomSeed(preEvaluationHashBytes, signature, 0);
 
@@ -248,7 +248,7 @@ namespace Libplanet.Action
         }
 
         internal static ActionEvaluation EvaluateAction(
-            IPreEvaluationBlock block,
+            RawBlock block,
             Transaction? tx,
             IActionContext context,
             IAction action,
@@ -309,7 +309,7 @@ namespace Libplanet.Action
                 // of the node, we should throw without further handling.
                 var message =
                     "Action {Action} of tx {TxId} of block #{BlockHeight} with " +
-                    "pre-evaluation hash {PreEvaluationHash} threw an exception " +
+                    "pre-evaluation hash {RawHash} threw an exception " +
                     "during execution";
                 logger?.Error(
                     e,
@@ -317,14 +317,14 @@ namespace Libplanet.Action
                     action,
                     tx?.Id,
                     block.Index,
-                    ByteUtil.Hex(block.PreEvaluationHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.ByteArray));
                 throw;
             }
             catch (Exception e)
             {
                 var message =
                     "Action {Action} of tx {TxId} of block #{BlockHeight} with " +
-                    "pre-evaluation hash {PreEvaluationHash} threw an exception " +
+                    "pre-evaluation hash {RawHash} threw an exception " +
                     "during execution";
                 logger?.Error(
                     e,
@@ -332,18 +332,18 @@ namespace Libplanet.Action
                     action,
                     tx?.Id,
                     block.Index,
-                    ByteUtil.Hex(block.PreEvaluationHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.ByteArray));
                 var innerMessage =
                     $"The action {action} (block #{block.Index}, " +
                     $"pre-evaluation hash " +
-                    $"{ByteUtil.Hex(block.PreEvaluationHash.ByteArray)}, " +
+                    $"{ByteUtil.Hex(block.RawHash.ByteArray)}, " +
                     $"tx {tx?.Id} threw an exception during execution.  " +
                     "See also this exception's InnerException property";
                 logger?.Error(
                     "{Message}\nInnerException: {ExcMessage}", innerMessage, e.Message);
                 exc = new UnexpectedlyTerminatedActionException(
                     innerMessage,
-                    block.PreEvaluationHash,
+                    block.RawHash,
                     block.Index,
                     tx?.Id,
                     null,
@@ -374,7 +374,7 @@ namespace Libplanet.Action
         /// that <paramref name="txs"/> belong to.</param>
         /// <param name="txs">The list of <see cref="Transaction"/>s to shuffle.</param>
         /// <param name="preEvaluationHashBytes">The
-        /// <see cref="IPreEvaluationBlockHeader.PreEvaluationHash"/>
+        /// <see cref="IPreEvaluationBlockHeader.RawHash"/>
         /// to use as a random seed when
         /// shuffling.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="Transaction"/>s in evaluation
@@ -403,9 +403,9 @@ namespace Libplanet.Action
 
         /// <summary>
         /// Evaluates <see cref="IAction"/>s in <see cref="IBlockContent.Transactions"/>
-        /// of a given <see cref="IPreEvaluationBlock"/>.
+        /// of a given <see cref="RawBlock"/>.
         /// </summary>
-        /// <param name="block">The <see cref="IPreEvaluationBlock"/> to evaluate.</param>
+        /// <param name="block">The <see cref="RawBlock"/> to evaluate.</param>
         /// <param name="previousState">The states immediately before an execution of any
         /// <see cref="IAction"/>s.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="ActionEvaluation"/>s
@@ -413,14 +413,14 @@ namespace Libplanet.Action
         /// </returns>
         [Pure]
         internal IEnumerable<ActionEvaluation> EvaluateBlock(
-            IPreEvaluationBlock block,
+            RawBlock block,
             IWorld previousState)
         {
             IWorld delta = previousState;
             IEnumerable<Transaction> orderedTxs = OrderTxsForEvaluation(
                 block.ProtocolVersion,
                 block.Transactions,
-                block.PreEvaluationHash.ByteArray);
+                block.RawHash.ByteArray);
 
             foreach (Transaction tx in orderedTxs)
             {
@@ -447,7 +447,7 @@ namespace Libplanet.Action
                 logger.Information(
                     "Took {DurationMs} ms to evaluate {ActionCount} actions {ActionTypes} " +
                     "in transaction {TxId} by {Signer} as a part of block #{Index} " +
-                    "pre-evaluation hash {PreEvaluationHash}",
+                    "pre-evaluation hash {RawHash}",
                     stopwatch.ElapsedMilliseconds,
                     actions.Count,
                     actions.Select(action => action.ToString()!.Split('.')
@@ -455,13 +455,13 @@ namespace Libplanet.Action
                     tx.Id,
                     tx.Signer,
                     block.Index,
-                    ByteUtil.Hex(block.PreEvaluationHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.ByteArray));
             }
         }
 
         [Pure]
         internal IEnumerable<ActionEvaluation> EvaluateTx(
-            IPreEvaluationBlock block,
+            RawBlock block,
             Transaction tx,
             IWorld previousState)
         {
@@ -506,7 +506,7 @@ namespace Libplanet.Action
         /// this <see cref="ActionEvaluator"/> was instantiated for a given
         /// <see cref="IPreEvaluationBlockHeader"/>.
         /// </summary>
-        /// <param name="block">The <see cref="IPreEvaluationBlock"/> to evaluate.</param>
+        /// <param name="block">The <see cref="RawBlock"/> to evaluate.</param>
         /// <param name="previousState">The states immediately before the evaluation of
         /// the <see cref="IBlockPolicy.BeginBlockActions"/> held by the instance.</param>
         /// <returns>The <see cref="ActionEvaluation"/> of evaluating
@@ -514,12 +514,12 @@ namespace Libplanet.Action
         /// for the <paramref name="block"/>.</returns>
         [Pure]
         internal ActionEvaluation[] EvaluatePolicyBeginBlockActions(
-            IPreEvaluationBlock block,
+            RawBlock block,
             IWorld previousState)
         {
             _logger.Information(
                 $"Evaluating policy begin block actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.PreEvaluationHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
 
             return EvaluateActions(
                 block: block,
@@ -536,7 +536,7 @@ namespace Libplanet.Action
         /// this <see cref="ActionEvaluator"/> was instantiated for a given
         /// <see cref="IPreEvaluationBlockHeader"/>.
         /// </summary>
-        /// <param name="block">The <see cref="IPreEvaluationBlock"/> to evaluate.</param>
+        /// <param name="block">The <see cref="RawBlock"/> to evaluate.</param>
         /// <param name="previousState">The states immediately before the evaluation of
         /// the <see cref="IBlockPolicy.EndBlockActions"/> held by the instance.</param>
         /// <returns>The <see cref="ActionEvaluation"/> of evaluating
@@ -544,12 +544,12 @@ namespace Libplanet.Action
         /// for the <paramref name="block"/>.</returns>
         [Pure]
         internal ActionEvaluation[] EvaluatePolicyEndBlockActions(
-            IPreEvaluationBlock block,
+            RawBlock block,
             IWorld previousState)
         {
             _logger.Information(
                 $"Evaluating policy end block actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.PreEvaluationHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
 
             return EvaluateActions(
                 block: block,
@@ -566,7 +566,7 @@ namespace Libplanet.Action
         /// this <see cref="ActionEvaluator"/> was instantiated for a given
         /// <see cref="IPreEvaluationBlockHeader"/>.
         /// </summary>
-        /// <param name="block">The <see cref="IPreEvaluationBlock"/> to evaluate.</param>
+        /// <param name="block">The <see cref="RawBlock"/> to evaluate.</param>
         /// <param name="transaction">The transaction that the tx action belongs to.</param>
         /// <param name="previousState">The states immediately before the evaluation of
         /// the <see cref="IBlockPolicy.BlockAction"/> held by the instance.</param>
@@ -575,13 +575,13 @@ namespace Libplanet.Action
         /// for the <paramref name="block"/>.</returns>
         [Pure]
         internal ActionEvaluation[] EvaluatePolicyBeginTxActions(
-            IPreEvaluationBlock block,
+            RawBlock block,
             Transaction transaction,
             IWorld previousState)
         {
             _logger.Information(
                 $"Evaluating policy begin tx actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.PreEvaluationHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
 
             return EvaluateActions(
                 block: block,
@@ -598,7 +598,7 @@ namespace Libplanet.Action
         /// this <see cref="ActionEvaluator"/> was instantiated for a given
         /// <see cref="IPreEvaluationBlockHeader"/>.
         /// </summary>
-        /// <param name="block">The <see cref="IPreEvaluationBlock"/> to evaluate.</param>
+        /// <param name="block">The <see cref="RawBlock"/> to evaluate.</param>
         /// <param name="transaction">The transaction that the tx action belongs to.</param>
         /// <param name="previousState">The states immediately before the evaluation of
         /// the <see cref="IBlockPolicy.BlockAction"/> held by the instance.</param>
@@ -607,13 +607,13 @@ namespace Libplanet.Action
         /// for the <paramref name="block"/>.</returns>
         [Pure]
         internal ActionEvaluation[] EvaluatePolicyEndTxActions(
-            IPreEvaluationBlock block,
+            RawBlock block,
             Transaction transaction,
             IWorld previousState)
         {
             _logger.Information(
                 $"Evaluating policy end tx actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.PreEvaluationHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
 
             return EvaluateActions(
                 block: block,
@@ -627,7 +627,7 @@ namespace Libplanet.Action
 
         internal IReadOnlyList<ICommittedActionEvaluation>
             ToCommittedEvaluation(
-                IPreEvaluationBlock block,
+                RawBlock block,
                 IReadOnlyList<IActionEvaluation> evaluations,
                 HashDigest<SHA256>? baseStateRootHash)
         {

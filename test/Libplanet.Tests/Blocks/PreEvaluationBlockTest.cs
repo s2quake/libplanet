@@ -43,7 +43,7 @@ namespace Libplanet.Tests.Blocks
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
             var stagePolicy = new VolatileStagePolicy();
 
-            PreEvaluationBlock preEvalGenesis =
+            RawBlock preEvalGenesis =
                 _contents.GenesisContent.Propose();
 
             using (var fx = new MemoryStoreFixture())
@@ -85,7 +85,7 @@ namespace Libplanet.Tests.Blocks
                         evidenceHash: null),
                     transactions: txs,
                     evidence: evs);
-                PreEvaluationBlock preEval1 = content1.Propose();
+                RawBlock preEval1 = content1.Propose();
 
                 HashDigest<SHA256> b1StateRootHash =
                     blockChain.DetermineNextBlockStateRootHash(genesis, out _);
@@ -120,7 +120,7 @@ namespace Libplanet.Tests.Blocks
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
             var stagePolicy = new VolatileStagePolicy();
 
-            PreEvaluationBlock preEvalGenesis = _contents.GenesisContent.Propose();
+            RawBlock preEvalGenesis = _contents.GenesisContent.Propose();
 
             using (var fx = new MemoryStoreFixture())
             {
@@ -161,7 +161,7 @@ namespace Libplanet.Tests.Blocks
                         evidenceHash: null),
                     transactions: txs,
                     evidence: evs);
-                PreEvaluationBlock preEval1 = content1.Propose();
+                RawBlock preEval1 = content1.Propose();
 
                 HashDigest<SHA256> b1StateRootHash =
                     blockChain.DetermineNextBlockStateRootHash(genesis, out _);

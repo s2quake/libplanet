@@ -6,18 +6,8 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Types.Blocks;
 
-public sealed record class PreEvaluationBlock(BlockContent Content, PreEvaluationBlockHeader Header)
+public sealed record class RawBlock(BlockContent Content, RawBlockHeader Header)
 {
-    // public PreEvaluationBlock(
-    //     PreEvaluationBlockHeader preEvaluationBlockHeader,
-    //     IEnumerable<Transaction> transactions,
-    //     IEnumerable<EvidenceBase> evidence)
-    //     : this(
-    //         new BlockContent(preEvaluationBlockHeader, transactions, evidence),
-    //         preEvaluationBlockHeader.PreEvaluationHash)
-    // {
-    // }
-
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
     public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;
@@ -40,7 +30,7 @@ public sealed record class PreEvaluationBlock(BlockContent Content, PreEvaluatio
 
     public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
 
-    public HashDigest<SHA256> PreEvaluationHash => Header.PreEvaluationHash;
+    public HashDigest<SHA256> RawHash => Header.RawHash;
 
     public Block Sign(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
     {
