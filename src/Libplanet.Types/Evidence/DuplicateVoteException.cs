@@ -35,13 +35,10 @@ public sealed class DuplicateVoteException : EvidenceException
         (_, Vote dup) = DuplicateVoteEvidence.OrderDuplicateVotePair(voteRef, voteDup);
         var validator = evidenceContext.Validators.GetValidator(voteRef.ValidatorPublicKey);
 
-        return new DuplicateVoteEvidence
-        {
-            VoteRef = voteRef,
-            VoteDup = voteDup,
-            ValidatorPower = validator.Power,
-            TotalPower = evidenceContext.Validators.GetTotalPower(),
-            Timestamp = dup.Timestamp,
-        };
+        return DuplicateVoteEvidence.Create(
+            voteRef,
+            voteDup,
+            evidenceContext.Validators,
+            dup.Timestamp);
     }
 }

@@ -67,7 +67,7 @@ namespace Libplanet.Tests.Store
         [Fact]
         public void CanDetectInvalidHash()
         {
-            Assert.Throws<InvalidBlockHashException>(
+            Assert.Throws<InvalidOperationException>(
                 () => _set[_fx.Block1.Hash] = _fx.Block2);
         }
 

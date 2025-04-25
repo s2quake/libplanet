@@ -16,7 +16,7 @@ public class NodeDecoderTest
         var hashB = HashDigest<SHA256>.DeriveFrom(TestUtils.GetRandomBytes(128));
         IValue[] values =
         [
-            (Binary)hashA.ToByteArray(),
+            (Binary)hashA.ByteArray.ToArray(),
             Null.Value,
             Null.Value,
             Null.Value,
@@ -32,7 +32,7 @@ public class NodeDecoderTest
             Null.Value,
             Null.Value,
             Null.Value,
-            (Binary)hashB.ToByteArray(),
+            (Binary)hashB.ByteArray.ToArray(),
         ];
         var list = new List(values);
         Assert.Equal(17, list.Count);

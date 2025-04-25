@@ -32,7 +32,7 @@ namespace Libplanet.Explorer.GraphTypes
             Field<StringGraphType>(
                 "ValidatorPower",
                 description: "Power of the validator which is subject of the vote.",
-                resolve: ctx => ctx.Source.ValidatorPower?.ToString());
+                resolve: ctx => ctx.Source.ValidatorPower.ToString());
             Field<NonNullGraphType<VoteFlagType>>(
                 "Flag",
                 description: "Flag of the vote",

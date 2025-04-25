@@ -1,38 +1,24 @@
-using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Types.Evidence;
 
-namespace Libplanet.Tests.Blockchain.Evidence
+namespace Libplanet.Tests.Blockchain.Evidence;
+
+public sealed record class TestEvidence : EvidenceBase, IEquatable<TestEvidence>
 {
-    public sealed class TestEvidence : EvidenceBase, IEquatable<TestEvidence>
+    public static TestEvidence Create(
+        long height, Address validatorAddress, DateTimeOffset timestamp)
     {
-        public TestEvidence(
-            long height,
-            Address validatorAddress,
-            DateTimeOffset timestamp)
-            : base(height, validatorAddress, timestamp)
+        return new TestEvidence
         {
-        }
+            Height = height,
+            TargetAddress = validatorAddress,
+            Timestamp = timestamp,
+        };
+    }
 
-        public TestEvidence(IValue bencoded)
-            : base(bencoded)
-        {
-        }
+    public Address ValidatorAddress => TargetAddress;
 
-        public Address ValidatorAddress => TargetAddress;
-
-        public bool Equals(TestEvidence other) => base.Equals(other);
-
-        public override bool Equals(object obj)
-        => obj is TestEvidence other && Equals(other);
-
-        public override int GetHashCode() => base.GetHashCode();
-
-        protected override Dictionary OnBencoded(Dictionary dictionary)
-            => dictionary;
-
-        protected override void OnVerify(IEvidenceContext evidenceContext)
-        {
-        }
+    protected override void OnVerify(IEvidenceContext evidenceContext)
+    {
     }
 }

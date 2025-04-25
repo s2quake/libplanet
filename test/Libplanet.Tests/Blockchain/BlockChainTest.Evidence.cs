@@ -24,7 +24,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var height = blockChain.Tip.Index;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(height, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
 
             // When
             blockChain.AddEvidence(testEvidence);
@@ -39,7 +39,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var height = blockChain.Tip.Index;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(height, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
             Assert.Throws<KeyNotFoundException>(
                 () => _blockChain.GetPendingEvidence(testEvidence.Id));
         }
@@ -52,7 +52,7 @@ namespace Libplanet.Tests.Blockchain
             var key = TestUtils.ValidatorPrivateKeys.First();
             var proposer = key;
             var address = new PrivateKey().Address;
-            var expectedEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // When
             NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(expectedEvidence));
@@ -68,7 +68,7 @@ namespace Libplanet.Tests.Blockchain
             // Given
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var expectedEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             blockChain.AddEvidence(expectedEvidence);
 
             // Then
@@ -82,7 +82,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var height = blockChain.Tip.Index;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(height, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
             Assert.Throws<KeyNotFoundException>(
                 () => _blockChain.GetCommittedEvidence(testEvidence.Id));
         }
@@ -95,7 +95,7 @@ namespace Libplanet.Tests.Blockchain
             var key = TestUtils.ValidatorPrivateKeys.First();
             var proposer = key;
             var address = new PrivateKey().Address;
-            var expectedEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // When
             NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(expectedEvidence));
@@ -113,7 +113,7 @@ namespace Libplanet.Tests.Blockchain
             var proposer = key;
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // When
             NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(testEvidence));
@@ -131,7 +131,7 @@ namespace Libplanet.Tests.Blockchain
             var proposer = key;
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             blockChain.AddEvidence(testEvidence);
 
             // Then
@@ -148,7 +148,7 @@ namespace Libplanet.Tests.Blockchain
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
             var height = blockChain.Tip.Index + 1;
-            var testEvidence = new TestEvidence(height, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
 
             // Then
             Assert.Throws<ArgumentException>(
@@ -163,7 +163,7 @@ namespace Libplanet.Tests.Blockchain
             var proposer = key;
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             var index = blockChain.Tip.Index;
             var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
                 index: index);
@@ -186,7 +186,7 @@ namespace Libplanet.Tests.Blockchain
             // Given
             var address = new PrivateKey().Address;
             var blockChain = _blockChain;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // When
             blockChain.AddEvidence(testEvidence);
@@ -203,7 +203,7 @@ namespace Libplanet.Tests.Blockchain
             var proposer = key;
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // When
             NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(testEvidence));
@@ -221,7 +221,7 @@ namespace Libplanet.Tests.Blockchain
             var proposer = key;
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             var index = blockChain.Tip.Index;
             var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
                 index: index);
@@ -246,7 +246,7 @@ namespace Libplanet.Tests.Blockchain
             var proposer = key;
             var blockChain = _blockChain;
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // When
             blockChain.CommitEvidence(testEvidence);
@@ -261,7 +261,7 @@ namespace Libplanet.Tests.Blockchain
             // Given
             var address = new PrivateKey().Address;
             var blockChain = _blockChain;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             blockChain.AddEvidence(testEvidence);
 
             // When
@@ -277,7 +277,7 @@ namespace Libplanet.Tests.Blockchain
         {
             // Given
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             _blockChain.AddEvidence(testEvidence);
 
             // Then
@@ -289,7 +289,7 @@ namespace Libplanet.Tests.Blockchain
         {
             // Given
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // Then
             Assert.False(_blockChain.IsEvidencePending(testEvidence.Id));
@@ -300,7 +300,7 @@ namespace Libplanet.Tests.Blockchain
         {
             // Given
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             _blockChain.AddEvidence(testEvidence);
             _blockChain.CommitEvidence(testEvidence);
 
@@ -313,7 +313,7 @@ namespace Libplanet.Tests.Blockchain
         {
             // Given
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             _blockChain.AddEvidence(testEvidence);
 
             // Then
@@ -326,7 +326,7 @@ namespace Libplanet.Tests.Blockchain
             // Given
             var address = new PrivateKey().Address;
             var height = Random.Shared.Next(1, 6);
-            var testEvidence = new TestEvidence(height, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
             var index = _blockChain.Tip.Index;
             var pendingDuration = _blockChain.Policy.GetMaxEvidencePendingDuration(
                 index: index);
@@ -348,7 +348,7 @@ namespace Libplanet.Tests.Blockchain
             // Given
             var address = new PrivateKey().Address;
             var height = Random.Shared.Next(1, 6);
-            var testEvidence = new TestEvidence(height, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
             var index = _blockChain.Tip.Index;
             var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
@@ -367,7 +367,7 @@ namespace Libplanet.Tests.Blockchain
         {
             // Given
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
             _blockChain.AddEvidence(testEvidence);
 
             // Then
@@ -379,7 +379,7 @@ namespace Libplanet.Tests.Blockchain
         {
             // Given
             var address = new PrivateKey().Address;
-            var testEvidence = new TestEvidence(0, address, DateTimeOffset.UtcNow);
+            var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
             // Then
             Assert.False(_blockChain.DeletePendingEvidence(testEvidence.Id));
@@ -413,14 +413,11 @@ namespace Libplanet.Tests.Blockchain
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key);
-            var evidence = new DuplicateVoteEvidence
-            {
-                VoteRef = voteRef,
-                VoteDup = voteDup,
-                ValidatorPower = TestUtils.Validators.GetValidator(voteRef.ValidatorPublicKey).Power,
-                TotalPower = TestUtils.Validators.GetTotalPower(),
-                Timestamp = voteDup.Timestamp,
-            };
+            var evidence = DuplicateVoteEvidence.Create(
+                voteRef,
+                voteDup,
+                TestUtils.Validators,
+                voteDup.Timestamp);
 
             Assert.Empty(blockChain.GetPendingEvidence());
             Assert.False(blockChain.IsEvidencePending(evidence.Id));
@@ -507,11 +504,10 @@ namespace Libplanet.Tests.Blockchain
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key);
-            var evidence = new DuplicateVoteEvidence(
+            var evidence = DuplicateVoteEvidence.Create(
                 voteRef,
                 voteDup,
-                new ImmutableSortedSet<Validator>(
-                    new List<Validator> { new Validator(key.PublicKey, BigInteger.One) }),
+                [new Validator(key.PublicKey, BigInteger.One)],
                 voteDup.Timestamp);
 
             Assert.Empty(_blockChain.GetPendingEvidence());
@@ -532,23 +528,27 @@ namespace Libplanet.Tests.Blockchain
             var key = TestUtils.ValidatorPrivateKeys.First();
             var proposer = key;
             var blockChain = _blockChain;
-            var voteRef = new VoteMetadata(
-                height: blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
-            var voteDup = new VoteMetadata(
-                height: blockChain.Tip.Index,
-                round: 2,
-                blockHash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                timestamp: DateTimeOffset.UtcNow,
-                validatorPublicKey: key.PublicKey,
-                validatorPower: BigInteger.One,
-                flag: VoteFlag.PreCommit).Sign(key);
-            var evidence = new DuplicateVoteEvidence(
+            var voteRef = new VoteMetadata
+            {
+                Height = blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
+            var voteDup = new VoteMetadata
+            {
+                Height = blockChain.Tip.Index,
+                Round = 2,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(key);
+            var evidence = DuplicateVoteEvidence.Create(
                 voteRef,
                 voteDup,
                 TestUtils.Validators,
@@ -574,7 +574,7 @@ namespace Libplanet.Tests.Blockchain
                 NextBlock(blockChain, proposer, emptyEvidence);
             }
 
-            Assert.Throws<InvalidBlockEvidencePendingDurationException>(
+            Assert.Throws<InvalidOperationException>(
                 () => NextBlock(blockChain, proposer, blockChain.GetPendingEvidence()));
 
             Assert.Single(blockChain.GetPendingEvidence());

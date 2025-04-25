@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Security.Cryptography;
 using Libplanet.Common;
+using Libplanet.Serialization;
 using Xunit;
 using static Libplanet.Tests.TestUtils;
 
@@ -24,10 +25,11 @@ public class HashDigestTest
     {
         Assert.NotEqual(HashDigest<SHA1>.Size, HashDigest<SHA256>.Size);
         var digest = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size));
-        var bencoded = digest.Bencoded;
-        var decoded = new HashDigest<SHA256>(bencoded);
+        var bencoded = ModelSerializer.Serialize(digest);
+        var decoded = ModelSerializer.Deserialize<HashDigest<SHA256>>(bencoded);
         Assert.Equal(digest, decoded);
-        Assert.Throws<ArgumentOutOfRangeException>(() => new HashDigest<SHA1>(bencoded));
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => ModelSerializer.Deserialize<HashDigest<SHA1>>(bencoded));
     }
 
     [Fact]

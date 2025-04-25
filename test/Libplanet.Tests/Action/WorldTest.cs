@@ -103,9 +103,7 @@ namespace Libplanet.Tests.Action
                 .SetBalance(_addr[0], _currencies[4], 5)
                 .SetBalance(_addr[1], _currencies[2], 15)
                 .SetBalance(_addr[1], _currencies[3], 20)
-                .SetValidatorSet(new ImmutableSortedSet<Validator>(_keys
-                    .Select(key => new Validator(key.PublicKey, 1))
-                    .ToList())));
+                .SetValidatorSet([.. _keys.Select(key => new Validator(key.PublicKey, 1))]));
 
             output.WriteLine("Fixtures  Address");
             int i = 0;
@@ -255,7 +253,7 @@ namespace Libplanet.Tests.Action
             var hash = block1PreEval.Header.DeriveBlockHash(stateRootHash, null);
             Block block1 = ProtocolVersion >= BlockMetadata.SignatureProtocolVersion
                 ? chain.EvaluateAndSign(block1PreEval, privateKey)
-                : new Block(block1PreEval, (stateRootHash, null, hash));
+                : Block.Create(block1PreEval, (stateRootHash, null, hash));
             chain.Append(block1, TestUtils.CreateBlockCommit(block1));
             Assert.Equal(
                 DumbAction.DumbCurrency * 0,
@@ -285,7 +283,7 @@ namespace Libplanet.Tests.Action
             hash = block2PreEval.Header.DeriveBlockHash(stateRootHash, null);
             Block block2 = ProtocolVersion >= BlockMetadata.SignatureProtocolVersion
                 ? chain.EvaluateAndSign(block2PreEval, privateKey)
-                : new Block(block2PreEval, (stateRootHash, null, hash));
+                : Block.Create(block2PreEval, (stateRootHash, null, hash));
             chain.Append(block2, TestUtils.CreateBlockCommit(block2));
             Assert.Equal(
                 DumbAction.DumbCurrency * 5,
@@ -315,7 +313,7 @@ namespace Libplanet.Tests.Action
             hash = block3PreEval.Header.DeriveBlockHash(stateRootHash, null);
             Block block3 = ProtocolVersion >= BlockMetadata.SignatureProtocolVersion
                 ? chain.EvaluateAndSign(block3PreEval, _keys[1])
-                : new Block(block3PreEval, (stateRootHash, null, hash));
+                : Block.Create(block3PreEval, (stateRootHash, null, hash));
             chain.Append(block3, TestUtils.CreateBlockCommit(block3));
             Assert.Equal(
                 DumbAction.DumbCurrency * 5,
@@ -412,10 +410,10 @@ namespace Libplanet.Tests.Action
                 .Select(i => new PrivateKey())
                 .ToList();
 
-            var validatorSet = new ImmutableSortedSet<Validator>(
-                keys.Select(key => new Validator(key.PublicKey, 1)).ToList());
+            var validatorSet = 
+                keys.Select(key => new Validator(key.PublicKey, 1)).ToImmutableSortedSet();
             world = world.SetValidatorSet(validatorSet);
-            Assert.Equal(newValidatorCount, world.GetValidatorSet().TotalCount);
+            Assert.Equal(newValidatorCount, world.GetValidatorSet().Count);
             Assert.NotEqual(_initWorld.GetValidatorSet(), world.GetValidatorSet());
             var oldValidatorSetRawValue = world
                 .GetAccountState(ReservedAddresses.LegacyAccount)
@@ -434,8 +432,8 @@ namespace Libplanet.Tests.Action
                 Assert.Null(newValidatorSetRawValue);
             }
 
-            world = world.SetValidatorSet(new ImmutableSortedSet<Validator>());
-            Assert.Equal(0, world.GetValidatorSet().TotalCount);
+            world = world.SetValidatorSet([]);
+            Assert.Empty(world.GetValidatorSet());
             oldValidatorSetRawValue =
                 world.GetAccountState(ReservedAddresses.LegacyAccount).Trie[
                     KeyConverters.ValidatorSetKey];

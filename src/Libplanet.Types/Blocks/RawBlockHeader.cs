@@ -93,6 +93,11 @@ public sealed record class RawBlockHeader
     ) =>
         BlockHash.DeriveFrom(Codec.Encode(MakeCandidateData(stateRootHash, signature)));
 
+    public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
+
+    public void ValidateTimestamp(DateTimeOffset currentTime)
+        => Metadata.ValidateTimestamp(currentTime);
+
     private static HashDigest<SHA256> CheckPreEvaluationHash(
         BlockMetadata metadata,
         in HashDigest<SHA256> preEvaluationHash)

@@ -42,23 +42,25 @@ namespace Libplanet.Tests.Blocks
                 protocolVersion: ProtocolVersion,
                 stateRootHash: HashDigest<SHA256>.Parse(
                     "aaeda4f1a6a4aee7fc9a29014cff005109176e83a8e5d28876f2d889680e6421"),
-                lastCommit: new BlockCommit(
-                    height: Next.Index,
-                    round: 0,
-                    blockHash: Next.Hash,
-                    votes: new[]
-                    {
-                        new VoteMetadata(
-                            Next.Index,
-                            0,
-                            Next.Hash,
-                            Next.Timestamp,
-                            Miner.PublicKey,
-                            TestUtils.Validators.GetValidator(Miner.PublicKey).Power,
-                            VoteFlag.PreCommit).Sign(Miner),
-                    }.ToImmutableArray()),
-                evidence: ImmutableArray<EvidenceBase>.Empty
-            );
+                lastCommit: new BlockCommit
+                {
+                    Height = Next.Index,
+                    Round = 0,
+                    BlockHash = Next.Hash,
+                    Votes =
+                    [
+                        new VoteMetadata
+                        {
+                            Height = Next.Index,
+                            Round = 0,
+                            BlockHash = Next.Hash,
+                            Timestamp = Next.Timestamp,
+                            ValidatorPublicKey = Miner.PublicKey,
+                            ValidatorPower = TestUtils.Validators.GetValidator(Miner.PublicKey).Power,
+                            Flag = VoteFlag.PreCommit,
+                        }.Sign(Miner),
+                    ],
+                });
         }
 
         internal TxFixture TxFixture { get; }

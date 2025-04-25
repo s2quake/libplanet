@@ -9,6 +9,7 @@ using Libplanet.Action.Loader;
 using Libplanet.Action.Sys;
 using Libplanet.Blockchain;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
@@ -58,8 +59,8 @@ public class BlockCommand
         Block block;
         try
         {
-            var dict = (Bencodex.Types.Dictionary)codec.Decode(inputStream);
-            block = BlockMarshaler.UnmarshalBlock(dict);
+            var dict = codec.Decode(inputStream);
+            block = ModelSerializer.Deserialize<Block>(dict);
         }
         catch (DecodingException e)
         {
@@ -75,7 +76,7 @@ public class BlockCommand
                 -2
             );
         }
-        catch (InvalidBlockException e)
+        catch (InvalidOperationException e)
         {
             throw new CommandExitedException(
                 $"The {sourceName} does not contain a valid block: {e.Message}",
@@ -128,11 +129,11 @@ public class BlockCommand
         // FIXME: Declare a ICommandParameterSet type taking key ID and keystore path instead:
         PrivateKey key = new KeyCommand().UnprotectKey(keyId, passphrase, ignoreStdin: true);
 
-        var validatorSet = new ImmutableSortedSet<Validator>(
+        var validatorSet =
             validatorKey
                 .Select(PublicKey.Parse)
                 .Select(k => new Validator(k, BigInteger.One))
-                .ToList());
+                .ToImmutableSortedSet();
         var emptyState =
             ImmutableTrieDictionary<Address, IValue>.Empty;
         ImmutableList<Transaction> txs = Array.Empty<Transaction>()
@@ -147,7 +148,11 @@ public class BlockCommand
                 null,
                 new IAction[]
                 {
-                    new Initialize(validatorSet, emptyState),
+                    new Initialize
+                    {
+                        Validators = validatorSet,
+                        States = emptyState.ToImmutableDictionary(),
+                    },
                 }.Select(x => x.PlainValue)))
             .ToImmutableList();
 
@@ -187,7 +192,7 @@ public class BlockCommand
 
             default:
                 Codec codec = new ();
-                codec.Encode(genesis.MarshalBlock(), stream);
+                codec.Encode(ModelSerializer.Serialize(genesis), stream);
                 break;
         }
     }
