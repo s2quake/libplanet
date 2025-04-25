@@ -15,8 +15,6 @@ namespace Libplanet.Tests.Blockchain.Policies
 {
     public class BlockPolicyTest : IDisposable
     {
-        private static readonly DateTimeOffset FixtureEpoch =
-            new DateTimeOffset(2018, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
         private readonly ITestOutputHelper _output;
 

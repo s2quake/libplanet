@@ -12,12 +12,8 @@ namespace Libplanet.Net.Tests.Protocols;
 
 public class RoutingTableTest
 {
-    private const int BucketSize = 16;
-    private const int TableSize = Address.Size * sizeof(byte) * 8;
 
     private static readonly PrivateKey VersionSigner = new PrivateKey();
-    private static readonly AppProtocolVersion AppProtocolVer =
-        AppProtocolVersion.Sign(VersionSigner, 1);
 
     public RoutingTableTest(ITestOutputHelper output)
     {

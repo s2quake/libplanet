@@ -11,7 +11,6 @@ namespace Libplanet.Net.Tests.Consensus
 {
     public class HeightVoteSetTest
     {
-        private static Bencodex.Codec _codec = new Bencodex.Codec();
         private BlockChain _blockChain;
         private BlockCommit _lastCommit;
         private HeightVoteSet _heightVoteSet;

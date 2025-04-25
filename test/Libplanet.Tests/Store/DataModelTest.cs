@@ -981,11 +981,6 @@ namespace Libplanet.Tests.Store
 
         private class IntWrapper : DataModel
         {
-            public IntWrapper(int value)
-                : base()
-            {
-                Value = value;
-            }
 
             public IntWrapper(BTypes.Dictionary encoded)
                 : base(encoded)
@@ -995,29 +990,8 @@ namespace Libplanet.Tests.Store
             public int Value { get; private set; }
         }
 
-        private class BytesWrapper : DataModel
-        {
-            public BytesWrapper(ImmutableArray<byte> value)
-                : base()
-            {
-                Value = value;
-            }
-
-            public BytesWrapper(BTypes.Dictionary encoded)
-                : base(encoded)
-            {
-            }
-
-            public ImmutableArray<byte> Value { get; private set; }
-        }
-
         private class GuidWrapper : DataModel
         {
-            public GuidWrapper(Guid value)
-                : base()
-            {
-                Value = value;
-            }
 
             public GuidWrapper(BTypes.Dictionary encoded)
                 : base(encoded)
@@ -1029,11 +1003,6 @@ namespace Libplanet.Tests.Store
 
         private class AddressWrapper : DataModel
         {
-            public AddressWrapper(Address value)
-                : base()
-            {
-                Value = value;
-            }
 
             public AddressWrapper(BTypes.Dictionary encoded)
                 : base(encoded)
@@ -1045,11 +1014,6 @@ namespace Libplanet.Tests.Store
 
         private class StrWrapper : DataModel
         {
-            public StrWrapper(string value)
-                : base()
-            {
-                Value = value;
-            }
 
             public StrWrapper(BTypes.Dictionary encoded)
                 : base(encoded)
@@ -1061,11 +1025,6 @@ namespace Libplanet.Tests.Store
 
         private class ListIntWrapper : DataModel
         {
-            public ListIntWrapper(List<int> value)
-                : base()
-            {
-                Value = value.ToImmutableList();
-            }
 
             public ListIntWrapper(BTypes.Dictionary encoded)
                 : base(encoded)
@@ -1077,11 +1036,6 @@ namespace Libplanet.Tests.Store
 
         private class DictStrIntWrapper : DataModel
         {
-            public DictStrIntWrapper(Dictionary<string, int> value)
-                : base()
-            {
-                Value = value.ToImmutableDictionary();
-            }
 
             public DictStrIntWrapper(BTypes.Dictionary encoded)
                 : base(encoded)

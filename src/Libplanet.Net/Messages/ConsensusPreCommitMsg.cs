@@ -9,7 +9,6 @@ namespace Libplanet.Net.Messages
     /// </summary>
     public class ConsensusPreCommitMsg : ConsensusVoteMsg
     {
-        private static Bencodex.Codec _codec = new Bencodex.Codec();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsensusPreCommitMsg"/> class.

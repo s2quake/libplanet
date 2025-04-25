@@ -11,20 +11,6 @@ namespace Libplanet.Action.Tests.Sys
 {
     public class RegistryTest
     {
-        private static readonly ImmutableSortedSet<Validator> _validatorSet = ImmutableSortedSet.Create(
-            [
-                new Validator(new PrivateKey().PublicKey, BigInteger.One),
-            ]
-        );
-
-        private static readonly IImmutableDictionary<Address, IValue>
-            _states =
-            new Dictionary<Address, IValue>
-            {
-                [default] = (Text)"initial value",
-            }.ToImmutableDictionary();
-
-        private static readonly Currency FooCurrency = new("FOO", 2);
 
         [Fact]
         public void Deserialize()

@@ -25,7 +25,6 @@ internal sealed class BlockChainService(
     PolicyService policyService,
     RendererService rendererService) : IBlockChainService
 {
-    private static readonly Codec _codec = new();
     private readonly BlockChain _blockChain = CreateBlockChain(
         actionService: actionService,
         genesisOptions: genesisOptions.Value,

@@ -25,8 +25,6 @@ namespace Libplanet.Net
 {
     public partial class Swarm : IDisposable
     {
-        private const int InitialBlockDownloadWindow = 100;
-        private static readonly Codec Codec = new Codec();
 
         private readonly PrivateKey _privateKey;
 

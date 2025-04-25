@@ -8,7 +8,6 @@ namespace Libplanet.Tests.Consensus
 {
     public class Maj23MetadataTest
     {
-        private static Bencodex.Codec _codec = new Bencodex.Codec();
 
         [Fact]
         public void VoteFlagShouldBePreVoteOrPreCommit()

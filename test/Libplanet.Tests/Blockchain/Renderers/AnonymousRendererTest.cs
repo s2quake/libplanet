@@ -12,9 +12,6 @@ namespace Libplanet.Tests.Blockchain.Renderers
         private static Block _blockA =
             TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposer);
 
-        private static Block _blockB =
-            TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposer);
-
         [Fact]
         public void BlockRenderer()
         {
