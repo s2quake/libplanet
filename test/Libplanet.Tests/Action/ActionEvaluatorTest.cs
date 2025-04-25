@@ -527,7 +527,7 @@ namespace Libplanet.Tests.Action
                 block1Txs);
             IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
             var evals = actionEvaluator.EvaluateBlock(
-                block1.RawBlock,
+                (RawBlock)block1,
                 previousState).ToImmutableArray();
             // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
             // have to be updated, since the order may change due to different RawHash.
@@ -584,7 +584,7 @@ namespace Libplanet.Tests.Action
 
             previousState = stateStore.GetWorld(genesis.StateRootHash);
             ActionEvaluation[] evals1 =
-                actionEvaluator.EvaluateBlock(block1.RawBlock, previousState).ToArray();
+                actionEvaluator.EvaluateBlock((RawBlock)block1, previousState).ToArray();
             var output1 = new WorldBaseState(evals1.Last().OutputState.Trie, stateStore);
             Assert.Equal(
                 (Text)"A",
@@ -672,7 +672,7 @@ namespace Libplanet.Tests.Action
             // Forcefully reset to null delta
             previousState = evals1.Last().OutputState;
             evals = actionEvaluator.EvaluateBlock(
-                block2.RawBlock,
+                (RawBlock)block2,
                 previousState).ToImmutableArray();
 
             // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
@@ -730,7 +730,7 @@ namespace Libplanet.Tests.Action
             }
 
             previousState = evals1.Last().OutputState;
-            var evals2 = actionEvaluator.EvaluateBlock(block2.RawBlock, previousState).ToArray();
+            var evals2 = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState).ToArray();
             var output2 = new WorldBaseState(evals2.Last().OutputState.Trie, stateStore);
             Assert.Equal(
                 (Text)"A,D",
@@ -765,9 +765,8 @@ namespace Libplanet.Tests.Action
                 Transaction.Create(0, _txFx.PrivateKey1, null, actions.ToPlainValues());
             var txs = new Transaction[] { tx };
             var evs = Array.Empty<EvidenceBase>();
-            var block = new BlockContent
-            {
-                Metadata = new BlockMetadata
+            var block = RawBlock.Propose(
+                new BlockMetadata
                 {
                     Index = 1L,
                     Timestamp = DateTimeOffset.UtcNow,
@@ -777,9 +776,11 @@ namespace Libplanet.Tests.Action
                     LastCommit = null,
                     EvidenceHash = null,
                 },
-                Transactions = [.. txs],
-                Evidence = [.. evs],
-            }.Propose();
+                new BlockContent
+                {
+                    Transactions = [.. txs],
+                    Evidence = [.. evs],
+                });
             IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
             IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
                 .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
