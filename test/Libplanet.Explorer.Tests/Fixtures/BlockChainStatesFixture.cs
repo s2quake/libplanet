@@ -59,9 +59,7 @@ namespace Libplanet.Explorer.Tests.Fixtures
             CreateMockBlockChainStates(int version)
         {
             MockBlockChainStates mockBlockChainStates = new MockBlockChainStates();
-            MockWorldState mock = version >= BlockMetadata.WorldStateProtocolVersion
-                ? MockWorldState.CreateModern(mockBlockChainStates.StateStore, version)
-                : MockWorldState.CreateLegacy(mockBlockChainStates.StateStore);
+            MockWorldState mock = MockWorldState.CreateModern(mockBlockChainStates.StateStore, version);
             mock = mock
                 .SetBalance(Address, Amount)
                 .SetBalance(new PrivateKey().Address, AdditionalSupply)

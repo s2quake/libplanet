@@ -116,9 +116,7 @@ public partial class StateQueryTest
         Assert.Equal("ABC", currencyDict["ticker"]);
         Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.ByteArray), currencyDict["hash"]);
         FungibleAssetValue expectedTotalSupply
-            = version >= BlockMetadata.CurrencyAccountProtocolVersion
-            ? (Fixture.Amount + Fixture.AdditionalSupply)
-            : (Fixture.Currency * 0);
+            = Fixture.Amount + Fixture.AdditionalSupply;
         Assert.Equal(
             expectedTotalSupply.Sign,
             Assert.IsAssignableFrom<int>(totalSupplyDict["sign"]));
@@ -303,9 +301,7 @@ public partial class StateQueryTest
         Assert.Equal(Fixture.Currency.Ticker, currencyDict["ticker"]);
         Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.ByteArray), currencyDict["hash"]);
         FungibleAssetValue expectedTotalSupply
-            = version >= BlockMetadata.CurrencyAccountProtocolVersion
-            ? (Fixture.Amount + Fixture.AdditionalSupply)
-            : (Fixture.Currency * 0);
+            = Fixture.Amount + Fixture.AdditionalSupply;
         Assert.Equal(
             expectedTotalSupply.Sign,
             Assert.IsAssignableFrom<int>(totalSupplyDict["sign"]));

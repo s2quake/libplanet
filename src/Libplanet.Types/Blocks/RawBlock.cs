@@ -51,6 +51,9 @@ public sealed record class RawBlock
         };
     }
 
+    public static RawBlock Propose(BlockMetadata metadata)
+        => Propose(metadata, new BlockContent());
+
     public static RawBlock Propose(BlockMetadata metadata, BlockContent content)
     {
         var preEvaluationHash = metadata.DerivePreEvaluationHash();

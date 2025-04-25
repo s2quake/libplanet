@@ -94,9 +94,7 @@ namespace Libplanet.Tests.Action
             };
 
             MockWorldState initMockWorldState =
-                ProtocolVersion >= BlockMetadata.WorldStateProtocolVersion
-                    ? MockWorldState.CreateModern(version: ProtocolVersion)
-                    : MockWorldState.CreateLegacy();
+                 MockWorldState.CreateModern(version: ProtocolVersion);
             _initWorld = new World(initMockWorldState
                 .SetBalance(_addr[0], _currencies[0], 5)
                 .SetBalance(_addr[0], _currencies[2], 10)
@@ -211,14 +209,7 @@ namespace Libplanet.Tests.Action
             Assert.Equal(Value(0, 4), world.GetBalance(_addr[1], _currencies[0]));
 
             world = _initWorld.TransferAsset(_initContext, _addr[0], _addr[0], Value(0, 2));
-            if (ProtocolVersion >= BlockMetadata.TransferFixProtocolVersion)
-            {
-                Assert.Equal(Value(0, 5), world.GetBalance(_addr[0], _currencies[0]));
-            }
-            else
-            {
-                Assert.Equal(Value(0, 7), world.GetBalance(_addr[0], _currencies[0]));
-            }
+            Assert.Equal(Value(0, 5), world.GetBalance(_addr[0], _currencies[0]));
         }
 
         [Fact]
@@ -250,10 +241,8 @@ namespace Libplanet.Tests.Action
                 protocolVersion: ProtocolVersion);
             var stateRootHash =
                 chain.DetermineBlockPrecededStateRootHash(block1PreEval, out _);
-            var hash = block1PreEval.Header.DeriveBlockHash(stateRootHash, null);
-            Block block1 = ProtocolVersion >= BlockMetadata.SignatureProtocolVersion
-                ? chain.EvaluateAndSign(block1PreEval, privateKey)
-                : Block.Create(block1PreEval, (stateRootHash, null, hash));
+            var hash = block1PreEval.Metadata.DeriveBlockHash(stateRootHash, []);
+            Block block1 = chain.EvaluateAndSign(block1PreEval, privateKey);
             chain.Append(block1, TestUtils.CreateBlockCommit(block1));
             Assert.Equal(
                 DumbAction.DumbCurrency * 0,
@@ -280,10 +269,8 @@ namespace Libplanet.Tests.Action
                 protocolVersion: ProtocolVersion,
                 lastCommit: chain.GetBlockCommit(chain.Tip.Index));
             stateRootHash = chain.DetermineBlockPrecededStateRootHash(block2PreEval, out _);
-            hash = block2PreEval.Header.DeriveBlockHash(stateRootHash, null);
-            Block block2 = ProtocolVersion >= BlockMetadata.SignatureProtocolVersion
-                ? chain.EvaluateAndSign(block2PreEval, privateKey)
-                : Block.Create(block2PreEval, (stateRootHash, null, hash));
+            hash = block2PreEval.Metadata.DeriveBlockHash(stateRootHash, []);
+            Block block2 = chain.EvaluateAndSign(block2PreEval, privateKey);
             chain.Append(block2, TestUtils.CreateBlockCommit(block2));
             Assert.Equal(
                 DumbAction.DumbCurrency * 5,
@@ -310,10 +297,8 @@ namespace Libplanet.Tests.Action
                 protocolVersion: ProtocolVersion,
                 lastCommit: chain.GetBlockCommit(chain.Tip.Index));
             stateRootHash = chain.DetermineBlockPrecededStateRootHash(block3PreEval, out _);
-            hash = block3PreEval.Header.DeriveBlockHash(stateRootHash, null);
-            Block block3 = ProtocolVersion >= BlockMetadata.SignatureProtocolVersion
-                ? chain.EvaluateAndSign(block3PreEval, _keys[1])
-                : Block.Create(block3PreEval, (stateRootHash, null, hash));
+            hash = block3PreEval.Metadata.DeriveBlockHash(stateRootHash, []);
+            Block block3 = chain.EvaluateAndSign(block3PreEval, _keys[1]);
             chain.Append(block3, TestUtils.CreateBlockCommit(block3));
             Assert.Equal(
                 DumbAction.DumbCurrency * 5,
@@ -410,7 +395,7 @@ namespace Libplanet.Tests.Action
                 .Select(i => new PrivateKey())
                 .ToList();
 
-            var validatorSet = 
+            var validatorSet =
                 keys.Select(key => new Validator(key.PublicKey, 1)).ToImmutableSortedSet();
             world = world.SetValidatorSet(validatorSet);
             Assert.Equal(newValidatorCount, world.GetValidatorSet().Count);
@@ -421,16 +406,8 @@ namespace Libplanet.Tests.Action
             var newValidatorSetRawValue = world
                 .GetAccountState(ReservedAddresses.ValidatorSetAccount)
                 .Trie[KeyConverters.ToStateKey(ValidatorSetAccount.ValidatorSetAddress)];
-            if (ProtocolVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
-            {
-                Assert.Null(oldValidatorSetRawValue);
-                Assert.NotNull(newValidatorSetRawValue);
-            }
-            else
-            {
-                Assert.NotNull(oldValidatorSetRawValue);
-                Assert.Null(newValidatorSetRawValue);
-            }
+            Assert.Null(oldValidatorSetRawValue);
+            Assert.NotNull(newValidatorSetRawValue);
 
             world = world.SetValidatorSet([]);
             Assert.Empty(world.GetValidatorSet());
@@ -440,16 +417,8 @@ namespace Libplanet.Tests.Action
             newValidatorSetRawValue =
                 world.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie[
                     KeyConverters.ToStateKey(ValidatorSetAccount.ValidatorSetAddress)];
-            if (ProtocolVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
-            {
-                Assert.Null(oldValidatorSetRawValue);
-                Assert.NotNull(newValidatorSetRawValue);
-            }
-            else
-            {
-                Assert.NotNull(oldValidatorSetRawValue);
-                Assert.Null(newValidatorSetRawValue);
-            }
+            Assert.Null(oldValidatorSetRawValue);
+            Assert.NotNull(newValidatorSetRawValue);
         }
 
         [Fact]
@@ -458,36 +427,18 @@ namespace Libplanet.Tests.Action
             IWorld world = _initWorld;
             IActionContext context = _initContext;
 
-            if (ProtocolVersion >= BlockMetadata.CurrencyAccountProtocolVersion)
-            {
-                Assert.Equal(
-                    Value(0, 5),
-                    world.GetTotalSupply(_currencies[0]));
-            }
-            else
-            {
-                Assert.Equal(
-                    Value(0, 0),
-                    world.GetTotalSupply(_currencies[0]));
-            }
+            Assert.Equal(
+                Value(0, 5),
+                world.GetTotalSupply(_currencies[0]));
 
             Assert.Equal(
                 Value(4, 5),
                 _initWorld.GetTotalSupply(_currencies[4]));
 
             world = world.MintAsset(context, _addr[0], Value(0, 10));
-            if (ProtocolVersion >= BlockMetadata.CurrencyAccountProtocolVersion)
-            {
-                Assert.Equal(
-                    Value(0, 15),
-                    world.GetTotalSupply(_currencies[0]));
-            }
-            else
-            {
-                Assert.Equal(
-                    Value(0, 0),
-                    world.GetTotalSupply(_currencies[0]));
-            }
+            Assert.Equal(
+                Value(0, 15),
+                world.GetTotalSupply(_currencies[0]));
 
             world = world.MintAsset(context, _addr[0], Value(4, 10));
             Assert.Equal(

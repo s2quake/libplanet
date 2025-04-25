@@ -69,9 +69,8 @@ public partial class BlockChainTest : IDisposable
         _renderer.ResetRecords();
 
         _validNext = _blockChain.EvaluateAndSign(
-            new BlockContent
-            {
-                Metadata = new BlockMetadata
+            RawBlock.Propose(
+                new BlockMetadata
                 {
                     ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
                     Index = 1,
@@ -81,8 +80,7 @@ public partial class BlockChainTest : IDisposable
                     PreviousHash = _fx.GenesisBlock.Hash,
                     LastCommit = null,
                     EvidenceHash = null,
-                },
-            }.Propose(),
+                }),
             _fx.Proposer);
     }
 
@@ -1255,7 +1253,7 @@ public partial class BlockChainTest : IDisposable
                         lastCommit: CreateBlockCommit(b)),
                     GenesisProposer);
 
-                var evals = actionEvaluator.EvaluateBlock(b.RawBlock, previousState);
+                var evals = actionEvaluator.EvaluateBlock((RawBlock)b, previousState);
                 var dirty = evals.Last().OutputState.Trie
                     .Diff(evals.First().InputContext.PreviousState.Trie)
                     .ToList();
