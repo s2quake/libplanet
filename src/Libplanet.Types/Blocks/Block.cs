@@ -13,7 +13,6 @@ public sealed record class Block(
     [property: Property(1)] RawBlock RawBlock)
 {
     public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
-    private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
 
     // private readonly BlockHeader _header;
     // private readonly RawBlock _preEvaluationBlock;
@@ -88,22 +87,7 @@ public sealed record class Block(
     public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
     public void ValidateTimestamp(DateTimeOffset currentTime)
-    {
-        if (currentTime + TimestampThreshold < Header.RawBlockHeader.Metadata.Timestamp)
-        {
-            var message = $"The block #{Header.Index}'s timestamp " +
-                $"({Header.RawBlockHeader.Metadata.Timestamp}) is later than now " +
-                $"({currentTime}, threshold: {TimestampThreshold}).";
-            throw new InvalidOperationException(message);
-            // string hash = metadata is IBlockExcerpt h
-            //     ? $" {h.Hash}"
-            //     : string.Empty;
-            // throw new InvalidOperationException(
-            //     $"The block #{metadata.Index}{hash}'s timestamp " +
-            //     $"({metadata.Timestamp}) is later than now ({currentTime}, " +
-            //     $"threshold: {TimestampThreshold}).");
-        }
-    }
+        => Header.RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
 
     public string ToExcerptString()
     {

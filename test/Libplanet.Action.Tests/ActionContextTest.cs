@@ -23,21 +23,25 @@ namespace Libplanet.Action.Tests
             _txid = _random.NextTxId();
             var key = new PrivateKey();
             var hash = _random.NextBlockHash();
-            _lastCommit = new BlockCommit(
-                0,
-                0,
-                hash,
-                new[]
-                {
-                    new VoteMetadata(
-                        0,
-                        0,
-                        hash,
-                        DateTimeOffset.UtcNow,
-                        key.PublicKey,
-                        BigInteger.One,
-                        VoteFlag.PreCommit).Sign(key),
-                }.ToImmutableArray());
+            _lastCommit = new BlockCommit
+            {
+                Height = 0,
+                Round = 0,
+                BlockHash = hash,
+                Votes =
+                [
+                    new VoteMetadata
+                    {
+                        Height = 0,
+                        Round = 0,
+                        BlockHash = hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = key.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(key),
+                ],
+            };
         }
 
         [Fact]

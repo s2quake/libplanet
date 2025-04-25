@@ -34,21 +34,25 @@ namespace Libplanet.Action.Tests
             Address address = new PrivateKey().Address;
             var key = new PrivateKey();
             var hash = random.NextBlockHash();
-            var lastCommit = new BlockCommit(
-                0,
-                0,
-                hash,
-                new[]
-                {
-                    new VoteMetadata(
-                        0,
-                        0,
-                        hash,
-                        DateTimeOffset.UtcNow,
-                        key.PublicKey,
-                        BigInteger.One,
-                        VoteFlag.PreCommit).Sign(key),
-                }.ToImmutableArray());
+            var lastCommit = new BlockCommit
+            {
+                Height = 0,
+                Round = 0,
+                BlockHash = hash,
+                Votes =
+                [
+                    new VoteMetadata
+                    {
+                        Height = 0,
+                        Round = 0,
+                        BlockHash = hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = key.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(key),
+                ],
+            };
             IWorld world = new World(MockWorldState.CreateModern());
             world = world.SetAccount(
                 ReservedAddresses.LegacyAccount,

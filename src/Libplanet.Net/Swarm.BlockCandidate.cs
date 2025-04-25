@@ -204,27 +204,6 @@ namespace Libplanet.Net
                     peer);
                 return false;
             }
-            catch (InvalidBlockIndexException)
-            {
-                const string msg =
-                    "{SessionId}: {Peer} sent an invalid block height";
-                _logger.Debug(msg, sessionId, peer);
-                return false;
-            }
-            catch (InvalidBlockHashException)
-            {
-                const string msg =
-                    "{SessionId}: {Peer} sent an invalid block hash";
-                _logger.Debug(msg, sessionId, peer);
-                return false;
-            }
-            catch (InvalidBlockException)
-            {
-                const string msg =
-                    "{SessionId}: {Peer} sent an invalid block";
-                _logger.Debug(msg, sessionId, peer);
-                return false;
-            }
             catch (Exception e)
             {
                 const string msg =

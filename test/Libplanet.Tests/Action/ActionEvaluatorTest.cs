@@ -118,7 +118,7 @@ namespace Libplanet.Tests.Action
                 stateRootHash: default);
             var generatedRandomNumbers = new List<int>();
 
-            AssertPreEvaluationBlocksEqual(.r, noStateRootBlock);
+            AssertPreEvaluationBlocksEqual(stateRootBlock.RawBlock, noStateRootBlock);
 
             for (int i = 0; i < repeatCount; ++i)
             {
@@ -128,7 +128,7 @@ namespace Libplanet.Tests.Action
                         stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
                             .GetAccountState(ReservedAddresses.LegacyAccount)
                             .GetState(ContextRecordingAction.RandomRecordAddress));
-                actionEvaluations = actionEvaluator.Evaluate(stateRootBlock, default);
+                actionEvaluations = actionEvaluator.Evaluate(stateRootBlock.RawBlock, default);
                 generatedRandomNumbers.Add(
                     (Integer)new WorldBaseState(
                         stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
@@ -362,7 +362,7 @@ namespace Libplanet.Tests.Action
             Block block = chain.ProposeBlock(new PrivateKey());
             chain.Append(block, CreateBlockCommit(block));
             var evaluations = chain.ActionEvaluator.Evaluate(
-                chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
+                chain.Tip.RawBlock, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
 
             Assert.False(evaluations[0].InputContext.IsPolicyAction);
             Assert.Single(evaluations);

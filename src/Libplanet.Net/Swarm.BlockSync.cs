@@ -51,14 +51,14 @@ namespace Libplanet.Net
                 return;
             }
 
-            List<(BoundPeer, IBlockExcerpt)> peersWithBlockExcerpt =
+            List<(BoundPeer, BlockExcerpt)> peersWithBlockExcerpt =
                 await GetPeersWithExcerpts(
                     timeout, maximumPollPeers, cancellationToken);
             await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
         }
 
         private async Task PullBlocksAsync(
-            List<(BoundPeer, IBlockExcerpt)> peersWithBlockExcerpt,
+            List<(BoundPeer, BlockExcerpt)> peersWithBlockExcerpt,
             CancellationToken cancellationToken)
         {
             if (!peersWithBlockExcerpt.Any())
@@ -173,14 +173,14 @@ namespace Libplanet.Net
             CancellationToken cancellationToken
         )
         {
-            IBlockExcerpt lastTip = BlockChain.Tip;
+            BlockExcerpt lastTip = BlockChain.Tip.Header;
             DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
             while (!cancellationToken.IsCancellationRequested)
             {
                 if (!lastTip.Hash.Equals(BlockChain.Tip.Hash))
                 {
                     lastUpdated = DateTimeOffset.UtcNow;
-                    lastTip = BlockChain.Tip;
+                    lastTip = BlockChain.Tip.Header;
                 }
                 else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
                 {

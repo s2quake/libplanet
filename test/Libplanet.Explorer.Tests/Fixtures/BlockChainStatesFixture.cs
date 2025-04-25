@@ -52,8 +52,8 @@ namespace Libplanet.Explorer.Tests.Fixtures
                     "032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
                 new BigInteger(1));
 
-        public static readonly ImmutableSortedSet<Validator> ImmutableSortedSet<Validator> =
-            new ImmutableSortedSet<Validator>(new List<Validator>() { Validator });
+        public static readonly ImmutableSortedSet<Validator> Validators =
+            ImmutableSortedSet.Create([Validator]);
 
         public static (IBlockChainStates, BlockHash, HashDigest<SHA256>)
             CreateMockBlockChainStates(int version)
@@ -65,7 +65,7 @@ namespace Libplanet.Explorer.Tests.Fixtures
             mock = mock
                 .SetBalance(Address, Amount)
                 .SetBalance(new PrivateKey().Address, AdditionalSupply)
-                .SetValidatorSet(ImmutableSortedSet<Validator>);
+                .SetValidatorSet(Validators);
             IAccount account = new Account(mock.GetAccountState(ReservedAddresses.LegacyAccount));
             account = account.SetState(Address, Value);
             mock = mock.SetAccount(ReservedAddresses.LegacyAccount, account);

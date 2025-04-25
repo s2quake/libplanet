@@ -1,3 +1,5 @@
+using Bencodex.Types;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Net.Messages
@@ -9,22 +11,23 @@ namespace Libplanet.Net.Messages
         public BlockHeaderMsg(BlockHash genesisHash, BlockHeader header)
         {
             GenesisHash = genesisHash;
-            HeaderDictionary = header.MarshalBlockHeader();
+            HeaderDictionary = ModelSerializer.Serialize(header);
         }
 
         public BlockHeaderMsg(byte[][] dataFrames)
         {
             GenesisHash = new BlockHash(dataFrames[0]);
-            HeaderDictionary = (Bencodex.Types.Dictionary)Codec.Decode(dataFrames[1]);
+            HeaderDictionary = Codec.Decode(dataFrames[1]);
         }
 
         public BlockHash GenesisHash { get; }
 
-        public Bencodex.Types.Dictionary HeaderDictionary { get; }
+        public IValue HeaderDictionary { get; }
 
-        public long HeaderIndex => BlockMarshaler.UnmarshalBlockMetadataIndex(HeaderDictionary);
+        public long HeaderIndex => ModelSerializer.Deserialize<BlockHeader>(HeaderDictionary).Index;
 
-        public BlockHash HeaderHash => BlockMarshaler.UnmarshalBlockHeaderHash(HeaderDictionary);
+        public BlockHash HeaderHash
+            => ModelSerializer.Deserialize<BlockHeader>(HeaderDictionary).BlockHash;
 
         public override MessageType Type => MessageType.BlockHeaderMessage;
 
@@ -36,7 +39,7 @@ namespace Libplanet.Net.Messages
 
         public BlockHeader GetHeader()
         {
-            return BlockMarshaler.UnmarshalBlockHeader(HeaderDictionary);
+            return ModelSerializer.Deserialize<BlockHeader>(HeaderDictionary);
         }
     }
 }

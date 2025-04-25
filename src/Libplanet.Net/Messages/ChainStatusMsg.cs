@@ -3,7 +3,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Net.Messages
 {
-    internal class ChainStatusMsg : MessageContent, IBlockExcerpt
+    internal class ChainStatusMsg : MessageContent
     {
         public ChainStatusMsg(
             int protocolVersion,
@@ -35,11 +35,6 @@ namespace Libplanet.Net.Messages
         [LogAsScalar]
         public BlockHash TipHash { get; }
 
-        long IBlockExcerpt.Index => TipIndex;
-
-        [LogAsScalar]
-        BlockHash IBlockExcerpt.Hash => TipHash;
-
         public override MessageType Type => MessageType.ChainStatus;
 
         public override IEnumerable<byte[]> DataFrames => new[]
@@ -49,5 +44,13 @@ namespace Libplanet.Net.Messages
             BitConverter.GetBytes(TipIndex),
             TipHash.ToByteArray(),
         };
+
+        public static implicit operator BlockExcerpt(ChainStatusMsg msg)
+            => new BlockExcerpt
+            {
+                Index = msg.TipIndex,
+                ProtocolVersion = msg.ProtocolVersion,
+                Hash = msg.TipHash,
+            };
     }
 }

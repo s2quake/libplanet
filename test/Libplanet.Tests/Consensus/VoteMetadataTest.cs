@@ -1,5 +1,6 @@
 using System.Numerics;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Xunit;
@@ -16,40 +17,48 @@ namespace Libplanet.Tests.Consensus
             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
 
             // Works with some hash value.
-            _ = new VoteMetadata(
-                2,
-                2,
-                hash,
-                DateTimeOffset.UtcNow,
-                new PrivateKey().PublicKey,
-                BigInteger.One,
-                VoteFlag.Null);
-            _ = new VoteMetadata(
-                2,
-                2,
-                hash,
-                DateTimeOffset.UtcNow,
-                new PrivateKey().PublicKey,
-                BigInteger.One,
-                VoteFlag.Unknown);
+            _ = new VoteMetadata
+            {
+                Height = 2,
+                Round = 2,
+                BlockHash = hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = new PrivateKey().PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.Null,
+            };
+            _ = new VoteMetadata
+            {
+                Height = 2,
+                Round = 2,
+                BlockHash = hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = new PrivateKey().PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.Unknown,
+            };
 
             // Null hash is not allowed.
-            Assert.Throws<ArgumentException>(() => new VoteMetadata(
-                2,
-                2,
-                default,
-                DateTimeOffset.UtcNow,
-                new PrivateKey().PublicKey,
-                BigInteger.One,
-                VoteFlag.Null));
-            Assert.Throws<ArgumentException>(() => new VoteMetadata(
-                2,
-                2,
-                default,
-                DateTimeOffset.UtcNow,
-                new PrivateKey().PublicKey,
-                BigInteger.One,
-                VoteFlag.Unknown));
+            Assert.Throws<ArgumentException>(() => new VoteMetadata
+            {
+                Height = 2,
+                Round = 2,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = new PrivateKey().PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.Null,
+            });
+            Assert.Throws<ArgumentException>(() => new VoteMetadata
+            {
+                Height = 2,
+                Round = 2,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = new PrivateKey().PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.Unknown,
+            });
         }
 
         [Fact]
@@ -57,26 +66,31 @@ namespace Libplanet.Tests.Consensus
         {
             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
             var key = new PrivateKey();
-            var expected = new VoteMetadata(
-                1,
-                2,
-                hash,
-                DateTimeOffset.UtcNow,
-                key.PublicKey,
-                BigInteger.One,
-                VoteFlag.PreCommit);
-            var decoded = new VoteMetadata(expected.Bencoded);
+            var expected = new VoteMetadata
+            {
+                Height = 1,
+                Round = 2,
+                BlockHash = hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            };
+            var decoded = ModelSerializer.Deserialize<VoteMetadata>(
+                ModelSerializer.Serialize(expected));
             Assert.Equal(expected, decoded);
 
-            expected = new VoteMetadata(
-                1,
-                2,
-                hash,
-                DateTimeOffset.UtcNow,
-                key.PublicKey,
-                null,
-                VoteFlag.PreCommit);
-            decoded = new VoteMetadata(expected.Bencoded);
+            expected = new VoteMetadata
+            {
+                Height = 1,
+                Round = 2,
+                BlockHash = hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                Flag = VoteFlag.PreCommit,
+            };
+            decoded = ModelSerializer.Deserialize<VoteMetadata>(
+                ModelSerializer.Serialize(expected));
             Assert.Equal(expected, decoded);
         }
     }

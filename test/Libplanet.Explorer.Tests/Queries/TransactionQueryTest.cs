@@ -70,13 +70,14 @@ public class TransactionQueryTest
     public async Task BindSignatureWithSystemAction()
     {
         var foo = new Currency("FOO", 2);
-        var action = new Initialize(
-            new ImmutableSortedSet<Validator>(new List<Validator>()
-                { new Validator(new PrivateKey().PublicKey, 1 )}),
-            new Dictionary<Address, IValue>
+        var action = new Initialize
+        {
+            Validators = [new Validator(new PrivateKey().PublicKey, 1 )],
+            States = new Dictionary<Address, IValue>
             {
                 [default] = (Text)"initial value"
-            }.ToImmutableDictionary());
+            }.ToImmutableDictionary(),
+        };
         var tx = Transaction.Create(
             0L,
             new PrivateKey(),

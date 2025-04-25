@@ -151,7 +151,11 @@ public sealed record class BlockContent
     public RawBlock Propose()
     {
         var preEvaluationHash = Metadata.DerivePreEvaluationHash();
-        var header = new RawBlockHeader(Metadata, preEvaluationHash);
+        var header = new RawBlockHeader
+        {
+            Metadata = Metadata, 
+            RawHash = preEvaluationHash,
+        };
         return new RawBlock { Header = header, Content = this };
     }
 

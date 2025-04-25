@@ -26,21 +26,21 @@ namespace Libplanet.Action.Tests.Common
         public Validator Validator { get; private set; }
 
         /// <inheritdoc cref="IAction.PlainValue"/>
-        public IValue PlainValue => Bencodex.Types.Dictionary.Empty
-            .Add("validator", Validator.Bencoded);
+        public IValue PlainValue => throw new NotImplementedException();
 
         /// <inheritdoc cref="IAction.LoadPlainValue(IValue)"/>
         public void LoadPlainValue(IValue plainValue)
         {
-            var dict = (Bencodex.Types.Dictionary)plainValue;
-            Validator = new Validator((Dictionary)dict["validator"]);
+            // var dict = (Bencodex.Types.Dictionary)plainValue;
+            // Validator = new Validator((Dictionary)dict["validator"]);
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc cref="IAction.Execute(IActionContext)"/>
         public IWorld Execute(IActionContext context)
         {
             IWorld world = context.PreviousState;
-            return world.SetValidatorSet(world.GetValidatorSet().Update(Validator));
+            return world.SetValidatorSet(world.GetValidatorSet().Add(Validator));
         }
 
         /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>

@@ -31,6 +31,8 @@ public sealed record class BlockMetadata
 
     public const int EvidenceProtocolVersion = 9;
 
+    private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
+
     public int ProtocolVersion { get; init; }
 
     public long Index { get; init; }
@@ -220,4 +222,24 @@ public sealed record class BlockMetadata
     //     LastCommit = lastCommit;
     //     EvidenceHash = evidenceHash;
     // }
+
+    public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
+
+    public void ValidateTimestamp(DateTimeOffset currentTime)
+    {
+        if (currentTime + TimestampThreshold < Timestamp)
+        {
+            var message = $"The block #{Index}'s timestamp " +
+                $"({Timestamp}) is later than now " +
+                $"({currentTime}, threshold: {TimestampThreshold}).";
+            throw new InvalidOperationException(message);
+            // string hash = metadata is BlockExcerpt h
+            //     ? $" {h.Hash}"
+            //     : string.Empty;
+            // throw new InvalidOperationException(
+            //     $"The block #{metadata.Index}{hash}'s timestamp " +
+            //     $"({metadata.Timestamp}) is later than now ({currentTime}, " +
+            //     $"threshold: {TimestampThreshold}).");
+        }
+    }
 }

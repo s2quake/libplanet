@@ -1,4 +1,5 @@
 using Libplanet.Net.Consensus;
+using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Net.Messages
@@ -36,7 +37,7 @@ namespace Libplanet.Net.Messages
         /// </summary>
         /// <param name="dataframes">A marshalled message.</param>
         public ConsensusPreCommitMsg(byte[][] dataframes)
-            : this(new Vote(_codec.Decode(dataframes[0])))
+            : this(ModelSerializer.DeserializeFromBytes<Vote>(dataframes[0]))
         {
         }
 
@@ -48,7 +49,7 @@ namespace Libplanet.Net.Messages
 
         /// <inheritdoc cref="MessageContent.DataFrames"/>
         public override IEnumerable<byte[]> DataFrames =>
-            new List<byte[]> { _codec.Encode(PreCommit.Bencoded) };
+            new List<byte[]> { ModelSerializer.SerializeToBytes(PreCommit) };
 
         /// <inheritdoc cref="MessageContent.MessageType"/>
         public override MessageType Type => MessageType.ConsensusCommit;
