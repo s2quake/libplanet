@@ -40,9 +40,9 @@ namespace Libplanet.Net.Messages
         public override IEnumerable<byte[]> DataFrames => new[]
         {
             BitConverter.GetBytes(ProtocolVersion),
-            GenesisHash.ToByteArray(),
+            GenesisHash.ByteArray.ToArray(),
             BitConverter.GetBytes(TipIndex),
-            TipHash.ToByteArray(),
+            TipHash.ByteArray.ToArray(),
         };
 
         public static implicit operator BlockExcerpt(ChainStatusMsg msg)

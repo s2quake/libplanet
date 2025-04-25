@@ -13,7 +13,7 @@ namespace Libplanet.Tests.Blocks
         {
             BlockHash def = default;
             AssertBytesEqual(new byte[32].ToImmutableArray(), def.ByteArray);
-            AssertBytesEqual(new byte[32], def.ToByteArray());
+            AssertBytesEqual(new byte[32], def.ByteArray.ToArray());
         }
 
         [Fact]

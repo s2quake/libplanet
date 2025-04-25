@@ -39,7 +39,7 @@ namespace Libplanet.Net.Messages
             {
                 var frames = new List<byte[]>();
                 frames.Add(BitConverter.GetBytes(Hashes.Count()));
-                frames.AddRange(Hashes.Select(hash => hash.ToByteArray()));
+                frames.AddRange(Hashes.Select(hash => hash.ByteArray.ToArray()));
                 return frames;
             }
         }
