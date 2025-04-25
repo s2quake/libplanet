@@ -1,5 +1,7 @@
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 
@@ -32,15 +34,13 @@ namespace Libplanet.Action.State
         {
             if (WorldVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
             {
-                return Trie[KeyConverters.ToStateKey(ValidatorSetAddress)] is { } value
-                    ? new ImmutableSortedSet<Validator>(value)
-                    : new ImmutableSortedSet<Validator>();
+                var value = Trie[KeyConverters.ToStateKey(ValidatorSetAddress)];
+                return [.. BencodexUtility.ToObjects(value, ModelSerializer.Deserialize<Validator>)];
             }
             else
             {
-                return Trie[KeyConverters.ValidatorSetKey] is { } value
-                    ? new ImmutableSortedSet<Validator>(value)
-                    : new ImmutableSortedSet<Validator>();
+                var value = Trie[KeyConverters.ValidatorSetKey];
+                return [.. BencodexUtility.ToObjects(value, ModelSerializer.Deserialize<Validator>)];
             }
         }
 
@@ -48,14 +48,16 @@ namespace Libplanet.Action.State
         {
             if (WorldVersion >= BlockMetadata.ValidatorSetAccountProtocolVersion)
             {
+                var value = BencodexUtility.ToValue([.. validatorSet], ModelSerializer.Serialize);
                 return new ValidatorSetAccount(
-                    Trie.Set(KeyConverters.ToStateKey(ValidatorSetAddress), validatorSet.Bencoded),
+                    Trie.Set(KeyConverters.ToStateKey(ValidatorSetAddress), value),
                     WorldVersion);
             }
             else
             {
+                var value = BencodexUtility.ToValue([.. validatorSet], ModelSerializer.Serialize);
                 return new ValidatorSetAccount(
-                    Trie.Set(KeyConverters.ValidatorSetKey, validatorSet.Bencoded),
+                    Trie.Set(KeyConverters.ValidatorSetKey, value),
                     WorldVersion);
             }
         }

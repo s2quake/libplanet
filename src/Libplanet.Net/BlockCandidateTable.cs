@@ -99,7 +99,7 @@ namespace Libplanet.Net
             return _table.TryRemove(header, out _);
         }
 
-        public void Cleanup(Func<IBlockExcerpt, bool> predicate)
+        public void Cleanup(Func<BlockHeader, bool> predicate)
         {
             foreach (var blockHeader in _table.Keys)
             {

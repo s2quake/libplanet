@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Consensus
@@ -87,8 +88,7 @@ namespace Libplanet.Consensus
 
             Height = height;
             Round = round;
-            BlockHash = BlockMarshaler.UnmarshalBlockHash(
-                (Dictionary)_codec.Decode(marshaledBlock));
+            BlockHash = ModelSerializer.DeserializeFromBytes<BlockHash>(marshaledBlock);
             Timestamp = timestamp;
             ValidatorPublicKey = validatorPublicKey;
             MarshaledBlock = marshaledBlock;

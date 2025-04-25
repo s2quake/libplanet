@@ -167,17 +167,18 @@ public static class ModelSerializer
         return obj;
     }
 
-    public static T? Deserialize<T>(IValue value)
+    public static T Deserialize<T>(IValue value)
         => Deserialize<T>(value, ModelOptions.Default);
 
-    public static T? Deserialize<T>(IValue value, ModelOptions options)
+    public static T Deserialize<T>(IValue value, ModelOptions options)
     {
         if (Deserialize(value, typeof(T), options) is T obj)
         {
             return obj;
         }
 
-        return default;
+        throw new ModelSerializationException(
+            $"Failed to deserialize {typeof(T)} from {value.Inspect()}.");
     }
 
     public static T DeserializeFromBytes<T>(byte[] bytes)

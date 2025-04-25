@@ -94,6 +94,9 @@ public static class BencodexUtility
     public static ImmutableArray<T> ToObjects<T>(List list, int index, Func<IValue, T> creator)
         => [.. ((List)list[index]).Select(creator)];
 
+    public static ImmutableArray<T> ToObjects<T>(IValue value, Func<IValue, T> creator)
+        => [.. ((List)value).Select(creator)];
+
     public static T ToEnum<T>(List list, int index)
         where T : Enum
         => (T)(object)(int)(Integer)list[index];

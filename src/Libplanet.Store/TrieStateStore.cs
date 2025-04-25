@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using Libplanet.Common;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
 using Serilog;
@@ -78,7 +79,8 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore) : IStateStore
                     // Ignore metadata
                     if (path.Length > 0)
                     {
-                        HashDigest<SHA256> accountStateRootHash = new HashDigest<SHA256>(hash);
+                        var accountStateRootHash
+                            = ModelSerializer.Deserialize<HashDigest<SHA256>>(hash);
                         Trie.Trie accountStateTrie =
                             (Trie.Trie)GetStateRoot(accountStateRootHash);
                         if (!accountStateTrie.IsCommitted)

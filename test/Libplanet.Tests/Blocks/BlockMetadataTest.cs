@@ -95,7 +95,7 @@ namespace Libplanet.Tests.Blocks
         [Fact]
         public void PreviousHash()
         {
-            Assert.Throws<InvalidBlockPreviousHashException>(() => new BlockMetadata(
+            Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
                 index: GenesisMetadata.Index,
                 timestamp: DateTimeOffset.UtcNow,
                 publicKey: GenesisMetadata.PublicKey,
@@ -103,7 +103,7 @@ namespace Libplanet.Tests.Blocks
                 txHash: GenesisMetadata.TxHash,
                 lastCommit: null,
                 evidenceHash: null));
-            Assert.Throws<InvalidBlockPreviousHashException>(() => new BlockMetadata(
+            Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
                 index: Block1Metadata.Index,
                 timestamp: DateTimeOffset.UtcNow,
                 publicKey: Block1Metadata.PublicKey,
@@ -230,7 +230,7 @@ namespace Libplanet.Tests.Blocks
                     GenerateVote(blockHash, 2, 0, VoteFlag.PreCommit),
                     GenerateVote(blockHash, 2, 0, VoteFlag.PreCommit),
                 }.ToImmutableArray());
-            Assert.Throws<InvalidBlockLastCommitException>(() => new BlockMetadata(
+            Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
                 protocolVersion: BlockMetadata.CurrentProtocolVersion,
                 index: 2,
                 timestamp: timestamp,
@@ -252,7 +252,7 @@ namespace Libplanet.Tests.Blocks
                     GenerateVote(invalidBlockHash, 1, 0, VoteFlag.PreCommit),
                     GenerateVote(invalidBlockHash, 1, 0, VoteFlag.PreCommit),
                 }.ToImmutableArray());
-            Assert.Throws<InvalidBlockLastCommitException>(() => new BlockMetadata(
+            Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
                 protocolVersion: BlockMetadata.CurrentProtocolVersion,
                 index: 2,
                 timestamp: timestamp,

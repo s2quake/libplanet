@@ -4,6 +4,7 @@ using Bencodex.Types;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
@@ -49,17 +50,21 @@ namespace Libplanet.Blockchain
                 ? txs.OrderBy(tx => tx.Id).ToImmutableList()
                 : ImmutableList<Transaction>.Empty;
 
-            BlockContent content = new BlockContent(
-                new BlockMetadata(
-                    index: 0L,
-                    timestamp: timestamp ?? DateTimeOffset.UtcNow,
-                    publicKey: privateKey.PublicKey,
-                    previousHash: default,
-                    txHash: BlockContent.DeriveTxHash(transactions),
-                    lastCommit: null,
-                    evidenceHash: null),
-                transactions: transactions,
-                evidence: Array.Empty<EvidenceBase>());
+            BlockContent content = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    Index = 0L,
+                    Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+                    PublicKey = privateKey.PublicKey,
+                    PreviousHash = default,
+                    TxHash = BlockContent.DeriveTxHash(transactions),
+                    LastCommit = null,
+                    EvidenceHash = null,
+                },
+                Transactions = [.. transactions],
+                Evidence = [],
+            };
 
             RawBlock preEval = content.Propose();
             stateRootHash ??= default;
@@ -159,19 +164,23 @@ namespace Libplanet.Blockchain
             // Manual internal constructor is used purely for testing custom timestamps.
             var orderedTransactions = transactions.OrderBy(tx => tx.Id).ToList();
             var orderedEvidence = evidence.OrderBy(e => e.Id).ToList();
-            var blockContent = new BlockContent(
-                new BlockMetadata(
-                    protocolVersion: BlockMetadata.CurrentProtocolVersion,
-                    index: index,
-                    timestamp: DateTimeOffset.UtcNow,
-                    miner: proposer.Address,
-                    publicKey: proposer.PublicKey,
-                    previousHash: prevHash,
-                    txHash: BlockContent.DeriveTxHash(orderedTransactions),
-                    lastCommit: lastCommit,
-                    evidenceHash: BlockContent.DeriveEvidenceHash(orderedEvidence)),
-                transactions: orderedTransactions,
-                evidence: orderedEvidence);
+            var blockContent = new BlockContent
+            {
+                Metadata = new BlockMetadata
+                {
+                    ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+                    Index = index,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Miner = proposer.Address,
+                    PublicKey = proposer.PublicKey,
+                    PreviousHash = prevHash,
+                    TxHash = BlockContent.DeriveTxHash(orderedTransactions),
+                    LastCommit = lastCommit,
+                    EvidenceHash = BlockContent.DeriveEvidenceHash(orderedEvidence),
+                },
+                Transactions = [.. orderedTransactions],
+                Evidence = [.. orderedEvidence],
+            };
             var preEval = blockContent.Propose();
             return ProposeBlock(proposer, preEval, stateRootHash);
         }
@@ -258,8 +267,7 @@ namespace Libplanet.Blockchain
             // FIXME: The tx collection timeout should be configurable.
             DateTimeOffset timeout = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(4);
 
-            List estimatedEncoding = BlockMarshaler.MarshalTransactions(
-                new List<Transaction>());
+            var estimatedEncoding = 0L;
             var storedNonces = new Dictionary<Address, long>();
             var nextNonces = new Dictionary<Address, long>();
             var toProposeCounts = new Dictionary<Address, int>();
@@ -309,9 +317,8 @@ namespace Libplanet.Blockchain
                         continue;
                     }
 
-                    List txAddedEncoding = estimatedEncoding.Add(
-                        BlockMarshaler.MarshalTransaction(tx));
-                    if (txAddedEncoding.EncodingLength > maxTransactionsBytes)
+                    var txAddedEncoding = estimatedEncoding + ModelSerializer.SerializeToBytes(tx).Length;
+                    if (txAddedEncoding > maxTransactionsBytes)
                     {
                         _logger.Debug(
                             "Ignoring tx {Iter}/{Total} {TxId} due to the maximum size allowed " +
@@ -319,7 +326,7 @@ namespace Libplanet.Blockchain
                             i,
                             stagedTransactions.Count,
                             tx.Id,
-                            txAddedEncoding.EncodingLength,
+                            txAddedEncoding,
                             maxTransactionsBytes);
                         continue;
                     }

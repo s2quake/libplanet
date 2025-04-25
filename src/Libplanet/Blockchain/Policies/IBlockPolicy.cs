@@ -62,7 +62,7 @@ namespace Libplanet.Blockchain.Policies
         /// append <paramref name="nextBlock"/>.</param>
         /// <param name="nextBlock">The next block to append to
         /// <paramref name="blockChain"/>.</param>
-        /// <returns>A <see cref="BlockPolicyViolationException"/> with a description
+        /// <returns>A <see cref="Exception"/> with a description
         /// as to why given <paramref name="nextBlock"/> is <em>invalid</em>,
         /// or <see langword="null"/> if <paramref name="nextBlock"/> is <em>valid</em>.</returns>
         /// <remarks>
@@ -71,7 +71,7 @@ namespace Libplanet.Blockchain.Policies
         /// Hence, to reduce redundancy, an implementation of this interface should not
         /// call <see cref="ValidateNextBlockTx"/>.
         /// </remarks>
-        BlockPolicyViolationException? ValidateNextBlock(
+        Exception? ValidateNextBlock(
             BlockChain blockChain, Block nextBlock);
 
         /// <summary>

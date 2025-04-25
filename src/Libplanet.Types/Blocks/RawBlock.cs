@@ -1,13 +1,21 @@
 using System.Security.Cryptography;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Types.Blocks;
 
-public sealed record class RawBlock(BlockContent Content, RawBlockHeader Header)
+[Model(Version = 1)]
+public sealed record class RawBlock
 {
+    [Property(0)]
+    public required RawBlockHeader Header { get; init; }
+
+    [Property(1)]
+    public required BlockContent Content { get; init; }
+
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
     public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;

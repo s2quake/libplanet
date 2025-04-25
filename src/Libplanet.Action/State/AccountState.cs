@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
 using Libplanet.Types.Consensus;
 using static Libplanet.Action.State.KeyConverters;
 
@@ -41,10 +43,8 @@ namespace Libplanet.Action.State
         /// <inheritdoc cref="IAccountState.GetValidatorSet"/>
         public ImmutableSortedSet<Validator> GetValidatorSet()
         {
-            IValue? value = Trie[ValidatorSetKey];
-            return value is List list
-                ? new ImmutableSortedSet<Validator>(list)
-                : new ImmutableSortedSet<Validator>();
+            var value = Trie[ValidatorSetKey];
+            return [.. BencodexUtility.ToObjects(value, ModelSerializer.Deserialize<Validator>)];
         }
     }
 }

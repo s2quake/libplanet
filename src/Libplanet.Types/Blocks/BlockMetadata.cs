@@ -124,7 +124,7 @@ public sealed record class BlockMetadata
     //     // Previous hash validity checks.
     //     if (index == 0 ^ (previousHash == default))
     //     {
-    //         throw new InvalidBlockPreviousHashException(
+    //         throw new InvalidOperationException(
     //             $"{nameof(previousHash)} can be null if and only if {nameof(index)} is 0.");
     //     }
     //     else
@@ -137,13 +137,13 @@ public sealed record class BlockMetadata
     //     {
     //         if (commit.Height != index - 1)
     //         {
-    //             throw new InvalidBlockLastCommitException(
+    //             throw new InvalidOperationException(
     //                 $"The lastcommit height {commit.Height} of block #{index} " +
     //                 $"should match the previous block's index {index - 1}.");
     //         }
     //         else if (!commit.BlockHash.Equals(previousHash))
     //         {
-    //             throw new InvalidBlockLastCommitException(
+    //             throw new InvalidOperationException(
     //                 $"The lastcommit blockhash {commit.BlockHash} of block #{index} " +
     //                 $"should match the previous block's hash {previousHash}.");
     //         }

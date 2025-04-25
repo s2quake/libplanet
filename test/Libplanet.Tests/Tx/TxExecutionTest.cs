@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Libplanet.Serialization;
 using Libplanet.Types.Tx;
 using Xunit;
 
@@ -44,8 +45,8 @@ namespace Libplanet.Tests.Tx
                 OutputState = random.NextHashDigest<SHA256>(),
                 ExceptionNames = ["SomeException", "AnotherException"],
             };
-            var encoded = execution.ToBencodex();
-            var decoded = TxExecution.Create(
+            var encoded = ModelSerializer.Serialize(execution);
+            var decoded = ModelSerializer.Deserialize<TxExecution>(
                 encoded);
             Assert.Equal(execution.BlockHash, decoded.BlockHash);
             Assert.Equal(execution.TxId, decoded.TxId);

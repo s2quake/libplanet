@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Common;
+using Libplanet.Serialization;
 
 namespace Libplanet.Store.Trie.Nodes;
 
@@ -113,7 +114,7 @@ public static class NodeDecoder
     }
 
     private static HashNode DecodeHash(Binary binary, IKeyValueStore keyValueStore)
-        => new(new HashDigest<SHA256>(binary))
+        => new(ModelSerializer.Deserialize<HashDigest<SHA256>>(binary))
         {
             KeyValueStore = keyValueStore,
         };
