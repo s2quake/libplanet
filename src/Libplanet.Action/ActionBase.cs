@@ -15,9 +15,9 @@ public abstract record class ActionBase : IAction
     {
     }
 
-    IValue IAction.PlainValue => new List(
-        TypeId,
-        ModelSerializer.Serialize(this));
+    // IValue IAction.PlainValue => new List(
+    //     TypeId,
+    //     ModelSerializer.Serialize(this));
 
     private IValue TypeId =>
         GetType().GetCustomAttribute<ActionTypeAttribute>() is { } attribute
@@ -25,8 +25,8 @@ public abstract record class ActionBase : IAction
             : throw new InvalidOperationException(
                 $"Type is missing {nameof(ActionTypeAttribute)}: {GetType()}");
 
-    void IAction.LoadPlainValue(IValue plainValue)
-        => throw new UnreachableException("This method should not be called.");
+    // void IAction.LoadPlainValue(IValue plainValue)
+    //     => throw new UnreachableException("This method should not be called.");
 
     IWorld IAction.Execute(IActionContext context)
     {
