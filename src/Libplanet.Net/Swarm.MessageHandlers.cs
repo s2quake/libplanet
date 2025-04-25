@@ -1,6 +1,7 @@
 #nullable disable
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
@@ -128,7 +129,7 @@ namespace Libplanet.Net
             {
                 header = blockHeaderMsg.GetHeader();
             }
-            catch (InvalidBlockException ibe)
+            catch (InvalidOperationException ibe)
             {
                 _logger.Debug(
                     ibe,
@@ -284,10 +285,10 @@ namespace Libplanet.Net
                     _logger.Verbose(logMsg, count, total, hash, reqId);
                     if (_store.GetBlock(hash) is { } block)
                     {
-                        byte[] blockPayload = Codec.Encode(block.MarshalBlock());
+                        byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
                         payloads.Add(blockPayload);
                         byte[] commitPayload = BlockChain.GetBlockCommit(block.Hash) is { } commit
-                            ? Codec.Encode(commit.Bencoded)
+                            ? ModelSerializer.SerializeToBytes(commit)
                             : Array.Empty<byte>();
                         payloads.Add(commitPayload);
                         count++;

@@ -708,7 +708,7 @@ namespace Libplanet.Net.Tests
             minerSwarm.FindNextHashesChunkSize = FindNextHashesChunkSize;
             await StartAsync(minerSwarm);
 
-            (BoundPeer, IBlockExcerpt)[] peersWithExcerpt =
+            (BoundPeer, BlockExcerpt)[] peersWithExcerpt =
             {
                 (minerSwarm.AsPeer, minerChain.Tip.Header),
             };

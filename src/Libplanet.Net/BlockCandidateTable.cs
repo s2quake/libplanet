@@ -17,14 +17,14 @@ namespace Libplanet.Net
     public class BlockCandidateTable
     {
         private readonly ILogger _logger;
-        private readonly ConcurrentDictionary<BlockHeader, Branch> _table;
+        private readonly ConcurrentDictionary<BlockExcerpt, Branch> _table;
 
         public BlockCandidateTable()
         {
             _logger = Log
                 .ForContext<BlockCandidateTable>()
                 .ForContext("Source", nameof(BlockCandidateTable));
-            _table = new ConcurrentDictionary<BlockHeader, Branch>();
+            _table = new ConcurrentDictionary<BlockExcerpt, Branch>();
         }
 
         public long Count
@@ -45,7 +45,7 @@ namespace Libplanet.Net
         /// tip at the time of downloading the blocks.</param>
         /// <param name="branch">The list of downloaded <see cref="Block"/>s and
         /// its <see cref="BlockCommit"/>s.</param>
-        public void Add(BlockHeader blockHeader, Branch branch)
+        public void Add(BlockExcerpt blockHeader, Branch branch)
         {
             if (_table.ContainsKey(blockHeader))
             {
@@ -60,7 +60,7 @@ namespace Libplanet.Net
                     tip.Index,
                     tip.Hash,
                     blockHeader.Index,
-                    blockHeader.BlockHash);
+                    blockHeader.Hash);
                 return;
             }
 
@@ -87,19 +87,19 @@ namespace Libplanet.Net
         /// </returns>
         /// <seealso cref="Add"/>
         public Branch? GetCurrentRoundCandidate(
-            BlockHeader thisRoundTip)
+            BlockExcerpt thisRoundTip)
         {
             return _table.TryGetValue(thisRoundTip, out var branch)
                 ? branch
                 : null;
         }
 
-        public bool TryRemove(BlockHeader header)
+        public bool TryRemove(BlockExcerpt header)
         {
             return _table.TryRemove(header, out _);
         }
 
-        public void Cleanup(Func<BlockHeader, bool> predicate)
+        public void Cleanup(Func<BlockExcerpt, bool> predicate)
         {
             foreach (var blockHeader in _table.Keys)
             {

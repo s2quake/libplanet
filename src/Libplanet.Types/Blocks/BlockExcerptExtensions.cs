@@ -1,16 +1,16 @@
 // namespace Libplanet.Types.Blocks
 // {
 //     /// <summary>
-//     /// The extension methods for <see cref="IBlockExcerpt"/>.
+//     /// The extension methods for <see cref="BlockExcerpt"/>.
 //     /// </summary>
 //     public static class BlockExcerptExtensions
 //     {
 //         /// <summary>
-//         /// Shows <see cref="IBlockExcerpt"/> instance's members as a string.
+//         /// Shows <see cref="BlockExcerpt"/> instance's members as a string.
 //         /// </summary>
 //         /// <param name="excerpt">An excerpt object to show.</param>
 //         /// <returns>Extracted members as a string.</returns>
-//         public static string ToExcerptString(this IBlockExcerpt excerpt)
+//         public static string ToExcerptString(this BlockExcerpt excerpt)
 //         {
 //             return
 //                 $"{excerpt.GetType().Name} {{" +
@@ -20,7 +20,7 @@
 //                 " }";
 //         }
 
-//         public static bool ExcerptEquals(this IBlockExcerpt excerpt, IBlockExcerpt other)
+//         public static bool ExcerptEquals(this BlockExcerpt excerpt, BlockExcerpt other)
 //         {
 //             return excerpt.ProtocolVersion.Equals(other.ProtocolVersion)
 //                 && excerpt.Index.Equals(other.Index)

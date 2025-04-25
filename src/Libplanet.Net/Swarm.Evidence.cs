@@ -5,6 +5,7 @@ using Libplanet.Blockchain;
 using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 #if NETSTANDARD2_0
@@ -59,7 +60,8 @@ namespace Libplanet.Net
             {
                 if (message.Content is EvidenceMsg parsed)
                 {
-                    EvidenceBase evidence = EvidenceBase.Deserialize(parsed.Payload);
+                    EvidenceBase evidence
+                        = ModelSerializer.DeserializeFromBytes<EvidenceBase>(parsed.Payload);
                     yield return evidence;
                 }
                 else
@@ -155,7 +157,8 @@ namespace Libplanet.Net
                             continue;
                         }
 
-                        MessageContent response = new EvidenceMsg(ev.Serialize());
+                        MessageContent response = new EvidenceMsg(
+                            ModelSerializer.SerializeToBytes(ev));
                         await Transport.ReplyMessageAsync(response, message.Identity, default);
                     }
                     catch (KeyNotFoundException)

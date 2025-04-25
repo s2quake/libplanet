@@ -70,7 +70,11 @@ public readonly record struct BlockDigest
 
     public BlockHeader GetHeader()
     {
-        var preEvalHeader = new RawBlockHeader(_metadata, _preEvaluationHash);
+        var preEvalHeader = new RawBlockHeader
+        {
+            Metadata = _metadata,
+            RawHash = _preEvaluationHash,
+        };
         return new BlockHeader(preEvalHeader, StateRootHash, Signature ?? [], Hash);
     }
 }

@@ -78,4 +78,9 @@ public sealed record class BlockHeader(
     public HashDigest<SHA256> RawHash => RawBlockHeader.RawHash;
 
     public override string ToString() => $"#{Index} {BlockHash}";
+
+    public void ValidateTimestamp() => RawBlockHeader.Metadata.ValidateTimestamp();
+
+    public void ValidateTimestamp(DateTimeOffset currentTime)
+        => RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
 }

@@ -9,6 +9,7 @@ using Libplanet.Blockchain.Renderers;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Node.Options;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
@@ -149,16 +150,14 @@ internal sealed class BlockChainService(
     private static Block LoadGenesisBlock(string genesisBlockPath)
     {
         var rawBlock = File.ReadAllBytes(Path.GetFullPath(genesisBlockPath));
-        var blockDict = (Dictionary)new Codec().Decode(rawBlock);
-        return BlockMarshaler.UnmarshalBlock(blockDict);
+        return ModelSerializer.DeserializeFromBytes<Block>(rawBlock);
     }
 
     private static Block LoadGenesisBlockFromUrl(Uri genesisBlockUri)
     {
         using var client = new HttpClient();
         var rawBlock = client.GetByteArrayAsync(genesisBlockUri).Result;
-        var blockDict = (Dictionary)_codec.Decode(rawBlock);
-        return BlockMarshaler.UnmarshalBlock(blockDict);
+        return ModelSerializer.DeserializeFromBytes<Block>(rawBlock);
     }
 
     private static byte[] LoadConfigurationFromFilePath(string configurationPath)

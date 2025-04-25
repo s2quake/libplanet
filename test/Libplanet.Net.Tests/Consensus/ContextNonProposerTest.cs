@@ -170,15 +170,18 @@ namespace Libplanet.Net.Tests.Consensus
 
             var key = new PrivateKey();
             var invalidBlock = blockChain.EvaluateAndSign(
-                new BlockContent(
-                    new BlockMetadata(
-                        index: blockChain.Tip.Index + 1,
-                        timestamp: DateTimeOffset.UtcNow,
-                        publicKey: key.PublicKey,
-                        previousHash: blockChain.Tip.Hash,
-                        txHash: null,
-                        lastCommit: null,
-                        evidenceHash: null)).Propose(),
+                new BlockContent
+                {
+                    Metadata = new BlockMetadata
+                    {
+                        Index = blockChain.Tip.Index + 1,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        PublicKey = key.PublicKey,
+                        PreviousHash = blockChain.Tip.Hash,
+                        LastCommit = null,
+                        EvidenceHash = null,
+                    },
+                }.Propose(),
                 key);
 
             context.StateChanged += (_, eventArgs) =>
@@ -267,17 +270,20 @@ namespace Libplanet.Net.Tests.Consensus
             // 3. Timestamp should be increased monotonically.
             // 4. PreviousHash should be matched with Tip hash.
             var invalidBlock = blockChain.EvaluateAndSign(
-                new BlockContent(
-                    new BlockMetadata(
-                        protocolVersion: BlockMetadata.CurrentProtocolVersion,
-                        index: blockChain.Tip.Index + 2,
-                        timestamp: blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
-                        miner: TestUtils.PrivateKeys[1].Address,
-                        publicKey: TestUtils.PrivateKeys[1].PublicKey,
-                        previousHash: blockChain.Tip.Hash,
-                        txHash: null,
-                        lastCommit: null,
-                        evidenceHash: null)).Propose(),
+                new BlockContent
+                {
+                    Metadata = new BlockMetadata
+                    {
+                        ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+                        Index = blockChain.Tip.Index + 2,
+                        Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
+                        Miner = TestUtils.PrivateKeys[1].Address,
+                        PublicKey = TestUtils.PrivateKeys[1].PublicKey,
+                        PreviousHash = blockChain.Tip.Hash,
+                        LastCommit = null,
+                        EvidenceHash = null,
+                    },
+                }.Propose(),
                 TestUtils.PrivateKeys[1]);
 
             context.Start();
@@ -421,19 +427,30 @@ namespace Libplanet.Net.Tests.Consensus
             var txs = new[] { invalidTx };
             var evs = Array.Empty<EvidenceBase>();
 
-            var metadata = new BlockMetadata(
-                index: 1L,
-                timestamp: DateTimeOffset.UtcNow,
-                publicKey: TestUtils.PrivateKeys[1].PublicKey,
-                previousHash: blockChain.Genesis.Hash,
-                txHash: BlockContent.DeriveTxHash(txs),
-                lastCommit: null,
-                evidenceHash: null);
-            var preEval = new RawBlock(
-                rawBlockHeader: new RawBlockHeader(
-                    metadata, metadata.DerivePreEvaluationHash()),
-                transactions: txs,
-                evidence: evs);
+            var metadata = new BlockMetadata
+            {
+                Index = 1L,
+                Timestamp = DateTimeOffset.UtcNow,
+                PublicKey = TestUtils.PrivateKeys[1].PublicKey,
+                PreviousHash = blockChain.Genesis.Hash,
+                TxHash = BlockContent.DeriveTxHash(txs),
+                LastCommit = null,
+                EvidenceHash = null,
+            };
+            var preEval = new RawBlock
+            {
+                Header = new RawBlockHeader
+                {
+                    Metadata = metadata,
+                    RawHash = metadata.DerivePreEvaluationHash(),
+                },
+                Content = new BlockContent
+                {
+                    Metadata = metadata,
+                    Transactions = [.. txs],
+                    Evidence = [.. evs],
+                },
+            };
             var invalidBlock = preEval.Sign(
                 TestUtils.PrivateKeys[1],
                 HashDigest<SHA256>.DeriveFrom(TestUtils.GetRandomBytes(1024)));

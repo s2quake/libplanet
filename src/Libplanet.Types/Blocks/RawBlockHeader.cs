@@ -5,12 +5,13 @@ using Libplanet.Crypto;
 
 namespace Libplanet.Types.Blocks;
 
-public sealed record class RawBlockHeader(
-    BlockMetadata Metadata, HashDigest<SHA256> RawHash)
+public sealed record class RawBlockHeader
 {
     private static readonly Codec Codec = new();
 
-    public BlockMetadata Metadata { get; } = Metadata;
+    public required BlockMetadata Metadata { get; init; }
+
+    public required HashDigest<SHA256> RawHash { get; init; }
 
     public int ProtocolVersion => Metadata.ProtocolVersion;
 
@@ -29,8 +30,6 @@ public sealed record class RawBlockHeader(
     public BlockCommit? LastCommit => Metadata.LastCommit;
 
     public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
-
-    public HashDigest<SHA256> RawHash { get; } = CheckPreEvaluationHash(Metadata, RawHash);
 
     public Bencodex.Types.Dictionary MakeCandidateData(
         HashDigest<SHA256> stateRootHash,

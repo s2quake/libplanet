@@ -15,6 +15,7 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
@@ -599,7 +600,7 @@ namespace Libplanet.Net
                 }
 
                 Block localTip = BlockChain.Tip;
-                IBlockExcerpt topmostTip = peersWithExcerpts
+                BlockExcerpt topmostTip = peersWithExcerpts
                     .Select(pair => pair.Item2)
                     .Aggregate((prev, next) => prev.Index > next.Index ? prev : next);
                 if (topmostTip.Index - (i > 0 ? tipDeltaThreshold : 0L) <= localTip.Index)
@@ -881,11 +882,10 @@ namespace Libplanet.Net
                         cancellationToken.ThrowIfCancellationRequested();
                         byte[] blockPayload = payloads[i];
                         byte[] commitPayload = payloads[i + 1];
-                        Block block = BlockMarshaler.UnmarshalBlock(
-                            (Bencodex.Types.Dictionary)Codec.Decode(blockPayload));
+                        Block block = ModelSerializer.DeserializeFromBytes<Block>(blockPayload);
                         BlockCommit commit = commitPayload.Length == 0
                             ? null
-                            : new BlockCommit(Codec.Decode(commitPayload));
+                            : ModelSerializer.DeserializeFromBytes<BlockCommit>(commitPayload);
 
                         if (count < blockHashes.Count)
                         {
@@ -1016,11 +1016,11 @@ namespace Libplanet.Net
         /// </remarks>
         internal async Task<(BoundPeer, List<BlockHash>)> GetDemandBlockHashes(
             BlockChain blockChain,
-            IList<(BoundPeer, IBlockExcerpt)> peersWithExcerpts,
+            IList<(BoundPeer, BlockExcerpt)> peersWithExcerpts,
             CancellationToken cancellationToken = default)
         {
             var exceptions = new List<Exception>();
-            foreach ((BoundPeer peer, IBlockExcerpt excerpt) in peersWithExcerpts)
+            foreach ((BoundPeer peer, BlockExcerpt excerpt) in peersWithExcerpts)
             {
                 if (!IsBlockNeeded(excerpt))
                 {
@@ -1070,7 +1070,7 @@ namespace Libplanet.Net
         internal async Task<List<BlockHash>> GetDemandBlockHashesFromPeer(
             BlockChain blockChain,
             BoundPeer peer,
-            IBlockExcerpt excerpt,
+            BlockExcerpt excerpt,
             CancellationToken cancellationToken = default)
         {
             BlockLocator locator = blockChain.GetBlockLocator();
@@ -1137,8 +1137,8 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Gets <see cref="IBlockExcerpt"/>es from randomly selected <see cref="BoundPeer"/>s
-        /// from <see cref="Peers"/> with each <see cref="IBlockExcerpt"/> tied to
+        /// Gets <see cref="BlockExcerpt"/>es from randomly selected <see cref="BoundPeer"/>s
+        /// from <see cref="Peers"/> with each <see cref="BlockExcerpt"/> tied to
         /// its originating <see cref="BoundPeer"/>.
         /// </summary>
         /// <param name="dialTimeout">Timeout for each dialing operation to
@@ -1148,8 +1148,8 @@ namespace Libplanet.Net
         /// <param name="cancellationToken">A cancellation token used to propagate notification
         /// that this operation should be canceled.</param>
         /// <returns>An awaitable task with a <see cref="List{T}"/> of tuples
-        /// of <see cref="BoundPeer"/> and <see cref="IBlockExcerpt"/> ordered randomly.</returns>
-        private async Task<List<(BoundPeer, IBlockExcerpt)>> GetPeersWithExcerpts(
+        /// of <see cref="BoundPeer"/> and <see cref="BlockExcerpt"/> ordered randomly.</returns>
+        private async Task<List<(BoundPeer, BlockExcerpt)>> GetPeersWithExcerpts(
             TimeSpan? dialTimeout,
             int maxPeersToDial,
             CancellationToken cancellationToken)
@@ -1162,7 +1162,7 @@ namespace Libplanet.Net
                     pair => pair.Item2 is { } chainStatus &&
                         genesisHash.Equals(chainStatus.GenesisHash) &&
                         chainStatus.TipIndex > tip.Index)
-                .Select(pair => (pair.Item1, (IBlockExcerpt)pair.Item2))
+                .Select(pair => (pair.Item1, (BlockExcerpt)pair.Item2))
                 .OrderBy(_ => random.Next())
                 .ToList();
         }
@@ -1325,13 +1325,13 @@ namespace Libplanet.Net
 
         /// <summary>
         /// Checks if the corresponding <see cref="Block"/> to a given
-        /// <see cref="IBlockExcerpt"/> is needed for <see cref="BlockChain"/>.
+        /// <see cref="BlockExcerpt"/> is needed for <see cref="BlockChain"/>.
         /// </summary>
-        /// <param name="target">The <see cref="IBlockExcerpt"/> to compare to the current
+        /// <param name="target">The <see cref="BlockExcerpt"/> to compare to the current
         /// <see cref="BlockChain.Tip"/> of <see cref="BlockChain"/>.</param>
         /// <returns><see langword="true"/> if the corresponding <see cref="Block"/> to
         /// <paramref name="target"/> is needed, otherwise, <see langword="false"/>.</returns>
-        private bool IsBlockNeeded(IBlockExcerpt target)
+        private bool IsBlockNeeded(BlockExcerpt target)
         {
             return target.Index > BlockChain.Tip.Index;
         }

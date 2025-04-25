@@ -22,7 +22,7 @@ namespace Libplanet.Net
 
         public void Add(
             BlockChain blockChain,
-            Func<IBlockExcerpt, bool> predicate,
+            Func<BlockExcerpt, bool> predicate,
             BlockDemand demand)
         {
             if (IsDemandNeeded(blockChain, predicate, demand))
@@ -51,7 +51,7 @@ namespace Libplanet.Net
 
         public void Cleanup(
             BlockChain blockChain,
-            Func<IBlockExcerpt, bool> predicate)
+            Func<BlockExcerpt, bool> predicate)
         {
             foreach (var demand in _blockDemands.Values)
             {
@@ -66,7 +66,7 @@ namespace Libplanet.Net
 
         private bool IsDemandNeeded(
             BlockChain blockChain,
-            Func<IBlockExcerpt, bool> predicate,
+            Func<BlockExcerpt, bool> predicate,
             BlockDemand demand)
         {
             BlockDemand? oldDemand = _blockDemands.ContainsKey(demand.Peer)

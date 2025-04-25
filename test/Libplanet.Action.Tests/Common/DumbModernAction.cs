@@ -33,30 +33,32 @@ namespace Libplanet.Action.Tests.Common
         {
             get
             {
-                var plainValue = Dictionary.Empty
-                    .Add("type_id", TypeId);
-                if (Append is { } set)
-                {
-                    plainValue = plainValue
-                        .Add("target_address", set.At.ToBencodex())
-                        .Add("item", set.Item);
-                }
+                // var plainValue = Dictionary.Empty
+                //     .Add("type_id", TypeId);
+                // if (Append is { } set)
+                // {
+                //     plainValue = plainValue
+                //         .Add("target_address", set.At.ToBencodex())
+                //         .Add("item", set.Item);
+                // }
 
-                if (Transfer is { } transfer)
-                {
-                    plainValue = plainValue
-                        .Add("transfer_from", transfer.From?.ToBencodex() ?? Null.Value)
-                        .Add("transfer_to", transfer.To?.ToBencodex() ?? Null.Value)
-                        .Add("transfer_amount", transfer.Amount);
-                }
+                // if (Transfer is { } transfer)
+                // {
+                //     plainValue = plainValue
+                //         .Add("transfer_from", transfer.From?.ToBencodex() ?? Null.Value)
+                //         .Add("transfer_to", transfer.To?.ToBencodex() ?? Null.Value)
+                //         .Add("transfer_amount", transfer.Amount);
+                // }
 
-                if (Validators is { } validators)
-                {
-                    plainValue = plainValue
-                        .Add("validators", new List(validators.Select(v => v.Bencoded)));
-                }
+                // if (Validators is { } validators)
+                // {
+                //     plainValue = plainValue
+                //         .Add("validators", new List(validators.Select(v => v.Bencoded)));
+                // }
 
-                return plainValue;
+                // return plainValue;
+
+                throw new NotImplementedException();
             }
         }
 
@@ -118,7 +120,7 @@ namespace Libplanet.Action.Tests.Common
 
             if (Validators is { } validators)
             {
-                world = world.SetValidatorSet(new ImmutableSortedSet<Validator>(validators.ToList()));
+                world = world.SetValidatorSet([.. validators]);
             }
 
             return world;
@@ -128,35 +130,37 @@ namespace Libplanet.Action.Tests.Common
 
         public void LoadPlainValue(Dictionary plainValue)
         {
-            if (!plainValue["type_id"].Equals(TypeId))
-            {
-                throw new ArgumentException(
-                    $"An invalid form of {nameof(plainValue)} was given: {plainValue}");
-            }
+            // if (!plainValue["type_id"].Equals(TypeId))
+            // {
+            //     throw new ArgumentException(
+            //         $"An invalid form of {nameof(plainValue)} was given: {plainValue}");
+            // }
 
-            if (plainValue.TryGetValue((Text)"target_address", out IValue at) &&
-                plainValue.TryGetValue((Text)"item", out IValue item) &&
-                item is Text i)
-            {
-                Append = (Address.Create(at), i);
-            }
+            // if (plainValue.TryGetValue((Text)"target_address", out IValue at) &&
+            //     plainValue.TryGetValue((Text)"item", out IValue item) &&
+            //     item is Text i)
+            // {
+            //     Append = (Address.Create(at), i);
+            // }
 
-            if (plainValue.TryGetValue((Text)"transfer_from", out IValue f) &&
-                plainValue.TryGetValue((Text)"transfer_to", out IValue t) &&
-                plainValue.TryGetValue((Text)"transfer_amount", out IValue a) &&
-                a is Integer amount)
-            {
-                Address? from = f is Null ? null : Address.Create(f);
-                Address? to = t is Null ? null : Address.Create(t);
-                Transfer = (from, to, amount.Value);
-            }
+            // if (plainValue.TryGetValue((Text)"transfer_from", out IValue f) &&
+            //     plainValue.TryGetValue((Text)"transfer_to", out IValue t) &&
+            //     plainValue.TryGetValue((Text)"transfer_amount", out IValue a) &&
+            //     a is Integer amount)
+            // {
+            //     Address? from = f is Null ? null : Address.Create(f);
+            //     Address? to = t is Null ? null : Address.Create(t);
+            //     Transfer = (from, to, amount.Value);
+            // }
 
-            if (plainValue.ContainsKey((Text)"validators"))
-            {
-                Validators = ((List)plainValue["validators"])
-                    .Select(value => new Validator(value))
-                    .ToImmutableList();
-            }
+            // if (plainValue.ContainsKey((Text)"validators"))
+            // {
+            //     Validators = ((List)plainValue["validators"])
+            //         .Select(value => new Validator(value))
+            //         .ToImmutableList();
+            // }
+
+            throw new NotImplementedException();
         }
 
         public override string ToString()
