@@ -339,12 +339,12 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         )
         {
             AssertBlockMetadataEqual(expected, actual);
-            AssertBytesEqual(expected.PreEvaluationHash, actual.PreEvaluationHash);
+            AssertBytesEqual(expected.RawHash, actual.RawHash);
         }
 
         public static void AssertPreEvaluationBlocksEqual(
-            IPreEvaluationBlock expected,
-            IPreEvaluationBlock actual)
+            RawBlock expected,
+            RawBlock actual)
         {
             AssertPreEvaluationBlockHeadersEqual(expected, actual);
             AssertBlockContentsEqual(expected, actual);
@@ -394,7 +394,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             }
 
             // Using the unix epoch time as the timestamp of the vote if deterministicTimestamp is
-            // flagged for getting a deterministic random value from PreEvaluationHash.
+            // flagged for getting a deterministic random value from RawHash.
             var votes = ValidatorPrivateKeys.Select(key => new VoteMetadata(
                 height,
                 round,
@@ -408,7 +408,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 height, round, blockHash, votes);
         }
 
-        public static PreEvaluationBlock ProposeGenesis(
+        public static RawBlock ProposeGenesis(
             PublicKey proposer,
             IReadOnlyList<Transaction> transactions = null,
             ImmutableSortedSet<Validator> validatorSet = null,
@@ -458,7 +458,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             HashDigest<SHA256> stateRootHash = default
         )
         {
-            PreEvaluationBlock preEval = ProposeGenesis(
+            RawBlock preEval = ProposeGenesis(
                 miner?.PublicKey,
                 transactions,
                 null,
@@ -469,7 +469,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         }
 
         public static Block ProposeGenesisBlock(
-            PreEvaluationBlock preEval,
+            RawBlock preEval,
             PrivateKey privateKey)
         {
             return preEval.Sign(
@@ -477,7 +477,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 default);
         }
 
-        public static PreEvaluationBlock ProposeNext(
+        public static RawBlock ProposeNext(
             Block previousBlock,
             IReadOnlyList<Transaction> transactions = null,
             PublicKey miner = null,
@@ -527,7 +527,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 "Flaky test : Libplanet.Blocks.InvalidBlockSignatureException"
             );
 
-            PreEvaluationBlock preEval = ProposeNext(
+            RawBlock preEval = ProposeNext(
                 previousBlock,
                 txs,
                 miner?.PublicKey,

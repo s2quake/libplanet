@@ -18,7 +18,7 @@ namespace Libplanet.Tests.Blocks
             Block[] fixtures = { _fx.Genesis, _fx.Next, _fx.HasTx };
             foreach (Block fx in fixtures)
             {
-                var preEval = new PreEvaluationBlockHeader(fx);
+                var preEval = new RawBlockHeader(fx);
                 var header = new BlockHeader(preEval, (fx.StateRootHash, fx.Signature, fx.Hash));
                 AssertBytesEqual(header.BlockHash, fx.Hash);
                 AssertPreEvaluationBlockHeadersEqual(fx, header);
@@ -34,7 +34,7 @@ namespace Libplanet.Tests.Blocks
         public void ValidateSignature()
         {
             Block fx = _fx.HasTx;
-            var preEval = new PreEvaluationBlockHeader(fx);
+            var preEval = new RawBlockHeader(fx);
             HashDigest<SHA256> arbitraryHash = new Random().NextHashDigest<SHA256>();
             ImmutableArray<byte> invalidSig = preEval.MakeSignature(_fx.Miner, arbitraryHash);
             InvalidBlockSignatureException e = Assert.Throws<InvalidBlockSignatureException>(() =>
@@ -60,7 +60,7 @@ namespace Libplanet.Tests.Blocks
         public void ValidateHash()
         {
             Block fx = _fx.HasTx;
-            var preEval = new PreEvaluationBlockHeader(fx);
+            var preEval = new RawBlockHeader(fx);
             ImmutableArray<byte> sig = fx.Signature.Value;
             HashDigest<SHA256> arbitraryHash = new Random().NextHashDigest<SHA256>();
             BlockHash invalidHash = preEval.DeriveBlockHash(arbitraryHash, sig);
@@ -73,7 +73,7 @@ namespace Libplanet.Tests.Blocks
         public void String()
         {
             var header = new BlockHeader(
-                new PreEvaluationBlockHeader(_fx.HasTx),
+                new RawBlockHeader(_fx.HasTx),
                 (_fx.HasTx.StateRootHash, _fx.HasTx.Signature, _fx.HasTx.Hash));
             Assert.Equal($"#{_fx.HasTx.Index} {_fx.HasTx.Hash}", header.ToString());
         }

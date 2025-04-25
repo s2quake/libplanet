@@ -429,8 +429,8 @@ namespace Libplanet.Net.Tests.Consensus
                 txHash: BlockContent.DeriveTxHash(txs),
                 lastCommit: null,
                 evidenceHash: null);
-            var preEval = new PreEvaluationBlock(
-                preEvaluationBlockHeader: new PreEvaluationBlockHeader(
+            var preEval = new RawBlock(
+                rawBlockHeader: new RawBlockHeader(
                     metadata, metadata.DerivePreEvaluationHash()),
                 transactions: txs,
                 evidence: evs);

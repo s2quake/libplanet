@@ -44,7 +44,7 @@ namespace Libplanet.Action.State
 
         /// <summary>
         /// The version of the backend <see cref="ITrie"/> data model.  This should be in sync with
-        /// <see cref="IBlockMetadata.ProtocolVersion"/> of the <see cref="IPreEvaluationBlock"/>
+        /// <see cref="IBlockMetadata.ProtocolVersion"/> of the <see cref="RawBlock"/>
         /// getting evaluated.  As this was only introduced since
         /// <see cref="BlockMetadata.WorldStateProtocolVersion"/>, this returns
         /// zero with any <see cref="ITrie"/> representing an <see cref="IWorldState"/> before

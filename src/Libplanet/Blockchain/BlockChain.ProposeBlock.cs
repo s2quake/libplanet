@@ -61,7 +61,7 @@ namespace Libplanet.Blockchain
                 transactions: transactions,
                 evidence: Array.Empty<EvidenceBase>());
 
-            PreEvaluationBlock preEval = content.Propose();
+            RawBlock preEval = content.Propose();
             stateRootHash ??= default;
             return preEval.Sign(privateKey, (HashDigest<SHA256>)stateRootHash);
         }
@@ -178,9 +178,9 @@ namespace Libplanet.Blockchain
 
         internal Block ProposeBlock(
             PrivateKey proposer,
-            PreEvaluationBlock preEvaluationBlock,
+            RawBlock rawBlock,
             HashDigest<SHA256> stateRootHash) =>
-            preEvaluationBlock.Sign(proposer, stateRootHash);
+            rawBlock.Sign(proposer, stateRootHash);
 
         /// <summary>
         /// Gathers <see cref="Transaction"/>s for proposing a <see cref="Block"/> for

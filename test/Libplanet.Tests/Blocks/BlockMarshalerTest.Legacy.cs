@@ -16,7 +16,7 @@ namespace Libplanet.Tests.Blocks
             Assert.Equal(0, block.ProtocolVersion);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("1cd4451624ef9c79e2c2fb5a8e791e4fa56a7d8c610c14a8a34ae175b5205cf7")),
-                block.PreEvaluationHash);
+                block.RawHash);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa")),
                 block.StateRootHash);
@@ -28,7 +28,7 @@ namespace Libplanet.Tests.Blocks
             Assert.Equal(1, block.ProtocolVersion);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("1bba9fcf4c8152c899ed1674ecbf4a6571c271922c0884ae809f91f037bed8fc")),
-                block.PreEvaluationHash);
+                block.RawHash);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa")),
                 block.StateRootHash);
@@ -40,7 +40,7 @@ namespace Libplanet.Tests.Blocks
             Assert.Equal(2, block.ProtocolVersion);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("e520162fef3516f4c0ccd6f79cc0c50f6e3bf7c53b1bf425b5e1931089e3fd8a")),
-                block.PreEvaluationHash);
+                block.RawHash);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa")),
                 block.StateRootHash);
@@ -52,7 +52,7 @@ namespace Libplanet.Tests.Blocks
             Assert.Equal(3, block.ProtocolVersion);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("af519fa381741e58781ea58a43233d155c212351d9840ef69e0a3555f210ad50")),
-                block.PreEvaluationHash);
+                block.RawHash);
             Assert.Equal(
                 new HashDigest<SHA256>(ByteUtil.ParseHex("6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa")),
                 block.StateRootHash);

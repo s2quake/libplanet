@@ -399,7 +399,7 @@ namespace Libplanet.Tests.Action
                 actions: new[] { action }.ToPlainValues());
             var txs = new Transaction[] { tx };
             var evs = Array.Empty<EvidenceBase>();
-            PreEvaluationBlock block = new BlockContent(
+            RawBlock block = new BlockContent(
                 new BlockMetadata(
                     index: 1L,
                     timestamp: DateTimeOffset.UtcNow,
@@ -520,7 +520,7 @@ namespace Libplanet.Tests.Action
                 block1,
                 previousState).ToImmutableArray();
             // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
-            // have to be updated, since the order may change due to different PreEvaluationHash.
+            // have to be updated, since the order may change due to different RawHash.
             (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[] expectations =
             {
                 (0, 0, new[] { "A", null, null, null, null }, _txFx.Address1),  // Adds "A"
@@ -666,7 +666,7 @@ namespace Libplanet.Tests.Action
                 previousState).ToImmutableArray();
 
             // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
-            // have to be updated, since the order may change due to different PreEvaluationHash.
+            // have to be updated, since the order may change due to different RawHash.
             expectations = new (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[]
             {
                 (0, 0, new[] { "A,D", "B", "C", null, null }, _txFx.Address1),
@@ -1295,7 +1295,7 @@ namespace Libplanet.Tests.Action
                 .Where((tx, i) => i % numTxsPerSigner == 0)
                 .Concat(txs.Where((tx, i) => i % numTxsPerSigner != 0)).ToImmutableArray();
 
-            // FIXME: Invalid length for PreEvaluationHash.
+            // FIXME: Invalid length for RawHash.
             byte[] preEvaluationHashBytes =
             {
                 0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
@@ -1496,7 +1496,7 @@ namespace Libplanet.Tests.Action
                 stateStore: fx.StateStore,
                 isPolicyAction: false).ToArray();
 
-            byte[] preEvaluationHashBytes = blockA.PreEvaluationHash.ToByteArray();
+            byte[] preEvaluationHashBytes = blockA.RawHash.ToByteArray();
             int[] randomSeeds = Enumerable
                 .Range(0, txA.Actions.Length)
                 .Select(offset => ActionEvaluator.GenerateRandomSeed(

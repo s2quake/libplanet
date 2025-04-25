@@ -7,13 +7,13 @@ namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
 public sealed record class BlockHeader(
-    [property: Property(0)] PreEvaluationBlockHeader PreEvaluationBlockHeader,
+    [property: Property(0)] RawBlockHeader RawBlockHeader,
     [property: Property(1)] HashDigest<SHA256> StateRootHash,
     [property: Property(2)] ImmutableArray<byte> Signature,
     [property: Property(3)] BlockHash BlockHash)
 {
     // public BlockHeader(
-    //     PreEvaluationBlockHeader preEvaluationBlockHeader,
+    //     RawBlockHeader rawBlockHeader,
     //     (
     //         HashDigest<SHA256> StateRootHash,
     //         ImmutableArray<byte>? Signature,
@@ -51,31 +51,31 @@ public sealed record class BlockHeader(
     //             $"an invalid hash; expected: {expectedHash}.");
     //     }
 
-    //     _preEvaluationBlockHeader = preEvaluationBlockHeader;
+    //     _preEvaluationBlockHeader = rawBlockHeader;
     //     _stateRootHash = proof.StateRootHash;
     //     _signature = proof.Signature;
     //     _hash = proof.Hash;
     // }
 
-    public int ProtocolVersion => PreEvaluationBlockHeader.ProtocolVersion;
+    public int ProtocolVersion => RawBlockHeader.ProtocolVersion;
 
-    public long Index => PreEvaluationBlockHeader.Index;
+    public long Index => RawBlockHeader.Index;
 
-    public DateTimeOffset Timestamp => PreEvaluationBlockHeader.Timestamp;
+    public DateTimeOffset Timestamp => RawBlockHeader.Timestamp;
 
-    public Address Miner => PreEvaluationBlockHeader.Miner;
+    public Address Miner => RawBlockHeader.Miner;
 
-    public PublicKey? PublicKey => PreEvaluationBlockHeader.PublicKey;
+    public PublicKey? PublicKey => RawBlockHeader.PublicKey;
 
-    public BlockHash PreviousHash => PreEvaluationBlockHeader.PreviousHash;
+    public BlockHash PreviousHash => RawBlockHeader.PreviousHash;
 
-    public HashDigest<SHA256>? TxHash => PreEvaluationBlockHeader.TxHash;
+    public HashDigest<SHA256>? TxHash => RawBlockHeader.TxHash;
 
-    public BlockCommit? LastCommit => PreEvaluationBlockHeader.LastCommit;
+    public BlockCommit? LastCommit => RawBlockHeader.LastCommit;
 
-    public HashDigest<SHA256>? EvidenceHash => PreEvaluationBlockHeader.EvidenceHash;
+    public HashDigest<SHA256>? EvidenceHash => RawBlockHeader.EvidenceHash;
 
-    public HashDigest<SHA256> PreEvaluationHash => PreEvaluationBlockHeader.PreEvaluationHash;
+    public HashDigest<SHA256> RawHash => RawBlockHeader.RawHash;
 
     public override string ToString() => $"#{Index} {BlockHash}";
 }

@@ -90,11 +90,11 @@
 //             return dict;
 //         }
 
-//         public static Dictionary MarshalPreEvaluationBlockHeader(PreEvaluationBlockHeader header)
+//         public static Dictionary MarshalPreEvaluationBlockHeader(RawBlockHeader header)
 //         {
 //             return MarshalPreEvaluationBlockHeader(
 //                 MarshalBlockMetadata(header),
-//                 header.PreEvaluationHash
+//                 header.RawHash
 //             );
 //         }
 
@@ -209,12 +209,12 @@
 //         public static HashDigest<SHA256> UnmarshalPreEvaluationHash(Dictionary marshaled) =>
 //             new HashDigest<SHA256>(marshaled[PreEvaluationHashKey]);
 
-//         public static PreEvaluationBlockHeader UnmarshalPreEvaluationBlockHeader(
+//         public static RawBlockHeader UnmarshalPreEvaluationBlockHeader(
 //             Dictionary marshaled)
 //         {
-//             return new PreEvaluationBlockHeader(
+//             return new RawBlockHeader(
 //                     Metadata: UnmarshalBlockMetadata(marshaled),
-//                     PreEvaluationHash: UnmarshalPreEvaluationHash(marshaled));
+//                     RawHash: UnmarshalPreEvaluationHash(marshaled));
 //         }
 
 //         public static BlockHash UnmarshalBlockHash(Dictionary marshaledBlock)
@@ -240,7 +240,7 @@
 
 //         public static BlockHeader UnmarshalBlockHeader(Dictionary marshaled)
 //         {
-//             PreEvaluationBlockHeader preEvalHeader = UnmarshalPreEvaluationBlockHeader(marshaled);
+//             RawBlockHeader preEvalHeader = UnmarshalPreEvaluationBlockHeader(marshaled);
 //             HashDigest<SHA256> stateRootHash = UnmarshalBlockHeaderStateRootHash(marshaled);
 //             ImmutableArray<byte>? sig = UnmarshalBlockHeaderSignature(marshaled);
 //             BlockHash hash = UnmarshalBlockHeaderHash(marshaled);

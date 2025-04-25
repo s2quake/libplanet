@@ -143,11 +143,11 @@ public sealed record class BlockContent(
         return null;
     }
 
-    public PreEvaluationBlock Propose()
+    public RawBlock Propose()
     {
         var preEvaluationHash = Metadata.DerivePreEvaluationHash();
-        var header = new PreEvaluationBlockHeader(Metadata, preEvaluationHash);
-        return new PreEvaluationBlock(this, header);
+        var header = new RawBlockHeader(Metadata, preEvaluationHash);
+        return new RawBlock(this, header);
     }
 
     private static void ValidateEvidence(

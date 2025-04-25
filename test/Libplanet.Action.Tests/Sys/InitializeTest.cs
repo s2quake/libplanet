@@ -8,148 +8,112 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Xunit;
 
-namespace Libplanet.Action.Tests.Sys
+namespace Libplanet.Action.Tests.Sys;
+
+public class InitializeTest
 {
-    public class InitializeTest
+    private static readonly ImmutableSortedSet<Validator> _validators = ImmutableSortedSet.Create(
+    [
+        new Validator(new PrivateKey().PublicKey, BigInteger.One),
+    ]);
+
+    private static readonly ImmutableDictionary<Address, IValue>
+        _states =
+        new Dictionary<Address, IValue>
+        {
+            [default] = (Text)"initial value",
+        }.ToImmutableDictionary();
+
+    [Fact]
+    public void Constructor()
     {
-        private static readonly ImmutableSortedSet<Validator> _validatorSet = new ImmutableSortedSet<Validator>(
-            new List<Validator>()
-            {
-                new Validator(new PrivateKey().PublicKey, BigInteger.One),
-            }
-        );
-
-        private static readonly IImmutableDictionary<Address, IValue>
-            _states =
-            new Dictionary<Address, IValue>
-            {
-                [default] = (Text)"initial value",
-            }.ToImmutableDictionary();
-
-        [Fact]
-        public void Constructor()
+        var action = new Initialize
         {
-            var action = new Initialize(
-                validators: _validatorSet,
-                states: _states
-            );
-            Assert.Equal(_validatorSet, action.ImmutableSortedSet<Validator>);
-            Assert.Equal(_states, action.States);
-        }
+            Validators = _validators,
+            States = _states,
+        };
+        Assert.Equal(_validators, action.Validators);
+        Assert.Equal(_states, action.States);
+    }
 
-        [Fact]
-        public void Execute()
+    [Fact]
+    public void Execute()
+    {
+        var random = new System.Random();
+        Address signer = random.NextAddress();
+        var prevState = new World(MockWorldState.CreateModern());
+        BlockHash genesisHash = random.NextBlockHash();
+        var context = new ActionContext(
+            signer: signer,
+            txid: random.NextTxId(),
+            miner: random.NextAddress(),
+            blockHeight: 0,
+            blockProtocolVersion: Block.CurrentProtocolVersion,
+            lastCommit: null,
+            previousState: prevState,
+            randomSeed: 123,
+            isPolicyAction: false,
+            maxGasPrice: null);
+        var initialize = new Initialize
         {
-            var random = new System.Random();
-            Address signer = random.NextAddress();
-            var prevState = new World(MockWorldState.CreateModern());
-            BlockHash genesisHash = random.NextBlockHash();
-            var context = new ActionContext(
-                signer: signer,
-                txid: random.NextTxId(),
-                miner: random.NextAddress(),
-                blockHeight: 0,
-                blockProtocolVersion: Block.CurrentProtocolVersion,
-                lastCommit: null,
-                previousState: prevState,
-                randomSeed: 123,
-                isPolicyAction: false,
-                maxGasPrice: null);
-            var initialize = new Initialize(
-                states: _states,
-                validators: _validatorSet
-            );
+            States = _states,
+            Validators = _validators,
+        };
 
-            var nextState = initialize.Execute(context);
+        var nextState = ((IAction)initialize).Execute(context);
 
-            Assert.Equal(_validatorSet, nextState.GetValidatorSet());
-            Assert.Equal(
-                _states[default],
-                nextState.GetAccount(ReservedAddresses.LegacyAccount).GetState(default));
-        }
+        Assert.Equal(_validators, nextState.GetValidatorSet());
+        Assert.Equal(
+            _states[default],
+            nextState.GetAccount(ReservedAddresses.LegacyAccount).GetState(default));
+    }
 
-        [Fact]
-        public void ExecuteInNonGenesis()
+    [Fact]
+    public void ExecuteInNonGenesis()
+    {
+        var random = new System.Random();
+        Address signer = random.NextAddress();
+        var prevState = new World(MockWorldState.CreateModern());
+        BlockHash genesisHash = random.NextBlockHash();
+        var key = new PrivateKey();
+        var hash = random.NextBlockHash();
+        var lastCommit = new BlockCommit
         {
-            var random = new System.Random();
-            Address signer = random.NextAddress();
-            var prevState = new World(MockWorldState.CreateModern());
-            BlockHash genesisHash = random.NextBlockHash();
-            var key = new PrivateKey();
-            var hash = random.NextBlockHash();
-            var lastCommit = new BlockCommit(
-                0,
-                0,
-                hash,
-                new[]
+            Height = 0,
+            Round = 0,
+            BlockHash = hash,
+            Votes =
+            [
+                new VoteMetadata
                 {
-                    new VoteMetadata(
-                        0,
-                        0,
-                        hash,
-                        DateTimeOffset.UtcNow,
-                        key.PublicKey,
-                        BigInteger.One,
-                        VoteFlag.PreCommit).Sign(key),
-                }.ToImmutableArray());
-            var context = new ActionContext(
-                signer: signer,
-                txid: random.NextTxId(),
-                miner: random.NextAddress(),
-                blockHeight: 10,
-                blockProtocolVersion: Block.CurrentProtocolVersion,
-                lastCommit: lastCommit,
-                previousState: prevState,
-                randomSeed: 123,
-                isPolicyAction: false,
-                maxGasPrice: null);
-            var initialize = new Initialize(
-                states: _states,
-                validators: _validatorSet
-            );
-
-            Assert.Throws<InvalidOperationException>(
-                () =>
-                {
-                    _ = initialize.Execute(context);
-                }
-            );
-        }
-
-        [Fact]
-        public void Serialize()
+                    ValidatorPublicKey = key.PublicKey,
+                    Height = 0,
+                    Round = 0,
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key),
+            ],
+        };
+        var context = new ActionContext(
+            signer: signer,
+            txid: random.NextTxId(),
+            miner: random.NextAddress(),
+            blockHeight: 10,
+            blockProtocolVersion: Block.CurrentProtocolVersion,
+            lastCommit: lastCommit,
+            previousState: prevState,
+            randomSeed: 123,
+            isPolicyAction: false,
+            maxGasPrice: null);
+        var initialize = new Initialize
         {
-            var action = new Initialize(_validatorSet, _states);
-            TestUtils.AssertBencodexEqual(
-                Dictionary.Empty
-                    .Add("type_id", 2)
-                    .Add(
-                        "values",
-                        new List(
-                            _validatorSet.Bencoded,
-                            Dictionary.Empty.Add(
-                                default(Address).ToByteArray(),
-                                "initial value"))),
-                action.PlainValue);
-        }
+            States = _states,
+            Validators = _validators,
+        };
 
-        [Fact]
-        public void Deserialize()
-        {
-            var encoded = Dictionary.Empty
-                .Add("type_id", 2)
-                .Add(
-                    "values",
-                    new List(
-                        _validatorSet.Bencoded,
-                        Dictionary.Empty.Add(
-                            default(Address).ToByteArray(),
-                            "initial value")));
-            var action = new Initialize();
-            action.LoadPlainValue(encoded);
-
-            Assert.Equal(_validatorSet, action.ImmutableSortedSet<Validator>);
-            Assert.Equal(_states, action.States);
-        }
+        Assert.Throws<InvalidOperationException>(
+            () => ((IAction)initialize).Execute(context));
     }
 }

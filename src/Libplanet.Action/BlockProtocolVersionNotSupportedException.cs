@@ -3,7 +3,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Action
 {
     /// <summary>
-    /// The exception that is thrown when an <see cref="IPreEvaluationBlock"/> with
+    /// The exception that is thrown when an <see cref="RawBlock"/> with
     /// a protocol version that is not supported by an implementation of
     /// <see cref="IActionEvaluator"/> is passed as an argument to
     /// <see cref="IActionEvaluator.Evaluate"/>.

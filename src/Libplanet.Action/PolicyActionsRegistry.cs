@@ -9,12 +9,12 @@ namespace Libplanet.Action
         /// A class containing policy actions to evaluate at each situation.
         /// </summary>
         /// <param name="beginBlockActions">A list of block actions to
-        /// evaluate at the beginning for each <see cref="IPreEvaluationBlock"/> that gets
+        /// evaluate at the beginning for each <see cref="RawBlock"/> that gets
         /// evaluated.
         /// Note the order of the returned list determines the execution order.
         /// </param>
         /// <param name="endBlockActions">A list of block actions to
-        /// evaluate at the end for each <see cref="IPreEvaluationBlock"/> that gets evaluated.
+        /// evaluate at the end for each <see cref="RawBlock"/> that gets evaluated.
         /// Note the order of the returned list determines the execution order.
         /// </param>
         /// <param name="beginTxActions">A list of block actions to

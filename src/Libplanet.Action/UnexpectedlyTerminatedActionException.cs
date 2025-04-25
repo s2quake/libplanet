@@ -16,7 +16,7 @@ namespace Libplanet.Action
         /// Creates a new <see cref="UnexpectedlyTerminatedActionException"/> object.
         /// </summary>
         /// <param name="message">Specifies a <see cref="Exception.Message"/>.</param>
-        /// <param name="preEvaluationHash">The <see cref="Block.PreEvaluationHash"/> of the
+        /// <param name="preEvaluationHash">The <see cref="Block.RawHash"/> of the
         /// <see cref="Block"/> that <paramref name="action"/> belongs to.</param>
         /// <param name="blockHeight">The <see cref="Block.Index"/> of the <see cref="Block"/>
         /// that <paramref name="action"/> belongs to.</param>
@@ -42,7 +42,7 @@ namespace Libplanet.Action
         )
             : base(message, innerException)
         {
-            PreEvaluationHash = preEvaluationHash;
+            RawHash = preEvaluationHash;
             BlockHeight = blockHeight;
             TxId = txid;
             PreviousStateRootHash = previousStateRootHash;
@@ -50,10 +50,10 @@ namespace Libplanet.Action
         }
 
         /// <summary>
-        /// The <see cref="Block.PreEvaluationHash"/> of the <see cref="Block"/> that
+        /// The <see cref="Block.RawHash"/> of the <see cref="Block"/> that
         /// <see cref="Action"/> belongs to.
         /// </summary>
-        public HashDigest<SHA256> PreEvaluationHash { get; }
+        public HashDigest<SHA256> RawHash { get; }
 
         /// <summary>
         /// The <see cref="Block.Index"/> of the <see cref="Block"/> that <see cref="Action"/>

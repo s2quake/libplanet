@@ -650,7 +650,7 @@ namespace Libplanet.Tests.Blockchain
                 ActionEvaluator.OrderTxsForEvaluation(
                     b1.ProtocolVersion,
                     b1.Transactions,
-                    b1.PreEvaluationHash.ByteArray
+                    b1.RawHash.ByteArray
                 )
             );
 

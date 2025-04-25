@@ -79,9 +79,9 @@ public class BlockType : ObjectGraphType<Block>
             resolve: _ => new byte[] { }
         );
         Field<NonNullGraphType<ByteStringType>>(
-            name: "PreEvaluationHash",
-            description: "The hash of PreEvaluationBlock.",
-            resolve: ctx => ctx.Source.PreEvaluationHash.ToByteArray());
+            name: "RawHash",
+            description: "The hash of RawBlock.",
+            resolve: ctx => ctx.Source.RawHash.ToByteArray());
         Field<NonNullGraphType<IntGraphType>>(
             name: "ProtocolVersion",
             description: "The protocol version number of the block.",

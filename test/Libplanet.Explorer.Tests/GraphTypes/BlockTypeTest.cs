@@ -104,7 +104,7 @@ public class BlockTypeTest
             ByteUtil.Hex(block.StateRootHash.ToByteArray()),
             resultData["stateRootHash"]);
         Assert.Equal(
-            ByteUtil.Hex(block.PreEvaluationHash.ToByteArray()),
+            ByteUtil.Hex(block.RawHash.ToByteArray()),
             resultData["preEvaluationHash"]);
 
         var expectedLastCommit = new Dictionary<string, object>()

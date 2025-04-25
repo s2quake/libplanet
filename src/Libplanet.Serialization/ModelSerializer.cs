@@ -180,6 +180,13 @@ public static class ModelSerializer
         return default;
     }
 
+    public static T DeserializeFromBytes<T>(byte[] bytes)
+    {
+        return Deserialize<T>(_codec.Decode(bytes))
+            ?? throw new ModelSerializationException(
+                $"Failed to deserialize {typeof(T)} from bytes.");
+    }
+
     private static IValue SerializeValue(
         object? value, Type propertyType, ModelOptions options)
     {

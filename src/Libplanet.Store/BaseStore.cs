@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
@@ -49,36 +50,36 @@ public abstract class BaseStore : IStore
                             .Select(bytes => new TxId(bytes.ToArray()))
                             .OrderBy(txid => txid)
                             .ToArray();
-            Transaction[] txs = txids.Select(txid => GetTransaction(txid))
+            var txs = txids.Select(txid => GetTransaction(txid))
                                      .OfType<Transaction>()
-                                     .ToArray();
+                                     .ToImmutableSortedSet();
             var evidenceIds = blockDigest.EvidenceIds
                                          .Select(bytes => new EvidenceId(bytes.ToArray()))
                                          .OrderBy(evidenceId => evidenceId)
                                          .ToArray();
             var evidence = evidenceIds.Select(evidenceId => GetCommittedEvidence(evidenceId))
                                        .OfType<EvidenceBase>()
-                                       .ToArray();
+                                       .ToImmutableSortedSet();
 
-            if (txids.Length != txs.Length)
+            if (txids.Length != txs.Count)
             {
                 TxId[] missingTxIds = txids.Except(txs.Select(tx => tx.Id)).ToArray();
                 throw new InvalidOperationException(
-                    $"Failed to find {missingTxIds.Length} tx(s) (out of {txs.Length}) " +
+                    $"Failed to find {missingTxIds.Length} tx(s) (out of {txs.Count}) " +
                     $"at block {blockHash}:\n" + string.Join("\n  ", missingTxIds));
             }
 
-            if (evidenceIds.Length != evidence.Length)
+            if (evidenceIds.Length != evidence.Count)
             {
                 var missingEvidenceIds = evidenceIds.Except(evidence.Select(tx => tx.Id))
                                                      .ToArray();
                 throw new InvalidOperationException(
                     $"Failed to find {missingEvidenceIds.Length} evidence(s) " +
-                    $"(out of {evidence.Length}) " +
+                    $"(out of {evidence.Count}) " +
                     $"at block {blockHash}:\n" + string.Join("\n  ", missingEvidenceIds));
             }
 
-            return new Block(header, txs, evidence);
+            return Block.Create(header, txs, evidence);
         }
 
         return null;
@@ -182,7 +183,7 @@ public abstract class BaseStore : IStore
 
     protected static IValue SerializeTxExecution(TxExecution txExecution)
     {
-        return txExecution.ToBencodex();
+        return ModelSerializer.Serialize(txExecution);
     }
 
     protected static TxExecution? DeserializeTxExecution(
@@ -202,7 +203,7 @@ public abstract class BaseStore : IStore
 
         try
         {
-            return TxExecution.Create(d);
+            return ModelSerializer.Deserialize<TxExecution>(d);
         }
         catch (Exception e)
         {
