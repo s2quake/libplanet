@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 2,
                 lastCommit: lastCommit,
                 privateKey: TestUtils.PrivateKeys[2],
-                validatorSet: Libplanet.Tests.TestUtils.ImmutableSortedSet<Validator>);
+                validatorSet: Libplanet.Tests.TestUtils.Validators);
 
             context.StateChanged += (_, eventArgs) =>
             {
@@ -165,7 +165,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 2,
                 lastCommit: lastCommit,
                 privateKey: TestUtils.PrivateKeys[2],
-                validatorSet: TestUtils.ImmutableSortedSet<Validator>);
+                validatorSet: TestUtils.Validators);
 
             context.StateChanged += (_, eventArgs) =>
             {
@@ -213,7 +213,7 @@ namespace Libplanet.Net.Tests.Consensus
                     proposedBlock!.Hash,
                     DateTimeOffset.UtcNow,
                     TestUtils.PrivateKeys[i].PublicKey,
-                    TestUtils.ImmutableSortedSet<Validator>[i].Power,
+                    TestUtils.Validators[i].Power,
                     VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[i])));
             }
 
@@ -226,7 +226,7 @@ namespace Libplanet.Net.Tests.Consensus
                     proposedBlock!.Hash,
                     DateTimeOffset.UtcNow,
                     TestUtils.PrivateKeys[i].PublicKey,
-                    TestUtils.ImmutableSortedSet<Validator>[i].Power,
+                    TestUtils.Validators[i].Power,
                     VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[i])));
             }
 
@@ -243,7 +243,7 @@ namespace Libplanet.Net.Tests.Consensus
                 proposedBlock!.Hash,
                 DateTimeOffset.UtcNow,
                 TestUtils.PrivateKeys[3].PublicKey,
-                TestUtils.ImmutableSortedSet<Validator>[3].Power,
+                TestUtils.Validators[3].Power,
                 VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[3])));
 
             await Task.Delay(100);  // Wait for the new message to be added to the message log.
@@ -298,7 +298,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ConsensusPreVoteMsg(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
-                        TestUtils.ImmutableSortedSet<Validator>[2].Power,
+                        TestUtils.Validators[2].Power,
                         2,
                         0,
                         block.Hash,
@@ -389,7 +389,7 @@ namespace Libplanet.Net.Tests.Consensus
                             block.Hash,
                             DateTimeOffset.UtcNow,
                             TestUtils.PrivateKeys[i].PublicKey,
-                            TestUtils.ImmutableSortedSet<Validator>[i].Power,
+                            TestUtils.Validators[i].Power,
                             VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[i])));
             }
 
@@ -404,7 +404,7 @@ namespace Libplanet.Net.Tests.Consensus
                             block.Hash,
                             DateTimeOffset.UtcNow,
                             TestUtils.PrivateKeys[i].PublicKey,
-                            TestUtils.ImmutableSortedSet<Validator>[i].Power,
+                            TestUtils.Validators[i].Power,
                             VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[i])));
             }
 
@@ -482,9 +482,9 @@ namespace Libplanet.Net.Tests.Consensus
             var proposer = privateKeys[1];
             var key1 = privateKeys[2];
             var key2 = privateKeys[3];
-            BigInteger proposerPower = TestUtils.ImmutableSortedSet<Validator>[1].Power;
-            BigInteger power1 = TestUtils.ImmutableSortedSet<Validator>[2].Power;
-            BigInteger power2 = TestUtils.ImmutableSortedSet<Validator>[3].Power;
+            BigInteger proposerPower = TestUtils.Validators[1].Power;
+            BigInteger power1 = TestUtils.Validators[2].Power;
+            BigInteger power2 = TestUtils.Validators[3].Power;
             var stepChanged = new AsyncAutoResetEvent();
             var proposalModified = new AsyncAutoResetEvent();
             var prevStep = ConsensusStep.Default;
@@ -679,7 +679,7 @@ namespace Libplanet.Net.Tests.Consensus
                             block.Hash,
                             DateTimeOffset.UtcNow,
                             TestUtils.PrivateKeys[i].PublicKey,
-                            TestUtils.ImmutableSortedSet<Validator>[i].Power,
+                            TestUtils.Validators[i].Power,
                             VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[i])));
             }
 
@@ -693,7 +693,7 @@ namespace Libplanet.Net.Tests.Consensus
                             block.Hash,
                             DateTimeOffset.UtcNow,
                             TestUtils.PrivateKeys[i].PublicKey,
-                            TestUtils.ImmutableSortedSet<Validator>[i].Power,
+                            TestUtils.Validators[i].Power,
                             VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[i])));
             }
 
@@ -769,7 +769,7 @@ namespace Libplanet.Net.Tests.Consensus
                             block.Hash,
                             DateTimeOffset.UtcNow,
                             TestUtils.PrivateKeys[i].PublicKey,
-                            TestUtils.ImmutableSortedSet<Validator>[i].Power,
+                            TestUtils.Validators[i].Power,
                             VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[i])));
             }
 
@@ -788,7 +788,7 @@ namespace Libplanet.Net.Tests.Consensus
                                 block.Hash,
                                 DateTimeOffset.UtcNow,
                                 TestUtils.PrivateKeys[3].PublicKey,
-                                TestUtils.ImmutableSortedSet<Validator>[3].Power,
+                                TestUtils.Validators[3].Power,
                                 VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[3])));
                 },
                 cts.Token);

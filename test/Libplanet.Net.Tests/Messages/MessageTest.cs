@@ -126,7 +126,7 @@ namespace Libplanet.Net.Tests.Messages
 
             var preVote = TestUtils.CreateVote(
                 TestUtils.PrivateKeys[0],
-                TestUtils.ImmutableSortedSet<Validator>[0].Power,
+                TestUtils.Validators[0].Power,
                 1,
                 0,
                 blockHash,
@@ -134,7 +134,7 @@ namespace Libplanet.Net.Tests.Messages
 
             var preCommit = TestUtils.CreateVote(
                 TestUtils.PrivateKeys[0],
-                TestUtils.ImmutableSortedSet<Validator>[0].Power,
+                TestUtils.Validators[0].Power,
                 1,
                 0,
                 blockHash,

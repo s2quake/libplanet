@@ -54,7 +54,7 @@ namespace Libplanet.Tests.Blocks
                             Next.Hash,
                             Next.Timestamp,
                             Miner.PublicKey,
-                            TestUtils.ImmutableSortedSet<Validator>.GetValidator(Miner.PublicKey).Power,
+                            TestUtils.Validators.GetValidator(Miner.PublicKey).Power,
                             VoteFlag.PreCommit).Sign(Miner),
                     }.ToImmutableArray()),
                 evidence: ImmutableArray<EvidenceBase>.Empty

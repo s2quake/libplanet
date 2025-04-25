@@ -58,7 +58,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ConsensusPreVoteMsg(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[0],
-                        TestUtils.ImmutableSortedSet<Validator>[0].Power,
+                        TestUtils.Validators[0].Power,
                         1,
                         0,
                         hash: default,
@@ -67,7 +67,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ConsensusPreVoteMsg(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
-                        TestUtils.ImmutableSortedSet<Validator>[2].Power,
+                        TestUtils.Validators[2].Power,
                         1,
                         0,
                         hash: default,
@@ -76,7 +76,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ConsensusPreVoteMsg(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
-                        TestUtils.ImmutableSortedSet<Validator>[3].Power,
+                        TestUtils.Validators[3].Power,
                         1,
                         0,
                         hash: default,
@@ -129,7 +129,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
                     TestUtils.PrivateKeys[0],
-                    TestUtils.ImmutableSortedSet<Validator>[0].Power,
+                    TestUtils.Validators[0].Power,
                     1,
                     0,
                     hash: proposedblockHash,
@@ -137,7 +137,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
                     TestUtils.PrivateKeys[2],
-                    TestUtils.ImmutableSortedSet<Validator>[2].Power,
+                    TestUtils.Validators[2].Power,
                     1,
                     0,
                     hash: proposedblockHash,
@@ -145,7 +145,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
                     TestUtils.PrivateKeys[3],
-                    TestUtils.ImmutableSortedSet<Validator>[3].Power,
+                    TestUtils.Validators[3].Power,
                     1,
                     0,
                     hash: proposedblockHash,
@@ -177,7 +177,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ConsensusPreCommitMsg(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[0],
-                        TestUtils.ImmutableSortedSet<Validator>[0].Power,
+                        TestUtils.Validators[0].Power,
                         1,
                         0,
                         hash: default,
@@ -186,7 +186,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ConsensusPreCommitMsg(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
-                        TestUtils.ImmutableSortedSet<Validator>[2].Power,
+                        TestUtils.Validators[2].Power,
                         1,
                         0,
                         hash: default,
@@ -195,7 +195,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ConsensusPreCommitMsg(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
-                        TestUtils.ImmutableSortedSet<Validator>[3].Power,
+                        TestUtils.Validators[3].Power,
                         1,
                         0,
                         hash: default,
@@ -269,7 +269,7 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var (_, context) = TestUtils.CreateDummyContext(
                 height: 5,
-                validatorSet: Libplanet.Tests.TestUtils.ImmutableSortedSet<Validator>); // Peer1 should be a proposer
+                validatorSet: Libplanet.Tests.TestUtils.Validators); // Peer1 should be a proposer
 
             context.StateChanged += (_, eventArgs) =>
             {
@@ -357,7 +357,7 @@ namespace Libplanet.Net.Tests.Consensus
                 privateKey: TestUtils.PrivateKeys[2],
                 height: 2,
                 lastCommit: block2Commit,
-                validatorSet: TestUtils.ImmutableSortedSet<Validator>);
+                validatorSet: TestUtils.Validators);
             context.MessageToPublish += (_, message) =>
             {
                 if (message is ConsensusProposalMsg proposalMsg)
@@ -374,7 +374,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             Assert.Equal(
                 TestUtils.PrivateKeys[2].PublicKey,
-                TestUtils.ImmutableSortedSet<Validator>.GetProposer(2, 0).PublicKey);
+                TestUtils.Validators.GetProposer(2, 0).PublicKey);
 
             context.Start();
             await proposalSent.WaitAsync();

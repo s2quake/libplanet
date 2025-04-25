@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+// using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -27,20 +27,25 @@ public sealed record class DuplicateVoteEvidence
     /// <param name="validators"><see cref="ImmutableSortedSet<Validator>"/>
     /// from block of conflicting votes has been made.</param>
     /// <param name="timestamp">The timestamp of evidence.</param>
-    // public DuplicateVoteEvidence(
-    //     Vote voteRef,
-    //     Vote voteDup,
-    //     ImmutableSortedSet<Validator> validators,
-    //     DateTimeOffset timestamp)
-    //     : this(
-    //           voteRef.Height,
-    //           voteRef,
-    //           voteDup,
-    //           validators.GetValidator(voteRef.ValidatorPublicKey).Power,
-    //           validators.GetTotalPower(),
-    //           timestamp)
-    // {
-    // }
+    public static DuplicateVoteEvidence Create(
+        Vote voteRef,
+        Vote voteDup,
+        ImmutableSortedSet<Validator> validators,
+        DateTimeOffset timestamp)
+        // : this(
+        //       voteRef.Height,
+        //       voteRef,
+        //       voteDup,
+        //       validators.GetValidator(voteRef.ValidatorPublicKey).Power,
+        //       validators.GetTotalPower(),
+        //       timestamp)
+    {
+        throw new NotImplementedException();
+    //     return new DuplicateVoteEvidence
+    //     {
+
+    //     }
+    }
 
     // /// <summary>
     // /// Creates a <see cref="DuplicateVoteEvidence"/> instance from
@@ -254,7 +259,7 @@ public sealed record class DuplicateVoteEvidence
         }
     }
 
-    protected override IEnumerable<ValidationResult> OnValidate(ValidationContext validationContext)
+    protected override IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> OnValidate(System.ComponentModel.DataAnnotations.ValidationContext validationContext)
     {
         foreach (var item in base.OnValidate(validationContext))
         {
@@ -263,28 +268,28 @@ public sealed record class DuplicateVoteEvidence
 
         if (VoteRef.Height != Height)
         {
-            yield return new ValidationResult(
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult(
                 $"Height of voteRef is different from height: " +
                 $"Expected {Height}, Actual {VoteRef.Height}");
         }
 
         if (VoteDup.Height != Height)
         {
-            yield return new ValidationResult(
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult(
                 $"Height of voteDup is different from height: " +
                 $"Expected {Height}, Actual {VoteDup.Height}");
         }
 
         if (VoteRef.Round != VoteDup.Round)
         {
-            yield return new ValidationResult(
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult(
                 $"Round of votes are different: " +
                 $"voteRef {VoteRef.Round}, voteDup {VoteDup.Round}");
         }
 
         if (VoteRef.ValidatorPublicKey != VoteDup.ValidatorPublicKey)
         {
-            yield return new ValidationResult(
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult(
                 $"Validator public key of votes are different: " +
                 $"voteRef {VoteRef.ValidatorPublicKey}, " +
                 $"voteDup {VoteDup.ValidatorPublicKey}");
@@ -292,7 +297,7 @@ public sealed record class DuplicateVoteEvidence
 
         if (VoteRef.Flag != VoteDup.Flag)
         {
-            yield return new ValidationResult(
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult(
                 $"Flags of votes are different: " +
                 $"voteRef {VoteRef.Flag}, voteDup {VoteDup.Flag}");
         }
@@ -315,7 +320,7 @@ public sealed record class DuplicateVoteEvidence
 
         if (!VoteRef.Verify())
         {
-            yield return new ValidationResult(
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult(
                 $"Signature of voteRef is invalid: " +
                 $"voteRef {VoteRef}, " +
                 $"signature {VoteRef.Signature.Hex()}");
@@ -323,7 +328,7 @@ public sealed record class DuplicateVoteEvidence
 
         if (!VoteDup.Verify())
         {
-            yield return new ValidationResult(
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult(
                 $"Signature of voteDup is invalid: " +
                 $"voteDup {VoteDup}, " +
                 $"signature {VoteDup.Signature.Hex()}");
@@ -331,17 +336,17 @@ public sealed record class DuplicateVoteEvidence
 
         if (Height < 0L)
         {
-            yield return new ValidationResult($"Height is not positive");
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult($"Height is not positive");
         }
 
         if (ValidatorPower <= BigInteger.Zero)
         {
-            yield return new ValidationResult($"Validator Power is not positive");
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult($"Validator Power is not positive");
         }
 
         if (TotalPower <= BigInteger.Zero)
         {
-            yield return new ValidationResult($"Total power is not positive");
+            yield return new System.ComponentModel.DataAnnotations.ValidationResult($"Total power is not positive");
         }
     }
 }
