@@ -50,7 +50,6 @@ public sealed record class BlockContent
     //     _evidence = evidence;
     // }
 
-    [Property(0)]
     public required BlockMetadata Metadata { get; init; }
 
     [Property(1)]

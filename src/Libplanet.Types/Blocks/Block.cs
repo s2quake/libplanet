@@ -104,4 +104,14 @@ public sealed record class Block(
             //     $"threshold: {TimestampThreshold}).");
         }
     }
+
+    public string ToExcerptString()
+    {
+        return
+            $"{GetType().Name} {{" +
+            $" {nameof(ProtocolVersion)} = {ProtocolVersion}," +
+            $" {nameof(Index)} = {Index}," +
+            $" {nameof(Hash)} = {Hash}," +
+            " }";
+    }
 }

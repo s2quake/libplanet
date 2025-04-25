@@ -31,6 +31,73 @@ public sealed record class BlockMetadata
 
     public const int EvidenceProtocolVersion = 9;
 
+    public int ProtocolVersion { get; init; }
+
+    public long Index { get; init; }
+
+    public DateTimeOffset Timestamp { get; init; }
+
+    public Address Miner { get; init; }
+
+    public PublicKey? PublicKey { get; init; }
+
+    public BlockHash PreviousHash { get; init; }
+
+    public HashDigest<SHA256> TxHash { get; init; }
+
+    public BlockCommit? LastCommit { get; init; }
+
+    public HashDigest<SHA256>? EvidenceHash { get; init; }
+
+    // public Bencodex.Types.Dictionary MakeCandidateData()
+    // {
+    //     var dict = Bencodex.Types.Dictionary.Empty
+    //         .Add("index", Index)
+    //         .Add("timestamp", Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
+    //         .Add("nonce", ImmutableArray<byte>.Empty);  // For backward-compatibility.
+
+    //     if (ProtocolVersion != 0)
+    //     {
+    //         dict = dict.Add("protocol_version", ProtocolVersion);
+    //     }
+
+    //     if (PreviousHash is { } prevHash)
+    //     {
+    //         dict = dict.Add("previous_hash", prevHash.ByteArray);
+    //     }
+
+    //     if (TxHash is { } txHash)
+    //     {
+    //         dict = dict.Add("transaction_fingerprint", txHash.ByteArray);
+    //     }
+
+    //     if (LastCommit is { } lastCommit)
+    //     {
+    //         dict = dict.Add("last_commit", lastCommit.ToHash().ByteArray);
+    //     }
+
+    //     if (EvidenceHash is { } evidenceHash)
+    //     {
+    //         dict = dict.Add("evidence_hash", evidenceHash.ByteArray);
+    //     }
+
+    //     // As blocks hadn't been signed before ProtocolVersion <= 1, the PublicKey property
+    //     // is nullable type-wise.  Blocks with ProtocolVersion <= 1 had a `reward_beneficiary`
+    //     // field, which referred to the Miner address.  On the other hand, blocks with
+    //     // ProtocolVersion >= 2 have a `public_key` field instead.  (As Miner addresses can be
+    //     // derived from PublicKeys, we don't need to include both at a time.)  The PublicKey
+    //     // property in this class guarantees that its ProtocolVersion is <= 1 when it is null
+    //     // and its ProtocolVersion is >= 2 when it is not null:
+    //     dict = PublicKey is { } pubKey && ProtocolVersion >= 2
+    //         ? dict.Add("public_key", pubKey.ToByteArray(compress: true)) // ProtocolVersion >= 2
+    //         : dict.Add("reward_beneficiary", Miner.ToBencodex()); /////// ProtocolVersion <= 1
+
+    //     return dict;
+    // }
+
+    public HashDigest<SHA256> DerivePreEvaluationHash()
+        => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
+
     // private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
     // private static readonly Codec Codec = new Codec();
 
@@ -153,71 +220,4 @@ public sealed record class BlockMetadata
     //     LastCommit = lastCommit;
     //     EvidenceHash = evidenceHash;
     // }
-
-    public int ProtocolVersion { get; init; }
-
-    public long Index { get; init; }
-
-    public DateTimeOffset Timestamp { get; init; }
-
-    public Address Miner { get; init; }
-
-    public PublicKey? PublicKey { get; init; }
-
-    public BlockHash PreviousHash { get; init; }
-
-    public HashDigest<SHA256> TxHash { get; init; }
-
-    public BlockCommit? LastCommit { get; init; }
-
-    public HashDigest<SHA256>? EvidenceHash { get; init; }
-
-    // public Bencodex.Types.Dictionary MakeCandidateData()
-    // {
-    //     var dict = Bencodex.Types.Dictionary.Empty
-    //         .Add("index", Index)
-    //         .Add("timestamp", Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
-    //         .Add("nonce", ImmutableArray<byte>.Empty);  // For backward-compatibility.
-
-    //     if (ProtocolVersion != 0)
-    //     {
-    //         dict = dict.Add("protocol_version", ProtocolVersion);
-    //     }
-
-    //     if (PreviousHash is { } prevHash)
-    //     {
-    //         dict = dict.Add("previous_hash", prevHash.ByteArray);
-    //     }
-
-    //     if (TxHash is { } txHash)
-    //     {
-    //         dict = dict.Add("transaction_fingerprint", txHash.ByteArray);
-    //     }
-
-    //     if (LastCommit is { } lastCommit)
-    //     {
-    //         dict = dict.Add("last_commit", lastCommit.ToHash().ByteArray);
-    //     }
-
-    //     if (EvidenceHash is { } evidenceHash)
-    //     {
-    //         dict = dict.Add("evidence_hash", evidenceHash.ByteArray);
-    //     }
-
-    //     // As blocks hadn't been signed before ProtocolVersion <= 1, the PublicKey property
-    //     // is nullable type-wise.  Blocks with ProtocolVersion <= 1 had a `reward_beneficiary`
-    //     // field, which referred to the Miner address.  On the other hand, blocks with
-    //     // ProtocolVersion >= 2 have a `public_key` field instead.  (As Miner addresses can be
-    //     // derived from PublicKeys, we don't need to include both at a time.)  The PublicKey
-    //     // property in this class guarantees that its ProtocolVersion is <= 1 when it is null
-    //     // and its ProtocolVersion is >= 2 when it is not null:
-    //     dict = PublicKey is { } pubKey && ProtocolVersion >= 2
-    //         ? dict.Add("public_key", pubKey.ToByteArray(compress: true)) // ProtocolVersion >= 2
-    //         : dict.Add("reward_beneficiary", Miner.ToBencodex()); /////// ProtocolVersion <= 1
-
-    //     return dict;
-    // }
-
-    public HashDigest<SHA256> DerivePreEvaluationHash()
-        => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
 }

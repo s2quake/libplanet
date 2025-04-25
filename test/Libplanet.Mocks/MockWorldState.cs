@@ -3,6 +3,7 @@ using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
@@ -103,7 +104,7 @@ namespace Libplanet.Mocks
                 ? new AccountState(Trie)
                 : new AccountState(
                     Trie[ToStateKey(address)] is { } stateRootNotNull
-                        ? _stateStore.GetStateRoot(new HashDigest<SHA256>(stateRootNotNull))
+                        ? _stateStore.GetStateRoot(ModelSerializer.Deserialize<HashDigest<SHA256>>(stateRootNotNull))
                         : _stateStore.GetStateRoot(default));
 
         /// <summary>

@@ -38,6 +38,9 @@ dotnet_diagnostic.SA1615.severity = none
 # S3903: Types should be defined in named namespaces
 dotnet_diagnostic.S3903.severity = none
 
+# SA1611: Element parameters should be documented
+dotnet_diagnostic.SA1611.severity = none
+
 [*.csproj]
 quote_type = double
 

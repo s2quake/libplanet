@@ -122,19 +122,14 @@ namespace Libplanet.Net.Consensus
                     throw new InvalidVoteException("ValidatorKey of the vote cannot be null", vote);
                 }
 
-                if (!_validatorSet.ContainsPublicKey(validatorKey))
+                if (!_validatorSet.Contains(validatorKey))
                 {
                     throw new InvalidVoteException(
                         "ValidatorKey of the vote is not in the validator set",
                         vote);
                 }
 
-                if (vote.ValidatorPower is not { } power)
-                {
-                    const string msg = "ValidatorPower of the vote cannot be null";
-                    throw new InvalidVoteException(msg, vote);
-                }
-                else if (_validatorSet.GetValidator(validatorKey).Power != power)
+                if (_validatorSet.GetValidator(validatorKey).Power != vote.ValidatorPower)
                 {
                     const string msg = "ValidatorPower of the vote is given and the value is " +
                                        "not the same with the one in the validator set";

@@ -6,6 +6,7 @@ using System.Web;
 using Libplanet.Common;
 using Libplanet.Common.Extensions;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
@@ -849,7 +850,7 @@ public partial class RocksDBStore : BaseStore
                 return default;
             }
 
-            BlockDigest blockDigest = BlockDigest.Deserialize(blockBytes);
+            BlockDigest blockDigest = ModelSerializer.DeserializeFromBytes<BlockDigest>(blockBytes);
 
             _blockCache.AddOrUpdate(blockHash, blockDigest);
             return blockDigest;
@@ -903,7 +904,7 @@ public partial class RocksDBStore : BaseStore
             }
 
             BlockDigest digest = BlockDigest.FromBlock(block);
-            byte[] value = digest.Serialize();
+            byte[] value = ModelSerializer.SerializeToBytes(digest);
             blockDb.Put(key, value);
             _blockIndexDb.Put(key, RocksDBStoreBitConverter.GetBytes(blockDbName));
             _blockCache.AddOrUpdate(block.Hash, digest);
@@ -1169,7 +1170,7 @@ public partial class RocksDBStore : BaseStore
                 return null;
             }
 
-            return new BlockCommit(Codec.Decode(bytes));
+            return ModelSerializer.DeserializeFromBytes<BlockCommit>(bytes);
         }
         catch (Exception e)
         {
@@ -1184,7 +1185,7 @@ public partial class RocksDBStore : BaseStore
         try
         {
             byte[] key = ChainBlockCommitKey(chainId);
-            byte[] bytes = Codec.Encode(blockCommit.Bencoded);
+            byte[] bytes = ModelSerializer.SerializeToBytes(blockCommit);
 
             _chainDb.Put(key, bytes);
             _chainDb.Put(ChainIdKey(chainId), chainId.ToByteArray());
@@ -1208,7 +1209,7 @@ public partial class RocksDBStore : BaseStore
                 return null;
             }
 
-            return new BlockCommit(Codec.Decode(bytes));
+            return ModelSerializer.DeserializeFromBytes<BlockCommit>(bytes);
         }
         catch (Exception e)
         {
@@ -1235,7 +1236,7 @@ public partial class RocksDBStore : BaseStore
         _rwBlockCommitLock.EnterWriteLock();
         try
         {
-            byte[] value = Codec.Encode(blockCommit.Bencoded);
+            byte[] value = ModelSerializer.SerializeToBytes(blockCommit);
             _blockCommitDb.Put(key, value);
         }
         catch (Exception e)
@@ -1338,7 +1339,7 @@ public partial class RocksDBStore : BaseStore
         _rwNextStateRootHashLock.EnterWriteLock();
         try
         {
-            _nextStateRootHashDb.Put(key, nextStateRootHash.ToByteArray());
+            _nextStateRootHashDb.Put(key, nextStateRootHash.ByteArray.ToArray());
         }
         catch (Exception e)
         {
@@ -1400,7 +1401,7 @@ public partial class RocksDBStore : BaseStore
                 return null;
             }
 
-            return EvidenceBase.Decode(Codec.Decode(bytes));
+            return ModelSerializer.DeserializeFromBytes<EvidenceBase>(bytes);
         }
         catch (Exception e)
         {
@@ -1431,7 +1432,7 @@ public partial class RocksDBStore : BaseStore
         _rwEvidenceLock.EnterWriteLock();
         try
         {
-            byte[] value = Codec.Encode(EvidenceBase.Bencode(evidence));
+            byte[] value = ModelSerializer.SerializeToBytes(evidence);
             _pendingEvidenceDb.Put(key, value);
         }
         catch (Exception e)
@@ -1493,7 +1494,7 @@ public partial class RocksDBStore : BaseStore
                 return null;
             }
 
-            return EvidenceBase.Decode(Codec.Decode(bytes));
+            return ModelSerializer.DeserializeFromBytes<EvidenceBase>(bytes);
         }
         catch (Exception e)
         {
@@ -1524,7 +1525,7 @@ public partial class RocksDBStore : BaseStore
         _rwEvidenceLock.EnterWriteLock();
         try
         {
-            byte[] value = Codec.Encode(EvidenceBase.Bencode(evidence));
+            byte[] value = ModelSerializer.SerializeToBytes(evidence);
             _committedEvidenceDb.Put(key, value);
             _evidenceCache.AddOrUpdate(evidence.Id, evidence);
         }

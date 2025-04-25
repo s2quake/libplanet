@@ -9,51 +9,6 @@ namespace Libplanet.Types.Blocks;
 [Model(Version = 1)]
 public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableObject
 {
-    // public BlockCommit(
-    //     long height,
-    //     int round,
-    //     BlockHash blockHash,
-    //     ImmutableArray<Vote> votes)
-    // {
-    //     // TODO: Implement separate exception for each case.
-    //     // TODO: Optimize by using flags to allow single iterating through votes.
-    //     if (height < 0)
-    //     {
-    //         throw new ArgumentOutOfRangeException(
-    //             nameof(height),
-    //             $"Height must be non-negative: {height}");
-    //     }
-    //     else if (round < 0)
-    //     {
-    //         throw new ArgumentOutOfRangeException(
-    //             nameof(round),
-    //             $"Round must be non-negative: {round}");
-    //     }
-    //     else if (votes.IsDefaultOrEmpty)
-    //     {
-    //         throw new ArgumentException("Empty set of votes is not allowed.", nameof(votes));
-    //     }
-    //     else if (votes.Any(vote =>
-    //         vote.Height != height ||
-    //         vote.Round != round ||
-    //         !blockHash.Equals(vote.BlockHash) ||
-    //         (vote.Flag != VoteFlag.Null && vote.Flag != VoteFlag.PreCommit) ||
-    //         (vote.Flag == VoteFlag.PreCommit && !vote.Verify())))
-    //     {
-    //         throw new ArgumentException(
-    //             $"Every vote must have the same height as {height}, the same round " +
-    //             $"as {round}, the same hash as {blockHash}, and must have flag value of " +
-    //             $"either {VoteFlag.Null} or {VoteFlag.PreCommit}, " +
-    //             $"and must be signed if the vote's flag is {VoteFlag.PreCommit}.",
-    //             nameof(votes));
-    //     }
-
-    //     Height = height;
-    //     Round = round;
-    //     BlockHash = blockHash;
-    //     Votes = votes;
-    // }
-
     [Property(0)]
     public long Height { get; init; }
 
@@ -107,4 +62,49 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
                 [nameof(Votes)]);
         }
     }
+
+    // public BlockCommit(
+    //     long height,
+    //     int round,
+    //     BlockHash blockHash,
+    //     ImmutableArray<Vote> votes)
+    // {
+    //     // TODO: Implement separate exception for each case.
+    //     // TODO: Optimize by using flags to allow single iterating through votes.
+    //     if (height < 0)
+    //     {
+    //         throw new ArgumentOutOfRangeException(
+    //             nameof(height),
+    //             $"Height must be non-negative: {height}");
+    //     }
+    //     else if (round < 0)
+    //     {
+    //         throw new ArgumentOutOfRangeException(
+    //             nameof(round),
+    //             $"Round must be non-negative: {round}");
+    //     }
+    //     else if (votes.IsDefaultOrEmpty)
+    //     {
+    //         throw new ArgumentException("Empty set of votes is not allowed.", nameof(votes));
+    //     }
+    //     else if (votes.Any(vote =>
+    //         vote.Height != height ||
+    //         vote.Round != round ||
+    //         !blockHash.Equals(vote.BlockHash) ||
+    //         (vote.Flag != VoteFlag.Null && vote.Flag != VoteFlag.PreCommit) ||
+    //         (vote.Flag == VoteFlag.PreCommit && !vote.Verify())))
+    //     {
+    //         throw new ArgumentException(
+    //             $"Every vote must have the same height as {height}, the same round " +
+    //             $"as {round}, the same hash as {blockHash}, and must have flag value of " +
+    //             $"either {VoteFlag.Null} or {VoteFlag.PreCommit}, " +
+    //             $"and must be signed if the vote's flag is {VoteFlag.PreCommit}.",
+    //             nameof(votes));
+    //     }
+
+    //     Height = height;
+    //     Round = round;
+    //     BlockHash = blockHash;
+    //     Votes = votes;
+    // }
 }

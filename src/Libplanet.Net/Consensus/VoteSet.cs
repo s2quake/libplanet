@@ -42,7 +42,7 @@ namespace Libplanet.Net.Consensus
             _peerMaj23s = new Dictionary<PublicKey, BlockHash>();
         }
 
-        public IEnumerable<Validator> Validators => _validatorSet.Validators;
+        public ImmutableSortedSet<Validator> Validators => _validatorSet;
 
         public BigInteger Sum => _validatorSet.GetValidatorsPower(
             _votes.Values.Select(vote => vote.ValidatorPublicKey).ToList());
@@ -191,7 +191,7 @@ namespace Libplanet.Net.Consensus
         {
             lock (_lock)
             {
-                return _validatorSet.Validators.Select(validator =>
+                return _validatorSet.Select(validator =>
                      _votes.ContainsKey(validator.PublicKey)).ToArray();
             }
         }
@@ -202,11 +202,11 @@ namespace Libplanet.Net.Consensus
             {
                 if (_votesByBlock.ContainsKey(blockHash))
                 {
-                    return _validatorSet.Validators.Select(validator =>
+                    return _validatorSet.Select(validator =>
                         _votesByBlock[blockHash].Votes.ContainsKey(validator.PublicKey)).ToArray();
                 }
 
-                return _validatorSet.Validators.Select(_ => false).ToArray();
+                return _validatorSet.Select(_ => false).ToArray();
             }
         }
 
@@ -298,7 +298,7 @@ namespace Libplanet.Net.Consensus
         {
             lock (_lock)
             {
-                return Sum > _validatorSet.OneThirdPower;
+                return Sum > _validatorSet.GetOneThirdPower();
             }
         }
 
@@ -310,7 +310,7 @@ namespace Libplanet.Net.Consensus
         {
             lock (_lock)
             {
-                return Sum > _validatorSet.TwoThirdsPower;
+                return Sum > _validatorSet.GetTwoThirdsPower();
             }
         }
 
@@ -324,7 +324,7 @@ namespace Libplanet.Net.Consensus
         {
             lock (_lock)
             {
-                return Sum == _validatorSet.TotalPower;
+                return Sum == _validatorSet.GetTotalPower();
             }
         }
 
@@ -365,8 +365,13 @@ namespace Libplanet.Net.Consensus
                 return null;
             }
 
-            return new BlockCommit(
-                _height, _round, _maj23!.Value, MappedList().ToImmutableArray());
+            return new BlockCommit
+            {
+                Height = _height,
+                Round = _round,
+                BlockHash = _maj23!.Value,
+                Votes = MappedList().ToImmutableArray(),
+            };
         }
 
         internal void AddVote(Vote vote)
@@ -450,7 +455,7 @@ namespace Libplanet.Net.Consensus
 
             // Before adding to votesByBlock, see if we'll exceed quorum
             BigInteger origSum = votesByBlock.Sum;
-            BigInteger quorum = _validatorSet.TwoThirdsPower + 1;
+            BigInteger quorum = _validatorSet.GetTwoThirdsPower() + 1;
 
             // Add vote to votesByBlock
             votesByBlock.AddVerifiedVote(vote, _validatorSet.GetValidator(validatorKey).Power);
@@ -497,18 +502,22 @@ namespace Libplanet.Net.Consensus
                 Sum += power;
             }
 
-            public List<Vote> MappedList(long height, int round, ImmutableSortedSet<Validator> validatorSet) =>
-                validatorSet.PublicKeys.Select(
+            public List<Vote> MappedList(
+                long height, int round, ImmutableSortedSet<Validator> validatorSet)
+                =>
+                validatorSet.Select(item => item.PublicKey).Select(
                     key => Votes.ContainsKey(key)
                         ? Votes[key]
-                        : new VoteMetadata(
-                            height,
-                            round,
-                            BlockHash,
-                            DateTimeOffset.UtcNow,
-                            key,
-                            validatorSet.GetValidator(key).Power,
-                            VoteFlag.Null).Sign(null))
+                        : new VoteMetadata
+                        {
+                            Height = height,
+                            Round = round,
+                            BlockHash = BlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = key,
+                            ValidatorPower = validatorSet.GetValidator(key).Power,
+                            Flag = VoteFlag.Null,
+                        }.Sign(null!))
                     .ToList();
         }
     }
