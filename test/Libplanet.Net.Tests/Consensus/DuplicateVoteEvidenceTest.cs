@@ -2,8 +2,8 @@
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using Bencodex.Types;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Serilog;
@@ -115,8 +115,8 @@ namespace Libplanet.Net.Tests.Consensus
             await consensusProposalMsgAt7Task;
             var consensusProposalMsgAt7 = consensusProposalMsgAt7Task.Result;
             Assert.NotNull(consensusProposalMsgAt3?.BlockHash);
-            var actualBlock = BlockMarshaler.UnmarshalBlock(
-                (Dictionary)_codec.Decode(consensusProposalMsgAt7.Proposal.MarshaledBlock));
+            var actualBlock = ModelSerializer.DeserializeFromBytes<Block>(
+                consensusProposalMsgAt7.Proposal.MarshaledBlock);
             Assert.Single(actualBlock.Evidence);
         }
 

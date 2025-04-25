@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Libplanet.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Nito.AsyncEx;
@@ -67,8 +68,8 @@ namespace Libplanet.Net.Tests.Consensus
             context.Start();
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
-            Block proposedBlock = BlockMarshaler.UnmarshalBlock(
-                (Bencodex.Types.Dictionary)_codec.Decode(proposal!.Proposal.MarshaledBlock));
+            Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
+                proposal!.Proposal.MarshaledBlock);
 
             // Force round change.
             context.ProduceMessage(
@@ -171,24 +172,27 @@ namespace Libplanet.Net.Tests.Consensus
 
             var key = new PrivateKey();
             var differentBlock = blockChain.EvaluateAndSign(
-                new BlockContent(
-                    new BlockMetadata(
-                        protocolVersion: BlockMetadata.CurrentProtocolVersion,
-                        index: blockChain.Tip.Index + 1,
-                        timestamp: blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
-                        miner: key.Address,
-                        publicKey: key.PublicKey,
-                        previousHash: blockChain.Tip.Hash,
-                        txHash: null,
-                        lastCommit: null,
-                        evidenceHash: null)).Propose(),
+                new BlockContent
+                {
+                    Metadata = new BlockMetadata
+                    {
+                        ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+                        Index = blockChain.Tip.Index + 1,
+                        Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
+                        Miner = key.Address,
+                        PublicKey = key.PublicKey,
+                        PreviousHash = blockChain.Tip.Hash,
+                        LastCommit = null,
+                        EvidenceHash = null,
+                    },
+                }.Propose(),
                 key);
 
             context.Start();
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
-            Block proposedBlock = BlockMarshaler.UnmarshalBlock(
-                (Bencodex.Types.Dictionary)_codec.Decode(proposal!.Proposal.MarshaledBlock));
+            Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
+                proposal!.Proposal.MarshaledBlock);
 
             // Force round change to 2.
             context.ProduceMessage(

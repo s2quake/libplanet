@@ -31,14 +31,16 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact]
         public void CannotAddDifferentHeight()
         {
-            var preVote = new VoteMetadata(
-                3,
-                0,
-                default,
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.Validators[0].Power,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
+            var preVote = new VoteMetadata
+            {
+                Height = 3,
+                Round = 0,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                ValidatorPower = TestUtils.Validators[0].Power,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[0]);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
         }
@@ -47,14 +49,16 @@ namespace Libplanet.Net.Tests.Consensus
         public void CannotAddUnknownValidator()
         {
             var key = new PrivateKey();
-            var preVote = new VoteMetadata(
-                2,
-                0,
-                default,
-                DateTimeOffset.UtcNow,
-                key.PublicKey,
-                BigInteger.One,
-                VoteFlag.PreVote).Sign(key);
+            var preVote = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = key.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreVote,
+            }.Sign(key);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
         }
@@ -62,14 +66,16 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact]
         public void CannotAddValidatorWithInvalidPower()
         {
-            var preVote = new VoteMetadata(
-                2,
-                0,
-                default,
-                DateTimeOffset.UtcNow,
-                TestUtils.Validators[0].PublicKey,
-                TestUtils.Validators[0].Power + 1,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
+            var preVote = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.Validators[0].PublicKey,
+                ValidatorPower = TestUtils.Validators[0].Power + 1,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[0]);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
         }
@@ -78,38 +84,46 @@ namespace Libplanet.Net.Tests.Consensus
         public void CannotAddMultipleVotesPerRoundPerValidator()
         {
             Random random = new Random();
-            var preVote0 = new VoteMetadata(
-                2,
-                0,
-                default,
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.Validators[0].Power,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
-            var preVote1 = new VoteMetadata(
-                2,
-                0,
-                new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.Validators[0].Power,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
-            var preCommit0 = new VoteMetadata(
-                2,
-                0,
-                default,
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.Validators[0].Power,
-                VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[0]);
-            var preCommit1 = new VoteMetadata(
-                2,
-                0,
-                new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[0].PublicKey,
-                TestUtils.Validators[0].Power,
-                VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[0]);
+            var preVote0 = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                ValidatorPower = TestUtils.Validators[0].Power,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[0]);
+            var preVote1 = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                ValidatorPower = TestUtils.Validators[0].Power,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[0]);
+            var preCommit0 = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                ValidatorPower = TestUtils.Validators[0].Power,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(TestUtils.PrivateKeys[0]);
+            var preCommit1 = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                ValidatorPower = TestUtils.Validators[0].Power,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(TestUtils.PrivateKeys[0]);
 
             _heightVoteSet.AddVote(preVote0);
             Assert.Throws<DuplicateVoteException>(() => _heightVoteSet.AddVote(preVote1));
@@ -121,14 +135,16 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact]
         public void CannotAddVoteWithoutValidatorPower()
         {
-            var preVote = new VoteMetadata(
-                2,
-                0,
-                default,
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[0].PublicKey,
-                null,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[0]);
+            var preVote = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[0]);
 
             var exception = Assert.Throws<InvalidVoteException>(
                 () => _heightVoteSet.AddVote(preVote));
@@ -140,25 +156,27 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var preVotes = Enumerable.Range(0, TestUtils.PrivateKeys.Count)
                 .Select(
-                    index => new VoteMetadata(
-                            2,
-                            0,
-                            default,
-                            DateTimeOffset.UtcNow,
-                            TestUtils.PrivateKeys[index].PublicKey,
-                            TestUtils.Validators[index].Power,
-                            VoteFlag.PreVote)
-                        .Sign(TestUtils.PrivateKeys[index]))
+                    index => new VoteMetadata
+                    {
+                        Height = 2,
+                        Round = 0,
+                        BlockHash = default,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = TestUtils.PrivateKeys[index].PublicKey,
+                        ValidatorPower = TestUtils.Validators[index].Power,
+                        Flag = VoteFlag.PreVote,
+                    }.Sign(TestUtils.PrivateKeys[index]))
                 .ToList();
-            var preCommit = new VoteMetadata(
-                    2,
-                    0,
-                    default,
-                    DateTimeOffset.UtcNow,
-                    TestUtils.PrivateKeys[0].PublicKey,
-                    TestUtils.Validators[0].Power,
-                    VoteFlag.PreCommit)
-                .Sign(TestUtils.PrivateKeys[0]);
+            var preCommit = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = default,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                ValidatorPower = TestUtils.Validators[0].Power,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(TestUtils.PrivateKeys[0]);
 
             foreach (var preVote in preVotes)
             {

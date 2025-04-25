@@ -4,6 +4,7 @@ using Libplanet.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Tests;
+using Libplanet.Serialization;
 
 namespace Libplanet.Benchmarks
 {
@@ -34,15 +35,20 @@ namespace Libplanet.Benchmarks
         [IterationSetup(Target = nameof(DecodeBlockCommit))]
         public void PrepareDecode()
         {
-            _blockCommit = new BlockCommit(1, 0, _blockHash, _votes.Take(ValidatorSize)
-                .ToImmutableArray());
-            _encodedBlockCommit = _blockCommit.Bencoded;
+            _blockCommit = new BlockCommit
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = _blockHash,
+                Votes = [.. _votes.Take(ValidatorSize)],
+            };
+            _encodedBlockCommit = ModelSerializer.Serialize(_blockCommit);
         }
 
         [Benchmark]
         public void DecodeBlockCommit()
         {
-            _blockCommit = new BlockCommit(_encodedBlockCommit);
+            _blockCommit = ModelSerializer.Deserialize<BlockCommit>(_encodedBlockCommit);
         }
 
         private void SetupKeys()
@@ -56,17 +62,18 @@ namespace Libplanet.Benchmarks
 
         private void SetupVotes()
         {
-            _votes = Enumerable.Range(0, MaxValidatorSize)
+            _votes = [.. Enumerable.Range(0, MaxValidatorSize)
                 .Select(x =>
-                    new VoteMetadata(
-                        1,
-                        0,
-                        _blockHash,
-                        DateTimeOffset.UtcNow,
-                        _privateKeys[x].PublicKey,
-                        BigInteger.One,
-                        VoteFlag.PreCommit).Sign(_privateKeys[x]))
-                .ToArray();
+                    new VoteMetadata
+                    {
+                        Height = 1,
+                        Round = 0,
+                        BlockHash = _blockHash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = _privateKeys[x].PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(_privateKeys[x]))];
         }
     }
 }

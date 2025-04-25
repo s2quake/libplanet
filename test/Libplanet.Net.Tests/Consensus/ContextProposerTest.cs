@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Libplanet.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Nito.AsyncEx;
@@ -379,8 +380,8 @@ namespace Libplanet.Net.Tests.Consensus
             context.Start();
             await proposalSent.WaitAsync();
             Bencodex.Codec codec = new Bencodex.Codec();
-            var proposedBlock = BlockMarshaler.UnmarshalBlock(
-                (Bencodex.Types.Dictionary)codec.Decode(proposal?.Proposal.MarshaledBlock!));
+            var proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
+                proposal?.Proposal.MarshaledBlock!);
             Assert.Equal(context.Height + 1, proposedBlock.Index);
             await preVoteSent.WaitAsync();
             Assert.Equal(default(BlockHash), preVote?.BlockHash);

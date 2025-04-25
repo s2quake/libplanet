@@ -4,6 +4,7 @@ using Libplanet.Blockchain.Policies;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Net;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Explorer.Executable
@@ -118,8 +119,7 @@ namespace Libplanet.Explorer.Executable
             using (var client = new System.Net.Http.HttpClient())
             {
                 var serialized = await client.GetByteArrayAsync(uri);
-                var dict = (Bencodex.Types.Dictionary)Codec.Decode(serialized);
-                return BlockMarshaler.UnmarshalBlock(dict);
+                return ModelSerializer.DeserializeFromBytes<Block>(serialized);
             }
 #else
             throw new System.PlatformNotSupportedException();
