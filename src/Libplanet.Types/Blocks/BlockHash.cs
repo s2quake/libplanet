@@ -8,60 +8,24 @@ using Libplanet.Types.Converters;
 namespace Libplanet.Types.Blocks;
 
 [JsonConverter(typeof(BlockHashJsonConverter))]
-public readonly struct BlockHash :
-    IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IBencodable, IFormattable
+public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
+    : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IBencodable, IFormattable
 {
     public const int Size = 32;
 
     private static readonly ImmutableArray<byte> _defaultBytes
         = new byte[Size].ToImmutableArray();
 
-    private readonly ImmutableArray<byte> _bytes;
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
 
-    public BlockHash(in ImmutableArray<byte> immutableBytes)
-    {
-        if (immutableBytes.Length != Size)
-        {
-            string message =
-                $"{nameof(BlockHash)} must be {Size} bytes, but {immutableBytes.Length} was given.";
-            throw new ArgumentOutOfRangeException(nameof(immutableBytes), message);
-        }
-
-        _bytes = immutableBytes;
-    }
-
-    public BlockHash(byte[] bytes)
+    public BlockHash(ReadOnlySpan<byte> bytes)
         : this(bytes.ToImmutableArray())
     {
-    }
-
-    public BlockHash(IValue value)
-    {
-        if (value is not Binary binary)
-        {
-            var message = $"Given {nameof(value)} must be of type " +
-                          $"{typeof(Binary)}: {value.GetType()}";
-            throw new ArgumentException(message, nameof(value));
-        }
-
-        var bytes = binary.ByteArray;
-        if (bytes.Length != Size)
-        {
-            var message = $"{nameof(BlockHash)} must be {Size} bytes, " +
-                          $"but {bytes.Length} was given";
-            throw new ArgumentOutOfRangeException(nameof(value), message);
-        }
-
-        _bytes = bytes;
     }
 
     public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? _defaultBytes : _bytes;
 
     public IValue Bencoded => new Binary(ByteArray);
-
-    public static bool operator ==(BlockHash left, BlockHash right) => left.Equals(right);
-
-    public static bool operator !=(BlockHash left, BlockHash right) => !left.Equals(right);
 
     public static BlockHash Parse(string hex) => new(ByteUtil.ParseHexToImmutable(hex));
 
@@ -73,8 +37,6 @@ public readonly struct BlockHash :
         byte[] digest = sha256.ComputeHash(blockBytes is byte[] b ? b : blockBytes.ToArray());
         return new BlockHash(digest);
     }
-
-    public byte[] ToByteArray() => [.. ByteArray];
 
     public bool Equals(BlockHash other)
     {
@@ -97,8 +59,6 @@ public readonly struct BlockHash :
 
         return true;
     }
-
-    public override bool Equals(object? obj) => obj is BlockHash h && Equals(h);
 
     public override int GetHashCode()
     {
@@ -140,7 +100,7 @@ public readonly struct BlockHash :
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        var hex = ByteUtil.Hex(ToByteArray());
+        var hex = ByteUtil.Hex(ByteArray);
         return format switch
         {
             "h" => hex,
@@ -148,5 +108,17 @@ public readonly struct BlockHash :
             null => hex,
             _ => throw new FormatException($"The format string '{format}' is not supported."),
         };
+    }
+
+    private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
+    {
+        if (bytes.Length != Size)
+        {
+            string message =
+                $"{nameof(BlockHash)} must be {Size} bytes, but {bytes.Length} was given.";
+            throw new ArgumentOutOfRangeException(nameof(bytes), message);
+        }
+
+        return bytes;
     }
 }

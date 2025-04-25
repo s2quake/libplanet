@@ -2,6 +2,7 @@
 using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
@@ -72,7 +73,8 @@ public static class BencodexUtility
         => DateTimeOffset.ParseExact(
             GetString(list, index), TimestampFormat, CultureInfo.InvariantCulture);
 
-    public static BlockHash ToBlockHash(List list, int index) => new(list[index]);
+    public static BlockHash ToBlockHash(List list, int index)
+        => ModelSerializer.Deserialize<BlockHash>(list[index]);
 
     public static BlockHash? ToBlockHashOrDefault(List list, int index)
     {
@@ -81,7 +83,7 @@ public static class BencodexUtility
             return null;
         }
 
-        return new BlockHash(list[index]);
+        return ModelSerializer.Deserialize<BlockHash>(list[index]);
     }
 
     public static T ToObject<T>(List list, int index)

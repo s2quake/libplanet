@@ -8,6 +8,7 @@ using System.Text.Json;
 using Bencodex.Json;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 
@@ -121,7 +122,7 @@ public static class TxMarshaler
                 ? list.ToImmutableArray()
                 : [],
             GenesisHash = dictionary.TryGetValue(GenesisHashKey, out IValue gv)
-                ? new BlockHash(gv)
+                ? ModelSerializer.Deserialize<BlockHash>(gv)
                 : null,
             UpdatedAddresses = ImmutableSortedSet.Create(
                 [.. ((List)dictionary[UpdatedAddressesKey]).Select(Address.Create)]),

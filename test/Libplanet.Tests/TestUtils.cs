@@ -236,10 +236,10 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             AssertBytesEqual(expected?.ByteArray ?? [], actual?.ByteArray ?? []);
 
         public static void AssertBytesEqual(BlockHash expected, BlockHash actual) =>
-            AssertBytesEqual(expected.ToByteArray(), actual.ToByteArray());
+            AssertBytesEqual(expected.ByteArray.ToArray(), actual.ByteArray.ToArray());
 
         public static void AssertBytesEqual(BlockHash? expected, BlockHash? actual) =>
-            AssertBytesEqual(expected?.ToByteArray(), actual?.ToByteArray());
+            AssertBytesEqual(expected?.ByteArray.ToArray(), actual?.ByteArray.ToArray());
 
         public static void AssertBytesEqual<T>(HashDigest<T> expected, HashDigest<T> actual)
             where T : HashAlgorithm =>
