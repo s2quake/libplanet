@@ -24,7 +24,7 @@ namespace Libplanet.Net.Messages
             get
             {
                 var frames = new List<byte[]>();
-                frames.Add(Locator.Hash.ToByteArray());
+                frames.Add(Locator.Hash.ByteArray.ToArray());
                 return frames;
             }
         }

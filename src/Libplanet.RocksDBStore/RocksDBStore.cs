@@ -622,7 +622,7 @@ public partial class RocksDBStore : BaseStore
 
             using var writeBatch = new WriteBatch();
 
-            writeBatch.Put(key, hash.ToByteArray());
+            writeBatch.Put(key, hash.ByteArray.ToArray());
             writeBatch.Put(
                 IndexCountKey(chainId),
                 RocksDBStoreBitConverter.GetBytes(index + 1)
@@ -988,7 +988,7 @@ public partial class RocksDBStore : BaseStore
     {
         _txIdBlockHashIndexDb.Put(
             TxIdBlockHashIndexKey(txId, blockHash),
-            blockHash.ToByteArray()
+            blockHash.ByteArray.ToArray()
             );
     }
 

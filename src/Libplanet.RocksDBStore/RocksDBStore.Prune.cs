@@ -30,7 +30,7 @@ namespace Libplanet.RocksDBStore
             {
                 batch.Put(
                     IndexKey(ccid, RocksDBStoreBitConverter.GetBytes(index)),
-                    hash.ToByteArray());
+                    hash.ByteArray.ToArray());
 
                 if (batch.Count() > 10000)
                 {
