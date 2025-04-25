@@ -8,9 +8,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class Block(
-    [property: Property(0)] BlockHeader Header,
-    [property: Property(1)] RawBlock RawBlock)
+public sealed record class Block
 {
     public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
 
@@ -22,16 +20,25 @@ public sealed record class Block(
         ImmutableSortedSet<Transaction> transactions,
         ImmutableSortedSet<EvidenceBase> evidence)
     {
-        var rawHeader = header.RawBlockHeader;
-        var metadata = rawHeader.Metadata;
-        var blockContent = new BlockContent
+        // var rawHeader = header.RawBlockHeader;
+        // var metadata = rawHeader.Metadata;
+        // var blockContent = new BlockContent
+        // {
+        //     Metadata = metadata,
+        //     Transactions = transactions,
+        //     Evidence = evidence,
+        // };
+        // var rawBlock = new RawBlock { Content = blockContent, Header = rawHeader };
+        // return new Block(header, rawBlock);
+        return new Block
         {
-            Metadata = metadata,
-            Transactions = transactions,
-            Evidence = evidence,
+            Header = header,
+            Content = new BlockContent
+            {
+                Transactions = transactions,
+                Evidence = evidence,
+            },
         };
-        var rawBlock = new RawBlock { Content = blockContent, Header = rawHeader };
-        return new Block(header, rawBlock);
     }
 
     public static Block Create(
@@ -43,53 +50,63 @@ public sealed record class Block(
         ) proof
     )
     {
-        return new Block(
-            new BlockHeader(
-                rawBlock.Header, proof.StateRootHash, proof.Signature ?? [], proof.Hash),
-            rawBlock);
+        var content = rawBlock.Content;
+        var header = new BlockHeader
+        {
+
+        };
+        // return new Block(
+        //     new BlockHeader(
+        //         rawBlock.Header, proof.StateRootHash, proof.Signature ?? [], proof.Hash),
+        //     rawBlock);
+        throw new NotImplementedException();
     }
 
     // [JsonIgnore]
     // public BlockHeader Header => _header;
 
-    public int ProtocolVersion => RawBlock.ProtocolVersion;
+    public required BlockHeader Header { get; init; }
+
+    public required BlockContent Content { get; init; }
+
+    public int ProtocolVersion => Header.ProtocolVersion;
 
     public BlockHash Hash => Header.BlockHash;
 
     public ImmutableArray<byte> Signature => Header.Signature;
 
-    public HashDigest<SHA256> RawHash => RawBlock.RawHash;
+    public HashDigest<SHA256> RawHash => Header.RawHash;
 
     public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
 
-    public long Index => RawBlock.Index;
+    public long Index => Header.Index;
 
-    public Address Miner => RawBlock.Miner;
+    public Address Miner => Header.Miner;
 
-    public PublicKey? PublicKey => RawBlock.PublicKey;
+    public PublicKey? PublicKey => Header.PublicKey;
 
-    public BlockHash PreviousHash => RawBlock.PreviousHash;
+    public BlockHash PreviousHash => Header.PreviousHash;
 
-    public DateTimeOffset Timestamp => RawBlock.Timestamp;
+    public DateTimeOffset Timestamp => Header.Timestamp;
 
-    public HashDigest<SHA256>? TxHash => RawBlock.TxHash;
+    public HashDigest<SHA256>? TxHash => Header.TxHash;
 
-    public BlockCommit? LastCommit => RawBlock.LastCommit;
+    public BlockCommit? LastCommit => Header.LastCommit;
 
-    public HashDigest<SHA256>? EvidenceHash => RawBlock.EvidenceHash;
+    public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
 
-    public ImmutableSortedSet<EvidenceBase> Evidence => RawBlock.Evidence;
+    public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;
 
-    public ImmutableSortedSet<Transaction> Transactions => RawBlock.Transactions;
+    public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
     public override int GetHashCode() => unchecked((17 * 31 + Hash.GetHashCode()) * 31);
 
     public override string ToString() => Hash.ToString();
 
-    public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
+    // public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
-    public void ValidateTimestamp(DateTimeOffset currentTime)
-    => Header.RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
+    // public void ValidateTimestamp(DateTimeOffset currentTime)
+    // => Header.RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
 
     public string ToExcerptString()
     {

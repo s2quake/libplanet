@@ -50,7 +50,7 @@ public sealed record class BlockContent
     //     _evidence = evidence;
     // }
 
-    public required BlockMetadata Metadata { get; init; }
+    // public required BlockMetadata Metadata { get; init; }
 
     [Property(1)]
     public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
@@ -58,23 +58,23 @@ public sealed record class BlockContent
     [Property(2)]
     public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
 
-    public int ProtocolVersion => Metadata.ProtocolVersion;
+    // public int ProtocolVersion => Metadata.ProtocolVersion;
 
-    public long Index => Metadata.Index;
+    // public long Index => Metadata.Index;
 
-    public DateTimeOffset Timestamp => Metadata.Timestamp;
+    // public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public Address Miner => Metadata.Miner;
+    // public Address Miner => Metadata.Miner;
 
-    public PublicKey? PublicKey => Metadata.PublicKey;
+    // public PublicKey? PublicKey => Metadata.PublicKey;
 
-    public BlockHash PreviousHash => Metadata.PreviousHash;
+    // public BlockHash PreviousHash => Metadata.PreviousHash;
 
-    public HashDigest<SHA256>? TxHash => Metadata.TxHash;
+    // public HashDigest<SHA256>? TxHash => Metadata.TxHash;
 
-    public BlockCommit? LastCommit => Metadata.LastCommit;
+    // public BlockCommit? LastCommit => Metadata.LastCommit;
 
-    public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
+    // public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
     public static HashDigest<SHA256> DeriveTxHash(IEnumerable<Transaction> transactions)
     {
@@ -148,16 +148,16 @@ public sealed record class BlockContent
         return null;
     }
 
-    public RawBlock Propose()
-    {
-        var preEvaluationHash = Metadata.DerivePreEvaluationHash();
-        var header = new RawBlockHeader
-        {
-            Metadata = Metadata, 
-            RawHash = preEvaluationHash,
-        };
-        return new RawBlock { Header = header, Content = this };
-    }
+    // public RawBlock Propose(BlockMetadata Metadata)
+    // {
+    //     var preEvaluationHash = Metadata.DerivePreEvaluationHash();
+    //     // var header = new RawBlockHeader
+    //     // {
+    //     //     Metadata = Metadata, 
+    //     //     RawHash = preEvaluationHash,
+    //     // };
+    //     return new RawBlock { Metadata = Metadata, RawHash = preEvaluationHash, Content = this };
+    // }
 
     private static void ValidateEvidence(
         BlockMetadata metadata,

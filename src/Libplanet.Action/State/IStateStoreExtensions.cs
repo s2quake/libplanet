@@ -35,27 +35,17 @@ namespace Libplanet.Action.State
         /// <returns>The committed <see cref="IWorld"/>.</returns>
         internal static IWorld CommitWorld(this IStateStore stateStore, IWorld world)
         {
-            if (world.Version >= BlockMetadata.WorldStateProtocolVersion)
+            var worldTrie = world.Trie;
+            foreach (var account in world.Delta.Accounts)
             {
-                var worldTrie = world.Trie;
-                foreach (var account in world.Delta.Accounts)
-                {
-                    var accountTrie = stateStore.Commit(account.Value.Trie);
-                    worldTrie = worldTrie.Set(
-                        KeyConverters.ToStateKey(account.Key),
-                        new Binary(accountTrie.Hash.ByteArray));
-                }
+                var accountTrie = stateStore.Commit(account.Value.Trie);
+                worldTrie = worldTrie.Set(
+                    KeyConverters.ToStateKey(account.Key),
+                    new Binary(accountTrie.Hash.ByteArray));
+            }
 
-                return new World(
-                    new WorldBaseState(stateStore.Commit(worldTrie), stateStore));
-            }
-            else
-            {
-                return new World(
-                    new WorldBaseState(
-                        stateStore.Commit(world.GetAccount(ReservedAddresses.LegacyAccount).Trie),
-                        stateStore));
-            }
+            return new World(
+                new WorldBaseState(stateStore.Commit(worldTrie), stateStore));
         }
     }
 }

@@ -11,45 +11,87 @@ namespace Libplanet.Types.Blocks;
 public sealed record class RawBlock
 {
     [Property(0)]
-    public required RawBlockHeader Header { get; init; }
+    public required BlockMetadata Metadata { get; init; }
 
     [Property(1)]
+    public required HashDigest<SHA256> RawHash { get; init; }
+
+    [Property(2)]
     public required BlockContent Content { get; init; }
 
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
     public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;
 
-    public int ProtocolVersion => Header.ProtocolVersion;
+    public int ProtocolVersion => Metadata.ProtocolVersion;
 
-    public long Index => Header.Index;
+    public long Index => Metadata.Index;
 
-    public DateTimeOffset Timestamp => Header.Timestamp;
+    public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public Address Miner => Header.Miner;
+    public Address Miner => Metadata.Miner;
 
-    public PublicKey? PublicKey => Header.PublicKey;
+    public PublicKey? PublicKey => Metadata.PublicKey;
 
-    public BlockHash PreviousHash => Header.PreviousHash;
+    public BlockHash PreviousHash => Metadata.PreviousHash;
 
-    public HashDigest<SHA256>? TxHash => Header.TxHash;
+    public HashDigest<SHA256>? TxHash => Metadata.TxHash;
 
-    public BlockCommit? LastCommit => Header.LastCommit;
+    public BlockCommit? LastCommit => Metadata.LastCommit;
 
-    public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
+    public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
-    public HashDigest<SHA256> RawHash => Header.RawHash;
+    public static explicit operator RawBlock(Block block)
+    {
+        return new RawBlock
+        {
+            Metadata = (BlockMetadata)block.Header,
+            RawHash = block.RawHash,
+            Content = block.Content,
+        };
+    }
+
+    public static RawBlock Propose(BlockMetadata metadata, BlockContent content)
+    {
+        var preEvaluationHash = metadata.DerivePreEvaluationHash();
+        // var header = new RawBlockHeader
+        // {
+        //     Metadata = Metadata, 
+        //     RawHash = preEvaluationHash,
+        // };
+        return new RawBlock
+        {
+            Metadata = metadata,
+            RawHash = preEvaluationHash,
+            Content = content,
+        };
+    }
 
     public Block Sign(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
     {
-        var signature = Header.MakeSignature(privateKey, stateRootHash);
-        var blockHash = Header.DeriveBlockHash(stateRootHash, signature);
-        var header = new BlockHeader(Header, stateRootHash, signature, blockHash);
-        return new Block(header, this);
+        var signature = Metadata.MakeSignature(privateKey, stateRootHash);
+        var blockHash = Metadata.DeriveBlockHash(stateRootHash, signature);
+        var header = new BlockHeader
+        {
+            StateRootHash = stateRootHash,
+            Signature = signature,
+            BlockHash = blockHash,
+            ProtocolVersion = Metadata.ProtocolVersion,
+            Index = Metadata.Index,
+            Timestamp = Metadata.Timestamp,
+            Miner = Metadata.Miner,
+            PublicKey = Metadata.PublicKey,
+            PreviousHash = Metadata.PreviousHash,
+            TxHash = Metadata.TxHash,
+            LastCommit = Metadata.LastCommit,
+            EvidenceHash = Metadata.EvidenceHash,
+            RawHash = Metadata.DerivePreEvaluationHash(),
+        };
+        return new Block { Header = header, Content = Content };
     }
 
     public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
     public void ValidateTimestamp(DateTimeOffset currentTime)
-        => Header.Metadata.ValidateTimestamp(currentTime);
+        => Metadata.ValidateTimestamp(currentTime);
 }

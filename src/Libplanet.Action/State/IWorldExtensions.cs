@@ -192,26 +192,17 @@ namespace Libplanet.Action.State
                 world.GetValidatorSetAccount().SetValidatorSet(validatorSet));
 
         [Pure]
-        internal static ValidatorSetAccount GetValidatorSetAccount(this IWorldState worldState) =>
-            worldState.Version >= BlockMetadata.ValidatorSetAccountProtocolVersion
-                ? new ValidatorSetAccount(
-                    worldState.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie,
-                    worldState.Version)
-                : new ValidatorSetAccount(
-                    worldState.GetAccountState(ReservedAddresses.LegacyAccount).Trie,
-                    worldState.Version);
+        internal static ValidatorSetAccount GetValidatorSetAccount(this IWorldState worldState)
+            => new ValidatorSetAccount(
+                worldState.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie,
+                worldState.Version);
 
         [Pure]
         internal static CurrencyAccount GetCurrencyAccount(
             this IWorldState worldState,
             Currency currency) =>
-            worldState.Version >= BlockMetadata.CurrencyAccountProtocolVersion
-                ? new CurrencyAccount(
+            new CurrencyAccount(
                     worldState.GetAccountState(new Address(currency.Hash.ByteArray)).Trie,
-                    worldState.Version,
-                    currency)
-                : new CurrencyAccount(
-                    worldState.GetAccountState(ReservedAddresses.LegacyAccount).Trie,
                     worldState.Version,
                     currency);
 
@@ -220,12 +211,8 @@ namespace Libplanet.Action.State
             this IWorld world,
             CurrencyAccount currencyAccount) =>
                 world.Version == currencyAccount.WorldVersion
-                    ? world.Version >= BlockMetadata.CurrencyAccountProtocolVersion
-                        ? world.SetAccount(
+                    ? world.SetAccount(
                             new Address(currencyAccount.Currency.Hash.ByteArray),
-                            currencyAccount.AsAccount())
-                        : world.SetAccount(
-                            ReservedAddresses.LegacyAccount,
                             currencyAccount.AsAccount())
                     : throw new ArgumentException(
                         $"Given {nameof(currencyAccount)} must have the same version as " +
@@ -238,12 +225,8 @@ namespace Libplanet.Action.State
             this IWorld world,
             ValidatorSetAccount validatorSetAccount) =>
                 world.Version == validatorSetAccount.WorldVersion
-                    ? world.Version >= BlockMetadata.ValidatorSetAccountProtocolVersion
-                        ? world.SetAccount(
+                    ? world.SetAccount(
                             ReservedAddresses.ValidatorSetAccount,
-                            validatorSetAccount.AsAccount())
-                        : world.SetAccount(
-                            ReservedAddresses.LegacyAccount,
                             validatorSetAccount.AsAccount())
                     : throw new ArgumentException(
                         $"Given {nameof(validatorSetAccount)} must have the same version as " +

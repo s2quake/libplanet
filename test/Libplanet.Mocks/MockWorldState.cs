@@ -57,7 +57,7 @@ namespace Libplanet.Mocks
         public ITrie Trie { get; }
 
         /// <inheritdoc cref="IWorldState.Legacy"/>
-        public bool Legacy => Version < BlockMetadata.WorldStateProtocolVersion;
+        public bool Legacy => false;
 
         /// <inheritdoc cref="IWorldState.Version"/>
         public int Version { get; }
@@ -170,7 +170,7 @@ namespace Libplanet.Mocks
         /// </returns>
         public MockWorldState SetBalance(Address address, Currency currency, Integer rawValue)
         {
-            if (Version >= BlockMetadata.CurrencyAccountProtocolVersion)
+            // if (Version >= BlockMetadata.CurrencyAccountProtocolVersion)
             {
                 Address accountAddress = new Address(currency.Hash.ByteArray);
                 KeyBytes balanceKey = ToStateKey(address);
@@ -190,35 +190,33 @@ namespace Libplanet.Mocks
                 trie = trie.Set(balanceKey, rawValue);
                 return SetAccount(accountAddress, new Account(new AccountState(trie)));
             }
-            else
-            {
-                Address accountAddress = ReservedAddresses.LegacyAccount;
-                KeyBytes balanceKey = ToFungibleAssetKey(address, currency);
-                KeyBytes totalSupplyKey = ToTotalSupplyKey(currency);
+            // else
+            // {
+            //     Address accountAddress = ReservedAddresses.LegacyAccount;
+            //     KeyBytes balanceKey = ToFungibleAssetKey(address, currency);
+            //     KeyBytes totalSupplyKey = ToTotalSupplyKey(currency);
 
-                ITrie trie = GetAccountState(accountAddress).Trie;
-                Integer balance = trie[balanceKey] is Integer b
-                    ? b
-                    : new Integer(0);
-                Integer totalSupply = trie[totalSupplyKey] is Integer t
-                    ? t
-                    : new Integer(0);
-                trie = trie.Set(
-                    totalSupplyKey,
-                    new Integer(totalSupply.Value - balance.Value + rawValue.Value));
+            //     ITrie trie = GetAccountState(accountAddress).Trie;
+            //     Integer balance = trie[balanceKey] is Integer b
+            //         ? b
+            //         : new Integer(0);
+            //     Integer totalSupply = trie[totalSupplyKey] is Integer t
+            //         ? t
+            //         : new Integer(0);
+            //     trie = trie.Set(
+            //         totalSupplyKey,
+            //         new Integer(totalSupply.Value - balance.Value + rawValue.Value));
 
-                trie = trie.Set(balanceKey, rawValue);
-                return SetAccount(accountAddress, new AccountState(trie));
-            }
+            //     trie = trie.Set(balanceKey, rawValue);
+            //     return SetAccount(accountAddress, new AccountState(trie));
+            // }
         }
 
         public MockWorldState SetValidatorSet(ImmutableSortedSet<Validator> validatorSet)
         {
             var validatorSetAccount = this.GetValidatorSetAccount();
             validatorSetAccount = validatorSetAccount.SetValidatorSet(validatorSet);
-            return Version >= BlockMetadata.ValidatorSetAccountProtocolVersion
-                ? SetAccount(ReservedAddresses.ValidatorSetAccount, validatorSetAccount.AsAccount())
-                : SetAccount(ReservedAddresses.LegacyAccount, validatorSetAccount.AsAccount());
+            return SetAccount(ReservedAddresses.ValidatorSetAccount, validatorSetAccount.AsAccount());
         }
     }
 }

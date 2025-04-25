@@ -6,11 +6,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockHeader(
-    [property: Property(0)] RawBlockHeader RawBlockHeader,
-    [property: Property(1)] HashDigest<SHA256> StateRootHash,
-    [property: Property(2)] ImmutableArray<byte> Signature,
-    [property: Property(3)] BlockHash BlockHash)
+public sealed record class BlockHeader
 {
     // public BlockHeader(
     //     RawBlockHeader rawBlockHeader,
@@ -57,30 +53,36 @@ public sealed record class BlockHeader(
     //     _hash = proof.Hash;
     // }
 
-    public int ProtocolVersion => RawBlockHeader.ProtocolVersion;
+    public HashDigest<SHA256> StateRootHash { get; init; }
 
-    public long Index => RawBlockHeader.Index;
+    public ImmutableArray<byte> Signature { get; init; }
 
-    public DateTimeOffset Timestamp => RawBlockHeader.Timestamp;
+    public BlockHash BlockHash { get; init; }
 
-    public Address Miner => RawBlockHeader.Miner;
+    public int ProtocolVersion { get; init; }
 
-    public PublicKey? PublicKey => RawBlockHeader.PublicKey;
+    public long Index { get; init; }
 
-    public BlockHash PreviousHash => RawBlockHeader.PreviousHash;
+    public DateTimeOffset Timestamp { get; init; }
 
-    public HashDigest<SHA256>? TxHash => RawBlockHeader.TxHash;
+    public Address Miner { get; init; }
 
-    public BlockCommit? LastCommit => RawBlockHeader.LastCommit;
+    public PublicKey? PublicKey { get; init; }
 
-    public HashDigest<SHA256>? EvidenceHash => RawBlockHeader.EvidenceHash;
+    public BlockHash PreviousHash { get; init; }
 
-    public HashDigest<SHA256> RawHash => RawBlockHeader.RawHash;
+    public HashDigest<SHA256>? TxHash { get; init; }
+
+    public BlockCommit? LastCommit { get; init; }
+
+    public HashDigest<SHA256>? EvidenceHash { get; init; }
+
+    public HashDigest<SHA256> RawHash { get; init; }
 
     public override string ToString() => $"#{Index} {BlockHash}";
 
-    public void ValidateTimestamp() => RawBlockHeader.Metadata.ValidateTimestamp();
+    // public void ValidateTimestamp() => RawBlockHeader.Metadata.ValidateTimestamp();
 
-    public void ValidateTimestamp(DateTimeOffset currentTime)
-        => RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
+    // public void ValidateTimestamp(DateTimeOffset currentTime)
+    //     => RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
 }

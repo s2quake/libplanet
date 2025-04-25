@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
+using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
@@ -13,23 +14,23 @@ public sealed record class BlockMetadata
 {
     public const int CurrentProtocolVersion = 9;
 
-    public const int TransferFixProtocolVersion = 1;
+    // public const int TransferFixProtocolVersion = 1;
 
-    public const int SignatureProtocolVersion = 2;
+    // public const int SignatureProtocolVersion = 2;
 
-    public const int TransactionOrderingFixProtocolVersion = 3;
+    // public const int TransactionOrderingFixProtocolVersion = 3;
 
-    public const int PBFTProtocolVersion = 4;
+    // public const int PBFTProtocolVersion = 4;
 
-    public const int WorldStateProtocolVersion = 5;
+    // public const int WorldStateProtocolVersion = 5;
 
-    public const int ValidatorSetAccountProtocolVersion = 6;
+    // public const int ValidatorSetAccountProtocolVersion = 6;
 
-    public const int CurrencyAccountProtocolVersion = 7;
+    // public const int CurrencyAccountProtocolVersion = 7;
 
-    public const int SlothProtocolVersion = 8;
+    // public const int SlothProtocolVersion = 8;
 
-    public const int EvidenceProtocolVersion = 9;
+    // public const int EvidenceProtocolVersion = 9;
 
     private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
 
@@ -45,7 +46,7 @@ public sealed record class BlockMetadata
 
     public BlockHash PreviousHash { get; init; }
 
-    public HashDigest<SHA256> TxHash { get; init; }
+    public HashDigest<SHA256>? TxHash { get; init; }
 
     public BlockCommit? LastCommit { get; init; }
 
@@ -223,6 +224,22 @@ public sealed record class BlockMetadata
     //     EvidenceHash = evidenceHash;
     // }
 
+    public static explicit operator BlockMetadata(BlockHeader header)
+    {
+        return new BlockMetadata
+        {
+            ProtocolVersion = header.ProtocolVersion,
+            Index = header.Index,
+            Timestamp = header.Timestamp,
+            Miner = header.Miner,
+            PublicKey = header.PublicKey,
+            PreviousHash = header.PreviousHash,
+            TxHash = header.TxHash,
+            LastCommit = header.LastCommit,
+            EvidenceHash = header.EvidenceHash,
+        };
+    }
+
     public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
     public void ValidateTimestamp(DateTimeOffset currentTime)
@@ -241,5 +258,57 @@ public sealed record class BlockMetadata
             //     $"({metadata.Timestamp}) is later than now ({currentTime}, " +
             //     $"threshold: {TimestampThreshold}).");
         }
+    }
+
+    public BlockHash DeriveBlockHash(
+        in HashDigest<SHA256> stateRootHash,
+        in ImmutableArray<byte> signature)
+    {
+        var list = new List(
+            ModelSerializer.Serialize(this),
+            ModelSerializer.Serialize(stateRootHash),
+            ModelSerializer.Serialize(signature));
+        return BlockHash.DeriveFrom(BencodexUtility.Encode(list));
+    }
+
+    public ImmutableArray<byte> MakeSignature(
+        PrivateKey privateKey,
+        HashDigest<SHA256> stateRootHash)
+    {
+        if (PublicKey is null)
+        {
+            throw new InvalidOperationException(
+                "The block with the protocol version < 2 cannot be signed, because it lacks " +
+                "its miner's public key so that others cannot verify its signature."
+            );
+        }
+        else if (!privateKey.PublicKey.Equals(PublicKey))
+        {
+            string m = "The given private key does not match to the proposer's public key." +
+                $"Block's public key: {PublicKey}\n" +
+                $"Derived public key: {privateKey.PublicKey}\n";
+            throw new ArgumentException(m, nameof(privateKey));
+        }
+
+        byte[] msg = ModelSerializer.SerializeToBytes(stateRootHash);
+        byte[] sig = privateKey.Sign(msg);
+        return ImmutableArray.Create(sig);
+    }
+
+    public bool VerifySignature(
+        ImmutableArray<byte>? signature,
+        HashDigest<SHA256> stateRootHash)
+    {
+        if (PublicKey is { } pubKey && signature is { } sig)
+        {
+            var msg = ModelSerializer.SerializeToBytes(stateRootHash).ToImmutableArray();
+            return pubKey.Verify(msg, sig);
+        }
+        else if (PublicKey is null)
+        {
+            return signature is null;
+        }
+
+        return false;
     }
 }

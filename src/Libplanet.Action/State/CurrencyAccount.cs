@@ -39,9 +39,7 @@ namespace Libplanet.Action.State
 #pragma warning disable SA1118  // The parameter spans multiple lines
             return new FungibleAssetValue(
                 Currency,
-                WorldVersion >= BlockMetadata.CurrencyAccountProtocolVersion
-                    ? GetRawBalanceV7(address)
-                    : GetRawBalanceV0(address));
+                GetRawBalanceV7(address));
 #pragma warning restore SA1118
         }
 
@@ -51,9 +49,7 @@ namespace Libplanet.Action.State
 #pragma warning disable SA1118  // The parameter spans multiple lines
             return new FungibleAssetValue(
                 Currency,
-                WorldVersion >= BlockMetadata.CurrencyAccountProtocolVersion
-                    ? GetRawTotalSupplyV7()
-                    : GetRawTotalSupplyV0());
+                GetRawTotalSupplyV7());
 #pragma warning restore SA1118
         }
 
@@ -69,9 +65,7 @@ namespace Libplanet.Action.State
                     $"The amount to mint, burn, or transfer must be greater than zero: {value}");
             }
 
-            return WorldVersion >= BlockMetadata.CurrencyAccountProtocolVersion
-                ? MintRawAssetV7(recipient, value.RawValue)
-                : MintRawAssetV0(recipient, value.RawValue);
+            return MintRawAssetV7(recipient, value.RawValue);
         }
 
         public CurrencyAccount BurnAsset(
@@ -86,9 +80,7 @@ namespace Libplanet.Action.State
                     $"The amount to mint, burn, or transfer must be greater than zero: {value}");
             }
 
-            return WorldVersion >= BlockMetadata.CurrencyAccountProtocolVersion
-                ? BurnRawAssetV7(owner, value.RawValue)
-                : BurnRawAssetV0(owner, value.RawValue);
+            return BurnRawAssetV7(owner, value.RawValue);
         }
 
         public CurrencyAccount TransferAsset(
@@ -104,9 +96,7 @@ namespace Libplanet.Action.State
                     $"The amount to mint, burn, or transfer must be greater than zero: {value}");
             }
 
-            return WorldVersion >= BlockMetadata.CurrencyAccountProtocolVersion
-                ? TransferRawAssetV7(sender, recipient, value.RawValue)
-                : TransferRawAssetV1(sender, recipient, value.RawValue);
+            return TransferRawAssetV7(sender, recipient, value.RawValue);
         }
 
         [Obsolete(

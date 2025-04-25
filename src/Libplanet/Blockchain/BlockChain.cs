@@ -180,17 +180,10 @@ namespace Libplanet.Blockchain
                 );
             }
 
-            if (Tip.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
-            {
-                _nextStateRootHash = Tip.StateRootHash;
-            }
-            else
-            {
-                _nextStateRootHash =
-                    DetermineNextBlockStateRootHash(Tip, out var actionEvaluations);
-                IEnumerable<TxExecution> txExecutions = MakeTxExecutions(Tip, actionEvaluations);
-                UpdateTxExecutions(txExecutions);
-            }
+            _nextStateRootHash =
+                DetermineNextBlockStateRootHash(Tip, out var actionEvaluations);
+            IEnumerable<TxExecution> txExecutions = MakeTxExecutions(Tip, actionEvaluations);
+            UpdateTxExecutions(txExecutions);
         }
 
         ~BlockChain()
@@ -390,28 +383,30 @@ namespace Libplanet.Blockchain
 
             var id = Guid.NewGuid();
 
-            if (genesisBlock.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
-            {
-                var preEval = new RawBlock
-                {
-                    Content = new BlockContent
-                    {
-                        Metadata = genesisBlock.RawBlock.Header.Metadata,
-                        Transactions = genesisBlock.Transactions,
-                        Evidence = genesisBlock.Evidence,
-                    },
-                    Header = genesisBlock.RawBlock.Header,
-                };
-                var computedStateRootHash =
-                    actionEvaluator.Evaluate(preEval, default).Last().OutputState;
-                if (!genesisBlock.StateRootHash.Equals(computedStateRootHash))
-                {
-                    throw new InvalidOperationException(
-                        $"Given block #{genesisBlock.Index} {genesisBlock.Hash} has " +
-                        $"a state root hash {genesisBlock.StateRootHash} that is different " +
-                        $"from the calculated state root hash {computedStateRootHash}");
-                }
-            }
+            // if (genesisBlock.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
+            // {
+            //     var preEval = new RawBlock
+            //     {
+            //         Metadata = (BlockMetadata)genesisBlock.Header,
+            //         RawHash = genesisBlock.Header.RawHash,
+            //         Content = new BlockContent
+            //         {
+            //             // Metadata = genesisBlock.RawBlock.Header.Metadata,
+            //             Transactions = genesisBlock.Transactions,
+            //             Evidence = genesisBlock.Evidence,
+            //         },
+            //         // Header = genesisBlock.RawBlock.Header,
+            //     };
+            //     var computedStateRootHash =
+            //         actionEvaluator.Evaluate(preEval, default).Last().OutputState;
+            //     if (!genesisBlock.StateRootHash.Equals(computedStateRootHash))
+            //     {
+            //         throw new InvalidOperationException(
+            //             $"Given block #{genesisBlock.Index} {genesisBlock.Hash} has " +
+            //             $"a state root hash {genesisBlock.StateRootHash} that is different " +
+            //             $"from the calculated state root hash {computedStateRootHash}");
+            //     }
+            // }
 
             ValidateGenesis(genesisBlock);
             var nonceDeltas = ValidateGenesisNonces(genesisBlock);
@@ -549,14 +544,7 @@ namespace Libplanet.Blockchain
             BlockCommit blockCommit,
             bool validate = true)
         {
-            if (block.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
-            {
-                AppendStateRootHashPreceded(block, blockCommit, render: true);
-            }
-            else
-            {
-                Append(block, blockCommit, render: true, validate: validate);
-            }
+            Append(block, blockCommit, render: true, validate: validate);
         }
 
         /// <summary>
@@ -752,10 +740,10 @@ namespace Libplanet.Blockchain
         {
             Block block = this[index];
 
-            if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
-            {
-                return null;
-            }
+            // if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
+            // {
+            //     return null;
+            // }
 
             return index == Tip.Index
                 ? Store.GetChainBlockCommit(Id)
@@ -802,7 +790,7 @@ namespace Libplanet.Blockchain
 
             if (validate)
             {
-                block.ValidateTimestamp();
+                block.Header.Timestamp.ValidateTimestamp();
             }
 
             _rwlock.EnterUpgradeableReadLock();
@@ -1013,7 +1001,7 @@ namespace Libplanet.Blockchain
             _logger.Information(
                 "Trying to append block #{BlockHeight} {BlockHash}...", block.Index, block.Hash);
 
-            block.ValidateTimestamp();
+            block.Header.Timestamp.ValidateTimestamp();
 
             _rwlock.EnterUpgradeableReadLock();
             Block prevTip = Tip;
@@ -1350,11 +1338,7 @@ namespace Libplanet.Blockchain
 
         private HashDigest<SHA256>? GetNextStateRootHash(Block block)
         {
-            if (block.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
-            {
-                return block.StateRootHash;
-            }
-            else if (block.Index < Tip.Index)
+            if (block.Index < Tip.Index)
             {
                 return this[block.Index + 1].StateRootHash;
             }

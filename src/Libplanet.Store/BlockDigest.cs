@@ -22,7 +22,7 @@ public readonly record struct BlockDigest
         ImmutableArray<ImmutableArray<byte>> txIds,
         ImmutableArray<ImmutableArray<byte>> evidenceIds)
     {
-        _metadata = header.RawBlockHeader.Metadata;
+        // _metadata = header.RawBlockHeader.Metadata;
         _preEvaluationHash = header.RawHash;
         StateRootHash = header.StateRootHash;
         Signature = header.Signature;
@@ -70,11 +70,13 @@ public readonly record struct BlockDigest
 
     public BlockHeader GetHeader()
     {
-        var preEvalHeader = new RawBlockHeader
-        {
-            Metadata = _metadata,
-            RawHash = _preEvaluationHash,
-        };
-        return new BlockHeader(preEvalHeader, StateRootHash, Signature ?? [], Hash);
+        // var preEvalHeader = new RawBlockHeader
+        // {
+        //     Metadata = _metadata,
+        //     RawHash = _preEvaluationHash,
+        // };
+        // return new BlockHeader(preEvalHeader, StateRootHash, Signature ?? [], Hash);
+
+        throw new NotImplementedException();
     }
 }

@@ -50,23 +50,23 @@ namespace Libplanet.Blockchain
                 ? txs.OrderBy(tx => tx.Id).ToImmutableList()
                 : ImmutableList<Transaction>.Empty;
 
+            var metadata = new BlockMetadata
+            {
+                Index = 0L,
+                Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+                PublicKey = privateKey.PublicKey,
+                PreviousHash = default,
+                TxHash = BlockContent.DeriveTxHash(transactions),
+                LastCommit = null,
+                EvidenceHash = null,
+            };
             BlockContent content = new BlockContent
             {
-                Metadata = new BlockMetadata
-                {
-                    Index = 0L,
-                    Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-                    PublicKey = privateKey.PublicKey,
-                    PreviousHash = default,
-                    TxHash = BlockContent.DeriveTxHash(transactions),
-                    LastCommit = null,
-                    EvidenceHash = null,
-                },
                 Transactions = [.. transactions],
                 Evidence = [],
             };
 
-            RawBlock preEval = content.Propose();
+            RawBlock preEval = RawBlock.Propose(metadata, content);
             stateRootHash ??= default;
             return preEval.Sign(privateKey, (HashDigest<SHA256>)stateRootHash);
         }
@@ -164,24 +164,24 @@ namespace Libplanet.Blockchain
             // Manual internal constructor is used purely for testing custom timestamps.
             var orderedTransactions = transactions.OrderBy(tx => tx.Id).ToList();
             var orderedEvidence = evidence.OrderBy(e => e.Id).ToList();
+            var metadata = new BlockMetadata
+            {
+                ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+                Index = index,
+                Timestamp = DateTimeOffset.UtcNow,
+                Miner = proposer.Address,
+                PublicKey = proposer.PublicKey,
+                PreviousHash = prevHash,
+                TxHash = BlockContent.DeriveTxHash(orderedTransactions),
+                LastCommit = lastCommit,
+                EvidenceHash = BlockContent.DeriveEvidenceHash(orderedEvidence),
+            };
             var blockContent = new BlockContent
             {
-                Metadata = new BlockMetadata
-                {
-                    ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
-                    Index = index,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Miner = proposer.Address,
-                    PublicKey = proposer.PublicKey,
-                    PreviousHash = prevHash,
-                    TxHash = BlockContent.DeriveTxHash(orderedTransactions),
-                    LastCommit = lastCommit,
-                    EvidenceHash = BlockContent.DeriveEvidenceHash(orderedEvidence),
-                },
                 Transactions = [.. orderedTransactions],
                 Evidence = [.. orderedEvidence],
             };
-            var preEval = blockContent.Propose();
+            var preEval = RawBlock.Propose(metadata, blockContent);
             return ProposeBlock(proposer, preEval, stateRootHash);
         }
 
