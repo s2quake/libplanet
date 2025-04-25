@@ -8,6 +8,7 @@ using Libplanet.Blockchain.Policies;
 using Libplanet.Consensus;
 using Libplanet.Crypto;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
@@ -106,7 +107,7 @@ namespace Libplanet.Net.Tests.Messages
                     return new Libplanet.Net.Messages.BlocksMsg(new[]
                     {
                         BitConverter.GetBytes(2),
-                        codec.Encode(genesis.MarshalBlock()),
+                        ModelSerializer.SerializeToBytes(genesis),
                         Array.Empty<byte>(),
                     });
                 case MessageContent.MessageType.Tx:
@@ -142,28 +143,32 @@ namespace Libplanet.Net.Tests.Messages
                             0,
                             DateTimeOffset.UtcNow,
                             privateKey.PublicKey,
-                            codec.Encode(genesis.MarshalBlock()),
+                            ModelSerializer.SerializeToBytes(genesis),
                             -1).Sign(privateKey));
                 case MessageContent.MessageType.ConsensusVote:
                     return new ConsensusPreVoteMsg(
-                            new VoteMetadata(
-                            0,
-                            0,
-                            genesis.Hash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            BigInteger.One,
-                            VoteFlag.PreVote).Sign(privateKey));
+                            new VoteMetadata
+                            {
+                                Height = 0,
+                                Round = 0,
+                                BlockHash = genesis.Hash,
+                                Timestamp = DateTimeOffset.UtcNow,
+                                ValidatorPublicKey = privateKey.PublicKey,
+                                ValidatorPower = BigInteger.One,
+                                Flag = VoteFlag.PreVote,
+                            }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusCommit:
                     return new ConsensusPreCommitMsg(
-                        new VoteMetadata(
-                            0,
-                            0,
-                            genesis.Hash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            BigInteger.One,
-                            VoteFlag.PreCommit).Sign(privateKey));
+                        new VoteMetadata
+                        {
+                            Height = 0,
+                            Round = 0,
+                            BlockHash = genesis.Hash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            ValidatorPublicKey = privateKey.PublicKey,
+                            ValidatorPower = BigInteger.One,
+                            Flag = VoteFlag.PreCommit,
+                        }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusMaj23Msg:
                     return new ConsensusMaj23Msg(
                         new Maj23Metadata(

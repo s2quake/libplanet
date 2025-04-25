@@ -250,19 +250,25 @@ namespace Libplanet.Net.Tests
 
             var specialBlock = chainB.ProposeBlock(
                 new PrivateKey(), TestUtils.CreateBlockCommit(chainB.Tip));
-            var invalidBlockCommit = new BlockCommit(
-                maliciousTipHeight,
-                0,
-                specialBlock.Hash,
-                ImmutableArray<Vote>.Empty
-                    .Add(new VoteMetadata(
-                        maliciousTipHeight,
-                        0,
-                        specialBlock.Hash,
-                        DateTimeOffset.UtcNow,
-                        TestUtils.PrivateKeys[0].PublicKey,
-                        TestUtils.Validators[0].Power,
-                        VoteFlag.PreCommit).Sign(TestUtils.PrivateKeys[0])));
+            var invalidBlockCommit = new BlockCommit
+            {
+                Height = maliciousTipHeight,
+                Round = 0,
+                BlockHash = specialBlock.Hash,
+                Votes =
+                [
+                    new VoteMetadata
+                    {
+                        Height = maliciousTipHeight,
+                        Round = 0,
+                        BlockHash = specialBlock.Hash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
+                        ValidatorPower = TestUtils.Validators[0].Power,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(TestUtils.PrivateKeys[0])
+                ],
+            };
             var validBlockCommit = TestUtils.CreateBlockCommit(specialBlock);
             chainB.Append(specialBlock, invalidBlockCommit);
             chainC.Append(specialBlock, validBlockCommit);
@@ -293,7 +299,7 @@ namespace Libplanet.Net.Tests
                 {
                     await swarmA.PreloadAsync();
                 }
-                catch (InvalidBlockCommitException)
+                catch (InvalidOperationException)
                 {
                 }
 

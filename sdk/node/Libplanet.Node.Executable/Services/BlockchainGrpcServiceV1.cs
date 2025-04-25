@@ -52,7 +52,7 @@ public class BlockchainGrpcServiceV1(IReadChainService blockChain) : Blockchain.
                 PublicKey = $"{block.PublicKey}",
                 PreviousHash = $"{block.PreviousHash}",
                 StateRootHash = $"{block.StateRootHash}",
-                Signature = $"{ByteUtil.Hex(block.Signature ?? [])}",
+                Signature = $"{ByteUtil.Hex(block.Signature)}",
                 ProtocolVersion = block.ProtocolVersion,
             };
         }

@@ -115,14 +115,16 @@ namespace Libplanet.Net.Tests
             }
 
             var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
-            var voteMetadata = new VoteMetadata(
-                height,
-                round,
-                hash,
-                DateTimeOffset.UtcNow,
-                privateKey.PublicKey,
-                validatorPower: BigInteger.One,
-                flag);
+            var voteMetadata = new VoteMetadata
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = privateKey.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = flag,
+            };
 
             return voteMetadata.Sign(privateKey);
 

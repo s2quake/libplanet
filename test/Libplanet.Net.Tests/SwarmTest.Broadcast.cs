@@ -1096,7 +1096,7 @@ namespace Libplanet.Net.Tests
             var chainB = swarmB.BlockChain;
             var chainC = swarmC.BlockChain;
 
-            var evidence = new TestEvidence(0, validatorAddress, DateTimeOffset.UtcNow);
+            var evidence = TestEvidence.Create(0, validatorAddress, DateTimeOffset.UtcNow);
             chainA.AddEvidence(evidence);
 
             try

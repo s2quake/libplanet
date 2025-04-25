@@ -4,6 +4,7 @@ using Libplanet.Consensus;
 using Libplanet.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Tests;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -287,32 +288,38 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 DateTimeOffset.UtcNow,
                 proposer.PublicKey,
-                new Codec().Encode(block.MarshalBlock()),
+                ModelSerializer.SerializeToBytes(block),
                 -1).Sign(proposer);
-            var preVote1 = new VoteMetadata(
-                1,
-                0,
-                block.Hash,
-                DateTimeOffset.UtcNow,
-                proposer.PublicKey,
-                proposerPower,
-                VoteFlag.PreVote).Sign(proposer);
-            var preVote2 = new VoteMetadata(
-                1,
-                0,
-                block.Hash,
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[2].PublicKey,
-                TestUtils.Validators[2].Power,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[2]);
-            var preVote3 = new VoteMetadata(
-                1,
-                0,
-                block.Hash,
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[3].PublicKey,
-                TestUtils.Validators[3].Power,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[3]);
+            var preVote1 = new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = block.Hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = proposer.PublicKey,
+                ValidatorPower = proposerPower,
+                Flag = VoteFlag.PreVote,
+            }.Sign(proposer);
+            var preVote2 = new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = block.Hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[2].PublicKey,
+                ValidatorPower = TestUtils.Validators[2].Power,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[2]);
+            var preVote3 = new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = block.Hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[3].PublicKey,
+                ValidatorPower = TestUtils.Validators[3].Power,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[3]);
             consensusContext.StateChanged += (_, eventArgs) =>
             {
                 if (eventArgs is { Height: 1, Step: ConsensusStep.PreCommit })
@@ -373,24 +380,28 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 DateTimeOffset.UtcNow,
                 proposer.PublicKey,
-                new Codec().Encode(block.MarshalBlock()),
+                ModelSerializer.SerializeToBytes(block),
                 -1).Sign(proposer);
-            var preVote1 = new VoteMetadata(
-                1,
-                0,
-                block.Hash,
-                DateTimeOffset.UtcNow,
-                proposer.PublicKey,
-                proposerPower,
-                VoteFlag.PreVote).Sign(proposer);
-            var preVote2 = new VoteMetadata(
-                1,
-                0,
-                block.Hash,
-                DateTimeOffset.UtcNow,
-                TestUtils.PrivateKeys[2].PublicKey,
-                TestUtils.Validators[2].Power,
-                VoteFlag.PreVote).Sign(TestUtils.PrivateKeys[2]);
+            var preVote1 = new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = block.Hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = proposer.PublicKey,
+                ValidatorPower = proposerPower,
+                Flag = VoteFlag.PreVote,
+            }.Sign(proposer);
+            var preVote2 = new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = block.Hash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = TestUtils.PrivateKeys[2].PublicKey,
+                ValidatorPower = TestUtils.Validators[2].Power,
+                Flag = VoteFlag.PreVote,
+            }.Sign(TestUtils.PrivateKeys[2]);
             consensusContext.HandleMessage(new ConsensusProposalMsg(proposal));
             consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote1));
             consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote2));
@@ -445,7 +456,7 @@ namespace Libplanet.Net.Tests.Consensus
                 0,
                 DateTimeOffset.UtcNow,
                 proposer.PublicKey,
-                new Codec().Encode(block.MarshalBlock()),
+                ModelSerializer.SerializeToBytes(block),
                 -1).Sign(proposer);
             consensusContext.HandleMessage(new ConsensusProposalMsg(proposal));
             await stepChanged.WaitAsync();
