@@ -159,7 +159,7 @@ namespace Libplanet.Tests.Blockchain
                                 DumbAction.Create((new PrivateKey().Address, "foo")),
                             }.ToPlainValues()),
                     }.ToImmutableList());
-                Assert.Throws<InvalidTxNonceException>(() => BlockChain.Create(
+                Assert.Throws<InvalidOperationException>(() => BlockChain.Create(
                     policy,
                     new VolatileStagePolicy(),
                     fx.Store,
@@ -199,7 +199,7 @@ namespace Libplanet.Tests.Blockchain
 
                 var block = blockChain.ProposeBlock(
                     new PrivateKey(), txs, null, ImmutableArray<EvidenceBase>.Empty);
-                Assert.Throws<InvalidTxNonceException>(
+                Assert.Throws<InvalidOperationException>(
                     () => blockChain.Append(block, CreateBlockCommit(block)));
             }
         }
@@ -388,13 +388,13 @@ namespace Libplanet.Tests.Blockchain
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            InvalidOperationException IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
                 return tx.Signer.Equals(validAddress) || tx.Signer.Equals(_fx.Proposer.Address)
                     ? null
-                    : new TxPolicyViolationException("invalid signer", tx.Id);
+                    : new InvalidOperationException("invalid signer");
             }
 
             var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);

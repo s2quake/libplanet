@@ -33,7 +33,7 @@ namespace Libplanet.Blockchain.Policies
         /// <param name="blockChain">The target <see cref="BlockChain"/> to include
         /// given <paramref name="transaction"/>.</param>
         /// <param name="transaction">The <see cref="Transaction"/> to consider.</param>
-        /// <returns>A <see cref="TxPolicyViolationException"/> with a description
+        /// <returns>A <see cref="InvalidOperationException"/> with a description
         /// as to why given <paramref name="transaction"/> is <em>invalid</em>,
         /// or <see langword="null"/> if <paramref name="transaction"/> is <em>valid</em>.</returns>
         /// <remarks>
@@ -51,7 +51,7 @@ namespace Libplanet.Blockchain.Policies
         /// This is called separately from <see cref="ValidateNextBlock"/> from
         /// a <see cref="BlockChain"/>.
         /// </remarks>
-        TxPolicyViolationException? ValidateNextBlockTx(
+        InvalidOperationException? ValidateNextBlockTx(
             BlockChain blockChain, Transaction transaction);
 
         /// <summary>

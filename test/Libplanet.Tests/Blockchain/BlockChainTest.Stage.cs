@@ -44,9 +44,9 @@ namespace Libplanet.Tests.Blockchain
 
             Assert.True(_blockChain.StageTransaction(tx1));
             Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
-            Assert.Throws<InvalidTxGenesisHashException>(() => _blockChain.StageTransaction(tx2));
+            Assert.Throws<InvalidOperationException>(() => _blockChain.StageTransaction(tx2));
             Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
-            Assert.Throws<InvalidTxGenesisHashException>(() => _blockChain.StageTransaction(tx3));
+            Assert.Throws<InvalidOperationException>(() => _blockChain.StageTransaction(tx3));
             Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
         }
 

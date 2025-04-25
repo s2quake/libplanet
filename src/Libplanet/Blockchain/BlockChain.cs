@@ -533,7 +533,7 @@ namespace Libplanet.Blockchain
         /// is invalid, in itself or according to the <see cref="Policy"/>.</exception>
         /// <exception cref="InvalidActionException">Thrown when given <paramref name="block"/>
         /// contains an action that cannot be loaded with <see cref="IActionLoader"/>.</exception>
-        /// <exception cref="InvalidTxNonceException">Thrown when the
+        /// <exception cref="InvalidOperationException">Thrown when the
         /// <see cref="Transaction.Nonce"/> is different from
         /// <see cref="GetNextTxNonce"/> result of the
         /// <see cref="Transaction.Signer"/>.</exception>
@@ -555,7 +555,7 @@ namespace Libplanet.Blockchain
         /// </param>
         /// <returns><see langword="true"/> if staging was successful,
         /// <see langword="false"/> otherwise.</returns>
-        /// <exception cref="InvalidTxGenesisHashException">Thrown when given
+        /// <exception cref="InvalidOperationException">Thrown when given
         /// <paramref name="transaction"/> has invalid <see cref="Transaction.GenesisHash"/>.
         /// </exception>
         public bool StageTransaction(Transaction transaction)
@@ -564,11 +564,8 @@ namespace Libplanet.Blockchain
             {
                 var msg = "GenesisHash of the transaction is not compatible " +
                           "with the BlockChain.Genesis.Hash.";
-                throw new InvalidTxGenesisHashException(
-                    msg,
-                    transaction.Id,
-                    Genesis.Hash,
-                    transaction.GenesisHash);
+                throw new InvalidOperationException(
+                    msg);
             }
 
             return StagePolicy.Stage(this, transaction);
@@ -824,10 +821,8 @@ namespace Libplanet.Blockchain
                 {
                     if (validate && Policy.ValidateNextBlockTx(this, tx) is { } tpve)
                     {
-                        throw new TxPolicyViolationException(
-                            "According to BlockPolicy, this transaction is not valid.",
-                            tx.Id,
-                            tpve);
+                        throw new InvalidOperationException(
+                            "According to BlockPolicy, this transaction is not valid.");
                     }
                 }
 
@@ -1026,10 +1021,8 @@ namespace Libplanet.Blockchain
                 {
                     if (Policy.ValidateNextBlockTx(this, tx) is { } tpve)
                     {
-                        throw new TxPolicyViolationException(
-                            "According to BlockPolicy, this transaction is not valid.",
-                            tx.Id,
-                            tpve);
+                        throw new InvalidOperationException(
+                            "According to BlockPolicy, this transaction is not valid.");
                     }
                 }
 

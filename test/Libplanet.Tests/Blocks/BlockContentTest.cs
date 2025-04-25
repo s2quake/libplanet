@@ -126,7 +126,7 @@
 //                 )
 //             );
 //             var txs = new[] { Block1Tx0, Block1Tx1, dupTx1 }.OrderBy(tx => tx.Id).ToArray();
-//             InvalidTxNonceException e = Assert.Throws<InvalidTxNonceException>(
+//             InvalidOperationException e = Assert.Throws<InvalidOperationException>(
 //                 () => new BlockContent
 //                 {
 //                     Metadata = new BlockMetadata
@@ -166,7 +166,7 @@
 //                 )
 //             );
 //             var txs = new[] { Block1Tx1, Block1Tx0, dupTx1 }.OrderBy(tx => tx.Id).ToArray();
-//             InvalidTxNonceException e = Assert.Throws<InvalidTxNonceException>(
+//             InvalidOperationException e = Assert.Throws<InvalidOperationException>(
 //                 () => new BlockContent
 //                 {
 //                     Metadata = new BlockMetadata

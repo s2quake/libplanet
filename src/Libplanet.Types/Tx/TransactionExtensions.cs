@@ -24,17 +24,13 @@ public static class TransactionExtensions
                     string msg = nonce <= lastNonce
                         ? $"The signer {s}'s nonce {nonce} was already consumed before."
                         : $"The signer {s}'s nonce {lastNonce} has to be added first.";
-                    throw new InvalidTxNonceException(msg, tx.Id, lastNonce + 1, tx.Nonce);
+                    throw new InvalidOperationException(msg);
                 }
 
                 if (genesisHash is { } g && !tx.GenesisHash.Equals(g))
                 {
-                    throw new InvalidTxGenesisHashException(
-                        $"Transactions in the block #{blockHeight} are inconsistent.",
-                        tx.Id,
-                        g,
-                        tx.GenesisHash
-                    );
+                    throw new InvalidOperationException(
+                        $"Transactions in the block #{blockHeight} are inconsistent.");
                 }
 
                 lastNonce = nonce;

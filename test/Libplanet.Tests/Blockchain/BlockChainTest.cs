@@ -483,7 +483,7 @@ public partial class BlockChainTest : IDisposable
             txsA.ToImmutableList(),
             CreateBlockCommit(_blockChain.Tip),
             ImmutableArray<EvidenceBase>.Empty);
-        Assert.Throws<InvalidTxNonceException>(() =>
+        Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b2, CreateBlockCommit(b2)));
 
         Transaction[] txsB =
@@ -1010,7 +1010,7 @@ public partial class BlockChainTest : IDisposable
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 1),
         };
         Block b3a = ProposeNext(b2, txsC);
-        Assert.Throws<InvalidTxNonceException>(() =>
+        Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b3a, CreateBlockCommit(b3a)));
 
         // Invalid if nonce is too high
@@ -1019,7 +1019,7 @@ public partial class BlockChainTest : IDisposable
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 4),
         };
         Block b3b = ProposeNext(b2, txsD);
-        Assert.Throws<InvalidTxNonceException>(() =>
+        Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b3b, CreateBlockCommit(b3b)));
     }
 
@@ -1591,7 +1591,7 @@ public partial class BlockChainTest : IDisposable
             txs: new[] { blockTx },
             stateRootHash: (HashDigest<SHA256>)nextStateRootHash);
 
-        var e = Assert.Throws<TxPolicyViolationException>(
+        var e = Assert.Throws<InvalidOperationException>(
             () => chain.Append(block, CreateBlockCommit(block)));
         Assert.NotNull(e.InnerException);
     }
@@ -1760,13 +1760,13 @@ public partial class BlockChainTest : IDisposable
         {
         }
 
-        public override TxPolicyViolationException ValidateNextBlockTx(
+        public override InvalidOperationException ValidateNextBlockTx(
             BlockChain blockChain,
             Transaction transaction
         )
         {
             _hook(blockChain);
-            return new TxPolicyViolationException("Test Message", transaction.Id);
+            return new InvalidOperationException("Test Message");
         }
     }
 
@@ -1781,7 +1781,7 @@ public partial class BlockChainTest : IDisposable
             _hook = hook;
         }
 
-        public override TxPolicyViolationException ValidateNextBlockTx(
+        public override InvalidOperationException ValidateNextBlockTx(
             BlockChain blockChain,
             Transaction transaction
         )
