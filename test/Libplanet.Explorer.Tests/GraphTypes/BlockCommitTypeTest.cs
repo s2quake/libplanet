@@ -20,15 +20,24 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var privateKey = new PrivateKey();
             var blockHash = new BlockHash(new byte[32]);
-            var vote = new VoteMetadata(
-                1,
-                0,
-                blockHash,
-                DateTimeOffset.Now,
-                privateKey.PublicKey,
-                BigInteger.One,
-                VoteFlag.PreCommit).Sign(privateKey);
-            var blockCommit = new BlockCommit(1, 0, blockHash, ImmutableArray.Create(vote));
+            var vote = new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = blockHash,
+                Timestamp = DateTimeOffset.Now,
+                ValidatorPublicKey = privateKey.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(privateKey);
+
+            var blockCommit = new BlockCommit
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = blockHash,
+                Votes = ImmutableArray.Create(vote),
+            };
 
             var query =
                 @"{
