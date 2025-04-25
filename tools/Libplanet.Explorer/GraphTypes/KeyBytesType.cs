@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is KeyBytes keyBytes)
             {
-                return ByteUtil.Hex(keyBytes.ByteArray);
+                return ByteUtil.Hex(keyBytes.Bytes);
             }
 
             return ThrowSerializationError(value);

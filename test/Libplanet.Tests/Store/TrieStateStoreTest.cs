@@ -146,7 +146,7 @@ public class TrieStateStoreTest
 
             trie = stateStore.Commit(trie);
             worldTrie = worldTrie.Set(
-                new KeyBytes(elem.Key.ByteArray), 
+                new KeyBytes(elem.Key.Bytes), 
                 ModelSerializer.Serialize(trie.Hash));
             accountHashes.Add(trie.Hash);
         }

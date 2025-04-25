@@ -5,7 +5,7 @@ using Secp256k1Net;
 
 namespace Libplanet.Crypto;
 
-public sealed record class PrivateKey(in ImmutableArray<byte> ByteArray) : IEquatable<PrivateKey>
+public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatable<PrivateKey>
 {
     internal static readonly object _lock = new();
     private const int KeyByteSize = 32;
@@ -21,7 +21,7 @@ public sealed record class PrivateKey(in ImmutableArray<byte> ByteArray) : IEqua
     {
     }
 
-    public ImmutableArray<byte> ByteArray { get; } = ValidateBytes(ByteArray);
+    public ImmutableArray<byte> Bytes { get; } = ValidateBytes(Bytes);
 
     public PublicKey PublicKey
     {
@@ -33,7 +33,7 @@ public sealed record class PrivateKey(in ImmutableArray<byte> ByteArray) : IEqua
                 {
                     using var secp256k1 = new Secp256k1();
                     var publicKey = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.PublicKeyCreate(publicKey, ByteArray.ToArray());
+                    secp256k1.PublicKeyCreate(publicKey, Bytes.ToArray());
                     _publicKey = new PublicKey([.. publicKey], verify: false);
                 }
             }
@@ -63,14 +63,14 @@ public sealed record class PrivateKey(in ImmutableArray<byte> ByteArray) : IEqua
     }
 
     public bool Equals(PrivateKey? other)
-        => other is not null && ByteArray.SequenceEqual(other.ByteArray);
+        => other is not null && Bytes.SequenceEqual(other.Bytes);
 
     public override int GetHashCode()
     {
         HashCode hash = default;
-        for (var i = 0; i < ByteArray.Length; i++)
+        for (var i = 0; i < Bytes.Length; i++)
         {
-            hash.Add(ByteArray[i]);
+            hash.Add(Bytes[i]);
         }
 
         return hash.ToHashCode();
@@ -100,7 +100,7 @@ public sealed record class PrivateKey(in ImmutableArray<byte> ByteArray) : IEqua
         {
             using var secp256k1 = new Secp256k1();
             var secret = new byte[Secp256k1.SECRET_LENGTH];
-            secp256k1.Ecdh(secret, publicKey.Raw.ToArray(), ByteArray.ToArray());
+            secp256k1.Ecdh(secret, publicKey.Raw.ToArray(), Bytes.ToArray());
 
             return new SymmetricKey(secret);
         }

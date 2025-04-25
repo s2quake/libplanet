@@ -36,7 +36,7 @@ namespace Libplanet.Net.Protocols
         public static Address CalculateDifference(Address left, Address right)
         {
             byte[] dba = Enumerable.Zip(
-                left.ByteArray, right.ByteArray, (l, r) => (byte)(l ^ r)).ToArray();
+                left.Bytes, right.Bytes, (l, r) => (byte)(l ^ r)).ToArray();
             return new Address([.. dba]);
         }
 
@@ -50,7 +50,7 @@ namespace Libplanet.Net.Protocols
         /// <paramref name="right"/>.</returns>
         public static int CommonPrefixLength(Address left, Address right)
         {
-            ImmutableArray<byte> bytes = CalculateDifference(left, right).ByteArray;
+            ImmutableArray<byte> bytes = CalculateDifference(left, right).Bytes;
             int length = 0;
 
             foreach (byte b in bytes)

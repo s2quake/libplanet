@@ -57,7 +57,7 @@ internal sealed class SwarmService(
         {
             _blocksyncSeed = new Seed(new()
             {
-                PrivateKey = ByteUtil.Hex(seedPrivateKey.ByteArray),
+                PrivateKey = ByteUtil.Hex(seedPrivateKey.Bytes),
                 EndPoint = EndPointUtility.ToString(EndPointUtility.Next()),
                 AppProtocolVersion = _options.AppProtocolVersion,
             });
@@ -69,7 +69,7 @@ internal sealed class SwarmService(
         {
             _consensusSeed = new Seed(new()
             {
-                PrivateKey = ByteUtil.Hex(seedPrivateKey.ByteArray),
+                PrivateKey = ByteUtil.Hex(seedPrivateKey.Bytes),
                 EndPoint = EndPointUtility.ToString(EndPointUtility.Next()),
                 AppProtocolVersion = _options.AppProtocolVersion,
             });

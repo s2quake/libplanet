@@ -24,7 +24,7 @@ public partial class StateQueryTest
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            world(blockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+            world(blockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 stateRootHash
                 legacy
                 version
@@ -52,13 +52,13 @@ public partial class StateQueryTest
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            world (blockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+            world (blockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 account (address: ""0x1000000000000000000000000000000000000000"") {{
-                    state (address: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}"") {{
+                    state (address: ""{ByteUtil.Hex(Fixture.Address.Bytes)}"") {{
                         hex
                     }}
                     states (addresses: [
-                        ""{ByteUtil.Hex(Fixture.Address.ByteArray)}"",
+                        ""{ByteUtil.Hex(Fixture.Address.Bytes)}"",
                         ""0x0000000000000000000000000000000000000000""
                     ]) {{
                         hex
@@ -101,9 +101,9 @@ public partial class StateQueryTest
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            world (blockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+            world (blockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 balance (
-                    address: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                    address: ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                     currency: {{
                         ticker: ""ABC""
                         decimalPlaces: 2
@@ -135,7 +135,7 @@ public partial class StateQueryTest
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            world (blockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+            world (blockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 totalSupply (currency: {{
                     ticker: ""ABC""
                     decimalPlaces: 2
@@ -169,7 +169,7 @@ public partial class StateQueryTest
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            world (blockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+            world (blockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 validatorSet {{
                     hex
                 }}
@@ -198,13 +198,13 @@ public partial class StateQueryTest
         (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            world (stateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}"") {{
+            world (stateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}"") {{
                 account (address: ""0x1000000000000000000000000000000000000000"") {{
-                    state (address: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}"") {{
+                    state (address: ""{ByteUtil.Hex(Fixture.Address.Bytes)}"") {{
                         hex
                     }}
                     states (addresses: [
-                        ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                        ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                         ""0x0000000000000000000000000000000000000000""
                     ]) {{
                         hex
@@ -247,13 +247,13 @@ public partial class StateQueryTest
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            world (blockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+            world (blockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 accounts (addresses: [""0x1000000000000000000000000000000000000000""]) {{
-                    state (address: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}"") {{
+                    state (address: ""{ByteUtil.Hex(Fixture.Address.Bytes)}"") {{
                         hex
                     }}
                     states (addresses: [
-                        ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                        ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                         ""0x0000000000000000000000000000000000000000""]) {{
                         hex
                     }}

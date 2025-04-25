@@ -19,16 +19,16 @@ namespace Libplanet.Action.State.Tests
             var currency = new Currency("Foo", 2, [new PrivateKey().Address]);
 
             Assert.Equal(
-                (KeyBytes)ByteUtil.Hex(address.ByteArray),
+                (KeyBytes)ByteUtil.Hex(address.Bytes),
                 KeyConverters.ToStateKey(address));
 
             Assert.Equal(
                 (KeyBytes)
-                    $"_{ByteUtil.Hex(address.ByteArray)}_{ByteUtil.Hex(currency.Hash.ByteArray)}",
+                    $"_{ByteUtil.Hex(address.Bytes)}_{ByteUtil.Hex(currency.Hash.Bytes)}",
                 KeyConverters.ToFungibleAssetKey(address, currency));
 
             Assert.Equal(
-                (KeyBytes)$"__{ByteUtil.Hex(currency.Hash.ByteArray)}",
+                (KeyBytes)$"__{ByteUtil.Hex(currency.Hash.Bytes)}",
                 KeyConverters.ToTotalSupplyKey(currency));
 
             Assert.Equal(

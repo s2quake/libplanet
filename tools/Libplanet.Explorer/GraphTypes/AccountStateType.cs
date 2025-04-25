@@ -155,8 +155,8 @@ namespace Libplanet.Explorer.GraphTypes
 
         internal static KeyBytes ToFungibleAssetKey(Address address, HashDigest<SHA1> currencyHash)
         {
-            var addressBytes = address.ByteArray;
-            var currencyBytes = currencyHash.ByteArray;
+            var addressBytes = address.Bytes;
+            var currencyBytes = currencyHash.Bytes;
             byte[] buffer = new byte[addressBytes.Length * 2 + currencyBytes.Length * 2 + 2];
 
             buffer[0] = _underScore;
@@ -179,7 +179,7 @@ namespace Libplanet.Explorer.GraphTypes
 
         internal static KeyBytes ToTotalSupplyKey(HashDigest<SHA1> currencyHash)
         {
-            var currencyBytes = currencyHash.ByteArray;
+            var currencyBytes = currencyHash.Bytes;
             byte[] buffer = new byte[currencyBytes.Length * 2 + 2];
 
             buffer[0] = _underScore;

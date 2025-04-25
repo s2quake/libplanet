@@ -254,7 +254,7 @@ namespace Libplanet.Tests.Tx
                 ((Binary)((Dictionary)((Dictionary)action0.PlainValue)["values"])["target_address"])
                     .ByteArray;
             AssertBytesEqual(
-                new Address(publicKey).ByteArray,
+                new Address(publicKey).Bytes,
                 targetAddress
             );
             Assert.Equal(

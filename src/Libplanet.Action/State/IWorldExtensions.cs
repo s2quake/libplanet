@@ -202,7 +202,7 @@ namespace Libplanet.Action.State
             this IWorldState worldState,
             Currency currency) =>
             new CurrencyAccount(
-                    worldState.GetAccountState(new Address(currency.Hash.ByteArray)).Trie,
+                    worldState.GetAccountState(new Address(currency.Hash.Bytes)).Trie,
                     worldState.Version,
                     currency);
 
@@ -212,7 +212,7 @@ namespace Libplanet.Action.State
             CurrencyAccount currencyAccount) =>
                 world.Version == currencyAccount.WorldVersion
                     ? world.SetAccount(
-                            new Address(currencyAccount.Currency.Hash.ByteArray),
+                            new Address(currencyAccount.Currency.Hash.Bytes),
                             currencyAccount.AsAccount())
                     : throw new ArgumentException(
                         $"Given {nameof(currencyAccount)} must have the same version as " +

@@ -34,7 +34,7 @@ public class CurrencyType : ObjectGraphType<Currency>
         Field<NonNullGraphType<ByteStringType>>(
             "hash",
             "The deterministic hash derived from other fields.",
-            resolve: context => context.Source.Hash.ByteArray.ToArray()
+            resolve: context => context.Source.Hash.Bytes.ToArray()
         );
     }
 }

@@ -35,7 +35,7 @@ public class PrivateKeyTest
                 0x2a, 0x0f, 0x2c, 0x78, 0x84, 0x70, 0x5d, 0x59, 0xcb, 0xb6, 0x31,
                 0x8e, 0x2f, 0x90, 0x1b, 0xd2, 0x8d, 0xd9, 0xff, 0x78, 0xe3,
             },
-            actual.ByteArray);
+            actual.Bytes);
     }
 
     [Fact]
@@ -49,9 +49,9 @@ public class PrivateKeyTest
             0x3f, 0xc7,
         };
         var key = new PrivateKey(bs);
-        Assert.Equal(bs, key.ByteArray);
+        Assert.Equal(bs, key.Bytes);
         key = new PrivateKey(bs.ToImmutableArray().ToArray());
-        Assert.Equal(bs, key.ByteArray);
+        Assert.Equal(bs, key.Bytes);
     }
 
     [Fact]
@@ -320,7 +320,7 @@ public class PrivateKeyTest
                 0x2a, 0x0f, 0x2c, 0x78, 0x84, 0x70, 0x5d, 0x59, 0xcb, 0xb6, 0x31,
                 0x8e, 0x2f, 0x90, 0x1b, 0xd2, 0x8d, 0xd9, 0xff, 0x78, 0xe3,
             },
-            actual.ByteArray.ToArray()
+            actual.Bytes.ToArray()
         );
     }
 
@@ -333,7 +333,7 @@ public class PrivateKeyTest
         {
             var pk = new PrivateKey();
 
-            if (pk.ByteArray.Length < 32)
+            if (pk.Bytes.Length < 32)
             {
                 faults.Add(i);
             }

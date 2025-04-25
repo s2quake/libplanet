@@ -63,8 +63,8 @@ public readonly record struct BlockDigest
     {
         return new BlockDigest(
             header: block.Header,
-            txIds: [.. block.Transactions.Select(tx => tx.Id.ByteArray)],
-            evidenceIds: [.. block.Evidence.Select(ev => ev.Id.ByteArray)]
+            txIds: [.. block.Transactions.Select(tx => tx.Id.Bytes)],
+            evidenceIds: [.. block.Evidence.Select(ev => ev.Id.Bytes)]
         );
     }
 

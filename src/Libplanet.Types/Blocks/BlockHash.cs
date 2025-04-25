@@ -8,7 +8,7 @@ using Libplanet.Types.Converters;
 namespace Libplanet.Types.Blocks;
 
 [JsonConverter(typeof(BlockHashJsonConverter))]
-public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
+public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
     : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IBencodable, IFormattable
 {
     public const int Size = 32;
@@ -16,20 +16,20 @@ public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
     private static readonly ImmutableArray<byte> _defaultBytes
         = new byte[Size].ToImmutableArray();
 
-    private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
     public BlockHash(ReadOnlySpan<byte> bytes)
         : this(bytes.ToImmutableArray())
     {
     }
 
-    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? _defaultBytes : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultBytes : _bytes;
 
-    public IValue Bencoded => new Binary(ByteArray);
+    public IValue Bencoded => new Binary(Bytes);
 
     public static BlockHash Parse(string hex) => new(ByteUtil.ParseHexToImmutable(hex));
 
-    public static BlockHash Create(HashDigest<SHA256> hashDigest) => new(hashDigest.ByteArray);
+    public static BlockHash Create(HashDigest<SHA256> hashDigest) => new(hashDigest.Bytes);
 
     public static BlockHash DeriveFrom(IReadOnlyList<byte> blockBytes)
     {
@@ -44,14 +44,14 @@ public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
         {
             return true;
         }
-        else if (ByteArray.Length != other.ByteArray.Length)
+        else if (Bytes.Length != other.Bytes.Length)
         {
             return false;
         }
 
-        for (int i = 0; i < ByteArray.Length; i++)
+        for (int i = 0; i < Bytes.Length; i++)
         {
-            if (!ByteArray[i].Equals(other.ByteArray[i]))
+            if (!Bytes[i].Equals(other.Bytes[i]))
             {
                 return false;
             }
@@ -65,7 +65,7 @@ public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
         var code = 0;
         unchecked
         {
-            var bytes = ByteArray;
+            var bytes = Bytes;
             foreach (var @byte in bytes)
             {
                 code = (code * 397) ^ @byte.GetHashCode();
@@ -77,7 +77,7 @@ public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
 
     public int CompareTo(BlockHash other)
     {
-        ImmutableArray<byte> self = ByteArray, operand = other.ByteArray;
+        ImmutableArray<byte> self = Bytes, operand = other.Bytes;
 
         for (int i = 0; i < Size; i++)
         {
@@ -100,7 +100,7 @@ public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        var hex = ByteUtil.Hex(ByteArray);
+        var hex = ByteUtil.Hex(Bytes);
         return format switch
         {
             "h" => hex,
@@ -114,8 +114,8 @@ public readonly record struct BlockHash(in ImmutableArray<byte> ByteArray)
     {
         if (bytes.Length != Size)
         {
-            string message =
-                $"{nameof(BlockHash)} must be {Size} bytes, but {bytes.Length} was given.";
+            var message = $"{nameof(BlockHash)} must be {Size} bytes, " +
+                          $"but {bytes.Length} was given.";
             throw new ArgumentOutOfRangeException(nameof(bytes), message);
         }
 

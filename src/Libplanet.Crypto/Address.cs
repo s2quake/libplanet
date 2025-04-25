@@ -10,7 +10,7 @@ namespace Libplanet.Crypto;
 
 [TypeConverter(typeof(AddressTypeConverter))]
 [JsonConverter(typeof(AddressJsonConverter))]
-public readonly record struct Address(in ImmutableArray<byte> ByteArray)
+public readonly record struct Address(in ImmutableArray<byte> Bytes)
     : IEquatable<Address>, IComparable<Address>, IComparable, IFormattable
 {
     public const int Size = 20;
@@ -18,7 +18,7 @@ public readonly record struct Address(in ImmutableArray<byte> ByteArray)
     private static readonly ImmutableArray<byte> _defaultByteArray
         = ImmutableArray.Create(new byte[Size]);
 
-    private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
     public Address(ReadOnlySpan<byte> bytes)
         : this(ValidateBytes(bytes.ToImmutableArray()))
@@ -30,19 +30,19 @@ public readonly record struct Address(in ImmutableArray<byte> ByteArray)
     {
     }
 
-    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? _defaultByteArray : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultByteArray : _bytes;
 
-    public IValue ToBencodex() => new Binary(ByteArray);
+    public IValue ToBencodex() => new Binary(Bytes);
 
     public static Address Parse(string hex) => new(DeriveAddress(hex));
 
     public static Address Create(IValue bencoded) => new Address(GetBytes(bencoded));
 
-    public bool Equals(Address other) => ByteArray.SequenceEqual(other.ByteArray);
+    public bool Equals(Address other) => Bytes.SequenceEqual(other.Bytes);
 
     public override int GetHashCode() => ByteUtil.CalculateHashCode(ToByteArray());
 
-    public byte[] ToByteArray() => [.. ByteArray];
+    public byte[] ToByteArray() => [.. Bytes];
 
     public override string ToString() => $"0x{ToChecksumAddress(ByteUtil.Hex(ToByteArray()))}";
 
@@ -54,8 +54,8 @@ public readonly record struct Address(in ImmutableArray<byte> ByteArray)
 
     public int CompareTo(Address other)
     {
-        var self = ByteArray;
-        var operand = other.ByteArray;
+        var self = Bytes;
+        var operand = other.Bytes;
 
         for (var i = 0; i < Size; i++)
         {

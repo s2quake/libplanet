@@ -1,4 +1,3 @@
-#nullable enable
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Store;
@@ -31,7 +30,7 @@ public class TrieTest
         {
             foreach (var address in addresses)
             {
-                IValue v = trie.GetMany(new[] { new KeyBytes(address.ByteArray) })[0];
+                IValue v = trie.GetMany(new[] { new KeyBytes(address.Bytes) })[0];
                 IValue expectedState = states.ContainsKey(address) ? states[address] : null;
                 Assert.Equal(expectedState, v);
             }
@@ -40,7 +39,7 @@ public class TrieTest
         foreach (var address in addresses)
         {
             states[address] = (Text)address.ToString("raw", null);
-            trie = trie.Set(new KeyBytes(address.ByteArray), states[address]);
+            trie = trie.Set(new KeyBytes(address.Bytes), states[address]);
             CheckAddressStates();
         }
     }
@@ -65,7 +64,7 @@ public class TrieTest
             addresses[i] = new PrivateKey().Address;
             states[i] = (Binary)TestUtils.GetRandomBytes(128);
 
-            trieA = trieA.Set(new KeyBytes(addresses[i].ByteArray), states[i]);
+            trieA = trieA.Set(new KeyBytes(addresses[i].Bytes), states[i]);
         }
 
         KeyBytes path = KeyBytes.Create(TestUtils.GetRandomBytes(32));
@@ -99,7 +98,7 @@ public class TrieTest
         var committedTrie = stateStore.Commit(trie);
         Assert.Equal(default, committedTrie.Hash);
 
-        trie = trie.Set(new KeyBytes(default(Address).ByteArray), Dictionary.Empty);
+        trie = trie.Set(new KeyBytes(default(Address).Bytes), Dictionary.Empty);
         committedTrie = stateStore.Commit(trie);
         Assert.NotEqual(default, committedTrie.Hash);
     }

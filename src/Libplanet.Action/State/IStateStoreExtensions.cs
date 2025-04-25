@@ -41,7 +41,7 @@ namespace Libplanet.Action.State
                 var accountTrie = stateStore.Commit(account.Value.Trie);
                 worldTrie = worldTrie.Set(
                     KeyConverters.ToStateKey(account.Key),
-                    new Binary(accountTrie.Hash.ByteArray));
+                    new Binary(accountTrie.Hash.Bytes));
             }
 
             return new World(

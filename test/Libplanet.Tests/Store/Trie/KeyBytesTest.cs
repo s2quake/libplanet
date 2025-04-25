@@ -9,22 +9,22 @@ namespace Libplanet.Tests.Store.Trie
         [Fact]
         public void Constructors()
         {
-            AssertBytesEqual(ImmutableArray<byte>.Empty, default(KeyBytes).ByteArray);
+            AssertBytesEqual(ImmutableArray<byte>.Empty, default(KeyBytes).Bytes);
             AssertBytesEqual(
                 ImmutableArray<byte>.Empty,
-                ((KeyBytes)string.Empty).ByteArray
+                ((KeyBytes)string.Empty).Bytes
             );
             AssertBytesEqual(
                 ImmutableArray<byte>.Empty.Add(1).Add(2).Add(3).Add(4),
-                new KeyBytes(ImmutableArray<byte>.Empty.Add(1).Add(2).Add(3).Add(4)).ByteArray
+                new KeyBytes(ImmutableArray<byte>.Empty.Add(1).Add(2).Add(3).Add(4)).Bytes
             );
             AssertBytesEqual(
-                new KeyBytes([1, 2, 3, 4, 5]).ByteArray,
-                KeyBytes.Create([1, 2, 3, 4, 5]).ByteArray
+                new KeyBytes([1, 2, 3, 4, 5]).Bytes,
+                KeyBytes.Create([1, 2, 3, 4, 5]).Bytes
             );
             AssertBytesEqual(
-                new KeyBytes([0x66, 0x6f, 0x6f]).ByteArray,
-                ((KeyBytes)"foo").ByteArray
+                new KeyBytes([0x66, 0x6f, 0x6f]).Bytes,
+                ((KeyBytes)"foo").Bytes
             );
         }
 
@@ -41,11 +41,11 @@ namespace Libplanet.Tests.Store.Trie
         public void ByteArray()
         {
             KeyBytes empty = default;
-            AssertBytesEqual(ImmutableArray<byte>.Empty, empty.ByteArray);
+            AssertBytesEqual(ImmutableArray<byte>.Empty, empty.Bytes);
             AssertBytesEqual(Array.Empty<byte>(), empty.ToByteArray());
 
             var foo = KeyBytes.Create([0x66, 0x6f, 0x6f]);
-            AssertBytesEqual(ImmutableArray.Create<byte>(0x66, 0x6f, 0x6f), foo.ByteArray);
+            AssertBytesEqual(ImmutableArray.Create<byte>(0x66, 0x6f, 0x6f), foo.Bytes);
             AssertBytesEqual(new byte[] { 0x66, 0x6f, 0x6f }, foo.ToByteArray());
         }
 

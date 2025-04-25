@@ -57,7 +57,7 @@ public static class TxMarshaler
 
         if (invoice.GenesisHash is { } genesisHash)
         {
-            dict = dict.Add(GenesisHashKey, genesisHash.ByteArray);
+            dict = dict.Add(GenesisHashKey, genesisHash.Bytes);
         }
 
         if (invoice.MaxGasPrice is { } maxGasPrice)

@@ -12,7 +12,7 @@ internal sealed class SoloOptionsConfigurator(
     {
         if (options.PrivateKey == string.Empty)
         {
-            options.PrivateKey = ByteUtil.Hex(new PrivateKey().ByteArray);
+            options.PrivateKey = ByteUtil.Hex(new PrivateKey().Bytes);
             logger.LogWarning(
                 "Node's private key is not set. A new private key is generated: {PrivateKey}",
                 options.PrivateKey);

@@ -16,7 +16,7 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
             using var secp = new Secp256k1();
             var keccak = new Sha3Keccack();
             var messageHash = HashPrefixedMessage(message);
-            var keyBytes = privateKey.ByteArray.ToArray();
+            var keyBytes = privateKey.Bytes.ToArray();
             var sig1 = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
             var sig2 = new byte[Secp256k1.SERIALIZED_SIGNATURE_SIZE];
             var signature = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];

@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
@@ -355,7 +354,7 @@ namespace Libplanet.Net.Tests.Protocols
             var bytes = new byte[10];
             _random.NextBytes(bytes);
             var sendTime = DateTimeOffset.UtcNow;
-            var identity = _privateKey.Address.ByteArray.Concat(bytes).ToArray();
+            var identity = _privateKey.Address.Bytes.Concat(bytes).ToArray();
             _logger.Debug("Adding request of {Content} of {Identity}", content, identity);
             await _requests.AddAsync(
                 new Request

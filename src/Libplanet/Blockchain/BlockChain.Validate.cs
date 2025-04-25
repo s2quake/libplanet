@@ -1,4 +1,3 @@
-#nullable disable
 using System.Numerics;
 using System.Security.Cryptography;
 using Bencodex.Types;

@@ -8,7 +8,7 @@ namespace Libplanet.Types.Tx;
 
 [JsonConverter(typeof(TxIdJsonConverter))]
 [Model(Version = 1)]
-public readonly record struct TxId(in ImmutableArray<byte> ByteArray)
+public readonly record struct TxId(in ImmutableArray<byte> Bytes)
     : IEquatable<TxId>, IComparable<TxId>, IComparable
 {
     public const int Size = 32;
@@ -16,16 +16,16 @@ public readonly record struct TxId(in ImmutableArray<byte> ByteArray)
     private static readonly ImmutableArray<byte> _defaultByteArray
         = ImmutableArray.Create(new byte[Size]);
 
-    private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
     public TxId(ReadOnlySpan<byte> bytes)
         : this(bytes.ToImmutableArray())
     {
     }
 
-    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? _defaultByteArray : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultByteArray : _bytes;
 
-    public IValue ToBencodex() => new Binary(ByteArray);
+    public IValue ToBencodex() => new Binary(Bytes);
 
     public static TxId Parse(string hex)
     {
@@ -52,17 +52,17 @@ public readonly record struct TxId(in ImmutableArray<byte> ByteArray)
         throw new ArgumentException(message, nameof(bencoded));
     }
 
-    public bool Equals(TxId other) => ByteArray.SequenceEqual(other.ByteArray);
+    public bool Equals(TxId other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtil.CalculateHashCode(ByteArray);
+    public override int GetHashCode() => ByteUtil.CalculateHashCode(Bytes);
 
-    public override string ToString() => ByteUtil.Hex(ByteArray);
+    public override string ToString() => ByteUtil.Hex(Bytes);
 
     public int CompareTo(TxId other)
     {
         for (var i = 0; i < Size; ++i)
         {
-            var cmp = ByteArray[i].CompareTo(other.ByteArray[i]);
+            var cmp = Bytes[i].CompareTo(other.Bytes[i]);
             if (cmp != 0)
             {
                 return cmp;

@@ -5,7 +5,7 @@ using Libplanet.Types.JsonConverters;
 namespace Libplanet.Types.Evidence;
 
 [JsonConverter(typeof(EvidenceIdJsonConverter))]
-public readonly record struct EvidenceId(in ImmutableArray<byte> ByteArray)
+public readonly record struct EvidenceId(in ImmutableArray<byte> Bytes)
     : IEquatable<EvidenceId>, IComparable<EvidenceId>, IComparable
 {
     public const int Size = 32;
@@ -13,16 +13,14 @@ public readonly record struct EvidenceId(in ImmutableArray<byte> ByteArray)
     private static readonly ImmutableArray<byte> _defaultByteArray
         = ImmutableArray.Create(new byte[Size]);
 
-    private readonly ImmutableArray<byte> _bytes = ByteArray;
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
     public EvidenceId(ReadOnlySpan<byte> bytes)
         : this(bytes.ToImmutableArray())
     {
     }
 
-    public static ImmutableArray<byte> DefaultByteArray => _defaultByteArray;
-
-    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? DefaultByteArray : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultByteArray : _bytes;
 
     public static EvidenceId Parse(string hex)
     {
@@ -53,17 +51,17 @@ public readonly record struct EvidenceId(in ImmutableArray<byte> ByteArray)
         }
     }
 
-    public bool Equals(EvidenceId other) => ByteArray.SequenceEqual(other.ByteArray);
+    public bool Equals(EvidenceId other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtil.CalculateHashCode(ByteArray);
+    public override int GetHashCode() => ByteUtil.CalculateHashCode(Bytes);
 
-    public override string ToString() => ByteUtil.Hex(ByteArray);
+    public override string ToString() => ByteUtil.Hex(Bytes);
 
     public int CompareTo(EvidenceId other)
     {
         for (var i = 0; i < Size; ++i)
         {
-            var cmp = ByteArray[i].CompareTo(other.ByteArray[i]);
+            var cmp = Bytes[i].CompareTo(other.Bytes[i]);
             if (cmp != 0)
             {
                 return cmp;

@@ -105,7 +105,7 @@ public class BlockTypeTest
         Assert.Null(result.Errors);
         Assert.Equal(block.Index, resultData["index"]);
         Assert.Equal(
-            ByteUtil.Hex(block.Hash.ByteArray.ToArray()),
+            ByteUtil.Hex(block.Hash.Bytes.ToArray()),
             resultData["hash"]);
         Assert.Equal(
             block.Miner.ToString(),
@@ -114,10 +114,10 @@ public class BlockTypeTest
             new DateTimeOffsetGraphType().Serialize(block.Timestamp),
             resultData["timestamp"]);
         Assert.Equal(
-            ByteUtil.Hex(block.StateRootHash.ByteArray.ToArray()),
+            ByteUtil.Hex(block.StateRootHash.Bytes.ToArray()),
             resultData["stateRootHash"]);
         Assert.Equal(
-            ByteUtil.Hex(block.RawHash.ByteArray.ToArray()),
+            ByteUtil.Hex(block.RawHash.Bytes.ToArray()),
             resultData["preEvaluationHash"]);
 
         var expectedLastCommit = new Dictionary<string, object>()

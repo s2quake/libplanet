@@ -27,7 +27,7 @@ namespace Libplanet.Action.Tests.Common
         public IValue PlainValue => Bencodex.Types.Dictionary.Empty
             .Add("address", _address.ToBencodex())
             .Add("value", _value)
-            .Add("account_address", _accountAddress.ByteArray)
+            .Add("account_address", _accountAddress.Bytes)
             .Add("block_index", _blockIndex);
 
         public void LoadPlainValue(IValue plainValue)

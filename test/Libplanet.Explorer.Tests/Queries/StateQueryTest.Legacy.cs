@@ -24,11 +24,11 @@ public partial class StateQueryTest
         {{
             states(
                 addresses: [
-                   ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                   ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                    ""0x0000000000000000000000000000000000000000""
                 ]
                 offsetBlockHash:
-                    ""{ByteUtil.Hex(blockHash.ByteArray)}""
+                    ""{ByteUtil.Hex(blockHash.Bytes)}""
             )
         }}
         ", source: source);
@@ -51,9 +51,9 @@ public partial class StateQueryTest
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             balance(
-                owner: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                owner: ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                 currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
-                offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+                offsetBlockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 currency {{ ticker, hash }}
                 sign
                 majorUnit
@@ -72,7 +72,7 @@ public partial class StateQueryTest
         IDictionary<string, object> currencyDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(balanceDict["currency"]);
         Assert.Equal(Fixture.Currency.Ticker, currencyDict["ticker"]);
-        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.ByteArray), currencyDict["hash"]);
+        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.Bytes), currencyDict["hash"]);
         Assert.Equal(Fixture.Amount.Sign, Assert.IsAssignableFrom<int>(balanceDict["sign"]));
         Assert.Equal(
             Fixture.Amount.MajorUnit,
@@ -95,7 +95,7 @@ public partial class StateQueryTest
         {{
             totalSupply(
                 currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
-                offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+                offsetBlockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 currency {{ ticker, hash }}
                 sign
                 majorUnit
@@ -114,7 +114,7 @@ public partial class StateQueryTest
         IDictionary<string, object> currencyDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(totalSupplyDict["currency"]);
         Assert.Equal("ABC", currencyDict["ticker"]);
-        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.ByteArray), currencyDict["hash"]);
+        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.Bytes), currencyDict["hash"]);
         FungibleAssetValue expectedTotalSupply
             = Fixture.Amount + Fixture.AdditionalSupply;
         Assert.Equal(
@@ -137,7 +137,7 @@ public partial class StateQueryTest
         {{
             totalSupply(
                 currency: {{ ticker: ""LEG"", decimalPlaces: 0 }}
-                offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+                offsetBlockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 quantity
             }}
         }}
@@ -161,7 +161,7 @@ public partial class StateQueryTest
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            validators(offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}"") {{
+            validators(offsetBlockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
                 publicKey
                 power
             }}
@@ -189,11 +189,11 @@ public partial class StateQueryTest
         {{
             states(
                 addresses: [
-                    ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                    ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                     ""0x0000000000000000000000000000000000000000""
                 ]
-                offsetBlockHash: ""{ByteUtil.Hex(blockHash.ByteArray)}""
-                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}"")
+                offsetBlockHash: ""{ByteUtil.Hex(blockHash.Bytes)}""
+                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}"")
         }}
         ", source: source);
         Assert.IsType<ExecutionErrors>(result.Errors);
@@ -209,10 +209,10 @@ public partial class StateQueryTest
         {{
             states(
                 addresses: [
-                    ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                    ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                     ""0x0000000000000000000000000000000000000000""
                 ]
-                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}""
+                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}""
             )
         }}
         ", source: source);
@@ -234,9 +234,9 @@ public partial class StateQueryTest
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             balance(
-                owner: ""{ByteUtil.Hex(Fixture.Address.ByteArray)}""
+                owner: ""{ByteUtil.Hex(Fixture.Address.Bytes)}""
                 currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
-                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}""
+                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}""
             ) {{
                 currency {{ ticker, hash }}
                 sign
@@ -256,7 +256,7 @@ public partial class StateQueryTest
         IDictionary<string, object> currencyDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(balanceDict["currency"]);
         Assert.Equal(Fixture.Currency.Ticker, currencyDict["ticker"]);
-        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.ByteArray), currencyDict["hash"]);
+        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.Bytes), currencyDict["hash"]);
         Assert.Equal(Fixture.Amount.Sign, Assert.IsAssignableFrom<int>(balanceDict["sign"]));
         Assert.Equal(
             Fixture.Amount.MajorUnit,
@@ -279,7 +279,7 @@ public partial class StateQueryTest
         {{
             totalSupply(
                 currency: {{ ticker: ""ABC"", decimalPlaces: 2 }}
-                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}""
+                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}""
             ) {{
                 currency {{ ticker, hash }}
                 sign
@@ -299,7 +299,7 @@ public partial class StateQueryTest
         IDictionary<string, object> currencyDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(totalSupplyDict["currency"]);
         Assert.Equal(Fixture.Currency.Ticker, currencyDict["ticker"]);
-        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.ByteArray), currencyDict["hash"]);
+        Assert.Equal(ByteUtil.Hex(Fixture.Currency.Hash.Bytes), currencyDict["hash"]);
         FungibleAssetValue expectedTotalSupply
             = Fixture.Amount + Fixture.AdditionalSupply;
         Assert.Equal(
@@ -322,7 +322,7 @@ public partial class StateQueryTest
         {{
             totalSupply(
                 currency: {{ ticker: ""LEG"", decimalPlaces: 0 }}
-                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}"") {{
+                offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}"") {{
                 quantity
             }}
         }}
@@ -346,7 +346,7 @@ public partial class StateQueryTest
         (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
-            validators(offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.ByteArray)}"") {{
+            validators(offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}"") {{
                 publicKey
                 power
             }}

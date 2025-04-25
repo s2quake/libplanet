@@ -59,7 +59,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
     /// <inheritdoc />
     public override long BlockHashToIndex(BlockHash hash) =>
         _db.Get(
-            BlockHashToIndexPrefix.Concat(hash.ByteArray).ToArray()) is { } arr
+            BlockHashToIndexPrefix.Concat(hash.Bytes).ToArray()) is { } arr
             ? BigEndianByteArrayToLong(arr)
             : throw new IndexOutOfRangeException(
                 $"The hash {hash} does not exist in the index.");
@@ -72,7 +72,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
     public override IEnumerable<TxId>
         GetSignedTxIdsByAddress(Address signer, int? fromNonce, int? maxCount, bool desc) =>
         IteratePrefix(
-                fromNonce, maxCount, desc, SignerToTxIdPrefix.Concat(signer.ByteArray).ToArray())
+                fromNonce, maxCount, desc, SignerToTxIdPrefix.Concat(signer.Bytes).ToArray())
             .Select(kv => new TxId(kv.Value));
 
     /// <inheritdoc />
@@ -91,7 +91,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
     public override long? GetLastNonceByAddress(Address address)
     {
         using var iter = IteratePrefix(
-                0, 1, true, SignerToTxIdPrefix.Concat(address.ByteArray).ToArray())
+                0, 1, true, SignerToTxIdPrefix.Concat(address.Bytes).ToArray())
             .Select(kv => BigEndianByteArrayToLong(kv.Key)).GetEnumerator();
         return iter.MoveNext()
             ? iter.Current
@@ -107,7 +107,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
     {
         containedBlock = default;
         var bytes =
-            _db.Get(TxIdToContainedBlockHashPrefix.Concat(txId.ByteArray).ToArray());
+            _db.Get(TxIdToContainedBlockHashPrefix.Concat(txId.Bytes).ToArray());
         if (bytes is not { })
         {
             return false;
@@ -149,7 +149,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                     fromHeight,
                     maxCount,
                     desc,
-                    ProducerToBlockIndexPrefix.Concat(minerVal.ByteArray).ToArray())
+                    ProducerToBlockIndexPrefix.Concat(minerVal.Bytes).ToArray())
                 .Select(
                     kv => (
                         BigEndianByteArrayToLong(kv.Value[..8]),
@@ -256,8 +256,8 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         IIndexingContext? context,
         CancellationToken stoppingToken)
     {
-        var minerAddress = blockDigest.Miner.ByteArray.ToArray();
-        var blockHash = blockDigest.Hash.ByteArray.ToArray();
+        var minerAddress = blockDigest.Miner.Bytes.ToArray();
+        var blockHash = blockDigest.Hash.Bytes.ToArray();
         var indexToBlockHashKey = IndexToBlockHashPrefix
             .Concat(LongToBigEndianByteArray(blockDigest.Index)).ToArray();
 
@@ -302,8 +302,8 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 throw new OperationCanceledException(stoppingToken);
             }
 
-            var signerAddress = tx.Signer.ByteArray.ToArray();
-            var txId = tx.Id.ByteArray.ToArray();
+            var signerAddress = tx.Signer.Bytes.ToArray();
+            var txId = tx.Id.Bytes.ToArray();
             var txIdToContainedBlockHashKey = TxIdToContainedBlockHashPrefix.Concat(txId).ToArray();
             if (_db.Get(txIdToContainedBlockHashKey) is { })
             {
@@ -321,7 +321,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 ref duplicateAccountNonceOrdinalMemos);
 
             writeBatch.Put(txIdToContainedBlockHashKey, blockHash);
-            foreach (var address in tx.UpdatedAddresses.Select(address => address.ByteArray))
+            foreach (var address in tx.UpdatedAddresses.Select(address => address.Bytes))
             {
                 if (stoppingToken.IsCancellationRequested)
                 {

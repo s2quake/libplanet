@@ -16,7 +16,7 @@ public class NodeDecoderTest
         var hashB = HashDigest<SHA256>.DeriveFrom(TestUtils.GetRandomBytes(128));
         IValue[] values =
         [
-            (Binary)hashA.ByteArray.ToArray(),
+            (Binary)hashA.Bytes.ToArray(),
             Null.Value,
             Null.Value,
             Null.Value,
@@ -32,7 +32,7 @@ public class NodeDecoderTest
             Null.Value,
             Null.Value,
             Null.Value,
-            (Binary)hashB.ByteArray.ToArray(),
+            (Binary)hashB.Bytes.ToArray(),
         ];
         var list = new List(values);
         Assert.Equal(17, list.Count);
@@ -75,7 +75,7 @@ public class NodeDecoderTest
     {
         var list = List.Empty
             .Add(new Binary(Nibbles.Parse("beef").ByteArray))
-            .Add(default(HashDigest<SHA256>).ByteArray);
+            .Add(default(HashDigest<SHA256>).Bytes);
 
         INode node = NodeDecoder.Decode(list, NodeTypes.Short);
         Assert.IsType<ShortNode>(node);

@@ -1,4 +1,3 @@
-#nullable enable
 using System.Diagnostics;
 using Bencodex.Types;
 using Libplanet.Crypto;
