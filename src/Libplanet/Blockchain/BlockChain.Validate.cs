@@ -27,12 +27,9 @@ namespace Libplanet.Blockchain
 
                 if (!expectedNonce.Equals(tx.Nonce))
                 {
-                    throw new InvalidTxNonceException(
+                    throw new InvalidOperationException(
                         $"Transaction {tx.Id} has an invalid nonce {tx.Nonce} that is different " +
-                        $"from expected nonce {expectedNonce}.",
-                        tx.Id,
-                        expectedNonce,
-                        tx.Nonce);
+                        $"from expected nonce {expectedNonce}.");
                 }
 
                 nonceDeltas[tx.Signer] = nonceDelta + 1;
@@ -176,12 +173,9 @@ namespace Libplanet.Blockchain
 
                 if (!expectedNonce.Equals(tx.Nonce))
                 {
-                    throw new InvalidTxNonceException(
+                    throw new InvalidOperationException(
                         $"Transaction {tx.Id} has an invalid nonce {tx.Nonce} that is different " +
-                        $"from expected nonce {expectedNonce}.",
-                        tx.Id,
-                        expectedNonce,
-                        tx.Nonce);
+                        $"from expected nonce {expectedNonce}.");
                 }
 
                 nonceDeltas[tx.Signer] = nonceDelta + 1;

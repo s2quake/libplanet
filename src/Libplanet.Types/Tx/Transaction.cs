@@ -126,8 +126,8 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
     {
         if (!unsignedTx.VerifySignature(signature))
         {
-            throw new InvalidTxSignatureException(
-                "The given signature is not valid.", TxMarshaler.GetTxId(unsignedTx, signature));
+            throw new InvalidOperationException(
+                "The given signature is not valid.");
         }
 
         return signature;

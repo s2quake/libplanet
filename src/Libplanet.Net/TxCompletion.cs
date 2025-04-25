@@ -153,7 +153,7 @@ namespace Libplanet.Net
                             stagedTxs.Add(tx);
                         }
                     }
-                    catch (InvalidTxException ite)
+                    catch (InvalidOperationException ite)
                     {
                         const string msg = "Received transaction from {Peer} with id {TxId} " +
                                   "will not be staged since it is invalid";

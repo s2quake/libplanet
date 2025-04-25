@@ -903,14 +903,14 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            InvalidOperationException IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
                 return tx.Signer.Equals(validAddress) ||
                        tx.Signer.Equals(GenesisProposer.Address)
                     ? null
-                    : new TxPolicyViolationException("invalid signer", tx.Id);
+                    : new InvalidOperationException("invalid signer");
             }
 
             var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
@@ -972,14 +972,14 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            InvalidOperationException IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
                 return tx.Signer.Equals(validAddress) ||
                        tx.Signer.Equals(GenesisProposer.Address)
                     ? null
-                    : new TxPolicyViolationException("invalid signer", tx.Id);
+                    : new InvalidOperationException("invalid signer");
             }
 
             var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);

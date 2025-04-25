@@ -14,7 +14,7 @@ namespace Libplanet.Blockchain.Policies
     {
         public static readonly TimeSpan DefaultTargetBlockInterval = TimeSpan.FromSeconds(5);
 
-        private readonly Func<BlockChain, Transaction, TxPolicyViolationException?>
+        private readonly Func<BlockChain, Transaction, InvalidOperationException?>
             _validateNextBlockTx;
 
         private readonly Func<BlockChain, Block, Exception?>
@@ -73,7 +73,7 @@ namespace Libplanet.Blockchain.Policies
         public BlockPolicy(
             IPolicyActionsRegistry? policyActionsRegistry = null,
             TimeSpan? blockInterval = null,
-            Func<BlockChain, Transaction, TxPolicyViolationException?>?
+            Func<BlockChain, Transaction, InvalidOperationException?>?
                 validateNextBlockTx = null,
             Func<BlockChain, Block, Exception?>?
                 validateNextBlock = null,
@@ -169,7 +169,7 @@ namespace Libplanet.Blockchain.Policies
         /// </summary>
         public TimeSpan BlockInterval { get; }
 
-        public virtual TxPolicyViolationException? ValidateNextBlockTx(
+        public virtual InvalidOperationException? ValidateNextBlockTx(
         BlockChain blockChain, Transaction transaction)
         {
             return _validateNextBlockTx(blockChain, transaction);

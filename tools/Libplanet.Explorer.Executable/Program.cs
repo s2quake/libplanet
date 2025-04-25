@@ -388,7 +388,7 @@ If omitted (default) explorer only the local blockchain store.")]
             public long GetMaxTransactionsBytes(long index) =>
                 _impl.GetMaxTransactionsBytes(index);
 
-            public TxPolicyViolationException ValidateNextBlockTx(
+            public InvalidOperationException ValidateNextBlockTx(
                 BlockChain blockChain,
                 Transaction transaction) =>
                 _impl.ValidateNextBlockTx(blockChain, transaction);

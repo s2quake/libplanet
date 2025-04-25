@@ -308,13 +308,13 @@ namespace Libplanet.Net.Tests.Consensus
                 getMaxTransactionsBytes: _ => 50 * 1024,
                 validateNextBlockTx: IsSignerValid);
 
-            TxPolicyViolationException? IsSignerValid(
+            InvalidOperationException? IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = TestUtils.PrivateKeys[1].Address;
                 return tx.Signer.Equals(validAddress)
                     ? null
-                    : new TxPolicyViolationException("invalid signer", tx.Id);
+                    : new InvalidOperationException("invalid signer");
             }
 
             var (blockChain, context) = TestUtils.CreateDummyContext(

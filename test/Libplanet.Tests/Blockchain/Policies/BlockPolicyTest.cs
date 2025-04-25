@@ -76,13 +76,13 @@ namespace Libplanet.Tests.Blockchain.Policies
         {
             var validKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            InvalidOperationException IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
                 return tx.Signer.Equals(validAddress)
                     ? null
-                    : new TxPolicyViolationException("invalid signer", tx.Id);
+                    : new InvalidOperationException("invalid signer");
             }
 
             var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
@@ -105,26 +105,25 @@ namespace Libplanet.Tests.Blockchain.Policies
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            InvalidOperationException IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
                 return tx.Signer.Equals(validAddress)
                     ? null
-                    : new TxPolicyViolationException("invalid signer", tx.Id);
+                    : new InvalidOperationException("invalid signer");
             }
 
             //Invalid Transaction with inner-exception
-            TxPolicyViolationException IsSignerValidWithInnerException(
+            InvalidOperationException IsSignerValidWithInnerException(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
                 return tx.Signer.Equals(validAddress)
                     ? null
-                    : new TxPolicyViolationException(
+                    : new InvalidOperationException(
                         "invalid signer",
-                        tx.Id,
-                        new InvalidTxSignatureException("Invalid Signature", tx.Id));
+                        new InvalidOperationException("Invalid Signature"));
             }
 
             // Invalid Transaction without Inner-exception

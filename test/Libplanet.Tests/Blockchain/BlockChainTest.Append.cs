@@ -467,13 +467,13 @@ namespace Libplanet.Tests.Blockchain
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            TxPolicyViolationException IsSignerValid(
+            InvalidOperationException IsSignerValid(
                 BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
                 return tx.Signer.Equals(validAddress) || tx.Signer.Equals(_fx.Proposer.Address)
                     ? null
-                    : new TxPolicyViolationException("invalid signer", tx.Id);
+                    : new InvalidOperationException("invalid signer");
             }
 
             var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
@@ -507,7 +507,7 @@ namespace Libplanet.Tests.Blockchain
                     new[] { invalidTx }.ToImmutableList(),
                     TestUtils.CreateBlockCommit(blockChain.Tip),
                     ImmutableArray<EvidenceBase>.Empty);
-                Assert.Throws<TxPolicyViolationException>(() => blockChain.Append(
+                Assert.Throws<InvalidOperationException>(() => blockChain.Append(
                     block2, TestUtils.CreateBlockCommit(block2)));
             }
         }

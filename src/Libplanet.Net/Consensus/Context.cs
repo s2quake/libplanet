@@ -444,7 +444,6 @@ public partial class Context : IDisposable
             }
             catch (Exception e) when (
                 e is InvalidOperationException ||
-                e is InvalidTxException ||
                 e is InvalidActionException)
             {
                 _logger.Debug(
