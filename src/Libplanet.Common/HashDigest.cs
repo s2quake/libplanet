@@ -11,7 +11,7 @@ namespace Libplanet.Common;
 
 [TypeConverter(typeof(HashDigestTypeConverter))]
 [JsonConverter(typeof(HashDigestJsonConverter))]
-public readonly record struct HashDigest<T>(in ImmutableArray<byte> ByteArray)
+public readonly record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
     : IEquatable<HashDigest<T>>, IFormattable
     where T : HashAlgorithm
 {
@@ -22,7 +22,7 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> ByteArray)
     private static readonly ThreadLocal<T> Algorithm;
     private static readonly ImmutableArray<byte> DefaultByteArray;
 
-    private readonly ImmutableArray<byte> _bytes = ValidateBytes(ByteArray);
+    private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
     static HashDigest()
     {
@@ -44,11 +44,11 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> ByteArray)
     }
 
     public HashDigest(ReadOnlySpan<byte> bytes)
-        : this(ByteArray: [.. bytes])
+        : this(Bytes: [.. bytes])
     {
     }
 
-    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? DefaultByteArray : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? DefaultByteArray : _bytes;
 
     public static HashDigest<T> Parse(string hex)
     {
@@ -78,7 +78,7 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> ByteArray)
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        var hex = ByteUtil.Hex(ByteArray);
+        var hex = ByteUtil.Hex(Bytes);
         return format switch
         {
             "h" => hex,
@@ -93,7 +93,7 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> ByteArray)
         var code = 0;
         unchecked
         {
-            var bytes = ByteArray;
+            var bytes = Bytes;
             foreach (var @byte in bytes)
             {
                 code = (code * 397) ^ @byte.GetHashCode();
@@ -107,7 +107,7 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> ByteArray)
     {
         for (var i = 0; i < Size; i++)
         {
-            if (!ByteArray[i].Equals(other.ByteArray[i]))
+            if (!Bytes[i].Equals(other.Bytes[i]))
             {
                 return false;
             }

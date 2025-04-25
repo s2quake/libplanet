@@ -16,7 +16,7 @@ public sealed class SeedOptionsConfigurator(
         {
             if (options.PrivateKey == string.Empty)
             {
-                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.ByteArray);
+                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.Bytes);
                 logger.LogWarning(
                     "BlocksyncSeed's private key is not set. A new private key is generated: " +
                     "{PrivateKey}",
@@ -27,7 +27,7 @@ public sealed class SeedOptionsConfigurator(
         {
             if (options.PrivateKey == string.Empty)
             {
-                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.ByteArray);
+                options.PrivateKey = ByteUtil.Hex(_defaultPrivateKey.Bytes);
                 logger.LogWarning(
                     "ConsensusSeed's private key is not set. A new private key is generated: " +
                     "{PrivateKey}",

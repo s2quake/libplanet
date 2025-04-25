@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is TxId txId)
             {
-                return ByteUtil.Hex(txId.ByteArray);
+                return ByteUtil.Hex(txId.Bytes);
             }
 
             return ThrowSerializationError(value);

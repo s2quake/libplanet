@@ -69,8 +69,8 @@ namespace Libplanet.Action.Tests.Common
             IAccount account = states.GetAccount(ReservedAddresses.LegacyAccount);
             account = account
                 .SetState(Address, Value)
-                .SetState(MinerRecordAddress, new Binary(context.Miner.ByteArray))
-                .SetState(SignerRecordAddress, new Binary(context.Signer.ByteArray))
+                .SetState(MinerRecordAddress, new Binary(context.Miner.Bytes))
+                .SetState(SignerRecordAddress, new Binary(context.Signer.Bytes))
                 .SetState(BlockIndexRecordAddress, new Integer(context.BlockHeight))
                 .SetState(RandomRecordAddress, new Integer(context.GetRandom().Next()));
             return states.SetAccount(ReservedAddresses.LegacyAccount, account);

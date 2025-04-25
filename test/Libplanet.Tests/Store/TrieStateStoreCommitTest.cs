@@ -21,13 +21,13 @@ namespace Libplanet.Tests.Store
             Assert.Null(emptyTrie.Node);
             Assert.True(stateStore.GetStateRoot(emptyRootHash).IsCommitted);
             Assert.Null(stateStore.GetStateRoot(emptyRootHash).Node);
-            Assert.False(keyValueStore.ContainsKey(new KeyBytes(emptyRootHash.ByteArray)));
+            Assert.False(keyValueStore.ContainsKey(new KeyBytes(emptyRootHash.Bytes)));
 
             emptyTrie = stateStore.Commit(emptyTrie);
             Assert.Null(emptyTrie.Node);
             Assert.Equal(emptyRootHash, emptyTrie.Hash);
             Assert.True(stateStore.GetStateRoot(emptyRootHash).IsCommitted);
-            Assert.False(keyValueStore.ContainsKey(new KeyBytes(emptyRootHash.ByteArray)));
+            Assert.False(keyValueStore.ContainsKey(new KeyBytes(emptyRootHash.Bytes)));
         }
 
         [Fact]
@@ -50,8 +50,8 @@ namespace Libplanet.Tests.Store
             Assert.Equal(hashAfterCommitOnce, hashAfterCommitTwice);
             Assert.False(stateStore.GetStateRoot(hashBeforeCommit).IsCommitted);
             Assert.True(stateStore.GetStateRoot(hashAfterCommitOnce).IsCommitted);
-            Assert.False(keyValueStore.ContainsKey(new KeyBytes(hashBeforeCommit.ByteArray)));
-            Assert.True(keyValueStore.ContainsKey(new KeyBytes(hashAfterCommitOnce.ByteArray)));
+            Assert.False(keyValueStore.ContainsKey(new KeyBytes(hashBeforeCommit.Bytes)));
+            Assert.True(keyValueStore.ContainsKey(new KeyBytes(hashAfterCommitOnce.Bytes)));
 
             trie = stateStore.GetStateRoot(hashAfterCommitOnce);
             Assert.Equal(2, trie.ToDictionary().Count);

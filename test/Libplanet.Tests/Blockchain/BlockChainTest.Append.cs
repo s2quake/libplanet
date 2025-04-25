@@ -716,8 +716,8 @@ namespace Libplanet.Tests.Blockchain
             blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
             Assert.True(blockChain.GetNextWorldState(emptyBlock.Hash).Legacy);
             Assert.Equal<byte>(
-                blockChain.GetWorldState(genesis.StateRootHash).Trie.Hash.ByteArray,
-                blockChain.GetNextWorldState(emptyBlock.Hash).Trie.Hash.ByteArray);
+                blockChain.GetWorldState(genesis.StateRootHash).Trie.Hash.Bytes,
+                blockChain.GetNextWorldState(emptyBlock.Hash).Trie.Hash.Bytes);
         }
 
         [Fact]

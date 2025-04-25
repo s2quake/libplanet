@@ -443,7 +443,7 @@ namespace Libplanet.Tests.Store
             encoded = BTypes.Dictionary.Empty
                 .Add(
                     nameof(HasNullableBytesType.Value),
-                    (BTypes.IValue)new BTypes.Binary(randAddress.ByteArray));
+                    (BTypes.IValue)new BTypes.Binary(randAddress.Bytes));
             Assert.Throws<NotSupportedException>(() => new HasNullableBytesType(encoded));
         }
 

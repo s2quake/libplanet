@@ -24,7 +24,7 @@ public partial class TrieStateStore
             byte[] serialized = _codec.Encode(bencoded);
             HashDigest<SHA256> hashDigest = HashDigest<SHA256>.DeriveFrom(serialized);
 
-            writeBatch.Add(new KeyBytes(hashDigest.ByteArray), serialized);
+            writeBatch.Add(new KeyBytes(hashDigest.Bytes), serialized);
             newRoot = new HashNode(hashDigest) { KeyValueStore = keyValueStore };
         }
 
@@ -115,7 +115,7 @@ public partial class TrieStateStore
         byte[] serialized = _codec.Encode(bencodedNode);
         var nodeHash = HashDigest<SHA256>.DeriveFrom(serialized);
         HashNodeCache.AddOrUpdate(nodeHash, bencodedNode);
-        writeBatch.Add(new KeyBytes(nodeHash.ByteArray), serialized);
+        writeBatch.Add(new KeyBytes(nodeHash.Bytes), serialized);
         return writeBatch.Create(nodeHash);
     }
 

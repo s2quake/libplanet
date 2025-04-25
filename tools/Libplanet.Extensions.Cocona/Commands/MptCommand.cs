@@ -75,11 +75,11 @@ public class MptCommand
         HashDigest<SHA256> originRootHash = trie.Hash;
         HashDigest<SHA256> otherRootHash = otherTrie.Hash;
 
-        string originRootHashHex = ByteUtil.Hex(originRootHash.ByteArray);
-        string otherRootHashHex = ByteUtil.Hex(otherRootHash.ByteArray);
+        string originRootHashHex = ByteUtil.Hex(originRootHash.Bytes);
+        string otherRootHashHex = ByteUtil.Hex(otherRootHash.Bytes);
         foreach (var (key, targetValue, sourceValue) in trie.Diff(otherTrie))
         {
-            var data = new DiffData(ByteUtil.Hex(key.ByteArray), new Dictionary<string, string>
+            var data = new DiffData(ByteUtil.Hex(key.Bytes), new Dictionary<string, string>
             {
                 [otherRootHashHex] = targetValue is null
                     ? "null"

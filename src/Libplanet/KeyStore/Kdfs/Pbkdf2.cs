@@ -1,4 +1,3 @@
-#nullable disable
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Globalization;

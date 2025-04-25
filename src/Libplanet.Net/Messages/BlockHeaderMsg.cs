@@ -33,7 +33,7 @@ namespace Libplanet.Net.Messages
 
         public override IEnumerable<byte[]> DataFrames => new[]
         {
-            GenesisHash.ByteArray.ToArray(),
+            GenesisHash.Bytes.ToArray(),
             Codec.Encode(HeaderDictionary),
         };
 

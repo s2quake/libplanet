@@ -1,4 +1,3 @@
-#nullable disable
 using Libplanet.Common.Extensions;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
@@ -30,7 +29,7 @@ namespace Libplanet.RocksDBStore
             {
                 batch.Put(
                     IndexKey(ccid, RocksDBStoreBitConverter.GetBytes(index)),
-                    hash.ByteArray.ToArray());
+                    hash.Bytes.ToArray());
 
                 if (batch.Count() > 10000)
                 {

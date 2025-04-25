@@ -177,10 +177,10 @@ public class DefaultStore : BaseStore
                 hash => ModelSerializer.SerializeToBytes(hash),
                 b => ModelSerializer.DeserializeFromBytes<BlockHash>(b));
             _db.Mapper.RegisterType(
-                hash => hash.ByteArray.ToArray(),
+                hash => hash.Bytes.ToArray(),
                 b => new HashDigest<SHA256>([.. b.AsBinary]));
             _db.Mapper.RegisterType(
-                txid => txid.ByteArray.ToArray(),
+                txid => txid.Bytes.ToArray(),
                 b => new TxId([.. b.AsBinary]));
             _db.Mapper.RegisterType(
                 address => address.ToByteArray(),
@@ -533,7 +533,7 @@ public class DefaultStore : BaseStore
         var path = TxIdBlockHashIndexPath(txId, blockHash);
         var dirPath = path.GetDirectory();
         CreateDirectoryRecursively(_txIdBlockHashIndex, dirPath);
-        _txIdBlockHashIndex.WriteAllBytes(path, blockHash.ByteArray.ToArray());
+        _txIdBlockHashIndex.WriteAllBytes(path, blockHash.Bytes.ToArray());
     }
 
     public override IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
@@ -744,7 +744,7 @@ public class DefaultStore : BaseStore
         }
 
         WriteContentAddressableFile(
-            _nextStateRootHashes, path, nextStateRootHash.ByteArray.ToArray());
+            _nextStateRootHashes, path, nextStateRootHash.Bytes.ToArray());
     }
 
     /// <inheritdoc />
@@ -1026,7 +1026,7 @@ public class DefaultStore : BaseStore
 
     private UPath BlockPath(in BlockHash blockHash)
     {
-        string idHex = ByteUtil.Hex(blockHash.ByteArray);
+        string idHex = ByteUtil.Hex(blockHash.Bytes);
         if (idHex.Length < 3)
         {
             throw new ArgumentException(

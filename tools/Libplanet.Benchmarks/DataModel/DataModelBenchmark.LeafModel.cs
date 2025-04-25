@@ -60,7 +60,7 @@ namespace Libplanet.Benchmarks.DataModel
                         new BTypes.Dictionary(
                             BigDict
                                 .Select(kv => new KeyValuePair<BTypes.IKey, BTypes.IValue>(
-                                    new BTypes.Binary(kv.Key.ByteArray),
+                                    new BTypes.Binary(kv.Key.Bytes),
                                     new BTypes.Text(kv.Value)))));
             }
 

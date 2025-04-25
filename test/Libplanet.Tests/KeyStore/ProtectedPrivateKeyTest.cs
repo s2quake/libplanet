@@ -137,8 +137,8 @@ namespace Libplanet.Tests.KeyStore
             PrivateKey privKey = new PrivateKey();
             ProtectedPrivateKey protectedKey = ProtectedPrivateKey.Protect(privKey, passphrase);
             AssertBytesEqual(
-                privKey.ByteArray,
-                protectedKey.Unprotect(passphrase).ByteArray
+                privKey.Bytes,
+                protectedKey.Unprotect(passphrase).Bytes
             );
             Assert.Throws<IncorrectPassphraseException>(() => protectedKey.Unprotect("WRONG"));
         }

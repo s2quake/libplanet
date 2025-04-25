@@ -30,7 +30,7 @@ public class HelperQueryTest
             Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
         string hash =
             Assert.IsAssignableFrom<string>(resultDict["currencyHash"]);
-        Assert.Equal(ByteUtil.Hex(currency.Hash.ByteArray), hash);
+        Assert.Equal(ByteUtil.Hex(currency.Hash.Bytes), hash);
     }
 
     [Fact]

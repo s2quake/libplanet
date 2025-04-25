@@ -220,7 +220,7 @@ public abstract class BaseStore : IStore
         new Dictionary(
             balanceDelta.Select(pair =>
                 new KeyValuePair<IKey, IValue>(
-                    new Binary(pair.Key.ByteArray),
+                    new Binary(pair.Key.Bytes),
                     SerializeFAVs(pair.Value)
                 )
             )

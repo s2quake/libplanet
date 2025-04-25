@@ -15,7 +15,7 @@ internal sealed class RandomPrivateKey
     public static implicit operator PrivateKey(RandomPrivateKey randomPrivateKey)
         => randomPrivateKey._privateKey;
 
-    public override string ToString() => ByteUtil.Hex(_privateKey.ByteArray);
+    public override string ToString() => ByteUtil.Hex(_privateKey.Bytes);
 
     public AppProtocolVersion ToAppProtocolVersion(int version)
         => AppProtocolVersion.Sign(_privateKey, version);

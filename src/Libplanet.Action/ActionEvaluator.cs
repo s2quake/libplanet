@@ -100,7 +100,7 @@ namespace Libplanet.Action
                 "Evaluating actions in the block #{BlockHeight} " +
                 "pre-evaluation hash {RawHash}...",
                 block.Index,
-                ByteUtil.Hex(block.RawHash.ByteArray)
+                ByteUtil.Hex(block.RawHash.Bytes)
             );
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -143,7 +143,7 @@ namespace Libplanet.Action
                     e,
                     errorMessage,
                     block.Index,
-                    ByteUtil.Hex(block.RawHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.Bytes));
                 throw;
             }
             finally
@@ -156,7 +156,7 @@ namespace Libplanet.Action
                         "pre-evaluation hash {RawHash} evaluated in {DurationMs} ms",
                         block.Transactions.Count,
                         block.Index,
-                        ByteUtil.Hex(block.RawHash.ByteArray),
+                        ByteUtil.Hex(block.RawHash.Bytes),
                         stopwatch.ElapsedMilliseconds);
             }
         }
@@ -209,7 +209,7 @@ namespace Libplanet.Action
                     evidence: block.Evidence);
             }
 
-            byte[] preEvaluationHashBytes = block.RawHash.ByteArray.ToArray();
+            byte[] preEvaluationHashBytes = block.RawHash.Bytes.ToArray();
             var signature = tx.Signature;
             int seed = GenerateRandomSeed(preEvaluationHashBytes, signature, 0);
 
@@ -307,7 +307,7 @@ namespace Libplanet.Action
                     action,
                     tx?.Id,
                     block.Index,
-                    ByteUtil.Hex(block.RawHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.Bytes));
                 throw;
             }
             catch (Exception e)
@@ -322,11 +322,11 @@ namespace Libplanet.Action
                     action,
                     tx?.Id,
                     block.Index,
-                    ByteUtil.Hex(block.RawHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.Bytes));
                 var innerMessage =
                     $"The action {action} (block #{block.Index}, " +
                     $"pre-evaluation hash " +
-                    $"{ByteUtil.Hex(block.RawHash.ByteArray)}, " +
+                    $"{ByteUtil.Hex(block.RawHash.Bytes)}, " +
                     $"tx {tx?.Id} threw an exception during execution.  " +
                     "See also this exception's InnerException property";
                 logger?.Error(
@@ -408,7 +408,7 @@ namespace Libplanet.Action
             IEnumerable<Transaction> orderedTxs = OrderTxsForEvaluation(
                 block.ProtocolVersion,
                 block.Transactions,
-                block.RawHash.ByteArray);
+                block.RawHash.Bytes);
 
             foreach (Transaction tx in orderedTxs)
             {
@@ -443,7 +443,7 @@ namespace Libplanet.Action
                     tx.Id,
                     tx.Signer,
                     block.Index,
-                    ByteUtil.Hex(block.RawHash.ByteArray));
+                    ByteUtil.Hex(block.RawHash.Bytes));
             }
         }
 
@@ -507,7 +507,7 @@ namespace Libplanet.Action
         {
             _logger.Information(
                 $"Evaluating policy begin block actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.Bytes)}");
 
             return EvaluateActions(
                 block: block,
@@ -537,7 +537,7 @@ namespace Libplanet.Action
         {
             _logger.Information(
                 $"Evaluating policy end block actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.Bytes)}");
 
             return EvaluateActions(
                 block: block,
@@ -569,7 +569,7 @@ namespace Libplanet.Action
         {
             _logger.Information(
                 $"Evaluating policy begin tx actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.Bytes)}");
 
             return EvaluateActions(
                 block: block,
@@ -601,7 +601,7 @@ namespace Libplanet.Action
         {
             _logger.Information(
                 $"Evaluating policy end tx actions for block #{block.Index} " +
-                $"{ByteUtil.Hex(block.RawHash.ByteArray)}");
+                $"{ByteUtil.Hex(block.RawHash.Bytes)}");
 
             return EvaluateActions(
                 block: block,
@@ -667,7 +667,7 @@ namespace Libplanet.Action
                 .GroupBy(tx => tx.Signer)
                 .OrderBy(
                     group => maskInteger ^ group
-                        .Select(tx => new BigInteger(tx.Id.ByteArray.ToArray()))
+                        .Select(tx => new BigInteger(tx.Id.Bytes.ToArray()))
                         .Aggregate((first, second) => first ^ second))
                 .SelectMany(group => group.OrderBy(tx => tx.Nonce));
         }

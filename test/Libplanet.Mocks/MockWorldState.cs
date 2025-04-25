@@ -136,7 +136,7 @@ namespace Libplanet.Mocks
             else
             {
                 ITrie trie = _stateStore.Commit(accountState.Trie);
-                trie = Trie.Set(ToStateKey(address), new Binary(trie.Hash.ByteArray));
+                trie = Trie.Set(ToStateKey(address), new Binary(trie.Hash.Bytes));
                 trie = _stateStore.Commit(trie);
                 return new MockWorldState(trie, _stateStore);
             }
@@ -172,7 +172,7 @@ namespace Libplanet.Mocks
         {
             // if (Version >= BlockMetadata.CurrencyAccountProtocolVersion)
             {
-                Address accountAddress = new Address(currency.Hash.ByteArray);
+                Address accountAddress = new Address(currency.Hash.Bytes);
                 KeyBytes balanceKey = ToStateKey(address);
                 KeyBytes totalSupplyKey = ToStateKey(CurrencyAccount.TotalSupplyAddress);
 

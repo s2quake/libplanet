@@ -4,16 +4,16 @@ using Libplanet.Common;
 
 namespace Libplanet.Store.Trie;
 
-public readonly record struct KeyBytes(in ImmutableArray<byte> ByteArray)
+public readonly record struct KeyBytes(in ImmutableArray<byte> Bytes)
     : IEquatable<KeyBytes>, IFormattable
 {
     public static readonly KeyBytes Empty = default;
 
-    private readonly ImmutableArray<byte> _bytes = ByteArray;
+    private readonly ImmutableArray<byte> _bytes = Bytes;
 
-    public int Length => ByteArray.Length;
+    public int Length => Bytes.Length;
 
-    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? [] : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? [] : _bytes;
 
     public static explicit operator KeyBytes(string str)
     {
@@ -30,16 +30,16 @@ public readonly record struct KeyBytes(in ImmutableArray<byte> ByteArray)
     public static KeyBytes Create(byte[] bytes)
         => bytes.Length is 0 ? Empty : new(ImmutableArray.Create(bytes));
 
-    public byte[] ToByteArray() => [.. ByteArray];
+    public byte[] ToByteArray() => [.. Bytes];
 
-    public ReadOnlySpan<byte> AsSpan() => ByteArray.AsSpan();
+    public ReadOnlySpan<byte> AsSpan() => Bytes.AsSpan();
 
-    public bool Equals(KeyBytes other) => ByteArray.SequenceEqual(other.ByteArray);
+    public bool Equals(KeyBytes other) => Bytes.SequenceEqual(other.Bytes);
 
     public override int GetHashCode()
     {
         var hash = 17;
-        var bytes = ByteArray;
+        var bytes = Bytes;
         foreach (byte @byte in bytes)
         {
             hash = unchecked(hash * (31 + @byte));
@@ -48,12 +48,12 @@ public readonly record struct KeyBytes(in ImmutableArray<byte> ByteArray)
         return hash;
     }
 
-    public override string ToString() => ByteUtil.Hex(ByteArray);
+    public override string ToString() => ByteUtil.Hex(Bytes);
 
     public string ToString(string? format, IFormatProvider? formatProvider) => format switch
     {
-        "h" => ByteUtil.Hex(ByteArray),
-        "H" => ByteUtil.Hex(ByteArray).ToUpperInvariant(),
+        "h" => ByteUtil.Hex(Bytes),
+        "H" => ByteUtil.Hex(Bytes).ToUpperInvariant(),
         _ => ToString(),
     };
 

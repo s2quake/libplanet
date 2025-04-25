@@ -1524,7 +1524,7 @@ public partial class BlockChainTest : IDisposable
             ActionEvaluator.OrderTxsForEvaluation(
                 b1.ProtocolVersion,
                 b1.Transactions,
-                b1.RawHash.ByteArray
+                b1.RawHash.Bytes
             )
         );
 

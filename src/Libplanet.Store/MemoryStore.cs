@@ -167,8 +167,8 @@ public sealed class MemoryStore : IStore
 
         _blocks[block.Hash] = new BlockDigest(
             block.Header,
-            txs.Select(tx => tx.Id.ByteArray).ToImmutableArray(),
-            evidence.Select(ev => ev.Id.ByteArray).ToImmutableArray()
+            txs.Select(tx => tx.Id.Bytes).ToImmutableArray(),
+            evidence.Select(ev => ev.Id.Bytes).ToImmutableArray()
         );
     }
 

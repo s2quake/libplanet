@@ -36,7 +36,7 @@ namespace Libplanet.Action.State
         // $"{ByteUtil.Hex(address.ByteArray)}"
         public static KeyBytes ToStateKey(Address address)
         {
-            var addressBytes = address.ByteArray;
+            var addressBytes = address.Bytes;
             byte[] buffer = new byte[addressBytes.Length * 2];
             for (int i = 0; i < addressBytes.Length; i++)
             {
@@ -50,8 +50,8 @@ namespace Libplanet.Action.State
         // $"_{ByteUtil.Hex(address.ByteArray)}_{ByteUtil.Hex(currency.Hash.ByteArray)}"
         public static KeyBytes ToFungibleAssetKey(Address address, Currency currency)
         {
-            var addressBytes = address.ByteArray;
-            var currencyBytes = currency.Hash.ByteArray;
+            var addressBytes = address.Bytes;
+            var currencyBytes = currency.Hash.Bytes;
             byte[] buffer = new byte[addressBytes.Length * 2 + currencyBytes.Length * 2 + 2];
 
             buffer[0] = _underScore;
@@ -79,7 +79,7 @@ namespace Libplanet.Action.State
         // $"__{ByteUtil.Hex(currency.Hash.ByteArray)}"
         public static KeyBytes ToTotalSupplyKey(Currency currency)
         {
-            var currencyBytes = currency.Hash.ByteArray;
+            var currencyBytes = currency.Hash.Bytes;
             byte[] buffer = new byte[currencyBytes.Length * 2 + 2];
 
             buffer[0] = _underScore;

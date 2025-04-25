@@ -1522,7 +1522,7 @@ namespace Libplanet.Tests.Action
                 stateStore: fx.StateStore,
                 isPolicyAction: false).ToArray();
 
-            byte[] preEvaluationHashBytes = blockA.RawHash.ByteArray.ToArray();
+            byte[] preEvaluationHashBytes = blockA.RawHash.Bytes.ToArray();
             int[] randomSeeds = Enumerable
                 .Range(0, txA.Actions.Length)
                 .Select(offset => ActionEvaluator.GenerateRandomSeed(
@@ -1627,7 +1627,7 @@ namespace Libplanet.Tests.Action
                 (Integer)GasUsage,
                 (Text)Memo,
                 MintValue is null ? (IValue)default(Null) : MintValue.Value.ToBencodex(),
-                Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.ByteArray
+                Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.Bytes
                 );
 
             public void LoadPlainValue(IValue plainValue)

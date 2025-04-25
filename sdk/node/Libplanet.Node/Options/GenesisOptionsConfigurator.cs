@@ -17,7 +17,7 @@ internal sealed class GenesisOptionsConfigurator(
             if (options.GenesisKey == string.Empty)
             {
                 var privateKey = new PrivateKey();
-                options.GenesisKey = ByteUtil.Hex(privateKey.ByteArray);
+                options.GenesisKey = ByteUtil.Hex(privateKey.Bytes);
                 logger.LogWarning(
                     "Genesis key is not set. A new private key is generated:{PrivateKey}",
                     options.GenesisKey);

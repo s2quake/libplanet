@@ -1,4 +1,3 @@
-#nullable enable
 using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Action.State;

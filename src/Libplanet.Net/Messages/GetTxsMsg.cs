@@ -28,7 +28,7 @@ namespace Libplanet.Net.Messages
             {
                 var frames = new List<byte[]>();
                 frames.Add(BitConverter.GetBytes(TxIds.Count()));
-                frames.AddRange(TxIds.Select(id => id.ByteArray.ToArray()));
+                frames.AddRange(TxIds.Select(id => id.Bytes.ToArray()));
                 return frames;
             }
         }

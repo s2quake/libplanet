@@ -1,4 +1,3 @@
-#nullable disable
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
@@ -113,7 +112,7 @@ namespace Libplanet.KeyStore
             var iv = new byte[16];
             rng.GetBytes(iv);
             var cipher = new Aes128Ctr(iv);
-            ImmutableArray<byte> ciphertext = cipher.Encrypt(encKey, privateKey.ByteArray);
+            ImmutableArray<byte> ciphertext = cipher.Encrypt(encKey, privateKey.Bytes);
             ImmutableArray<byte> mac = CalculateMac(derivedKey, ciphertext);
             Address address = privateKey.Address;
             return new ProtectedPrivateKey(address, kdf, mac, cipher, ciphertext);

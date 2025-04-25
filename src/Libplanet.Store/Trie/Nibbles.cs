@@ -33,12 +33,12 @@ public readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
 
     public static Nibbles FromKeyBytes(in KeyBytes keyBytes)
     {
-        var capacity = keyBytes.ByteArray.Length * 2;
+        var capacity = keyBytes.Bytes.Length * 2;
         var builder = ImmutableArray.CreateBuilder<byte>(capacity);
-        for (var i = 0; i < keyBytes.ByteArray.Length; i++)
+        for (var i = 0; i < keyBytes.Bytes.Length; i++)
         {
-            builder.Add((byte)(keyBytes.ByteArray[i] >> 4));
-            builder.Add((byte)(keyBytes.ByteArray[i] & 0x0f));
+            builder.Add((byte)(keyBytes.Bytes[i] >> 4));
+            builder.Add((byte)(keyBytes.Bytes[i] & 0x0f));
         }
 
         return new Nibbles(builder.ToImmutable());

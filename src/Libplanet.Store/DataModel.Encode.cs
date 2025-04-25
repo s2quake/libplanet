@@ -21,7 +21,7 @@ namespace Libplanet.Store
                 case Guid guid:
                     return new BTypes.Binary(guid.ToByteArray());
                 case Address address:
-                    return new BTypes.Binary(address.ByteArray);
+                    return new BTypes.Binary(address.Bytes);
                 case string s:
                     return new BTypes.Text(s);
                 default:
@@ -49,7 +49,7 @@ namespace Libplanet.Store
                 case Guid guid:
                     return new BTypes.Binary(guid.ToByteArray());
                 case Address address:
-                    return new BTypes.Binary(address.ByteArray);
+                    return new BTypes.Binary(address.Bytes);
                 case string s:
                     return new BTypes.Text(s);
                 case DataModel dm:

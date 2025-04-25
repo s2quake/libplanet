@@ -1,4 +1,3 @@
-#nullable disable
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;

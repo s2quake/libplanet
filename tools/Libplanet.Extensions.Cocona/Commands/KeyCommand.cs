@@ -150,7 +150,7 @@ public class KeyCommand
     {
         ChangeKeyStorePath(path);
         PrivateKey key = UnprotectKey(keyId, passphrase);
-        byte[] rawKey = publicKey ? key.PublicKey.ToByteArray(true) : [.. key.ByteArray];
+        byte[] rawKey = publicKey ? key.PublicKey.ToByteArray(true) : [.. key.Bytes];
         using Stream stdout = Console.OpenStandardOutput();
         if (bytes)
         {
@@ -180,7 +180,7 @@ public class KeyCommand
     )
     {
         var key = new PrivateKey();
-        string priv = ByteUtil.Hex(key.ByteArray);
+        string priv = ByteUtil.Hex(key.Bytes);
         string addr = key.Address.ToString();
         string pub = ByteUtil.Hex(key.PublicKey.ToByteArray(compress: true));
 

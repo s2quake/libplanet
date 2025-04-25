@@ -130,7 +130,7 @@ namespace Libplanet.Consensus
                 Dictionary encoded = Bencodex.Types.Dictionary.Empty
                     .Add(HeightKey, Height)
                     .Add(RoundKey, Round)
-                    .Add(BlockHashKey, BlockHash.ByteArray)
+                    .Add(BlockHashKey, BlockHash.Bytes)
                     .Add(
                         TimestampKey,
                         Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))

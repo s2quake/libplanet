@@ -1,4 +1,3 @@
-#nullable enable
 using System.IO;
 using Libplanet.Action;
 using Libplanet.Store;

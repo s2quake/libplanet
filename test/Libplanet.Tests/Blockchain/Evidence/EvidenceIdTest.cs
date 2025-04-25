@@ -81,7 +81,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
             var evidenceId = new EvidenceId(expectedBytes);
 
             // Then
-            var actualBytes = evidenceId.ByteArray.ToArray();
+            var actualBytes = evidenceId.Bytes.ToArray();
 
             Assert.Equal(expectedBytes, actualBytes);
         }

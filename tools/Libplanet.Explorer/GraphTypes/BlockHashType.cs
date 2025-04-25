@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is BlockHash blockHash)
             {
-                return ByteUtil.Hex(blockHash.ByteArray);
+                return ByteUtil.Hex(blockHash.Bytes);
             }
 
             return ThrowSerializationError(value);

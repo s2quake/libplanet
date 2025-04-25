@@ -45,7 +45,7 @@ namespace Libplanet.Action.Tests.State
             ITrie worldTrie = Trie.Create(hashDigest: default);
             worldTrie = worldTrie.Set(
                 ToStateKey(accountAddress),
-                (Binary)accountTrie.Hash.ByteArray);
+                (Binary)accountTrie.Hash.Bytes);
             worldTrie =
                 worldTrie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
             worldTrie = _stateStore.Commit(worldTrie);
@@ -73,7 +73,7 @@ namespace Libplanet.Action.Tests.State
             ITrie worldTrie = Trie.Create(hashDigest: default);
             worldTrie = worldTrie.Set(
                 ToStateKey(accountAddress),
-                (Binary)accountTrie.Hash.ByteArray);
+                (Binary)accountTrie.Hash.Bytes);
             worldTrie = worldTrie.SetMetadata(new TrieMetadata(
                 BlockMetadata.CurrentProtocolVersion));
             worldTrie = _stateStore.Commit(worldTrie);

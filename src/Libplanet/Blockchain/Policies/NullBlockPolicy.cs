@@ -1,4 +1,3 @@
-#nullable disable
 using Libplanet.Action;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;

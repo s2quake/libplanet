@@ -44,7 +44,7 @@ public class BlockType : ObjectGraphType<Block>
             name: "StateRootHash",
             description: "The hash of the resulting states after evaluating transactions " +
                          "and a block action (if exists)",
-            resolve: ctx => ctx.Source.StateRootHash.ByteArray.ToArray());
+            resolve: ctx => ctx.Source.StateRootHash.Bytes.ToArray());
         Field<ByteStringType>(
             name: "Signature",
             description: "The digital signature of the whole block content (except for hash, " +
@@ -82,7 +82,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<ByteStringType>>(
             name: "RawHash",
             description: "The hash of RawBlock.",
-            resolve: ctx => ctx.Source.RawHash.ByteArray.ToArray());
+            resolve: ctx => ctx.Source.RawHash.Bytes.ToArray());
         Field<NonNullGraphType<IntGraphType>>(
             name: "ProtocolVersion",
             description: "The protocol version number of the block.",

@@ -129,7 +129,7 @@ namespace Libplanet.Consensus
                         TimestampKey,
                         Timestamp.ToString(TimestampFormat, CultureInfo.InvariantCulture))
                     .Add(ValidatorPublicKeyKey, ValidatorPublicKey.ToByteArray(compress: true))
-                    .Add(BlockHashKey, BlockHash.ByteArray)
+                    .Add(BlockHashKey, BlockHash.Bytes)
                     .Add(FlagKey, (int)Flag);
 
                 return encoded;

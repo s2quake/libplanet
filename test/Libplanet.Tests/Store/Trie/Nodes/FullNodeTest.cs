@@ -1,4 +1,3 @@
-#nullable enable
 using Bencodex.Types;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;

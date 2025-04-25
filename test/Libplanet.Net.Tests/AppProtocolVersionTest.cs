@@ -1,4 +1,3 @@
-#nullable disable
 using Libplanet.Crypto;
 using Xunit;
 
@@ -116,7 +115,7 @@ namespace Libplanet.Net.Tests
                 AppProtocolVersion.Sign(signer, 123, (Bencodex.Types.Text)"foo");
 
             // Copy to make sure not to use the same reference
-            var address = new Address(claim.Signer.ByteArray);
+            var address = new Address(claim.Signer.Bytes);
             var version = claim.Version;
             var extra = codec.Decode(codec.Encode(claim.Extra));
             var signature = claim.Signature.ToArray().ToImmutableArray();
@@ -185,7 +184,7 @@ namespace Libplanet.Net.Tests
                     0,
                     claimWithoutExtra.Signature.Length
                 ),
-                new Address(claimWithoutExtra.Signer.ByteArray)
+                new Address(claimWithoutExtra.Signer.Bytes)
             );
             Assert.True(
                 ((IEquatable<AppProtocolVersion>)claimWithoutExtra).Equals(sameClaimWithoutExtra)

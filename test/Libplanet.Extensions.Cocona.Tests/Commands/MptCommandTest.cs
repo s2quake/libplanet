@@ -1,4 +1,3 @@
-#nullable disable
 using System.IO;
 using Bencodex.Types;
 using Libplanet.Common;
@@ -51,8 +50,8 @@ public class MptCommandTest : IDisposable
             var otherKvStoreUri = $"default://{_pathB}";
             var configuration =
                 new ToolConfiguration(new MptConfiguration(new Dictionary<string, string>()));
-            string stateRootHashHex = ByteUtil.Hex(_trieA.Hash.ByteArray);
-            string otherStateRootHashHex = ByteUtil.Hex(_trieB.Hash.ByteArray);
+            string stateRootHashHex = ByteUtil.Hex(_trieA.Hash.Bytes);
+            string otherStateRootHashHex = ByteUtil.Hex(_trieB.Hash.Bytes);
 
             _command.Diff(
                 kvStoreUri,

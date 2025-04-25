@@ -52,7 +52,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is HashDigest<T> hashDigest)
             {
-                return ByteUtil.Hex(hashDigest.ByteArray);
+                return ByteUtil.Hex(hashDigest.Bytes);
             }
 
             return ThrowSerializationError(value);

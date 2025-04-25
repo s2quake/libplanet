@@ -1,4 +1,3 @@
-#nullable enable
 using System.Globalization;
 using System.Threading.Tasks;
 using GraphQL;

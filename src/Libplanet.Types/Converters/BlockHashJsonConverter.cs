@@ -31,5 +31,5 @@ internal sealed class BlockHashJsonConverter : JsonConverter<BlockHash>
         Utf8JsonWriter writer,
         BlockHash value,
         JsonSerializerOptions options)
-        => writer.WriteStringValue(ByteUtil.Hex(value.ByteArray));
+        => writer.WriteStringValue(ByteUtil.Hex(value.Bytes));
 }

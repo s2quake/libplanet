@@ -622,7 +622,7 @@ public partial class RocksDBStore : BaseStore
 
             using var writeBatch = new WriteBatch();
 
-            writeBatch.Put(key, hash.ByteArray.ToArray());
+            writeBatch.Put(key, hash.Bytes.ToArray());
             writeBatch.Put(
                 IndexCountKey(chainId),
                 RocksDBStoreBitConverter.GetBytes(index + 1)
@@ -988,7 +988,7 @@ public partial class RocksDBStore : BaseStore
     {
         _txIdBlockHashIndexDb.Put(
             TxIdBlockHashIndexKey(txId, blockHash),
-            blockHash.ByteArray.ToArray()
+            blockHash.Bytes.ToArray()
             );
     }
 
@@ -1339,7 +1339,7 @@ public partial class RocksDBStore : BaseStore
         _rwNextStateRootHashLock.EnterWriteLock();
         try
         {
-            _nextStateRootHashDb.Put(key, nextStateRootHash.ByteArray.ToArray());
+            _nextStateRootHashDb.Put(key, nextStateRootHash.Bytes.ToArray());
         }
         catch (Exception e)
         {
@@ -1636,16 +1636,16 @@ public partial class RocksDBStore : BaseStore
         Concat(ChainIdKeyPrefix, chainId.ToByteArray());
 
     private static byte[] BlockKey(in BlockHash blockHash) =>
-        Concat(BlockKeyPrefix, blockHash.ByteArray);
+        Concat(BlockKeyPrefix, blockHash.Bytes);
 
     private static byte[] TxKey(in TxId txId) =>
-        Concat(TxKeyPrefix, txId.ByteArray);
+        Concat(TxKeyPrefix, txId.Bytes);
 
     private static byte[] TxNonceKey(Guid chainId) =>
         Concat(TxNonceKeyPrefix, chainId.ToByteArray());
 
     private static byte[] TxNonceKey(Guid chainId, Address address) =>
-        Concat(TxNonceKeyPrefix, chainId.ToByteArray(), address.ByteArray);
+        Concat(TxNonceKeyPrefix, chainId.ToByteArray(), address.Bytes);
 
     private static byte[] TxNonceKey(Guid chainId, byte[] addressBytes) =>
         Concat(TxNonceKeyPrefix, chainId.ToByteArray(), addressBytes);
@@ -1653,17 +1653,17 @@ public partial class RocksDBStore : BaseStore
     private static byte[] TxExecutionKey(in BlockHash blockHash, in TxId txId) =>
 
         // As BlockHash is not fixed size, place TxId first.
-        Concat(TxExecutionKeyPrefix, txId.ByteArray, blockHash.ByteArray);
+        Concat(TxExecutionKeyPrefix, txId.Bytes, blockHash.Bytes);
 
     private static byte[] TxExecutionKey(TxExecution txExecution) =>
         Concat(
-            TxExecutionKeyPrefix, txExecution.TxId.ByteArray, txExecution.BlockHash.ByteArray);
+            TxExecutionKeyPrefix, txExecution.TxId.Bytes, txExecution.BlockHash.Bytes);
 
     private static byte[] TxIdBlockHashIndexKey(in TxId txId, in BlockHash blockHash) =>
-        Concat(TxIdBlockHashIndexPrefix, txId.ByteArray, blockHash.ByteArray);
+        Concat(TxIdBlockHashIndexPrefix, txId.Bytes, blockHash.Bytes);
 
     private static byte[] TxIdBlockHashIndexTxIdKey(in TxId txId) =>
-        Concat(TxIdBlockHashIndexPrefix, txId.ByteArray);
+        Concat(TxIdBlockHashIndexPrefix, txId.Bytes);
 
     private static byte[] ForkedChainsKey(Guid chainId, Guid forkedChainId) =>
         Concat(ForkedChainsKeyPrefix, chainId.ToByteArray(), forkedChainId.ToByteArray());
@@ -1672,10 +1672,10 @@ public partial class RocksDBStore : BaseStore
         Concat(ChainBlockCommitKeyPrefix, chainId.ToByteArray());
 
     private static byte[] BlockCommitKey(in BlockHash blockHash) =>
-        Concat(BlockCommitKeyPrefix, blockHash.ByteArray);
+        Concat(BlockCommitKeyPrefix, blockHash.Bytes);
 
     private static byte[] NextStateRootHashKey(in BlockHash blockHash) =>
-        Concat(NextStateRootHashKeyPrefix, blockHash.ByteArray);
+        Concat(NextStateRootHashKeyPrefix, blockHash.Bytes);
 
     private static byte[] Concat(byte[] first, byte[] second)
     {
@@ -1727,10 +1727,10 @@ public partial class RocksDBStore : BaseStore
     }
 
     private static byte[] PendingEvidenceKey(in EvidenceId evidenceId) =>
-        PendingEvidenceKeyPrefix.Concat(evidenceId.ByteArray).ToArray();
+        PendingEvidenceKeyPrefix.Concat(evidenceId.Bytes).ToArray();
 
     private static byte[] CommittedEvidenceKey(in EvidenceId evidenceId) =>
-        CommittedEvidenceKeyPrefix.Concat(evidenceId.ByteArray).ToArray();
+        CommittedEvidenceKeyPrefix.Concat(evidenceId.Bytes).ToArray();
 
     private static IEnumerable<Iterator> IterateDb(RocksDb db, byte[] prefix)
     {

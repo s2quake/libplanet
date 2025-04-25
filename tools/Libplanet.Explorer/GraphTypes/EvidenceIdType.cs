@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is EvidenceId evidenceId)
             {
-                return ByteUtil.Hex(evidenceId.ByteArray);
+                return ByteUtil.Hex(evidenceId.Bytes);
             }
 
             return ThrowSerializationError(value);
