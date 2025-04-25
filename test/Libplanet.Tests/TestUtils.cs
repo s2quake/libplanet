@@ -330,24 +330,15 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static void AssertBlockContentsEqual(
             BlockContent expected, BlockContent actual)
         {
-            AssertBlockMetadataEqual(expected.Metadata, actual.Metadata);
             Assert.Equal(expected.Transactions, actual.Transactions);
-        }
-
-        public static void AssertPreEvaluationBlockHeadersEqual(
-            RawBlockHeader expected,
-            RawBlockHeader actual
-        )
-        {
-            AssertBlockMetadataEqual(expected.Metadata, actual.Metadata);
-            AssertBytesEqual(expected.RawHash, actual.RawHash);
+            Assert.Equal(expected.Evidence, actual.Evidence);
         }
 
         public static void AssertPreEvaluationBlocksEqual(
             RawBlock expected,
             RawBlock actual)
         {
-            AssertPreEvaluationBlockHeadersEqual(expected.Header, actual.Header);
+            AssertBlockMetadataEqual(expected.Metadata, actual.Metadata);
             AssertBlockContentsEqual(expected.Content, actual.Content);
         }
 
@@ -371,12 +362,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             Block block,
             bool deterministicTimestamp = false)
         {
-            if (block.Index <= 0 || block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
-            {
-                return null;
-            }
-
-            var useValidatorPower = block.ProtocolVersion >= BlockMetadata.EvidenceProtocolVersion;
+            var useValidatorPower = true;
             return CreateBlockCommit(
                 block.Hash, block.Index, 0, deterministicTimestamp, useValidatorPower);
         }
@@ -442,25 +428,25 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     timestamp: DateTimeOffset.MinValue));
             txs = txs.OrderBy(tx => tx.Id).ToList();
 
+            var metadata = new BlockMetadata
+            {
+                ProtocolVersion = protocolVersion,
+                Index = 0,
+                Timestamp = timestamp ??
+                        new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
+                Miner = (proposer ?? GenesisProposer.PublicKey).Address,
+                PublicKey = protocolVersion >= 2 ? proposer ?? GenesisProposer.PublicKey : null,
+                PreviousHash = default,
+                TxHash = BlockContent.DeriveTxHash(txs),
+                LastCommit = null,
+                EvidenceHash = null,
+            };
             var content = new BlockContent
             {
-                Metadata = new BlockMetadata
-                {
-                    ProtocolVersion = protocolVersion,
-                    Index = 0,
-                    Timestamp = timestamp ??
-                        new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
-                    Miner = (proposer ?? GenesisProposer.PublicKey).Address,
-                    PublicKey = protocolVersion >= 2 ? proposer ?? GenesisProposer.PublicKey : null,
-                    PreviousHash = default,
-                    TxHash = BlockContent.DeriveTxHash(txs),
-                    LastCommit = null,
-                    EvidenceHash = null,
-                },
                 Transactions = [.. txs],
                 Evidence = [],
             };
-            return content.Propose();
+            return RawBlock.Propose(metadata, content);
         }
 
         public static Block ProposeGenesisBlock(
@@ -506,25 +492,25 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var evidenceHash = evidence != null
                 ? BlockContent.DeriveEvidenceHash(evidence)
                 : null;
+            var metadata = new BlockMetadata
+            {
+                ProtocolVersion = protocolVersion,
+                Index = previousBlock.Index + 1,
+                Timestamp = previousBlock.Timestamp.Add(
+                        blockInterval ?? TimeSpan.FromSeconds(15)),
+                Miner = miner?.Address ?? previousBlock.Miner,
+                PublicKey = protocolVersion >= 2 ? miner ?? previousBlock.PublicKey : null,
+                PreviousHash = previousBlock.Hash,
+                TxHash = BlockContent.DeriveTxHash(txs),
+                LastCommit = lastCommit,
+                EvidenceHash = evidenceHash,
+            };
             var content = new BlockContent
             {
-                Metadata = new BlockMetadata
-                {
-                    ProtocolVersion = protocolVersion,
-                    Index = previousBlock.Index + 1,
-                    Timestamp = previousBlock.Timestamp.Add(
-                        blockInterval ?? TimeSpan.FromSeconds(15)),
-                    Miner = miner?.Address ?? previousBlock.Miner,
-                    PublicKey = protocolVersion >= 2 ? miner ?? previousBlock.PublicKey : null,
-                    PreviousHash = previousBlock.Hash,
-                    TxHash = BlockContent.DeriveTxHash(txs),
-                    LastCommit = lastCommit,
-                    EvidenceHash = evidenceHash,
-                },
-                Transactions = [..txs],
+                Transactions = [.. txs],
                 Evidence = [],
             };
-            var preEval = content.Propose();
+            var preEval = RawBlock.Propose(metadata, content);
             preEval.ValidateTimestamp();
             return preEval;
         }
@@ -651,9 +637,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     timestamp,
                     protocolVersion);
                 var evaluatedSrh = actionEvaluator.Evaluate(preEval, default).Last().OutputState;
-                genesisBlock = protocolVersion < BlockMetadata.SlothProtocolVersion
-                        ? preEval.Sign(privateKey, evaluatedSrh)
-                        : preEval.Sign(privateKey, default);
+                genesisBlock = preEval.Sign(privateKey, default);
             }
 
             ValidatingActionRenderer validator = null;

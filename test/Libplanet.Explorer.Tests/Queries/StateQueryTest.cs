@@ -39,14 +39,7 @@ public partial class StateQueryTest
             Assert.IsAssignableFrom<IDictionary<string, object>>(resultDict["world"]);
         Assert.NotNull(states["stateRootHash"]);
 
-        if (version >= BlockMetadata.WorldStateProtocolVersion)
-        {
-            Assert.False((bool)states["legacy"]);
-        }
-        else
-        {
-            Assert.True((bool)states["legacy"]);
-        }
+        Assert.False((bool)states["legacy"]);
 
         Assert.Equal(version, states["version"]);
     }
@@ -162,9 +155,7 @@ public partial class StateQueryTest
                 Assert.IsAssignableFrom<IDictionary<string, object>>(
                     resultDict["world"])["totalSupply"]);
         FungibleAssetValue expectedTotalSupply
-            = version >= BlockMetadata.CurrencyAccountProtocolVersion
-            ? (Fixture.Amount + Fixture.AdditionalSupply)
-            : (Fixture.Currency * 0);
+            = Fixture.Amount + Fixture.AdditionalSupply;
         Assert.Equal(
             expectedTotalSupply.ToString(),
             Assert.IsAssignableFrom<string>(totalSupply["string"]));
@@ -280,7 +271,7 @@ public partial class StateQueryTest
                 Assert.IsAssignableFrom<IDictionary<string, object>>(
                     resultDict["world"])["accounts"]);
 
-        IDictionary<string,object> account =
+        IDictionary<string, object> account =
             Assert.IsAssignableFrom<IDictionary<string, object>>(Assert.Single(accounts));
         IDictionary<string, object> state =
             Assert.IsAssignableFrom<IDictionary<string, object>>(account["state"]);

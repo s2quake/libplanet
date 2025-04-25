@@ -893,9 +893,8 @@ namespace Libplanet.Tests.Action
                 stateStore: stateStore,
                 actionTypeLoader: new SingleActionLoader(typeof(ThrowException))
             );
-            var block = new BlockContent
-            {
-                Metadata = new BlockMetadata
+            var block = RawBlock.Propose(
+                new BlockMetadata
                 {
                     Index = 123,
                     Timestamp = DateTimeOffset.UtcNow,
@@ -905,9 +904,11 @@ namespace Libplanet.Tests.Action
                     LastCommit = CreateBlockCommit(hash, 122, 0),
                     EvidenceHash = null,
                 },
-                Transactions = [.. txs],
-                Evidence = [.. evs],
-            }.Propose();
+                new BlockContent
+                {
+                    Transactions = [.. txs],
+                    Evidence = [.. evs],
+                });
             IWorld previousState = stateStore.GetWorld(default);
             var nextState = actionEvaluator.EvaluateTx(
                 block: block,
@@ -932,7 +933,7 @@ namespace Libplanet.Tests.Action
             Block blockA = fx.Propose();
             fx.Append(blockA);
             ActionEvaluation[] evalsA = ActionEvaluator.EvaluateActions(
-                block: blockA.RawBlock,
+                block: (RawBlock)blockA,
                 tx: txA,
                 previousState: fx.StateStore.GetWorld(blockA.StateRootHash),
                 actions: txA.Actions
@@ -989,7 +990,7 @@ namespace Libplanet.Tests.Action
             Block blockB = fx.Propose();
             fx.Append(blockB);
             ActionEvaluation[] evalsB = ActionEvaluator.EvaluateActions(
-                block: blockB.RawBlock,
+                block: (RawBlock)blockB,
                 tx: txB,
                 previousState: fx.StateStore.GetWorld(blockB.StateRootHash),
                 actions: txB.Actions
@@ -1066,7 +1067,7 @@ namespace Libplanet.Tests.Action
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
             var evaluations = actionEvaluator.EvaluatePolicyBeginBlockActions(
-                genesis.RawBlock,
+                (RawBlock)genesis,
                 previousState);
 
             Assert.Equal<IAction>(
@@ -1082,7 +1083,7 @@ namespace Libplanet.Tests.Action
 
             previousState = evaluations[0].OutputState;
             evaluations = actionEvaluator.EvaluatePolicyBeginBlockActions(
-                block.RawBlock,
+                (RawBlock)block,
                 previousState);
 
             Assert.Equal<IAction>(
@@ -1117,7 +1118,7 @@ namespace Libplanet.Tests.Action
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
             var evaluations = actionEvaluator.EvaluatePolicyEndBlockActions(
-                genesis.RawBlock,
+                (RawBlock)genesis,
                 previousState);
 
             Assert.Equal<IAction>(
@@ -1134,7 +1135,7 @@ namespace Libplanet.Tests.Action
 
             previousState = evaluations[0].OutputState;
             evaluations = actionEvaluator.EvaluatePolicyEndBlockActions(
-                block.RawBlock,
+                (RawBlock)block,
                 previousState);
 
             Assert.Equal<IAction>(
@@ -1169,7 +1170,7 @@ namespace Libplanet.Tests.Action
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
             var evaluations = actionEvaluator.EvaluatePolicyBeginTxActions(
-                genesis.RawBlock,
+                (RawBlock)genesis,
                 txs[0],
                 previousState);
 
@@ -1187,7 +1188,7 @@ namespace Libplanet.Tests.Action
 
             previousState = evaluations[0].OutputState;
             evaluations = actionEvaluator.EvaluatePolicyBeginTxActions(
-                block.RawBlock,
+                (RawBlock)block,
                 txs[1],
                 previousState);
 
@@ -1224,7 +1225,7 @@ namespace Libplanet.Tests.Action
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
             var evaluations = actionEvaluator.EvaluatePolicyEndTxActions(
-                genesis.RawBlock,
+                (RawBlock)genesis,
                 txs[0],
                 previousState);
 
@@ -1242,7 +1243,7 @@ namespace Libplanet.Tests.Action
 
             previousState = evaluations[0].OutputState;
             evaluations = actionEvaluator.EvaluatePolicyEndTxActions(
-                block.RawBlock,
+                (RawBlock)block,
                 txs[1],
                 previousState);
 
@@ -1403,7 +1404,7 @@ namespace Libplanet.Tests.Action
             Block block = chain.ProposeBlock(miner);
 
             var evaluations = chain.ActionEvaluator.Evaluate(
-                block.RawBlock, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
+                (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
             Assert.False(evaluations[0].InputContext.IsPolicyAction);
             Assert.Single(evaluations);
@@ -1460,7 +1461,7 @@ namespace Libplanet.Tests.Action
             Block block = chain.ProposeBlock(miner);
 
             var evaluations = chain.ActionEvaluator.Evaluate(
-                block.RawBlock,
+                (RawBlock)block,
                 chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
             Assert.False(evaluations[0].InputContext.IsPolicyAction);
@@ -1512,7 +1513,7 @@ namespace Libplanet.Tests.Action
 
             Block blockA = fx.Propose();
             ActionEvaluation[] evalsA = ActionEvaluator.EvaluateActions(
-                block: blockA.RawBlock,
+                block: (RawBlock)blockA,
                 tx: txA,
                 previousState: fx.StateStore.GetWorld(blockA.StateRootHash),
                 actions: txA.Actions

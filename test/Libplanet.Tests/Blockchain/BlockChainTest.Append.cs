@@ -679,11 +679,9 @@ namespace Libplanet.Tests.Blockchain
                     timestamp: DateTimeOffset.UtcNow),
             };
             var evs = Array.Empty<EvidenceBase>();
-            RawBlock preEvalGenesis = new BlockContent
-            {
-                Metadata = new BlockMetadata
+            RawBlock preEvalGenesis = RawBlock.Propose(
+                new BlockMetadata
                 {
-                    ProtocolVersion = BlockMetadata.WorldStateProtocolVersion - 1,
                     Index = 0L,
                     Timestamp = DateTimeOffset.UtcNow,
                     Miner = fx.Proposer.Address,
@@ -693,9 +691,11 @@ namespace Libplanet.Tests.Blockchain
                     LastCommit = null,
                     EvidenceHash = null,
                 },
-                Transactions = [..txs],
-                Evidence = [..evs],
-            }.Propose();
+                new BlockContent
+                {
+                    Transactions = [..txs],
+                    Evidence = [..evs],
+                });
             var genesis = preEvalGenesis.Sign(
                 fx.Proposer,
                 actionEvaluator.Evaluate(preEvalGenesis, default).Last().OutputState);
@@ -723,7 +723,7 @@ namespace Libplanet.Tests.Blockchain
         [Fact]
         public void AppendSRHPostponeBPVBump()
         {
-            var beforePostponeBPV = BlockMetadata.SlothProtocolVersion - 1;
+            var beforePostponeBPV = BlockMetadata.CurrentProtocolVersion - 1;
             var policy = new NullBlockPolicy();
             var store = new MemoryStore();
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
@@ -795,7 +795,7 @@ namespace Libplanet.Tests.Blockchain
             blockChain.Append(blockAfterBump2, commitAfterBump2);
             Assert.Equal(
                 actionEvaluator.Evaluate(
-                    blockAfterBump1.RawBlock, blockAfterBump1.StateRootHash).Last().OutputState,
+                    (RawBlock)blockAfterBump1, blockAfterBump1.StateRootHash).Last().OutputState,
                 blockAfterBump2.StateRootHash);
         }
     }
