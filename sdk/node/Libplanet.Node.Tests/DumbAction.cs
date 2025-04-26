@@ -31,6 +31,6 @@ public class DumbAction : IAction
             throw new InvalidOperationException(ErrorMessage);
         }
 
-        return context.PreviousState;
+        return context.World;
     }
 }

@@ -14,7 +14,7 @@ namespace Libplanet.Tests.Store;
 
 public abstract class StoreFixture : IDisposable
 {
-    protected StoreFixture(IPolicyActionsRegistry policyActionsRegistry = null)
+    protected StoreFixture(PolicyActionsRegistry? policyActionsRegistry = null)
     {
         Path = null;
 

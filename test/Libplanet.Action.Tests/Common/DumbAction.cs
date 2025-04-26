@@ -80,7 +80,7 @@ namespace Libplanet.Action.Tests.Common
 
         public IWorld Execute(IActionContext context)
         {
-            IWorld world = context.PreviousState;
+            IWorld world = context.World;
 
             if (Append is { } append)
             {

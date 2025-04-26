@@ -32,7 +32,7 @@ namespace Libplanet.Action.Tests.Common
 
         public IWorld Execute(IActionContext ctx)
         {
-            IWorld states = ctx.PreviousState;
+            IWorld states = ctx.World;
             IAccount account = states.GetAccount(ReservedAddresses.LegacyAccount);
             Integer value = account.GetState(Address) is Integer integer
                 ? integer + Increment

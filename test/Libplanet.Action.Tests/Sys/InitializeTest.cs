@@ -43,17 +43,19 @@ public class InitializeTest
         Address signer = random.NextAddress();
         var prevState = new World(MockWorldState.CreateModern());
         BlockHash genesisHash = random.NextBlockHash();
-        var context = new ActionContext(
-            signer: signer,
-            txid: random.NextTxId(),
-            miner: random.NextAddress(),
-            blockHeight: 0,
-            blockProtocolVersion: Block.CurrentProtocolVersion,
-            lastCommit: null,
-            previousState: prevState,
-            randomSeed: 123,
-            isPolicyAction: false,
-            maxGasPrice: null);
+        var context = new ActionContext
+        {
+            Signer = signer,
+            TxId = random.NextTxId(),
+            Miner = random.NextAddress(),
+            BlockHeight = 0,
+            BlockProtocolVersion = Block.CurrentProtocolVersion,
+            LastCommit = null,
+            World = prevState,
+            RandomSeed = 123,
+            IsPolicyAction = false,
+            MaxGasPrice = null,
+        };
         var initialize = new Initialize
         {
             States = _states,
@@ -96,17 +98,19 @@ public class InitializeTest
                 }.Sign(key),
             ],
         };
-        var context = new ActionContext(
-            signer: signer,
-            txid: random.NextTxId(),
-            miner: random.NextAddress(),
-            blockHeight: 10,
-            blockProtocolVersion: Block.CurrentProtocolVersion,
-            lastCommit: lastCommit,
-            previousState: prevState,
-            randomSeed: 123,
-            isPolicyAction: false,
-            maxGasPrice: null);
+        var context = new ActionContext
+        {
+            Signer = signer,
+            TxId = random.NextTxId(),
+            Miner = random.NextAddress(),
+            BlockHeight = 10,
+            BlockProtocolVersion = Block.CurrentProtocolVersion,
+            LastCommit = lastCommit,
+            World = prevState,
+            RandomSeed = 123,
+            IsPolicyAction = false,
+            MaxGasPrice = null,
+        };
         var initialize = new Initialize
         {
             States = _states,

@@ -7,7 +7,7 @@ namespace Libplanet.Tests.Store;
 public class MemoryStoreFixture : StoreFixture
 {
     public MemoryStoreFixture(
-        IPolicyActionsRegistry policyActionsRegistry = null)
+        PolicyActionsRegistry? policyActionsRegistry = null)
         : base(policyActionsRegistry)
     {
         Store = new MemoryStore();

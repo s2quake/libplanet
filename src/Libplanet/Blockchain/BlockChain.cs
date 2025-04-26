@@ -100,7 +100,7 @@ namespace Libplanet.Blockchain
             IStateStore stateStore,
             Block genesisBlock,
             IBlockChainStates blockChainStates,
-            IActionEvaluator actionEvaluator,
+            ActionEvaluator actionEvaluator,
             IEnumerable<IRenderer> renderers = null)
 #pragma warning disable SA1118  // The parameter spans multiple lines
             : this(
@@ -266,7 +266,7 @@ namespace Libplanet.Blockchain
 
         internal IStateStore StateStore { get; }
 
-        internal IActionEvaluator ActionEvaluator { get; }
+        internal ActionEvaluator ActionEvaluator { get; }
 
         /// <summary>
         /// Whether the instance is canonical or not.
@@ -356,7 +356,7 @@ namespace Libplanet.Blockchain
             IStore store,
             IStateStore stateStore,
             Block genesisBlock,
-            IActionEvaluator actionEvaluator,
+            ActionEvaluator actionEvaluator,
             IEnumerable<IRenderer> renderers = null,
             IBlockChainStates blockChainStates = null)
 #pragma warning restore SA1611  // The documentation for parameters are missing.
@@ -621,7 +621,7 @@ namespace Libplanet.Blockchain
                     GetNextTxNonce(privateKey.Address),
                     privateKey,
                     Genesis.Hash,
-                    actions.Select(x => x.PlainValue),
+                    actions.ToPlainValues(),
                     maxGasPrice,
                     gasLimit,
                     timestamp);
@@ -977,7 +977,7 @@ namespace Libplanet.Blockchain
             Block block,
             BlockCommit blockCommit,
             bool render,
-            IReadOnlyList<ICommittedActionEvaluation> actionEvaluations = null
+            IReadOnlyList<CommittedActionEvaluation> actionEvaluations = null
         )
         {
             if (Count == 0)

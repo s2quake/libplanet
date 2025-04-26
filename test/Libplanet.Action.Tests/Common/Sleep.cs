@@ -16,7 +16,7 @@ namespace Libplanet.Action.Tests.Common
         public override IWorld Execute(IActionContext context)
         {
             // No-op.
-            return context.PreviousState;
+            return context.World;
         }
 
         public override void LoadPlainValue(IValue plainValue)

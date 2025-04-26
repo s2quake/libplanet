@@ -43,7 +43,7 @@ namespace Libplanet.Blockchain.Renderers
         /// <param name="action">An executed action.</param>
         /// <param name="context">The equivalent context object to an object passed to
         /// the <paramref name="action"/>'s <see cref="IAction.Execute(IActionContext)"/> method.
-        /// That means <see cref="IActionContext.PreviousState"/> are the states right
+        /// That means <see cref="IActionContext.World"/> are the states right
         /// <em>before</em> this action executed.  For the states after this action executed,
         /// use the <paramref name="nextState"/> argument instead.</param>
         /// <param name="nextState">The state root hash right <em>after</em> this action executed,
@@ -72,7 +72,7 @@ namespace Libplanet.Blockchain.Renderers
         /// <param name="action">An action which threw an exception during execution.</param>
         /// <param name="context">The equivalent context object to an object passed to
         /// the <paramref name="action"/>'s <see cref="IAction.Execute(IActionContext)"/> method.
-        /// That means <see cref="IActionContext.PreviousState"/> are the states right
+        /// That means <see cref="IActionContext.World"/> are the states right
         /// <em>before</em> this action executed.</param>
         /// <param name="exception">The exception thrown during executing the <paramref
         /// name="action"/>.</param>

@@ -1255,7 +1255,7 @@ public partial class BlockChainTest : IDisposable
 
                 var evals = actionEvaluator.EvaluateBlock((RawBlock)b, previousState);
                 var dirty = evals.Last().OutputState.Trie
-                    .Diff(evals.First().InputContext.PreviousState.Trie)
+                    .Diff(evals.First().InputContext.World.Trie)
                     .ToList();
                 Assert.NotEmpty(dirty);
                 store.PutBlock(b);

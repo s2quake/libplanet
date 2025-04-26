@@ -303,8 +303,10 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var invalidKey = new PrivateKey();
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))),
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new MinerReward(1)],
+                },
                 getMaxTransactionsBytes: _ => 50 * 1024,
                 validateNextBlockTx: IsSignerValid);
 
@@ -376,8 +378,10 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreCommitSent = new AsyncAutoResetEvent();
             var txSigner = new PrivateKey();
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))),
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new MinerReward(1)],
+                },
                 getMaxTransactionsBytes: _ => 50 * 1024);
 
             var (blockChain, context) = TestUtils.CreateDummyContext(

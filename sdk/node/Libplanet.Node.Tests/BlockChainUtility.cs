@@ -1,6 +1,7 @@
 using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
@@ -53,7 +54,7 @@ internal static class BlockChainUtility
     {
         var genesisBlock = blockChain.Genesis;
         var nonce = blockChain.GetNextTxNonce(privateKey.Address);
-        var values = actions.Select(item => item.PlainValue).ToArray();
+        var values = actions.Select(ModelSerializer.Serialize).ToArray();
         return Transaction.Create(
             nonce: nonce,
             privateKey: privateKey,

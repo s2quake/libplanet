@@ -33,7 +33,7 @@ namespace Libplanet.Action.Tests.Common
 
         public IWorld Execute(IActionContext context)
         {
-            var state = context.PreviousState;
+            var state = context.World;
             var started = DateTimeOffset.UtcNow;
             Log.Debug(
                 "{MethodName} exec started. Delay target: {MilliSecond}",

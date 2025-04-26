@@ -21,7 +21,7 @@ public interface IActionContext
 
     BlockCommit? LastCommit { get; }
 
-    IWorld PreviousState { get; }
+    IWorld World { get; }
 
     int RandomSeed { get; }
 

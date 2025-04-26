@@ -32,7 +32,7 @@ namespace Libplanet.Action.Tests.Common
         {
             IImmutableSet<string> usedWeapons = ImmutableHashSet<string>.Empty;
             IImmutableSet<string> targets = ImmutableHashSet<string>.Empty;
-            IWorld previousState = context.PreviousState;
+            IWorld previousState = context.World;
             IAccount legacyAccount = previousState.GetAccount(ReservedAddresses.LegacyAccount);
 
             object value = legacyAccount.GetState(TargetAddress);

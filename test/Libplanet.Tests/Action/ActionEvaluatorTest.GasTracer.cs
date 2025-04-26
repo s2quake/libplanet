@@ -235,7 +235,7 @@ namespace Libplanet.Tests.Action
                     GasTracer.CancelTrace();
                 }
 
-                return context.PreviousState;
+                return context.World;
             }
         }
     }

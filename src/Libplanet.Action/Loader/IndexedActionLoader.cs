@@ -59,10 +59,10 @@ namespace Libplanet.Action.Loader
         {
             try
             {
-                if (Registry.IsSystemAction(value))
-                {
-                    return Registry.Deserialize(value);
-                }
+                // if (Registry.IsSystemAction(value))
+                // {
+                //     return Registry.Deserialize(value);
+                // }
 
                 var loaderIndex = _loaders.Count(pair => pair.StartIndex <= index);
                 var loader = _loaders[loaderIndex - 1].Loader;

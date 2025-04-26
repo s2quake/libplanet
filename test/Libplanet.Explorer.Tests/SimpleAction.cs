@@ -22,7 +22,7 @@ public abstract class SimpleAction : IAction
     {
     }
 
-    public virtual IWorld Execute(IActionContext context) => context.PreviousState;
+    public virtual IWorld Execute(IActionContext context) => context.World;
 
     public static SimpleAction GetAction(int seed) =>
         (seed % 10) switch

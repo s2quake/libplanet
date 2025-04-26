@@ -1,9 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Bencodex;
 using Bencodex.Types;
-using Libplanet.Serialization;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 
 namespace Libplanet.Action;
 

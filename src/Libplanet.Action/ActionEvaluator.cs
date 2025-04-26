@@ -18,7 +18,7 @@ public sealed class ActionEvaluator(
     IActionLoader actionLoader)
 {
     private readonly ILogger _logger = Log.ForContext<ActionEvaluator>()
-            .ForContext("Source", nameof(ActionEvaluator));
+        .ForContext("Source", nameof(ActionEvaluator));
 
     private delegate (ITrie, int) StateCommitter(
         ITrie worldTrie, ActionEvaluation evaluation);
@@ -43,7 +43,7 @@ public sealed class ActionEvaluator(
         }
     }
 
-    public IReadOnlyList<CommittedActionEvaluation> Evaluate(
+    public CommittedActionEvaluation[] Evaluate(
         RawBlock block, HashDigest<SHA256> baseStateRootHash)
     {
         _logger.Information(
@@ -51,30 +51,28 @@ public sealed class ActionEvaluator(
             "pre-evaluation hash {RawHash}...",
             block.Height,
             ByteUtil.Hex(block.RawHash.Bytes));
-        Stopwatch stopwatch = new Stopwatch();
+        var stopwatch = new Stopwatch();
         stopwatch.Start();
         try
         {
             var world = stateStore.GetWorld(baseStateRootHash);
-            var evaluations = ImmutableList<ActionEvaluation>.Empty;
+            int capacity = GetCapacity(block);
+            var evaluationsList = new List<ActionEvaluation>(capacity);
             if (policyActionsRegistry.BeginBlockActions.Length > 0)
             {
-                evaluations = evaluations.AddRange(EvaluatePolicyBeginBlockActions(block, world));
-                world = evaluations.Last().OutputState;
+                evaluationsList.AddRange(EvaluateBeginBlockActions(block, world));
+                world = evaluationsList.Last().OutputState;
             }
 
-            evaluations = evaluations.AddRange([.. EvaluateBlock(block, world)]);
+            evaluationsList.AddRange([.. EvaluateBlock(block, world)]);
 
             if (policyActionsRegistry.EndBlockActions.Length > 0)
             {
-                world = evaluations.Count > 0
-                    ? evaluations.Last().OutputState
-                    : world;
-                evaluations = evaluations.AddRange(EvaluatePolicyEndBlockActions(block, world));
+                world = evaluationsList.Count > 0 ? evaluationsList.Last().OutputState : world;
+                evaluationsList.AddRange(EvaluateEndBlockActions(block, world));
             }
 
-            var committed = ToCommittedEvaluation(block, evaluations, baseStateRootHash);
-            return committed;
+            return [.. evaluationsList.Select(item => (CommittedActionEvaluation)item)];
         }
         catch (Exception e)
         {
@@ -103,187 +101,82 @@ public sealed class ActionEvaluator(
         }
     }
 
-    internal static IEnumerable<ActionEvaluation> EvaluateActions(
+    internal ActionEvaluation[] EvaluateActions(
         RawBlock block,
         Transaction? tx,
         IWorld world,
         ImmutableArray<IAction> actions,
-        IStateStore stateStore,
-        bool isPolicyAction,
-        ILogger? logger = null)
+        bool isPolicyAction)
     {
-        // IActionContext CreateActionContext(
-        //     IWorld prevState,
-        //     int randomSeed)
-        // {
-        //     return new ActionContext
-        //     {
-        //         Signer = tx?.Signer,
-        //         TxId = tx?.Id ?? null,
-        //         Miner = block.Miner,
-        //         BlockHeight = block.Height,
-        //         BlockProtocolVersion = block.ProtocolVersion,
-        //         LastCommit = block.LastCommit,
-        //         Txs = block.Transactions,
-        //         PreviousState = prevState,
-        //         IsPolicyAction = isPolicyAction,
-        //         RandomSeed = randomSeed,
-        //         MaxGasPrice = tx?.MaxGasPrice,
-        //         Evidence = block.Evidence,
-        //     };
-        // }
-
         byte[] preEvaluationHashBytes = block.RawHash.Bytes.ToArray();
         var signature = tx?.Signature ?? [];
         var randomSeed = GenerateRandomSeed(preEvaluationHashBytes, signature, 0);
+        var evaluations = new ActionEvaluation[actions.Length];
 
-        IWorld state = world;
-        foreach (var action in actions)
+        for (var i = 0; i < actions.Length; i++)
         {
+            var action = actions[i];
             var actionContext = new ActionContext
             {
-                Signer = tx?.Signer,
+                Signer = tx?.Signer ?? default,
                 TxId = tx?.Id ?? null,
                 Miner = block.Miner,
                 BlockHeight = block.Height,
                 BlockProtocolVersion = block.ProtocolVersion,
                 LastCommit = block.LastCommit,
                 Txs = block.Transactions,
-                PreviousState = state,
+                World = world,
                 IsPolicyAction = isPolicyAction,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice,
                 Evidence = block.Evidence,
             };
-            ActionEvaluation evaluation = EvaluateAction(
-                block,
-                tx,
-                actionContext,
-                action,
-                stateStore,
-                isPolicyAction,
-                logger);
-
-            yield return evaluation;
-
-            state = evaluation.OutputState;
+            var evaluation = EvaluateAction(actionContext, action);
+            evaluations[i] = evaluation;
+            world = evaluation.OutputState;
 
             unchecked
             {
                 randomSeed++;
             }
         }
+
+        return evaluations;
     }
 
-    internal static ActionEvaluation EvaluateAction(
-        RawBlock block,
-        Transaction? tx,
-        IActionContext context,
-        IAction action,
-        IStateStore stateStore,
-        bool isPolicyAction,
-        ILogger? logger = null)
+    internal ActionEvaluation EvaluateAction(ActionContext context, IAction action)
     {
-        if (!context.PreviousState.Trie.IsCommitted)
+        if (!context.World.Trie.IsCommitted)
         {
             throw new InvalidOperationException(
                 $"Given {nameof(context)} must have its previous state's " +
                 $"{nameof(ITrie)} recorded.");
         }
 
-        IActionContext inputContext = context;
-        IWorld state = inputContext.PreviousState;
-        Exception? exc = null;
-
-        IActionContext CreateActionContext(IWorld newPrevState)
-        {
-            return new ActionContext
-            {
-                Signer = inputContext.Signer,
-                TxId = inputContext.TxId,
-                Miner = inputContext.Miner,
-                BlockHeight = inputContext.BlockHeight,
-                BlockProtocolVersion = inputContext.BlockProtocolVersion,
-                LastCommit = inputContext.LastCommit,
-                PreviousState = newPrevState,
-                RandomSeed = inputContext.RandomSeed,
-                IsPolicyAction = isPolicyAction,
-                MaxGasPrice = tx?.MaxGasPrice,
-                Txs = inputContext.Txs,
-                Evidence = inputContext.Evidence,
-            };
-        }
+        var inputContext = context;
+        var world = inputContext.World;
+        Exception? exception = null;
 
         try
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            AccountMetrics.Initialize();
-            context = CreateActionContext(state);
-            state = action.Execute(context);
-            logger?
-                .ForContext("Tag", "Metric")
-                .ForContext("Subtag", "ActionExecutionTime")
-                .Information(
-                    "Action {Action} took {DurationMs} ms to execute, " +
-                    "GetState called {GetStateCount} times " +
-                    "and took {GetStateDurationMs} ms",
-                    action,
-                    stopwatch.ElapsedMilliseconds,
-                    AccountMetrics.GetStateCount.Value,
-                    AccountMetrics.GetStateTimer.Value?.ElapsedMilliseconds);
+            context = inputContext with
+            {
+                World = world,
+            };
+            world = action.Execute(context);
         }
-        catch (OutOfMemoryException e)
+        catch (OutOfMemoryException)
         {
-            // Because OutOfMemory is thrown non-deterministically depending on the state
-            // of the node, we should throw without further handling.
-            var message =
-                "Action {Action} of tx {TxId} of block #{BlockHeight} with " +
-                "pre-evaluation hash {RawHash} threw an exception " +
-                "during execution";
-            logger?.Error(
-                e,
-                message,
-                action,
-                tx?.Id,
-                block.Height,
-                ByteUtil.Hex(block.RawHash.Bytes));
             throw;
         }
         catch (Exception e)
         {
-            var message =
-                "Action {Action} of tx {TxId} of block #{BlockHeight} with " +
-                "pre-evaluation hash {RawHash} threw an exception " +
-                "during execution";
-            logger?.Error(
-                e,
-                message,
-                action,
-                tx?.Id,
-                block.Height,
-                ByteUtil.Hex(block.RawHash.Bytes));
-            var innerMessage =
-                $"The action {action} (block #{block.Height}, " +
-                $"pre-evaluation hash " +
-                $"{ByteUtil.Hex(block.RawHash.Bytes)}, " +
-                $"tx {tx?.Id} threw an exception during execution.  " +
-                "See also this exception's InnerException property";
-            logger?.Error(
-                "{Message}\nInnerException: {ExcMessage}", innerMessage, e.Message);
-            exc = new UnexpectedlyTerminatedActionException(
-                innerMessage,
-                block.RawHash,
-                block.Height,
-                tx?.Id,
-                null,
-                action,
-                e);
+            exception = e;
         }
 
-        state = stateStore.CommitWorld(state);
+        world = stateStore.CommitWorld(world);
 
-        if (!state.Trie.IsCommitted)
+        if (!world.Trie.IsCommitted)
         {
             throw new InvalidOperationException(
                 $"Failed to record {nameof(IAccount)}'s {nameof(ITrie)}.");
@@ -293,30 +186,26 @@ public sealed class ActionEvaluator(
         {
             Action = action,
             InputContext = inputContext,
-            OutputState = state,
-            Exception = exc,
+            OutputState = world,
+            Exception = exception,
         };
     }
 
     internal static IEnumerable<Transaction> OrderTxsForEvaluation(
-        int protocolVersion,
         IEnumerable<Transaction> txs,
         ImmutableArray<byte> preEvaluationHashBytes)
     {
         return OrderTxsForEvaluationV3(txs, preEvaluationHashBytes);
     }
 
-    internal IEnumerable<ActionEvaluation> EvaluateBlock(
-        RawBlock block,
-        IWorld previousState)
+    internal IEnumerable<ActionEvaluation> EvaluateBlock(RawBlock block, IWorld previousState)
     {
         IWorld delta = previousState;
-        IEnumerable<Transaction> orderedTxs = OrderTxsForEvaluation(
-            block.ProtocolVersion,
+        IEnumerable<Transaction> txs = OrderTxsForEvaluation(
             block.Transactions,
             block.RawHash.Bytes);
 
-        foreach (Transaction tx in orderedTxs)
+        foreach (var tx in txs)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -324,7 +213,7 @@ public sealed class ActionEvaluator(
             IEnumerable<ActionEvaluation> evaluations = EvaluateTx(
                 block: block,
                 tx: tx,
-                previousState: delta);
+                world: delta);
 
             var actions = new List<IAction>();
             foreach (ActionEvaluation evaluation in evaluations)
@@ -353,49 +242,40 @@ public sealed class ActionEvaluator(
         }
     }
 
-    internal IEnumerable<ActionEvaluation> EvaluateTx(
-        RawBlock block,
-        Transaction tx,
-        IWorld previousState)
+    internal ActionEvaluation[] EvaluateTx(RawBlock block, Transaction tx, IWorld world)
     {
         GasTracer.Initialize(tx.GasLimit ?? long.MaxValue);
-        var evaluations = ImmutableList<ActionEvaluation>.Empty;
+        var evaluationList = new List<ActionEvaluation>();
         if (policyActionsRegistry.BeginTxActions.Length > 0)
         {
             GasTracer.IsTxAction = true;
-            evaluations = evaluations.AddRange(
-                EvaluatePolicyBeginTxActions(block, tx, previousState));
-            previousState = evaluations.Last().OutputState;
+            evaluationList.AddRange(EvaluateBeginTxActions(block, tx, world));
+            world = evaluationList.Last().OutputState;
             GasTracer.IsTxAction = false;
         }
 
-        ImmutableList<IAction> actions =
-            ImmutableList.CreateRange(LoadActions(block.Height, tx));
-        evaluations = evaluations.AddRange(EvaluateActions(
+        var actions = LoadActions(block.Height, tx).ToImmutableArray();
+        evaluationList.AddRange(EvaluateActions(
             block: block,
             tx: tx,
-            world: previousState,
+            world: world,
             actions: actions,
-            stateStore: stateStore,
-            isPolicyAction: false,
-            logger: _logger));
+            isPolicyAction: false));
 
         if (policyActionsRegistry.EndTxActions.Length > 0)
         {
-            previousState = evaluations.Count > 0
-                ? evaluations.Last().OutputState
-                : previousState;
-            evaluations = evaluations.AddRange(
-                EvaluatePolicyEndTxActions(block, tx, previousState));
+            GasTracer.IsTxAction = true;
+            world = evaluationList.Count > 0 ? evaluationList.Last().OutputState : world;
+            evaluationList.AddRange(EvaluateEndTxActions(block, tx, world));
+            GasTracer.IsTxAction = false;
         }
 
         GasTracer.Release();
 
-        return evaluations;
+        return [.. evaluationList];
     }
 
-    internal ActionEvaluation[] EvaluatePolicyBeginBlockActions(
-        RawBlock block, IWorld previousState)
+    internal ActionEvaluation[] EvaluateBeginBlockActions(RawBlock block, IWorld world)
     {
         _logger.Information(
             "Evaluating policy begin block actions for block #{BlockHeight} {BlockHash}",
@@ -405,16 +285,12 @@ public sealed class ActionEvaluator(
         return EvaluateActions(
             block: block,
             tx: null,
-            world: previousState,
+            world: world,
             actions: policyActionsRegistry.BeginBlockActions,
-            stateStore: stateStore,
-            isPolicyAction: true,
-            logger: _logger).ToArray();
+            isPolicyAction: true).ToArray();
     }
 
-    internal ActionEvaluation[] EvaluatePolicyEndBlockActions(
-        RawBlock block,
-        IWorld previousState)
+    internal ActionEvaluation[] EvaluateEndBlockActions(RawBlock block, IWorld world)
     {
         _logger.Information(
             $"Evaluating policy end block actions for block #{block.Height} " +
@@ -423,17 +299,13 @@ public sealed class ActionEvaluator(
         return EvaluateActions(
             block: block,
             tx: null,
-            world: previousState,
+            world: world,
             actions: policyActionsRegistry.EndBlockActions,
-            stateStore: stateStore,
-            isPolicyAction: true,
-            logger: _logger).ToArray();
+            isPolicyAction: true).ToArray();
     }
 
-    internal ActionEvaluation[] EvaluatePolicyBeginTxActions(
-        RawBlock block,
-        Transaction transaction,
-        IWorld previousState)
+    internal ActionEvaluation[] EvaluateBeginTxActions(
+        RawBlock block, Transaction transaction, IWorld previousState)
     {
         _logger.Information(
             $"Evaluating policy begin tx actions for block #{block.Height} " +
@@ -444,15 +316,10 @@ public sealed class ActionEvaluator(
             tx: transaction,
             world: previousState,
             actions: policyActionsRegistry.BeginTxActions,
-            stateStore: stateStore,
-            isPolicyAction: true,
-            logger: _logger).ToArray();
+            isPolicyAction: true).ToArray();
     }
 
-    internal ActionEvaluation[] EvaluatePolicyEndTxActions(
-        RawBlock block,
-        Transaction transaction,
-        IWorld previousState)
+    internal ActionEvaluation[] EvaluateEndTxActions(RawBlock block, Transaction tx, IWorld world)
     {
         _logger.Information(
             $"Evaluating policy end tx actions for block #{block.Height} " +
@@ -460,75 +327,25 @@ public sealed class ActionEvaluator(
 
         return EvaluateActions(
             block: block,
-            tx: transaction,
-            world: previousState,
+            tx: tx,
+            world: world,
             actions: policyActionsRegistry.EndTxActions,
-            stateStore: stateStore,
-            isPolicyAction: true,
-            logger: _logger).ToArray();
+            isPolicyAction: true).ToArray();
     }
 
-    internal IReadOnlyList<CommittedActionEvaluation>
-        ToCommittedEvaluation(
-            RawBlock block,
-            IReadOnlyList<ActionEvaluation> evaluations,
-            HashDigest<SHA256>? baseStateRootHash)
-    {
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
+    // internal CommittedActionEvaluation[] ToCommittedEvaluation(
+    //     RawBlock block,
+    //     IReadOnlyList<ActionEvaluation> evaluations,
+    //     HashDigest<SHA256>? baseStateRootHash)
+    // {
+    //     var committedEvaluations = new List<CommittedActionEvaluation>();
+    //     foreach (var evaluation in evaluations)
+    //     {
+    //         committedEvaluations.Add((CommittedActionEvaluation)evaluation);
+    //     }
 
-        var committedEvaluations = new List<CommittedActionEvaluation>();
-        foreach (var evaluation in evaluations)
-        {
-#pragma warning disable SA1118
-            var committedEvaluation = new CommittedActionEvaluation
-            {
-                Action = evaluation.Action,
-                InputContext = new CommittedActionContext
-                {
-                    Signer = evaluation.InputContext.Signer,
-                    TxId = evaluation.InputContext.TxId,
-                    Miner = evaluation.InputContext.Miner,
-                    BlockHeight = evaluation.InputContext.BlockHeight,
-                    BlockProtocolVersion = evaluation.InputContext.BlockProtocolVersion,
-                    PreviousState = evaluation.InputContext.PreviousState.Trie.IsCommitted
-                        ? evaluation.InputContext.PreviousState.Trie.Hash
-                        : throw new ArgumentException("Trie is not recorded"),
-                    RandomSeed = evaluation.InputContext.RandomSeed,
-                    IsPolicyAction = evaluation.InputContext.IsPolicyAction,
-                },
-                OutputState = evaluation.OutputState.Trie.IsCommitted
-                    ? evaluation.OutputState.Trie.Hash
-                    : throw new ArgumentException("Trie is not recorded"),
-                Exception = evaluation.Exception,
-            };
-            committedEvaluations.Add(committedEvaluation);
-#pragma warning restore SA1118
-        }
-
-        return committedEvaluations;
-    }
-
-    private static IEnumerable<Transaction> OrderTxsForEvaluationV0(
-        IEnumerable<Transaction> txs,
-        ImmutableArray<byte> preEvaluationHashBytes)
-    {
-        // As the order of transactions should be unpredictable until a block is mined,
-        // the sorter key should be derived from both a block hash and a txid.
-        var maskInteger = new BigInteger(preEvaluationHashBytes.ToArray());
-
-        // Transactions with the same signers are grouped first and the ordering of the groups
-        // is determined by the XOR aggregate of the txid's in the group with XOR bitmask
-        // applied using the pre-evaluation hash provided.  Then within each group,
-        // transactions are ordered by nonce.
-        return txs
-            .GroupBy(tx => tx.Signer)
-            .OrderBy(
-                group => maskInteger ^ group
-                    .Select(tx => new BigInteger(tx.Id.Bytes.ToArray()))
-                    .Aggregate((first, second) => first ^ second))
-            .SelectMany(group => group.OrderBy(tx => tx.Nonce));
-    }
+    //     return committedEvaluations.ToArray();
+    // }
 
     private static IEnumerable<Transaction> OrderTxsForEvaluationV3(
         IEnumerable<Transaction> txs,
@@ -568,12 +385,21 @@ public sealed class ActionEvaluator(
 
     private IEnumerable<IAction> LoadActions(long index, Transaction tx)
     {
-        if (tx.Actions is { } actions)
+        foreach (var action in tx.Actions)
         {
-            foreach (IValue rawAction in actions)
-            {
-                yield return ActionLoader.LoadAction(index, rawAction);
-            }
+            yield return ActionLoader.LoadAction(index, action);
         }
+    }
+
+    private int GetCapacity(RawBlock block)
+    {
+        var txCount = block.Transactions.Count;
+        var actionCount = block.Transactions.Sum(tx => tx.Actions.Length);
+        var blockActionCount = policyActionsRegistry.BeginBlockActions.Length
+            + policyActionsRegistry.EndBlockActions.Length;
+        var txActionCount = policyActionsRegistry.BeginTxActions.Length
+            + policyActionsRegistry.EndTxActions.Length;
+        var capacity = actionCount + blockActionCount + (txActionCount * txCount);
+        return capacity;
     }
 }

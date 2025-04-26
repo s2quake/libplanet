@@ -54,18 +54,19 @@ namespace Libplanet.Action.Tests
             };
             foreach (var (seed, expected) in testCases)
             {
-                var context = new ActionContext(
-                    signer: _address,
-                    txid: _txid,
-                    miner: _address,
-                    blockHeight: 1,
-                    blockProtocolVersion: Block.CurrentProtocolVersion,
-                    lastCommit: _lastCommit,
-                    previousState: new World(MockWorldState.CreateModern()),
-                    randomSeed: seed,
-                    isPolicyAction: false,
-                    maxGasPrice: null
-                );
+                var context = new ActionContext
+                {
+                    Signer = _address,
+                    TxId = _txid,
+                    Miner = _address,
+                    BlockHeight = 1,
+                    BlockProtocolVersion = Block.CurrentProtocolVersion,
+                    LastCommit = _lastCommit,
+                    World = new World(MockWorldState.CreateModern()),
+                    RandomSeed = seed,
+                    IsPolicyAction = false,
+                    MaxGasPrice = null,
+                };
                 IRandom random = context.GetRandom();
                 Assert.Equal(expected, random.Next());
             }
@@ -74,44 +75,47 @@ namespace Libplanet.Action.Tests
         [Fact]
         public void GuidShouldBeDeterministic()
         {
-            var context1 = new ActionContext(
-                signer: _address,
-                txid: _txid,
-                miner: _address,
-                blockHeight: 1,
-                blockProtocolVersion: Block.CurrentProtocolVersion,
-                lastCommit: _lastCommit,
-                previousState: new World(MockWorldState.CreateModern()),
-                randomSeed: 0,
-                isPolicyAction: false,
-                maxGasPrice: null
-            );
+            var context1 = new ActionContext
+            {
+                Signer = _address,
+                TxId = _txid,
+                Miner = _address,
+                BlockHeight = 1,
+                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                LastCommit = _lastCommit,
+                World = new World(MockWorldState.CreateModern()),
+                RandomSeed = 0,
+                IsPolicyAction = false,
+                MaxGasPrice = null,
+            };
 
-            var context2 = new ActionContext(
-                signer: _address,
-                txid: _txid,
-                miner: _address,
-                blockHeight: 1,
-                blockProtocolVersion: Block.CurrentProtocolVersion,
-                lastCommit: _lastCommit,
-                previousState: new World(MockWorldState.CreateModern()),
-                randomSeed: 0,
-                isPolicyAction: false,
-                maxGasPrice: null
-            );
+            var context2 = new ActionContext
+            {
+                Signer = _address,
+                TxId = _txid,
+                Miner = _address,
+                BlockHeight = 1,
+                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                LastCommit = _lastCommit,
+                World = new World(MockWorldState.CreateModern()),
+                RandomSeed = 0,
+                IsPolicyAction = false,
+                MaxGasPrice = null,
+            };
 
-            var context3 = new ActionContext(
-                signer: _address,
-                txid: _txid,
-                miner: _address,
-                blockHeight: 1,
-                blockProtocolVersion: Block.CurrentProtocolVersion,
-                lastCommit: _lastCommit,
-                previousState: new World(MockWorldState.CreateModern()),
-                randomSeed: 1,
-                isPolicyAction: false,
-                maxGasPrice: null
-            );
+            var context3 = new ActionContext
+            {
+                Signer = _address,
+                TxId = _txid,
+                Miner = _address,
+                BlockHeight = 1,
+                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                LastCommit = _lastCommit,
+                World = new World(MockWorldState.CreateModern()),
+                RandomSeed = 1,
+                IsPolicyAction = false,
+                MaxGasPrice = null,
+            };
 
             (Guid Expected, Guid Diff)[] testCases =
             {
@@ -141,18 +145,19 @@ namespace Libplanet.Action.Tests
         {
             for (var i = 0; i < 100; i++)
             {
-                var context = new ActionContext(
-                    signer: _address,
-                    txid: _txid,
-                    miner: _address,
-                    blockHeight: 1,
-                    blockProtocolVersion: Block.CurrentProtocolVersion,
-                    lastCommit: _lastCommit,
-                    previousState: new World(MockWorldState.CreateModern()),
-                    randomSeed: i,
-                    isPolicyAction: false,
-                    maxGasPrice: null
-                );
+                var context = new ActionContext
+                {
+                    Signer = _address,
+                    TxId = _txid,
+                    Miner = _address,
+                    BlockHeight = 1,
+                    BlockProtocolVersion = Block.CurrentProtocolVersion,
+                    LastCommit = _lastCommit,
+                    World = new World(MockWorldState.CreateModern()),
+                    RandomSeed = i,
+                    IsPolicyAction = false,
+                    MaxGasPrice = null,
+                };
                 var guid = context.GetRandom().GenerateRandomGuid().ToString();
 
                 Assert.Equal('4', guid[14]);
