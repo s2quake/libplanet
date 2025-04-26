@@ -1,1680 +1,1681 @@
-#pragma warning disable MEN003 // Method is too long
-using System.Collections;
-using System.Numerics;
-using Bencodex.Types;
-using Libplanet.Action;
-using Libplanet.Action.Loader;
-using Libplanet.Action.State;
-using Libplanet.Action.Tests.Common;
-using Libplanet.Blockchain.Policies;
-using Libplanet.Crypto;
-using Libplanet.Mocks;
-using Libplanet.Serialization;
-using Libplanet.Store;
-using Libplanet.Store.Trie;
-using Libplanet.Tests.Blocks;
-using Libplanet.Tests.Fixtures;
-using Libplanet.Tests.Store;
-using Libplanet.Tests.Tx;
-using Libplanet.Types.Assets;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
-using Serilog;
-using Xunit;
-using Xunit.Abstractions;
-using static Libplanet.Action.State.KeyConverters;
-using static Libplanet.Tests.TestUtils;
-
-namespace Libplanet.Tests.Action;
-
-public partial class ActionEvaluatorTest
-{
-    private readonly ILogger _logger;
-    private readonly ITestOutputHelper _output;
-    private readonly BlockPolicy _policy;
-    private readonly StoreFixture _storeFx;
-    private readonly TxFixture _txFx;
-
-    private readonly Address _beginBlockValueAddress =
-        Address.Parse("0000000000000000000000000000000000000120");
-
-    private readonly Address _endBlockValueAddress =
-        Address.Parse("0000000000000000000000000000000000000121");
-
-    private readonly Address _beginTxValueAddress =
-        Address.Parse("0000000000000000000000000000000000000122");
-
-    private readonly Address _endTxValueAddress =
-        Address.Parse("0000000000000000000000000000000000000123");
-
-    public ActionEvaluatorTest(ITestOutputHelper output)
-    {
-        Log.Logger = _logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .Enrich.WithThreadId()
-            .WriteTo.TestOutput(output)
-            .CreateLogger()
-            .ForContext<ActionEvaluatorTest>();
-
-        _output = output;
-        _policy = new BlockPolicy(
-            new PolicyActionsRegistry
-            {
-                BeginBlockActions = [new UpdateValueAction(_beginBlockValueAddress, 1)],
-                EndBlockActions = [new UpdateValueAction(_endBlockValueAddress, 1)],
-                BeginTxActions = [new UpdateValueAction(_beginTxValueAddress, 1)],
-                EndTxActions = [new UpdateValueAction(_endTxValueAddress, 1)],
-            },
-            getMaxTransactionsBytes: _ => 50 * 1024);
-        _storeFx = new MemoryStoreFixture(_policy.PolicyActionsRegistry);
-        _txFx = new TxFixture(null);
-    }
-
-    [Fact]
-    public void Idempotent()
-    {
-        // NOTE: This test checks that blocks can be evaluated idempotently. Also it checks
-        // the action results in pre-evaluation step and in evaluation step are equal.
-        const int repeatCount = 2;
-        var signer = new PrivateKey();
-        var timestamp = DateTimeOffset.UtcNow;
-        var txAddress = signer.Address;
-        var txs = new[]
-        {
-            Transaction.Create(
-                nonce: 0,
-                privateKey: signer,
-                genesisHash: null,
-                actions: new[] { new ContextRecordingAction(txAddress, new Text("Foo")), }
-                    .ToPlainValues()),
-        };
-        var evs = Array.Empty<EvidenceBase>();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var noStateRootBlock = RawBlock.Propose(
-            new BlockMetadata
-            {
-                ProtocolVersion = Block.CurrentProtocolVersion,
-                Height = 0,
-                Timestamp = timestamp,
-                Miner = GenesisProposer.Address,
-                PublicKey = GenesisProposer.PublicKey,
-                PreviousHash = default,
-                TxHash = BlockContent.DeriveTxHash(txs),
-                LastCommit = null,
-                EvidenceHash = null,
-            },
-            new BlockContent
-            {
-                Transactions = [.. txs],
-                Evidence = [.. evs],
-            });
-        var actionEvaluator = new ActionEvaluator(
-            new PolicyActionsRegistry(),
-            stateStore,
-            new SingleActionLoader<ContextRecordingAction>());
-        Block stateRootBlock = noStateRootBlock.Sign(
-            GenesisProposer,
-            stateRootHash: default);
-        var generatedRandomNumbers = new List<int>();
-
-        AssertPreEvaluationBlocksEqual((RawBlock)stateRootBlock, noStateRootBlock);
-
-        for (int i = 0; i < repeatCount; ++i)
-        {
-            var actionEvaluations = actionEvaluator.Evaluate(noStateRootBlock, default);
-            generatedRandomNumbers.Add(
-                (Integer)new WorldBaseState(
-                    stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
-                        .GetAccountState(ReservedAddresses.LegacyAccount)
-                        .GetState(ContextRecordingAction.RandomRecordAddress));
-            actionEvaluations = actionEvaluator.Evaluate((RawBlock)stateRootBlock, default);
-            generatedRandomNumbers.Add(
-                (Integer)new WorldBaseState(
-                    stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
-                        .GetAccountState(ReservedAddresses.LegacyAccount)
-                        .GetState(ContextRecordingAction.RandomRecordAddress));
-        }
-
-        for (int i = 1; i < generatedRandomNumbers.Count; ++i)
-        {
-            Assert.Equal(generatedRandomNumbers[0], generatedRandomNumbers[i]);
-        }
-    }
-
-    [Fact]
-    public void Evaluate()
-    {
-        var privateKey = new PrivateKey();
-        var address = privateKey.Address;
-        var value = new Text("Foo");
-
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
-            store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader(typeof(ContextRecordingAction)));
-        var action = new ContextRecordingAction(address, value);
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
-            actions: new[] { action }.ToPlainValues());
-
-        chain.StageTransaction(tx);
-        var miner = new PrivateKey();
-        Block block = chain.ProposeBlock(miner);
-        chain.Append(block, CreateBlockCommit(block));
-
-        var evaluations = chain.ActionEvaluator.Evaluate(
-            (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
-
-        Assert.Single(evaluations);
-        Assert.Null(evaluations.Single().Exception);
-        Assert.Equal(
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(address),
-            value);
-        Assert.Equal(
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(ContextRecordingAction.MinerRecordAddress),
-            block.Miner.ToBencodex());
-        Assert.Equal(
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(ContextRecordingAction.SignerRecordAddress),
-            tx.Signer.ToBencodex());
-        Assert.Equal(
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(ContextRecordingAction.BlockIndexRecordAddress),
-            new Integer(block.Height));
-        Assert.Equal(
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(ContextRecordingAction.RandomRecordAddress),
-            new Integer(evaluations.Single().InputContext.GetRandom().Next()));
-    }
-
-    [Fact]
-    public void EvaluateWithPolicyActions()
-    {
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var (chain, actionEvaluator) =
-            TestUtils.MakeBlockChainAndActionEvaluator(
-                policy: _policy,
-                store: store,
-                stateStore: stateStore,
-                actionLoader: new SingleActionLoader<DumbAction>());
-
-        Assert.Equal(
-            (Integer)1,
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_beginBlockValueAddress));
-        Assert.Equal(
-            (Integer)1,
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_endBlockValueAddress));
-        Assert.Equal(
-            (Integer)chain.Genesis.Transactions.Count,
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_beginTxValueAddress));
-        Assert.Equal(
-            (Integer)chain.Genesis.Transactions.Count,
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_endTxValueAddress));
-
-        (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
-        var evaluations = actionEvaluator.Evaluate(
-            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
-
-        // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
-        Assert.Equal(
-            2 + txs.Length * 2 + txs.Aggregate(0, (sum, tx) => sum + tx.Actions.Length),
-            evaluations.Length);
-
-        chain.Append(block, CreateBlockCommit(block));
-        Assert.Equal(
-            (Integer)2,
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_beginBlockValueAddress));
-        Assert.Equal(
-            (Integer)2,
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_endBlockValueAddress));
-        Assert.Equal(
-            (Integer)(chain.Genesis.Transactions.Count + txs.Length),
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_beginTxValueAddress));
-        Assert.Equal(
-            (Integer)(chain.Genesis.Transactions.Count + txs.Length),
-            chain
-                .GetNextWorldState()
-                .GetAccountState(ReservedAddresses.LegacyAccount)
-                .GetState(_endTxValueAddress));
-    }
-
-    [Fact]
-    public void EvaluateWithPolicyActionsWithException()
-    {
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var policyWithExceptions = new BlockPolicy(
-            new PolicyActionsRegistry
-            {
-                BeginBlockActions =
-                [
-                    new UpdateValueAction(_beginBlockValueAddress, 1),
-                    new ThrowException { ThrowOnExecution = true },
-                ],
-                EndBlockActions =
-                [
-                    new UpdateValueAction(_endBlockValueAddress, 1),
-                    new ThrowException { ThrowOnExecution = true },
-                ],
-                BeginTxActions =
-                [
-                    new UpdateValueAction(_beginTxValueAddress, 1),
-                    new ThrowException { ThrowOnExecution = true },
-                ],
-                EndTxActions =
-                [
-                    new UpdateValueAction(_endTxValueAddress, 1),
-                    new ThrowException { ThrowOnExecution = true },
-                ],
-            });
-
-        var (chain, actionEvaluator) =
-            TestUtils.MakeBlockChainAndActionEvaluator(
-                policy: policyWithExceptions,
-                store: store,
-                stateStore: stateStore,
-                actionLoader: new SingleActionLoader<DumbAction>());
-
-        (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var block = chain.ProposeBlock(
-            GenesisProposer,
-            txs.ToImmutableList(),
-            CreateBlockCommit(chain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
-        var evaluations = actionEvaluator.Evaluate(
-            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
-
-        // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
-        Assert.Equal(
-            4 + txs.Length * 4 + txs.Sum(tx => tx.Actions.Length),
-            evaluations.Length);
-        Assert.Equal(
-            2 + txs.Length * 2,
-            evaluations.Count(e => e.Exception != null));
-    }
-
-    // [Fact]
-    // public void EvaluateWithException()
-    // {
-    //     var privateKey = new PrivateKey();
-    //     var address = privateKey.Address;
-
-    //     var action = new ThrowException { ThrowOnExecution = true };
-
-    //     var store = new MemoryStore();
-    //     var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-    //     var chain = TestUtils.MakeBlockChain(
-    //         policy: new BlockPolicy(),
-    //         store: store,
-    //         stateStore: stateStore,
-    //         actionLoader: new SingleActionLoader(typeof(ThrowException)));
-    //     var tx = Transaction.Create(
-    //         nonce: 0,
-    //         privateKey: privateKey,
-    //         genesisHash: chain.Genesis.Hash,
-    //         actions: new[] { action }.ToPlainValues());
-
-    //     chain.StageTransaction(tx);
-    //     Block block = chain.ProposeBlock(new PrivateKey());
-    //     chain.Append(block, CreateBlockCommit(block));
-    //     var evaluations = chain.ActionEvaluator.Evaluate(
-    //         (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
-
-    //     Assert.False(evaluations[0].InputContext.IsPolicyAction);
-    //     Assert.Single(evaluations);
-    //     Assert.NotNull(evaluations.Single().Exception);
-    //     Assert.IsType<UnexpectedlyTerminatedActionException>(
-    //         evaluations.Single().Exception);
-    //     Assert.IsType<ThrowException.SomeException>(
-    //         evaluations.Single().Exception.InnerException);
-    // }
-
-    // [Fact]
-    // public void EvaluateWithCriticalException()
-    // {
-    //     var privateKey = new PrivateKey();
-    //     var address = privateKey.Address;
-
-    //     var action = new ThrowException
-    //     {
-    //         ThrowOnExecution = true,
-    //         Deterministic = false,
-    //     };
-
-    //     var store = new MemoryStore();
-    //     var stateStore =
-    //         new TrieStateStore(new MemoryKeyValueStore());
-    //     var (chain, actionEvaluator) =
-    //         TestUtils.MakeBlockChainAndActionEvaluator(
-    //             policy: new BlockPolicy(),
-    //             store: store,
-    //             stateStore: stateStore,
-    //             actionLoader: new SingleActionLoader(typeof(ThrowException)));
-    //     var genesis = chain.Genesis;
-    //     // Evaluation is run with rehearsal true to get updated addresses on tx creation.
-    //     var tx = Transaction.Create(
-    //         nonce: 0,
-    //         privateKey: privateKey,
-    //         genesisHash: genesis.Hash,
-    //         actions: new[] { action }.ToPlainValues());
-    //     var txs = new Transaction[] { tx };
-    //     var evs = Array.Empty<EvidenceBase>();
-    //     RawBlock block = RawBlock.Propose(
-    //         new BlockMetadata
-    //         {
-    //             Height = 1L,
-    //             Timestamp = DateTimeOffset.UtcNow,
-    //             PublicKey = new PrivateKey().PublicKey,
-    //             PreviousHash = genesis.Hash,
-    //             TxHash = BlockContent.DeriveTxHash(txs),
-    //             LastCommit = null,
-    //             EvidenceHash = null,
-    //         },
-    //         new BlockContent
-    //         {
-    //             Transactions = [.. txs],
-    //             Evidence = [.. evs],
-    //         });
-    //     IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
-
-    //     Assert.Throws<OutOfMemoryException>(
-    //         () => actionEvaluator.EvaluateTx(
-    //             block: block,
-    //             tx: tx,
-    //             world: previousState).ToList());
-    //     Assert.Throws<OutOfMemoryException>(
-    //         () => chain.ActionEvaluator.Evaluate(
-    //             block, chain.Store.GetStateRootHash(block.PreviousHash)).ToList());
-    // }
-
-    [Fact]
-    public void EvaluateTxs()
-    {
-        DumbAction MakeAction(Address address, char identifier, Address? transferTo = null)
-        {
-            return DumbAction.Create(
-                append: (address, identifier.ToString()),
-                transfer: transferTo is Address to
-                    ? (address, to, 5)
-                    : ((Address, Address, BigInteger)?)null);
-        }
-
-        Address[] addresses =
-        {
-            _txFx.Address1,
-            _txFx.Address2,
-            _txFx.Address3,
-            _txFx.Address4,
-            _txFx.Address5,
-        };
-
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
-            .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
-            .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
-            .SetBalance(addresses[2], DumbAction.DumbCurrency * 100)
-            .SetBalance(addresses[3], DumbAction.DumbCurrency * 100)
-            .SetBalance(addresses[4], DumbAction.DumbCurrency * 100));
-        ITrie trie = stateStore.Commit(world.Trie);
-
-        Block genesis = ProposeGenesisBlock(
-            TestUtils.GenesisProposer,
-            stateRootHash: trie.Hash);
-        var actionEvaluator = new ActionEvaluator(
-            new PolicyActionsRegistry(),
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<DumbAction>());
-
-        Transaction[] block1Txs =
-        {
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
-                    {
-                        GenesisHash = genesis.Hash,
-                        UpdatedAddresses = [addresses[0], addresses[1]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-                        Actions = [.. ImmutableArray.Create<IAction>([
-                            MakeAction(addresses[0], 'A', addresses[1]),
-                            MakeAction(addresses[1], 'B', addresses[2]),
-                        ]).ToPlainValues()],
-                        MaxGasPrice = null,
-                        GasLimit = null,
-                    },
-                    new TxSigningMetadata(_txFx.PrivateKey1.PublicKey, 0)),
-                _txFx.PrivateKey1),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
-                    {
-                        GenesisHash = genesis.Hash,
-                        UpdatedAddresses = [],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
-                        Actions = [.. ImmutableArray.Create<IAction>([
-                            MakeAction(addresses[2], 'C', addresses[3]),
-                        ]).ToPlainValues()],
-                        MaxGasPrice = null,
-                        GasLimit = null,
-                    },
-                    new TxSigningMetadata(_txFx.PrivateKey2.PublicKey, 0)),
-                _txFx.PrivateKey2),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
-                    {
-                        GenesisHash = genesis.Hash,
-                        UpdatedAddresses = [],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
-                        Actions = [],
-                    },
-                    new TxSigningMetadata(_txFx.PrivateKey3.PublicKey, 0)),
-                _txFx.PrivateKey3),
-        };
-        foreach ((var tx, var i) in block1Txs.Zip(
-            Enumerable.Range(0, block1Txs.Length), (x, y) => (x, y)))
-        {
-            _logger.Debug("{0}[{1}] = {2}", nameof(block1Txs), i, tx.Id);
-        }
-
-        Block block1 = ProposeNextBlock(
-            genesis,
-            GenesisProposer,
-            block1Txs);
-        IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
-        var evals = actionEvaluator.EvaluateBlock(
-            (RawBlock)block1,
-            previousState).ToImmutableArray();
-        // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
-        // have to be updated, since the order may change due to different RawHash.
-        (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[] expectations =
-        {
-            (0, 0, new[] { "A", null, null, null, null }, _txFx.Address1),  // Adds "A"
-            (0, 1, new[] { "A", "B", null, null, null }, _txFx.Address1),   // Adds "B"
-            (1, 0, new[] { "A", "B", "C", null, null }, _txFx.Address2),    // Adds "C"
-        };
-
-#if DEBUG
-        // This code was created by ilgyu.
-        // You can preview the result of the test in the debug console.
-        // If this test fails, you can copy the result from the debug console
-        // and paste it to the upper part of the test code.
-        System.Diagnostics.Trace.WriteLine("------- 1");
-        foreach (var eval in evals)
-        {
-            int txIdx = block1Txs.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Id.Equals(eval.InputContext.TxId)).idx;
-            int actionIdx = block1Txs[txIdx].Actions.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Equals(ModelSerializer.Serialize(eval.Action))).idx;
-            string updatedStates = "new[] { " + string.Join(", ", addresses.Select(
-                eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
-                .Select(x => x is Text t ? '"' + t.Value + '"' : "null")) + " }";
-            string signerIdx = "_txFx.Address" + (addresses.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
-            System.Diagnostics.Trace.WriteLine(
-                            $"({txIdx}, {actionIdx}, {updatedStates}, {signerIdx}),");
-        }
-
-        System.Diagnostics.Trace.WriteLine("---------");
-#endif // DEBUG
-
-        Assert.Equal(expectations.Length, evals.Length);
-        foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
-        {
-            Assert.Equal(
-                expect.UpdatedStates,
-                addresses.Select(
-                    eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
-                    .Select(x => x is Text t ? t.Value : null));
-            Assert.Equal(block1Txs[expect.TxIdx].Id, eval.InputContext.TxId);
-            Assert.Equal(
-                block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
-                ModelSerializer.Serialize(eval.Action));
-            Assert.Equal(expect.Signer, eval.InputContext.Signer);
-            Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
-            Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
-        }
-
-        previousState = stateStore.GetWorld(genesis.StateRootHash);
-        ActionEvaluation[] evals1 =
-            actionEvaluator.EvaluateBlock((RawBlock)block1, previousState).ToArray();
-        var output1 = new WorldBaseState(evals1.Last().OutputState.Trie, stateStore);
-        Assert.Equal(
-            (Text)"A",
-            output1.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[0]));
-        Assert.Equal(
-            (Text)"B",
-            output1.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[1]));
-        Assert.Equal(
-            (Text)"C",
-            output1.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[2]));
-        Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 95, 0),
-            output1.GetBalance(addresses[0], DumbAction.DumbCurrency));
-        Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 100, 0),
-            output1.GetBalance(addresses[1], DumbAction.DumbCurrency));
-        Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 100, 0),
-            output1.GetBalance(addresses[2], DumbAction.DumbCurrency));
-        Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 105, 0),
-            output1.GetBalance(addresses[3], DumbAction.DumbCurrency));
-
-        Transaction[] block2Txs =
-        {
-            // Note that these timestamps in themselves does not have any meanings but are
-            // only arbitrary.  These purpose to make their evaluation order in a block
-            // equal to the order we (the test) intend:
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
-                    {
-                        GenesisHash = genesis.Hash,
-                        UpdatedAddresses = [addresses[0]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
-                        Actions = [.. ImmutableArray.Create<IAction>([
-                            MakeAction(addresses[0], 'D'),
-                        ]).ToPlainValues()],
-                    },
-                    new TxSigningMetadata(_txFx.PrivateKey1.PublicKey, 0)),
-                _txFx.PrivateKey1),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
-                    {
-                        GenesisHash = genesis.Hash,
-                        UpdatedAddresses = [addresses[3]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-                        Actions = [.. ImmutableArray.Create<IAction>([
-                            MakeAction(addresses[3], 'E'),
-                        ]).ToPlainValues()],
-                    },
-                    new TxSigningMetadata(_txFx.PrivateKey2.PublicKey, 0)),
-                _txFx.PrivateKey2),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
-                    {
-                        GenesisHash = genesis.Hash,
-                        UpdatedAddresses = [addresses[4]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
-                        Actions = [.. ImmutableArray.Create<IAction>([
-                            DumbAction.Create(
-                                (addresses[4], "F"),
-                                transfer: (addresses[0], addresses[4], 8)),
-                        ]).ToPlainValues()],
-                    },
-                    new TxSigningMetadata(_txFx.PrivateKey3.PublicKey, 0)),
-                _txFx.PrivateKey3),
-        };
-        foreach ((var tx, var i) in block2Txs.Zip(
-            Enumerable.Range(0, block2Txs.Length), (x, y) => (x, y)))
-        {
-            _logger.Debug("{0}[{1}] = {2}", nameof(block2Txs), i, tx.Id);
-        }
-
-        // Same as above, use the same timestamp of last commit for each to get a deterministic
-        // test result.
-        Block block2 = ProposeNextBlock(
-            block1,
-            GenesisProposer,
-            block2Txs,
-            lastCommit: CreateBlockCommit(block1, true));
-
-        // Forcefully reset to null delta
-        previousState = evals1.Last().OutputState;
-        evals = actionEvaluator.EvaluateBlock(
-            (RawBlock)block2,
-            previousState).ToImmutableArray();
-
-        // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
-        // have to be updated, since the order may change due to different RawHash.
-        expectations = new (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[]
-        {
-            (0, 0, new[] { "A,D", "B", "C", null, null }, _txFx.Address1),
-            (1, 0, new[] { "A,D", "B", "C", "E", null }, _txFx.Address2),
-            (2, 0, new[] { "A,D", "B", "C", "E", "F" }, _txFx.Address3),
-        };
-
-#if DEBUG
-        // This code was created by ilgyu.
-        // You can preview the result of the test in the debug console.
-        // If this test fails, you can copy the result from the debug console
-        // and paste it to the upper part of the test code.
-        System.Diagnostics.Trace.WriteLine("------- 2");
-        foreach (var eval in evals)
-        {
-            int txIdx = block2Txs.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Id.Equals(eval.InputContext.TxId)).idx;
-            int actionIdx = block2Txs[txIdx].Actions.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Equals(ModelSerializer.Serialize(eval.Action))).idx;
-            string updatedStates = "new[] { " + string.Join(", ", addresses.Select(
-                eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
-                .Select(x => x is Text t ? '"' + t.Value + '"' : "null")) + " }";
-            string signerIdx = "_txFx.Address" + (addresses.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
-            System.Diagnostics.Trace.WriteLine(
-                $"({txIdx}, {actionIdx}, {updatedStates}, {signerIdx}),");
-        }
-
-        System.Diagnostics.Trace.WriteLine("---------");
-#endif // DEBUG
-
-        Assert.Equal(expectations.Length, evals.Length);
-        foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
-        {
-            List<string> updatedStates = addresses
-                .Select(eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
-                .Select(x => x is Text t ? t.Value : null)
-                .ToList();
-            Assert.Equal(expect.UpdatedStates, updatedStates);
-            Assert.Equal(block2Txs[expect.TxIdx].Id, eval.InputContext.TxId);
-            Assert.Equal(
-                block2Txs[expect.TxIdx].Actions[expect.ActionIdx],
-                ModelSerializer.Serialize(eval.Action));
-            Assert.Equal(expect.Signer, eval.InputContext.Signer);
-            Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
-            Assert.Equal(block2.Height, eval.InputContext.BlockHeight);
-            Assert.Null(eval.Exception);
-        }
-
-        previousState = evals1.Last().OutputState;
-        var evals2 = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState).ToArray();
-        var output2 = new WorldBaseState(evals2.Last().OutputState.Trie, stateStore);
-        Assert.Equal(
-            (Text)"A,D",
-            output2.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[0]));
-        Assert.Equal(
-            (Text)"E",
-            output2.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[3]));
-        Assert.Equal(
-            (Text)"F",
-            output2.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[4]));
-    }
-
-    [Fact]
-    public void EvaluateTx()
-    {
-        PrivateKey[] keys = { new PrivateKey(), new PrivateKey(), new PrivateKey() };
-        Address[] addresses = keys.Select(key => key.Address).ToArray();
-        DumbAction[] actions =
-        {
-            DumbAction.Create(
-                append: (addresses[0], "0"),
-                transfer: (addresses[0], addresses[1], 5)),
-            DumbAction.Create(
-                append: (addresses[1], "1"),
-                transfer: (addresses[2], addresses[1], 10)),
-            DumbAction.Create(
-                append: (addresses[0], "2"),
-                transfer: (addresses[1], addresses[0], 10)),
-            DumbAction.Create((addresses[2], "R")),
-        };
-        var tx =
-            Transaction.Create(0, _txFx.PrivateKey1, null, actions.ToPlainValues());
-        var txs = new Transaction[] { tx };
-        var evs = Array.Empty<EvidenceBase>();
-        var block = RawBlock.Propose(
-            new BlockMetadata
-            {
-                Height = 1L,
-                Timestamp = DateTimeOffset.UtcNow,
-                PublicKey = keys[0].PublicKey,
-                PreviousHash = default(BlockHash),
-                TxHash = BlockContent.DeriveTxHash(txs),
-                LastCommit = null,
-                EvidenceHash = null,
-            },
-            new BlockContent
-            {
-                Transactions = [.. txs],
-                Evidence = [.. evs],
-            });
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
-            .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
-            .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
-            .SetBalance(addresses[2], DumbAction.DumbCurrency * 100));
-        ITrie initTrie = stateStore.Commit(world.Trie);
-        var actionEvaluator = new ActionEvaluator(
-            new PolicyActionsRegistry(),
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<DumbAction>());
-
-        IWorld previousState = stateStore.GetWorld(initTrie.Hash);
-        var evaluations = actionEvaluator.EvaluateTx(
-            block: block,
-            tx: tx,
-            world: previousState).ToImmutableArray();
-
-        Assert.Equal(actions.Length, evaluations.Length);
-        string[][] expectedStates =
-        {
-            new[] { "0", null, null },
-            new[] { "0", "1", null },
-            new[] { "0,2", "1", null },
-            new[] { "0,2", "1", "R" },
-        };
-        BigInteger[][] expectedBalances =
-        {
-            new BigInteger[] { 95, 105, 100 },
-            new BigInteger[] { 95, 115, 90 },
-            new BigInteger[] { 105, 105, 90 },
-            new BigInteger[] { 105, 105, 90 },
-        };
-
-        Currency currency = DumbAction.DumbCurrency;
-        IValue[] initStates = new IValue[3];
-        BigInteger[] initBalances = new BigInteger[] { 100, 100, 100 };
-        for (int i = 0; i < evaluations.Length; i++)
-        {
-            ActionEvaluation eval = evaluations[i];
-            IActionContext context = eval.InputContext;
-            IWorld prevState = context.World;
-            IWorld outputState = eval.OutputState;
-            _logger.Debug("evalsA[{0}] = {1}", i, eval);
-            _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
-
-            Assert.Equal(tx.Actions[i], eval.Action);
-            Assert.Equal(_txFx.Address1, context.Signer);
-            Assert.Equal(tx.Id, context.TxId);
-            Assert.Equal(addresses[0], context.Miner);
-            Assert.Equal(1, context.BlockHeight);
-            ActionEvaluation prevEval = i > 0 ? evaluations[i - 1] : null;
-            Assert.Equal(
-                prevEval is null
-                    ? initStates
-                    : addresses.Select(
-                        prevEval.OutputState
-                            .GetAccount(ReservedAddresses.LegacyAccount)
-                            .GetState),
-                addresses.Select(
-                    eval.InputContext.World
-                        .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetState));
-            Assert.Equal(
-                expectedStates[i],
-                addresses.Select(eval.OutputState
-                    .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState)
-                    .Select(x => x is Text t ? t.Value : null));
-            Assert.Equal(
-                prevEval is null
-                    ? initBalances
-                    : addresses.Select(a =>
-                        prevEval.OutputState
-                            .GetBalance(a, currency).RawValue),
-                addresses.Select(
-                    a => eval.InputContext.PreviousState
-                            .GetBalance(a, currency).RawValue));
-            Assert.Equal(
-                expectedBalances[i],
-                addresses.Select(a => eval.OutputState
-                    .GetBalance(a, currency).RawValue));
-        }
-
-        previousState = stateStore.GetWorld(initTrie.Hash);
-        IWorld delta = actionEvaluator.EvaluateTx(
-            block: block,
-            tx: tx,
-            world: previousState).Last().OutputState;
-        Assert.Empty(evaluations[3].OutputState.Trie.Diff(delta.Trie));
-    }
-
-    [Fact]
-    public void EvaluateTxResultThrowingException()
-    {
-        var action = new ThrowException { ThrowOnExecution = true };
-        var tx = Transaction.Create(
-            0,
-            _txFx.PrivateKey1,
-            null,
-            new[] { action }.ToPlainValues(),
-            null,
-            null,
-            DateTimeOffset.UtcNow);
-        var txs = new Transaction[] { tx };
-        var evs = Array.Empty<EvidenceBase>();
-        var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var actionEvaluator = new ActionEvaluator(
-            new PolicyActionsRegistry(),
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader(typeof(ThrowException))
-        );
-        var block = RawBlock.Propose(
-            new BlockMetadata
-            {
-                Height = 123,
-                Timestamp = DateTimeOffset.UtcNow,
-                PublicKey = GenesisProposer.PublicKey,
-                PreviousHash = hash,
-                TxHash = BlockContent.DeriveTxHash(txs),
-                LastCommit = CreateBlockCommit(hash, 122, 0),
-                EvidenceHash = null,
-            },
-            new BlockContent
-            {
-                Transactions = [.. txs],
-                Evidence = [.. evs],
-            });
-        IWorld previousState = stateStore.GetWorld(default);
-        var nextState = actionEvaluator.EvaluateTx(
-            block: block,
-            tx: tx,
-            world: previousState).Last().OutputState;
-
-        Assert.Empty(nextState.Trie.Diff(previousState.Trie));
-    }
-
-    [Fact]
-    public void EvaluateActions()
-    {
-        IntegerSet fx = new IntegerSet(new[] { 5, 10 });
-
-        // txA: ((5 + 1) * 2) + 3 = 15
-        (Transaction txA, var deltaA) = fx.Sign(
-            0,
-            Arithmetic.Add(1),
-            Arithmetic.Mul(2),
-            Arithmetic.Add(3));
-
-        Block blockA = fx.Propose();
-        fx.Append(blockA);
-        ActionEvaluation[] evalsA = ActionEvaluator.EvaluateActions(
-            block: (RawBlock)blockA,
-            tx: txA,
-            world: fx.StateStore.GetWorld(blockA.StateRootHash),
-            actions: txA.Actions
-                .Select(action => (IAction)ToAction<Arithmetic>(action))
-                .ToImmutableArray(),
-            stateStore: fx.StateStore,
-            isPolicyAction: false).ToArray();
-
-        Assert.Equal(evalsA.Length, deltaA.Count - 1);
-        Assert.Equal(
-            new Integer(15),
-            evalsA.Last().OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount).GetState(txA.Signer));
-        Assert.All(evalsA, eval => Assert.Empty(eval.InputContext.Txs));
-
-        for (int i = 0; i < evalsA.Length; i++)
-        {
-            ActionEvaluation eval = evalsA[i];
-            IActionContext context = eval.InputContext;
-            IWorld prevState = context.World;
-            IWorld outputState = eval.OutputState;
-            _logger.Debug("evalsA[{0}] = {1}", i, eval);
-            _logger.Debug("txA.Actions[{0}] = {1}", i, txA.Actions[i]);
-
-            Assert.Equal(txA.Actions[i], eval.Action);
-            Assert.Equal(txA.Id, context.TxId);
-            Assert.Equal(blockA.Miner, context.Miner);
-            Assert.Equal(blockA.Height, context.BlockHeight);
-            Assert.Equal(txA.Signer, context.Signer);
-            Assert.Equal(
-                (Integer)deltaA[i].Value,
-                prevState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txA.Signer));
-            Assert.Equal(
-                ToStateKey(txA.Signer),
-                Assert.Single(
-                    outputState.GetAccount(ReservedAddresses.LegacyAccount).Trie.Diff(
-                        prevState.GetAccount(ReservedAddresses.LegacyAccount).Trie))
-                .Path);
-            Assert.Equal(
-                (Integer)deltaA[i + 1].Value,
-                outputState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txA.Signer));
-            Assert.Null(eval.Exception);
-        }
-
-        // txB: error(10 - 3) + -1 =
-        //           (10 - 3) + -1 = 6  (error() does nothing)
-        (Transaction txB, var deltaB) = fx.Sign(
-            1,
-            Arithmetic.Sub(3),
-            new Arithmetic(),
-            Arithmetic.Add(-1));
-
-        Block blockB = fx.Propose();
-        fx.Append(blockB);
-        ActionEvaluation[] evalsB = ActionEvaluator.EvaluateActions(
-            block: (RawBlock)blockB,
-            tx: txB,
-            world: fx.StateStore.GetWorld(blockB.StateRootHash),
-            actions: txB.Actions
-                .Select(action => (IAction)ToAction<Arithmetic>(action))
-                .ToImmutableArray(),
-            stateStore: fx.StateStore,
-            isPolicyAction: false).ToArray();
-
-        Assert.Equal(evalsB.Length, deltaB.Count - 1);
-        Assert.Equal(
-            new Integer(6),
-            evalsB.Last().OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount).GetState(txB.Signer));
-        Assert.All(evalsB, eval => Assert.Empty(eval.InputContext.Txs));
-
-        for (int i = 0; i < evalsB.Length; i++)
-        {
-            ActionEvaluation eval = evalsB[i];
-            IActionContext context = eval.InputContext;
-            IWorld prevState = context.World;
-            IWorld outputState = eval.OutputState;
-
-            _logger.Debug("evalsB[{0}] = {@1}", i, eval);
-            _logger.Debug("txB.Actions[{0}] = {@1}", i, txB.Actions[i]);
-
-            Assert.Equal(txB.Actions[i], eval.Action);
-            Assert.Equal(txB.Id, context.TxId);
-            Assert.Equal(blockB.Miner, context.Miner);
-            Assert.Equal(blockB.Height, context.BlockHeight);
-            Assert.Equal(txB.Signer, context.Signer);
-            Assert.False(context.IsPolicyAction);
-            Assert.Equal(
-                (Integer)deltaB[i].Value,
-                prevState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txB.Signer));
-            Assert.Equal(
-                (Integer)deltaB[i + 1].Value,
-                outputState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txB.Signer));
-            if (i == 1)
-            {
-                Assert.Empty(outputState.Trie.Diff(prevState.Trie));
-                Assert.IsType<UnexpectedlyTerminatedActionException>(eval.Exception);
-                Assert.IsType<InvalidOperationException>(eval.Exception.InnerException);
-            }
-            else
-            {
-                Assert.Equal(
-                    ToStateKey(txB.Signer),
-                    Assert.Single(
-                        outputState.GetAccount(ReservedAddresses.LegacyAccount).Trie.Diff(
-                            prevState.GetAccount(ReservedAddresses.LegacyAccount).Trie))
-                    .Path);
-                Assert.Null(eval.Exception);
-            }
-        }
-    }
-
-    [Fact]
-    public void EvaluatePolicyBeginBlockActions()
-    {
-        var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
-            genesisBlock: _storeFx.GenesisBlock,
-            privateKey: GenesisProposer);
-        (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
-
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
-        var evaluations = actionEvaluator.EvaluateBeginBlockActions(
-            (RawBlock)genesis,
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.BeginBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_beginBlockValueAddress));
-
-        previousState = evaluations[0].OutputState;
-        evaluations = actionEvaluator.EvaluateBeginBlockActions(
-            (RawBlock)block,
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.BeginBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_beginBlockValueAddress));
-    }
-
-    [Fact]
-    public void EvaluatePolicyEndBlockActions()
-    {
-        var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
-            genesisBlock: _storeFx.GenesisBlock,
-            privateKey: GenesisProposer);
-        (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            GenesisProposer,
-            txs.ToImmutableList(),
-            CreateBlockCommit(chain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
-
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
-        var evaluations = actionEvaluator.EvaluateEndBlockActions(
-            (RawBlock)genesis,
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.EndBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_endBlockValueAddress));
-        Assert.Equal(genesis.Transactions, evaluations[0].InputContext.Txs);
-
-        previousState = evaluations[0].OutputState;
-        evaluations = actionEvaluator.EvaluateEndBlockActions(
-            (RawBlock)block,
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.EndBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_endBlockValueAddress));
-    }
-
-    [Fact]
-    public void EvaluatePolicyBeginTxActions()
-    {
-        var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
-            genesisBlock: _storeFx.GenesisBlock,
-            privateKey: GenesisProposer);
-        (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
-
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
-        var evaluations = actionEvaluator.EvaluateBeginTxActions(
-            (RawBlock)genesis,
-            txs[0],
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.BeginTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_beginTxValueAddress));
-        Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
-
-        previousState = evaluations[0].OutputState;
-        evaluations = actionEvaluator.EvaluateBeginTxActions(
-            (RawBlock)block,
-            txs[1],
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.BeginTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_beginTxValueAddress));
-        Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
-    }
-
-    [Fact]
-    public void EvaluatePolicyEndTxActions()
-    {
-        var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
-            genesisBlock: _storeFx.GenesisBlock,
-            privateKey: GenesisProposer);
-        (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
-
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
-        var evaluations = actionEvaluator.EvaluateEndTxActions(
-            (RawBlock)genesis,
-            txs[0],
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.EndTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_endTxValueAddress));
-        Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
-
-        previousState = evaluations[0].OutputState;
-        evaluations = actionEvaluator.EvaluateEndTxActions(
-            (RawBlock)block,
-            txs[1],
-            previousState);
-
-        Assert.Equal<IAction>(
-            chain.Policy.PolicyActionsRegistry.EndTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
-        Assert.Single(evaluations);
-        Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputState
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(_endTxValueAddress));
-        Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
-        Assert.Equal(block.Transactions, evaluations[0].InputContext.Txs);
-    }
-
-    [Theory]
-    [ClassData(typeof(OrderTxsForEvaluationData))]
-    public void OrderTxsForEvaluation(
-        int protocolVersion,
-        List<string> originalAddresses,
-        List<string> orderedAddresses)
-    {
-        const int numSigners = 5;
-        const int numTxsPerSigner = 3;
-        var epoch = DateTimeOffset.FromUnixTimeSeconds(0);
-
-        TxFixture txFx = new BlockFixture().TxFixture;
-        ImmutableArray<PrivateKey> signers = ImmutableArray.Create(
-            txFx.PrivateKey1,
-            txFx.PrivateKey2,
-            txFx.PrivateKey3,
-            txFx.PrivateKey4,
-            txFx.PrivateKey5
-        );
-        ImmutableArray<ImmutableArray<int>> noncesPerSigner = ImmutableArray.Create(
-            ImmutableArray.Create(0, 2, 1),
-            ImmutableArray.Create(1, 0, 2),
-            ImmutableArray.Create(1, 2, 0),
-            ImmutableArray.Create(2, 0, 1),
-            ImmutableArray.Create(2, 1, 0)
-        );
-        // Unix Epoch used for hard coded timestamp.
-        ImmutableArray<Transaction> txs =
-            signers.Zip(noncesPerSigner, (signer, nonces) => (signer, nonces))
-                .SelectMany(
-                    signerNoncesPair => signerNoncesPair.nonces,
-                    (signerNoncesPair, nonce) => (signerNoncesPair.signer, nonce))
-                .Select(signerNoncePair =>
-                {
-                    Address targetAddress = signerNoncePair.signer.Address;
-                    return new Transaction(
-                        new UnsignedTx(
-                            new TxInvoice
-                            {
-                                GenesisHash = null,
-                                UpdatedAddresses = [targetAddress],
-                                Timestamp = epoch,
-                                Actions = [.. ImmutableArray.Create<IAction>([
-                                    new ContextRecordingAction(
-                                        signerNoncePair.signer.Address,
-                                        new Integer(signerNoncePair.nonce)),
-                                ]).ToPlainValues()],
-                            },
-                            new TxSigningMetadata(
-                                signerNoncePair.signer.PublicKey,
-                                signerNoncePair.nonce)),
-                        signerNoncePair.signer);
-                }).ToImmutableArray();
-
-        // Rearrange transactions so that transactions are not grouped by signers
-        // while keeping the hard coded mixed order nonces above.
-        txs = txs
-            .Where((tx, i) => i % numTxsPerSigner == 0)
-            .Concat(txs.Where((tx, i) => i % numTxsPerSigner != 0)).ToImmutableArray();
-
-        // FIXME: Invalid length for RawHash.
-        byte[] preEvaluationHashBytes =
-        {
-            0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
-            0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-        };
-
-        // Sanity check.
-        Assert.True(originalAddresses.SequenceEqual(
-            signers.Select(signer => signer.Address.ToString())));
-
-        var orderedTxs = txs;
-
-        // Check signers are grouped together.
-        for (int i = 0; i < numSigners; i++)
-        {
-            var signerTxs = orderedTxs.Skip(i * numTxsPerSigner).Take(numTxsPerSigner);
-            Assert.True(signerTxs.Select(tx => tx.Signer).Distinct().Count() == 1);
-        }
-
-        // Check nonces are ordered.
-        foreach (var signer in signers)
-        {
-            var signerTxs = orderedTxs.Where(tx => tx.Signer == signer.Address);
-            Assert.Equal(signerTxs.OrderBy(tx => tx.Nonce).ToArray(), signerTxs.ToArray());
-        }
-
-        // Check according to spec.
-        Assert.True(orderedAddresses.SequenceEqual(
-            orderedTxs
-                .Where((tx, i) => i % numTxsPerSigner == 0)
-                .Select(tx => tx.Signer.ToString())));
-    }
-
-    [Fact]
-    public void EvaluateActionAndCollectFee()
-    {
-        var privateKey = new PrivateKey();
-        var address = privateKey.Address;
-        Currency foo = new Currency("FOO", 18);
-
-        var freeGasAction = new UseGasAction()
-        {
-            GasUsage = 0,
-            Memo = "FREE",
-            MintValue = new FungibleAssetValue(foo, 10),
-            Receiver = address,
-        };
-
-        var payGasAction = new UseGasAction()
-        {
-            GasUsage = 1,
-            Memo = "CHARGE",
-        };
-
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
-            actions: new[] { freeGasAction, },
-            store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<UseGasAction>());
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
-            maxGasPrice: new FungibleAssetValue(foo, 1),
-            gasLimit: 3,
-            actions: new[]
-            {
-                payGasAction,
-            }.ToPlainValues());
-
-        chain.StageTransaction(tx);
-        var miner = new PrivateKey();
-        Block block = chain.ProposeBlock(miner);
-
-        var evaluations = chain.ActionEvaluator.Evaluate(
-            (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
-
-        Assert.Single(evaluations);
-        Assert.Null(evaluations.Single().Exception);
-        Assert.Equal(2, GasTracer.GasAvailable);
-        Assert.Equal(1, GasTracer.GasUsed);
-    }
-
-    [Fact]
-    public void EvaluateThrowingExceedGasLimit()
-    {
-        var privateKey = new PrivateKey();
-        var address = privateKey.Address;
-        Currency foo = new Currency("FOO", 18);
-
-        var freeGasAction = new UseGasAction()
-        {
-            GasUsage = 0,
-            Memo = "FREE",
-            MintValue = new FungibleAssetValue(foo, 10),
-            Receiver = address,
-        };
-
-        var payGasAction = new UseGasAction()
-        {
-            GasUsage = 10,
-            Memo = "CHARGE",
-        };
-
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
-            actions: new[]
-            {
-                freeGasAction,
-            },
-            store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<UseGasAction>());
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
-            maxGasPrice: new FungibleAssetValue(foo, 1),
-            gasLimit: 5,
-            actions: new[]
-            {
-                payGasAction,
-            }.ToPlainValues());
-
-        chain.StageTransaction(tx);
-        var miner = new PrivateKey();
-        Block block = chain.ProposeBlock(miner);
-
-        var evaluations = chain.ActionEvaluator.Evaluate(
-            (RawBlock)block,
-            chain.GetNextStateRootHash(block.PreviousHash) ?? default);
-
-        Assert.Single(evaluations);
-        Assert.NotNull(evaluations.Single().Exception);
-        Assert.NotNull(evaluations.Single().Exception?.InnerException);
-        Assert.Equal(
-            typeof(GasLimitExceededException),
-            evaluations.Single().Exception?.InnerException?.GetType());
-        Assert.Equal(0, GasTracer.GasAvailable);
-        Assert.Equal(5, GasTracer.GasUsed);
-    }
-
-    [Fact]
-    public void GenerateRandomSeed()
-    {
-        byte[] preEvaluationHashBytes =
-        {
-            0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
-            0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-        };
-        var signature = ImmutableArray.Create<byte>(
-        [
-            0x30, 0x44, 0x02, 0x20, 0x2f, 0x2d, 0xbe, 0x5a, 0x91, 0x65, 0x59, 0xde, 0xdb,
-            0xe8, 0xd8, 0x4f, 0xa9, 0x20, 0xe2, 0x01, 0x29, 0x4d, 0x4f, 0x40, 0xea, 0x1e,
-            0x97, 0x44, 0x1f, 0xbf, 0xa2, 0x5c, 0x8b, 0xd0, 0x0e, 0x23, 0x02, 0x20, 0x3c,
-            0x06, 0x02, 0x1f, 0xb8, 0x3f, 0x67, 0x49, 0x92, 0x3c, 0x07, 0x59, 0x67, 0x96,
-            0xa8, 0x63, 0x04, 0xb0, 0xc3, 0xfe, 0xbb, 0x6c, 0x7a, 0x7b, 0x58, 0x58, 0xe9,
-            0x7d, 0x37, 0x67, 0xe1, 0xe9,
-        ]);
-
-        int seed = ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, signature);
-        Assert.Equal(353767086, seed);
-    }
-
-    [Fact]
-    public void CheckRandomSeedInAction()
-    {
-        IntegerSet fx = new IntegerSet(new[] { 5, 10 });
-
-        // txA: ((5 + 1) * 2) + 3 = 15
-        (Transaction txA, var deltaA) = fx.Sign(
-            0,
-            Arithmetic.Add(1),
-            Arithmetic.Mul(2),
-            Arithmetic.Add(3));
-
-        Block blockA = fx.Propose();
-        ActionEvaluation[] evalsA = ActionEvaluator.EvaluateActions(
-            block: (RawBlock)blockA,
-            tx: txA,
-            world: fx.StateStore.GetWorld(blockA.StateRootHash),
-            actions: txA.Actions
-                .Select(action => (IAction)ToAction<Arithmetic>(action))
-                .ToImmutableArray(),
-            stateStore: fx.StateStore,
-            isPolicyAction: false).ToArray();
-
-        byte[] preEvaluationHashBytes = blockA.RawHash.Bytes.ToArray();
-        int[] randomSeeds = Enumerable
-            .Range(0, txA.Actions.Length)
-            .Select(offset => ActionEvaluator.GenerateRandomSeed(
-                preEvaluationHashBytes,
-                txA.Signature,
-                offset))
-            .ToArray();
-
-        for (int i = 0; i < evalsA.Length; i++)
-        {
-            ActionEvaluation eval = evalsA[i];
-            IActionContext context = eval.InputContext;
-            Assert.Equal(randomSeeds[i], context.RandomSeed);
-        }
-    }
-
-    private (Address[], Transaction[]) MakeFixturesForAppendTests(
-        PrivateKey privateKey = null,
-        DateTimeOffset epoch = default)
-    {
-        Address[] addresses =
-        {
-            _storeFx.Address1,
-            _storeFx.Address2,
-            _storeFx.Address3,
-            _storeFx.Address4,
-            _storeFx.Address5,
-        };
-
-        privateKey = privateKey ?? new PrivateKey(
-        [
-            0xa8, 0x21, 0xc7, 0xc2, 0x08, 0xa9, 0x1e, 0x53, 0xbb, 0xb2,
-            0x71, 0x15, 0xf4, 0x23, 0x5d, 0x82, 0x33, 0x44, 0xd1, 0x16,
-            0x82, 0x04, 0x13, 0xb6, 0x30, 0xe7, 0x96, 0x4f, 0x22, 0xe0,
-            0xec, 0xe0,
-        ]);
-
-        Transaction[] txs =
-        {
-            _storeFx.MakeTransaction(
-                new[]
-                {
-                    DumbAction.Create((addresses[0], "foo")),
-                    DumbAction.Create((addresses[1], "bar")),
-                },
-                timestamp: epoch,
-                nonce: 0,
-                privateKey: privateKey),
-            _storeFx.MakeTransaction(
-                new[]
-                {
-                    DumbAction.Create((addresses[2], "baz")),
-                    DumbAction.Create((addresses[3], "qux")),
-                },
-                timestamp: epoch.AddSeconds(5),
-                nonce: 1,
-                privateKey: privateKey),
-        };
-
-        return (addresses, txs);
-    }
-
-    private sealed class UseGasAction : IAction
-    {
-        public long GasUsage { get; set; }
-
-        public string Memo { get; set; }
-
-        public FungibleAssetValue? MintValue { get; set; }
-
-        public Address? Receiver { get; set; }
-
-        public IValue PlainValue => new List(
-            (Integer)GasUsage,
-            (Text)Memo,
-            MintValue is null ? (IValue)default(Null) : MintValue.Value.ToBencodex(),
-            Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.Bytes
-            );
-
-        public void LoadPlainValue(IValue plainValue)
-        {
-            var asList = (List)plainValue;
-            GasUsage = (Bencodex.Types.Integer)asList[0];
-            Memo = (Text)asList[1];
-            if (!(asList[2] is Bencodex.Types.Null))
-            {
-                MintValue = FungibleAssetValue.Create(asList[2]);
-            }
-
-            if (!(asList[3] is Bencodex.Types.Null))
-            {
-                Receiver = Address.Create(asList[3]);
-            }
-        }
-
-        public IWorld Execute(IActionContext context)
-        {
-            GasTracer.UseGas(GasUsage);
-            var state = context.World
-                .SetAccount(
-                    ReservedAddresses.LegacyAccount,
-                    context.World.GetAccount(ReservedAddresses.LegacyAccount)
-                        .SetState(context.Signer, (Text)Memo));
-            if (!(Receiver is null) && !(MintValue is null))
-            {
-                state = state.MintAsset(context, Receiver.Value, MintValue.Value);
-            }
-
-            return state;
-        }
-    }
-}
-
-#pragma warning disable SA1402 // File may only contain a single type
-internal class OrderTxsForEvaluationData : IEnumerable<object[]>
-{
-    // For fixture sanity.
-    public List<string> OriginalAddresses = new List<string>
-    {
-        "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
-        "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
-        "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
-        "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
-        "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
-    };
-
-    // Spec for protocol version < 3.
-    public List<string> OrderedAddressesV0 = new List<string>
-    {
-        "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
-        "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
-        "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
-        "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
-        "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
-    };
-
-    // Spec for protocol version >= 3.
-    public List<string> OrderedAddressesV3 = new List<string>
-    {
-        "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
-        "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
-        "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
-        "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
-        "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
-    };
-
-    public IEnumerator<object[]> GetEnumerator()
-    {
-        yield return new object[]
-        {
-            0,
-            OriginalAddresses,
-            OrderedAddressesV0,
-        };
-        yield return new object[]
-        {
-            3,
-            OriginalAddresses,
-            OrderedAddressesV3,
-        };
-        yield return new object[]
-        {
-            BlockMetadata.CurrentProtocolVersion,
-            OriginalAddresses,
-            OrderedAddressesV3,
-        };
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-#pragma warning restore SA1402
+// #pragma warning disable MEN003 // Method is too long
+// using System.Collections;
+// using System.Numerics;
+// using Bencodex.Types;
+// using Libplanet.Action;
+// using Libplanet.Action.Loader;
+// using Libplanet.Action.State;
+// using Libplanet.Action.Tests.Common;
+// using Libplanet.Blockchain.Policies;
+// using Libplanet.Crypto;
+// using Libplanet.Mocks;
+// using Libplanet.Serialization;
+// using Libplanet.Store;
+// using Libplanet.Store.Trie;
+// using Libplanet.Tests.Blocks;
+// using Libplanet.Tests.Fixtures;
+// using Libplanet.Tests.Store;
+// using Libplanet.Tests.Tx;
+// using Libplanet.Types.Assets;
+// using Libplanet.Types.Blocks;
+// using Libplanet.Types.Evidence;
+// using Libplanet.Types.Tx;
+// using Serilog;
+// using Xunit;
+// using Xunit.Abstractions;
+// using static Libplanet.Action.State.KeyConverters;
+// using static Libplanet.Tests.TestUtils;
+
+// namespace Libplanet.Tests.Action;
+
+// public partial class ActionEvaluatorTest
+// {
+//     private readonly ILogger _logger;
+//     private readonly ITestOutputHelper _output;
+//     private readonly BlockPolicy _policy;
+//     private readonly StoreFixture _storeFx;
+//     private readonly TxFixture _txFx;
+
+//     private readonly Address _beginBlockValueAddress =
+//         Address.Parse("0000000000000000000000000000000000000120");
+
+//     private readonly Address _endBlockValueAddress =
+//         Address.Parse("0000000000000000000000000000000000000121");
+
+//     private readonly Address _beginTxValueAddress =
+//         Address.Parse("0000000000000000000000000000000000000122");
+
+//     private readonly Address _endTxValueAddress =
+//         Address.Parse("0000000000000000000000000000000000000123");
+
+//     public ActionEvaluatorTest(ITestOutputHelper output)
+//     {
+//         Log.Logger = _logger = new LoggerConfiguration()
+//             .MinimumLevel.Verbose()
+//             .Enrich.WithThreadId()
+//             .WriteTo.TestOutput(output)
+//             .CreateLogger()
+//             .ForContext<ActionEvaluatorTest>();
+
+//         _output = output;
+//         _policy = new BlockPolicy(
+//             new PolicyActionsRegistry
+//             {
+//                 BeginBlockActions = [new UpdateValueAction(_beginBlockValueAddress, 1)],
+//                 EndBlockActions = [new UpdateValueAction(_endBlockValueAddress, 1)],
+//                 BeginTxActions = [new UpdateValueAction(_beginTxValueAddress, 1)],
+//                 EndTxActions = [new UpdateValueAction(_endTxValueAddress, 1)],
+//             },
+//             getMaxTransactionsBytes: _ => 50 * 1024);
+//         _storeFx = new MemoryStoreFixture(_policy.PolicyActionsRegistry);
+//         _txFx = new TxFixture(null);
+//     }
+
+//     [Fact]
+//     public void Idempotent()
+//     {
+//         // NOTE: This test checks that blocks can be evaluated idempotently. Also it checks
+//         // the action results in pre-evaluation step and in evaluation step are equal.
+//         const int repeatCount = 2;
+//         var signer = new PrivateKey();
+//         var timestamp = DateTimeOffset.UtcNow;
+//         var txAddress = signer.Address;
+//         var txs = new[]
+//         {
+//             Transaction.Create(
+//                 nonce: 0,
+//                 privateKey: signer,
+//                 genesisHash: null,
+//                 actions: new[] { new ContextRecordingAction(txAddress, new Text("Foo")), }
+//                     .ToPlainValues()),
+//         };
+//         var evs = Array.Empty<EvidenceBase>();
+//         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         var noStateRootBlock = RawBlock.Propose(
+//             new BlockMetadata
+//             {
+//                 ProtocolVersion = Block.CurrentProtocolVersion,
+//                 Height = 0,
+//                 Timestamp = timestamp,
+//                 Miner = GenesisProposer.Address,
+//                 PublicKey = GenesisProposer.PublicKey,
+//                 PreviousHash = default,
+//                 TxHash = BlockContent.DeriveTxHash(txs),
+//                 LastCommit = null,
+//                 EvidenceHash = null,
+//             },
+//             new BlockContent
+//             {
+//                 Transactions = [.. txs],
+//                 Evidence = [.. evs],
+//             });
+//         var actionEvaluator = new ActionEvaluator(
+//             new PolicyActionsRegistry(),
+//             stateStore,
+//             new SingleActionLoader<ContextRecordingAction>());
+//         Block stateRootBlock = noStateRootBlock.Sign(
+//             GenesisProposer,
+//             stateRootHash: default);
+//         var generatedRandomNumbers = new List<int>();
+
+//         AssertPreEvaluationBlocksEqual((RawBlock)stateRootBlock, noStateRootBlock);
+
+//         for (int i = 0; i < repeatCount; ++i)
+//         {
+//             var actionEvaluations = actionEvaluator.Evaluate(noStateRootBlock, default);
+//             generatedRandomNumbers.Add(
+//                 (Integer)new WorldBaseState(
+//                     stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
+//                         .GetAccountState(ReservedAddresses.LegacyAccount)
+//                         .GetState(ContextRecordingAction.RandomRecordAddress));
+//             actionEvaluations = actionEvaluator.Evaluate((RawBlock)stateRootBlock, default);
+//             generatedRandomNumbers.Add(
+//                 (Integer)new WorldBaseState(
+//                     stateStore.GetStateRoot(actionEvaluations[0].OutputState), stateStore)
+//                         .GetAccountState(ReservedAddresses.LegacyAccount)
+//                         .GetState(ContextRecordingAction.RandomRecordAddress));
+//         }
+
+//         for (int i = 1; i < generatedRandomNumbers.Count; ++i)
+//         {
+//             Assert.Equal(generatedRandomNumbers[0], generatedRandomNumbers[i]);
+//         }
+//     }
+
+//     [Fact]
+//     public void Evaluate()
+//     {
+//         var privateKey = new PrivateKey();
+//         var address = privateKey.Address;
+//         var value = new Text("Foo");
+
+//         var store = new MemoryStore();
+//         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         var chain = TestUtils.MakeBlockChain(
+//             policy: new BlockPolicy(),
+//             store: store,
+//             stateStore: stateStore,
+//             actionLoader: new SingleActionLoader<ContextRecordingAction>());
+//         var action = new ContextRecordingAction(address, value);
+//         var tx = Transaction.Create(
+//             nonce: 0,
+//             privateKey: privateKey,
+//             genesisHash: chain.Genesis.Hash,
+//             actions: new[] { action }.ToPlainValues());
+
+//         chain.StageTransaction(tx);
+//         var miner = new PrivateKey();
+//         Block block = chain.ProposeBlock(miner);
+//         chain.Append(block, CreateBlockCommit(block));
+
+//         var evaluations = chain.ActionEvaluator.Evaluate(
+//             (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
+
+//         Assert.Single(evaluations);
+//         Assert.Null(evaluations.Single().Exception);
+//         Assert.Equal(
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(address),
+//             value);
+//         Assert.Equal(
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(ContextRecordingAction.MinerRecordAddress),
+//             block.Miner.ToBencodex());
+//         Assert.Equal(
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(ContextRecordingAction.SignerRecordAddress),
+//             tx.Signer.ToBencodex());
+//         Assert.Equal(
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(ContextRecordingAction.BlockIndexRecordAddress),
+//             new Integer(block.Height));
+//         Assert.Equal(
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(ContextRecordingAction.RandomRecordAddress),
+//             new Integer(evaluations.Single().InputContext.GetRandom().Next()));
+//     }
+
+//     [Fact]
+//     public void EvaluateWithPolicyActions()
+//     {
+//         var store = new MemoryStore();
+//         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         var (chain, actionEvaluator) =
+//             TestUtils.MakeBlockChainAndActionEvaluator(
+//                 policy: _policy,
+//                 store: store,
+//                 stateStore: stateStore,
+//                 actionLoader: new SingleActionLoader<DumbAction>());
+
+//         Assert.Equal(
+//             (Integer)1,
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginBlockValueAddress));
+//         Assert.Equal(
+//             (Integer)1,
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endBlockValueAddress));
+//         Assert.Equal(
+//             (Integer)chain.Genesis.Transactions.Count,
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginTxValueAddress));
+//         Assert.Equal(
+//             (Integer)chain.Genesis.Transactions.Count,
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endTxValueAddress));
+
+//         (_, Transaction[] txs) = MakeFixturesForAppendTests();
+//         var block = chain.ProposeBlock(
+//             proposer: GenesisProposer,
+//             transactions: txs.ToImmutableList(),
+//             lastCommit: CreateBlockCommit(chain.Tip),
+//             evidence: ImmutableArray<EvidenceBase>.Empty);
+//         var evaluations = actionEvaluator.Evaluate(
+//             (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
+
+//         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
+//         Assert.Equal(
+//             2 + txs.Length * 2 + txs.Aggregate(0, (sum, tx) => sum + tx.Actions.Length),
+//             evaluations.Length);
+
+//         chain.Append(block, CreateBlockCommit(block));
+//         Assert.Equal(
+//             (Integer)2,
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginBlockValueAddress));
+//         Assert.Equal(
+//             (Integer)2,
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endBlockValueAddress));
+//         Assert.Equal(
+//             (Integer)(chain.Genesis.Transactions.Count + txs.Length),
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginTxValueAddress));
+//         Assert.Equal(
+//             (Integer)(chain.Genesis.Transactions.Count + txs.Length),
+//             chain
+//                 .GetNextWorldState()
+//                 .GetAccountState(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endTxValueAddress));
+//     }
+
+//     [Fact]
+//     public void EvaluateWithPolicyActionsWithException()
+//     {
+//         var store = new MemoryStore();
+//         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         var policyWithExceptions = new BlockPolicy(
+//             new PolicyActionsRegistry
+//             {
+//                 BeginBlockActions =
+//                 [
+//                     new UpdateValueAction(_beginBlockValueAddress, 1),
+//                     new ThrowException { ThrowOnExecution = true },
+//                 ],
+//                 EndBlockActions =
+//                 [
+//                     new UpdateValueAction(_endBlockValueAddress, 1),
+//                     new ThrowException { ThrowOnExecution = true },
+//                 ],
+//                 BeginTxActions =
+//                 [
+//                     new UpdateValueAction(_beginTxValueAddress, 1),
+//                     new ThrowException { ThrowOnExecution = true },
+//                 ],
+//                 EndTxActions =
+//                 [
+//                     new UpdateValueAction(_endTxValueAddress, 1),
+//                     new ThrowException { ThrowOnExecution = true },
+//                 ],
+//             });
+
+//         var (chain, actionEvaluator) =
+//             TestUtils.MakeBlockChainAndActionEvaluator(
+//                 policy: policyWithExceptions,
+//                 store: store,
+//                 stateStore: stateStore,
+//                 actionLoader: new SingleActionLoader<DumbAction>());
+
+//         (_, Transaction[] txs) = MakeFixturesForAppendTests();
+//         var block = chain.ProposeBlock(
+//             GenesisProposer,
+//             txs.ToImmutableList(),
+//             CreateBlockCommit(chain.Tip),
+//             ImmutableArray<EvidenceBase>.Empty);
+//         var evaluations = actionEvaluator.Evaluate(
+//             (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
+
+//         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
+//         Assert.Equal(
+//             4 + txs.Length * 4 + txs.Sum(tx => tx.Actions.Length),
+//             evaluations.Length);
+//         Assert.Equal(
+//             2 + txs.Length * 2,
+//             evaluations.Count(e => e.Exception != null));
+//     }
+
+//     // [Fact]
+//     // public void EvaluateWithException()
+//     // {
+//     //     var privateKey = new PrivateKey();
+//     //     var address = privateKey.Address;
+
+//     //     var action = new ThrowException { ThrowOnExecution = true };
+
+//     //     var store = new MemoryStore();
+//     //     var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//     //     var chain = TestUtils.MakeBlockChain(
+//     //         policy: new BlockPolicy(),
+//     //         store: store,
+//     //         stateStore: stateStore,
+//     //         actionLoader: new SingleActionLoader<ThrowException>());
+//     //     var tx = Transaction.Create(
+//     //         nonce: 0,
+//     //         privateKey: privateKey,
+//     //         genesisHash: chain.Genesis.Hash,
+//     //         actions: new[] { action }.ToPlainValues());
+
+//     //     chain.StageTransaction(tx);
+//     //     Block block = chain.ProposeBlock(new PrivateKey());
+//     //     chain.Append(block, CreateBlockCommit(block));
+//     //     var evaluations = chain.ActionEvaluator.Evaluate(
+//     //         (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
+
+//     //     Assert.False(evaluations[0].InputContext.IsPolicyAction);
+//     //     Assert.Single(evaluations);
+//     //     Assert.NotNull(evaluations.Single().Exception);
+//     //     Assert.IsType<UnexpectedlyTerminatedActionException>(
+//     //         evaluations.Single().Exception);
+//     //     Assert.IsType<ThrowException.SomeException>(
+//     //         evaluations.Single().Exception.InnerException);
+//     // }
+
+//     // [Fact]
+//     // public void EvaluateWithCriticalException()
+//     // {
+//     //     var privateKey = new PrivateKey();
+//     //     var address = privateKey.Address;
+
+//     //     var action = new ThrowException
+//     //     {
+//     //         ThrowOnExecution = true,
+//     //         Deterministic = false,
+//     //     };
+
+//     //     var store = new MemoryStore();
+//     //     var stateStore =
+//     //         new TrieStateStore(new MemoryKeyValueStore());
+//     //     var (chain, actionEvaluator) =
+//     //         TestUtils.MakeBlockChainAndActionEvaluator(
+//     //             policy: new BlockPolicy(),
+//     //             store: store,
+//     //             stateStore: stateStore,
+//     //             actionLoader: new SingleActionLoader<ThrowException>());
+//     //     var genesis = chain.Genesis;
+//     //     // Evaluation is run with rehearsal true to get updated addresses on tx creation.
+//     //     var tx = Transaction.Create(
+//     //         nonce: 0,
+//     //         privateKey: privateKey,
+//     //         genesisHash: genesis.Hash,
+//     //         actions: new[] { action }.ToPlainValues());
+//     //     var txs = new Transaction[] { tx };
+//     //     var evs = Array.Empty<EvidenceBase>();
+//     //     RawBlock block = RawBlock.Propose(
+//     //         new BlockMetadata
+//     //         {
+//     //             Height = 1L,
+//     //             Timestamp = DateTimeOffset.UtcNow,
+//     //             PublicKey = new PrivateKey().PublicKey,
+//     //             PreviousHash = genesis.Hash,
+//     //             TxHash = BlockContent.DeriveTxHash(txs),
+//     //             LastCommit = null,
+//     //             EvidenceHash = null,
+//     //         },
+//     //         new BlockContent
+//     //         {
+//     //             Transactions = [.. txs],
+//     //             Evidence = [.. evs],
+//     //         });
+//     //     IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
+
+//     //     Assert.Throws<OutOfMemoryException>(
+//     //         () => actionEvaluator.EvaluateTx(
+//     //             block: block,
+//     //             tx: tx,
+//     //             world: previousState).ToList());
+//     //     Assert.Throws<OutOfMemoryException>(
+//     //         () => chain.ActionEvaluator.Evaluate(
+//     //             block, chain.Store.GetStateRootHash(block.PreviousHash)).ToList());
+//     // }
+
+//     [Fact]
+//     public void EvaluateTxs()
+//     {
+//         DumbAction MakeAction(Address address, char identifier, Address? transferTo = null)
+//         {
+//             return DumbAction.Create(
+//                 append: (address, identifier.ToString()),
+//                 transfer: transferTo is Address to
+//                     ? (address, to, 5)
+//                     : ((Address, Address, BigInteger)?)null);
+//         }
+
+//         Address[] addresses =
+//         {
+//             _txFx.Address1,
+//             _txFx.Address2,
+//             _txFx.Address3,
+//             _txFx.Address4,
+//             _txFx.Address5,
+//         };
+
+//         IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
+//             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
+//             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
+//             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100)
+//             .SetBalance(addresses[3], DumbAction.DumbCurrency * 100)
+//             .SetBalance(addresses[4], DumbAction.DumbCurrency * 100));
+//         ITrie trie = stateStore.Commit(world.Trie);
+
+//         Block genesis = ProposeGenesisBlock(
+//             TestUtils.GenesisProposer,
+//             stateRootHash: trie.Hash);
+//         var actionEvaluator = new ActionEvaluator(
+//             new PolicyActionsRegistry(),
+//             stateStore: stateStore,
+//             actionLoader: new SingleActionLoader<DumbAction>());
+
+//         Transaction[] block1Txs =
+//         {
+//             new Transaction(
+//                 new UnsignedTx(
+//                     new TxInvoice
+//                     {
+//                         GenesisHash = genesis.Hash,
+//                         UpdatedAddresses = [addresses[0], addresses[1]],
+//                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
+//                         Actions = [.. ImmutableArray.Create<IAction>([
+//                             MakeAction(addresses[0], 'A', addresses[1]),
+//                             MakeAction(addresses[1], 'B', addresses[2]),
+//                         ]).ToPlainValues()],
+//                         MaxGasPrice = null,
+//                         GasLimit = null,
+//                     },
+//                     new TxSigningMetadata(_txFx.PrivateKey1.PublicKey, 0)),
+//                 _txFx.PrivateKey1),
+//             new Transaction(
+//                 new UnsignedTx(
+//                     new TxInvoice
+//                     {
+//                         GenesisHash = genesis.Hash,
+//                         UpdatedAddresses = [],
+//                         Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
+//                         Actions = [.. ImmutableArray.Create<IAction>([
+//                             MakeAction(addresses[2], 'C', addresses[3]),
+//                         ]).ToPlainValues()],
+//                         MaxGasPrice = null,
+//                         GasLimit = null,
+//                     },
+//                     new TxSigningMetadata(_txFx.PrivateKey2.PublicKey, 0)),
+//                 _txFx.PrivateKey2),
+//             new Transaction(
+//                 new UnsignedTx(
+//                     new TxInvoice
+//                     {
+//                         GenesisHash = genesis.Hash,
+//                         UpdatedAddresses = [],
+//                         Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
+//                         Actions = [],
+//                     },
+//                     new TxSigningMetadata(_txFx.PrivateKey3.PublicKey, 0)),
+//                 _txFx.PrivateKey3),
+//         };
+//         foreach ((var tx, var i) in block1Txs.Zip(
+//             Enumerable.Range(0, block1Txs.Length), (x, y) => (x, y)))
+//         {
+//             _logger.Debug("{0}[{1}] = {2}", nameof(block1Txs), i, tx.Id);
+//         }
+
+//         Block block1 = ProposeNextBlock(
+//             genesis,
+//             GenesisProposer,
+//             block1Txs);
+//         IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
+//         var evals = actionEvaluator.EvaluateBlock(
+//             (RawBlock)block1,
+//             previousState).ToImmutableArray();
+//         // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
+//         // have to be updated, since the order may change due to different RawHash.
+//         (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[] expectations =
+//         {
+//             (0, 0, new[] { "A", null, null, null, null }, _txFx.Address1),  // Adds "A"
+//             (0, 1, new[] { "A", "B", null, null, null }, _txFx.Address1),   // Adds "B"
+//             (1, 0, new[] { "A", "B", "C", null, null }, _txFx.Address2),    // Adds "C"
+//         };
+
+// #if DEBUG
+//         // This code was created by ilgyu.
+//         // You can preview the result of the test in the debug console.
+//         // If this test fails, you can copy the result from the debug console
+//         // and paste it to the upper part of the test code.
+//         System.Diagnostics.Trace.WriteLine("------- 1");
+//         foreach (var eval in evals)
+//         {
+//             int txIdx = block1Txs.Select(
+//                 (e, idx) => new { e, idx }).First(
+//                 x => x.e.Id.Equals(eval.InputContext.TxId)).idx;
+//             int actionIdx = block1Txs[txIdx].Actions.Select(
+//                 (e, idx) => new { e, idx }).First(
+//                 x => x.e.Equals(ModelSerializer.Serialize(eval.Action))).idx;
+//             string updatedStates = "new[] { " + string.Join(", ", addresses.Select(
+//                 eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
+//                 .Select(x => x is Text t ? '"' + t.Value + '"' : "null")) + " }";
+//             string signerIdx = "_txFx.Address" + (addresses.Select(
+//                 (e, idx) => new { e, idx }).First(
+//                 x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
+//             System.Diagnostics.Trace.WriteLine(
+//                             $"({txIdx}, {actionIdx}, {updatedStates}, {signerIdx}),");
+//         }
+
+//         System.Diagnostics.Trace.WriteLine("---------");
+// #endif // DEBUG
+
+//         Assert.Equal(expectations.Length, evals.Length);
+//         foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
+//         {
+//             Assert.Equal(
+//                 expect.UpdatedStates,
+//                 addresses.Select(
+//                     eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
+//                     .Select(x => x is Text t ? t.Value : null));
+//             Assert.Equal(block1Txs[expect.TxIdx].Id, eval.InputContext.TxId);
+//             Assert.Equal(
+//                 block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
+//                 ModelSerializer.Serialize(eval.Action));
+//             Assert.Equal(expect.Signer, eval.InputContext.Signer);
+//             Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
+//             Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
+//         }
+
+//         previousState = stateStore.GetWorld(genesis.StateRootHash);
+//         ActionEvaluation[] evals1 =
+//             actionEvaluator.EvaluateBlock((RawBlock)block1, previousState).ToArray();
+//         var output1 = new WorldBaseState(evals1.Last().OutputState.Trie, stateStore);
+//         Assert.Equal(
+//             (Text)"A",
+//             output1.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[0]));
+//         Assert.Equal(
+//             (Text)"B",
+//             output1.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[1]));
+//         Assert.Equal(
+//             (Text)"C",
+//             output1.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[2]));
+//         Assert.Equal(
+//             new FungibleAssetValue(DumbAction.DumbCurrency, 95, 0),
+//             output1.GetBalance(addresses[0], DumbAction.DumbCurrency));
+//         Assert.Equal(
+//             new FungibleAssetValue(DumbAction.DumbCurrency, 100, 0),
+//             output1.GetBalance(addresses[1], DumbAction.DumbCurrency));
+//         Assert.Equal(
+//             new FungibleAssetValue(DumbAction.DumbCurrency, 100, 0),
+//             output1.GetBalance(addresses[2], DumbAction.DumbCurrency));
+//         Assert.Equal(
+//             new FungibleAssetValue(DumbAction.DumbCurrency, 105, 0),
+//             output1.GetBalance(addresses[3], DumbAction.DumbCurrency));
+
+//         Transaction[] block2Txs =
+//         {
+//             // Note that these timestamps in themselves does not have any meanings but are
+//             // only arbitrary.  These purpose to make their evaluation order in a block
+//             // equal to the order we (the test) intend:
+//             new Transaction(
+//                 new UnsignedTx(
+//                     new TxInvoice
+//                     {
+//                         GenesisHash = genesis.Hash,
+//                         UpdatedAddresses = [addresses[0]],
+//                         Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
+//                         Actions = [.. ImmutableArray.Create<IAction>([
+//                             MakeAction(addresses[0], 'D'),
+//                         ]).ToPlainValues()],
+//                     },
+//                     new TxSigningMetadata(_txFx.PrivateKey1.PublicKey, 0)),
+//                 _txFx.PrivateKey1),
+//             new Transaction(
+//                 new UnsignedTx(
+//                     new TxInvoice
+//                     {
+//                         GenesisHash = genesis.Hash,
+//                         UpdatedAddresses = [addresses[3]],
+//                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
+//                         Actions = [.. ImmutableArray.Create<IAction>([
+//                             MakeAction(addresses[3], 'E'),
+//                         ]).ToPlainValues()],
+//                     },
+//                     new TxSigningMetadata(_txFx.PrivateKey2.PublicKey, 0)),
+//                 _txFx.PrivateKey2),
+//             new Transaction(
+//                 new UnsignedTx(
+//                     new TxInvoice
+//                     {
+//                         GenesisHash = genesis.Hash,
+//                         UpdatedAddresses = [addresses[4]],
+//                         Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
+//                         Actions = [.. ImmutableArray.Create<IAction>([
+//                             DumbAction.Create(
+//                                 (addresses[4], "F"),
+//                                 transfer: (addresses[0], addresses[4], 8)),
+//                         ]).ToPlainValues()],
+//                     },
+//                     new TxSigningMetadata(_txFx.PrivateKey3.PublicKey, 0)),
+//                 _txFx.PrivateKey3),
+//         };
+//         foreach ((var tx, var i) in block2Txs.Zip(
+//             Enumerable.Range(0, block2Txs.Length), (x, y) => (x, y)))
+//         {
+//             _logger.Debug("{0}[{1}] = {2}", nameof(block2Txs), i, tx.Id);
+//         }
+
+//         // Same as above, use the same timestamp of last commit for each to get a deterministic
+//         // test result.
+//         Block block2 = ProposeNextBlock(
+//             block1,
+//             GenesisProposer,
+//             block2Txs,
+//             lastCommit: CreateBlockCommit(block1, true));
+
+//         // Forcefully reset to null delta
+//         previousState = evals1.Last().OutputState;
+//         evals = actionEvaluator.EvaluateBlock(
+//             (RawBlock)block2,
+//             previousState).ToImmutableArray();
+
+//         // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
+//         // have to be updated, since the order may change due to different RawHash.
+//         expectations = new (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[]
+//         {
+//             (0, 0, new[] { "A,D", "B", "C", null, null }, _txFx.Address1),
+//             (1, 0, new[] { "A,D", "B", "C", "E", null }, _txFx.Address2),
+//             (2, 0, new[] { "A,D", "B", "C", "E", "F" }, _txFx.Address3),
+//         };
+
+// #if DEBUG
+//         // This code was created by ilgyu.
+//         // You can preview the result of the test in the debug console.
+//         // If this test fails, you can copy the result from the debug console
+//         // and paste it to the upper part of the test code.
+//         System.Diagnostics.Trace.WriteLine("------- 2");
+//         foreach (var eval in evals)
+//         {
+//             int txIdx = block2Txs.Select(
+//                 (e, idx) => new { e, idx }).First(
+//                 x => x.e.Id.Equals(eval.InputContext.TxId)).idx;
+//             int actionIdx = block2Txs[txIdx].Actions.Select(
+//                 (e, idx) => new { e, idx }).First(
+//                 x => x.e.Equals(ModelSerializer.Serialize(eval.Action))).idx;
+//             string updatedStates = "new[] { " + string.Join(", ", addresses.Select(
+//                 eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
+//                 .Select(x => x is Text t ? '"' + t.Value + '"' : "null")) + " }";
+//             string signerIdx = "_txFx.Address" + (addresses.Select(
+//                 (e, idx) => new { e, idx }).First(
+//                 x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
+//             System.Diagnostics.Trace.WriteLine(
+//                 $"({txIdx}, {actionIdx}, {updatedStates}, {signerIdx}),");
+//         }
+
+//         System.Diagnostics.Trace.WriteLine("---------");
+// #endif // DEBUG
+
+//         Assert.Equal(expectations.Length, evals.Length);
+//         foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
+//         {
+//             List<string> updatedStates = addresses
+//                 .Select(eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
+//                 .Select(x => x is Text t ? t.Value : null)
+//                 .ToList();
+//             Assert.Equal(expect.UpdatedStates, updatedStates);
+//             Assert.Equal(block2Txs[expect.TxIdx].Id, eval.InputContext.TxId);
+//             Assert.Equal(
+//                 block2Txs[expect.TxIdx].Actions[expect.ActionIdx],
+//                 ModelSerializer.Serialize(eval.Action));
+//             Assert.Equal(expect.Signer, eval.InputContext.Signer);
+//             Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
+//             Assert.Equal(block2.Height, eval.InputContext.BlockHeight);
+//             Assert.Null(eval.Exception);
+//         }
+
+//         previousState = evals1.Last().OutputState;
+//         var evals2 = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState).ToArray();
+//         var output2 = new WorldBaseState(evals2.Last().OutputState.Trie, stateStore);
+//         Assert.Equal(
+//             (Text)"A,D",
+//             output2.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[0]));
+//         Assert.Equal(
+//             (Text)"E",
+//             output2.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[3]));
+//         Assert.Equal(
+//             (Text)"F",
+//             output2.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[4]));
+//     }
+
+//     [Fact]
+//     public void EvaluateTx()
+//     {
+//         PrivateKey[] keys = { new PrivateKey(), new PrivateKey(), new PrivateKey() };
+//         Address[] addresses = keys.Select(key => key.Address).ToArray();
+//         DumbAction[] actions =
+//         {
+//             DumbAction.Create(
+//                 append: (addresses[0], "0"),
+//                 transfer: (addresses[0], addresses[1], 5)),
+//             DumbAction.Create(
+//                 append: (addresses[1], "1"),
+//                 transfer: (addresses[2], addresses[1], 10)),
+//             DumbAction.Create(
+//                 append: (addresses[0], "2"),
+//                 transfer: (addresses[1], addresses[0], 10)),
+//             DumbAction.Create((addresses[2], "R")),
+//         };
+//         var tx =
+//             Transaction.Create(0, _txFx.PrivateKey1, null, actions.ToPlainValues());
+//         var txs = new Transaction[] { tx };
+//         var evs = Array.Empty<EvidenceBase>();
+//         var block = RawBlock.Propose(
+//             new BlockMetadata
+//             {
+//                 Height = 1L,
+//                 Timestamp = DateTimeOffset.UtcNow,
+//                 PublicKey = keys[0].PublicKey,
+//                 PreviousHash = default(BlockHash),
+//                 TxHash = BlockContent.DeriveTxHash(txs),
+//                 LastCommit = null,
+//                 EvidenceHash = null,
+//             },
+//             new BlockContent
+//             {
+//                 Transactions = [.. txs],
+//                 Evidence = [.. evs],
+//             });
+//         IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
+//             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
+//             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
+//             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100));
+//         ITrie initTrie = stateStore.Commit(world.Trie);
+//         var actionEvaluator = new ActionEvaluator(
+//             new PolicyActionsRegistry(),
+//             stateStore: stateStore,
+//             actionLoader: new SingleActionLoader<DumbAction>());
+
+//         IWorld previousState = stateStore.GetWorld(initTrie.Hash);
+//         var evaluations = actionEvaluator.EvaluateTx(
+//             block: block,
+//             tx: tx,
+//             world: previousState).ToImmutableArray();
+
+//         Assert.Equal(actions.Length, evaluations.Length);
+//         string[][] expectedStates =
+//         {
+//             new[] { "0", null, null },
+//             new[] { "0", "1", null },
+//             new[] { "0,2", "1", null },
+//             new[] { "0,2", "1", "R" },
+//         };
+//         BigInteger[][] expectedBalances =
+//         {
+//             new BigInteger[] { 95, 105, 100 },
+//             new BigInteger[] { 95, 115, 90 },
+//             new BigInteger[] { 105, 105, 90 },
+//             new BigInteger[] { 105, 105, 90 },
+//         };
+
+//         Currency currency = DumbAction.DumbCurrency;
+//         IValue[] initStates = new IValue[3];
+//         BigInteger[] initBalances = new BigInteger[] { 100, 100, 100 };
+//         for (int i = 0; i < evaluations.Length; i++)
+//         {
+//             ActionEvaluation eval = evaluations[i];
+//             IActionContext context = eval.InputContext;
+//             IWorld prevState = context.World;
+//             IWorld outputState = eval.OutputState;
+//             _logger.Debug("evalsA[{0}] = {1}", i, eval);
+//             _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
+
+//             Assert.Equal(tx.Actions[i], ModelSerializer.Serialize(eval.Action));
+//             Assert.Equal(_txFx.Address1, context.Signer);
+//             Assert.Equal(tx.Id, context.TxId);
+//             Assert.Equal(addresses[0], context.Miner);
+//             Assert.Equal(1, context.BlockHeight);
+//             ActionEvaluation prevEval = i > 0 ? evaluations[i - 1] : null;
+//             Assert.Equal(
+//                 prevEval is null
+//                     ? initStates
+//                     : addresses.Select(
+//                         prevEval.OutputState
+//                             .GetAccount(ReservedAddresses.LegacyAccount)
+//                             .GetState),
+//                 addresses.Select(
+//                     eval.InputContext.World
+//                         .GetAccount(ReservedAddresses.LegacyAccount)
+//                         .GetState));
+//             Assert.Equal(
+//                 expectedStates[i],
+//                 addresses.Select(eval.OutputState
+//                     .GetAccount(ReservedAddresses.LegacyAccount)
+//                     .GetState)
+//                     .Select(x => x is Text t ? t.Value : null));
+//             Assert.Equal(
+//                 prevEval is null
+//                     ? initBalances
+//                     : addresses.Select(a =>
+//                         prevEval.OutputState
+//                             .GetBalance(a, currency).RawValue),
+//                 addresses.Select(
+//                     a => eval.InputContext.World
+//                             .GetBalance(a, currency).RawValue));
+//             Assert.Equal(
+//                 expectedBalances[i],
+//                 addresses.Select(a => eval.OutputState
+//                     .GetBalance(a, currency).RawValue));
+//         }
+
+//         previousState = stateStore.GetWorld(initTrie.Hash);
+//         IWorld delta = actionEvaluator.EvaluateTx(
+//             block: block,
+//             tx: tx,
+//             world: previousState).Last().OutputState;
+//         Assert.Empty(evaluations[3].OutputState.Trie.Diff(delta.Trie));
+//     }
+
+//     [Fact]
+//     public void EvaluateTxResultThrowingException()
+//     {
+//         var action = new ThrowException { ThrowOnExecution = true };
+//         var tx = Transaction.Create(
+//             0,
+//             _txFx.PrivateKey1,
+//             null,
+//             new[] { action }.ToPlainValues(),
+//             null,
+//             null,
+//             DateTimeOffset.UtcNow);
+//         var txs = new Transaction[] { tx };
+//         var evs = Array.Empty<EvidenceBase>();
+//         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
+//         IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         var actionEvaluator = new ActionEvaluator(
+//             new PolicyActionsRegistry(),
+//             stateStore: stateStore,
+//             actionLoader: new SingleActionLoader<ThrowException>()
+//         );
+//         var block = RawBlock.Propose(
+//             new BlockMetadata
+//             {
+//                 Height = 123,
+//                 Timestamp = DateTimeOffset.UtcNow,
+//                 PublicKey = GenesisProposer.PublicKey,
+//                 PreviousHash = hash,
+//                 TxHash = BlockContent.DeriveTxHash(txs),
+//                 LastCommit = CreateBlockCommit(hash, 122, 0),
+//                 EvidenceHash = null,
+//             },
+//             new BlockContent
+//             {
+//                 Transactions = [.. txs],
+//                 Evidence = [.. evs],
+//             });
+//         IWorld previousState = stateStore.GetWorld(default);
+//         var nextState = actionEvaluator.EvaluateTx(
+//             block: block,
+//             tx: tx,
+//             world: previousState).Last().OutputState;
+
+//         Assert.Empty(nextState.Trie.Diff(previousState.Trie));
+//     }
+
+//     [Fact]
+//     public void EvaluateActions()
+//     {
+//         var actionEvaluator = new ActionEvaluator()
+//         IntegerSet fx = new IntegerSet(new[] { 5, 10 });
+
+//         // txA: ((5 + 1) * 2) + 3 = 15
+//         (Transaction txA, var deltaA) = fx.Sign(
+//             0,
+//             Arithmetic.Add(1),
+//             Arithmetic.Mul(2),
+//             Arithmetic.Add(3));
+
+//         Block blockA = fx.Propose();
+//         fx.Append(blockA);
+//         ActionEvaluation[] evalsA = ActionEvaluator.EvaluateActions(
+//             block: (RawBlock)blockA,
+//             tx: txA,
+//             world: fx.StateStore.GetWorld(blockA.StateRootHash),
+//             actions: txA.Actions
+//                 .Select(action => (IAction)ToAction<Arithmetic>(action))
+//                 .ToImmutableArray(),
+//             stateStore: fx.StateStore,
+//             isPolicyAction: false).ToArray();
+
+//         Assert.Equal(evalsA.Length, deltaA.Count - 1);
+//         Assert.Equal(
+//             new Integer(15),
+//             evalsA.Last().OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount).GetState(txA.Signer));
+//         Assert.All(evalsA, eval => Assert.Empty(eval.InputContext.Txs));
+
+//         for (int i = 0; i < evalsA.Length; i++)
+//         {
+//             ActionEvaluation eval = evalsA[i];
+//             IActionContext context = eval.InputContext;
+//             IWorld prevState = context.World;
+//             IWorld outputState = eval.OutputState;
+//             _logger.Debug("evalsA[{0}] = {1}", i, eval);
+//             _logger.Debug("txA.Actions[{0}] = {1}", i, txA.Actions[i]);
+
+//             Assert.Equal(txA.Actions[i], eval.Action);
+//             Assert.Equal(txA.Id, context.TxId);
+//             Assert.Equal(blockA.Miner, context.Miner);
+//             Assert.Equal(blockA.Height, context.BlockHeight);
+//             Assert.Equal(txA.Signer, context.Signer);
+//             Assert.Equal(
+//                 (Integer)deltaA[i].Value,
+//                 prevState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txA.Signer));
+//             Assert.Equal(
+//                 ToStateKey(txA.Signer),
+//                 Assert.Single(
+//                     outputState.GetAccount(ReservedAddresses.LegacyAccount).Trie.Diff(
+//                         prevState.GetAccount(ReservedAddresses.LegacyAccount).Trie))
+//                 .Path);
+//             Assert.Equal(
+//                 (Integer)deltaA[i + 1].Value,
+//                 outputState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txA.Signer));
+//             Assert.Null(eval.Exception);
+//         }
+
+//         // txB: error(10 - 3) + -1 =
+//         //           (10 - 3) + -1 = 6  (error() does nothing)
+//         (Transaction txB, var deltaB) = fx.Sign(
+//             1,
+//             Arithmetic.Sub(3),
+//             new Arithmetic(),
+//             Arithmetic.Add(-1));
+
+//         Block blockB = fx.Propose();
+//         fx.Append(blockB);
+//         ActionEvaluation[] evalsB = ActionEvaluator.EvaluateActions(
+//             block: (RawBlock)blockB,
+//             tx: txB,
+//             world: fx.StateStore.GetWorld(blockB.StateRootHash),
+//             actions: txB.Actions
+//                 .Select(action => (IAction)ToAction<Arithmetic>(action))
+//                 .ToImmutableArray(),
+//             stateStore: fx.StateStore,
+//             isPolicyAction: false).ToArray();
+
+//         Assert.Equal(evalsB.Length, deltaB.Count - 1);
+//         Assert.Equal(
+//             new Integer(6),
+//             evalsB.Last().OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount).GetState(txB.Signer));
+//         Assert.All(evalsB, eval => Assert.Empty(eval.InputContext.Txs));
+
+//         for (int i = 0; i < evalsB.Length; i++)
+//         {
+//             ActionEvaluation eval = evalsB[i];
+//             IActionContext context = eval.InputContext;
+//             IWorld prevState = context.World;
+//             IWorld outputState = eval.OutputState;
+
+//             _logger.Debug("evalsB[{0}] = {@1}", i, eval);
+//             _logger.Debug("txB.Actions[{0}] = {@1}", i, txB.Actions[i]);
+
+//             Assert.Equal(txB.Actions[i], eval.Action);
+//             Assert.Equal(txB.Id, context.TxId);
+//             Assert.Equal(blockB.Miner, context.Miner);
+//             Assert.Equal(blockB.Height, context.BlockHeight);
+//             Assert.Equal(txB.Signer, context.Signer);
+//             Assert.False(context.IsPolicyAction);
+//             Assert.Equal(
+//                 (Integer)deltaB[i].Value,
+//                 prevState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txB.Signer));
+//             Assert.Equal(
+//                 (Integer)deltaB[i + 1].Value,
+//                 outputState.GetAccount(ReservedAddresses.LegacyAccount).GetState(txB.Signer));
+//             if (i == 1)
+//             {
+//                 Assert.Empty(outputState.Trie.Diff(prevState.Trie));
+//                 Assert.IsType<UnexpectedlyTerminatedActionException>(eval.Exception);
+//                 Assert.IsType<InvalidOperationException>(eval.Exception.InnerException);
+//             }
+//             else
+//             {
+//                 Assert.Equal(
+//                     ToStateKey(txB.Signer),
+//                     Assert.Single(
+//                         outputState.GetAccount(ReservedAddresses.LegacyAccount).Trie.Diff(
+//                             prevState.GetAccount(ReservedAddresses.LegacyAccount).Trie))
+//                     .Path);
+//                 Assert.Null(eval.Exception);
+//             }
+//         }
+//     }
+
+//     [Fact]
+//     public void EvaluatePolicyBeginBlockActions()
+//     {
+//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//             policy: _policy,
+//             store: _storeFx.Store,
+//             stateStore: _storeFx.StateStore,
+//             actionLoader: new SingleActionLoader<DumbAction>(),
+//             genesisBlock: _storeFx.GenesisBlock,
+//             privateKey: GenesisProposer);
+//         (_, Transaction[] txs) = MakeFixturesForAppendTests();
+//         var genesis = chain.Genesis;
+//         var block = chain.ProposeBlock(
+//             proposer: GenesisProposer,
+//             transactions: txs.ToImmutableList(),
+//             lastCommit: CreateBlockCommit(chain.Tip),
+//             evidence: ImmutableArray<EvidenceBase>.Empty);
+
+//         IWorld previousState = _storeFx.StateStore.GetWorld(default);
+//         var evaluations = actionEvaluator.EvaluateBeginBlockActions(
+//             (RawBlock)genesis,
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.BeginBlockActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)1,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginBlockValueAddress));
+
+//         previousState = evaluations[0].OutputState;
+//         evaluations = actionEvaluator.EvaluateBeginBlockActions(
+//             (RawBlock)block,
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.BeginBlockActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)2,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginBlockValueAddress));
+//     }
+
+//     [Fact]
+//     public void EvaluatePolicyEndBlockActions()
+//     {
+//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//             policy: _policy,
+//             store: _storeFx.Store,
+//             stateStore: _storeFx.StateStore,
+//             actionLoader: new SingleActionLoader<DumbAction>(),
+//             genesisBlock: _storeFx.GenesisBlock,
+//             privateKey: GenesisProposer);
+//         (_, Transaction[] txs) = MakeFixturesForAppendTests();
+//         var genesis = chain.Genesis;
+//         var block = chain.ProposeBlock(
+//             GenesisProposer,
+//             txs.ToImmutableList(),
+//             CreateBlockCommit(chain.Tip),
+//             ImmutableArray<EvidenceBase>.Empty);
+
+//         IWorld previousState = _storeFx.StateStore.GetWorld(default);
+//         var evaluations = actionEvaluator.EvaluateEndBlockActions(
+//             (RawBlock)genesis,
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.EndBlockActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)1,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endBlockValueAddress));
+//         Assert.Equal(genesis.Transactions, evaluations[0].InputContext.Txs);
+
+//         previousState = evaluations[0].OutputState;
+//         evaluations = actionEvaluator.EvaluateEndBlockActions(
+//             (RawBlock)block,
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.EndBlockActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)2,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endBlockValueAddress));
+//     }
+
+//     [Fact]
+//     public void EvaluatePolicyBeginTxActions()
+//     {
+//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//             policy: _policy,
+//             store: _storeFx.Store,
+//             stateStore: _storeFx.StateStore,
+//             actionLoader: new SingleActionLoader<DumbAction>(),
+//             genesisBlock: _storeFx.GenesisBlock,
+//             privateKey: GenesisProposer);
+//         (_, Transaction[] txs) = MakeFixturesForAppendTests();
+//         var genesis = chain.Genesis;
+//         var block = chain.ProposeBlock(
+//             proposer: GenesisProposer,
+//             transactions: txs.ToImmutableList(),
+//             lastCommit: CreateBlockCommit(chain.Tip),
+//             evidence: ImmutableArray<EvidenceBase>.Empty);
+
+//         IWorld previousState = _storeFx.StateStore.GetWorld(default);
+//         var evaluations = actionEvaluator.EvaluateBeginTxActions(
+//             (RawBlock)genesis,
+//             txs[0],
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.BeginTxActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)1,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginTxValueAddress));
+//         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
+
+//         previousState = evaluations[0].OutputState;
+//         evaluations = actionEvaluator.EvaluateBeginTxActions(
+//             (RawBlock)block,
+//             txs[1],
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.BeginTxActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)2,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_beginTxValueAddress));
+//         Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
+//     }
+
+//     [Fact]
+//     public void EvaluatePolicyEndTxActions()
+//     {
+//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//             policy: _policy,
+//             store: _storeFx.Store,
+//             stateStore: _storeFx.StateStore,
+//             actionLoader: new SingleActionLoader<DumbAction>(),
+//             genesisBlock: _storeFx.GenesisBlock,
+//             privateKey: GenesisProposer);
+//         (_, Transaction[] txs) = MakeFixturesForAppendTests();
+//         var genesis = chain.Genesis;
+//         var block = chain.ProposeBlock(
+//             proposer: GenesisProposer,
+//             transactions: txs.ToImmutableList(),
+//             lastCommit: CreateBlockCommit(chain.Tip),
+//             evidence: ImmutableArray<EvidenceBase>.Empty);
+
+//         IWorld previousState = _storeFx.StateStore.GetWorld(default);
+//         var evaluations = actionEvaluator.EvaluateEndTxActions(
+//             (RawBlock)genesis,
+//             txs[0],
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.EndTxActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)1,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endTxValueAddress));
+//         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
+
+//         previousState = evaluations[0].OutputState;
+//         evaluations = actionEvaluator.EvaluateEndTxActions(
+//             (RawBlock)block,
+//             txs[1],
+//             previousState);
+
+//         Assert.Equal<IAction>(
+//             chain.Policy.PolicyActionsRegistry.EndTxActions,
+//             evaluations.Select(item => item.Action).ToImmutableArray());
+//         Assert.Single(evaluations);
+//         Assert.Equal(
+//             (Integer)2,
+//             (Integer)evaluations[0].OutputState
+//                 .GetAccount(ReservedAddresses.LegacyAccount)
+//                 .GetState(_endTxValueAddress));
+//         Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
+//         Assert.Equal(block.Transactions, evaluations[0].InputContext.Txs);
+//     }
+
+//     [Theory]
+//     [ClassData(typeof(OrderTxsForEvaluationData))]
+//     public void OrderTxsForEvaluation(
+//         int protocolVersion,
+//         List<string> originalAddresses,
+//         List<string> orderedAddresses)
+//     {
+//         const int numSigners = 5;
+//         const int numTxsPerSigner = 3;
+//         var epoch = DateTimeOffset.FromUnixTimeSeconds(0);
+
+//         TxFixture txFx = new BlockFixture().TxFixture;
+//         ImmutableArray<PrivateKey> signers = ImmutableArray.Create(
+//             txFx.PrivateKey1,
+//             txFx.PrivateKey2,
+//             txFx.PrivateKey3,
+//             txFx.PrivateKey4,
+//             txFx.PrivateKey5
+//         );
+//         ImmutableArray<ImmutableArray<int>> noncesPerSigner = ImmutableArray.Create(
+//             ImmutableArray.Create(0, 2, 1),
+//             ImmutableArray.Create(1, 0, 2),
+//             ImmutableArray.Create(1, 2, 0),
+//             ImmutableArray.Create(2, 0, 1),
+//             ImmutableArray.Create(2, 1, 0)
+//         );
+//         // Unix Epoch used for hard coded timestamp.
+//         ImmutableArray<Transaction> txs =
+//             signers.Zip(noncesPerSigner, (signer, nonces) => (signer, nonces))
+//                 .SelectMany(
+//                     signerNoncesPair => signerNoncesPair.nonces,
+//                     (signerNoncesPair, nonce) => (signerNoncesPair.signer, nonce))
+//                 .Select(signerNoncePair =>
+//                 {
+//                     Address targetAddress = signerNoncePair.signer.Address;
+//                     return new Transaction(
+//                         new UnsignedTx(
+//                             new TxInvoice
+//                             {
+//                                 GenesisHash = null,
+//                                 UpdatedAddresses = [targetAddress],
+//                                 Timestamp = epoch,
+//                                 Actions = [.. ImmutableArray.Create<IAction>([
+//                                     new ContextRecordingAction(
+//                                         signerNoncePair.signer.Address,
+//                                         new Integer(signerNoncePair.nonce)),
+//                                 ]).ToPlainValues()],
+//                             },
+//                             new TxSigningMetadata(
+//                                 signerNoncePair.signer.PublicKey,
+//                                 signerNoncePair.nonce)),
+//                         signerNoncePair.signer);
+//                 }).ToImmutableArray();
+
+//         // Rearrange transactions so that transactions are not grouped by signers
+//         // while keeping the hard coded mixed order nonces above.
+//         txs = txs
+//             .Where((tx, i) => i % numTxsPerSigner == 0)
+//             .Concat(txs.Where((tx, i) => i % numTxsPerSigner != 0)).ToImmutableArray();
+
+//         // FIXME: Invalid length for RawHash.
+//         byte[] preEvaluationHashBytes =
+//         {
+//             0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
+//             0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
+//         };
+
+//         // Sanity check.
+//         Assert.True(originalAddresses.SequenceEqual(
+//             signers.Select(signer => signer.Address.ToString())));
+
+//         var orderedTxs = txs;
+
+//         // Check signers are grouped together.
+//         for (int i = 0; i < numSigners; i++)
+//         {
+//             var signerTxs = orderedTxs.Skip(i * numTxsPerSigner).Take(numTxsPerSigner);
+//             Assert.True(signerTxs.Select(tx => tx.Signer).Distinct().Count() == 1);
+//         }
+
+//         // Check nonces are ordered.
+//         foreach (var signer in signers)
+//         {
+//             var signerTxs = orderedTxs.Where(tx => tx.Signer == signer.Address);
+//             Assert.Equal(signerTxs.OrderBy(tx => tx.Nonce).ToArray(), signerTxs.ToArray());
+//         }
+
+//         // Check according to spec.
+//         Assert.True(orderedAddresses.SequenceEqual(
+//             orderedTxs
+//                 .Where((tx, i) => i % numTxsPerSigner == 0)
+//                 .Select(tx => tx.Signer.ToString())));
+//     }
+
+//     [Fact]
+//     public void EvaluateActionAndCollectFee()
+//     {
+//         var privateKey = new PrivateKey();
+//         var address = privateKey.Address;
+//         Currency foo = new Currency("FOO", 18);
+
+//         var freeGasAction = new UseGasAction()
+//         {
+//             GasUsage = 0,
+//             Memo = "FREE",
+//             MintValue = new FungibleAssetValue(foo, 10),
+//             Receiver = address,
+//         };
+
+//         var payGasAction = new UseGasAction()
+//         {
+//             GasUsage = 1,
+//             Memo = "CHARGE",
+//         };
+
+//         var store = new MemoryStore();
+//         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         var chain = TestUtils.MakeBlockChain(
+//             policy: new BlockPolicy(),
+//             actions: new[] { freeGasAction, },
+//             store: store,
+//             stateStore: stateStore,
+//             actionLoader: new SingleActionLoader<UseGasAction>());
+//         var tx = Transaction.Create(
+//             nonce: 0,
+//             privateKey: privateKey,
+//             genesisHash: chain.Genesis.Hash,
+//             maxGasPrice: new FungibleAssetValue(foo, 1),
+//             gasLimit: 3,
+//             actions: new[]
+//             {
+//                 payGasAction,
+//             }.ToPlainValues());
+
+//         chain.StageTransaction(tx);
+//         var miner = new PrivateKey();
+//         Block block = chain.ProposeBlock(miner);
+
+//         var evaluations = chain.ActionEvaluator.Evaluate(
+//             (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
+
+//         Assert.Single(evaluations);
+//         Assert.Null(evaluations.Single().Exception);
+//         Assert.Equal(2, GasTracer.GasAvailable);
+//         Assert.Equal(1, GasTracer.GasUsed);
+//     }
+
+//     [Fact]
+//     public void EvaluateThrowingExceedGasLimit()
+//     {
+//         var privateKey = new PrivateKey();
+//         var address = privateKey.Address;
+//         Currency foo = new Currency("FOO", 18);
+
+//         var freeGasAction = new UseGasAction()
+//         {
+//             GasUsage = 0,
+//             Memo = "FREE",
+//             MintValue = new FungibleAssetValue(foo, 10),
+//             Receiver = address,
+//         };
+
+//         var payGasAction = new UseGasAction()
+//         {
+//             GasUsage = 10,
+//             Memo = "CHARGE",
+//         };
+
+//         var store = new MemoryStore();
+//         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//         var chain = TestUtils.MakeBlockChain(
+//             policy: new BlockPolicy(),
+//             actions: new[]
+//             {
+//                 freeGasAction,
+//             },
+//             store: store,
+//             stateStore: stateStore,
+//             actionLoader: new SingleActionLoader<UseGasAction>());
+//         var tx = Transaction.Create(
+//             nonce: 0,
+//             privateKey: privateKey,
+//             genesisHash: chain.Genesis.Hash,
+//             maxGasPrice: new FungibleAssetValue(foo, 1),
+//             gasLimit: 5,
+//             actions: new[]
+//             {
+//                 payGasAction,
+//             }.ToPlainValues());
+
+//         chain.StageTransaction(tx);
+//         var miner = new PrivateKey();
+//         Block block = chain.ProposeBlock(miner);
+
+//         var evaluations = chain.ActionEvaluator.Evaluate(
+//             (RawBlock)block,
+//             chain.GetNextStateRootHash(block.PreviousHash) ?? default);
+
+//         Assert.Single(evaluations);
+//         Assert.NotNull(evaluations.Single().Exception);
+//         Assert.NotNull(evaluations.Single().Exception?.InnerException);
+//         Assert.Equal(
+//             typeof(GasLimitExceededException),
+//             evaluations.Single().Exception?.InnerException?.GetType());
+//         Assert.Equal(0, GasTracer.GasAvailable);
+//         Assert.Equal(5, GasTracer.GasUsed);
+//     }
+
+//     [Fact]
+//     public void GenerateRandomSeed()
+//     {
+//         byte[] preEvaluationHashBytes =
+//         {
+//             0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
+//             0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
+//         };
+//         var signature = ImmutableArray.Create<byte>(
+//         [
+//             0x30, 0x44, 0x02, 0x20, 0x2f, 0x2d, 0xbe, 0x5a, 0x91, 0x65, 0x59, 0xde, 0xdb,
+//             0xe8, 0xd8, 0x4f, 0xa9, 0x20, 0xe2, 0x01, 0x29, 0x4d, 0x4f, 0x40, 0xea, 0x1e,
+//             0x97, 0x44, 0x1f, 0xbf, 0xa2, 0x5c, 0x8b, 0xd0, 0x0e, 0x23, 0x02, 0x20, 0x3c,
+//             0x06, 0x02, 0x1f, 0xb8, 0x3f, 0x67, 0x49, 0x92, 0x3c, 0x07, 0x59, 0x67, 0x96,
+//             0xa8, 0x63, 0x04, 0xb0, 0xc3, 0xfe, 0xbb, 0x6c, 0x7a, 0x7b, 0x58, 0x58, 0xe9,
+//             0x7d, 0x37, 0x67, 0xe1, 0xe9,
+//         ]);
+
+//         int seed = ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, signature);
+//         Assert.Equal(353767086, seed);
+//     }
+
+//     [Fact]
+//     public void CheckRandomSeedInAction()
+//     {
+//         IntegerSet fx = new IntegerSet(new[] { 5, 10 });
+
+//         // txA: ((5 + 1) * 2) + 3 = 15
+//         (Transaction txA, var deltaA) = fx.Sign(
+//             0,
+//             Arithmetic.Add(1),
+//             Arithmetic.Mul(2),
+//             Arithmetic.Add(3));
+
+//         Block blockA = fx.Propose();
+//         ActionEvaluation[] evalsA = ActionEvaluator.EvaluateActions(
+//             block: (RawBlock)blockA,
+//             tx: txA,
+//             world: fx.StateStore.GetWorld(blockA.StateRootHash),
+//             actions: txA.Actions
+//                 .Select(action => (IAction)ToAction<Arithmetic>(action))
+//                 .ToImmutableArray(),
+//             stateStore: fx.StateStore,
+//             isPolicyAction: false).ToArray();
+
+//         byte[] preEvaluationHashBytes = blockA.RawHash.Bytes.ToArray();
+//         int[] randomSeeds = Enumerable
+//             .Range(0, txA.Actions.Length)
+//             .Select(offset => ActionEvaluator.GenerateRandomSeed(
+//                 preEvaluationHashBytes,
+//                 txA.Signature,
+//                 offset))
+//             .ToArray();
+
+//         for (int i = 0; i < evalsA.Length; i++)
+//         {
+//             ActionEvaluation eval = evalsA[i];
+//             IActionContext context = eval.InputContext;
+//             Assert.Equal(randomSeeds[i], context.RandomSeed);
+//         }
+//     }
+
+//     private (Address[], Transaction[]) MakeFixturesForAppendTests(
+//         PrivateKey privateKey = null,
+//         DateTimeOffset epoch = default)
+//     {
+//         Address[] addresses =
+//         {
+//             _storeFx.Address1,
+//             _storeFx.Address2,
+//             _storeFx.Address3,
+//             _storeFx.Address4,
+//             _storeFx.Address5,
+//         };
+
+//         privateKey = privateKey ?? new PrivateKey(
+//         [
+//             0xa8, 0x21, 0xc7, 0xc2, 0x08, 0xa9, 0x1e, 0x53, 0xbb, 0xb2,
+//             0x71, 0x15, 0xf4, 0x23, 0x5d, 0x82, 0x33, 0x44, 0xd1, 0x16,
+//             0x82, 0x04, 0x13, 0xb6, 0x30, 0xe7, 0x96, 0x4f, 0x22, 0xe0,
+//             0xec, 0xe0,
+//         ]);
+
+//         Transaction[] txs =
+//         {
+//             _storeFx.MakeTransaction(
+//                 new[]
+//                 {
+//                     DumbAction.Create((addresses[0], "foo")),
+//                     DumbAction.Create((addresses[1], "bar")),
+//                 },
+//                 timestamp: epoch,
+//                 nonce: 0,
+//                 privateKey: privateKey),
+//             _storeFx.MakeTransaction(
+//                 new[]
+//                 {
+//                     DumbAction.Create((addresses[2], "baz")),
+//                     DumbAction.Create((addresses[3], "qux")),
+//                 },
+//                 timestamp: epoch.AddSeconds(5),
+//                 nonce: 1,
+//                 privateKey: privateKey),
+//         };
+
+//         return (addresses, txs);
+//     }
+
+//     private sealed class UseGasAction : IAction
+//     {
+//         public long GasUsage { get; set; }
+
+//         public string Memo { get; set; }
+
+//         public FungibleAssetValue? MintValue { get; set; }
+
+//         public Address? Receiver { get; set; }
+
+//         public IValue PlainValue => new List(
+//             (Integer)GasUsage,
+//             (Text)Memo,
+//             MintValue is null ? (IValue)default(Null) : MintValue.Value.ToBencodex(),
+//             Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.Bytes
+//             );
+
+//         public void LoadPlainValue(IValue plainValue)
+//         {
+//             var asList = (List)plainValue;
+//             GasUsage = (Bencodex.Types.Integer)asList[0];
+//             Memo = (Text)asList[1];
+//             if (!(asList[2] is Bencodex.Types.Null))
+//             {
+//                 MintValue = FungibleAssetValue.Create(asList[2]);
+//             }
+
+//             if (!(asList[3] is Bencodex.Types.Null))
+//             {
+//                 Receiver = Address.Create(asList[3]);
+//             }
+//         }
+
+//         public IWorld Execute(IActionContext context)
+//         {
+//             GasTracer.UseGas(GasUsage);
+//             var state = context.World
+//                 .SetAccount(
+//                     ReservedAddresses.LegacyAccount,
+//                     context.World.GetAccount(ReservedAddresses.LegacyAccount)
+//                         .SetState(context.Signer, (Text)Memo));
+//             if (!(Receiver is null) && !(MintValue is null))
+//             {
+//                 state = state.MintAsset(context, Receiver.Value, MintValue.Value);
+//             }
+
+//             return state;
+//         }
+//     }
+// }
+
+// #pragma warning disable SA1402 // File may only contain a single type
+// internal class OrderTxsForEvaluationData : IEnumerable<object[]>
+// {
+//     // For fixture sanity.
+//     public List<string> OriginalAddresses = new List<string>
+//     {
+//         "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
+//         "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
+//         "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
+//         "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
+//         "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
+//     };
+
+//     // Spec for protocol version < 3.
+//     public List<string> OrderedAddressesV0 = new List<string>
+//     {
+//         "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
+//         "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
+//         "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
+//         "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
+//         "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
+//     };
+
+//     // Spec for protocol version >= 3.
+//     public List<string> OrderedAddressesV3 = new List<string>
+//     {
+//         "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
+//         "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
+//         "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
+//         "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
+//         "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
+//     };
+
+//     public IEnumerator<object[]> GetEnumerator()
+//     {
+//         yield return new object[]
+//         {
+//             0,
+//             OriginalAddresses,
+//             OrderedAddressesV0,
+//         };
+//         yield return new object[]
+//         {
+//             3,
+//             OriginalAddresses,
+//             OrderedAddressesV3,
+//         };
+//         yield return new object[]
+//         {
+//             BlockMetadata.CurrentProtocolVersion,
+//             OriginalAddresses,
+//             OrderedAddressesV3,
+//         };
+//     }
+
+//     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+// }
+// #pragma warning restore SA1402
 

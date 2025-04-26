@@ -98,9 +98,9 @@ public abstract class StoreFixture : IDisposable
             proposer: Proposer.PublicKey,
             validatorSet: TestUtils.Validators);
         var actionEvaluator = new ActionEvaluator(
-            policyActionsRegistry ?? new PolicyActionsRegistry(),
             stateStore,
-            new SingleActionLoader<DumbAction>());
+            new SingleActionLoader<DumbAction>(),
+            policyActionsRegistry ?? new PolicyActionsRegistry());
         GenesisBlock = preEval.Sign(
             Proposer,
             default);

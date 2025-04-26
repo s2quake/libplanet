@@ -10,10 +10,15 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Action;
 
 public sealed class ActionEvaluator(
-    PolicyActionsRegistry actionsRegistry,
     IStateStore stateStore,
-    IActionLoader actionLoader)
+    IActionLoader actionLoader,
+    PolicyActionsRegistry actionsRegistry)
 {
+    public ActionEvaluator(IStateStore stateStore, IActionLoader actionLoader)
+        : this(stateStore, actionLoader, PolicyActionsRegistry.Empty)
+    {
+    }
+
     public IActionLoader ActionLoader => actionLoader;
 
     public static int GenerateRandomSeed(

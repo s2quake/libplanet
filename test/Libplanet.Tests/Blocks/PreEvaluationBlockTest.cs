@@ -51,7 +51,7 @@
 //                 var actionEvaluator = new ActionEvaluator(
 //                     policy.PolicyActionsRegistry,
 //                     fx.StateStore,
-//                     new SingleActionLoader(typeof(Arithmetic)));
+//                     new SingleActionLoader<Arithmetic>());
 //                 Block genesis = preEvalGenesis.Sign(
 //                     _contents.GenesisKey,
 //                     default);
@@ -127,7 +127,7 @@
 //                 var actionEvaluator = new ActionEvaluator(
 //                     policyActionsRegistry: policy.PolicyActionsRegistry,
 //                     stateStore: fx.StateStore,
-//                     actionTypeLoader: new SingleActionLoader(typeof(Arithmetic)));
+//                     actionTypeLoader: new SingleActionLoader<Arithmetic>());
 //                 HashDigest<SHA256> genesisStateRootHash = default;
 //                 _output.WriteLine("#0 StateRootHash: {0}", genesisStateRootHash);
 //                 Block genesis =

@@ -29,9 +29,9 @@ namespace Libplanet.Tests.Blockchain.Policies
                 _fx.StateStore,
                 _fx.GenesisBlock,
                 new ActionEvaluator(
-                    _policy.PolicyActionsRegistry,
                     stateStore: _fx.StateStore,
-                    actionLoader: new SingleActionLoader<DumbAction>()));
+                    actionLoader: new SingleActionLoader<DumbAction>(),
+                    _policy.PolicyActionsRegistry));
             _key = new PrivateKey();
             _txs = Enumerable.Range(0, 5).Select(i =>
                 Transaction.Create(

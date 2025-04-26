@@ -148,11 +148,13 @@ public class BlockPolicyParamsTest
 
     internal static BlockPolicy BlockPolicyFactory() =>
         new BlockPolicy(
-            new PolicyActionsRegistry(
-                ImmutableArray.Create<IAction>(new NullAction()),
-                ImmutableArray.Create<IAction>(new NullAction()),
-                ImmutableArray.Create<IAction>(new NullAction()),
-                ImmutableArray.Create<IAction>(new NullAction())));
+            new PolicyActionsRegistry
+            {
+                BeginBlockActions = [new NullAction()],
+                EndBlockActions = [new NullAction()],
+                BeginTxActions = [new NullAction()],
+                EndTxActions = [new NullAction()],
+            });
 
     internal static BlockPolicy BlockPolicyFactoryWithParams(bool param) =>
         new BlockPolicy();

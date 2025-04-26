@@ -20,6 +20,7 @@ using Libplanet.Blockchain.Renderers;
 using Libplanet.Blockchain.Renderers.Debug;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
@@ -353,9 +354,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static T ToAction<T>(IValue plainValue)
             where T : IAction, new()
         {
-            var action = new T();
-            action.LoadPlainValue(plainValue);
-            return action;
+            return ModelSerializer.Deserialize<T>(plainValue);
         }
 
         public static BlockCommit CreateBlockCommit(
@@ -424,7 +423,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                             Validators = validatorSet ?? [],
                             States = ImmutableDictionary.Create<Address, IValue>(),
                         },
-                    }.Select(x => x.PlainValue),
+                    }.Select(ModelSerializer.Serialize),
                     timestamp: DateTimeOffset.MinValue));
             txs = txs.OrderBy(tx => tx.Id).ToList();
 
@@ -618,15 +617,15 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     0,
                     privateKey,
                     null,
-                    actions.Select(x => x.PlainValue),
+                    actions.ToPlainValues(),
                     timestamp: timestamp ?? DateTimeOffset.MinValue),
             };
 
             var blockChainStates = new BlockChainStates(store, stateStore);
             var actionEvaluator = new ActionEvaluator(
-                policy.PolicyActionsRegistry,
                 stateStore: stateStore,
-                actionLoader: actionLoader);
+                actionLoader: actionLoader,
+                policy.PolicyActionsRegistry);
 
             if (genesisBlock is null)
             {

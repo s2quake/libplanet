@@ -11,16 +11,16 @@
 //         [Fact]
 //         public void Create()
 //         {
-//             var loader = new SingleActionLoader(typeof(Attack));
+//             var loader = new SingleActionLoader<Attack>();
 //             Assert.Equal(typeof(Attack), loader.Type);
-//             loader = new SingleActionLoader(typeof(BaseAction));
+//             loader = new SingleActionLoader<BaseAction>();
 //             Assert.Equal(typeof(BaseAction), loader.Type);
 //         }
 
 //         [Fact]
 //         public void LoadAction()
 //         {
-//             var actionTypeLoader = new SingleActionLoader(typeof(Attack));
+//             var actionTypeLoader = new SingleActionLoader<Attack>();
 
 //             var plainValue = Dictionary.Empty
 //                 .Add("type_id", "attack")
@@ -31,10 +31,10 @@
 //             var action = new Attack();
 //             action.LoadPlainValue(plainValue);
 
-//             var loadedAction = actionTypeLoader.LoadAction(0, action.PlainValue);
+//             var loadedAction = actionTypeLoader.LoadAction(action.PlainValue);
 //             Assert.Equal(plainValue, loadedAction.PlainValue);
 //             Assert.Throws<InvalidActionException>(
-//                 () => actionTypeLoader.LoadAction(0, new Text("baz")));
+//                 () => actionTypeLoader.LoadAction(new Text("baz")));
 //         }
 //     }
 // }

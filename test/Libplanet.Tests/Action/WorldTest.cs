@@ -128,17 +128,13 @@ namespace Libplanet.Tests.Action
 
         public IActionContext CreateContext(IWorld world, Address signer)
         {
-            return new ActionContext(
-                signer,
-                null,
-                signer,
-                0,
-                ProtocolVersion,
-                null,
-                world,
-                0,
-                false,
-                null);
+            return new ActionContext
+            {
+                Signer = signer,
+                Miner = signer,
+                BlockProtocolVersion = ProtocolVersion,
+                World = world,
+            };
         }
 
         [Fact]
