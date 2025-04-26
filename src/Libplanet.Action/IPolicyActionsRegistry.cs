@@ -1,6 +1,6 @@
 // namespace Libplanet.Action;
 
-// public interface IPolicyActionsRegistry
+// public interface PolicyActionsRegistry
 // {
 //     ImmutableArray<IAction> BeginBlockActions
 //     {

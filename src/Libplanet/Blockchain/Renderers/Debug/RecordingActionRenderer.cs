@@ -56,7 +56,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         /// <inheritdoc cref="IActionRenderer.RenderAction"/>
         public virtual void RenderAction(
             IValue action,
-            ICommittedActionContext context,
+            CommittedActionContext context,
             HashDigest<SHA256> nextState
         )
         {
@@ -76,7 +76,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         /// <inheritdoc cref="IActionRenderer.RenderActionError"/>
         public virtual void RenderActionError(
             IValue action,
-            ICommittedActionContext context,
+            CommittedActionContext context,
             Exception exception
         ) =>
             _records.Add(

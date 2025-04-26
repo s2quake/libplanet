@@ -83,7 +83,7 @@ namespace Libplanet.Net.Tests.Messages
                 policy,
                 new MemoryStore(),
                 new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader(typeof(DumbAction))
+                new SingleActionLoader<DumbAction>()
             );
             var codec = new Codec();
             Block genesis = chain.Genesis;

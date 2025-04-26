@@ -31,7 +31,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 new ActionEvaluator(
                     _policy.PolicyActionsRegistry,
                     stateStore: _fx.StateStore,
-                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader<DumbAction>()));
             _key = new PrivateKey();
             _txs = Enumerable.Range(0, 5).Select(i =>
                 Transaction.Create(

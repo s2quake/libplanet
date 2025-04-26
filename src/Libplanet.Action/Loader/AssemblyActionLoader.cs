@@ -2,58 +2,57 @@ using System.Reflection;
 using Bencodex.Types;
 using Libplanet.Action.Sys;
 
-namespace Libplanet.Action.Loader
+namespace Libplanet.Action.Loader;
+
+public sealed class AssemblyActionLoader : IActionLoader
 {
-    public class AssemblyActionLoader : IActionLoader
+    private readonly Dictionary<IValue, Type> _types;
+
+    public AssemblyActionLoader(Assembly assembly)
     {
-        private readonly Dictionary<IValue, Type> _types;
+        var query = from type in assembly.GetTypes()
+                    where typeof(IAction).IsAssignableFrom(type) == true
+                    let attribute = type.GetCustomAttribute<ActionTypeAttribute>()
+                    where attribute is not null
+                    select (attribute.TypeIdentifier, type);
 
-        public AssemblyActionLoader(Assembly assembly)
+        _types = query.ToDictionary((item) => item.TypeIdentifier, item => item.type);
+    }
+
+    public IReadOnlyDictionary<IValue, Type> Types => _types;
+
+    public IAction LoadAction(IValue value)
+    {
+        try
         {
-            var query = from type in assembly.GetTypes()
-                        where typeof(IAction).IsAssignableFrom(type) == true
-                        let attribute = type.GetCustomAttribute<ActionTypeAttribute>()
-                        where attribute is not null
-                        select (attribute.TypeIdentifier, type);
+            // if (Registry.IsSystemAction(value))
+            // {
+            //     return Registry.Deserialize(value);
+            // }
 
-            _types = query.ToDictionary((item) => item.TypeIdentifier, item => item.type);
+            IAction action;
+            if (value is Dictionary pv &&
+                pv.TryGetValue((Text)"type_id", out var rawTypeId) &&
+                rawTypeId is IValue typeId &&
+                Types.TryGetValue(typeId, out var actionType))
+            {
+                action = (IAction)Activator.CreateInstance(actionType)!;
+                // action.LoadPlainValue(pv);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Failed to instantiate an action from {value}");
+            }
+
+            return action;
         }
-
-        public IReadOnlyDictionary<IValue, Type> Types => _types;
-
-        public IAction LoadAction(long index, IValue value)
+        catch (Exception e)
         {
-            try
-            {
-                // if (Registry.IsSystemAction(value))
-                // {
-                //     return Registry.Deserialize(value);
-                // }
-
-                IAction action;
-                if (value is Dictionary pv &&
-                    pv.TryGetValue((Text)"type_id", out var rawTypeId) &&
-                    rawTypeId is IValue typeId &&
-                    Types.TryGetValue(typeId, out var actionType))
-                {
-                    action = (IAction)Activator.CreateInstance(actionType)!;
-                    // action.LoadPlainValue(pv);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Failed to instantiate an action from {value} for index {index}");
-                }
-
-                return action;
-            }
-            catch (Exception e)
-            {
-                throw new InvalidActionException(
-                    $"Failed to instantiate an action from {value} for index {index}",
-                    value,
-                    e);
-            }
+            throw new InvalidActionException(
+                $"Failed to instantiate an action from {value}",
+                value,
+                e);
         }
     }
 }

@@ -11,7 +11,7 @@ public interface IActionContext
 {
     Address Signer { get; }
 
-    TxId? TxId { get; }
+    TxId TxId { get; }
 
     Address Miner { get; }
 
@@ -24,8 +24,6 @@ public interface IActionContext
     IWorld World { get; }
 
     int RandomSeed { get; }
-
-    bool IsPolicyAction { get; }
 
     FungibleAssetValue? MaxGasPrice { get; }
 

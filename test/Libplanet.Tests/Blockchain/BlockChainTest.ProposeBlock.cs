@@ -144,7 +144,7 @@ namespace Libplanet.Tests.Blockchain
                 var actionEvaluator = new ActionEvaluator(
                     policy.PolicyActionsRegistry,
                     fx.StateStore,
-                    new SingleActionLoader(typeof(DumbAction)));
+                    new SingleActionLoader<DumbAction>());
                 var genesis = BlockChain.ProposeGenesisBlock(
                     new PrivateKey(),
                     null,
@@ -184,7 +184,7 @@ namespace Libplanet.Tests.Blockchain
                     new ActionEvaluator(
                         policy.PolicyActionsRegistry,
                         stateStore: fx.StateStore,
-                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader<DumbAction>()));
                 var txs = new[]
                 {
                     Transaction.Create(
@@ -409,7 +409,7 @@ namespace Libplanet.Tests.Blockchain
                     new ActionEvaluator(
                         policy.PolicyActionsRegistry,
                         stateStore: fx.StateStore,
-                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader<DumbAction>()));
 
                 var validTx = blockChain.MakeTransaction(validKey, new DumbAction[] { });
                 var invalidTx = blockChain.MakeTransaction(invalidKey, new DumbAction[] { });
@@ -512,10 +512,11 @@ namespace Libplanet.Tests.Blockchain
             var address2 = privateKey2.Address;
 
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    beginBlockActions: ImmutableArray<IAction>.Empty,
-                    endBlockActions: ImmutableArray.Create<IAction>(
-                        DumbAction.Create((address1, "foo")))));
+                new PolicyActionsRegistry
+                {
+                    BeginBlockActions = [],
+                    EndBlockActions = [DumbAction.Create((address1, "foo"))],
+                });
             var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
 
             var blockChain = new BlockChain(
@@ -528,7 +529,7 @@ namespace Libplanet.Tests.Blockchain
                 new ActionEvaluator(
                     policy.PolicyActionsRegistry,
                     _fx.StateStore,
-                    new SingleActionLoader(typeof(DumbAction))));
+                    new SingleActionLoader<DumbAction>()));
 
             blockChain.MakeTransaction(privateKey2, new[] { DumbAction.Create((address2, "baz")) });
             var block = blockChain.ProposeBlock(
@@ -653,14 +654,7 @@ namespace Libplanet.Tests.Blockchain
             StageTransactions(txsA);
             Block b1 = _blockChain.ProposeBlock(new PrivateKey());
             _blockChain.Append(b1, CreateBlockCommit(b1));
-            Assert.Equal(
-                txsA,
-                ActionEvaluator.OrderTxsForEvaluation(
-                    b1.ProtocolVersion,
-                    b1.Transactions,
-                    b1.RawHash.Bytes
-                )
-            );
+            Assert.Equal(txsA, b1.Transactions);
 
             var txsB = Enumerable.Range(0, 4)
                 .Select(nonce => _fx.MakeTransaction(

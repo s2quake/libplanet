@@ -8,7 +8,7 @@ public interface IActionService
 {
     IActionLoader ActionLoader { get; }
 
-    IPolicyActionsRegistry PolicyActionsRegistry { get; }
+    PolicyActionsRegistry PolicyActionsRegistry { get; }
 
     IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys);
 }

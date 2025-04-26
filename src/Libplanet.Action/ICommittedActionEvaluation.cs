@@ -4,7 +4,7 @@
 
 // namespace Libplanet.Action
 // {
-//     public interface ICommittedActionEvaluation
+//     public interface CommittedActionEvaluation
 //     {
 //         /// <summary>
 //         /// An action data to evaluate. When the
@@ -19,7 +19,7 @@
 //         /// </summary>
 //         /// <remarks>Its <see cref="IActionContext.Random"/> property
 //         /// is not consumed yet.</remarks>
-//         public ICommittedActionContext InputContext { get; }
+//         public CommittedActionContext InputContext { get; }
 
 //         /// <summary>
 //         /// The result states that <see cref="Action"/> makes.

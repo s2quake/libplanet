@@ -331,15 +331,17 @@ namespace Libplanet.Net.Tests.Consensus
             TimeSpan newHeightDelay = TimeSpan.FromSeconds(1);
 
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))),
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new MinerReward(1)],
+                },
                 getMaxTransactionsBytes: _ => 50 * 1024);
             var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
                 fx.Store,
                 new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader(typeof(DelayAction)));
+                new SingleActionLoader<DelayAction>());
 
             Context context = new Context(
                 blockChain,
@@ -651,7 +653,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new BlockPolicy(),
                 fx.Store,
                 fx.StateStore,
-                new SingleActionLoader(typeof(DelayAction)));
+                new SingleActionLoader<DelayAction>());
 
             var consensusContext = new ConsensusContext(
                 new TestUtils.DummyConsensusMessageHandler(message => { }),

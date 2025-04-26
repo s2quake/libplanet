@@ -92,7 +92,7 @@ namespace Libplanet.Net.Tests
             var policy = new NullBlockPolicy();
             var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
             var minerChain = MakeBlockChain(
-                policy, fx.Store, fx.StateStore, new SingleActionLoader(typeof(DumbAction)));
+                policy, fx.Store, fx.StateStore, new SingleActionLoader<DumbAction>());
             foreach (int i in Enumerable.Range(0, 10))
             {
                 Block block = minerChain.ProposeBlock(
@@ -185,7 +185,7 @@ namespace Libplanet.Net.Tests
                 policy,
                 new MemoryStore(),
                 seedStateStore,
-                new SingleActionLoader(typeof(DumbAction)),
+                new SingleActionLoader<DumbAction>(),
                 privateKey: receiverKey);
             var seedMiner = new PrivateKey();
             Swarm seedSwarm =
@@ -461,9 +461,9 @@ namespace Libplanet.Net.Tests
                     fxs[i].StateStore,
                     fxs[i].GenesisBlock,
                     new ActionEvaluator(
-                        policyActionsRegistry: policy.PolicyActionsRegistry,
+                        actionsRegistry: policy.PolicyActionsRegistry,
                         stateStore: fxs[i].StateStore,
-                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader<DumbAction>()));
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
             }
 
@@ -693,11 +693,13 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlockWithSkip()
         {
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))));
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new MinerReward(1)],
+                });
             var fx1 = new MemoryStoreFixture();
             var blockChain = MakeBlockChain(
-                policy, fx1.Store, fx1.StateStore, new SingleActionLoader(typeof(DumbAction)));
+                policy, fx1.Store, fx1.StateStore, new SingleActionLoader<DumbAction>());
             var privateKey = new PrivateKey();
             var minerSwarm = await CreateSwarm(blockChain, privateKey).ConfigureAwait(false);
             var fx2 = new MemoryStoreFixture();
@@ -709,7 +711,7 @@ namespace Libplanet.Net.Tests
                 policy,
                 fx2.Store,
                 fx2.StateStore,
-                new SingleActionLoader(typeof(DumbAction)),
+                new SingleActionLoader<DumbAction>(),
                 renderers: new[] { loggedRenderer });
             Swarm receiverSwarm =
                 await CreateSwarm(receiverChain).ConfigureAwait(false);

@@ -62,7 +62,7 @@ namespace Libplanet.Blockchain.Renderers
         /// </remarks>
         void RenderAction(
             IValue action,
-            ICommittedActionContext context,
+            CommittedActionContext context,
             HashDigest<SHA256> nextState);
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Libplanet.Blockchain.Renderers
         /// (where its second parameter <c>newTip</c> contains a transaction the <paramref
         /// name="action"/> belongs to).
         /// </remarks>
-        void RenderActionError(IValue action, ICommittedActionContext context, Exception exception);
+        void RenderActionError(IValue action, CommittedActionContext context, Exception exception);
 
         /// <summary>
         /// Does things that should be done right all actions in a new <see cref="Block"/> are

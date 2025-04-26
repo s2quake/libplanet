@@ -29,8 +29,10 @@ namespace Libplanet.Net.Tests
 
             if (blocks is null)
             {
-                var policy = new BlockPolicy(new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))));
+                var policy = new BlockPolicy(new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new MinerReward(1)],
+                });
                 using (var storeFx = new MemoryStoreFixture())
                 {
                     var chain =
@@ -38,7 +40,7 @@ namespace Libplanet.Net.Tests
                             policy,
                             storeFx.Store,
                             storeFx.StateStore,
-                            new SingleActionLoader(typeof(DumbAction)));
+                            new SingleActionLoader<DumbAction>());
                     var miner = new PrivateKey();
                     var signer = new PrivateKey();
                     Address address = signer.Address;
@@ -114,14 +116,16 @@ namespace Libplanet.Net.Tests
             ConsensusReactorOption? consensusReactorOption = null)
         {
             policy = policy ?? new BlockPolicy(
-                new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))));
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new MinerReward(1)],
+                });
             var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
             var blockchain = MakeBlockChain(
                 policy,
                 fx.Store,
                 fx.StateStore,
-                new SingleActionLoader(typeof(DumbAction)),
+                new SingleActionLoader<DumbAction>(),
                 genesisBlock: genesis
             );
             appProtocolVersionOptions ??= new AppProtocolVersionOptions();

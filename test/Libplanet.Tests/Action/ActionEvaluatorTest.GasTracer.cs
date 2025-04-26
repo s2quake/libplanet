@@ -178,7 +178,7 @@ namespace Libplanet.Tests.Action
                 "CancelTrace can only be called in TxAction.", exception.InnerException.Message);
         }
 
-        private IReadOnlyList<ICommittedActionEvaluation> Evaluate_CancelTrace(BlockPolicy policy)
+        private IReadOnlyList<CommittedActionEvaluation> Evaluate_CancelTrace(BlockPolicy policy)
         {
             var gold = new Currency("FOO", 18);
             var gas = new Currency("GAS", 18);

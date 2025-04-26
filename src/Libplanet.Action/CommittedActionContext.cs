@@ -16,7 +16,6 @@ public sealed record class CommittedActionContext
         BlockProtocolVersion = context.BlockProtocolVersion;
         PreviousState = context.World.Trie.Hash;
         RandomSeed = context.RandomSeed;
-        IsPolicyAction = context.IsPolicyAction;
     }
 
     public CommittedActionContext()
@@ -36,8 +35,6 @@ public sealed record class CommittedActionContext
     public HashDigest<SHA256> PreviousState { get; init; }
 
     public int RandomSeed { get; init; }
-
-    public bool IsPolicyAction { get; init; }
 
     public IRandom GetRandom() => new Random(RandomSeed);
 }

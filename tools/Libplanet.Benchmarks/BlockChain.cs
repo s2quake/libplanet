@@ -34,9 +34,9 @@ namespace Libplanet.Benchmarks
                 _fx.StateStore,
                 _fx.GenesisBlock,
                 new ActionEvaluator(
-                    policyActionsRegistry: new PolicyActionsRegistry(),
+                    actionsRegistry: new PolicyActionsRegistry(),
                     stateStore: _fx.StateStore,
-                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader<DumbAction>()));
             var key = new PrivateKey();
             for (var i = 0; i < 500; i++)
             {

@@ -5,7 +5,7 @@
 
 // namespace Libplanet.Action;
 
-// public interface ICommittedActionContext
+// public interface CommittedActionContext
 // {
 //     Address Signer { get; }
 

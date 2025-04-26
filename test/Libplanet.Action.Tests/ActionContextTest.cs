@@ -64,7 +64,6 @@ namespace Libplanet.Action.Tests
                     LastCommit = _lastCommit,
                     World = new World(MockWorldState.CreateModern()),
                     RandomSeed = seed,
-                    IsPolicyAction = false,
                     MaxGasPrice = null,
                 };
                 IRandom random = context.GetRandom();
@@ -85,7 +84,6 @@ namespace Libplanet.Action.Tests
                 LastCommit = _lastCommit,
                 World = new World(MockWorldState.CreateModern()),
                 RandomSeed = 0,
-                IsPolicyAction = false,
                 MaxGasPrice = null,
             };
 
@@ -99,7 +97,6 @@ namespace Libplanet.Action.Tests
                 LastCommit = _lastCommit,
                 World = new World(MockWorldState.CreateModern()),
                 RandomSeed = 0,
-                IsPolicyAction = false,
                 MaxGasPrice = null,
             };
 
@@ -113,7 +110,6 @@ namespace Libplanet.Action.Tests
                 LastCommit = _lastCommit,
                 World = new World(MockWorldState.CreateModern()),
                 RandomSeed = 1,
-                IsPolicyAction = false,
                 MaxGasPrice = null,
             };
 
@@ -155,7 +151,6 @@ namespace Libplanet.Action.Tests
                     LastCommit = _lastCommit,
                     World = new World(MockWorldState.CreateModern()),
                     RandomSeed = i,
-                    IsPolicyAction = false,
                     MaxGasPrice = null,
                 };
                 var guid = context.GetRandom().GenerateRandomGuid().ToString();

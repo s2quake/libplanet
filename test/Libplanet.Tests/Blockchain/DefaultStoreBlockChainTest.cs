@@ -12,7 +12,7 @@ namespace Libplanet.Tests.Blockchain
         }
 
         protected override StoreFixture GetStoreFixture(
-            IPolicyActionsRegistry policyActionsRegistry = null) =>
+            PolicyActionsRegistry policyActionsRegistry = null) =>
                 new DefaultStoreFixture(policyActionsRegistry: policyActionsRegistry);
     }
 }

@@ -189,7 +189,7 @@ namespace Libplanet.Blockchain
             {
                 foreach (IValue rawAction in tx.Actions)
                 {
-                    _ = ActionEvaluator.ActionLoader.LoadAction(block.Height, rawAction);
+                    _ = ActionEvaluator.ActionLoader.LoadAction(rawAction);
                 }
             }
         }
@@ -354,7 +354,7 @@ namespace Libplanet.Blockchain
         /// to the one in <paramref name="block"/>.
         /// </summary>
         /// <param name="block">The <see cref="Block"/> to validate against.</param>
-        /// <param name="evaluations">The list of <see cref="IActionEvaluation"/>s
+        /// <param name="evaluations">The list of <see cref="ActionEvaluation"/>s
         /// from which to extract the states to commit.</param>
         /// <exception cref="InvalidOperationException">If the state root hash
         /// calculated by committing to the <see cref="IStateStore"/> does not match
@@ -369,7 +369,7 @@ namespace Libplanet.Blockchain
         /// <seealso cref="EvaluateBlockPrecededStateRootHash"/>
         /// <seealso cref="DetermineBlockPrecededStateRootHash"/>
         internal void ValidateBlockPrecededStateRootHash(
-            Block block, out IReadOnlyList<ICommittedActionEvaluation> evaluations)
+            Block block, out IReadOnlyList<CommittedActionEvaluation> evaluations)
         {
             var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
             if (!rootHash.Equals(block.StateRootHash))

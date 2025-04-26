@@ -15,17 +15,17 @@ namespace Libplanet.Blockchain
         /// <returns>The corresponding <see cref="TxExecution"/>s.</returns>
         internal IEnumerable<TxExecution> MakeTxExecutions(
             Block block,
-            IReadOnlyList<ICommittedActionEvaluation> evaluations
+            IReadOnlyList<CommittedActionEvaluation> evaluations
         )
         {
-            List<(TxId?, List<ICommittedActionEvaluation>)> groupedEvals =
-                new List<(TxId?, List<ICommittedActionEvaluation>)>();
-            foreach (ICommittedActionEvaluation eval in evaluations)
+            List<(TxId?, List<CommittedActionEvaluation>)> groupedEvals =
+                new List<(TxId?, List<CommittedActionEvaluation>)>();
+            foreach (CommittedActionEvaluation eval in evaluations)
             {
                 if (groupedEvals.Count == 0)
                 {
                     groupedEvals.Add(
-                        (eval.InputContext.TxId, new List<ICommittedActionEvaluation>() { eval }));
+                        (eval.InputContext.TxId, new List<CommittedActionEvaluation>() { eval }));
                 }
                 else
                 {
@@ -38,7 +38,7 @@ namespace Libplanet.Blockchain
                         groupedEvals.Add(
                             (
                                 eval.InputContext.TxId,
-                                new List<ICommittedActionEvaluation>() { eval }
+                                new List<CommittedActionEvaluation>() { eval }
                             ));
                     }
                 }

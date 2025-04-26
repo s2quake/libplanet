@@ -29,7 +29,6 @@ public sealed record class CommittedActionEvaluation
                         ? evaluation.InputContext.World.Trie.Hash
                         : throw new ArgumentException("Trie is not recorded"),
                 RandomSeed = evaluation.InputContext.RandomSeed,
-                IsPolicyAction = evaluation.InputContext.IsPolicyAction,
             },
             OutputState = evaluation.OutputState.Trie.IsCommitted
                     ? evaluation.OutputState.Trie.Hash

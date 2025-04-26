@@ -222,7 +222,7 @@ namespace Libplanet.Tests.Action
                 new NullBlockPolicy(),
                 store,
                 stateStore,
-                new SingleActionLoader(typeof(DumbAction)),
+                new SingleActionLoader<DumbAction>(),
                 protocolVersion: ProtocolVersion,
                 privateKey: privateKey
             );

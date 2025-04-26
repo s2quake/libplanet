@@ -17,7 +17,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
 
         private static IWorld _world = new World(MockUtil.MockModernWorldState);
 
-        private static ICommittedActionContext _actionContext =
+        private static CommittedActionContext _actionContext =
             new CommittedActionContext(new ActionContext(
                 default,
                 default,
@@ -41,7 +41,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
         [Fact]
         public void ActionRenderer()
         {
-            (IValue, ICommittedActionContext, HashDigest<SHA256>)? record = null;
+            (IValue, CommittedActionContext, HashDigest<SHA256>)? record = null;
             var renderer = new AnonymousActionRenderer
             {
                 ActionRenderer = (action, context, nextState) =>
@@ -63,7 +63,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
         [Fact]
         public void ActionErrorRenderer()
         {
-            (IValue, ICommittedActionContext, Exception)? record = null;
+            (IValue, CommittedActionContext, Exception)? record = null;
             var renderer = new AnonymousActionRenderer
             {
                 ActionErrorRenderer = (action, context, exception) =>

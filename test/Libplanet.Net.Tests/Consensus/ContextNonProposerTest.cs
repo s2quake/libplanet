@@ -343,7 +343,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var diffPolicyBlockChain =
                 TestUtils.CreateDummyBlockChain(
-                    policy, new SingleActionLoader(typeof(DumbAction)), blockChain.Genesis);
+                    policy, new SingleActionLoader<DumbAction>(), blockChain.Genesis);
 
             var invalidTx = diffPolicyBlockChain.MakeTransaction(invalidKey, new DumbAction[] { });
 

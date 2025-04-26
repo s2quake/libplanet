@@ -1010,7 +1010,7 @@ namespace Libplanet.Tests.Store
                 var actionEvaluator = new ActionEvaluator(
                     policy.PolicyActionsRegistry,
                     fx.StateStore,
-                    new SingleActionLoader(typeof(DumbAction)));
+                    new SingleActionLoader<DumbAction>());
                 var genesis = preEval.Sign(
                     GenesisProposer,
                     default);

@@ -488,7 +488,7 @@ namespace Libplanet.Tests.Blockchain
                     new ActionEvaluator(
                         policy.PolicyActionsRegistry,
                         stateStore: fx.StateStore,
-                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader<DumbAction>()));
 
                 var validTx = blockChain.MakeTransaction(validKey, Array.Empty<DumbAction>());
                 var invalidTx = blockChain.MakeTransaction(invalidKey, Array.Empty<DumbAction>());
@@ -576,7 +576,7 @@ namespace Libplanet.Tests.Blockchain
                 new ActionEvaluator(
                     policy.PolicyActionsRegistry,
                     _fx.StateStore,
-                    new SingleActionLoader(typeof(DumbAction))));
+                    new SingleActionLoader<DumbAction>()));
             Assert.Throws<InvalidOperationException>(
                 () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
         }
@@ -660,7 +660,7 @@ namespace Libplanet.Tests.Blockchain
             var actionEvaluator = new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 stateStore: fx.StateStore,
-                actionLoader: new SingleActionLoader(typeof(DumbAction)));
+                actionLoader: new SingleActionLoader<DumbAction>());
 
             var txs = new[]
             {
@@ -727,7 +727,7 @@ namespace Libplanet.Tests.Blockchain
             var policy = new NullBlockPolicy();
             var store = new MemoryStore();
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-            var actionLoader = new SingleActionLoader(typeof(DumbAction));
+            var actionLoader = new SingleActionLoader<DumbAction>();
             var actionEvaluator = new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 stateStore,

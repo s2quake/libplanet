@@ -18,7 +18,7 @@ namespace Libplanet.Blockchain
         /// </summary>
         /// <param name="block">The <see cref="RawBlock"/> to execute for
         /// <paramref name="evaluations"/>.</param>
-        /// <param name="evaluations">The list of <see cref="IActionEvaluation"/>s
+        /// <param name="evaluations">The list of <see cref="ActionEvaluation"/>s
         /// from which to extract the states to commit.</param>
         /// <exception cref="InvalidActionException">Thrown when given <paramref name="block"/>
         /// contains an action that cannot be loaded with <see cref="IActionLoader"/>.</exception>
@@ -35,7 +35,7 @@ namespace Libplanet.Blockchain
         /// <seealso cref="EvaluateBlockPrecededStateRootHash"/>
         /// <seealso cref="ValidateBlockPrecededStateRootHash"/>
         public HashDigest<SHA256> DetermineNextBlockStateRootHash(
-            Block block, out IReadOnlyList<ICommittedActionEvaluation> evaluations)
+            Block block, out IReadOnlyList<CommittedActionEvaluation> evaluations)
         {
             _rwlock.EnterWriteLock();
             try
@@ -73,13 +73,13 @@ namespace Libplanet.Blockchain
         /// Evaluates the <see cref="IAction"/>s in given <paramref name="block"/>.
         /// </summary>
         /// <param name="block">The <see cref="RawBlock"/> to execute.</param>
-        /// <returns>An <see cref="IReadOnlyList{T}"/> of <ses cref="ICommittedActionEvaluation"/>s
+        /// <returns>An <see cref="IReadOnlyList{T}"/> of <ses cref="CommittedActionEvaluation"/>s
         /// for given <paramref name="block"/>.</returns>
         /// <exception cref="InvalidActionException">Thrown when given <paramref name="block"/>
         /// contains an action that cannot be loaded with <see cref="IActionLoader"/>.</exception>
         /// <seealso cref="ValidateBlockPrecededStateRootHash"/>
         [Pure]
-        public IReadOnlyList<ICommittedActionEvaluation> EvaluateBlock(Block block) =>
+        public IReadOnlyList<CommittedActionEvaluation> EvaluateBlock(Block block) =>
                 ActionEvaluator.Evaluate(
                     (RawBlock)block,
                     Store.GetStateRootHash(block.Hash));
@@ -128,7 +128,7 @@ namespace Libplanet.Blockchain
         /// </summary>
         /// <param name="block">The <see cref="RawBlock"/> to execute for
         /// <paramref name="evaluations"/>.</param>
-        /// <param name="evaluations">The list of <see cref="IActionEvaluation"/>s
+        /// <param name="evaluations">The list of <see cref="ActionEvaluation"/>s
         /// from which to extract the states to commit.</param>
         /// <exception cref="InvalidActionException">Thrown when given <paramref name="block"/>
         /// contains an action that cannot be loaded with <see cref="IActionLoader"/>.</exception>
@@ -145,7 +145,7 @@ namespace Libplanet.Blockchain
         /// <seealso cref="EvaluateBlockPrecededStateRootHash"/>
         /// <seealso cref="ValidateBlockPrecededStateRootHash"/>
         internal HashDigest<SHA256> DetermineBlockPrecededStateRootHash(
-            RawBlock block, out IReadOnlyList<ICommittedActionEvaluation> evaluations)
+            RawBlock block, out IReadOnlyList<CommittedActionEvaluation> evaluations)
         {
             _rwlock.EnterWriteLock();
             try
@@ -184,14 +184,14 @@ namespace Libplanet.Blockchain
         /// </summary>
         /// <param name="rawBlock">The <see cref="RawBlock"/> to execute.
         /// </param>
-        /// <returns>An <see cref="IReadOnlyList{T}"/> of <ses cref="ICommittedActionEvaluation"/>s
+        /// <returns>An <see cref="IReadOnlyList{T}"/> of <ses cref="CommittedActionEvaluation"/>s
         /// for given <paramref name="rawBlock"/>.</returns>
         /// <exception cref="InvalidActionException">Thrown when given
         /// <paramref name="rawBlock"/>
         /// contains an action that cannot be loaded with <see cref="IActionLoader"/>.</exception>
         /// <seealso cref="ValidateBlockPrecededStateRootHash"/>
         [Pure]
-        internal IReadOnlyList<ICommittedActionEvaluation> EvaluateBlockPrecededStateRootHash(
+        internal IReadOnlyList<CommittedActionEvaluation> EvaluateBlockPrecededStateRootHash(
             RawBlock rawBlock) =>
             ActionEvaluator.Evaluate(
                 rawBlock,

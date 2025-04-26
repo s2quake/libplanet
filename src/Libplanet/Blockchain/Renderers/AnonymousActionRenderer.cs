@@ -29,16 +29,16 @@ namespace Libplanet.Blockchain.Renderers
     {
         /// <summary>
         /// A callback function to be invoked together with
-        /// <see cref="RenderAction(IValue, ICommittedActionContext, HashDigest{SHA256})"/>.
+        /// <see cref="RenderAction(IValue, CommittedActionContext, HashDigest{SHA256})"/>.
         /// </summary>
-        public Action<IValue, ICommittedActionContext, HashDigest<SHA256>>? ActionRenderer
+        public Action<IValue, CommittedActionContext, HashDigest<SHA256>>? ActionRenderer
             { get; set; }
 
         /// <summary>
         /// A callback function to be invoked together with
-        /// <see cref="RenderActionError(IValue, ICommittedActionContext, Exception)"/>.
+        /// <see cref="RenderActionError(IValue, CommittedActionContext, Exception)"/>.
         /// </summary>
-        public Action<IValue, ICommittedActionContext, Exception>? ActionErrorRenderer { get; set; }
+        public Action<IValue, CommittedActionContext, Exception>? ActionErrorRenderer { get; set; }
 
         /// <summary>
         /// A callback function to be invoked together with
@@ -49,16 +49,16 @@ namespace Libplanet.Blockchain.Renderers
         /// <inheritdoc cref="IActionRenderer.RenderAction"/>
         public void RenderAction(
             IValue action,
-            ICommittedActionContext context,
+            CommittedActionContext context,
             HashDigest<SHA256> nextState
         ) =>
             ActionRenderer?.Invoke(action, context, nextState);
 
         /// <inheritdoc
-        /// cref="IActionRenderer.RenderActionError(IValue, ICommittedActionContext, Exception)"/>
+        /// cref="IActionRenderer.RenderActionError(IValue, CommittedActionContext, Exception)"/>
         public void RenderActionError(
             IValue action,
-            ICommittedActionContext context,
+            CommittedActionContext context,
             Exception exception) =>
                 ActionErrorRenderer?.Invoke(action, context, exception);
 

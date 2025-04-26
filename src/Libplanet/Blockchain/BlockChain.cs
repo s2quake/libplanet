@@ -127,7 +127,7 @@ namespace Libplanet.Blockchain
             Guid id,
             Block genesisBlock,
             IBlockChainStates blockChainStates,
-            IActionEvaluator actionEvaluator,
+            ActionEvaluator actionEvaluator,
             IEnumerable<IRenderer> renderers)
         {
             if (store is null)
