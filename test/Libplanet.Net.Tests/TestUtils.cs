@@ -46,12 +46,13 @@ namespace Libplanet.Net.Tests
             = Libplanet.Tests.TestUtils.Validators;
 
         public static readonly IBlockPolicy Policy = new BlockPolicy(
-            new PolicyActionsRegistry(
-                endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))),
+            new PolicyActionsRegistry
+            {
+                EndBlockActions = [new MinerReward(1)],
+            },
             getMaxTransactionsBytes: _ => 50 * 1024);
 
-        public static readonly IActionLoader ActionLoader = new SingleActionLoader(
-            typeof(DumbAction));
+        public static readonly IActionLoader ActionLoader = new SingleActionLoader<DumbAction>();
 
         public static AppProtocolVersion AppProtocolVersion = AppProtocolVersion.FromToken(
             "1/54684Ac4ee5B933e72144C4968BEa26056880d71/MEQCICGonYW" +

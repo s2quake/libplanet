@@ -70,19 +70,15 @@ namespace Libplanet.Tests.Action
         }
 
         public IActionContext CreateActionContext(Address signer, ITrie trie) =>
-            new ActionContext(
-                signer,
-                null,
-                signer,
-                0,
-                Block.CurrentProtocolVersion,
-                null,
-                new World(
+            new ActionContext
+            {
+                Signer = signer,
+                Miner = signer,
+                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                World = new World(
                     new WorldBaseState(
                         trie,
                         new TrieStateStore(new MemoryKeyValueStore()))),
-                0,
-                true,
-                null);
+            };
     }
 }

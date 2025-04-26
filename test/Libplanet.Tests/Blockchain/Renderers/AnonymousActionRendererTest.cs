@@ -18,17 +18,12 @@ namespace Libplanet.Tests.Blockchain.Renderers
         private static IWorld _world = new World(MockUtil.MockModernWorldState);
 
         private static CommittedActionContext _actionContext =
-            new CommittedActionContext(new ActionContext(
-                default,
-                default,
-                default,
-                0,
-                Block.CurrentProtocolVersion,
-                null,
-                _world,
-                default,
-                false,
-                null));
+            new CommittedActionContext(new ActionContext
+            {
+                BlockHeight = 0,
+                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                World = _world,
+            });
 
         private static Exception _exception = new Exception();
 

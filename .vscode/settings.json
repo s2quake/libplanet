@@ -1,7 +1,7 @@
 {
   "[csharp]": {
     "editor.rulers": [
-      100
+      120
     ]
   },
   "[markdown]": {

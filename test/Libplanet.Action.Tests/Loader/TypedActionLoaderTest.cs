@@ -55,10 +55,10 @@
 //             // var action = new Initialize();
 //             // action.LoadPlainValue(plainValue);
 
-//             // var loadedAction = loader.LoadAction(0, action.PlainValue);
+//             // var loadedAction = loader.LoadAction(action.PlainValue);
 //             // Assert.Equal(action.PlainValue, loadedAction.PlainValue);
 //             // Assert.Throws<InvalidActionException>(
-//             //     () => loader.LoadAction(0, new Text("baz")));
+//             //     () => loader.LoadAction(new Text("baz")));
 //         }
 //     }
 // }

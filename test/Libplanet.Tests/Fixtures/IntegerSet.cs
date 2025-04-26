@@ -69,9 +69,9 @@ namespace Libplanet.Tests.Fixtures
             KVStore = new MemoryKeyValueStore();
             StateStore = new TrieStateStore(KVStore);
             var actionEvaluator = new ActionEvaluator(
-                policy.PolicyActionsRegistry,
                 StateStore,
-                new SingleActionLoader(typeof(Arithmetic)));
+                new SingleActionLoader<Arithmetic>(),
+                policy.PolicyActionsRegistry);
             Genesis = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(
                     Miner.PublicKey,

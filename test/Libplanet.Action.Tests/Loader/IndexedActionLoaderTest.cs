@@ -12,8 +12,8 @@
 //         public void Create()
 //         {
 //             var loader1 = new SingleActionLoader<DumbAction>();
-//             var loader2 = new SingleActionLoader(typeof(Attack));
-//             var loader3 = new SingleActionLoader(typeof(ContextRecordingAction));
+//             var loader2 = new SingleActionLoader<Attack>();
+//             var loader3 = new SingleActionLoader<ContextRecordingAction>();
 
 //             // Works fine with single loader
 //             var indexedLoader = new IndexedActionLoader(
@@ -37,8 +37,8 @@
 //         public void LoadAction()
 //         {
 //             var loader1 = new SingleActionLoader<DumbAction>();
-//             var loader2 = new SingleActionLoader(typeof(Attack));
-//             var loader3 = new SingleActionLoader(typeof(ContextRecordingAction));
+//             var loader2 = new SingleActionLoader<Attack>();
+//             var loader3 = new SingleActionLoader<ContextRecordingAction>();
 //             var action1 = DumbAction.Create((new PrivateKey().Address, "foo"));
 //             var action2 = new Attack();
 //             action2.LoadPlainValue(Dictionary.Empty

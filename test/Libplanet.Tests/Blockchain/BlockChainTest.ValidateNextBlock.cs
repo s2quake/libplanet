@@ -202,9 +202,9 @@ namespace Libplanet.Tests.Blockchain
             var stateStore1 = new TrieStateStore(new MemoryKeyValueStore());
             IStore store1 = new MemoryStore();
             var actionEvaluator1 = new ActionEvaluator(
-                policy.PolicyActionsRegistry,
                 stateStore1,
-                new SingleActionLoader<DumbAction>());
+                new SingleActionLoader<DumbAction>(),
+                policy.PolicyActionsRegistry);
             var genesisBlock = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(TestUtils.GenesisProposer.PublicKey),
                 TestUtils.GenesisProposer);
@@ -229,9 +229,9 @@ namespace Libplanet.Tests.Blockchain
             var stateStore2 = new TrieStateStore(new MemoryKeyValueStore());
             IStore store2 = new MemoryStore();
             var actionEvaluator2 = new ActionEvaluator(
-                policyWithBlockAction.PolicyActionsRegistry,
                 stateStore2,
-                new SingleActionLoader<DumbAction>());
+                new SingleActionLoader<DumbAction>(),
+                policyWithBlockAction.PolicyActionsRegistry);
             var chain2 = BlockChain.Create(
                 policyWithBlockAction,
                 new VolatileStagePolicy(),
@@ -271,9 +271,9 @@ namespace Libplanet.Tests.Blockchain
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
-                policy.PolicyActionsRegistry,
                 stateStore,
-                new SingleActionLoader<DumbAction>());
+                new SingleActionLoader<DumbAction>(),
+                policy.PolicyActionsRegistry);
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
@@ -319,9 +319,9 @@ namespace Libplanet.Tests.Blockchain
                 genesisBlock,
                 blockChainStates,
                 new ActionEvaluator(
-                    policyWithBlockAction.PolicyActionsRegistry,
                     stateStore,
-                    new SingleActionLoader<DumbAction>()));
+                    new SingleActionLoader<DumbAction>(),
+                    policyWithBlockAction.PolicyActionsRegistry));
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -342,9 +342,9 @@ namespace Libplanet.Tests.Blockchain
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
-                policy.PolicyActionsRegistry,
                 stateStore,
-                new SingleActionLoader<DumbAction>());
+                new SingleActionLoader<DumbAction>(),
+                policy.PolicyActionsRegistry);
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
@@ -816,9 +816,9 @@ namespace Libplanet.Tests.Blockchain
                 });
 
             var actionEvaluator = new ActionEvaluator(
-                policyWithBlockAction.PolicyActionsRegistry,
                 _blockChain.StateStore,
-                new SingleActionLoader<DumbAction>());
+                new SingleActionLoader<DumbAction>(),
+                policyWithBlockAction.PolicyActionsRegistry);
 
             var newChain = new BlockChain(
                 policyWithBlockAction,

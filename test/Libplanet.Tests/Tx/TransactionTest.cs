@@ -76,7 +76,7 @@ public class TransactionTest
             0,
             privateKey,
             null,
-            actions: new IAction[] { action }.Select(x => x.PlainValue),
+            actions: new IAction[] { action }.ToPlainValues(),
             timestamp: timestamp
         );
 

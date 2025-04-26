@@ -33,7 +33,7 @@ public class TransactionQueryTest
             new BlockPolicy(),
             new MemoryStore(),
             new TrieStateStore(new MemoryKeyValueStore()),
-            new SingleActionLoader(typeof(NullAction)),
+            new SingleActionLoader<NullAction>(),
             privateKey: new PrivateKey(),
             timestamp: DateTimeOffset.UtcNow
         );

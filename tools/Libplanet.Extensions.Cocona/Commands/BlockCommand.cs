@@ -153,14 +153,14 @@ public class BlockCommand
                         Validators = validatorSet,
                         States = emptyState.ToImmutableDictionary(),
                     },
-                }.Select(x => x.PlainValue)))
+                }.ToPlainValues()))
             .ToImmutableList();
 
         var policyActionsRegistry = blockPolicyParams.GetPolicyActionsRegistry();
         var actionEvaluator = new ActionEvaluator(
-            policyActionsRegistry,
             new TrieStateStore(new DefaultKeyValueStore()),
-            new SingleActionLoader(typeof(NullAction)));
+            new SingleActionLoader<NullAction>(),
+            policyActionsRegistry);
         Block genesis = BlockChain.ProposeGenesisBlock(
             privateKey: key, transactions: txs);
         using Stream stream = file == "-"

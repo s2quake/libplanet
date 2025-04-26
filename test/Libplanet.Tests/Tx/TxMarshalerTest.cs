@@ -3,6 +3,7 @@ using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Tx;
 using Xunit;
 using static Libplanet.Tests.TestUtils;
@@ -248,10 +249,10 @@ namespace Libplanet.Tests.Tx
 
             var actionLoader = TypedActionLoader.Create(
                 typeof(BaseAction).Assembly, typeof(BaseAction));
-            var action0 = actionLoader.LoadAction(0, tx.Actions[0]);
+            var action0 = actionLoader.LoadAction(tx.Actions[0]);
             Assert.IsType<Attack>(action0);
             var targetAddress =
-                ((Binary)((Dictionary)((Dictionary)action0.PlainValue)["values"])["target_address"])
+                ((Binary)((Dictionary)((Dictionary)ModelSerializer.Serialize(action0))["values"])["target_address"])
                     .ByteArray;
             AssertBytesEqual(
                 new Address(publicKey).Bytes,
@@ -264,16 +265,16 @@ namespace Libplanet.Tests.Tx
                         .Add("weapon", "wand")
                         .Add("target", "orc")
                         .Add("target_address", new Address(publicKey).ToBencodex())),
-                action0.PlainValue
+                ModelSerializer.Serialize(action0)
             );
 
-            var action1 = actionLoader.LoadAction(0, tx.Actions[1]);
+            var action1 = actionLoader.LoadAction(tx.Actions[1]);
             Assert.IsType<Sleep>(action1);
             Assert.Equal(
                 Dictionary.Empty
                     .Add("type_id", "sleep")
                     .Add("values", Dictionary.Empty.Add("zone_id", 10)),
-                action1.PlainValue
+                ModelSerializer.Serialize(action1)
             );
             Assert.Throws<DecodingException>(() =>
                 TxMarshaler.UnmarshalTransaction(

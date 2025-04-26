@@ -80,12 +80,12 @@ namespace Libplanet.Net.Tests
         }
 
         private Task<Swarm> CreateConsensusSwarm(
-            PrivateKey privateKey = null,
-            AppProtocolVersionOptions appProtocolVersionOptions = null,
-            HostOptions hostOptions = null,
-            SwarmOptions options = null,
-            IBlockPolicy policy = null,
-            Block genesis = null,
+            PrivateKey? privateKey = null,
+            AppProtocolVersionOptions? appProtocolVersionOptions = null,
+            HostOptions? hostOptions = null,
+            SwarmOptions? options = null,
+            IBlockPolicy? policy = null,
+            Block? genesis = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
             return CreateSwarm(
@@ -107,12 +107,12 @@ namespace Libplanet.Net.Tests
         }
 
         private async Task<Swarm> CreateSwarm(
-            PrivateKey privateKey = null,
-            AppProtocolVersionOptions appProtocolVersionOptions = null,
-            HostOptions hostOptions = null,
-            SwarmOptions options = null,
-            IBlockPolicy policy = null,
-            Block genesis = null,
+            PrivateKey? privateKey = null,
+            AppProtocolVersionOptions? appProtocolVersionOptions = null,
+            HostOptions? hostOptions = null,
+            SwarmOptions? options = null,
+            IBlockPolicy? policy = null,
+            Block? genesis = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
             policy = policy ?? new BlockPolicy(
@@ -142,10 +142,10 @@ namespace Libplanet.Net.Tests
 
         private async Task<Swarm> CreateSwarm(
             BlockChain blockChain,
-            PrivateKey privateKey = null,
-            AppProtocolVersionOptions appProtocolVersionOptions = null,
-            HostOptions hostOptions = null,
-            SwarmOptions options = null,
+            PrivateKey? privateKey = null,
+            AppProtocolVersionOptions? appProtocolVersionOptions = null,
+            HostOptions? hostOptions = null,
+            SwarmOptions? options = null,
             ConsensusReactorOption? consensusReactorOption = null
         )
         {

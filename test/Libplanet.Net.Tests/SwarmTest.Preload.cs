@@ -393,9 +393,9 @@ namespace Libplanet.Net.Tests
         //     var fx1 = new MemoryStoreFixture();
         //     var fx2 = new MemoryStoreFixture();
         //     var minerChain = MakeBlockChain(
-        //         policy, fx1.Store, fx1.StateStore, new SingleActionLoader(typeof(ThrowException)));
+        //         policy, fx1.Store, fx1.StateStore, new SingleActionLoader<ThrowException>());
         //     var receiverChain = MakeBlockChain(
-        //         policy, fx2.Store, fx2.StateStore, new SingleActionLoader(typeof(ThrowException)));
+        //         policy, fx2.Store, fx2.StateStore, new SingleActionLoader<ThrowException>());
 
         //     var minerKey = new PrivateKey();
 
