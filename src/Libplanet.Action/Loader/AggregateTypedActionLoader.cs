@@ -20,10 +20,10 @@ namespace Libplanet.Action.Loader
 
         public IAction LoadAction(long index, IValue value)
         {
-            if (Registry.IsSystemAction(value))
-            {
-                return Registry.Deserialize(value);
-            }
+            // if (Registry.IsSystemAction(value))
+            // {
+            //     return Registry.Deserialize(value);
+            // }
 
             foreach (var item in _actionLoaderList)
             {

@@ -14,7 +14,7 @@ public sealed record class CommittedActionContext
         Miner = context.Miner;
         BlockHeight = context.BlockHeight;
         BlockProtocolVersion = context.BlockProtocolVersion;
-        PreviousState = context.PreviousState.Trie.Hash;
+        PreviousState = context.World.Trie.Hash;
         RandomSeed = context.RandomSeed;
         IsPolicyAction = context.IsPolicyAction;
     }

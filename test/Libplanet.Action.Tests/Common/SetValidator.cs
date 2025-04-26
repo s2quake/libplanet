@@ -39,7 +39,7 @@ namespace Libplanet.Action.Tests.Common
         /// <inheritdoc cref="IAction.Execute(IActionContext)"/>
         public IWorld Execute(IActionContext context)
         {
-            IWorld world = context.PreviousState;
+            IWorld world = context.World;
             return world.SetValidatorSet(world.GetValidatorSet().Add(Validator));
         }
 

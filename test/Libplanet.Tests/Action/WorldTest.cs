@@ -189,7 +189,7 @@ namespace Libplanet.Tests.Action
             Assert.Equal(Value(3, 5), world.GetBalance(_addr[2], _currencies[3]));
 
             var accountDiff = AccountDiff.Create(
-                _initContext.PreviousState.GetAccount(ReservedAddresses.LegacyAccount).Trie,
+                _initContext.World.GetAccount(ReservedAddresses.LegacyAccount).Trie,
                 world.GetAccount(ReservedAddresses.LegacyAccount).Trie);
             Assert.Empty(accountDiff.StateDiffs);
         }

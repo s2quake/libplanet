@@ -80,7 +80,7 @@ namespace Libplanet.Action.Tests
             Assert.Equal(address, evaluation.InputContext.Miner);
             Assert.Equal(1, evaluation.InputContext.BlockHeight);
             Assert.Null(
-                evaluation.InputContext.PreviousState.GetAccount(
+                evaluation.InputContext.World.GetAccount(
                     ReservedAddresses.LegacyAccount).GetState(address)
             );
             Assert.Equal(

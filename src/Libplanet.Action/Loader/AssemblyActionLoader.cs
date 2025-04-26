@@ -25,10 +25,10 @@ namespace Libplanet.Action.Loader
         {
             try
             {
-                if (Registry.IsSystemAction(value))
-                {
-                    return Registry.Deserialize(value);
-                }
+                // if (Registry.IsSystemAction(value))
+                // {
+                //     return Registry.Deserialize(value);
+                // }
 
                 IAction action;
                 if (value is Dictionary pv &&
@@ -37,7 +37,7 @@ namespace Libplanet.Action.Loader
                     Types.TryGetValue(typeId, out var actionType))
                 {
                     action = (IAction)Activator.CreateInstance(actionType)!;
-                    action.LoadPlainValue(pv);
+                    // action.LoadPlainValue(pv);
                 }
                 else
                 {

@@ -1466,7 +1466,7 @@ namespace Libplanet.Tests.Store
 
             public IWorld Execute(IActionContext context)
             {
-                return context.PreviousState;
+                return context.World;
             }
         }
     }

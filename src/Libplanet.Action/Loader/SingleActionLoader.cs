@@ -1,5 +1,6 @@
 using Bencodex.Types;
 using Libplanet.Action.Sys;
+using Libplanet.Serialization;
 
 namespace Libplanet.Action.Loader
 {
@@ -45,13 +46,14 @@ namespace Libplanet.Action.Loader
         {
             try
             {
-                if (Registry.IsSystemAction(value))
-                {
-                    return Registry.Deserialize(value);
-                }
+                // if (Registry.IsSystemAction(value))
+                // {
+                //     return Registry.Deserialize(value);
+                // }
 
                 IAction action = (IAction)Activator.CreateInstance(_type)!;
-                action.LoadPlainValue(value);
+                return ModelSerializer.Deserialize<IAction>(value);
+                // action.LoadPlainValue(value);
                 return action;
             }
             catch (Exception e)

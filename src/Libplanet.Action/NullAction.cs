@@ -27,7 +27,7 @@ namespace Libplanet.Action
 
         public IWorld Execute(IActionContext context)
         {
-            return context.PreviousState;
+            return context.World;
         }
     }
 }

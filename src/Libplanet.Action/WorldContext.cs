@@ -9,7 +9,7 @@ internal sealed class WorldContext(IActionContext context) : IDisposable, IWorld
 {
     private readonly Dictionary<Address, AccountContext> _accountByAddress = [];
     private readonly HashSet<AccountContext> _dirtyAccounts = [];
-    private IWorld _world = context.PreviousState;
+    private IWorld _world = context.World;
     private bool _disposed;
 
     public bool IsReadOnly => false;

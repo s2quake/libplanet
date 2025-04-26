@@ -65,7 +65,7 @@ namespace Libplanet.Action.Tests.Common
 
         public IWorld Execute(IActionContext context)
         {
-            IWorld states = context.PreviousState;
+            IWorld states = context.World;
             IAccount account = states.GetAccount(ReservedAddresses.LegacyAccount);
             account = account
                 .SetState(Address, Value)

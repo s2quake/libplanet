@@ -96,10 +96,10 @@ namespace Libplanet.Action.Loader
         {
             try
             {
-                if (Registry.IsSystemAction(value))
-                {
-                    return Registry.Deserialize(value);
-                }
+                // if (Registry.IsSystemAction(value))
+                // {
+                //     return Registry.Deserialize(value);
+                // }
 
                 IAction action;
                 if (value is Dictionary pv &&
@@ -111,7 +111,7 @@ namespace Libplanet.Action.Loader
                     // Actual underlying types are expected to handle (or at least accept)
                     // a plainvalue *with* "type_id" field included.
                     action = (IAction)Activator.CreateInstance(actionType)!;
-                    action.LoadPlainValue(pv);
+                    // action.LoadPlainValue(pv);
                 }
                 else
                 {

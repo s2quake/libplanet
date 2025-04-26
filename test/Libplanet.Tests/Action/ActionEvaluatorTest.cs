@@ -426,7 +426,7 @@ namespace Libplanet.Tests.Action
                 () => actionEvaluator.EvaluateTx(
                     block: block,
                     tx: tx,
-                    previousState: previousState).ToList());
+                    world: previousState).ToList());
             Assert.Throws<OutOfMemoryException>(
                 () => chain.ActionEvaluator.Evaluate(
                     block, chain.Store.GetStateRootHash(block.PreviousHash)).ToList());
@@ -796,7 +796,7 @@ namespace Libplanet.Tests.Action
             var evaluations = actionEvaluator.EvaluateTx(
                 block: block,
                 tx: tx,
-                previousState: previousState).ToImmutableArray();
+                world: previousState).ToImmutableArray();
 
             Assert.Equal(actions.Length, evaluations.Length);
             string[][] expectedStates =
@@ -821,7 +821,7 @@ namespace Libplanet.Tests.Action
             {
                 IActionEvaluation eval = evaluations[i];
                 IActionContext context = eval.InputContext;
-                IWorld prevState = context.PreviousState;
+                IWorld prevState = context.World;
                 IWorld outputState = eval.OutputState;
                 _logger.Debug("evalsA[{0}] = {1}", i, eval);
                 _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
@@ -868,7 +868,7 @@ namespace Libplanet.Tests.Action
             IWorld delta = actionEvaluator.EvaluateTx(
                 block: block,
                 tx: tx,
-                previousState: previousState).Last().OutputState;
+                world: previousState).Last().OutputState;
             Assert.Empty(evaluations[3].OutputState.Trie.Diff(delta.Trie));
         }
 
@@ -913,7 +913,7 @@ namespace Libplanet.Tests.Action
             var nextState = actionEvaluator.EvaluateTx(
                 block: block,
                 tx: tx,
-                previousState: previousState).Last().OutputState;
+                world: previousState).Last().OutputState;
 
             Assert.Empty(nextState.Trie.Diff(previousState.Trie));
         }
@@ -953,7 +953,7 @@ namespace Libplanet.Tests.Action
             {
                 IActionEvaluation eval = evalsA[i];
                 IActionContext context = eval.InputContext;
-                IWorld prevState = context.PreviousState;
+                IWorld prevState = context.World;
                 IWorld outputState = eval.OutputState;
                 _logger.Debug("evalsA[{0}] = {1}", i, eval);
                 _logger.Debug("txA.Actions[{0}] = {1}", i, txA.Actions[i]);
@@ -1010,7 +1010,7 @@ namespace Libplanet.Tests.Action
             {
                 IActionEvaluation eval = evalsB[i];
                 IActionContext context = eval.InputContext;
-                IWorld prevState = context.PreviousState;
+                IWorld prevState = context.World;
                 IWorld outputState = eval.OutputState;
 
                 _logger.Debug("evalsB[{0}] = {@1}", i, eval);
@@ -1066,7 +1066,7 @@ namespace Libplanet.Tests.Action
                 evidence: ImmutableArray<EvidenceBase>.Empty);
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
-            var evaluations = actionEvaluator.EvaluatePolicyBeginBlockActions(
+            var evaluations = actionEvaluator.EvaluateBeginBlockActions(
                 (RawBlock)genesis,
                 previousState);
 
@@ -1082,7 +1082,7 @@ namespace Libplanet.Tests.Action
             Assert.True(evaluations[0].InputContext.IsPolicyAction);
 
             previousState = evaluations[0].OutputState;
-            evaluations = actionEvaluator.EvaluatePolicyBeginBlockActions(
+            evaluations = actionEvaluator.EvaluateBeginBlockActions(
                 (RawBlock)block,
                 previousState);
 
@@ -1117,7 +1117,7 @@ namespace Libplanet.Tests.Action
                 ImmutableArray<EvidenceBase>.Empty);
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
-            var evaluations = actionEvaluator.EvaluatePolicyEndBlockActions(
+            var evaluations = actionEvaluator.EvaluateEndBlockActions(
                 (RawBlock)genesis,
                 previousState);
 
@@ -1134,7 +1134,7 @@ namespace Libplanet.Tests.Action
             Assert.Equal(genesis.Transactions, evaluations[0].InputContext.Txs);
 
             previousState = evaluations[0].OutputState;
-            evaluations = actionEvaluator.EvaluatePolicyEndBlockActions(
+            evaluations = actionEvaluator.EvaluateEndBlockActions(
                 (RawBlock)block,
                 previousState);
 
@@ -1169,7 +1169,7 @@ namespace Libplanet.Tests.Action
                 evidence: ImmutableArray<EvidenceBase>.Empty);
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
-            var evaluations = actionEvaluator.EvaluatePolicyBeginTxActions(
+            var evaluations = actionEvaluator.EvaluateBeginTxActions(
                 (RawBlock)genesis,
                 txs[0],
                 previousState);
@@ -1187,7 +1187,7 @@ namespace Libplanet.Tests.Action
             Assert.True(evaluations[0].InputContext.IsPolicyAction);
 
             previousState = evaluations[0].OutputState;
-            evaluations = actionEvaluator.EvaluatePolicyBeginTxActions(
+            evaluations = actionEvaluator.EvaluateBeginTxActions(
                 (RawBlock)block,
                 txs[1],
                 previousState);
@@ -1224,7 +1224,7 @@ namespace Libplanet.Tests.Action
                 evidence: ImmutableArray<EvidenceBase>.Empty);
 
             IWorld previousState = _storeFx.StateStore.GetWorld(default);
-            var evaluations = actionEvaluator.EvaluatePolicyEndTxActions(
+            var evaluations = actionEvaluator.EvaluateEndTxActions(
                 (RawBlock)genesis,
                 txs[0],
                 previousState);
@@ -1242,7 +1242,7 @@ namespace Libplanet.Tests.Action
             Assert.True(evaluations[0].InputContext.IsPolicyAction);
 
             previousState = evaluations[0].OutputState;
-            evaluations = actionEvaluator.EvaluatePolicyEndTxActions(
+            evaluations = actionEvaluator.EvaluateEndTxActions(
                 (RawBlock)block,
                 txs[1],
                 previousState);
@@ -1621,10 +1621,10 @@ namespace Libplanet.Tests.Action
             public IWorld Execute(IActionContext context)
             {
                 GasTracer.UseGas(GasUsage);
-                var state = context.PreviousState
+                var state = context.World
                     .SetAccount(
                         ReservedAddresses.LegacyAccount,
-                        context.PreviousState.GetAccount(ReservedAddresses.LegacyAccount)
+                        context.World.GetAccount(ReservedAddresses.LegacyAccount)
                             .SetState(context.Signer, (Text)Memo));
                 if (!(Receiver is null) && !(MintValue is null))
                 {
