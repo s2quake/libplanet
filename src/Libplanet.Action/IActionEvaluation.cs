@@ -1,15 +1,15 @@
-using Bencodex.Types;
-using Libplanet.Action.State;
+// using Bencodex.Types;
+// using Libplanet.Action.State;
 
-namespace Libplanet.Action;
+// namespace Libplanet.Action;
 
-public interface IActionEvaluation
-{
-    public IValue Action { get; }
+// public interface IActionEvaluation
+// {
+//     public IValue Action { get; }
 
-    public IActionContext InputContext { get; }
+//     public IActionContext InputContext { get; }
 
-    public IWorld OutputState { get; }
+//     public IWorld OutputState { get; }
 
-    public Exception? Exception { get; }
-}
+//     public Exception? Exception { get; }
+// }

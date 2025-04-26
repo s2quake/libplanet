@@ -25,7 +25,7 @@ public sealed record class RawBlock
 
     public int ProtocolVersion => Metadata.ProtocolVersion;
 
-    public long Index => Metadata.Height;
+    public long Height => Metadata.Height;
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 

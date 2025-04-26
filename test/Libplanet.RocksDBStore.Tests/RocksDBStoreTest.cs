@@ -86,7 +86,7 @@ namespace Libplanet.RocksDBStore.Tests
                     new ActionEvaluator(
                         policyActionsRegistry: new PolicyActionsRegistry(),
                         stateStore: stateStore,
-                        actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
                 store.Dispose();
 
                 store = new RocksDBStore(path);

@@ -1,37 +1,24 @@
-namespace Libplanet.Action
-{
-    public interface IPolicyActionsRegistry
-    {
-        /// <summary>
-        /// An array of <see cref="IAction"/> to execute and be rendered at the beginning
-        /// for every block, if any.</summary>
-        ImmutableArray<IAction> BeginBlockActions
-        {
-            get;
-        }
+// namespace Libplanet.Action;
 
-        /// <summary>
-        /// An array of <see cref="IAction"/> to execute and be rendered at the end
-        /// for every block, if any.</summary>
-        ImmutableArray<IAction> EndBlockActions
-        {
-            get;
-        }
+// public interface IPolicyActionsRegistry
+// {
+//     ImmutableArray<IAction> BeginBlockActions
+//     {
+//         get;
+//     }
 
-        /// <summary>
-        /// An array of <see cref="IAction"/> to execute and be rendered at the beginning
-        /// for every transaction, if any.</summary>
-        ImmutableArray<IAction> BeginTxActions
-        {
-            get;
-        }
+//     ImmutableArray<IAction> EndBlockActions
+//     {
+//         get;
+//     }
 
-        /// <summary>
-        /// An array of <see cref="IAction"/> to execute and be rendered at the end
-        /// for every transaction, if any.</summary>
-        ImmutableArray<IAction> EndTxActions
-        {
-            get;
-        }
-    }
-}
+//     ImmutableArray<IAction> BeginTxActions
+//     {
+//         get;
+//     }
+
+//     ImmutableArray<IAction> EndTxActions
+//     {
+//         get;
+//     }
+// }

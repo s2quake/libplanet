@@ -106,7 +106,7 @@ namespace Libplanet.Blockchain
         internal Block EvaluateAndSign(
             RawBlock rawBlock, PrivateKey privateKey)
         {
-            if (rawBlock.Index < 1)
+            if (rawBlock.Height < 1)
             {
                 throw new ArgumentException(
                     $"Given {nameof(rawBlock)} must have block height " +
@@ -158,7 +158,7 @@ namespace Libplanet.Blockchain
                     "Took {DurationMs} ms to evaluate block #{BlockHeight} " +
                     "pre-evaluation hash {RawHash} with {Count} action evaluations",
                     stopwatch.ElapsedMilliseconds,
-                    block.Index,
+                    block.Height,
                     block.RawHash,
                     evaluations.Count);
 

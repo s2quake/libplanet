@@ -463,7 +463,7 @@ namespace Libplanet.Net.Tests
                     new ActionEvaluator(
                         policyActionsRegistry: policy.PolicyActionsRegistry,
                         stateStore: fxs[i].StateStore,
-                        actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
             }
 

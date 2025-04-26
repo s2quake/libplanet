@@ -137,7 +137,7 @@ internal sealed class BlockChainService(
             nonce: nonce,
             privateKey: genesisKey,
             genesisHash: null,
-            actions: [.. actions.Select(item => item.PlainValue)],
+            actions: [.. actions.ToPlainValues()],
             timestamp: DateTimeOffset.MinValue);
         var transactions = ImmutableList.Create(transaction);
         return BlockChain.ProposeGenesisBlock(

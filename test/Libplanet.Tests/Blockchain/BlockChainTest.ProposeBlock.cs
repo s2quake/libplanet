@@ -184,7 +184,7 @@ namespace Libplanet.Tests.Blockchain
                     new ActionEvaluator(
                         policy.PolicyActionsRegistry,
                         stateStore: fx.StateStore,
-                        actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
                 var txs = new[]
                 {
                     Transaction.Create(
@@ -409,7 +409,7 @@ namespace Libplanet.Tests.Blockchain
                     new ActionEvaluator(
                         policy.PolicyActionsRegistry,
                         stateStore: fx.StateStore,
-                        actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
+                        actionLoader: new SingleActionLoader(typeof(DumbAction))));
 
                 var validTx = blockChain.MakeTransaction(validKey, new DumbAction[] { });
                 var invalidTx = blockChain.MakeTransaction(invalidKey, new DumbAction[] { });

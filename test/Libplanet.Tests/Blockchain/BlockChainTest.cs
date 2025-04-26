@@ -63,7 +63,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 _policy.PolicyActionsRegistry,
                 stateStore: _fx.StateStore,
-                actionTypeLoader: new SingleActionLoader(typeof(DumbAction))),
+                actionLoader: new SingleActionLoader(typeof(DumbAction))),
             renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) }
         );
         _renderer.ResetRecords();
@@ -829,7 +829,7 @@ public partial class BlockChainTest : IDisposable
                 new ActionEvaluator(
                     _blockChain.Policy.PolicyActionsRegistry,
                     stateStore: emptyFx.StateStore,
-                    actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
             var fork = BlockChain.Create(
                 _blockChain.Policy,
                 new VolatileStagePolicy(),
@@ -839,7 +839,7 @@ public partial class BlockChainTest : IDisposable
                 new ActionEvaluator(
                     _blockChain.Policy.PolicyActionsRegistry,
                     stateStore: forkFx.StateStore,
-                    actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
             fork.Append(b1, CreateBlockCommit(b1));
             fork.Append(b2, CreateBlockCommit(b2));
             Block b5 = fork.ProposeBlock(
@@ -1199,7 +1199,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             blockPolicy.PolicyActionsRegistry,
             stateStore: stateStore,
-            actionTypeLoader: new SingleActionLoader(typeof(DumbAction)));
+            actionLoader: new SingleActionLoader(typeof(DumbAction)));
         Block genesisBlock = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey),
             GenesisProposer);
