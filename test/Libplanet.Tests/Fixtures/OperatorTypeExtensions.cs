@@ -1,5 +1,3 @@
-using System.Numerics;
-
 namespace Libplanet.Tests.Fixtures
 {
     public static class OperatorTypeExtensions

@@ -1,6 +1,5 @@
 
 using Libplanet.Crypto;
-using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Consensus;

@@ -14,12 +14,12 @@ namespace Libplanet.RocksDBStore.Tests
         }
 
         protected override StoreFixture GetStoreFixture(
-            PolicyActionsRegistry policyActionsRegistry = null)
+            PolicyActions policyActions = null)
         {
             try
             {
                 return new RocksDBStoreFixture(
-                    policyActionsRegistry);
+                    policyActions);
             }
             catch (TypeInitializationException)
             {

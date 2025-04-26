@@ -1,4 +1,3 @@
-using System.Numerics;
 using BenchmarkDotNet.Attributes;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;

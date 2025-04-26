@@ -1,4 +1,3 @@
-using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;

@@ -1,11 +1,8 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 

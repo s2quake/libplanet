@@ -390,7 +390,7 @@ namespace Libplanet.Net.Tests
                 new AsyncAutoResetEvent()).ToList();
             var roundOneProposed = new AsyncAutoResetEvent();
             var policy = new NullBlockPolicy();
-            var genesis = new MemoryStoreFixture(policy.PolicyActionsRegistry).GenesisBlock;
+            var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
 
             var consensusPeers = Enumerable.Range(0, 4).Select(i =>
                 new BoundPeer(

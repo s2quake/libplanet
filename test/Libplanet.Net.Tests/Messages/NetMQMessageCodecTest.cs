@@ -1,5 +1,4 @@
 using System.Net;
-using System.Numerics;
 using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;

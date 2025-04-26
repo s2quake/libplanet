@@ -1,5 +1,3 @@
-using System.Numerics;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.Sys;
@@ -14,7 +12,7 @@ public sealed class ActionProvider : IActionProvider
 
     public IActionLoader ActionLoader { get; } = new AggregateTypedActionLoader();
 
-    public PolicyActionsRegistry PolicyActionsRegistry { get; } = new PolicyActionsRegistry();
+    public PolicyActions PolicyActions { get; } = new PolicyActions();
 
     public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
     {

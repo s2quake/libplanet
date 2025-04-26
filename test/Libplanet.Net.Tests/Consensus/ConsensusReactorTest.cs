@@ -44,7 +44,7 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusReactors = new ConsensusReactor[4];
             var stores = new IStore[4];
             var blockChains = new BlockChain[4];
-            var fx = new MemoryStoreFixture(TestUtils.Policy.PolicyActionsRegistry);
+            var fx = new MemoryStoreFixture(TestUtils.Policy.PolicyActions);
             var validatorPeers = new List<BoundPeer>();
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -63,7 +63,7 @@ namespace Libplanet.Net.Tests.Consensus
                     stateStore,
                     fx.GenesisBlock,
                     new ActionEvaluator(
-                        actionsRegistry: TestUtils.Policy.PolicyActionsRegistry,
+                        policyActions: TestUtils.Policy.PolicyActions,
                         stateStore: stateStore,
                         actionLoader: new SingleActionLoader<DumbAction>()));
             }

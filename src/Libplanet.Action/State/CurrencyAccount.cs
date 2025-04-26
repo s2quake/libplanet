@@ -1,4 +1,3 @@
-using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;

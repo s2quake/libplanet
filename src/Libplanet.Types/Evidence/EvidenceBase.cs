@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 

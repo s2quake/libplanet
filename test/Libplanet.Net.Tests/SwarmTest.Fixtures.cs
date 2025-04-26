@@ -29,7 +29,7 @@ namespace Libplanet.Net.Tests
 
             if (blocks is null)
             {
-                var policy = new BlockPolicy(new PolicyActionsRegistry
+                var policy = new BlockPolicy(new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 });
@@ -116,11 +116,11 @@ namespace Libplanet.Net.Tests
             ConsensusReactorOption? consensusReactorOption = null)
         {
             policy = policy ?? new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 });
-            var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
+            var fx = new MemoryStoreFixture(policy.PolicyActions);
             var blockchain = MakeBlockChain(
                 policy,
                 fx.Store,

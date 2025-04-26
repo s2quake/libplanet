@@ -28,7 +28,7 @@ namespace Libplanet.Benchmarks
                 fx.StateStore,
                 fx.GenesisBlock,
                 new ActionEvaluator(
-                    actionsRegistry: new PolicyActionsRegistry(),
+                    policyActions: new PolicyActions(),
                     stateStore: fx.StateStore,
                     actionLoader: new SingleActionLoader<DumbAction>()));
             _privateKey = new PrivateKey();

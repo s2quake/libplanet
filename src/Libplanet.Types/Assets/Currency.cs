@@ -1,5 +1,4 @@
 using System.IO;
-using System.Numerics;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Bencodex.Types;

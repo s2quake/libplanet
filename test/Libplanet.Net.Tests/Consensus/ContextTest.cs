@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Numerics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -331,12 +330,12 @@ namespace Libplanet.Net.Tests.Consensus
             TimeSpan newHeightDelay = TimeSpan.FromSeconds(1);
 
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
                 getMaxTransactionsBytes: _ => 50 * 1024);
-            var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
+            var fx = new MemoryStoreFixture(policy.PolicyActions);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
                 fx.Store,

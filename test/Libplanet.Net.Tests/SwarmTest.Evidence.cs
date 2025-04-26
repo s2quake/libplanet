@@ -1,5 +1,4 @@
 using System.Net;
-using System.Numerics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ namespace Libplanet.Net.Tests
         public async Task DuplicateVote_Test()
         {
             var policy = new NullBlockPolicy();
-            var genesisBlock = new MemoryStoreFixture(policy.PolicyActionsRegistry).GenesisBlock;
+            var genesisBlock = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
             var genesisProposer = Libplanet.Tests.TestUtils.GenesisProposer;
             var privateKeys = Libplanet.Tests.TestUtils.ValidatorPrivateKeys.ToArray();
             var count = privateKeys.Length;

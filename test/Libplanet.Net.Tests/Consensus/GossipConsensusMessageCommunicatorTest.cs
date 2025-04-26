@@ -1,5 +1,4 @@
 using System.Net;
-using System.Numerics;
 using System.Threading.Tasks;
 using Libplanet.Crypto;
 using Libplanet.Net.Consensus;

@@ -56,7 +56,7 @@ public sealed class DumbActionLoader : IActionLoader
     }
 }
 
-public sealed class DumbActionPolicyActionsRegistry : PolicyActionsRegistry
+public sealed class DumbActionPolicyActions : PolicyActions
 {
     public ImmutableArray<IAction> BeginBlockActions => [new DumbBeginAction()];
 
@@ -71,8 +71,8 @@ public sealed class DumbActionProvider : IActionProvider
 {
     public IActionLoader ActionLoader { get; } = new DumbActionLoader();
 
-    public PolicyActionsRegistry PolicyActionsRegistry { get; }
-        = new DumbActionPolicyActionsRegistry();
+    public PolicyActions PolicyActions { get; }
+        = new DumbActionPolicyActions();
 
     public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
         => ActionProvider.Default.GetGenesisActions(genesisAddress, validatorKeys);

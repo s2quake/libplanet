@@ -38,7 +38,7 @@ namespace Libplanet.Net.Tests
         {
             const int numBlocks = 5;
             var policy = new NullBlockPolicy();
-            var genesis = new MemoryStoreFixture(policy.PolicyActionsRegistry).GenesisBlock;
+            var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
 
             var swarmA = await CreateSwarm(
                 privateKey: new PrivateKey(),
@@ -90,7 +90,7 @@ namespace Libplanet.Net.Tests
         {
             var miner = new PrivateKey();
             var policy = new NullBlockPolicy();
-            var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
+            var fx = new MemoryStoreFixture(policy.PolicyActions);
             var minerChain = MakeBlockChain(
                 policy, fx.Store, fx.StateStore, new SingleActionLoader<DumbAction>());
             foreach (int i in Enumerable.Range(0, 10))
@@ -461,7 +461,7 @@ namespace Libplanet.Net.Tests
                     fxs[i].StateStore,
                     fxs[i].GenesisBlock,
                     new ActionEvaluator(
-                        actionsRegistry: policy.PolicyActionsRegistry,
+                        policyActions: policy.PolicyActions,
                         stateStore: fxs[i].StateStore,
                         actionLoader: new SingleActionLoader<DumbAction>()));
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
@@ -693,7 +693,7 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlockWithSkip()
         {
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 });

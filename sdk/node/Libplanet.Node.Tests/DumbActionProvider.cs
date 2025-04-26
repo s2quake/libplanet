@@ -8,7 +8,7 @@ public sealed class DumbActionProvider : IActionProvider
 {
     public IActionLoader ActionLoader { get; } = new DumbActionLoader();
 
-    public PolicyActionsRegistry PolicyActionsRegistry { get; } = new PolicyActionsRegistry();
+    public PolicyActions PolicyActions { get; } = new PolicyActions();
 
     public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
         => ActionProvider.Default.GetGenesisActions(genesisAddress, validatorKeys);

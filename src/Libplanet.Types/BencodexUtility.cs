@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Serialization;

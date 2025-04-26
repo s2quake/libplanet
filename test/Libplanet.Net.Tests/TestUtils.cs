@@ -1,5 +1,4 @@
 using System.Net;
-using System.Numerics;
 using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
@@ -46,7 +45,7 @@ namespace Libplanet.Net.Tests
             = Libplanet.Tests.TestUtils.Validators;
 
         public static readonly IBlockPolicy Policy = new BlockPolicy(
-            new PolicyActionsRegistry
+            new PolicyActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
@@ -99,7 +98,7 @@ namespace Libplanet.Net.Tests
         {
             policy ??= Policy;
             actionLoader ??= ActionLoader;
-            var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
+            var fx = new MemoryStoreFixture(policy.PolicyActions);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
                 fx.Store,

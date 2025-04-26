@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Bencodex.Types;
@@ -1010,7 +1009,7 @@ namespace Libplanet.Tests.Store
                 var actionEvaluator = new ActionEvaluator(
                     fx.StateStore,
                     new SingleActionLoader<DumbAction>(),
-                    policy.PolicyActionsRegistry);
+                    policy.PolicyActions);
                 var genesis = preEval.Sign(
                     GenesisProposer,
                     default);

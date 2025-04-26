@@ -1,4 +1,3 @@
-using System.Numerics;
 using Libplanet.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;

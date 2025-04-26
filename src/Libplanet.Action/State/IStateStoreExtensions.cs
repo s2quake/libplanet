@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Store;
-using Libplanet.Types.Blocks;
 
 namespace Libplanet.Action.State
 {

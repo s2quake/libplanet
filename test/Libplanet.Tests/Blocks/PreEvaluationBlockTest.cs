@@ -32,7 +32,7 @@
 //         {
 //             Address address = _contents.Block1Tx0.Signer;
 //             var policy = new BlockPolicy(
-//                 new PolicyActionsRegistry(
+//                 new PolicyActions(
 //                     beginBlockActions: ImmutableArray<IAction>.Empty,
 //                     endBlockActions: ImmutableArray.Create<IAction>(
 //                         new SetStatesAtBlock(
@@ -49,7 +49,7 @@
 //             using (var fx = new MemoryStoreFixture())
 //             {
 //                 var actionEvaluator = new ActionEvaluator(
-//                     policy.PolicyActionsRegistry,
+//                     policy.PolicyActions,
 //                     fx.StateStore,
 //                     new SingleActionLoader<Arithmetic>());
 //                 Block genesis = preEvalGenesis.Sign(
@@ -109,7 +109,7 @@
 //         {
 //             Address address = _contents.Block1Tx0.Signer;
 //             var policy = new BlockPolicy(
-//                 new PolicyActionsRegistry(
+//                 new PolicyActions(
 //                     beginBlockActions: ImmutableArray<IAction>.Empty,
 //                     endBlockActions: ImmutableArray.Create<IAction>(
 //                         new SetStatesAtBlock(
@@ -125,7 +125,7 @@
 //             using (var fx = new MemoryStoreFixture())
 //             {
 //                 var actionEvaluator = new ActionEvaluator(
-//                     policyActionsRegistry: policy.PolicyActionsRegistry,
+//                     policyActions: policy.PolicyActions,
 //                     stateStore: fx.StateStore,
 //                     actionTypeLoader: new SingleActionLoader<Arithmetic>());
 //                 HashDigest<SHA256> genesisStateRootHash = default;

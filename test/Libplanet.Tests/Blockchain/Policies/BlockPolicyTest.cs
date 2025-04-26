@@ -28,7 +28,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             _fx = new MemoryStoreFixture();
             _output = output;
             _policy = new BlockPolicy(
-                new PolicyActionsRegistry(),
+                new PolicyActions(),
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
             _stagePolicy = new VolatileStagePolicy();
             _chain = BlockChain.Create(
@@ -40,7 +40,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 new ActionEvaluator(
                     stateStore: _fx.StateStore,
                     actionLoader: new SingleActionLoader<DumbAction>(),
-                    _policy.PolicyActionsRegistry));
+                    _policy.PolicyActions));
         }
 
         public void Dispose()
@@ -53,7 +53,7 @@ namespace Libplanet.Tests.Blockchain.Policies
         {
             var tenSec = new TimeSpan(0, 0, 10);
             var a = new BlockPolicy(
-                new PolicyActionsRegistry(),
+                new PolicyActions(),
                 blockInterval: tenSec);
             Assert.Equal(tenSec, a.BlockInterval);
 
@@ -152,7 +152,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
             var actionLoader = new SingleActionLoader<DumbAction>();
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
