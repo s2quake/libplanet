@@ -488,7 +488,7 @@ namespace Libplanet.Tests.Blockchain
                     new ActionEvaluator(
                         stateStore: fx.StateStore,
                         actionLoader: new SingleActionLoader<DumbAction>(),
-                        policy.PolicyActionsRegistry));
+                        policy.PolicyActions));
 
                 var validTx = blockChain.MakeTransaction(validKey, Array.Empty<DumbAction>());
                 var invalidTx = blockChain.MakeTransaction(invalidKey, Array.Empty<DumbAction>());
@@ -576,7 +576,7 @@ namespace Libplanet.Tests.Blockchain
                 new ActionEvaluator(
                     _fx.StateStore,
                     new SingleActionLoader<DumbAction>(),
-                    policy.PolicyActionsRegistry));
+                    policy.PolicyActions));
             Assert.Throws<InvalidOperationException>(
                 () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
         }
@@ -652,15 +652,15 @@ namespace Libplanet.Tests.Blockchain
         public void DoesNotMigrateStateWithoutAction()
         {
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(),
+                new PolicyActions(),
                 getMaxTransactionsBytes: _ => 50 * 1024);
             var stagePolicy = new VolatileStagePolicy();
-            var fx = GetStoreFixture(policy.PolicyActionsRegistry);
+            var fx = GetStoreFixture(policy.PolicyActions);
             var renderer = new ValidatingActionRenderer();
             var actionEvaluator = new ActionEvaluator(
                 stateStore: fx.StateStore,
                 actionLoader: new SingleActionLoader<DumbAction>(),
-                policy.PolicyActionsRegistry);
+                policy.PolicyActions);
 
             var txs = new[]
             {
@@ -731,7 +731,7 @@ namespace Libplanet.Tests.Blockchain
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
                 actionLoader,
-                policy.PolicyActionsRegistry);
+                policy.PolicyActions);
 
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,

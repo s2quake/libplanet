@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Action;
@@ -71,7 +70,7 @@ namespace Libplanet.Tests.Fixtures
             var actionEvaluator = new ActionEvaluator(
                 StateStore,
                 new SingleActionLoader<Arithmetic>(),
-                policy.PolicyActionsRegistry);
+                policy.PolicyActions);
             Genesis = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(
                     Miner.PublicKey,

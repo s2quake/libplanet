@@ -1,10 +1,3 @@
-using System.Numerics;
-using Bencodex.Types;
-using Libplanet.Action.Sys;
-using Libplanet.Action.Tests.Common;
-using Libplanet.Crypto;
-using Libplanet.Types.Assets;
-using Libplanet.Types.Consensus;
 using Xunit;
 
 namespace Libplanet.Action.Tests.Sys

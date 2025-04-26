@@ -1,4 +1,3 @@
-using System.Numerics;
 using GraphQL.Types;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;

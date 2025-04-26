@@ -59,7 +59,7 @@
 
 //         _output = output;
 //         _policy = new BlockPolicy(
-//             new PolicyActionsRegistry
+//             new PolicyActions
 //             {
 //                 BeginBlockActions = [new UpdateValueAction(_beginBlockValueAddress, 1)],
 //                 EndBlockActions = [new UpdateValueAction(_endBlockValueAddress, 1)],
@@ -67,7 +67,7 @@
 //                 EndTxActions = [new UpdateValueAction(_endTxValueAddress, 1)],
 //             },
 //             getMaxTransactionsBytes: _ => 50 * 1024);
-//         _storeFx = new MemoryStoreFixture(_policy.PolicyActionsRegistry);
+//         _storeFx = new MemoryStoreFixture(_policy.PolicyActions);
 //         _txFx = new TxFixture(null);
 //     }
 
@@ -110,7 +110,7 @@
 //                 Evidence = [.. evs],
 //             });
 //         var actionEvaluator = new ActionEvaluator(
-//             new PolicyActionsRegistry(),
+//             new PolicyActions(),
 //             stateStore,
 //             new SingleActionLoader<ContextRecordingAction>());
 //         Block stateRootBlock = noStateRootBlock.Sign(
@@ -289,7 +289,7 @@
 //         var store = new MemoryStore();
 //         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
 //         var policyWithExceptions = new BlockPolicy(
-//             new PolicyActionsRegistry
+//             new PolicyActions
 //             {
 //                 BeginBlockActions =
 //                 [
@@ -466,7 +466,7 @@
 //             TestUtils.GenesisProposer,
 //             stateRootHash: trie.Hash);
 //         var actionEvaluator = new ActionEvaluator(
-//             new PolicyActionsRegistry(),
+//             new PolicyActions(),
 //             stateStore: stateStore,
 //             actionLoader: new SingleActionLoader<DumbAction>());
 
@@ -788,7 +788,7 @@
 //             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100));
 //         ITrie initTrie = stateStore.Commit(world.Trie);
 //         var actionEvaluator = new ActionEvaluator(
-//             new PolicyActionsRegistry(),
+//             new PolicyActions(),
 //             stateStore: stateStore,
 //             actionLoader: new SingleActionLoader<DumbAction>());
 
@@ -889,7 +889,7 @@
 //         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
 //         IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
 //         var actionEvaluator = new ActionEvaluator(
-//             new PolicyActionsRegistry(),
+//             new PolicyActions(),
 //             stateStore: stateStore,
 //             actionLoader: new SingleActionLoader<ThrowException>()
 //         );
@@ -1071,7 +1071,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.BeginBlockActions,
+//             chain.Policy.PolicyActions.BeginBlockActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(
@@ -1086,7 +1086,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.BeginBlockActions,
+//             chain.Policy.PolicyActions.BeginBlockActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(
@@ -1120,7 +1120,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.EndBlockActions,
+//             chain.Policy.PolicyActions.EndBlockActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(
@@ -1136,7 +1136,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.EndBlockActions,
+//             chain.Policy.PolicyActions.EndBlockActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(
@@ -1171,7 +1171,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.BeginTxActions,
+//             chain.Policy.PolicyActions.BeginTxActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(
@@ -1188,7 +1188,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.BeginTxActions,
+//             chain.Policy.PolicyActions.BeginTxActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(
@@ -1224,7 +1224,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.EndTxActions,
+//             chain.Policy.PolicyActions.EndTxActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(
@@ -1241,7 +1241,7 @@
 //             previousState);
 
 //         Assert.Equal<IAction>(
-//             chain.Policy.PolicyActionsRegistry.EndTxActions,
+//             chain.Policy.PolicyActions.EndTxActions,
 //             evaluations.Select(item => item.Action).ToImmutableArray());
 //         Assert.Single(evaluations);
 //         Assert.Equal(

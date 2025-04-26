@@ -1,4 +1,3 @@
-using System.Numerics;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Mocks;

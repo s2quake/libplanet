@@ -1,4 +1,3 @@
-using System.Numerics;
 using Libplanet.Blockchain;
 using Libplanet.Crypto;
 using Libplanet.Tests.Blockchain.Evidence;

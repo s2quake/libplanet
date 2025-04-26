@@ -1,6 +1,5 @@
 using System.IO;
 using System.Linq.Expressions;
-using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -625,7 +624,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var actionEvaluator = new ActionEvaluator(
                 stateStore: stateStore,
                 actionLoader: actionLoader,
-                policy.PolicyActionsRegistry);
+                policy.PolicyActions);
 
             if (genesisBlock is null)
             {

@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Security.Cryptography;
 using Libplanet.Common;
 using Libplanet.Crypto;

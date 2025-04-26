@@ -9,8 +9,8 @@ namespace Libplanet.RocksDBStore.Tests
     public class RocksDBStoreFixture : StoreFixture
     {
         public RocksDBStoreFixture(
-            PolicyActionsRegistry policyActionsRegistry = null)
-            : base(policyActionsRegistry)
+            PolicyActions policyActions = null)
+            : base(policyActions)
         {
             Path = System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),

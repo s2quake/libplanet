@@ -12,7 +12,7 @@ internal sealed class ActionService(IOptions<ActionOptions> options)
 {
     public IActionLoader ActionLoader => ActionProvider.ActionLoader;
 
-    public PolicyActionsRegistry PolicyActionsRegistry => ActionProvider.PolicyActionsRegistry;
+    public PolicyActions PolicyActions => ActionProvider.PolicyActions;
 
     public IActionProvider ActionProvider { get; } = GetActionProvider(options.Value);
 

@@ -5,7 +5,6 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
-using Libplanet.Types.Blocks;
 using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action.State

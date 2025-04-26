@@ -1,4 +1,3 @@
-using System.Numerics;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;

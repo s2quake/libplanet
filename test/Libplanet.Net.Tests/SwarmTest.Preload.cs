@@ -15,7 +15,6 @@ using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Serilog;
 using Serilog.Events;
@@ -210,7 +209,7 @@ namespace Libplanet.Net.Tests
             const int honestTipHeight = 7;
             var policy = new NullBlockPolicy();
             var policyB = new NullBlockPolicy();
-            var genesis = new MemoryStoreFixture(policy.PolicyActionsRegistry).GenesisBlock;
+            var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
 
             var swarmA = await CreateSwarm(
                 privateKey: new PrivateKey(),
@@ -328,7 +327,7 @@ namespace Libplanet.Net.Tests
         public async Task NoRenderInPreload()
         {
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 });
@@ -457,12 +456,12 @@ namespace Libplanet.Net.Tests
             Swarm receiverSwarm = await CreateSwarm().ConfigureAwait(false);
             var fxForNominers = new StoreFixture[2];
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 });
-            fxForNominers[0] = new MemoryStoreFixture(policy.PolicyActionsRegistry);
-            fxForNominers[1] = new MemoryStoreFixture(policy.PolicyActionsRegistry);
+            fxForNominers[0] = new MemoryStoreFixture(policy.PolicyActions);
+            fxForNominers[1] = new MemoryStoreFixture(policy.PolicyActions);
             var blockChainsForNominers = new[]
             {
                 MakeBlockChain(
@@ -854,12 +853,12 @@ namespace Libplanet.Net.Tests
         {
             PrivateKey seedKey = new PrivateKey();
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 });
-            var fx1 = new MemoryStoreFixture(policy.PolicyActionsRegistry);
-            var fx2 = new MemoryStoreFixture(policy.PolicyActionsRegistry);
+            var fx1 = new MemoryStoreFixture(policy.PolicyActions);
+            var fx2 = new MemoryStoreFixture(policy.PolicyActions);
             var seedChain = MakeBlockChain(
                 policy, fx1.Store, fx1.StateStore, new SingleActionLoader<DumbAction>());
             var receiverChain = MakeBlockChain(

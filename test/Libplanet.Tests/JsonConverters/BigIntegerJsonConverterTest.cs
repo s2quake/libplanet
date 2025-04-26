@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using Libplanet.Common.JsonConverters;

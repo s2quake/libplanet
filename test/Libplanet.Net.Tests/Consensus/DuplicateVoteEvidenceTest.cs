@@ -1,5 +1,4 @@
 #pragma warning disable S125
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;

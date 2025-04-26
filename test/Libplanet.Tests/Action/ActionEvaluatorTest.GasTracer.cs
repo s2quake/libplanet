@@ -26,7 +26,7 @@
 //             var gas = new Currency("GAS", 18);
 //             var privateKey = new PrivateKey();
 //             var policy = new BlockPolicy(
-//                 new PolicyActionsRegistry
+//                 new PolicyActions
 //                 {
 //                     BeginTxActions = [new GasTraceAction() { CancelTrace = cancelTrace }],
 //                 },
@@ -72,7 +72,7 @@
 //         public void Evaluate_CancelTrace_BeginBlockAction_Throw()
 //         {
 //             var policy = new BlockPolicy(
-//                 new PolicyActionsRegistry(
+//                 new PolicyActions(
 //                     beginBlockActions: ImmutableArray.Create<IAction>(
 //                         new GasTraceAction() { CancelTrace = true }),
 //                     endBlockActions: ImmutableArray<IAction>.Empty,
@@ -92,7 +92,7 @@
 //         public void Evaluate_CancelTrace_EndBlockAction_Throw()
 //         {
 //             var policy = new BlockPolicy(
-//                 new PolicyActionsRegistry(
+//                 new PolicyActions(
 //                     beginBlockActions: ImmutableArray<IAction>.Empty,
 //                     endBlockActions: ImmutableArray.Create<IAction>(
 //                         new GasTraceAction() { CancelTrace = true }),
@@ -112,7 +112,7 @@
 //         public void Evaluate_CancelTrace_EndTxAction_Throw()
 //         {
 //             var policy = new BlockPolicy(
-//                 new PolicyActionsRegistry(
+//                 new PolicyActions(
 //                     beginBlockActions: ImmutableArray<IAction>.Empty,
 //                     endBlockActions: ImmutableArray<IAction>.Empty,
 //                     beginTxActions: ImmutableArray<IAction>.Empty,
@@ -132,7 +132,7 @@
 //         public void Evaluate_CancelTrace_Action_Throw()
 //         {
 //             var policy = new BlockPolicy(
-//                 new PolicyActionsRegistry(
+//                 new PolicyActions(
 //                     beginBlockActions: ImmutableArray<IAction>.Empty,
 //                     endBlockActions: ImmutableArray<IAction>.Empty,
 //                     beginTxActions: ImmutableArray<IAction>.Empty,

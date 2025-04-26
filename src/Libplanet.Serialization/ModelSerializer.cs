@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Reflection;
 using Bencodex.Types;
 using static Libplanet.Serialization.ArrayUtility;

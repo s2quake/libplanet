@@ -1,5 +1,4 @@
 using Bencodex.Types;
-using Libplanet.Action.Sys;
 using Libplanet.Serialization;
 
 namespace Libplanet.Action.Loader;

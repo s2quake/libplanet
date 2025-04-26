@@ -46,10 +46,10 @@ internal sealed class BlockChainService(
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             actionService.ActionLoader,
-            actionService.PolicyActionsRegistry);
+            actionService.PolicyActions);
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);
         var policy = new BlockPolicy(
-            policyActionsRegistry: actionService.PolicyActionsRegistry,
+            policyActions: actionService.PolicyActions,
             blockInterval: TimeSpan.FromSeconds(8),
             validateNextBlockTx: (chain, transaction) => null,
             validateNextBlock: (chain, block) => null,

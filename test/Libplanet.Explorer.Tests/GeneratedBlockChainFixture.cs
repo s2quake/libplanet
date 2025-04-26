@@ -1,4 +1,3 @@
-using System.Numerics;
 using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
@@ -9,7 +8,6 @@ using Libplanet.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
@@ -71,7 +69,7 @@ public class GeneratedBlockChainFixture
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             TypedActionLoader.Create(typeof(SimpleAction).Assembly, typeof(SimpleAction)),
-            policy.PolicyActionsRegistry);
+            policy.PolicyActions);
         Block genesisBlock = BlockChain.ProposeGenesisBlock(
             transactions: PrivateKeys
                 .OrderBy(pk => pk.Address.ToString("raw", null))

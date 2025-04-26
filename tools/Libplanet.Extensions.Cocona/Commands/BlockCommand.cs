@@ -1,5 +1,4 @@
 using System.IO;
-using System.Numerics;
 using System.Text.Json;
 using Bencodex.Types;
 using global::Cocona;
@@ -156,11 +155,11 @@ public class BlockCommand
                 }.ToPlainValues()))
             .ToImmutableList();
 
-        var policyActionsRegistry = blockPolicyParams.GetPolicyActionsRegistry();
+        var policyActions = blockPolicyParams.GetPolicyActions();
         var actionEvaluator = new ActionEvaluator(
             new TrieStateStore(new DefaultKeyValueStore()),
             new SingleActionLoader<NullAction>(),
-            policyActionsRegistry);
+            policyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
             privateKey: key, transactions: txs);
         using Stream stream = file == "-"

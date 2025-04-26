@@ -303,7 +303,7 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var invalidKey = new PrivateKey();
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
@@ -378,7 +378,7 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreCommitSent = new AsyncAutoResetEvent();
             var txSigner = new PrivateKey();
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry
+                new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
@@ -412,7 +412,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            using var fx = new MemoryStoreFixture(policy.PolicyActionsRegistry);
+            using var fx = new MemoryStoreFixture(policy.PolicyActions);
 
             var unsignedInvalidTx = new UnsignedTx(
                 new TxInvoice

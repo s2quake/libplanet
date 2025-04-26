@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Bencodex.Types;
@@ -48,13 +47,13 @@ public partial class BlockChainTest : IDisposable
             .ForContext<BlockChainTest>();
 
         _policy = new BlockPolicy(
-            new PolicyActionsRegistry
+            new PolicyActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
             getMaxTransactionsBytes: _ => 50 * 1024);
         _stagePolicy = new VolatileStagePolicy();
-        _fx = GetStoreFixture(_policy.PolicyActionsRegistry);
+        _fx = GetStoreFixture(_policy.PolicyActions);
         _renderer = new ValidatingActionRenderer();
         _blockChain = BlockChain.Create(
             _policy,
@@ -65,7 +64,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 stateStore: _fx.StateStore,
                 actionLoader: new SingleActionLoader<DumbAction>(),
-                _policy.PolicyActionsRegistry),
+                _policy.PolicyActions),
             renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) }
         );
         _renderer.ResetRecords();
@@ -110,7 +109,7 @@ public partial class BlockChainTest : IDisposable
         );
 
         var policy = new BlockPolicy(
-            new PolicyActionsRegistry
+            new PolicyActions
             {
                 BeginBlockActions = beginActions,
                 EndBlockActions = endActions,
@@ -126,7 +125,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 _fx.StateStore,
                 new SingleActionLoader<DumbAction>(),
-                policy.PolicyActionsRegistry));
+                policy.PolicyActions));
 
         Assert.Equal(chain1.Id, z.Id);
     }
@@ -196,7 +195,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             actionLoader,
-            policy.PolicyActionsRegistry);
+            policy.PolicyActions);
         var nonce = 0;
         var txs = TestUtils.Validators
             .Select(validator => Transaction.Create(
@@ -590,7 +589,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             new SingleActionLoader<DumbAction>(),
-            policy.PolicyActionsRegistry);
+            policy.PolicyActions);
         Block genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(
                 GenesisProposer.PublicKey,
@@ -632,7 +631,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 _fx.StateStore,
                 new SingleActionLoader<DumbAction>(),
-                policy.PolicyActionsRegistry));
+                policy.PolicyActions));
 
         Block b = chain.Genesis;
         Address[] addresses = new Address[30];
@@ -694,7 +693,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 _fx.StateStore,
                 new SingleActionLoader<DumbAction>(),
-                policy.PolicyActionsRegistry));
+                policy.PolicyActions));
 
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
@@ -736,7 +735,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 _fx.StateStore,
                 new SingleActionLoader<DumbAction>(),
-                policy.PolicyActionsRegistry));
+                policy.PolicyActions));
 
         Assert.All(
             chain
@@ -821,8 +820,8 @@ public partial class BlockChainTest : IDisposable
             new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)));
         var locator = new BlockLocator(b4.Hash);
 
-        using (var emptyFx = new MemoryStoreFixture(_policy.PolicyActionsRegistry))
-        using (var forkFx = new MemoryStoreFixture(_policy.PolicyActionsRegistry))
+        using (var emptyFx = new MemoryStoreFixture(_policy.PolicyActions))
+        using (var forkFx = new MemoryStoreFixture(_policy.PolicyActions))
         {
             var emptyChain = BlockChain.Create(
                 _blockChain.Policy,
@@ -833,7 +832,7 @@ public partial class BlockChainTest : IDisposable
                 new ActionEvaluator(
                     stateStore: emptyFx.StateStore,
                     actionLoader: new SingleActionLoader<DumbAction>(),
-                    _blockChain.Policy.PolicyActionsRegistry));
+                    _blockChain.Policy.PolicyActions));
             var fork = BlockChain.Create(
                 _blockChain.Policy,
                 new VolatileStagePolicy(),
@@ -843,7 +842,7 @@ public partial class BlockChainTest : IDisposable
                 new ActionEvaluator(
                     stateStore: forkFx.StateStore,
                     actionLoader: new SingleActionLoader<DumbAction>(),
-                    _blockChain.Policy.PolicyActionsRegistry));
+                    _blockChain.Policy.PolicyActions));
             fork.Append(b1, CreateBlockCommit(b1));
             fork.Append(b2, CreateBlockCommit(b2));
             Block b5 = fork.ProposeBlock(
@@ -1203,7 +1202,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore: stateStore,
             actionLoader: new SingleActionLoader<DumbAction>(),
-            blockPolicy.PolicyActionsRegistry);
+            blockPolicy.PolicyActions);
         Block genesisBlock = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey),
             GenesisProposer);
@@ -1296,11 +1295,11 @@ public partial class BlockChainTest : IDisposable
     /// Configures the store fixture that every test in this class depends on.
     /// Subclasses should override this.
     /// </summary>
-    /// <param name="policyActionsRegistry">The policy block actions to use.</param>
+    /// <param name="policyActions">The policy block actions to use.</param>
     /// <returns>The store fixture that every test in this class depends on.</returns>
     protected virtual StoreFixture GetStoreFixture(
-        PolicyActionsRegistry policyActionsRegistry = null)
-        => new MemoryStoreFixture(policyActionsRegistry);
+        PolicyActions policyActions = null)
+        => new MemoryStoreFixture(policyActions);
 
     private (Address[], Transaction[]) MakeFixturesForAppendTests(
         PrivateKey privateKey = null,
@@ -1443,7 +1442,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             storeFixture.StateStore,
             new SingleActionLoader<DumbAction>(),
-            policy.PolicyActionsRegistry);
+            policy.PolicyActions);
         BlockChain blockChain = BlockChain.Create(
             policy,
             new VolatileStagePolicy(),
@@ -1487,7 +1486,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             new SingleActionLoader<DumbAction>(),
-            policy.PolicyActionsRegistry);
+            policy.PolicyActions);
         var genesisBlockA = BlockChain.ProposeGenesisBlock();
         var genesisBlockB = BlockChain.ProposeGenesisBlock();
 
@@ -1563,7 +1562,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             new SingleActionLoader<DumbAction>(),
-            policy.PolicyActionsRegistry);
+            policy.PolicyActions);
         var genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey, new[] { genesisTx }),
             privateKey: GenesisProposer);
@@ -1632,7 +1631,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             storeFixture.StateStore,
             new SingleActionLoader<SetValidator>(),
-            policy.PolicyActionsRegistry);
+            policy.PolicyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
             privateKey: privateKey,
             transactions: txs);

@@ -11,7 +11,6 @@ using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
 using Serilog;
 
 namespace Libplanet.Net.Consensus;

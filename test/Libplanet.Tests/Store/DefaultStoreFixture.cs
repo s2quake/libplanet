@@ -9,8 +9,8 @@ public class DefaultStoreFixture : StoreFixture, IDisposable
 {
     public DefaultStoreFixture(
         bool memory = true,
-        PolicyActionsRegistry? policyActionsRegistry = null)
-        : base(policyActionsRegistry)
+        PolicyActions? policyActions = null)
+        : base(policyActions)
     {
         if (memory)
         {

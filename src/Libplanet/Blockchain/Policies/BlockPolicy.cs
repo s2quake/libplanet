@@ -20,7 +20,7 @@ namespace Libplanet.Blockchain.Policies
         private readonly Func<BlockChain, Block, Exception?>
             _validateNextBlock;
 
-        private readonly PolicyActionsRegistry _policyActionsRegistry;
+        private readonly PolicyActions _policyActions;
         private readonly Func<long, long> _getMaxTransactionsBytes;
         private readonly Func<long, int> _getMinTransactionsPerBlock;
         private readonly Func<long, int> _getMaxTransactionsPerBlock;
@@ -36,7 +36,7 @@ namespace Libplanet.Blockchain.Policies
         /// description for more detail.
         /// </para>
         /// </summary>
-        /// <param name="policyActionsRegistry">
+        /// <param name="policyActions">
         /// A class containing policy actions to evaluate at each situation.
         /// </param>
         /// <param name="blockInterval">Goes to <see cref="BlockInterval"/>.
@@ -71,7 +71,7 @@ namespace Libplanet.Blockchain.Policies
         /// Goes to <see cref="GetMaxEvidencePendingDuration"/>.  Set to a constant function
         /// of <c>10</c> by default.</param>
         public BlockPolicy(
-            PolicyActionsRegistry? policyActionsRegistry = null,
+            PolicyActions? policyActions = null,
             TimeSpan? blockInterval = null,
             Func<BlockChain, Transaction, InvalidOperationException?>?
                 validateNextBlockTx = null,
@@ -83,7 +83,7 @@ namespace Libplanet.Blockchain.Policies
             Func<long, int>? getMaxTransactionsPerSignerPerBlock = null,
             Func<long, long>? getMaxEvidencePendingDuration = null)
         {
-            _policyActionsRegistry = policyActionsRegistry ?? new PolicyActionsRegistry();
+            _policyActions = policyActions ?? new PolicyActions();
             BlockInterval = blockInterval ?? DefaultTargetBlockInterval;
             _getMaxTransactionsBytes = getMaxTransactionsBytes ?? (_ => 100L * 1024L);
             _getMinTransactionsPerBlock = getMinTransactionsPerBlock ?? (_ => 0);
@@ -162,7 +162,7 @@ namespace Libplanet.Blockchain.Policies
             }
         }
 
-        public PolicyActionsRegistry PolicyActionsRegistry => _policyActionsRegistry;
+        public PolicyActions PolicyActions => _policyActions;
 
         /// <summary>
         /// Targeted time interval between two consecutive <see cref="Block"/>s.

@@ -9,13 +9,10 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 
-public sealed class ActionEvaluator(
-    IStateStore stateStore,
-    IActionLoader actionLoader,
-    PolicyActionsRegistry actionsRegistry)
+public sealed class ActionEvaluator(IStateStore stateStore, IActionLoader actionLoader, PolicyActions policyActions)
 {
     public ActionEvaluator(IStateStore stateStore, IActionLoader actionLoader)
-        : this(stateStore, actionLoader, PolicyActionsRegistry.Empty)
+        : this(stateStore, actionLoader, PolicyActions.Empty)
     {
     }
 
@@ -46,7 +43,7 @@ public sealed class ActionEvaluator(
             var world = stateStore.GetWorld(baseStateRootHash);
             int capacity = GetCapacity(block);
             var evaluationsList = new List<ActionEvaluation>(capacity);
-            if (actionsRegistry.BeginBlockActions.Length > 0)
+            if (policyActions.BeginBlockActions.Length > 0)
             {
                 evaluationsList.AddRange(EvaluateBeginBlockActions(block, world));
                 world = evaluationsList.Last().OutputState;
@@ -54,7 +51,7 @@ public sealed class ActionEvaluator(
 
             evaluationsList.AddRange([.. EvaluateBlock(block, world)]);
 
-            if (actionsRegistry.EndBlockActions.Length > 0)
+            if (policyActions.EndBlockActions.Length > 0)
             {
                 world = evaluationsList.Count > 0 ? evaluationsList.Last().OutputState : world;
                 evaluationsList.AddRange(EvaluateEndBlockActions(block, world));
@@ -170,7 +167,7 @@ public sealed class ActionEvaluator(
     {
         GasTracer.Initialize(tx.GasLimit ?? long.MaxValue);
         var evaluationList = new List<ActionEvaluation>();
-        if (actionsRegistry.BeginTxActions.Length > 0)
+        if (policyActions.BeginTxActions.Length > 0)
         {
             GasTracer.IsTxAction = true;
             evaluationList.AddRange(EvaluateBeginTxActions(block, tx, world));
@@ -181,7 +178,7 @@ public sealed class ActionEvaluator(
         var actions = LoadActions(tx).ToImmutableArray();
         evaluationList.AddRange(EvaluateActions(block, tx, world, actions));
 
-        if (actionsRegistry.EndTxActions.Length > 0)
+        if (policyActions.EndTxActions.Length > 0)
         {
             GasTracer.IsTxAction = true;
             world = evaluationList.Count > 0 ? evaluationList.Last().OutputState : world;
@@ -196,22 +193,22 @@ public sealed class ActionEvaluator(
 
     internal ActionEvaluation[] EvaluateBeginBlockActions(RawBlock block, IWorld world)
     {
-        return EvaluateActions(block, null, world, actionsRegistry.BeginBlockActions);
+        return EvaluateActions(block, null, world, policyActions.BeginBlockActions);
     }
 
     internal ActionEvaluation[] EvaluateEndBlockActions(RawBlock block, IWorld world)
     {
-        return EvaluateActions(block, null, world, actionsRegistry.EndBlockActions);
+        return EvaluateActions(block, null, world, policyActions.EndBlockActions);
     }
 
     internal ActionEvaluation[] EvaluateBeginTxActions(RawBlock block, Transaction tx, IWorld world)
     {
-        return EvaluateActions(block, tx, world, actionsRegistry.BeginTxActions);
+        return EvaluateActions(block, tx, world, policyActions.BeginTxActions);
     }
 
     internal ActionEvaluation[] EvaluateEndTxActions(RawBlock block, Transaction tx, IWorld world)
     {
-        return EvaluateActions(block, tx, world, actionsRegistry.EndTxActions);
+        return EvaluateActions(block, tx, world, policyActions.EndTxActions);
     }
 
     private IEnumerable<IAction> LoadActions(Transaction tx)
@@ -226,10 +223,10 @@ public sealed class ActionEvaluator(
     {
         var txCount = block.Transactions.Count;
         var actionCount = block.Transactions.Sum(tx => tx.Actions.Length);
-        var blockActionCount = actionsRegistry.BeginBlockActions.Length
-            + actionsRegistry.EndBlockActions.Length;
-        var txActionCount = actionsRegistry.BeginTxActions.Length
-            + actionsRegistry.EndTxActions.Length;
+        var blockActionCount = policyActions.BeginBlockActions.Length
+            + policyActions.EndBlockActions.Length;
+        var txActionCount = policyActions.BeginTxActions.Length
+            + policyActions.EndTxActions.Length;
         var capacity = actionCount + blockActionCount + (txActionCount * txCount);
         return capacity;
     }

@@ -193,7 +193,7 @@ If omitted (default) explorer only the local blockchain store.")]
                         new ActionEvaluator(
                             stateStore,
                             new SingleActionLoader<NullAction>(),
-                            policy.PolicyActionsRegistry));
+                            policy.PolicyActions));
                 Startup.PreloadedSingleton = false;
                 Startup.BlockChainSingleton = blockChain;
                 Startup.StoreSingleton = store;
@@ -334,7 +334,7 @@ If omitted (default) explorer only the local blockchain store.")]
         private static BlockPolicy LoadBlockPolicy(Options options)
         {
             return new BlockPolicy(
-                new PolicyActionsRegistry(),
+                new PolicyActions(),
                 blockInterval: TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
                 getMaxTransactionsBytes: i => i > 0
                     ? options.MaxTransactionsBytes
@@ -377,7 +377,7 @@ If omitted (default) explorer only the local blockchain store.")]
                 _impl = blockPolicy;
             }
 
-            public PolicyActionsRegistry PolicyActionsRegistry => _impl.PolicyActionsRegistry;
+            public PolicyActions PolicyActions => _impl.PolicyActions;
 
             public int GetMinTransactionsPerBlock(long index) =>
                 _impl.GetMinTransactionsPerBlock(index);

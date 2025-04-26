@@ -7,8 +7,8 @@ namespace Libplanet.Tests.Store;
 public class MemoryStoreFixture : StoreFixture
 {
     public MemoryStoreFixture(
-        PolicyActionsRegistry? policyActionsRegistry = null)
-        : base(policyActionsRegistry)
+        PolicyActions? policyActions = null)
+        : base(policyActions)
     {
         Store = new MemoryStore();
         StateStore = new TrieStateStore(new MemoryKeyValueStore());

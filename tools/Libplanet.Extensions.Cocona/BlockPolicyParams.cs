@@ -68,8 +68,8 @@ public class BlockPolicyParams : ICommandParameterSet
     public object? GetBlockPolicy() =>
         GetBlockPolicy(LoadAssemblies());
 
-    public PolicyActionsRegistry GetPolicyActionsRegistry() =>
-        GetPolicyActionsRegistry(LoadAssemblies());
+    public PolicyActions GetPolicyActions() =>
+        GetPolicyActions(LoadAssemblies());
 
     [SuppressMessage(
         "Major Code Smell",
@@ -129,22 +129,22 @@ public class BlockPolicyParams : ICommandParameterSet
         );
     }
 
-    internal PolicyActionsRegistry GetPolicyActionsRegistry(Assembly[] assemblies)
+    internal PolicyActions GetPolicyActions(Assembly[] assemblies)
     {
         object? policy = GetBlockPolicy(assemblies);
         if (policy is null)
         {
-            return new PolicyActionsRegistry();
+            return new PolicyActions();
         }
 
         PropertyInfo? propertyInfo = policy
             .GetType()
-            .GetProperty(nameof(IBlockPolicy.PolicyActionsRegistry));
+            .GetProperty(nameof(IBlockPolicy.PolicyActions));
         if (propertyInfo is null)
         {
             var message = $"The policy type "
                 + $"'{policy.GetType().FullName}' does not have a "
-                + $"'{nameof(IBlockPolicy.PolicyActionsRegistry)}' property.";
+                + $"'{nameof(IBlockPolicy.PolicyActions)}' property.";
             throw new InvalidOperationException(message);
         }
 
@@ -152,11 +152,11 @@ public class BlockPolicyParams : ICommandParameterSet
         if (value is null)
         {
             var message = $"The value of property "
-                + $"'{nameof(IBlockPolicy.PolicyActionsRegistry)}' of type "
+                + $"'{nameof(IBlockPolicy.PolicyActions)}' of type "
                 + $"'{policy.GetType().FullName}' cannot be null.";
             throw new InvalidOperationException(message);
         }
 
-        return (PolicyActionsRegistry)value;
+        return (PolicyActions)value;
     }
 }

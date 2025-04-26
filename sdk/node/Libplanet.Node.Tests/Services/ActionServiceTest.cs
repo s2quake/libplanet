@@ -18,7 +18,7 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
         var actionService = serviceProvider.GetRequiredService<IActionService>();
 
         Assert.IsType<AggregateTypedActionLoader>(actionService.ActionLoader);
-        Assert.IsType<PolicyActionsRegistry>(actionService.PolicyActionsRegistry);
+        Assert.IsType<PolicyActions>(actionService.PolicyActions);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
     {
         var actionProviderType = "Libplanet.Node.DumbActions.DumbActionProvider";
         var actionLoaderType = "Libplanet.Node.DumbActions.DumbActionLoader";
-        var policyActionRegistryType = "Libplanet.Node.DumbActions.DumbActionPolicyActionsRegistry";
+        var policyActionRegistryType = "Libplanet.Node.DumbActions.DumbActionPolicyActions";
         var codePath = "Libplanet.Node.Tests.Services.ActionServiceTestSource.cs";
         var codeStream = typeof(ActionServiceTest).Assembly.GetManifestResourceStream(codePath)
             ?? throw new FileNotFoundException($"Resource '{codePath}' not found.");
@@ -51,6 +51,6 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
         Assert.Equal(actionLoaderType, actionService.ActionLoader.GetType().FullName);
         Assert.Equal(
             expected: policyActionRegistryType,
-            actual: actionService.PolicyActionsRegistry.GetType().FullName);
+            actual: actionService.PolicyActions.GetType().FullName);
     }
 }

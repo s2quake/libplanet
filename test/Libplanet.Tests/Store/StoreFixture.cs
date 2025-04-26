@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Security.Cryptography;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
@@ -14,7 +13,7 @@ namespace Libplanet.Tests.Store;
 
 public abstract class StoreFixture : IDisposable
 {
-    protected StoreFixture(PolicyActionsRegistry? policyActionsRegistry = null)
+    protected StoreFixture(PolicyActions? policyActions = null)
     {
         Path = null;
 
@@ -100,7 +99,7 @@ public abstract class StoreFixture : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             new SingleActionLoader<DumbAction>(),
-            policyActionsRegistry ?? new PolicyActionsRegistry());
+            policyActions ?? new PolicyActions());
         GenesisBlock = preEval.Sign(
             Proposer,
             default);

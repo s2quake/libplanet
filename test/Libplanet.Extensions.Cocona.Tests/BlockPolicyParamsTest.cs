@@ -10,12 +10,12 @@ public class BlockPolicyParamsTest
     public void DefaultState()
     {
         var blockPolicyParams = new BlockPolicyParams();
-        var policyActionsRegistry = blockPolicyParams.GetPolicyActionsRegistry();
+        var policyActions = blockPolicyParams.GetPolicyActions();
         Assert.Null(blockPolicyParams.GetBlockPolicy());
-        Assert.Empty(policyActionsRegistry.BeginBlockActions);
-        Assert.Empty(policyActionsRegistry.EndBlockActions);
-        Assert.Empty(policyActionsRegistry.BeginBlockActions);
-        Assert.Empty(policyActionsRegistry.EndTxActions);
+        Assert.Empty(policyActions.BeginBlockActions);
+        Assert.Empty(policyActions.EndBlockActions);
+        Assert.Empty(policyActions.BeginBlockActions);
+        Assert.Empty(policyActions.EndTxActions);
     }
 
     [Fact]
@@ -28,14 +28,14 @@ public class BlockPolicyParamsTest
         BlockPolicy blockPolicy = Assert.IsType<BlockPolicy>(
             blockPolicyParams.GetBlockPolicy(new[] { GetType().Assembly })
         );
-        Assert.Single(blockPolicy.PolicyActionsRegistry.BeginBlockActions);
-        Assert.IsType<NullAction>(blockPolicy.PolicyActionsRegistry.BeginBlockActions[0]);
-        Assert.Single(blockPolicy.PolicyActionsRegistry.EndBlockActions);
-        Assert.IsType<NullAction>(blockPolicy.PolicyActionsRegistry.EndBlockActions[0]);
-        Assert.Single(blockPolicy.PolicyActionsRegistry.BeginTxActions);
-        Assert.IsType<NullAction>(blockPolicy.PolicyActionsRegistry.BeginTxActions[0]);
-        Assert.Single(blockPolicy.PolicyActionsRegistry.EndTxActions);
-        Assert.IsType<NullAction>(blockPolicy.PolicyActionsRegistry.EndTxActions[0]);
+        Assert.Single(blockPolicy.PolicyActions.BeginBlockActions);
+        Assert.IsType<NullAction>(blockPolicy.PolicyActions.BeginBlockActions[0]);
+        Assert.Single(blockPolicy.PolicyActions.EndBlockActions);
+        Assert.IsType<NullAction>(blockPolicy.PolicyActions.EndBlockActions[0]);
+        Assert.Single(blockPolicy.PolicyActions.BeginTxActions);
+        Assert.IsType<NullAction>(blockPolicy.PolicyActions.BeginTxActions[0]);
+        Assert.Single(blockPolicy.PolicyActions.EndTxActions);
+        Assert.IsType<NullAction>(blockPolicy.PolicyActions.EndTxActions[0]);
     }
 
     [Fact]
@@ -132,23 +132,23 @@ public class BlockPolicyParamsTest
     }
 
     [Fact]
-    public void GetPolicyActionsRegistry()
+    public void GetPolicyActions()
     {
         var blockPolicyParams = new BlockPolicyParams
         {
             PolicyFactory = $"{GetType().FullName}.{nameof(BlockPolicyFactory)}",
         };
-        var policyActionsRegistry =
-            blockPolicyParams.GetPolicyActionsRegistry(new[] { GetType().Assembly });
-        Assert.IsType<NullAction>(Assert.Single(policyActionsRegistry.BeginBlockActions));
-        Assert.IsType<NullAction>(Assert.Single(policyActionsRegistry.EndBlockActions));
-        Assert.IsType<NullAction>(Assert.Single(policyActionsRegistry.BeginTxActions));
-        Assert.IsType<NullAction>(Assert.Single(policyActionsRegistry.EndTxActions));
+        var policyActions =
+            blockPolicyParams.GetPolicyActions(new[] { GetType().Assembly });
+        Assert.IsType<NullAction>(Assert.Single(policyActions.BeginBlockActions));
+        Assert.IsType<NullAction>(Assert.Single(policyActions.EndBlockActions));
+        Assert.IsType<NullAction>(Assert.Single(policyActions.BeginTxActions));
+        Assert.IsType<NullAction>(Assert.Single(policyActions.EndTxActions));
     }
 
     internal static BlockPolicy BlockPolicyFactory() =>
         new BlockPolicy(
-            new PolicyActionsRegistry
+            new PolicyActions
             {
                 BeginBlockActions = [new NullAction()],
                 EndBlockActions = [new NullAction()],
