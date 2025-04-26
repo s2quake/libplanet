@@ -29,7 +29,7 @@ namespace Libplanet.Benchmarks
                 new ActionEvaluator(
                     policyActionsRegistry: new PolicyActionsRegistry(),
                     stateStore: fx.StateStore,
-                    actionTypeLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
             _privateKey = new PrivateKey();
         }
 

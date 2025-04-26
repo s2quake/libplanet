@@ -626,7 +626,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var actionEvaluator = new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 stateStore: stateStore,
-                actionTypeLoader: actionLoader);
+                actionLoader: actionLoader);
 
             if (genesisBlock is null)
             {

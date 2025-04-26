@@ -1,13 +1,6 @@
-namespace Libplanet.Action
-{
-    internal class Random : System.Random, IRandom
-    {
-        public Random(int seed)
-            : base(seed)
-        {
-            Seed = seed;
-        }
+namespace Libplanet.Action;
 
-        public int Seed { get; private set; }
-    }
+internal sealed class Random(int seed) : System.Random(seed), IRandom
+{
+    public int Seed { get; } = seed;
 }

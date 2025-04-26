@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;
@@ -6,80 +5,36 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Action
+namespace Libplanet.Action;
+
+internal sealed record class ActionContext : IActionContext
 {
-    internal class ActionContext : IActionContext
-    {
-        private readonly IReadOnlyList<Transaction> _txs;
+    public Address? Signer { get; init; }
 
-        public ActionContext(
-            Address signer,
-            TxId? txid,
-            Address miner,
-            long blockHeight,
-            int blockProtocolVersion,
-            BlockCommit? lastCommit,
-            IWorld previousState,
-            int randomSeed,
-            bool isPolicyAction,
-            FungibleAssetValue? maxGasPrice,
-            IReadOnlyList<Transaction>? txs = null,
-            IReadOnlyList<EvidenceBase>? evidence = null)
-        {
-            Signer = signer;
-            TxId = txid;
-            Miner = miner;
-            BlockHeight = blockHeight;
-            BlockProtocolVersion = blockProtocolVersion;
-            LastCommit = lastCommit;
-            PreviousState = previousState;
-            RandomSeed = randomSeed;
-            IsPolicyAction = isPolicyAction;
-            MaxGasPrice = maxGasPrice;
-            _txs = txs ?? ImmutableList<Transaction>.Empty;
-            Evidence = evidence ?? ImmutableList<EvidenceBase>.Empty;
-        }
+    Address IActionContext.Signer
+        => Signer ?? throw new InvalidOperationException("Signer cannot be used in BlockAction");
 
-        /// <inheritdoc cref="IActionContext.Signer"/>
-        public Address Signer { get; }
+    public TxId? TxId { get; init; }
 
-        /// <inheritdoc cref="IActionContext.TxId"/>
-        public TxId? TxId { get; }
+    public Address Miner { get; init; }
 
-        /// <inheritdoc cref="IActionContext.Miner"/>
-        public Address Miner { get; }
+    public long BlockHeight { get; init; }
 
-        /// <inheritdoc cref="IActionContext.BlockHeight"/>
-        public long BlockHeight { get; }
+    public int BlockProtocolVersion { get; init; }
 
-        /// <inheritdoc cref="IActionContext.BlockProtocolVersion"/>
-        public int BlockProtocolVersion { get; }
+    public BlockCommit? LastCommit { get; init; }
 
-        /// <inheritdoc cref="IActionContext.LastCommit"/>
-        public BlockCommit? LastCommit { get;  }
+    public required IWorld PreviousState { get; init; }
 
-        /// <inheritdoc cref="IActionContext.PreviousState"/>
-        public IWorld PreviousState { get; }
+    public int RandomSeed { get; init; }
 
-        /// <inheritdoc cref="IActionContext.RandomSeed"/>
-        public int RandomSeed { get; }
+    public bool IsPolicyAction { get; init; }
 
-        /// <inheritdoc cref="IActionContext.IsPolicyAction"/>
-        public bool IsPolicyAction { get; }
+    public FungibleAssetValue? MaxGasPrice { get; init; }
 
-        /// <inheritdoc cref="IActionContext.MaxGasPrice"/>
-        [Pure]
-        public FungibleAssetValue? MaxGasPrice { get; }
+    public ImmutableSortedSet<Transaction> Txs { get; init; } = [];
 
-        /// <inheritdoc cref="IActionContext.Txs"/>
-        public IReadOnlyList<Transaction> Txs => IsPolicyAction
-            ? _txs
-            : ImmutableList<Transaction>.Empty;
+    public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
 
-        /// <inheritdoc cref="IActionContext.Evidence"/>
-        public IReadOnlyList<EvidenceBase> Evidence { get; }
-
-        /// <inheritdoc cref="IActionContext.GetRandom"/>
-        public IRandom GetRandom() => new Random(RandomSeed);
-    }
+    public IRandom GetRandom() => new Random(RandomSeed);
 }
