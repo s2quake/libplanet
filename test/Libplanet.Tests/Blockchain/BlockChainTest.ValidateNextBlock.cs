@@ -204,7 +204,7 @@ namespace Libplanet.Tests.Blockchain
             var actionEvaluator1 = new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 stateStore1,
-                new SingleActionLoader(typeof(DumbAction)));
+                new SingleActionLoader<DumbAction>());
             var genesisBlock = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(TestUtils.GenesisProposer.PublicKey),
                 TestUtils.GenesisProposer);
@@ -221,16 +221,17 @@ namespace Libplanet.Tests.Blockchain
                 new SetStatesAtBlock(default, (Text)"foo", default, 0),
             }.ToImmutableArray();
             var policyWithBlockAction = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(
-                        new SetStatesAtBlock(default, (Text)"foo", default, 0))),
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 0)],
+                },
                 blockInterval: policy.BlockInterval);
             var stateStore2 = new TrieStateStore(new MemoryKeyValueStore());
             IStore store2 = new MemoryStore();
             var actionEvaluator2 = new ActionEvaluator(
                 policyWithBlockAction.PolicyActionsRegistry,
                 stateStore2,
-                new SingleActionLoader(typeof(DumbAction)));
+                new SingleActionLoader<DumbAction>());
             var chain2 = BlockChain.Create(
                 policyWithBlockAction,
                 new VolatileStagePolicy(),
@@ -272,7 +273,7 @@ namespace Libplanet.Tests.Blockchain
             var actionEvaluator = new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 stateStore,
-                new SingleActionLoader(typeof(DumbAction)));
+                new SingleActionLoader<DumbAction>());
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
@@ -303,10 +304,11 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.GenesisProposer);
 
             var policyWithBlockAction = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    beginBlockActions: ImmutableArray<IAction>.Empty,
-                    endBlockActions: ImmutableArray.Create<IAction>(
-                        new SetStatesAtBlock(default, (Text)"foo", default, 1))),
+                new PolicyActionsRegistry
+                {
+                    BeginBlockActions = [],
+                    EndBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 1)],
+                },
                 blockInterval: policy.BlockInterval);
             var blockChainStates = new BlockChainStates(store, stateStore);
             var chain2 = new BlockChain(
@@ -319,7 +321,7 @@ namespace Libplanet.Tests.Blockchain
                 new ActionEvaluator(
                     policyWithBlockAction.PolicyActionsRegistry,
                     stateStore,
-                    new SingleActionLoader(typeof(DumbAction))));
+                    new SingleActionLoader<DumbAction>()));
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -332,16 +334,17 @@ namespace Libplanet.Tests.Blockchain
         {
             var beforePostponeBPV = BlockMetadata.CurrentProtocolVersion;
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    beginBlockActions: ImmutableArray.Create<IAction>(
-                        new SetStatesAtBlock(default, (Text)"foo", default, 1))),
+                new PolicyActionsRegistry
+                {
+                    BeginBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 1)],
+                },
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 stateStore,
-                new SingleActionLoader(typeof(DumbAction)));
+                new SingleActionLoader<DumbAction>());
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
@@ -696,7 +699,7 @@ namespace Libplanet.Tests.Blockchain
                 new NullBlockPolicy(),
                 new MemoryStore(),
                 new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader(typeof(DumbAction)),
+                new SingleActionLoader<DumbAction>(),
                 validatorSet: validatorSet);
             Block validNextBlock = blockChain.EvaluateAndSign(
                 RawBlock.Propose(
@@ -807,12 +810,15 @@ namespace Libplanet.Tests.Blockchain
                 new IAction[] { new SetStatesAtBlock(default, (Text)"foo", default, 0), }
                     .ToImmutableArray();
             var policyWithBlockAction = new BlockPolicy(
-                new PolicyActionsRegistry(endBlockActions: endBlockActions));
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = endBlockActions,
+                });
 
             var actionEvaluator = new ActionEvaluator(
                 policyWithBlockAction.PolicyActionsRegistry,
                 _blockChain.StateStore,
-                new SingleActionLoader(typeof(DumbAction)));
+                new SingleActionLoader<DumbAction>());
 
             var newChain = new BlockChain(
                 policyWithBlockAction,

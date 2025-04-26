@@ -5,5 +5,5 @@ namespace Libplanet.Node.Services;
 
 public readonly record struct RenderActionErrorInfo(
     IValue Action,
-    ICommittedActionContext Context,
+    CommittedActionContext Context,
     Exception Exception);

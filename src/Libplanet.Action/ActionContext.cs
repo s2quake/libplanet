@@ -1,6 +1,5 @@
 using Libplanet.Action.State;
 using Libplanet.Crypto;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
@@ -12,10 +11,7 @@ internal sealed record class ActionContext : IActionContext
 {
     public Address Signer { get; init; }
 
-    // Address IActionSigner
-    //     => Signer ?? throw new InvalidOperationException("Signer cannot be used in BlockAction");
-
-    public TxId? TxId { get; init; }
+    public TxId TxId { get; init; }
 
     public Address Miner { get; init; }
 
@@ -28,8 +24,6 @@ internal sealed record class ActionContext : IActionContext
     public required IWorld World { get; init; }
 
     public int RandomSeed { get; init; }
-
-    public bool IsPolicyAction { get; init; }
 
     public FungibleAssetValue? MaxGasPrice { get; init; }
 
@@ -51,6 +45,5 @@ internal sealed record class ActionContext : IActionContext
                 ? World.Trie.Hash
                 : throw new ArgumentException("Trie is not recorded"),
             RandomSeed = RandomSeed,
-            IsPolicyAction = IsPolicyAction,
         };
 }

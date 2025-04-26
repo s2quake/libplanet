@@ -45,7 +45,7 @@ public sealed class DumbEndTxAction : DumbAction
 
 public sealed class DumbActionLoader : IActionLoader
 {
-    public IAction LoadAction(long index, IValue value)
+    public IAction LoadAction(IValue value)
     {
         if (Registry.IsSystemAction(value))
         {
@@ -56,7 +56,7 @@ public sealed class DumbActionLoader : IActionLoader
     }
 }
 
-public sealed class DumbActionPolicyActionsRegistry : IPolicyActionsRegistry
+public sealed class DumbActionPolicyActionsRegistry : PolicyActionsRegistry
 {
     public ImmutableArray<IAction> BeginBlockActions => [new DumbBeginAction()];
 
@@ -71,7 +71,7 @@ public sealed class DumbActionProvider : IActionProvider
 {
     public IActionLoader ActionLoader { get; } = new DumbActionLoader();
 
-    public IPolicyActionsRegistry PolicyActionsRegistry { get; }
+    public PolicyActionsRegistry PolicyActionsRegistry { get; }
         = new DumbActionPolicyActionsRegistry();
 
     public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)

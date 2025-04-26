@@ -7,5 +7,5 @@ namespace Libplanet.Node.Services;
 
 public readonly record struct RenderActionInfo(
     IValue Action,
-    ICommittedActionContext Context,
+    CommittedActionContext Context,
     HashDigest<SHA256> NextState);

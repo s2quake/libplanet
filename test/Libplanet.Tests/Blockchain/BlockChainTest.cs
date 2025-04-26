@@ -48,8 +48,10 @@ public partial class BlockChainTest : IDisposable
             .ForContext<BlockChainTest>();
 
         _policy = new BlockPolicy(
-            new PolicyActionsRegistry(
-                endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))),
+            new PolicyActionsRegistry
+            {
+                EndBlockActions = [new MinerReward(1)],
+            },
             getMaxTransactionsBytes: _ => 50 * 1024);
         _stagePolicy = new VolatileStagePolicy();
         _fx = GetStoreFixture(_policy.PolicyActionsRegistry);
@@ -63,7 +65,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 _policy.PolicyActionsRegistry,
                 stateStore: _fx.StateStore,
-                actionLoader: new SingleActionLoader(typeof(DumbAction))),
+                actionLoader: new SingleActionLoader<DumbAction>()),
             renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) }
         );
         _renderer.ResetRecords();
@@ -108,9 +110,11 @@ public partial class BlockChainTest : IDisposable
         );
 
         var policy = new BlockPolicy(
-            new PolicyActionsRegistry(
-                beginBlockActions: beginActions,
-                endBlockActions: endActions));
+            new PolicyActionsRegistry
+            {
+                BeginBlockActions = beginActions,
+                EndBlockActions = endActions,
+            });
         var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
         var z = new BlockChain(
             policy,
@@ -122,7 +126,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 _fx.StateStore,
-                new SingleActionLoader(typeof(DumbAction))));
+                new SingleActionLoader<DumbAction>()));
 
         Assert.Equal(chain1.Id, z.Id);
     }
@@ -323,7 +327,7 @@ public partial class BlockChainTest : IDisposable
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var actionLoader = new SingleActionLoader(typeof(DumbAction));
+        var actionLoader = new SingleActionLoader<DumbAction>();
         var generatedRandomValueLogs = new List<int>();
         IActionRenderer[] renderers = Enumerable.Range(0, 2).Select(i =>
             new LoggedActionRenderer(
@@ -363,7 +367,7 @@ public partial class BlockChainTest : IDisposable
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var actionLoader = new SingleActionLoader(typeof(DumbAction));
+        var actionLoader = new SingleActionLoader<DumbAction>();
         var recordingRenderer = new RecordingActionRenderer();
         var renderer = new LoggedActionRenderer(recordingRenderer, Log.Logger);
         BlockChain blockChain = MakeBlockChain(
@@ -399,7 +403,7 @@ public partial class BlockChainTest : IDisposable
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var actionLoader = new SingleActionLoader(typeof(DumbAction));
+        var actionLoader = new SingleActionLoader<DumbAction>();
 
         IActionRenderer renderer = new AnonymousActionRenderer
         {
@@ -586,7 +590,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             policy.PolicyActionsRegistry,
             stateStore,
-            new SingleActionLoader(typeof(DumbAction)));
+            new SingleActionLoader<DumbAction>());
         Block genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(
                 GenesisProposer.PublicKey,
@@ -628,7 +632,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 _fx.StateStore,
-                new SingleActionLoader(typeof(DumbAction))));
+                new SingleActionLoader<DumbAction>()));
 
         Block b = chain.Genesis;
         Address[] addresses = new Address[30];
@@ -690,7 +694,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 _fx.StateStore,
-                new SingleActionLoader(typeof(DumbAction))));
+                new SingleActionLoader<DumbAction>()));
 
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
@@ -732,7 +736,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 policy.PolicyActionsRegistry,
                 _fx.StateStore,
-                new SingleActionLoader(typeof(DumbAction))));
+                new SingleActionLoader<DumbAction>()));
 
         Assert.All(
             chain
@@ -829,7 +833,7 @@ public partial class BlockChainTest : IDisposable
                 new ActionEvaluator(
                     _blockChain.Policy.PolicyActionsRegistry,
                     stateStore: emptyFx.StateStore,
-                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader<DumbAction>()));
             var fork = BlockChain.Create(
                 _blockChain.Policy,
                 new VolatileStagePolicy(),
@@ -839,7 +843,7 @@ public partial class BlockChainTest : IDisposable
                 new ActionEvaluator(
                     _blockChain.Policy.PolicyActionsRegistry,
                     stateStore: forkFx.StateStore,
-                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader<DumbAction>()));
             fork.Append(b1, CreateBlockCommit(b1));
             fork.Append(b2, CreateBlockCommit(b2));
             Block b5 = fork.ProposeBlock(
@@ -1199,7 +1203,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             blockPolicy.PolicyActionsRegistry,
             stateStore: stateStore,
-            actionLoader: new SingleActionLoader(typeof(DumbAction)));
+            actionLoader: new SingleActionLoader<DumbAction>());
         Block genesisBlock = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey),
             GenesisProposer);
@@ -1295,7 +1299,7 @@ public partial class BlockChainTest : IDisposable
     /// <param name="policyActionsRegistry">The policy block actions to use.</param>
     /// <returns>The store fixture that every test in this class depends on.</returns>
     protected virtual StoreFixture GetStoreFixture(
-        IPolicyActionsRegistry policyActionsRegistry = null)
+        PolicyActionsRegistry policyActionsRegistry = null)
         => new MemoryStoreFixture(policyActionsRegistry);
 
     private (Address[], Transaction[]) MakeFixturesForAppendTests(
@@ -1439,7 +1443,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             policy.PolicyActionsRegistry,
             storeFixture.StateStore,
-            new SingleActionLoader(typeof(DumbAction)));
+            new SingleActionLoader<DumbAction>());
         BlockChain blockChain = BlockChain.Create(
             policy,
             new VolatileStagePolicy(),
@@ -1483,7 +1487,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             policy.PolicyActionsRegistry,
             stateStore,
-            new SingleActionLoader(typeof(DumbAction)));
+            new SingleActionLoader<DumbAction>());
         var genesisBlockA = BlockChain.ProposeGenesisBlock();
         var genesisBlockB = BlockChain.ProposeGenesisBlock();
 
@@ -1566,7 +1570,7 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             policy.PolicyActionsRegistry,
             stateStore,
-            new SingleActionLoader(typeof(DumbAction)));
+            new SingleActionLoader<DumbAction>());
         var genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey, new[] { genesisTx }),
             privateKey: GenesisProposer);

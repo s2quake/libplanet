@@ -14,7 +14,7 @@ namespace Libplanet.RocksDBStore.Tests
         }
 
         protected override StoreFixture GetStoreFixture(
-            IPolicyActionsRegistry policyActionsRegistry = null)
+            PolicyActionsRegistry policyActionsRegistry = null)
         {
             try
             {

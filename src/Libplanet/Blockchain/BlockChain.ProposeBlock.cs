@@ -346,7 +346,7 @@ namespace Libplanet.Blockchain
                     {
                         foreach (IValue rawAction in tx.Actions)
                         {
-                            _ = ActionEvaluator.ActionLoader.LoadAction(index, rawAction);
+                            _ = ActionEvaluator.ActionLoader.LoadAction(rawAction);
                         }
                     }
                     catch (Exception e)

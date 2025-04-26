@@ -57,20 +57,22 @@ namespace Libplanet.Action.Tests
             world = world.SetAccount(
                 ReservedAddresses.LegacyAccount,
                 world.GetAccount(ReservedAddresses.LegacyAccount).SetState(address, (Text)"item"));
-            var evaluation = new ActionEvaluation(
-                DumbAction.Create((address, "item")),
-                new ActionContext(
-                    address,
-                    txid,
-                    address,
-                    1,
-                    Block.CurrentProtocolVersion,
-                    lastCommit,
-                    new World(MockWorldState.CreateModern()),
-                    123,
-                    false,
-                    maxGasPrice: null),
-                world);
+            var evaluation = new ActionEvaluation
+            {
+                Action = DumbAction.Create((address, "item")),
+                InputContext = new ActionContext
+                {
+                    Signer = address,
+                    TxId = txid,
+                    Miner = address,
+                    BlockHeight =  1,
+                    BlockProtocolVersion = Block.CurrentProtocolVersion,
+                    LastCommit = lastCommit,
+                    World = new World(MockWorldState.CreateModern()),
+                    RandomSeed = 123,
+                },
+                OutputState = world,
+            };
             var action = (DumbAction)evaluation.Action;
 
             Assert.Equal(address, action.Append?.At);

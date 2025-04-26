@@ -53,7 +53,6 @@ public class InitializeTest
             LastCommit = null,
             World = prevState,
             RandomSeed = 123,
-            IsPolicyAction = false,
             MaxGasPrice = null,
         };
         var initialize = new Initialize
@@ -108,7 +107,6 @@ public class InitializeTest
             LastCommit = lastCommit,
             World = prevState,
             RandomSeed = 123,
-            IsPolicyAction = false,
             MaxGasPrice = null,
         };
         var initialize = new Initialize

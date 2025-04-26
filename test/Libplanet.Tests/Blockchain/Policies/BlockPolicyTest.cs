@@ -40,7 +40,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 new ActionEvaluator(
                     _policy.PolicyActionsRegistry,
                     stateStore: _fx.StateStore,
-                    actionLoader: new SingleActionLoader(typeof(DumbAction))));
+                    actionLoader: new SingleActionLoader<DumbAction>()));
         }
 
         public void Dispose()
@@ -150,10 +150,12 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-            var actionLoader = new SingleActionLoader(typeof(DumbAction));
+            var actionLoader = new SingleActionLoader<DumbAction>();
             var policy = new BlockPolicy(
-                new PolicyActionsRegistry(
-                    endBlockActions: ImmutableArray.Create<IAction>(new MinerReward(1))),
+                new PolicyActionsRegistry
+                {
+                    EndBlockActions = [new MinerReward(1)],
+                },
                 getMinTransactionsPerBlock: index => index == 0 ? 0 : policyLimit);
             var privateKey = new PrivateKey();
             var chain = TestUtils.MakeBlockChain(policy, store, stateStore, actionLoader);
@@ -175,7 +177,7 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-            var actionLoader = new SingleActionLoader(typeof(DumbAction));
+            var actionLoader = new SingleActionLoader<DumbAction>();
             var policy = new BlockPolicy(
                 getMaxTransactionsPerBlock: _ => policyLimit);
             var privateKey = new PrivateKey();
@@ -200,7 +202,7 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-            var actionLoader = new SingleActionLoader(typeof(DumbAction));
+            var actionLoader = new SingleActionLoader<DumbAction>();
             var policy = new BlockPolicy(
                 getMaxTransactionsPerSignerPerBlock: _ => policyLimit);
             var privateKeys = Enumerable.Range(0, keyCount).Select(_ => new PrivateKey()).ToList();

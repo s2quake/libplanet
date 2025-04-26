@@ -7,12 +7,12 @@ namespace Libplanet.Node.Tests;
 
 public sealed class DumbActionLoader : IActionLoader
 {
-    public IAction LoadAction(long index, IValue value)
+    public IAction LoadAction(IValue value)
     {
-        if (Registry.IsSystemAction(value))
-        {
-            return Registry.Deserialize(value);
-        }
+        // if (Registry.IsSystemAction(value))
+        // {
+        //     return Registry.Deserialize(value);
+        // }
 
         var action = new DumbAction();
         action.LoadPlainValue(value);

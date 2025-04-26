@@ -58,7 +58,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
         {
             bool called = false;
             LogEvent firstLog = null;
-            ICommittedActionContext actionContext =
+            CommittedActionContext actionContext =
                 new CommittedActionContext(new ActionContext(
                     default,
                     default,
@@ -75,7 +75,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
             IActionRenderer actionRenderer;
             if (error)
             {
-                Action<IValue, ICommittedActionContext, Exception> render = (action, cxt, e) =>
+                Action<IValue, CommittedActionContext, Exception> render = (action, cxt, e) =>
                 {
                     LogEvent[] logs = LogEvents.ToArray();
                     Assert.Single(logs);
@@ -96,7 +96,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
             }
             else
             {
-                Action<IValue, ICommittedActionContext, HashDigest<SHA256>> render =
+                Action<IValue, CommittedActionContext, HashDigest<SHA256>> render =
                     (action, cxt, next) =>
                     {
                         LogEvent[] logs = LogEvents.ToArray();

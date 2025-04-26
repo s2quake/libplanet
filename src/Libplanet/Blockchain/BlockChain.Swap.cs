@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Libplanet.Action;
 using Libplanet.Blockchain.Renderers;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain
@@ -10,11 +11,11 @@ namespace Libplanet.Blockchain
         /// <summary>
         /// Render actions of the given <paramref name="block"/>.
         /// </summary>
-        /// <param name="evaluations"><see cref="IActionEvaluation"/>s of the block.  If it is
+        /// <param name="evaluations"><see cref="ActionEvaluation"/>s of the block.  If it is
         /// <see langword="null"/>, evaluate actions of the <paramref name="block"/> again.</param>
         /// <param name="block"><see cref="Block"/> to render actions.</param>
         internal void RenderActions(
-            IReadOnlyList<ICommittedActionEvaluation> evaluations,
+            IReadOnlyList<CommittedActionEvaluation> evaluations,
             Block block)
         {
             if (evaluations is null)
@@ -37,14 +38,14 @@ namespace Libplanet.Blockchain
                     if (evaluation.Exception is null)
                     {
                         renderer.RenderAction(
-                            evaluation.Action,
+                            ModelSerializer.Serialize(evaluation.Action),
                             evaluation.InputContext,
                             evaluation.OutputState);
                     }
                     else
                     {
                         renderer.RenderActionError(
-                            evaluation.Action,
+                            ModelSerializer.Serialize(evaluation.Action),
                             evaluation.InputContext,
                             evaluation.Exception);
                     }

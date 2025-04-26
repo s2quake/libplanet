@@ -100,7 +100,7 @@ public abstract class StoreFixture : IDisposable
         var actionEvaluator = new ActionEvaluator(
             policyActionsRegistry ?? new PolicyActionsRegistry(),
             stateStore,
-            new SingleActionLoader(typeof(DumbAction)));
+            new SingleActionLoader<DumbAction>());
         GenesisBlock = preEval.Sign(
             Proposer,
             default);

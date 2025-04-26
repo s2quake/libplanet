@@ -24,7 +24,7 @@
 //     /// <paramref name="block"/>.</param>
 //     /// <returns> The result of evaluating every <see cref="IAction"/> related to
 //     /// <paramref name="block"/> as an <see cref="IReadOnlyList{T}"/> of
-//     /// <see cref="ICommittedActionEvaluation"/>s.</returns>
+//     /// <see cref="CommittedActionEvaluation"/>s.</returns>
 //     /// <remarks>
 //     /// <para>
 //     /// This has a side-effect of writing data to internally held <see cref="IStateStore"/>.

@@ -3,7 +3,7 @@
 
 // namespace Libplanet.Action;
 
-// public interface IActionEvaluation
+// public interface ActionEvaluation
 // {
 //     public IValue Action { get; }
 

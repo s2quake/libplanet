@@ -72,7 +72,7 @@ internal sealed class RendererService : IRendererService, IActionRenderer, IAsyn
     }
 
     void IActionRenderer.RenderAction(
-        IValue action, ICommittedActionContext context, HashDigest<SHA256> nextState)
+        IValue action, CommittedActionContext context, HashDigest<SHA256> nextState)
     {
         _renderActionQueue.Add(() =>
         {
@@ -86,7 +86,7 @@ internal sealed class RendererService : IRendererService, IActionRenderer, IAsyn
     }
 
     void IActionRenderer.RenderActionError(
-        IValue action, ICommittedActionContext context, Exception exception)
+        IValue action, CommittedActionContext context, Exception exception)
     {
         _renderActionErrorQueue.Add(() =>
         {

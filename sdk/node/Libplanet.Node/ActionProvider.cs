@@ -14,7 +14,7 @@ public sealed class ActionProvider : IActionProvider
 
     public IActionLoader ActionLoader { get; } = new AggregateTypedActionLoader();
 
-    public IPolicyActionsRegistry PolicyActionsRegistry { get; } = new PolicyActionsRegistry();
+    public PolicyActionsRegistry PolicyActionsRegistry { get; } = new PolicyActionsRegistry();
 
     public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
     {
