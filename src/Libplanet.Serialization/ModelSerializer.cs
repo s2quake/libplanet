@@ -73,35 +73,7 @@ public static class ModelSerializer
             return Null.Value;
         }
 
-        var type = obj.GetType();
-        if (IsStandardType(type) || IsStandardArrayType(type))
-        {
-            return SerializeValue(obj, type, options);
-        }
-
-        var typeName = options.GetTypeName(type);
-        var version = options.GetVersion(type);
-        var propertyInfos = options.GetProperties(type);
-        var valueList = new List<IValue>(propertyInfos.Length);
-        foreach (var propertyInfo in propertyInfos)
-        {
-            var value = propertyInfo.GetValue(obj);
-            var propertyType = propertyInfo.PropertyType;
-            var serialized = SerializeValue(value, propertyType, options);
-            valueList.Add(serialized);
-        }
-
-        var data = new ModelData
-        {
-            Header = new ModelHeader
-            {
-                TypeValue = ObjectValue,
-                TypeName = typeName,
-                Version = version,
-            },
-            Value = new List(valueList),
-        };
-        return data.Bencoded;
+        return Serialize(obj, obj.GetType(), options);
     }
 
     public static byte[] SerializeToBytes(object? obj) => _codec.Encode(Serialize(obj));
@@ -187,6 +159,44 @@ public static class ModelSerializer
         return Deserialize<T>(_codec.Decode(bytes))
             ?? throw new ModelSerializationException(
                 $"Failed to deserialize {typeof(T)} from bytes.");
+    }
+
+    private static IValue Serialize(object obj, Type type, ModelOptions options)
+    {
+        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
+        {
+            return converter.ConvertTo(obj, typeof(IValue)) is IValue value
+                ? value : throw new ModelSerializationException($"Failed to convert {obj} to {type}");
+        }
+
+        if (IsStandardType(type) || IsStandardArrayType(type))
+        {
+            return SerializeValue(obj, type, options);
+        }
+
+        var typeName = options.GetTypeName(type);
+        var version = options.GetVersion(type);
+        var propertyInfos = options.GetProperties(type);
+        var valueList = new List<IValue>(propertyInfos.Length);
+        foreach (var propertyInfo in propertyInfos)
+        {
+            var value = propertyInfo.GetValue(obj);
+            var propertyType = propertyInfo.PropertyType;
+            var serialized = value is not null ? Serialize(value, propertyType, options) : Null.Value;
+            valueList.Add(serialized);
+        }
+
+        var data = new ModelData
+        {
+            Header = new ModelHeader
+            {
+                TypeValue = ObjectValue,
+                TypeName = typeName,
+                Version = version,
+            },
+            Value = new List(valueList),
+        };
+        return data.Bencoded;
     }
 
     private static IValue SerializeValue(
@@ -341,14 +351,6 @@ public static class ModelSerializer
         else if (propertyType.IsDefined(typeof(ModelAttribute)))
         {
             return Serialize(value);
-        }
-        else if (TypeDescriptor.GetConverter(propertyType)
-            is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
-        {
-            return converter.ConvertTo(value, typeof(IValue)) is IValue v
-                ? v
-                : throw new ModelSerializationException(
-                    $"Failed to convert {value} to {propertyType}");
         }
 
         throw new ModelSerializationException($"Unsupported type {value.GetType()}");

@@ -1,22 +1,14 @@
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
+using Bencodex.Types;
 
 namespace Libplanet.Common.Converters;
 
-/// <summary>
-/// The <see cref="TypeConverter"/> implementation for <see cref="HashDigest{T}"/>.
-/// </summary>
-[SuppressMessage(
-    "StyleCop.CSharp.MaintainabilityRules",
-    "SA1402:FileMayOnlyContainASingleClass",
-    Justification = "It's okay to have non-public classes together in a single file."
-)]
-internal class HashDigestTypeConverter : TypeConverter
+internal sealed class HashDigestTypeConverter : TypeConverter
 {
-    private readonly MethodInfo _fromString;
+    private static MethodInfo _fromString;
 
     public HashDigestTypeConverter(Type type)
     {
@@ -39,23 +31,18 @@ internal class HashDigestTypeConverter : TypeConverter
             $"Failed to look up the {nameof(HashDigest<SHA1>.Parse)} method");
     }
 
-    /// <inheritdoc cref="TypeConverter.CanConvertFrom(ITypeDescriptorContext?, Type)"/>
-    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>
-        sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        => sourceType == typeof(string)
+            || sourceType == typeof(IValue)
+            || base.CanConvertFrom(context, sourceType);
 
-    /// <inheritdoc
-    /// cref="TypeConverter.ConvertFrom(ITypeDescriptorContext?, CultureInfo?, object)"/>
-    public override object? ConvertFrom(
-        ITypeDescriptorContext? context,
-        CultureInfo? culture,
-        object value
-    )
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
-        if (value is string v)
+        if (value is string @string)
         {
             try
             {
-                return _fromString.Invoke(null, new[] { v })!;
+                return _fromString.Invoke(null, new[] { @string })!;
             }
             catch (TargetInvocationException e) when (e.InnerException is { } ie)
             {
@@ -71,18 +58,13 @@ internal class HashDigestTypeConverter : TypeConverter
         return base.ConvertFrom(context, culture, value);
     }
 
-    /// <inheritdoc cref="TypeConverter.CanConvertTo(ITypeDescriptorContext?, Type?)"/>
-    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType) =>
-        destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
+    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
+        => destinationType == typeof(string)
+            || destinationType == typeof(IValue)
+            || base.CanConvertTo(context, destinationType);
 
-    /// <inheritdoc
-    /// cref="TypeConverter.ConvertTo(ITypeDescriptorContext?, CultureInfo?, object?, Type)"/>
     public override object? ConvertTo(
-        ITypeDescriptorContext? context,
-        CultureInfo? culture,
-        object? value,
-        Type destinationType
-    )
+        ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
         if (value != null &&
             destinationType == typeof(string) &&
