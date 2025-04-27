@@ -8,22 +8,28 @@ namespace Libplanet.Serialization;
 public static class ArrayUtility
 {
     private static readonly ConcurrentDictionary<Type, Array> _emptyArrayByElementType = [];
-    private static readonly ConcurrentDictionary<Type, object> _immutableEmptyArrayByElementType
-        = [];
+    private static readonly ConcurrentDictionary<Type, object> _immutableEmptyArrayByElementType = [];
+    private static readonly ConcurrentDictionary<Type, object> _immutableEmptySortedSetByElementType = [];
 
     private static readonly ConcurrentDictionary<Type, Type> _arrayTypeByElementType = [];
     private static readonly ConcurrentDictionary<Type, Type> _immutableArrayTypeElementType = [];
+    private static readonly ConcurrentDictionary<Type, Type> _immutableSortedSetTypeElementType = [];
 
     public static bool IsStandardArrayType(Type type) => IsSupportedArrayType(type, out _);
 
     public static bool IsSupportedArrayType(Type type, [MaybeNullWhen(false)] out Type elementType)
     {
-        if (IsArray(type, out elementType) == true)
+        if (IsArray(type, out elementType) is true)
         {
             return true;
         }
 
-        if (IsImmutableArray(type, out elementType) == true)
+        if (IsImmutableArray(type, out elementType) is true)
+        {
+            return true;
+        }
+
+        if (IsImmutableSortedSet(type, out elementType) is true)
         {
             return true;
         }
@@ -35,7 +41,7 @@ public static class ArrayUtility
 
     public static bool IsArray(Type type, [MaybeNullWhen(false)] out Type elementType)
     {
-        if (typeof(Array).IsAssignableFrom(type) == true)
+        if (typeof(Array).IsAssignableFrom(type) is true)
         {
             elementType = type.GetElementType()!;
             return true;
@@ -49,10 +55,28 @@ public static class ArrayUtility
 
     public static bool IsImmutableArray(Type type, [MaybeNullWhen(false)] out Type elementType)
     {
-        if (type.IsGenericType == true)
+        if (type.IsGenericType is true)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
             if (genericTypeDefinition == typeof(ImmutableArray<>))
+            {
+                elementType = type.GetGenericArguments()[0];
+                return true;
+            }
+        }
+
+        elementType = null;
+        return false;
+    }
+
+    public static bool IsImmutableSortedSet(Type type) => IsImmutableSortedSet(type, out _);
+
+    public static bool IsImmutableSortedSet(Type type, [MaybeNullWhen(false)] out Type elementType)
+    {
+        if (type.IsGenericType is true)
+        {
+            var genericTypeDefinition = type.GetGenericTypeDefinition();
+            if (genericTypeDefinition == typeof(ImmutableSortedSet<>))
             {
                 elementType = type.GetGenericArguments()[0];
                 return true;
@@ -69,6 +93,9 @@ public static class ArrayUtility
     public static object ToImmutableEmptyArray(Type elementType)
         => _immutableEmptyArrayByElementType.GetOrAdd(elementType, CreateImmutableEmptyArray);
 
+    public static object ToImmutableEmptySortedSet(Type elementType)
+        => _immutableEmptySortedSetByElementType.GetOrAdd(elementType, CreateImmutableEmptySortedSet);
+
     public static Type GetArrayType(Type elementType)
         => _arrayTypeByElementType.GetOrAdd(elementType, item => item.MakeArrayType());
 
@@ -76,11 +103,25 @@ public static class ArrayUtility
         => _immutableArrayTypeElementType.GetOrAdd(
             elementType, item => typeof(ImmutableArray<>).MakeGenericType(item));
 
+    public static Type GetImmutableSortedSetType(Type elementType)
+        => _immutableSortedSetTypeElementType.GetOrAdd(
+            elementType, item => typeof(ImmutableSortedSet<>).MakeGenericType(item));
+
     private static object CreateImmutableEmptyArray(Type elementType)
     {
         var bindingFlags = BindingFlags.Public | BindingFlags.Static;
         var arrayType = typeof(ImmutableArray<>).MakeGenericType(elementType);
         var propertyInfo = arrayType.GetField(nameof(ImmutableArray<object>.Empty), bindingFlags)
+            ?? throw new UnreachableException("Field is not found.");
+        return propertyInfo.GetValue(null)
+            ?? throw new UnreachableException("Field value is null.");
+    }
+
+    private static object CreateImmutableEmptySortedSet(Type elementType)
+    {
+        var bindingFlags = BindingFlags.Public | BindingFlags.Static;
+        var arrayType = typeof(ImmutableSortedSet<>).MakeGenericType(elementType);
+        var propertyInfo = arrayType.GetField(nameof(ImmutableSortedSet<object>.Empty), bindingFlags)
             ?? throw new UnreachableException("Field is not found.");
         return propertyInfo.GetValue(null)
             ?? throw new UnreachableException("Field value is null.");

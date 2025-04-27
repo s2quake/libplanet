@@ -13,6 +13,7 @@ public static class ModelSerializer
     private const int ObjectValue = 0x_0000_0001;
     private const int ArrayValue = 0x_0000_0002;
     private const int ImmutableArrayValue = 0x_0000_0003;
+    private const int ImmutableSortedSetValue = 0x_0000_0004;
     private static readonly Codec _codec = new();
 
     public static bool TryGetType(IValue value, [MaybeNullWhen(false)] out Type type)
@@ -298,6 +299,36 @@ public static class ModelSerializer
                 Header = new ModelHeader
                 {
                     TypeValue = ImmutableArrayValue,
+                    TypeName = typeName,
+                    Version = version,
+                },
+                Value = new List(list),
+            };
+
+            return data.Bencoded;
+        }
+        else if (IsImmutableSortedSet(propertyType, out elementType))
+        {
+            var items = (IList)value;
+            if (items.Count == 0)
+            {
+                return Null.Value;
+            }
+
+            var list = new List<IValue>(items.Count);
+            var typeName = options.GetTypeName(elementType);
+            var version = options.GetVersion(elementType);
+
+            foreach (var item in items)
+            {
+                list.Add(SerializeValue(item, elementType, options));
+            }
+
+            var data = new ModelData
+            {
+                Header = new ModelHeader
+                {
+                    TypeValue = ImmutableSortedSetValue,
                     TypeName = typeName,
                     Version = version,
                 },
