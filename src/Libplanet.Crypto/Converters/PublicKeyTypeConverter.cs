@@ -13,16 +13,20 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
 
     public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
-        if (value is string v)
+        if (value is string @string)
         {
             try
             {
-                return PublicKey.Parse(v);
+                return PublicKey.Parse(@string);
             }
             catch (Exception e) when (e is ArgumentException || e is FormatException)
             {
                 throw new ArgumentException(e.Message, e);
             }
+        }
+        else if (value is Binary binary)
+        {
+            return new PublicKey([.. binary.ToByteArray()]);
         }
 
         return base.ConvertFrom(context, culture, value);
