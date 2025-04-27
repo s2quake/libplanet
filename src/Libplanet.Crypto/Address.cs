@@ -32,11 +32,7 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
 
     public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultByteArray : _bytes;
 
-    public IValue ToBencodex() => new Binary(Bytes);
-
     public static Address Parse(string hex) => new(DeriveAddress(hex));
-
-    public static Address Create(IValue bencoded) => new Address(GetBytes(bencoded));
 
     public bool Equals(Address other) => Bytes.SequenceEqual(other.Bytes);
 

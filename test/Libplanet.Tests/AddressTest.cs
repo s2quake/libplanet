@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Xunit;
 using static Libplanet.Tests.TestUtils;
 
@@ -134,10 +135,10 @@ public class AddressTest
 
         Assert.Equal(
             Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"),
-            Address.Create(new Binary(addr)));
+            ModelSerializer.Deserialize<Address>(new Binary(addr)));
 
         var invalidAddr = new byte[19];
-        Assert.Throws<ArgumentException>(() => Address.Create(new Binary(invalidAddr)));
+        Assert.Throws<ArgumentException>(() => ModelSerializer.Deserialize<Address>(new Binary(invalidAddr)));
     }
 
     [Fact]
@@ -200,7 +201,7 @@ public class AddressTest
     public void SerializeAndDeserializeWithDefault()
     {
         var defaultAddress = default(Address);
-        Address deserializedAddress = Address.Create(defaultAddress.ToBencodex());
+        Address deserializedAddress = ModelSerializer.Deserialize<Address>(ModelSerializer.Serialize(defaultAddress));
         Assert.Equal(default, deserializedAddress);
     }
 
@@ -255,10 +256,10 @@ public class AddressTest
     public void Bencoded()
     {
         var expected = new Address([.. TestUtils.GetRandomBytes(Address.Size)]);
-        var deserialized = Address.Create(expected.ToBencodex());
+        var deserialized = ModelSerializer.Deserialize<Address>(ModelSerializer.Serialize(expected));
         Assert.Equal(expected, deserialized);
         expected = default(Address);
-        deserialized = Address.Create(expected.ToBencodex());
+        deserialized = ModelSerializer.Deserialize<Address>(ModelSerializer.Serialize(expected));
         Assert.Equal(expected, deserialized);
     }
 

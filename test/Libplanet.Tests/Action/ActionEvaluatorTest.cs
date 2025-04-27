@@ -181,13 +181,13 @@ public partial class ActionEvaluatorTest
                 .GetNextWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
                 .GetState(ContextRecordingAction.MinerRecordAddress),
-            block.Miner.ToBencodex());
+            ModelSerializer.Serialize(block.Miner));
         Assert.Equal(
             chain
                 .GetNextWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
                 .GetState(ContextRecordingAction.SignerRecordAddress),
-            tx.Signer.ToBencodex());
+            ModelSerializer.Serialize(tx.Signer));
         Assert.Equal(
             chain
                 .GetNextWorldState()
@@ -1584,7 +1584,7 @@ public partial class ActionEvaluatorTest
 
             if (!(asList[3] is Bencodex.Types.Null))
             {
-                Receiver = Address.Create(asList[3]);
+                Receiver = ModelSerializer.Deserialize<Address>(asList[3]);
             }
         }
 

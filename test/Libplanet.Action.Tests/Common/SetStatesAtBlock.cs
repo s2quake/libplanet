@@ -1,6 +1,7 @@
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 
 namespace Libplanet.Action.Tests.Common
 {
@@ -25,7 +26,7 @@ namespace Libplanet.Action.Tests.Common
         }
 
         public IValue PlainValue => Bencodex.Types.Dictionary.Empty
-            .Add("address", _address.ToBencodex())
+            .Add("address",ModelSerializer.Serialize(_address))
             .Add("value", _value)
             .Add("account_address", _accountAddress.Bytes)
             .Add("block_index", _blockIndex);
@@ -33,9 +34,9 @@ namespace Libplanet.Action.Tests.Common
         public void LoadPlainValue(IValue plainValue)
         {
             var dict = (Bencodex.Types.Dictionary)plainValue;
-            _address = Address.Create(dict["address"]);
+            _address = ModelSerializer.Deserialize<Address>(dict["address"]);
             _value = dict["value"];
-            _accountAddress = Address.Create(dict["account_address"]);
+            _accountAddress = ModelSerializer.Deserialize<Address>(dict["account_address"]);
             _blockIndex = (Integer)dict["block_index"];
         }
 

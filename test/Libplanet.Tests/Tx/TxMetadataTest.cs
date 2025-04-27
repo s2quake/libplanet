@@ -1,6 +1,7 @@
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using Xunit;
@@ -56,7 +57,7 @@ namespace Libplanet.Tests.Tx
         {
             Bencodex.Types.Dictionary dict1 = Dictionary.Empty
                 .Add(new byte[] { 0x6e }, 123L)
-                .Add(new byte[] { 0x73 }, _key1.Address.ToBencodex())
+                .Add(new byte[] { 0x73 }, ModelSerializer.Serialize(_key1.Address))
                 .Add(new byte[] { 0x75 }, new List())
                 .Add(new byte[] { 0x74 }, "2022-05-23T10:02:00.000000Z")
                 .Add(new byte[] { 0x70 }, _key1.PublicKey.ToImmutableArray(compress: false));
@@ -72,12 +73,12 @@ namespace Libplanet.Tests.Tx
 
             Bencodex.Types.Dictionary dict2 = Dictionary.Empty
                 .Add(new byte[] { 0x6e }, 0L)
-                .Add(new byte[] { 0x73 }, _key2.Address.ToBencodex())
+                .Add(new byte[] { 0x73 }, ModelSerializer.Serialize(_key2.Address))
                 .Add(
                     new byte[] { 0x75 },
                     Bencodex.Types.List.Empty
-                        .Add(_key1.Address.ToBencodex())
-                        .Add(_key2.Address.ToBencodex()))
+                        .Add(ModelSerializer.Serialize(_key1.Address))
+                        .Add(ModelSerializer.Serialize(_key2.Address)))
                 .Add(new byte[] { 0x74 }, "2022-01-12T04:56:07.890000Z")
                 .Add(new byte[] { 0x70 }, _key2.PublicKey.ToImmutableArray(compress: false))
                 .Add(
@@ -113,7 +114,7 @@ namespace Libplanet.Tests.Tx
             };
             Bencodex.Types.Dictionary expected1 = Dictionary.Empty
                 .Add(new byte[] { 0x6e }, 123L)
-                .Add(new byte[] { 0x73 }, _key1.Address.ToBencodex())
+                .Add(new byte[] { 0x73 }, ModelSerializer.Serialize(_key1.Address))
                 .Add(new byte[] { 0x75 }, new List())
                 .Add(new byte[] { 0x74 }, "2022-05-23T10:02:00.000000Z");
             AssertBencodexEqual(
@@ -135,12 +136,12 @@ namespace Libplanet.Tests.Tx
             };
             Bencodex.Types.Dictionary expected2 = Dictionary.Empty
                 .Add(new byte[] { 0x6e }, 0L)
-                .Add(new byte[] { 0x73 }, _key2.Address.ToBencodex())
+                .Add(new byte[] { 0x73 }, ModelSerializer.Serialize(_key2.Address))
                 .Add(
                     new byte[] { 0x75 },
                     Bencodex.Types.List.Empty
-                        .Add(_key1.Address.ToBencodex())
-                        .Add(_key2.Address.ToBencodex()))
+                        .Add(ModelSerializer.Serialize(_key1.Address))
+                        .Add(ModelSerializer.Serialize(_key2.Address)))
                 .Add(new byte[] { 0x74 }, "2022-01-12T04:56:07.890000Z")
                 .Add(
                     new byte[] { 0x67 },

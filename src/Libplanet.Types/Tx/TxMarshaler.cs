@@ -42,7 +42,7 @@ public static class TxMarshaler
     public static Bencodex.Types.Dictionary MarshalTxInvoice(this TxInvoice invoice)
     {
         Bencodex.Types.List updatedAddresses = new(
-            invoice.UpdatedAddresses.Select<Address, IValue>(addr => addr.ToBencodex())
+            invoice.UpdatedAddresses.Select<Address, IValue>(addr => ModelSerializer.Serialize(addr))
         );
         string timestamp = invoice.Timestamp
             .ToUniversalTime()
@@ -78,7 +78,7 @@ public static class TxMarshaler
         this TxSigningMetadata metadata
     ) => Dictionary.Empty
         .Add(NonceKey, metadata.Nonce)
-        .Add(SignerKey, metadata.Signer.ToBencodex());
+        .Add(SignerKey, ModelSerializer.Serialize(metadata.Signer));
 
     [Pure]
     public static Dictionary MarshalUnsignedTx(this UnsignedTx unsignedTx)
@@ -125,7 +125,7 @@ public static class TxMarshaler
                 ? ModelSerializer.Deserialize<BlockHash>(gv)
                 : null,
             UpdatedAddresses = ImmutableSortedSet.Create(
-                [.. ((List)dictionary[UpdatedAddressesKey]).Select(Address.Create)]),
+                [.. ((List)dictionary[UpdatedAddressesKey]).Select(ModelSerializer.Deserialize<Address>)]),
             Timestamp = DateTimeOffset.ParseExact(
                 (Text)dictionary[TimestampKey],
                 TimestampFormat,
@@ -144,7 +144,7 @@ public static class TxMarshaler
         Bencodex.Types.Dictionary dictionary
     ) =>
         new(
-            Signer: Address.Create(dictionary[SignerKey]),
+            Signer: ModelSerializer.Deserialize<Address>(dictionary[SignerKey]),
             Nonce: (Bencodex.Types.Integer)dictionary[NonceKey]
         );
 

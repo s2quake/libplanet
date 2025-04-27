@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -340,6 +341,14 @@ public static class ModelSerializer
         else if (propertyType.IsDefined(typeof(ModelAttribute)))
         {
             return Serialize(value);
+        }
+        else if (TypeDescriptor.GetConverter(propertyType)
+            is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
+        {
+            return converter.ConvertTo(value, typeof(IValue)) is IValue v
+                ? v
+                : throw new ModelSerializationException(
+                    $"Failed to convert {value} to {propertyType}");
         }
 
         throw new ModelSerializationException($"Unsupported type {value.GetType()}");

@@ -6,28 +6,38 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types.Blocks;
 
+[Model(Version = 1)]
 public sealed record class BlockMetadata
 {
     public const int CurrentProtocolVersion = 9;
 
     private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
 
+    [Property(0)]
     public int ProtocolVersion { get; init; }
 
+    [Property(1)]
     public long Height { get; init; }
 
+    [Property(2)]
     public DateTimeOffset Timestamp { get; init; }
 
+    [Property(3)]
     public Address Miner { get; init; }
 
+    [Property(4)]
     public PublicKey? PublicKey { get; init; }
 
+    [Property(5)]
     public BlockHash PreviousHash { get; init; }
 
+    [Property(6)]
     public HashDigest<SHA256>? TxHash { get; init; }
 
+    [Property(7)]
     public BlockCommit? LastCommit { get; init; }
 
+    [Property(8)]
     public HashDigest<SHA256>? EvidenceHash { get; init; }
 
     // public Bencodex.Types.Dictionary MakeCandidateData()

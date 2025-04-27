@@ -176,13 +176,13 @@ public readonly record struct Currency(
             return List.Empty;
         }
 
-        var list = new List(minters.Select(item => item.ToBencodex()));
+        var list = new List(minters.Select(item => ModelSerializer.Serialize(item)));
         return list;
     }
 
     private static ImmutableArray<Address> FromBencodex(List list)
     {
-        return [.. list.Select(Address.Create)];
+        return [.. list.Select(ModelSerializer.Deserialize<Address>)];
     }
 
     private HashDigest<SHA1> GetHash()

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Xunit;
 using static Libplanet.Tests.TestUtils;
@@ -182,8 +183,8 @@ public class CurrencyTest
                 new Integer(0),
                 new Integer(100),
                 new List(
-                    AddressB.ToBencodex(),
-                    AddressA.ToBencodex())),
+                    ModelSerializer.Serialize(AddressB),
+                    ModelSerializer.Serialize(AddressA))),
             bar.ToBencodex());
 
         Assert.Equal(bar, Currency.Create(bar.ToBencodex()));
