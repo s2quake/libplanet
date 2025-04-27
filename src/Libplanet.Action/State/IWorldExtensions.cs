@@ -7,103 +7,105 @@ namespace Libplanet.Action.State;
 public static class IWorldExtensions
 {
     public static FungibleAssetValue GetBalance(
-        this IWorldState worldState,
-        Address address,
-        Currency currency) =>
-            worldState.GetCurrencyAccount(currency).GetBalance(address, currency);
+        this IWorldState @this, Address address, Currency currency)
+        => @this.GetCurrencyAccount(currency).GetBalance(address, currency);
 
     public static IWorld MintAsset(
-        this IWorld world,
-        IActionContext context,
-        Address recipient,
-        FungibleAssetValue value) => value.Currency.CanMint(context.Signer)
-            ? world.SetCurrencyAccount(
-                world.GetCurrencyAccount(value.Currency).MintAsset(recipient, value))
-            : throw new CurrencyPermissionException(
+        this IWorld @this, IActionContext context, Address recipient, FungibleAssetValue value)
+    {
+        if (!value.Currency.CanMint(context.Signer))
+        {
+            throw new CurrencyPermissionException(
                 $"Given {nameof(context)}'s signer {context.Signer} does not have " +
                 $"the authority to mint or burn currency {value.Currency}.",
                 context.Signer,
                 value.Currency);
+        }
+
+        return @this.SetCurrencyAccount(@this.GetCurrencyAccount(value.Currency).MintAsset(recipient, value));
+    }
 
     public static IWorld BurnAsset(
-        this IWorld world,
-        IActionContext context,
-        Address owner,
-        FungibleAssetValue value) => value.Currency.CanMint(context.Signer)
-            ? world.SetCurrencyAccount(
-                world.GetCurrencyAccount(value.Currency).BurnAsset(owner, value))
-            : throw new CurrencyPermissionException(
+        this IWorld @this, IActionContext context, Address owner, FungibleAssetValue value)
+    {
+        if (!value.Currency.CanMint(context.Signer))
+        {
+            throw new CurrencyPermissionException(
                 $"Given {nameof(context)}'s signer {context.Signer} does not have " +
                 $"the authority to mint or burn currency {value.Currency}.",
                 context.Signer,
                 value.Currency);
+        }
+
+        return @this.SetCurrencyAccount(@this.GetCurrencyAccount(value.Currency).BurnAsset(owner, value));
+    }
 
     public static IWorld TransferAsset(
-        this IWorld world,
-        IActionContext context,
-        Address sender,
-        Address recipient,
-        FungibleAssetValue value) =>
-            context.BlockProtocolVersion > 0
-                ? world.SetCurrencyAccount(
-                    world
-                        .GetCurrencyAccount(value.Currency)
-                        .TransferAsset(sender, recipient, value))
-#pragma warning disable CS0618 // Obsolete
-                : world.SetCurrencyAccount(
-                    world
-                        .GetCurrencyAccount(value.Currency)
-                        .TransferAssetV0(sender, recipient, value));
-#pragma warning restore CS0618
+        this IWorld @this, IActionContext context, Address sender, Address recipient, FungibleAssetValue value)
+    {
+        if (context.BlockProtocolVersion > 0)
+        {
+            return @this.SetCurrencyAccount(
+                @this.GetCurrencyAccount(value.Currency).TransferAsset(sender, recipient, value));
+        }
 
-    public static FungibleAssetValue GetTotalSupply(
-        this IWorldState worldState,
-        Currency currency) =>
-            worldState.GetCurrencyAccount(currency).GetTotalSupply(currency);
+        return @this.SetCurrencyAccount(
+            @this.GetCurrencyAccount(value.Currency).TransferAssetV0(sender, recipient, value));
+    }
 
-    public static ImmutableSortedSet<Validator> GetValidatorSet(this IWorldState worldState) =>
-        worldState.GetValidatorSetAccount().GetValidatorSet();
+    public static FungibleAssetValue GetTotalSupply(this IWorldState @this, Currency currency)
+        => @this.GetCurrencyAccount(currency).GetTotalSupply(currency);
 
-    public static IWorld SetValidatorSet(this IWorld world, ImmutableSortedSet<Validator> validatorSet) =>
-        world.SetValidatorSetAccount(
-            world.GetValidatorSetAccount().SetValidatorSet(validatorSet));
+    public static ImmutableSortedSet<Validator> GetValidatorSet(this IWorldState @this)
+        => @this.GetValidatorSetAccount().GetValidatorSet();
 
-    internal static ValidatorSetAccount GetValidatorSetAccount(this IWorldState worldState)
-        => new ValidatorSetAccount(
-            worldState.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie,
-            worldState.Version);
+    public static IWorld SetValidatorSet(this IWorld @this, ImmutableSortedSet<Validator> validatorSet)
+        => @this.SetValidatorSetAccount(
+            @this.GetValidatorSetAccount().SetValidatorSet(validatorSet));
+
+    internal static ValidatorSetAccount GetValidatorSetAccount(this IWorldState @this)
+        => new(
+            @this.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie,
+            @this.Version);
 
     internal static CurrencyAccount GetCurrencyAccount(
-        this IWorldState worldState,
-        Currency currency) =>
-        new CurrencyAccount(
-                worldState.GetAccountState(new Address(currency.Hash.Bytes)).Trie,
-                worldState.Version,
+        this IWorldState @this, Currency currency)
+        => new(
+                @this.GetAccountState(new Address(currency.Hash.Bytes)).Trie,
+                @this.Version,
                 currency);
 
     internal static IWorld SetCurrencyAccount(
-        this IWorld world,
-        CurrencyAccount currencyAccount) =>
-            world.Version == currencyAccount.WorldVersion
-                ? world.SetAccount(
-                        new Address(currencyAccount.Currency.Hash.Bytes),
-                        currencyAccount.AsAccount())
-                : throw new ArgumentException(
-                    $"Given {nameof(currencyAccount)} must have the same version as " +
-                    $"the version of the world {world.Version}: " +
-                    $"{currencyAccount.WorldVersion}",
-                    nameof(currencyAccount));
+        this IWorld @this, CurrencyAccount currencyAccount)
+    {
+        if (@this.Version != currencyAccount.WorldVersion)
+        {
+            throw new ArgumentException(
+                $"Given {nameof(currencyAccount)} must have the same version as " +
+                $"the version of the world {@this.Version}: " +
+                $"{currencyAccount.WorldVersion}",
+                nameof(currencyAccount));
+        }
+
+        return @this.SetAccount(
+            new Address(currencyAccount.Currency.Hash.Bytes),
+            currencyAccount.AsAccount());
+    }
 
     internal static IWorld SetValidatorSetAccount(
-        this IWorld world,
-        ValidatorSetAccount validatorSetAccount) =>
-            world.Version == validatorSetAccount.WorldVersion
-                ? world.SetAccount(
-                        ReservedAddresses.ValidatorSetAccount,
-                        validatorSetAccount.AsAccount())
-                : throw new ArgumentException(
-                    $"Given {nameof(validatorSetAccount)} must have the same version as " +
-                    $"the version of the world {world.Version}: " +
-                    $"{validatorSetAccount.WorldVersion}",
-                    nameof(validatorSetAccount));
+        this IWorld @this, ValidatorSetAccount validatorSetAccount)
+    {
+        if (@this.Version != validatorSetAccount.WorldVersion)
+        {
+            throw new ArgumentException(
+                $"Given {nameof(validatorSetAccount)} must have the same version as " +
+                $"the version of the world {@this.Version}: " +
+                $"{validatorSetAccount.WorldVersion}",
+                nameof(validatorSetAccount));
+        }
+
+        return @this.SetAccount(
+            ReservedAddresses.ValidatorSetAccount,
+            validatorSetAccount.AsAccount());
+    }
 }
