@@ -129,9 +129,9 @@ namespace Libplanet.Action.Tests
             var rand3 = context3.GetRandom();
             foreach (var (expected, diff) in testCases)
             {
-                Assert.Equal(expected, rand1.GenerateRandomGuid());
-                Assert.Equal(expected, rand2.GenerateRandomGuid());
-                Assert.Equal(diff, rand3.GenerateRandomGuid());
+                Assert.Equal(expected, rand1.NextGuid());
+                Assert.Equal(expected, rand2.NextGuid());
+                Assert.Equal(diff, rand3.NextGuid());
             }
         }
 
@@ -152,7 +152,7 @@ namespace Libplanet.Action.Tests
                     RandomSeed = i,
                     MaxGasPrice = null,
                 };
-                var guid = context.GetRandom().GenerateRandomGuid().ToString();
+                var guid = context.GetRandom().NextGuid().ToString();
 
                 Assert.Equal('4', guid[14]);
                 Assert.True(guid[19] >= '8' && guid[19] <= 'b');

@@ -63,8 +63,7 @@ public class TypedActionLoader : IActionLoader
         }
         catch (Exception e)
         {
-            throw new InvalidActionException(
-                $"Failed to instantiate an action from {value}", value, e);
+            throw new InvalidOperationException($"Failed to instantiate an action from {value}", e);
         }
     }
 
@@ -85,10 +84,8 @@ public class TypedActionLoader : IActionLoader
                 {
                     if (existing != type)
                     {
-                        throw new DuplicateActionTypeIdentifierException(
-                            "Multiple action types are associated with the same type ID.",
-                            typeId.ToString() ?? "null",
-                            ImmutableHashSet.Create(existing, type));
+                        throw new InvalidOperationException(
+                            "Multiple action types are associated with the same type ID.");
                     }
 
                     continue;

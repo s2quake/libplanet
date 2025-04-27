@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
-using Bencodex.Types;
 using Libplanet.Action.State;
 
 namespace Libplanet.Action;
@@ -12,19 +11,6 @@ public abstract record class ActionBase : IAction
     protected ActionBase()
     {
     }
-
-    // IValue IAction.PlainValue => new List(
-    //     TypeId,
-    //     ModelSerializer.Serialize(this));
-
-    private IValue TypeId =>
-        GetType().GetCustomAttribute<ActionTypeAttribute>() is { } attribute
-            ? attribute.TypeIdentifier
-            : throw new InvalidOperationException(
-                $"Type is missing {nameof(ActionTypeAttribute)}: {GetType()}");
-
-    // void IAction.LoadPlainValue(IValue plainValue)
-    //     => throw new UnreachableException("This method should not be called.");
 
     IWorld IAction.Execute(IActionContext context)
     {

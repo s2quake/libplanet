@@ -1,47 +1,46 @@
-namespace Libplanet.Action
+namespace Libplanet.Action;
+
+internal class GasMeter : IGasMeter
 {
-    internal class GasMeter : IGasMeter
+    public GasMeter(long gasLimit)
     {
-        public GasMeter(long gasLimit)
+        if (gasLimit < 0)
         {
-            if (gasLimit < 0)
-            {
-                throw new GasLimitNegativeException();
-            }
-
-            GasLimit = gasLimit;
+            throw new InvalidOperationException();
         }
 
-        public long GasAvailable => GasLimit - GasUsed;
+        GasLimit = gasLimit;
+    }
 
-        public long GasLimit { get; private set; }
+    public long GasAvailable => GasLimit - GasUsed;
 
-        public long GasUsed { get; private set; }
+    public long GasLimit { get; private set; }
 
-        public void UseGas(long gas)
+    public long GasUsed { get; private set; }
+
+    public void UseGas(long gas)
+    {
+        if (gas < 0)
         {
-            if (gas < 0)
-            {
-                throw new GasUseNegativeException();
-            }
-
-            long newGasUsed = 0;
-            try
-            {
-                newGasUsed = checked(GasUsed + gas);
-            }
-            catch (System.OverflowException)
-            {
-                throw new GasLimitExceededException(GasLimit, GasUsed + gas);
-            }
-
-            if (newGasUsed > GasLimit)
-            {
-                GasUsed = GasLimit;
-                throw new GasLimitExceededException(GasLimit, newGasUsed);
-            }
-
-            GasUsed = newGasUsed;
+            throw new InvalidOperationException();
         }
+
+        long newGasUsed = 0;
+        try
+        {
+            newGasUsed = checked(GasUsed + gas);
+        }
+        catch (OverflowException)
+        {
+            throw;
+        }
+
+        if (newGasUsed > GasLimit)
+        {
+            GasUsed = GasLimit;
+            throw new InvalidOperationException($"Gas limit exceeded: {GasLimit} < {newGasUsed}");
+        }
+
+        GasUsed = newGasUsed;
     }
 }
