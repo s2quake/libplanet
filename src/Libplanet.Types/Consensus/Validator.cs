@@ -6,6 +6,7 @@ namespace Libplanet.Types.Consensus;
 
 [Model(Version = 1)]
 public sealed record class Validator(PublicKey PublicKey, BigInteger Power)
+    : IComparable<Validator>, IComparable
 {
     [Property(0)]
     public PublicKey PublicKey { get; } = PublicKey;
@@ -17,6 +18,32 @@ public sealed record class Validator(PublicKey PublicKey, BigInteger Power)
     public Address OperatorAddress => PublicKey.Address;
 
     public override string ToString() => $"{PublicKey}:{Power}";
+
+    public int CompareTo(object? obj)
+    {
+        if (obj is Validator other)
+        {
+            return CompareTo(other);
+        }
+
+        return 1;
+    }
+
+    public int CompareTo(Validator? other)
+    {
+        if (other is null)
+        {
+            return 1;
+        }
+
+        var result = Power.CompareTo(other.Power);
+        if (result == 0)
+        {
+            result = OperatorAddress.CompareTo(other.OperatorAddress);
+        }
+
+        return result;
+    }
 
     private static BigInteger ValidatePower(BigInteger power)
     {

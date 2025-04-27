@@ -7,14 +7,17 @@ namespace Libplanet.Action.Sys;
 
 [ActionType("Initialize")]
 [Model(Version = 1)]
-public sealed record class Initialize : ActionBase
+public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 {
-    [Property(0)]
     public ImmutableDictionary<Address, IValue> States { get; init; }
         = ImmutableDictionary<Address, IValue>.Empty;
 
-    [Property(1)]
+    [Property(0)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
+
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+
+    public bool Equals(Initialize? other) => ModelUtility.Equals(this, other);
 
     // public IWorld Execute(IActionContext context)
     // {
