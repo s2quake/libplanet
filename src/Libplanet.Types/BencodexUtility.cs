@@ -37,9 +37,9 @@ public static class BencodexUtility
         return new Text(text);
     }
 
-    public static IValue ToValue(Address? address) => address?.ToBencodex() ?? Null.Value;
+    public static IValue ToValue(Address? address) => ModelSerializer.Serialize(address);
 
-    public static IValue ToValue(PublicKey? publicKey) => publicKey?.ToBencodex() ?? Null.Value;
+    public static IValue ToValue(PublicKey? publicKey) => ModelSerializer.Serialize(publicKey);
 
     public static IValue ToValue(TxId? txId) => txId?.ToBencodex() ?? Null.Value;
 
@@ -52,9 +52,9 @@ public static class BencodexUtility
     public static IValue ToValue<T>(ImmutableArray<T> values, Func<T, IValue> converter)
         => new List(values.Select(item => converter(item)));
 
-    public static Address ToAddress(List list, int index) => Address.Create(list[index]);
+    public static Address ToAddress(List list, int index) => ModelSerializer.Deserialize<Address>(list[index]);
 
-    public static PublicKey ToPublicKey(List list, int index) => PublicKey.Create(list[index]);
+    public static PublicKey ToPublicKey(List list, int index) => ModelSerializer.Deserialize<PublicKey>(list[index]);
 
     public static TxId ToTxId(List list, int index) => TxId.Create(list[index]);
 

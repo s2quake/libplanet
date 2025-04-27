@@ -264,7 +264,7 @@ namespace Libplanet.Tests.Tx
                     .Add("values", Dictionary.Empty
                         .Add("weapon", "wand")
                         .Add("target", "orc")
-                        .Add("target_address", new Address(publicKey).ToBencodex())),
+                        .Add("target_address", ModelSerializer.Serialize(new Address(publicKey)))),
                 ModelSerializer.Serialize(action0)
             );
 

@@ -1,6 +1,7 @@
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 
 namespace Libplanet.Action.Tests.Common
 {
@@ -21,12 +22,12 @@ namespace Libplanet.Action.Tests.Common
         public Integer Increment { get; set; }
 
         public IValue PlainValue => Bencodex.Types.Dictionary.Empty
-            .Add("address", Address.ToBencodex())
+            .Add("address", ModelSerializer.Serialize(Address))
             .Add("value", Increment);
 
         public void LoadPlainValue(IValue plainValue)
         {
-            Address = Address.Create(((Dictionary)plainValue)["address"]);
+            Address = ModelSerializer.Deserialize<Address>(((Dictionary)plainValue)["address"]);
             Increment = (Integer)((Dictionary)plainValue)["value"];
         }
 

@@ -1,15 +1,17 @@
 using System.ComponentModel;
 using System.Globalization;
+using Bencodex.Types;
 
 namespace Libplanet.Crypto.Converters;
 
 internal sealed class PublicKeyTypeConverter : TypeConverter
 {
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
-        => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+        => sourceType == typeof(string)
+            || sourceType == typeof(IValue)
+            || base.CanConvertFrom(context, sourceType);
 
-    public override object? ConvertFrom(
-        ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
         if (value is string v)
         {
@@ -27,14 +29,26 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
     }
 
     public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
-        => destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
+        => destinationType == typeof(string)
+            || destinationType == typeof(IValue)
+            || base.CanConvertTo(context, destinationType);
 
     public override object? ConvertTo(
-        ITypeDescriptorContext? context,
-        CultureInfo? culture,
-        object? value,
-        Type destinationType)
-        => value is PublicKey key && destinationType == typeof(string)
-            ? key.ToString("c", null)
-            : base.ConvertTo(context, culture, value, destinationType);
+        ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
+    {
+        if (value is PublicKey publicKey)
+        {
+            if (destinationType == typeof(string))
+            {
+                return (object?)publicKey.ToString("c", null);
+            }
+
+            if (destinationType == typeof(IValue))
+            {
+                return new Binary(publicKey.Bytes);
+            }
+        }
+
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
 }

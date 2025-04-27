@@ -34,15 +34,15 @@ namespace Libplanet.Action.Tests.Common
                 if (Append is { } set)
                 {
                     plainValue = plainValue
-                        .Add("target_address", set.At.ToBencodex())
+                        .Add("target_address", ModelSerializer.Serialize(set.At))
                         .Add("item", set.Item);
                 }
 
                 if (Transfer is { } transfer)
                 {
                     plainValue = plainValue
-                        .Add("transfer_from", transfer.From?.ToBencodex() ?? Null.Value)
-                        .Add("transfer_to", transfer.To?.ToBencodex() ?? Null.Value)
+                        .Add("transfer_from", ModelSerializer.Serialize(transfer.From))
+                        .Add("transfer_to", ModelSerializer.Serialize(transfer.To))
                         .Add("transfer_amount", transfer.Amount);
                 }
 

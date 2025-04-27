@@ -35,7 +35,7 @@ public sealed record class TxMetadata : IEquatable<TxMetadata>
         {
             Nonce = ToInt64(list, 0),
             Signer = ToAddress(list, 1),
-            UpdatedAddresses = [.. ToObjects(list, 2, Address.Create)],
+            UpdatedAddresses = [.. ToObjects(list, 2, ModelSerializer.Deserialize<Address>)],
             Timestamp = ToDateTimeOffset(list, 3),
             GenesisHash = ToBlockHashOrDefault(list, 4),
         };
@@ -62,7 +62,7 @@ public sealed record class TxMetadata : IEquatable<TxMetadata>
         return new List(
             ToValue(Nonce),
             ToValue(Signer),
-            ToValue([.. UpdatedAddresses], item => item.ToBencodex()),
+            ToValue([.. UpdatedAddresses], item => ModelSerializer.Serialize(item)),
             ToValue(Timestamp),
             ToValue(GenesisHash));
     }

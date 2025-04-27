@@ -100,7 +100,7 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
         {
             using var secp256k1 = new Secp256k1();
             var secret = new byte[Secp256k1.SECRET_LENGTH];
-            secp256k1.Ecdh(secret, publicKey.Raw.ToArray(), Bytes.ToArray());
+            secp256k1.Ecdh(secret, publicKey.Bytes.ToArray(), Bytes.ToArray());
 
             return new SymmetricKey(secret);
         }

@@ -39,7 +39,7 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
 
     public Address Address => new(this);
 
-    internal ImmutableArray<byte> Raw => _bytes;
+    internal ImmutableArray<byte> Bytes => _bytes;
 
     public static PublicKey Parse(string hex) => new([.. ByteUtil.ParseHex(hex)], verify: true);
 
@@ -61,20 +61,6 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
         }
     }
 
-    public static PublicKey Create(IValue bencoded)
-    {
-        if (bencoded is not Binary binary)
-        {
-            var message = $"Given {nameof(bencoded)} must be of type " +
-                          $"{typeof(Binary)}: {bencoded.GetType()}";
-            throw new ArgumentException(message, nameof(bencoded));
-        }
-
-        return new PublicKey(binary.ByteArray);
-    }
-
-    public IValue ToBencodex() => new Binary(_bytes);
-
     public bool Equals(PublicKey? other)
         => other is not null && _bytes.SequenceEqual(other._bytes);
 
@@ -89,8 +75,7 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
         return hash.ToHashCode();
     }
 
-    public ImmutableArray<byte> ToImmutableArray(bool compress)
-        => [.. ToByteArray(compress)];
+    public ImmutableArray<byte> ToImmutableArray(bool compress) => [.. ToByteArray(compress)];
 
     public byte[] ToByteArray() => ToByteArray(compress: false);
 
