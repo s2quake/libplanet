@@ -48,10 +48,7 @@ public sealed class AssemblyActionLoader : IActionLoader
         }
         catch (Exception e)
         {
-            throw new InvalidActionException(
-                $"Failed to instantiate an action from {value}",
-                value,
-                e);
+            throw new InvalidOperationException($"Failed to instantiate an action from {value}", e);
         }
     }
 }

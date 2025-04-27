@@ -1,26 +1,21 @@
 using Libplanet.Crypto;
 
-namespace Libplanet.Action.State
+namespace Libplanet.Action.State;
+
+public sealed record class WorldDelta : IWorldDelta
 {
-    public class WorldDelta : IWorldDelta
+    public WorldDelta()
+        : this(ImmutableDictionary<Address, IAccount>.Empty)
     {
-        private readonly IImmutableDictionary<Address, IAccount> _accounts;
-
-        public WorldDelta()
-        {
-            _accounts = ImmutableDictionary<Address, IAccount>.Empty;
-        }
-
-        private WorldDelta(IImmutableDictionary<Address, IAccount> accounts)
-        {
-            _accounts = accounts;
-        }
-
-        /// <inheritdoc cref="IWorldDelta.Accounts"/>
-        public IImmutableDictionary<Address, IAccount> Accounts => _accounts;
-
-        /// <inheritdoc cref="IWorldDelta.SetAccount"/>
-        public IWorldDelta SetAccount(Address address, IAccount account)
-            => new WorldDelta(_accounts.SetItem(address, account));
     }
+
+    private WorldDelta(ImmutableDictionary<Address, IAccount> accounts)
+    {
+        Accounts = accounts;
+    }
+
+    public ImmutableDictionary<Address, IAccount> Accounts { get; }
+
+    public IWorldDelta SetAccount(Address address, IAccount account)
+        => new WorldDelta(Accounts.SetItem(address, account));
 }

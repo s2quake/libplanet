@@ -442,8 +442,7 @@ public partial class Context : IDisposable
                 _blockChain.ValidateBlockStateRootHash(block);
             }
             catch (Exception e) when (
-                e is InvalidOperationException ||
-                e is InvalidActionException)
+                e is InvalidOperationException)
             {
                 _logger.Debug(
                     e,

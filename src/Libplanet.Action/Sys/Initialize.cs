@@ -5,7 +5,7 @@ using Libplanet.Types.Consensus;
 
 namespace Libplanet.Action.Sys;
 
-[ActionType(2)]
+[ActionType("Initialize")]
 [Model(Version = 1)]
 public sealed record class Initialize : ActionBase
 {

@@ -1,5 +1,4 @@
 using Libplanet.Action.State;
-// using Libplanet.Blockchain;
 using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
@@ -16,11 +15,6 @@ public sealed class WorldStateContext(IWorldState world) : IWorldContext
         : this(new WorldBaseState(trie, stateStore))
     {
     }
-
-    // public WorldStateContext(BlockChain blockChain)
-    //     : this(blockChain.GetNextWorldState() ?? blockChain.GetWorldState())
-    // {
-    // }
 
     public bool IsReadOnly => true;
 
