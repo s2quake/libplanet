@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Threading;
+using Libplanet.Common.Converters;
 using Libplanet.Common.JsonConverters;
 
 namespace Libplanet.Common;
