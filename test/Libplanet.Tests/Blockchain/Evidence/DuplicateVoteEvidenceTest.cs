@@ -17,7 +17,7 @@ public class DuplicateVoteEvidenceTest
         var validatorPublicKey = privateKey.PublicKey;
         var validators = ImmutableSortedSet.Create(
         [
-            new Validator(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorPublicKey, BigInteger.One),
         ]);
 
         var voteRef = new VoteMetadata
@@ -60,7 +60,7 @@ public class DuplicateVoteEvidenceTest
         var validatorPublicKey = privateKey.PublicKey;
         var validatorList = new List<Validator>
         {
-            new Validator(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorPublicKey, BigInteger.One),
         };
 
         var voteRef = new VoteMetadata
@@ -105,7 +105,7 @@ public class DuplicateVoteEvidenceTest
             new PrivateKey(),
         };
         var validatorPublicKeys = privateKeys.Select(item => item.PublicKey).ToArray();
-        var validators = validatorPublicKeys.Select(item => new Validator(item, BigInteger.One))
+        var validators = validatorPublicKeys.Select(item => Validator.Create(item, BigInteger.One))
             .ToImmutableSortedSet();
 
         var voteRef = new VoteMetadata
@@ -148,7 +148,7 @@ public class DuplicateVoteEvidenceTest
         var validatorPublicKey = privateKey.PublicKey;
         var validators = ImmutableSortedSet.Create(
         [
-            new Validator(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorPublicKey, BigInteger.One),
         ]);
 
         var voteRef = new VoteMetadata
@@ -192,7 +192,7 @@ public class DuplicateVoteEvidenceTest
         var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
         var validatorList = new List<Validator>
         {
-            new Validator(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorPublicKey, BigInteger.One),
         };
 
         var voteRef = new VoteMetadata
@@ -235,7 +235,7 @@ public class DuplicateVoteEvidenceTest
         var validatorPublicKey = privateKey.PublicKey;
         var validatorList = new List<Validator>
         {
-            new Validator(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorPublicKey, BigInteger.One),
         };
 
         var voteRef = new VoteMetadata
@@ -281,7 +281,7 @@ public class DuplicateVoteEvidenceTest
         var validatorPublicKey = privateKey.PublicKey;
         var validatorList = new List<Validator>
         {
-            new Validator(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorPublicKey, BigInteger.One),
         };
 
         var voteRef = new VoteMetadata

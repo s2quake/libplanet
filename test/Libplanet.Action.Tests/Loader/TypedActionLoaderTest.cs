@@ -47,7 +47,7 @@
 //             //         new List(
 //             //             new ImmutableSortedSet<Validator>(
 //             //                 new List<Validator>()
-//             //                     { new Validator(new PrivateKey().PublicKey, 1) }).Bencoded,
+//             //                     { Validator.Create(new PrivateKey().PublicKey, 1) }).Bencoded,
 //             //             Dictionary.Empty.Add(
 //             //                 ReservedAddresses.LegacyAccount.ToByteArray(),
 //             //                 Dictionary.Empty.Add(

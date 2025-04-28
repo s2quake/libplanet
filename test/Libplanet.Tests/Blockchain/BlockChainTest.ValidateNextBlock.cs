@@ -688,10 +688,10 @@ namespace Libplanet.Tests.Blockchain
             var privateKey2 = new PrivateKey();
             var privateKey3 = new PrivateKey();
             var privateKey4 = new PrivateKey();
-            var validator1 = new Validator(privateKey1.PublicKey, 10);
-            var validator2 = new Validator(privateKey2.PublicKey, 1);
-            var validator3 = new Validator(privateKey3.PublicKey, 1);
-            var validator4 = new Validator(privateKey4.PublicKey, 1);
+            var validator1 = Validator.Create(privateKey1.PublicKey, 10);
+            var validator2 = Validator.Create(privateKey2.PublicKey, 1);
+            var validator3 = Validator.Create(privateKey3.PublicKey, 1);
+            var validator4 = Validator.Create(privateKey4.PublicKey, 1);
             var validatorSet = ImmutableSortedSet.Create(
                 [validator1, validator2, validator3, validator4]);
             BlockChain blockChain = TestUtils.MakeBlockChain(

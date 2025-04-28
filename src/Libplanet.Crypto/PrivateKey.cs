@@ -33,8 +33,10 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
                 {
                     using var secp256k1 = new Secp256k1();
                     var publicKey = new byte[Secp256k1.PUBKEY_LENGTH];
-                    secp256k1.PublicKeyCreate(publicKey, Bytes.ToArray());
-                    _publicKey = new PublicKey([.. publicKey], verify: false);
+                    var serializedKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+                    secp256k1.PublicKeyCreate(serializedKey, Bytes.ToArray());
+                    secp256k1.PublicKeySerialize(serializedKey, publicKey);
+                    _publicKey = new PublicKey([.. serializedKey], verify: false);
                 }
             }
 

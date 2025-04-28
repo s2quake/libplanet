@@ -82,7 +82,7 @@ public class GeneratedBlockChainFixture
                             {
                                 new Initialize
                                 {
-                                    Validators = [new Validator(pk.PublicKey, 1)],
+                                    Validators = [Validator.Create(pk.PublicKey, 1)],
                                     States = ImmutableDictionary.Create<Address, IValue>()
                                 },
                             }.ToPlainValues()))

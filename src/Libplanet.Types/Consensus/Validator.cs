@@ -1,33 +1,34 @@
 using System.Text.Json.Serialization;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types.Consensus;
 
 [Model(Version = 1)]
-public sealed record class Validator(PublicKey PublicKey, BigInteger Power)
-    : IComparable<Validator>, IComparable
+public sealed record class Validator : IComparable<Validator>, IComparable
 {
     [Property(0)]
-    public PublicKey PublicKey { get; } = PublicKey;
+    public required PublicKey PublicKey { get; init; }
 
     [Property(1)]
-    public BigInteger Power { get; } = ValidatePower(Power);
+    [Positive]
+    public BigInteger Power { get; init; } = BigInteger.One;
 
     [JsonIgnore]
     public Address OperatorAddress => PublicKey.Address;
 
+    public static Validator Create(PublicKey publicKey) => Create(publicKey, BigInteger.One);
+
+    public static Validator Create(PublicKey publicKey, BigInteger power) => new()
+    {
+        PublicKey = publicKey,
+        Power = power,
+    };
+
     public override string ToString() => $"{PublicKey}:{Power}";
 
-    public int CompareTo(object? obj)
-    {
-        if (obj is Validator other)
-        {
-            return CompareTo(other);
-        }
-
-        return 1;
-    }
+    public int CompareTo(object? obj) => obj is Validator other ? CompareTo(other) : 1;
 
     public int CompareTo(Validator? other)
     {
@@ -43,17 +44,5 @@ public sealed record class Validator(PublicKey PublicKey, BigInteger Power)
         }
 
         return result;
-    }
-
-    private static BigInteger ValidatePower(BigInteger power)
-    {
-        if (power < BigInteger.Zero)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(power),
-                $"Given {nameof(power)} cannot be negative: {power}");
-        }
-
-        return power;
     }
 }

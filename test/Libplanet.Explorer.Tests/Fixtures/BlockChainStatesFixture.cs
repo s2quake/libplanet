@@ -46,7 +46,7 @@ namespace Libplanet.Explorer.Tests.Fixtures
         public static readonly IValue Value = new Text("Foo");
 
         public static readonly Validator Validator =
-            new Validator(
+            Validator.Create(
                 PublicKey.Parse(
                     "032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
                 new BigInteger(1));

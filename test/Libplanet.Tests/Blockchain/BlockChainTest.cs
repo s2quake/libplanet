@@ -1033,7 +1033,7 @@ public partial class BlockChainTest : IDisposable
         Address address = privateKey.Address;
         var action = new Initialize
         {
-            Validators = [new Validator(new PrivateKey().PublicKey, 1)],
+            Validators = [Validator.Create(new PrivateKey().PublicKey, 1)],
             States = new Dictionary<Address, IValue>
             {
                 [default] = (Text)"initial value",
@@ -1402,7 +1402,7 @@ public partial class BlockChainTest : IDisposable
                 States = ImmutableDictionary.Create<Address, IValue>(),
                 Validators = ImmutableSortedSet.Create(
                     [
-                        new Validator(validatorPrivKey.PublicKey, BigInteger.One),
+                        Validator.Create(validatorPrivKey.PublicKey, BigInteger.One),
                     ]
                 ),
             },
@@ -1609,7 +1609,7 @@ public partial class BlockChainTest : IDisposable
             .Append(BigInteger.One).ToArray();
         var initialValidatorSet =
             ValidatorPrivateKeys.Select(
-                pk => new Validator(pk.PublicKey, BigInteger.One)
+                pk => Validator.Create(pk.PublicKey, BigInteger.One)
             ).ToImmutableSortedSet();
         var systemActions = new[]
         {
@@ -1648,7 +1648,7 @@ public partial class BlockChainTest : IDisposable
             new[]
             {
                 new SetValidator(
-                    new Validator(newValidatorPrivateKey.PublicKey, BigInteger.One)),
+                    Validator.Create(newValidatorPrivateKey.PublicKey, BigInteger.One)),
             }
         );
         var newBlock = blockChain.ProposeBlock(new PrivateKey());
@@ -1676,7 +1676,7 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(),
             new[]
             {
-                new SetValidator(new Validator(new PrivateKey().PublicKey, BigInteger.One)),
+                new SetValidator(Validator.Create(new PrivateKey().PublicKey, BigInteger.One)),
             }
         );
         var nextBlock = blockChain.ProposeBlock(
@@ -1706,7 +1706,7 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(),
             new[]
             {
-                new SetValidator(new Validator(new PrivateKey().PublicKey, BigInteger.One)),
+                new SetValidator(Validator.Create(new PrivateKey().PublicKey, BigInteger.One)),
             }
         );
         var invalidCommitBlock = blockChain.ProposeBlock(
@@ -1738,13 +1738,13 @@ public partial class BlockChainTest : IDisposable
             blockChain
                 .GetNextWorldState(0L)
                 .GetValidatorSet(),
-            [.. ValidatorPrivateKeys.Select(pk => new Validator(pk.PublicKey, BigInteger.One))]);
+            [.. ValidatorPrivateKeys.Select(pk => Validator.Create(pk.PublicKey, BigInteger.One))]);
 
         Assert.Equal(
             blockChain
                 .GetNextWorldState(1L)
                 .GetValidatorSet(),
-            [.. newValidators.Select(pk => new Validator(pk.PublicKey, BigInteger.One))]);
+            [.. newValidators.Select(pk => Validator.Create(pk.PublicKey, BigInteger.One))]);
     }
 
     private class

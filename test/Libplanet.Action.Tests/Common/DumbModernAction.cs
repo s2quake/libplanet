@@ -154,7 +154,7 @@ namespace Libplanet.Action.Tests.Common
             // if (plainValue.ContainsKey((Text)"validators"))
             // {
             //     Validators = ((List)plainValue["validators"])
-            //         .Select(value => new Validator(value))
+            //         .Select(value => Validator.Create(value))
             //         .ToImmutableList();
             // }
 

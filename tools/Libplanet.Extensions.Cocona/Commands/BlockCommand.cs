@@ -131,7 +131,7 @@ public class BlockCommand
         var validatorSet =
             validatorKey
                 .Select(PublicKey.Parse)
-                .Select(k => new Validator(k, BigInteger.One))
+                .Select(k => Validator.Create(k, BigInteger.One))
                 .ToImmutableSortedSet();
         var emptyState =
             ImmutableTrieDictionary<Address, IValue>.Empty;

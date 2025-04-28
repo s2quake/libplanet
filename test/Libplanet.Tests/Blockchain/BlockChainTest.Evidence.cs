@@ -506,7 +506,7 @@ namespace Libplanet.Tests.Blockchain
             var evidence = DuplicateVoteEvidence.Create(
                 voteRef,
                 voteDup,
-                [new Validator(key.PublicKey, BigInteger.One)],
+                [Validator.Create(key.PublicKey, BigInteger.One)],
                 voteDup.Timestamp);
 
             Assert.Empty(_blockChain.GetPendingEvidence());
