@@ -20,7 +20,8 @@ public sealed partial record class Trie(INode Node) : ITrie
     public bool IsCommitted { get; private set; } = Node is HashNode;
 
     public IValue this[in KeyBytes key]
-        => NodeResolver.ResolveToValue(Node, PathCursor.Create(key));
+        => NodeResolver.ResolveToValue(Node, PathCursor.Create(key))
+              ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
     public static Trie Create(HashDigest<SHA256> hashDigest, IKeyValueStore keyValueStore)
     {
@@ -103,9 +104,9 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value)
     {
-        if (ContainsKey(key))
+        if (NodeResolver.ResolveToValue(Node, PathCursor.Create(key)) is { } v)
         {
-            value = this[key];
+            value = v;
             return true;
         }
 
@@ -117,8 +118,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     {
         try
         {
-            _ = NodeResolver.ResolveToValue(Node, PathCursor.Create(key));
-            return true;
+            return NodeResolver.ResolveToValue(Node, PathCursor.Create(key)) is not null;
         }
         catch
         {

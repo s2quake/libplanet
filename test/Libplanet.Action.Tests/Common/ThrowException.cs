@@ -1,60 +1,31 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
-using Boolean = Bencodex.Types.Boolean;
 
-namespace Libplanet.Action.Tests.Common
+namespace Libplanet.Action.Tests.Common;
+
+public sealed record class ThrowException : IAction
 {
-    public class ThrowException : IAction
+    public bool ThrowOnExecution { get; init; }
+
+    public bool Deterministic { get; init; } = true;
+
+    public IWorld Execute(IActionContext context)
     {
-        public ThrowException()
+        if (ThrowOnExecution)
         {
-        }
-
-        public bool ThrowOnExecution { get; set; }
-
-        public bool Deterministic { get; set; } = true;
-
-        public IValue PlainValue =>
-            new Bencodex.Types.Dictionary(new Dictionary<string, bool>
+            if (Deterministic)
             {
-                ["throw_on_execution"] = ThrowOnExecution,
-                ["deterministic"] = Deterministic,
-            });
-
-        public void LoadPlainValue(IValue plainValue)
-        {
-            LoadPlainValue((Dictionary)plainValue);
-        }
-
-        public void LoadPlainValue(Dictionary plainValue)
-        {
-            ThrowOnExecution = (Boolean)plainValue["throw_on_execution"];
-            Deterministic = (Boolean)plainValue["deterministic"];
-        }
-
-        public IWorld Execute(IActionContext context)
-        {
-            if (ThrowOnExecution)
-            {
-                if (Deterministic)
-                {
-                    throw new SomeException("An expected exception");
-                }
-                else
-                {
-                    throw new OutOfMemoryException();
-                }
+                throw new SomeException("An expected exception");
             }
-
-            return context.World;
-        }
-
-        public class SomeException : Exception
-        {
-            public SomeException(string message)
-                : base(message)
+            else
             {
+                throw new OutOfMemoryException();
             }
         }
+
+        return context.World;
+    }
+
+    public sealed class SomeException(string message) : Exception(message)
+    {
     }
 }

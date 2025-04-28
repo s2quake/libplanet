@@ -11,6 +11,7 @@ internal static class NodeInserter
         ValueNode valueNode => InsertToValueNode(valueNode, cursor, value),
         ShortNode shortNode => InsertToShortNode(shortNode, cursor, value),
         FullNode fullNode => InsertToFullNode(fullNode, cursor, value),
+        NullNode _ => InsertToNullNode(cursor, value),
         _ => throw new UnreachableException(
             $"Unsupported node value: {node.ToBencodex().Inspect()}"),
     };

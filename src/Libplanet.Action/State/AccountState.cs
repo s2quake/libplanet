@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
@@ -28,6 +29,22 @@ public sealed record class AccountState : IAccountState
             .StartActivity(ActivityKind.Internal)?
             .AddTag("Address", address.ToString());
         return Trie[ToStateKey(address)];
+    }
+
+    public bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state)
+    {
+        using Activity? a = _activitySource
+            .StartActivity(ActivityKind.Internal)?
+            .AddTag("Address", address.ToString());
+
+        if (Trie.TryGetValue(ToStateKey(address), out var value))
+        {
+            state = value;
+            return true;
+        }
+
+        state = null;
+        return false;
     }
 
     public IValue[] GetStates(IEnumerable<Address> addresses) => [.. addresses.Select(GetState)];

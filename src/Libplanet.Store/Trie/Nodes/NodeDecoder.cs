@@ -62,7 +62,7 @@ public static class NodeDecoder
         {
             if ((nodeTypes & NodeTypes.Null) == NodeTypes.Null)
             {
-                return null;
+                return NullNode.Value;
             }
         }
 

@@ -33,10 +33,14 @@ public class WorldBaseState(ITrie trie, IStateStore stateStore) : IWorldState
         }
         else
         {
-            return Trie[ToStateKey(address)] is Binary accountStateRootHash
-                ? new AccountState(_stateStore.GetStateRoot(
-                    new HashDigest<SHA256>(accountStateRootHash.ByteArray)))
-                : new AccountState(_stateStore.GetStateRoot(default));
+            if (Trie.TryGetValue(ToStateKey(address), out var value) && value is Binary binary)
+            {
+                return new AccountState(_stateStore.GetStateRoot(new HashDigest<SHA256>(binary.ByteArray)));
+            }
+            else
+            {
+                return new AccountState(_stateStore.GetStateRoot(default));
+            }
         }
     }
 }
