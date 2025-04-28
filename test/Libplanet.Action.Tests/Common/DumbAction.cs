@@ -5,176 +5,176 @@ using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 
-namespace Libplanet.Action.Tests.Common
+namespace Libplanet.Action.Tests.Common;
+
+public sealed class DumbAction : IAction
 {
-    public sealed class DumbAction : IAction
+    public static readonly DumbAction NoOp = DumbAction.Create();
+
+    public static readonly Text TypeId = new Text(nameof(DumbAction));
+
+    public static readonly Currency DumbCurrency = new("DUMB", 0);
+
+    public DumbAction()
     {
-        public static readonly DumbAction NoOp = DumbAction.Create();
+    }
 
-        public static readonly Text TypeId = new Text(nameof(DumbAction));
+    public (Address At, string Item)? Append { get; private set; }
 
-        public static readonly Currency DumbCurrency = new("DUMB", 0);
+    public (Address? From, Address? To, BigInteger Amount)? Transfer { get; private set; }
 
-        public DumbAction()
+    public ImmutableList<Validator>? Validators { get; private set; }
+
+    public IValue PlainValue
+    {
+        get
         {
-        }
-
-        public (Address At, string Item)? Append { get; private set; }
-
-        public (Address? From, Address? To, BigInteger Amount)? Transfer { get; private set; }
-
-        public ImmutableList<Validator>? Validators { get; private set; }
-
-        public IValue PlainValue
-        {
-            get
+            var plainValue = Dictionary.Empty
+                .Add("type_id", TypeId);
+            if (Append is { } set)
             {
-                var plainValue = Dictionary.Empty
-                    .Add("type_id", TypeId);
-                if (Append is { } set)
-                {
-                    plainValue = plainValue
-                        .Add("target_address", ModelSerializer.Serialize(set.At))
-                        .Add("item", set.Item);
-                }
-
-                if (Transfer is { } transfer)
-                {
-                    plainValue = plainValue
-                        .Add("transfer_from", ModelSerializer.Serialize(transfer.From))
-                        .Add("transfer_to", ModelSerializer.Serialize(transfer.To))
-                        .Add("transfer_amount", transfer.Amount);
-                }
-
-                if (Validators is { } validators)
-                {
-                    plainValue = plainValue
-                        .Add("validators", new List(validators.Select(ModelSerializer.Serialize)));
-                }
-
-                return plainValue;
-            }
-        }
-
-        public static DumbAction Create(
-            (Address At, string Item)? append = null,
-            (Address? From, Address? To, BigInteger Amount)? transfer = null,
-            IEnumerable<Validator>? validators = null,
-            bool recordRandom = false)
-        {
-            if (transfer is { } t && t.From is null && t.To is null)
-            {
-                throw new ArgumentException(
-                    $"From and To of {nameof(transfer)} cannot both be null when " +
-                    $"{nameof(transfer)} is not null: {transfer}");
-            }
-
-            return new DumbAction()
-            {
-                Append = append,
-                Transfer = transfer,
-                Validators = validators?.ToImmutableList(),
-            };
-        }
-
-        public IWorld Execute(IActionContext context)
-        {
-            IWorld world = context.World;
-
-            if (Append is { } append)
-            {
-                IAccount account = world.GetAccount(ReservedAddresses.LegacyAccount);
-                string? items = (Text?)account.GetState(append.At);
-                items = items is null ? append.Item : $"{items},{append.Item}";
-                account = account.SetState(append.At, (Text)items!);
-                world = world.SetAccount(ReservedAddresses.LegacyAccount, account);
+                plainValue = plainValue
+                    .Add("target_address", ModelSerializer.Serialize(set.At))
+                    .Add("item", set.Item);
             }
 
             if (Transfer is { } transfer)
             {
-                world = (transfer.From, transfer.To) switch
-                {
-                    (Address from, Address to) => world.TransferAsset(
-                        context,
-                        sender: from,
-                        recipient: to,
-                        value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
-                    (null, Address to) => world.MintAsset(
-                        context,
-                        recipient: to,
-                        value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
-                    (Address from, null) => world.BurnAsset(
-                        context,
-                        owner: from,
-                        value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
-                    _ => throw new ArgumentException(
-                        $"Both From and To cannot be null for {transfer}"),
-                };
+                plainValue = plainValue
+                    .Add("transfer_from", ModelSerializer.Serialize(transfer.From))
+                    .Add("transfer_to", ModelSerializer.Serialize(transfer.To))
+                    .Add("transfer_amount", transfer.Amount);
             }
 
             if (Validators is { } validators)
             {
-                world = world.SetValidatorSet([.. validators]);
+                plainValue = plainValue
+                    .Add("validators", new List(validators.Select(ModelSerializer.Serialize)));
             }
 
-            return world;
+            return plainValue;
+        }
+    }
+
+    public static DumbAction Create(
+        (Address At, string Item)? append = null,
+        (Address? From, Address? To, BigInteger Amount)? transfer = null,
+        IEnumerable<Validator>? validators = null,
+        bool recordRandom = false)
+    {
+        if (transfer is { } t && t.From is null && t.To is null)
+        {
+            throw new ArgumentException(
+                $"From and To of {nameof(transfer)} cannot both be null when " +
+                $"{nameof(transfer)} is not null: {transfer}");
         }
 
-        public void LoadPlainValue(IValue plainValue) => LoadPlainValue((Dictionary)plainValue);
-
-        public void LoadPlainValue(Dictionary plainValue)
+        return new DumbAction()
         {
-            // if (!plainValue["type_id"].Equals(TypeId))
-            // {
-            //     throw new ArgumentException(
-            //         $"An invalid form of {nameof(plainValue)} was given: {plainValue}");
-            // }
+            Append = append,
+            Transfer = transfer,
+            Validators = validators?.ToImmutableList(),
+        };
+    }
 
-            // if (plainValue.TryGetValue((Text)"target_address", out IValue at) &&
-            //     plainValue.TryGetValue((Text)"item", out IValue item) &&
-            //     item is Text i)
-            // {
-            //     Append = (Address.Create(at), i);
-            // }
+    public IWorld Execute(IActionContext context)
+    {
+        IWorld world = context.World;
 
-            // if (plainValue.TryGetValue((Text)"transfer_from", out IValue f) &&
-            //     plainValue.TryGetValue((Text)"transfer_to", out IValue t) &&
-            //     plainValue.TryGetValue((Text)"transfer_amount", out IValue a) &&
-            //     a is Integer amount)
-            // {
-            //     Address? from = f is Null ? null : Address.Create(f);
-            //     Address? to = t is Null ? null : Address.Create(t);
-            //     Transfer = (from, to, amount.Value);
-            // }
+        if (Append is { } append)
+        {
+            IAccount account = world.GetAccount(ReservedAddresses.LegacyAccount);
+            string? items = (Text?)account.GetState(append.At);
+            items = items is null ? append.Item : $"{items},{append.Item}";
+            account = account.SetState(append.At, (Text)items!);
+            world = world.SetAccount(ReservedAddresses.LegacyAccount, account);
+        }
 
-            // if (plainValue.ContainsKey((Text)"validators"))
-            // {
-            //     Validators = ((List)plainValue["validators"])
-            //         .Select(value => Validator.Create(value))
-            //         .ToImmutableList();
-            // }
+        if (Transfer is { } transfer)
+        {
+            world = (transfer.From, transfer.To) switch
+            {
+                (Address from, Address to) => world.TransferAsset(
+                    context,
+                    sender: from,
+                    recipient: to,
+                    value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
+                (null, Address to) => world.MintAsset(
+                    context,
+                    recipient: to,
+                    value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
+                (Address from, null) => world.BurnAsset(
+                    context,
+                    owner: from,
+                    value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
+                _ => throw new ArgumentException(
+                    $"Both From and To cannot be null for {transfer}"),
+            };
+        }
 
+        if (Validators is { } validators)
+        {
+            // world = world.SetValidatorSet([.. validators]);
             throw new NotImplementedException();
         }
 
-        public override string ToString()
-        {
-            const string N = "null";
-            const string E = "empty";
-            string append = Append is { } a
-                ? $"({a.At}, {a.Item})"
-                : N;
-            string transfer = Transfer is { } t
-                ? $"({t.From?.ToString() ?? N}, {t.To?.ToString() ?? N}, {t.Amount})"
-                : N;
-            string validators = Validators is { } vs && vs.Any()
-                ? string.Join(",", vs.Select(v => v.OperatorAddress))
-                : E;
-            return $"{nameof(DumbAction)} {{ " +
-                $"{nameof(Append)} = {append}, " +
-                $"{nameof(Transfer)} = {transfer}, " +
-                $"{nameof(Validators)} = {validators} " +
-                $"}}";
-        }
+        return world;
+    }
+
+    public void LoadPlainValue(IValue plainValue) => LoadPlainValue((Dictionary)plainValue);
+
+    public void LoadPlainValue(Dictionary plainValue)
+    {
+        // if (!plainValue["type_id"].Equals(TypeId))
+        // {
+        //     throw new ArgumentException(
+        //         $"An invalid form of {nameof(plainValue)} was given: {plainValue}");
+        // }
+
+        // if (plainValue.TryGetValue((Text)"target_address", out IValue at) &&
+        //     plainValue.TryGetValue((Text)"item", out IValue item) &&
+        //     item is Text i)
+        // {
+        //     Append = (Address.Create(at), i);
+        // }
+
+        // if (plainValue.TryGetValue((Text)"transfer_from", out IValue f) &&
+        //     plainValue.TryGetValue((Text)"transfer_to", out IValue t) &&
+        //     plainValue.TryGetValue((Text)"transfer_amount", out IValue a) &&
+        //     a is Integer amount)
+        // {
+        //     Address? from = f is Null ? null : Address.Create(f);
+        //     Address? to = t is Null ? null : Address.Create(t);
+        //     Transfer = (from, to, amount.Value);
+        // }
+
+        // if (plainValue.ContainsKey((Text)"validators"))
+        // {
+        //     Validators = ((List)plainValue["validators"])
+        //         .Select(value => Validator.Create(value))
+        //         .ToImmutableList();
+        // }
+
+        throw new NotImplementedException();
+    }
+
+    public override string ToString()
+    {
+        const string N = "null";
+        const string E = "empty";
+        string append = Append is { } a
+            ? $"({a.At}, {a.Item})"
+            : N;
+        string transfer = Transfer is { } t
+            ? $"({t.From?.ToString() ?? N}, {t.To?.ToString() ?? N}, {t.Amount})"
+            : N;
+        string validators = Validators is { } vs && vs.Any()
+            ? string.Join(",", vs.Select(v => v.OperatorAddress))
+            : E;
+        return $"{nameof(DumbAction)} {{ " +
+            $"{nameof(Append)} = {append}, " +
+            $"{nameof(Transfer)} = {transfer}, " +
+            $"{nameof(Validators)} = {validators} " +
+            $"}}";
     }
 }

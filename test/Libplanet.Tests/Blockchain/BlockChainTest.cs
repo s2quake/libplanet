@@ -1631,8 +1631,10 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(),
             new[]
             {
-                new SetValidator(
-                    Validator.Create(newValidatorPrivateKey.PublicKey, BigInteger.One)),
+                new SetValidator
+                {
+                    Validator = Validator.Create(newValidatorPrivateKey.PublicKey),
+                },
             }
         );
         var newBlock = blockChain.ProposeBlock(new PrivateKey());
@@ -1660,7 +1662,10 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(),
             new[]
             {
-                new SetValidator(Validator.Create(new PrivateKey().PublicKey, BigInteger.One)),
+                new SetValidator
+                {
+                    Validator = Validator.Create(new PrivateKey().PublicKey),
+                },
             }
         );
         var nextBlock = blockChain.ProposeBlock(
@@ -1690,7 +1695,10 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(),
             new[]
             {
-                new SetValidator(Validator.Create(new PrivateKey().PublicKey, BigInteger.One)),
+                new SetValidator
+                {
+                    Validator = Validator.Create(new PrivateKey().PublicKey),
+                },
             }
         );
         var invalidCommitBlock = blockChain.ProposeBlock(

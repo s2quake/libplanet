@@ -118,7 +118,8 @@ namespace Libplanet.Action.Tests.Common
 
             if (Validators is { } validators)
             {
-                world = world.SetValidatorSet([.. validators]);
+                // world = world.SetValidatorSet([.. validators]);
+                throw new NotImplementedException();
             }
 
             return world;

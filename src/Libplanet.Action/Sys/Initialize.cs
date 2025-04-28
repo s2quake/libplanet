@@ -1,4 +1,5 @@
 using Bencodex.Types;
+using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
@@ -58,6 +59,12 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        throw new NotImplementedException();
+        if (context.BlockHeight != 0)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(Initialize)} action can be executed only genesis block.");
+        }
+
+        world[ReservedAddresses.ValidatorSetAddress, ReservedAddresses.ValidatorSetAddress] = Validators;
     }
 }

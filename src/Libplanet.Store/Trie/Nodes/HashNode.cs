@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Common;
@@ -56,6 +57,8 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
         }
 
         return NodeDecoder.Decode(
-            intermediateValue, NodeDecoder.HashEmbeddedNodeTypes, keyValueStore);
+            intermediateValue, NodeDecoder.HashEmbeddedNodeTypes, keyValueStore)
+                ?? throw new UnreachableException(
+                    $"Failed to decode the hash node with hash {Hash}.");
     }
 }

@@ -11,13 +11,19 @@ public sealed partial record class Trie(INode Node) : ITrie
 {
     private static readonly Codec _codec = new();
 
+    public Trie()
+        : this(NullNode.Value)
+    {
+    }
+
     public HashDigest<SHA256> Hash => Node switch
     {
         HashNode hashNode => hashNode.Hash,
+        NullNode _ => default,
         _ => HashDigest<SHA256>.DeriveFrom(_codec.Encode(Node.ToBencodex())),
     };
 
-    public bool IsCommitted { get; private set; } = Node is HashNode;
+    public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;
 
     public IValue this[in KeyBytes key]
         => NodeResolver.ResolveToValue(Node, PathCursor.Create(key))

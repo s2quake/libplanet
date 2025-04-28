@@ -84,7 +84,8 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore) : IStateStore
         _logger.Verbose("Finished {MethodName}()", nameof(CopyStates));
     }
 
-    public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash) => Trie.Trie.Create(stateRootHash, _keyValueStore);
+    public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash)
+        => stateRootHash == default ? new Trie.Trie() : Trie.Trie.Create(stateRootHash, _keyValueStore);
 
     public void Dispose()
     {
