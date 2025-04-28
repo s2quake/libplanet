@@ -20,7 +20,7 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
         }
         else if (value is Binary binary)
         {
-            return new PublicKey([.. binary.ToByteArray()]);
+            return new PublicKey([.. binary.ToByteArray()], verify: false);
         }
 
         return base.ConvertFrom(context, culture, value);
