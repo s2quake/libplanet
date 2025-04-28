@@ -111,7 +111,7 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
         lock (PrivateKey._lock)
         {
             using var secp256k1 = new Secp256k1();
-            publicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+            publicKey = new byte[Secp256k1.PUBKEY_LENGTH];
             if (secp256k1.PublicKeyParse(publicKey, bytes.ToArray()))
             {
                 return true;

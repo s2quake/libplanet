@@ -104,23 +104,23 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
         return value;
     }
 
-    private static ImmutableArray<byte> DeriveAddress(PublicKey key)
+    private static ImmutableArray<byte> DeriveAddress(PublicKey publicKey)
     {
         var initaddr = new Nethereum.Util.Sha3Keccack().CalculateHash(
-            GetPubKeyNoPrefix(key, false));
-        var addr = new byte[initaddr.Length - 12];
-        Array.Copy(initaddr, 12, addr, 0, initaddr.Length - 12);
+            GetPubKeyNoPrefix(publicKey, false));
+        var bytes = new byte[initaddr.Length - 12];
+        Array.Copy(initaddr, 12, bytes, 0, initaddr.Length - 12);
         var address = ToChecksumAddress(
-            Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(addr));
+            Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(bytes));
         return ByteUtil.ParseHexToImmutable(address);
     }
 
     private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
     {
         var pubKey = publicKey.ToByteArray(compressed);
-        var arr = new byte[pubKey.Length - 1];
-        Array.Copy(pubKey, 1, arr, 0, arr.Length);
-        return arr;
+        var bytes = new byte[pubKey.Length - 1];
+        Array.Copy(pubKey, 1, bytes, 0, bytes.Length);
+        return bytes;
     }
 
     private static ImmutableArray<byte> DeriveAddress(string hex)
