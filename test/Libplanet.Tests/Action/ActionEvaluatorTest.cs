@@ -84,8 +84,10 @@ public partial class ActionEvaluatorTest
                 nonce: 0,
                 privateKey: signer,
                 genesisHash: null,
-                actions: new[] { new ContextRecordingAction(txAddress, new Text("Foo")), }
-                    .ToPlainValues()),
+                actions: new IAction[]
+                {
+                    new ContextRecordingAction { Address = txAddress, Value = new Text("Foo") },
+                }.ToPlainValues()),
         };
         var evs = Array.Empty<EvidenceBase>();
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
@@ -152,7 +154,7 @@ public partial class ActionEvaluatorTest
             store: store,
             stateStore: stateStore,
             actionLoader: new SingleActionLoader<ContextRecordingAction>());
-        var action = new ContextRecordingAction(address, value);
+        var action = new ContextRecordingAction { Address = address, Value = value };
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,
@@ -1276,49 +1278,52 @@ public partial class ActionEvaluatorTest
                                 GenesisHash = null,
                                 UpdatedAddresses = [targetAddress],
                                 Timestamp = epoch,
-                                Actions = [.. ImmutableArray.Create<IAction>([
-                                    new ContextRecordingAction(
-                                        signerNoncePair.signer.Address,
-                                        new Integer(signerNoncePair.nonce)),
-                                ]).ToPlainValues()],
+                                Actions = [.. new IAction[]
+                                {
+                                    new ContextRecordingAction
+                                    {
+                                        Address = signerNoncePair.signer.Address,
+                                        Value = new Integer(signerNoncePair.nonce),
+                                    },
+                                }.ToPlainValues()],
                             },
                             new TxSigningMetadata(
                                 signerNoncePair.signer.PublicKey,
                                 signerNoncePair.nonce)),
                         signerNoncePair.signer);
-                }).ToImmutableArray();
+    }).ToImmutableArray();
 
-        // Rearrange transactions so that transactions are not grouped by signers
-        // while keeping the hard coded mixed order nonces above.
-        txs = txs
-            .Where((tx, i) => i % numTxsPerSigner == 0)
+    // Rearrange transactions so that transactions are not grouped by signers
+    // while keeping the hard coded mixed order nonces above.
+    txs = txs
+        .Where((tx, i) => i % numTxsPerSigner == 0)
             .Concat(txs.Where((tx, i) => i % numTxsPerSigner != 0)).ToImmutableArray();
 
-        // FIXME: Invalid length for RawHash.
-        byte[] preEvaluationHashBytes =
-        {
+    // FIXME: Invalid length for RawHash.
+    byte[] preEvaluationHashBytes =
+    {
             0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
             0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
         };
 
-        // Sanity check.
-        Assert.True(originalAddresses.SequenceEqual(
-            signers.Select(signer => signer.Address.ToString())));
+    // Sanity check.
+    Assert.True(originalAddresses.SequenceEqual(
+        signers.Select(signer => signer.Address.ToString())));
 
         var orderedTxs = txs;
 
         // Check signers are grouped together.
-        for (int i = 0; i < numSigners; i++)
+        for (int i = 0; i<numSigners; i++)
         {
             var signerTxs = orderedTxs.Skip(i * numTxsPerSigner).Take(numTxsPerSigner);
-            Assert.True(signerTxs.Select(tx => tx.Signer).Distinct().Count() == 1);
+    Assert.True(signerTxs.Select(tx => tx.Signer).Distinct().Count() == 1);
         }
 
         // Check nonces are ordered.
         foreach (var signer in signers)
         {
             var signerTxs = orderedTxs.Where(tx => tx.Signer == signer.Address);
-            Assert.Equal(signerTxs.OrderBy(tx => tx.Nonce).ToArray(), signerTxs.ToArray());
+Assert.Equal(signerTxs.OrderBy(tx => tx.Nonce).ToArray(), signerTxs.ToArray());
         }
 
         // Check according to spec.
@@ -1329,130 +1334,130 @@ public partial class ActionEvaluatorTest
     }
 
     [Fact]
-    public void EvaluateActionAndCollectFee()
+public void EvaluateActionAndCollectFee()
+{
+    var privateKey = new PrivateKey();
+    var address = privateKey.Address;
+    Currency foo = new Currency("FOO", 18);
+
+    var freeGasAction = new UseGasAction()
     {
-        var privateKey = new PrivateKey();
-        var address = privateKey.Address;
-        Currency foo = new Currency("FOO", 18);
+        GasUsage = 0,
+        Memo = "FREE",
+        MintValue = new FungibleAssetValue(foo, 10),
+        Receiver = address,
+    };
 
-        var freeGasAction = new UseGasAction()
+    var payGasAction = new UseGasAction()
+    {
+        GasUsage = 1,
+        Memo = "CHARGE",
+    };
+
+    var store = new MemoryStore();
+    var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+    var chain = TestUtils.MakeBlockChain(
+        policy: new BlockPolicy(),
+        actions: new[] { freeGasAction, },
+        store: store,
+        stateStore: stateStore,
+        actionLoader: new SingleActionLoader<UseGasAction>());
+    var tx = Transaction.Create(
+        nonce: 0,
+        privateKey: privateKey,
+        genesisHash: chain.Genesis.Hash,
+        maxGasPrice: new FungibleAssetValue(foo, 1),
+        gasLimit: 3,
+        actions: new[]
         {
-            GasUsage = 0,
-            Memo = "FREE",
-            MintValue = new FungibleAssetValue(foo, 10),
-            Receiver = address,
-        };
-
-        var payGasAction = new UseGasAction()
-        {
-            GasUsage = 1,
-            Memo = "CHARGE",
-        };
-
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
-            actions: new[] { freeGasAction, },
-            store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<UseGasAction>());
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
-            maxGasPrice: new FungibleAssetValue(foo, 1),
-            gasLimit: 3,
-            actions: new[]
-            {
                 payGasAction,
-            }.ToPlainValues());
+        }.ToPlainValues());
 
-        chain.StageTransaction(tx);
-        var miner = new PrivateKey();
-        Block block = chain.ProposeBlock(miner);
+    chain.StageTransaction(tx);
+    var miner = new PrivateKey();
+    Block block = chain.ProposeBlock(miner);
 
-        var evaluations = chain.ActionEvaluator.Evaluate(
-            (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
+    var evaluations = chain.ActionEvaluator.Evaluate(
+        (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
-        Assert.Single(evaluations);
-        Assert.Null(evaluations.Single().Exception);
-        Assert.Equal(2, GasTracer.GasAvailable);
-        Assert.Equal(1, GasTracer.GasUsed);
-    }
+    Assert.Single(evaluations);
+    Assert.Null(evaluations.Single().Exception);
+    Assert.Equal(2, GasTracer.GasAvailable);
+    Assert.Equal(1, GasTracer.GasUsed);
+}
 
-    [Fact]
-    public void EvaluateThrowingExceedGasLimit()
+[Fact]
+public void EvaluateThrowingExceedGasLimit()
+{
+    var privateKey = new PrivateKey();
+    var address = privateKey.Address;
+    Currency foo = new Currency("FOO", 18);
+
+    var freeGasAction = new UseGasAction()
     {
-        var privateKey = new PrivateKey();
-        var address = privateKey.Address;
-        Currency foo = new Currency("FOO", 18);
+        GasUsage = 0,
+        Memo = "FREE",
+        MintValue = new FungibleAssetValue(foo, 10),
+        Receiver = address,
+    };
 
-        var freeGasAction = new UseGasAction()
+    var payGasAction = new UseGasAction()
+    {
+        GasUsage = 10,
+        Memo = "CHARGE",
+    };
+
+    var store = new MemoryStore();
+    var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+    var chain = TestUtils.MakeBlockChain(
+        policy: new BlockPolicy(),
+        actions: new[]
         {
-            GasUsage = 0,
-            Memo = "FREE",
-            MintValue = new FungibleAssetValue(foo, 10),
-            Receiver = address,
-        };
-
-        var payGasAction = new UseGasAction()
-        {
-            GasUsage = 10,
-            Memo = "CHARGE",
-        };
-
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
-            actions: new[]
-            {
                 freeGasAction,
-            },
-            store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<UseGasAction>());
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
-            maxGasPrice: new FungibleAssetValue(foo, 1),
-            gasLimit: 5,
-            actions: new[]
-            {
-                payGasAction,
-            }.ToPlainValues());
-
-        chain.StageTransaction(tx);
-        var miner = new PrivateKey();
-        Block block = chain.ProposeBlock(miner);
-
-        var evaluations = chain.ActionEvaluator.Evaluate(
-            (RawBlock)block,
-            chain.GetNextStateRootHash(block.PreviousHash) ?? default);
-
-        Assert.Single(evaluations);
-        Assert.NotNull(evaluations.Single().Exception);
-        Assert.NotNull(evaluations.Single().Exception?.InnerException);
-        Assert.Equal(
-            typeof(InvalidOperationException),
-            evaluations.Single().Exception?.InnerException?.GetType());
-        Assert.Equal(0, GasTracer.GasAvailable);
-        Assert.Equal(5, GasTracer.GasUsed);
-    }
-
-    [Fact]
-    public void GenerateRandomSeed()
-    {
-        byte[] preEvaluationHashBytes =
+        },
+        store: store,
+        stateStore: stateStore,
+        actionLoader: new SingleActionLoader<UseGasAction>());
+    var tx = Transaction.Create(
+        nonce: 0,
+        privateKey: privateKey,
+        genesisHash: chain.Genesis.Hash,
+        maxGasPrice: new FungibleAssetValue(foo, 1),
+        gasLimit: 5,
+        actions: new[]
         {
+                payGasAction,
+        }.ToPlainValues());
+
+    chain.StageTransaction(tx);
+    var miner = new PrivateKey();
+    Block block = chain.ProposeBlock(miner);
+
+    var evaluations = chain.ActionEvaluator.Evaluate(
+        (RawBlock)block,
+        chain.GetNextStateRootHash(block.PreviousHash) ?? default);
+
+    Assert.Single(evaluations);
+    Assert.NotNull(evaluations.Single().Exception);
+    Assert.NotNull(evaluations.Single().Exception?.InnerException);
+    Assert.Equal(
+        typeof(InvalidOperationException),
+        evaluations.Single().Exception?.InnerException?.GetType());
+    Assert.Equal(0, GasTracer.GasAvailable);
+    Assert.Equal(5, GasTracer.GasUsed);
+}
+
+[Fact]
+public void GenerateRandomSeed()
+{
+    byte[] preEvaluationHashBytes =
+    {
             0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
             0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
         };
-        var signature = ImmutableArray.Create<byte>(
-        [
-            0x30, 0x44, 0x02, 0x20, 0x2f, 0x2d, 0xbe, 0x5a, 0x91, 0x65, 0x59, 0xde, 0xdb,
+    var signature = ImmutableArray.Create<byte>(
+    [
+        0x30, 0x44, 0x02, 0x20, 0x2f, 0x2d, 0xbe, 0x5a, 0x91, 0x65, 0x59, 0xde, 0xdb,
             0xe8, 0xd8, 0x4f, 0xa9, 0x20, 0xe2, 0x01, 0x29, 0x4d, 0x4f, 0x40, 0xea, 0x1e,
             0x97, 0x44, 0x1f, 0xbf, 0xa2, 0x5c, 0x8b, 0xd0, 0x0e, 0x23, 0x02, 0x20, 0x3c,
             0x06, 0x02, 0x1f, 0xb8, 0x3f, 0x67, 0x49, 0x92, 0x3c, 0x07, 0x59, 0x67, 0x96,
@@ -1460,54 +1465,54 @@ public partial class ActionEvaluatorTest
             0x7d, 0x37, 0x67, 0xe1, 0xe9,
         ]);
 
-        int seed = ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, signature);
-        Assert.Equal(353767086, seed);
-    }
+    int seed = ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, signature);
+    Assert.Equal(353767086, seed);
+}
 
-    [Fact]
-    public void CheckRandomSeedInAction()
+[Fact]
+public void CheckRandomSeedInAction()
+{
+    IntegerSet fx = new IntegerSet(new[] { 5, 10 });
+    var actionEvaluator = new ActionEvaluator(
+        fx.StateStore);
+
+    // txA: ((5 + 1) * 2) + 3 = 15
+    (Transaction txA, var deltaA) = fx.Sign(
+        0,
+        Arithmetic.Add(1),
+        Arithmetic.Mul(2),
+        Arithmetic.Add(3));
+
+    Block blockA = fx.Propose();
+    ActionEvaluation[] evalsA = actionEvaluator.EvaluateActions(
+        block: (RawBlock)blockA,
+        tx: txA,
+        world: fx.StateStore.GetWorld(blockA.StateRootHash),
+        actions: txA.Actions
+            .Select(action => (IAction)ToAction<Arithmetic>(action)).ToImmutableArray());
+
+    byte[] preEvaluationHashBytes = blockA.RawHash.Bytes.ToArray();
+    int[] randomSeeds = Enumerable
+        .Range(0, txA.Actions.Length)
+        .Select(offset => ActionEvaluator.GenerateRandomSeed(
+            preEvaluationHashBytes,
+            txA.Signature))
+        .ToArray();
+
+    for (int i = 0; i < evalsA.Length; i++)
     {
-        IntegerSet fx = new IntegerSet(new[] { 5, 10 });
-        var actionEvaluator = new ActionEvaluator(
-            fx.StateStore);
-
-        // txA: ((5 + 1) * 2) + 3 = 15
-        (Transaction txA, var deltaA) = fx.Sign(
-            0,
-            Arithmetic.Add(1),
-            Arithmetic.Mul(2),
-            Arithmetic.Add(3));
-
-        Block blockA = fx.Propose();
-        ActionEvaluation[] evalsA = actionEvaluator.EvaluateActions(
-            block: (RawBlock)blockA,
-            tx: txA,
-            world: fx.StateStore.GetWorld(blockA.StateRootHash),
-            actions: txA.Actions
-                .Select(action => (IAction)ToAction<Arithmetic>(action)).ToImmutableArray());
-
-        byte[] preEvaluationHashBytes = blockA.RawHash.Bytes.ToArray();
-        int[] randomSeeds = Enumerable
-            .Range(0, txA.Actions.Length)
-            .Select(offset => ActionEvaluator.GenerateRandomSeed(
-                preEvaluationHashBytes,
-                txA.Signature))
-            .ToArray();
-
-        for (int i = 0; i < evalsA.Length; i++)
-        {
-            ActionEvaluation eval = evalsA[i];
-            IActionContext context = eval.InputContext;
-            Assert.Equal(randomSeeds[i], context.RandomSeed);
-        }
+        ActionEvaluation eval = evalsA[i];
+        IActionContext context = eval.InputContext;
+        Assert.Equal(randomSeeds[i], context.RandomSeed);
     }
+}
 
-    private (Address[], Transaction[]) MakeFixturesForAppendTests(
-        PrivateKey privateKey = null,
-        DateTimeOffset epoch = default)
+private (Address[], Transaction[]) MakeFixturesForAppendTests(
+    PrivateKey privateKey = null,
+    DateTimeOffset epoch = default)
+{
+    Address[] addresses =
     {
-        Address[] addresses =
-        {
             _storeFx.Address1,
             _storeFx.Address2,
             _storeFx.Address3,
@@ -1515,16 +1520,16 @@ public partial class ActionEvaluatorTest
             _storeFx.Address5,
         };
 
-        privateKey = privateKey ?? new PrivateKey(
-        [
-            0xa8, 0x21, 0xc7, 0xc2, 0x08, 0xa9, 0x1e, 0x53, 0xbb, 0xb2,
+    privateKey = privateKey ?? new PrivateKey(
+    [
+        0xa8, 0x21, 0xc7, 0xc2, 0x08, 0xa9, 0x1e, 0x53, 0xbb, 0xb2,
             0x71, 0x15, 0xf4, 0x23, 0x5d, 0x82, 0x33, 0x44, 0xd1, 0x16,
             0x82, 0x04, 0x13, 0xb6, 0x30, 0xe7, 0x96, 0x4f, 0x22, 0xe0,
             0xec, 0xe0,
         ]);
 
-        Transaction[] txs =
-        {
+    Transaction[] txs =
+    {
             _storeFx.MakeTransaction(
                 new[]
                 {
@@ -1545,58 +1550,58 @@ public partial class ActionEvaluatorTest
                 privateKey: privateKey),
         };
 
-        return (addresses, txs);
-    }
+    return (addresses, txs);
+}
 
-    private sealed class UseGasAction : IAction
+private sealed class UseGasAction : IAction
+{
+    public long GasUsage { get; set; }
+
+    public string Memo { get; set; }
+
+    public FungibleAssetValue? MintValue { get; set; }
+
+    public Address? Receiver { get; set; }
+
+    public IValue PlainValue => new List(
+        (Integer)GasUsage,
+        (Text)Memo,
+        MintValue is null ? (IValue)default(Null) : MintValue.Value.ToBencodex(),
+        Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.Bytes
+        );
+
+    public void LoadPlainValue(IValue plainValue)
     {
-        public long GasUsage { get; set; }
-
-        public string Memo { get; set; }
-
-        public FungibleAssetValue? MintValue { get; set; }
-
-        public Address? Receiver { get; set; }
-
-        public IValue PlainValue => new List(
-            (Integer)GasUsage,
-            (Text)Memo,
-            MintValue is null ? (IValue)default(Null) : MintValue.Value.ToBencodex(),
-            Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.Bytes
-            );
-
-        public void LoadPlainValue(IValue plainValue)
+        var asList = (List)plainValue;
+        GasUsage = (Bencodex.Types.Integer)asList[0];
+        Memo = (Text)asList[1];
+        if (!(asList[2] is Bencodex.Types.Null))
         {
-            var asList = (List)plainValue;
-            GasUsage = (Bencodex.Types.Integer)asList[0];
-            Memo = (Text)asList[1];
-            if (!(asList[2] is Bencodex.Types.Null))
-            {
-                MintValue = FungibleAssetValue.Create(asList[2]);
-            }
-
-            if (!(asList[3] is Bencodex.Types.Null))
-            {
-                Receiver = ModelSerializer.Deserialize<Address>(asList[3]);
-            }
+            MintValue = FungibleAssetValue.Create(asList[2]);
         }
 
-        public IWorld Execute(IActionContext context)
+        if (!(asList[3] is Bencodex.Types.Null))
         {
-            GasTracer.UseGas(GasUsage);
-            var state = context.World
-                .SetAccount(
-                    ReservedAddresses.LegacyAccount,
-                    context.World.GetAccount(ReservedAddresses.LegacyAccount)
-                        .SetState(context.Signer, (Text)Memo));
-            if (!(Receiver is null) && !(MintValue is null))
-            {
-                state = state.MintAsset(context, Receiver.Value, MintValue.Value);
-            }
-
-            return state;
+            Receiver = ModelSerializer.Deserialize<Address>(asList[3]);
         }
     }
+
+    public IWorld Execute(IActionContext context)
+    {
+        GasTracer.UseGas(GasUsage);
+        var state = context.World
+            .SetAccount(
+                ReservedAddresses.LegacyAccount,
+                context.World.GetAccount(ReservedAddresses.LegacyAccount)
+                    .SetState(context.Signer, (Text)Memo));
+        if (!(Receiver is null) && !(MintValue is null))
+        {
+            state = state.MintAsset(context, Receiver.Value, MintValue.Value);
+        }
+
+        return state;
+    }
+}
 }
 
 #pragma warning disable SA1402 // File may only contain a single type

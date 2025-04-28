@@ -3,78 +3,36 @@ using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 
-namespace Libplanet.Action.Tests.Common
+namespace Libplanet.Action.Tests.Common;
+
+[Model(Version = 1)]
+public sealed record class ContextRecordingAction : ActionBase
 {
-    /// <summary>
-    /// An <see cref="IAction"/> for testing.  In addition to simply setting
-    /// an <see cref="IValue"/> to a certain <see cref="Crypto.Address"/>,
-    /// records various data that can be accessed from <see cref="IActionContext"/>.
-    /// </summary>
-    public class ContextRecordingAction : IAction
+    public static readonly Address MinerRecordAddress =
+        Address.Parse("1000000000000000000000000000000000000001");
+
+    public static readonly Address SignerRecordAddress =
+        Address.Parse("1000000000000000000000000000000000000002");
+
+    public static readonly Address BlockIndexRecordAddress =
+        Address.Parse("1000000000000000000000000000000000000003");
+
+    public static readonly Address RandomRecordAddress =
+        Address.Parse("1000000000000000000000000000000000000004");
+
+    [Property(0)]
+    public Address Address { get; init; }
+
+    [Property(1)]
+    public required IValue Value { get; init; }
+
+    protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        /// <summary>
-        /// The <see cref="Crypto.Address"/> where <see cref="IActionContext.Miner"/>
-        /// will be recorded.
-        /// </summary>
-        public static readonly Address MinerRecordAddress =
-            Address.Parse("1000000000000000000000000000000000000001");
-
-        /// <summary>
-        /// The <see cref="Crypto.Address"/> where <see cref="IActionContext.Signer"/>
-        /// will be recorded.
-        /// </summary>
-        public static readonly Address SignerRecordAddress =
-            Address.Parse("1000000000000000000000000000000000000002");
-
-        /// <summary>
-        /// The <see cref="Crypto.Address"/> where <see cref="IActionContext.BlockHeight"/>
-        /// will be recorded.
-        /// </summary>
-        public static readonly Address BlockIndexRecordAddress =
-            Address.Parse("1000000000000000000000000000000000000003");
-
-        /// <summary>
-        /// The <see cref="Crypto.Address"/> where the next random integer from
-        /// <see cref="IActionContext.GetRandom()"/> will be recorded.
-        /// </summary>
-        public static readonly Address RandomRecordAddress =
-            Address.Parse("1000000000000000000000000000000000000004");
-
-        public ContextRecordingAction()
-        {
-        }
-
-        public ContextRecordingAction(Address address, IValue value)
-        {
-            Address = address;
-            Value = value;
-        }
-
-        public IValue PlainValue => Dictionary.Empty
-            .Add("address", ModelSerializer.Serialize(Address))
-            .Add("value", Value);
-
-        private Address Address { get; set; }
-
-        private IValue Value { get; set; }
-
-        public void LoadPlainValue(IValue plainValue)
-        {
-            Address = ModelSerializer.Deserialize<Address>(((Dictionary)plainValue)["address"]);
-            Value = ((Dictionary)plainValue)["value"];
-        }
-
-        public IWorld Execute(IActionContext context)
-        {
-            IWorld states = context.World;
-            IAccount account = states.GetAccount(ReservedAddresses.LegacyAccount);
-            account = account
-                .SetState(Address, Value)
-                .SetState(MinerRecordAddress, new Binary(context.Miner.Bytes))
-                .SetState(SignerRecordAddress, new Binary(context.Signer.Bytes))
-                .SetState(BlockIndexRecordAddress, new Integer(context.BlockHeight))
-                .SetState(RandomRecordAddress, new Integer(context.GetRandom().Next()));
-            return states.SetAccount(ReservedAddresses.LegacyAccount, account);
-        }
+        world[ReservedAddresses.LegacyAccount, Address] = Value;
+        world[ReservedAddresses.LegacyAccount, Address] = Value;
+        world[ReservedAddresses.LegacyAccount, MinerRecordAddress] = new Binary(context.Miner.Bytes);
+        world[ReservedAddresses.LegacyAccount, SignerRecordAddress] = new Binary(context.Signer.Bytes);
+        world[ReservedAddresses.LegacyAccount, BlockIndexRecordAddress] = new Integer(context.BlockHeight);
+        world[ReservedAddresses.LegacyAccount, RandomRecordAddress] = new Integer(context.GetRandom().Next());
     }
 }

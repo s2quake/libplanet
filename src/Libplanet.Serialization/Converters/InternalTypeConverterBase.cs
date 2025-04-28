@@ -5,7 +5,7 @@ using Bencodex.Types;
 
 namespace Libplanet.Serialization.Converters;
 
-internal abstract class TypeConverterBase<TType, TValueType> : TypeConverter
+internal abstract class InternalTypeConverterBase<TType, TValueType> : TypeConverter
     where TValueType : IValue
 {
     private static readonly TypeConverter _defaultConverter = TypeDescriptor.GetConverter(typeof(TType));

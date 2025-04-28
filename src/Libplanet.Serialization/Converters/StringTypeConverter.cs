@@ -1,6 +1,6 @@
 ﻿namespace Libplanet.Serialization.Converters;
 
-internal sealed class StringTypeConverter : TypeConverterBase<string, Bencodex.Types.Text>
+internal sealed class StringTypeConverter : InternalTypeConverterBase<string, Bencodex.Types.Text>
 {
     protected override string ConvertFromValue(Bencodex.Types.Text value) => value.Value;
 
