@@ -63,7 +63,6 @@ public partial class BlockChainTest : IDisposable
             _fx.GenesisBlock,
             new ActionEvaluator(
                 stateStore: _fx.StateStore,
-                actionLoader: new SingleActionLoader<DumbAction>(),
                 _policy.PolicyActions),
             renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) }
         );
@@ -124,7 +123,6 @@ public partial class BlockChainTest : IDisposable
             blockChainStates,
             new ActionEvaluator(
                 _fx.StateStore,
-                new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions));
 
         Assert.Equal(chain1.Id, z.Id);
@@ -190,11 +188,8 @@ public partial class BlockChainTest : IDisposable
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
         var blockChainStates = new BlockChainStates(store, stateStore);
         var policy = new BlockPolicy();
-        var actionLoader = TypedActionLoader.Create(
-            typeof(BaseAction).Assembly, typeof(BaseAction));
         var actionEvaluator = new ActionEvaluator(
             stateStore,
-            actionLoader,
             policy.PolicyActions);
         var nonce = 0;
         var txs = TestUtils.Validators
@@ -223,8 +218,8 @@ public partial class BlockChainTest : IDisposable
             actionEvaluator);
         Block genesisBlock = chain.Genesis;
 
-        var actions1 = new List<BaseAction>
-        {
+        IAction[] actions1 =
+        [
             new Attack
             {
                 Weapon = "sword",
@@ -243,7 +238,7 @@ public partial class BlockChainTest : IDisposable
                 Target = "goblin",
                 TargetAddress = _fx.Address1,
             },
-        };
+        ];
         var tx1 = Transaction.Create(
             0,
             new PrivateKey(),
@@ -260,21 +255,21 @@ public partial class BlockChainTest : IDisposable
             .GetState(_fx.Address1);
         Assert.NotNull(state);
 
-        var result = BattleResult.FromBencodex((Bencodex.Types.Dictionary)state);
+        var result = ModelSerializer.Deserialize<BattleResult>(state);
         Assert.Contains("sword", result.UsedWeapons);
         Assert.Contains("staff", result.UsedWeapons);
         Assert.Contains("orc", result.Targets);
         Assert.Contains("goblin", result.Targets);
 
-        BaseAction[] actions2 =
-        {
+        IAction[] actions2 =
+        [
             new Attack
             {
                 Weapon = "bow",
                 Target = "goblin",
                 TargetAddress = _fx.Address1,
             },
-        };
+        ];
         var tx2 = Transaction.Create(
             0,
             new PrivateKey(),
@@ -291,14 +286,14 @@ public partial class BlockChainTest : IDisposable
             .GetNextWorldState()
             .GetAccountState(ReservedAddresses.LegacyAccount)
             .GetState(_fx.Address1);
-        result = BattleResult.FromBencodex((Bencodex.Types.Dictionary)state);
+        result = ModelSerializer.Deserialize<BattleResult>(state);
         Assert.Contains("bow", result.UsedWeapons);
 
         var tx3 = Transaction.Create(
             0,
             new PrivateKey(),
             genesisBlock.Hash,
-            new List<BaseAction>
+            new List<IAction>
             {
                 new Attack
                 {
@@ -588,7 +583,6 @@ public partial class BlockChainTest : IDisposable
         var stateStore = new TrieStateStore(new MemoryKeyValueStore());
         var actionEvaluator = new ActionEvaluator(
             stateStore,
-            new SingleActionLoader<DumbAction>(),
             policy.PolicyActions);
         Block genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(
@@ -630,7 +624,6 @@ public partial class BlockChainTest : IDisposable
             blockChainStates,
             new ActionEvaluator(
                 _fx.StateStore,
-                new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions));
 
         Block b = chain.Genesis;
@@ -692,7 +685,6 @@ public partial class BlockChainTest : IDisposable
             blockChainStates,
             new ActionEvaluator(
                 _fx.StateStore,
-                new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions));
 
         Block b = chain.Genesis;
@@ -734,7 +726,6 @@ public partial class BlockChainTest : IDisposable
             blockChainStates,
             new ActionEvaluator(
                 _fx.StateStore,
-                new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions));
 
         Assert.All(
@@ -831,7 +822,6 @@ public partial class BlockChainTest : IDisposable
                 emptyFx.GenesisBlock,
                 new ActionEvaluator(
                     stateStore: emptyFx.StateStore,
-                    actionLoader: new SingleActionLoader<DumbAction>(),
                     _blockChain.Policy.PolicyActions));
             var fork = BlockChain.Create(
                 _blockChain.Policy,
@@ -841,7 +831,6 @@ public partial class BlockChainTest : IDisposable
                 forkFx.GenesisBlock,
                 new ActionEvaluator(
                     stateStore: forkFx.StateStore,
-                    actionLoader: new SingleActionLoader<DumbAction>(),
                     _blockChain.Policy.PolicyActions));
             fork.Append(b1, CreateBlockCommit(b1));
             fork.Append(b2, CreateBlockCommit(b2));
@@ -1201,7 +1190,6 @@ public partial class BlockChainTest : IDisposable
         var chainStates = new BlockChainStates(store, stateStore);
         var actionEvaluator = new ActionEvaluator(
             stateStore: stateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
             blockPolicy.PolicyActions);
         Block genesisBlock = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey),
@@ -1441,7 +1429,6 @@ public partial class BlockChainTest : IDisposable
             storeFixture.Store, storeFixture.StateStore);
         var actionEvaluator = new ActionEvaluator(
             storeFixture.StateStore,
-            new SingleActionLoader<DumbAction>(),
             policy.PolicyActions);
         BlockChain blockChain = BlockChain.Create(
             policy,
@@ -1485,7 +1472,6 @@ public partial class BlockChainTest : IDisposable
         var blockChainStates = new BlockChainStates(store, stateStore);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
-            new SingleActionLoader<DumbAction>(),
             policy.PolicyActions);
         var genesisBlockA = BlockChain.ProposeGenesisBlock();
         var genesisBlockB = BlockChain.ProposeGenesisBlock();
@@ -1561,7 +1547,6 @@ public partial class BlockChainTest : IDisposable
             List.Empty);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
-            new SingleActionLoader<DumbAction>(),
             policy.PolicyActions);
         var genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey, new[] { genesisTx }),
@@ -1630,7 +1615,6 @@ public partial class BlockChainTest : IDisposable
 
         var actionEvaluator = new ActionEvaluator(
             storeFixture.StateStore,
-            new SingleActionLoader<SetValidator>(),
             policy.PolicyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
             privateKey: privateKey,

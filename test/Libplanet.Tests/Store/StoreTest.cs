@@ -1008,7 +1008,6 @@ namespace Libplanet.Tests.Store
                 var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
                 var actionEvaluator = new ActionEvaluator(
                     fx.StateStore,
-                    new SingleActionLoader<DumbAction>(),
                     policy.PolicyActions);
                 var genesis = preEval.Sign(
                     GenesisProposer,

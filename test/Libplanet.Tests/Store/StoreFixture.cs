@@ -98,7 +98,6 @@ public abstract class StoreFixture : IDisposable
             validatorSet: TestUtils.Validators);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
-            new SingleActionLoader<DumbAction>(),
             policyActions ?? new PolicyActions());
         GenesisBlock = preEval.Sign(
             Proposer,

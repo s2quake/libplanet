@@ -202,7 +202,6 @@ namespace Libplanet.Tests.Blockchain
             IStore store1 = new MemoryStore();
             var actionEvaluator1 = new ActionEvaluator(
                 stateStore1,
-                new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions);
             var genesisBlock = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(TestUtils.GenesisProposer.PublicKey),
@@ -229,7 +228,6 @@ namespace Libplanet.Tests.Blockchain
             IStore store2 = new MemoryStore();
             var actionEvaluator2 = new ActionEvaluator(
                 stateStore2,
-                new SingleActionLoader<DumbAction>(),
                 policyWithBlockAction.PolicyActions);
             var chain2 = BlockChain.Create(
                 policyWithBlockAction,
@@ -271,7 +269,6 @@ namespace Libplanet.Tests.Blockchain
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
-                new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions);
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
@@ -319,7 +316,6 @@ namespace Libplanet.Tests.Blockchain
                 blockChainStates,
                 new ActionEvaluator(
                     stateStore,
-                    new SingleActionLoader<DumbAction>(),
                     policyWithBlockAction.PolicyActions));
 
             Assert.Throws<InvalidOperationException>(() =>
@@ -342,7 +338,6 @@ namespace Libplanet.Tests.Blockchain
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
-                new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions);
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
@@ -816,7 +811,6 @@ namespace Libplanet.Tests.Blockchain
 
             var actionEvaluator = new ActionEvaluator(
                 _blockChain.StateStore,
-                new SingleActionLoader<DumbAction>(),
                 policyWithBlockAction.PolicyActions);
 
             var newChain = new BlockChain(

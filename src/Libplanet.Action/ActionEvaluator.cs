@@ -10,14 +10,12 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 
-public sealed class ActionEvaluator(IStateStore stateStore, IActionLoader actionLoader, PolicyActions policyActions)
+public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policyActions)
 {
-    public ActionEvaluator(IStateStore stateStore, IActionLoader actionLoader)
-        : this(stateStore, actionLoader, PolicyActions.Empty)
+    public ActionEvaluator(IStateStore stateStore)
+        : this(stateStore, PolicyActions.Empty)
     {
     }
-
-    public IActionLoader ActionLoader => actionLoader;
 
     public static int GenerateRandomSeed(
         ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)

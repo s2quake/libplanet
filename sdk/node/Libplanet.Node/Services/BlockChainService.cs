@@ -45,7 +45,6 @@ internal sealed class BlockChainService(
     {
         var actionEvaluator = new ActionEvaluator(
             stateStore,
-            actionService.ActionLoader,
             actionService.PolicyActions);
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);
         var policy = new BlockPolicy(

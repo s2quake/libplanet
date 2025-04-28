@@ -39,7 +39,6 @@ namespace Libplanet.Tests.Blockchain.Policies
                 _fx.GenesisBlock,
                 new ActionEvaluator(
                     stateStore: _fx.StateStore,
-                    actionLoader: new SingleActionLoader<DumbAction>(),
                     _policy.PolicyActions));
         }
 

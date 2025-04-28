@@ -30,7 +30,6 @@ namespace Libplanet.Tests.Blockchain.Policies
                 _fx.GenesisBlock,
                 new ActionEvaluator(
                     stateStore: _fx.StateStore,
-                    actionLoader: new SingleActionLoader<DumbAction>(),
                     _policy.PolicyActions));
             _key = new PrivateKey();
             _txs = Enumerable.Range(0, 5).Select(i =>
