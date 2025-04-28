@@ -1314,7 +1314,8 @@ namespace Libplanet.Blockchain
         {
             if (index == 0)
             {
-                return GetNextWorldState().GetValidatorSet();
+                var worldContext = new WorldStateContext(GetNextWorldState());
+                return (ImmutableSortedSet<Validator>)worldContext[ReservedAddresses.ValidatorSetAddress][ReservedAddresses.ValidatorSetAddress];;
             }
 
             if (GetBlockCommit(index) is { } commit)

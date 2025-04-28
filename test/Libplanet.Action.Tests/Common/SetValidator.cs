@@ -1,59 +1,15 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Types.Consensus;
 
-namespace Libplanet.Action.Tests.Common
+namespace Libplanet.Action.Tests.Common;
+
+public sealed record class SetValidator : ActionBase
 {
-    /// <summary>
-    /// An action that promotes given address to the validator.
-    /// </summary>
-    public sealed class SetValidator : IAction, IEquatable<SetValidator>, IEquatable<IAction>
+    public required Validator Validator { get; init; }
+
+    protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        /// <summary>
-        /// Creates a new instance of <see cref="SetValidator"/> action.
-        /// </summary>
-        /// <param name="validator">The <see cref="Validator"/> to be set.</param>
-        public SetValidator(Validator validator)
-        {
-            Validator = validator;
-        }
-
-        public SetValidator()
-        {
-            Validator = null;
-        }
-
-        public Validator Validator { get; private set; }
-
-        /// <inheritdoc cref="IAction.PlainValue"/>
-        public IValue PlainValue => throw new NotImplementedException();
-
-        /// <inheritdoc cref="IAction.LoadPlainValue(IValue)"/>
-        public void LoadPlainValue(IValue plainValue)
-        {
-            // var dict = (Bencodex.Types.Dictionary)plainValue;
-            // Validator = Validator.Create((Dictionary)dict["validator"]);
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc cref="IAction.Execute(IActionContext)"/>
-        public IWorld Execute(IActionContext context)
-        {
-            IWorld world = context.World;
-            return world.SetValidatorSet(world.GetValidatorSet().Add(Validator));
-        }
-
-        /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-        public bool Equals(SetValidator other) =>
-            other is SetValidator o && Validator.Equals(o.Validator);
-
-        /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
-        public bool Equals(IAction other) => other is SetValidator o && Equals(o);
-
-        /// <inheritdoc cref="object.Equals(object?)"/>
-        public override bool Equals(object obj) => obj is SetValidator o && Equals(o);
-
-        /// <inheritdoc cref="object.GetHashCode()"/>
-        public override int GetHashCode() => Validator.GetHashCode();
+        var validatorSet = (ImmutableSortedSet<Validator>)world[ReservedAddresses.ValidatorSetAddress, ReservedAddresses.ValidatorSetAddress];
+        world[ReservedAddresses.ValidatorSetAddress, ReservedAddresses.ValidatorSetAddress] = validatorSet.Add(Validator);
     }
 }

@@ -1,4 +1,5 @@
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 
@@ -57,16 +58,20 @@ public static class IWorldExtensions
         => @this.GetCurrencyAccount(currency).GetTotalSupply(currency);
 
     public static ImmutableSortedSet<Validator> GetValidatorSet(this IWorldState @this)
-        => @this.GetValidatorSetAccount().GetValidatorSet();
+    {
+        var accountState = @this.GetAccountState(ReservedAddresses.ValidatorSetAddress);
+        var value = accountState.GetState(ReservedAddresses.ValidatorSetAddress);
+        return ModelSerializer.Deserialize<ImmutableSortedSet<Validator>>(value);
+    }
 
-    public static IWorld SetValidatorSet(this IWorld @this, ImmutableSortedSet<Validator> validatorSet)
-        => @this.SetValidatorSetAccount(
-            @this.GetValidatorSetAccount().SetValidatorSet(validatorSet));
+    // public static IWorld SetValidatorSet(this IWorld @this, ImmutableSortedSet<Validator> validatorSet)
+    //     => @this.SetValidatorSetAccount(
+    //         @this.GetValidatorSetAccount().SetValidatorSet(validatorSet));
 
-    internal static ValidatorSetAccount GetValidatorSetAccount(this IWorldState @this)
-        => new(
-            @this.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie,
-            @this.Version);
+    // internal static ValidatorSetAccount GetValidatorSetAccount(this IWorldState @this)
+    //     => new(
+    //         @this.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie,
+    //         @this.Version);
 
     internal static CurrencyAccount GetCurrencyAccount(
         this IWorldState @this, Currency currency)
@@ -92,20 +97,20 @@ public static class IWorldExtensions
             currencyAccount.AsAccount());
     }
 
-    internal static IWorld SetValidatorSetAccount(
-        this IWorld @this, ValidatorSetAccount validatorSetAccount)
-    {
-        if (@this.Version != validatorSetAccount.WorldVersion)
-        {
-            throw new ArgumentException(
-                $"Given {nameof(validatorSetAccount)} must have the same version as " +
-                $"the version of the world {@this.Version}: " +
-                $"{validatorSetAccount.WorldVersion}",
-                nameof(validatorSetAccount));
-        }
+    // internal static IWorld SetValidatorSetAccount(
+    //     this IWorld @this, ValidatorSetAccount validatorSetAccount)
+    // {
+    //     if (@this.Version != validatorSetAccount.WorldVersion)
+    //     {
+    //         throw new ArgumentException(
+    //             $"Given {nameof(validatorSetAccount)} must have the same version as " +
+    //             $"the version of the world {@this.Version}: " +
+    //             $"{validatorSetAccount.WorldVersion}",
+    //             nameof(validatorSetAccount));
+    //     }
 
-        return @this.SetAccount(
-            ReservedAddresses.ValidatorSetAccount,
-            validatorSetAccount.AsAccount());
-    }
+    //     return @this.SetAccount(
+    //         ReservedAddresses.ValidatorSetAccount,
+    //         validatorSetAccount.AsAccount());
+    // }
 }

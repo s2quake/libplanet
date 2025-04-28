@@ -22,7 +22,7 @@ public static class NodeDecoder
     public const NodeTypes HashEmbeddedNodeTypes =
         NodeTypes.Value | NodeTypes.Short | NodeTypes.Full;
 
-    public static INode Decode(IValue value, NodeTypes nodeTypes, IKeyValueStore keyValueStore)
+    public static INode? Decode(IValue value, NodeTypes nodeTypes, IKeyValueStore keyValueStore)
     {
         if (value is List list)
         {
@@ -62,7 +62,7 @@ public static class NodeDecoder
         {
             if ((nodeTypes & NodeTypes.Null) == NodeTypes.Null)
             {
-                return NullNode.Value;
+                return null;
             }
         }
 
