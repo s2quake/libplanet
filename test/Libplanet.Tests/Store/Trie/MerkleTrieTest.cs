@@ -26,7 +26,7 @@ public class MerkleTrieTest
     public void ConstructWithHashDigest()
     {
         using var store = new MemoryKeyValueStore();
-        var hashDigest = new HashDigest<SHA256>(GetRandomBytes(Size));
+        var hashDigest = RandomUtility.NextHashDigest<SHA256>();
         var trie = new Libplanet.Store.Trie.Trie(new HashNode(hashDigest) { KeyValueStore = store });
         Assert.Equal(hashDigest, trie.Hash);
     }
@@ -35,7 +35,7 @@ public class MerkleTrieTest
     public void ConstructWithRootNode()
     {
         using var store = new MemoryKeyValueStore();
-        var hashDigest = new HashDigest<SHA256>(GetRandomBytes(Size));
+        var hashDigest = RandomUtility.NextHashDigest<SHA256>();
         var node = new HashNode(hashDigest) { KeyValueStore = store };
         var trie = new Libplanet.Store.Trie.Trie(node);
         Assert.Equal(hashDigest, trie.Hash);

@@ -14,14 +14,14 @@ public static partial class RandomUtility
     }
 
     public static T? NullableObject<T>(Func<T> generator)
-        where T : class
+        where T : notnull
     {
         if (Boolean() is true)
         {
             return generator();
         }
 
-        return null;
+        return default;
     }
 
     public static T?[] NullableArray<T>(Func<T> generator)
