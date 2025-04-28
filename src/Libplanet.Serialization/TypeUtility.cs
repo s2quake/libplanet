@@ -8,18 +8,6 @@ namespace Libplanet.Serialization;
 
 public static class TypeUtility
 {
-    public static readonly Type[] SupportedBaseTypes =
-    [
-        // typeof(int),
-        // typeof(long),
-        // typeof(string),
-        // typeof(bool),
-        // typeof(BigInteger),
-        // typeof(byte[]),
-        // typeof(DateTimeOffset),
-        // typeof(TimeSpan),
-    ];
-
     private static readonly ConcurrentDictionary<string, Type> _typeByName = [];
 
     static TypeUtility()
@@ -62,10 +50,7 @@ public static class TypeUtility
 
     public static bool IsStandardType(Type type)
     {
-        if (SupportedBaseTypes.Contains(type)
-            || type.IsEnum
-            || IsBencodableType(type)
-            || IsBencodexType(type))
+        if (type.IsEnum || IsBencodableType(type) || IsBencodexType(type))
         {
             return true;
         }

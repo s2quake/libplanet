@@ -32,7 +32,7 @@ namespace Libplanet.Action.Tests.Common
         public void LoadPlainValue(IValue plainValue)
         {
             // var dict = (Bencodex.Types.Dictionary)plainValue;
-            // Validator = new Validator((Dictionary)dict["validator"]);
+            // Validator = Validator.Create((Dictionary)dict["validator"]);
             throw new NotImplementedException();
         }
 

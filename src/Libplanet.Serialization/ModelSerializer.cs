@@ -102,6 +102,11 @@ public static class ModelSerializer
 
     public static object? Deserialize(IValue value, Type type, ModelOptions options)
     {
+        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertFrom(typeof(IValue)))
+        {
+            return converter.ConvertFrom(value);
+        }
+
         if (IsStandardType(type) || IsStandardArrayType(type))
         {
             return DeserializeValue(type, value, options);
@@ -116,13 +121,7 @@ public static class ModelSerializer
                 $"Given magic value {header.TypeValue} is not {ObjectValue}");
         }
 
-        // var typeName = options.GetTypeName(type);
         var headerType = Type.GetType(header.TypeName);
-        // if (header.TypeName != typeName)
-        // {
-        //     throw new ModelSerializationException(
-        //         $"Given type name {header.TypeName} is not {typeName}");
-        // }
         if (headerType != type && type.IsAssignableFrom(headerType) is false)
         {
             throw new ModelSerializationException($"Given type {headerType} is not {type}");
@@ -148,7 +147,7 @@ public static class ModelSerializer
             var propertyIndex = propertyAttribute.Index;
             var propertyType = propertyInfo.PropertyType;
             var propertyValue = list[propertyIndex];
-            var deserializedValue = DeserializeValue(propertyType, propertyValue, options);
+            var deserializedValue = propertyValue is null ? null : Deserialize(propertyValue, propertyType, options);
             propertyInfo.SetValue(obj, deserializedValue);
         }
 

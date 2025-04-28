@@ -13,7 +13,7 @@ public class InitializeTest
 {
     private static readonly ImmutableSortedSet<Validator> _validators = ImmutableSortedSet.Create(
     [
-        new Validator(new PrivateKey().PublicKey, BigInteger.One),
+        Validator.Create(new PrivateKey().PublicKey, BigInteger.One),
     ]);
 
     private static readonly ImmutableDictionary<Address, IValue>

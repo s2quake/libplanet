@@ -17,7 +17,7 @@ public sealed class ActionProvider : IActionProvider
     public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
     {
         var validators = validatorKeys
-            .Select(item => new Validator(item, new BigInteger(1000)))
+            .Select(item => Validator.Create(item, new BigInteger(1000)))
             .ToImmutableSortedSet();
         return
         [

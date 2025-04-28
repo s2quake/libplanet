@@ -1325,7 +1325,7 @@ namespace Libplanet.Blockchain
             throw new ArgumentException("Cannot find a validator set for the given index.");
 
             static Validator CreateValidator(Vote vote)
-                => new Validator(vote.ValidatorPublicKey, vote.ValidatorPower);
+                => Validator.Create(vote.ValidatorPublicKey, vote.ValidatorPower);
         }
 
         private HashDigest<SHA256>? GetNextStateRootHash(Block block)

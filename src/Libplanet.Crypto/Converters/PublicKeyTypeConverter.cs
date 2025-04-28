@@ -9,20 +9,14 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         => sourceType == typeof(string)
             || sourceType == typeof(IValue)
+            || sourceType == typeof(Binary)
             || base.CanConvertFrom(context, sourceType);
 
     public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
         if (value is string @string)
         {
-            try
-            {
-                return PublicKey.Parse(@string);
-            }
-            catch (Exception e) when (e is ArgumentException || e is FormatException)
-            {
-                throw new ArgumentException(e.Message, e);
-            }
+            return PublicKey.Parse(@string);
         }
         else if (value is Binary binary)
         {
@@ -35,6 +29,7 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
     public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
         => destinationType == typeof(string)
             || destinationType == typeof(IValue)
+            || destinationType == typeof(Binary)
             || base.CanConvertTo(context, destinationType);
 
     public override object? ConvertTo(
@@ -47,7 +42,7 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
                 return (object?)publicKey.ToString("c", null);
             }
 
-            if (destinationType == typeof(IValue))
+            if (destinationType == typeof(IValue) || destinationType == typeof(Binary))
             {
                 return new Binary(publicKey.Bytes);
             }

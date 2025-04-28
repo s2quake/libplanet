@@ -100,7 +100,7 @@ namespace Libplanet.Tests.Action
                 .SetBalance(_addr[0], _currencies[4], 5)
                 .SetBalance(_addr[1], _currencies[2], 15)
                 .SetBalance(_addr[1], _currencies[3], 20)
-                .SetValidatorSet([.. _keys.Select(key => new Validator(key.PublicKey, 1))]));
+                .SetValidatorSet([.. _keys.Select(key => Validator.Create(key.PublicKey, 1))]));
 
             output.WriteLine("Fixtures  Address");
             int i = 0;
@@ -391,7 +391,7 @@ namespace Libplanet.Tests.Action
                 .ToList();
 
             var validatorSet =
-                keys.Select(key => new Validator(key.PublicKey, 1)).ToImmutableSortedSet();
+                keys.Select(key => Validator.Create(key.PublicKey, 1)).ToImmutableSortedSet();
             world = world.SetValidatorSet(validatorSet);
             Assert.Equal(newValidatorCount, world.GetValidatorSet().Count);
             Assert.NotEqual(_initWorld.GetValidatorSet(), world.GetValidatorSet());
