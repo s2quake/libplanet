@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Bencodex.Types;
+using Libplanet.Serialization.Converters;
 using static Libplanet.Serialization.ArrayUtility;
 using static Libplanet.Serialization.TypeUtility;
 
@@ -16,6 +17,24 @@ public static class ModelSerializer
     private const int ImmutableArrayValue = 0x_0000_0003;
     private const int ImmutableSortedSetValue = 0x_0000_0004;
     private static readonly Codec _codec = new();
+
+    static ModelSerializer()
+    {
+        AddTypeConverter(typeof(BigInteger), typeof(BigIntegerTypeConverter));
+        AddTypeConverter(typeof(bool), typeof(BooleanTypeConverter));
+        AddTypeConverter(typeof(byte[]), typeof(ByteArrayTypeConverter));
+        AddTypeConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetTypeConverter));
+        AddTypeConverter(typeof(ImmutableArray<byte>), typeof(ImmutableByteArrayTypeConverter));
+        AddTypeConverter(typeof(int), typeof(Int32TypeConverter));
+        AddTypeConverter(typeof(long), typeof(Int64TypeConverter));
+        AddTypeConverter(typeof(string), typeof(StringTypeConverter));
+        AddTypeConverter(typeof(TimeSpan), typeof(TimeSpanTypeConverter));
+
+        static void AddTypeConverter(Type type, Type converterType)
+        {
+            TypeDescriptor.AddAttributes(type, new TypeConverterAttribute(converterType));
+        }
+    }
 
     public static bool TryGetType(IValue value, [MaybeNullWhen(false)] out Type type)
     {
@@ -214,38 +233,6 @@ public static class ModelSerializer
         {
             return Null.Value;
         }
-        else if (value is int @int)
-        {
-            return new Integer(@int);
-        }
-        else if (value is long @long)
-        {
-            return new Integer(@long);
-        }
-        else if (value is BigInteger bigInteger)
-        {
-            return new Integer(bigInteger);
-        }
-        else if (value is string @string)
-        {
-            return new Text(@string);
-        }
-        else if (value is bool @bool)
-        {
-            return new Bencodex.Types.Boolean(@bool);
-        }
-        else if (value is byte[] bytes)
-        {
-            return new Binary(bytes);
-        }
-        else if (value is DateTimeOffset dateTimeOffset)
-        {
-            return new Integer(dateTimeOffset.UtcTicks);
-        }
-        else if (value is TimeSpan timeSpan)
-        {
-            return new Integer(timeSpan.Ticks);
-        }
         else if (propertyType.IsEnum)
         {
             var underlyingType = Enum.GetUnderlyingType(propertyType);
@@ -383,70 +370,6 @@ public static class ModelSerializer
                 {
                     return Enum.ToObject(propertyType, (int)integer.Value);
                 }
-            }
-        }
-        else if (propertyType == typeof(int))
-        {
-            if (propertyValue is Integer integer)
-            {
-                return (int)integer.Value;
-            }
-        }
-        else if (propertyType == typeof(long))
-        {
-            if (propertyValue is Integer integer)
-            {
-                return (long)integer.Value;
-            }
-        }
-        else if (propertyType == typeof(BigInteger))
-        {
-            if (propertyValue is Integer integer)
-            {
-                return integer.Value;
-            }
-        }
-        else if (propertyType == typeof(string))
-        {
-            if (propertyValue is Text text)
-            {
-                return text.Value;
-            }
-            else if (propertyValue is Null)
-            {
-                return null;
-            }
-        }
-        else if (propertyType == typeof(bool))
-        {
-            if (propertyValue is Bencodex.Types.Boolean boolean)
-            {
-                return boolean.Value;
-            }
-        }
-        else if (propertyType == typeof(byte[]))
-        {
-            if (propertyValue is Binary binary)
-            {
-                return binary.ToByteArray();
-            }
-            else if (propertyValue is Null)
-            {
-                return null;
-            }
-        }
-        else if (propertyType == typeof(DateTimeOffset))
-        {
-            if (propertyValue is Integer integer)
-            {
-                return new DateTimeOffset((long)integer.Value, TimeSpan.Zero);
-            }
-        }
-        else if (propertyType == typeof(TimeSpan))
-        {
-            if (propertyValue is Integer integer)
-            {
-                return new TimeSpan((long)integer.Value);
             }
         }
         else if (propertyType.IsDefined(typeof(ModelAttribute)))

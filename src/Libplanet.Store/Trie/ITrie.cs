@@ -33,6 +33,8 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
 
     bool TryGetNode(in KeyBytes key, [MaybeNullWhen(false)] out INode node);
 
+    bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value);
+
     bool ContainsKey(in KeyBytes key);
 
     IEnumerable<(KeyBytes Path, IValue? TargetValue, IValue SourceValue)> Diff(ITrie other);

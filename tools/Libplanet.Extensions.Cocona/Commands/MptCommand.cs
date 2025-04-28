@@ -217,7 +217,7 @@ public class MptCommand
         ToolConfiguration toolConfiguration = configurationService.Load();
         kvStoreUri = ConvertKVStoreUri(kvStoreUri, toolConfiguration);
         IKeyValueStore keyValueStore = LoadKVStoreFromURI(kvStoreUri);
-        var trie = Trie.Create(HashDigest<SHA256>.Parse(stateRootHashHex));
+        var trie = Trie.Create(HashDigest<SHA256>.Parse(stateRootHashHex), keyValueStore);
         KeyBytes stateKeyBytes = (KeyBytes)stateKey;
         IReadOnlyList<IValue?> values = trie.GetMany([stateKeyBytes]);
         if (values.Count > 0 && values[0] is { } value)

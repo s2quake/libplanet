@@ -18,7 +18,7 @@ public class TrieTest
     public void GetAndSet(int addressCount)
     {
         var keyValueStore = new MemoryKeyValueStore();
-        ITrie trie = Libplanet.Store.Trie.Trie.Create(hashDigest: default);
+        ITrie trie = Libplanet.Store.Trie.Trie.Create(hashDigest: default, keyValueStore);
 
         var addresses = Enumerable
             .Range(0, addressCount)

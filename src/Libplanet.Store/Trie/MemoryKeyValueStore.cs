@@ -1,10 +1,15 @@
 using System.Collections.Concurrent;
+using Bencodex.Types;
+using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store.Trie;
 
 public sealed class MemoryKeyValueStore : IKeyValueStore
 {
-    private readonly ConcurrentDictionary<KeyBytes, byte[]> _dictionary = new();
+    private readonly ConcurrentDictionary<KeyBytes, byte[]> _dictionary = new(
+    [
+        new KeyValuePair<KeyBytes, byte[]>(new KeyBytes(default(BlockHash).Bytes), new Codec().Encode(Null.Value)),
+    ]);
 
     IEnumerable<KeyBytes> IKeyValueStore.Keys => _dictionary.Keys;
 

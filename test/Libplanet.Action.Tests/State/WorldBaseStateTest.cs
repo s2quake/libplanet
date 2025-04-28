@@ -23,10 +23,10 @@ namespace Libplanet.Action.Tests.State
         [Fact]
         public void Constructor()
         {
-            ITrie trie = Trie.Create(hashDigest: default);
+            ITrie trie = Trie.Create(hashDigest: default, _kvStore);
             var legacyBaseState = new WorldBaseState(trie, _stateStore);
             Assert.True(legacyBaseState.Legacy);
-            trie = Trie.Create(hashDigest: default);
+            trie = Trie.Create(hashDigest: default, _kvStore);
             trie = trie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
             var modernBaseState = new WorldBaseState(trie, _stateStore);
             Assert.False(modernBaseState.Legacy);
@@ -37,12 +37,12 @@ namespace Libplanet.Action.Tests.State
         {
             var accountAddress = new Address([.. TestUtils.GetRandomBytes(20)]);
             var address = new Address([.. TestUtils.GetRandomBytes(20)]);
-            ITrie accountTrie = Trie.Create(hashDigest: default);
+            ITrie accountTrie = Trie.Create(hashDigest: default, _kvStore);
             accountTrie = accountTrie.Set(ToStateKey(address), (Text)"foo");
             accountTrie =
                 accountTrie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
             accountTrie = _stateStore.Commit(accountTrie);
-            ITrie worldTrie = Trie.Create(hashDigest: default);
+            ITrie worldTrie = Trie.Create(hashDigest: default, _kvStore);
             worldTrie = worldTrie.Set(
                 ToStateKey(accountAddress),
                 (Binary)accountTrie.Hash.Bytes);
@@ -67,10 +67,10 @@ namespace Libplanet.Action.Tests.State
         {
             var accountAddress = ReservedAddresses.LegacyAccount;
             var address = new Address([.. TestUtils.GetRandomBytes(20)]);
-            ITrie accountTrie = Trie.Create(hashDigest: default);
+            ITrie accountTrie = Trie.Create(hashDigest: default, _kvStore);
             accountTrie = accountTrie.Set(ToStateKey(address), (Text)"foo");
             accountTrie = _stateStore.Commit(accountTrie);
-            ITrie worldTrie = Trie.Create(hashDigest: default);
+            ITrie worldTrie = Trie.Create(hashDigest: default, _kvStore);
             worldTrie = worldTrie.Set(
                 ToStateKey(accountAddress),
                 (Binary)accountTrie.Hash.Bytes);

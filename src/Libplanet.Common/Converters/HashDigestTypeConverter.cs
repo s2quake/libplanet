@@ -14,63 +14,68 @@ internal sealed class HashDigestTypeConverter : TypeConverter
     private static readonly ConcurrentDictionary<Type, PropertyInfo> _bytesPropertyByType = [];
 
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
-        => sourceType == typeof(string)
-            || sourceType == typeof(IValue)
-            || base.CanConvertFrom(context, sourceType);
+        => sourceType switch
+        {
+            Type type when type == typeof(string) => true,
+            Type type when type == typeof(IValue) => true,
+            Type type when type == typeof(Binary) => true,
+            _ => base.CanConvertFrom(context, sourceType),
+        };
 
     public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
-    {
-        if (value is string @string)
+        => value switch
         {
-            try
-            {
-                var methodInfo = GetParseMethod(value.GetType());
-                return methodInfo.Invoke(null, [@string])!;
-            }
-            catch (TargetInvocationException e) when (e.InnerException is { } ie)
-            {
-                if (ie is ArgumentOutOfRangeException || ie is FormatException)
-                {
-                    throw new ArgumentException(ie.Message, ie);
-                }
-
-                throw ie;
-            }
-        }
-
-        return base.ConvertFrom(context, culture, value);
-    }
+            string @string => ConvertFromString(@string, value.GetType()),
+            Binary binary => ConvertFromBinary(binary, value.GetType()),
+            _ => base.ConvertFrom(context, culture, value),
+        };
 
     public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
-        => destinationType == typeof(string)
-            || destinationType == typeof(IValue)
-            || base.CanConvertTo(context, destinationType);
+        => destinationType switch
+        {
+            Type type when type == typeof(string) => true,
+            Type type when type == typeof(IValue) => true,
+            Type type when type == typeof(Binary) => true,
+            _ => base.CanConvertTo(context, destinationType),
+        };
 
     public override object? ConvertTo(
         ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
-    {
-        if (value != null
-            && value.GetType().IsConstructedGenericType
-            && value.GetType().GetGenericTypeDefinition() == typeof(HashDigest<>))
+        => destinationType switch
         {
-            if (destinationType == typeof(string))
-            {
-                return value.ToString();
-            }
-            else if (destinationType == typeof(IValue))
-            {
-                var bytesProperty = GetBytesProperty(value.GetType());
-                if (bytesProperty.GetValue(value) is ImmutableArray<byte> bytes)
-                {
-                    return new Binary(bytes);
-                }
+            Type type when type == typeof(string) => value?.ToString(),
+            Type type when type == typeof(IValue) => ConvertToBinary(value),
+            Type type when type == typeof(Binary) => ConvertToBinary(value),
+            _ => base.ConvertTo(context, culture, value, destinationType),
+        };
 
-                throw new UnreachableException(
-                    $"Failed to get {nameof(HashDigest<SHA1>.Bytes)} property value");
-            }
+    private static object ConvertFromString(string @string, Type type)
+    {
+        var methodInfo = GetParseMethod(type);
+        return methodInfo.Invoke(null, [@string])!;
+    }
+
+    private static object ConvertFromBinary(Binary binary, Type type)
+    {
+        var bytes = binary.ToImmutableArray();
+        return Activator.CreateInstance(type, [bytes])!;
+    }
+
+    private static object ConvertToBinary(object? value)
+    {
+        if (value is null)
+        {
+            return Null.Value;
         }
 
-        return base.ConvertTo(context, culture, value, destinationType);
+        var bytesProperty = GetBytesProperty(value.GetType());
+        if (bytesProperty.GetValue(value) is ImmutableArray<byte> bytes)
+        {
+            return new Binary(bytes);
+        }
+
+        throw new UnreachableException(
+            $"Failed to get {nameof(HashDigest<SHA1>.Bytes)} property value");
     }
 
     private static MethodInfo GetParseMethod(Type type)
