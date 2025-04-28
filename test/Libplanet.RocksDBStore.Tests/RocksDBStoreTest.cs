@@ -84,9 +84,8 @@ namespace Libplanet.RocksDBStore.Tests
                     stateStore,
                     Fx.GenesisBlock,
                     new ActionEvaluator(
-                        policyActions: new PolicyActions(),
                         stateStore: stateStore,
-                        actionLoader: new SingleActionLoader<DumbAction>()));
+                        policyActions: new PolicyActions()));
                 store.Dispose();
 
                 store = new RocksDBStore(path);

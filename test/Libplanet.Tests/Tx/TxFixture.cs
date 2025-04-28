@@ -62,11 +62,11 @@ public class TxFixture
             0,
             PrivateKey1,
             genesisHash,
-            Array.Empty<BaseAction>().ToPlainValues(),
+            [],
             timestamp: timestamp
         );
-        BaseAction[] actions =
-        {
+        IAction[] actions =
+        [
             new Attack
             {
                 Weapon = "wand",
@@ -77,7 +77,7 @@ public class TxFixture
             {
                 ZoneId = 10,
             },
-        };
+        ];
         TxWithActions = new Transaction(
             new UnsignedTx(
                 new TxInvoice

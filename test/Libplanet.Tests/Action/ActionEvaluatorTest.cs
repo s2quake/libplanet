@@ -108,8 +108,7 @@ public partial class ActionEvaluatorTest
                 Evidence = [.. evs],
             });
         var actionEvaluator = new ActionEvaluator(
-            stateStore,
-            new SingleActionLoader<ContextRecordingAction>());
+            stateStore);
         Block stateRootBlock = noStateRootBlock.Sign(
             GenesisProposer,
             stateRootHash: default);
@@ -463,8 +462,7 @@ public partial class ActionEvaluatorTest
             TestUtils.GenesisProposer,
             stateRootHash: trie.Hash);
         var actionEvaluator = new ActionEvaluator(
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<DumbAction>());
+            stateStore: stateStore);
 
         Transaction[] block1Txs =
         {
@@ -784,8 +782,7 @@ public partial class ActionEvaluatorTest
             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100));
         ITrie initTrie = stateStore.Commit(world.Trie);
         var actionEvaluator = new ActionEvaluator(
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<DumbAction>());
+            stateStore: stateStore);
 
         IWorld previousState = stateStore.GetWorld(initTrie.Hash);
         var evaluations = actionEvaluator.EvaluateTx(
@@ -884,9 +881,7 @@ public partial class ActionEvaluatorTest
         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
         IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
         var actionEvaluator = new ActionEvaluator(
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<ThrowException>()
-        );
+            stateStore: stateStore);
         var block = RawBlock.Propose(
             new BlockMetadata
             {
@@ -917,8 +912,7 @@ public partial class ActionEvaluatorTest
     {
         IntegerSet fx = new IntegerSet(new[] { 5, 10 });
         var actionEvaluator = new ActionEvaluator(
-            stateStore: fx.StateStore,
-            new SingleActionLoader<Arithmetic>());
+            stateStore: fx.StateStore);
 
         // txA: ((5 + 1) * 2) + 3 = 15
         (Transaction txA, var deltaA) = fx.Sign(
@@ -1475,8 +1469,7 @@ public partial class ActionEvaluatorTest
     {
         IntegerSet fx = new IntegerSet(new[] { 5, 10 });
         var actionEvaluator = new ActionEvaluator(
-            fx.StateStore,
-            new SingleActionLoader<Arithmetic>());
+            fx.StateStore);
 
         // txA: ((5 + 1) * 2) + 3 = 15
         (Transaction txA, var deltaA) = fx.Sign(

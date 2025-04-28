@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
+using Libplanet.Action;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Common;
 using Libplanet.Crypto;
@@ -346,7 +347,7 @@ namespace Libplanet.Blockchain
                     {
                         foreach (IValue rawAction in tx.Actions)
                         {
-                            _ = ActionEvaluator.ActionLoader.LoadAction(rawAction);
+                            _ = ModelSerializer.Deserialize<IAction>(rawAction);
                         }
                     }
                     catch (Exception e)

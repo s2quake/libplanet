@@ -4,6 +4,7 @@ using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -188,7 +189,7 @@ namespace Libplanet.Blockchain
             {
                 foreach (IValue rawAction in tx.Actions)
                 {
-                    _ = ActionEvaluator.ActionLoader.LoadAction(rawAction);
+                    _ = ModelSerializer.Deserialize<IAction>(rawAction);
                 }
             }
         }

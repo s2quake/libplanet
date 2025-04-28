@@ -1,4 +1,5 @@
 using Bencodex.Types;
+using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Common;
@@ -247,9 +248,7 @@ namespace Libplanet.Tests.Tx
 
             Assert.Equal(2, tx.Actions.Length);
 
-            var actionLoader = TypedActionLoader.Create(
-                typeof(BaseAction).Assembly, typeof(BaseAction));
-            var action0 = actionLoader.LoadAction(tx.Actions[0]);
+            var action0 = ModelSerializer.Deserialize<IAction>(tx.Actions[0]);
             Assert.IsType<Attack>(action0);
             var targetAddress =
                 ((Binary)((Dictionary)((Dictionary)ModelSerializer.Serialize(action0))["values"])["target_address"])
@@ -268,7 +267,7 @@ namespace Libplanet.Tests.Tx
                 ModelSerializer.Serialize(action0)
             );
 
-            var action1 = actionLoader.LoadAction(tx.Actions[1]);
+            var action1 = ModelSerializer.Deserialize<IAction>(tx.Actions[1]);
             Assert.IsType<Sleep>(action1);
             Assert.Equal(
                 Dictionary.Empty

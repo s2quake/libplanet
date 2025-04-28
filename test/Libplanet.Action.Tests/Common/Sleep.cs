@@ -1,28 +1,16 @@
-using Bencodex.Types;
-using Libplanet.Action.State;
+using Libplanet.Serialization;
 
-namespace Libplanet.Action.Tests.Common
+namespace Libplanet.Action.Tests.Common;
+
+[ActionType("sleep")]
+[Model(Version = 1)]
+public sealed record class Sleep : ActionBase
 {
-    [ActionType("sleep")]
-    public class Sleep : BaseAction
+    [Property(0)]
+    public int ZoneId { get; set; }
+
+    protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        public int ZoneId { get; set; }
-
-        public override IValue PlainValue => Dictionary.Empty
-            .Add("type_id", TypeId)
-            .Add("values", Dictionary.Empty
-                .Add("zone_id", ZoneId));
-
-        public override IWorld Execute(IActionContext context)
-        {
-            // No-op.
-            return context.World;
-        }
-
-        public override void LoadPlainValue(IValue plainValue)
-        {
-            Dictionary values = (Dictionary)GetValues(plainValue);
-            ZoneId = (Integer)values["zone_id"];
-        }
+        // Do nothing
     }
 }

@@ -487,7 +487,6 @@ namespace Libplanet.Tests.Blockchain
                     fx.GenesisBlock,
                     new ActionEvaluator(
                         stateStore: fx.StateStore,
-                        actionLoader: new SingleActionLoader<DumbAction>(),
                         policy.PolicyActions));
 
                 var validTx = blockChain.MakeTransaction(validKey, Array.Empty<DumbAction>());
@@ -575,7 +574,6 @@ namespace Libplanet.Tests.Blockchain
                 blockChainStates,
                 new ActionEvaluator(
                     _fx.StateStore,
-                    new SingleActionLoader<DumbAction>(),
                     policy.PolicyActions));
             Assert.Throws<InvalidOperationException>(
                 () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
@@ -659,7 +657,6 @@ namespace Libplanet.Tests.Blockchain
             var renderer = new ValidatingActionRenderer();
             var actionEvaluator = new ActionEvaluator(
                 stateStore: fx.StateStore,
-                actionLoader: new SingleActionLoader<DumbAction>(),
                 policy.PolicyActions);
 
             var txs = new[]
@@ -730,7 +727,6 @@ namespace Libplanet.Tests.Blockchain
             var actionLoader = new SingleActionLoader<DumbAction>();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
-                actionLoader,
                 policy.PolicyActions);
 
             var preGenesis = TestUtils.ProposeGenesis(
