@@ -6,7 +6,7 @@ public static class TrieExtensions
 {
     public static TrieMetadata? GetMetadata(this ITrie @this)
     {
-        if (@this[KeyBytes.Empty] is { } value)
+        if (@this.TryGetValue(KeyBytes.Empty, out var value))
         {
             return new TrieMetadata(value);
         }

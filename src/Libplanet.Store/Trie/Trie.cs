@@ -17,14 +17,14 @@ public sealed partial record class Trie(INode Node) : ITrie
         _ => HashDigest<SHA256>.DeriveFrom(_codec.Encode(Node.ToBencodex())),
     };
 
-    public bool IsCommitted { get; private set; } = Node is not null && Node is not HashNode;
+    public bool IsCommitted { get; private set; } = Node is HashNode;
 
     public IValue this[in KeyBytes key]
         => NodeResolver.ResolveToValue(Node, PathCursor.Create(key));
 
-    public static Trie Create(HashDigest<SHA256> hashDigest)
+    public static Trie Create(HashDigest<SHA256> hashDigest, IKeyValueStore keyValueStore)
     {
-        var node = new HashNode(hashDigest);
+        var node = new HashNode(hashDigest) { KeyValueStore = keyValueStore };
         return new Trie(node) { IsCommitted = true };
     }
 
@@ -101,8 +101,30 @@ public sealed partial record class Trie(INode Node) : ITrie
         }
     }
 
+    public bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value)
+    {
+        if (ContainsKey(key))
+        {
+            value = this[key];
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
     public bool ContainsKey(in KeyBytes key)
-        => NodeResolver.ResolveToValue(Node, PathCursor.Create(key)) != null;
+    {
+        try
+        {
+            _ = NodeResolver.ResolveToValue(Node, PathCursor.Create(key));
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     public IEnumerator<KeyValuePair<KeyBytes, IValue>> GetEnumerator()
     {

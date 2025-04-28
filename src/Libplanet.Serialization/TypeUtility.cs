@@ -10,14 +10,14 @@ public static class TypeUtility
 {
     public static readonly Type[] SupportedBaseTypes =
     [
-        typeof(int),
-        typeof(long),
-        typeof(string),
-        typeof(bool),
-        typeof(BigInteger),
-        typeof(byte[]),
-        typeof(DateTimeOffset),
-        typeof(TimeSpan),
+        // typeof(int),
+        // typeof(long),
+        // typeof(string),
+        // typeof(bool),
+        // typeof(BigInteger),
+        // typeof(byte[]),
+        // typeof(DateTimeOffset),
+        // typeof(TimeSpan),
     ];
 
     private static readonly ConcurrentDictionary<string, Type> _typeByName = [];
