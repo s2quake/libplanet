@@ -1,6 +1,6 @@
 ﻿namespace Libplanet.Serialization.Converters;
 
-internal sealed class BigIntegerTypeConverter : TypeConverterBase<BigInteger, Bencodex.Types.Integer>
+internal sealed class BigIntegerTypeConverter : InternalTypeConverterBase<BigInteger, Bencodex.Types.Integer>
 {
     protected override BigInteger ConvertFromValue(Bencodex.Types.Integer value) => value.Value;
 

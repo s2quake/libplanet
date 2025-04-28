@@ -1,41 +1,15 @@
-using System.ComponentModel;
-using System.Globalization;
 using Bencodex.Types;
+using Libplanet.Common.Converters;
 
 namespace Libplanet.Crypto.Converters;
 
-internal sealed class AddressTypeConverter : TypeConverter
+internal sealed class AddressTypeConverter : TypeConverterBase<Address, Binary>
 {
-    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
-        => sourceType == typeof(string)
-            || sourceType == typeof(IValue)
-            || base.CanConvertFrom(context, sourceType);
+    protected override Address ConvertFromValue(Binary value) => new(value.ToByteArray());
 
-    public override object? ConvertFrom(
-        ITypeDescriptorContext? context, CultureInfo? culture, object value)
-        => value is string v ? Address.Parse(v) : base.ConvertFrom(context, culture, value);
+    protected override Binary ConvertToValue(Address value) => new(value.Bytes);
 
-    public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
-        => destinationType == typeof(string)
-            || destinationType == typeof(IValue)
-            || base.CanConvertTo(context, destinationType);
+    protected override Address ConvertFromString(string value) => Address.Parse(value);
 
-    public override object? ConvertTo(
-        ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
-    {
-        if (value is Address address)
-        {
-            if (destinationType == typeof(string))
-            {
-                return (object?)$"{address:raw}";
-            }
-
-            if (destinationType == typeof(IValue))
-            {
-                return new Binary(address.Bytes);
-            }
-        }
-
-        return base.ConvertTo(context, culture, value, destinationType);
-    }
+    protected override string ConvertToString(Address value) => $"{value:raw}";
 }

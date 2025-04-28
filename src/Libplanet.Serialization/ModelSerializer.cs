@@ -102,6 +102,15 @@ public static class ModelSerializer
 
     public static object? Deserialize(IValue value, Type type, ModelOptions options)
     {
+        if (typeof(IValue).IsAssignableFrom(type))
+        {
+            int qwr=0;
+        }
+        if (type.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
         if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertFrom(value.GetType()))
         {
             return converter.ConvertFrom(value);
@@ -185,6 +194,11 @@ public static class ModelSerializer
 
     private static IValue Serialize(object obj, Type type, ModelOptions options)
     {
+        if (obj is IValue v)
+        {
+            return v;
+        }
+
         if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
         {
             return converter.ConvertTo(obj, typeof(IValue)) is IValue value
