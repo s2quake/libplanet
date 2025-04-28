@@ -224,9 +224,10 @@ public static partial class RandomUtility
         return sb.ToString();
     }
 
-    public static T[] Array<T>(Func<T> generator)
+    public static T[] Array<T>(Func<T> generator) => Array(generator, Length());
+
+    public static T[] Array<T>(Func<T> generator, int length)
     {
-        var length = Length();
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
