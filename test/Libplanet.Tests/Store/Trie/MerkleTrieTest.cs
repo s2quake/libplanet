@@ -15,6 +15,14 @@ namespace Libplanet.Tests.Store.Trie;
 public class MerkleTrieTest
 {
     [Fact]
+    public void Base_Test()
+    {
+        var trie = new Libplanet.Store.Trie.Trie();
+        Assert.Equal(default, trie.Hash);
+        Assert.IsType<NullNode>(trie.Node);
+    }
+
+    [Fact]
     public void ConstructWithHashDigest()
     {
         using var store = new MemoryKeyValueStore();
@@ -29,8 +37,8 @@ public class MerkleTrieTest
         using var store = new MemoryKeyValueStore();
         var hashDigest = new HashDigest<SHA256>(GetRandomBytes(Size));
         var node = new HashNode(hashDigest) { KeyValueStore = store };
-        var merkleTrie = new Libplanet.Store.Trie.Trie(node);
-        Assert.Equal(hashDigest, merkleTrie.Hash);
+        var trie = new Libplanet.Store.Trie.Trie(node);
+        Assert.Equal(hashDigest, trie.Hash);
     }
 
     [Fact]
