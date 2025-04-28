@@ -102,7 +102,7 @@ public static class ModelSerializer
 
     public static object? Deserialize(IValue value, Type type, ModelOptions options)
     {
-        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertFrom(typeof(IValue)))
+        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertFrom(value.GetType()))
         {
             return converter.ConvertFrom(value);
         }
@@ -262,7 +262,7 @@ public static class ModelSerializer
 
             foreach (var item in items)
             {
-                list.Add(SerializeValue(item, elementType, options));
+                list.Add(Serialize(item, elementType, options));
             }
 
             var data = new ModelData
@@ -292,7 +292,7 @@ public static class ModelSerializer
 
             foreach (var item in items)
             {
-                list.Add(SerializeValue(item, elementType, options));
+                list.Add(Serialize(item, elementType, options));
             }
 
             var data = new ModelData
@@ -322,7 +322,7 @@ public static class ModelSerializer
 
             foreach (var item in items)
             {
-                list.Add(SerializeValue(item, elementType, options));
+                list.Add(Serialize(item, elementType, options));
             }
 
             var data = new ModelData
@@ -487,7 +487,7 @@ public static class ModelSerializer
         for (var i = 0; i < list.Count; i++)
         {
             var item = list[i];
-            var itemValue = item is null ? null : DeserializeValue(elementType, item, options);
+            var itemValue = item is null ? null : Deserialize(item, elementType, options);
             array.SetValue(itemValue, i);
         }
 
@@ -501,7 +501,7 @@ public static class ModelSerializer
         var listInstance = (IList)CreateInstance(listType)!;
         foreach (var item in list)
         {
-            var itemValue = item is null ? null : DeserializeValue(elementType, item, options);
+            var itemValue = item is null ? null : Deserialize(item, elementType, options);
             listInstance.Add(itemValue);
         }
 
@@ -520,7 +520,7 @@ public static class ModelSerializer
         var listInstance = (IList)CreateInstance(listType)!;
         foreach (var item in list)
         {
-            var itemValue = item is null ? null : DeserializeValue(elementType, item, options);
+            var itemValue = item is null ? null : Deserialize(item, elementType, options);
             listInstance.Add(itemValue);
         }
 

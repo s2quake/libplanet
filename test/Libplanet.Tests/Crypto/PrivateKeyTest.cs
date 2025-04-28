@@ -49,6 +49,9 @@ public class PrivateKeyTest
             0x3f, 0xc7,
         };
         var key = new PrivateKey(bs);
+        var message = Encoding.UTF8.GetBytes("test message");
+        var signature = key.Sign(message);
+        var b = key.PublicKey.Verify(message, signature);
         Assert.Equal(bs, key.Bytes);
         key = new PrivateKey(bs.ToImmutableArray().ToArray());
         Assert.Equal(bs, key.Bytes);
