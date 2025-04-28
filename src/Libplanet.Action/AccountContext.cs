@@ -71,7 +71,7 @@ internal sealed class AccountContext(
 
     public bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value)
     {
-        if (_account.GetState(address) is { } state)
+        if (_account.TryGetState(address, out var state))
         {
             if (ModelSerializer.TryGetType(state, out var type))
             {

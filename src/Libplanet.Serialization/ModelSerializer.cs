@@ -104,8 +104,9 @@ public static class ModelSerializer
     {
         if (typeof(IValue).IsAssignableFrom(type))
         {
-            int qwr=0;
+            return value;
         }
+
         if (type.IsInstanceOfType(value))
         {
             return value;

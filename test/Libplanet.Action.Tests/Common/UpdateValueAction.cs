@@ -1,46 +1,30 @@
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
-using Libplanet.Serialization;
 
-namespace Libplanet.Action.Tests.Common
+namespace Libplanet.Action.Tests.Common;
+
+public sealed record class UpdateValueAction : ActionBase
 {
-    public sealed class UpdateValueAction : IAction
+    public Address Address { get; init; }
+
+    public Integer Increment { get; init; }
+
+    public IWorld Execute(IActionContext context)
     {
-        public UpdateValueAction()
-        {
-        }
+        var world = context.World;
+        var account = world.GetAccount(ReservedAddresses.LegacyAccount);
+        Integer value = account.GetState(Address) is Integer integer
+            ? integer + Increment
+            : Increment;
 
-        public UpdateValueAction(Address address, int increment)
-        {
-            Address = address;
-            Increment = increment;
-        }
+        account = account.SetState(Address, value);
+        return world.SetAccount(ReservedAddresses.LegacyAccount, account);
+    }
 
-        public Address Address { get; set; }
-
-        public Integer Increment { get; set; }
-
-        public IValue PlainValue => Bencodex.Types.Dictionary.Empty
-            .Add("address", ModelSerializer.Serialize(Address))
-            .Add("value", Increment);
-
-        public void LoadPlainValue(IValue plainValue)
-        {
-            Address = ModelSerializer.Deserialize<Address>(((Dictionary)plainValue)["address"]);
-            Increment = (Integer)((Dictionary)plainValue)["value"];
-        }
-
-        public IWorld Execute(IActionContext ctx)
-        {
-            IWorld states = ctx.World;
-            IAccount account = states.GetAccount(ReservedAddresses.LegacyAccount);
-            Integer value = account.GetState(Address) is Integer integer
-                ? integer + Increment
-                : Increment;
-
-            account = account.SetState(Address, value);
-            return states.SetAccount(ReservedAddresses.LegacyAccount, account);
-        }
+    protected override void OnExecute(IWorldContext world, IActionContext context)
+    {
+        var value = world.GetValue(ReservedAddresses.LegacyAccount, Address, new Integer(0));
+        world[ReservedAddresses.LegacyAccount, Address] = (Integer)(value + Increment);
     }
 }

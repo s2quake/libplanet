@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;
@@ -29,4 +30,7 @@ public sealed record class Account : IAccount
         IValue? value) => value is { } v
             ? new Account(new AccountState(Trie.Set(ToStateKey(address), v)))
             : new Account(new AccountState(Trie.Remove(ToStateKey(address))));
+
+    public bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state)
+        => _state.TryGetState(address, out state);
 }

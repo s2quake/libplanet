@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Bencodex.Types;
 using Libplanet.Store.Trie.Nodes;
 
@@ -5,21 +6,21 @@ namespace Libplanet.Store.Trie;
 
 internal static class NodeResolver
 {
-    public static IValue ResolveToValue(INode? node, in PathCursor cursor) => node switch
+    public static IValue? ResolveToValue(INode? node, in PathCursor cursor) => node switch
     {
-        null => throw new KeyNotFoundException(
-            $"Invalid node value: {node?.ToBencodex().Inspect()}"),
+        null => null,
         ValueNode valueNode => cursor.IsEnd
             ? valueNode.Value
-            : ThrowKeyNotFoundException(node),
+            : null,
         ShortNode shortNode => cursor.NextNibbles.StartsWith(shortNode.Key)
             ? ResolveToValue(shortNode.Value, cursor.Next(shortNode.Key.Length))
-            : ThrowKeyNotFoundException(node),
+            : null,
         FullNode fullNode => !cursor.IsEnd
             ? ResolveToValue(fullNode.GetChild(cursor.Current), cursor.Next(1))
             : ResolveToValue(fullNode.Value, cursor),
         HashNode hashNode => ResolveToValue(hashNode.Expand(), cursor),
-        _ => ThrowKeyNotFoundException(node),
+        NullNode _ => null,
+        _ => throw new UnreachableException("An unknown type of node was encountered."),
     };
 
     public static INode ResolveToNode(INode node, in PathCursor cursor)

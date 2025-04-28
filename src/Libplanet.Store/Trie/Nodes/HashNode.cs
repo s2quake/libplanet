@@ -44,8 +44,15 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
         else
         {
             var keyBytes = new KeyBytes(Hash.Bytes);
-            intermediateValue = _codec.Decode(keyValueStore[keyBytes]);
-            HashNodeCache.AddOrUpdate(Hash, intermediateValue);
+            if (keyValueStore.TryGetValue(keyBytes, out var valueBytes))
+            {
+                intermediateValue = _codec.Decode(keyValueStore[keyBytes]);
+                HashNodeCache.AddOrUpdate(Hash, intermediateValue);
+            }
+            else
+            {
+                return NullNode.Value;
+            }
         }
 
         return NodeDecoder.Decode(

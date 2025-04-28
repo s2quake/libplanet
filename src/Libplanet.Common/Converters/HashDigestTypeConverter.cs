@@ -8,7 +8,7 @@ using Bencodex.Types;
 
 namespace Libplanet.Common.Converters;
 
-internal sealed class HashDigestTypeConverter : TypeConverter
+internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
 {
     private static readonly ConcurrentDictionary<Type, MethodInfo> _parseMethodByType = [];
     private static readonly ConcurrentDictionary<Type, PropertyInfo> _bytesPropertyByType = [];
@@ -25,8 +25,8 @@ internal sealed class HashDigestTypeConverter : TypeConverter
     public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
         => value switch
         {
-            string @string => ConvertFromString(@string, value.GetType()),
-            Binary binary => ConvertFromBinary(binary, value.GetType()),
+            string @string => ConvertFromString(@string, type),
+            Binary binary => ConvertFromBinary(binary, type),
             _ => base.ConvertFrom(context, culture, value),
         };
 
