@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Common;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
@@ -215,7 +216,8 @@ public sealed class ActionEvaluator(IStateStore stateStore, IActionLoader action
     {
         foreach (var action in tx.Actions)
         {
-            yield return actionLoader.LoadAction(action);
+            // yield return actionLoader.LoadAction(action);
+            yield return ModelSerializer.Deserialize<IAction>(action);
         }
     }
 

@@ -3,10 +3,9 @@ using Bencodex.Types;
 
 namespace Libplanet.Action.Loader;
 
-public sealed class AggregateTypedActionLoader
-     : IActionLoader, IEnumerable<IActionLoader>
+public sealed class AggregateTypedActionLoader : IActionLoader, IEnumerable<IActionLoader>
 {
-    private readonly List<IActionLoader> _actionLoaderList = new List<IActionLoader>();
+    private readonly List<IActionLoader> _actionLoaderList = [];
 
     public AggregateTypedActionLoader()
     {
@@ -14,7 +13,7 @@ public sealed class AggregateTypedActionLoader
 
     public AggregateTypedActionLoader(IActionLoader[] actionLoaders)
     {
-        _actionLoaderList = new List<IActionLoader>(actionLoaders);
+        _actionLoaderList = [.. actionLoaders];
     }
 
     public IAction LoadAction(IValue value)
@@ -41,14 +40,9 @@ public sealed class AggregateTypedActionLoader
             paramName: nameof(value));
     }
 
-    public void Add(IActionLoader actionLoader)
-    {
-        _actionLoaderList.Add(actionLoader);
-    }
+    public void Add(IActionLoader actionLoader) => _actionLoaderList.Add(actionLoader);
 
-    IEnumerator<IActionLoader> IEnumerable<IActionLoader>.GetEnumerator()
-        => _actionLoaderList.GetEnumerator();
+    IEnumerator<IActionLoader> IEnumerable<IActionLoader>.GetEnumerator() => _actionLoaderList.GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator()
-        => _actionLoaderList.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => _actionLoaderList.GetEnumerator();
 }

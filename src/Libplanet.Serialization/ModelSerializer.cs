@@ -116,22 +116,26 @@ public static class ModelSerializer
                 $"Given magic value {header.TypeValue} is not {ObjectValue}");
         }
 
-        var typeName = options.GetTypeName(type);
-        if (header.TypeName != typeName)
+        // var typeName = options.GetTypeName(type);
+        var headerType = Type.GetType(header.TypeName);
+        // if (header.TypeName != typeName)
+        // {
+        //     throw new ModelSerializationException(
+        //         $"Given type name {header.TypeName} is not {typeName}");
+        // }
+        if (headerType != type && type.IsAssignableFrom(headerType) is false)
         {
-            throw new ModelSerializationException(
-                $"Given type name {header.TypeName} is not {typeName}");
+            throw new ModelSerializationException($"Given type {headerType} is not {type}");
         }
 
         if (data.Value is not List list)
         {
-            throw new ModelSerializationException(
-                $"The value is not a list: {data.Value}");
+            throw new ModelSerializationException($"The value is not a list: {data.Value}");
         }
 
-        var modelType = options.GetType(type, header.Version);
+        var modelType = options.GetType(headerType, header.Version);
         var modelVersion = header.Version;
-        var currentVersion = options.GetVersion(type);
+        var currentVersion = options.GetVersion(headerType);
 
         var obj = CreateInstance(modelType);
         var propertyInfos = options.GetProperties(modelType);
@@ -151,7 +155,7 @@ public static class ModelSerializer
         while (modelVersion < currentVersion)
         {
             var args = new object[] { obj };
-            modelType = options.GetType(type, modelVersion + 1);
+            modelType = options.GetType(headerType, modelVersion + 1);
             obj = CreateInstance(modelType, args: args);
             modelVersion++;
         }
@@ -435,6 +439,33 @@ public static class ModelSerializer
                 return ToImmutableArray(list, elementType, options);
             }
         }
+        else if (IsImmutableSortedSet(propertyType, out elementType))
+        {
+            if (propertyValue is Null)
+            {
+                return ToImmutableEmptySortedSet(elementType);
+            }
+
+            if (ModelData.TryGetObject(propertyValue, out var data))
+            {
+                var header = data.Header;
+                if (header.TypeValue != ImmutableSortedSetValue)
+                {
+                    throw new ModelSerializationException(
+                        $"Given magic value {header.TypeValue} is not {ArrayValue}");
+                }
+
+                var typeName = options.GetTypeName(elementType);
+                if (header.TypeName != typeName)
+                {
+                    throw new ModelSerializationException(
+                        $"Given type name {header.TypeName} is not {typeName}");
+                }
+
+                var list = (List)data.Value;
+                return ToImmutableSortedSet(list, elementType, options);
+            }
+        }
         else if (propertyValue is Null)
         {
             return null;
@@ -478,6 +509,25 @@ public static class ModelSerializer
         var methodName = nameof(ImmutableArray.CreateRange);
         var methodInfo = GetCreateRangeMethod(
             typeof(ImmutableArray), methodName, typeof(IEnumerable<>));
+        var genericMethodInfo = methodInfo.MakeGenericMethod(elementType);
+        var methodArgs = new object?[] { listInstance };
+        return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
+    }
+
+    private static object ToImmutableSortedSet(
+        List list, Type elementType, ModelOptions options)
+    {
+        var listType = typeof(List<>).MakeGenericType(elementType);
+        var listInstance = (IList)CreateInstance(listType)!;
+        foreach (var item in list)
+        {
+            var itemValue = item is null ? null : DeserializeValue(elementType, item, options);
+            listInstance.Add(itemValue);
+        }
+
+        var methodName = nameof(ImmutableSortedSet.CreateRange);
+        var methodInfo = GetCreateRangeMethod(
+            typeof(ImmutableSortedSet), methodName, typeof(IEnumerable<>));
         var genericMethodInfo = methodInfo.MakeGenericMethod(elementType);
         var methodArgs = new object?[] { listInstance };
         return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
