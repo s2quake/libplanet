@@ -15,6 +15,7 @@ using Libplanet.Explorer.Queries;
 using Libplanet.Store;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using System.Text;
+using Libplanet.Serialization;
 
 namespace Libplanet.Explorer.Tests.Queries;
 
@@ -59,7 +60,9 @@ public class TransactionQueryTest
         ExecutionNode resultData = Assert.IsAssignableFrom<ExecutionNode>(result.Data);
         IDictionary<string, object> resultDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
-        Assert.Equal(tx.Serialize(), ByteUtil.ParseHex((string)resultDict["bindSignature"]));
+        Assert.Equal(
+            ModelSerializer.SerializeToBytes(tx),
+            ByteUtil.ParseHex((string)resultDict["bindSignature"]));
     }
 
     [Fact]
@@ -92,7 +95,9 @@ public class TransactionQueryTest
         ExecutionNode resultData = Assert.IsAssignableFrom<ExecutionNode>(result.Data);
         IDictionary<string, object> resultDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
-        Assert.Equal(tx.Serialize(), ByteUtil.ParseHex((string)resultDict["bindSignature"]));
+        Assert.Equal(
+            ModelSerializer.SerializeToBytes(tx),
+            ByteUtil.ParseHex((string)resultDict["bindSignature"]));
     }
 
     [Fact]

@@ -39,19 +39,17 @@ public class UnsignedTxTest
             Timestamp = timestamp,
             Actions = [.. actions],
         };
-        _signingMetadata = new TxSigningMetadata(PublicKey, 123L);
+        _signingMetadata = TxSigningMetadata.Create(PublicKey, 123L);
     }
 
     [Fact]
     public void Constructor()
     {
-        var unsignedTx = new UnsignedTx(_invoice, _signingMetadata);
+        var unsignedTx = UnsignedTx.Create(_invoice, _signingMetadata);
         Assert.Equal(_invoice, unsignedTx.Invoice);
         Assert.Equal(_signingMetadata, unsignedTx.SigningMetadata);
 
-        unsignedTx = new UnsignedTx(
-            _invoice,
-            _signingMetadata);
+        unsignedTx = UnsignedTx.Create(_invoice, _signingMetadata);
         Assert.Equal(_invoice, unsignedTx.Invoice);
         Assert.Equal(_signingMetadata, unsignedTx.SigningMetadata);
     }
@@ -59,7 +57,7 @@ public class UnsignedTxTest
     [Fact]
     public void CopyConstructor()
     {
-        var original = new UnsignedTx(_invoice, _signingMetadata);
+        var original = UnsignedTx.Create(_invoice, _signingMetadata);
         var copy = original with { };
         Assert.Equal(_invoice, copy.Invoice);
         Assert.Equal(_signingMetadata, copy.SigningMetadata);
@@ -68,7 +66,7 @@ public class UnsignedTxTest
     [Fact]
     public void CreateSignature()
     {
-        var unsignedTx = new UnsignedTx(_invoice, _signingMetadata);
+        var unsignedTx = UnsignedTx.Create(_invoice, _signingMetadata);
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         var wrongKey = new PrivateKey();
@@ -85,7 +83,7 @@ public class UnsignedTxTest
     [Fact]
     public void VerifySignature()
     {
-        var unsignedTx = new UnsignedTx(_invoice, _signingMetadata);
+        var unsignedTx = UnsignedTx.Create(_invoice, _signingMetadata);
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         var signature = ByteUtil.ParseHexToImmutable(
@@ -101,7 +99,7 @@ public class UnsignedTxTest
     [Fact]
     public void Equality()
     {
-        var unsignedTx = new UnsignedTx(_invoice, _signingMetadata);
+        var unsignedTx = UnsignedTx.Create(_invoice, _signingMetadata);
         Assert.Equal(_invoice, unsignedTx.Invoice);
         Assert.Equal(_signingMetadata, unsignedTx.SigningMetadata);
         var copy = unsignedTx with { };
@@ -120,10 +118,11 @@ public class UnsignedTxTest
                 Timestamp = i == 2 ? DateTimeOffset.MinValue : _invoice.Timestamp,
                 Actions = i == 3 ? [] : _invoice.Actions,
             };
-            var diffSigningMetadata = new TxSigningMetadata(
-                i == 4 ? wrongKey.Address : _signingMetadata.Signer,
-                i == 5 ? 456L : _signingMetadata.Nonce
-            );
+            var diffSigningMetadata = new TxSigningMetadata
+            {
+                Signer = i == 4 ? wrongKey.Address : _signingMetadata.Signer,
+                Nonce = i == 5 ? 456L : _signingMetadata.Nonce,
+            };
 
             if (i < 4)
             {
@@ -136,7 +135,7 @@ public class UnsignedTxTest
                 Assert.NotEqual(diffSigningMetadata, unsignedTx.SigningMetadata);
             }
 
-            var diffUnsignedTx = new UnsignedTx(diffInvoice, diffSigningMetadata);
+            var diffUnsignedTx = UnsignedTx.Create(diffInvoice, diffSigningMetadata);
             Assert.NotEqual(unsignedTx, diffUnsignedTx);
             Assert.False(unsignedTx.Equals((object)diffUnsignedTx));
             Assert.NotEqual(unsignedTx.GetHashCode(), diffUnsignedTx.GetHashCode());
@@ -148,7 +147,7 @@ public class UnsignedTxTest
     public void JsonSerialization()
     {
         TestUtils.AssertJsonSerializable(
-            new UnsignedTx(_invoice, _signingMetadata),
+            UnsignedTx.Create(_invoice, _signingMetadata),
             @"
                     {
                       ""updatedAddresses"": [
