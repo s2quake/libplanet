@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Fixtures
         public readonly IReadOnlyList<PrivateKey> PrivateKeys;
         public readonly IReadOnlyList<Address> Addresses;
         public readonly IReadOnlyList<Arithmetic> Actions;
-        public readonly IReadOnlyList<Transaction> Txs;
+        public readonly ImmutableSortedSet<Transaction> Txs;
         public readonly PrivateKey Miner;
         public readonly Block Genesis;
         public readonly BlockChain Chain;
@@ -65,7 +65,7 @@ namespace Libplanet.Tests.Fixtures
                         },
                         privateKey: pair.Key))
                 .OrderBy(tx => tx.Id)
-                .ToImmutableArray();
+                .ToImmutableSortedSet();
             Miner = new PrivateKey();
             policy = policy ?? new NullBlockPolicy();
             Store = new MemoryStore();
