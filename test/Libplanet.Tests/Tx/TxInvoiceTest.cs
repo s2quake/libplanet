@@ -178,7 +178,7 @@ namespace Libplanet.Tests.Tx
                 // mock object has respective values set to null.
                 var invoice = new TxInvoice
                 {
-                    GenesisHash = i == 0 ? null : genesisHash,
+                    GenesisHash = i == 0 ? default : genesisHash,
                     UpdatedAddresses = i == 1 ? [] : updatedAddresses,
                     Timestamp = i == 2 ? DateTimeOffset.MinValue : timestamp,
                     Actions = i == 3 ? [] : actions,
@@ -187,7 +187,7 @@ namespace Libplanet.Tests.Tx
                             new Currency("FOO", 18, [new PrivateKey().Address]),
                             100)
                         : null,
-                    GasLimit = i == 4 ? 10 : null,
+                    GasLimit = i == 4 ? 10 : 0L,
                 };
                 Assert.False(invoice1.Equals(invoice));
                 Assert.False(invoice1.Equals((object)invoice));

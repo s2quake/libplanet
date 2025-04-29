@@ -8,7 +8,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class Block
+public sealed record class Block : IEquatable<Block>
 {
     public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
 
@@ -65,8 +65,10 @@ public sealed record class Block
     // [JsonIgnore]
     // public BlockHeader Header => _header;
 
-    public required BlockHeader Header { get; init; }
+    [Property(0)]
+    public required BlockHeader Header { get; init; } = BlockHeader.Empty;
 
+    [Property(1)]
     public required BlockContent Content { get; init; }
 
     public int ProtocolVersion => Header.ProtocolVersion;
@@ -99,9 +101,11 @@ public sealed record class Block
 
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
-    public override int GetHashCode() => unchecked((17 * 31 + Hash.GetHashCode()) * 31);
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public override string ToString() => Hash.ToString();
+
+    public bool Equals(Block? other) => ModelUtility.Equals(this, other);
 
     // public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 

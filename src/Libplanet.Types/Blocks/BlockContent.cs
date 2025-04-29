@@ -8,8 +8,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockContent
-    : IValidatableObject
+public sealed record class BlockContent : IEquatable<BlockContent>, IValidatableObject
 {
     // public BlockContent(
     //     BlockMetadata metadata,
@@ -51,10 +50,10 @@ public sealed record class BlockContent
 
     // public required BlockMetadata Metadata { get; init; }
 
-    [Property(1)]
+    [Property(0)]
     public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
 
-    [Property(2)]
+    [Property(1)]
     public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
 
     // public int ProtocolVersion => Metadata.ProtocolVersion;
@@ -146,6 +145,10 @@ public sealed record class BlockContent
 
         return default;
     }
+
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+
+    public bool Equals(BlockContent? other) => ModelUtility.Equals(this, other);
 
     // public RawBlock Propose(BlockMetadata Metadata)
     // {

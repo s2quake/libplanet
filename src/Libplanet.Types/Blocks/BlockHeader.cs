@@ -8,6 +8,7 @@ namespace Libplanet.Types.Blocks;
 [Model(Version = 1)]
 public sealed record class BlockHeader
 {
+    public static BlockHeader Empty { get; } = new();
     // public BlockHeader(
     //     RawBlockHeader rawBlockHeader,
     //     (
@@ -73,7 +74,7 @@ public sealed record class BlockHeader
 
     public HashDigest<SHA256> TxHash { get; init; }
 
-    public BlockCommit LastCommit { get; init; }
+    public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
     public HashDigest<SHA256> EvidenceHash { get; init; }
 

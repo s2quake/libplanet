@@ -112,7 +112,7 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
         BlockHash? genesisHash,
         ImmutableArray<IValue> actions,
         FungibleAssetValue? maxGasPrice = null,
-        long? gasLimit = null,
+        long gasLimit = 0L,
         DateTimeOffset? timestamp = null)
     {
         if (privateKey is null)
@@ -123,7 +123,7 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
         var draftInvoice = new TxInvoice
         {
             Actions = actions,
-            GenesisHash = genesisHash,
+            GenesisHash = genesisHash ?? default,
             Timestamp = timestamp ?? DateTimeOffset.UtcNow,
             MaxGasPrice = maxGasPrice,
             GasLimit = gasLimit,

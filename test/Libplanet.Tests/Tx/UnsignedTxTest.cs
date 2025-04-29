@@ -116,7 +116,7 @@ public class UnsignedTxTest
         {
             var diffInvoice = new TxInvoice
             {
-                GenesisHash = i == 0 ? null : _invoice.GenesisHash,
+                GenesisHash = i == 0 ? default : _invoice.GenesisHash,
                 UpdatedAddresses = i == 1 ? [] : _invoice.UpdatedAddresses,
                 Timestamp = i == 2 ? DateTimeOffset.MinValue : _invoice.Timestamp,
                 Actions = i == 3 ? [] : _invoice.Actions,

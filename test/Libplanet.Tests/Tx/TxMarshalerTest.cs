@@ -24,7 +24,7 @@ namespace Libplanet.Tests.Tx
 
         public TxMarshalerTest()
         {
-            _fx = new TxFixture(null);
+            _fx = new TxFixture(default);
 
             _marshaledTxInvoice = Bencodex.Types.Dictionary.Empty
                 .Add(new byte[] { 0x61 }, Bencodex.Types.List.Empty) // 'a'

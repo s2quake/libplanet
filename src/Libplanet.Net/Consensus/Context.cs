@@ -188,7 +188,7 @@ public partial class Context : IDisposable
         }
         catch (KeyNotFoundException)
         {
-            return default;
+            return BlockCommit.Empty;
         }
     }
 

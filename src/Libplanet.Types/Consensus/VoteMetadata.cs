@@ -63,6 +63,6 @@ public sealed record class VoteMetadata
     public Vote Sign(PrivateKey signer)
     {
         var signature = signer.Sign(ModelSerializer.SerializeToBytes(this));
-        return new Vote(this, [.. signature]);
+        return new Vote { Metadata = this, Signature = [.. signature] };
     }
 }

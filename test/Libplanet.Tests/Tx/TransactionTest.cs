@@ -18,7 +18,7 @@ public class TransactionTest
 
     public TransactionTest()
     {
-        _fx = new TxFixture(null);
+        _fx = new TxFixture(default);
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public class TransactionTest
         {
             var diffInvoice = new TxInvoice
             {
-                GenesisHash = i == 0 ? (BlockHash?)null : invoice.GenesisHash,
+                GenesisHash = i == 0 ? default : invoice.GenesisHash,
                 UpdatedAddresses = i == 1 ? [] : invoice.UpdatedAddresses,
                 Timestamp = i == 2 ? DateTimeOffset.MinValue : invoice.Timestamp,
                 Actions = i == 3 ? [] : invoice.Actions,
