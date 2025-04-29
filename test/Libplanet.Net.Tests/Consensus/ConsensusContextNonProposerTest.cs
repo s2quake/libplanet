@@ -97,7 +97,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
                 proposal!.Proposal.MarshaledBlock);
-            ImmutableArray<Vote> votes = proposedBlock.LastCommit?.Votes is { } vs
+            ImmutableArray<Vote> votes = proposedBlock.LastCommit.Votes is { } vs
                 ? vs
                 : throw new NullReferenceException();
             Assert.Equal(VoteFlag.PreCommit, votes[0].Flag);

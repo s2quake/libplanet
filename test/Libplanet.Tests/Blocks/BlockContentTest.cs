@@ -95,7 +95,7 @@
 //                     PublicKey = Block1Content.PublicKey,
 //                     PreviousHash = Block1Content.PreviousHash,
 //                     TxHash = BlockContent.DeriveTxHash(txs),
-//                     
+//
 //                     EvidenceHash = null,
 //                 },
 //                 Transactions = [..txs],
@@ -136,7 +136,7 @@
 //                         PublicKey = Block1Content.PublicKey,
 //                         PreviousHash = Block1Content.PreviousHash,
 //                         TxHash = BlockContent.DeriveTxHash(txs),
-//                         
+//
 //                         EvidenceHash = null,
 //                     },
 //                     Transactions = [.. txs],
@@ -176,7 +176,7 @@
 //                         PublicKey = Block1Content.PublicKey,
 //                         PreviousHash = Block1Content.PreviousHash,
 //                         TxHash = BlockContent.DeriveTxHash(txs),
-//                         
+//
 //                         EvidenceHash = null,
 //                     },
 //                     Transactions = [.. txs],
@@ -220,7 +220,7 @@
 //                         PublicKey = Block1Content.PublicKey,
 //                         PreviousHash = Block1Content.PreviousHash,
 //                         TxHash = BlockContent.DeriveTxHash(inconsistentTxs),
-//                         
+//
 //                         EvidenceHash = null,
 //                     },
 //                     Transactions = [.. inconsistentTxs],

@@ -65,14 +65,13 @@ public class StatsCommand
         foreach (var hash in hashes)
         {
             BlockDigest blockDigest = store.GetBlockDigest(hash);
-            BlockHeader blockHeader =
-                blockDigest.GetHeader();
+            BlockHeader blockHeader = blockDigest.Header;
 
             Console.WriteLine(
                 $"{blockHeader.Height}," +
                 $"{blockHeader.BlockHash}," +
                 $"{blockHeader.Miner}," +
-                $"{blockDigest.TxIds.Length}," +
+                $"{blockDigest.TxIds}," +
                 $"{blockHeader.Timestamp.ToUnixTimeMilliseconds()}");
         }
     }

@@ -152,7 +152,7 @@ public sealed record class BlockContent
     //     var preEvaluationHash = Metadata.DerivePreEvaluationHash();
     //     // var header = new RawBlockHeader
     //     // {
-    //     //     Metadata = Metadata, 
+    //     //     Metadata = Metadata,
     //     //     RawHash = preEvaluationHash,
     //     // };
     //     return new RawBlock { Metadata = Metadata, RawHash = preEvaluationHash, Content = this };

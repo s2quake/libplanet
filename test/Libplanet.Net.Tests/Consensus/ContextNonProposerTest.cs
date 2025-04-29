@@ -177,8 +177,6 @@ namespace Libplanet.Net.Tests.Consensus
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = key.PublicKey,
                         PreviousHash = blockChain.Tip.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 key);
 
@@ -277,8 +275,6 @@ namespace Libplanet.Net.Tests.Consensus
                         Miner = TestUtils.PrivateKeys[1].Address,
                         PublicKey = TestUtils.PrivateKeys[1].PublicKey,
                         PreviousHash = blockChain.Tip.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 TestUtils.PrivateKeys[1]);
 
@@ -434,8 +430,6 @@ namespace Libplanet.Net.Tests.Consensus
                 PublicKey = TestUtils.PrivateKeys[1].PublicKey,
                 PreviousHash = blockChain.Genesis.Hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
-                
-                EvidenceHash = null,
             };
             var preEval = RawBlock.Propose(
                 metadata,

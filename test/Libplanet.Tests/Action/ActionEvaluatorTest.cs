@@ -113,8 +113,6 @@ public partial class ActionEvaluatorTest
                 PublicKey = GenesisProposer.PublicKey,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(txs),
-                
-                EvidenceHash = null,
             },
             new BlockContent
             {
@@ -419,7 +417,7 @@ public partial class ActionEvaluatorTest
     //             PublicKey = new PrivateKey().PublicKey,
     //             PreviousHash = genesis.Hash,
     //             TxHash = BlockContent.DeriveTxHash(txs),
-    //             
+    //
     //             EvidenceHash = null,
     //         },
     //         new BlockContent
@@ -778,8 +776,6 @@ public partial class ActionEvaluatorTest
                 PublicKey = keys[0].PublicKey,
                 PreviousHash = default(BlockHash),
                 TxHash = BlockContent.DeriveTxHash(txs),
-                
-                EvidenceHash = null,
             },
             new BlockContent
             {
@@ -902,7 +898,6 @@ public partial class ActionEvaluatorTest
                 PreviousHash = hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = CreateBlockCommit(hash, 122, 0),
-                EvidenceHash = null,
             },
             new BlockContent
             {

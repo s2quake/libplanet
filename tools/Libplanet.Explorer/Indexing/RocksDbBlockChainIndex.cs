@@ -259,7 +259,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         var minerAddress = blockDigest.Miner.Bytes.ToArray();
         var blockHash = blockDigest.Hash.Bytes.ToArray();
         var indexToBlockHashKey = IndexToBlockHashPrefix
-            .Concat(LongToBigEndianByteArray(blockDigest.Index)).ToArray();
+            .Concat(LongToBigEndianByteArray(blockDigest.Height)).ToArray();
 
         var writeBatch = new WriteBatch();
         if (_db.Get(indexToBlockHashKey) is { } existingHash)
@@ -271,16 +271,16 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
             }
 
             throw new IndexMismatchException(
-                blockDigest.Index, GetTipImpl()!.Value.Hash, blockDigest.Hash);
+                blockDigest.Height, GetTipImpl()!.Value.Hash, blockDigest.Hash);
         }
 
         writeBatch.Put(indexToBlockHashKey, blockHash);
         writeBatch.Put(
             BlockHashToIndexPrefix.Concat(blockHash).ToArray(),
-            LongToBigEndianByteArray(blockDigest.Index));
+            LongToBigEndianByteArray(blockDigest.Height));
         writeBatch.Put(
             GetNextOrdinalKey(ProducerToBlockIndexPrefix.Concat(minerAddress).ToArray()),
-            LongToBigEndianByteArray(blockDigest.Index).Concat(blockHash).ToArray());
+            LongToBigEndianByteArray(blockDigest.Height).Concat(blockHash).ToArray());
 
         IImmutableDictionary<byte[], long> duplicateActionTypeIdToTxTimestampOrdinalMemos =
             ImmutableDictionary<byte[], long>.Empty.WithComparers(ByteArrayComparer.Instance);

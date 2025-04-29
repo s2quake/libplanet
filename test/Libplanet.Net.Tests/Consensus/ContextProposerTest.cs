@@ -257,7 +257,7 @@ namespace Libplanet.Net.Tests.Consensus
                 proposal!.Proposal.BlockHash);
 
             await stepChangedToEndCommit.WaitAsync();
-            Assert.Equal(proposal?.BlockHash, context.GetBlockCommit()?.BlockHash);
+            Assert.Equal(proposal?.BlockHash, context.GetBlockCommit().BlockHash);
             Assert.Equal(1, context.Height);
             Assert.Equal(0, context.Round);
             Assert.Equal(ConsensusStep.EndCommit, context.Step);
