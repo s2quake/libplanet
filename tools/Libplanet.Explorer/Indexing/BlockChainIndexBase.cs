@@ -296,7 +296,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
             var blockDigest = store.GetBlockDigest(indexEnumerator.Current);
             Transaction[] txs = blockDigest.TxIds
-                .Select(txId => store.GetTransaction(new TxId(txId))
+                .Select(txId => store.GetTransaction(txId)
                     ?? throw new InvalidOperationException(
                         $"Could not find transaction with txid {txId} in store."))
                 .ToArray();
@@ -333,7 +333,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
                 if (log)
                 {
                     Logger.Information(
-                        $"Height #{blockDigest.Index} of {chainTipIndex},"
+                        $"Height #{blockDigest.Height} of {chainTipIndex},"
                         + $" {totalBlocksToSync - processedBlockCount} to go"
                         + $" ({processedPercentage:F1}% synced),"
                         + $" session: {processedBlockCount}/{totalBlocksToSync},"

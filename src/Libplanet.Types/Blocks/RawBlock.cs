@@ -59,7 +59,7 @@ public sealed record class RawBlock
         var preEvaluationHash = metadata.DerivePreEvaluationHash();
         // var header = new RawBlockHeader
         // {
-        //     Metadata = Metadata, 
+        //     Metadata = Metadata,
         //     RawHash = preEvaluationHash,
         // };
         return new RawBlock

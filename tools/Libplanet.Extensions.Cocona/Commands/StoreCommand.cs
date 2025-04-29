@@ -219,7 +219,7 @@ public class StoreCommand
                     $"Block is missing for BlockHash: {blockHash} index: {index}.");
             }
 
-            foreach (TxId txId in blockDigest.TxIds.Select(bytes => new TxId(bytes.ToArray())))
+            foreach (TxId txId in blockDigest.TxIds)
             {
                 store.PutTxIdBlockHashIndex(txId, blockHash);
             }

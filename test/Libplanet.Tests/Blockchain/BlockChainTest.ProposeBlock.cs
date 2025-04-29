@@ -195,7 +195,7 @@ namespace Libplanet.Tests.Blockchain
                 }.ToImmutableList();
 
                 var block = blockChain.ProposeBlock(
-                    new PrivateKey(), txs, null, ImmutableArray<EvidenceBase>.Empty);
+                    new PrivateKey(), txs, default, ImmutableArray<EvidenceBase>.Empty);
                 Assert.Throws<InvalidOperationException>(
                     () => blockChain.Append(block, CreateBlockCommit(block)));
             }

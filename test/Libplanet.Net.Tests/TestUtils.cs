@@ -296,7 +296,7 @@ namespace Libplanet.Net.Tests
             context = new Context(
                 blockChain,
                 height,
-                lastCommit,
+                lastCommit ?? default,
                 privateKey,
                 validatorSet ?? blockChain
                     .GetNextWorldState(height - 1)
@@ -324,7 +324,7 @@ namespace Libplanet.Net.Tests
             context = new Context(
                 blockChain,
                 height,
-                lastCommit,
+                lastCommit ?? default,
                 privateKey,
                 validatorSet ?? blockChain
                     .GetNextWorldState(height - 1)

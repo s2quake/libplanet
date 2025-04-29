@@ -26,8 +26,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     },
                     new BlockContent
                     {
@@ -51,8 +49,6 @@ namespace Libplanet.Tests.Blockchain
                         Miner = _fx.Proposer.Address,
                         PublicKey = protocolVersion >= 2 ? _fx.Proposer.PublicKey : null,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     },
                     new BlockContent
                     {
@@ -69,8 +65,6 @@ namespace Libplanet.Tests.Blockchain
                         Miner = _fx.Proposer.Address,
                         PublicKey = protocolVersion - 1 >= 2 ? _fx.Proposer.PublicKey : null,
                         PreviousHash = block1.Hash,
-                        
-                        EvidenceHash = null,
                     },
                     new BlockContent
                     {
@@ -89,8 +83,6 @@ namespace Libplanet.Tests.Blockchain
                             Miner = _fx.Proposer.Address,
                             PublicKey = _fx.Proposer.PublicKey,
                             PreviousHash = block1.Hash,
-                            
-                            EvidenceHash = null,
                         },
                         new BlockContent
                         {
@@ -114,8 +106,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = prev.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(
@@ -133,7 +123,6 @@ namespace Libplanet.Tests.Blockchain
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = prev.Hash,
                         LastCommit = TestUtils.CreateBlockCommit(prev.Hash, prev.Height + 1, 0),
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(
@@ -160,7 +149,6 @@ namespace Libplanet.Tests.Blockchain
                         // ReSharper disable once PossibleInvalidOperationException
                         LastCommit = TestUtils.CreateBlockCommit(
                             _validNext.PreviousHash, 1, 0),
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
@@ -183,7 +171,6 @@ namespace Libplanet.Tests.Blockchain
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _validNext.Hash,
                         LastCommit = TestUtils.CreateBlockCommit(_validNext),
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
@@ -247,8 +234,6 @@ namespace Libplanet.Tests.Blockchain
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
                         PreviousHash = genesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 TestUtils.GenesisProposer);
 
@@ -294,8 +279,6 @@ namespace Libplanet.Tests.Blockchain
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
                         PreviousHash = genesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 TestUtils.GenesisProposer);
 
@@ -361,8 +344,6 @@ namespace Libplanet.Tests.Blockchain
                     Miner = TestUtils.GenesisProposer.Address,
                     PublicKey = TestUtils.GenesisProposer.PublicKey,
                     PreviousHash = genesisBlock.Hash,
-                    
-                    EvidenceHash = null,
                 });
             Block block1 = chain.EvaluateAndSign(
                 preBlock1,
@@ -390,8 +371,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             _blockChain.Append(validNextBlock, TestUtils.CreateBlockCommit(validNextBlock));
@@ -409,8 +388,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -425,7 +402,6 @@ namespace Libplanet.Tests.Blockchain
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = block1.Hash,
                         LastCommit = blockCommit,
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
@@ -443,8 +419,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -481,7 +455,6 @@ namespace Libplanet.Tests.Blockchain
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = block1.Hash,
                         LastCommit = blockCommit,
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
@@ -499,8 +472,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -533,7 +504,6 @@ namespace Libplanet.Tests.Blockchain
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = block1.Hash,
                         LastCommit = blockCommit,
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
@@ -544,7 +514,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitGenesis()
         {
             // Works fine.
-            _blockChain.ValidateBlockCommit(_fx.GenesisBlock, null);
+            _blockChain.ValidateBlockCommit(_fx.GenesisBlock, default);
 
             // Should be null for genesis.
             Assert.Throws<InvalidOperationException>(() => _blockChain.ValidateBlockCommit(
@@ -578,8 +548,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
 
@@ -603,8 +571,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
 
@@ -628,8 +594,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
 
@@ -667,13 +631,11 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
 
             Assert.Throws<InvalidOperationException>(() =>
-                _blockChain.Append(validNextBlock, null));
+                _blockChain.Append(validNextBlock, default));
         }
 
         [SkippableFact]
@@ -702,8 +664,6 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = blockChain.Genesis.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 _fx.Proposer);
 
@@ -831,8 +791,6 @@ namespace Libplanet.Tests.Blockchain
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
                         PreviousHash = newChain.Tip.Hash,
-                        
-                        EvidenceHash = null,
                     }),
                 TestUtils.GenesisProposer);
 

@@ -174,7 +174,6 @@ public class GeneratedBlockChainFixture
                     PreviousHash = Chain.Tip.Hash,
                     TxHash = BlockContent.DeriveTxHash(transactions),
                     LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
-                    EvidenceHash = null,
                 },
                 new BlockContent
                 {

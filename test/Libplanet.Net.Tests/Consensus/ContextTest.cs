@@ -344,7 +344,7 @@ namespace Libplanet.Net.Tests.Consensus
             Context context = new Context(
                 blockChain,
                 1L,
-                null,
+                default,
                 TestUtils.PrivateKeys[0],
                 blockChain
                     .GetNextWorldState(0L)

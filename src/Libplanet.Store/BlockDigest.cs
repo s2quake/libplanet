@@ -39,7 +39,7 @@ public sealed record class BlockDigest
 
     // public DateTimeOffset Timestamp => _metadata.Timestamp;
 
-    // public Address Miner => _metadata.Miner;
+    public Address Miner => Header.Miner;
 
     // public PublicKey? PublicKey => _metadata.PublicKey;
 
@@ -78,7 +78,7 @@ public sealed record class BlockDigest
         // );
     }
 
-    // public BlockHeader GetHeader() => 
+    // public BlockHeader GetHeader() =>
     // {
     //     // var preEvalHeader = new RawBlockHeader
     //     // {
