@@ -118,7 +118,7 @@ public class TransactionTest
             new[]
             {
                 DumbAction.Create((stateStore, "F"), recordRandom: false),
-            }.Select(x => x.PlainValue),
+            }.ToPlainValues(),
             null,
             0L,
             timestamp
@@ -149,7 +149,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            Array.Empty<DumbAction>().Select(x => x.PlainValue));
+            Array.Empty<DumbAction>().ToPlainValues());
         Assert.Empty(emptyTx.UpdatedAddresses);
     }
 
@@ -161,7 +161,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            Array.Empty<DumbAction>().Select(x => x.PlainValue),
+            Array.Empty<DumbAction>().ToPlainValues(),
             null,
             0L);
         DateTimeOffset rightAfter = DateTimeOffset.UtcNow;
@@ -178,7 +178,7 @@ public class TransactionTest
                 0,
                 null,
                 default,
-                Array.Empty<DumbAction>().Select(x => x.PlainValue),
+                Array.Empty<DumbAction>().ToPlainValues(),
                 null,
                 0L,
                 DateTimeOffset.UtcNow

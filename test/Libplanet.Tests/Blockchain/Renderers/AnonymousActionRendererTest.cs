@@ -6,13 +6,14 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain.Renderers;
 using Libplanet.Common;
 using Libplanet.Mocks;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Tests.Blockchain.Renderers
 {
     public class AnonymousActionRendererTest
     {
-        private static IValue _action = new DumbAction().PlainValue;
+        private static IValue _action = ModelSerializer.Serialize(new DumbAction());
 
         private static IWorld _world = new World(MockUtil.MockModernWorldState);
 

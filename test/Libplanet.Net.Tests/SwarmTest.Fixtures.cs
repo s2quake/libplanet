@@ -8,6 +8,7 @@ using Libplanet.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Serilog;
@@ -72,8 +73,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            var action = new DumbAction();
-            action.LoadPlainValue(blocks[1].Transactions.First().Actions.First());
+            var action = ModelSerializer.Deserialize<DumbAction>(blocks[1].Transactions.First().Actions.First());
             return (action.Append is { } s ? s.At : throw new NullReferenceException(), blocks);
         }
 
