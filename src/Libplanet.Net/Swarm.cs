@@ -963,7 +963,7 @@ namespace Libplanet.Net
             {
                 if (message.Content is TxMsg parsed)
                 {
-                    Transaction tx = Transaction.Deserialize(parsed.Payload);
+                    Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload);
                     yield return tx;
                 }
                 else

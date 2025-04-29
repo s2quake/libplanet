@@ -1,31 +1,29 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
-public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byte> Signature)
-    : IEquatable<Transaction>, IComparable<Transaction>, IComparable
+public sealed record class Transaction
+    : IEquatable<Transaction>, IComparable<Transaction>, IComparable, IValidatableObject
 {
     private static readonly Codec Codec = new();
     private TxId? _id;
 
-    public Transaction(UnsignedTx unsignedTx, PrivateKey privateKey)
-        : this(unsignedTx, [.. unsignedTx.CreateSignature(privateKey)])
-    {
-    }
-
     [JsonIgnore]
     [Property(0)]
-    public UnsignedTx UnsignedTx { get; } = UnsignedTx;
+    public required UnsignedTx UnsignedTx { get; init; }
 
     [JsonIgnore]
     [Property(1)]
-    public ImmutableArray<byte> Signature { get; } = ValidateSignature(UnsignedTx, Signature);
+    [NonDefault]
+    public required ImmutableArray<byte> Signature { get; init; }
 
     public TxId Id => _id ??= TxMarshaler.GetTxId(UnsignedTx, Signature);
 
@@ -45,37 +43,77 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
 
     public BlockHash? GenesisHash => UnsignedTx.GenesisHash;
 
-    public static Transaction Deserialize(byte[] bytes)
+    public static Transaction Create(UnsignedTx unsignedTx, ImmutableArray<byte> signature)
     {
-        IValue value = new Codec().Decode(bytes);
-        if (!(value is Bencodex.Types.Dictionary dict))
+        return new Transaction
         {
-            throw new DecodingException(
-                $"Expected {typeof(Bencodex.Types.Dictionary)} but " +
-                $"{value.GetType()}");
-        }
-
-        return TxMarshaler.UnmarshalTransaction(dict);
+            UnsignedTx = unsignedTx,
+            Signature = signature,
+        };
     }
+
+    public static Transaction Create(UnsignedTx unsignedTx, PrivateKey privateKey)
+        => Create(unsignedTx, [.. unsignedTx.CreateSignature(privateKey)]);
+
+
+    // public static Transaction Deserialize(byte[] bytes)
+    // {
+    //     IValue value = new Codec().Decode(bytes);
+    //     if (!(value is Bencodex.Types.Dictionary dict))
+    //     {
+    //         throw new DecodingException(
+    //             $"Expected {typeof(Bencodex.Types.Dictionary)} but " +
+    //             $"{value.GetType()}");
+    //     }
+
+    //     return TxMarshaler.UnmarshalTransaction(dict);
+    // }
 
     public static Transaction Create(
         long nonce,
         PrivateKey privateKey,
-        BlockHash? genesisHash,
+        BlockHash genesisHash,
         IEnumerable<IValue> actions,
         FungibleAssetValue? maxGasPrice = null,
         long gasLimit = 0L,
-        DateTimeOffset? timestamp = null) =>
-        Create(
-            nonce,
-            privateKey,
-            genesisHash,
-            [.. actions],
-            maxGasPrice,
-            gasLimit,
-            timestamp);
+        DateTimeOffset? timestamp = null)
+    {
+        if (privateKey is null)
+        {
+            throw new ArgumentNullException(nameof(privateKey));
+        }
 
-    public byte[] Serialize() => Codec.Encode(TxMarshaler.MarshalTransaction(this));
+        var draftInvoice = new TxInvoice
+        {
+            Actions = [.. actions],
+            GenesisHash = genesisHash,
+            Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+            MaxGasPrice = maxGasPrice ?? default,
+            GasLimit = gasLimit,
+        };
+        var signingMetadata = new TxSigningMetadata
+        {
+            Signer = privateKey.Address,
+            Nonce = nonce,
+        };
+        var invoice = new TxInvoice
+        {
+            Actions = draftInvoice.Actions,
+            GenesisHash = draftInvoice.GenesisHash,
+            UpdatedAddresses = draftInvoice.UpdatedAddresses,
+            Timestamp = draftInvoice.Timestamp,
+            MaxGasPrice = draftInvoice.MaxGasPrice,
+            GasLimit = draftInvoice.GasLimit,
+        };
+        var unsignedTx = new UnsignedTx
+        {
+            Invoice = invoice,
+            SigningMetadata = signingMetadata,
+        };
+        return Create(unsignedTx, privateKey);
+    }
+
+    // public byte[] Serialize() => Codec.Encode(TxMarshaler.MarshalTransaction(this));
 
     public bool Equals(Transaction? other) => Id.Equals(other?.Id);
 
@@ -102,45 +140,55 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
         return Id.CompareTo(other.Id);
     }
 
-    internal static Transaction CombineWithoutVerification(
-        UnsignedTx unsignedTx, ImmutableArray<byte> alreadyVerifiedSignature)
-        => new Transaction(unsignedTx, alreadyVerifiedSignature);
-
-    private static Transaction Create(
-        long nonce,
-        PrivateKey privateKey,
-        BlockHash? genesisHash,
-        ImmutableArray<IValue> actions,
-        FungibleAssetValue? maxGasPrice = null,
-        long gasLimit = 0L,
-        DateTimeOffset? timestamp = null)
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (privateKey is null)
+        if (!UnsignedTx.VerifySignature(Signature))
         {
-            throw new ArgumentNullException(nameof(privateKey));
+            yield return new ValidationResult(
+                "The given signature is not valid.",
+                [nameof(Signature)]);
         }
-
-        var draftInvoice = new TxInvoice
-        {
-            Actions = actions,
-            GenesisHash = genesisHash ?? default,
-            Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-            MaxGasPrice = maxGasPrice,
-            GasLimit = gasLimit,
-        };
-        var signMeta = new TxSigningMetadata(privateKey.Address, nonce);
-        var invoice = new TxInvoice
-        {
-            Actions = draftInvoice.Actions,
-            GenesisHash = draftInvoice.GenesisHash,
-            UpdatedAddresses = draftInvoice.UpdatedAddresses,
-            Timestamp = draftInvoice.Timestamp,
-            MaxGasPrice = draftInvoice.MaxGasPrice,
-            GasLimit = draftInvoice.GasLimit,
-        };
-        var unsignedTx = new UnsignedTx(invoice, signMeta);
-        return new Transaction(unsignedTx, privateKey);
     }
+
+    // internal static Transaction CombineWithoutVerification(
+    //     UnsignedTx unsignedTx, ImmutableArray<byte> alreadyVerifiedSignature)
+    //     => new Transaction(unsignedTx, alreadyVerifiedSignature);
+
+    // private static Transaction Create(
+    //     long nonce,
+    //     PrivateKey privateKey,
+    //     BlockHash? genesisHash,
+    //     ImmutableArray<IValue> actions,
+    //     FungibleAssetValue? maxGasPrice = null,
+    //     long gasLimit = 0L,
+    //     DateTimeOffset? timestamp = null)
+    // {
+    //     if (privateKey is null)
+    //     {
+    //         throw new ArgumentNullException(nameof(privateKey));
+    //     }
+
+    //     var draftInvoice = new TxInvoice
+    //     {
+    //         Actions = actions,
+    //         GenesisHash = genesisHash ?? default,
+    //         Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+    //         MaxGasPrice = maxGasPrice ?? default,
+    //         GasLimit = gasLimit,
+    //     };
+    //     var signMeta = new TxSigningMetadata(privateKey.Address, nonce);
+    //     var invoice = new TxInvoice
+    //     {
+    //         Actions = draftInvoice.Actions,
+    //         GenesisHash = draftInvoice.GenesisHash,
+    //         UpdatedAddresses = draftInvoice.UpdatedAddresses,
+    //         Timestamp = draftInvoice.Timestamp,
+    //         MaxGasPrice = draftInvoice.MaxGasPrice,
+    //         GasLimit = draftInvoice.GasLimit,
+    //     };
+    //     var unsignedTx = new UnsignedTx(invoice, signMeta);
+    //     return new Transaction(unsignedTx, privateKey);
+    // }
 
     private static ImmutableArray<byte> ValidateSignature(
         UnsignedTx unsignedTx, ImmutableArray<byte> signature)

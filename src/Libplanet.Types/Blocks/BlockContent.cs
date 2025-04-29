@@ -91,7 +91,7 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
                 );
             }
 
-            byte[] payload = tx.Serialize();
+            byte[] payload = ModelSerializer.SerializeToBytes(tx);
             hasher.TransformBlock(payload, 0, payload.Length, null, 0);
             prevId = tx.Id;
         }

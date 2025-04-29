@@ -214,7 +214,7 @@ namespace Libplanet.Net
                             continue;
                         }
 
-                        MessageContent response = new TxMsg(tx.Serialize());
+                        MessageContent response = new TxMsg(ModelSerializer.SerializeToBytes(tx));
                         await Transport.ReplyMessageAsync(response, message.Identity, default);
                     }
                     catch (KeyNotFoundException)

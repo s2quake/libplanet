@@ -1,31 +1,22 @@
 using Libplanet.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
-public sealed record class TxSigningMetadata(Address Signer, long Nonce)
+public sealed record class TxSigningMetadata
 {
-    public TxSigningMetadata(PublicKey publicKey, long nonce)
-        : this(publicKey.Address, nonce)
-    {
-    }
-
     [Property(0)]
-    public Address Signer { get; } = Signer;
+    public Address Signer { get; init; }
 
     [Property(1)]
-    public long Nonce { get; } = ValidateNonce(Nonce);
+    [NonNegative]
+    public long Nonce { get; init; }
 
-    private static long ValidateNonce(long nonce)
+    public static TxSigningMetadata Create(PublicKey publicKey, long nonce) => new()
     {
-        if (nonce < 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(nonce),
-                $"The nonce must be greater than or equal to 0, but {nonce} was given.");
-        }
-
-        return nonce;
-    }
+        Signer = publicKey.Address,
+        Nonce = nonce,
+    };
 }

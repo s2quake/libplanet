@@ -93,7 +93,7 @@ public partial class ActionEvaluatorTest
             Transaction.Create(
                 nonce: 0,
                 privateKey: signer,
-                genesisHash: null,
+                genesisHash: default,
                 actions: new IAction[]
                 {
                     new ContextRecordingAction { Address = txAddress, Value = new Text("Foo") },
@@ -473,9 +473,10 @@ public partial class ActionEvaluatorTest
 
         Transaction[] block1Txs =
         {
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
+            Transaction.Create(
+                unsignedTx: new UnsignedTx
+                {
+                    Invoice = new TxInvoice
                     {
                         GenesisHash = genesis.Hash,
                         UpdatedAddresses = [addresses[0], addresses[1]],
@@ -484,13 +485,17 @@ public partial class ActionEvaluatorTest
                             MakeAction(addresses[0], 'A', addresses[1]),
                             MakeAction(addresses[1], 'B', addresses[2]),
                         ]).ToPlainValues()],
-                        MaxGasPrice = null,
                     },
-                    new TxSigningMetadata(_txFx.PrivateKey1.PublicKey, 0)),
-                _txFx.PrivateKey1),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
+                    SigningMetadata = new TxSigningMetadata
+                    {
+                        Signer = _txFx.PrivateKey1.Address
+                    },
+                },
+                privateKey : _txFx.PrivateKey1),
+            Transaction.Create(
+                unsignedTx: new UnsignedTx
+                {
+                    Invoice = new TxInvoice
                     {
                         GenesisHash = genesis.Hash,
                         UpdatedAddresses = [],
@@ -498,21 +503,29 @@ public partial class ActionEvaluatorTest
                         Actions = [.. ImmutableArray.Create<IAction>([
                             MakeAction(addresses[2], 'C', addresses[3]),
                         ]).ToPlainValues()],
-                        MaxGasPrice = null,
                     },
-                    new TxSigningMetadata(_txFx.PrivateKey2.PublicKey, 0)),
-                _txFx.PrivateKey2),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
+                    SigningMetadata = new TxSigningMetadata
+                    {
+                        Signer = _txFx.PrivateKey2.Address,
+                    },
+                },
+                privateKey: _txFx.PrivateKey2),
+            Transaction.Create(
+                unsignedTx: new UnsignedTx
+                {
+                    Invoice = new TxInvoice
                     {
                         GenesisHash = genesis.Hash,
                         UpdatedAddresses = [],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
                         Actions = [],
                     },
-                    new TxSigningMetadata(_txFx.PrivateKey3.PublicKey, 0)),
-                _txFx.PrivateKey3),
+                    SigningMetadata = new TxSigningMetadata
+                    {
+                        Signer = _txFx.PrivateKey3.Address,
+                    },
+                },
+                privateKey: _txFx.PrivateKey3),
         };
         foreach ((var tx, var i) in block1Txs.Zip(
             Enumerable.Range(0, block1Txs.Length), (x, y) => (x, y)))

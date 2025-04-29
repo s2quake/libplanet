@@ -365,7 +365,7 @@ public class DefaultStore : StoreBase
             return;
         }
 
-        WriteContentAddressableFile(_txs, TxPath(tx.Id), tx.Serialize());
+        WriteContentAddressableFile(_txs, TxPath(tx.Id), ModelSerializer.SerializeToBytes(tx));
         _txCache.AddOrUpdate(tx.Id, tx);
     }
 

@@ -9,10 +9,14 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
-public sealed record class UnsignedTx(
-    [property: Property(0)] TxInvoice Invoice,
-    [property: Property(1)] TxSigningMetadata SigningMetadata)
+public sealed record class UnsignedTx
 {
+    [Property(0)]
+    public required TxInvoice Invoice { get; init; }
+
+    [Property(1)]
+    public required TxSigningMetadata SigningMetadata { get; init; }
+
     public ImmutableSortedSet<Address> UpdatedAddresses => Invoice.UpdatedAddresses;
 
     public DateTimeOffset Timestamp => Invoice.Timestamp;
@@ -64,6 +68,11 @@ public sealed record class UnsignedTx(
             $"  {nameof(Signer)} = {Signer},\n" +
             "}";
     }
+
+    public Transaction Sign(PrivateKey privateKey) => Transaction.Create(this, privateKey);
+
+    public Transaction Verify(ImmutableArray<byte> signature)
+        => new() { UnsignedTx = this, Signature = signature };
 
     private byte[] CreateMessage()
     {
