@@ -734,7 +734,7 @@ namespace Libplanet.Tests.Store
                 return Transaction.Create(
                     txNonce,
                     key,
-                    null,
+                    default,
                     new[] { action }.ToPlainValues(),
                     null,
                     0L,

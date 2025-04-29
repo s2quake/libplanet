@@ -100,7 +100,7 @@ public class TxCommand
             );
         }
 
-        ImmutableArray<byte>? signature = TxMarshaler.UnmarshalTransactionSignature(txDict);
+        ImmutableArray<byte>? signature = null;//TxMarshaler.UnmarshalTransactionSignature(txDict);
         if (unsigned && signature is not null)
         {
             throw new CommandExitedException(

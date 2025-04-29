@@ -43,14 +43,11 @@ public sealed record class Transaction
 
     public BlockHash? GenesisHash => UnsignedTx.GenesisHash;
 
-    public static Transaction Create(UnsignedTx unsignedTx, ImmutableArray<byte> signature)
+    public static Transaction Create(UnsignedTx unsignedTx, ImmutableArray<byte> signature) => new()
     {
-        return new Transaction
-        {
-            UnsignedTx = unsignedTx,
-            Signature = signature,
-        };
-    }
+        UnsignedTx = unsignedTx,
+        Signature = signature,
+    };
 
     public static Transaction Create(UnsignedTx unsignedTx, PrivateKey privateKey)
         => Create(unsignedTx, [.. unsignedTx.CreateSignature(privateKey)]);

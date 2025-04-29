@@ -23,14 +23,12 @@ public class TransactionTest
     [Fact]
     public void ConstructorWithVerification()
     {
-        var tx = new Transaction(
-            _fx.Tx.UnsignedTx,
-            _fx.Tx.Signature);
+        var tx = Transaction.Create(_fx.Tx.UnsignedTx, _fx.Tx.Signature);
         Assert.Equal(_fx.Tx, tx);
 
         var wrongSig = _fx.TxWithActions.Signature;
         InvalidOperationException e = Assert.Throws<InvalidOperationException>(
-            () => new Transaction(_fx.Tx.UnsignedTx, wrongSig));
+            () => Transaction.Create(_fx.Tx.UnsignedTx, wrongSig));
         // TestUtils.AssertBytesEqual(
         //     "0a5b3d8ac9819ecd8343d6816a0632c20a669c45ad94ffc9f4005af3815a0f1b",
         //     e.TxId.ByteArray);
@@ -40,12 +38,12 @@ public class TransactionTest
     public void ConstructorWithSigning()
     {
         PrivateKey validKey = _fx.PrivateKey1;
-        var tx = new Transaction(_fx.Tx.UnsignedTx, validKey);
+        var tx = Transaction.Create(_fx.Tx.UnsignedTx, validKey);
         Assert.Equal<Transaction>(_fx.Tx, tx);
 
         var wrongKey = new PrivateKey();
         ArgumentException e = Assert.Throws<ArgumentException>(
-            () => new Transaction(_fx.Tx.UnsignedTx, wrongKey));
+            () => Transaction.Create(_fx.Tx.UnsignedTx, wrongKey));
         Assert.Equal("privateKey", e.ParamName);
     }
 
@@ -74,7 +72,7 @@ public class TransactionTest
         Transaction tx = Transaction.Create(
             0,
             privateKey,
-            null,
+            default,
             actions: new IAction[] { action }.ToPlainValues(),
             timestamp: timestamp
         );
@@ -116,7 +114,7 @@ public class TransactionTest
         Transaction tx = Transaction.Create(
             0,
             privateKey,
-            null,
+            default,
             new[]
             {
                 DumbAction.Create((stateStore, "F"), recordRandom: false),
@@ -150,7 +148,7 @@ public class TransactionTest
         Transaction emptyTx = Transaction.Create(
             0,
             _fx.PrivateKey1,
-            null,
+            default,
             Array.Empty<DumbAction>().Select(x => x.PlainValue));
         Assert.Empty(emptyTx.UpdatedAddresses);
     }
@@ -162,7 +160,7 @@ public class TransactionTest
         Transaction tx = Transaction.Create(
             0,
             _fx.PrivateKey1,
-            null,
+            default,
             Array.Empty<DumbAction>().Select(x => x.PlainValue),
             null,
             0L);
@@ -179,7 +177,7 @@ public class TransactionTest
             Transaction.Create(
                 0,
                 null,
-                null,
+                default,
                 Array.Empty<DumbAction>().Select(x => x.PlainValue),
                 null,
                 0L,
@@ -209,13 +207,19 @@ public class TransactionTest
             0xd2, 0xc9, 0x8d, 0x59, 0xb9, 0x91, 0xdb, 0x87, 0xfd, 0xfb, 0xda, 0x0c, 0xe0, 0x40,
             0xe2, 0x7e, 0xeb, 0xa2, 0x0f, 0xb8, 0xa3, 0xff, 0x1c,
         };
-        var unsignedTx = new UnsignedTx(
-            new TxInvoice { Timestamp = timestamp },
-            new TxSigningMetadata(privateKey.PublicKey, nonce: 0L));
-        var tx = new Transaction(
-            UnsignedTx: unsignedTx,
-            Signature: signature.ToImmutableArray()
-        );
+        var unsignedTx = new UnsignedTx
+        {
+            Invoice = new TxInvoice { Timestamp = timestamp },
+            SigningMetadata = new TxSigningMetadata
+            {
+                Signer = privateKey.Address,
+            },
+        };
+        var tx = new Transaction
+        {
+            UnsignedTx = unsignedTx,
+            Signature = signature.ToImmutableArray(),
+        };
 
         Assert.Equal(
             new Address(privateKey.PublicKey),
@@ -257,10 +261,11 @@ public class TransactionTest
     public void DetectBadSignature()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            new Transaction(
-                _fx.Tx.UnsignedTx,
-                new byte[_fx.Tx.Signature.Length].ToImmutableArray()
-            )
+            new Transaction
+            {
+                UnsignedTx = _fx.Tx.UnsignedTx,
+                Signature = new byte[_fx.Tx.Signature.Length].ToImmutableArray(),
+            }
         );
     }
 
@@ -271,7 +276,7 @@ public class TransactionTest
         Transaction tx = Transaction.Create(
             0,
             _fx.PrivateKey1,
-            null,
+            default,
             actions.ToPlainValues()
         );
         actions.Add(new DumbAction());
@@ -301,18 +306,18 @@ public class TransactionTest
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         PublicKey publicKey = privateKey.PublicKey;
-        var signingMetadata = new TxSigningMetadata(publicKey, 123L);
-        var unsignedTx = new UnsignedTx(invoice, signingMetadata);
+        var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
+        var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
         ImmutableArray<byte> signature = ByteUtil.ParseHexToImmutable(
             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
-        var tx = new Transaction(unsignedTx, signature);
+        var tx = Transaction.Create(unsignedTx, signature);
 
         Assert.Equal(invoice, tx.UnsignedTx.Invoice);
         Assert.Equal(signingMetadata, tx.UnsignedTx.SigningMetadata);
         Assert.Equal(unsignedTx, tx.UnsignedTx);
 
-        var copy = new Transaction(unsignedTx, signature);
+        var copy = Transaction.Create(unsignedTx, signature);
         Assert.Equal(tx.UnsignedTx, copy.UnsignedTx);
         Assert.Equal(tx, copy);
         Assert.True(tx.Equals((object)copy));
@@ -328,10 +333,11 @@ public class TransactionTest
                 Timestamp = i == 2 ? DateTimeOffset.MinValue : invoice.Timestamp,
                 Actions = i == 3 ? [] : invoice.Actions,
             };
-            var diffSigningMetadata = new TxSigningMetadata(
-                i == 4 ? wrongKey.Address : signingMetadata.Signer,
-                i == 5 ? 456L : signingMetadata.Nonce
-            );
+            var diffSigningMetadata = new TxSigningMetadata
+            {
+                Signer = i == 4 ? wrongKey.Address : signingMetadata.Signer,
+                Nonce = i == 5 ? 456L : signingMetadata.Nonce,
+            };
 
             if (i < 4)
             {
@@ -344,8 +350,8 @@ public class TransactionTest
                 Assert.NotEqual(diffSigningMetadata, unsignedTx.SigningMetadata);
             }
 
-            var diffUnsignedTx = new UnsignedTx(diffInvoice, diffSigningMetadata);
-            var diffTx = new Transaction(
+            var diffUnsignedTx = UnsignedTx.Create(diffInvoice, diffSigningMetadata);
+            var diffTx = Transaction.Create(
                 diffUnsignedTx,
                 i == 4 ? wrongKey : privateKey);
             Assert.NotEqual(tx.UnsignedTx, diffTx.UnsignedTx);
@@ -378,12 +384,12 @@ public class TransactionTest
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         PublicKey publicKey = privateKey.PublicKey;
-        var signingMetadata = new TxSigningMetadata(publicKey, 123L);
-        var unsignedTx = new UnsignedTx(invoice, signingMetadata);
+        var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
+        var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
         ImmutableArray<byte> signature = ByteUtil.ParseHexToImmutable(
             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
-        var tx = new Transaction(unsignedTx, signature);
+        var tx = Transaction.Create(unsignedTx, signature);
 
 #pragma warning disable MEN002  // Long lines are OK for test JSON data.
         AssertJsonSerializable(

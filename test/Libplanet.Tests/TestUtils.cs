@@ -403,7 +403,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Transaction.Create(
                     nonce++,
                     GenesisProposer,
-                    null,
+                    default,
                     actions: new IAction[]
                     {
                         new Initialize
@@ -573,7 +573,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Transaction.Create(
                     0,
                     privateKey,
-                    null,
+                    default,
                     actions.ToPlainValues(),
                     timestamp: timestamp ?? DateTimeOffset.MinValue),
             };

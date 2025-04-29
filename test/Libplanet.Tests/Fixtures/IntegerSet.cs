@@ -51,14 +51,19 @@ namespace Libplanet.Tests.Fixtures
                 .Select(pair => new { State = (BigInteger)pair.State, pair.Key })
                 .Select(pair => new { Action = Arithmetic.Add(pair.State), pair.Key })
                 .Select(pair =>
-                    new Transaction(
-                        new UnsignedTx(
-                            new TxInvoice
+                    Transaction.Create(
+                        unsignedTx: new UnsignedTx
+                        {
+                            Invoice = new TxInvoice
                             {
                                 Actions = [pair.Action.PlainValue],
                             },
-                            new TxSigningMetadata(pair.Key.PublicKey, 0)),
-                        pair.Key))
+                            SigningMetadata = new TxSigningMetadata
+                            {
+                                Signer = pair.Key.Address,
+                            },
+                        },
+                        privateKey: pair.Key))
                 .OrderBy(tx => tx.Id)
                 .ToImmutableArray();
             Miner = new PrivateKey();

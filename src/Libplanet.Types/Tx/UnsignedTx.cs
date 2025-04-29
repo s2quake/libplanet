@@ -33,6 +33,12 @@ public sealed record class UnsignedTx
 
     public Address Signer => SigningMetadata.Signer;
 
+    public static UnsignedTx Create(TxInvoice invoice, TxSigningMetadata signingMetadata) => new()
+    {
+        Invoice = invoice,
+        SigningMetadata = signingMetadata,
+    };
+
     public ImmutableArray<byte> CreateSignature(PrivateKey privateKey)
     {
         if (!privateKey.Address.Equals(Signer))

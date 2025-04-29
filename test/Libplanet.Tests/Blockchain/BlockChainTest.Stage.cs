@@ -33,7 +33,7 @@ namespace Libplanet.Tests.Blockchain
             Transaction tx2 = Transaction.Create(
                 0,
                 new PrivateKey(),
-                null,
+                default,
                 new List<DumbAction>().ToPlainValues());
             Transaction tx3 = Transaction.Create(
                 0,

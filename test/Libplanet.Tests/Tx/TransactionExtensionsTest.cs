@@ -37,7 +37,7 @@ public class TransactionExtensionsTest
         Transaction tx = invoice.Sign(privateKey, 123L);
         Assert.Equal(invoice, tx.UnsignedTx.Invoice);
         Assert.Equal(
-            new TxSigningMetadata(privateKey.PublicKey, 123L), tx.UnsignedTx.SigningMetadata);
+            TxSigningMetadata.Create(privateKey.PublicKey, 123L), tx.UnsignedTx.SigningMetadata);
         Assert.True(tx.UnsignedTx.VerifySignature(tx.Signature.ToImmutableArray()));
     }
 }

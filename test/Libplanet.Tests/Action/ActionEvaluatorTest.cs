@@ -625,9 +625,10 @@ public partial class ActionEvaluatorTest
             // Note that these timestamps in themselves does not have any meanings but are
             // only arbitrary.  These purpose to make their evaluation order in a block
             // equal to the order we (the test) intend:
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
+            Transaction.Create(
+                unsignedTx: new UnsignedTx
+                {
+                    Invoice = new TxInvoice
                     {
                         GenesisHash = genesis.Hash,
                         UpdatedAddresses = [addresses[0]],
@@ -636,11 +637,16 @@ public partial class ActionEvaluatorTest
                             MakeAction(addresses[0], 'D'),
                         ]).ToPlainValues()],
                     },
-                    new TxSigningMetadata(_txFx.PrivateKey1.PublicKey, 0)),
-                _txFx.PrivateKey1),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
+                    SigningMetadata = new TxSigningMetadata
+                    {
+                        Signer = _txFx.PrivateKey1.Address,
+                    },
+                },
+                privateKey: _txFx.PrivateKey1),
+            Transaction.Create(
+                unsignedTx: new UnsignedTx
+                {
+                    Invoice = new TxInvoice
                     {
                         GenesisHash = genesis.Hash,
                         UpdatedAddresses = [addresses[3]],
@@ -649,11 +655,16 @@ public partial class ActionEvaluatorTest
                             MakeAction(addresses[3], 'E'),
                         ]).ToPlainValues()],
                     },
-                    new TxSigningMetadata(_txFx.PrivateKey2.PublicKey, 0)),
-                _txFx.PrivateKey2),
-            new Transaction(
-                new UnsignedTx(
-                    new TxInvoice
+                    SigningMetadata = new TxSigningMetadata
+                    {
+                        Signer = _txFx.PrivateKey2.Address,
+                    },
+                },
+                privateKey: _txFx.PrivateKey2),
+            Transaction.Create(
+                unsignedTx: new UnsignedTx
+                {
+                    Invoice = new TxInvoice
                     {
                         GenesisHash = genesis.Hash,
                         UpdatedAddresses = [addresses[4]],
@@ -664,8 +675,12 @@ public partial class ActionEvaluatorTest
                                 transfer: (addresses[0], addresses[4], 8)),
                         ]).ToPlainValues()],
                     },
-                    new TxSigningMetadata(_txFx.PrivateKey3.PublicKey, 0)),
-                _txFx.PrivateKey3),
+                    SigningMetadata = new TxSigningMetadata
+                    {
+                        Signer = _txFx.PrivateKey3.Address,
+                    },
+                },
+                privateKey: _txFx.PrivateKey3),
         };
         foreach ((var tx, var i) in block2Txs.Zip(
             Enumerable.Range(0, block2Txs.Length), (x, y) => (x, y)))
@@ -774,7 +789,7 @@ public partial class ActionEvaluatorTest
             DumbAction.Create((addresses[2], "R")),
         };
         var tx =
-            Transaction.Create(0, _txFx.PrivateKey1, null, actions.ToPlainValues());
+            Transaction.Create(0, _txFx.PrivateKey1, default, actions.ToPlainValues());
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
         var block = RawBlock.Propose(
@@ -887,7 +902,7 @@ public partial class ActionEvaluatorTest
         var tx = Transaction.Create(
             0,
             _txFx.PrivateKey1,
-            null,
+            default,
             new[] { action }.ToPlainValues(),
             null,
             0L,
@@ -1280,9 +1295,10 @@ public partial class ActionEvaluatorTest
                 .Select(signerNoncePair =>
                 {
                     Address targetAddress = signerNoncePair.signer.Address;
-                    return new Transaction(
-                        new UnsignedTx(
-                            new TxInvoice
+                    return Transaction.Create(
+                        unsignedTx: new UnsignedTx
+                        {
+                            Invoice = new TxInvoice
                             {
                                 UpdatedAddresses = [targetAddress],
                                 Timestamp = epoch,
@@ -1295,10 +1311,13 @@ public partial class ActionEvaluatorTest
                                     },
                                 }.ToPlainValues()],
                             },
-                            new TxSigningMetadata(
-                                signerNoncePair.signer.PublicKey,
-                                signerNoncePair.nonce)),
-                        signerNoncePair.signer);
+                            SigningMetadata = new TxSigningMetadata
+                            {
+                                Signer = signerNoncePair.signer.Address,
+                                Nonce = signerNoncePair.nonce,
+                            },
+                        },
+                        privateKey: signerNoncePair.signer);
                 }).ToImmutableArray();
 
         // Rearrange transactions so that transactions are not grouped by signers

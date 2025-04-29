@@ -2,6 +2,7 @@ using GraphQL;
 using GraphQL.Types;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
+using Libplanet.Serialization;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Explorer.GraphTypes
@@ -53,7 +54,7 @@ namespace Libplanet.Explorer.GraphTypes
                 description: "A serialized tx payload in base64 string.",
                 resolve: x =>
                 {
-                    byte[] bytes = x.Source.Serialize();
+                    byte[] bytes = ModelSerializer.SerializeToBytes(x.Source);
                     return Convert.ToBase64String(bytes);
                 });
 

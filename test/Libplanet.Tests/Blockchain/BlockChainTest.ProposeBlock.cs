@@ -149,7 +149,7 @@ namespace Libplanet.Tests.Blockchain
                         Transaction.Create(
                             5,  // Invalid nonce,
                             new PrivateKey(),
-                            null,
+                            default,
                             actions: new[]
                             {
                                 DumbAction.Create((new PrivateKey().Address, "foo")),
@@ -748,17 +748,25 @@ namespace Libplanet.Tests.Blockchain
         {
             var keyA = new PrivateKey();
             var keyB = new PrivateKey();
-            var unsignedInvalidTx = new UnsignedTx(
-                new TxInvoice
+            var unsignedInvalidTx = new UnsignedTx
+            {
+                Invoice = new TxInvoice
                 {
                     GenesisHash = _blockChain.Genesis.Hash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Actions = [List.Empty.Add(new Text("Foo"))], // Invalid action
                 },
-                new TxSigningMetadata(keyB.PublicKey, 1));
-            var txWithInvalidAction = new Transaction(
-                unsignedInvalidTx, unsignedInvalidTx.CreateSignature(keyB)
-            );
+                SigningMetadata = new TxSigningMetadata
+                {
+                    Signer = keyB.Address,
+                    Nonce = 1,
+                },
+            };
+            var txWithInvalidAction = new Transaction
+            {
+                UnsignedTx = unsignedInvalidTx,
+                Signature = unsignedInvalidTx.CreateSignature(keyB),
+            };
             Transaction txWithInvalidNonce = Transaction.Create(
                 2, keyB, _blockChain.Genesis.Hash, Array.Empty<DumbAction>().ToPlainValues()
             );
