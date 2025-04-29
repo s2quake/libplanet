@@ -581,15 +581,13 @@ public partial class BlockChainTest : IDisposable
         Block genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(
                 GenesisProposer.PublicKey,
-                new[]
-                {
+                [
                     Transaction.Create(
                         0,
                         new PrivateKey(),
                         default,
-                        Array.Empty<DumbAction>().ToPlainValues()
-                    ),
-                }),
+                        Array.Empty<DumbAction>().ToPlainValues()),
+                ]),
             GenesisProposer);
         var chain = BlockChain.Create(
             policy,
@@ -1547,7 +1545,7 @@ public partial class BlockChainTest : IDisposable
             stateStore,
             policy.PolicyActions);
         var genesisWithTx = ProposeGenesisBlock(
-            ProposeGenesis(GenesisProposer.PublicKey, new[] { genesisTx }),
+            ProposeGenesis(GenesisProposer.PublicKey, [genesisTx]),
             privateKey: GenesisProposer);
 
         var chain = BlockChain.Create(

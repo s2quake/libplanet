@@ -391,14 +391,15 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static RawBlock ProposeGenesis(
             PublicKey proposer,
-            IReadOnlyList<Transaction>? transactions = null,
-            ImmutableSortedSet<Validator>? validatorSet = null,
+            ImmutableSortedSet<Transaction>? transactions = null,
+            ImmutableSortedSet<Validator>? validators = null,
             DateTimeOffset? timestamp = null,
             int protocolVersion = Block.CurrentProtocolVersion
         )
         {
-            var txs = transactions?.ToList() ?? new List<Transaction>();
+            var txs = transactions ?? [];
             long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposer.Address));
+            validators ??= Validators;
             txs.Add(
                 Transaction.Create(
                     nonce++,
@@ -408,12 +409,11 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     {
                         new Initialize
                         {
-                            Validators = validatorSet ?? [],
+                            Validators = validators ?? [],
                             States = ImmutableDictionary.Create<Address, IValue>(),
                         },
                     }.Select(ModelSerializer.Serialize),
                     timestamp: DateTimeOffset.MinValue));
-            txs = txs.OrderBy(tx => tx.Id).ToList();
 
             var metadata = new BlockMetadata
             {
@@ -436,7 +436,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static Block ProposeGenesisBlock(
             PrivateKey miner,
-            IReadOnlyList<Transaction>? transactions = null,
+            ImmutableSortedSet<Transaction>? transactions = null,
             DateTimeOffset? timestamp = null,
             int protocolVersion = Block.CurrentProtocolVersion,
             HashDigest<SHA256> stateRootHash = default
@@ -576,7 +576,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     default,
                     actions.ToPlainValues(),
                     timestamp: timestamp ?? DateTimeOffset.MinValue),
-            };
+            }.ToImmutableSortedSet();
 
             var blockChainStates = new BlockChainStates(store, stateStore);
             var actionEvaluator = new ActionEvaluator(

@@ -94,7 +94,7 @@ public abstract class StoreFixture : IDisposable
         ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(
             proposer: Proposer.PublicKey,
-            validatorSet: TestUtils.Validators);
+            validators: TestUtils.Validators);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policyActions ?? new PolicyActions());
