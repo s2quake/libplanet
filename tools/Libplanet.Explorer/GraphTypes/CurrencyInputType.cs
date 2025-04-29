@@ -48,7 +48,13 @@ public class CurrencyInputType : InputObjectGraphType<Currency>
         var maximumSupply = GetMaximumSupply(value, decimalPlaces);
         string ticker = (string)value["ticker"]!;
 
-        return new Currency(ticker, decimalPlaces, maximumSupply, minters);
+        return new Currency
+        {
+            Ticker = ticker,
+            DecimalPlaces = decimalPlaces,
+            MaximumSupply = maximumSupply,
+            Minters = [.. minters],
+        };
     }
 
     private static BigInteger GetMaximumSupply(

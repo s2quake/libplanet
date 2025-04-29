@@ -597,16 +597,16 @@ public partial class ActionEvaluatorTest
             (Text)"C",
             output1.GetAccountState(ReservedAddresses.LegacyAccount).GetState(addresses[2]));
         Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 95, 0),
+            FungibleAssetValue.Create(DumbAction.DumbCurrency, 95, 0),
             output1.GetBalance(addresses[0], DumbAction.DumbCurrency));
         Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 100, 0),
+            FungibleAssetValue.Create(DumbAction.DumbCurrency, 100, 0),
             output1.GetBalance(addresses[1], DumbAction.DumbCurrency));
         Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 100, 0),
+            FungibleAssetValue.Create(DumbAction.DumbCurrency, 100, 0),
             output1.GetBalance(addresses[2], DumbAction.DumbCurrency));
         Assert.Equal(
-            new FungibleAssetValue(DumbAction.DumbCurrency, 105, 0),
+            FungibleAssetValue.Create(DumbAction.DumbCurrency, 105, 0),
             output1.GetBalance(addresses[3], DumbAction.DumbCurrency));
 
         Transaction[] block2Txs =
@@ -879,7 +879,7 @@ public partial class ActionEvaluatorTest
             null,
             new[] { action }.ToPlainValues(),
             null,
-            null,
+            0L,
             DateTimeOffset.UtcNow);
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
@@ -1335,13 +1335,13 @@ public partial class ActionEvaluatorTest
     {
         var privateKey = new PrivateKey();
         var address = privateKey.Address;
-        Currency foo = new Currency("FOO", 18);
+        Currency foo = Currency.Create("FOO", 18);
 
         var freeGasAction = new UseGasAction()
         {
             GasUsage = 0,
             Memo = "FREE",
-            MintValue = new FungibleAssetValue(foo, 10),
+            MintValue = FungibleAssetValue.Create(foo, 10),
             Receiver = address,
         };
 
@@ -1362,7 +1362,7 @@ public partial class ActionEvaluatorTest
             nonce: 0,
             privateKey: privateKey,
             genesisHash: chain.Genesis.Hash,
-            maxGasPrice: new FungibleAssetValue(foo, 1),
+            maxGasPrice: FungibleAssetValue.Create(foo, 1),
             gasLimit: 3,
             actions: new[]
             {
@@ -1387,13 +1387,13 @@ public partial class ActionEvaluatorTest
     {
         var privateKey = new PrivateKey();
         var address = privateKey.Address;
-        Currency foo = new Currency("FOO", 18);
+        Currency foo = Currency.Create("FOO", 18);
 
         var freeGasAction = new UseGasAction()
         {
             GasUsage = 0,
             Memo = "FREE",
-            MintValue = new FungibleAssetValue(foo, 10),
+            MintValue = FungibleAssetValue.Create(foo, 10),
             Receiver = address,
         };
 
@@ -1417,7 +1417,7 @@ public partial class ActionEvaluatorTest
             nonce: 0,
             privateKey: privateKey,
             genesisHash: chain.Genesis.Hash,
-            maxGasPrice: new FungibleAssetValue(foo, 1),
+            maxGasPrice: FungibleAssetValue.Create(foo, 1),
             gasLimit: 5,
             actions: new[]
             {
@@ -1548,53 +1548,40 @@ public partial class ActionEvaluatorTest
         return (addresses, txs);
     }
 
-    private sealed class UseGasAction : IAction
+    [Model(Version = 1)]
+    private sealed record class UseGasAction : ActionBase
     {
+        [Property(0)]
         public long GasUsage { get; set; }
 
-        public string Memo { get; set; }
+        [Property(1)]
+        public string Memo { get; set; } = string.Empty;
 
+        [Property(2)]
         public FungibleAssetValue? MintValue { get; set; }
 
+        [Property(3)]
         public Address? Receiver { get; set; }
 
-        public IValue PlainValue => new List(
-            (Integer)GasUsage,
-            (Text)Memo,
-            MintValue is null ? (IValue)default(Null) : MintValue.Value.ToBencodex(),
-            Receiver is null ? (IValue)default(Null) : (IValue)(Binary)Receiver.Value.Bytes
-            );
+        // public IWorld Execute(IActionContext context)
+        // {
+        //     GasTracer.UseGas(GasUsage);
+        //     var state = context.World
+        //         .SetAccount(
+        //             ReservedAddresses.LegacyAccount,
+        //             context.World.GetAccount(ReservedAddresses.LegacyAccount)
+        //                 .SetState(context.Signer, (Text)Memo));
+        //     if (!(Receiver is null) && !(MintValue is null))
+        //     {
+        //         state = state.MintAsset(context, Receiver.Value, MintValue.Value);
+        //     }
 
-        public void LoadPlainValue(IValue plainValue)
+        //     return state;
+        // }
+
+        protected override void OnExecute(IWorldContext world, IActionContext context)
         {
-            var asList = (List)plainValue;
-            GasUsage = (Bencodex.Types.Integer)asList[0];
-            Memo = (Text)asList[1];
-            if (!(asList[2] is Bencodex.Types.Null))
-            {
-                MintValue = FungibleAssetValue.Create(asList[2]);
-            }
-
-            if (!(asList[3] is Bencodex.Types.Null))
-            {
-                Receiver = ModelSerializer.Deserialize<Address>(asList[3]);
-            }
-        }
-
-        public IWorld Execute(IActionContext context)
-        {
-            GasTracer.UseGas(GasUsage);
-            var state = context.World
-                .SetAccount(
-                    ReservedAddresses.LegacyAccount,
-                    context.World.GetAccount(ReservedAddresses.LegacyAccount)
-                        .SetState(context.Signer, (Text)Memo));
-            if (!(Receiver is null) && !(MintValue is null))
-            {
-                state = state.MintAsset(context, Receiver.Value, MintValue.Value);
-            }
-
-            return state;
+            throw new NotImplementedException();
         }
     }
 }

@@ -216,7 +216,7 @@ public abstract class StoreFixture : IDisposable
             GenesisBlock.Hash,
             actions?.ToPlainValues() ?? Array.Empty<DumbAction>().ToPlainValues(),
             null,
-            null,
+            0L,
             timestamp
         );
     }

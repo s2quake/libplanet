@@ -123,7 +123,7 @@ public class TransactionTest
                 DumbAction.Create((stateStore, "F"), recordRandom: false),
             }.Select(x => x.PlainValue),
             null,
-            null,
+            0L,
             timestamp
         );
 
@@ -166,7 +166,7 @@ public class TransactionTest
             null,
             Array.Empty<DumbAction>().Select(x => x.PlainValue),
             null,
-            null);
+            0L);
         DateTimeOffset rightAfter = DateTimeOffset.UtcNow;
 
         Assert.InRange(tx.Timestamp, rightBefore, rightAfter);
@@ -183,7 +183,7 @@ public class TransactionTest
                 null,
                 Array.Empty<DumbAction>().Select(x => x.PlainValue),
                 null,
-                null,
+                0L,
                 DateTimeOffset.UtcNow
             )
         );

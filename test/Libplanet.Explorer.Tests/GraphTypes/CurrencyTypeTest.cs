@@ -16,7 +16,7 @@ public class CurrencyTypeTest
     {
         var addrA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
         var addrB = Address.Parse("5003712B63baAB98094aD678EA2B24BcE445D076");
-        var currency = new Currency(
+        var currency = Currency.Create(
             "ABC", 2, 1234567, [addrA, addrB]);
         ExecutionResult result = await ExecuteQueryAsync<CurrencyType>(@"
         {
@@ -62,7 +62,7 @@ public class CurrencyTypeTest
         });
         Assert.Equal("4bc1a79e2f30892acbff9fc7e5c71e2aea112110", resultDict["hash"]);
 
-        currency = new Currency("NOMINTER", 2);
+        currency = Currency.Create("NOMINTER", 2);
         result = await ExecuteQueryAsync<CurrencyType>(
             @"{
                 minters
@@ -77,7 +77,7 @@ public class CurrencyTypeTest
         Assert.Null(resultDict["maximumSupply"]);
 
 #pragma warning disable CS0618
-        currency = new Currency("LEGACY", 2);
+        currency = Currency.Create("LEGACY", 2);
 #pragma warning restore CS0618
         result = await ExecuteQueryAsync<CurrencyType>(
             @"{

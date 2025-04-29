@@ -32,7 +32,7 @@ namespace Libplanet.Tests.Blockchain
                     _blockChain.Genesis.Hash,
                     Array.Empty<DumbAction>().ToPlainValues(),
                     null,
-                    null,
+                    0L,
                     ts ?? DateTimeOffset.UtcNow);
 
             PrivateKey a = new PrivateKey();

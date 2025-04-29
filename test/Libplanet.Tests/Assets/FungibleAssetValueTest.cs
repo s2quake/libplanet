@@ -14,73 +14,73 @@ public class FungibleAssetValueTest
     public void Constructor()
     {
         FungibleAssetValue v;
-        v = new FungibleAssetValue(FOO, 123, 45);
-        Assert.Equal(new FungibleAssetValue(FOO, 123, 45), v);
+        v = FungibleAssetValue.Create(FOO, 123, 45);
+        Assert.Equal(FungibleAssetValue.Create(FOO, 123, 45), v);
         Assert.Equal(12345, v.RawValue);
         Assert.Equal(123, v.MajorUnit);
         Assert.Equal(45, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, 456, 9);
-        Assert.Equal(new FungibleAssetValue(FOO, 456, 9), v);
+        v = FungibleAssetValue.Create(FOO, 456, 9);
+        Assert.Equal(FungibleAssetValue.Create(FOO, 456, 9), v);
         Assert.Equal(45609, v.RawValue);
         Assert.Equal(456, v.MajorUnit);
         Assert.Equal(9, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, 0, 10);
-        Assert.Equal(new FungibleAssetValue(FOO, 0, 10), v);
+        v = FungibleAssetValue.Create(FOO, 0, 10);
+        Assert.Equal(FungibleAssetValue.Create(FOO, 0, 10), v);
         Assert.Equal(10, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
         Assert.Equal(10, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, 0, 9);
-        Assert.Equal(new FungibleAssetValue(FOO, 0, 9), v);
+        v = FungibleAssetValue.Create(FOO, 0, 9);
+        Assert.Equal(FungibleAssetValue.Create(FOO, 0, 9), v);
         Assert.Equal(9, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
         Assert.Equal(9, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, -789, -1);
-        Assert.Equal(new FungibleAssetValue(FOO, -789, -1), v);
+        v = FungibleAssetValue.Create(FOO, -789, -1);
+        Assert.Equal(FungibleAssetValue.Create(FOO, -789, -1), v);
         Assert.Equal(-78901, v.RawValue);
         Assert.Equal(-789, v.MajorUnit);
         Assert.Equal(-1, v.MinorUnit);
         Assert.Equal(-1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, 0, -2);
-        Assert.Equal(new FungibleAssetValue(FOO, 0, -2), v);
+        v = FungibleAssetValue.Create(FOO, 0, -2);
+        Assert.Equal(FungibleAssetValue.Create(FOO, 0, -2), v);
         Assert.Equal(-2, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
         Assert.Equal(-2, v.MinorUnit);
         Assert.Equal(-1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, 123, 0);
-        Assert.Equal(new FungibleAssetValue(FOO, 123, 0), v);
+        v = FungibleAssetValue.Create(FOO, 123, 0);
+        Assert.Equal(FungibleAssetValue.Create(FOO, 123, 0), v);
         Assert.Equal(12300, v.RawValue);
         Assert.Equal(123, v.MajorUnit);
         Assert.Equal(0, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
-        v = new FungibleAssetValue(BAR, 1, 0);
-        Assert.Equal(new FungibleAssetValue(BAR, 1, 0), v);
-        Assert.Equal(new FungibleAssetValue(BAR, 1), v);
+        v = FungibleAssetValue.Create(BAR, 1, 0);
+        Assert.Equal(FungibleAssetValue.Create(BAR, 1, 0), v);
+        Assert.Equal(FungibleAssetValue.Create(BAR, 1), v);
         Assert.Equal(1, v.RawValue);
         Assert.Equal(1, v.MajorUnit);
         Assert.Equal(0, v.MinorUnit);
         Assert.Equal(1, v.Sign);
 
-        v = new FungibleAssetValue(FOO, 0, 0);
-        Assert.Equal(new FungibleAssetValue(FOO, 0, 0), v);
-        Assert.Equal(new FungibleAssetValue(FOO), v);
+        v = FungibleAssetValue.Create(FOO, 0, 0);
+        Assert.Equal(FungibleAssetValue.Create(FOO, 0, 0), v);
+        Assert.Equal(FungibleAssetValue.Create(FOO), v);
         Assert.Equal(0, v.RawValue);
         Assert.Equal(0, v.MajorUnit);
         Assert.Equal(0, v.MinorUnit);
         Assert.Equal(0, v.Sign);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => new FungibleAssetValue(FOO, 1, 100));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new FungibleAssetValue(BAR, 1, -100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => FungibleAssetValue.Create(FOO, 1, 100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => FungibleAssetValue.Create(BAR, 1, -100));
     }
 
     [Fact]
@@ -371,35 +371,35 @@ public class FungibleAssetValueTest
     public void GetQuantityString()
     {
         FungibleAssetValue v;
-        v = new FungibleAssetValue(FOO, 123, 45);
+        v = FungibleAssetValue.Create(FOO, 123, 45);
         Assert.Equal("123.45", v.GetQuantityString());
         Assert.Equal("123.45", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, 456, 9);
+        v = FungibleAssetValue.Create(FOO, 456, 9);
         Assert.Equal("456.09", v.GetQuantityString());
         Assert.Equal("456.09", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, 0, 10);
+        v = FungibleAssetValue.Create(FOO, 0, 10);
         Assert.Equal("0.1", v.GetQuantityString());
         Assert.Equal("0.10", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, 0, 9);
+        v = FungibleAssetValue.Create(FOO, 0, 9);
         Assert.Equal("0.09", v.GetQuantityString());
         Assert.Equal("0.09", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, -789, -1);
+        v = FungibleAssetValue.Create(FOO, -789, -1);
         Assert.Equal("-789.01", v.GetQuantityString());
         Assert.Equal("-789.01", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, 0, -2);
+        v = FungibleAssetValue.Create(FOO, 0, -2);
         Assert.Equal("-0.02", v.GetQuantityString());
         Assert.Equal("-0.02", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, 123, 0);
+        v = FungibleAssetValue.Create(FOO, 123, 0);
         Assert.Equal("123", v.GetQuantityString());
         Assert.Equal("123.00", v.GetQuantityString(true));
 
-        v = new FungibleAssetValue(FOO, 0, 0);
+        v = FungibleAssetValue.Create(FOO, 0, 0);
         Assert.Equal("0", v.GetQuantityString());
         Assert.Equal("0.00", v.GetQuantityString(true));
     }
@@ -416,7 +416,7 @@ public class FungibleAssetValueTest
     [Fact]
     public void Parse()
     {
-        var baz = new Currency("BAZ", 1);
+        var baz = Currency.Create("BAZ", 1);
 
         Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(FOO, "abc"));
 
@@ -439,38 +439,38 @@ public class FungibleAssetValueTest
         Assert.Throws<FormatException>(() => FungibleAssetValue.Parse(baz, "123.12"));
 
         Assert.Equal(
-            new FungibleAssetValue(FOO, 123, 45),
+            FungibleAssetValue.Create(FOO, 123, 45),
             FungibleAssetValue.Parse(FOO, "123.45")
         );
         Assert.Equal(
-            new FungibleAssetValue(FOO, 123, 45),
+            FungibleAssetValue.Create(FOO, 123, 45),
             FungibleAssetValue.Parse(FOO, "+123.45")
         );
         Assert.Equal(
-            new FungibleAssetValue(FOO, -123, -45),
+            FungibleAssetValue.Create(FOO, -123, -45),
             FungibleAssetValue.Parse(FOO, "-123.45")
         );
         Assert.Equal(
-            new FungibleAssetValue(FOO, 123, 40),
+            FungibleAssetValue.Create(FOO, 123, 40),
             FungibleAssetValue.Parse(FOO, "123.4")
         );
         Assert.Equal(
-            new FungibleAssetValue(FOO, 123, 40),
+            FungibleAssetValue.Create(FOO, 123, 40),
             FungibleAssetValue.Parse(FOO, "+123.4")
         );
         Assert.Equal(
-            new FungibleAssetValue(FOO, -123, -40),
+            FungibleAssetValue.Create(FOO, -123, -40),
             FungibleAssetValue.Parse(FOO, "-123.4")
         );
-        Assert.Equal(new FungibleAssetValue(FOO, 123, 0), FungibleAssetValue.Parse(FOO, "123"));
-        Assert.Equal(new FungibleAssetValue(FOO, 12, 0), FungibleAssetValue.Parse(FOO, "+12"));
-        Assert.Equal(new FungibleAssetValue(FOO, -12, 0), FungibleAssetValue.Parse(FOO, "-12"));
+        Assert.Equal(FungibleAssetValue.Create(FOO, 123, 0), FungibleAssetValue.Parse(FOO, "123"));
+        Assert.Equal(FungibleAssetValue.Create(FOO, 12, 0), FungibleAssetValue.Parse(FOO, "+12"));
+        Assert.Equal(FungibleAssetValue.Create(FOO, -12, 0), FungibleAssetValue.Parse(FOO, "-12"));
     }
 
     [SkippableFact]
     public void JsonSerialization()
     {
-        var v = new FungibleAssetValue(FOO, 123, 45);
+        var v = FungibleAssetValue.Create(FOO, 123, 45);
         AssertJsonSerializable(v, @"
             {
                 ""quantity"": ""123.45"",
@@ -484,7 +484,7 @@ public class FungibleAssetValueTest
             }
         ");
 
-        v = new FungibleAssetValue(FOO, -456, 0);
+        v = FungibleAssetValue.Create(FOO, -456, 0);
         AssertJsonSerializable(v, @"
             {
                 ""quantity"": ""-456"",

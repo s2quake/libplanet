@@ -366,7 +366,7 @@ public class StoreCommandTest : IDisposable
             _genesisBlock.Hash,
             new[] { new Utils.DummyAction() }.ToPlainValues(),
             null,
-            null,
+            0L,
             DateTimeOffset.UtcNow);
     }
 }

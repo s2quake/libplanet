@@ -88,7 +88,7 @@ public partial class StateQueryTest
     [InlineData(BlockMetadata.CurrentProtocolVersion)]
     public async Task TotalSupply(int version)
     {
-         var legacyToken = new Currency("LEG", 0);
+         var legacyToken = Currency.Create("LEG", 0);
         (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
@@ -272,7 +272,7 @@ public partial class StateQueryTest
     [InlineData(BlockMetadata.CurrentProtocolVersion)]
     public async Task TotalSupplyBySrh(int version)
     {
-         var legacyToken = new Currency("LEG", 0);
+         var legacyToken = Currency.Create("LEG", 0);
         (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{

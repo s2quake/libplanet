@@ -36,7 +36,7 @@ namespace Libplanet.Tests.Tx
                 GenesisHash = genesisHash,
                 Timestamp = timestamp,
                 Actions = actions,
-                MaxGasPrice = new Currency("DUMB", 0) * 100,
+                MaxGasPrice = Currency.Create("DUMB", 0) * 100,
                 GasLimit = 100,
             };
 
@@ -46,7 +46,7 @@ namespace Libplanet.Tests.Tx
                     GenesisHash = genesisHash,
                     Timestamp = timestamp,
                     Actions = actions,
-                    MaxGasPrice = new Currency("DUMB", 0) * 100,
+                    MaxGasPrice = Currency.Create("DUMB", 0) * 100,
                 }.Verify());
             Assert.Throws<ArgumentException>(() =>
                 new TxInvoice
@@ -62,7 +62,7 @@ namespace Libplanet.Tests.Tx
                     GenesisHash = genesisHash,
                     Timestamp = timestamp,
                     Actions = actions,
-                    MaxGasPrice = new Currency("DUMB", 0) * -100,
+                    MaxGasPrice = Currency.Create("DUMB", 0) * -100,
                     GasLimit = 100,
                 }.Verify());
             Assert.Throws<ArgumentException>(() =>
@@ -71,7 +71,7 @@ namespace Libplanet.Tests.Tx
                     GenesisHash = genesisHash,
                     Timestamp = timestamp,
                     Actions = actions,
-                    MaxGasPrice = new Currency("DUMB", 0) * 100,
+                    MaxGasPrice = Currency.Create("DUMB", 0) * 100,
                     GasLimit = -100,
                 }.Verify());
         }
@@ -183,8 +183,8 @@ namespace Libplanet.Tests.Tx
                     Timestamp = i == 2 ? DateTimeOffset.MinValue : timestamp,
                     Actions = i == 3 ? [] : actions,
                     MaxGasPrice = i == 4
-                        ? new FungibleAssetValue(
-                            new Currency("FOO", 18, [new PrivateKey().Address]),
+                        ? FungibleAssetValue.Create(
+                            Currency.Create("FOO", 18, [new PrivateKey().Address]),
                             100)
                         : null,
                     GasLimit = i == 4 ? 10 : 0L,
@@ -212,8 +212,8 @@ namespace Libplanet.Tests.Tx
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
                 Actions = actions,
-                MaxGasPrice = new FungibleAssetValue(
-                    new Currency("FOO", 18, [AddressA]),
+                MaxGasPrice = FungibleAssetValue.Create(
+                    Currency.Create("FOO", 18, [AddressA]),
                     1234,
                     5678),
                 GasLimit = 100,

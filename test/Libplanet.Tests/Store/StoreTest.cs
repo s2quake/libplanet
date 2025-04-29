@@ -740,7 +740,7 @@ namespace Libplanet.Tests.Store
                     null,
                     new[] { action }.ToPlainValues(),
                     null,
-                    null,
+                    0L,
                     DateTimeOffset.UtcNow);
             }
 
