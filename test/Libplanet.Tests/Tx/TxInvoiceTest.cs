@@ -46,7 +46,7 @@ namespace Libplanet.Tests.Tx
                     Timestamp = timestamp,
                     Actions = actions,
                     MaxGasPrice = Currency.Create("DUMB", 0) * 100,
-                }.Verify());
+                });
             Assert.Throws<ArgumentException>(() =>
                 new TxInvoice
                 {
@@ -54,7 +54,7 @@ namespace Libplanet.Tests.Tx
                     Timestamp = timestamp,
                     Actions = actions,
                     GasLimit = 100,
-                }.Verify());
+                });
             Assert.Throws<ArgumentException>(() =>
                 new TxInvoice
                 {
@@ -63,7 +63,7 @@ namespace Libplanet.Tests.Tx
                     Actions = actions,
                     MaxGasPrice = Currency.Create("DUMB", 0) * -100,
                     GasLimit = 100,
-                }.Verify());
+                });
             Assert.Throws<ArgumentException>(() =>
                 new TxInvoice
                 {
@@ -72,7 +72,7 @@ namespace Libplanet.Tests.Tx
                     Actions = actions,
                     MaxGasPrice = Currency.Create("DUMB", 0) * 100,
                     GasLimit = -100,
-                }.Verify());
+                });
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace Libplanet.Tests.Tx
             var before = DateTimeOffset.UtcNow;
             var invoice = new TxInvoice();
             var after = DateTimeOffset.UtcNow;
-            Assert.Null(invoice.GenesisHash);
+            Assert.Equal(default, invoice.GenesisHash);
             Assert.Empty(invoice.UpdatedAddresses);
             Assert.InRange(invoice.Timestamp, before, after);
             Assert.Empty(invoice.Actions);
