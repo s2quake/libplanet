@@ -7,8 +7,10 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public readonly record struct BlockCommit : IEquatable<BlockCommit>, IValidatableObject
+public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableObject
 {
+    public static BlockCommit Empty { get; } = new();
+
     [Property(0)]
     public long Height { get; init; }
 
@@ -19,7 +21,7 @@ public readonly record struct BlockCommit : IEquatable<BlockCommit>, IValidatabl
     public BlockHash BlockHash { get; init; }
 
     [Property(3)]
-    public ImmutableArray<Vote> Votes { get; init; }
+    public ImmutableArray<Vote> Votes { get; init; } = [];
 
     public bool Equals(BlockCommit? other) => ModelUtility.Equals(this, other);
 

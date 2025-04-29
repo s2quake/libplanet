@@ -1410,12 +1410,10 @@ public partial class BlockChainTest : IDisposable
                 new UnsignedTx(
                     new TxInvoice
                     {
-                        GenesisHash = null,
                         UpdatedAddresses = [.. addresses],
                         Timestamp = DateTimeOffset.UtcNow,
                         Actions = [.. customActions.ToPlainValues()],
                         MaxGasPrice = null,
-                        GasLimit = null,
                     },
                     new TxSigningMetadata(privateKey.PublicKey, systemTxs.Length)),
                 privateKey),

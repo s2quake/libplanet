@@ -5,14 +5,13 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Types.Consensus;
 
 [Model(Version = 1)]
-public sealed record class Vote(VoteMetadata Metadata, ImmutableArray<byte> Signature)
-    : IEquatable<Vote>
+public sealed record class Vote : IEquatable<Vote>
 {
     [Property(0)]
-    public VoteMetadata Metadata { get; } = Metadata;
+    public required VoteMetadata Metadata { get; init; }
 
     [Property(1)]
-    public ImmutableArray<byte> Signature { get; } = Validate(Metadata, Signature);
+    public ImmutableArray<byte> Signature { get; init; }
 
     public long Height => Metadata.Height;
 

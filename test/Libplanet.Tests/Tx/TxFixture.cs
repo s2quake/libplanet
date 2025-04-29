@@ -8,7 +8,7 @@ namespace Libplanet.Tests.Tx;
 
 public class TxFixture
 {
-    public TxFixture(BlockHash? genesisHash)
+    public TxFixture(BlockHash genesisHash)
     {
         PrivateKey1 = new PrivateKey(
             new byte[]

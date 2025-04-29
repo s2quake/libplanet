@@ -71,11 +71,11 @@ namespace Libplanet.Blockchain
                     $"but its value is {block.PreviousHash}.");
             }
 
-            if (block.LastCommit is { } lastCommit)
+            if (block.LastCommit != BlockCommit.Empty)
             {
                 throw new InvalidOperationException(
-                    "A genesis block should not have lastCommit, " +
-                    $"but its value is {lastCommit}.");
+                    "A genesis block should not have last commit, " +
+                    $"but its value is {block.LastCommit}.");
             }
         }
 

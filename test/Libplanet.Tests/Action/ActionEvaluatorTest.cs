@@ -78,7 +78,7 @@ public partial class ActionEvaluatorTest
             },
             getMaxTransactionsBytes: _ => 50 * 1024);
         _storeFx = new MemoryStoreFixture(_policy.PolicyActions);
-        _txFx = new TxFixture(null);
+        _txFx = new TxFixture(default);
     }
 
     [Fact]
@@ -487,7 +487,6 @@ public partial class ActionEvaluatorTest
                             MakeAction(addresses[1], 'B', addresses[2]),
                         ]).ToPlainValues()],
                         MaxGasPrice = null,
-                        GasLimit = null,
                     },
                     new TxSigningMetadata(_txFx.PrivateKey1.PublicKey, 0)),
                 _txFx.PrivateKey1),
@@ -502,7 +501,6 @@ public partial class ActionEvaluatorTest
                             MakeAction(addresses[2], 'C', addresses[3]),
                         ]).ToPlainValues()],
                         MaxGasPrice = null,
-                        GasLimit = null,
                     },
                     new TxSigningMetadata(_txFx.PrivateKey2.PublicKey, 0)),
                 _txFx.PrivateKey2),
@@ -1275,7 +1273,6 @@ public partial class ActionEvaluatorTest
                         new UnsignedTx(
                             new TxInvoice
                             {
-                                GenesisHash = null,
                                 UpdatedAddresses = [targetAddress],
                                 Timestamp = epoch,
                                 Actions = [.. new IAction[]

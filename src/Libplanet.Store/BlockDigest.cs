@@ -9,8 +9,9 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Store;
 
 [Model(Version = 1)]
-public sealed record class BlockDigest
+public sealed record class BlockDigest : IEquatable<BlockDigest>
 {
+    public static BlockDigest Empty { get; } = new BlockDigest() { Header = BlockHeader.Empty, };
     // private static readonly Codec _codec = new();
 
     // private readonly BlockMetadata _metadata;
@@ -32,6 +33,12 @@ public sealed record class BlockDigest
 
     [Property(0)]
     public required BlockHeader Header { get; init; }
+
+    [Property(1)]
+    public ImmutableSortedSet<TxId> TxIds { get; init; } = [];
+
+    [Property(2)]
+    public ImmutableSortedSet<EvidenceId> EvidenceIds { get; init; } = [];
 
     // public int ProtocolVersion => _metadata.ProtocolVersion;
 
@@ -56,12 +63,6 @@ public sealed record class BlockDigest
     public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
 
     // public ImmutableArray<byte> Signature { get; }
-
-    [Property(1)]
-    public ImmutableSortedSet<TxId> TxIds { get; init; } = [];
-
-    [Property(2)]
-    public ImmutableSortedSet<EvidenceId> EvidenceIds { get; init; } = [];
 
     public static BlockDigest Create(Block block)
     {
@@ -89,4 +90,8 @@ public sealed record class BlockDigest
 
     //     throw new NotImplementedException();
     // }
+
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+
+    public bool Equals(BlockDigest? other) => ModelUtility.Equals(this, other);
 }

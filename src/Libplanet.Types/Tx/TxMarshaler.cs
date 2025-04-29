@@ -123,7 +123,7 @@ public static class TxMarshaler
                 : [],
             GenesisHash = dictionary.TryGetValue(GenesisHashKey, out IValue gv)
                 ? ModelSerializer.Deserialize<BlockHash>(gv)
-                : null,
+                : default,
             UpdatedAddresses = ImmutableSortedSet.Create(
                 [.. ((List)dictionary[UpdatedAddressesKey]).Select(ModelSerializer.Deserialize<Address>)]),
             Timestamp = DateTimeOffset.ParseExact(
@@ -135,7 +135,7 @@ public static class TxMarshaler
                 : null,
             GasLimit = dictionary.TryGetValue(GasLimitKey, out IValue glv)
                 ? (long)(Bencodex.Types.Integer)glv
-                : null,
+                : 0L,
         };
     }
 

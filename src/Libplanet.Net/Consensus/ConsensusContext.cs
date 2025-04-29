@@ -121,7 +121,7 @@ public partial class ConsensusContext : IDisposable
                     $"the current height #{Height}.");
             }
 
-            BlockCommit lastCommit = default;
+            var lastCommit = BlockCommit.Empty;
             if (_currentContext.Height == height - 1 &&
                 _currentContext.GetBlockCommit() is { } prevCommit)
             {

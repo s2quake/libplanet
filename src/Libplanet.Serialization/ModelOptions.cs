@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Bencodex.Types;
 using static Libplanet.Serialization.TypeUtility;
 
 namespace Libplanet.Serialization;
@@ -25,6 +26,11 @@ public sealed record class ModelOptions
     {
         try
         {
+            if (typeof(IValue).IsAssignableFrom(type))
+            {
+                return 0;
+            }
+
             return IsStandardType(type) ? 0 : Resolver.GetVersion(type);
         }
         catch (Exception e)

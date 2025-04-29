@@ -35,20 +35,15 @@ public readonly record struct FungibleAssetValue(
 
     public BigInteger MinorUnit => RawValue % BigInteger.Pow(10, Currency.DecimalPlaces);
 
-    public static bool operator <(FungibleAssetValue obj, FungibleAssetValue other)
-        => obj.CompareTo(other) < 0;
+    public static bool operator <(FungibleAssetValue obj, FungibleAssetValue other) => obj.CompareTo(other) < 0;
 
-    public static bool operator <=(FungibleAssetValue obj, FungibleAssetValue other)
-        => obj.CompareTo(other) <= 0;
+    public static bool operator <=(FungibleAssetValue obj, FungibleAssetValue other) => obj.CompareTo(other) <= 0;
 
-    public static bool operator >(FungibleAssetValue obj, FungibleAssetValue other)
-        => other < obj;
+    public static bool operator >(FungibleAssetValue obj, FungibleAssetValue other) => other < obj;
 
-    public static bool operator >=(FungibleAssetValue obj, FungibleAssetValue other)
-        => other <= obj;
+    public static bool operator >=(FungibleAssetValue obj, FungibleAssetValue other) => other <= obj;
 
-    public static FungibleAssetValue operator -(FungibleAssetValue value)
-        => new(value.Currency, -value.RawValue);
+    public static FungibleAssetValue operator -(FungibleAssetValue value) => new(value.Currency, -value.RawValue);
 
     public static FungibleAssetValue operator +(FungibleAssetValue left, FungibleAssetValue right)
     {

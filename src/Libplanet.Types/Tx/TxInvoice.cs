@@ -1,6 +1,7 @@
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 
@@ -13,7 +14,7 @@ public sealed record class TxInvoice : IEquatable<TxInvoice>
     public ImmutableArray<IValue> Actions { get; init; } = [];
 
     [Property(1)]
-    public BlockHash? GenesisHash { get; init; }
+    public BlockHash GenesisHash { get; init; }
 
     [Property(2)]
     public ImmutableSortedSet<Address> UpdatedAddresses { get; init; } = [];
@@ -25,19 +26,20 @@ public sealed record class TxInvoice : IEquatable<TxInvoice>
     public FungibleAssetValue? MaxGasPrice { get; init; }
 
     [Property(5)]
-    public long? GasLimit { get; init; }
+    [NonNegative]
+    public long GasLimit { get; init; }
 
     public void Verify()
     {
         switch (MaxGasPrice, GasLimit)
         {
-            case (null, null):
+            case (null, 0):
                 break;
             case (null, { }):
-            case ({ }, null):
+            case ({ }, 0):
                 throw new ArgumentException(
                     $"Either {nameof(MaxGasPrice)} (null: {MaxGasPrice is null}) and " +
-                    $"{nameof(GasLimit)} (null: {GasLimit is null}) must be both null " +
+                    $"{nameof(GasLimit)} (null: {GasLimit is 0}) must be both null " +
                     $"or both non-null.");
             case ({ } mgp, { } gl):
                 if (mgp.Sign < 0 || gl < 0)
