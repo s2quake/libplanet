@@ -62,7 +62,7 @@ public static class TxMarshaler
 
         if (invoice.MaxGasPrice is { } maxGasPrice)
         {
-            dict = dict.Add(MaxGasPriceKey, maxGasPrice.ToBencodex());
+            dict = dict.Add(MaxGasPriceKey, ModelSerializer.Serialize(maxGasPrice));
         }
 
         if (invoice.GasLimit is { } gasLimit)
@@ -131,7 +131,7 @@ public static class TxMarshaler
                 TimestampFormat,
                 CultureInfo.InvariantCulture).ToUniversalTime(),
             MaxGasPrice = dictionary.TryGetValue(MaxGasPriceKey, out IValue mgpv)
-                ? FungibleAssetValue.Create(mgpv)
+                ? ModelSerializer.Deserialize<FungibleAssetValue>(mgpv)
                 : null,
             GasLimit = dictionary.TryGetValue(GasLimitKey, out IValue glv)
                 ? (long)(Bencodex.Types.Integer)glv

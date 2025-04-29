@@ -64,7 +64,7 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
         BlockHash? genesisHash,
         IEnumerable<IValue> actions,
         FungibleAssetValue? maxGasPrice = null,
-        long? gasLimit = null,
+        long gasLimit = 0L,
         DateTimeOffset? timestamp = null) =>
         Create(
             nonce,

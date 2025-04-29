@@ -8,20 +8,19 @@ namespace Libplanet.Types.Assets;
 
 [JsonConverter(typeof(FungibleAssetValueJsonConverter))]
 [Model(Version = 1)]
-public readonly record struct FungibleAssetValue(
-    [property: Property(0)] Currency Currency,
-    [property: Property(1)] BigInteger RawValue)
+public readonly record struct FungibleAssetValue
     : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable, IFormattable
 {
-    public FungibleAssetValue(Currency currency)
-        : this(currency, BigInteger.Zero)
-    {
-    }
+    // public FungibleAssetValue(Currency currency)
+    //     : this(currency, BigInteger.Zero)
+    // {
+    // }
 
-    public FungibleAssetValue(Currency currency, BigInteger majorUnit, BigInteger minorUnit)
-        : this(currency, currency.GetRawValue(majorUnit, minorUnit))
-    {
-    }
+    [Property(0)]
+    public required Currency Currency { get; init; }
+
+    [Property(1)]
+    public BigInteger RawValue { get; init; }
 
     public bool IsPositive => RawValue > 0;
 
@@ -43,7 +42,11 @@ public readonly record struct FungibleAssetValue(
 
     public static bool operator >=(FungibleAssetValue obj, FungibleAssetValue other) => other <= obj;
 
-    public static FungibleAssetValue operator -(FungibleAssetValue value) => new(value.Currency, -value.RawValue);
+    public static FungibleAssetValue operator -(FungibleAssetValue value) => new()
+    {
+        Currency = value.Currency,
+        RawValue = -value.RawValue,
+    };
 
     public static FungibleAssetValue operator +(FungibleAssetValue left, FungibleAssetValue right)
     {
@@ -54,7 +57,11 @@ public readonly record struct FungibleAssetValue(
             throw new ArgumentException(message, nameof(right));
         }
 
-        return new FungibleAssetValue(left.Currency, left.RawValue + right.RawValue);
+        return new FungibleAssetValue
+        {
+            Currency = left.Currency,
+            RawValue = left.RawValue + right.RawValue,
+        };
     }
 
     public static FungibleAssetValue operator -(FungibleAssetValue left, FungibleAssetValue right)
@@ -66,17 +73,21 @@ public readonly record struct FungibleAssetValue(
             throw new ArgumentException(message, nameof(right));
         }
 
-        return new FungibleAssetValue(left.Currency, left.RawValue - right.RawValue);
+        return new FungibleAssetValue
+        {
+            Currency = left.Currency,
+            RawValue = left.RawValue - right.RawValue,
+        };
     }
 
     public static FungibleAssetValue operator *(FungibleAssetValue left, BigInteger right)
-        => new(left.Currency, left.RawValue * right);
+        => new() { Currency = left.Currency, RawValue = left.RawValue * right };
 
     public static FungibleAssetValue operator *(BigInteger left, FungibleAssetValue right)
-        => new(right.Currency, left * right.RawValue);
+        => new() { Currency = right.Currency, RawValue = left * right.RawValue };
 
     public static FungibleAssetValue operator %(FungibleAssetValue dividend, BigInteger divisor)
-        => new(dividend.Currency, dividend.RawValue % divisor);
+        => new() { Currency = dividend.Currency, RawValue = dividend.RawValue % divisor };
 
     public static FungibleAssetValue operator %(
         FungibleAssetValue dividend, FungibleAssetValue divisor)
@@ -88,20 +99,42 @@ public readonly record struct FungibleAssetValue(
             throw new ArgumentException(message, nameof(divisor));
         }
 
-        return new FungibleAssetValue(dividend.Currency, dividend.RawValue % divisor.RawValue);
-    }
-
-    public static FungibleAssetValue Create(IValue value)
-    {
-        if (value is not List list)
+        return new FungibleAssetValue
         {
-            throw new ArgumentException($"The given value is not a list: {value}", nameof(value));
-        }
-
-        var currency = Currency.Create(list[0]);
-        var rawValue = (Integer)list[1];
-        return new FungibleAssetValue(currency, rawValue);
+            Currency = dividend.Currency,
+            RawValue = dividend.RawValue % divisor.RawValue,
+        };
     }
+
+    public static FungibleAssetValue Create(Currency currency, BigInteger rawValue)
+    {
+        return new FungibleAssetValue
+        {
+            Currency = currency,
+            RawValue = rawValue,
+        };
+    }
+
+    public static FungibleAssetValue Create(Currency currency, BigInteger majorUnit, BigInteger minorUnit)
+    {
+        return new FungibleAssetValue
+        {
+            Currency = currency,
+            RawValue = currency.GetRawValue(majorUnit, minorUnit),
+        };
+    }
+
+    // public static FungibleAssetValue Create(IValue value)
+    // {
+    //     if (value is not List list)
+    //     {
+    //         throw new ArgumentException($"The given value is not a list: {value}", nameof(value));
+    //     }
+
+    //     var currency = Currency.Create(list[0]);
+    //     var rawValue = (Integer)list[1];
+    //     return FungibleAssetValue.Create(currency, rawValue);
+    // }
 
     public static FungibleAssetValue Parse(Currency currency, string value)
     {
@@ -127,17 +160,17 @@ public readonly record struct FungibleAssetValue(
             rawValue = -rawValue;
         }
 
-        return new FungibleAssetValue(currency, rawValue);
+        return new FungibleAssetValue { Currency = currency, RawValue = rawValue };
     }
 
     public static FungibleAssetValue Abs(FungibleAssetValue value)
-        => new(value.Currency, BigInteger.Abs(value.RawValue));
+        => new() { Currency = value.Currency, RawValue = BigInteger.Abs(value.RawValue) };
 
     public FungibleAssetValue DivRem(BigInteger divisor, out FungibleAssetValue remainder)
     {
         var value = BigInteger.DivRem(RawValue, divisor, out BigInteger rem);
-        remainder = new FungibleAssetValue(Currency, rem);
-        return new FungibleAssetValue(Currency, value);
+        remainder = new FungibleAssetValue { Currency = Currency, RawValue = rem };
+        return new FungibleAssetValue { Currency = Currency, RawValue = value };
     }
 
     public BigInteger DivRem(FungibleAssetValue divisor, out FungibleAssetValue remainder)
@@ -150,7 +183,7 @@ public readonly record struct FungibleAssetValue(
         }
 
         var value = BigInteger.DivRem(RawValue, divisor.RawValue, out var rem);
-        remainder = new FungibleAssetValue(Currency, rem);
+        remainder = new FungibleAssetValue { Currency = Currency, RawValue = rem };
         return value;
     }
 
@@ -217,10 +250,10 @@ public readonly record struct FungibleAssetValue(
         _ => ToString(),
     };
 
-    public IValue ToBencodex()
-    {
-        return new List(
-            Currency.ToBencodex(),
-            (Integer)RawValue);
-    }
+    // public IValue ToBencodex()
+    // {
+    //     return new List(
+    //         Currency.ToBencodex(),
+    //         (Integer)RawValue);
+    // }
 }

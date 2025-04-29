@@ -22,8 +22,8 @@
 //         public void Evaluate_WithGasTracer(
 //             bool cancelTrace, long goldAmount, long expectedGoldAmount)
 //         {
-//             var gold = new Currency("FOO", 18);
-//             var gas = new Currency("GAS", 18);
+//             var gold = Currency.Create("FOO", 18);
+//             var gas = Currency.Create("GAS", 18);
 //             var privateKey = new PrivateKey();
 //             var policy = new BlockPolicy(
 //                 new PolicyActions
@@ -138,8 +138,8 @@
 //                     beginTxActions: ImmutableArray<IAction>.Empty,
 //                     endTxActions: ImmutableArray<IAction>.Empty),
 //                 getMaxTransactionsBytes: _ => 50 * 1024);
-//             var gold = new Currency("FOO", 18);
-//             var gas = new Currency("GAS", 18);
+//             var gold = Currency.Create("FOO", 18);
+//             var gas = Currency.Create("GAS", 18);
 //             var privateKey = new PrivateKey();
 
 //             var store = new MemoryStore();
@@ -178,8 +178,8 @@
 
 //         private IReadOnlyList<CommittedActionEvaluation> Evaluate_CancelTrace(BlockPolicy policy)
 //         {
-//             var gold = new Currency("FOO", 18);
-//             var gas = new Currency("GAS", 18);
+//             var gold = Currency.Create("FOO", 18);
+//             var gas = Currency.Create("GAS", 18);
 //             var privateKey = new PrivateKey();
 
 //             var store = new MemoryStore();

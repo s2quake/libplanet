@@ -20,66 +20,66 @@ public class CurrencyTest
     [Fact]
     public void Constructor()
     {
-        var foo = new Currency("FOO", 2);
+        var foo = Currency.Create("FOO", 2);
         Assert.Equal("FOO", foo.Ticker);
         Assert.Equal(2, foo.DecimalPlaces);
         Assert.Equal(0, foo.MaximumSupply);
         Assert.Empty(foo.Minters);
 
-        var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]);
+        var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
         Assert.Equal("BAR", bar.Ticker);
         Assert.Equal(0, bar.DecimalPlaces);
         Assert.Equal(100, bar.MaximumSupply);
         Assert.Equal<Address>(bar.Minters, [AddressB, AddressA]);
 
-        var baz = new Currency("baz", 1, [AddressA]);
+        var baz = Currency.Create("baz", 1, [AddressA]);
         Assert.Equal("baz", baz.Ticker);
         Assert.Equal(1, baz.DecimalPlaces);
         Assert.Equal(0, baz.MaximumSupply);
         Assert.Equal<Address>(baz.Minters, [AddressA]);
 
-        var qux = new Currency("QUX", 0);
+        var qux = Currency.Create("QUX", 0);
         Assert.Equal("QUX", qux.Ticker);
         Assert.Equal(0, qux.MaximumSupply);
         Assert.Equal(0, qux.DecimalPlaces);
         Assert.Empty(qux.Minters);
 
-        var quux = new Currency("QUUX", 3, 100);
+        var quux = Currency.Create("QUUX", 3, 100);
         Assert.Equal("QUUX", quux.Ticker);
         Assert.Equal(3, quux.DecimalPlaces);
         Assert.Equal(100, quux.MaximumSupply);
         Assert.Empty(quux.Minters);
 
-        Assert.Throws<ArgumentException>(() => new Currency(string.Empty, 0));
-        Assert.Throws<ArgumentException>(() => new Currency("   \n", 1));
-        Assert.Throws<ArgumentException>(() => new Currency("BAR", 1, [AddressA, AddressA]));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new Currency("TEST", 1, -100, []));
+        Assert.Throws<ArgumentException>(() => Currency.Create(string.Empty, 0));
+        Assert.Throws<ArgumentException>(() => Currency.Create("   \n", 1));
+        Assert.Throws<ArgumentException>(() => Currency.Create("BAR", 1, [AddressA, AddressA]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Currency.Create("TEST", 1, -100, []));
     }
 
     [Fact]
     public void Hash()
     {
-        var currency = new Currency("GOLD", 2, [AddressA]);
+        var currency = Currency.Create("GOLD", 2, [AddressA]);
         var expected = HashDigest<SHA1>.Parse("b74db4b0ce23048dd0523635711cf17e8c6ea6e6");
         AssertBytesEqual(expected, currency.Hash);
 
-        currency = new Currency("NCG", 8, [AddressA, AddressB]);
+        currency = Currency.Create("NCG", 8, [AddressA, AddressB]);
         expected = HashDigest<SHA1>.Parse("585647629cbbb9552c621fa588297287d0c995b3");
         AssertBytesEqual(expected, currency.Hash);
 
-        currency = new Currency("FOO", 0);
+        currency = Currency.Create("FOO", 0);
         expected = HashDigest<SHA1>.Parse("b4a20e835105e48a591c8afeba850262790dfffc");
         AssertBytesEqual(expected, currency.Hash);
 
-        currency = new Currency("BAR", 1);
+        currency = Currency.Create("BAR", 1);
         expected = HashDigest<SHA1>.Parse("9f8707fb97946deda8514fc6be32317bc5422505");
         AssertBytesEqual(expected, currency.Hash);
 
-        currency = new Currency("BAZ", 1);
+        currency = Currency.Create("BAZ", 1);
         expected = HashDigest<SHA1>.Parse("8a354c6d2373a380c38b934bd83467c84cbc3fa5");
         AssertBytesEqual(expected, currency.Hash);
 
-        currency = new Currency("BAZ", 1, 100);
+        currency = Currency.Create("BAZ", 1, 100);
         expected = HashDigest<SHA1>.Parse("9527eff9d3e55d1129c88cd8f9aad90c21958e1c");
         AssertBytesEqual(expected, currency.Hash);
     }
@@ -88,22 +88,22 @@ public class CurrencyTest
     public void AllowsToMint()
     {
         var addressC = new PrivateKey().Address;
-        var currency = new Currency("FOO", 0, [AddressA]);
+        var currency = Currency.Create("FOO", 0, [AddressA]);
         Assert.True(currency.CanMint(AddressA));
         Assert.False(currency.CanMint(AddressB));
         Assert.False(currency.CanMint(addressC));
 
-        currency = new Currency("BAR", 2, [AddressA, AddressB]);
+        currency = Currency.Create("BAR", 2, [AddressA, AddressB]);
         Assert.True(currency.CanMint(AddressA));
         Assert.True(currency.CanMint(AddressB));
         Assert.False(currency.CanMint(addressC));
 
-        currency = new Currency("BAZ", 0);
+        currency = Currency.Create("BAZ", 0);
         Assert.True(currency.CanMint(AddressA));
         Assert.True(currency.CanMint(AddressB));
         Assert.True(currency.CanMint(addressC));
 
-        currency = new Currency("QUX", 3, []);
+        currency = Currency.Create("QUX", 3, []);
         Assert.True(currency.CanMint(AddressA));
         Assert.True(currency.CanMint(AddressB));
         Assert.True(currency.CanMint(addressC));
@@ -112,31 +112,31 @@ public class CurrencyTest
     [Fact]
     public void String()
     {
-        var currency = new Currency("GOLD", 0, [AddressA]);
+        var currency = Currency.Create("GOLD", 0, [AddressA]);
         Assert.Equal("GOLD (1a6193b06a2b6f80dba6b8800462451794f4b9f7)", currency.ToString());
 
-        currency = new Currency("GOLD", 0, []);
+        currency = Currency.Create("GOLD", 0, []);
         Assert.Equal("GOLD (c3dc908202a667bc47e330b8c5b4781425aec3d2)", currency.ToString());
 
-        currency = new Currency("GOLD", 0);
+        currency = Currency.Create("GOLD", 0);
         Assert.Equal("GOLD (c3dc908202a667bc47e330b8c5b4781425aec3d2)", currency.ToString());
 
-        currency = new Currency("GOLD", 0, 100, [AddressA]);
+        currency = Currency.Create("GOLD", 0, 100, [AddressA]);
         Assert.Equal("GOLD (07e4cf92498b170d91fa9b851212c92d8679c308)", currency.ToString());
     }
 
     [Fact]
     public void Equal()
     {
-        var currencyA = new Currency("GOLD", 0, [AddressA]);
-        var currencyB = new Currency("GOLD", 0, [AddressA]);
-        var currencyC = new Currency("GOLD", 1, [AddressA]);
-        var currencyD = new Currency("GOLD", 0, [AddressB]);
-        var currencyE = new Currency("SILVER", 2, [AddressA]);
-        var currencyF = new Currency("GOLD", 0, [AddressA]);
-        var currencyG = new Currency("GOLD", 0, 100, [AddressA]);
-        var currencyH = new Currency("GOLD", 0, 200, [AddressA]);
-        var currencyI = new Currency("SILVER", 0, 200, [AddressA]);
+        var currencyA = Currency.Create("GOLD", 0, [AddressA]);
+        var currencyB = Currency.Create("GOLD", 0, [AddressA]);
+        var currencyC = Currency.Create("GOLD", 1, [AddressA]);
+        var currencyD = Currency.Create("GOLD", 0, [AddressB]);
+        var currencyE = Currency.Create("SILVER", 2, [AddressA]);
+        var currencyF = Currency.Create("GOLD", 0, [AddressA]);
+        var currencyG = Currency.Create("GOLD", 0, 100, [AddressA]);
+        var currencyH = Currency.Create("GOLD", 0, 200, [AddressA]);
+        var currencyI = Currency.Create("SILVER", 0, 200, [AddressA]);
 
         Assert.Equal(currencyA, currencyA);
         Assert.Equal(currencyA, currencyB);
@@ -152,18 +152,18 @@ public class CurrencyTest
     [Fact]
     public void GetFungibleAssetValue()
     {
-        var foo = new Currency("FOO", 0);
-        Assert.Equal(new FungibleAssetValue(foo, 123, 0), 123 * foo);
-        Assert.Equal(new FungibleAssetValue(foo, -123, 0), foo * -123);
+        var foo = Currency.Create("FOO", 0);
+        Assert.Equal(FungibleAssetValue.Create(foo, 123, 0), 123 * foo);
+        Assert.Equal(FungibleAssetValue.Create(foo, -123, 0), foo * -123);
 
-        var bar = new Currency("BAR", 2);
-        Assert.Equal(new FungibleAssetValue(bar, 123, 1), 123.01m * bar);
+        var bar = Currency.Create("BAR", 2);
+        Assert.Equal(FungibleAssetValue.Create(bar, 123, 1), 123.01m * bar);
     }
 
     [Fact]
     public void Serialize()
     {
-        var foo = new Currency("FOO", 2);
+        var foo = Currency.Create("FOO", 2);
 
         Assert.Equal(
             new List(
@@ -175,7 +175,7 @@ public class CurrencyTest
 
         Assert.Equal(foo, Currency.Create(foo.ToBencodex()));
 
-        var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]);
+        var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
 
         Assert.Equal(
             new List(
@@ -193,7 +193,7 @@ public class CurrencyTest
     [SkippableFact]
     public void JsonSerialization()
     {
-        var foo = new Currency("FOO", 2);
+        var foo = Currency.Create("FOO", 2);
         AssertJsonSerializable(foo, @"
             {
                 ""hash"": ""b18bb67fceedc1f0664a4950138b7ef8e05f70e4"",
@@ -204,7 +204,7 @@ public class CurrencyTest
             }
         ");
 
-        var bar = new Currency("BAR", 0, 100, [AddressA, AddressB]);
+        var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
         AssertJsonSerializable(bar, @"
             {
                 ""hash"": ""9ad8eac459906d7760e17e6b6e1a56d0bf87be5b"",

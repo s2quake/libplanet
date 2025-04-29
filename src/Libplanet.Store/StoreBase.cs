@@ -243,7 +243,7 @@ public abstract class StoreBase : IStore
     ) =>
         new List(
             favs.Select(
-                kv => List.Empty.Add(kv.Key.ToBencodex()).Add(kv.Value.RawValue)
+                kv => List.Empty.Add(ModelSerializer.Serialize(kv.Key)).Add(kv.Value.RawValue)
             )
         );
 
@@ -253,11 +253,11 @@ public abstract class StoreBase : IStore
         serialized.Select(pList =>
         {
             var pair = (List)pList;
-            var currency = Currency.Create(pair[0]);
+            var currency = ModelSerializer.Deserialize<Currency>(pair[0]);
             BigInteger rawValue = (Bencodex.Types.Integer)pair[1];
             return new KeyValuePair<Currency, FAV>(
                 currency,
-                new FAV(currency, rawValue)
+                new FAV { Currency = currency, RawValue = rawValue }
             );
         }).ToImmutableDictionary();
 }

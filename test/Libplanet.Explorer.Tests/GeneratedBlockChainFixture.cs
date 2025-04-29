@@ -16,7 +16,7 @@ namespace Libplanet.Explorer.Tests;
 
 public class GeneratedBlockChainFixture
 {
-    public static Currency TestCurrency => new Currency("TEST", 0);
+    public static Currency TestCurrency => Currency.Create("TEST", 0);
 
     public BlockChain Chain { get; }
 
@@ -150,7 +150,7 @@ public class GeneratedBlockChainFixture
                 ? GetRandomActions().ToPlainValues()
                 : ImmutableHashSet<SimpleAction>.Empty.ToPlainValues(),
             maxGasPrice: null,
-            gasLimit: null);
+            gasLimit: 0L);
     }
 
     private ImmutableArray<SimpleAction> GetRandomActions()

@@ -13,8 +13,8 @@ public class FungibleAssetValueTypeTest
     [Fact]
     public async Task Query()
     {
-        var currency = new Currency("ABC", 2);
-        var fav = new FungibleAssetValue(currency, -123, -45);
+        var currency = Currency.Create("ABC", 2);
+        var fav = FungibleAssetValue.Create(currency, -123, -45);
         ExecutionResult result = await ExecuteQueryAsync<FungibleAssetValueType>(
             @"{
                 currency {

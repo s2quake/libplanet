@@ -56,7 +56,13 @@ internal sealed class CurrencyJsonConverter : JsonConverter<Currency>
             reader.Read();
         }
 
-        var currency = new Currency(ticker, decimalPlaces, maximumSupply, minters);
+        var currency = new Currency
+        {
+            Ticker = ticker,
+            DecimalPlaces = decimalPlaces,
+            MaximumSupply = maximumSupply,
+            Minters = [.. minters],
+        };
 
         if (currency.Hash.ToString() != hash)
         {

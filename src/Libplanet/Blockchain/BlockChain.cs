@@ -610,7 +610,7 @@ namespace Libplanet.Blockchain
             PrivateKey privateKey,
             IEnumerable<IAction> actions,
             FungibleAssetValue? maxGasPrice = null,
-            long? gasLimit = null,
+            long gasLimit = 0L,
             DateTimeOffset? timestamp = null)
         {
             timestamp = timestamp ?? DateTimeOffset.UtcNow;

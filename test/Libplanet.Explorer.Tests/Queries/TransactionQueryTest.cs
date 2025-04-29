@@ -68,7 +68,7 @@ public class TransactionQueryTest
     [Fact]
     public async Task BindSignatureWithSystemAction()
     {
-        var foo = new Currency("FOO", 2);
+        var foo = Currency.Create("FOO", 2);
         var action = new Initialize
         {
             Validators = [Validator.Create(new PrivateKey().PublicKey, 1 )],

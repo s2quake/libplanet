@@ -15,7 +15,7 @@ namespace Libplanet.Action.Tests.Common
         public static readonly Address DumbModernAddress =
             Address.Parse("0123456789abcdef0123456789abcdef12345678");
 
-        public static readonly Currency DumbCurrency = new("DUMB", 0);
+        public static readonly Currency DumbCurrency = Currency.Create("DUMB", 0);
 
         public DumbModernAction()
         {
@@ -102,15 +102,15 @@ namespace Libplanet.Action.Tests.Common
                         context,
                         sender: from,
                         recipient: to,
-                        value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
+                        value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
                     (null, Address to) => world.MintAsset(
                         context,
                         recipient: to,
-                        value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
+                        value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
                     (Address from, null) => world.BurnAsset(
                         context,
                         owner: from,
-                        value: new FungibleAssetValue(DumbCurrency, transfer.Amount)),
+                        value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
                     _ => throw new ArgumentException(
                         $"Both From and To cannot be null for {transfer}"),
                 };

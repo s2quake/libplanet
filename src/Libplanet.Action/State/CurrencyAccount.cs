@@ -19,13 +19,13 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
     public FungibleAssetValue GetBalance(Address address, Currency currency)
     {
         CheckCurrency(currency);
-        return new FungibleAssetValue(Currency, GetRawBalanceV7(address));
+        return new FungibleAssetValue { Currency = Currency, RawValue = GetRawBalanceV7(address) };
     }
 
     public FungibleAssetValue GetTotalSupply(Currency currency)
     {
         CheckCurrency(currency);
-        return new FungibleAssetValue(Currency, GetRawTotalSupplyV7());
+        return new FungibleAssetValue { Currency = Currency, RawValue = GetRawTotalSupplyV7() };
     }
 
     public CurrencyAccount MintAsset(
@@ -112,9 +112,9 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
             Currency.MaximumSupply < prevTotalSupplyRawValue + rawValue)
         {
             FungibleAssetValue prevTotalSupply =
-                new FungibleAssetValue(Currency, prevTotalSupplyRawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = prevTotalSupplyRawValue };
             FungibleAssetValue value =
-                new FungibleAssetValue(Currency, rawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new SupplyOverflowException(
                 $"Cannot mint {value} in addition to " +
                 $"the current total supply of {prevTotalSupply} as it would exceed " +
@@ -142,9 +142,9 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
             Currency.MaximumSupply < prevTotalSupplyRawValue + rawValue)
         {
             FungibleAssetValue prevTotalSupply =
-                new FungibleAssetValue(Currency, prevTotalSupplyRawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = prevTotalSupplyRawValue };
             FungibleAssetValue value =
-                new FungibleAssetValue(Currency, rawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new SupplyOverflowException(
                 $"Cannot mint {value} in addition to " +
                 $"the current total supply of {prevTotalSupply} as it would exceed " +
@@ -167,8 +167,8 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
         if (prevBalanceRawValue - rawValue < 0)
         {
             FungibleAssetValue prevBalance =
-                new FungibleAssetValue(Currency, prevBalanceRawValue);
-            FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = prevBalanceRawValue };
+            FungibleAssetValue value = new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new InsufficientBalanceException(
                 $"Cannot burn or transfer {value} from {owner} as the current balance " +
                 $"of {owner} is {prevBalance}.",
@@ -195,8 +195,8 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
         if (prevBalanceRawValue - rawValue < 0)
         {
             FungibleAssetValue prevBalance =
-                new FungibleAssetValue(Currency, prevBalanceRawValue);
-            FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = prevBalanceRawValue };
+            FungibleAssetValue value = new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new InsufficientBalanceException(
                 $"Cannot burn or transfer {value} from {owner} as the current balance " +
                 $"of {owner} is {prevBalance}.",
@@ -224,8 +224,8 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
         if (prevSenderBalanceRawValue - rawValue < 0)
         {
             FungibleAssetValue prevSenderBalance =
-                new FungibleAssetValue(Currency, prevSenderBalanceRawValue);
-            FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = prevSenderBalanceRawValue };
+            FungibleAssetValue value = new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new InsufficientBalanceException(
                 $"Cannot burn or transfer {value} from {sender} as the current balance " +
                 $"of {sender} is {prevSenderBalance}.",
@@ -253,8 +253,8 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
         if (prevSenderBalanceRawValue - rawValue < 0)
         {
             FungibleAssetValue prevSenderBalance =
-                new FungibleAssetValue(Currency, prevSenderBalanceRawValue);
-            FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = prevSenderBalanceRawValue };
+            FungibleAssetValue value = new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new InsufficientBalanceException(
                 $"Cannot burn or transfer {value} from {sender} as the current balance " +
                 $"of {sender} is {prevSenderBalance}.",
@@ -285,8 +285,8 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
         if (prevSenderBalanceRawValue - rawValue < 0)
         {
             FungibleAssetValue prevSenderBalance =
-                new FungibleAssetValue(Currency, prevSenderBalanceRawValue);
-            FungibleAssetValue value = new FungibleAssetValue(Currency, rawValue);
+                new FungibleAssetValue { Currency = Currency, RawValue = prevSenderBalanceRawValue };
+            FungibleAssetValue value = new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new InsufficientBalanceException(
                 $"Cannot burn or transfer {value} from {sender} as the current balance " +
                 $"of {sender} is {prevSenderBalance}.",

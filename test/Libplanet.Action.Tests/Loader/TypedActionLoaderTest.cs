@@ -38,7 +38,7 @@
 //         {
 //             // We use a system action since BaseAction and its subtypes are incompatible.
 //             // var loader = TypedActionLoader.Create(typeof(Registry).Assembly, null);
-//             // Currency currency = new Currency("FOO", 0);
+//             // Currency currency = Currency.Create("FOO", 0);
 
 //             // Dictionary plainValue = Dictionary.Empty
 //             //     .Add("type_id", 2)

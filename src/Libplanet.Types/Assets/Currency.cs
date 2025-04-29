@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
@@ -5,42 +6,33 @@ using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Assets;
 
 [JsonConverter(typeof(CurrencyJsonConverter))]
 [Model(Version = 1)]
-public readonly record struct Currency(
-    string Ticker, byte DecimalPlaces, BigInteger MaximumSupply, ImmutableArray<Address> Minters)
-    : IEquatable<Currency>
+public readonly record struct Currency : IEquatable<Currency>
 {
-    public Currency(string ticker, byte decimalPlaces)
-        : this(ticker, decimalPlaces, 0, [])
-    {
-    }
-
-    public Currency(string ticker, byte decimalPlaces, BigInteger maximumSupply)
-        : this(ticker, decimalPlaces, maximumSupply, [])
-    {
-    }
-
-    public Currency(string ticker, byte decimalPlaces, ImmutableArray<Address> minters)
-        : this(ticker, decimalPlaces, 0, minters)
+    public Currency()
     {
     }
 
     [Property(0)]
-    public string Ticker { get; } = ValidateTicker(Ticker);
+    [RegularExpression("^[A-Z]{3,5}$")]
+    public required string Ticker { get; init; } = string.Empty;
 
     [Property(1)]
-    public byte DecimalPlaces { get; } = DecimalPlaces;
+    public byte DecimalPlaces { get; init; }
 
     [Property(2)]
-    public BigInteger MaximumSupply { get; } = ValidateMaximumSupply(MaximumSupply);
+    [NonNegative]
+    public BigInteger MaximumSupply { get; init; }
 
     [Property(3)]
-    public ImmutableArray<Address> Minters { get; } = ValidateMinters(Minters);
+    [NonDefault]
+    public ImmutableSortedSet<Address> Minters { get; init; } = [];
 
     public HashDigest<SHA1> Hash => GetHash();
 
@@ -51,33 +43,53 @@ public readonly record struct Currency(
         var fractionalPart = value - major;
         var minor = fractionalPart * (decimal)BigInteger.Pow(10, decimalPlaces);
         var rawValue = currency.GetRawValue((BigInteger)major, (BigInteger)minor);
-        return new FungibleAssetValue(currency, rawValue);
+        return new FungibleAssetValue { Currency = currency, RawValue = rawValue };
     }
 
-    public static FungibleAssetValue operator *(decimal value, Currency currency)
-        => currency * value;
+    public static FungibleAssetValue operator *(decimal value, Currency currency) => currency * value;
 
-    public static Currency Create(IValue serialized)
+    public static Currency Create(
+        string ticker, byte decimalPlac2es, BigInteger maximumSupply, ImmutableSortedSet<Address> minters)
     {
-        if (serialized is not List list)
+        return new Currency
         {
-            throw new ArgumentException("Serialized value must be a list.", nameof(serialized));
-        }
-
-        if (list.Count != 4)
-        {
-            throw new ArgumentException(
-                "Serialized value must have exactly 6 elements.", nameof(serialized));
-        }
-
-        var ticker = ((Text)list[0]).Value;
-        var decimalPlaces = (byte)((Integer)list[1]).Value;
-        var maximumSupply = ((Integer)list[2]).Value;
-        var minters = FromBencodex((List)list[3]);
-        return new Currency(ticker, decimalPlaces, maximumSupply, minters);
+            Ticker = ticker,
+            DecimalPlaces = decimalPlac2es,
+            MaximumSupply = maximumSupply,
+            Minters = minters,
+        };
     }
 
-    public bool CanMint(Address address) => Minters.Length is 0 || Minters.Contains(address);
+    public static Currency Create(string ticker, byte decimalPlaces)
+    {
+        return new Currency
+        {
+            Ticker = ticker,
+            DecimalPlaces = decimalPlaces,
+        };
+    }
+
+    public static Currency Create(string ticker, byte decimalPlaces, BigInteger maximumSupply)
+    {
+        return new Currency
+        {
+            Ticker = ticker,
+            DecimalPlaces = decimalPlaces,
+            MaximumSupply = maximumSupply,
+        };
+    }
+
+    public static Currency Create(string ticker, byte decimalPlaces, ImmutableSortedSet<Address> minters)
+    {
+        return new Currency
+        {
+            Ticker = ticker,
+            DecimalPlaces = decimalPlaces,
+            Minters = minters,
+        };
+    }
+
+    public bool CanMint(Address address) => Minters.Count is 0 || Minters.Contains(address);
 
     public BigInteger GetRawValue(BigInteger majorUnit, BigInteger minorUnit)
     {
@@ -96,62 +108,6 @@ public readonly record struct Currency(
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public bool Equals(Currency? other) => ModelUtility.Equals(this, other);
-
-    public IValue ToBencodex()
-    {
-        return new List(
-            new Text(Ticker),
-            new Integer(DecimalPlaces),
-            new Integer(MaximumSupply),
-            ToBencodex(Minters));
-    }
-
-    private static string ValidateTicker(string ticker)
-    {
-        if (ticker == string.Empty)
-        {
-            throw new ArgumentException(
-                "Currency ticker symbol cannot be empty.",
-                nameof(ticker)
-            );
-        }
-
-        if (ticker.Trim() != ticker)
-        {
-            throw new ArgumentException(
-                "Currency ticker symbol cannot have leading or trailing spaces.",
-                nameof(ticker)
-            );
-        }
-
-        return ticker;
-    }
-
-    private static BigInteger ValidateMaximumSupply(BigInteger maximumSupply)
-    {
-        if (maximumSupply < 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(maximumSupply), "Maximum supply must be non-negative.");
-        }
-
-        return maximumSupply;
-    }
-
-    private static ImmutableArray<Address> ValidateMinters(ImmutableArray<Address> minters)
-    {
-        if (minters.IsDefaultOrEmpty)
-        {
-            return [];
-        }
-
-        if (minters.Distinct().Count() != minters.Length)
-        {
-            throw new ArgumentException("Minters must be unique.", nameof(minters));
-        }
-
-        return [.. minters.Order()];
-    }
 
     private static SHA1 GetSHA1()
     {
@@ -190,8 +146,7 @@ public readonly record struct Currency(
         using var buffer = new MemoryStream();
         using var sha1 = GetSHA1();
         using var stream = new CryptoStream(buffer, sha1, CryptoStreamMode.Write);
-        var codec = new Codec();
-        codec.Encode(ToBencodex(), stream);
+        buffer.Write(ModelSerializer.SerializeToBytes(this));
         stream.FlushFinalBlock();
         if (sha1.Hash is { } hash)
         {

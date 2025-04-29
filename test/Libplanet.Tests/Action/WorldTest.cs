@@ -449,6 +449,6 @@ namespace Libplanet.Tests.Action
         }
 
         protected FungibleAssetValue Value(int currencyIndex, BigInteger quantity) =>
-            new FungibleAssetValue(_currencies[currencyIndex], quantity, 0);
+            FungibleAssetValue.Create(_currencies[currencyIndex], quantity, 0);
     }
 }

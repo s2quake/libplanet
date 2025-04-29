@@ -14,7 +14,7 @@ public class HelperQueryTest
     [Fact]
     public async Task CurrencyHash()
     {
-        Currency currency = new Currency("ABC", 2);
+        Currency currency = Currency.Create("ABC", 2);
 
         ExecutionResult result = await ExecuteQueryAsync<HelperQuery>(@"
         {
