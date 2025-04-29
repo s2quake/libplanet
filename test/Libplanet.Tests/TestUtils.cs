@@ -400,7 +400,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var txs = transactions ?? [];
             long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposer.Address));
             validators ??= Validators;
-            txs.Add(
+            txs = txs.Add(
                 Transaction.Create(
                     nonce++,
                     GenesisProposer,
@@ -716,9 +716,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static DumbAction ToDumbAction(IValue plainValue)
         {
-            var action = new DumbAction();
-            action.LoadPlainValue(plainValue);
-            return action;
+            return ModelSerializer.Deserialize<DumbAction>(plainValue);
         }
     }
 }

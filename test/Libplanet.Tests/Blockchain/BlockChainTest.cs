@@ -379,7 +379,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(block, blockLogs[0].NewTip);
         Assert.Equal(0, blockLogs[0].Index);
         Assert.Equal(1, actionLogs[0].Index);
-        Assert.Equal(action.PlainValue, actionLogs[0].Action);
+        Assert.Equal(ModelSerializer.Serialize(action), actionLogs[0].Action);
         Assert.Equal(prevBlock, blockLogs[1].OldTip);
         Assert.Equal(block, blockLogs[1].NewTip);
         Assert.Equal(2, blockLogs[1].Index);
@@ -1062,12 +1062,12 @@ public partial class BlockChainTest : IDisposable
         var transaction = txs[0];
         Assert.Equal(0, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(actions.Select(action => action.PlainValue), transaction.Actions);
+        Assert.Equal(actions.ToPlainValues(), transaction.Actions);
 
         transaction = txs[1];
         Assert.Equal(1, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(actions.Select(action => action.PlainValue), transaction.Actions);
+        Assert.Equal(actions.ToPlainValues(), transaction.Actions);
     }
 
     [SkippableFact]
