@@ -1,5 +1,4 @@
 using Libplanet.Net.Messages;
-using Xunit;
 
 namespace Libplanet.Net.Tests.Messages
 {

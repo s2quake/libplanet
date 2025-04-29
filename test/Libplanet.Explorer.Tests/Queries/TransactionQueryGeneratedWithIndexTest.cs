@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Libplanet.Explorer.Queries;
-using Xunit;
 
 namespace Libplanet.Explorer.Tests.Queries;
 

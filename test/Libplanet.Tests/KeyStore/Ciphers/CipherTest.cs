@@ -1,5 +1,4 @@
 using Libplanet.KeyStore.Ciphers;
-using Xunit;
 using Random = System.Random;
 
 namespace Libplanet.Tests.KeyStore.Ciphers

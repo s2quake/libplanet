@@ -1,7 +1,6 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Xunit;
 
 namespace Libplanet.Net.Tests.Consensus;
 

@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Common;
 using Libplanet.Types.Blocks;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Blocks;

@@ -1,7 +1,6 @@
 using Libplanet.Blockchain;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
-using Xunit;
 
 namespace Libplanet.Net.Tests
 {

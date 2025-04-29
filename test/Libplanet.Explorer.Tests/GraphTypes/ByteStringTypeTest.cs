@@ -1,6 +1,5 @@
 using GraphQL.Language.AST;
 using Libplanet.Explorer.GraphTypes;
-using Xunit;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {

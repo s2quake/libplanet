@@ -1,6 +1,5 @@
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Sys;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
@@ -10,7 +9,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 
 namespace Libplanet.Explorer.Tests;
 

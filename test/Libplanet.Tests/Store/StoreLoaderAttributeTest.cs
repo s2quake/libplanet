@@ -3,11 +3,9 @@ using System.Collections.Specialized;
 using static System.Web.HttpUtility;
 #endif
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 #if NETFRAMEWORK
 using static Mono.Web.HttpUtility;
 #endif
-using Xunit;
 
 namespace Libplanet.Tests.Store
 {

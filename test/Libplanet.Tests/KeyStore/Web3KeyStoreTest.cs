@@ -2,7 +2,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Libplanet.Crypto;
 using Libplanet.KeyStore;
-using Xunit;
 
 namespace Libplanet.Tests.KeyStore
 {

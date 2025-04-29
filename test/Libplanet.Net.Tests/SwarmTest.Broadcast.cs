@@ -2,7 +2,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
@@ -13,7 +12,6 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
@@ -22,7 +20,6 @@ using Libplanet.Types.Tx;
 using Serilog;
 using Serilog.Events;
 using xRetry;
-using Xunit;
 #if NETFRAMEWORK && (NET47 || NET471)
 using static Libplanet.Tests.HashSetExtensions;
 #endif

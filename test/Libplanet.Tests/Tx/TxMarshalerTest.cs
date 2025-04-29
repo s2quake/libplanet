@@ -1,12 +1,10 @@
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Tx;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Tx

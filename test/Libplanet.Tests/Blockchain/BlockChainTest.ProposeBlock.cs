@@ -1,6 +1,5 @@
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
@@ -12,7 +11,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
 

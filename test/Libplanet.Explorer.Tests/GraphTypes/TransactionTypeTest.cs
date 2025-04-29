@@ -10,7 +10,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Tests.Queries;
-using Xunit;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.GraphTypes

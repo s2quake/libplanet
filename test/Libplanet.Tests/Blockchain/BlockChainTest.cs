@@ -14,14 +14,12 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
 

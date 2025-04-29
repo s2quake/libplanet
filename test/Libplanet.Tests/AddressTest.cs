@@ -2,7 +2,6 @@ using System.ComponentModel;
 using Bencodex.Types;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests;

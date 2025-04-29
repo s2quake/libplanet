@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace Libplanet.Action.Tests.Sys
 {
     public class RegistryTest

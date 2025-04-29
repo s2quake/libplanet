@@ -4,7 +4,6 @@ using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Tx

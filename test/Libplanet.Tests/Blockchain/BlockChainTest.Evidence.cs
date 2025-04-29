@@ -4,7 +4,6 @@ using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Evidence;
-using Xunit;
 
 namespace Libplanet.Tests.Blockchain
 {

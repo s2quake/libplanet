@@ -6,7 +6,6 @@ using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 using static Libplanet.Net.Tests.Consensus.ConsensusContextUtils;
 

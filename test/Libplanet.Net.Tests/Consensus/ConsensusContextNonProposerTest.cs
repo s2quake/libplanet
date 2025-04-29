@@ -7,7 +7,6 @@ using Libplanet.Types.Consensus;
 using Nito.AsyncEx;
 using Serilog;
 using xRetry;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus

@@ -3,7 +3,6 @@ using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 using NetMQ;
-using Xunit;
 
 namespace Libplanet.Net.Tests.Messages
 {

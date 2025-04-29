@@ -6,7 +6,6 @@ using Libplanet.Mocks;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Action.Tests

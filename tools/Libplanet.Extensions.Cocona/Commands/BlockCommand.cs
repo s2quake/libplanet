@@ -4,7 +4,6 @@ using Bencodex.Types;
 using global::Cocona;
 using ImmutableTrie;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Sys;
 using Libplanet.Blockchain;
 using Libplanet.Crypto;

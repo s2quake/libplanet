@@ -5,7 +5,6 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
-using Xunit;
 
 namespace Libplanet.Tests.Tx;
 

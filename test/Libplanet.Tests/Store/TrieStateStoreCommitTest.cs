@@ -4,7 +4,6 @@ using Libplanet.Common;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
-using Xunit;
 
 namespace Libplanet.Tests.Store
 {

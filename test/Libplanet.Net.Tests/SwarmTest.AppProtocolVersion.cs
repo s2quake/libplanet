@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Libplanet.Crypto;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
-using Xunit;
 
 namespace Libplanet.Net.Tests
 {

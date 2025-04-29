@@ -15,7 +15,6 @@ using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;

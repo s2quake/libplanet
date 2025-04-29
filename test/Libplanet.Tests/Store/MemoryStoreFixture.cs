@@ -1,6 +1,5 @@
 using Libplanet.Action;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 
 namespace Libplanet.Tests.Store;
 

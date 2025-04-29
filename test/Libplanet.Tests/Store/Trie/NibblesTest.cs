@@ -1,6 +1,5 @@
 #pragma warning disable S125 // Sections of code should not be commented out
 using Libplanet.Store.Trie;
-using Xunit;
 
 namespace Libplanet.Tests.Store.Trie;
 

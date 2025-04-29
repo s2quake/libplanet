@@ -1,6 +1,5 @@
 using Libplanet.Action;
 using Libplanet.Blockchain.Policies;
-using Xunit;
 
 namespace Libplanet.Extensions.Cocona.Tests;
 

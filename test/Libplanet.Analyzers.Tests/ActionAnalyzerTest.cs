@@ -2,7 +2,6 @@ using Libplanet.Analyzers.Tests.Helpers;
 using Libplanet.Analyzers.Tests.Verifiers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Xunit;
 
 namespace Libplanet.Analyzers.Tests
 {

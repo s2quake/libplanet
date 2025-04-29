@@ -8,7 +8,6 @@ using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;

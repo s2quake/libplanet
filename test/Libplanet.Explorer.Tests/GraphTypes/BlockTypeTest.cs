@@ -9,7 +9,6 @@ using Libplanet.Types.Consensus;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Store;
-using Xunit;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.Serialization;
 

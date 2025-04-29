@@ -1,6 +1,5 @@
 using System.IO;
 using Libplanet.Explorer.Cocona.Commands;
-using Xunit;
 
 namespace Libplanet.Explorer.Cocona.Tests.Commands
 {

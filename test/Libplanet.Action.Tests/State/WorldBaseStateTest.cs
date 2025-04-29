@@ -4,7 +4,6 @@ using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
-using Xunit;
 using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action.Tests.State

@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
@@ -10,7 +9,6 @@ using Libplanet.Blockchain.Policies;
 using Libplanet.Blockchain.Renderers.Debug;
 using Libplanet.Crypto;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
@@ -19,7 +17,6 @@ using Libplanet.Types.Tx;
 using Serilog;
 using Serilog.Events;
 using xRetry;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests

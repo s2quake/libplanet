@@ -1,6 +1,5 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
-using Xunit;
 
 namespace Libplanet.Net.Tests.Consensus
 {

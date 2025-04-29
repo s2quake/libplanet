@@ -3,7 +3,6 @@ using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Tests.Store;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Consensus

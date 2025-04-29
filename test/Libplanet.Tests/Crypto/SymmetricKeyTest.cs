@@ -1,6 +1,5 @@
 using System.Text;
 using Libplanet.Crypto;
-using Xunit;
 
 namespace Libplanet.Tests.Crypto;
 

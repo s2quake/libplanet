@@ -1,6 +1,4 @@
 using System.Collections.Concurrent;
-using Bencodex.Types;
-using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store.Trie;
 

@@ -2,7 +2,6 @@ using System.IO;
 using Libplanet.Store.Trie;
 using Libplanet.Tests.Store.Trie;
 using RocksDbSharp;
-using Xunit;
 
 namespace Libplanet.RocksDBStore.Tests
 {

@@ -1,5 +1,4 @@
 using Libplanet.Types.Tx;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Tx;

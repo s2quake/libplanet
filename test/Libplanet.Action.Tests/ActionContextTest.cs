@@ -4,7 +4,6 @@ using Libplanet.Mocks;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;
-using Xunit;
 
 namespace Libplanet.Action.Tests
 {

@@ -1,7 +1,6 @@
 using Libplanet.Crypto;
 using Libplanet.Store;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 using BTypes = Bencodex.Types;
 

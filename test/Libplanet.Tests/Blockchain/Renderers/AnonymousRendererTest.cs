@@ -1,6 +1,5 @@
 using Libplanet.Blockchain.Renderers;
 using Libplanet.Types.Blocks;
-using Xunit;
 
 namespace Libplanet.Tests.Blockchain.Renderers
 {

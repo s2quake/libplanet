@@ -1,6 +1,5 @@
 using Libplanet.Common;
 using Libplanet.Common.Extensions;
-using Xunit;
 
 namespace Libplanet.Tests;
 

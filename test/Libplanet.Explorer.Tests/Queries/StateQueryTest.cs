@@ -5,7 +5,6 @@ using Libplanet.Common;
 using Libplanet.Explorer.Queries;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Assets;
-using Xunit;
 using Fixture = Libplanet.Explorer.Tests.Fixtures.BlockChainStatesFixture;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.Serialization;

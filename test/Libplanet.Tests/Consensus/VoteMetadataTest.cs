@@ -2,7 +2,6 @@ using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Xunit;
 
 namespace Libplanet.Tests.Consensus
 {

@@ -3,17 +3,13 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
-using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Net.Consensus;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
 using NetMQ;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus

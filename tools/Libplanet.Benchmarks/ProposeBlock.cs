@@ -1,6 +1,5 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Crypto;

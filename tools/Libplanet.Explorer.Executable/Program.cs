@@ -6,7 +6,6 @@ using Cocona;
 using GraphQL.Server;
 using GraphQL.Utilities;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Common;
