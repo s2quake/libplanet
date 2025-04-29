@@ -320,7 +320,7 @@ public sealed class MemoryStore : IStore
     {
         NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         return (store, stateStore);
     }
 }

@@ -11,7 +11,7 @@ public class MemoryStoreFixture : StoreFixture
         : base(policyActions)
     {
         Store = new MemoryStore();
-        StateStore = new TrieStateStore(new MemoryKeyValueStore());
+        StateStore = new TrieStateStore();
     }
 
     public override void Dispose()

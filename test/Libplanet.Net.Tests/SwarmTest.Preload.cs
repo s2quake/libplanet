@@ -335,8 +335,7 @@ namespace Libplanet.Net.Tests
             var chain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 renderers: new[] { renderer });
 
             var senderKey = new PrivateKey();
@@ -346,9 +345,7 @@ namespace Libplanet.Net.Tests
                 MakeBlockChain(
                     policy,
                     new MemoryStore(),
-                    new TrieStateStore(new MemoryKeyValueStore()),
-                    new SingleActionLoader<DumbAction>()
-                ),
+                    new TrieStateStore()),
                 senderKey
             ).ConfigureAwait(false);
 
@@ -467,13 +464,11 @@ namespace Libplanet.Net.Tests
                 MakeBlockChain(
                     policy,
                     fxForNominers[0].Store,
-                    fxForNominers[0].StateStore,
-                    new SingleActionLoader<DumbAction>()),
+                    fxForNominers[0].StateStore),
                 MakeBlockChain(
                     policy,
                     fxForNominers[1].Store,
-                    fxForNominers[1].StateStore,
-                    new SingleActionLoader<DumbAction>()),
+                    fxForNominers[1].StateStore),
             };
             var nominerSwarm0 =
                 await CreateSwarm(blockChainsForNominers[0]).ConfigureAwait(false);
@@ -788,21 +783,18 @@ namespace Libplanet.Net.Tests
             BlockChain receiverChain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 privateKey: key1);
             BlockChain validSeedChain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 privateKey: key1,
                 genesisBlock: receiverChain.Genesis);
             BlockChain invalidSeedChain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 privateKey: key2);
             Swarm receiverSwarm =
                 await CreateSwarm(receiverChain).ConfigureAwait(false);
@@ -860,9 +852,9 @@ namespace Libplanet.Net.Tests
             var fx1 = new MemoryStoreFixture(policy.PolicyActions);
             var fx2 = new MemoryStoreFixture(policy.PolicyActions);
             var seedChain = MakeBlockChain(
-                policy, fx1.Store, fx1.StateStore, new SingleActionLoader<DumbAction>());
+                policy, fx1.Store, fx1.StateStore);
             var receiverChain = MakeBlockChain(
-                policy, fx2.Store, fx2.StateStore, new SingleActionLoader<DumbAction>());
+                policy, fx2.Store, fx2.StateStore);
 
             Swarm seed =
                 await CreateSwarm(seedChain).ConfigureAwait(false);

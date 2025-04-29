@@ -185,7 +185,7 @@ public partial class BlockChainTest : IDisposable
     public void ProcessActions()
     {
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var blockChainStates = new BlockChainStates(store, stateStore);
         var policy = new BlockPolicy();
         var actionEvaluator = new ActionEvaluator(
@@ -320,7 +320,7 @@ public partial class BlockChainTest : IDisposable
     {
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var actionLoader = new SingleActionLoader<DumbAction>();
         var generatedRandomValueLogs = new List<int>();
         IActionRenderer[] renderers = Enumerable.Range(0, 2).Select(i =>
@@ -339,7 +339,6 @@ public partial class BlockChainTest : IDisposable
             policy,
             store,
             stateStore,
-            actionLoader,
             renderers: renderers
         );
         var privateKey = new PrivateKey();
@@ -360,12 +359,11 @@ public partial class BlockChainTest : IDisposable
     {
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-        var actionLoader = new SingleActionLoader<DumbAction>();
+        var stateStore = new TrieStateStore();
         var recordingRenderer = new RecordingActionRenderer();
         var renderer = new LoggedActionRenderer(recordingRenderer, Log.Logger);
         BlockChain blockChain = MakeBlockChain(
-            policy, store, stateStore, actionLoader, renderers: new[] { renderer });
+            policy, store, stateStore, renderers: new[] { renderer });
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));
@@ -396,7 +394,7 @@ public partial class BlockChainTest : IDisposable
     {
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var actionLoader = new SingleActionLoader<DumbAction>();
 
         IActionRenderer renderer = new AnonymousActionRenderer
@@ -413,7 +411,7 @@ public partial class BlockChainTest : IDisposable
         };
         renderer = new LoggedActionRenderer(renderer, Log.Logger);
         BlockChain blockChain = MakeBlockChain(
-            policy, store, stateStore, actionLoader, renderers: new[] { renderer });
+            policy, store, stateStore, renderers: new[] { renderer });
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));
@@ -580,7 +578,7 @@ public partial class BlockChainTest : IDisposable
                 // ReSharper restore AccessToModifiedClosure
             });
         IStore store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);
@@ -1259,7 +1257,7 @@ public partial class BlockChainTest : IDisposable
             }
         }
 
-        IStateStore incompleteStateStore = new TrieStateStore(new MemoryKeyValueStore());
+        IStateStore incompleteStateStore = new TrieStateStore();
         ((TrieStateStore)stateStore).CopyStates(
             ImmutableHashSet<HashDigest<SHA256>>.Empty
                 .Add(presentBlocks[0].StateRootHash)
@@ -1468,7 +1466,7 @@ public partial class BlockChainTest : IDisposable
         var policy = new NullBlockPolicy();
         var stagePolicy = new VolatileStagePolicy();
         IStore store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var blockChainStates = new BlockChainStates(store, stateStore);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
@@ -1539,7 +1537,7 @@ public partial class BlockChainTest : IDisposable
                 // ReSharper restore AccessToModifiedClosure
             });
         IStore store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var genesisTx = Transaction.Create(
             0,
             new PrivateKey(),

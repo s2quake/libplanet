@@ -211,13 +211,12 @@ namespace Libplanet.Tests.Action
         public virtual void TransferAssetInBlock()
         {
             var store = new MemoryStore();
-            var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+            var stateStore = new TrieStateStore();
             var privateKey = new PrivateKey();
             BlockChain chain = TestUtils.MakeBlockChain(
                 new NullBlockPolicy(),
                 store,
                 stateStore,
-                new SingleActionLoader<DumbAction>(),
                 protocolVersion: ProtocolVersion,
                 privateKey: privateKey
             );

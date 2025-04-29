@@ -7,7 +7,7 @@ namespace Libplanet.Mocks;
 public static class MockUtil
 {
     private static readonly IStateStore _stateStore =
-        new TrieStateStore(new MemoryKeyValueStore());
+        new TrieStateStore();
 
     /// <summary>
     /// A disposable empty <see cref="ITrie"/>.

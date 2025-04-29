@@ -89,7 +89,7 @@ public abstract class StoreFixture : IDisposable
             0x9c, 0xee,
         ]);
 
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;

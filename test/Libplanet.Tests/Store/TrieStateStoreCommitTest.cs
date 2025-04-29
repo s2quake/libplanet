@@ -14,7 +14,7 @@ namespace Libplanet.Tests.Store
         public void CommitEmptyDoesNotWrite()
         {
             IKeyValueStore keyValueStore = new MemoryKeyValueStore();
-            IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+            IStateStore stateStore = new TrieStateStore();
             ITrie emptyTrie = stateStore.GetStateRoot(default);
             HashDigest<SHA256> emptyRootHash = emptyTrie.Hash;
 

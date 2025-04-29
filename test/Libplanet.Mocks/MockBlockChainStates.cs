@@ -15,7 +15,7 @@ namespace Libplanet.Mocks
 
         public MockBlockChainStates()
         {
-            _stateStore = new TrieStateStore(new MemoryKeyValueStore());
+            _stateStore = new TrieStateStore();
             _map = new Dictionary<BlockHash, HashDigest<SHA256>>();
         }
 
