@@ -767,7 +767,7 @@ public partial class RocksDBStore : StoreBase
                 }
             }
 
-            txDb.Put(key, tx.Serialize());
+            txDb.Put(key, ModelSerializer.SerializeToBytes(tx));
             _txIndexDb.Put(key, RocksDBStoreBitConverter.GetBytes(txDbName));
             _txCache.AddOrUpdate(tx.Id, tx);
         }

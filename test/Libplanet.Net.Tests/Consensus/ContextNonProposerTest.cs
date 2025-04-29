@@ -409,16 +409,24 @@ namespace Libplanet.Net.Tests.Consensus
 
             using var fx = new MemoryStoreFixture(policy.PolicyActions);
 
-            var unsignedInvalidTx = new UnsignedTx(
-                new TxInvoice
+            var unsignedInvalidTx = new UnsignedTx
+            {
+                Invoice = new TxInvoice
                 {
                     GenesisHash = blockChain.Genesis.Hash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Actions = [List.Empty.Add(new Text("Foo"))], // Invalid action
                 },
-                new TxSigningMetadata(txSigner.PublicKey, 0));
-            var invalidTx = new Transaction(
-                unsignedInvalidTx, unsignedInvalidTx.CreateSignature(txSigner));
+                SigningMetadata = new TxSigningMetadata
+                {
+                    Signer = txSigner.Address,
+                },
+            };
+            var invalidTx = new Transaction
+            {
+                UnsignedTx = unsignedInvalidTx,
+                Signature = unsignedInvalidTx.CreateSignature(txSigner),
+            };
             var txs = new[] { invalidTx };
             var evs = Array.Empty<EvidenceBase>();
 

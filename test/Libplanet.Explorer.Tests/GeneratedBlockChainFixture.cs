@@ -74,7 +74,7 @@ public class GeneratedBlockChainFixture
                     (pk, i) => Transaction.Create(
                         nonce: i,
                         privateKey: privateKey,
-                        genesisHash: null,
+                        genesisHash: default,
                         actions: new IAction[]
                             {
                                 new Initialize

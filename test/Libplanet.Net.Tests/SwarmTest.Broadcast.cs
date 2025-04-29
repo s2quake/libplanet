@@ -11,6 +11,7 @@ using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Tests.Store;
@@ -972,7 +973,7 @@ namespace Libplanet.Net.Tests
                 Assert.Equal(
                     new[] { tx1, tx2, tx3 }.ToHashSet(),
                     replies.Select(
-                        m => Transaction.Deserialize(
+                        m => ModelSerializer.DeserializeFromBytes<Transaction>(
                             ((TxMsg)m.Content).Payload)).ToHashSet());
             }
             finally
