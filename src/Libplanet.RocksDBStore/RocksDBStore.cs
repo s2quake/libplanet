@@ -81,7 +81,7 @@ namespace Libplanet.RocksDBStore;
 /// </list>
 /// </summary>
 /// <seealso cref="IStore"/>
-public partial class RocksDBStore : BaseStore
+public partial class RocksDBStore : StoreBase
 {
     private const string BlockDbRootPathName = "block";
     private const string BlockIndexDbName = "blockindex";
@@ -552,7 +552,7 @@ public partial class RocksDBStore : BaseStore
         return 0;
     }
 
-    /// <inheritdoc cref="BaseStore.IterateIndexes(Guid, int, int?)"/>
+    /// <inheritdoc cref="StoreBase.IterateIndexes(Guid, int, int?)"/>
     public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
         if (_indexCache.TryGetValue(chainId, out LruCache<(int, int?), List<BlockHash>> ic) &&
@@ -572,7 +572,7 @@ public partial class RocksDBStore : BaseStore
         return indexes;
     }
 
-    /// <inheritdoc cref="BaseStore.IndexBlockHash(Guid, long)"/>
+    /// <inheritdoc cref="StoreBase.IndexBlockHash(Guid, long)"/>
     public override BlockHash? IndexBlockHash(Guid chainId, long index)
     {
         try
@@ -610,7 +610,7 @@ public partial class RocksDBStore : BaseStore
         }
     }
 
-    /// <inheritdoc cref="BaseStore.AppendIndex(Guid, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.AppendIndex(Guid, BlockHash)"/>
     public override long AppendIndex(Guid chainId, BlockHash hash)
     {
         long index = CountIndex(chainId);
@@ -642,7 +642,7 @@ public partial class RocksDBStore : BaseStore
         return index;
     }
 
-    /// <inheritdoc cref="BaseStore.ForkBlockIndexes(Guid, Guid, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.ForkBlockIndexes(Guid, Guid, BlockHash)"/>
     public override void ForkBlockIndexes(
         Guid sourceChainId,
         Guid destinationChainId,
@@ -803,7 +803,7 @@ public partial class RocksDBStore : BaseStore
         return false;
     }
 
-    /// <inheritdoc cref="BaseStore.IterateBlockHashes()"/>
+    /// <inheritdoc cref="StoreBase.IterateBlockHashes()"/>
     public override IEnumerable<BlockHash> IterateBlockHashes()
     {
         byte[] prefix = BlockKeyPrefix;
@@ -816,7 +816,7 @@ public partial class RocksDBStore : BaseStore
         }
     }
 
-    /// <inheritdoc cref="BaseStore.GetBlockDigest(BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.GetBlockDigest(BlockHash)"/>
     public override BlockDigest GetBlockDigest(BlockHash blockHash)
     {
         if (_blockCache.TryGetValue(blockHash, out BlockDigest cachedDigest))
@@ -903,7 +903,7 @@ public partial class RocksDBStore : BaseStore
                 }
             }
 
-            BlockDigest digest = BlockDigest.FromBlock(block);
+            BlockDigest digest = BlockDigest.Create(block);
             byte[] value = ModelSerializer.SerializeToBytes(digest);
             blockDb.Put(key, value);
             _blockIndexDb.Put(key, RocksDBStoreBitConverter.GetBytes(blockDbName));
@@ -920,7 +920,7 @@ public partial class RocksDBStore : BaseStore
         }
     }
 
-    /// <inheritdoc cref="BaseStore.DeleteBlock(BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.DeleteBlock(BlockHash)"/>
     public override bool DeleteBlock(BlockHash blockHash)
     {
         byte[] key = BlockKey(blockHash);
@@ -961,7 +961,7 @@ public partial class RocksDBStore : BaseStore
         }
     }
 
-    /// <inheritdoc cref="BaseStore.ContainsBlock(BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.ContainsBlock(BlockHash)"/>
     public override bool ContainsBlock(BlockHash blockHash)
     {
         try
@@ -983,7 +983,7 @@ public partial class RocksDBStore : BaseStore
         return false;
     }
 
-    /// <inheritdoc cref="BaseStore.PutTxIdBlockHashIndex(TxId, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.PutTxIdBlockHashIndex(TxId, BlockHash)"/>
     public override void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
         _txIdBlockHashIndexDb.Put(
@@ -992,7 +992,7 @@ public partial class RocksDBStore : BaseStore
             );
     }
 
-    /// <inheritdoc cref="BaseStore.DeleteTxIdBlockHashIndex(TxId, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.DeleteTxIdBlockHashIndex(TxId, BlockHash)"/>
     public override void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
         _txIdBlockHashIndexDb.Remove(
@@ -1000,7 +1000,7 @@ public partial class RocksDBStore : BaseStore
         );
     }
 
-    /// <inheritdoc cref="BaseStore.IterateTxIdBlockHashIndex(TxId)"/>
+    /// <inheritdoc cref="StoreBase.IterateTxIdBlockHashIndex(TxId)"/>
     public override IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
     {
         var prefix = TxIdBlockHashIndexTxIdKey(txId);
@@ -1010,14 +1010,14 @@ public partial class RocksDBStore : BaseStore
         }
     }
 
-    /// <inheritdoc cref="BaseStore.PutTxExecution"/>
+    /// <inheritdoc cref="StoreBase.PutTxExecution"/>
     public override void PutTxExecution(TxExecution txExecution) =>
         _txExecutionDb.Put(
             TxExecutionKey(txExecution),
             Codec.Encode(SerializeTxExecution(txExecution))
         );
 
-    /// <inheritdoc cref="BaseStore.GetTxExecution(BlockHash, TxId)"/>
+    /// <inheritdoc cref="StoreBase.GetTxExecution(BlockHash, TxId)"/>
     public override TxExecution? GetTxExecution(BlockHash blockHash, TxId txid)
     {
         byte[] key = TxExecutionKey(blockHash, txid);
@@ -1159,7 +1159,7 @@ public partial class RocksDBStore : BaseStore
     }
 
     /// <inheritdoc />
-    public override BlockCommit? GetChainBlockCommit(Guid chainId)
+    public override BlockCommit GetChainBlockCommit(Guid chainId)
     {
         try
         {
@@ -1167,7 +1167,7 @@ public partial class RocksDBStore : BaseStore
             byte[] bytes = _chainDb.Get(key);
             if (bytes is null)
             {
-                return null;
+                return default;
             }
 
             return ModelSerializer.DeserializeFromBytes<BlockCommit>(bytes);
@@ -1177,7 +1177,7 @@ public partial class RocksDBStore : BaseStore
             LogUnexpectedException(nameof(GetChainBlockCommit), e);
         }
 
-        return null;
+        return default;
     }
 
     public override void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
@@ -1196,7 +1196,7 @@ public partial class RocksDBStore : BaseStore
         }
     }
 
-    public override BlockCommit? GetBlockCommit(BlockHash blockHash)
+    public override BlockCommit GetBlockCommit(BlockHash blockHash)
     {
         _rwBlockCommitLock.EnterReadLock();
 
@@ -1206,7 +1206,7 @@ public partial class RocksDBStore : BaseStore
             byte[] bytes = _blockCommitDb.Get(key);
             if (bytes is null)
             {
-                return null;
+                return default;
             }
 
             return ModelSerializer.DeserializeFromBytes<BlockCommit>(bytes);
@@ -1220,7 +1220,7 @@ public partial class RocksDBStore : BaseStore
             _rwBlockCommitLock.ExitReadLock();
         }
 
-        return null;
+        return default;
     }
 
     /// <inheritdoc />

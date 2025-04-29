@@ -9,7 +9,7 @@ namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
 public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byte> Signature)
-    : IEquatable<Transaction>
+    : IEquatable<Transaction>, IComparable<Transaction>, IComparable
 {
     private static readonly Codec Codec = new();
     private TxId? _id;
@@ -80,6 +80,27 @@ public sealed record class Transaction(UnsignedTx UnsignedTx, ImmutableArray<byt
     public bool Equals(Transaction? other) => Id.Equals(other?.Id);
 
     public override int GetHashCode() => Id.GetHashCode();
+
+    public int CompareTo(object? obj)
+    {
+        if (obj is not Transaction other)
+        {
+            throw new ArgumentException(
+                $"Expected {nameof(Transaction)} but {obj?.GetType()}");
+        }
+
+        return CompareTo(other);
+    }
+
+    public int CompareTo(Transaction? other)
+    {
+        if (other is null)
+        {
+            return 1;
+        }
+
+        return Id.CompareTo(other.Id);
+    }
 
     internal static Transaction CombineWithoutVerification(
         UnsignedTx unsignedTx, ImmutableArray<byte> alreadyVerifiedSignature)

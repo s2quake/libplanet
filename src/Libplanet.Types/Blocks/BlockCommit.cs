@@ -7,7 +7,7 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableObject
+public readonly record struct BlockCommit : IEquatable<BlockCommit>, IValidatableObject
 {
     [Property(0)]
     public long Height { get; init; }
@@ -41,16 +41,21 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
             yield return new ValidationResult(
                 $"Round must be non-negative: {Round}", [nameof(Round)]);
         }
+
         if (Votes.IsDefaultOrEmpty)
         {
             yield return new ValidationResult(
                 "Empty set of votes is not allowed.", [nameof(Votes)]);
         }
 
+        var height = Height;
+        var round = Round;
+        var blockHash = BlockHash;
+
         if (Votes.Any(vote =>
-            vote.Height != Height ||
-            vote.Round != Round ||
-            !BlockHash.Equals(vote.BlockHash) ||
+            vote.Height != height ||
+            vote.Round != round ||
+            !blockHash.Equals(vote.BlockHash) ||
             (vote.Flag != VoteFlag.Null && vote.Flag != VoteFlag.PreCommit) ||
             (vote.Flag == VoteFlag.PreCommit && !vote.Verify())))
         {

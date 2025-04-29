@@ -427,7 +427,7 @@ namespace Libplanet.Net.Tests.Consensus
             await blockHeightOneAppended.WaitAsync();
             Assert.Equal(
                 3,
-                context.GetBlockCommit()!.Votes.Count(vote => vote.Flag == VoteFlag.PreCommit));
+                context.GetBlockCommit().Votes.Count(vote => vote.Flag == VoteFlag.PreCommit));
 
             Assert.True(enteredPreVote.IsSet);
             Assert.True(enteredPreCommit.IsSet);

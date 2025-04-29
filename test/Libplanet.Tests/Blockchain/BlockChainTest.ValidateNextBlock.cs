@@ -26,7 +26,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     },
                     new BlockContent
@@ -51,7 +51,7 @@ namespace Libplanet.Tests.Blockchain
                         Miner = _fx.Proposer.Address,
                         PublicKey = protocolVersion >= 2 ? _fx.Proposer.PublicKey : null,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     },
                     new BlockContent
@@ -69,7 +69,7 @@ namespace Libplanet.Tests.Blockchain
                         Miner = _fx.Proposer.Address,
                         PublicKey = protocolVersion - 1 >= 2 ? _fx.Proposer.PublicKey : null,
                         PreviousHash = block1.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     },
                     new BlockContent
@@ -89,7 +89,7 @@ namespace Libplanet.Tests.Blockchain
                             Miner = _fx.Proposer.Address,
                             PublicKey = _fx.Proposer.PublicKey,
                             PreviousHash = block1.Hash,
-                            LastCommit = null,
+                            
                             EvidenceHash = null,
                         },
                         new BlockContent
@@ -114,7 +114,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = prev.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -247,7 +247,7 @@ namespace Libplanet.Tests.Blockchain
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
                         PreviousHash = genesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 TestUtils.GenesisProposer);
@@ -294,7 +294,7 @@ namespace Libplanet.Tests.Blockchain
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
                         PreviousHash = genesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 TestUtils.GenesisProposer);
@@ -361,7 +361,7 @@ namespace Libplanet.Tests.Blockchain
                     Miner = TestUtils.GenesisProposer.Address,
                     PublicKey = TestUtils.GenesisProposer.PublicKey,
                     PreviousHash = genesisBlock.Hash,
-                    LastCommit = null,
+                    
                     EvidenceHash = null,
                 });
             Block block1 = chain.EvaluateAndSign(
@@ -390,7 +390,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -409,7 +409,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -443,7 +443,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -499,7 +499,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = DateTimeOffset.UtcNow,
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -578,7 +578,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -603,7 +603,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -628,7 +628,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -667,7 +667,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = _fx.GenesisBlock.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -702,7 +702,7 @@ namespace Libplanet.Tests.Blockchain
                         Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
                         PublicKey = _fx.Proposer.PublicKey,
                         PreviousHash = blockChain.Genesis.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 _fx.Proposer);
@@ -831,7 +831,7 @@ namespace Libplanet.Tests.Blockchain
                         Miner = TestUtils.GenesisProposer.Address,
                         PublicKey = TestUtils.GenesisProposer.PublicKey,
                         PreviousHash = newChain.Tip.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     }),
                 TestUtils.GenesisProposer);

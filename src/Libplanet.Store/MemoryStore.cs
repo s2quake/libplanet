@@ -132,21 +132,17 @@ public sealed class MemoryStore : IStore
             return null;
         }
 
-        BlockHeader header = digest.GetHeader();
-        ImmutableArray<TxId> txids = digest.TxIds
-            .Select(b => new TxId(b.ToBuilder().ToArray()))
-            .ToImmutableArray();
+        BlockHeader header = digest.Header;
+        ImmutableArray<TxId> txids = digest.TxIds.ToImmutableArray();
         IEnumerable<Transaction> txs = txids.Select(txid => _txs[txid]);
-        ImmutableArray<EvidenceId> evidenceIds = digest.EvidenceIds
-            .Select(b => new EvidenceId(b.ToBuilder().ToArray()))
-            .ToImmutableArray();
+        ImmutableArray<EvidenceId> evidenceIds = digest.EvidenceIds.ToImmutableArray();
         IEnumerable<EvidenceBase> evidence
             = evidenceIds.Select(evId => _committedEvidence[evId]);
         return Block.Create(header, [.. txs], [.. evidence]);
     }
 
     long? IStore.GetBlockIndex(BlockHash blockHash) =>
-        _blocks.TryGetValue(blockHash, out BlockDigest digest) ? digest.Index : null;
+        _blocks.TryGetValue(blockHash, out BlockDigest digest) ? digest.Height : null;
 
     BlockDigest IStore.GetBlockDigest(BlockHash blockHash) =>
         _blocks.TryGetValue(blockHash, out BlockDigest digest) ? digest : default;
@@ -165,11 +161,12 @@ public sealed class MemoryStore : IStore
             _committedEvidence[ev.Id] = ev;
         }
 
-        _blocks[block.Hash] = new BlockDigest(
-            block.Header,
-            txs.Select(tx => tx.Id.Bytes).ToImmutableArray(),
-            evidence.Select(ev => ev.Id.Bytes).ToImmutableArray()
-        );
+        _blocks[block.Hash] = new BlockDigest
+        {
+            Header = block.Header,
+            TxIds = [.. txs.Select(tx => tx.Id)],
+            EvidenceIds = [.. evidence.Select(ev => ev.Id)],
+        };
     }
 
     bool IStore.DeleteBlock(BlockHash blockHash) => _blocks.TryRemove(blockHash, out _);
@@ -257,30 +254,25 @@ public sealed class MemoryStore : IStore
         }
     }
 
-    /// <inheritdoc />
-    public BlockCommit? GetChainBlockCommit(Guid chainId) =>
-        _chainCommits.TryGetValue(chainId, out BlockCommit? commit)
+    public BlockCommit GetChainBlockCommit(Guid chainId) =>
+        _chainCommits.TryGetValue(chainId, out var commit)
             ? commit
-            : null;
+            : default;
 
-    /// <inheritdoc />
     public void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit) =>
         _chainCommits[chainId] = blockCommit;
 
-    public BlockCommit? GetBlockCommit(BlockHash blockHash) =>
+    public BlockCommit GetBlockCommit(BlockHash blockHash) =>
         _blockCommits.TryGetValue(blockHash, out var commit)
             ? commit
-            : null;
+            : default;
 
-    /// <inheritdoc />
     public void PutBlockCommit(BlockCommit blockCommit) =>
         _blockCommits[blockCommit.BlockHash] = blockCommit;
 
-    /// <inheritdoc />
     public void DeleteBlockCommit(BlockHash blockHash) =>
         _blockCommits.TryRemove(blockHash, out _);
 
-    /// <inheritdoc />
     public IEnumerable<BlockHash> GetBlockCommitHashes()
         => _blockCommits.Keys;
 

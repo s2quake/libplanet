@@ -68,7 +68,7 @@
 //                     PublicKey = GenesisKey.PublicKey,
 //                     PreviousHash = default,
 //                     TxHash = BlockContent.DeriveTxHash(genTxs),
-//                     LastCommit = null,
+//                     
 //                     EvidenceHash = BlockContent.DeriveEvidenceHash(genEvidence),
 //                 },
 //                 Transactions = [.. genTxs],
@@ -136,7 +136,7 @@
 //                     PublicKey = Block1Key.PublicKey,
 //                     PreviousHash = GenesisHash,
 //                     TxHash = BlockContent.DeriveTxHash(block1Transactions),
-//                     LastCommit = null,
+//                     
 //                     EvidenceHash = BlockContent.DeriveEvidenceHash(block1Evidence),
 //                 },
 //                 Transactions = [.. block1Transactions],
@@ -156,7 +156,7 @@
 //                     Miner = GenesisKey.Address,
 //                     PublicKey = null,
 //                     PreviousHash = default,
-//                     LastCommit = null,
+//                     
 //                     EvidenceHash = null,
 //                 },
 //                 Transactions = [],
@@ -174,7 +174,7 @@
 //                     PublicKey = null,
 //                     PreviousHash = GenesisHash,
 //                     TxHash = BlockContent.DeriveTxHash(block1Transactions),
-//                     LastCommit = null,
+//                     
 //                     EvidenceHash = BlockContent.DeriveEvidenceHash(block1Evidence),
 //                 },
 //                 Transactions = [.. block1Transactions],

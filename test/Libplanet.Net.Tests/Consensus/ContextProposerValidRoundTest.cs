@@ -180,7 +180,7 @@ namespace Libplanet.Net.Tests.Consensus
                         Miner = key.Address,
                         PublicKey = key.PublicKey,
                         PreviousHash = blockChain.Tip.Hash,
-                        LastCommit = null,
+                        
                         EvidenceHash = null,
                     },
                     new BlockContent

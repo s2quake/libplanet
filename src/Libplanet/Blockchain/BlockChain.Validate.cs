@@ -279,7 +279,7 @@ namespace Libplanet.Blockchain
                 // }
                 // else
                 {
-                    if (block.LastCommit is null)
+                    if (block.LastCommit == default)
                     {
                         throw new InvalidOperationException(
                             "A PBFT block that does not have zero or one index or " +

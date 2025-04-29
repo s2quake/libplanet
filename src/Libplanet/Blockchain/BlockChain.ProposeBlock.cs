@@ -57,8 +57,6 @@ namespace Libplanet.Blockchain
                 PublicKey = privateKey.PublicKey,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(transactions),
-                LastCommit = null,
-                EvidenceHash = null,
             };
             BlockContent content = new BlockContent
             {
@@ -93,7 +91,7 @@ namespace Libplanet.Blockchain
         /// <see cref="BlockChain.Tip"/> is changed while proposing.</exception>
         public Block ProposeBlock(
             PrivateKey proposer,
-            BlockCommit lastCommit = null,
+            BlockCommit lastCommit = default,
             ImmutableArray<EvidenceBase>? evidence = null,
             IComparer<Transaction> txPriority = null)
         {

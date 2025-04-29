@@ -91,7 +91,7 @@ public sealed record class Block
 
     public HashDigest<SHA256>? TxHash => Header.TxHash;
 
-    public BlockCommit? LastCommit => Header.LastCommit;
+    public BlockCommit LastCommit => Header.LastCommit;
 
     public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
 

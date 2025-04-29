@@ -5,7 +5,7 @@ using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore
 {
-    public partial class RocksDBStore : BaseStore
+    public partial class RocksDBStore : StoreBase
     {
         /// <inheritdoc cref="IStore.PruneOutdatedChains"/>
         public override void PruneOutdatedChains(bool noopWithoutCanon = false)
@@ -112,26 +112,26 @@ namespace Libplanet.RocksDBStore
                         BlockDigest digest = GetBlockDigest(hash);
 
                         // NOTE: This means there is a gap between two chain ids.
-                        if (digest.Index > hashes.Count)
+                        if (digest.Height > hashes.Count)
                         {
                             throw new InvalidOperationException(
                                 $"Next block is expected to be of index #{hashes.Count} but " +
-                                $"got #{digest.Index} {digest.Hash}.");
+                                $"got #{digest.Height} {digest.Hash}.");
                         }
 
                         // NOTE: This means there is an overlap between two chain ids.
                         // The newer one should overwrite the old.
-                        if (digest.Index < hashes.Count)
+                        if (digest.Height < hashes.Count)
                         {
                             // NOTE: Make sure it can be overwritten by checking continuity.
                             if (digest.PreviousHash is { } previousHash)
                             {
-                                BlockHash targetHash = hashes[(int)digest.Index - 1];
+                                BlockHash targetHash = hashes[(int)digest.Height - 1];
                                 if (!previousHash.Equals(targetHash))
                                 {
                                     throw new InvalidOperationException(
                                         $"The previous hash {previousHash} of a retrieved " +
-                                        $"block #{digest.Index} {digest.Hash} " +
+                                        $"block #{digest.Height} {digest.Hash} " +
                                         $"does not match the one iterated so far {targetHash}");
                                 }
                             }
@@ -141,9 +141,9 @@ namespace Libplanet.RocksDBStore
                                 "Truncating hashes iterated so far from " +
                                 "{IteratedCount} to {TargetCount}",
                                 hashes.Count,
-                                digest.Index);
+                                digest.Height);
                             hashes.RemoveRange(
-                                (int)digest.Index, (int)(hashes.Count - digest.Index));
+                                (int)digest.Height, (int)(hashes.Count - digest.Height));
                         }
                     }
 
@@ -155,10 +155,10 @@ namespace Libplanet.RocksDBStore
             BlockHash lastHash = hashes.Last();
             BlockDigest lastDigest = GetBlockDigest(lastHash);
 
-            if (lastDigest.Index != hashes.Count - 1)
+            if (lastDigest.Height != hashes.Count - 1)
             {
                 throw new InvalidOperationException(
-                    $"The last iterated block is #{lastDigest.Index} {lastDigest.Hash} when " +
+                    $"The last iterated block is #{lastDigest.Height} {lastDigest.Hash} when " +
                     $"its expected index is {hashes.Count}");
             }
 

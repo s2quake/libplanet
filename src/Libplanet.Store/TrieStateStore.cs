@@ -11,7 +11,6 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore) : IStateStore
 {
     private readonly ILogger _logger = Log.ForContext<TrieStateStore>();
     private readonly HashNodeCache _cache = new();
-    private readonly IKeyValueStore _keyValueStore = keyValueStore;
     private bool _isDisposed = false;
 
     public TrieStateStore()
@@ -19,7 +18,7 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore) : IStateStore
     {
     }
 
-    public IKeyValueStore StateKeyValueStore => _keyValueStore;
+    public IKeyValueStore StateKeyValueStore { get; } = keyValueStore;
 
     public void CopyStates(
         IImmutableSet<HashDigest<SHA256>> stateRootHashes, TrieStateStore targetStateStore)
@@ -85,7 +84,7 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore) : IStateStore
     }
 
     public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash)
-        => stateRootHash == default ? new Trie.Trie() : Trie.Trie.Create(stateRootHash, _keyValueStore);
+        => stateRootHash == default ? new Trie.Trie() : Trie.Trie.Create(stateRootHash, StateKeyValueStore);
 
     public void Dispose()
     {

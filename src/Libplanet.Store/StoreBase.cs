@@ -12,7 +12,7 @@ using FAV = Libplanet.Types.Assets.FungibleAssetValue;
 
 namespace Libplanet.Store;
 
-public abstract class BaseStore : IStore
+public abstract class StoreBase : IStore
 {
     public abstract IEnumerable<Guid> ListChainIds();
 
@@ -44,18 +44,12 @@ public abstract class BaseStore : IStore
     {
         if (GetBlockDigest(blockHash) is BlockDigest blockDigest)
         {
-            BlockHeader header = blockDigest.GetHeader();
-            TxId[] txids = blockDigest.TxIds
-                            .Select(bytes => new TxId(bytes.ToArray()))
-                            .OrderBy(txid => txid)
-                            .ToArray();
+            BlockHeader header = blockDigest.Header;
+            TxId[] txids = blockDigest.TxIds.ToArray();
             var txs = txids.Select(txid => GetTransaction(txid))
                                      .OfType<Transaction>()
                                      .ToImmutableSortedSet();
-            var evidenceIds = blockDigest.EvidenceIds
-                                         .Select(bytes => new EvidenceId(bytes.ToArray()))
-                                         .OrderBy(evidenceId => evidenceId)
-                                         .ToArray();
+            var evidenceIds = blockDigest.EvidenceIds.ToArray();
             var evidence = evidenceIds.Select(evidenceId => GetCommittedEvidence(evidenceId))
                                        .OfType<EvidenceBase>()
                                        .ToImmutableSortedSet();
@@ -86,7 +80,7 @@ public abstract class BaseStore : IStore
 
     public long? GetBlockIndex(BlockHash blockHash)
     {
-        return GetBlockDigest(blockHash).Index;
+        return GetBlockDigest(blockHash).Height;
     }
 
     public abstract BlockDigest GetBlockDigest(BlockHash blockHash);
@@ -143,11 +137,11 @@ public abstract class BaseStore : IStore
 
     public abstract void PruneOutdatedChains(bool noopWithoutCanon = false);
 
-    public abstract BlockCommit? GetChainBlockCommit(Guid chainId);
+    public abstract BlockCommit GetChainBlockCommit(Guid chainId);
 
     public abstract void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit);
 
-    public abstract BlockCommit? GetBlockCommit(BlockHash blockHash);
+    public abstract BlockCommit GetBlockCommit(BlockHash blockHash);
 
     public abstract void PutBlockCommit(BlockCommit blockCommit);
 
