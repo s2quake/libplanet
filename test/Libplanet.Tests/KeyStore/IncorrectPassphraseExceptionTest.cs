@@ -1,5 +1,4 @@
 using Libplanet.KeyStore;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.KeyStore

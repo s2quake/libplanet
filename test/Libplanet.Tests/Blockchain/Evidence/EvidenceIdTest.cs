@@ -1,6 +1,5 @@
 using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Blockchain.Evidence

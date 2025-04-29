@@ -11,7 +11,6 @@ using Libplanet.Types.Blocks;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.TestCorrelator;
-using Xunit;
 using Constants = Serilog.Core.Constants;
 
 namespace Libplanet.Tests.Blockchain.Renderers

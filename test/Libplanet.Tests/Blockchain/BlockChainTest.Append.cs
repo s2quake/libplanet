@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
 using Libplanet.Action.Tests.Common;
@@ -13,13 +12,11 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Serilog;
-using Xunit;
 
 namespace Libplanet.Tests.Blockchain
 {

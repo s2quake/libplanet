@@ -3,7 +3,6 @@ using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
-using Xunit;
 
 namespace Libplanet.Tests.Store.Trie.Nodes;
 

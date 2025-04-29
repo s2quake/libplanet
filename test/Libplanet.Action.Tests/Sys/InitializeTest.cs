@@ -5,7 +5,6 @@ using Libplanet.Crypto;
 using Libplanet.Mocks;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Xunit;
 
 namespace Libplanet.Action.Tests.Sys;
 

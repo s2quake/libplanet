@@ -3,7 +3,6 @@ using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Types.Tx;
-using Xunit;
 
 namespace Libplanet.Tests.Blockchain.Policies
 {

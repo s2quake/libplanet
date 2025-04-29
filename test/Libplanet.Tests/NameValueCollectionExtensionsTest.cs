@@ -6,7 +6,6 @@ using Libplanet.Common;
 #if NETFRAMEWORK
 using static Mono.Web.HttpUtility;
 #endif
-using Xunit;
 
 namespace Libplanet.Tests
 {

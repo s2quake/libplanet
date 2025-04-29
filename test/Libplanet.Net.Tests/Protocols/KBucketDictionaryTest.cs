@@ -2,7 +2,6 @@ using System.Net;
 using Libplanet.Crypto;
 using Libplanet.Net.Protocols;
 using Serilog.Core;
-using Xunit;
 
 namespace Libplanet.Net.Tests.Protocols
 {

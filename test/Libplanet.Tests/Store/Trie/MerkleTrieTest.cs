@@ -5,7 +5,6 @@ using Libplanet.Common;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
-using Xunit;
 using static System.Linq.Enumerable;
 using static Libplanet.Common.HashDigest<System.Security.Cryptography.SHA256>;
 using static Libplanet.Tests.TestUtils;

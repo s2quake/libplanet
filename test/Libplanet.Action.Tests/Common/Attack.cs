@@ -1,8 +1,6 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
-using Nethereum.Util;
 
 namespace Libplanet.Action.Tests.Common;
 

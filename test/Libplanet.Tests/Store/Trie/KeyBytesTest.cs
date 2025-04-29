@@ -1,5 +1,4 @@
 using Libplanet.Store.Trie;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Store.Trie

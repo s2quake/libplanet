@@ -6,7 +6,6 @@ using Libplanet.Net.Transports;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using NetMQ;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Messages

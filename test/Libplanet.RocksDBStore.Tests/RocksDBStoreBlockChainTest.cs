@@ -1,7 +1,6 @@
 using Libplanet.Action;
 using Libplanet.Tests.Blockchain;
 using Libplanet.Tests.Store;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.RocksDBStore.Tests

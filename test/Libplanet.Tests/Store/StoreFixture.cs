@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Common;
 using Libplanet.Crypto;

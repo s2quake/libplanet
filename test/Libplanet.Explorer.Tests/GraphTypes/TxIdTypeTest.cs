@@ -2,7 +2,6 @@ using GraphQL.Language.AST;
 using Libplanet.Common;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types.Tx;
-using Xunit;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {

@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Libplanet.KeyStore;
 using Libplanet.KeyStore.Ciphers;
-using Xunit;
 
 namespace Libplanet.Tests.KeyStore.Ciphers
 {

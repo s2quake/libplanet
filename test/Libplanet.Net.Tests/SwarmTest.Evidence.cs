@@ -11,7 +11,6 @@ using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Nito.AsyncEx;
-using Xunit;
 
 namespace Libplanet.Net.Tests
 {

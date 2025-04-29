@@ -18,7 +18,6 @@ using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Nito.AsyncEx;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus

@@ -5,7 +5,6 @@ using Libplanet.Common;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.Explorer.Queries;
 using Libplanet.Types.Assets;
-using Xunit;
 
 namespace Libplanet.Explorer.Tests.Queries;
 

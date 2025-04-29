@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Common;
 using Libplanet.Serialization;

@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Text;
 using Libplanet.Common;
 using Libplanet.Crypto;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Crypto;

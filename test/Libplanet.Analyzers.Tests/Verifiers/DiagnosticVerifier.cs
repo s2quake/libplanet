@@ -2,7 +2,6 @@ using System.Text;
 using Libplanet.Analyzers.Tests.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Xunit;
 
 namespace Libplanet.Analyzers.Tests.Verifiers
 {

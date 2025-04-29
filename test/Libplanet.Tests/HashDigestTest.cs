@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Security.Cryptography;
 using Libplanet.Common;
 using Libplanet.Serialization;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests;

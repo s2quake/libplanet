@@ -9,7 +9,6 @@ using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
-using Xunit;
 using static Libplanet.Action.State.KeyConverters;
 using static Libplanet.Tests.TestUtils;
 

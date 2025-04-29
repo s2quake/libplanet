@@ -2,7 +2,6 @@ using Bencodex.Types;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Libplanet.Action.State;
-using Xunit;
 using Xunit.Sdk;
 
 namespace Libplanet.Action.Tests

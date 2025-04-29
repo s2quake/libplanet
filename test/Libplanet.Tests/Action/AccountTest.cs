@@ -2,7 +2,6 @@ using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Mocks;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Action

@@ -13,10 +13,7 @@ using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;
 using Libplanet.Explorer.Queries;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
-using Xunit;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
-using Libplanet.Action.Loader;
 using System.Text;
 
 namespace Libplanet.Explorer.Tests.Queries;

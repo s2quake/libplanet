@@ -5,7 +5,6 @@ using Libplanet.Serialization;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Blocks

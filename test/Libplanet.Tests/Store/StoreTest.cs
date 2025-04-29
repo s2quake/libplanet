@@ -2,9 +2,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.State;
-using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Common;
@@ -15,7 +13,6 @@ using Libplanet.Types.Consensus;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
 

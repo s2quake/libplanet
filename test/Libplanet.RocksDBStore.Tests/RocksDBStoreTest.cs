@@ -1,17 +1,13 @@
 using System.IO;
 using System.Reflection;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
-using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Common.Extensions;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Tx;
 using RocksDbSharp;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.RocksDBStore.Tests

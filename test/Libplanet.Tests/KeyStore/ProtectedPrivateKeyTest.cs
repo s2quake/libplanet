@@ -5,7 +5,6 @@ using Libplanet.KeyStore;
 using Libplanet.KeyStore.Ciphers;
 using Libplanet.KeyStore.Kdfs;
 using Org.BouncyCastle.Crypto.Digests;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.KeyStore

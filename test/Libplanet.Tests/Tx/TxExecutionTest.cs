@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types.Tx;
-using Xunit;
 
 namespace Libplanet.Tests.Tx
 {

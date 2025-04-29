@@ -3,7 +3,6 @@ using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;
-using Libplanet.Types.Assets;
 
 namespace Libplanet.Action.State;
 

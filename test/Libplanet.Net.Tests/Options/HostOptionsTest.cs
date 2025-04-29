@@ -1,5 +1,4 @@
 using Libplanet.Net.Options;
-using Xunit;
 
 namespace Libplanet.Net.Tests.Options
 {

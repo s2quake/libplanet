@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Libplanet.KeyStore;
 using Libplanet.KeyStore.Kdfs;
-using Xunit;
 
 namespace Libplanet.Tests.KeyStore.Kdfs
 {

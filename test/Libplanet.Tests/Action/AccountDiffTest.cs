@@ -5,7 +5,6 @@ using Libplanet.Crypto;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
-using Xunit;
 
 namespace Libplanet.Tests.Action
 {

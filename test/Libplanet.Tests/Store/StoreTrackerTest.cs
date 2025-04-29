@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace Libplanet.Tests.Store
 {
     public sealed class StoreTrackerTest

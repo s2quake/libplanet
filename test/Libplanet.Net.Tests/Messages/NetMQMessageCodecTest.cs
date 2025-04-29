@@ -1,5 +1,4 @@
 using System.Net;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
@@ -8,11 +7,9 @@ using Libplanet.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using NetMQ;
-using Xunit;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Messages

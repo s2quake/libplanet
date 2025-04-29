@@ -10,7 +10,6 @@ using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using NetMQ;
 using Serilog;
-using Xunit;
 using Xunit.Sdk;
 using static Libplanet.Net.Tests.TestUtils;
 

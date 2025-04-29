@@ -2,7 +2,6 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
-using Xunit;
 
 namespace Libplanet.Action.State.Tests
 {

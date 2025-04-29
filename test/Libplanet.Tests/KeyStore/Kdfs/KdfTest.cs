@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Libplanet.KeyStore.Kdfs;
-using Xunit;
 
 namespace Libplanet.Tests.KeyStore.Kdfs
 {

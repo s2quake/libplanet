@@ -2,7 +2,6 @@ using Libplanet.Net.Messages;
 using Libplanet.Types.Consensus;
 using Nito.AsyncEx;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus

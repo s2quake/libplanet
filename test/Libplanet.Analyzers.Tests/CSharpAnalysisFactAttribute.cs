@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Xunit;
 
 namespace Libplanet.Analyzers.Tests
 {

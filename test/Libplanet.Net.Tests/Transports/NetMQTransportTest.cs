@@ -8,7 +8,6 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using NetMQ;
 using Serilog;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Transports
