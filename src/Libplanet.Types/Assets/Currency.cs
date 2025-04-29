@@ -107,7 +107,7 @@ public readonly record struct Currency : IEquatable<Currency>
 
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
-    public bool Equals(Currency? other) => ModelUtility.Equals(this, other);
+    public bool Equals(Currency other) => ModelUtility.Equals(this, other);
 
     private static SHA1 GetSHA1()
     {
@@ -146,7 +146,7 @@ public readonly record struct Currency : IEquatable<Currency>
         using var buffer = new MemoryStream();
         using var sha1 = GetSHA1();
         using var stream = new CryptoStream(buffer, sha1, CryptoStreamMode.Write);
-        buffer.Write(ModelSerializer.SerializeToBytes(this));
+        stream.Write(ModelSerializer.SerializeToBytes(this));
         stream.FlushFinalBlock();
         if (sha1.Hash is { } hash)
         {

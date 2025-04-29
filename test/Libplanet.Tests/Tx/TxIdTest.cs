@@ -53,7 +53,7 @@ public class TxIdTest
         var bytes = GetRandomBytes(TxId.Size);
         var txId = new TxId(bytes);
 
-        Assert.Equal(bytes, [.. txId.Bytes]);
+        Assert.Equal(bytes, txId.Bytes);
     }
 
     [Fact]

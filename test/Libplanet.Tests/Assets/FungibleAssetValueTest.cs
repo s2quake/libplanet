@@ -6,9 +6,9 @@ namespace Libplanet.Tests.Assets;
 
 public class FungibleAssetValueTest
 {
-    private static readonly Currency FOO = new("FOO", 2);
-    private static readonly Currency BAR = new("BAR", 0);
-    private static readonly Currency BARMAX = new("BAR", 0, 100000);
+    private static readonly Currency FOO = Currency.Create("FOO", 2);
+    private static readonly Currency BAR = Currency.Create("BAR", 0);
+    private static readonly Currency BARMAX = Currency.Create("BAR", 0, 100000);
 
     [Fact]
     public void Constructor()
@@ -86,15 +86,15 @@ public class FungibleAssetValueTest
     [Fact]
     public void Equality()
     {
-        FungibleAssetValue foo100a = new(FOO, 100);
-        FungibleAssetValue foo100b = new(FOO, 100);
-        FungibleAssetValue foo200a = new(FOO, 200);
-        FungibleAssetValue foo200b = new(FOO, 200);
-        FungibleAssetValue bar100a = new(BAR, 100);
-        FungibleAssetValue bar100b = new(BAR, 100);
-        FungibleAssetValue bar200a = new(BAR, 200);
-        FungibleAssetValue bar200b = new(BAR, 200);
-        FungibleAssetValue barmax100 = new(BARMAX, 100);
+        var foo100a = FungibleAssetValue.Create(FOO, 100);
+        var foo100b = FungibleAssetValue.Create(FOO, 100);
+        var foo200a = FungibleAssetValue.Create(FOO, 200);
+        var foo200b = FungibleAssetValue.Create(FOO, 200);
+        var bar100a = FungibleAssetValue.Create(BAR, 100);
+        var bar100b = FungibleAssetValue.Create(BAR, 100);
+        var bar200a = FungibleAssetValue.Create(BAR, 200);
+        var bar200b = FungibleAssetValue.Create(BAR, 200);
+        var barmax100 = FungibleAssetValue.Create(BARMAX, 100);
 
         Assert.Equal(foo100b, foo100a);
         Assert.Equal(foo100b.GetHashCode(), foo100a.GetHashCode());
@@ -153,11 +153,11 @@ public class FungibleAssetValueTest
     [Fact]
     public void Compare()
     {
-        FungibleAssetValue foo100a = new(FOO, 100);
-        FungibleAssetValue foo100b = new(FOO, 100);
-        FungibleAssetValue foo200 = new(FOO, 200);
-        FungibleAssetValue bar100 = new(BAR, 100);
-        FungibleAssetValue barmax100 = new(BARMAX, 100);
+        var foo100a = FungibleAssetValue.Create(FOO, 100);
+        var foo100b = FungibleAssetValue.Create(FOO, 100);
+        var foo200 = FungibleAssetValue.Create(FOO, 200);
+        var bar100 = FungibleAssetValue.Create(BAR, 100);
+        var barmax100 = FungibleAssetValue.Create(BARMAX, 100);
 
         Assert.Equal(0, foo100a.CompareTo(foo100b));
         Assert.Equal(0, foo100a.CompareTo((object)foo100b));
@@ -200,9 +200,9 @@ public class FungibleAssetValueTest
     [Fact]
     public void Negate()
     {
-        FungibleAssetValue foo_3 = new(FOO, -3);
-        FungibleAssetValue foo0 = new(FOO);
-        FungibleAssetValue foo3 = new(FOO, 3);
+        var foo_3 = FungibleAssetValue.Create(FOO, -3);
+        var foo0 = FungibleAssetValue.Create(FOO);
+        var foo3 = FungibleAssetValue.Create(FOO, 3);
 
         Assert.Equal(foo_3, -foo3);
         Assert.Equal(foo3, -foo_3);
@@ -212,13 +212,13 @@ public class FungibleAssetValueTest
     [Fact]
     public void Add()
     {
-        FungibleAssetValue foo_1 = new(FOO, -1);
-        FungibleAssetValue foo0 = new(FOO);
-        FungibleAssetValue foo1 = new(FOO, 1);
-        FungibleAssetValue foo2 = new(FOO, 2);
-        FungibleAssetValue foo3 = new(FOO, 3);
-        FungibleAssetValue bar3 = new(BAR, 3);
-        FungibleAssetValue barmax3 = new(BARMAX, 3);
+        var foo_1 = FungibleAssetValue.Create(FOO, -1);
+        var foo0 = FungibleAssetValue.Create(FOO);
+        var foo1 = FungibleAssetValue.Create(FOO, 1);
+        var foo2 = FungibleAssetValue.Create(FOO, 2);
+        var foo3 = FungibleAssetValue.Create(FOO, 3);
+        var bar3 = FungibleAssetValue.Create(BAR, 3);
+        var barmax3 = FungibleAssetValue.Create(BARMAX, 3);
 
         Assert.Equal(foo1, foo1 + foo0);
         Assert.Equal(foo1, foo0 + foo1);
@@ -237,12 +237,12 @@ public class FungibleAssetValueTest
     [Fact]
     public void Subtract()
     {
-        FungibleAssetValue foo_1 = new(FOO, -1);
-        FungibleAssetValue foo0 = new(FOO);
-        FungibleAssetValue foo1 = new(FOO, 1);
-        FungibleAssetValue foo2 = new(FOO, 2);
-        FungibleAssetValue bar3 = new(BAR, 3);
-        FungibleAssetValue barmax3 = new(BARMAX, 3);
+        var foo_1 = FungibleAssetValue.Create(FOO, -1);
+        var foo0 = FungibleAssetValue.Create(FOO);
+        var foo1 = FungibleAssetValue.Create(FOO, 1);
+        var foo2 = FungibleAssetValue.Create(FOO, 2);
+        var bar3 = FungibleAssetValue.Create(BAR, 3);
+        var barmax3 = FungibleAssetValue.Create(BARMAX, 3);
 
         Assert.Equal(foo0, foo1 - foo1);
         Assert.Equal(foo_1, foo1 - foo2);
@@ -256,12 +256,12 @@ public class FungibleAssetValueTest
     [Fact]
     public void Multiply()
     {
-        FungibleAssetValue foo_2 = new(FOO, -2);
-        FungibleAssetValue foo_1 = new(FOO, -1);
-        FungibleAssetValue foo0 = new(FOO);
-        FungibleAssetValue foo1 = new(FOO, 1);
-        FungibleAssetValue foo2 = new(FOO, 2);
-        FungibleAssetValue foo4 = new(FOO, 4);
+        var foo_2 = FungibleAssetValue.Create(FOO, -2);
+        var foo_1 = FungibleAssetValue.Create(FOO, -1);
+        var foo0 = FungibleAssetValue.Create(FOO);
+        var foo1 = FungibleAssetValue.Create(FOO, 1);
+        var foo2 = FungibleAssetValue.Create(FOO, 2);
+        var foo4 = FungibleAssetValue.Create(FOO, 4);
 
         Assert.Equal(foo2, foo1 * 2);
         Assert.Equal(foo2, 2 * foo1);
@@ -284,12 +284,12 @@ public class FungibleAssetValueTest
     [Fact]
     public void DivRem()
     {
-        FungibleAssetValue foo7 = new(FOO, 7);
-        FungibleAssetValue foo6 = new(FOO, 6);
-        FungibleAssetValue foo3 = new(FOO, 3);
-        FungibleAssetValue foo2 = new(FOO, 2);
-        FungibleAssetValue foo1 = new(FOO, 1);
-        FungibleAssetValue foo0 = new(FOO);
+        var foo7 = FungibleAssetValue.Create(FOO, 7);
+        var foo6 = FungibleAssetValue.Create(FOO, 6);
+        var foo3 = FungibleAssetValue.Create(FOO, 3);
+        var foo2 = FungibleAssetValue.Create(FOO, 2);
+        var foo1 = FungibleAssetValue.Create(FOO, 1);
+        var foo0 = FungibleAssetValue.Create(FOO);
         FungibleAssetValue rem;
 
         Assert.Equal((foo6, foo0), foo6.DivRem(1));
@@ -349,7 +349,7 @@ public class FungibleAssetValueTest
         Assert.Throws<DivideByZeroException>(() => foo1.DivRem(foo0, out rem));
         Assert.Throws<DivideByZeroException>(() => foo1 % foo0);
 
-        FungibleAssetValue bar1 = new(BAR, 1);
+        var bar1 = FungibleAssetValue.Create(BAR, 1);
         Assert.Throws<ArgumentException>(() => bar1.DivRem(foo1));
         Assert.Throws<ArgumentException>(() => bar1.DivRem(foo1, out rem));
         Assert.Throws<ArgumentException>(() => bar1 % foo1);
@@ -358,9 +358,9 @@ public class FungibleAssetValueTest
     [Fact]
     public void Abs()
     {
-        FungibleAssetValue foo_3 = new(FOO, -3);
-        FungibleAssetValue foo0 = new(FOO);
-        FungibleAssetValue foo3 = new(FOO, 3);
+        var foo_3 = FungibleAssetValue.Create(FOO, -3);
+        var foo0 = FungibleAssetValue.Create(FOO);
+        var foo3 = FungibleAssetValue.Create(FOO, 3);
 
         Assert.Equal(foo3, FungibleAssetValue.Abs(foo3));
         Assert.Equal(foo3, FungibleAssetValue.Abs(foo_3));
@@ -407,8 +407,8 @@ public class FungibleAssetValueTest
     [Fact]
     public void String()
     {
-        FungibleAssetValue foo100 = new(FOO, 100);
-        FungibleAssetValue bar90000000 = new(BAR, 90000000);
+        var foo100 = FungibleAssetValue.Create(FOO, 100);
+        var bar90000000 = FungibleAssetValue.Create(BAR, 90000000);
         Assert.Equal("1 FOO", foo100.ToString());
         Assert.Equal("90000000 BAR", bar90000000.ToString());
     }
@@ -475,7 +475,7 @@ public class FungibleAssetValueTest
             {
                 ""quantity"": ""123.45"",
                 ""currency"": {
-                    ""hash"": ""b18bb67fceedc1f0664a4950138b7ef8e05f70e4"",
+                    ""hash"": ""ea0ec4314a6124d97b42c8f9d15e961030c4f57b"",
                     ""ticker"": ""FOO"",
                     ""decimalPlaces"": 2,
                     ""minters"": [],
@@ -489,7 +489,7 @@ public class FungibleAssetValueTest
             {
                 ""quantity"": ""-456"",
                 ""currency"": {
-                    ""hash"": ""b18bb67fceedc1f0664a4950138b7ef8e05f70e4"",
+                    ""hash"": ""ea0ec4314a6124d97b42c8f9d15e961030c4f57b"",
                     ""ticker"": ""FOO"",
                     ""decimalPlaces"": 2,
                     ""minters"": [],
