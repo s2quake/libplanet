@@ -71,7 +71,7 @@ public sealed record class BlockContent
 
     // public HashDigest<SHA256>? TxHash => Metadata.TxHash;
 
-    // public BlockCommit? LastCommit => Metadata.LastCommit;
+    // public BlockCommit LastCommit => Metadata.LastCommit;
 
     // public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
@@ -111,7 +111,7 @@ public sealed record class BlockContent
         return default;
     }
 
-    public static HashDigest<SHA256>? DeriveEvidenceHash(IEnumerable<EvidenceBase> evidence)
+    public static HashDigest<SHA256> DeriveEvidenceHash(IEnumerable<EvidenceBase> evidence)
     {
         EvidenceId? prevId = null;
         SHA256 hasher = SHA256.Create();
@@ -135,7 +135,7 @@ public sealed record class BlockContent
 
         if (prevId is null)
         {
-            return null;
+            return default;
         }
 
         hasher.TransformFinalBlock(new byte[] { 0x65 }, 0, 1);  // "e"
@@ -144,7 +144,7 @@ public sealed record class BlockContent
             return new HashDigest<SHA256>(hash);
         }
 
-        return null;
+        return default;
     }
 
     // public RawBlock Propose(BlockMetadata Metadata)

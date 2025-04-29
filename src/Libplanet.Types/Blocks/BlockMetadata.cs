@@ -32,13 +32,13 @@ public sealed record class BlockMetadata
     public BlockHash PreviousHash { get; init; }
 
     [Property(6)]
-    public HashDigest<SHA256>? TxHash { get; init; }
+    public HashDigest<SHA256> TxHash { get; init; }
 
     [Property(7)]
-    public BlockCommit? LastCommit { get; init; }
+    public BlockCommit LastCommit { get; init; }
 
     [Property(8)]
-    public HashDigest<SHA256>? EvidenceHash { get; init; }
+    public HashDigest<SHA256> EvidenceHash { get; init; }
 
     // public Bencodex.Types.Dictionary MakeCandidateData()
     // {

@@ -356,12 +356,12 @@ namespace Libplanet.Net.Consensus
         /// </summary>
         /// <returns>A <see cref="BlockCommit"/> instance made by collected commits. If failed
         /// to collect +2/3 majority commits, return <see langword="null"/>.</returns>
-        public BlockCommit? ToBlockCommit()
+        public BlockCommit ToBlockCommit()
         {
             if (!IsCommit())
             {
                 _logger.Information("Failed to create block commit since no +2/3 votes collected");
-                return null;
+                return default;
             }
 
             return new BlockCommit

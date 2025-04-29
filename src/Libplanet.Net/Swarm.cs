@@ -881,7 +881,7 @@ namespace Libplanet.Net
                         byte[] commitPayload = payloads[i + 1];
                         Block block = ModelSerializer.DeserializeFromBytes<Block>(blockPayload);
                         BlockCommit commit = commitPayload.Length == 0
-                            ? null
+                            ? default
                             : ModelSerializer.DeserializeFromBytes<BlockCommit>(commitPayload);
 
                         if (count < blockHashes.Count)

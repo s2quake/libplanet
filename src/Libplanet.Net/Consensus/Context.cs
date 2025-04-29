@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using Caching;
-using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Consensus;
 using Libplanet.Crypto;
@@ -47,12 +46,12 @@ public partial class Context : IDisposable
     private int _validRound;
     private Block? _decision;
     private int _committedRound;
-    private BlockCommit? _lastCommit;
+    private BlockCommit _lastCommit;
 
     public Context(
         BlockChain blockChain,
         long height,
-        BlockCommit? lastCommit,
+        BlockCommit lastCommit,
         PrivateKey privateKey,
         ImmutableSortedSet<Validator> validators,
         ContextOption contextOption)
@@ -72,7 +71,7 @@ public partial class Context : IDisposable
     private Context(
         BlockChain blockChain,
         long height,
-        BlockCommit? lastCommit,
+        BlockCommit lastCommit,
         PrivateKey privateKey,
         ImmutableSortedSet<Validator> validators,
         ConsensusStep consensusStep,
@@ -173,11 +172,11 @@ public partial class Context : IDisposable
     /// <returns>Returns <see cref="BlockCommit"/> if the context is committed
     /// otherwise returns <see langword="null"/>.
     /// </returns>
-    public BlockCommit? GetBlockCommit()
+    public BlockCommit GetBlockCommit()
     {
         try
         {
-            var blockCommit = _heightVoteSet.PreCommits(Round)?.ToBlockCommit();
+            var blockCommit = _heightVoteSet.PreCommits(Round).ToBlockCommit();
             _logger.Debug(
                 "{FName}: CommittedRound: {CommittedRound}, Decision: {Decision}, " +
                 "BlockCommit: {BlockCommit}",
@@ -189,7 +188,7 @@ public partial class Context : IDisposable
         }
         catch (KeyNotFoundException)
         {
-            return null;
+            return default;
         }
     }
 

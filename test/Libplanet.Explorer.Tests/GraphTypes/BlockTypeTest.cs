@@ -48,7 +48,6 @@ public class BlockTypeTest
                 PublicKey = privateKey.PublicKey,
                 PreviousHash = lastBlockHash,
                 LastCommit = lastBlockCommit,
-                EvidenceHash = null,
             },
             new BlockContent
             {

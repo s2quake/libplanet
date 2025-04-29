@@ -19,7 +19,7 @@ internal sealed record class ActionContext : IActionContext
 
     public int BlockProtocolVersion { get; init; }
 
-    public BlockCommit? LastCommit { get; init; }
+    public BlockCommit LastCommit { get; init; }
 
     public required IWorld World { get; init; }
 

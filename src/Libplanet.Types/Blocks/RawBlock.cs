@@ -37,7 +37,7 @@ public sealed record class RawBlock
 
     public HashDigest<SHA256>? TxHash => Metadata.TxHash;
 
-    public BlockCommit? LastCommit => Metadata.LastCommit;
+    public BlockCommit LastCommit => Metadata.LastCommit;
 
     public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 

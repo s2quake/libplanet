@@ -10,7 +10,6 @@ using Bencodex.Types;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Sys;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
@@ -239,7 +238,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             AssertBytesEqual(expected.Bytes.ToArray(), actual.Bytes.ToArray());
 
         public static void AssertBytesEqual(BlockHash? expected, BlockHash? actual) =>
-            AssertBytesEqual(expected?.Bytes.ToArray(), actual?.Bytes.ToArray());
+            AssertBytesEqual(expected?.Bytes.ToArray() ?? [], actual?.Bytes.ToArray() ?? []);
 
         public static void AssertBytesEqual<T>(HashDigest<T> expected, HashDigest<T> actual)
             where T : HashAlgorithm =>
@@ -247,19 +246,19 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static void AssertBytesEqual<T>(HashDigest<T>? expected, HashDigest<T>? actual)
             where T : HashAlgorithm =>
-            AssertBytesEqual(expected?.Bytes.ToArray(), actual?.Bytes.ToArray());
+            AssertBytesEqual(expected?.Bytes.ToArray() ?? [], actual?.Bytes.ToArray() ?? []);
 
         public static void AssertBytesEqual(Address expected, Address actual) =>
             AssertBytesEqual(expected.ToByteArray(), actual.ToByteArray());
 
         public static void AssertBytesEqual(Address? expected, Address? actual) =>
-            AssertBytesEqual(expected?.ToByteArray(), actual?.ToByteArray());
+            AssertBytesEqual(expected?.ToByteArray() ?? [], actual?.ToByteArray() ?? []);
 
         public static void AssertBytesEqual(KeyBytes expected, KeyBytes actual) =>
             AssertBytesEqual(expected.ToByteArray(), actual.ToByteArray());
 
         public static void AssertBytesEqual(KeyBytes? expected, KeyBytes? actual) =>
-            AssertBytesEqual(expected?.ToByteArray(), actual?.ToByteArray());
+            AssertBytesEqual(expected?.ToByteArray() ?? [], actual?.ToByteArray() ?? []);
 
         public static void AssertBencodexEqual(IValue expected, IValue actual)
         {
@@ -375,7 +374,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             // Index #1 block cannot have lastCommit: There was no consensus of genesis block.
             if (height == 0)
             {
-                return null;
+                return default;
             }
 
             // Using the unix epoch time as the timestamp of the vote if deterministicTimestamp is
@@ -402,8 +401,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static RawBlock ProposeGenesis(
             PublicKey proposer,
-            IReadOnlyList<Transaction> transactions = null,
-            ImmutableSortedSet<Validator> validatorSet = null,
+            IReadOnlyList<Transaction>? transactions = null,
+            ImmutableSortedSet<Validator>? validatorSet = null,
             DateTimeOffset? timestamp = null,
             int protocolVersion = Block.CurrentProtocolVersion
         )
@@ -436,8 +435,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 PublicKey = protocolVersion >= 2 ? proposer ?? GenesisProposer.PublicKey : null,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(txs),
-                LastCommit = null,
-                EvidenceHash = null,
             };
             var content = new BlockContent
             {
@@ -449,14 +446,14 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static Block ProposeGenesisBlock(
             PrivateKey miner,
-            IReadOnlyList<Transaction> transactions = null,
+            IReadOnlyList<Transaction>? transactions = null,
             DateTimeOffset? timestamp = null,
             int protocolVersion = Block.CurrentProtocolVersion,
             HashDigest<SHA256> stateRootHash = default
         )
         {
             RawBlock preEval = ProposeGenesis(
-                miner?.PublicKey,
+                miner.PublicKey,
                 transactions,
                 null,
                 timestamp,
@@ -476,20 +473,18 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static RawBlock ProposeNext(
             Block previousBlock,
-            IReadOnlyList<Transaction> transactions = null,
-            PublicKey miner = null,
+            IReadOnlyList<Transaction>? transactions = null,
+            PublicKey? miner = null,
             TimeSpan? blockInterval = null,
             int protocolVersion = Block.CurrentProtocolVersion,
-            BlockCommit lastCommit = null,
+            BlockCommit? lastCommit = null,
             ImmutableArray<EvidenceBase>? evidence = null)
         {
             var txs = transactions is null
                 ? new List<Transaction>()
                 : transactions.OrderBy(tx => tx.Id).ToList();
 
-            var evidenceHash = evidence != null
-                ? BlockContent.DeriveEvidenceHash(evidence)
-                : null;
+            var evidenceHash = BlockContent.DeriveEvidenceHash(evidence ?? []);
             var metadata = new BlockMetadata
             {
                 ProtocolVersion = protocolVersion,
@@ -500,7 +495,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 PublicKey = protocolVersion >= 2 ? miner ?? previousBlock.PublicKey : null,
                 PreviousHash = previousBlock.Hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
-                LastCommit = lastCommit,
+                LastCommit = lastCommit ?? default,
                 EvidenceHash = evidenceHash,
             };
             var content = new BlockContent
@@ -516,11 +511,11 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static Block ProposeNextBlock(
             Block previousBlock,
             PrivateKey miner,
-            IReadOnlyList<Transaction> txs = null,
+            IReadOnlyList<Transaction>? txs = null,
             TimeSpan? blockInterval = null,
             int protocolVersion = Block.CurrentProtocolVersion,
             HashDigest<SHA256> stateRootHash = default,
-            BlockCommit lastCommit = null,
+            BlockCommit? lastCommit = null,
             ImmutableArray<EvidenceBase>? evidence = null)
         {
             Skip.IfNot(
@@ -531,7 +526,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             RawBlock preEval = ProposeNext(
                 previousBlock,
                 txs,
-                miner?.PublicKey,
+                miner.PublicKey,
                 blockInterval,
                 protocolVersion,
                 lastCommit,
@@ -539,40 +534,16 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             return preEval.Sign(miner, stateRootHash);
         }
 
-        /// <summary>
-        /// Creates a <see cref="BlockChain"/> instance containing
-        /// only a genesis <see cref="Block"/>.
-        /// </summary>
-        /// <param name="policy">A <see cref="BlockPolicy"/> of the chain.</param>
-        /// <param name="store">An <see cref="IStore"/> instance to store blocks and txs.</param>
-        /// <param name="stateStore">An <see cref="IStateStore"/> instance to store states.</param>
-        /// <param name="actionLoader">An <see cref="IActionLoader"/> instance to load actions.
-        /// </param>
-        /// <param name="actions"><see cref="Action{T}"/>s to be included in genesis block.
-        /// Works only if <paramref name="genesisBlock"/> is null.</param>
-        /// <param name="validatorSet"><see cref="ImmutableSortedSet<Validator>"/> to be included in genesis block.
-        /// Works only if <paramref name="genesisBlock"/> is null.</param>
-        /// <param name="privateKey">A <see cref="PrivateKey"/> to sign genesis actions.
-        /// Works only if <paramref name="genesisBlock"/> is null.</param>
-        /// <param name="timestamp"><see cref="DateTimeOffset"/> of the genesis block.
-        /// Works only if <paramref name="genesisBlock"/> is null.</param>
-        /// <param name="renderers">
-        /// An <see cref="IEnumerable{T}"/> of <see cref="IRenderer"/>s.</param>
-        /// <param name="genesisBlock">Genesis <see cref="Block"/> of the chain.
-        /// If null is given, a genesis will be generated.</param>
-        /// <param name="protocolVersion">Block protocol version of genesis block.</param>
-        /// <typeparam name="T">An <see cref="IAction"/> type.</typeparam>
-        /// <returns>A <see cref="BlockChain"/> instance.</returns>
         public static BlockChain MakeBlockChain(
             IBlockPolicy policy,
             IStore store,
             IStateStore stateStore,
-            IEnumerable<IAction> actions = null,
-            ImmutableSortedSet<Validator> validatorSet = null,
-            PrivateKey privateKey = null,
+            IEnumerable<IAction>? actions = null,
+            ImmutableSortedSet<Validator>? validatorSet = null,
+            PrivateKey? privateKey = null,
             DateTimeOffset? timestamp = null,
-            IEnumerable<IRenderer> renderers = null,
-            Block genesisBlock = null,
+            IEnumerable<IRenderer>? renderers = null,
+            Block? genesisBlock = null,
             int protocolVersion = Block.CurrentProtocolVersion
         )
         {
@@ -595,12 +566,12 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             IBlockPolicy policy,
             IStore store,
             IStateStore stateStore,
-            IEnumerable<IAction> actions = null,
-            ImmutableSortedSet<Validator> validatorSet = null,
-            PrivateKey privateKey = null,
+            IEnumerable<IAction>? actions = null,
+            ImmutableSortedSet<Validator>? validatorSet = null,
+            PrivateKey? privateKey = null,
             DateTimeOffset? timestamp = null,
-            IEnumerable<IRenderer> renderers = null,
-            Block genesisBlock = null,
+            IEnumerable<IRenderer>? renderers = null,
+            Block? genesisBlock = null,
             int protocolVersion = Block.CurrentProtocolVersion
         )
         {

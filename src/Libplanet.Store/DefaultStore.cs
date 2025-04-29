@@ -78,7 +78,7 @@ namespace Libplanet.Store;
 /// </list>
 /// </summary>
 /// <seealso cref="IStore"/>
-public class DefaultStore : BaseStore
+public class DefaultStore : StoreBase
 {
     private const string IndexColPrefix = "index_";
     private const string TxNonceIdPrefix = "nonce_";
@@ -266,7 +266,7 @@ public class DefaultStore : BaseStore
         return IndexCollection(chainId).Count();
     }
 
-    /// <inheritdoc cref="BaseStore.IterateIndexes(Guid, int, int?)"/>
+    /// <inheritdoc cref="StoreBase.IterateIndexes(Guid, int, int?)"/>
     public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
         return IndexCollection(chainId)
@@ -274,7 +274,7 @@ public class DefaultStore : BaseStore
             .Select(i => i.Hash);
     }
 
-    /// <inheritdoc cref="BaseStore.IndexBlockHash(Guid, long)"/>
+    /// <inheritdoc cref="StoreBase.IndexBlockHash(Guid, long)"/>
     public override BlockHash? IndexBlockHash(Guid chainId, long index)
     {
         if (index < 0)
@@ -292,13 +292,13 @@ public class DefaultStore : BaseStore
         return hash;
     }
 
-    /// <inheritdoc cref="BaseStore.AppendIndex(Guid, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.AppendIndex(Guid, BlockHash)"/>
     public override long AppendIndex(Guid chainId, BlockHash hash)
     {
         return IndexCollection(chainId).Insert(new HashDoc { Hash = hash }) - 1;
     }
 
-    /// <inheritdoc cref="BaseStore.ForkBlockIndexes(Guid, Guid, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.ForkBlockIndexes(Guid, Guid, BlockHash)"/>
     public override void ForkBlockIndexes(
         Guid sourceChainId,
         Guid destinationChainId,
@@ -379,7 +379,7 @@ public class DefaultStore : BaseStore
         return _txs.FileExists(TxPath(txId));
     }
 
-    /// <inheritdoc cref="BaseStore.IterateBlockHashes()"/>
+    /// <inheritdoc cref="StoreBase.IterateBlockHashes()"/>
     public override IEnumerable<BlockHash> IterateBlockHashes()
     {
         foreach (UPath path in _blocks.EnumerateDirectories(UPath.Root))
@@ -410,7 +410,7 @@ public class DefaultStore : BaseStore
         }
     }
 
-    /// <inheritdoc cref="BaseStore.GetBlockDigest(BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.GetBlockDigest(BlockHash)"/>
     public override BlockDigest GetBlockDigest(BlockHash blockHash)
     {
         if (_blockCache.TryGetValue(blockHash, out BlockDigest cachedDigest))
@@ -456,12 +456,12 @@ public class DefaultStore : BaseStore
             PutTransaction(tx);
         }
 
-        BlockDigest digest = BlockDigest.FromBlock(block);
+        BlockDigest digest = BlockDigest.Create(block);
         WriteContentAddressableFile(_blocks, path, ModelSerializer.SerializeToBytes(digest));
         _blockCache.AddOrUpdate(block.Hash, digest);
     }
 
-    /// <inheritdoc cref="BaseStore.DeleteBlock(BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.DeleteBlock(BlockHash)"/>
     public override bool DeleteBlock(BlockHash blockHash)
     {
         var path = BlockPath(blockHash);
@@ -475,7 +475,7 @@ public class DefaultStore : BaseStore
         return false;
     }
 
-    /// <inheritdoc cref="BaseStore.ContainsBlock(BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.ContainsBlock(BlockHash)"/>
     public override bool ContainsBlock(BlockHash blockHash)
     {
         if (_blockCache.ContainsKey(blockHash))
@@ -487,7 +487,7 @@ public class DefaultStore : BaseStore
         return _blocks.FileExists(blockPath);
     }
 
-    /// <inheritdoc cref="BaseStore.PutTxExecution"/>
+    /// <inheritdoc cref="StoreBase.PutTxExecution"/>
     public override void PutTxExecution(TxExecution txExecution)
     {
         UPath path = TxExecutionPath(txExecution);
@@ -498,7 +498,7 @@ public class DefaultStore : BaseStore
         Codec.Encode(SerializeTxExecution(txExecution), f);
     }
 
-    /// <inheritdoc cref="BaseStore.GetTxExecution(BlockHash, TxId)"/>
+    /// <inheritdoc cref="StoreBase.GetTxExecution(BlockHash, TxId)"/>
     public override TxExecution? GetTxExecution(BlockHash blockHash, TxId txid)
     {
         UPath path = TxExecutionPath(blockHash, txid);
@@ -527,7 +527,7 @@ public class DefaultStore : BaseStore
         return null;
     }
 
-    /// <inheritdoc cref="BaseStore.PutTxIdBlockHashIndex(TxId, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.PutTxIdBlockHashIndex(TxId, BlockHash)"/>
     public override void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
         var path = TxIdBlockHashIndexPath(txId, blockHash);
@@ -550,7 +550,7 @@ public class DefaultStore : BaseStore
         }
     }
 
-    /// <inheritdoc cref="BaseStore.DeleteTxIdBlockHashIndex(TxId, BlockHash)"/>
+    /// <inheritdoc cref="StoreBase.DeleteTxIdBlockHashIndex(TxId, BlockHash)"/>
     public override void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
         var path = TxIdBlockHashIndexPath(txId, blockHash);
@@ -625,14 +625,14 @@ public class DefaultStore : BaseStore
     }
 
     /// <inheritdoc />
-    public override BlockCommit? GetChainBlockCommit(Guid chainId)
+    public override BlockCommit GetChainBlockCommit(Guid chainId)
     {
         LiteCollection<BsonDocument> collection = CommitCollection(chainId);
         var docId = new BsonValue("c");
         BsonDocument doc = collection.FindById(docId);
         return doc is { } d && d.TryGetValue("v", out BsonValue v)
             ? ModelSerializer.DeserializeFromBytes<BlockCommit>(v)
-            : null;
+            : default;
     }
 
     /// <inheritdoc />
@@ -646,12 +646,12 @@ public class DefaultStore : BaseStore
             new BsonDocument() { ["v"] = new BsonValue(ModelSerializer.SerializeToBytes(blockCommit)) });
     }
 
-    public override BlockCommit? GetBlockCommit(BlockHash blockHash)
+    public override BlockCommit GetBlockCommit(BlockHash blockHash)
     {
         UPath path = BlockCommitPath(blockHash);
         if (!_blockCommits.FileExists(path))
         {
-            return null;
+            return default;
         }
 
         byte[] bytes;
@@ -661,7 +661,7 @@ public class DefaultStore : BaseStore
         }
         catch (FileNotFoundException)
         {
-            return null;
+            return default;
         }
 
         BlockCommit blockCommit = ModelSerializer.DeserializeFromBytes<BlockCommit>(bytes);

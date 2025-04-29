@@ -49,7 +49,7 @@ public class InitializeTest
             Miner = random.NextAddress(),
             BlockHeight = 0,
             BlockProtocolVersion = Block.CurrentProtocolVersion,
-            LastCommit = null,
+            
             World = prevState,
             RandomSeed = 123,
             MaxGasPrice = null,

@@ -71,11 +71,11 @@ public sealed record class BlockHeader
 
     public BlockHash PreviousHash { get; init; }
 
-    public HashDigest<SHA256>? TxHash { get; init; }
+    public HashDigest<SHA256> TxHash { get; init; }
 
-    public BlockCommit? LastCommit { get; init; }
+    public BlockCommit LastCommit { get; init; }
 
-    public HashDigest<SHA256>? EvidenceHash { get; init; }
+    public HashDigest<SHA256> EvidenceHash { get; init; }
 
     public HashDigest<SHA256> RawHash { get; init; }
 

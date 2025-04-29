@@ -78,7 +78,7 @@ public partial class BlockChainTest : IDisposable
                     Miner = _fx.Proposer.Address,
                     PublicKey = _fx.Proposer.PublicKey,
                     PreviousHash = _fx.GenesisBlock.Hash,
-                    LastCommit = null,
+                    
                     EvidenceHash = null,
                 }),
             _fx.Proposer);

@@ -19,7 +19,7 @@ public interface IActionContext
 
     int BlockProtocolVersion { get; }
 
-    BlockCommit? LastCommit { get; }
+    BlockCommit LastCommit { get; }
 
     IWorld World { get; }
 

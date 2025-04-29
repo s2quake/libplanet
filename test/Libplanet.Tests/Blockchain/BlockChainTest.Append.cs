@@ -684,7 +684,7 @@ namespace Libplanet.Tests.Blockchain
                     PublicKey = fx.Proposer.PublicKey,
                     PreviousHash = default,
                     TxHash = BlockContent.DeriveTxHash(txs),
-                    LastCommit = null,
+                    
                     EvidenceHash = null,
                 },
                 new BlockContent
