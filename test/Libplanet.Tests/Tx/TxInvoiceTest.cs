@@ -185,7 +185,7 @@ namespace Libplanet.Tests.Tx
                         ? FungibleAssetValue.Create(
                             Currency.Create("FOO", 18, [new PrivateKey().Address]),
                             100)
-                        : null,
+                        : default,
                     GasLimit = i == 4 ? 10 : 0L,
                 };
                 Assert.False(invoice1.Equals(invoice));

@@ -78,17 +78,22 @@ public class TxFixture
                 ZoneId = 10,
             },
         ];
-        TxWithActions = new Transaction(
-            new UnsignedTx(
-                new TxInvoice
+        TxWithActions = Transaction.Create(
+            unsignedTx: new UnsignedTx
+            {
+                Invoice = new TxInvoice
                 {
                     GenesisHash = genesisHash,
                     UpdatedAddresses = [Address.Parse("c2a86014073d662a4a9bfcf9cb54263dfa4f5cbc")],
                     Timestamp = timestamp,
                     Actions = [.. actions.ToPlainValues()],
                 },
-                new TxSigningMetadata(PrivateKey1.PublicKey, 0)),
-            PrivateKey1);
+                SigningMetadata = new TxSigningMetadata
+                {
+                    Signer = PrivateKey1.Address,
+                }
+            },
+            privateKey: PrivateKey1);
     }
 
     public PrivateKey PrivateKey1 { get; }

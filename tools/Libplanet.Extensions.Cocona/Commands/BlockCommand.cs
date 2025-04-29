@@ -143,7 +143,7 @@ public class BlockCommand
  #pragma warning restore PC002
                 0,
                 key,
-                null,
+                default,
                 new IAction[]
                 {
                     new Initialize

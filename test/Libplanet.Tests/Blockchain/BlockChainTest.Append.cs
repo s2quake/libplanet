@@ -660,7 +660,7 @@ namespace Libplanet.Tests.Blockchain
                 Transaction.Create(
                     0,
                     fx.Proposer,
-                    null,
+                    default,
                     actions: new IAction[]
                     {
                         new Initialize

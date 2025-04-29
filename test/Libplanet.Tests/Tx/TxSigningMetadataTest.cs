@@ -11,18 +11,18 @@ public class TxSigningMetadataTest
     [Fact]
     public void Constructor()
     {
-        var metadata = new TxSigningMetadata(PublicKey, 123L);
+        var metadata = TxSigningMetadata.Create(PublicKey, 123L);
         Assert.Equal(PublicKey.Address, metadata.Signer);
         Assert.Equal(123L, metadata.Nonce);
 
         Assert.Throws<ArgumentOutOfRangeException>(
-            () => new TxSigningMetadata(PublicKey, -1L));
+            () => TxSigningMetadata.Create(PublicKey, -1L));
     }
 
     [Fact]
     public void CopyConstructor()
     {
-        var metadata = new TxSigningMetadata(PublicKey, 123L);
+        var metadata = TxSigningMetadata.Create(PublicKey, 123L);
         var copy = metadata with { };
         Assert.Equal(PublicKey.Address, copy.Signer);
         Assert.Equal(123L, copy.Nonce);
@@ -31,18 +31,18 @@ public class TxSigningMetadataTest
     [Fact]
     public void Equality()
     {
-        var metadata = new TxSigningMetadata(PublicKey, 123L);
+        var metadata = TxSigningMetadata.Create(PublicKey, 123L);
         var copy = metadata with { };
         Assert.True(metadata.Equals(copy));
         Assert.True(metadata.Equals((object)copy));
         Assert.Equal(metadata.GetHashCode(), copy.GetHashCode());
 
-        var diffPublicKey = new TxSigningMetadata(new PrivateKey().PublicKey, 123L);
+        var diffPublicKey = TxSigningMetadata.Create(new PrivateKey().PublicKey, 123L);
         Assert.False(metadata.Equals(diffPublicKey));
         Assert.False(metadata.Equals((object)diffPublicKey));
         Assert.NotEqual(metadata.GetHashCode(), diffPublicKey.GetHashCode());
 
-        var diffNonce = new TxSigningMetadata(PublicKey, 456L);
+        var diffNonce = TxSigningMetadata.Create(PublicKey, 456L);
         Assert.False(metadata.Equals(diffNonce));
         Assert.False(metadata.Equals((object)diffNonce));
         Assert.NotEqual(metadata.GetHashCode(), diffNonce.GetHashCode());
@@ -52,7 +52,7 @@ public class TxSigningMetadataTest
     public void JsonSerialization()
     {
         TestUtils.AssertJsonSerializable(
-            new TxSigningMetadata(PublicKey, 123L),
+            TxSigningMetadata.Create(PublicKey, 123L),
             @"
                     {
                       ""signer"": ""89F0eE48e8BeaE3131B17Dc79A1282A0D7EdC6b9"",

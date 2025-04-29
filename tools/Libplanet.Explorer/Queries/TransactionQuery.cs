@@ -7,6 +7,7 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
@@ -139,13 +140,17 @@ namespace Libplanet.Explorer.Queries
                     Address signer = publicKey.Address;
                     long nonce = context.GetArgument<long?>("nonce") ??
                         chain.GetNextTxNonce(signer);
-                    var sigMeta = new TxSigningMetadata(publicKey, nonce);
+                    var signingMetadata = TxSigningMetadata.Create(publicKey, nonce);
                     var invoice = new TxInvoice
                     {
                         GenesisHash = chain.Genesis.Hash,
                         Actions = [plainValue],
                     };
-                    var unsignedTx = new UnsignedTx(invoice, sigMeta);
+                    var unsignedTx = new UnsignedTx
+                    {
+                        Invoice = invoice,
+                        SigningMetadata = signingMetadata,
+                    };
                     return unsignedTx.SerializeUnsignedTx();
                 }
             );
@@ -194,7 +199,7 @@ namespace Libplanet.Explorer.Queries
                             ByteUtil.ParseHex(context.GetArgument<string>("unsignedTransaction")))
                     );
                     var signedTransaction = unsignedTx.Verify(signature);
-                    return ByteUtil.Hex(signedTransaction.Serialize());
+                    return ByteUtil.Hex(ModelSerializer.SerializeToBytes(signedTransaction));
                 }
             );
 

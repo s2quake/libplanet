@@ -4,6 +4,7 @@ using Libplanet.Blockchain;
 using Libplanet.Common;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
+using Libplanet.Serialization;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Explorer.Mutations
@@ -32,7 +33,7 @@ namespace Libplanet.Explorer.Mutations
                 {
                     BlockChain chain = _context.BlockChain;
                     byte[] payload = ByteUtil.ParseHex(context.GetArgument<string>("payload"));
-                    Transaction tx = Transaction.Deserialize(payload);
+                    Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(payload);
                     if (!chain.StageTransaction(tx))
                     {
                         throw new ExecutionError(
