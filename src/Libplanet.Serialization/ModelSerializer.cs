@@ -23,6 +23,7 @@ public static class ModelSerializer
         AddTypeConverter(typeof(BigInteger), typeof(BigIntegerTypeConverter));
         AddTypeConverter(typeof(bool), typeof(BooleanTypeConverter));
         AddTypeConverter(typeof(byte[]), typeof(ByteArrayTypeConverter));
+        AddTypeConverter(typeof(byte), typeof(ByteTypeConverter));
         AddTypeConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetTypeConverter));
         AddTypeConverter(typeof(ImmutableArray<byte>), typeof(ImmutableByteArrayTypeConverter));
         AddTypeConverter(typeof(int), typeof(Int32TypeConverter));

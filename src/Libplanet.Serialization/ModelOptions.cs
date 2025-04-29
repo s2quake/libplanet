@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 using Bencodex.Types;
 using static Libplanet.Serialization.TypeUtility;
 
@@ -27,6 +28,11 @@ public sealed record class ModelOptions
         try
         {
             if (typeof(IValue).IsAssignableFrom(type))
+            {
+                return 0;
+            }
+
+            if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
             {
                 return 0;
             }

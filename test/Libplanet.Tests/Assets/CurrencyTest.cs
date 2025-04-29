@@ -1,5 +1,5 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
@@ -50,38 +50,42 @@ public class CurrencyTest
         Assert.Equal(100, quux.MaximumSupply);
         Assert.Empty(quux.Minters);
 
-        Assert.Throws<ArgumentException>(() => Currency.Create(string.Empty, 0));
-        Assert.Throws<ArgumentException>(() => Currency.Create("   \n", 1));
-        Assert.Throws<ArgumentException>(() => Currency.Create("BAR", 1, [AddressA, AddressA]));
-        Assert.Throws<ArgumentOutOfRangeException>(() => Currency.Create("TEST", 1, -100, []));
+        Assert.Throws<ValidationException>(
+            () => TestValidator.Validate(Currency.Create(string.Empty, 0)));
+        Assert.Throws<ValidationException>(
+            () => TestValidator.Validate(Currency.Create("   \n", 1)));
+        Assert.Throws<ValidationException>(
+            () => TestValidator.Validate(Currency.Create("BAR", 1, [AddressA, AddressA])));
+        Assert.Throws<ValidationException>(
+            () => TestValidator.Validate(Currency.Create("TEST", 1, -100, [])));
     }
 
     [Fact]
     public void Hash()
     {
         var currency = Currency.Create("GOLD", 2, [AddressA]);
-        var expected = HashDigest<SHA1>.Parse("b74db4b0ce23048dd0523635711cf17e8c6ea6e6");
-        AssertBytesEqual(expected, currency.Hash);
+        var expected = HashDigest<SHA1>.Parse("391917d64815d57a0551ffeca31c35bc43a88c47");
+        Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("NCG", 8, [AddressA, AddressB]);
-        expected = HashDigest<SHA1>.Parse("585647629cbbb9552c621fa588297287d0c995b3");
-        AssertBytesEqual(expected, currency.Hash);
+        expected = HashDigest<SHA1>.Parse("42bae64d960ea87cb3a76d158b9f2ecd6ecdba72");
+        Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("FOO", 0);
-        expected = HashDigest<SHA1>.Parse("b4a20e835105e48a591c8afeba850262790dfffc");
-        AssertBytesEqual(expected, currency.Hash);
+        expected = HashDigest<SHA1>.Parse("1ce777fc889944e41600c3aa69a999f982887520");
+        Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAR", 1);
-        expected = HashDigest<SHA1>.Parse("9f8707fb97946deda8514fc6be32317bc5422505");
-        AssertBytesEqual(expected, currency.Hash);
+        expected = HashDigest<SHA1>.Parse("ce1fa48db5f003dc8566da6bea0e7ddcf2659a27");
+        Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAZ", 1);
-        expected = HashDigest<SHA1>.Parse("8a354c6d2373a380c38b934bd83467c84cbc3fa5");
-        AssertBytesEqual(expected, currency.Hash);
+        expected = HashDigest<SHA1>.Parse("8538939433c24315bc751076845e0d4ab31c4ba5");
+        Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAZ", 1, 100);
-        expected = HashDigest<SHA1>.Parse("9527eff9d3e55d1129c88cd8f9aad90c21958e1c");
-        AssertBytesEqual(expected, currency.Hash);
+        expected = HashDigest<SHA1>.Parse("2e94d996f738afca6e9a554345f6f2dc2b2f639c");
+        Assert.Equal(expected, currency.Hash);
     }
 
     [Fact]
@@ -113,16 +117,16 @@ public class CurrencyTest
     public void String()
     {
         var currency = Currency.Create("GOLD", 0, [AddressA]);
-        Assert.Equal("GOLD (1a6193b06a2b6f80dba6b8800462451794f4b9f7)", currency.ToString());
+        Assert.Equal("GOLD (481a969169a78aa02c22082d4e8d05aba4dd07e6)", currency.ToString());
 
         currency = Currency.Create("GOLD", 0, []);
-        Assert.Equal("GOLD (c3dc908202a667bc47e330b8c5b4781425aec3d2)", currency.ToString());
+        Assert.Equal("GOLD (2e69027255d648cbc18d38caa33173c133a8caff)", currency.ToString());
 
         currency = Currency.Create("GOLD", 0);
-        Assert.Equal("GOLD (c3dc908202a667bc47e330b8c5b4781425aec3d2)", currency.ToString());
+        Assert.Equal("GOLD (2e69027255d648cbc18d38caa33173c133a8caff)", currency.ToString());
 
         currency = Currency.Create("GOLD", 0, 100, [AddressA]);
-        Assert.Equal("GOLD (07e4cf92498b170d91fa9b851212c92d8679c308)", currency.ToString());
+        Assert.Equal("GOLD (115a6236f9e14d4c6a19bdc054e9ce7ac667a194)", currency.ToString());
     }
 
     [Fact]
@@ -164,30 +168,10 @@ public class CurrencyTest
     public void Serialize()
     {
         var foo = Currency.Create("FOO", 2);
-
-        Assert.Equal(
-            new List(
-                new Text("FOO"),
-                new Integer(2),
-                new Integer(0),
-                List.Empty),
-            foo.ToBencodex());
-
-        Assert.Equal(foo, Currency.Create(foo.ToBencodex()));
-
         var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
 
-        Assert.Equal(
-            new List(
-                new Text("BAR"),
-                new Integer(0),
-                new Integer(100),
-                new List(
-                    ModelSerializer.Serialize(AddressB),
-                    ModelSerializer.Serialize(AddressA))),
-            bar.ToBencodex());
-
-        Assert.Equal(bar, Currency.Create(bar.ToBencodex()));
+        Assert.Equal(foo, ModelSerializer.Deserialize<Currency>(ModelSerializer.Serialize(foo)));
+        Assert.Equal(bar, ModelSerializer.Deserialize<Currency>(ModelSerializer.Serialize(bar)));
     }
 
     [SkippableFact]
@@ -196,7 +180,7 @@ public class CurrencyTest
         var foo = Currency.Create("FOO", 2);
         AssertJsonSerializable(foo, @"
             {
-                ""hash"": ""b18bb67fceedc1f0664a4950138b7ef8e05f70e4"",
+                ""hash"": ""ea0ec4314a6124d97b42c8f9d15e961030c4f57b"",
                 ""ticker"": ""FOO"",
                 ""decimalPlaces"": 2,
                 ""maximumSupply"": ""0"",
@@ -207,7 +191,7 @@ public class CurrencyTest
         var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
         AssertJsonSerializable(bar, @"
             {
-                ""hash"": ""9ad8eac459906d7760e17e6b6e1a56d0bf87be5b"",
+                ""hash"": ""07c0490bc1a5feb9567d4cf6e9672c775eb5dc48"",
                 ""ticker"": ""BAR"",
                 ""decimalPlaces"": 0,
                 ""maximumSupply"": ""100"",

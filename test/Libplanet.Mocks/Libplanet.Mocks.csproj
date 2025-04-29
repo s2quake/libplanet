@@ -24,6 +24,7 @@
     <PackageReference Remove="xunit.runner.visualstudio" />
     <PackageReference Remove="xunit.extensibility.execution" />
     <PackageReference Remove="coverlet.collector" />
+    <Using Remove="Xunit" />
   </ItemGroup>
 
   <ItemGroup>

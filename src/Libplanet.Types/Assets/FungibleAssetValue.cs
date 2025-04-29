@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
 
@@ -11,11 +10,6 @@ namespace Libplanet.Types.Assets;
 public readonly record struct FungibleAssetValue
     : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable, IFormattable
 {
-    // public FungibleAssetValue(Currency currency)
-    //     : this(currency, BigInteger.Zero)
-    // {
-    // }
-
     [Property(0)]
     public required Currency Currency { get; init; }
 
@@ -103,6 +97,14 @@ public readonly record struct FungibleAssetValue
         {
             Currency = dividend.Currency,
             RawValue = dividend.RawValue % divisor.RawValue,
+        };
+    }
+
+    public static FungibleAssetValue Create(Currency currency)
+    {
+        return new FungibleAssetValue
+        {
+            Currency = currency,
         };
     }
 
