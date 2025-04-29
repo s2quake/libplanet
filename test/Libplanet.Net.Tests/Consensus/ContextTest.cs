@@ -339,8 +339,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
                 fx.Store,
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DelayAction>());
+                new TrieStateStore());
 
             Context context = new Context(
                 blockChain,
@@ -651,8 +650,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 new BlockPolicy(),
                 fx.Store,
-                fx.StateStore,
-                new SingleActionLoader<DelayAction>());
+                fx.StateStore);
 
             var consensusContext = new ConsensusContext(
                 new TestUtils.DummyConsensusMessageHandler(message => { }),

@@ -198,7 +198,7 @@ namespace Libplanet.Tests.Blockchain
             var policy = new BlockPolicy(
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000)
             );
-            var stateStore1 = new TrieStateStore(new MemoryKeyValueStore());
+            var stateStore1 = new TrieStateStore();
             IStore store1 = new MemoryStore();
             var actionEvaluator1 = new ActionEvaluator(
                 stateStore1,
@@ -224,7 +224,7 @@ namespace Libplanet.Tests.Blockchain
                     EndBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 0)],
                 },
                 blockInterval: policy.BlockInterval);
-            var stateStore2 = new TrieStateStore(new MemoryKeyValueStore());
+            var stateStore2 = new TrieStateStore();
             IStore store2 = new MemoryStore();
             var actionEvaluator2 = new ActionEvaluator(
                 stateStore2,
@@ -265,7 +265,7 @@ namespace Libplanet.Tests.Blockchain
             var policy = new BlockPolicy(
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000)
             );
-            var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+            var stateStore = new TrieStateStore();
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
@@ -334,7 +334,7 @@ namespace Libplanet.Tests.Blockchain
                     BeginBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 1)],
                 },
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
-            var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+            var stateStore = new TrieStateStore();
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
@@ -692,8 +692,7 @@ namespace Libplanet.Tests.Blockchain
             BlockChain blockChain = TestUtils.MakeBlockChain(
                 new NullBlockPolicy(),
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 validatorSet: validatorSet);
             Block validNextBlock = blockChain.EvaluateAndSign(
                 RawBlock.Propose(

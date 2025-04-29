@@ -32,8 +32,7 @@ public class TransactionQueryTest
         Chain = Libplanet.Tests.TestUtils.MakeBlockChain(
             new BlockPolicy(),
             new MemoryStore(),
-            new TrieStateStore(new MemoryKeyValueStore()),
-            new SingleActionLoader<NullAction>(),
+            new TrieStateStore(),
             privateKey: new PrivateKey(),
             timestamp: DateTimeOffset.UtcNow
         );

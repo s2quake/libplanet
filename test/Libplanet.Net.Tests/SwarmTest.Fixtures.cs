@@ -39,8 +39,7 @@ namespace Libplanet.Net.Tests
                         MakeBlockChain(
                             policy,
                             storeFx.Store,
-                            storeFx.StateStore,
-                            new SingleActionLoader<DumbAction>());
+                            storeFx.StateStore);
                     var miner = new PrivateKey();
                     var signer = new PrivateKey();
                     Address address = signer.Address;
@@ -125,9 +124,7 @@ namespace Libplanet.Net.Tests
                 policy,
                 fx.Store,
                 fx.StateStore,
-                new SingleActionLoader<DumbAction>(),
-                genesisBlock: genesis
-            );
+                genesisBlock: genesis);
             appProtocolVersionOptions ??= new AppProtocolVersionOptions();
             hostOptions ??= new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { });
 

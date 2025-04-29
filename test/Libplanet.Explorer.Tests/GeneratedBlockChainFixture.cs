@@ -44,7 +44,7 @@ public class GeneratedBlockChainFixture
             ImmutableArray<ImmutableArray<ImmutableArray<SimpleAction>>>.Empty;
 
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
 
         Random = new System.Random(seed);
         MaxTxCount = maxTxCount;

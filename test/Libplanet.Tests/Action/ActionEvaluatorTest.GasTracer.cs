@@ -33,7 +33,7 @@
 //                 getMaxTransactionsBytes: _ => 50 * 1024);
 
 //             var store = new MemoryStore();
-//             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,
 //                 store: store,
@@ -143,7 +143,7 @@
 //             var privateKey = new PrivateKey();
 
 //             var store = new MemoryStore();
-//             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,
 //                 store: store,
@@ -183,7 +183,7 @@
 //             var privateKey = new PrivateKey();
 
 //             var store = new MemoryStore();
-//             var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+//             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,
 //                 store: store,

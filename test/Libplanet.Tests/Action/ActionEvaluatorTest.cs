@@ -102,7 +102,7 @@ public partial class ActionEvaluatorTest
                 }.ToPlainValues()),
         };
         var evs = Array.Empty<EvidenceBase>();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var noStateRootBlock = RawBlock.Propose(
             new BlockMetadata
             {
@@ -160,12 +160,11 @@ public partial class ActionEvaluatorTest
         var value = new Text("Foo");
 
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             policy: new BlockPolicy(),
             store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<ContextRecordingAction>());
+            stateStore: stateStore);
         var action = new ContextRecordingAction { Address = address, Value = value };
         var tx = Transaction.Create(
             nonce: 0,
@@ -175,7 +174,7 @@ public partial class ActionEvaluatorTest
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();
-        Block block = chain.ProposeBlock(miner);
+        var block = chain.ProposeBlock(miner);
         chain.Append(block, CreateBlockCommit(block));
 
         var evaluations = chain.ActionEvaluator.Evaluate(
@@ -219,13 +218,12 @@ public partial class ActionEvaluatorTest
     public void EvaluateWithPolicyActions()
     {
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var (chain, actionEvaluator) =
             TestUtils.MakeBlockChainAndActionEvaluator(
                 policy: _policy,
                 store: store,
-                stateStore: stateStore,
-                actionLoader: new SingleActionLoader<DumbAction>());
+                stateStore: stateStore);
 
         Assert.Equal(
             (Integer)1,
@@ -297,7 +295,7 @@ public partial class ActionEvaluatorTest
     public void EvaluateWithPolicyActionsWithException()
     {
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var policyWithExceptions = new BlockPolicy(
             new PolicyActions
             {
@@ -327,8 +325,7 @@ public partial class ActionEvaluatorTest
             TestUtils.MakeBlockChainAndActionEvaluator(
                 policy: policyWithExceptions,
                 store: store,
-                stateStore: stateStore,
-                actionLoader: new SingleActionLoader<DumbAction>());
+                stateStore: stateStore);
 
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(
@@ -357,7 +354,7 @@ public partial class ActionEvaluatorTest
     //     var action = new ThrowException { ThrowOnExecution = true };
 
     //     var store = new MemoryStore();
-    //     var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+    //     var stateStore = new TrieStateStore();
     //     var chain = TestUtils.MakeBlockChain(
     //         policy: new BlockPolicy(),
     //         store: store,
@@ -398,7 +395,7 @@ public partial class ActionEvaluatorTest
 
     //     var store = new MemoryStore();
     //     var stateStore =
-    //         new TrieStateStore(new MemoryKeyValueStore());
+    //         new TrieStateStore();
     //     var (chain, actionEvaluator) =
     //         TestUtils.MakeBlockChainAndActionEvaluator(
     //             policy: new BlockPolicy(),
@@ -463,7 +460,7 @@ public partial class ActionEvaluatorTest
             _txFx.Address5,
         };
 
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        IStateStore stateStore = new TrieStateStore();
         IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
@@ -789,7 +786,7 @@ public partial class ActionEvaluatorTest
                 Transactions = [.. txs],
                 Evidence = [.. evs],
             });
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        IStateStore stateStore = new TrieStateStore();
         IWorld world = new World(MockWorldState.CreateLegacy(stateStore)
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
@@ -893,7 +890,7 @@ public partial class ActionEvaluatorTest
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
-        IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        IStateStore stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(
             stateStore: stateStore);
         var block = RawBlock.Propose(
@@ -1049,7 +1046,6 @@ public partial class ActionEvaluatorTest
             policy: _policy,
             store: _storeFx.Store,
             stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -1098,7 +1094,6 @@ public partial class ActionEvaluatorTest
             policy: _policy,
             store: _storeFx.Store,
             stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -1148,7 +1143,6 @@ public partial class ActionEvaluatorTest
             policy: _policy,
             store: _storeFx.Store,
             stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -1201,7 +1195,6 @@ public partial class ActionEvaluatorTest
             policy: _policy,
             store: _storeFx.Store,
             stateStore: _storeFx.StateStore,
-            actionLoader: new SingleActionLoader<DumbAction>(),
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -1367,13 +1360,12 @@ public partial class ActionEvaluatorTest
         };
 
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             policy: new BlockPolicy(),
-            actions: new[] { freeGasAction, },
+            actions: [freeGasAction,],
             store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<UseGasAction>());
+            stateStore: stateStore);
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,
@@ -1420,7 +1412,7 @@ public partial class ActionEvaluatorTest
         };
 
         var store = new MemoryStore();
-        var stateStore = new TrieStateStore(new MemoryKeyValueStore());
+        var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             policy: new BlockPolicy(),
             actions: new[]
@@ -1428,8 +1420,7 @@ public partial class ActionEvaluatorTest
                 freeGasAction,
             },
             store: store,
-            stateStore: stateStore,
-            actionLoader: new SingleActionLoader<UseGasAction>());
+            stateStore: stateStore);
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,

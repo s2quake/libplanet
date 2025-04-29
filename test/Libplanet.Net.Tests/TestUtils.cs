@@ -102,8 +102,7 @@ namespace Libplanet.Net.Tests
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
                 fx.Store,
-                new TrieStateStore(new MemoryKeyValueStore()),
-                actionLoader,
+                new TrieStateStore(),
                 genesisBlock: genesisBlock);
 
             return blockChain;

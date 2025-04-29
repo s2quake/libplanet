@@ -92,7 +92,7 @@ namespace Libplanet.Net.Tests
             var policy = new NullBlockPolicy();
             var fx = new MemoryStoreFixture(policy.PolicyActions);
             var minerChain = MakeBlockChain(
-                policy, fx.Store, fx.StateStore, new SingleActionLoader<DumbAction>());
+                policy, fx.Store, fx.StateStore);
             foreach (int i in Enumerable.Range(0, 10))
             {
                 Block block = minerChain.ProposeBlock(
@@ -179,13 +179,12 @@ namespace Libplanet.Net.Tests
             var receiverKey = new PrivateKey();
             Swarm receiverSwarm = await CreateSwarm(receiverKey).ConfigureAwait(false);
             BlockChain receiverChain = receiverSwarm.BlockChain;
-            var seedStateStore = new TrieStateStore(new MemoryKeyValueStore());
+            var seedStateStore = new TrieStateStore();
             IBlockPolicy policy = receiverChain.Policy;
             BlockChain seedChain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
                 seedStateStore,
-                new SingleActionLoader<DumbAction>(),
                 privateKey: receiverKey);
             var seedMiner = new PrivateKey();
             Swarm seedSwarm =
@@ -698,7 +697,7 @@ namespace Libplanet.Net.Tests
                 });
             var fx1 = new MemoryStoreFixture();
             var blockChain = MakeBlockChain(
-                policy, fx1.Store, fx1.StateStore, new SingleActionLoader<DumbAction>());
+                policy, fx1.Store, fx1.StateStore);
             var privateKey = new PrivateKey();
             var minerSwarm = await CreateSwarm(blockChain, privateKey).ConfigureAwait(false);
             var fx2 = new MemoryStoreFixture();
@@ -710,7 +709,6 @@ namespace Libplanet.Net.Tests
                 policy,
                 fx2.Store,
                 fx2.StateStore,
-                new SingleActionLoader<DumbAction>(),
                 renderers: new[] { loggedRenderer });
             Swarm receiverSwarm =
                 await CreateSwarm(receiverChain).ConfigureAwait(false);

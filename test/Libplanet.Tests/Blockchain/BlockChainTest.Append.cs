@@ -329,8 +329,7 @@ namespace Libplanet.Tests.Blockchain
             _blockChain = TestUtils.MakeBlockChain(
                 new NullBlockPolicy(),
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbModernAction>());
+                new TrieStateStore());
             var genesis = _blockChain.Genesis;
             var address1 = new Address([.. TestUtils.GetRandomBytes(20)]);
             var address2 = new Address([.. TestUtils.GetRandomBytes(20)]);
@@ -437,7 +436,7 @@ namespace Libplanet.Tests.Blockchain
         //     var policy = new NullBlockPolicy();
         //     var store = new MemoryStore();
         //     var stateStore =
-        //         new TrieStateStore(new MemoryKeyValueStore());
+        //         new TrieStateStore();
         //     var actionLoader = new SingleActionLoader<ThrowException>();
         //     var renderer = new RecordingActionRenderer();
         //     BlockChain blockChain =
@@ -723,8 +722,7 @@ namespace Libplanet.Tests.Blockchain
             var beforePostponeBPV = BlockMetadata.CurrentProtocolVersion - 1;
             var policy = new NullBlockPolicy();
             var store = new MemoryStore();
-            var stateStore = new TrieStateStore(new MemoryKeyValueStore());
-            var actionLoader = new SingleActionLoader<DumbAction>();
+            var stateStore = new TrieStateStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
                 policy.PolicyActions);
@@ -741,7 +739,6 @@ namespace Libplanet.Tests.Blockchain
                 policy,
                 store,
                 stateStore,
-                actionLoader,
                 genesisBlock: genesis);
 
             // Append block before state root hash postpone

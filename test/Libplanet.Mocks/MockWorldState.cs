@@ -34,7 +34,7 @@ public sealed class MockWorldState : IWorldState
 
     public static MockWorldState CreateLegacy(IStateStore? stateStore = null)
     {
-        stateStore ??= new TrieStateStore(new MemoryKeyValueStore());
+        stateStore ??= new TrieStateStore();
         return new MockWorldState(stateStore.GetStateRoot(default), stateStore);
     }
 
@@ -42,7 +42,7 @@ public sealed class MockWorldState : IWorldState
         IStateStore? stateStore = null,
         int version = BlockMetadata.CurrentProtocolVersion)
     {
-        stateStore ??= new TrieStateStore(new MemoryKeyValueStore());
+        stateStore ??= new TrieStateStore();
         ITrie trie = stateStore.GetStateRoot(default);
         trie = trie.SetMetadata(new TrieMetadata(version));
         trie = stateStore.Commit(trie);

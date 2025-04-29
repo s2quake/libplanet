@@ -651,7 +651,7 @@ namespace Libplanet.Net.Tests
             var fx = new MemoryStoreFixture();
             var policy = new BlockPolicy();
             var blockchain = MakeBlockChain(
-                policy, fx.Store, fx.StateStore, new SingleActionLoader<DumbAction>());
+                policy, fx.Store, fx.StateStore);
             var key = new PrivateKey();
             var apv = AppProtocolVersion.Sign(key, 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
@@ -848,13 +848,11 @@ namespace Libplanet.Net.Tests
             var chain1 = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>());
+                new TrieStateStore());
             var chain2 = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>());
+                new TrieStateStore());
 
             var key1 = new PrivateKey();
             var key2 = new PrivateKey();
@@ -920,7 +918,6 @@ namespace Libplanet.Net.Tests
                     policy,
                     fx1.Store,
                     fx1.StateStore,
-                    new SingleActionLoader<DumbAction>(),
                     privateKey: validKey))
                 .ConfigureAwait(false);
             var swarmB = await CreateSwarm(
@@ -928,7 +925,6 @@ namespace Libplanet.Net.Tests
                     policy,
                     fx2.Store,
                     fx2.StateStore,
-                    new SingleActionLoader<DumbAction>(),
                     privateKey: validKey))
                 .ConfigureAwait(false);
 
@@ -989,7 +985,6 @@ namespace Libplanet.Net.Tests
                     policy,
                     fx1.Store,
                     fx1.StateStore,
-                    new SingleActionLoader<DumbAction>(),
                     privateKey: validKey,
                     timestamp: DateTimeOffset.MinValue)).ConfigureAwait(false);
             var swarmB = await CreateSwarm(
@@ -997,7 +992,6 @@ namespace Libplanet.Net.Tests
                     policy,
                     fx2.Store,
                     fx2.StateStore,
-                    new SingleActionLoader<DumbAction>(),
                     privateKey: validKey,
                     timestamp: DateTimeOffset.MinValue.AddSeconds(1))).ConfigureAwait(false);
 
@@ -1048,8 +1042,7 @@ namespace Libplanet.Net.Tests
             var genesisChainA = MakeBlockChain(
                 new BlockPolicy(),
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 actionsA,
                 null,
                 privateKeyA);
@@ -1057,16 +1050,14 @@ namespace Libplanet.Net.Tests
             var genesisChainB = MakeBlockChain(
                 new BlockPolicy(),
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 actionsB,
                 null,
                 privateKeyB);
             var genesisChainC = MakeBlockChain(
                 new BlockPolicy(),
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>(),
+                new TrieStateStore(),
                 genesisBlock: genesisBlockA);
 
             var swarmA =

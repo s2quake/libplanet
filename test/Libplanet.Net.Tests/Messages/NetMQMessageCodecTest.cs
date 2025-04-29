@@ -81,9 +81,7 @@ namespace Libplanet.Net.Tests.Messages
             BlockChain chain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(new MemoryKeyValueStore()),
-                new SingleActionLoader<DumbAction>()
-            );
+                new TrieStateStore());
             var codec = new Codec();
             Block genesis = chain.Genesis;
             var transaction = chain.MakeTransaction(privateKey, new DumbAction[] { });

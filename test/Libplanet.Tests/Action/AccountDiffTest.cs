@@ -14,7 +14,7 @@ namespace Libplanet.Tests.Action
         [Fact]
         public void EmptyAccountStateSource()
         {
-            IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+            IStateStore stateStore = new TrieStateStore();
             ITrie targetTrie = stateStore.GetStateRoot(default);
             ITrie sourceTrie = stateStore.GetStateRoot(default);
 
@@ -34,7 +34,7 @@ namespace Libplanet.Tests.Action
         [Fact]
         public void Diff()
         {
-            IStateStore stateStore = new TrieStateStore(new MemoryKeyValueStore());
+            IStateStore stateStore = new TrieStateStore();
             ITrie targetTrie = stateStore.GetStateRoot(default);
             ITrie sourceTrie = stateStore.GetStateRoot(default);
 
@@ -78,7 +78,7 @@ namespace Libplanet.Tests.Action
                 World = new World(
                     new WorldBaseState(
                         trie,
-                        new TrieStateStore(new MemoryKeyValueStore()))),
+                        new TrieStateStore())),
             };
     }
 }
