@@ -28,9 +28,9 @@ public sealed partial class SerializerTest
         public RecordClassWithNullableProperty(Random random)
         {
             Value1 = Nullable(random, Int32);
-            Value2 = NullableObject(random, random => ImmutableArray(random, Int32));
-            Value3 = ImmutableArray(random, random => Nullable(random, Int32));
-            Value4 = NullableObject(random, random => ImmutableArray(random, random => Nullable(random, Int32)));
+            Value2 = MaybeImmutableArray(random, Int32);
+            Value3 = ImmutableArray(random, MaybeInt32);
+            Value4 = MaybeImmutableArray(random, MaybeInt32);
         }
 
         [Property(0)]
