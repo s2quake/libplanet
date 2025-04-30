@@ -29,30 +29,54 @@ public sealed partial class SerializerTest
         public RecordClassWithTuple(Random random)
         {
             Value1 = ValueTuple(random, Int32, Boolean);
-            Value2 = ValueTuple(random, MaybeInt32, MaybeBoolean);
-            Value3 = MaybeValueTuple(random, MaybeInt32, MaybeBoolean);
-            // Value2 = NullableObject(random, random => ImmutableArray(random, Int32));
-            // Value3 = ImmutableArray(random, random => Nullable(random, Int32));
-            // Value4 = NullableObject(random, random => ImmutableArray(random, random => Nullable(random, Int32)));
+            Value2 = MaybeValueTuple(random, Int32, Boolean);
+            Value3 = ValueTuple(random, MaybeInt32, MaybeBoolean);
+            Value4 = MaybeValueTuple(random, MaybeInt32, MaybeBoolean);
+            Value5 = ImmutableArray(random, random => ValueTuple(random, Int32, Boolean));
+            Value6 = MaybeImmutableArray(random, random => ValueTuple(random, Int32, Boolean));
+            Value7 = ImmutableArray(random, random => ValueTuple(random, MaybeInt32, MaybeBoolean));
+            Value8 = MaybeImmutableArray(random, random => ValueTuple(random, MaybeInt32, MaybeBoolean));
+            Value9 = ImmutableArray(random, random => MaybeValueTuple(random, Int32, Boolean));
+            Value10 = MaybeImmutableArray(random, random => MaybeValueTuple(random, Int32, Boolean));
+            Value11 = ImmutableArray(random, random => MaybeValueTuple(random, MaybeInt32, MaybeBoolean));
+            Value12 = MaybeImmutableArray(random, random => MaybeValueTuple(random, MaybeInt32, MaybeBoolean));
         }
 
         [Property(0)]
         public (int, bool) Value1 { get; init; }
 
         [Property(1)]
-        public (int?, bool?) Value2 { get; init; }
+        public (int, bool)? Value2 { get; init; }
 
-        [Property(1)]
-        public (int?, bool?)? Value3 { get; init; }
+        [Property(2)]
+        public (int?, bool?) Value3 { get; init; }
 
-        // [Property(1)]
-        // public ImmutableArray<int>? Value2 { get; init; } = [];
+        [Property(3)]
+        public (int?, bool?)? Value4 { get; init; }
 
-        // [Property(2)]
-        // public ImmutableArray<int?> Value3 { get; init; } = [];
+        [Property(4)]
+        public ImmutableArray<(int, bool)> Value5 { get; init; } = [];
 
-        // [Property(3)]
-        // public ImmutableArray<int?>? Value4 { get; init; } = [];
+        [Property(5)]
+        public ImmutableArray<(int, bool)>? Value6 { get; init; } = [];
+
+        [Property(6)]
+        public ImmutableArray<(int?, bool?)> Value7 { get; init; } = [];
+
+        [Property(7)]
+        public ImmutableArray<(int?, bool?)>? Value8 { get; init; } = [];
+
+        [Property(8)]
+        public ImmutableArray<(int, bool)?> Value9 { get; init; } = [];
+
+        [Property(9)]
+        public ImmutableArray<(int, bool)?>? Value10 { get; init; } = [];
+
+        [Property(10)]
+        public ImmutableArray<(int?, bool?)?> Value11 { get; init; } = [];
+
+        [Property(11)]
+        public ImmutableArray<(int?, bool?)?>? Value12 { get; init; } = [];
 
         public bool Equals(RecordClassWithTuple? other) => ModelUtility.Equals(this, other);
 

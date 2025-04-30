@@ -5,16 +5,13 @@ namespace Libplanet.Serialization;
 
 internal sealed record class ModelHeader : IBencodable
 {
-    private const int ElementCount = 3;
-
-    public int TypeValue { get; init; }
+    private const int ElementCount = 2;
 
     public string TypeName { get; init; } = string.Empty;
 
     public int Version { get; set; }
 
     public IValue Bencoded => new List(
-        new Integer(TypeValue),
         new Text(TypeName),
         new Integer(Version));
 
@@ -23,13 +20,11 @@ internal sealed record class ModelHeader : IBencodable
     {
         if (value is List list
             && list.Count == ElementCount
-            && list[0] is Integer magicValue
-            && list[1] is Text typeName
-            && list[2] is Integer version)
+            && list[0] is Text typeName
+            && list[1] is Integer version)
         {
             header = new ModelHeader
             {
-                TypeValue = magicValue,
                 TypeName = typeName,
                 Version = version,
             };
@@ -54,9 +49,8 @@ internal sealed record class ModelHeader : IBencodable
 
         return new ModelHeader
         {
-            TypeValue = (int)((Integer)list[0]).Value,
-            TypeName = ((Text)list[1]).Value,
-            Version = (int)((Integer)list[2]).Value,
+            TypeName = ((Text)list[0]).Value,
+            Version = (int)((Integer)list[1]).Value,
         };
     }
 }
