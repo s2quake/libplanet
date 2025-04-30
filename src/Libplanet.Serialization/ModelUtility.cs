@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using static Libplanet.Serialization.TypeUtility;
 
 namespace Libplanet.Serialization;
 
@@ -43,7 +44,21 @@ public static class ModelUtility
         {
             var leftValue = property.GetValue(left);
             var rightValue = property.GetValue(right);
-            if (ArrayUtility.IsSupportedArrayType(property.PropertyType, out var elementType))
+            if (Nullable.GetUnderlyingType(property.PropertyType) is { } propertyType)
+            {
+                if (ArrayUtility.IsSupportedArrayType(propertyType, out var elementType))
+                {
+                    if (!Equals(leftValue as IList, rightValue as IList, elementType))
+                    {
+                        return false;
+                    }
+                }
+                else if (!object.Equals(leftValue, rightValue))
+                {
+                    return false;
+                }
+            }
+            else if (ArrayUtility.IsSupportedArrayType(property.PropertyType, out var elementType))
             {
                 if (!Equals(leftValue as IList, rightValue as IList, elementType))
                 {
@@ -61,6 +76,11 @@ public static class ModelUtility
 
     private static bool Equals(IList? left, IList? right, Type elementType)
     {
+        if (left is null && right is null)
+        {
+            return true;
+        }
+
         if (left is null || right is null)
         {
             return false;

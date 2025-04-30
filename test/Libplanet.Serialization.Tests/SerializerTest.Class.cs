@@ -185,7 +185,7 @@ public sealed partial class SerializerTest
         public MixedClass(Random random)
         {
             Object = new ObjectClass(random);
-            Objects = Array(random, () => new ObjectClass(random));
+            Objects = Array(random, random => new ObjectClass(random));
         }
 
         [Property(0)]

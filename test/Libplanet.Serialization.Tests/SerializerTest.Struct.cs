@@ -193,7 +193,7 @@ public sealed partial class SerializerTest
         public MixedStruct(Random random)
         {
             Object = new ObjectStruct(random);
-            Objects = Array(random, () => new ObjectStruct(random));
+            Objects = Array(random, random => new ObjectStruct(random));
         }
 
         [Property(0)]

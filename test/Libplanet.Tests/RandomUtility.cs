@@ -237,13 +237,13 @@ public static partial class RandomUtility
         return items;
     }
 
-    public static T[] Array<T>(Random random, Func<T> generator)
+    public static T[] Array<T>(Random random, Func<Random, T> generator)
     {
         var length = Length(random);
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
-            items[i] = generator();
+            items[i] = generator(random);
         }
 
         return items;
@@ -285,13 +285,13 @@ public static partial class RandomUtility
         return System.Collections.Immutable.ImmutableArray.Create(items);
     }
 
-    public static ImmutableArray<T> ImmutableArray<T>(Random random, Func<T> generator)
+    public static ImmutableArray<T> ImmutableArray<T>(Random random, Func<Random, T> generator)
     {
         var length = Length(random);
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
-            items[i] = generator();
+            items[i] = generator(random);
         }
 
         return System.Collections.Immutable.ImmutableArray.Create(items);
@@ -309,13 +309,13 @@ public static partial class RandomUtility
         return System.Collections.Immutable.ImmutableList.Create(items);
     }
 
-    public static ImmutableList<T> ImmutableList<T>(Random random, Func<T> generator)
+    public static ImmutableList<T> ImmutableList<T>(Random random, Func<Random, T> generator)
     {
         var length = Length(random);
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
-            items[i] = generator();
+            items[i] = generator(random);
         }
 
         return System.Collections.Immutable.ImmutableList.Create(items);
