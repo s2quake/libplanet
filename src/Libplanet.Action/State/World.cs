@@ -22,8 +22,6 @@ public class World : IWorld
 
     public ITrie Trie => _baseState.Trie;
 
-    public bool Legacy => _baseState.Legacy;
-
     public int Version => _baseState.Version;
 
     public IAccount GetAccount(Address address)
@@ -37,13 +35,6 @@ public class World : IWorld
 
     public IWorld SetAccount(Address address, IAccount account)
     {
-        if (Legacy && !address.Equals(ReservedAddresses.LegacyAccount))
-        {
-            throw new ArgumentException(
-                $"Cannot set a non-legacy account ({address}) to a legacy {nameof(IWorld)}.",
-                nameof(address));
-        }
-
         return new World(_baseState, Delta.SetAccount(address, account));
     }
 }

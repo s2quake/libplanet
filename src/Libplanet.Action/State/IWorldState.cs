@@ -7,8 +7,6 @@ public interface IWorldState
 {
     public ITrie Trie { get; }
 
-    bool Legacy { get; }
-
     int Version { get; }
 
     IAccountState GetAccountState(Address address);

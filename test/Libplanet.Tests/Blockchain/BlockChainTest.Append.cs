@@ -343,7 +343,6 @@ namespace Libplanet.Tests.Blockchain
             var commit1 = TestUtils.CreateBlockCommit(block1);
             _blockChain.Append(block1, commit1);
             var world1 = _blockChain.GetNextWorldState();
-            Assert.False(world1.Legacy);
             Assert.Equal(
                 (Text)"foo",
                 world1.GetAccountState(DumbModernAction.DumbModernAddress).GetState(address1));
@@ -354,7 +353,6 @@ namespace Libplanet.Tests.Blockchain
                 ImmutableArray<EvidenceBase>.Empty);
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
             var world2 = _blockChain.GetNextWorldState();
-            Assert.False(world2.Legacy);
             Assert.Equal(
                 (Text)"bar",
                 world2.GetAccountState(DumbModernAction.DumbModernAddress).GetState(address2));
@@ -698,14 +696,12 @@ namespace Libplanet.Tests.Blockchain
                 genesis,
                 actionEvaluator,
                 renderers: new[] { new LoggedActionRenderer(renderer, Log.Logger) });
-            Assert.True(blockChain.GetWorldState().Legacy);
             var emptyBlock = blockChain.ProposeBlock(
                 fx.Proposer,
                 ImmutableList<Transaction>.Empty,
                 TestUtils.CreateBlockCommit(blockChain.Tip),
                 ImmutableArray<EvidenceBase>.Empty);
             blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
-            Assert.True(blockChain.GetNextWorldState(emptyBlock.Hash).Legacy);
             Assert.Equal<byte>(
                 blockChain.GetWorldState(genesis.StateRootHash).Trie.Hash.Bytes,
                 blockChain.GetNextWorldState(emptyBlock.Hash).Trie.Hash.Bytes);
