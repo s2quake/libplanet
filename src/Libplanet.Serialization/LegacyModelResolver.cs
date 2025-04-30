@@ -38,8 +38,7 @@ public sealed class LegacyModelResolver : IModelResolver
         return _propertiesByType.GetOrAdd(type, ModelResolver.CreateProperties);
     }
 
-    Type IModelResolver.GetType(Type type, int version)
-        => _resolver.GetType(type, version);
+    Type IModelResolver.GetType(Type type, int version) => _resolver.GetType(type, version);
 
     string IModelResolver.GetTypeName(Type type) => _resolver.GetTypeName(_type);
 

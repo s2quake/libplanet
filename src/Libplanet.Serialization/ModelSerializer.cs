@@ -88,6 +88,25 @@ public static class ModelSerializer
             return CanSupportType(elementType);
         }
 
+        if (IsNullableType(type))
+        {
+            return CanSupportType(type.GetGenericArguments()[0]);
+        }
+
+        if (IsTupleType(type))
+        {
+            var genericArguments = type.GetGenericArguments();
+            foreach (var genericArgument in genericArguments)
+            {
+                if (CanSupportType(genericArgument) is false)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         return false;
     }
 

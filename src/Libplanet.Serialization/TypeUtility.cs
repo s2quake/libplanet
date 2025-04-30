@@ -58,6 +58,27 @@ public static class TypeUtility
         return false;
     }
 
+    public static bool IsNullableType(Type type)
+        => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+
+    public static bool IsTupleType(Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            return false;
+        }
+
+        var genericTypeDefinition = type.GetGenericTypeDefinition();
+        return genericTypeDefinition == typeof(ValueTuple<>)
+            || genericTypeDefinition == typeof(ValueTuple<,>)
+            || genericTypeDefinition == typeof(ValueTuple<,,>)
+            || genericTypeDefinition == typeof(ValueTuple<,,,>)
+            || genericTypeDefinition == typeof(ValueTuple<,,,,>)
+            || genericTypeDefinition == typeof(ValueTuple<,,,,,>)
+            || genericTypeDefinition == typeof(ValueTuple<,,,,,,>)
+            || genericTypeDefinition == typeof(ValueTuple<,,,,,,,>);
+    }
+
     public static bool IsBencodableType(Type type)
         => typeof(IBencodable).IsAssignableFrom(type) && !type.IsInterface;
 
