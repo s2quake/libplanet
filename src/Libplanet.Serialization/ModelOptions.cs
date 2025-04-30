@@ -27,17 +27,7 @@ public sealed record class ModelOptions
     {
         try
         {
-            if (typeof(IValue).IsAssignableFrom(type))
-            {
-                return 0;
-            }
-
-            if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
-            {
-                return 0;
-            }
-
-            return IsStandardType(type) ? 0 : Resolver.GetVersion(type);
+            return Resolver.GetVersion(type);
         }
         catch (Exception e)
         {

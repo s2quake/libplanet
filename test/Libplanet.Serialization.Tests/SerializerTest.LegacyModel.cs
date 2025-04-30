@@ -5,32 +5,30 @@ public sealed partial class SerializerTest
     [Fact]
     public void CanSupport_LegacyModelType_FailTest()
     {
-        Assert.False(ModelSerializer.CanSupportType(typeof(LegacyModelRecord1)));
+        Assert.False(ModelSerializer.CanSupportType(typeof(Version1_ModelRecord)));
     }
 
     [Fact]
     public void LegacyModel_SerializeAndDeserialize_Test()
     {
-        var options = new ModelOptions
-        {
-            Resolver = new LegacyModelResolver(typeof(ModelRecord)),
-        };
-        var expectedObject = new LegacyModelRecord1 { Int = Random.Shared.Next() };
-        var serialized = ModelSerializer.Serialize(expectedObject, options);
-        var actualObject = ModelSerializer.Deserialize<ModelRecord>(serialized, options)!;
+        var expectedObject = new Version1_ModelRecord { Int = Random.Shared.Next() };
+        var serialized = ModelSerializer.Serialize(expectedObject);
+        var actualObject = ModelSerializer.Deserialize<ModelRecord>(serialized)!;
         Assert.Equal(expectedObject.Int, actualObject.Int);
         Assert.Equal("Hello, World!", actualObject.String);
     }
 
-    public sealed record class LegacyModelRecord1
+    [LegacyModel(OriginType = typeof(ModelRecord))]
+    public sealed record class Version1_ModelRecord
     {
         [Property(0)]
         public int Int { get; set; }
     }
 
-    public sealed record class LegacyModelRecord2
+    [LegacyModel(OriginType = typeof(ModelRecord))]
+    public sealed record class Version2_ModelRecord
     {
-        public LegacyModelRecord2(LegacyModelRecord1 legacyModel)
+        public Version2_ModelRecord(Version1_ModelRecord legacyModel)
         {
             Int = legacyModel.Int;
             String = "Hello, World!";
@@ -43,8 +41,8 @@ public sealed partial class SerializerTest
         public string String { get; set; } = string.Empty;
     }
 
-    [LegacyModel(Version = 1, Type = typeof(LegacyModelRecord1))]
-    [LegacyModel(Version = 2, Type = typeof(LegacyModelRecord2))]
+    [Model(Version = 1, Type = typeof(Version1_ModelRecord))]
+    [Model(Version = 2, Type = typeof(Version2_ModelRecord))]
     [Model(Version = 3)]
     public sealed record class ModelRecord
     {
@@ -52,7 +50,7 @@ public sealed partial class SerializerTest
         {
         }
 
-        public ModelRecord(LegacyModelRecord2 legacyModel)
+        public ModelRecord(Version2_ModelRecord legacyModel)
         {
             Int = legacyModel.Int;
             String = legacyModel.String;
