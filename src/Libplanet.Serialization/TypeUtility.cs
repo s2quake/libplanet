@@ -61,6 +61,23 @@ public static class TypeUtility
     public static bool IsNullableType(Type type)
         => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
+    public static bool IsTupleType(Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            return false;
+        }
+
+        var genericTypeDefinition = type.GetGenericTypeDefinition();
+        return genericTypeDefinition == typeof(Tuple<,>)
+            || genericTypeDefinition == typeof(Tuple<,,>)
+            || genericTypeDefinition == typeof(Tuple<,,,>)
+            || genericTypeDefinition == typeof(Tuple<,,,,>)
+            || genericTypeDefinition == typeof(Tuple<,,,,,>)
+            || genericTypeDefinition == typeof(Tuple<,,,,,,>)
+            || genericTypeDefinition == typeof(Tuple<,,,,,,,>);
+    }
+
     public static bool IsValueTupleType(Type type)
     {
         if (!type.IsGenericType)
