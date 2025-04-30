@@ -8,7 +8,7 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Action.Tests.Common;
 
 [Model(Version = 1)]
-public sealed record class DumbAction : ActionBase
+public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
 {
     public static readonly DumbAction NoOp = DumbAction.Create();
 
@@ -45,10 +45,12 @@ public sealed record class DumbAction : ActionBase
         };
     }
 
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+
+    public bool Equals(DumbAction? other) => ModelUtility.Equals(this, other);
+
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        //  IWorld world = context.World;
-
         if (Append is { } append)
         {
             var key = (ReservedAddresses.LegacyAccount, append.At);

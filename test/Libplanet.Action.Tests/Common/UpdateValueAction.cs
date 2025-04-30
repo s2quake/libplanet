@@ -1,30 +1,23 @@
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 
 namespace Libplanet.Action.Tests.Common;
 
+[Model(Version = 1)]
 public sealed record class UpdateValueAction : ActionBase
 {
+    [Property(0)]
     public Address Address { get; init; }
 
+    [Property(1)]
     public Integer Increment { get; init; }
-
-    public IWorld Execute(IActionContext context)
-    {
-        var world = context.World;
-        var account = world.GetAccount(ReservedAddresses.LegacyAccount);
-        Integer value = account.GetState(Address) is Integer integer
-            ? integer + Increment
-            : Increment;
-
-        account = account.SetState(Address, value);
-        return world.SetAccount(ReservedAddresses.LegacyAccount, account);
-    }
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        var value = world.GetValue(ReservedAddresses.LegacyAccount, Address, new Integer(0));
-        world[ReservedAddresses.LegacyAccount, Address] = (Integer)(value + Increment);
+        var key = (ReservedAddresses.LegacyAccount, Address);
+        var value = world.GetValue(key, new Integer(0));
+        world[key] = (Integer)(value + Increment);
     }
 }

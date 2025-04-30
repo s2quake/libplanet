@@ -20,12 +20,6 @@ namespace Libplanet.Explorer.GraphTypes
                 resolve: context => context.Source.Trie.Hash
             );
 
-            Field<NonNullGraphType<BooleanGraphType>>(
-                name: "legacy",
-                description: "The legacy flag of the world state.",
-                resolve: context => context.Source.Legacy
-            );
-
             Field<NonNullGraphType<IntGraphType>>(
                 name: "version",
                 description: "The version of the bakcing data model.",

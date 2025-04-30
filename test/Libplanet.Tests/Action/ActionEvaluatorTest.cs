@@ -448,13 +448,13 @@ public partial class ActionEvaluatorTest
         }
 
         Address[] addresses =
-        {
+        [
             _txFx.Address1,
             _txFx.Address2,
             _txFx.Address3,
             _txFx.Address4,
             _txFx.Address5,
-        };
+        ];
 
         IStateStore stateStore = new TrieStateStore();
         IWorld world = new World(MockWorldState.CreateLegacy(stateStore)

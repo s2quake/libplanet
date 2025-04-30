@@ -53,7 +53,6 @@ namespace Libplanet.Action.Tests.State
                 _stateStore.GetStateRoot(stateRoot),
                 _stateStore));
             Assert.Equal(worldTrie.Hash, world.Trie.Hash);
-            Assert.False(world.Legacy);
             var account = world.GetAccount(accountAddress);
             Assert.Equal(accountTrie.Hash, account.Trie.Hash);
             Assert.Equal(
@@ -81,7 +80,6 @@ namespace Libplanet.Action.Tests.State
                 _stateStore.GetStateRoot(stateRoot),
                 _stateStore));
             Assert.Equal(worldTrie.Hash, world.Trie.Hash);
-            Assert.False(world.Legacy);
             var account = world.GetAccount(accountAddress);
             Assert.Equal(accountTrie.Hash, account.Trie.Hash);
             Assert.Equal(
