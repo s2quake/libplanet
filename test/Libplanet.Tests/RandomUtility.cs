@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Org.BouncyCastle.Crypto.Signers;
 
 namespace Libplanet.Tests;
 
@@ -48,13 +49,11 @@ public static partial class RandomUtility
 
     public static int Int32() => Int32(System.Random.Shared);
 
-    public static int Int32(int minValue, int maxValue)
-        => System.Random.Shared.Next(minValue, maxValue);
+    public static int Int32(int minValue, int maxValue) => System.Random.Shared.Next(minValue, maxValue);
 
     public static int Int32(Random random) => Int32(random, int.MinValue, int.MaxValue);
 
-    public static int Int32(Random random, int minValue, int maxValue)
-        => random.Next(minValue, maxValue);
+    public static int Int32(Random random, int minValue, int maxValue) => random.Next(minValue, maxValue);
 
     public static uint UInt32() => UInt32(System.Random.Shared);
 
@@ -166,31 +165,27 @@ public static partial class RandomUtility
 
     public static TimeSpan TimeSpan() => TimeSpan(System.Random.Shared);
 
-    public static TimeSpan TimeSpan(Random random)
-    {
-        return new TimeSpan(random.NextInt64(new TimeSpan(365, 0, 0, 0).Ticks));
-    }
+    public static TimeSpan TimeSpan(Random random) => new(random.NextInt64(new TimeSpan(365, 0, 0, 0).Ticks));
 
     public static int Length() => Length(System.Random.Shared);
 
     public static int Length(int maxLength) => Length(1, maxLength);
 
-    public static int Length(int minLength, int maxLength)
-        => System.Random.Shared.Next(minLength, maxLength);
+    public static int Length(int minLength, int maxLength) => System.Random.Shared.Next(minLength, maxLength);
 
     public static int Length(Random random) => Length(random, 0, 10);
 
     public static int Length(Random random, int maxLength) => Length(random, 1, maxLength);
 
-    public static int Length(Random random, int minLength, int maxLength)
-        => random.Next(minLength, maxLength);
+    public static int Length(Random random, int minLength, int maxLength) => random.Next(minLength, maxLength);
 
     public static bool Boolean() => Boolean(System.Random.Shared);
 
     public static bool Boolean(Random random) => Int32(random, 0, 2) == 0;
 
     public static T Enum<T>()
-        where T : Enum => Enum<T>(System.Random.Shared);
+        where T : Enum
+        => Enum<T>(System.Random.Shared);
 
     public static T Enum<T>(Random random)
         where T : Enum
@@ -261,13 +256,13 @@ public static partial class RandomUtility
         return [.. items];
     }
 
-    public static List<T> List<T>(Random random, Func<T> generator)
+    public static List<T> List<T>(Random random, Func<Random, T> generator)
     {
         var length = Length(random);
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
-            items[i] = generator();
+            items[i] = generator(random);
         }
 
         return [.. items];
@@ -321,8 +316,7 @@ public static partial class RandomUtility
         return System.Collections.Immutable.ImmutableList.Create(items);
     }
 
-    public static T? RandomOrDefault<T>(this IEnumerable<T> enumerable)
-        => RandomOrDefault(enumerable, item => true);
+    public static T? RandomOrDefault<T>(this IEnumerable<T> enumerable) => RandomOrDefault(enumerable, item => true);
 
     public static T? RandomOrDefault<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate)
     {
@@ -337,8 +331,7 @@ public static partial class RandomUtility
         return items[index];
     }
 
-    public static T Random<T>(this IEnumerable<T> enumerable)
-        => Random(enumerable, item => true);
+    public static T Random<T>(this IEnumerable<T> enumerable) => Random(enumerable, item => true);
 
     public static T Random<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate)
     {
