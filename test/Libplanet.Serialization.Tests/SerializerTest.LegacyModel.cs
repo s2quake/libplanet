@@ -28,6 +28,10 @@ public sealed partial class SerializerTest
     [LegacyModel(OriginType = typeof(ModelRecord))]
     public sealed record class Version2_ModelRecord
     {
+        public Version2_ModelRecord()
+        {
+        }
+
         public Version2_ModelRecord(Version1_ModelRecord legacyModel)
         {
             Int = legacyModel.Int;
