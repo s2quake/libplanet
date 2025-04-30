@@ -1,6 +1,3 @@
-using System.Collections.Immutable;
-using Libplanet.Serialization;
-
 namespace Libplanet.Serialization.Tests;
 
 public sealed class ModelUtilityTest

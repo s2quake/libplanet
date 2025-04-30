@@ -180,8 +180,7 @@ public static class ModelSerializer
         return obj;
     }
 
-    public static T Deserialize<T>(IValue value)
-        => Deserialize<T>(value, ModelOptions.Default);
+    public static T Deserialize<T>(IValue value) => Deserialize<T>(value, ModelOptions.Default);
 
     public static T Deserialize<T>(IValue value, ModelOptions options)
     {
