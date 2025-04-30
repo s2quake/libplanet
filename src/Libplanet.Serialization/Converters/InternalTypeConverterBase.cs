@@ -12,7 +12,7 @@ internal abstract class InternalTypeConverterBase<TType, TValueType> : TypeConve
 
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
     {
-        if (sourceType == typeof(TValueType))
+        if (sourceType == typeof(TValueType) || sourceType == typeof(IValue))
         {
             return true;
         }
@@ -25,6 +25,11 @@ internal abstract class InternalTypeConverterBase<TType, TValueType> : TypeConve
         if (value is TValueType typeValue)
         {
             return ConvertFromValue(typeValue);
+        }
+
+        if (value is IValue)
+        {
+            throw new NotSupportedException($"Cannot convert from {value.GetType()} to {typeof(TType)}.");
         }
 
         return _defaultConverter.ConvertFrom(context, culture, value);

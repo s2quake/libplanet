@@ -66,6 +66,13 @@ public static class ModelSerializer
 
     public static bool CanSupportType(Type type)
     {
+        if (TypeDescriptor.GetConverter(type) is TypeConverter converter
+            && converter.CanConvertTo(typeof(IValue))
+            && converter.CanConvertFrom(typeof(IValue)))
+        {
+            return true;
+        }
+
         if (IsStandardType(type))
         {
             return true;
