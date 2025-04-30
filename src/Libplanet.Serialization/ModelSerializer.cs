@@ -66,10 +66,22 @@ public static class ModelSerializer
 
     public static bool CanSupportType(Type type)
     {
-        if (TypeDescriptor.GetConverter(type) is TypeConverter converter
-            && converter.CanConvertTo(typeof(IValue))
-            && converter.CanConvertFrom(typeof(IValue)))
+        if (IsNullableType(type))
         {
+            return CanSupportType(type.GetGenericArguments()[0]);
+        }
+
+        if (IsTupleType(type))
+        {
+            var genericArguments = type.GetGenericArguments();
+            foreach (var genericArgument in genericArguments)
+            {
+                if (CanSupportType(genericArgument) is false)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -88,22 +100,10 @@ public static class ModelSerializer
             return CanSupportType(elementType);
         }
 
-        if (IsNullableType(type))
+        if (TypeDescriptor.GetConverter(type) is TypeConverter converter
+            && converter.CanConvertTo(typeof(IValue))
+            && converter.CanConvertFrom(typeof(IValue)))
         {
-            return CanSupportType(type.GetGenericArguments()[0]);
-        }
-
-        if (IsTupleType(type))
-        {
-            var genericArguments = type.GetGenericArguments();
-            foreach (var genericArgument in genericArguments)
-            {
-                if (CanSupportType(genericArgument) is false)
-                {
-                    return false;
-                }
-            }
-
             return true;
         }
 
@@ -139,14 +139,24 @@ public static class ModelSerializer
             return value;
         }
 
-        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertFrom(value.GetType()))
+        if (IsNullableType(type))
         {
-            return converter.ConvertFrom(value);
+            if (value is Null)
+            {
+                return null;
+            }
+
+            return Deserialize(value, type.GetGenericArguments()[0], options);
         }
 
         if (IsStandardType(type) || IsStandardArrayType(type))
         {
             return DeserializeValue(type, value, options);
+        }
+
+        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertFrom(value.GetType()))
+        {
+            return converter.ConvertFrom(value);
         }
 
         var data = ModelData.GetObject(value);
@@ -227,15 +237,25 @@ public static class ModelSerializer
             return v;
         }
 
-        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
+        if (IsNullableType(type))
         {
-            return converter.ConvertTo(obj, typeof(IValue)) is IValue value
-                ? value : throw new ModelSerializationException($"Failed to convert {obj} to {type}");
+            if (obj is null)
+            {
+                return Null.Value;
+            }
+
+            return Serialize(obj, type.GetGenericArguments()[0], options);
         }
 
         if (IsStandardType(type) || IsStandardArrayType(type))
         {
             return SerializeValue(obj, type, options);
+        }
+
+        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
+        {
+            return converter.ConvertTo(obj, typeof(IValue)) is IValue value
+                ? value : throw new ModelSerializationException($"Failed to convert {obj} to {type}");
         }
 
         var typeName = options.GetTypeName(type);
