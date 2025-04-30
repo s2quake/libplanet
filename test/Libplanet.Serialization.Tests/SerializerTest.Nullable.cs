@@ -7,6 +7,7 @@ public sealed partial class SerializerTest
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
+    [InlineData(1849913649)]
     [MemberData(nameof(RandomSeeds))]
     public void NullableProperty_SerializeAndDeserialize_Test(int seed)
     {
