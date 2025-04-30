@@ -15,14 +15,13 @@ internal sealed record class ModelData : IBencodable
         Header.Bencoded,
         Value);
 
-    public static bool TryGetObject(
-        IValue value, [MaybeNullWhen(false)] out ModelData obj)
+    public static bool TryGetObject(IValue value, [MaybeNullWhen(false)] out ModelData data)
     {
         if (value is List list
             && list.Count == ElementCount
             && ModelHeader.TryGetHeader(list[0], out var header))
         {
-            obj = new ModelData
+            data = new ModelData
             {
                 Header = header,
                 Value = list[1],
@@ -30,7 +29,7 @@ internal sealed record class ModelData : IBencodable
             return true;
         }
 
-        obj = default;
+        data = default;
         return false;
     }
 
@@ -51,5 +50,28 @@ internal sealed record class ModelData : IBencodable
             Header = ModelHeader.Create(list[0]),
             Value = list[1],
         };
+    }
+
+    internal static IValue GetValue(IValue value, string typeName)
+    {
+        try
+        {
+            var data = GetObject(value);
+            if (typeName != data.Header.TypeName)
+            {
+                throw new ModelSerializationException(
+                    $"Given type name {data.Header.TypeName} is not {typeName}");
+            }
+
+            return data.Value;
+        }
+        catch (ModelSerializationException)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            throw new ModelSerializationException(e.Message, e);
+        }
     }
 }
