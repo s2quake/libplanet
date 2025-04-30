@@ -313,11 +313,6 @@ public static class ModelSerializer
         else if (IsArray(propertyType, out var elementType))
         {
             var items = (IList)value;
-            if (items.Count == 0)
-            {
-                return Null.Value;
-            }
-
             var list = new List<IValue>(items.Count);
             var typeName = options.GetTypeName(elementType);
             var version = options.GetVersion(elementType);
@@ -343,11 +338,6 @@ public static class ModelSerializer
         else if (IsImmutableArray(propertyType, out elementType))
         {
             var items = (IList)value;
-            if (items.Count == 0)
-            {
-                return Null.Value;
-            }
-
             var list = new List<IValue>(items.Count);
             var typeName = options.GetTypeName(elementType);
             var version = options.GetVersion(elementType);
@@ -373,11 +363,6 @@ public static class ModelSerializer
         else if (IsImmutableSortedSet(propertyType, out elementType))
         {
             var items = (IList)value;
-            if (items.Count == 0)
-            {
-                return Null.Value;
-            }
-
             var list = new List<IValue>(items.Count);
             var typeName = options.GetTypeName(elementType);
             var version = options.GetVersion(elementType);
