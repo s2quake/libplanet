@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -11,11 +12,8 @@ public sealed class ModelResolver : IModelResolver
 {
     public static readonly ModelResolver Default = new();
 
-    private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>>
-        _propertiesByType = [];
-
-    private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>>
-        _typesByType = [];
+    private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _propertiesByType = [];
+    private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
 
     Type IModelResolver.GetType(Type type, int version) => GetType(type, version);
 
@@ -30,21 +28,17 @@ public sealed class ModelResolver : IModelResolver
 
     int IModelResolver.GetVersion(Type type)
     {
-        var attribute = type.GetCustomAttribute<ModelAttribute>()
-            ?? throw new UnreachableException($"Type does not have {nameof(ModelAttribute)}");
-
-        if (attribute.Version < 1)
+        if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute)))
         {
-            throw new ArgumentException(
-                $"Version of {type} must be greater than or equal to 1", nameof(type));
+            return GetTypes(type).IndexOf(type) + 1;
         }
 
-        return attribute.Version;
+        return 0;
     }
 
     ImmutableArray<PropertyInfo> IModelResolver.GetProperties(Type type)
     {
-        if (!type.IsDefined(typeof(ModelAttribute)))
+        if (type.IsDefined(typeof(ModelAttribute)) is false && type.IsDefined(typeof(LegacyModelAttribute)) is false)
         {
             throw new ArgumentException(
                 $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
@@ -159,23 +153,18 @@ public sealed class ModelResolver : IModelResolver
 
     private static ImmutableArray<Type> CreateTypes(Type type)
     {
-        var modelAttribute = type.GetCustomAttribute<ModelAttribute>()
-            ?? throw new UnreachableException($"Type does not have {nameof(ModelAttribute)}");
-        var query = from attribute in type.GetCustomAttributes<LegacyModelAttribute>()
+        var query = from attribute in type.GetCustomAttributes<ModelAttribute>()
                     orderby attribute.Version
                     select attribute;
         var attributes = query.ToArray();
         var builder = ImmutableArray.CreateBuilder<Type>(attributes.Length + 1);
 
-        if (modelAttribute.Version != attributes.Length + 1)
-        {
-            throw new ArgumentException(
-                $"Version of {type} must be sequential starting from 1", nameof(type));
-        }
-
+        Type? previousType = null;
         for (var i = 0; i < attributes.Length; i++)
         {
             var attribute = attributes[i];
+            var validationContext = new ValidationContext(attribute);
+            Validator.ValidateObject(attribute, validationContext, validateAllProperties: true);
             var version = attribute.Version;
             if (version != i + 1)
             {
@@ -183,7 +172,58 @@ public sealed class ModelResolver : IModelResolver
                     $"Version of {type} must be sequential starting from 1", nameof(type));
             }
 
-            builder.Add(attribute.Type);
+            if (version == attributes.Length)
+            {
+                if (attribute.Type is not null)
+                {
+                    throw new ArgumentException("Last version must not have a type", nameof(type));
+                }
+            }
+            else
+            {
+                if (attribute.Type is null)
+                {
+                    throw new ArgumentException(
+                        $"Version {version} of {type} must have a type", nameof(type));
+                }
+
+                if (attribute.Type.GetCustomAttribute<LegacyModelAttribute>() is not { } legacyModelAttribute)
+                {
+                    throw new ArgumentException(
+                        $"Type {attribute.Type} does not have {nameof(LegacyModelAttribute)}",
+                        nameof(type));
+                }
+
+                if (legacyModelAttribute.OriginType != type)
+                {
+                    throw new ArgumentException("OriginType of LegacyModelAttribute is not valid", nameof(type));
+                }
+            }
+
+            var currentType = attribute.Type ?? type;
+            if (previousType is not null)
+            {
+                if (currentType.GetConstructor([previousType]) is null)
+                {
+                    throw new ArgumentException(
+                        $"Type {currentType} does not have a constructor with {previousType}", nameof(type));
+                }
+
+                if (currentType.GetConstructor([]) is null)
+                {
+                    throw new ArgumentException(
+                        $"Type {currentType} does not have a default constructor", nameof(type));
+                }
+            }
+
+            if (builder.Contains(currentType))
+            {
+                throw new ArgumentException(
+                    $"Type {currentType} is already registered", nameof(type));
+            }
+
+            builder.Add(currentType);
+            previousType = currentType;
         }
 
         builder.Add(type);

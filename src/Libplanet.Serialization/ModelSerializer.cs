@@ -158,8 +158,9 @@ public static class ModelSerializer
                 $"Given magic value {header.TypeValue} is not {ObjectValue}");
         }
 
-        var headerType = Type.GetType(header.TypeName);
-        if (headerType != type && type.IsAssignableFrom(headerType) is false)
+        var headerType = Type.GetType(header.TypeName)
+            ?? throw new ModelSerializationException($"Given type name {header.TypeName} is not found");
+        if (headerType != type && type.IsAssignableFrom(headerType) is false && IsLegacyType(headerType) is false)
         {
             throw new ModelSerializationException($"Given type {headerType} is not {type}");
         }
@@ -171,7 +172,7 @@ public static class ModelSerializer
 
         var modelType = options.GetType(headerType, header.Version);
         var modelVersion = header.Version;
-        var currentVersion = options.GetVersion(headerType);
+        var currentVersion = options.GetVersion(type);
 
         var obj = CreateInstance(modelType);
         var propertyInfos = options.GetProperties(modelType);
@@ -191,7 +192,7 @@ public static class ModelSerializer
         while (modelVersion < currentVersion)
         {
             var args = new object[] { obj };
-            modelType = options.GetType(headerType, modelVersion + 1);
+            modelType = options.GetType(type, modelVersion + 1);
             obj = CreateInstance(modelType, args: args);
             modelVersion++;
         }

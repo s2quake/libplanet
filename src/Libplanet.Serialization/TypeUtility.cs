@@ -79,6 +79,8 @@ public static class TypeUtility
             || genericTypeDefinition == typeof(ValueTuple<,,,,,,,>);
     }
 
+    public static bool IsLegacyType(Type type) => type.IsDefined(typeof(LegacyModelAttribute));
+
     public static bool IsBencodableType(Type type)
         => typeof(IBencodable).IsAssignableFrom(type) && !type.IsInterface;
 
