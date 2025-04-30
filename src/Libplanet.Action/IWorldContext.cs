@@ -16,9 +16,17 @@ public interface IWorldContext
         set => this[address][stateAddress] = value;
     }
 
+    object this[(Address Address, Address StateAddress) key]
+    {
+        get => this[key.Address][key.StateAddress];
+        set => this[key.Address][key.StateAddress] = value;
+    }
+
     FungibleAssetValue GetBalance(Address address, Currency currency);
 
-    void MintAsset(FungibleAssetValue value);
+    void MintAsset(Address recipient, FungibleAssetValue value);
+
+    void BurnAsset(Address owner, FungibleAssetValue value);
 
     void TransferAsset(Address sender, Address recipient, FungibleAssetValue value);
 
@@ -34,12 +42,28 @@ public interface IWorldContext
         return false;
     }
 
-    T GetValue<T>(Address address, Address stateAddress, T fallback)
-        => this[address].GetValue(stateAddress, fallback);
+    bool TryGetValue<T>((Address Address, Address StateAddress) key, [MaybeNullWhen(false)] out T value)
+    {
+        if (this[key.Address].TryGetValue<T>(key.StateAddress, out var obj))
+        {
+            value = obj;
+            return true;
+        }
 
-    bool Contains(Address address, Address stateAddress)
-        => this[address].Contains(stateAddress);
+        value = default;
+        return false;
+    }
 
-    bool Remove(Address address, Address stateAddress)
-        => this[address].Remove(stateAddress);
+    T GetValue<T>(Address address, Address stateAddress, T fallback) => this[address].GetValue(stateAddress, fallback);
+
+    T GetValue<T>((Address Address, Address StateAddress) key, T fallback)
+        => GetValue(key.Address, key.StateAddress, fallback);
+
+    bool Contains(Address address, Address stateAddress) => this[address].Contains(stateAddress);
+
+    bool Contains((Address Address, Address StateAddress) key) => Contains(key.Address, key.StateAddress);
+
+    bool Remove(Address address, Address stateAddress) => this[address].Remove(stateAddress);
+
+    bool Remove((Address Address, Address StateAddress) key) => Remove(key.Address, key.StateAddress);
 }
