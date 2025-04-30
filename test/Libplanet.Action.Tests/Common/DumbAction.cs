@@ -1,3 +1,4 @@
+using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -48,43 +49,44 @@ public sealed record class DumbAction : ActionBase
     {
         //  IWorld world = context.World;
 
-        // if (Append is { } append)
-        // {
-        //     IAccount account = world.GetAccount(ReservedAddresses.LegacyAccount);
-        //     string? items = (Text?)account.GetState(append.At);
-        //     items = items is null ? append.Item : $"{items},{append.Item}";
-        //     account = account.SetState(append.At, (Text)items!);
-        //     world = world.SetAccount(ReservedAddresses.LegacyAccount, account);
-        // }
+        if (Append is { } append)
+        {
+            var key = (ReservedAddresses.LegacyAccount, append.At);
+            var items = world.GetValue(key, ImmutableArray<string>.Empty);
+            world[key] = items.Add(append.Item);
+        }
 
-        // if (Transfer is { } transfer)
-        // {
-        //     world = (transfer.From, transfer.To) switch
-        //     {
-        //         (Address from, Address to) => world.TransferAsset(
-        //             context,
-        //             sender: from,
-        //             recipient: to,
-        //             value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
-        //         (null, Address to) => world.MintAsset(
-        //             context,
-        //             recipient: to,
-        //             value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
-        //         (Address from, null) => world.BurnAsset(
-        //             context,
-        //             owner: from,
-        //             value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
-        //         _ => throw new ArgumentException(
-        //             $"Both From and To cannot be null for {transfer}"),
-        //     };
-        // }
+        if (Transfer is { } transfer)
+        {
+            if (transfer.From is { } from && transfer.To is { } to)
+            {
+                world.TransferAsset(
+                    sender: from,
+                    recipient: to,
+                    value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount));
+            }
+            else if (transfer.From is null && transfer.To is { } recipient)
+            {
+                world.MintAsset(
+                    recipient: recipient,
+                    value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount));
+            }
+            else if (transfer.From is { } owner && transfer.To is null)
+            {
+                world.BurnAsset(
+                    owner: owner,
+                    value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount));
+            }
+            else
+            {
+                throw new ArgumentException(
+                    $"Both From and To cannot be null for {transfer}");
+            }
+        }
 
-        // if (Validators is { } validators)
-        // {
-        //     // world = world.SetValidatorSet([.. validators]);
-        //     throw new NotImplementedException();
-        // }
-
-        // return world;
+        if (Validators is { } validators)
+        {
+            world[ReservedAddresses.LegacyAccount, ReservedAddresses.ValidatorSetAddress] = validators;
+        }
     }
 }
