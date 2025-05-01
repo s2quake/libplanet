@@ -35,7 +35,23 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
 
     bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value);
 
+    bool TryGetValue<T>(in KeyBytes key, [MaybeNullWhen(false)] out T value)
+        where T : IValue
+    {
+        if (TryGetValue(key, out IValue? v) && v is T t)
+        {
+            value = t;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
     bool ContainsKey(in KeyBytes key);
+
+    T GetValue<T>(in KeyBytes key, T fallback)
+        where T : IValue => TryGetValue(key, out IValue? value) && value is T t ? t : fallback;
 
     IEnumerable<(KeyBytes Path, IValue? TargetValue, IValue SourceValue)> Diff(ITrie other);
 }

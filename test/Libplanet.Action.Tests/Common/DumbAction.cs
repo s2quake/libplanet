@@ -22,7 +22,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
 
     [NonDefault]
     [Property(2)]
-    public ImmutableSortedSet<Validator> Validators { get; private set; } = [];
+    public ImmutableSortedSet<Validator>? Validators { get; private set; }
 
     public static DumbAction Create(
         (Address At, string Item)? append = null,
@@ -41,7 +41,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
         {
             Append = append,
             Transfer = transfer,
-            Validators = validators ?? [],
+            Validators = validators,
         };
     }
 

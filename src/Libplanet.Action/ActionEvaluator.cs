@@ -173,7 +173,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             GasTracer.IsTxAction = false;
         }
 
-        var actions = LoadActions(tx).ToImmutableArray();
+        var actions = tx.Actions.Select(ModelSerializer.Deserialize<IAction>).ToImmutableArray();
         evaluationList.AddRange(EvaluateActions(block, tx, world, actions));
 
         if (policyActions.EndTxActions.Length > 0)
@@ -207,15 +207,6 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
     internal ActionEvaluation[] EvaluateEndTxActions(RawBlock block, Transaction tx, IWorld world)
     {
         return EvaluateActions(block, tx, world, policyActions.EndTxActions);
-    }
-
-    private IEnumerable<IAction> LoadActions(Transaction tx)
-    {
-        foreach (var action in tx.Actions)
-        {
-            // yield return actionLoader.LoadAction(action);
-            yield return ModelSerializer.Deserialize<IAction>(action);
-        }
     }
 
     private int GetCapacity(RawBlock block)

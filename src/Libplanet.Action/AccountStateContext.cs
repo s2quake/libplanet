@@ -36,7 +36,7 @@ public sealed class AccountStateContext(
 
     public bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value)
     {
-        if (account.GetState(address) is { } state)
+        if (account.TryGetState(address, out var state))
         {
             if (typeof(IValue).IsAssignableFrom(typeof(T)))
             {

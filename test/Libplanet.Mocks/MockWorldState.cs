@@ -78,12 +78,8 @@ public sealed class MockWorldState : IWorldState
         KeyBytes totalSupplyKey = ToStateKey(CurrencyAccount.TotalSupplyAddress);
 
         ITrie trie = GetAccountState(accountAddress).Trie;
-        Integer balance = trie[balanceKey] is Integer b
-            ? b
-            : new Integer(0);
-        Integer totalSupply = trie[totalSupplyKey] is Integer t
-            ? t
-            : new Integer(0);
+        Integer balance = trie.GetValue(balanceKey, new Integer(0));
+        Integer totalSupply = trie.GetValue(totalSupplyKey, new Integer(0));
 
         trie = trie.Set(
             totalSupplyKey,
