@@ -134,7 +134,18 @@ public sealed record class Transaction
             return 1;
         }
 
-        return Id.CompareTo(other.Id);
+        var s = Signer.CompareTo(other.Signer);
+        if (s == 0)
+        {
+            s = Nonce.CompareTo(other.Nonce);
+        }
+
+        if (s == 0)
+        {
+            s = Id.CompareTo(other.Id);
+        }
+
+        return s;
     }
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)

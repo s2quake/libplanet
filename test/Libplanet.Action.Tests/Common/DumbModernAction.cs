@@ -99,7 +99,6 @@ namespace Libplanet.Action.Tests.Common
                 world = (transfer.From, transfer.To) switch
                 {
                     (Address from, Address to) => world.TransferAsset(
-                        context,
                         sender: from,
                         recipient: to,
                         value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),

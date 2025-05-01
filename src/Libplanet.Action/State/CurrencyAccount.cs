@@ -334,10 +334,8 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
             WorldVersion,
             Currency);
 
-    private BigInteger GetRawBalanceV0(Address address) =>
-        Trie[KeyConverters.ToFungibleAssetKey(address, Currency)] is Integer i
-            ? i.Value
-            : BigInteger.Zero;
+    private BigInteger GetRawBalanceV0(Address address)
+        => Trie.GetValue(KeyConverters.ToFungibleAssetKey(address, Currency), (Integer)0).Value;
 
     private BigInteger GetRawBalanceV7(Address address) =>
         Trie[KeyConverters.ToStateKey(address)] is Integer i

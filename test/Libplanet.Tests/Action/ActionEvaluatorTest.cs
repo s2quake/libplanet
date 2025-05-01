@@ -624,7 +624,7 @@ public partial class ActionEvaluatorTest
             output1.GetBalance(addresses[3], DumbAction.DumbCurrency));
 
         Transaction[] block2Txs =
-        {
+        [
             // Note that these timestamps in themselves does not have any meanings but are
             // only arbitrary.  These purpose to make their evaluation order in a block
             // equal to the order we (the test) intend:
@@ -684,7 +684,7 @@ public partial class ActionEvaluatorTest
                     },
                 },
                 privateKey: _txFx.PrivateKey3),
-        };
+        ];
         foreach ((var tx, var i) in block2Txs.Zip(
             Enumerable.Range(0, block2Txs.Length), (x, y) => (x, y)))
         {
@@ -707,12 +707,12 @@ public partial class ActionEvaluatorTest
 
         // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
         // have to be updated, since the order may change due to different RawHash.
-        expectations = new (int TxIdx, int ActionIdx, string?[] UpdatedStates, Address Signer)[]
-        {
+        expectations =
+        [
             (0, 0, new[] { "A,D", "B", "C", null, null }, _txFx.Address1),
             (1, 0, new[] { "A,D", "B", "C", "E", null }, _txFx.Address2),
             (2, 0, new[] { "A,D", "B", "C", "E", "F" }, _txFx.Address3),
-        };
+        ];
 
 #if DEBUG
         // This code was created by ilgyu.
@@ -776,10 +776,10 @@ public partial class ActionEvaluatorTest
     [Fact]
     public void EvaluateTx()
     {
-        PrivateKey[] keys = { new PrivateKey(), new PrivateKey(), new PrivateKey() };
+        PrivateKey[] keys = [new PrivateKey(), new PrivateKey(), new PrivateKey()];
         Address[] addresses = keys.Select(key => key.Address).ToArray();
         DumbAction[] actions =
-        {
+        [
             DumbAction.Create(
                 append: (addresses[0], "0"),
                 transfer: (addresses[0], addresses[1], 5)),
@@ -790,7 +790,7 @@ public partial class ActionEvaluatorTest
                 append: (addresses[0], "2"),
                 transfer: (addresses[1], addresses[0], 10)),
             DumbAction.Create((addresses[2], "R")),
-        };
+        ];
         var tx =
             Transaction.Create(0, _txFx.PrivateKey1, default, actions.ToPlainValues());
         var txs = new Transaction[] { tx };
@@ -801,7 +801,6 @@ public partial class ActionEvaluatorTest
                 Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
                 PublicKey = keys[0].PublicKey,
-                PreviousHash = default(BlockHash),
                 TxHash = BlockContent.DeriveTxHash(txs),
             },
             new BlockContent
@@ -825,24 +824,24 @@ public partial class ActionEvaluatorTest
             world: previousState).ToImmutableArray();
 
         Assert.Equal(actions.Length, evaluations.Length);
-        string[][] expectedStates =
-        {
-            new[] { "0", null, null },
-            new[] { "0", "1", null },
-            new[] { "0,2", "1", null },
-            new[] { "0,2", "1", "R" },
-        };
+        string?[][] expectedStates =
+        [
+            ["0", null, null],
+            ["0", "1", null],
+            ["0,2", "1", null],
+            ["0,2", "1", "R"],
+        ];
         BigInteger[][] expectedBalances =
-        {
-            new BigInteger[] { 95, 105, 100 },
-            new BigInteger[] { 95, 115, 90 },
-            new BigInteger[] { 105, 105, 90 },
-            new BigInteger[] { 105, 105, 90 },
-        };
+        [
+            [95, 105, 100],
+            [95, 115, 90],
+            [105, 105, 90],
+            [105, 105, 90],
+        ];
 
         Currency currency = DumbAction.DumbCurrency;
         IValue[] initStates = new IValue[3];
-        BigInteger[] initBalances = new BigInteger[] { 100, 100, 100 };
+        BigInteger[] initBalances = [100, 100, 100];
         for (int i = 0; i < evaluations.Length; i++)
         {
             ActionEvaluation eval = evaluations[i];
@@ -1272,23 +1271,25 @@ public partial class ActionEvaluatorTest
         const int numTxsPerSigner = 3;
         var epoch = DateTimeOffset.FromUnixTimeSeconds(0);
 
-        TxFixture txFx = new BlockFixture().TxFixture;
-        ImmutableArray<PrivateKey> signers = ImmutableArray.Create(
+        var txFx = new BlockFixture().TxFixture;
+        var signers = ImmutableArray.Create(
+        [
             txFx.PrivateKey1,
             txFx.PrivateKey2,
             txFx.PrivateKey3,
             txFx.PrivateKey4,
-            txFx.PrivateKey5
-        );
-        ImmutableArray<ImmutableArray<int>> noncesPerSigner = ImmutableArray.Create(
-            ImmutableArray.Create(0, 2, 1),
-            ImmutableArray.Create(1, 0, 2),
-            ImmutableArray.Create(1, 2, 0),
-            ImmutableArray.Create(2, 0, 1),
-            ImmutableArray.Create(2, 1, 0)
-        );
+            txFx.PrivateKey5,
+        ]);
+        var noncesPerSigner = ImmutableArray.Create<ImmutableArray<int>>(
+        [
+            [0, 2, 1],
+            [1, 0, 2],
+            [1, 2, 0],
+            [2, 0, 1],
+            [2, 1, 0],
+        ]);
         // Unix Epoch used for hard coded timestamp.
-        ImmutableArray<Transaction> txs =
+        ImmutableSortedSet<Transaction> txs =
             signers.Zip(noncesPerSigner, (signer, nonces) => (signer, nonces))
                 .SelectMany(
                     signerNoncesPair => signerNoncesPair.nonces,
@@ -1319,20 +1320,21 @@ public partial class ActionEvaluatorTest
                             },
                         },
                         privateKey: signerNoncePair.signer);
-                }).ToImmutableArray();
+                }).ToImmutableSortedSet();
 
         // Rearrange transactions so that transactions are not grouped by signers
         // while keeping the hard coded mixed order nonces above.
         txs = txs
             .Where((tx, i) => i % numTxsPerSigner == 0)
-                .Concat(txs.Where((tx, i) => i % numTxsPerSigner != 0)).ToImmutableArray();
+            .Concat(txs.Where((tx, i) => i % numTxsPerSigner != 0))
+            .ToImmutableSortedSet();
 
         // FIXME: Invalid length for RawHash.
         byte[] preEvaluationHashBytes =
-        {
+        [
             0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
             0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-        };
+        ];
 
         // Sanity check.
         Assert.True(originalAddresses.SequenceEqual(
@@ -1477,10 +1479,10 @@ public partial class ActionEvaluatorTest
     public void GenerateRandomSeed()
     {
         byte[] preEvaluationHashBytes =
-        {
+        [
             0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
             0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-        };
+        ];
         var signature = ImmutableArray.Create<byte>(
         [
             0x30, 0x44, 0x02, 0x20, 0x2f, 0x2d, 0xbe, 0x5a, 0x91, 0x65, 0x59, 0xde, 0xdb,
@@ -1498,83 +1500,77 @@ public partial class ActionEvaluatorTest
     [Fact]
     public void CheckRandomSeedInAction()
     {
-        IntegerSet fx = new IntegerSet(new[] { 5, 10 });
-        var actionEvaluator = new ActionEvaluator(
-            fx.StateStore);
+        var fx = new IntegerSet([5, 10]);
+        var actionEvaluator = new ActionEvaluator(fx.StateStore);
 
         // txA: ((5 + 1) * 2) + 3 = 15
-        (Transaction txA, var deltaA) = fx.Sign(
+        (Transaction tx, var delta) = fx.Sign(
             0,
             Arithmetic.Add(1),
             Arithmetic.Mul(2),
             Arithmetic.Add(3));
 
-        Block blockA = fx.Propose();
-        ActionEvaluation[] evalsA = actionEvaluator.EvaluateActions(
-            block: (RawBlock)blockA,
-            tx: txA,
-            world: fx.StateStore.GetWorld(blockA.StateRootHash),
-            actions: txA.Actions
-                .Select(action => (IAction)ToAction<Arithmetic>(action)).ToImmutableArray());
+        var block = fx.Propose();
+        var evaluations = actionEvaluator.EvaluateActions(
+            block: (RawBlock)block,
+            tx: tx,
+            world: fx.StateStore.GetWorld(block.StateRootHash),
+            actions: [.. tx.Actions.Select(action => (IAction)ToAction<Arithmetic>(action))]);
 
-        byte[] preEvaluationHashBytes = blockA.RawHash.Bytes.ToArray();
-        int[] randomSeeds = Enumerable
-            .Range(0, txA.Actions.Length)
-            .Select(offset => ActionEvaluator.GenerateRandomSeed(
-                preEvaluationHashBytes,
-                txA.Signature))
+        byte[] preEvaluationHashBytes = block.RawHash.Bytes.ToArray();
+        var randomSeeds = Enumerable
+            .Range(0, tx.Actions.Length)
+            .Select(offset => ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, tx.Signature) + offset)
             .ToArray();
 
-        for (int i = 0; i < evalsA.Length; i++)
+        for (var i = 0; i < evaluations.Length; i++)
         {
-            ActionEvaluation eval = evalsA[i];
-            IActionContext context = eval.InputContext;
+            var evaluation = evaluations[i];
+            var context = evaluation.InputContext;
             Assert.Equal(randomSeeds[i], context.RandomSeed);
         }
     }
 
     private (Address[], Transaction[]) MakeFixturesForAppendTests(
-        PrivateKey privateKey = null,
-        DateTimeOffset epoch = default)
+        PrivateKey? privateKey = null, DateTimeOffset? epoch = null)
     {
         Address[] addresses =
-        {
+        [
             _storeFx.Address1,
             _storeFx.Address2,
             _storeFx.Address3,
             _storeFx.Address4,
             _storeFx.Address5,
-        };
+        ];
 
-        privateKey = privateKey ?? new PrivateKey(
+        privateKey ??= new PrivateKey(
         [
             0xa8, 0x21, 0xc7, 0xc2, 0x08, 0xa9, 0x1e, 0x53, 0xbb, 0xb2,
             0x71, 0x15, 0xf4, 0x23, 0x5d, 0x82, 0x33, 0x44, 0xd1, 0x16,
             0x82, 0x04, 0x13, 0xb6, 0x30, 0xe7, 0x96, 0x4f, 0x22, 0xe0,
             0xec, 0xe0,
         ]);
+        epoch ??= DateTimeOffset.UtcNow;
 
         Transaction[] txs =
-        {
+        [
             _storeFx.MakeTransaction(
-                new[]
-                {
+                [
                     DumbAction.Create((addresses[0], "foo")),
                     DumbAction.Create((addresses[1], "bar")),
-                },
+                ],
                 timestamp: epoch,
                 nonce: 0,
                 privateKey: privateKey),
             _storeFx.MakeTransaction(
-                new[]
-                {
+                [
                     DumbAction.Create((addresses[2], "baz")),
                     DumbAction.Create((addresses[3], "qux")),
-                },
-                timestamp: epoch.AddSeconds(5),
+                ],
+                timestamp: epoch.Value.AddSeconds(5),
                 nonce: 1,
                 privateKey: privateKey),
-        };
+        ];
 
         return (addresses, txs);
     }
