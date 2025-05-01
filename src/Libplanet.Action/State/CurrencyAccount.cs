@@ -68,7 +68,7 @@ public sealed record class CurrencyAccount(ITrie Trie, int WorldVersion, Currenc
         return TransferRawAsset(sender, recipient, value.RawValue);
     }
 
-    public IAccount AsAccount() => new Account(Trie);
+    public Account AsAccount() => new Account(Trie);
 
     private CurrencyAccount MintRawAsset(Address recipient, BigInteger rawValue)
     {

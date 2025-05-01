@@ -43,7 +43,7 @@ namespace Libplanet.Mocks
         }
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(BlockHash?)"/>
-        public IWorld GetWorldState(BlockHash offset)
+        public World GetWorldState(BlockHash offset)
         {
             if (_map.ContainsKey(offset))
             {
@@ -58,11 +58,11 @@ namespace Libplanet.Mocks
         }
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(HashDigest{SHA256}?)"/>
-        public IWorld GetWorldState(HashDigest<SHA256> stateRootHash)
+        public World GetWorldState(HashDigest<SHA256> stateRootHash)
         {
             ITrie trie = _stateStore.GetStateRoot(stateRootHash);
             return trie.IsCommitted
-                ? new World(trie, _stateStore)
+                ? new World { Trie = trie, StateStore = _stateStore }
                 : throw new ArgumentException(
                     $"Could not find state root {stateRootHash} in {nameof(IStateStore)}.",
                     nameof(stateRootHash));

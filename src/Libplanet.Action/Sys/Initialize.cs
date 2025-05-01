@@ -20,9 +20,9 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 
     public bool Equals(Initialize? other) => ModelUtility.Equals(this, other);
 
-    // public IWorld Execute(IActionContext context)
+    // public World Execute(IActionContext context)
     // {
-    //     IWorld world = context.PreviousState;
+    //     World world = context.PreviousState;
 
     //     if (context.BlockHeight != 0)
     //     {
@@ -42,7 +42,7 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
     //         world = world.SetValidatorSet(validatorSet);
     //     }
 
-    //     IAccount legacyAccount = world.GetAccount(ReservedAddresses.LegacyAccount);
+    //     Account legacyAccount = world.GetAccount(ReservedAddresses.LegacyAccount);
 
     //     if (States is { } s)
     //     {

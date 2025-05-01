@@ -51,7 +51,7 @@ namespace Libplanet.Tests.Action
         protected readonly Currency[] _currencies;
 
         /// <summary>
-        /// An initial <see cref="IWorld"/> state set up for testing:
+        /// An initial <see cref="World"/> state set up for testing:
         /// <list type="bullet">
         ///     <item><description>
         ///         <c>_addresses[0]</c>: Has 5 AAA, 10 CCC, 5 EEE.
@@ -64,7 +64,7 @@ namespace Libplanet.Tests.Action
         ///     </description></item>
         /// </list>
         /// </summary>
-        protected readonly IWorld _initWorld;
+        protected readonly World _initWorld;
         protected readonly IActionContext _initContext;
 
         protected WorldTest(ITestOutputHelper output)
@@ -89,8 +89,7 @@ namespace Libplanet.Tests.Action
                 Currencies.CurrencyF,
             };
 
-            MockWorldState initMockWorldState =
-                 MockWorldState.CreateModern(version: ProtocolVersion);
+            World initMockWorldState = World.Create();
             _initWorld = initMockWorldState
                 .SetBalance(_addr[0], _currencies[0], 5)
                 .SetBalance(_addr[0], _currencies[2], 10)
@@ -122,7 +121,7 @@ namespace Libplanet.Tests.Action
 
         public abstract int ProtocolVersion { get; }
 
-        public IActionContext CreateContext(IWorld world, Address signer)
+        public IActionContext CreateContext(World world, Address signer)
         {
             return new ActionContext
             {
@@ -171,7 +170,7 @@ namespace Libplanet.Tests.Action
         [Fact]
         public virtual void FungibleAssets()
         {
-            IWorld world = _initWorld.TransferAsset(_addr[1], _addr[2], Value(3, 5));
+            World world = _initWorld.TransferAsset(_addr[1], _addr[2], Value(3, 5));
             Assert.Equal(Value(0, 5), world.GetBalance(_addr[0], _currencies[0]));
             Assert.Equal(Value(2, 10), world.GetBalance(_addr[0], _currencies[2]));
             Assert.Equal(Value(4, 5), world.GetBalance(_addr[0], _currencies[4]));
@@ -195,7 +194,7 @@ namespace Libplanet.Tests.Action
             Assert.Throws<InsufficientBalanceException>(() =>
                 _initWorld.TransferAsset(_addr[0], _addr[1], Value(0, 6)));
 
-            IWorld world = _initWorld.TransferAsset(_addr[0], _addr[1], Value(0, 4));
+            World world = _initWorld.TransferAsset(_addr[0], _addr[1], Value(0, 4));
             Assert.Equal(Value(0, 1), world.GetBalance(_addr[0], _currencies[0]));
             Assert.Equal(Value(0, 4), world.GetBalance(_addr[1], _currencies[0]));
 
@@ -303,7 +302,7 @@ namespace Libplanet.Tests.Action
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 _initWorld.MintAsset(_addr[0], Value(0, -1)));
 
-            IWorld delta0 = _initWorld;
+            World delta0 = _initWorld;
             IActionContext context0 = _initContext;
             // currencies[0] (AAA) allows everyone to mint
             delta0 = delta0.MintAsset(_addr[2], Value(0, 10));
@@ -321,7 +320,7 @@ namespace Libplanet.Tests.Action
             Assert.Throws<SupplyOverflowException>(
                 () => _initWorld.MintAsset(_addr[0], Value(5, 200)));
 
-            IWorld delta1 = _initWorld;
+            World delta1 = _initWorld;
             IActionContext context1 = CreateContext(delta1, _addr[1]);
             // currencies[0] (DDD) allows everyone to mint
             delta1 = delta1.MintAsset(_addr[2], Value(0, 10));
@@ -346,7 +345,7 @@ namespace Libplanet.Tests.Action
             Assert.Throws<InsufficientBalanceException>(() =>
                 _initWorld.BurnAsset(_addr[0], Value(0, 6)));
 
-            IWorld delta0 = _initWorld;
+            World delta0 = _initWorld;
             IActionContext context0 = _initContext;
             // currencies[0] (AAA) allows everyone to burn
             delta0 = delta0.BurnAsset(_addr[0], Value(0, 2));
@@ -360,7 +359,7 @@ namespace Libplanet.Tests.Action
             delta0 = delta0.BurnAsset(_addr[1], Value(3, 8));
             Assert.Equal(Value(3, 12), delta0.GetBalance(_addr[1], _currencies[3]));
 
-            IWorld delta1 = _initWorld;
+            World delta1 = _initWorld;
             IActionContext context1 = CreateContext(delta1, _addr[1]);
             // currencies[0] (AAA) allows everyone to burn
             delta1 = delta1.BurnAsset(_addr[0], Value(0, 2));
@@ -414,7 +413,7 @@ namespace Libplanet.Tests.Action
         [Fact]
         public virtual void TotalSupplyTracking()
         {
-            IWorld world = _initWorld;
+            World world = _initWorld;
             IActionContext context = _initContext;
 
             Assert.Equal(

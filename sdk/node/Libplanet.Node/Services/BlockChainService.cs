@@ -186,13 +186,17 @@ internal sealed class BlockChainService(
 
         var nullTrie = stateStore.GetStateRoot(default);
         nullTrie = nullTrie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
-        IWorld world = new World(nullTrie, stateStore);
+        World world = new World
+        {
+            Trie = nullTrie,
+            StateStore = stateStore,
+        };
         var codec = new Codec();
 
         foreach (var accountKv in data)
         {
             var key = Address.Parse(accountKv.Key);
-            IAccount account = world.GetAccount(key);
+            Account account = world.GetAccount(key);
 
             foreach (var stateKv in accountKv.Value)
             {

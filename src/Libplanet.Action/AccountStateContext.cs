@@ -7,7 +7,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Action;
 
 public sealed class AccountStateContext(
-    IAccount account, Address address) : IAccountContext
+    Account account, Address address) : IAccountContext
 {
     public Address Address { get; } = address;
 

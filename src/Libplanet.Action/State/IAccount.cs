@@ -1,21 +1,21 @@
-using System.Diagnostics.CodeAnalysis;
-using Bencodex.Types;
-using Libplanet.Crypto;
-using Libplanet.Store.Trie;
+// using System.Diagnostics.CodeAnalysis;
+// using Bencodex.Types;
+// using Libplanet.Crypto;
+// using Libplanet.Store.Trie;
 
-namespace Libplanet.Action.State;
+// namespace Libplanet.Action.State;
 
-public interface IAccount
-{
-    ITrie Trie { get; }
+// public interface Account
+// {
+//     ITrie Trie { get; }
 
-    IValue GetState(Address address);
+//     IValue GetState(Address address);
 
-    IValue? GetStateOrDefault(Address address) => TryGetState(address, out IValue? state) ? state : null;
+//     IValue? GetStateOrDefault(Address address) => TryGetState(address, out IValue? state) ? state : null;
 
-    bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state);
+//     bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state);
 
-    IAccount SetState(Address address, IValue state);
+//     Account SetState(Address address, IValue state);
 
-    IAccount RemoveState(Address address);
-}
+//     Account RemoveState(Address address);
+// }

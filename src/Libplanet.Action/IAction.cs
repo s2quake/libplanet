@@ -4,5 +4,5 @@ namespace Libplanet.Action;
 
 public interface IAction
 {
-    IWorld Execute(IActionContext context);
+    World Execute(IActionContext context);
 }

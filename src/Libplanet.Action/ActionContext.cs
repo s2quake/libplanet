@@ -21,7 +21,7 @@ internal sealed record class ActionContext : IActionContext
 
     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
-    public required IWorld World { get; init; }
+    public required World World { get; init; }
 
     public int RandomSeed { get; init; }
 

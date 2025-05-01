@@ -6,10 +6,10 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Action;
 
-public sealed class WorldStateContext(IWorld world) : IWorldContext
+public sealed class WorldStateContext(World world) : IWorldContext
 {
     private readonly Dictionary<Address, AccountStateContext> _accountByAddress = [];
-    private readonly IWorld _world = world;
+    private readonly World _world = world;
 
     // public WorldStateContext(ITrie trie, IStateStore stateStore)
     //     : this(new World(trie, stateStore))

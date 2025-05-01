@@ -81,13 +81,13 @@ namespace Libplanet.Action.Tests.Common
             };
         }
 
-        public IWorld Execute(IActionContext context)
+        public World Execute(IActionContext context)
         {
-            IWorld world = context.World;
+            World world = context.World;
 
             if (Append is { } append)
             {
-                IAccount account = world.GetAccount(DumbModernAddress);
+                Account account = world.GetAccount(DumbModernAddress);
                 string? items = (Text?)account.GetState(append.At);
                 items = items is null ? append.Item : $"{items},{append.Item}";
                 account = account.SetState(append.At, (Text)items!);

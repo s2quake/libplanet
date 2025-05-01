@@ -6,11 +6,13 @@ using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action.State;
 
-public sealed record class Account(ITrie Trie) : IAccount
+public sealed record class Account(ITrie Trie)
 {
     public IValue GetState(Address address) => Trie[ToStateKey(address)];
 
     public Account SetState(Address address, IValue state) => new(new Account(Trie.Set(ToStateKey(address), state)));
+
+    public IValue? GetStateOrDefault(Address address) => TryGetState(address, out IValue? state) ? state : null;
 
     public Account RemoveState(Address address) => new(new Account(Trie.Remove(ToStateKey(address))));
 
@@ -26,7 +28,7 @@ public sealed record class Account(ITrie Trie) : IAccount
         return false;
     }
 
-    IAccount IAccount.SetState(Address address, IValue state) => SetState(address, state);
+    // Account Account.SetState(Address address, IValue state) => SetState(address, state);
 
-    IAccount IAccount.RemoveState(Address address) => RemoveState(address);
+    // Account Account.RemoveState(Address address) => RemoveState(address);
 }

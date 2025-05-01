@@ -31,7 +31,7 @@ namespace Libplanet.Action.Tests.Common
             }
         }
 
-        public IWorld Execute(IActionContext context)
+        public World Execute(IActionContext context)
         {
             var state = context.World;
             var started = DateTimeOffset.UtcNow;

@@ -23,10 +23,10 @@ namespace Libplanet.Action.Tests.State
         public void Constructor()
         {
             ITrie trie = Trie.Create(hashDigest: default, _kvStore);
-            var legacyBaseState = new World(trie, _stateStore);
+            var legacyBaseState = World.Create(trie, _stateStore);
             trie = Trie.Create(hashDigest: default, _kvStore);
             trie = trie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
-            var modernBaseState = new World(trie, _stateStore);
+            var modernBaseState = World.Create(trie, _stateStore);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace Libplanet.Action.Tests.State
                 worldTrie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
             worldTrie = _stateStore.Commit(worldTrie);
             var stateRoot = worldTrie.Hash;
-            var world = new World(stateRoot, _stateStore);
+            var world = World.Create(stateRoot, _stateStore);
             Assert.Equal(worldTrie.Hash, world.Trie.Hash);
             var account = world.GetAccount(accountAddress);
             Assert.Equal(accountTrie.Hash, account.Trie.Hash);
@@ -72,7 +72,7 @@ namespace Libplanet.Action.Tests.State
                 BlockMetadata.CurrentProtocolVersion));
             worldTrie = _stateStore.Commit(worldTrie);
             var stateRoot = worldTrie.Hash;
-            var world = new World(stateRoot, _stateStore);
+            var world = World.Create(stateRoot, _stateStore);
             Assert.Equal(worldTrie.Hash, world.Trie.Hash);
             var account = world.GetAccount(accountAddress);
             Assert.Equal(accountTrie.Hash, account.Trie.Hash);

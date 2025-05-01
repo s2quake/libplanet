@@ -38,12 +38,12 @@ public static class BlockChainStatesFixture
         CreateMockBlockChainStates(int version)
     {
         MockBlockChainStates mockBlockChainStates = new MockBlockChainStates();
-        MockWorldState mock = MockWorldState.CreateModern(mockBlockChainStates.StateStore, version);
+        World mock = World.Create(mockBlockChainStates.StateStore) with { Version = version };
         mock = mock
             .SetBalance(Address, Amount)
             .SetBalance(new PrivateKey().Address, AdditionalSupply)
             .SetValidatorSet(Validators);
-        IAccount account = mock.GetAccount(ReservedAddresses.LegacyAccount);
+        Account account = mock.GetAccount(ReservedAddresses.LegacyAccount);
         account = account.SetState(Address, Value);
         mock = mock.SetAccount(ReservedAddresses.LegacyAccount, account);
 

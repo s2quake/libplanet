@@ -4,11 +4,11 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Action;
 
-internal sealed class WorldContext(IWorld world) : IDisposable, IWorldContext
+internal sealed class WorldContext(World world) : IDisposable, IWorldContext
 {
     private readonly Dictionary<Address, AccountContext> _accountByAddress = [];
     private readonly HashSet<AccountContext> _dirtyAccounts = [];
-    private IWorld _world = world;
+    private World _world = world;
     private bool _disposed;
 
     public bool IsReadOnly => false;
@@ -32,7 +32,7 @@ internal sealed class WorldContext(IWorld world) : IDisposable, IWorldContext
 
     IAccountContext IWorldContext.this[Address address] => this[address];
 
-    public IWorld Flush()
+    public World Flush()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 

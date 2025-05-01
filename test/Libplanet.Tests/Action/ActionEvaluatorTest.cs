@@ -129,12 +129,12 @@ public partial class ActionEvaluatorTest
         {
             var actionEvaluations = actionEvaluator.Evaluate(noStateRootBlock, default);
             generatedRandomNumbers.Add(
-                (Integer)new World(actionEvaluations[0].OutputState, stateStore)
+                (Integer)World.Create(actionEvaluations[0].OutputState, stateStore)
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetState(ContextRecordingAction.RandomRecordAddress));
             actionEvaluations = actionEvaluator.Evaluate((RawBlock)stateRootBlock, default);
             generatedRandomNumbers.Add(
-                (Integer)new World(actionEvaluations[0].OutputState, stateStore)
+                (Integer)World.Create(actionEvaluations[0].OutputState, stateStore)
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetState(ContextRecordingAction.RandomRecordAddress));
         }
@@ -420,7 +420,7 @@ public partial class ActionEvaluatorTest
     //             Transactions = [.. txs],
     //             Evidence = [.. evs],
     //         });
-    //     IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
+    //     World previousState = stateStore.GetWorld(genesis.StateRootHash);
 
     //     Assert.Throws<OutOfMemoryException>(
     //         () => actionEvaluator.EvaluateTx(
@@ -454,7 +454,7 @@ public partial class ActionEvaluatorTest
         ];
 
         IStateStore stateStore = new TrieStateStore();
-        IWorld world = MockWorldState.CreateLegacy(stateStore)
+        World world = World.Create(stateStore)
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100)
@@ -531,7 +531,7 @@ public partial class ActionEvaluatorTest
             genesisBlock,
             GenesisProposer,
             block1Txs);
-        IWorld previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
+        World previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
         var evals = actionEvaluator.EvaluateBlock(
             (RawBlock)block1,
             previousState).ToImmutableArray();
@@ -597,7 +597,7 @@ public partial class ActionEvaluatorTest
         previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
         ActionEvaluation[] evals1 =
             actionEvaluator.EvaluateBlock((RawBlock)block1, previousState).ToArray();
-        var output1 = new World(evals1.Last().OutputState.Trie, stateStore);
+        var output1 = World.Create(evals1.Last().OutputState.Trie, stateStore);
         Assert.Equal(
             (Text)"A",
             output1.GetAccount(ReservedAddresses.LegacyAccount).GetState(addresses[0]));
@@ -758,7 +758,7 @@ public partial class ActionEvaluatorTest
 
         previousState = evals1.Last().OutputState;
         var evals2 = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState).ToArray();
-        var output2 = new World(evals2.Last().OutputState.Trie, stateStore);
+        var output2 = World.Create(evals2.Last().OutputState.Trie, stateStore);
         Assert.Equal(
             (Text)"A,D",
             output2.GetAccount(ReservedAddresses.LegacyAccount).GetState(addresses[0]));
@@ -806,14 +806,14 @@ public partial class ActionEvaluatorTest
                 Evidence = [.. evs],
             });
         IStateStore stateStore = new TrieStateStore();
-        IWorld world = MockWorldState.CreateLegacy(stateStore)
+        World world = World.Create(stateStore)
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100);
         ITrie initTrie = stateStore.Commit(world.Trie);
         var actionEvaluator = new ActionEvaluator(stateStore);
 
-        IWorld previousState = stateStore.GetWorld(initTrie.Hash);
+        World previousState = stateStore.GetWorld(initTrie.Hash);
         var evaluations = actionEvaluator.EvaluateTx(
             block: block,
             tx: tx,
@@ -842,8 +842,8 @@ public partial class ActionEvaluatorTest
         {
             ActionEvaluation eval = evaluations[i];
             IActionContext context = eval.InputContext;
-            IWorld prevState = context.World;
-            IWorld outputState = eval.OutputState;
+            World prevState = context.World;
+            World outputState = eval.OutputState;
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
 
@@ -886,7 +886,7 @@ public partial class ActionEvaluatorTest
         }
 
         previousState = stateStore.GetWorld(initTrie.Hash);
-        IWorld delta = actionEvaluator.EvaluateTx(
+        World delta = actionEvaluator.EvaluateTx(
             block: block,
             tx: tx,
             world: previousState).Last().OutputState;
@@ -926,7 +926,7 @@ public partial class ActionEvaluatorTest
                 Transactions = [.. txs],
                 Evidence = [.. evs],
             });
-        IWorld previousState = stateStore.GetWorld(default);
+        World previousState = stateStore.GetWorld(default);
         var nextState = actionEvaluator.EvaluateTx(
             block: block,
             tx: tx,
@@ -967,8 +967,8 @@ public partial class ActionEvaluatorTest
         {
             ActionEvaluation eval = evalsA[i];
             IActionContext context = eval.InputContext;
-            IWorld prevState = context.World;
-            IWorld outputState = eval.OutputState;
+            World prevState = context.World;
+            World outputState = eval.OutputState;
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, txA.Actions[i]);
 
@@ -1018,8 +1018,8 @@ public partial class ActionEvaluatorTest
         {
             ActionEvaluation eval = evalsB[i];
             IActionContext context = eval.InputContext;
-            IWorld prevState = context.World;
-            IWorld outputState = eval.OutputState;
+            World prevState = context.World;
+            World outputState = eval.OutputState;
 
             _logger.Debug("evalsB[{0}] = {@1}", i, eval);
             _logger.Debug("txB.Actions[{0}] = {@1}", i, txB.Actions[i]);
@@ -1071,7 +1071,7 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(chain.Tip),
             evidence: []);
 
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateBeginBlockActions(
             (RawBlock)genesis,
             previousState);
@@ -1119,7 +1119,7 @@ public partial class ActionEvaluatorTest
             CreateBlockCommit(chain.Tip),
             []);
 
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateEndBlockActions(
             (RawBlock)genesis,
             previousState);
@@ -1168,7 +1168,7 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(chain.Tip),
             evidence: []);
 
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateBeginTxActions(
             (RawBlock)genesis,
             txs[0],
@@ -1220,7 +1220,7 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(chain.Tip),
             evidence: []);
 
-        IWorld previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateEndTxActions(
             (RawBlock)genesis,
             txs[0],
