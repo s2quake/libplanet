@@ -465,20 +465,17 @@ public partial class ActionEvaluatorTest
             .SetBalance(addresses[4], DumbAction.DumbCurrency * 100));
         ITrie trie = stateStore.Commit(world.Trie);
 
-        Block genesis = ProposeGenesisBlock(
-            TestUtils.GenesisProposer,
-            stateRootHash: trie.Hash);
-        var actionEvaluator = new ActionEvaluator(
-            stateStore: stateStore);
+        var genesisBlock = ProposeGenesisBlock(TestUtils.GenesisProposer, stateRootHash: trie.Hash);
+        var actionEvaluator = new ActionEvaluator(stateStore);
 
         Transaction[] block1Txs =
-        {
+        [
             Transaction.Create(
                 unsignedTx: new UnsignedTx
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesis.Hash,
+                        GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[0], addresses[1]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
                         Actions = [.. ImmutableArray.Create<IAction>([
@@ -488,16 +485,16 @@ public partial class ActionEvaluatorTest
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
-                        Signer = _txFx.PrivateKey1.Address
+                        Signer = _txFx.PrivateKey1.Address,
                     },
                 },
-                privateKey : _txFx.PrivateKey1),
+                privateKey: _txFx.PrivateKey1),
             Transaction.Create(
                 unsignedTx: new UnsignedTx
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesis.Hash,
+                        GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
                         Actions = [.. ImmutableArray.Create<IAction>([
@@ -515,7 +512,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesis.Hash,
+                        GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
                         Actions = [],
@@ -526,7 +523,7 @@ public partial class ActionEvaluatorTest
                     },
                 },
                 privateKey: _txFx.PrivateKey3),
-        };
+        ];
         foreach ((var tx, var i) in block1Txs.Zip(
             Enumerable.Range(0, block1Txs.Length), (x, y) => (x, y)))
         {
@@ -534,21 +531,21 @@ public partial class ActionEvaluatorTest
         }
 
         Block block1 = ProposeNextBlock(
-            genesis,
+            genesisBlock,
             GenesisProposer,
             block1Txs);
-        IWorld previousState = stateStore.GetWorld(genesis.StateRootHash);
+        IWorld previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
         var evals = actionEvaluator.EvaluateBlock(
             (RawBlock)block1,
             previousState).ToImmutableArray();
         // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
         // have to be updated, since the order may change due to different RawHash.
-        (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[] expectations =
-        {
+        (int TxIdx, int ActionIdx, string?[] UpdatedStates, Address Signer)[] expectations =
+        [
             (0, 0, new[] { "A", null, null, null, null }, _txFx.Address1),  // Adds "A"
             (0, 1, new[] { "A", "B", null, null, null }, _txFx.Address1),   // Adds "B"
             (1, 0, new[] { "A", "B", "C", null, null }, _txFx.Address2),    // Adds "C"
-        };
+        ];
 
 #if DEBUG
         // This code was created by ilgyu.
@@ -558,15 +555,19 @@ public partial class ActionEvaluatorTest
         System.Diagnostics.Trace.WriteLine("------- 1");
         foreach (var eval in evals)
         {
-            int txIdx = block1Txs.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Id.Equals(eval.InputContext.TxId)).idx;
-            int actionIdx = block1Txs[txIdx].Actions.Select(
-                (e, idx) => new { e, idx }).First(
-                x => x.e.Equals(ModelSerializer.Serialize(eval.Action))).idx;
-            string updatedStates = "new[] { " + string.Join(", ", addresses.Select(
-                eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
-                .Select(x => x is Text t ? '"' + t.Value + '"' : "null")) + " }";
+            int txIdx = block1Txs.Select((e, idx) => new { e, idx })
+                .First(x => x.e.Id.Equals(eval.InputContext.TxId))
+                .idx;
+            int actionIdx = block1Txs[txIdx].Actions.Select((e, idx) => new { e, idx })
+                .First(x => x.e.Equals(ModelSerializer.Serialize(eval.Action)))
+                .idx;
+            IWorldContext worldState = new WorldStateContext(eval.OutputState);
+            var values = addresses.SelectMany(item =>
+            {
+                return worldState.GetValue<ImmutableArray<string?>>((ReservedAddresses.LegacyAccount, item), [null]);
+            });
+            var valueStrings = values.Select(item => item is not null ? $"\"{item}\"" : "null");
+            var updatedStates = "new[] { " + string.Join(", ", valueStrings) + " }";
             string signerIdx = "_txFx.Address" + (addresses.Select(
                 (e, idx) => new { e, idx }).First(
                 x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
@@ -580,11 +581,13 @@ public partial class ActionEvaluatorTest
         Assert.Equal(expectations.Length, evals.Length);
         foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
         {
+            IWorldContext worldState = new WorldStateContext(eval.OutputState);
             Assert.Equal(
                 expect.UpdatedStates,
-                addresses.Select(
-                    eval.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState)
-                    .Select(x => x is Text t ? t.Value : null));
+                addresses.SelectMany(item =>
+                {
+                    return worldState.GetValue<ImmutableArray<string?>>((ReservedAddresses.LegacyAccount, item), [null]);
+                }));
             Assert.Equal(block1Txs[expect.TxIdx].Id, eval.InputContext.TxId);
             Assert.Equal(
                 block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
@@ -594,7 +597,7 @@ public partial class ActionEvaluatorTest
             Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
         }
 
-        previousState = stateStore.GetWorld(genesis.StateRootHash);
+        previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
         ActionEvaluation[] evals1 =
             actionEvaluator.EvaluateBlock((RawBlock)block1, previousState).ToArray();
         var output1 = new WorldBaseState(evals1.Last().OutputState.Trie, stateStore);
@@ -630,7 +633,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesis.Hash,
+                        GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[0]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
                         Actions = [.. ImmutableArray.Create<IAction>([
@@ -648,7 +651,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesis.Hash,
+                        GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[3]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
                         Actions = [.. ImmutableArray.Create<IAction>([
@@ -666,7 +669,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesis.Hash,
+                        GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[4]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
                         Actions = [.. ImmutableArray.Create<IAction>([
@@ -704,7 +707,7 @@ public partial class ActionEvaluatorTest
 
         // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
         // have to be updated, since the order may change due to different RawHash.
-        expectations = new (int TxIdx, int ActionIdx, string[] UpdatedStates, Address Signer)[]
+        expectations = new (int TxIdx, int ActionIdx, string?[] UpdatedStates, Address Signer)[]
         {
             (0, 0, new[] { "A,D", "B", "C", null, null }, _txFx.Address1),
             (1, 0, new[] { "A,D", "B", "C", "E", null }, _txFx.Address2),
@@ -940,9 +943,8 @@ public partial class ActionEvaluatorTest
     [Fact]
     public void EvaluateActions()
     {
-        IntegerSet fx = new IntegerSet(new[] { 5, 10 });
-        var actionEvaluator = new ActionEvaluator(
-            stateStore: fx.StateStore);
+        var fx = new IntegerSet([5, 10]);
+        var actionEvaluator = new ActionEvaluator(fx.StateStore);
 
         // txA: ((5 + 1) * 2) + 3 = 15
         (Transaction txA, var deltaA) = fx.Sign(

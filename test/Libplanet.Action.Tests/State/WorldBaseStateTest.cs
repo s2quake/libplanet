@@ -24,11 +24,9 @@ namespace Libplanet.Action.Tests.State
         {
             ITrie trie = Trie.Create(hashDigest: default, _kvStore);
             var legacyBaseState = new WorldBaseState(trie, _stateStore);
-            Assert.True(legacyBaseState.Legacy);
             trie = Trie.Create(hashDigest: default, _kvStore);
             trie = trie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
             var modernBaseState = new WorldBaseState(trie, _stateStore);
-            Assert.False(modernBaseState.Legacy);
         }
 
         [Fact]

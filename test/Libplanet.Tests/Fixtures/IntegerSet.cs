@@ -13,193 +13,175 @@ using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Tests.Fixtures
+namespace Libplanet.Tests.Fixtures;
+
+public sealed class IntegerSet
 {
-    public sealed class IntegerSet
+    public readonly IReadOnlyList<PrivateKey> PrivateKeys;
+    public readonly IReadOnlyList<Address> Addresses;
+    public readonly IReadOnlyList<Arithmetic> Actions;
+    public readonly ImmutableSortedSet<Transaction> Txs;
+    public readonly PrivateKey Miner;
+    public readonly Block Genesis;
+    public readonly BlockChain Chain;
+    public readonly IStore Store;
+    public readonly IKeyValueStore KVStore;
+    public readonly TrieStateStore StateStore;
+
+    public IntegerSet(int[] initialStates)
+        : this([.. initialStates.Select(s => new BigInteger(s))], null, null)
     {
-        public readonly IReadOnlyList<PrivateKey> PrivateKeys;
-        public readonly IReadOnlyList<Address> Addresses;
-        public readonly IReadOnlyList<Arithmetic> Actions;
-        public readonly ImmutableSortedSet<Transaction> Txs;
-        public readonly PrivateKey Miner;
-        public readonly Block Genesis;
-        public readonly BlockChain Chain;
-        public readonly IStore Store;
-        public readonly IKeyValueStore KVStore;
-        public readonly TrieStateStore StateStore;
+    }
 
-        public IntegerSet(int[] initialStates)
-            : this(initialStates.Select(s => new BigInteger?(s)).ToArray(), null, null)
-        {
-        }
-
-        public IntegerSet(
-            IReadOnlyList<BigInteger?> initialStates,
-            IBlockPolicy policy = null,
-            IEnumerable<IRenderer> renderers = null)
-        {
-            PrivateKeys = initialStates.Select(_ => new PrivateKey()).ToImmutableArray();
-            Addresses = PrivateKeys.Select(key => key.Address).ToImmutableArray();
-            Actions = initialStates
-                .Select((state, index) => new { State = state, Key = PrivateKeys[index] })
-                .Where(pair => !(pair.State is null))
-                .Select(pair => new { State = (BigInteger)pair.State, pair.Key })
-                .Select(pair => Arithmetic.Add(pair.State)).ToImmutableArray();
-            Txs = initialStates
-                .Select((state, index) => new { State = state, Key = PrivateKeys[index] })
-                .Where(pair => !(pair.State is null))
-                .Select(pair => new { State = (BigInteger)pair.State, pair.Key })
-                .Select(pair => new { Action = Arithmetic.Add(pair.State), pair.Key })
-                .Select(pair =>
-                    Transaction.Create(
-                        unsignedTx: new UnsignedTx
+    public IntegerSet(
+        BigInteger[] initialStates,
+        IBlockPolicy? policy = null,
+        IEnumerable<IRenderer>? renderers = null)
+    {
+        PrivateKeys = initialStates.Select(_ => new PrivateKey()).ToImmutableArray();
+        Addresses = PrivateKeys.Select(key => key.Address).ToImmutableArray();
+        Actions = initialStates
+            .Select((state, index) => new { State = state, Key = PrivateKeys[index] })
+            .Select(pair => new { pair.State, pair.Key })
+            .Select(pair => Arithmetic.Add(pair.State)).ToImmutableArray();
+        Txs = initialStates
+            .Select((state, index) => new { State = state, Key = PrivateKeys[index] })
+            .Select(pair => new { pair.State, pair.Key })
+            .Select(pair => new { Action = Arithmetic.Add(pair.State), pair.Key })
+            .Select(pair =>
+                Transaction.Create(
+                    unsignedTx: new UnsignedTx
+                    {
+                        Invoice = new TxInvoice
                         {
-                            Invoice = new TxInvoice
-                            {
-                                Actions = [pair.Action.PlainValue],
-                            },
-                            SigningMetadata = new TxSigningMetadata
-                            {
-                                Signer = pair.Key.Address,
-                            },
+                            Actions = new IAction[] { pair.Action }.ToPlainValues(),
                         },
-                        privateKey: pair.Key))
-                .OrderBy(tx => tx.Id)
-                .ToImmutableSortedSet();
-            Miner = new PrivateKey();
-            policy = policy ?? new NullBlockPolicy();
-            Store = new MemoryStore();
-            KVStore = new MemoryKeyValueStore();
-            StateStore = new TrieStateStore(KVStore);
-            var actionEvaluator = new ActionEvaluator(
-                StateStore,
-                policy.PolicyActions);
-            Genesis = TestUtils.ProposeGenesisBlock(
-                TestUtils.ProposeGenesis(
-                    Miner.PublicKey,
-                    Txs,
-                    null,
-                    DateTimeOffset.UtcNow,
-                    Block.CurrentProtocolVersion),
-                Miner);
-            Chain = BlockChain.Create(
-                policy,
-                new VolatileStagePolicy(),
-                Store,
-                StateStore,
-                Genesis,
-                actionEvaluator,
-                renderers: renderers ?? new[] { new ValidatingActionRenderer() });
-        }
+                        SigningMetadata = new TxSigningMetadata
+                        {
+                            Signer = pair.Key.Address,
+                        },
+                    },
+                    privateKey: pair.Key))
+            .OrderBy(tx => tx.Id)
+            .ToImmutableSortedSet();
+        Miner = new PrivateKey();
+        policy = policy ?? new NullBlockPolicy();
+        Store = new MemoryStore();
+        KVStore = new MemoryKeyValueStore();
+        StateStore = new TrieStateStore(KVStore);
+        var actionEvaluator = new ActionEvaluator(
+            StateStore,
+            policy.PolicyActions);
+        Genesis = TestUtils.ProposeGenesisBlock(
+            TestUtils.ProposeGenesis(
+                Miner.PublicKey,
+                Txs,
+                null,
+                DateTimeOffset.UtcNow,
+                Block.CurrentProtocolVersion),
+            Miner);
+        Chain = BlockChain.Create(
+            policy,
+            new VolatileStagePolicy(),
+            Store,
+            StateStore,
+            Genesis,
+            actionEvaluator,
+            renderers: renderers ?? new[] { new ValidatingActionRenderer() });
+    }
 
-        public int Count => Addresses.Count;
+    public int Count => Addresses.Count;
 
-        public IBlockPolicy Policy => Chain.Policy;
+    public IBlockPolicy Policy => Chain.Policy;
 
-        public IReadOnlyList<IRenderer> Renderers => Chain.Renderers;
+    public IReadOnlyList<IRenderer> Renderers => Chain.Renderers;
 
-        public Block Tip => Chain.Tip;
+    public Block Tip => Chain.Tip;
 
-        public TxWithContext Sign(PrivateKey signer, params Arithmetic[] actions)
-        {
-            Address signerAddress = signer.Address;
-            KeyBytes rawStateKey = KeyConverters.ToStateKey(signerAddress);
-            long nonce = Chain.GetNextTxNonce(signerAddress);
-            Transaction tx =
-                Transaction.Create(nonce, signer, Genesis.Hash, actions.ToPlainValues());
-            BigInteger prevState = Chain.GetNextWorldState().GetAccountState(
-                ReservedAddresses.LegacyAccount).GetState(signerAddress) is Bencodex.Types.Integer i
-                    ? i.Value
-                    : 0;
-            HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
-            ITrie prevTrie = GetTrie(Chain.Tip.Hash);
-            (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);
-            (BigInteger, HashDigest<SHA256>) stagedStates = Chain.ListStagedTransactions()
-                .Where(t => t.Signer.Equals(signerAddress))
-                .OrderBy(t => t.Nonce)
-                .SelectMany(t => t.Actions)
-                .Aggregate(prevPair, (prev, act) =>
+    public TxWithContext Sign(PrivateKey signer, params Arithmetic[] actions)
+    {
+        Address signerAddress = signer.Address;
+        KeyBytes rawStateKey = KeyConverters.ToStateKey(signerAddress);
+        long nonce = Chain.GetNextTxNonce(signerAddress);
+        Transaction tx =
+            Transaction.Create(nonce, signer, Genesis.Hash, actions.ToPlainValues());
+        BigInteger prevState = Chain.GetNextWorldState().GetAccountState(
+            ReservedAddresses.LegacyAccount).GetState(signerAddress) is Bencodex.Types.Integer i
+                ? i.Value
+                : 0;
+        HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
+        ITrie prevTrie = GetTrie(Chain.Tip.Hash);
+        (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);
+        (BigInteger, HashDigest<SHA256>) stagedStates = Chain.ListStagedTransactions()
+            .Where(t => t.Signer.Equals(signerAddress))
+            .OrderBy(t => t.Nonce)
+            .SelectMany(t => t.Actions)
+            .Aggregate(prevPair, (prev, act) =>
+            {
+                var a = TestUtils.ToAction<Arithmetic>(act);
+                BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
+                var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
+                    .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
+                HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
+                    updatedRawStates.Aggregate(
+                        prevTrie,
+                        (trie, pair) => trie.Set(pair.Key, pair.Value))).Hash;
+                return (nextState, nextRootHash);
+            });
+        Chain.StageTransaction(tx);
+        ImmutableArray<(BigInteger, HashDigest<SHA256>)> expectedDelta = tx.Actions
+            .Aggregate(
+                ImmutableArray.Create(stagedStates),
+                (delta, act) =>
                 {
                     var a = TestUtils.ToAction<Arithmetic>(act);
-                    if (a.PlainValue is Text error)
-                    {
-                        return (prev.Item1, prev.Item2);
-                    }
-                    else
-                    {
-                        BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
-                        var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
-                            .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
-                        HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
-                            updatedRawStates.Aggregate(
-                                prevTrie,
-                                (trie, pair) => trie.Set(pair.Key, pair.Value))).Hash;
-                        return (nextState, nextRootHash);
-                    }
-                });
-            Chain.StageTransaction(tx);
-            ImmutableArray<(BigInteger, HashDigest<SHA256>)> expectedDelta = tx.Actions
-                .Aggregate(
-                    ImmutableArray.Create(stagedStates),
-                    (delta, act) =>
-                    {
-                        var a = TestUtils.ToAction<Arithmetic>(act);
-                        if (a.PlainValue is Text error)
-                        {
-                            return delta.Add(delta[delta.Length - 1]);
-                        }
-                        else
-                        {
-                            BigInteger nextState =
-                                a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
-                            var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
-                                .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
-                            HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
-                                updatedRawStates.Aggregate(
-                                    prevTrie,
-                                    (trie, pair) => trie.Set(pair.Key, pair.Value))).Hash;
-                            return delta.Add((nextState, nextRootHash));
-                        }
-                    }
-                );
-            return new TxWithContext()
-            {
-                Tx = tx,
-                ExpectedDelta = expectedDelta,
-            };
+                    BigInteger nextState =
+                        a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
+                    var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
+                        .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
+                    HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
+                        updatedRawStates.Aggregate(
+                            prevTrie,
+                            (trie, pair) => trie.Set(pair.Key, pair.Value))).Hash;
+                    return delta.Add((nextState, nextRootHash));
+                }
+            );
+        return new TxWithContext()
+        {
+            Tx = tx,
+            ExpectedDelta = expectedDelta,
+        };
+    }
+
+    public TxWithContext Sign(int signerIndex, params Arithmetic[] actions)
+        => Sign(PrivateKeys[signerIndex], actions);
+
+    public Block Propose() => Chain.ProposeBlock(Miner, TestUtils.CreateBlockCommit(Chain.Tip));
+
+    public void Append(Block block) => Chain.Append(block, TestUtils.CreateBlockCommit(block));
+
+    public ITrie GetTrie(BlockHash blockHash)
+    {
+        if (blockHash != default)
+        {
+            return StateStore.GetStateRoot(Store.GetBlockDigest(blockHash).StateRootHash);
         }
 
-        public TxWithContext Sign(int signerIndex, params Arithmetic[] actions) =>
-            Sign(PrivateKeys[signerIndex], actions);
+        return StateStore.GetStateRoot(default);
+    }
 
-        public Block Propose() => Chain.ProposeBlock(
-            Miner, TestUtils.CreateBlockCommit(Chain.Tip));
+    public struct TxWithContext
+    {
+        public Transaction Tx;
+        public IReadOnlyList<(BigInteger Value, HashDigest<SHA256> RootHash)> ExpectedDelta;
 
-        public void Append(Block block) =>
-            Chain.Append(block, TestUtils.CreateBlockCommit(block));
-
-        public ITrie GetTrie(BlockHash? blockHash)
+        public void Deconstruct(
+            out Transaction tx,
+            out IReadOnlyList<(BigInteger Value, HashDigest<SHA256> RootHash)> expectedDelta
+        )
         {
-            return (blockHash is BlockHash h &&
-                    Store.GetBlockDigest(h) is BlockDigest d &&
-                    d.StateRootHash is HashDigest<SHA256> rootHash)
-                ? StateStore.GetStateRoot(rootHash)
-                : null;
-        }
-
-        public struct TxWithContext
-        {
-            public Transaction Tx;
-            public IReadOnlyList<(BigInteger Value, HashDigest<SHA256> RootHash)> ExpectedDelta;
-
-            public void Deconstruct(
-                out Transaction tx,
-                out IReadOnlyList<(BigInteger Value, HashDigest<SHA256> RootHash)> expectedDelta
-            )
-            {
-                tx = Tx;
-                expectedDelta = ExpectedDelta;
-            }
+            tx = Tx;
+            expectedDelta = ExpectedDelta;
         }
     }
 }

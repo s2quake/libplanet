@@ -340,10 +340,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         }
 
         public static T ToAction<T>(IValue plainValue)
-            where T : IAction, new()
-        {
-            return ModelSerializer.Deserialize<T>(plainValue);
-        }
+            where T : IAction, new() => ModelSerializer.Deserialize<T>(plainValue);
 
         public static BlockCommit CreateBlockCommit(
             Block block,
