@@ -67,7 +67,7 @@ internal sealed class WorldContext(IActionContext context) : IDisposable, IWorld
     public void TransferAsset(Address sender, Address recipient, FungibleAssetValue value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        _world = _world.TransferAsset(context, sender, recipient, value);
+        _world = _world.TransferAsset(sender, recipient, value);
     }
 
     public void SetDirty(AccountContext accountContext)

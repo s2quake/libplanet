@@ -16,21 +16,23 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
     {
     }
 
-    public static int GenerateRandomSeed(
-        ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)
+    public static int GenerateRandomSeed(ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)
     {
-        using var sha1 = SHA1.Create();
         unchecked
         {
-            return ((rawHashBytes.Length > 0
-                ? BitConverter.ToInt32(rawHashBytes)
-                : throw new ArgumentException(
-                    $"Given {nameof(rawHashBytes)} cannot be empty",
-                    nameof(rawHashBytes)))
-            ^ (signature.Any()
-                ? BitConverter.ToInt32(sha1.ComputeHash([.. signature]), 0)
-                : 0))
-            + 0;
+            if (rawHashBytes.Length <= 0)
+            {
+                throw new ArgumentException(
+                    $"Given {nameof(rawHashBytes)} cannot be empty", nameof(rawHashBytes));
+            }
+
+            if (signature.Any())
+            {
+                return BitConverter.ToInt32(rawHashBytes) ^ BitConverter.ToInt32(SHA1.HashData([.. signature]), 0);
+            }
+
+            return BitConverter.ToInt32(rawHashBytes) ^ 0;
+
         }
     }
 
@@ -91,10 +93,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             evaluations[i] = evaluation;
             world = evaluation.OutputState;
 
-            unchecked
-            {
-                randomSeed++;
-            }
+            unchecked { randomSeed++; }
         }
 
         return evaluations;

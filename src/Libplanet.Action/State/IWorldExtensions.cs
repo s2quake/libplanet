@@ -42,16 +42,10 @@ public static class IWorldExtensions
     }
 
     public static IWorld TransferAsset(
-        this IWorld @this, IActionContext context, Address sender, Address recipient, FungibleAssetValue value)
+        this IWorld @this, Address sender, Address recipient, FungibleAssetValue value)
     {
-        if (context.BlockProtocolVersion > 0)
-        {
-            return @this.SetCurrencyAccount(
-                @this.GetCurrencyAccount(value.Currency).TransferAsset(sender, recipient, value));
-        }
-
         return @this.SetCurrencyAccount(
-            @this.GetCurrencyAccount(value.Currency).TransferAssetV0(sender, recipient, value));
+            @this.GetCurrencyAccount(value.Currency).TransferAsset(sender, recipient, value));
     }
 
     public static FungibleAssetValue GetTotalSupply(this IWorldState @this, Currency currency)

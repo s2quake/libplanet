@@ -171,8 +171,7 @@ namespace Libplanet.Tests.Action
         [Fact]
         public virtual void FungibleAssets()
         {
-            IWorld world = _initWorld.TransferAsset(
-                _initContext, _addr[1], _addr[2], Value(3, 5));
+            IWorld world = _initWorld.TransferAsset(_addr[1], _addr[2], Value(3, 5));
             Assert.Equal(Value(0, 5), world.GetBalance(_addr[0], _currencies[0]));
             Assert.Equal(Value(2, 10), world.GetBalance(_addr[0], _currencies[2]));
             Assert.Equal(Value(4, 5), world.GetBalance(_addr[0], _currencies[4]));
@@ -190,17 +189,17 @@ namespace Libplanet.Tests.Action
         public void TransferAsset()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                _initWorld.TransferAsset(_initContext, _addr[0], _addr[1], Value(0, 0)));
+                _initWorld.TransferAsset(_addr[0], _addr[1], Value(0, 0)));
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                _initWorld.TransferAsset(_initContext, _addr[0], _addr[1], Value(0, -1)));
+                _initWorld.TransferAsset(_addr[0], _addr[1], Value(0, -1)));
             Assert.Throws<InsufficientBalanceException>(() =>
-                _initWorld.TransferAsset(_initContext, _addr[0], _addr[1], Value(0, 6)));
+                _initWorld.TransferAsset(_addr[0], _addr[1], Value(0, 6)));
 
-            IWorld world = _initWorld.TransferAsset(_initContext, _addr[0], _addr[1], Value(0, 4));
+            IWorld world = _initWorld.TransferAsset(_addr[0], _addr[1], Value(0, 4));
             Assert.Equal(Value(0, 1), world.GetBalance(_addr[0], _currencies[0]));
             Assert.Equal(Value(0, 4), world.GetBalance(_addr[1], _currencies[0]));
 
-            world = _initWorld.TransferAsset(_initContext, _addr[0], _addr[0], Value(0, 2));
+            world = _initWorld.TransferAsset(_addr[0], _addr[0], Value(0, 2));
             Assert.Equal(Value(0, 5), world.GetBalance(_addr[0], _currencies[0]));
         }
 
