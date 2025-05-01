@@ -63,27 +63,27 @@ public class CurrencyTest
     public void Hash()
     {
         var currency = Currency.Create("GOLD", 2, [AddressA]);
-        var expected = HashDigest<SHA1>.Parse("391917d64815d57a0551ffeca31c35bc43a88c47");
+        var expected = HashDigest<SHA1>.Parse("1dbbf4c80fb861de779ec0543164021f9f157557");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("NCG", 8, [AddressA, AddressB]);
-        expected = HashDigest<SHA1>.Parse("42bae64d960ea87cb3a76d158b9f2ecd6ecdba72");
+        expected = HashDigest<SHA1>.Parse("a612b8634d138931fec8f7ff7aaa37e5094650b2");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("FOO", 0);
-        expected = HashDigest<SHA1>.Parse("1ce777fc889944e41600c3aa69a999f982887520");
+        expected = HashDigest<SHA1>.Parse("f9136498a8bfe47631e762eb346393ba473839a3");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAR", 1);
-        expected = HashDigest<SHA1>.Parse("ce1fa48db5f003dc8566da6bea0e7ddcf2659a27");
+        expected = HashDigest<SHA1>.Parse("21df4a6f399008f4fb7781d04e79d71d8102b78f");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAZ", 1);
-        expected = HashDigest<SHA1>.Parse("8538939433c24315bc751076845e0d4ab31c4ba5");
+        expected = HashDigest<SHA1>.Parse("8de3ddcc034949e569a548b6e5fdbcf988e56d04");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAZ", 1, 100);
-        expected = HashDigest<SHA1>.Parse("2e94d996f738afca6e9a554345f6f2dc2b2f639c");
+        expected = HashDigest<SHA1>.Parse("85fe351431aa1e741215e883d2df7042e5dbb379");
         Assert.Equal(expected, currency.Hash);
     }
 
