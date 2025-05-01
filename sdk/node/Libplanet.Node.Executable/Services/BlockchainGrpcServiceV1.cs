@@ -49,7 +49,6 @@ public class BlockchainGrpcServiceV1(IReadChainService blockChain) : Blockchain.
                 Hash = block.Hash.ToString(),
                 Height = block.Height,
                 Miner = block.Miner.ToString(),
-                PublicKey = $"{block.PublicKey}",
                 PreviousHash = $"{block.PreviousHash}",
                 StateRootHash = $"{block.StateRootHash}",
                 Signature = $"{ByteUtil.Hex(block.Signature)}",

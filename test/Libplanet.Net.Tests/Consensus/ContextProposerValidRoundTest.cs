@@ -177,7 +177,6 @@ namespace Libplanet.Net.Tests.Consensus
                         Height = blockChain.Tip.Height + 1,
                         Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                         Miner = key.Address,
-                        PublicKey = key.PublicKey,
                         PreviousHash = blockChain.Tip.Hash,
                     },
                     new BlockContent

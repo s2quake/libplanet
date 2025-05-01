@@ -44,7 +44,7 @@ public class BlockTypeTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                PublicKey = privateKey.PublicKey,
+                Miner = privateKey.Address,
                 PreviousHash = lastBlockHash,
                 LastCommit = lastBlockCommit,
             },

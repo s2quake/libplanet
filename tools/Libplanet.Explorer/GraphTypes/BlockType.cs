@@ -29,11 +29,11 @@ public class BlockType : ObjectGraphType<Block>
             description: "The address of the miner.",
             resolve: x => x.Source.Miner
         );
-        Field<PublicKeyType>(
-            name: "PublicKey",
-            description: "The public key of the Miner.",
-            resolve: x => x.Source.PublicKey
-        );
+        // Field<PublicKeyType>(
+        //     name: "PublicKey",
+        //     description: "The public key of the Miner.",
+        //     resolve: x => x.Source.PublicKey
+        // );
         Field<BlockType>(
             name: "PreviousBlock",
             description: "The previous block.  If it's a genesis block (i.e., its index is " +

@@ -74,7 +74,6 @@ public partial class BlockChainTest : IDisposable
                     Height = 1,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
                     Miner = _fx.Proposer.Address,
-                    PublicKey = _fx.Proposer.PublicKey,
                     PreviousHash = _fx.GenesisBlock.Hash,
                 }),
             _fx.Proposer);

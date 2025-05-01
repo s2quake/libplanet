@@ -85,7 +85,7 @@ public sealed record class Block : IEquatable<Block>
 
     public Address Miner => Header.Miner;
 
-    public PublicKey? PublicKey => Header.PublicKey;
+    // public PublicKey? PublicKey => Header.PublicKey;
 
     public BlockHash PreviousHash => Header.PreviousHash;
 

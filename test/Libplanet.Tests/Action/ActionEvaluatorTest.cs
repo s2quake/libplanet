@@ -108,7 +108,6 @@ public partial class ActionEvaluatorTest
                 Height = 0,
                 Timestamp = timestamp,
                 Miner = GenesisProposer.Address,
-                PublicKey = GenesisProposer.PublicKey,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(txs),
             },
@@ -800,7 +799,7 @@ public partial class ActionEvaluatorTest
             {
                 Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
-                PublicKey = keys[0].PublicKey,
+                Miner = keys[0].Address,
                 TxHash = BlockContent.DeriveTxHash(txs),
             },
             new BlockContent
@@ -920,7 +919,7 @@ public partial class ActionEvaluatorTest
             {
                 Height = 123,
                 Timestamp = DateTimeOffset.UtcNow,
-                PublicKey = GenesisProposer.PublicKey,
+                Miner = GenesisProposer.Address,
                 PreviousHash = hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = CreateBlockCommit(hash, 122, 0),

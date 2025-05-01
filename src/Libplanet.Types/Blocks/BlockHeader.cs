@@ -68,7 +68,7 @@ public sealed record class BlockHeader
 
     public Address Miner { get; init; }
 
-    public PublicKey? PublicKey { get; init; }
+    // public PublicKey? PublicKey { get; init; }
 
     public BlockHash PreviousHash { get; init; }
 

@@ -54,7 +54,7 @@ namespace Libplanet.Blockchain
             {
                 Height = 0L,
                 Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-                PublicKey = privateKey.PublicKey,
+                Miner = privateKey.Address,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(transactions),
             };
@@ -168,7 +168,7 @@ namespace Libplanet.Blockchain
                 Height = index,
                 Timestamp = DateTimeOffset.UtcNow,
                 Miner = proposer.Address,
-                PublicKey = proposer.PublicKey,
+                // PublicKey = proposer.PublicKey,
                 PreviousHash = prevHash,
                 TxHash = BlockContent.DeriveTxHash(orderedTransactions),
                 LastCommit = lastCommit,

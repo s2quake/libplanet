@@ -168,7 +168,7 @@ public class GeneratedBlockChainFixture
                 {
                     Height = Chain.Tip.Height + 1,
                     Timestamp = DateTimeOffset.UtcNow,
-                    PublicKey = proposer.PublicKey,
+                    Miner = proposer.Address,
                     PreviousHash = Chain.Tip.Hash,
                     TxHash = BlockContent.DeriveTxHash(transactions),
                     LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
