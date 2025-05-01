@@ -62,7 +62,7 @@ namespace Libplanet.Action.Tests
                 {
                     Signer = address,
                     TxId = txid,
-                    Miner = address,
+                    Proposer = address,
                     BlockHeight =  1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = lastCommit,
@@ -77,7 +77,7 @@ namespace Libplanet.Action.Tests
             Assert.Equal("item", action.Append?.Item);
             Assert.Equal(address, evaluation.InputContext.Signer);
             Assert.Equal(txid, evaluation.InputContext.TxId);
-            Assert.Equal(address, evaluation.InputContext.Miner);
+            Assert.Equal(address, evaluation.InputContext.Proposer);
             Assert.Equal(1, evaluation.InputContext.BlockHeight);
             Assert.Null(
                 evaluation.InputContext.World.GetAccount(

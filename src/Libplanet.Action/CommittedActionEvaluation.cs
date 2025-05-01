@@ -22,7 +22,7 @@ public sealed record class CommittedActionEvaluation
             {
                 Signer = evaluation.InputContext.Signer,
                 TxId = evaluation.InputContext.TxId,
-                Miner = evaluation.InputContext.Miner,
+                Proposer = evaluation.InputContext.Proposer,
                 BlockHeight = evaluation.InputContext.BlockHeight,
                 BlockProtocolVersion = evaluation.InputContext.BlockProtocolVersion,
                 PreviousState = evaluation.InputContext.World.Trie.IsCommitted

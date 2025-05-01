@@ -56,7 +56,7 @@ namespace Libplanet.Action.Tests
                 {
                     Signer = _address,
                     TxId = _txid,
-                    Miner = _address,
+                    Proposer = _address,
                     BlockHeight = 1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = _lastCommit,
@@ -75,7 +75,7 @@ namespace Libplanet.Action.Tests
             {
                 Signer = _address,
                 TxId = _txid,
-                Miner = _address,
+                Proposer = _address,
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
@@ -87,7 +87,7 @@ namespace Libplanet.Action.Tests
             {
                 Signer = _address,
                 TxId = _txid,
-                Miner = _address,
+                Proposer = _address,
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
@@ -98,7 +98,7 @@ namespace Libplanet.Action.Tests
             {
                 Signer = _address,
                 TxId = _txid,
-                Miner = _address,
+                Proposer = _address,
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
@@ -137,7 +137,7 @@ namespace Libplanet.Action.Tests
                 {
                     Signer = _address,
                     TxId = _txid,
-                    Miner = _address,
+                    Proposer = _address,
                     BlockHeight = 1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = _lastCommit,

@@ -176,7 +176,7 @@ namespace Libplanet.Net.Tests.Consensus
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
                         Height = blockChain.Tip.Height + 1,
                         Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
-                        Miner = key.Address,
+                        Proposer = key.Address,
                         PreviousHash = blockChain.Tip.Hash,
                     },
                     new BlockContent

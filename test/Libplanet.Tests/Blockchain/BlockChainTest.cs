@@ -73,7 +73,7 @@ public partial class BlockChainTest : IDisposable
                     ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
                     Height = 1,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
-                    Miner = _fx.Proposer.Address,
+                    Proposer = _fx.Proposer.Address,
                     PreviousHash = _fx.GenesisBlock.Hash,
                 }),
             _fx.Proposer);
@@ -968,7 +968,7 @@ public partial class BlockChainTest : IDisposable
                     block,
                     txs,
                     blockInterval: TimeSpan.FromSeconds(10),
-                    miner: _fx.Proposer.PublicKey,
+                    proposer: _fx.Proposer.PublicKey,
                     lastCommit: CreateBlockCommit(block)),
                 _fx.Proposer);
 
@@ -1099,7 +1099,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void BlockActionWithMultipleAddress()
     {
-        var miner0 = _blockChain.Genesis.Miner;
+        var miner0 = _blockChain.Genesis.Proposer;
         var miner1 = new PrivateKey();
         var miner2 = new PrivateKey();
         var rewardRecordAddress = MinerReward.RewardRecordAddress;
@@ -1231,7 +1231,7 @@ public partial class BlockChainTest : IDisposable
                         b,
                         new[] { tx },
                         blockInterval: TimeSpan.FromSeconds(10),
-                        miner: GenesisProposer.PublicKey,
+                        proposer: GenesisProposer.PublicKey,
                         lastCommit: CreateBlockCommit(b)),
                     GenesisProposer);
 
@@ -1563,7 +1563,7 @@ public partial class BlockChainTest : IDisposable
         var nextStateRootHash = chain.GetNextStateRootHash(genesisWithTx.Hash);
         var block = ProposeNextBlock(
             previousBlock: chain.Genesis,
-            miner: GenesisProposer,
+            proposer: GenesisProposer,
             txs: new[] { blockTx },
             stateRootHash: (HashDigest<SHA256>)nextStateRootHash);
 

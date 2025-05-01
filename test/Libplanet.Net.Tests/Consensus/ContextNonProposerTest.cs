@@ -174,7 +174,7 @@ namespace Libplanet.Net.Tests.Consensus
                     {
                         Height = blockChain.Tip.Height + 1,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = key.Address,
+                        Proposer = key.Address,
                         PreviousHash = blockChain.Tip.Hash,
                     }),
                 key);
@@ -271,7 +271,7 @@ namespace Libplanet.Net.Tests.Consensus
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
                         Height = blockChain.Tip.Height + 2,
                         Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
-                        Miner = TestUtils.PrivateKeys[1].Address,
+                        Proposer = TestUtils.PrivateKeys[1].Address,
                         PreviousHash = blockChain.Tip.Hash,
                     }),
                 TestUtils.PrivateKeys[1]);
@@ -345,7 +345,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Libplanet.Tests.TestUtils.ProposeNext(
                     blockChain.Genesis,
                     new[] { invalidTx },
-                    miner: TestUtils.PrivateKeys[1].PublicKey,
+                    proposer: TestUtils.PrivateKeys[1].PublicKey,
                     blockInterval: TimeSpan.FromSeconds(10)),
                 TestUtils.PrivateKeys[1]);
 
@@ -433,7 +433,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
-                Miner = TestUtils.PrivateKeys[1].Address,
+                Proposer = TestUtils.PrivateKeys[1].Address,
                 PreviousHash = blockChain.Genesis.Hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
             };

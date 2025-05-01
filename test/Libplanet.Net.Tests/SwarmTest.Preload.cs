@@ -127,7 +127,7 @@ namespace Libplanet.Net.Tests
                 Block block = minerChain.EvaluateAndSign(
                     ProposeNext(
                         previousBlock: i == 0 ? minerChain.Genesis : blocks[i - 1],
-                        miner: GenesisProposer.PublicKey,
+                        proposer: GenesisProposer.PublicKey,
                         lastCommit: CreateBlockCommit(minerChain.Tip)),
                     GenesisProposer);
                 blocks.Add(block);

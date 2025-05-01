@@ -1053,7 +1053,7 @@ namespace Libplanet.Tests.Store
                 Block genesisBlock = fx.GenesisBlock;
                 Block block = ProposeNextBlock(
                     genesisBlock,
-                    miner: fx.Proposer);
+                    proposer: fx.Proposer);
 
                 fx.Store.PutBlock(block);
                 Block storedBlock =

@@ -44,9 +44,9 @@ namespace Libplanet.Blockchain.Policies
                 return _exceptionToThrow;
             }
 
-            return BlockedMiners.Contains(nextBlock.Miner)
+            return BlockedMiners.Contains(nextBlock.Proposer)
                 ? new Exception(
-                    $"Disallowed #{nextBlock.Height} {nextBlock.Hash} mined by {nextBlock.Miner}.")
+                    $"Disallowed #{nextBlock.Height} {nextBlock.Hash} mined by {nextBlock.Proposer}.")
                 : null;
         }
 

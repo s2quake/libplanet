@@ -13,7 +13,7 @@ public interface IActionContext
 
     TxId TxId { get; }
 
-    Address Miner { get; }
+    Address Proposer { get; }
 
     long BlockHeight { get; }
 

@@ -25,7 +25,7 @@ namespace Libplanet.Tests.Blocks
             TxFixture = new TxFixture(Genesis.Hash);
             Next = TestUtils.ProposeNextBlock(
                 Genesis,
-                miner: Miner,
+                proposer: Miner,
                 protocolVersion: ProtocolVersion,
                 stateRootHash: HashDigest<SHA256>.Parse(
                     "6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa"),
@@ -34,7 +34,7 @@ namespace Libplanet.Tests.Blocks
             );
             HasTx = TestUtils.ProposeNextBlock(
                 Next,
-                miner: Miner,
+                proposer: Miner,
                 txs: new List<Transaction>
                 {
                     TxFixture.TxWithActions,

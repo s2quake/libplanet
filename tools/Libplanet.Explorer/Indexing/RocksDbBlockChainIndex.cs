@@ -256,7 +256,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         IIndexingContext? context,
         CancellationToken stoppingToken)
     {
-        var minerAddress = blockDigest.Miner.Bytes.ToArray();
+        var minerAddress = blockDigest.Proposer.Bytes.ToArray();
         var blockHash = blockDigest.Hash.Bytes.ToArray();
         var indexToBlockHashKey = IndexToBlockHashPrefix
             .Concat(LongToBigEndianByteArray(blockDigest.Height)).ToArray();

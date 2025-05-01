@@ -311,7 +311,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             Assert.Equal(expected.ProtocolVersion, actual.ProtocolVersion);
             Assert.Equal(expected.Height, actual.Height);
             Assert.Equal(expected.Timestamp, actual.Timestamp);
-            AssertBytesEqual(expected.Miner, actual.Miner);
+            AssertBytesEqual(expected.Proposer, actual.Proposer);
             AssertBytesEqual(expected.PreviousHash, actual.PreviousHash);
             AssertBytesEqual(expected.TxHash, actual.TxHash);
         }
@@ -418,7 +418,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Height = 0,
                 Timestamp = timestamp ??
                         new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
-                Miner = (proposer ?? GenesisProposer.PublicKey).Address,
+                Proposer = (proposer ?? GenesisProposer.PublicKey).Address,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(txs),
             };
@@ -460,7 +460,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static RawBlock ProposeNext(
             Block previousBlock,
             IReadOnlyList<Transaction>? transactions = null,
-            PublicKey? miner = null,
+            PublicKey? proposer = null,
             TimeSpan? blockInterval = null,
             int protocolVersion = Block.CurrentProtocolVersion,
             BlockCommit? lastCommit = null,
@@ -477,7 +477,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Height = previousBlock.Height + 1,
                 Timestamp = previousBlock.Timestamp.Add(
                         blockInterval ?? TimeSpan.FromSeconds(15)),
-                Miner = miner?.Address ?? previousBlock.Miner,
+                Proposer = proposer?.Address ?? previousBlock.Proposer,
                 PreviousHash = previousBlock.Hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = lastCommit ?? default,
@@ -495,7 +495,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static Block ProposeNextBlock(
             Block previousBlock,
-            PrivateKey miner,
+            PrivateKey proposer,
             IReadOnlyList<Transaction>? txs = null,
             TimeSpan? blockInterval = null,
             int protocolVersion = Block.CurrentProtocolVersion,
@@ -511,12 +511,12 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             RawBlock preEval = ProposeNext(
                 previousBlock,
                 txs,
-                miner.PublicKey,
+                proposer.PublicKey,
                 blockInterval,
                 protocolVersion,
                 lastCommit,
                 evidence);
-            return preEval.Sign(miner, stateRootHash);
+            return preEval.Sign(proposer, stateRootHash);
         }
 
         public static BlockChain MakeBlockChain(
