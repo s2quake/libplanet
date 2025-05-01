@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Action
             AccountDiff diff = AccountDiff.Create(targetTrie, sourceTrie);
             Assert.Empty(diff.StateDiffs);
 
-            IAccount targetAccount = new Account(new AccountState(targetTrie));
+            IAccount targetAccount = new Account(targetTrie);
             PrivateKey signer = new PrivateKey();
             targetAccount = targetAccount.SetState(signer.Address, new Text("Foo"));
 
@@ -44,7 +44,7 @@ namespace Libplanet.Tests.Action
             AccountDiff diff = AccountDiff.Create(targetTrie, sourceTrie);
             Assert.Empty(diff.StateDiffs);
 
-            IAccount targetAccount = new Account(new AccountState(targetTrie));
+            IAccount targetAccount = new Account(targetTrie);
             PrivateKey signer = new PrivateKey();
             targetAccount = targetAccount.SetState(addr1, new Text("One"));
             targetAccount = targetAccount.SetState(addr2, new Text("Two"));
@@ -52,7 +52,7 @@ namespace Libplanet.Tests.Action
 
             sourceTrie = targetTrie;
 
-            IAccount sourceAccount = new Account(new AccountState(sourceTrie));
+            IAccount sourceAccount = new Account(sourceTrie);
             sourceAccount = sourceAccount.SetState(addr2, new Text("Two_"));
             sourceAccount = sourceAccount.SetState(addr3, new Text("Three"));
 
@@ -74,10 +74,7 @@ namespace Libplanet.Tests.Action
                 Signer = signer,
                 Proposer = signer,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
-                World = new World(
-                    new WorldBaseState(
-                        trie,
-                        new TrieStateStore())),
+                World = new World(trie, new TrieStateStore()),
             };
     }
 }

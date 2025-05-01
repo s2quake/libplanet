@@ -6,7 +6,7 @@ namespace Libplanet.Action.State;
 
 public interface IBlockChainStates
 {
-    IWorldState GetWorldState(BlockHash offset);
+    IWorld GetWorldState(BlockHash offset);
 
-    IWorldState GetWorldState(HashDigest<SHA256> stateRootHash);
+    IWorld GetWorldState(HashDigest<SHA256> stateRootHash);
 }

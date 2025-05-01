@@ -60,7 +60,7 @@ namespace Libplanet.Action.Tests
                     BlockHeight = 1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = _lastCommit,
-                    World = new World(MockWorldState.CreateModern()),
+                    World = MockWorldState.CreateModern(),
                     RandomSeed = seed,
                 };
                 IRandom random = context.GetRandom();
@@ -79,7 +79,7 @@ namespace Libplanet.Action.Tests
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
-                World = new World(MockWorldState.CreateModern()),
+                World = MockWorldState.CreateModern(),
                 RandomSeed = 0,
             };
 
@@ -91,7 +91,7 @@ namespace Libplanet.Action.Tests
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
-                World = new World(MockWorldState.CreateModern()),
+                World = MockWorldState.CreateModern(),
             };
 
             var context3 = new ActionContext
@@ -102,7 +102,7 @@ namespace Libplanet.Action.Tests
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
-                World = new World(MockWorldState.CreateModern()),
+                World = MockWorldState.CreateModern(),
             };
 
             (Guid Expected, Guid Diff)[] testCases =
@@ -141,7 +141,7 @@ namespace Libplanet.Action.Tests
                     BlockHeight = 1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = _lastCommit,
-                    World = new World(MockWorldState.CreateModern()),
+                    World = MockWorldState.CreateModern(),
                     RandomSeed = i,
                 };
                 var guid = context.GetRandom().NextGuid().ToString();

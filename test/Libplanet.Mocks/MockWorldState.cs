@@ -13,7 +13,7 @@ using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Mocks;
 
-public sealed class MockWorldState : IWorldState
+public sealed class MockWorldState : IWorld
 {
     private readonly IStateStore _stateStore;
 
@@ -29,6 +29,8 @@ public sealed class MockWorldState : IWorldState
     public ITrie Trie { get; }
 
     public int Version { get; }
+
+    public ImmutableDictionary<Address, IAccount> Delta => throw new NotImplementedException();
 
     public static MockWorldState CreateLegacy(IStateStore? stateStore = null)
     {
@@ -47,20 +49,20 @@ public sealed class MockWorldState : IWorldState
         return new MockWorldState(trie, stateStore);
     }
 
-    public IAccountState GetAccountState(Address address)
+    public IAccount GetAccount(Address address)
     {
         if (Trie.TryGetValue(ToStateKey(address), out var value))
         {
-            return new AccountState(
+            return new Account(
             _stateStore.GetStateRoot(ModelSerializer.Deserialize<HashDigest<SHA256>>(value)));
         }
         else
         {
-            return new AccountState(new Trie());
+            return new Account(new Trie());
         }
     }
 
-    public MockWorldState SetAccount(Address address, IAccountState accountState)
+    public MockWorldState SetAccount(Address address, IAccount accountState)
     {
         ITrie trie = _stateStore.Commit(accountState.Trie);
         trie = Trie.Set(ToStateKey(address), new Binary(trie.Hash.Bytes));
@@ -77,7 +79,7 @@ public sealed class MockWorldState : IWorldState
         KeyBytes balanceKey = ToStateKey(address);
         KeyBytes totalSupplyKey = ToStateKey(CurrencyAccount.TotalSupplyAddress);
 
-        ITrie trie = GetAccountState(accountAddress).Trie;
+        ITrie trie = GetAccount(accountAddress).Trie;
         Integer balance = trie.GetValue(balanceKey, new Integer(0));
         Integer totalSupply = trie.GetValue(totalSupplyKey, new Integer(0));
 
@@ -85,7 +87,7 @@ public sealed class MockWorldState : IWorldState
             totalSupplyKey,
             new Integer(totalSupply.Value - balance.Value + rawValue.Value));
         trie = trie.Set(balanceKey, rawValue);
-        return SetAccount(accountAddress, new Account(new AccountState(trie)));
+        return SetAccount(accountAddress, new Account(trie));
 
     }
 
@@ -96,5 +98,10 @@ public sealed class MockWorldState : IWorldState
         // validatorSetAccount = validatorSetAccount.SetValidatorSet(validatorSet);
         // return SetAccount(ReservedAddresses.ValidatorSetAccount, validatorSetAccount.AsAccount());
         throw new NotImplementedException();
+    }
+
+    IWorld IWorld.SetAccount(Address address, IAccount account)
+    {
+        return SetAccount(address, account);
     }
 }

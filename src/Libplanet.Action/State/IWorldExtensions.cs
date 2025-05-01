@@ -8,7 +8,7 @@ namespace Libplanet.Action.State;
 public static class IWorldExtensions
 {
     public static FungibleAssetValue GetBalance(
-        this IWorldState @this, Address address, Currency currency)
+        this IWorld @this, Address address, Currency currency)
         => @this.GetCurrencyAccount(currency).GetBalance(address, currency);
 
     public static IWorld MintAsset(
@@ -48,20 +48,20 @@ public static class IWorldExtensions
             @this.GetCurrencyAccount(value.Currency).TransferAsset(sender, recipient, value));
     }
 
-    public static FungibleAssetValue GetTotalSupply(this IWorldState @this, Currency currency)
+    public static FungibleAssetValue GetTotalSupply(this IWorld @this, Currency currency)
         => @this.GetCurrencyAccount(currency).GetTotalSupply(currency);
 
-    public static ImmutableSortedSet<Validator> GetValidatorSet(this IWorldState @this)
+    public static ImmutableSortedSet<Validator> GetValidatorSet(this IWorld @this)
     {
-        var accountState = @this.GetAccountState(ReservedAddresses.ValidatorSetAddress);
+        var accountState = @this.GetAccount(ReservedAddresses.ValidatorSetAddress);
         var value = accountState.GetState(ReservedAddresses.ValidatorSetAddress);
         return ModelSerializer.Deserialize<ImmutableSortedSet<Validator>>(value);
     }
 
     internal static CurrencyAccount GetCurrencyAccount(
-        this IWorldState @this, Currency currency)
+        this IWorld @this, Currency currency)
         => new(
-                @this.GetAccountState(new Address(currency.Hash.Bytes)).Trie,
+                @this.GetAccount(new Address(currency.Hash.Bytes)).Trie,
                 @this.Version,
                 currency);
 

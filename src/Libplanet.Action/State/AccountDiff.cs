@@ -51,7 +51,7 @@ public class AccountDiff
 
     public ImmutableDictionary<Address, (IValue?, IValue)> StateDiffs { get; }
 
-    public static AccountDiff Create(IAccountState target, IAccountState source)
+    public static AccountDiff Create(IAccount target, IAccount source)
         => Create(target.Trie, source.Trie);
 
     public static AccountDiff Create(ITrie target, ITrie source)

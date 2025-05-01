@@ -1,13 +1,13 @@
-using Libplanet.Crypto;
-using Libplanet.Store.Trie;
+// using Libplanet.Crypto;
+// using Libplanet.Store.Trie;
 
-namespace Libplanet.Action.State;
+// namespace Libplanet.Action.State;
 
-public interface IWorldState
-{
-    public ITrie Trie { get; }
+// public interface IWorldState
+// {
+//     public ITrie Trie { get; }
 
-    int Version { get; }
+//     int Version { get; }
 
-    IAccountState GetAccountState(Address address);
-}
+//     IAccountState GetAccount(Address address);
+// }

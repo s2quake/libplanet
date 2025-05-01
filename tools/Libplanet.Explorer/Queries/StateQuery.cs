@@ -113,17 +113,21 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 );
             case (blockhash: not null, _):
             {
-                return context.Source
-                    .GetWorldState((BlockHash)offsetBlockHash)
-                    .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetStates(addresses);
+                var world = context.Source.GetWorldState((BlockHash)offsetBlockHash);
+                return addresses.Select(address =>
+                    world.GetAccount(ReservedAddresses.LegacyAccount)
+                        .GetState(address)
+                ).ToArray();
             }
 
             case (_, srh: not null):
-                return context.Source
-                    .GetWorldState(offsetStateRootHash ?? default)
-                    .GetAccountState(ReservedAddresses.LegacyAccount)
-                    .GetStates(addresses);
+            {
+                var world = context.Source.GetWorldState(offsetStateRootHash ?? default);
+                return addresses.Select(address =>
+                    world.GetAccount(ReservedAddresses.LegacyAccount)
+                        .GetState(address)
+                ).ToArray();
+            }
         }
     }
 

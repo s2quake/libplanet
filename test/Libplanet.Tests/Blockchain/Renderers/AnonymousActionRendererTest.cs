@@ -15,7 +15,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
     {
         private static IValue _action = ModelSerializer.Serialize(new DumbAction());
 
-        private static IWorld _world = new World(MockUtil.MockModernWorldState);
+        private static IWorld _world = MockUtil.MockModernWorldState;
 
         private static CommittedActionContext _actionContext =
             new CommittedActionContext(new ActionContext

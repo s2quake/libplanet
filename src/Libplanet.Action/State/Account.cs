@@ -8,29 +8,44 @@ namespace Libplanet.Action.State;
 
 public sealed record class Account : IAccount
 {
-    private readonly IAccountState _state;
-
-    public Account(IAccountState state)
+    public Account(ITrie trie)
     {
-        _state = state;
+        Trie = trie;
     }
 
-    public ITrie Trie => _state.Trie;
+    public ITrie Trie { get; }
 
-    public IValue GetState(Address address) => _state.GetState(address);
+    public IValue GetState(Address address) => Trie[ToStateKey(address)];
 
-    public IValue[] GetStates(IEnumerable<Address> addresses) => _state.GetStates(addresses);
+    public Account SetState(Address address, IValue state) => UpdateState(address, state);
 
-    public IAccount SetState(Address address, IValue state) => UpdateState(address, state);
-
-    public IAccount RemoveState(Address address) => UpdateState(address, null);
+    public Account RemoveState(Address address) => UpdateState(address, null);
 
     private Account UpdateState(
         Address address,
         IValue? value) => value is { } v
-            ? new Account(new AccountState(Trie.Set(ToStateKey(address), v)))
-            : new Account(new AccountState(Trie.Remove(ToStateKey(address))));
+            ? new Account(new Account(Trie.Set(ToStateKey(address), v)))
+            : new Account(new Account(Trie.Remove(ToStateKey(address))));
 
     public bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state)
-        => _state.TryGetState(address, out state);
+    {
+        if (Trie.TryGetValue(ToStateKey(address), out var value))
+        {
+            state = value;
+            return true;
+        }
+
+        state = null;
+        return false;
+    }
+
+    IAccount IAccount.SetState(Address address, IValue state)
+    {
+        return SetState(address, state);
+    }
+
+    IAccount IAccount.RemoveState(Address address)
+    {
+        return RemoveState(address);
+    }
 }

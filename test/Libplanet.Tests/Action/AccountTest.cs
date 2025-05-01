@@ -22,7 +22,7 @@ namespace Libplanet.Tests.Action
             };
 
             _addr = _keys.Select(key => key.Address).ToArray();
-            _initAccount = new Account(MockUtil.MockAccountState)
+            _initAccount = MockUtil.MockAccountState
                 .SetState(_addr[0], (Text)"a")
                 .SetState(_addr[1], (Text)"b");
 
@@ -34,7 +34,7 @@ namespace Libplanet.Tests.Action
                     "_addr[{0}]  {1}  {2}",
                     i++,
                     a,
-                    _initAccount.GetStates(new[] { a })[0]);
+                    _initAccount.GetState(a));
             }
         }
 

@@ -91,13 +91,13 @@ namespace Libplanet.Tests.Action
 
             MockWorldState initMockWorldState =
                  MockWorldState.CreateModern(version: ProtocolVersion);
-            _initWorld = new World(initMockWorldState
+            _initWorld = initMockWorldState
                 .SetBalance(_addr[0], _currencies[0], 5)
                 .SetBalance(_addr[0], _currencies[2], 10)
                 .SetBalance(_addr[0], _currencies[4], 5)
                 .SetBalance(_addr[1], _currencies[2], 15)
                 .SetBalance(_addr[1], _currencies[3], 20)
-                .SetValidatorSet([.. _keys.Select(key => Validator.Create(key.PublicKey, 1))]));
+                .SetValidatorSet([.. _keys.Select(key => Validator.Create(key.PublicKey, 1))]);
 
             output.WriteLine("Fixtures  Address");
             int i = 0;
@@ -391,10 +391,10 @@ namespace Libplanet.Tests.Action
             // Assert.Equal(newValidatorCount, world.GetValidatorSet().Count);
             // Assert.NotEqual(_initWorld.GetValidatorSet(), world.GetValidatorSet());
             // var oldValidatorSetRawValue = world
-            //     .GetAccountState(ReservedAddresses.LegacyAccount)
+            //     .GetAccount(ReservedAddresses.LegacyAccount)
             //     .Trie[KeyConverters.ValidatorSetKey];
             // var newValidatorSetRawValue = world
-            //     .GetAccountState(ReservedAddresses.ValidatorSetAccount)
+            //     .GetAccount(ReservedAddresses.ValidatorSetAccount)
             //     .Trie[KeyConverters.ToStateKey(ValidatorSetAccount.ValidatorSetAddress)];
             // Assert.Null(oldValidatorSetRawValue);
             // Assert.NotNull(newValidatorSetRawValue);
@@ -402,10 +402,10 @@ namespace Libplanet.Tests.Action
             // world = world.SetValidatorSet([]);
             // Assert.Empty(world.GetValidatorSet());
             // oldValidatorSetRawValue =
-            //     world.GetAccountState(ReservedAddresses.LegacyAccount).Trie[
+            //     world.GetAccount(ReservedAddresses.LegacyAccount).Trie[
             //         KeyConverters.ValidatorSetKey];
             // newValidatorSetRawValue =
-            //     world.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie[
+            //     world.GetAccount(ReservedAddresses.ValidatorSetAccount).Trie[
             //         KeyConverters.ToStateKey(ValidatorSetAccount.ValidatorSetAddress)];
             // Assert.Null(oldValidatorSetRawValue);
             // Assert.NotNull(newValidatorSetRawValue);

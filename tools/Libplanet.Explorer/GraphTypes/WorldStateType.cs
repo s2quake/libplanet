@@ -8,7 +8,7 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Explorer.GraphTypes
 {
-    public class WorldStateType : ObjectGraphType<IWorldState>
+    public class WorldStateType : ObjectGraphType<IWorld>
     {
         public WorldStateType()
         {
@@ -38,7 +38,7 @@ namespace Libplanet.Explorer.GraphTypes
                     }
                 ),
                 resolve: context =>
-                    context.Source.GetAccountState(context.GetArgument<Address>("address"))
+                    context.Source.GetAccount(context.GetArgument<Address>("address"))
             );
 
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<AccountStateType>>>>(
@@ -55,7 +55,7 @@ namespace Libplanet.Explorer.GraphTypes
                 ),
                 resolve: context => context
                     .GetArgument<Address[]>("addresses")
-                    .Select(address => context.Source.GetAccountState(address))
+                    .Select(address => context.Source.GetAccount(address))
                     .ToArray()
             );
 

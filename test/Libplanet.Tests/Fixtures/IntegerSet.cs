@@ -105,7 +105,7 @@ public sealed class IntegerSet
         long nonce = Chain.GetNextTxNonce(signerAddress);
         Transaction tx =
             Transaction.Create(nonce, signer, Genesis.Hash, actions.ToPlainValues());
-        BigInteger prevState = Chain.GetNextWorldState().GetAccountState(
+        BigInteger prevState = Chain.GetNextWorldState().GetAccount(
             ReservedAddresses.LegacyAccount).GetState(signerAddress) is Bencodex.Types.Integer i
                 ? i.Value
                 : 0;

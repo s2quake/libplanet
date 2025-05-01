@@ -6,15 +6,15 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Action;
 
-public sealed class WorldStateContext(IWorldState world) : IWorldContext
+public sealed class WorldStateContext(IWorld world) : IWorldContext
 {
     private readonly Dictionary<Address, AccountStateContext> _accountByAddress = [];
-    private readonly IWorldState _world = world;
+    private readonly IWorld _world = world;
 
-    public WorldStateContext(ITrie trie, IStateStore stateStore)
-        : this(new WorldBaseState(trie, stateStore))
-    {
-    }
+    // public WorldStateContext(ITrie trie, IStateStore stateStore)
+    //     : this(new World(trie, stateStore))
+    // {
+    // }
 
     public bool IsReadOnly => true;
 
@@ -24,7 +24,7 @@ public sealed class WorldStateContext(IWorldState world) : IWorldContext
         {
             if (!_accountByAddress.TryGetValue(address, out var accountContext))
             {
-                var account = _world.GetAccountState(address);
+                var account = _world.GetAccount(address);
                 accountContext = new AccountStateContext(account, address);
                 _accountByAddress[address] = accountContext;
             }

@@ -51,7 +51,7 @@ namespace Libplanet.Action.Tests
                     }.Sign(key),
                 ],
             };
-            IWorld world = new World(MockWorldState.CreateModern());
+            IWorld world = MockWorldState.CreateModern();
             world = world.SetAccount(
                 ReservedAddresses.LegacyAccount,
                 world.GetAccount(ReservedAddresses.LegacyAccount).SetState(address, (Text)"item"));
@@ -66,7 +66,7 @@ namespace Libplanet.Action.Tests
                     BlockHeight =  1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = lastCommit,
-                    World = new World(MockWorldState.CreateModern()),
+                    World = MockWorldState.CreateModern(),
                     RandomSeed = 123,
                 },
                 OutputState = world,

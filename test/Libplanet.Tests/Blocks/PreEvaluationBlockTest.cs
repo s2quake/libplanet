@@ -69,7 +69,7 @@
 //                     (Bencodex.Types.Integer)123,
 //                     blockChain
 //                         .GetNextWorldState()
-//                         .GetAccountState(ReservedAddresses.LegacyAccount)
+//                         .GetAccount(ReservedAddresses.LegacyAccount)
 //                         .GetState(address));
 
 //                 var txs = new[] { _contents.Block1Tx0 };
@@ -99,7 +99,7 @@
 //                     (Bencodex.Types.Integer)158,
 //                     blockChain
 //                         .GetNextWorldState()
-//                         .GetAccountState(ReservedAddresses.LegacyAccount)
+//                         .GetAccount(ReservedAddresses.LegacyAccount)
 //                         .GetState(address));
 //             }
 //         }
@@ -145,7 +145,7 @@
 //                     (Bencodex.Types.Integer)123,
 //                     blockChain
 //                         .GetNextWorldState()
-//                         .GetAccountState(ReservedAddresses.LegacyAccount)
+//                         .GetAccount(ReservedAddresses.LegacyAccount)
 //                         .GetState(address));
 
 //                 var txs = new[] { _contents.Block1Tx0 };
@@ -177,7 +177,7 @@
 //                     (Bencodex.Types.Integer)158,
 //                     blockChain
 //                         .GetNextWorldState()
-//                         .GetAccountState(ReservedAddresses.LegacyAccount)
+//                         .GetAccount(ReservedAddresses.LegacyAccount)
 //                         .GetState(address));
 //             }
 //         }
