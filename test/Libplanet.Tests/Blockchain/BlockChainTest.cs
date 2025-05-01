@@ -203,7 +203,7 @@ public partial class BlockChainTest : IDisposable
                 timestamp: DateTimeOffset.UtcNow))
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
-        var genesis = BlockChain.ProposeGenesisBlock(transactions: txs);
+        var genesis = BlockChain.ProposeGenesisBlock(transactions: [.. txs]);
         var chain = BlockChain.Create(
             policy,
             new VolatileStagePolicy(),
@@ -464,16 +464,16 @@ public partial class BlockChainTest : IDisposable
 
         Block b1 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsA.ToImmutableList(),
+            txsA.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
+            []);
         _blockChain.Append(b1, TestUtils.CreateBlockCommit(b1));
 
         Block b2 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsA.ToImmutableList(),
+            txsA.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
+            []);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b2, CreateBlockCommit(b2)));
 
@@ -486,9 +486,9 @@ public partial class BlockChainTest : IDisposable
         };
         b2 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsB.ToImmutableList(),
+            txsB.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
+            []);
         _blockChain.Append(b2, CreateBlockCommit(b2));
     }
 
@@ -635,9 +635,9 @@ public partial class BlockChainTest : IDisposable
             };
             b = chain.ProposeBlock(
                 _fx.Proposer,
-                txs.ToImmutableList(),
+                txs.ToImmutableSortedSet(),
                 CreateBlockCommit(chain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             chain.Append(b, CreateBlockCommit(b));
         }
 
@@ -867,9 +867,9 @@ public partial class BlockChainTest : IDisposable
 
         Block b1 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsA.ToImmutableList(),
+            txsA.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
+            []);
         _blockChain.Append(b1, CreateBlockCommit(b1));
 
         Assert.Equal(1, _blockChain.GetNextTxNonce(address));
@@ -1436,7 +1436,7 @@ public partial class BlockChainTest : IDisposable
             storeFixture.StateStore,
             BlockChain.ProposeGenesisBlock(
                 privateKey: privateKey,
-                transactions: txs),
+                transactions: [.. txs]),
             actionEvaluator);
 
         var validator = blockChain
@@ -1617,7 +1617,7 @@ public partial class BlockChainTest : IDisposable
             policy.PolicyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
             privateKey: privateKey,
-            transactions: txs);
+            transactions: [.. txs]);
         BlockChain blockChain = BlockChain.Create(
             policy,
             new VolatileStagePolicy(),

@@ -74,7 +74,7 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
 
     // public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
-    public static HashDigest<SHA256> DeriveTxHash(IEnumerable<Transaction> transactions)
+    public static HashDigest<SHA256> DeriveTxHash(ImmutableSortedSet<Transaction> transactions)
     {
         TxId? prevId = null;
         SHA256 hasher = SHA256.Create();

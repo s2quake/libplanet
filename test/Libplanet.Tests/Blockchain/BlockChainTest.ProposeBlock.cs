@@ -49,7 +49,7 @@ namespace Libplanet.Tests.Blockchain
             Block anotherBlock = _blockChain.ProposeBlock(
                 proposerB,
                 CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
             _blockChain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
             Assert.True(_blockChain.ContainsBlock(anotherBlock.Hash));
             Assert.Equal(3, _blockChain.Count);
@@ -69,7 +69,7 @@ namespace Libplanet.Tests.Blockchain
             Block block3 = _blockChain.ProposeBlock(
                 new PrivateKey(),
                 CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
             Assert.False(_blockChain.ContainsBlock(block3.Hash));
             Assert.Equal(3, _blockChain.Count);
             Assert.True(
@@ -108,7 +108,7 @@ namespace Libplanet.Tests.Blockchain
             Block block4 = _blockChain.ProposeBlock(
                 new PrivateKey(),
                 CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
             Assert.False(_blockChain.ContainsBlock(block4.Hash));
             _logger.Debug(
                 $"{nameof(block4)}: {0} bytes",
@@ -154,7 +154,7 @@ namespace Libplanet.Tests.Blockchain
                             {
                                 DumbAction.Create((new PrivateKey().Address, "foo")),
                             }.ToPlainValues()),
-                    }.ToImmutableList());
+                    }.ToImmutableSortedSet());
                 Assert.Throws<InvalidOperationException>(() => BlockChain.Create(
                     policy,
                     new VolatileStagePolicy(),
@@ -193,7 +193,7 @@ namespace Libplanet.Tests.Blockchain
                 }.ToImmutableList();
 
                 var block = blockChain.ProposeBlock(
-                    new PrivateKey(), txs, default, ImmutableArray<EvidenceBase>.Empty);
+                    new PrivateKey(), [.. txs], default, []);
                 Assert.Throws<InvalidOperationException>(
                     () => blockChain.Append(block, CreateBlockCommit(block)));
             }
@@ -487,7 +487,7 @@ namespace Libplanet.Tests.Blockchain
                     _blockChain.Tip.Hash,
                     _blockChain.Tip.Height,
                     0),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
             _blockChain.Append(block2, CreateBlockCommit(block2));
 
             Assert.Empty(block2.Transactions);
@@ -528,7 +528,7 @@ namespace Libplanet.Tests.Blockchain
             var block = blockChain.ProposeBlock(
                 privateKey1,
                 CreateBlockCommit(_blockChain.Tip),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
             blockChain.Append(block, CreateBlockCommit(block));
 
             var state1 = blockChain
@@ -549,7 +549,7 @@ namespace Libplanet.Tests.Blockchain
             block = blockChain.ProposeBlock(
                 privateKey1,
                 CreateBlockCommit(_blockChain.Tip),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
             blockChain.Append(block, CreateBlockCommit(block));
 
             state1 = blockChain
@@ -629,7 +629,7 @@ namespace Libplanet.Tests.Blockchain
             Block block = _blockChain.ProposeBlock(
                 new PrivateKey(),
                 blockCommit,
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
 
             Assert.NotNull(block.LastCommit);
             Assert.Equal(block.LastCommit, blockCommit);
@@ -659,7 +659,7 @@ namespace Libplanet.Tests.Blockchain
             Block b2 = _blockChain.ProposeBlock(
                 new PrivateKey(),
                 CreateBlockCommit(b1),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
             Assert.Single(b2.Transactions);
             Assert.Contains(txsB[3], b2.Transactions);
         }
@@ -803,7 +803,7 @@ namespace Libplanet.Tests.Blockchain
             var block = _blockChain.ProposeBlock(
                 new PrivateKey(),
                 CreateBlockCommit(_blockChain.Tip),
-                _blockChain.GetPendingEvidence());
+                [.. _blockChain.GetPendingEvidence()]);
 
             Assert.DoesNotContain(txWithInvalidNonce, block.Transactions);
             Assert.DoesNotContain(txWithInvalidAction, block.Transactions);

@@ -435,7 +435,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = TestUtils.PrivateKeys[1].Address,
                 PreviousHash = blockChain.Genesis.Hash,
-                TxHash = BlockContent.DeriveTxHash(txs),
+                TxHash = BlockContent.DeriveTxHash([.. txs]),
             };
             var preEval = RawBlock.Propose(
                 metadata,

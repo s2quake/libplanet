@@ -159,7 +159,7 @@ public class BlockCommand
             new TrieStateStore(new DefaultKeyValueStore()),
             policyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
-            privateKey: key, transactions: txs);
+            privateKey: key, transactions: [.. txs]);
         using Stream stream = file == "-"
             ? Console.OpenStandardOutput()
             : File.Open(file, FileMode.Create);

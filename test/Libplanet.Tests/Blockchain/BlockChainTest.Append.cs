@@ -46,9 +46,9 @@ namespace Libplanet.Tests.Blockchain
             Assert.NotNull(_blockChain.GetBlockCommit(block1.Hash));
             Block block2 = _blockChain.ProposeBlock(
                 keys[4],
-                txs.ToImmutableList(),
+                [.. txs],
                 lastCommit: TestUtils.CreateBlockCommit(block1),
-                evidence: ImmutableArray<EvidenceBase>.Empty);
+                evidence: []);
             foreach (Transaction tx in txs)
             {
                 Assert.Null(getTxExecution(genesis.Hash, tx.Id));
@@ -258,9 +258,9 @@ namespace Libplanet.Tests.Blockchain
             );
             Block block3 = _blockChain.ProposeBlock(
                 keys[4],
-                new[] { tx1Transfer, tx2Error, tx3Transfer }.ToImmutableList(),
+                [tx1Transfer, tx2Error, tx3Transfer],
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
             var txExecution1 = getTxExecution(block3.Hash, tx1Transfer.Id);
             _logger.Verbose(nameof(txExecution1) + " = {@TxExecution}", txExecution1);
@@ -338,9 +338,9 @@ namespace Libplanet.Tests.Blockchain
             var tx2 = Transaction.Create(1, proposer, genesis.Hash, new[] { action2 }.ToPlainValues());
             var block1 = _blockChain.ProposeBlock(
                 proposer,
-                new[] { tx1 }.ToImmutableList(),
+                new[] { tx1 }.ToImmutableSortedSet(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             var commit1 = TestUtils.CreateBlockCommit(block1);
             _blockChain.Append(block1, commit1);
             var world1 = _blockChain.GetNextWorldState();
@@ -349,9 +349,9 @@ namespace Libplanet.Tests.Blockchain
                 world1.GetAccount(DumbModernAction.DumbModernAddress).GetState(address1));
             var block2 = _blockChain.ProposeBlock(
                 proposer,
-                new[] { tx2 }.ToImmutableList(),
+                new[] { tx2 }.ToImmutableSortedSet(),
                 commit1,
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
             var world2 = _blockChain.GetNextWorldState();
             Assert.Equal(
@@ -386,9 +386,9 @@ namespace Libplanet.Tests.Blockchain
             var proposer = new PrivateKey();
             var block = _blockChain.ProposeBlock(
                 proposer,
-                heavyTxs.ToImmutableList(),
+                heavyTxs.ToImmutableSortedSet(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             long maxBytes = _blockChain.Policy.GetMaxTransactionsBytes(block.Height);
             Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
@@ -416,9 +416,9 @@ namespace Libplanet.Tests.Blockchain
             var proposer = new PrivateKey();
             Block block = _blockChain.ProposeBlock(
                 proposer,
-                manyTxs.ToImmutableList(),
+                manyTxs.ToImmutableSortedSet(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             Assert.Equal(manyTxs.Count, block.Transactions.Count);
 
             var e = Assert.Throws<InvalidOperationException>(() =>
@@ -491,16 +491,16 @@ namespace Libplanet.Tests.Blockchain
 
                 Block block1 = blockChain.ProposeBlock(
                     proposer,
-                    new[] { validTx }.ToImmutableList(),
+                    new[] { validTx }.ToImmutableSortedSet(),
                     TestUtils.CreateBlockCommit(blockChain.Tip),
-                    ImmutableArray<EvidenceBase>.Empty);
+                    []);
                 blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
                 Block block2 = blockChain.ProposeBlock(
                     proposer,
-                    new[] { invalidTx }.ToImmutableList(),
+                    new[] { invalidTx }.ToImmutableSortedSet(),
                     TestUtils.CreateBlockCommit(blockChain.Tip),
-                    ImmutableArray<EvidenceBase>.Empty);
+                    []);
                 Assert.Throws<InvalidOperationException>(() => blockChain.Append(
                     block2, TestUtils.CreateBlockCommit(block2)));
             }
@@ -527,9 +527,9 @@ namespace Libplanet.Tests.Blockchain
             // Tx with nonce 0 is mined.
             Block block2 = _blockChain.ProposeBlock(
                 privateKey,
-                ImmutableList<Transaction>.Empty.Add(txs[0]),
+                ImmutableSortedSet<Transaction>.Empty.Add(txs[0]),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
             Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
 
@@ -545,9 +545,9 @@ namespace Libplanet.Tests.Blockchain
             // Unmined tx is left intact in the stage.
             Block block3 = _blockChain.ProposeBlock(
                 privateKey,
-                ImmutableList<Transaction>.Empty.Add(txs[1]),
+                ImmutableSortedSet<Transaction>.Empty.Add(txs[1]),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
             Assert.Empty(_blockChain.GetStagedTransactionIds());
             Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: true));
@@ -678,12 +678,12 @@ namespace Libplanet.Tests.Blockchain
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = fx.Proposer.Address,
                     PreviousHash = default,
-                    TxHash = BlockContent.DeriveTxHash(txs),
+                    TxHash = BlockContent.DeriveTxHash([.. txs]),
                 },
                 new BlockContent
                 {
-                    Transactions = [..txs],
-                    Evidence = [..evs],
+                    Transactions = [.. txs],
+                    Evidence = [.. evs],
                 });
             var genesis = preEvalGenesis.Sign(
                 fx.Proposer,
@@ -698,9 +698,9 @@ namespace Libplanet.Tests.Blockchain
                 renderers: new[] { new LoggedActionRenderer(renderer, Log.Logger) });
             var emptyBlock = blockChain.ProposeBlock(
                 fx.Proposer,
-                ImmutableList<Transaction>.Empty,
+                ImmutableSortedSet<Transaction>.Empty,
                 TestUtils.CreateBlockCommit(blockChain.Tip),
-                ImmutableArray<EvidenceBase>.Empty);
+                []);
             blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
             Assert.Equal<byte>(
                 blockChain.GetWorldState(genesis.StateRootHash).Trie.Hash.Bytes,
@@ -754,9 +754,9 @@ namespace Libplanet.Tests.Blockchain
             tx = Transaction.Create(1, proposer, genesis.Hash, new[] { action }.ToPlainValues());
             var blockAfterBump1 = blockChain.ProposeBlock(
                 proposer,
-                new[] { tx }.ToImmutableList(),
+                new[] { tx }.ToImmutableSortedSet(),
                 commitBeforeBump,
-                evidence: ImmutableArray<EvidenceBase>.Empty);
+                evidence: []);
             Assert.Equal(
                 BlockMetadata.CurrentProtocolVersion,
                 blockAfterBump1.ProtocolVersion);
@@ -769,9 +769,9 @@ namespace Libplanet.Tests.Blockchain
             tx = Transaction.Create(2, proposer, genesis.Hash, new[] { action }.ToPlainValues());
             var blockAfterBump2 = blockChain.ProposeBlock(
                 proposer,
-                new[] { tx }.ToImmutableList(),
+                new[] { tx }.ToImmutableSortedSet(),
                 commitAfterBump1,
-                evidence: ImmutableArray<EvidenceBase>.Empty);
+                evidence: []);
             Assert.Equal(
                 BlockMetadata.CurrentProtocolVersion,
                 blockAfterBump2.ProtocolVersion);

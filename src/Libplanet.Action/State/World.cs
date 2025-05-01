@@ -28,15 +28,9 @@ public sealed record class World : IWorld
         Trie = trie;
         _stateStore = stateStore;
         _accountByAddress = delta;
-        // _baseState = baseState;
-        // Delta = delta;
     }
 
     public ITrie Trie { get; }
-
-    // public IWorldDelta Delta { get; }
-
-    // public ITrie Trie => _baseState.Trie;
 
     public int Version => Trie.GetMetadata() is { } value ? value.Version : 0;
 
@@ -52,12 +46,6 @@ public sealed record class World : IWorld
             return account;
         }
 
-
-        // return _accountByAddress.TryGetValue(address, out IAccount? account)
-        //     ? account
-        //     : new Account(_baseState.GetAccount(address));
-
-
         if (Trie.TryGetValue(ToStateKey(address), out var value) && value is Binary binary)
         {
             return new Account(_stateStore.GetStateRoot(new HashDigest<SHA256>(binary.ByteArray)));
@@ -68,20 +56,10 @@ public sealed record class World : IWorld
         }
     }
 
-    // public IAccountState GetAccount(Address address) => GetAccount(address);
-
     public World SetAccount(Address address, Account account)
-    {
-        return new World(Trie, _stateStore, _accountByAddress.SetItem(address, account));
-    }
+        => new(Trie, _stateStore, _accountByAddress.SetItem(address, account));
 
-    IAccount IWorld.GetAccount(Address address)
-    {
-        return GetAccount(address);
-    }
+    IAccount IWorld.GetAccount(Address address) => GetAccount(address);
 
-    IWorld IWorld.SetAccount(Address address, IAccount account)
-    {
-        return SetAccount(address, (Account)account);
-    }
+    IWorld IWorld.SetAccount(Address address, IAccount account) => SetAccount(address, (Account)account);
 }
