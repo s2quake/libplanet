@@ -7,22 +7,20 @@ namespace Libplanet.Action.State;
 
 internal static class IStateStoreExtensions
 {
-    public static IWorld GetWorld(this IStateStore stateStore, HashDigest<SHA256> stateRootHash)
-    {
-        return new World(stateStore.GetStateRoot(stateRootHash), stateStore);
-    }
+    public static IWorld GetWorld(this IStateStore @this, HashDigest<SHA256> stateRootHash)
+        => new World(@this.GetStateRoot(stateRootHash), @this);
 
     public static IWorld CommitWorld(this IStateStore stateStore, IWorld world)
     {
-        var worldTrie = world.Trie;
+        var trie = world.Trie;
         foreach (var (address, account) in world.Delta)
         {
             var accountTrie = stateStore.Commit(account.Trie);
-            worldTrie = worldTrie.Set(
-                KeyConverters.ToStateKey(address),
-                new Binary(accountTrie.Hash.Bytes));
+            var key = KeyConverters.ToStateKey(address);
+            var value = new Binary(accountTrie.Hash.Bytes);
+            trie = trie.Set(key, value);
         }
 
-        return new World(stateStore.Commit(worldTrie), stateStore);
+        return new World(stateStore.Commit(trie), stateStore);
     }
 }
