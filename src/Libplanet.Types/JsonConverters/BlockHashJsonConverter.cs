@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Libplanet.Common;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Types.Converters;
+namespace Libplanet.Types.JsonConverters;
 
 internal sealed class BlockHashJsonConverter : JsonConverter<BlockHash>
 {
