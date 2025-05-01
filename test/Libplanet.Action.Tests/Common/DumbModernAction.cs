@@ -103,11 +103,9 @@ namespace Libplanet.Action.Tests.Common
                         recipient: to,
                         value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
                     (null, Address to) => world.MintAsset(
-                        context,
                         recipient: to,
                         value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
                     (Address from, null) => world.BurnAsset(
-                        context,
                         owner: from,
                         value: FungibleAssetValue.Create(DumbCurrency, transfer.Amount)),
                     _ => throw new ArgumentException(

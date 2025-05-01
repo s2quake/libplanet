@@ -13,24 +13,27 @@ public sealed record class World : IWorld
     private readonly IStateStore _stateStore;
     private readonly ImmutableDictionary<Address, Account> _accountByAddress;
 
-    public World(ITrie trie, IStateStore stateStore)
-        : this(trie, stateStore, ImmutableDictionary<Address, Account>.Empty)
+    public World(Address signer, ITrie trie, IStateStore stateStore)
+        : this(signer, trie, stateStore, ImmutableDictionary<Address, Account>.Empty)
     {
     }
 
-    public World(HashDigest<SHA256> stateRootHash, IStateStore stateStore)
-        : this(stateStore.GetStateRoot(stateRootHash), stateStore, ImmutableDictionary<Address, Account>.Empty)
+    public World(Address signer, HashDigest<SHA256> stateRootHash, IStateStore stateStore)
+        : this(signer, stateStore.GetStateRoot(stateRootHash), stateStore, ImmutableDictionary<Address, Account>.Empty)
     {
     }
 
-    private World(ITrie trie, IStateStore stateStore, ImmutableDictionary<Address, Account> delta)
+    private World(Address signer, ITrie trie, IStateStore stateStore, ImmutableDictionary<Address, Account> delta)
     {
+        Signer = signer;
         Trie = trie;
         _stateStore = stateStore;
         _accountByAddress = delta;
     }
 
     public ITrie Trie { get; }
+
+    public Address Signer { get; }
 
     public int Version => Trie.GetMetadata() is { } value ? value.Version : 0;
 

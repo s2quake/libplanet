@@ -17,28 +17,30 @@ public sealed class MockWorldState : IWorld
 {
     private readonly IStateStore _stateStore;
 
-    internal MockWorldState(ITrie trie, IStateStore stateStore)
+    internal MockWorldState(ITrie trie, IStateStore stateStore, Address signer)
     {
         Trie = trie;
         _stateStore = stateStore;
-        Version = trie.GetMetadata() is { } value
-            ? value.Version
-            : 0;
+        Version = trie.GetMetadata() is { } value ? value.Version : 0;
+        Signer = signer;
     }
 
     public ITrie Trie { get; }
+
+    public Address Signer { get; }
 
     public int Version { get; }
 
     public ImmutableDictionary<Address, IAccount> Delta => throw new NotImplementedException();
 
-    public static MockWorldState CreateLegacy(IStateStore? stateStore = null)
+    public static MockWorldState CreateLegacy(Address signer, IStateStore? stateStore = null)
     {
         stateStore ??= new TrieStateStore();
-        return new MockWorldState(stateStore.GetStateRoot(default), stateStore);
+        return new MockWorldState(stateStore.GetStateRoot(default), stateStore, signer);
     }
 
     public static MockWorldState CreateModern(
+        Address signer,
         IStateStore? stateStore = null,
         int version = BlockMetadata.CurrentProtocolVersion)
     {
@@ -46,7 +48,7 @@ public sealed class MockWorldState : IWorld
         ITrie trie = stateStore.GetStateRoot(default);
         trie = trie.SetMetadata(new TrieMetadata(version));
         trie = stateStore.Commit(trie);
-        return new MockWorldState(trie, stateStore);
+        return new MockWorldState(trie, stateStore, signer);
     }
 
     public IAccount GetAccount(Address address)
