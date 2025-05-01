@@ -10,11 +10,11 @@ public sealed record class Account(ITrie Trie)
 {
     public IValue GetState(Address address) => Trie[ToStateKey(address)];
 
-    public Account SetState(Address address, IValue state) => new(new Account(Trie.Set(ToStateKey(address), state)));
+    public Account SetState(Address address, IValue state) => new(Trie.Set(ToStateKey(address), state));
 
     public IValue? GetStateOrDefault(Address address) => TryGetState(address, out IValue? state) ? state : null;
 
-    public Account RemoveState(Address address) => new(new Account(Trie.Remove(ToStateKey(address))));
+    public Account RemoveState(Address address) => new(Trie.Remove(ToStateKey(address)));
 
     public bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state)
     {
