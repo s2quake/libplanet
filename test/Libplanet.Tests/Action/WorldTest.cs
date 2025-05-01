@@ -299,40 +299,40 @@ namespace Libplanet.Tests.Action
         public void MintAsset()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                _initWorld.MintAsset(_initContext, _addr[0], Value(0, 0)));
+                _initWorld.MintAsset(_addr[0], Value(0, 0)));
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                _initWorld.MintAsset(_initContext, _addr[0], Value(0, -1)));
+                _initWorld.MintAsset(_addr[0], Value(0, -1)));
 
             IWorld delta0 = _initWorld;
             IActionContext context0 = _initContext;
             // currencies[0] (AAA) allows everyone to mint
-            delta0 = delta0.MintAsset(context0, _addr[2], Value(0, 10));
+            delta0 = delta0.MintAsset(_addr[2], Value(0, 10));
             Assert.Equal(Value(0, 10), delta0.GetBalance(_addr[2], _currencies[0]));
 
             // currencies[2] (CCC) allows only _addr[0] to mint
-            delta0 = delta0.MintAsset(context0, _addr[0], Value(2, 10));
+            delta0 = delta0.MintAsset(_addr[0], Value(2, 10));
             Assert.Equal(Value(2, 20), delta0.GetBalance(_addr[0], _currencies[2]));
 
             // currencies[3] (DDD) allows _addr[0] & _addr[1] to mint
-            delta0 = delta0.MintAsset(context0, _addr[1], Value(3, 10));
+            delta0 = delta0.MintAsset(_addr[1], Value(3, 10));
             Assert.Equal(Value(3, 30), delta0.GetBalance(_addr[1], _currencies[3]));
 
             // currencies[5] (FFF) has a cap of 100
             Assert.Throws<SupplyOverflowException>(
-                () => _initWorld.MintAsset(_initContext, _addr[0], Value(5, 200)));
+                () => _initWorld.MintAsset(_addr[0], Value(5, 200)));
 
             IWorld delta1 = _initWorld;
             IActionContext context1 = CreateContext(delta1, _addr[1]);
             // currencies[0] (DDD) allows everyone to mint
-            delta1 = delta1.MintAsset(context1, _addr[2], Value(0, 10));
+            delta1 = delta1.MintAsset(_addr[2], Value(0, 10));
             Assert.Equal(Value(0, 10), delta1.GetBalance(_addr[2], _currencies[0]));
 
             // currencies[2] (CCC) disallows _addr[1] to mint
             Assert.Throws<CurrencyPermissionException>(() =>
-                delta1.MintAsset(context1, _addr[1], Value(2, 10)));
+                delta1.MintAsset(_addr[1], Value(2, 10)));
 
             // currencies[3] (DDD) allows _addr[0] & _addr[1] to mint
-            delta1 = delta1.MintAsset(context1, _addr[0], Value(3, 20));
+            delta1 = delta1.MintAsset(_addr[0], Value(3, 20));
             Assert.Equal(Value(3, 20), delta1.GetBalance(_addr[0], _currencies[3]));
         }
 
@@ -340,38 +340,38 @@ namespace Libplanet.Tests.Action
         public virtual void BurnAsset()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                _initWorld.BurnAsset(_initContext, _addr[0], Value(0, 0)));
+                _initWorld.BurnAsset(_addr[0], Value(0, 0)));
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                _initWorld.BurnAsset(_initContext, _addr[0], Value(0, -1)));
+                _initWorld.BurnAsset(_addr[0], Value(0, -1)));
             Assert.Throws<InsufficientBalanceException>(() =>
-                _initWorld.BurnAsset(_initContext, _addr[0], Value(0, 6)));
+                _initWorld.BurnAsset(_addr[0], Value(0, 6)));
 
             IWorld delta0 = _initWorld;
             IActionContext context0 = _initContext;
             // currencies[0] (AAA) allows everyone to burn
-            delta0 = delta0.BurnAsset(context0, _addr[0], Value(0, 2));
+            delta0 = delta0.BurnAsset(_addr[0], Value(0, 2));
             Assert.Equal(Value(0, 3), delta0.GetBalance(_addr[0], _currencies[0]));
 
             // currencies[2] (CCC) allows only _addr[0] to burn
-            delta0 = delta0.BurnAsset(context0, _addr[0], Value(2, 4));
+            delta0 = delta0.BurnAsset(_addr[0], Value(2, 4));
             Assert.Equal(Value(2, 6), delta0.GetBalance(_addr[0], _currencies[2]));
 
             // currencies[3] (DDD) allows _addr[0] & _addr[1] to burn
-            delta0 = delta0.BurnAsset(context0, _addr[1], Value(3, 8));
+            delta0 = delta0.BurnAsset(_addr[1], Value(3, 8));
             Assert.Equal(Value(3, 12), delta0.GetBalance(_addr[1], _currencies[3]));
 
             IWorld delta1 = _initWorld;
             IActionContext context1 = CreateContext(delta1, _addr[1]);
             // currencies[0] (AAA) allows everyone to burn
-            delta1 = delta1.BurnAsset(context1, _addr[0], Value(0, 2));
+            delta1 = delta1.BurnAsset(_addr[0], Value(0, 2));
             Assert.Equal(Value(0, 3), delta1.GetBalance(_addr[0], _currencies[0]));
 
             // currencies[2] (CCC) disallows _addr[1] to burn
             Assert.Throws<CurrencyPermissionException>(() =>
-                delta1.BurnAsset(context1, _addr[0], Value(2, 4)));
+                delta1.BurnAsset(_addr[0], Value(2, 4)));
 
             // currencies[3] (DDD) allows _addr[0] & _addr[1] to burn
-            delta1 = delta1.BurnAsset(context1, _addr[1], Value(3, 8));
+            delta1 = delta1.BurnAsset(_addr[1], Value(3, 8));
             Assert.Equal(Value(3, 12), delta1.GetBalance(_addr[1], _currencies[3]));
         }
 
@@ -425,20 +425,20 @@ namespace Libplanet.Tests.Action
                 Value(4, 5),
                 _initWorld.GetTotalSupply(_currencies[4]));
 
-            world = world.MintAsset(context, _addr[0], Value(0, 10));
+            world = world.MintAsset(_addr[0], Value(0, 10));
             Assert.Equal(
                 Value(0, 15),
                 world.GetTotalSupply(_currencies[0]));
 
-            world = world.MintAsset(context, _addr[0], Value(4, 10));
+            world = world.MintAsset(_addr[0], Value(4, 10));
             Assert.Equal(
                 Value(4, 15),
                 world.GetTotalSupply(_currencies[4]));
 
             Assert.Throws<InsufficientBalanceException>(() =>
-                world.BurnAsset(context, _addr[0], Value(4, 100)));
+                world.BurnAsset(_addr[0], Value(4, 100)));
 
-            world = world.BurnAsset(context, _addr[0], Value(4, 5));
+            world = world.BurnAsset(_addr[0], Value(4, 5));
             Assert.Equal(
                 Value(4, 10),
                 world.GetTotalSupply(_currencies[4]));

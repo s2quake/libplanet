@@ -4,11 +4,11 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Action;
 
-internal sealed class WorldContext(IActionContext context) : IDisposable, IWorldContext
+internal sealed class WorldContext(IWorld world) : IDisposable, IWorldContext
 {
     private readonly Dictionary<Address, AccountContext> _accountByAddress = [];
     private readonly HashSet<AccountContext> _dirtyAccounts = [];
-    private IWorld _world = context.World;
+    private IWorld _world = world;
     private bool _disposed;
 
     public bool IsReadOnly => false;
@@ -55,13 +55,13 @@ internal sealed class WorldContext(IActionContext context) : IDisposable, IWorld
     public void MintAsset(Address recipient, FungibleAssetValue value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        _world = _world.MintAsset(context, recipient, value);
+        _world = _world.MintAsset(recipient, value);
     }
 
     public void BurnAsset(Address owner, FungibleAssetValue value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        _world = _world.BurnAsset(context, owner, value);
+        _world = _world.BurnAsset(owner, value);
     }
 
     public void TransferAsset(Address sender, Address recipient, FungibleAssetValue value)

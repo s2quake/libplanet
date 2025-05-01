@@ -7,42 +7,38 @@ namespace Libplanet.Action.State;
 
 public static class IWorldExtensions
 {
-    public static FungibleAssetValue GetBalance(
-        this IWorld @this, Address address, Currency currency)
+    public static FungibleAssetValue GetBalance(this IWorld @this, Address address, Currency currency)
         => @this.GetCurrencyAccount(currency).GetBalance(address, currency);
 
-    public static IWorld MintAsset(
-        this IWorld @this, IActionContext context, Address recipient, FungibleAssetValue value)
+    public static IWorld MintAsset(this IWorld @this, Address recipient, FungibleAssetValue value)
     {
-        if (!value.Currency.CanMint(context.Signer))
+        if (!value.Currency.CanMint(@this.Signer))
         {
             throw new CurrencyPermissionException(
-                $"Given {nameof(context)}'s signer {context.Signer} does not have " +
+                $"Given {nameof(IWorld)}'s signer {@this.Signer} does not have " +
                 $"the authority to mint or burn currency {value.Currency}.",
-                context.Signer,
+                @this.Signer,
                 value.Currency);
         }
 
         return @this.SetCurrencyAccount(@this.GetCurrencyAccount(value.Currency).MintAsset(recipient, value));
     }
 
-    public static IWorld BurnAsset(
-        this IWorld @this, IActionContext context, Address owner, FungibleAssetValue value)
+    public static IWorld BurnAsset(this IWorld @this, Address owner, FungibleAssetValue value)
     {
-        if (!value.Currency.CanMint(context.Signer))
+        if (!value.Currency.CanMint(@this.Signer))
         {
             throw new CurrencyPermissionException(
-                $"Given {nameof(context)}'s signer {context.Signer} does not have " +
+                $"Given {nameof(IWorld)}'s signer {@this.Signer} does not have " +
                 $"the authority to mint or burn currency {value.Currency}.",
-                context.Signer,
+                @this.Signer,
                 value.Currency);
         }
 
         return @this.SetCurrencyAccount(@this.GetCurrencyAccount(value.Currency).BurnAsset(owner, value));
     }
 
-    public static IWorld TransferAsset(
-        this IWorld @this, Address sender, Address recipient, FungibleAssetValue value)
+    public static IWorld TransferAsset(this IWorld @this, Address sender, Address recipient, FungibleAssetValue value)
     {
         return @this.SetCurrencyAccount(
             @this.GetCurrencyAccount(value.Currency).TransferAsset(sender, recipient, value));

@@ -14,7 +14,7 @@ public abstract record class ActionBase : IAction
 
     IWorld IAction.Execute(IActionContext context)
     {
-        using var worldContext = new WorldContext(context);
+        using var worldContext = new WorldContext(context.World);
         UseGas(GetType());
         OnExecute(worldContext, context);
         return worldContext.Flush();

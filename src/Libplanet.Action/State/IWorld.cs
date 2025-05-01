@@ -7,11 +7,11 @@ public interface IWorld
 {
     ITrie Trie { get; }
 
+    Address Signer { get; }
+
     int Version => Trie.GetMetadata() is { } value ? value.Version : 0;
 
     ImmutableDictionary<Address, IAccount> Delta { get; }
-
-    // bool IsReadOnly { get; }
 
     IAccount GetAccount(Address address);
 
