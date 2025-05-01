@@ -62,7 +62,6 @@ namespace Libplanet.Action.Tests
                     LastCommit = _lastCommit,
                     World = new World(MockWorldState.CreateModern()),
                     RandomSeed = seed,
-                    MaxGasPrice = null,
                 };
                 IRandom random = context.GetRandom();
                 Assert.Equal(expected, random.Next());
@@ -82,7 +81,6 @@ namespace Libplanet.Action.Tests
                 LastCommit = _lastCommit,
                 World = new World(MockWorldState.CreateModern()),
                 RandomSeed = 0,
-                MaxGasPrice = null,
             };
 
             var context2 = new ActionContext
@@ -94,8 +92,6 @@ namespace Libplanet.Action.Tests
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
                 World = new World(MockWorldState.CreateModern()),
-                RandomSeed = 0,
-                MaxGasPrice = null,
             };
 
             var context3 = new ActionContext
@@ -107,8 +103,6 @@ namespace Libplanet.Action.Tests
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
                 World = new World(MockWorldState.CreateModern()),
-                RandomSeed = 1,
-                MaxGasPrice = null,
             };
 
             (Guid Expected, Guid Diff)[] testCases =
@@ -149,7 +143,6 @@ namespace Libplanet.Action.Tests
                     LastCommit = _lastCommit,
                     World = new World(MockWorldState.CreateModern()),
                     RandomSeed = i,
-                    MaxGasPrice = null,
                 };
                 var guid = context.GetRandom().NextGuid().ToString();
 

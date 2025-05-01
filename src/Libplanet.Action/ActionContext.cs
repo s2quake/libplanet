@@ -19,13 +19,13 @@ internal sealed record class ActionContext : IActionContext
 
     public int BlockProtocolVersion { get; init; }
 
-    public BlockCommit LastCommit { get; init; }
+    public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
     public required IWorld World { get; init; }
 
     public int RandomSeed { get; init; }
 
-    public FungibleAssetValue? MaxGasPrice { get; init; }
+    public FungibleAssetValue MaxGasPrice { get; init; }
 
     public ImmutableSortedSet<Transaction> Txs { get; init; } = [];
 

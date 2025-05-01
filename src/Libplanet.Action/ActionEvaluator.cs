@@ -84,7 +84,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
                 Txs = block.Transactions,
                 World = world,
                 RandomSeed = randomSeed,
-                MaxGasPrice = tx?.MaxGasPrice,
+                MaxGasPrice = tx?.MaxGasPrice ?? default,
                 Evidence = block.Evidence,
             };
             var evaluation = EvaluateAction(actionContext, action);

@@ -25,7 +25,7 @@ public interface IActionContext
 
     int RandomSeed { get; }
 
-    FungibleAssetValue? MaxGasPrice { get; }
+    FungibleAssetValue MaxGasPrice { get; }
 
     ImmutableSortedSet<Transaction> Txs { get; }
 

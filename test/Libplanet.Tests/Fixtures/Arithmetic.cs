@@ -14,6 +14,9 @@ public sealed record class Arithmetic : ActionBase
     [Property(1)]
     public BigInteger Operand { get; init; }
 
+    [Property(2)]
+    public string Error { get; init; } = string.Empty;
+
     public static Arithmetic Create(OperatorType @operator, BigInteger operand) => new()
     {
         Operator = @operator,
@@ -32,6 +35,11 @@ public sealed record class Arithmetic : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
+        if (Error != string.Empty)
+        {
+            throw new InvalidOperationException(Error);
+        }
+
         var key = (ReservedAddresses.LegacyAccount, context.Signer);
         var value = world.GetValue(key, (Integer)0);
         world[key] = Operator.Calculate(value, Operand);
