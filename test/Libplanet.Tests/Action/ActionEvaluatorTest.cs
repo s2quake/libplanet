@@ -1586,25 +1586,16 @@ public partial class ActionEvaluatorTest
         [Property(3)]
         public Address? Receiver { get; set; }
 
-        // public IWorld Execute(IActionContext context)
-        // {
-        //     GasTracer.UseGas(GasUsage);
-        //     var state = context.World
-        //         .SetAccount(
-        //             ReservedAddresses.LegacyAccount,
-        //             context.World.GetAccount(ReservedAddresses.LegacyAccount)
-        //                 .SetState(context.Signer, (Text)Memo));
-        //     if (!(Receiver is null) && !(MintValue is null))
-        //     {
-        //         state = state.MintAsset(context, Receiver.Value, MintValue.Value);
-        //     }
-
-        //     return state;
-        // }
-
         protected override void OnExecute(IWorldContext world, IActionContext context)
         {
-            throw new NotImplementedException();
+            GasTracer.UseGas(GasUsage);
+            var key = (ReservedAddresses.LegacyAccount, context.Signer);
+            world[key] = Memo;
+
+            if (Receiver is { } receiver && MintValue is { } mintValue)
+            {
+                world.MintAsset(receiver, mintValue);
+            }
         }
     }
 }
