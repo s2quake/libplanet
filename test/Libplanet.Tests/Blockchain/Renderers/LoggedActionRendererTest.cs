@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
     {
         private static IValue _action = ModelSerializer.Serialize(new DumbAction());
 
-        private static IWorld _world = new World(MockUtil.MockModernWorldState);
+        private static IWorld _world = MockUtil.MockModernWorldState;
 
         private static Block _genesis =
             TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);

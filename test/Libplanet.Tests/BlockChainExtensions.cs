@@ -15,7 +15,7 @@ namespace Libplanet.Tests
         /// <param name="blockChain">The <see cref="BlockChain"/> to search.</param>
         /// <returns>An <see cref="IWorldState"/> resulting from the execution of
         /// the tip of <paramref name="blockChain"/>.</returns>
-        public static IWorldState GetNextWorldState(this BlockChain blockChain) =>
+        public static IWorld GetNextWorldState(this BlockChain blockChain) =>
             blockChain.GetNextStateRootHash() is HashDigest<SHA256> stateRootHash
                 ? blockChain.GetWorldState(stateRootHash)
                 : null;
@@ -29,7 +29,7 @@ namespace Libplanet.Tests
         /// <param name="index">The index of a <see cref="Block"/> to search.</param>
         /// <returns>An <see cref="IWorldState"/> resulting from the execution of
         /// a <see cref="Block"/> associated with given <paramref name="index"/>.</returns>
-        public static IWorldState GetNextWorldState(this BlockChain blockChain, long index) =>
+        public static IWorld GetNextWorldState(this BlockChain blockChain, long index) =>
             blockChain.GetNextStateRootHash(index) is HashDigest<SHA256> stateRootHash
                 ? blockChain.GetWorldState(stateRootHash)
                 : null;
@@ -43,7 +43,7 @@ namespace Libplanet.Tests
         /// <param name="blockHash">The <see cref="BlockHash"/> to search.</param>
         /// <returns>An <see cref="IWorldState"/> resulting from the execution of
         /// a <see cref="Block"/> associated with given <paramref name="blockHash"/>.</returns>
-        public static IWorldState GetNextWorldState(
+        public static IWorld GetNextWorldState(
             this BlockChain blockChain,
             BlockHash blockHash) =>
             blockChain.GetNextStateRootHash(blockHash) is HashDigest<SHA256> stateRootHash

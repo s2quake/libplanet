@@ -8,7 +8,7 @@ using Libplanet.Store.Trie;
 
 namespace Libplanet.Explorer.GraphTypes
 {
-    public class AccountStateType : ObjectGraphType<IAccountState>
+    public class AccountStateType : ObjectGraphType<IAccount>
     {
         internal static readonly KeyBytes ValidatorSetKey =
             KeyBytes.Create([_underScore, _underScore, _underScore]);

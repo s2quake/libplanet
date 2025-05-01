@@ -187,7 +187,7 @@ internal sealed class BlockChainService(
 
         var nullTrie = stateStore.GetStateRoot(default);
         nullTrie = nullTrie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
-        IWorld world = new World(new WorldBaseState(nullTrie, stateStore));
+        IWorld world = new World(nullTrie, stateStore);
         var codec = new Codec();
 
         foreach (var accountKv in data)
@@ -206,11 +206,11 @@ internal sealed class BlockChainService(
         }
 
         var worldTrie = world.Trie;
-        foreach (var account in world.Delta.Accounts)
+        foreach (var (address, account) in world.Delta)
         {
-            var accountTrie = stateStore.Commit(account.Value.Trie);
+            var accountTrie = stateStore.Commit(account.Trie);
             worldTrie = worldTrie.Set(
-                KeyConverters.ToStateKey(account.Key),
+                KeyConverters.ToStateKey(address),
                 new Binary(accountTrie.Hash.Bytes));
         }
 

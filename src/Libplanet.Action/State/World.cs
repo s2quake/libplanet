@@ -1,40 +1,87 @@
+using System.Security.Cryptography;
+using Bencodex.Types;
+using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Store;
 using Libplanet.Store.Trie;
+using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action.State;
 
-public class World : IWorld
+public sealed record class World : IWorld
 {
-    private readonly IWorldState _baseState;
+    private readonly IStateStore _stateStore;
+    private readonly ImmutableDictionary<Address, Account> _accountByAddress;
 
-    public World(IWorldState baseState)
-        : this(baseState, new WorldDelta())
+    public World(ITrie trie, IStateStore stateStore)
+        : this(trie, stateStore, ImmutableDictionary<Address, Account>.Empty)
     {
     }
 
-    private World(IWorldState baseState, IWorldDelta delta)
+    public World(HashDigest<SHA256> stateRootHash, IStateStore stateStore)
+        : this(stateStore.GetStateRoot(stateRootHash), stateStore, ImmutableDictionary<Address, Account>.Empty)
     {
-        _baseState = baseState;
-        Delta = delta;
     }
 
-    public IWorldDelta Delta { get; }
-
-    public ITrie Trie => _baseState.Trie;
-
-    public int Version => _baseState.Version;
-
-    public IAccount GetAccount(Address address)
+    private World(ITrie trie, IStateStore stateStore, ImmutableDictionary<Address, Account> delta)
     {
-        return Delta.Accounts.TryGetValue(address, out IAccount? account)
-            ? account
-            : new Account(_baseState.GetAccountState(address));
+        Trie = trie;
+        _stateStore = stateStore;
+        _accountByAddress = delta;
+        // _baseState = baseState;
+        // Delta = delta;
     }
 
-    public IAccountState GetAccountState(Address address) => GetAccount(address);
+    public ITrie Trie { get; }
 
-    public IWorld SetAccount(Address address, IAccount account)
+    // public IWorldDelta Delta { get; }
+
+    // public ITrie Trie => _baseState.Trie;
+
+    public int Version => Trie.GetMetadata() is { } value ? value.Version : 0;
+
+    ImmutableDictionary<Address, IAccount> IWorld.Delta
+        => _accountByAddress.ToImmutableDictionary(
+            kvp => kvp.Key,
+            kvp => (IAccount)kvp.Value);
+
+    public Account GetAccount(Address address)
     {
-        return new World(_baseState, Delta.SetAccount(address, account));
+        if (_accountByAddress.TryGetValue(address, out var account))
+        {
+            return account;
+        }
+
+
+        // return _accountByAddress.TryGetValue(address, out IAccount? account)
+        //     ? account
+        //     : new Account(_baseState.GetAccount(address));
+
+
+        if (Trie.TryGetValue(ToStateKey(address), out var value) && value is Binary binary)
+        {
+            return new Account(_stateStore.GetStateRoot(new HashDigest<SHA256>(binary.ByteArray)));
+        }
+        else
+        {
+            return new Account(_stateStore.GetStateRoot(default));
+        }
+    }
+
+    // public IAccountState GetAccount(Address address) => GetAccount(address);
+
+    public World SetAccount(Address address, Account account)
+    {
+        return new World(Trie, _stateStore, _accountByAddress.SetItem(address, account));
+    }
+
+    IAccount IWorld.GetAccount(Address address)
+    {
+        return GetAccount(address);
+    }
+
+    IWorld IWorld.SetAccount(Address address, IAccount account)
+    {
+        return SetAccount(address, (Account)account);
     }
 }

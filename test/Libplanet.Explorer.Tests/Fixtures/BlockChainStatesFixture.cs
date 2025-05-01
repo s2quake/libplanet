@@ -43,7 +43,7 @@ public static class BlockChainStatesFixture
             .SetBalance(Address, Amount)
             .SetBalance(new PrivateKey().Address, AdditionalSupply)
             .SetValidatorSet(Validators);
-        IAccount account = new Account(mock.GetAccountState(ReservedAddresses.LegacyAccount));
+        IAccount account = mock.GetAccount(ReservedAddresses.LegacyAccount);
         account = account.SetState(Address, Value);
         mock = mock.SetAccount(ReservedAddresses.LegacyAccount, account);
 

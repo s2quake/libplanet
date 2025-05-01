@@ -95,7 +95,7 @@ public sealed class CurrencyAccount(ITrie trie, int worldVersion, Currency curre
 
     public IAccount AsAccount()
     {
-        return new Account(new AccountState(Trie));
+        return new Account(Trie);
     }
 
     private CurrencyAccount MintRawAssetV0(

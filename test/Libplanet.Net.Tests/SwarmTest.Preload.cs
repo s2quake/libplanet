@@ -99,7 +99,7 @@ namespace Libplanet.Net.Tests
                 await receiverSwarm.PreloadAsync();
                 var state = receiverChain
                     .GetNextWorldState()
-                    .GetAccountState(ReservedAddresses.LegacyAccount)
+                    .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetState(address1);
 
                 Assert.Equal((Text)"foo,bar,baz", state);
@@ -663,7 +663,7 @@ namespace Libplanet.Net.Tests
                             string.Join(",", Enumerable.Range(0, 5).Select(j => $"Item{i}.{j}")))),
                     receiverChain
                         .GetNextWorldState()
-                        .GetAccountState(ReservedAddresses.LegacyAccount)
+                        .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetState(address));
             }
             else
@@ -676,7 +676,7 @@ namespace Libplanet.Net.Tests
                             string.Join(",", Enumerable.Range(0, 5).Select(j => $"Item{i}.{j}")))),
                     receiverChain
                         .GetNextWorldState()
-                        .GetAccountState(ReservedAddresses.LegacyAccount)
+                        .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetState(address)
                 );
             }

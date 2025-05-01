@@ -1,10 +1,10 @@
-using Libplanet.Crypto;
+// using Libplanet.Crypto;
 
-namespace Libplanet.Action.State;
+// namespace Libplanet.Action.State;
 
-public interface IWorldDelta
-{
-    ImmutableDictionary<Address, IAccount> Accounts { get; }
+// public interface IWorldDelta
+// {
+//     ImmutableDictionary<Address, IAccount> Accounts { get; }
 
-    IWorldDelta SetAccount(Address address, IAccount account);
-}
+//     IWorldDelta SetAccount(Address address, IAccount account);
+// }

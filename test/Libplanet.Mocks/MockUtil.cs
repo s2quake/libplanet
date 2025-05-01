@@ -17,15 +17,15 @@ public static class MockUtil
     /// <summary>
     /// A disposable empty <see cref="IAccountState"/>.
     /// </summary>
-    public static IAccountState MockAccountState => new AccountState(MockTrie);
+    public static IAccount MockAccountState => new Account(MockTrie);
 
     /// <summary>
     /// A disposable empty legacy <see cref="IWorldState"/>.
     /// </summary>
-    public static IWorldState MockLegacyWorldState => MockWorldState.CreateLegacy(_stateStore);
+    public static IWorld MockLegacyWorldState => MockWorldState.CreateLegacy(_stateStore);
 
     /// <summary>
     /// A disposable empty modern <see cref="IWorldState"/>.
     /// </summary>
-    public static IWorldState MockModernWorldState => MockWorldState.CreateModern(_stateStore);
+    public static IWorld MockModernWorldState => MockWorldState.CreateModern(_stateStore);
 }

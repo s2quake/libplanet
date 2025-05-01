@@ -39,7 +39,7 @@ public class InitializeTest
     {
         var random = new System.Random();
         Address signer = random.NextAddress();
-        var prevState = new World(MockWorldState.CreateModern());
+        var prevState = MockWorldState.CreateModern();
         BlockHash genesisHash = random.NextBlockHash();
         var context = new ActionContext
         {
@@ -70,7 +70,7 @@ public class InitializeTest
     {
         var random = new System.Random();
         Address signer = random.NextAddress();
-        var prevState = new World(MockWorldState.CreateModern());
+        var prevState = MockWorldState.CreateModern();
         BlockHash genesisHash = random.NextBlockHash();
         var key = new PrivateKey();
         var hash = random.NextBlockHash();
