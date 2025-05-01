@@ -47,7 +47,7 @@ namespace Libplanet.Action.Tests
             );
         }
 
-        public static void AssertAccountEqual(IAccount expected, IAccount actual)
+        public static void AssertAccountEqual(Account expected, Account actual)
         {
             if (expected is null && actual is null)
             {

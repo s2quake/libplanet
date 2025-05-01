@@ -40,10 +40,10 @@ namespace Libplanet.Action.Tests.Common
             _blockIndex = (Integer)dict["block_index"];
         }
 
-        public IWorld Execute(IActionContext context)
+        public World Execute(IActionContext context)
         {
-            IWorld states = context.World;
-            IAccount account = states.GetAccount(_accountAddress);
+            World states = context.World;
+            Account account = states.GetAccount(_accountAddress);
             if (context.BlockHeight == _blockIndex)
             {
                 states = states.SetAccount(_accountAddress, account.SetState(_address, _value));

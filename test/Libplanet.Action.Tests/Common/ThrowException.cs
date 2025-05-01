@@ -8,7 +8,7 @@ public sealed record class ThrowException : IAction
 
     public bool Deterministic { get; init; } = true;
 
-    public IWorld Execute(IActionContext context)
+    public World Execute(IActionContext context)
     {
         if (ThrowOnExecution)
         {

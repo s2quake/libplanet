@@ -25,17 +25,17 @@ namespace Libplanet.Blockchain
         }
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(BlockHash)"/>
-        public IWorld GetWorldState(BlockHash offset)
+        public World GetWorldState(BlockHash offset)
         {
             using Activity? a = _activitySource
                 .StartActivity(ActivityKind.Internal)?
                 .AddTag("BlockHash", offset.ToString());
-            return new World(GetTrie(offset), _stateStore);
+            return World.Create(GetTrie(offset), _stateStore);
         }
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(HashDigest{SHA256})"/>
-        public IWorld GetWorldState(HashDigest<SHA256> stateRootHash)
-            => new World(GetTrie(stateRootHash), _stateStore);
+        public World GetWorldState(HashDigest<SHA256> stateRootHash)
+            => World.Create(GetTrie(stateRootHash), _stateStore);
 
         /// <summary>
         /// Returns the state root associated with <see cref="BlockHash"/>

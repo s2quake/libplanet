@@ -30,7 +30,7 @@ namespace Libplanet.Analyzers.Tests
                         public SampleAction() {}
                         public IValue PlainValue => Null.Value;
                         public void LoadPlainValue(IValue plainValue) {}
-                        public IWorld Execute(IActionContext context) {
+                        public World Execute(IActionContext context) {
                             new Random().Next();
                             return context.PreviousState;
                         }
@@ -129,7 +129,7 @@ namespace Libplanet.Analyzers.Tests
                         public SampleAction() {}
                         public IValue PlainValue => Null.Value;
                         public void LoadPlainValue(IValue plainValue) {}
-                        public IWorld Execute(IActionContext context) {
+                        public World Execute(IActionContext context) {
                             // Following code should all fail:
                             var v = " + expr + @";
                             ConsumeEnumerable(v);

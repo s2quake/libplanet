@@ -11,27 +11,27 @@ namespace Libplanet.Blockchain
         /// Gets the current world state in the <see cref="BlockChain"/>.
         /// </summary>
         /// <returns>The current world state.</returns>
-        public IWorld GetWorldState() => GetWorldState(Tip.Hash);
+        public World GetWorldState() => GetWorldState(Tip.Hash);
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(BlockHash)" />
-        public IWorld GetWorldState(BlockHash offset)
+        public World GetWorldState(BlockHash offset)
             => _blockChainStates.GetWorldState(offset);
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(HashDigest{SHA256})" />
-        public IWorld GetWorldState(HashDigest<SHA256> stateRootHash)
+        public World GetWorldState(HashDigest<SHA256> stateRootHash)
             => _blockChainStates.GetWorldState(stateRootHash);
 
         /// <summary>
         /// Gets the next world state in the <see cref="BlockChain"/>.
         /// </summary>
         /// <returns>The next world state.  If it does not exist, returns null.</returns>
-        public IWorld GetNextWorldState()
+        public World GetNextWorldState()
         {
             if (GetNextStateRootHash() is { } nsrh)
             {
                 var trie = StateStore.GetStateRoot(nsrh);
                 return trie.IsCommitted
-                    ? new World(trie, StateStore)
+                    ? new World { Trie = trie, StateStore = StateStore }
                     : throw new InvalidOperationException(
                         $"Could not find state root {nsrh} in {nameof(StateStore)} for " +
                         $"the current tip.");

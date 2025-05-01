@@ -7,10 +7,13 @@ namespace Libplanet.Action.State;
 
 internal static class IStateStoreExtensions
 {
-    public static IWorld GetWorld(this IStateStore @this, HashDigest<SHA256> stateRootHash)
-        => new World(@this.GetStateRoot(stateRootHash), @this);
+    public static World GetWorld(this IStateStore @this, HashDigest<SHA256> stateRootHash) => new()
+    {
+        Trie = @this.GetStateRoot(stateRootHash),
+        StateStore = @this,
+    };
 
-    public static IWorld CommitWorld(this IStateStore stateStore, IWorld world)
+    public static World CommitWorld(this IStateStore stateStore, World world)
     {
         var trie = world.Trie;
         foreach (var (address, account) in world.Delta)
@@ -21,6 +24,6 @@ internal static class IStateStoreExtensions
             trie = trie.Set(key, value);
         }
 
-        return new World(stateStore.Commit(trie), stateStore);
+        return new World { Trie = stateStore.Commit(trie), StateStore = stateStore };
     }
 }

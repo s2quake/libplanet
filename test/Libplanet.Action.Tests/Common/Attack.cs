@@ -27,12 +27,12 @@ public sealed record class Attack : ActionBase
         };
     }
 
-    // public override IWorld Execute(IActionContext context)
+    // public override World Execute(IActionContext context)
     // {
     //     IImmutableSet<string> usedWeapons = ImmutableHashSet<string>.Empty;
     //     IImmutableSet<string> targets = ImmutableHashSet<string>.Empty;
-    //     IWorld previousState = context.World;
-    //     IAccount legacyAccount = previousState.GetAccount(ReservedAddresses.LegacyAccount);
+    //     World previousState = context.World;
+    //     Account legacyAccount = previousState.GetAccount(ReservedAddresses.LegacyAccount);
 
     //     object value = legacyAccount.GetState(TargetAddress);
     //     if (!ReferenceEquals(value, null))

@@ -24,7 +24,7 @@ public class DumbAction : IAction
         }
     }
 
-    public IWorld Execute(IActionContext context)
+    public World Execute(IActionContext context)
     {
         if (ErrorMessage != string.Empty)
         {

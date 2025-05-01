@@ -65,7 +65,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
     }
 
     internal ActionEvaluation[] EvaluateActions(
-        RawBlock block, Transaction? tx, IWorld world, ImmutableArray<IAction> actions)
+        RawBlock block, Transaction? tx, World world, ImmutableArray<IAction> actions)
     {
         var signature = tx?.Signature ?? [];
         var randomSeed = GenerateRandomSeed(block.RawHash.Bytes.AsSpan(), signature);
@@ -128,7 +128,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         if (!world.Trie.IsCommitted)
         {
             throw new InvalidOperationException(
-                $"Failed to record {nameof(IAccount)}'s {nameof(ITrie)}.");
+                $"Failed to record {nameof(Account)}'s {nameof(ITrie)}.");
         }
 
         return new ActionEvaluation
@@ -140,7 +140,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         };
     }
 
-    internal ActionEvaluation[] EvaluateBlock(RawBlock block, IWorld world)
+    internal ActionEvaluation[] EvaluateBlock(RawBlock block, World world)
     {
         var txs = block.Transactions;
         var capacity = GetCapacity(block);
@@ -159,7 +159,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         return [.. evaluationList];
     }
 
-    internal ActionEvaluation[] EvaluateTx(RawBlock block, Transaction tx, IWorld world)
+    internal ActionEvaluation[] EvaluateTx(RawBlock block, Transaction tx, World world)
     {
         GasTracer.Initialize(tx.GasLimit ?? long.MaxValue);
         var evaluationList = new List<ActionEvaluation>();
@@ -187,22 +187,22 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         return [.. evaluationList];
     }
 
-    internal ActionEvaluation[] EvaluateBeginBlockActions(RawBlock block, IWorld world)
+    internal ActionEvaluation[] EvaluateBeginBlockActions(RawBlock block, World world)
     {
         return EvaluateActions(block, null, world, policyActions.BeginBlockActions);
     }
 
-    internal ActionEvaluation[] EvaluateEndBlockActions(RawBlock block, IWorld world)
+    internal ActionEvaluation[] EvaluateEndBlockActions(RawBlock block, World world)
     {
         return EvaluateActions(block, null, world, policyActions.EndBlockActions);
     }
 
-    internal ActionEvaluation[] EvaluateBeginTxActions(RawBlock block, Transaction tx, IWorld world)
+    internal ActionEvaluation[] EvaluateBeginTxActions(RawBlock block, Transaction tx, World world)
     {
         return EvaluateActions(block, tx, world, policyActions.BeginTxActions);
     }
 
-    internal ActionEvaluation[] EvaluateEndTxActions(RawBlock block, Transaction tx, IWorld world)
+    internal ActionEvaluation[] EvaluateEndTxActions(RawBlock block, Transaction tx, World world)
     {
         return EvaluateActions(block, tx, world, policyActions.EndTxActions);
     }

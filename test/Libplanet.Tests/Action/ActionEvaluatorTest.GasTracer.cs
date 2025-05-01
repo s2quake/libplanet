@@ -226,7 +226,7 @@
 //                 CancelTrace = (Bencodex.Types.Boolean)list[0];
 //             }
 
-//             public IWorld Execute(IActionContext context)
+//             public World Execute(IActionContext context)
 //             {
 //                 if (CancelTrace)
 //                 {

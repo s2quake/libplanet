@@ -23,7 +23,7 @@ public class DumbAction : IAction
         // Do nothing.
     }
 
-    public IWorld Execute(IActionContext context) =>
+    public World Execute(IActionContext context) =>
         context.PreviousState;
 }
 

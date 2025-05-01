@@ -254,7 +254,7 @@ public static class Utils
 
         public IValue PlainValue { get; private set; }
 
-        public IWorld Execute(IActionContext context) =>
+        public World Execute(IActionContext context) =>
         context.World;
 
         public void LoadPlainValue(IValue plainValue)

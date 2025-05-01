@@ -15,7 +15,7 @@
 
 //         public abstract IValue PlainValue { get; }
 
-//         public abstract IWorld Execute(IActionContext context);
+//         public abstract World Execute(IActionContext context);
 
 //         public abstract void LoadPlainValue(IValue plainValue);
 

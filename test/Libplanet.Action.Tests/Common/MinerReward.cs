@@ -36,10 +36,10 @@ namespace Libplanet.Action.Tests.Common
             Reward = (Integer)plainValue["reward"];
         }
 
-        public IWorld Execute(IActionContext ctx)
+        public World Execute(IActionContext ctx)
         {
-            IWorld states = ctx.World;
-            IAccount legacyAccount = states.GetAccount(ReservedAddresses.LegacyAccount);
+            World states = ctx.World;
+            Account legacyAccount = states.GetAccount(ReservedAddresses.LegacyAccount);
 
             string rewardRecord = (Text?)legacyAccount.GetState(RewardRecordAddress);
 

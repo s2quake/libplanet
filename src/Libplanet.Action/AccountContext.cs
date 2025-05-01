@@ -7,13 +7,13 @@ using Libplanet.Serialization;
 namespace Libplanet.Action;
 
 internal sealed class AccountContext(
-    IAccount account, Address address, Action<AccountContext> setter) : IAccountContext
+    Account account, Address address, Action<AccountContext> setter) : IAccountContext
 {
-    private IAccount _account = account;
+    private Account _account = account;
 
     public Address Address { get; } = address;
 
-    public IAccount Account => _account;
+    public Account Account => _account;
 
     public bool IsReadOnly => false;
 

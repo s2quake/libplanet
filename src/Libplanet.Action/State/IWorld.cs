@@ -1,19 +1,19 @@
-using Libplanet.Crypto;
-using Libplanet.Store.Trie;
+// using Libplanet.Crypto;
+// using Libplanet.Store.Trie;
 
-namespace Libplanet.Action.State;
+// namespace Libplanet.Action.State;
 
-public interface IWorld
-{
-    ITrie Trie { get; }
+// public interface World
+// {
+//     ITrie Trie { get; }
 
-    Address Signer { get; }
+//     Address Signer { get; }
 
-    int Version => Trie.GetMetadata() is { } value ? value.Version : 0;
+//     // int Version => Trie.GetMetadata() is { } value ? value.Version : 0;
 
-    ImmutableDictionary<Address, IAccount> Delta { get; }
+//     ImmutableDictionary<Address, Account> Delta { get; }
 
-    IAccount GetAccount(Address address);
+//     Account GetAccount(Address address);
 
-    IWorld SetAccount(Address address, IAccount account);
-}
+//     World SetAccount(Address address, Account account);
+// }

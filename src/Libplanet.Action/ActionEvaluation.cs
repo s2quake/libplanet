@@ -8,7 +8,7 @@ public sealed record class ActionEvaluation
 
     public required IActionContext InputContext { get; init; }
 
-    public required IWorld OutputState { get; init; }
+    public required World OutputState { get; init; }
 
     public Exception? Exception { get; init; }
 }

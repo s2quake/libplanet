@@ -8,7 +8,7 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Explorer.GraphTypes
 {
-    public class WorldStateType : ObjectGraphType<IWorld>
+    public class WorldStateType : ObjectGraphType<World>
     {
         public WorldStateType()
         {

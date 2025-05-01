@@ -2,6 +2,7 @@ using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Mocks;
+using Libplanet.Store;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Action
@@ -10,7 +11,7 @@ namespace Libplanet.Tests.Action
     {
         private readonly PrivateKey[] _keys;
         private readonly Address[] _addr;
-        private readonly IAccount _initAccount;
+        private readonly Account _initAccount;
 
         public AccountTest(ITestOutputHelper output)
         {
@@ -22,7 +23,7 @@ namespace Libplanet.Tests.Action
             };
 
             _addr = _keys.Select(key => key.Address).ToArray();
-            _initAccount = MockUtil.MockAccountState
+            _initAccount = new Account(new TrieStateStore().GetStateRoot(default))
                 .SetState(_addr[0], (Text)"a")
                 .SetState(_addr[1], (Text)"b");
 
@@ -49,7 +50,7 @@ namespace Libplanet.Tests.Action
         [Fact]
         public virtual void States()
         {
-            IAccount a = _initAccount.SetState(_addr[0], (Text)"A");
+            Account a = _initAccount.SetState(_addr[0], (Text)"A");
             AccountDiff diffa = AccountDiff.Create(_initAccount.Trie, a.Trie);
             Assert.Equal("A", (Text)a.GetState(_addr[0]));
             Assert.Equal("a", (Text)_initAccount.GetState(_addr[0]));
@@ -61,7 +62,7 @@ namespace Libplanet.Tests.Action
                 _addr[0],
                 Assert.Single(diffa.StateDiffs).Key);
 
-            IAccount b = a.SetState(_addr[0], (Text)"z");
+            Account b = a.SetState(_addr[0], (Text)"z");
             AccountDiff diffb = AccountDiff.Create(a.Trie, b.Trie);
             Assert.Equal("z", (Text)b.GetState(_addr[0]));
             Assert.Equal("A", (Text)a.GetState(_addr[0]));
@@ -74,7 +75,7 @@ namespace Libplanet.Tests.Action
                 _addr[0],
                 Assert.Single(diffb.StateDiffs).Key);
 
-            IAccount c = b.SetState(_addr[0], (Text)"a");
+            Account c = b.SetState(_addr[0], (Text)"a");
             Assert.Equal("a", (Text)c.GetState(_addr[0]));
             Assert.Equal("z", (Text)b.GetState(_addr[0]));
         }
@@ -82,7 +83,7 @@ namespace Libplanet.Tests.Action
         [Fact]
         public void RemoveState()
         {
-            IAccount a = _initAccount.SetState(_addr[0], (Text)"A");
+            Account a = _initAccount.SetState(_addr[0], (Text)"A");
             a = a.SetState(_addr[1], (Text)"B");
             Assert.Equal((Text)"A", a.GetState(_addr[0]));
             Assert.Equal((Text)"B", a.GetState(_addr[1]));

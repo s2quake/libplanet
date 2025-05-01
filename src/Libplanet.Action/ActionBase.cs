@@ -12,7 +12,7 @@ public abstract record class ActionBase : IAction
     {
     }
 
-    IWorld IAction.Execute(IActionContext context)
+    World IAction.Execute(IActionContext context)
     {
         using var worldContext = new WorldContext(context.World);
         UseGas(GetType());

@@ -1213,7 +1213,7 @@ public partial class BlockChainTest : IDisposable
 
         // Build a store with incomplete states
         Block b = chain.Genesis;
-        IWorld previousState = stateStore.GetWorld(default);
+        World previousState = stateStore.GetWorld(default);
         const int accountsCount = 5;
         Address[] addresses = Enumerable.Repeat<object>(null, accountsCount)
             .Select(_ => new PrivateKey().Address)
