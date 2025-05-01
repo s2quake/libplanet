@@ -11,6 +11,8 @@ public interface IAccountState
 
     IValue GetState(Address address);
 
+    IValue? GetStateOrDefault(Address address) => TryGetState(address, out IValue? state) ? state : null;
+
     bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state);
 
     IValue[] GetStates(IEnumerable<Address> addresses);

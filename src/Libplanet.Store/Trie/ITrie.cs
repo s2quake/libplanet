@@ -23,9 +23,9 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
 
     ITrie Set(string key, IValue value) => Set((KeyBytes)key, value);
 
-    ITrie? Remove(in KeyBytes key);
+    ITrie Remove(in KeyBytes key);
 
-    ITrie? Remove(in ImmutableArray<byte> key) => Remove(new KeyBytes(key));
+    ITrie Remove(in ImmutableArray<byte> key) => Remove(new KeyBytes(key));
 
     INode GetNode(in Nibbles key);
 

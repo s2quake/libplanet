@@ -18,11 +18,6 @@ public sealed class AggregateTypedActionLoader : IActionLoader, IEnumerable<IAct
 
     public IAction LoadAction(IValue value)
     {
-        // if (Registry.IsSystemAction(value))
-        // {
-        //     return Registry.Deserialize(value);
-        // }
-
         foreach (var item in _actionLoaderList)
         {
             try

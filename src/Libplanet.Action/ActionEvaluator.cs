@@ -32,7 +32,6 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             }
 
             return BitConverter.ToInt32(rawHashBytes) ^ 0;
-
         }
     }
 

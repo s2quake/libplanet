@@ -5,7 +5,7 @@ namespace Libplanet.Store.Trie;
 
 internal static class NodeRemover
 {
-    public static INode? Remove(INode node, in PathCursor cursor) => node switch
+    public static INode Remove(INode node, in PathCursor cursor) => node switch
     {
         HashNode hashNode => RemoveFromHashNode(hashNode, cursor),
         ValueNode valueNode => RemoveFromValueNode(valueNode, cursor),
@@ -15,13 +15,13 @@ internal static class NodeRemover
             $"Unsupported node value: {node.ToBencodex().Inspect()}"),
     };
 
-    private static INode? RemoveFromHashNode(HashNode hashNode, PathCursor cursor)
+    private static INode RemoveFromHashNode(HashNode hashNode, PathCursor cursor)
         => Remove(hashNode.Expand(), cursor);
 
-    private static ValueNode? RemoveFromValueNode(ValueNode valueNode, PathCursor cursor)
-        => cursor.IsEnd ? null : valueNode;
+    private static INode RemoveFromValueNode(ValueNode valueNode, PathCursor cursor)
+        => cursor.IsEnd ? NullNode.Value : valueNode;
 
-    private static ShortNode? RemoveFromShortNode(ShortNode shortNode, PathCursor cursor)
+    private static ShortNode RemoveFromShortNode(ShortNode shortNode, PathCursor cursor)
     {
         var key = shortNode.Key;
         var nextCursor = cursor.SkipCommonPrefix(cursor.Position, key);
