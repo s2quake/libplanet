@@ -83,7 +83,7 @@ public sealed record class Block : IEquatable<Block>
 
     public long Height => Header.Height;
 
-    public Address Miner => Header.Miner;
+    public Address Proposer => Header.Proposer;
 
     // public PublicKey? PublicKey => Header.PublicKey;
 

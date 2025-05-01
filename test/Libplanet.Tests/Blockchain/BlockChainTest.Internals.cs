@@ -112,7 +112,7 @@ namespace Libplanet.Tests.Blockchain
                 ImmutableArray<EvidenceBase>.Empty);
             _blockChain.Append(block1, CreateBlockCommit(block1), render: true);
 
-            var minerAddress = genesis.Miner;
+            var minerAddress = genesis.Proposer;
 
             var expectedStates = new Dictionary<Address, IValue>
             {

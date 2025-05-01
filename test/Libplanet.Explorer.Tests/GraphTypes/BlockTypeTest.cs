@@ -44,7 +44,7 @@ public class BlockTypeTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Miner = privateKey.Address,
+                Proposer = privateKey.Address,
                 PreviousHash = lastBlockHash,
                 LastCommit = lastBlockCommit,
             },
@@ -104,7 +104,7 @@ public class BlockTypeTest
             ByteUtil.Hex(block.Hash.Bytes.ToArray()),
             resultData["hash"]);
         Assert.Equal(
-            block.Miner.ToString(),
+            block.Proposer.ToString(),
             resultData["miner"]);
         Assert.Equal(
             new DateTimeOffsetGraphType().Serialize(block.Timestamp),

@@ -27,7 +27,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<AddressType>>(
             name: "Miner",
             description: "The address of the miner.",
-            resolve: x => x.Source.Miner
+            resolve: x => x.Source.Proposer
         );
         // Field<PublicKeyType>(
         //     name: "PublicKey",

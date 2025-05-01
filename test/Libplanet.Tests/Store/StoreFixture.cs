@@ -106,30 +106,30 @@ public abstract class StoreFixture : IDisposable
             (RawBlock)GenesisBlock, GenesisBlock.StateRootHash).Last().OutputState;
         Block1 = TestUtils.ProposeNextBlock(
             GenesisBlock,
-            miner: Proposer,
+            proposer: Proposer,
             stateRootHash: genesisNextSrh,
             lastCommit: null);
         stateRootHashes[Block1.Hash] = Block1.StateRootHash;
         Block2 = TestUtils.ProposeNextBlock(
             Block1,
-            miner: Proposer,
+            proposer: Proposer,
             stateRootHash: genesisNextSrh,
             lastCommit: TestUtils.CreateBlockCommit(Block1));
         stateRootHashes[Block2.Hash] = Block2.StateRootHash;
         Block3 = TestUtils.ProposeNextBlock(
             Block2,
-            miner: Proposer,
+            proposer: Proposer,
             stateRootHash: genesisNextSrh,
             lastCommit: TestUtils.CreateBlockCommit(Block2));
         stateRootHashes[Block3.Hash] = Block3.StateRootHash;
         Block3Alt = TestUtils.ProposeNextBlock(
-            Block2, miner: Proposer, stateRootHash: genesisNextSrh);
+            Block2, proposer: Proposer, stateRootHash: genesisNextSrh);
         stateRootHashes[Block3Alt.Hash] = Block3Alt.StateRootHash;
         Block4 = TestUtils.ProposeNextBlock(
-            Block3, miner: Proposer, stateRootHash: genesisNextSrh);
+            Block3, proposer: Proposer, stateRootHash: genesisNextSrh);
         stateRootHashes[Block4.Hash] = Block4.StateRootHash;
         Block5 = TestUtils.ProposeNextBlock(
-            Block4, miner: Proposer, stateRootHash: genesisNextSrh);
+            Block4, proposer: Proposer, stateRootHash: genesisNextSrh);
         stateRootHashes[Block5.Hash] = Block5.StateRootHash;
 
         Transaction1 = MakeTransaction(new List<DumbAction>());

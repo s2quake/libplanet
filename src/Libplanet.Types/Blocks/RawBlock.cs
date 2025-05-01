@@ -29,7 +29,7 @@ public sealed record class RawBlock
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public Address Miner => Metadata.Miner;
+    public Address Proposer => Metadata.Proposer;
 
     // public PublicKey? PublicKey => Metadata.PublicKey;
 
@@ -82,7 +82,7 @@ public sealed record class RawBlock
             ProtocolVersion = Metadata.ProtocolVersion,
             Height = Metadata.Height,
             Timestamp = Metadata.Timestamp,
-            Miner = Metadata.Miner,
+            Proposer = Metadata.Proposer,
             // PublicKey = Metadata.PublicKey,
             PreviousHash = Metadata.PreviousHash,
             TxHash = Metadata.TxHash,

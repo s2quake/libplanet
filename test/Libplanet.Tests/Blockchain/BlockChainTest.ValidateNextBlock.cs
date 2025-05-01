@@ -21,7 +21,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     },
                     new BlockContent
@@ -43,7 +43,7 @@ namespace Libplanet.Tests.Blockchain
                         ProtocolVersion = protocolVersion,
                         Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     },
                     new BlockContent
@@ -58,7 +58,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 2L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.Hash,
                     },
                     new BlockContent
@@ -75,7 +75,7 @@ namespace Libplanet.Tests.Blockchain
                             ProtocolVersion = BlockMetadata.CurrentProtocolVersion + 1,
                             Height = 2L,
                             Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                            Miner = _fx.Proposer.Address,
+                            Proposer = _fx.Proposer.Address,
                             PreviousHash = block1.Hash,
                         },
                         new BlockContent
@@ -98,7 +98,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = prev.Height,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = prev.Hash,
                     }),
                 _fx.Proposer);
@@ -114,7 +114,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = prev.Height + 2,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = prev.Hash,
                         LastCommit = TestUtils.CreateBlockCommit(prev.Hash, prev.Height + 1, 0),
                     }),
@@ -137,7 +137,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         // Should be _validNext.Hash instead
                         PreviousHash = _validNext.PreviousHash,
                         // ReSharper disable once PossibleInvalidOperationException
@@ -162,7 +162,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 2,
                         Timestamp = _validNext.Timestamp.AddSeconds(-1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _validNext.Hash,
                         LastCommit = TestUtils.CreateBlockCommit(_validNext),
                     }),
@@ -225,7 +225,7 @@ namespace Libplanet.Tests.Blockchain
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
                         Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
-                        Miner = TestUtils.GenesisProposer.Address,
+                        Proposer = TestUtils.GenesisProposer.Address,
                         PreviousHash = genesisBlock.Hash,
                     }),
                 TestUtils.GenesisProposer);
@@ -269,7 +269,7 @@ namespace Libplanet.Tests.Blockchain
                         ProtocolVersion = beforePostponeBPV,
                         Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
-                        Miner = TestUtils.GenesisProposer.Address,
+                        Proposer = TestUtils.GenesisProposer.Address,
                         PreviousHash = genesisBlock.Hash,
                     }),
                 TestUtils.GenesisProposer);
@@ -333,7 +333,7 @@ namespace Libplanet.Tests.Blockchain
                 {
                     Height = 1,
                     Timestamp = genesisBlock.Timestamp.AddSeconds(1),
-                    Miner = TestUtils.GenesisProposer.Address,
+                    Proposer = TestUtils.GenesisProposer.Address,
                     PreviousHash = genesisBlock.Hash,
                 });
             Block block1 = chain.EvaluateAndSign(
@@ -360,7 +360,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -377,7 +377,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -390,7 +390,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 2L,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.Hash,
                         LastCommit = blockCommit,
                     }),
@@ -408,7 +408,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -443,7 +443,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 2L,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.Hash,
                         LastCommit = blockCommit,
                     }),
@@ -461,7 +461,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -492,7 +492,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.Hash,
                         LastCommit = blockCommit,
                     }),
@@ -537,7 +537,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -560,7 +560,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -583,7 +583,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -620,7 +620,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.Hash,
                     }),
                 _fx.Proposer);
@@ -653,7 +653,7 @@ namespace Libplanet.Tests.Blockchain
                     {
                         Height = 1L,
                         Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
-                        Miner = _fx.Proposer.Address,
+                        Proposer = _fx.Proposer.Address,
                         PreviousHash = blockChain.Genesis.Hash,
                     }),
                 _fx.Proposer);
@@ -779,7 +779,7 @@ namespace Libplanet.Tests.Blockchain
                         ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
                         Height = newChain.Tip.Height + 1,
                         Timestamp = newChain.Tip.Timestamp.AddSeconds(1),
-                        Miner = TestUtils.GenesisProposer.Address,
+                        Proposer = TestUtils.GenesisProposer.Address,
                         PreviousHash = newChain.Tip.Hash,
                     }),
                 TestUtils.GenesisProposer);

@@ -45,7 +45,7 @@ public class InitializeTest
         {
             Signer = signer,
             TxId = random.NextTxId(),
-            Miner = random.NextAddress(),
+            Proposer = random.NextAddress(),
             BlockHeight = 0,
             BlockProtocolVersion = Block.CurrentProtocolVersion,
             World = prevState,
@@ -97,7 +97,7 @@ public class InitializeTest
         {
             Signer = signer,
             TxId = random.NextTxId(),
-            Miner = random.NextAddress(),
+            Proposer = random.NextAddress(),
             BlockHeight = 10,
             BlockProtocolVersion = Block.CurrentProtocolVersion,
             LastCommit = lastCommit,

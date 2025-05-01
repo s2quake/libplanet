@@ -107,7 +107,7 @@ public partial class ActionEvaluatorTest
                 ProtocolVersion = Block.CurrentProtocolVersion,
                 Height = 0,
                 Timestamp = timestamp,
-                Miner = GenesisProposer.Address,
+                Proposer = GenesisProposer.Address,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(txs),
             },
@@ -188,7 +188,7 @@ public partial class ActionEvaluatorTest
                 .GetNextWorldState()
                 .GetAccountState(ReservedAddresses.LegacyAccount)
                 .GetState(ContextRecordingAction.MinerRecordAddress),
-            ModelSerializer.Serialize(block.Miner));
+            ModelSerializer.Serialize(block.Proposer));
         Assert.Equal(
             chain
                 .GetNextWorldState()
@@ -592,7 +592,7 @@ public partial class ActionEvaluatorTest
                 block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
                 ModelSerializer.Serialize(eval.Action));
             Assert.Equal(expect.Signer, eval.InputContext.Signer);
-            Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
+            Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
             Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
         }
 
@@ -753,7 +753,7 @@ public partial class ActionEvaluatorTest
                 block2Txs[expect.TxIdx].Actions[expect.ActionIdx],
                 ModelSerializer.Serialize(eval.Action));
             Assert.Equal(expect.Signer, eval.InputContext.Signer);
-            Assert.Equal(GenesisProposer.Address, eval.InputContext.Miner);
+            Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
             Assert.Equal(block2.Height, eval.InputContext.BlockHeight);
             Assert.Null(eval.Exception);
         }
@@ -799,7 +799,7 @@ public partial class ActionEvaluatorTest
             {
                 Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
-                Miner = keys[0].Address,
+                Proposer = keys[0].Address,
                 TxHash = BlockContent.DeriveTxHash(txs),
             },
             new BlockContent
@@ -813,8 +813,7 @@ public partial class ActionEvaluatorTest
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100));
         ITrie initTrie = stateStore.Commit(world.Trie);
-        var actionEvaluator = new ActionEvaluator(
-            stateStore: stateStore);
+        var actionEvaluator = new ActionEvaluator(stateStore);
 
         IWorld previousState = stateStore.GetWorld(initTrie.Hash);
         var evaluations = actionEvaluator.EvaluateTx(
@@ -853,9 +852,9 @@ public partial class ActionEvaluatorTest
             Assert.Equal(tx.Actions[i], ModelSerializer.Serialize(eval.Action));
             Assert.Equal(_txFx.Address1, context.Signer);
             Assert.Equal(tx.Id, context.TxId);
-            Assert.Equal(addresses[0], context.Miner);
+            Assert.Equal(addresses[0], context.Proposer);
             Assert.Equal(1, context.BlockHeight);
-            ActionEvaluation prevEval = i > 0 ? evaluations[i - 1] : null;
+            var prevEval = i > 0 ? evaluations[i - 1] : null;
             Assert.Equal(
                 prevEval is null
                     ? initStates
@@ -919,7 +918,7 @@ public partial class ActionEvaluatorTest
             {
                 Height = 123,
                 Timestamp = DateTimeOffset.UtcNow,
-                Miner = GenesisProposer.Address,
+                Proposer = GenesisProposer.Address,
                 PreviousHash = hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = CreateBlockCommit(hash, 122, 0),
@@ -977,7 +976,7 @@ public partial class ActionEvaluatorTest
 
             Assert.Equal(txA.Actions[i], ModelSerializer.Serialize(eval.Action));
             Assert.Equal(txA.Id, context.TxId);
-            Assert.Equal(blockA.Miner, context.Miner);
+            Assert.Equal(blockA.Proposer, context.Proposer);
             Assert.Equal(blockA.Height, context.BlockHeight);
             Assert.Equal(txA.Signer, context.Signer);
             Assert.Equal(
@@ -1029,7 +1028,7 @@ public partial class ActionEvaluatorTest
 
             Assert.Equal(txB.Actions[i], ModelSerializer.Serialize(eval.Action));
             Assert.Equal(txB.Id, context.TxId);
-            Assert.Equal(blockB.Miner, context.Miner);
+            Assert.Equal(blockB.Proposer, context.Proposer);
             Assert.Equal(blockB.Height, context.BlockHeight);
             Assert.Equal(txB.Signer, context.Signer);
             Assert.Equal(

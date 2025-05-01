@@ -21,7 +21,7 @@ public sealed class IntegerSet
     public readonly IReadOnlyList<Address> Addresses;
     public readonly IReadOnlyList<Arithmetic> Actions;
     public readonly ImmutableSortedSet<Transaction> Txs;
-    public readonly PrivateKey Miner;
+    public readonly PrivateKey Proposer;
     public readonly Block Genesis;
     public readonly BlockChain Chain;
     public readonly IStore Store;
@@ -64,7 +64,7 @@ public sealed class IntegerSet
                     privateKey: pair.Key))
             .OrderBy(tx => tx.Id)
             .ToImmutableSortedSet();
-        Miner = new PrivateKey();
+        Proposer = new PrivateKey();
         policy = policy ?? new NullBlockPolicy();
         Store = new MemoryStore();
         KVStore = new MemoryKeyValueStore();
@@ -74,12 +74,12 @@ public sealed class IntegerSet
             policy.PolicyActions);
         Genesis = TestUtils.ProposeGenesisBlock(
             TestUtils.ProposeGenesis(
-                Miner.PublicKey,
+                Proposer.PublicKey,
                 Txs,
                 null,
                 DateTimeOffset.UtcNow,
                 Block.CurrentProtocolVersion),
-            Miner);
+            Proposer);
         Chain = BlockChain.Create(
             policy,
             new VolatileStagePolicy(),
@@ -156,7 +156,7 @@ public sealed class IntegerSet
     public TxWithContext Sign(int signerIndex, params Arithmetic[] actions)
         => Sign(PrivateKeys[signerIndex], actions);
 
-    public Block Propose() => Chain.ProposeBlock(Miner, TestUtils.CreateBlockCommit(Chain.Tip));
+    public Block Propose() => Chain.ProposeBlock(Proposer, TestUtils.CreateBlockCommit(Chain.Tip));
 
     public void Append(Block block) => Chain.Append(block, TestUtils.CreateBlockCommit(block));
 

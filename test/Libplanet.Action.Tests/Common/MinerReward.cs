@@ -44,16 +44,16 @@ namespace Libplanet.Action.Tests.Common
             string rewardRecord = (Text?)legacyAccount.GetState(RewardRecordAddress);
 
             rewardRecord = rewardRecord is null
-                ? ctx.Miner.ToString()
-                : $"{rewardRecord},{ctx.Miner}";
+                ? ctx.Proposer.ToString()
+                : $"{rewardRecord},{ctx.Proposer}";
 
             legacyAccount = legacyAccount.SetState(RewardRecordAddress, (Text)rewardRecord);
 
-            IValue tempQualifier1 = legacyAccount.GetState(ctx.Miner);
+            IValue tempQualifier1 = legacyAccount.GetState(ctx.Proposer);
             int previousReward = tempQualifier1 is Integer i ? (int)i.Value : 0;
             int reward = previousReward + Reward;
 
-            legacyAccount = legacyAccount.SetState(ctx.Miner, (Integer)reward);
+            legacyAccount = legacyAccount.SetState(ctx.Proposer, (Integer)reward);
             return states.SetAccount(ReservedAddresses.LegacyAccount, legacyAccount);
         }
     }

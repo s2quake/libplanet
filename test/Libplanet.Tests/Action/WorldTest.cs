@@ -127,7 +127,7 @@ namespace Libplanet.Tests.Action
             return new ActionContext
             {
                 Signer = signer,
-                Miner = signer,
+                Proposer = signer,
                 BlockProtocolVersion = ProtocolVersion,
                 World = world,
             };
@@ -227,7 +227,7 @@ namespace Libplanet.Tests.Action
             var block1PreEval = TestUtils.ProposeNext(
                 chain.Tip,
                 new[] { tx },
-                miner: privateKey.PublicKey,
+                proposer: privateKey.PublicKey,
                 protocolVersion: ProtocolVersion);
             var stateRootHash =
                 chain.DetermineBlockPrecededStateRootHash(block1PreEval, out _);
@@ -255,7 +255,7 @@ namespace Libplanet.Tests.Action
             var block2PreEval = TestUtils.ProposeNext(
                 chain.Tip,
                 new[] { tx },
-                miner: privateKey.PublicKey,
+                proposer: privateKey.PublicKey,
                 protocolVersion: ProtocolVersion,
                 lastCommit: chain.GetBlockCommit(chain.Tip.Height));
             stateRootHash = chain.DetermineBlockPrecededStateRootHash(block2PreEval, out _);
@@ -283,7 +283,7 @@ namespace Libplanet.Tests.Action
             var block3PreEval = TestUtils.ProposeNext(
                 chain.Tip,
                 new[] { tx },
-                miner: _keys[1].PublicKey,
+                proposer: _keys[1].PublicKey,
                 protocolVersion: ProtocolVersion,
                 lastCommit: chain.GetBlockCommit(chain.Tip.Height));
             stateRootHash = chain.DetermineBlockPrecededStateRootHash(block3PreEval, out _);

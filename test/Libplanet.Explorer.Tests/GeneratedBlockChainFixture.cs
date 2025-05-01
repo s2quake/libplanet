@@ -92,7 +92,7 @@ public class GeneratedBlockChainFixture
             genesisBlock,
             actionEvaluator);
         MinedBlocks = MinedBlocks.SetItem(
-            Chain.Genesis.Miner,
+            Chain.Genesis.Proposer,
             ImmutableArray<Block>.Empty.Add(Chain.Genesis));
 
         while (Chain.Count < blockCount)
@@ -168,7 +168,7 @@ public class GeneratedBlockChainFixture
                 {
                     Height = Chain.Tip.Height + 1,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Miner = proposer.Address,
+                    Proposer = proposer.Address,
                     PreviousHash = Chain.Tip.Hash,
                     TxHash = BlockContent.DeriveTxHash(transactions),
                     LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),

@@ -46,7 +46,7 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>
 
     // public DateTimeOffset Timestamp => _metadata.Timestamp;
 
-    public Address Miner => Header.Miner;
+    public Address Proposer => Header.Proposer;
 
     // public PublicKey? PublicKey => _metadata.PublicKey;
 

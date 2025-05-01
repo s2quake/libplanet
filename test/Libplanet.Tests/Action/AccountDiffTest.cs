@@ -72,7 +72,7 @@ namespace Libplanet.Tests.Action
             new ActionContext
             {
                 Signer = signer,
-                Miner = signer,
+                Proposer = signer,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 World = new World(
                     new WorldBaseState(

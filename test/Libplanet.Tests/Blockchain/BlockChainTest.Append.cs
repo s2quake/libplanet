@@ -330,13 +330,13 @@ namespace Libplanet.Tests.Blockchain
             var genesis = _blockChain.Genesis;
             var address1 = new Address([.. TestUtils.GetRandomBytes(20)]);
             var address2 = new Address([.. TestUtils.GetRandomBytes(20)]);
-            var miner = new PrivateKey();
+            var proposer = new PrivateKey();
             var action1 = DumbModernAction.Create((address1, "foo"));
             var action2 = DumbModernAction.Create((address2, "bar"));
-            var tx1 = Transaction.Create(0, miner, genesis.Hash, new[] { action1 }.ToPlainValues());
-            var tx2 = Transaction.Create(1, miner, genesis.Hash, new[] { action2 }.ToPlainValues());
+            var tx1 = Transaction.Create(0, proposer, genesis.Hash, new[] { action1 }.ToPlainValues());
+            var tx2 = Transaction.Create(1, proposer, genesis.Hash, new[] { action2 }.ToPlainValues());
             var block1 = _blockChain.ProposeBlock(
-                miner,
+                proposer,
                 new[] { tx1 }.ToImmutableList(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 ImmutableArray<EvidenceBase>.Empty);
@@ -347,7 +347,7 @@ namespace Libplanet.Tests.Blockchain
                 (Text)"foo",
                 world1.GetAccountState(DumbModernAction.DumbModernAddress).GetState(address1));
             var block2 = _blockChain.ProposeBlock(
-                miner,
+                proposer,
                 new[] { tx2 }.ToImmutableList(),
                 commit1,
                 ImmutableArray<EvidenceBase>.Empty);
@@ -382,9 +382,9 @@ namespace Libplanet.Tests.Blockchain
                 nonce += 1;
             }
 
-            var miner = new PrivateKey();
+            var proposer = new PrivateKey();
             var block = _blockChain.ProposeBlock(
-                miner,
+                proposer,
                 heavyTxs.ToImmutableList(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 ImmutableArray<EvidenceBase>.Empty);
@@ -412,9 +412,9 @@ namespace Libplanet.Tests.Blockchain
 
             Assert.True(manyTxs.Count > maxTxs);
 
-            var miner = new PrivateKey();
+            var proposer = new PrivateKey();
             Block block = _blockChain.ProposeBlock(
-                miner,
+                proposer,
                 manyTxs.ToImmutableList(),
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 ImmutableArray<EvidenceBase>.Empty);
@@ -486,17 +486,17 @@ namespace Libplanet.Tests.Blockchain
                 var validTx = blockChain.MakeTransaction(validKey, Array.Empty<DumbAction>());
                 var invalidTx = blockChain.MakeTransaction(invalidKey, Array.Empty<DumbAction>());
 
-                var miner = new PrivateKey();
+                var proposer = new PrivateKey();
 
                 Block block1 = blockChain.ProposeBlock(
-                    miner,
+                    proposer,
                     new[] { validTx }.ToImmutableList(),
                     TestUtils.CreateBlockCommit(blockChain.Tip),
                     ImmutableArray<EvidenceBase>.Empty);
                 blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
                 Block block2 = blockChain.ProposeBlock(
-                    miner,
+                    proposer,
                     new[] { invalidTx }.ToImmutableList(),
                     TestUtils.CreateBlockCommit(blockChain.Tip),
                     ImmutableArray<EvidenceBase>.Empty);
@@ -675,7 +675,7 @@ namespace Libplanet.Tests.Blockchain
                 {
                     Height = 0L,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Miner = fx.Proposer.Address,
+                    Proposer = fx.Proposer.Address,
                     PreviousHash = default,
                     TxHash = BlockContent.DeriveTxHash(txs),
                 },
@@ -732,16 +732,16 @@ namespace Libplanet.Tests.Blockchain
                 genesisBlock: genesis);
 
             // Append block before state root hash postpone
-            var miner = new PrivateKey();
+            var proposer = new PrivateKey();
             var action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "foo"));
-            var tx = Transaction.Create(0, miner, genesis.Hash, new[] { action }.ToPlainValues());
+            var tx = Transaction.Create(0, proposer, genesis.Hash, new[] { action }.ToPlainValues());
             var preBlockBeforeBump = TestUtils.ProposeNext(
                 genesis,
                 new[] { tx }.ToImmutableList(),
-                miner.PublicKey,
+                proposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
             var blockBeforeBump = preBlockBeforeBump.Sign(
-                miner,
+                proposer,
                 actionEvaluator.Evaluate(
                     preBlockBeforeBump, genesis.StateRootHash).Last().OutputState);
             Assert.Equal(beforePostponeBPV, blockBeforeBump.ProtocolVersion);
@@ -750,9 +750,9 @@ namespace Libplanet.Tests.Blockchain
 
             // Append block after state root hash postpone - previous block is not bumped
             action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "bar"));
-            tx = Transaction.Create(1, miner, genesis.Hash, new[] { action }.ToPlainValues());
+            tx = Transaction.Create(1, proposer, genesis.Hash, new[] { action }.ToPlainValues());
             var blockAfterBump1 = blockChain.ProposeBlock(
-                miner,
+                proposer,
                 new[] { tx }.ToImmutableList(),
                 commitBeforeBump,
                 evidence: ImmutableArray<EvidenceBase>.Empty);
@@ -765,9 +765,9 @@ namespace Libplanet.Tests.Blockchain
 
             // Append block after state root hash postpone - previous block is bumped
             action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "baz"));
-            tx = Transaction.Create(2, miner, genesis.Hash, new[] { action }.ToPlainValues());
+            tx = Transaction.Create(2, proposer, genesis.Hash, new[] { action }.ToPlainValues());
             var blockAfterBump2 = blockChain.ProposeBlock(
-                miner,
+                proposer,
                 new[] { tx }.ToImmutableList(),
                 commitAfterBump1,
                 evidence: ImmutableArray<EvidenceBase>.Empty);

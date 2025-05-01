@@ -11,7 +11,7 @@ public sealed record class CommittedActionContext
     {
         Signer = context.Signer;
         TxId = context.TxId;
-        Miner = context.Miner;
+        Proposer = context.Proposer;
         BlockHeight = context.BlockHeight;
         BlockProtocolVersion = context.BlockProtocolVersion;
         PreviousState = context.World.Trie.Hash;
@@ -26,7 +26,7 @@ public sealed record class CommittedActionContext
 
     public TxId? TxId { get; init; }
 
-    public Address Miner { get; init; }
+    public Address Proposer { get; init; }
 
     public long BlockHeight { get; init; }
 

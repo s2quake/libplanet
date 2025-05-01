@@ -30,7 +30,7 @@ public sealed record class ContextRecordingAction : ActionBase
     {
         world[ReservedAddresses.LegacyAccount, Address] = Value;
         world[ReservedAddresses.LegacyAccount, Address] = Value;
-        world[ReservedAddresses.LegacyAccount, MinerRecordAddress] = new Binary(context.Miner.Bytes);
+        world[ReservedAddresses.LegacyAccount, MinerRecordAddress] = new Binary(context.Proposer.Bytes);
         world[ReservedAddresses.LegacyAccount, SignerRecordAddress] = new Binary(context.Signer.Bytes);
         world[ReservedAddresses.LegacyAccount, BlockIndexRecordAddress] = new Integer(context.BlockHeight);
         world[ReservedAddresses.LegacyAccount, RandomRecordAddress] = new Integer(context.GetRandom().Next());

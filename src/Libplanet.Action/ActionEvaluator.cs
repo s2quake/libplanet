@@ -79,7 +79,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             {
                 Signer = tx?.Signer ?? default,
                 TxId = tx?.Id ?? default,
-                Miner = block.Miner,
+                Proposer = block.Proposer,
                 BlockHeight = block.Height,
                 BlockProtocolVersion = block.ProtocolVersion,
                 LastCommit = block.LastCommit,

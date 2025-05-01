@@ -66,7 +66,7 @@ public sealed record class BlockHeader
 
     public DateTimeOffset Timestamp { get; init; }
 
-    public Address Miner { get; init; }
+    public Address Proposer { get; init; }
 
     // public PublicKey? PublicKey { get; init; }
 

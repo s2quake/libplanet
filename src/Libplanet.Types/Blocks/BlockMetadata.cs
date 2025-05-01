@@ -25,7 +25,7 @@ public sealed record class BlockMetadata
 
     [Property(3)]
     [NonDefault]
-    public Address Miner { get; init; }
+    public Address Proposer { get; init; }
 
     [Property(4)]
     public BlockHash PreviousHash { get; init; }
@@ -46,7 +46,7 @@ public sealed record class BlockMetadata
             ProtocolVersion = header.ProtocolVersion,
             Height = header.Height,
             Timestamp = header.Timestamp,
-            Miner = header.Miner,
+            Proposer = header.Proposer,
             // PublicKey = header.PublicKey,
             PreviousHash = header.PreviousHash,
             TxHash = header.TxHash,
@@ -115,7 +115,7 @@ public sealed record class BlockMetadata
         HashDigest<SHA256> stateRootHash)
     {
         var message = ModelSerializer.SerializeToBytes(stateRootHash).ToImmutableArray();
-        return PublicKey.Verify(Miner, message, signature);
+        return PublicKey.Verify(Proposer, message, signature);
         //     return pubKey.Verify(msg, sig);
 
         // if (PublicKey is { } pubKey && signature is { } sig)
