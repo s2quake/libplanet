@@ -58,15 +58,6 @@ public static class IWorldExtensions
         return ModelSerializer.Deserialize<ImmutableSortedSet<Validator>>(value);
     }
 
-    // public static IWorld SetValidatorSet(this IWorld @this, ImmutableSortedSet<Validator> validatorSet)
-    //     => @this.SetValidatorSetAccount(
-    //         @this.GetValidatorSetAccount().SetValidatorSet(validatorSet));
-
-    // internal static ValidatorSetAccount GetValidatorSetAccount(this IWorldState @this)
-    //     => new(
-    //         @this.GetAccountState(ReservedAddresses.ValidatorSetAccount).Trie,
-    //         @this.Version);
-
     internal static CurrencyAccount GetCurrencyAccount(
         this IWorldState @this, Currency currency)
         => new(
@@ -90,21 +81,4 @@ public static class IWorldExtensions
             new Address(currencyAccount.Currency.Hash.Bytes),
             currencyAccount.AsAccount());
     }
-
-    // internal static IWorld SetValidatorSetAccount(
-    //     this IWorld @this, ValidatorSetAccount validatorSetAccount)
-    // {
-    //     if (@this.Version != validatorSetAccount.WorldVersion)
-    //     {
-    //         throw new ArgumentException(
-    //             $"Given {nameof(validatorSetAccount)} must have the same version as " +
-    //             $"the version of the world {@this.Version}: " +
-    //             $"{validatorSetAccount.WorldVersion}",
-    //             nameof(validatorSetAccount));
-    //     }
-
-    //     return @this.SetAccount(
-    //         ReservedAddresses.ValidatorSetAccount,
-    //         validatorSetAccount.AsAccount());
-    // }
 }

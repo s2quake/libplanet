@@ -861,16 +861,16 @@ public partial class ActionEvaluatorTest
                     : addresses.Select(
                         prevEval.OutputState
                             .GetAccount(ReservedAddresses.LegacyAccount)
-                            .GetState),
+                            .GetStateOrDefault),
                 addresses.Select(
                     eval.InputContext.World
                         .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetState));
+                        .GetStateOrDefault));
             Assert.Equal(
                 expectedStates[i],
                 addresses.Select(eval.OutputState
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState)
+                    .GetStateOrDefault)
                     .Select(x => x is Text t ? t.Value : null));
             Assert.Equal(
                 prevEval is null

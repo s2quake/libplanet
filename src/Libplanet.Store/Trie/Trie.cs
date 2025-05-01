@@ -68,20 +68,15 @@ public sealed partial record class Trie(INode Node) : ITrie
         return new Trie(newNode) { IsCommitted = IsCommitted };
     }
 
-    public ITrie? Remove(in KeyBytes key)
+    public ITrie Remove(in KeyBytes key)
     {
-        if (Node is not { } node)
+        if (Node is NullNode)
         {
             throw new InvalidOperationException("Cannot remove from an empty trie.");
         }
 
         var cursor = PathCursor.Create(key);
-        if (NodeRemover.Remove(node, cursor) is { } newNode)
-        {
-            return new Trie(newNode);
-        }
-
-        return null;
+        return new Trie(NodeRemover.Remove(Node, cursor));
     }
 
     public INode GetNode(in Nibbles key)
