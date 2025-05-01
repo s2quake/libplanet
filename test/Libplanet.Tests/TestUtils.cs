@@ -361,7 +361,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             // Index #1 block cannot have lastCommit: There was no consensus of genesis block.
             if (height == 0)
             {
-                return default;
+                return BlockCommit.Empty;
             }
 
             // Using the unix epoch time as the timestamp of the vote if deterministicTimestamp is
