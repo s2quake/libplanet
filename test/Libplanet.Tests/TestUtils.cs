@@ -419,7 +419,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Timestamp = timestamp ??
                         new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
                 Miner = (proposer ?? GenesisProposer.PublicKey).Address,
-                PublicKey = protocolVersion >= 2 ? proposer ?? GenesisProposer.PublicKey : null,
                 PreviousHash = default,
                 TxHash = BlockContent.DeriveTxHash(txs),
             };
@@ -479,7 +478,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Timestamp = previousBlock.Timestamp.Add(
                         blockInterval ?? TimeSpan.FromSeconds(15)),
                 Miner = miner?.Address ?? previousBlock.Miner,
-                PublicKey = protocolVersion >= 2 ? miner ?? previousBlock.PublicKey : null,
                 PreviousHash = previousBlock.Hash,
                 TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = lastCommit ?? default,

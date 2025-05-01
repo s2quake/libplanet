@@ -3,6 +3,7 @@ using Bencodex.Types;
 using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types.Blocks;
 
@@ -23,21 +24,19 @@ public sealed record class BlockMetadata
     public DateTimeOffset Timestamp { get; init; }
 
     [Property(3)]
+    [NonDefault]
     public Address Miner { get; init; }
 
     [Property(4)]
-    public PublicKey? PublicKey { get; init; }
-
-    [Property(5)]
     public BlockHash PreviousHash { get; init; }
 
-    [Property(6)]
+    [Property(5)]
     public HashDigest<SHA256> TxHash { get; init; }
 
-    [Property(7)]
+    [Property(6)]
     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
-    [Property(8)]
+    [Property(7)]
     public HashDigest<SHA256> EvidenceHash { get; init; }
 
     public static explicit operator BlockMetadata(BlockHeader header)
@@ -48,7 +47,7 @@ public sealed record class BlockMetadata
             Height = header.Height,
             Timestamp = header.Timestamp,
             Miner = header.Miner,
-            PublicKey = header.PublicKey,
+            // PublicKey = header.PublicKey,
             PreviousHash = header.PreviousHash,
             TxHash = header.TxHash,
             LastCommit = header.LastCommit,
@@ -91,20 +90,20 @@ public sealed record class BlockMetadata
         PrivateKey privateKey,
         HashDigest<SHA256> stateRootHash)
     {
-        if (PublicKey is null)
-        {
-            throw new InvalidOperationException(
-                "The block with the protocol version < 2 cannot be signed, because it lacks " +
-                "its miner's public key so that others cannot verify its signature."
-            );
-        }
-        else if (!privateKey.PublicKey.Equals(PublicKey))
-        {
-            string m = "The given private key does not match to the proposer's public key." +
-                $"Block's public key: {PublicKey}\n" +
-                $"Derived public key: {privateKey.PublicKey}\n";
-            throw new ArgumentException(m, nameof(privateKey));
-        }
+        // if (PublicKey is null)
+        // {
+        //     throw new InvalidOperationException(
+        //         "The block with the protocol version < 2 cannot be signed, because it lacks " +
+        //         "its miner's public key so that others cannot verify its signature."
+        //     );
+        // }
+        // else if (!privateKey.PublicKey.Equals(PublicKey))
+        // {
+        //     string m = "The given private key does not match to the proposer's public key." +
+        //         $"Block's public key: {PublicKey}\n" +
+        //         $"Derived public key: {privateKey.PublicKey}\n";
+        //     throw new ArgumentException(m, nameof(privateKey));
+        // }
 
         byte[] msg = ModelSerializer.SerializeToBytes(stateRootHash);
         byte[] sig = privateKey.Sign(msg);
@@ -112,20 +111,24 @@ public sealed record class BlockMetadata
     }
 
     public bool VerifySignature(
-        ImmutableArray<byte>? signature,
+        ImmutableArray<byte> signature,
         HashDigest<SHA256> stateRootHash)
     {
-        if (PublicKey is { } pubKey && signature is { } sig)
-        {
-            var msg = ModelSerializer.SerializeToBytes(stateRootHash).ToImmutableArray();
-            return pubKey.Verify(msg, sig);
-        }
-        else if (PublicKey is null)
-        {
-            return signature is null;
-        }
+        var message = ModelSerializer.SerializeToBytes(stateRootHash).ToImmutableArray();
+        return PublicKey.Verify(Miner, message, signature);
+        //     return pubKey.Verify(msg, sig);
 
-        return false;
+        // if (PublicKey is { } pubKey && signature is { } sig)
+        // {
+        //     var msg = ModelSerializer.SerializeToBytes(stateRootHash).ToImmutableArray();
+        //     return pubKey.Verify(msg, sig);
+        // }
+        // else if (PublicKey is null)
+        // {
+        //     return signature is null;
+        // }
+
+        // return false;
     }
 
     // public Bencodex.Types.Dictionary MakeCandidateData()

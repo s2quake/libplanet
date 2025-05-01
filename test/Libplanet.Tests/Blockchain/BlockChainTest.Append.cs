@@ -676,7 +676,6 @@ namespace Libplanet.Tests.Blockchain
                     Height = 0L,
                     Timestamp = DateTimeOffset.UtcNow,
                     Miner = fx.Proposer.Address,
-                    PublicKey = fx.Proposer.PublicKey,
                     PreviousHash = default,
                     TxHash = BlockContent.DeriveTxHash(txs),
                 },

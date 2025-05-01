@@ -31,7 +31,7 @@ public sealed record class RawBlock
 
     public Address Miner => Metadata.Miner;
 
-    public PublicKey? PublicKey => Metadata.PublicKey;
+    // public PublicKey? PublicKey => Metadata.PublicKey;
 
     public BlockHash PreviousHash => Metadata.PreviousHash;
 
@@ -83,7 +83,7 @@ public sealed record class RawBlock
             Height = Metadata.Height,
             Timestamp = Metadata.Timestamp,
             Miner = Metadata.Miner,
-            PublicKey = Metadata.PublicKey,
+            // PublicKey = Metadata.PublicKey,
             PreviousHash = Metadata.PreviousHash,
             TxHash = Metadata.TxHash,
             LastCommit = Metadata.LastCommit,
