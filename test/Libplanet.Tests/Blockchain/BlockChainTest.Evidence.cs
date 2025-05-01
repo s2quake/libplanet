@@ -589,7 +589,7 @@ namespace Libplanet.Tests.Blockchain
             var block = blockChain.ProposeBlock(
                 proposer: proposer,
                 lastCommit: TestUtils.CreateBlockCommit(tip, true),
-                evidence: evidence);
+                evidence: [.. evidence]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block, true));
             return block;
         }

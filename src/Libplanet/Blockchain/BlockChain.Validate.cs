@@ -258,7 +258,7 @@ namespace Libplanet.Blockchain
 
             if (block.Height <= 1)
             {
-                if (block.LastCommit is { })
+                if (block.LastCommit != BlockCommit.Empty)
                 {
                     throw new InvalidOperationException(
                         "The genesis block and the next block should not have lastCommit.");

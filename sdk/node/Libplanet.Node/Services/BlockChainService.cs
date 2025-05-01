@@ -138,10 +138,9 @@ internal sealed class BlockChainService(
             genesisHash: default,
             actions: [.. actions.ToPlainValues()],
             timestamp: DateTimeOffset.MinValue);
-        var transactions = ImmutableList.Create(transaction);
         return BlockChain.ProposeGenesisBlock(
             privateKey: genesisKey,
-            transactions: transactions,
+            transactions: [transaction],
             timestamp: DateTimeOffset.MinValue);
     }
 

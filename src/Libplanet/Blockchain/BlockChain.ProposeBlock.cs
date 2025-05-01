@@ -42,13 +42,11 @@ namespace Libplanet.Blockchain
         public static Block ProposeGenesisBlock(
             PrivateKey privateKey = null,
             HashDigest<SHA256>? stateRootHash = null,
-            ImmutableList<Transaction> transactions = null,
+            ImmutableSortedSet<Transaction>? transactions = null,
             DateTimeOffset? timestamp = null)
         {
             privateKey ??= new PrivateKey();
-            transactions = transactions is { } txs
-                ? txs.OrderBy(tx => tx.Id).ToImmutableList()
-                : ImmutableList<Transaction>.Empty;
+            transactions ??= [];
 
             var metadata = new BlockMetadata
             {
@@ -91,9 +89,9 @@ namespace Libplanet.Blockchain
         /// <see cref="BlockChain.Tip"/> is changed while proposing.</exception>
         public Block ProposeBlock(
             PrivateKey proposer,
-            BlockCommit lastCommit = default,
-            ImmutableArray<EvidenceBase>? evidence = null,
-            IComparer<Transaction> txPriority = null)
+            BlockCommit? lastCommit = null,
+            ImmutableSortedSet<EvidenceBase>? evidence = null,
+            IComparer<Transaction>? txPriority = null)
         {
             long index = Count;
             _logger.Debug("Starting to propose block #{Index}...", index);
@@ -112,9 +110,9 @@ namespace Libplanet.Blockchain
 
             var block = ProposeBlock(
                 proposer,
-                transactions,
-                lastCommit,
-                evidence ?? ImmutableArray<EvidenceBase>.Empty);
+                transactions.ToImmutableSortedSet(),
+                lastCommit ?? BlockCommit.Empty,
+                evidence ?? []);
             _logger.Debug(
                 "Proposed block #{Index} {Hash} with previous hash {PreviousHash}",
                 block.Height,
@@ -145,9 +143,9 @@ namespace Libplanet.Blockchain
         /// <returns>A <see cref="Block"/> that is proposed.</returns>
         internal Block ProposeBlock(
             PrivateKey proposer,
-            ImmutableList<Transaction> transactions,
+            ImmutableSortedSet<Transaction> transactions,
             BlockCommit lastCommit,
-            ImmutableArray<EvidenceBase> evidence)
+            ImmutableSortedSet<EvidenceBase> evidence)
         {
             long index = Count;
             BlockHash prevHash = Store.IndexBlockHash(Id, index - 1)
@@ -160,8 +158,6 @@ namespace Libplanet.Blockchain
 
             // FIXME: Should use automated public constructor.
             // Manual internal constructor is used purely for testing custom timestamps.
-            var orderedTransactions = transactions.OrderBy(tx => tx.Id).ToList();
-            var orderedEvidence = evidence.OrderBy(e => e.Id).ToList();
             var metadata = new BlockMetadata
             {
                 ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
@@ -170,14 +166,14 @@ namespace Libplanet.Blockchain
                 Proposer = proposer.Address,
                 // PublicKey = proposer.PublicKey,
                 PreviousHash = prevHash,
-                TxHash = BlockContent.DeriveTxHash(orderedTransactions),
+                TxHash = BlockContent.DeriveTxHash(transactions),
                 LastCommit = lastCommit,
-                EvidenceHash = BlockContent.DeriveEvidenceHash(orderedEvidence),
+                EvidenceHash = BlockContent.DeriveEvidenceHash(evidence),
             };
             var blockContent = new BlockContent
             {
-                Transactions = [.. orderedTransactions],
-                Evidence = [.. orderedEvidence],
+                Transactions = transactions,
+                Evidence = evidence,
             };
             var preEval = RawBlock.Propose(metadata, blockContent);
             return ProposeBlock(proposer, preEval, stateRootHash);
@@ -218,7 +214,7 @@ namespace Libplanet.Blockchain
         /// can be satisfied.</exception>
         internal ImmutableList<Transaction> GatherTransactionsToPropose(
             long index,
-            IComparer<Transaction> txPriority = null) =>
+            IComparer<Transaction>? txPriority = null) =>
             GatherTransactionsToPropose(
                 Policy.GetMaxTransactionsBytes(index),
                 Policy.GetMaxTransactionsPerBlock(index),
@@ -250,7 +246,7 @@ namespace Libplanet.Blockchain
             int maxTransactions,
             int maxTransactionsPerSigner,
             int minTransactions,
-            IComparer<Transaction> txPriority = null)
+            IComparer<Transaction>? txPriority = null)
         {
             long index = Count;
             ImmutableList<Transaction> stagedTransactions = ListStagedTransactions(txPriority);

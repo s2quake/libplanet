@@ -83,7 +83,7 @@ public class GeneratedBlockChainFixture
                                     States = ImmutableDictionary.Create<Address, IValue>()
                                 },
                             }.ToPlainValues()))
-                .ToImmutableList());
+                .ToImmutableSortedSet());
         Chain = BlockChain.Create(
             policy,
             new VolatileStagePolicy(),
@@ -170,7 +170,7 @@ public class GeneratedBlockChainFixture
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = proposer.Address,
                     PreviousHash = Chain.Tip.Hash,
-                    TxHash = BlockContent.DeriveTxHash(transactions),
+                    TxHash = BlockContent.DeriveTxHash([.. transactions]),
                     LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
                 },
                 new BlockContent

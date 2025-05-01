@@ -109,7 +109,7 @@ public partial class ActionEvaluatorTest
                 Timestamp = timestamp,
                 Proposer = GenesisProposer.Address,
                 PreviousHash = default,
-                TxHash = BlockContent.DeriveTxHash(txs),
+                TxHash = BlockContent.DeriveTxHash([.. txs]),
             },
             new BlockContent
             {
@@ -246,9 +246,9 @@ public partial class ActionEvaluatorTest
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(
             proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
+            transactions: [.. txs],
             lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
+            evidence: []);
         var evaluations = actionEvaluator.Evaluate(
             (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
@@ -323,9 +323,9 @@ public partial class ActionEvaluatorTest
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(
             GenesisProposer,
-            txs.ToImmutableList(),
+            [.. txs],
             CreateBlockCommit(chain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
+            []);
         var evaluations = actionEvaluator.Evaluate(
             (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
 
@@ -798,7 +798,7 @@ public partial class ActionEvaluatorTest
                 Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = keys[0].Address,
-                TxHash = BlockContent.DeriveTxHash(txs),
+                TxHash = BlockContent.DeriveTxHash([.. txs]),
             },
             new BlockContent
             {
@@ -918,7 +918,7 @@ public partial class ActionEvaluatorTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = GenesisProposer.Address,
                 PreviousHash = hash,
-                TxHash = BlockContent.DeriveTxHash(txs),
+                TxHash = BlockContent.DeriveTxHash([.. txs]),
                 LastCommit = CreateBlockCommit(hash, 122, 0),
             },
             new BlockContent
@@ -1067,9 +1067,9 @@ public partial class ActionEvaluatorTest
         var genesis = chain.Genesis;
         var block = chain.ProposeBlock(
             proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
+            transactions: [.. txs],
             lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
+            evidence: []);
 
         IWorld previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateBeginBlockActions(
@@ -1115,9 +1115,9 @@ public partial class ActionEvaluatorTest
         var genesis = chain.Genesis;
         var block = chain.ProposeBlock(
             GenesisProposer,
-            txs.ToImmutableList(),
+            [.. txs],
             CreateBlockCommit(chain.Tip),
-            ImmutableArray<EvidenceBase>.Empty);
+            []);
 
         IWorld previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateEndBlockActions(
@@ -1164,9 +1164,9 @@ public partial class ActionEvaluatorTest
         var genesis = chain.Genesis;
         var block = chain.ProposeBlock(
             proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
+            transactions: [.. txs],
             lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
+            evidence: []);
 
         IWorld previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateBeginTxActions(
@@ -1216,9 +1216,9 @@ public partial class ActionEvaluatorTest
         var genesis = chain.Genesis;
         var block = chain.ProposeBlock(
             proposer: GenesisProposer,
-            transactions: txs.ToImmutableList(),
+            transactions: [.. txs],
             lastCommit: CreateBlockCommit(chain.Tip),
-            evidence: ImmutableArray<EvidenceBase>.Empty);
+            evidence: []);
 
         IWorld previousState = _storeFx.StateStore.GetWorld(default);
         var evaluations = actionEvaluator.EvaluateEndTxActions(
