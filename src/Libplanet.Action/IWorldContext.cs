@@ -54,7 +54,15 @@ public interface IWorldContext
         return false;
     }
 
-    T GetValue<T>(Address address, Address stateAddress, T fallback) => this[address].GetValue(stateAddress, fallback);
+    T GetValue<T>(Address address, Address stateAddress, T fallback)
+    {
+        if (this[address].TryGetValue<T>(stateAddress, out var obj))
+        {
+            return obj;
+        }
+
+        return fallback;
+    }
 
     T GetValue<T>((Address Address, Address StateAddress) key, T fallback)
         => GetValue(key.Address, key.StateAddress, fallback);

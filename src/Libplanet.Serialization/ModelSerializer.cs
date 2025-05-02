@@ -268,7 +268,7 @@ public static class ModelSerializer
         }
         else if (IsBencodexType(type))
         {
-            if (value.GetType() == type)
+            if (type.IsAssignableFrom(value.GetType()))
             {
                 return value;
             }

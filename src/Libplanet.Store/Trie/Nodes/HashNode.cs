@@ -25,7 +25,7 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
         }
     }
 
-    public IValue ToBencodex() => ModelSerializer.Serialize(Hash);
+    public IValue ToBencodex() => new Binary(Hash.Bytes);
 
     public override int GetHashCode() => Hash.GetHashCode();
 
