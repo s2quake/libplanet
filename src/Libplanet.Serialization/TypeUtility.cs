@@ -98,11 +98,9 @@ public static class TypeUtility
 
     public static bool IsLegacyType(Type type) => type.IsDefined(typeof(LegacyModelAttribute));
 
-    public static bool IsBencodableType(Type type)
-        => typeof(IBencodable).IsAssignableFrom(type) && !type.IsInterface;
+    public static bool IsBencodableType(Type type) => typeof(IBencodable).IsAssignableFrom(type);
 
-    public static bool IsBencodexType(Type type)
-        => typeof(IValue).IsAssignableFrom(type) && !type.IsInterface;
+    public static bool IsBencodexType(Type type) => typeof(IValue).IsAssignableFrom(type);
 
     private static IEnumerable<Type> GetSerializableTypes(Assembly assembly)
     {

@@ -114,7 +114,7 @@ public static class NodeDecoder
     }
 
     private static HashNode DecodeHash(Binary binary, IKeyValueStore keyValueStore)
-        => new(ModelSerializer.Deserialize<HashDigest<SHA256>>(binary))
+        => new(new HashDigest<SHA256>(binary.ByteArray))
         {
             KeyValueStore = keyValueStore,
         };

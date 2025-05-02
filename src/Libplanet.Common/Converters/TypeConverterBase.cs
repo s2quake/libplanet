@@ -16,7 +16,7 @@ public abstract class TypeConverterBase<TType, TValueType> : TypeConverter
             return true;
         }
 
-        if (sourceType == typeof(TValueType))
+        if (sourceType == typeof(TValueType) || sourceType == typeof(IValue))
         {
             return true;
         }

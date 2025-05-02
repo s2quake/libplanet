@@ -186,25 +186,25 @@ public partial class ActionEvaluatorTest
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetState(ContextRecordingAction.MinerRecordAddress),
-            ModelSerializer.Serialize(block.Proposer));
+            block.Proposer);
         Assert.Equal(
             chain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetState(ContextRecordingAction.SignerRecordAddress),
-            ModelSerializer.Serialize(tx.Signer));
+            tx.Signer);
         Assert.Equal(
             chain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetState(ContextRecordingAction.BlockIndexRecordAddress),
-            new Integer(block.Height));
+            block.Height);
         Assert.Equal(
             chain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetState(ContextRecordingAction.RandomRecordAddress),
-            new Integer(evaluations.Single().InputContext.GetRandom().Next()));
+            evaluations.Single().InputContext.GetRandom().Next());
     }
 
     [Fact]
