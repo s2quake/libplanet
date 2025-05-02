@@ -842,7 +842,7 @@ public partial class ActionEvaluatorTest
         {
             ActionEvaluation eval = evaluations[i];
             IActionContext context = eval.InputContext;
-            World prevState = context.World;
+            World prevState = eval.InputWorld;
             World outputState = eval.OutputWorld;
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
@@ -861,7 +861,7 @@ public partial class ActionEvaluatorTest
                             .GetAccount(ReservedAddresses.LegacyAccount)
                             .GetStateOrDefault),
                 addresses.Select(
-                    eval.InputContext.World
+                    eval.InputWorld
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetStateOrDefault));
             Assert.Equal(
@@ -877,7 +877,7 @@ public partial class ActionEvaluatorTest
                         prevEval.OutputWorld
                             .GetBalance(a, currency).RawValue),
                 addresses.Select(
-                    a => eval.InputContext.World
+                    a => eval.InputWorld
                             .GetBalance(a, currency).RawValue));
             Assert.Equal(
                 expectedBalances[i],
@@ -967,7 +967,7 @@ public partial class ActionEvaluatorTest
         {
             ActionEvaluation eval = evalsA[i];
             IActionContext context = eval.InputContext;
-            World prevState = context.World;
+            World prevState = eval.InputWorld;
             World outputState = eval.OutputWorld;
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, txA.Actions[i]);
@@ -1018,7 +1018,7 @@ public partial class ActionEvaluatorTest
         {
             ActionEvaluation eval = evalsB[i];
             IActionContext context = eval.InputContext;
-            World prevState = context.World;
+            World prevState = eval.InputWorld;
             World outputState = eval.OutputWorld;
 
             _logger.Debug("evalsB[{0}] = {@1}", i, eval);

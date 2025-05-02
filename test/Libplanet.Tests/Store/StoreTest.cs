@@ -7,6 +7,7 @@ using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Common;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -1438,30 +1439,17 @@ namespace Libplanet.Tests.Store
 #pragma warning restore S3966 // Objects should not be disposed more than once
         }
 
-        private class AtomicityTestAction : IAction
+        [Model(Version = 1)]
+        private sealed record class AtomicityTestAction : ActionBase
         {
+            [Property(0)]
             public ImmutableArray<byte> ArbitraryBytes { get; set; }
 
+            [Property(1)]
             public ImmutableArray<byte> Md5Digest { get; set; }
 
-            public IValue PlainValue => Bencodex.Types.Dictionary.Empty
-                .Add("bytes", ArbitraryBytes)
-                .Add("md5", Md5Digest);
-
-            public void LoadPlainValue(IValue plainValue)
+            protected override void OnExecute(IWorldContext world, IActionContext context)
             {
-                LoadPlainValue((Dictionary)plainValue);
-            }
-
-            public void LoadPlainValue(Dictionary plainValue)
-            {
-                ArbitraryBytes = ((Binary)plainValue["bytes"]).ByteArray;
-                Md5Digest = ((Binary)plainValue["md5"]).ByteArray;
-            }
-
-            public World Execute(IActionContext context)
-            {
-                return context.World;
             }
         }
     }

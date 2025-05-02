@@ -2,7 +2,6 @@ using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
 using Libplanet.Crypto;
-using Libplanet.Mocks;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 
@@ -39,7 +38,7 @@ public class InitializeTest
     {
         var random = new System.Random();
         Address signer = random.NextAddress();
-        var prevState = World.Create();
+        var world = World.Create();
         BlockHash genesisHash = random.NextBlockHash();
         var context = new ActionContext
         {
@@ -48,7 +47,6 @@ public class InitializeTest
             Proposer = random.NextAddress(),
             BlockHeight = 0,
             BlockProtocolVersion = Block.CurrentProtocolVersion,
-            World = prevState,
             RandomSeed = 123,
         };
         var initialize = new Initialize
@@ -57,12 +55,12 @@ public class InitializeTest
             Validators = _validators,
         };
 
-        var nextState = ((IAction)initialize).Execute(context);
+        var nextWorld = TestUtils.ExecuteAction(initialize, world, context);
 
-        Assert.Equal(_validators, nextState.GetValidatorSet());
+        Assert.Equal(_validators, nextWorld.GetValidatorSet());
         Assert.Equal(
             _states[default],
-            nextState.GetAccount(ReservedAddresses.LegacyAccount).GetState(default));
+            nextWorld.GetAccount(ReservedAddresses.LegacyAccount).GetState(default));
     }
 
     [Fact]
@@ -70,7 +68,7 @@ public class InitializeTest
     {
         var random = new System.Random();
         Address signer = random.NextAddress();
-        var prevState = World.Create();
+        var world = World.Create();
         BlockHash genesisHash = random.NextBlockHash();
         var key = new PrivateKey();
         var hash = random.NextBlockHash();
@@ -101,7 +99,6 @@ public class InitializeTest
             BlockHeight = 10,
             BlockProtocolVersion = Block.CurrentProtocolVersion,
             LastCommit = lastCommit,
-            World = prevState,
             RandomSeed = 123,
         };
         var initialize = new Initialize
@@ -111,6 +108,6 @@ public class InitializeTest
         };
 
         Assert.Throws<InvalidOperationException>(
-            () => ((IAction)initialize).Execute(context));
+            () => TestUtils.ExecuteAction(initialize, world, context));
     }
 }

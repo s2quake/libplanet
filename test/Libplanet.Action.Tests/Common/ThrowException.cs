@@ -1,14 +1,17 @@
-using Libplanet.Action.State;
+using Libplanet.Serialization;
 
 namespace Libplanet.Action.Tests.Common;
 
-public sealed record class ThrowException : IAction
+[Model(Version = 1)]
+public sealed record class ThrowException : ActionBase
 {
+    [Property(0)]
     public bool ThrowOnExecution { get; init; }
 
+    [Property(1)]
     public bool Deterministic { get; init; } = true;
 
-    public World Execute(IActionContext context)
+    protected override void OnExecute(IWorldContext world, IActionContext context)
     {
         if (ThrowOnExecution)
         {
@@ -21,8 +24,6 @@ public sealed record class ThrowException : IAction
                 throw new OutOfMemoryException();
             }
         }
-
-        return context.World;
     }
 
     public sealed class SomeException(string message) : Exception(message)

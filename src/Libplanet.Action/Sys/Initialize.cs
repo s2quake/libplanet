@@ -1,12 +1,11 @@
 using Bencodex.Types;
-using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
+using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.Sys;
 
-[ActionType("Initialize")]
 [Model(Version = 1)]
 public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 {
@@ -20,43 +19,6 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 
     public bool Equals(Initialize? other) => ModelUtility.Equals(this, other);
 
-    // public World Execute(IActionContext context)
-    // {
-    //     World world = context.PreviousState;
-
-    //     if (context.BlockHeight != 0)
-    //     {
-    //         throw new InvalidOperationException(
-    //             $"{nameof(Initialize)} action can be executed only genesis block."
-    //         );
-    //     }
-
-    //     if (ImmutableSortedSet<Validator> is { } vs)
-    //     {
-    //         var validatorSet = world.GetValidatorSet();
-    //         foreach (Validator v in vs.Validators)
-    //         {
-    //             validatorSet = validatorSet.Update(v);
-    //         }
-
-    //         world = world.SetValidatorSet(validatorSet);
-    //     }
-
-    //     Account legacyAccount = world.GetAccount(ReservedAddresses.LegacyAccount);
-
-    //     if (States is { } s)
-    //     {
-    //         foreach (KeyValuePair<Address, IValue> kv in s)
-    //         {
-    //             legacyAccount = legacyAccount.SetState(kv.Key, kv.Value);
-    //         }
-    //     }
-
-    //     world = world.SetAccount(ReservedAddresses.LegacyAccount, legacyAccount);
-    //     return world;
-    // }
-
-
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
         if (context.BlockHeight != 0)
@@ -65,6 +27,6 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
                 $"{nameof(Initialize)} action can be executed only genesis block.");
         }
 
-        world[ReservedAddresses.ValidatorSetAddress, ReservedAddresses.ValidatorSetAddress] = Validators;
+        world[ValidatorSetAddress, ValidatorSetAddress] = Validators;
     }
 }

@@ -5,17 +5,17 @@ namespace Libplanet.Action.Loader;
 
 public sealed class AssemblyActionLoader : IActionLoader
 {
-    private readonly Dictionary<IValue, Type> _types;
+    private readonly Dictionary<IValue, Type> _types = [];
 
     public AssemblyActionLoader(Assembly assembly)
     {
-        var query = from type in assembly.GetTypes()
-                    where typeof(IAction).IsAssignableFrom(type) == true
-                    let attribute = type.GetCustomAttribute<ActionTypeAttribute>()
-                    where attribute is not null
-                    select (attribute.TypeIdentifier, type);
+        // var query = from type in assembly.GetTypes()
+        //             where typeof(IAction).IsAssignableFrom(type) == true
+        //             let attribute = type.GetCustomAttribute<ActionTypeAttribute>()
+        //             where attribute is not null
+        //             select (attribute.TypeIdentifier, type);
 
-        _types = query.ToDictionary((item) => item.TypeIdentifier, item => item.type);
+        // _types = query.ToDictionary((item) => item.TypeIdentifier, item => item.type);
     }
 
     public IReadOnlyDictionary<IValue, Type> Types => _types;

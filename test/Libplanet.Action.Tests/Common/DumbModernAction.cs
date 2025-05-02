@@ -1,9 +1,8 @@
-using Bencodex.Types;
-using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
+using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.Tests.Common;
 
@@ -69,15 +68,8 @@ public sealed record class DumbModernAction : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        // World world = context.World;
-
         if (Append is { } append)
         {
-            // Account account = world.GetAccount(DumbModernAddress);
-            // string? items = (Text?)account.GetState(append.At);
-            // items = items is null ? append.Item : $"{items},{append.Item}";
-            // account = account.SetState(append.At, (Text)items!);
-            // world = world.SetAccount(DumbModernAddress, account);
             var items = world.TryGetValue<string>(DumbModernAddress, append.At, out var value)
                 ? $"{value},{append.Item}"
                 : append.Item;
@@ -107,8 +99,7 @@ public sealed record class DumbModernAction : ActionBase
 
         if (Validators is { } validators)
         {
-            // world = world.SetValidatorSet([.. validators]);
-            throw new NotImplementedException();
+            world[ValidatorSetAddress, ValidatorSetAddress] = validators;
         }
     }
 }
