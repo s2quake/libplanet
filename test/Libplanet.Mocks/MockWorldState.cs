@@ -72,24 +72,27 @@ public static class MockWorldState
         return World.Create(trie, @this.StateStore);
     }
 
-    public static World SetBalance(this World @this, Address address, FungibleAssetValue value) =>
-        SetBalance(@this, address, value.Currency, new Integer(value.RawValue));
+    public static World SetBalance(this World @this, Address address, FungibleAssetValue value)
+        => SetBalance(@this, address, value.Currency, value.RawValue);
 
-    public static World SetBalance(this World @this, Address address, Currency currency, Integer rawValue)
+    public static World SetBalance(this World @this, Address address, Currency currency, BigInteger rawValue)
     {
         Address accountAddress = new Address(currency.Hash.Bytes);
-        KeyBytes balanceKey = ToStateKey(address);
-        KeyBytes totalSupplyKey = ToStateKey(CurrencyAccount.TotalSupplyAddress);
+        // KeyBytes balanceKey = ToStateKey(address);
+        // KeyBytes totalSupplyKey = ToStateKey(CurrencyAccount.TotalSupplyAddress);
 
-        ITrie trie = GetAccount(@this, accountAddress).Trie;
-        Integer balance = trie.GetValue(balanceKey, new Integer(0));
-        Integer totalSupply = trie.GetValue(totalSupplyKey, new Integer(0));
+        var account = GetAccount(@this, accountAddress);
+        var balance = account.GetStateOrFallback(address, BigInteger.Zero);
+        var totalSupply = account.GetStateOrFallback(CurrencyAccount.TotalSupplyAddress, BigInteger.Zero);
 
-        trie = trie.Set(
-            totalSupplyKey,
-            new Integer(totalSupply.Value - balance.Value + rawValue.Value));
-        trie = trie.Set(balanceKey, rawValue);
-        return SetAccount(@this, accountAddress, new Account(trie));
+        account = account.SetState(CurrencyAccount.TotalSupplyAddress, totalSupply - balance + rawValue);
+        account = account.SetState(address, rawValue);
+        // trie = trie.Set(
+        //     totalSupplyKey,
+        //     new Integer(totalSupply - balance + rawValue));
+        // trie = trie.Set(balanceKey, rawValue);
+        return SetAccount(@this, accountAddress, account);
+        // return
 
     }
 
