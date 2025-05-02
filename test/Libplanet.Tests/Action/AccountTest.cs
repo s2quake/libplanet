@@ -22,9 +22,9 @@ public class AccountTest
         ];
 
         _addr = _keys.Select(key => key.Address).ToArray();
-        _initAccount = new Account(new Trie())
-            .SetState(_addr[0], (Text)"a")
-            .SetState(_addr[1], (Text)"b");
+        _initAccount = new Account()
+            .SetState(_addr[0], "a")
+            .SetState(_addr[1], "b");
 
         output.WriteLine("Fixtures  {0,-42}  State", "Address");
         int i = 0;
@@ -41,9 +41,9 @@ public class AccountTest
     [Fact]
     public virtual void NullDelta()
     {
-        Assert.Equal("a", (Text)_initAccount.GetState(_addr[0]));
-        Assert.Equal("b", (Text)_initAccount.GetState(_addr[1]));
-        Assert.Null(_initAccount.GetState(_addr[2]));
+        Assert.Equal("a", (string)_initAccount.GetState(_addr[0]));
+        Assert.Equal("b", (string)_initAccount.GetState(_addr[1]));
+        Assert.Null(_initAccount.GetStateOrDefault(_addr[2]));
     }
 
     [Fact]

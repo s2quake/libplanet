@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -106,81 +105,20 @@ public static class ModelSerializer
 
     public static byte[] SerializeToBytes(object? obj) => _codec.Encode(Serialize(obj));
 
-    public static object? Deserialize(IValue value, Type type)
-        => Deserialize(value, type, ModelOptions.Default);
+    public static object? Deserialize(IValue value)
+        => Deserialize(value, ModelOptions.Default);
 
-    public static object? Deserialize(IValue value, Type type, ModelOptions options)
+    public static object? Deserialize(IValue value, ModelOptions options)
     {
-        if (typeof(IValue).IsAssignableFrom(type))
-        {
-            return value;
-        }
-
-        if (type.IsInstanceOfType(value))
-        {
-            return value;
-        }
-
-        if (IsNullableType(type))
-        {
-            if (value is Null)
-            {
-                return null;
-            }
-
-            return Deserialize(value, type.GetGenericArguments()[0], options);
-        }
-
-        if (IsStandardType(type) || IsStandardArrayType(type) || IsValueTupleType(type) || IsTupleType(type))
-        {
-            return DeserializeValue(type, value, options);
-        }
-
-        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertFrom(value.GetType()))
-        {
-            return converter.ConvertFrom(value);
-        }
-
         var data = ModelData.GetObject(value);
         var header = data.Header;
         var headerType = Type.GetType(header.TypeName)
             ?? throw new ModelSerializationException($"Given type name {header.TypeName} is not found");
-        if (headerType != type && type.IsAssignableFrom(headerType) is false && IsLegacyType(headerType) is false)
-        {
-            throw new ModelSerializationException($"Given type {headerType} is not {type}");
-        }
-
-        if (data.Value is not List list)
-        {
-            throw new ModelSerializationException($"The value is not a list: {data.Value}");
-        }
 
         var modelType = options.GetType(headerType, header.Version);
-        var modelVersion = header.Version;
-        var currentVersion = options.GetVersion(type);
-
-        var obj = CreateInstance(modelType);
-        var propertyInfos = options.GetProperties(modelType);
-        for (var i = 0; i < propertyInfos.Length; i++)
-        {
-            var propertyInfo = propertyInfos[i];
-            var propertyAttribute = propertyInfo.GetCustomAttribute<PropertyAttribute>()
-                ?? throw new UnreachableException(
-                    "Property does not have SerializablePropertyAttribute");
-            var propertyIndex = propertyAttribute.Index;
-            var propertyType = propertyInfo.PropertyType;
-            var propertyValue = list[propertyIndex];
-            var deserializedValue = propertyValue is Null ? null : Deserialize(propertyValue, propertyType, options);
-            propertyInfo.SetValue(obj, deserializedValue);
-        }
-
-        while (modelVersion < currentVersion)
-        {
-            var args = new object[] { obj };
-            modelType = options.GetType(type, modelVersion + 1);
-            obj = CreateInstance(modelType, args: args);
-            modelVersion++;
-        }
+        var obj = DeserializeRawValue(data.Value, modelType, options)
+            ?? throw new ModelSerializationException(
+                $"Failed to deserialize {modelType} from {data.Value.Inspect()}.");
 
         return obj;
     }
@@ -189,7 +127,7 @@ public static class ModelSerializer
 
     public static T Deserialize<T>(IValue value, ModelOptions options)
     {
-        if (Deserialize(value, typeof(T), options) is T obj)
+        if (Deserialize(value, options) is T obj)
         {
             return obj;
         }
@@ -207,87 +145,75 @@ public static class ModelSerializer
 
     private static IValue Serialize(object obj, Type type, ModelOptions options)
     {
-        if (obj is IValue v)
+        var header = new ModelHeader
         {
-            return v;
-        }
-
-        if (IsNullableType(type))
-        {
-            if (obj is null)
-            {
-                return Null.Value;
-            }
-
-            return Serialize(obj, type.GetGenericArguments()[0], options);
-        }
-
-        if (IsStandardType(type) || IsStandardArrayType(type) || IsValueTupleType(type) || IsTupleType(type))
-        {
-            return SerializeValue(obj, type, options);
-        }
-
-        if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
-        {
-            return converter.ConvertTo(obj, typeof(IValue)) is IValue value
-                ? value : throw new ModelSerializationException($"Failed to convert {obj} to {type}");
-        }
-
-        var typeName = options.GetTypeName(type);
-        var version = options.GetVersion(type);
-        var propertyInfos = options.GetProperties(type);
-        var valueList = new List<IValue>(propertyInfos.Length);
-        foreach (var propertyInfo in propertyInfos)
-        {
-            var value = propertyInfo.GetValue(obj);
-            var propertyType = propertyInfo.PropertyType;
-            var serialized = value is null ? Null.Value : Serialize(value, propertyType, options);
-            valueList.Add(serialized);
-        }
+            TypeName = options.GetTypeName(type),
+            Version = options.GetVersion(type),
+        };
 
         var data = new ModelData
         {
-            Header = new ModelHeader
-            {
-                TypeName = typeName,
-                Version = version,
-            },
-            Value = new List(valueList),
+            Header = header,
+            Value = SerializeRawValue(obj, type, options),
         };
         return data.Bencoded;
     }
 
-    private static IValue SerializeValue(object? value, Type propertyType, ModelOptions options)
+    private static IValue SerializeRawValue(object? obj, Type type, ModelOptions options)
     {
-        if (value is IBencodable bencodable)
+        if (Nullable.GetUnderlyingType(type) is { } nullableType)
         {
-            return bencodable.Bencoded;
+            return obj is null ? Null.Value : SerializeRawValue(obj, nullableType, options);
         }
-        else if (value is IValue bencoded)
-        {
-            return bencoded;
-        }
-        else if (value is null)
+
+        if (obj is null)
         {
             return Null.Value;
         }
-        else if (propertyType.IsEnum)
+        else if (obj is IBencodable bencodable)
         {
-            var underlyingType = Enum.GetUnderlyingType(propertyType);
+            return bencodable.Bencoded;
+        }
+        else if (obj is IValue bencoded)
+        {
+            return bencoded;
+        }
+        else if (type.IsEnum)
+        {
+            var underlyingType = Enum.GetUnderlyingType(type);
             if (underlyingType == typeof(int))
             {
-                return new Integer((int)value);
+                return new Integer((int)obj);
             }
             else if (underlyingType == typeof(long))
             {
-                return new Integer((long)value);
+                return new Integer((long)obj);
             }
         }
-        else if (IsArray(propertyType, out var elementType)
-            || IsImmutableArray(propertyType, out elementType)
-            || IsImmutableSortedSet(propertyType, out elementType))
+        else if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(IValue)))
         {
-            var items = (IList)value;
+            return converter.ConvertTo(obj, typeof(IValue)) is IValue v
+                ? v : throw new ModelSerializationException($"Failed to convert {obj} to {type}");
+        }
+        else if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute)))
+        {
+            var propertyInfos = options.GetProperties(type);
+            var itemList = new List<IValue>(propertyInfos.Length);
+            foreach (var propertyInfo in propertyInfos)
+            {
+                var item = propertyInfo.GetValue(obj);
+                var itemType = propertyInfo.PropertyType;
+                var serialized = SerializeRawValue(item, itemType, options);
+                itemList.Add(serialized);
+            }
+
+            return new List(itemList);
+        }
+        else if (IsArray(type, out var elementType)
+            || IsImmutableArray(type, out elementType)
+            || IsImmutableSortedSet(type, out elementType))
+        {
+            var items = (IList)obj;
             var list = new List<IValue>(items.Count);
 
             foreach (var item in items)
@@ -296,24 +222,15 @@ public static class ModelSerializer
                 list.Add(serialized);
             }
 
-            var data = new ModelData
-            {
-                Header = new ModelHeader
-                {
-                    TypeName = options.GetTypeName(propertyType),
-                    Version = options.GetVersion(propertyType),
-                },
-                Value = new List(list),
-            };
-            return data.Bencoded;
+            return new List(list);
         }
-        else if (IsValueTupleType(propertyType) || IsTupleType(propertyType))
+        else if (IsValueTupleType(type) || IsTupleType(type))
         {
-            var genericArguments = propertyType.GetGenericArguments();
-            if (value is not ITuple tuple)
+            var genericArguments = type.GetGenericArguments();
+            if (obj is not ITuple tuple)
             {
                 throw new ModelSerializationException(
-                    $"The value {value} is not a tuple of type {propertyType}");
+                    $"The value {obj} is not a tuple of type {type}");
             }
 
             if (genericArguments.Length != tuple.Length)
@@ -324,123 +241,146 @@ public static class ModelSerializer
             }
 
             var list = new List<IValue>(genericArguments.Length);
-            var typeName = options.GetTypeName(propertyType);
-            var version = options.GetVersion(propertyType);
             for (var i = 0; i < genericArguments.Length; i++)
             {
                 var item = tuple[i];
-                var genericArgument = genericArguments[i];
-                var serialized = item is not null ? Serialize(item, genericArgument, options) : Null.Value;
-                list.Add(serialized);
+                var itemType = genericArguments[i];
+                var serializedValue = SerializeRawValue(item, itemType, options);
+                list.Add(serializedValue);
             }
 
-            var data = new ModelData
-            {
-                Header = new ModelHeader
-                {
-                    TypeName = typeName,
-                    Version = version,
-                },
-                Value = new List(list),
-            };
-            return data.Bencoded;
-        }
-        else if (propertyType.IsDefined(typeof(ModelAttribute)))
-        {
-            return Serialize(value);
+            return new List(list);
         }
 
-        throw new ModelSerializationException($"Unsupported type {value.GetType()}");
+        throw new ModelSerializationException($"Unsupported type {obj.GetType()}");
     }
 
-    private static object? DeserializeValue(
-        Type propertyType, IValue propertyValue, ModelOptions options)
+    private static object? DeserializeRawValue(IValue value, Type type, ModelOptions options)
     {
-        var typeName = options.GetTypeName(propertyType);
-        if (IsBencodableType(propertyType))
+        if (Nullable.GetUnderlyingType(type) is { } nullableType)
         {
-            return CreateInstance(propertyType, args: [propertyValue]);
+            return value is Null ? null : DeserializeRawValue(value, nullableType, options);
         }
-        else if (IsBencodexType(propertyType))
+
+        if (IsBencodableType(type))
         {
-            if (propertyValue.GetType() == propertyType)
+            return CreateInstance(type, args: [value]);
+        }
+        else if (IsBencodexType(type))
+        {
+            if (value.GetType() == type)
             {
-                return propertyValue;
+                return value;
             }
         }
-        else if (propertyType.IsEnum)
+        else if (type.IsEnum)
         {
-            if (propertyValue is Integer integer)
+            if (value is Integer integer)
             {
-                var underlyingType = Enum.GetUnderlyingType(propertyType);
+                var underlyingType = Enum.GetUnderlyingType(type);
                 if (underlyingType == typeof(long))
                 {
-                    return Enum.ToObject(propertyType, (long)integer.Value);
+                    return Enum.ToObject(type, (long)integer.Value);
                 }
                 else if (underlyingType == typeof(int))
                 {
-                    return Enum.ToObject(propertyType, (int)integer.Value);
+                    return Enum.ToObject(type, (int)integer.Value);
                 }
             }
         }
-        else if (propertyType.IsDefined(typeof(ModelAttribute)))
+        else if (TypeDescriptor.GetConverter(type) is TypeConverter converter
+            && converter.CanConvertFrom(typeof(IValue)))
         {
-            if (propertyValue is Null)
+            return converter.ConvertFrom(value);
+        }
+        else if (value is Null)
+        {
+            return null;
+        }
+        else if (type.IsDefined(typeof(ModelAttribute)))
+        {
+            var list = (List)value;
+            var obj = CreateInstance(type);
+            var itemInfos = options.GetProperties(type);
+            for (var i = 0; i < itemInfos.Length; i++)
             {
-                return null;
+                var itemInfo = itemInfos[i];
+                var itemType = itemInfo.PropertyType;
+                var serializedValue = list[i];
+                var itemValue = DeserializeRawValue(serializedValue, itemType, options);
+                itemInfo.SetValue(obj, itemValue);
             }
 
-            return Deserialize(propertyValue, propertyType);
+            return obj;
         }
-        else if (IsArray(propertyType, out var elementType))
+        else if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute)
         {
-            if (propertyValue is Null)
+            var originType = legacyModelAttribute.OriginType;
+            var originVersion = options.GetVersion(originType);
+            var version = options.GetVersion(type);
+            var list = (List)value;
+            var obj = CreateInstance(type);
+            var itemInfos = options.GetProperties(type);
+            for (var i = 0; i < itemInfos.Length; i++)
+            {
+                var itemInfo = itemInfos[i];
+                var itemType = itemInfo.PropertyType;
+                var serializedValue = list[i];
+                var itemValue = DeserializeRawValue(serializedValue, itemType, options);
+                itemInfo.SetValue(obj, itemValue);
+            }
+
+            while (version < originVersion)
+            {
+                var args = new object[] { obj };
+                type = options.GetType(originType, version + 1);
+                obj = CreateInstance(type, args: args);
+                version++;
+            }
+
+            return obj;
+        }
+        else if (IsArray(type, out var elementType))
+        {
+            if (value is Null)
             {
                 return ToEmptyArray(elementType);
             }
 
-            var list = (List)ModelData.GetValue(propertyValue, typeName);
-            return ToArray(list, elementType, options);
+            return ToArray((List)value, elementType, options);
         }
-        else if (IsImmutableArray(propertyType, out elementType))
+        else if (IsImmutableArray(type, out elementType))
         {
-            if (propertyValue is Null)
+            if (value is Null)
             {
                 return ToImmutableEmptyArray(elementType);
             }
 
-            var list = (List)ModelData.GetValue(propertyValue, typeName);
-            return ToImmutableArray(list, elementType, options);
+            return ToImmutableArray((List)value, elementType, options);
         }
-        else if (IsImmutableSortedSet(propertyType, out elementType))
+        else if (IsImmutableSortedSet(type, out elementType))
         {
-            if (propertyValue is Null)
+            if (value is Null)
             {
                 return ToImmutableEmptySortedSet(elementType);
             }
 
-            var list = (List)ModelData.GetValue(propertyValue, typeName);
-            return ToImmutableSortedSet(list, elementType, options);
+            return ToImmutableSortedSet((List)value, elementType, options);
         }
-        else if (IsValueTupleType(propertyType) || IsTupleType(propertyType))
+        else if (IsValueTupleType(type) || IsTupleType(type))
         {
-            var list = (List)ModelData.GetValue(propertyValue, typeName);
-            return ToTupleOrValueTuple(list, propertyType, options);
-        }
-        else if (propertyValue is Null)
-        {
-            return null;
+            return ToTupleOrValueTuple((List)value, type, options);
         }
         else
         {
-            var message = $"Unsupported type {propertyType}. Cannot convert value of type " +
-                          $"{propertyValue.GetType()} to {propertyType}";
+            var message = $"Unsupported type {type}. Cannot convert value of type " +
+                          $"{value.GetType()} to {type}";
             throw new ModelSerializationException(message);
         }
 
         throw new ModelSerializationException(
-            $"Unsupported type {propertyType}. Cannot convert value of type " +
-            $"{propertyValue.GetType()} to {propertyType}");
+            $"Unsupported type {type}. Cannot convert value of type " +
+            $"{value.GetType()} to {type}");
     }
 
     private static Array ToArray(List list, Type elementType, ModelOptions options)
@@ -449,7 +389,7 @@ public static class ModelSerializer
         for (var i = 0; i < list.Count; i++)
         {
             var item = list[i];
-            var itemValue = item is Null ? null : Deserialize(item, elementType, options);
+            var itemValue = item is Null ? null : Deserialize(item, options);
             array.SetValue(itemValue, i);
         }
 
@@ -463,7 +403,7 @@ public static class ModelSerializer
         var listInstance = (IList)CreateInstance(listType)!;
         foreach (var item in list)
         {
-            var itemValue = item is Null ? null : Deserialize(item, elementType, options);
+            var itemValue = item is Null ? null : Deserialize(item, options);
             listInstance.Add(itemValue);
         }
 
@@ -482,7 +422,7 @@ public static class ModelSerializer
         var listInstance = (IList)CreateInstance(listType)!;
         foreach (var item in list)
         {
-            var itemValue = item is Null ? null : Deserialize(item, elementType, options);
+            var itemValue = item is Null ? null : Deserialize(item, options);
             listInstance.Add(itemValue);
         }
 
@@ -502,7 +442,8 @@ public static class ModelSerializer
         for (var i = 0; i < genericArguments.Length; i++)
         {
             var item = list[i];
-            var itemValue = item is Null ? null : Deserialize(item, genericArguments[i], options);
+            var itemType = genericArguments[i];
+            var itemValue = DeserializeRawValue(item, itemType, options);
             valueList.Add(itemValue);
         }
 

@@ -1,13 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
-using Libplanet.Serialization;
 
 namespace Libplanet.Action;
 
-public sealed class AccountStateContext(
-    Account account, Address address) : IAccountContext
+public sealed class AccountStateContext(Account account, Address address) : IAccountContext
 {
     public Address Address { get; } = address;
 
@@ -15,57 +12,12 @@ public sealed class AccountStateContext(
 
     public object this[Address address]
     {
-        get
-        {
-            if (account.GetState(address) is not { } state)
-            {
-                throw new KeyNotFoundException($"No state found at {address}");
-            }
-
-            if (ModelSerializer.TryGetType(state, out var type))
-            {
-                return ModelSerializer.Deserialize(state, type)
-                    ?? throw new InvalidOperationException("Failed to deserialize state.");
-            }
-
-            return state;
-        }
-
+        get => account.GetState(address);
         set => throw new NotSupportedException("Setting state is not supported.");
     }
 
     public bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value)
-    {
-        if (account.TryGetState(address, out var state))
-        {
-            if (typeof(IValue).IsAssignableFrom(typeof(T)))
-            {
-                value = (T)state;
-                return true;
-            }
-            else if (ModelSerializer.TryGetType(state, out var type))
-            {
-                if (ModelSerializer.Deserialize(state, type) is T obj)
-                {
-                    value = obj;
-                    return true;
-                }
-            }
-            else if (typeof(IBencodable).IsAssignableFrom(typeof(T)))
-            {
-                if (Activator.CreateInstance(typeof(T), args: [state]) is not T obj)
-                {
-                    throw new InvalidOperationException("Failed to create an instance of T.");
-                }
-
-                value = obj;
-                return true;
-            }
-        }
-
-        value = default;
-        return false;
-    }
+        => account.TryGetState<T>(address, out value);
 
     public T GetValue<T>(Address address, T fallback)
     {

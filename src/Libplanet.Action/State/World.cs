@@ -10,22 +10,6 @@ namespace Libplanet.Action.State;
 
 public sealed record class World
 {
-    // private readonly IStateStore _stateStore;
-    // private readonly ImmutableDictionary<Address, Account> _accountByAddress;
-
-    // public World(Address signer, ITrie trie, IStateStore stateStore)
-    //     : this(signer, trie, stateStore, ImmutableDictionary<Address, Account>.Empty)
-    // {
-    // }
-
-    // private World(Address signer, ITrie trie, IStateStore stateStore, ImmutableDictionary<Address, Account> delta)
-    // {
-    //     Signer = signer;
-    //     Trie = trie;
-    //     _stateStore = stateStore;
-    //     _accountByAddress = delta;
-    // }
-
     public required ITrie Trie { get; init; }
 
     public required IStateStore StateStore { get; init; }
@@ -35,13 +19,6 @@ public sealed record class World
     public int Version { get; init; }
 
     public ImmutableDictionary<Address, Account> Delta { get; private init; } = ImmutableDictionary<Address, Account>.Empty;
-
-    // public int Version => Trie.GetMetadata() is { } value ? value.Version : 0;
-
-    // ImmutableDictionary<Address, Account> World.Delta
-    //     => _accountByAddress.ToImmutableDictionary(
-    //         kvp => kvp.Key,
-    //         kvp => (Account)kvp.Value);
 
     public static World Create() => Create(new TrieStateStore());
 
@@ -80,8 +57,4 @@ public sealed record class World
     {
         Delta = Delta.SetItem(address, account),
     };
-
-    // Account World.GetAccount(Address address) => GetAccount(address);
-
-    // World World.SetAccount(Address address, Account account) => SetAccount(address, (Account)account);
 }

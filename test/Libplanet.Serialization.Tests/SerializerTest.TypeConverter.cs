@@ -17,13 +17,6 @@ public sealed partial class SerializerTest
     }
 
     [Fact]
-    public void HasTypeConverter_Overflow_ThrowTest()
-    {
-        var value = new Integer(new BigInteger(int.MaxValue) + 1);
-        Assert.Throws<OverflowException>(() => ModelSerializer.Deserialize<HasTypeConverter>(value));
-    }
-
-    [Fact]
     public void NotHasTypeConverter_ThrowTest()
     {
         var obj1 = new NotHasTypeConverter();

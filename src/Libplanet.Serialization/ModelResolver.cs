@@ -142,7 +142,7 @@ public sealed class ModelResolver : IModelResolver
         }
     }
 
-    private static Type GetType(Type type, int version) => GetTypes(type)[version - 1];
+    private static Type GetType(Type type, int version) => version is 0 ? type : GetTypes(type)[version - 1];
 
     private static string GetTypeName(Type type)
     {

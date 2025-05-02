@@ -19,21 +19,7 @@ internal sealed class AccountContext(
 
     public object this[Address address]
     {
-        get
-        {
-            if (_account.GetState(address) is not { } state)
-            {
-                throw new KeyNotFoundException($"No state found at {address}");
-            }
-
-            if (ModelSerializer.TryGetType(state, out var type))
-            {
-                return ModelSerializer.Deserialize(state, type)
-                    ?? throw new InvalidOperationException("Failed to deserialize state.");
-            }
-
-            return state;
-        }
+        get => _account.GetState(address);
 
         set
         {
@@ -42,65 +28,16 @@ internal sealed class AccountContext(
                 _account = _account.RemoveState(address);
                 setter(this);
             }
-            else if (value is IValue state)
-            {
-                _account = _account.SetState(address, state);
-                setter(this);
-            }
-            else if (value is IBencodable obj)
-            {
-                if (obj is IValidateState validateState)
-                {
-                    validateState.Validate();
-                }
-
-                _account = _account.SetState(address, obj.Bencoded);
-                setter(this);
-            }
-            else if (ModelSerializer.CanSupportType(value.GetType()))
-            {
-                _account = _account.SetState(address, ModelSerializer.Serialize(value));
-                setter(this);
-            }
             else
             {
-                throw new NotSupportedException("Setting state is not supported.");
+                _account = _account.SetState(address, value);
+                setter(this);
             }
         }
     }
 
     public bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value)
-    {
-        if (_account.TryGetState(address, out var state))
-        {
-            if (ModelSerializer.TryGetType(state, out var type))
-            {
-                if (ModelSerializer.Deserialize(state, type) is T obj)
-                {
-                    value = obj;
-                    return true;
-                }
-            }
-            else if (typeof(IBencodable).IsAssignableFrom(typeof(T)))
-            {
-                if (Activator.CreateInstance(typeof(T), args: [state]) is not T obj)
-                {
-                    throw new InvalidOperationException("Failed to create an instance of T.");
-                }
-
-                value = obj;
-                return true;
-            }
-            else if (typeof(IValue).IsAssignableFrom(typeof(T)))
-            {
-                value = (T)state;
-                return true;
-            }
-        }
-
-        value = default;
-        return false;
-    }
+        => _account.TryGetState<T>(address, out value);
 
     public T GetValue<T>(Address address, T fallback)
     {

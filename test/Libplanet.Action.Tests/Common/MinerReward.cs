@@ -1,60 +1,32 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 
-namespace Libplanet.Action.Tests.Common
+namespace Libplanet.Action.Tests.Common;
+
+public sealed record class MinerReward : ActionBase
 {
-    public sealed class MinerReward : IAction
+    public static readonly Address RewardRecordAddress = Address.Parse("0000000000000000000000000000000000000000");
+
+    public MinerReward()
     {
-        public MinerReward()
-        {
-        }
+    }
 
-        public MinerReward(int reward)
-        {
-            Reward = reward;
-        }
+    public MinerReward(int reward)
+    {
+        Reward = reward;
+    }
 
-        public static Address RewardRecordAddress =>
-            Address.Parse("0000000000000000000000000000000000000000");
+    [Property(0)]
+    public int Reward { get; init; }
 
-        public int Reward { get; private set; }
-
-        public IValue PlainValue =>
-            new Bencodex.Types.Dictionary(new Dictionary<string, Integer>
-            {
-                ["reward"] = Reward,
-            });
-
-        public void LoadPlainValue(IValue plainValue)
-        {
-            LoadPlainValue((Dictionary)plainValue);
-        }
-
-        public void LoadPlainValue(Dictionary plainValue)
-        {
-            Reward = (Integer)plainValue["reward"];
-        }
-
-        public World Execute(IActionContext ctx)
-        {
-            World states = ctx.World;
-            Account legacyAccount = states.GetAccount(ReservedAddresses.LegacyAccount);
-
-            string rewardRecord = (Text?)legacyAccount.GetState(RewardRecordAddress);
-
-            rewardRecord = rewardRecord is null
-                ? ctx.Proposer.ToString()
-                : $"{rewardRecord},{ctx.Proposer}";
-
-            legacyAccount = legacyAccount.SetState(RewardRecordAddress, (Text)rewardRecord);
-
-            IValue tempQualifier1 = legacyAccount.GetState(ctx.Proposer);
-            int previousReward = tempQualifier1 is Integer i ? (int)i.Value : 0;
-            int reward = previousReward + Reward;
-
-            legacyAccount = legacyAccount.SetState(ctx.Proposer, (Integer)reward);
-            return states.SetAccount(ReservedAddresses.LegacyAccount, legacyAccount);
-        }
+    protected override void OnExecute(IWorldContext world, IActionContext context)
+    {
+        var proposer = context.Proposer;
+        var record = world.GetValue(ReservedAddresses.LegacyAccount, RewardRecordAddress, string.Empty);
+        var reward = world.GetValue(ReservedAddresses.LegacyAccount, proposer, 0) + Reward;
+        var rewardRecord = record == string.Empty ? $"{proposer}" : $"{record},{proposer}";
+        world[ReservedAddresses.LegacyAccount, RewardRecordAddress] = rewardRecord;
+        world[ReservedAddresses.LegacyAccount, proposer] = reward;
     }
 }
