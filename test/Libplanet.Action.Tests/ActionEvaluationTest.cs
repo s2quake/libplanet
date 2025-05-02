@@ -54,7 +54,7 @@ namespace Libplanet.Action.Tests
             World world = World.Create();
             world = world.SetAccount(
                 ReservedAddresses.LegacyAccount,
-                world.GetAccount(ReservedAddresses.LegacyAccount).SetState(address, (Text)"item"));
+                world.GetAccount(ReservedAddresses.LegacyAccount).SetValue(address, (Text)"item"));
             var evaluation = new ActionEvaluation
             {
                 Action = DumbAction.Create((address, "item")),
@@ -81,11 +81,11 @@ namespace Libplanet.Action.Tests
             Assert.Equal(1, evaluation.InputContext.BlockHeight);
             Assert.Null(
                 evaluation.InputWorld.GetAccount(
-                    ReservedAddresses.LegacyAccount).GetState(address)
+                    ReservedAddresses.LegacyAccount).GetValue(address)
             );
             Assert.Equal(
                 (Text)"item",
-                evaluation.OutputWorld.GetAccount(ReservedAddresses.LegacyAccount).GetState(address)
+                evaluation.OutputWorld.GetAccount(ReservedAddresses.LegacyAccount).GetValue(address)
             );
             Assert.Equal(lastCommit, evaluation.InputContext.LastCommit);
         }

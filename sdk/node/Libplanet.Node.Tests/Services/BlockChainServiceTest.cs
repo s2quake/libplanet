@@ -66,10 +66,10 @@ public class BlockChainServiceTest
             var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
             var blockChain = blockChainService.BlockChain;
             var worldState = blockChain.GetNextWorldState()!;
-            Assert.Equal((Text)"A", worldState.GetAccount(accountA).GetState(addressA));
-            Assert.Equal((Integer)123, worldState.GetAccount(accountA).GetState(addressB));
-            Assert.Equal((Text)"B", worldState.GetAccount(accountB).GetState(addressA));
-            Assert.Equal((Integer)456, worldState.GetAccount(accountB).GetState(addressB));
+            Assert.Equal((Text)"A", worldState.GetAccount(accountA).GetValue(addressA));
+            Assert.Equal((Integer)123, worldState.GetAccount(accountA).GetValue(addressB));
+            Assert.Equal((Text)"B", worldState.GetAccount(accountB).GetValue(addressA));
+            Assert.Equal((Integer)456, worldState.GetAccount(accountB).GetValue(addressB));
         }
         finally
         {

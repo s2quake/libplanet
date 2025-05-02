@@ -53,7 +53,7 @@ namespace Libplanet.Action.Tests.State
             Assert.Equal(accountTrie.Hash, account.Trie.Hash);
             Assert.Equal(
                 (Text)"foo",
-                world.GetAccount(accountAddress).GetState(address));
+                world.GetAccount(accountAddress).GetValue(address));
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace Libplanet.Action.Tests.State
             Assert.Equal(accountTrie.Hash, account.Trie.Hash);
             Assert.Equal(
                 (Text)"foo",
-                world.GetAccount(accountAddress).GetState(address));
+                world.GetAccount(accountAddress).GetValue(address));
         }
     }
 }

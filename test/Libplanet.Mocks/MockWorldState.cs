@@ -82,11 +82,11 @@ public static class MockWorldState
         // KeyBytes totalSupplyKey = ToStateKey(CurrencyAccount.TotalSupplyAddress);
 
         var account = GetAccount(@this, accountAddress);
-        var balance = account.GetStateOrFallback(address, BigInteger.Zero);
-        var totalSupply = account.GetStateOrFallback(CurrencyAccount.TotalSupplyAddress, BigInteger.Zero);
+        var balance = account.GetValueOrFallback(address, BigInteger.Zero);
+        var totalSupply = account.GetValueOrFallback(CurrencyAccount.TotalSupplyAddress, BigInteger.Zero);
 
-        account = account.SetState(CurrencyAccount.TotalSupplyAddress, totalSupply - balance + rawValue);
-        account = account.SetState(address, rawValue);
+        account = account.SetValue(CurrencyAccount.TotalSupplyAddress, totalSupply - balance + rawValue);
+        account = account.SetValue(address, rawValue);
         // trie = trie.Set(
         //     totalSupplyKey,
         //     new Integer(totalSupply - balance + rawValue));

@@ -63,7 +63,7 @@ namespace Libplanet.Explorer.GraphTypes
                     }
                 ),
                 resolve: context =>
-                    context.Source.GetState(context.GetArgument<Address>("address"))
+                    context.Source.GetValue(context.GetArgument<Address>("address"))
             );
 
             Field<NonNullGraphType<ListGraphType<IValueType>>>(
@@ -79,7 +79,7 @@ namespace Libplanet.Explorer.GraphTypes
                 ),
                 resolve: context =>
                     context.GetArgument<Address[]>("addresses")
-                        .Select(address => context.Source.GetState(address))
+                        .Select(address => context.Source.GetValue(address))
                         .ToArray()
             );
 

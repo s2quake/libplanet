@@ -106,7 +106,7 @@ public sealed class IntegerSet
         Transaction tx =
             Transaction.Create(nonce, signer, Genesis.Hash, actions.ToPlainValues());
         BigInteger prevState = Chain.GetNextWorldState().GetAccount(
-            ReservedAddresses.LegacyAccount).GetState(signerAddress) is Bencodex.Types.Integer i
+            ReservedAddresses.LegacyAccount).GetValue(signerAddress) is Bencodex.Types.Integer i
                 ? i.Value
                 : 0;
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;

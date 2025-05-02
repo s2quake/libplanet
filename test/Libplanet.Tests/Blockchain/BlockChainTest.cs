@@ -247,7 +247,7 @@ public partial class BlockChainTest : IDisposable
         var result = (BattleResult)chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
-            .GetState(_fx.Address1);
+            .GetValue(_fx.Address1);
 
         Assert.Contains("sword", result.UsedWeapons);
         Assert.Contains("staff", result.UsedWeapons);
@@ -278,7 +278,7 @@ public partial class BlockChainTest : IDisposable
         result = (BattleResult)chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
-            .GetState(_fx.Address1);
+            .GetValue(_fx.Address1);
 
         Assert.Contains("bow", result.UsedWeapons);
 
@@ -303,7 +303,7 @@ public partial class BlockChainTest : IDisposable
         result = (BattleResult)chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
-            .GetState(_fx.Address1);
+            .GetValue(_fx.Address1);
     }
 
     [SkippableFact]
@@ -649,7 +649,7 @@ public partial class BlockChainTest : IDisposable
                 targetAddress => chain
                     .GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(targetAddress)),
+                    .GetValue(targetAddress)),
             Assert.NotNull);
 
         var callCount = tracker.Logs.Where(
@@ -687,7 +687,7 @@ public partial class BlockChainTest : IDisposable
         var result = chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
-            .GetState(nonexistent);
+            .GetValue(nonexistent);
         Assert.Null(result);
         var callCount = tracker.Logs.Where(
             trackLog => trackLog.Method == "GetBlockStates"
@@ -721,14 +721,14 @@ public partial class BlockChainTest : IDisposable
                 address => chain
                     .GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(address)),
+                    .GetValue(address)),
             Assert.Null);
         foreach (var address in addresses)
         {
             Assert.Null(chain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(address));
+                .GetValue(address));
         }
 
         var privateKeysAndAddresses10 = privateKeys.Zip(addresses, (k, a) => (k, a));
@@ -747,7 +747,7 @@ public partial class BlockChainTest : IDisposable
                 address => chain
                     .GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(address)),
+                    .GetValue(address)),
             v => Assert.Equal((Text)"1", v));
         foreach (var address in addresses)
         {
@@ -756,7 +756,7 @@ public partial class BlockChainTest : IDisposable
                 chain
                     .GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(address));
+                    .GetValue(address));
         }
 
         chain.MakeTransaction(privateKeys[0], new[] { DumbAction.Create((addresses[0], "2")) });
@@ -768,13 +768,13 @@ public partial class BlockChainTest : IDisposable
             chain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(addresses[0]));
+                .GetValue(addresses[0]));
         Assert.All(
             addresses.Skip(1).Select(
                 address => chain
                     .GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(address)),
+                    .GetValue(address)),
             v => Assert.Equal((Text)"1", v)
         );
     }
@@ -1117,15 +1117,15 @@ public partial class BlockChainTest : IDisposable
         var miner1state = (int)_blockChain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
-            .GetState(miner1.Address);
+            .GetValue(miner1.Address);
         var miner2state = (int)_blockChain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
-            .GetState(miner2.Address);
+            .GetValue(miner2.Address);
         var rewardState = (string)_blockChain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
-            .GetState(rewardRecordAddress);
+            .GetValue(rewardRecordAddress);
 
         Assert.Equal(2, miner1state);
         Assert.Equal(1, miner2state);
@@ -1449,7 +1449,7 @@ public partial class BlockChainTest : IDisposable
             .Select(address => blockChain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetState(address))
+                .GetValue(address))
             .ToArray();
         for (int i = 0; i < states.Length; ++i)
         {
@@ -1527,10 +1527,10 @@ public partial class BlockChainTest : IDisposable
                 // The following method calls should not throw any exceptions:
                 x?.GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(default(Address));
+                    .GetValue(default(Address));
                 x?.GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(default);
+                    .GetValue(default);
                 // ReSharper restore AccessToModifiedClosure
             });
         IStore store = new MemoryStore();
