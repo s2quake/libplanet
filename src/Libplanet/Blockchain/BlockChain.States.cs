@@ -11,15 +11,15 @@ namespace Libplanet.Blockchain
         /// Gets the current world state in the <see cref="BlockChain"/>.
         /// </summary>
         /// <returns>The current world state.</returns>
-        public World GetWorldState() => GetWorldState(Tip.Hash);
+        public World GetWorldState() => GetWorld(Tip.Hash);
 
-        /// <inheritdoc cref="IBlockChainStates.GetWorldState(BlockHash)" />
-        public World GetWorldState(BlockHash offset)
-            => _blockChainStates.GetWorldState(offset);
+        /// <inheritdoc cref="IBlockChainStates.GetWorld(BlockHash)" />
+        public World GetWorld(BlockHash offset)
+            => _blockChainStates.GetWorld(offset);
 
-        /// <inheritdoc cref="IBlockChainStates.GetWorldState(HashDigest{SHA256})" />
-        public World GetWorldState(HashDigest<SHA256> stateRootHash)
-            => _blockChainStates.GetWorldState(stateRootHash);
+        /// <inheritdoc cref="IBlockChainStates.GetWorld(HashDigest{SHA256})" />
+        public World GetWorld(HashDigest<SHA256> stateRootHash)
+            => _blockChainStates.GetWorld(stateRootHash);
 
         /// <summary>
         /// Gets the next world state in the <see cref="BlockChain"/>.

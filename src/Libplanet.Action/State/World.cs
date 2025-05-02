@@ -18,7 +18,8 @@ public sealed record class World
 
     public int Version { get; init; }
 
-    public ImmutableDictionary<Address, Account> Delta { get; private init; } = ImmutableDictionary<Address, Account>.Empty;
+    public ImmutableDictionary<Address, Account> Delta { get; private init; }
+        = ImmutableDictionary<Address, Account>.Empty;
 
     public static World Create() => Create(new TrieStateStore());
 

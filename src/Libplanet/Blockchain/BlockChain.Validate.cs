@@ -133,7 +133,7 @@ namespace Libplanet.Blockchain
 
             // FIXME: When the dynamic validator set is possible, the functionality of this
             // condition should be checked once more.
-            var validators = GetWorldState(block.StateRootHash).GetValidatorSet();
+            var validators = GetWorld(block.StateRootHash).GetValidatorSet();
 
             // if (block.ProtocolVersion < BlockMetadata.EvidenceProtocolVersion)
             // {
@@ -301,7 +301,7 @@ namespace Libplanet.Blockchain
             foreach (var ev in block.Evidence)
             {
                 var stateRootHash = GetNextStateRootHash(ev.Height);
-                var worldState = GetWorldState(stateRootHash ?? default);
+                var worldState = GetWorld(stateRootHash ?? default);
                 var validatorSet = worldState.GetValidatorSet();
                 var evidenceContext = new EvidenceContext(validatorSet);
                 ev.Verify(evidenceContext);

@@ -43,11 +43,11 @@ namespace Libplanet.Mocks
         }
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(BlockHash?)"/>
-        public World GetWorldState(BlockHash offset)
+        public World GetWorld(BlockHash offset)
         {
             if (_map.ContainsKey(offset))
             {
-                return GetWorldState(_map[offset]);
+                return GetWorld(_map[offset]);
             }
             else
             {
@@ -58,7 +58,7 @@ namespace Libplanet.Mocks
         }
 
         /// <inheritdoc cref="IBlockChainStates.GetWorldState(HashDigest{SHA256}?)"/>
-        public World GetWorldState(HashDigest<SHA256> stateRootHash)
+        public World GetWorld(HashDigest<SHA256> stateRootHash)
         {
             ITrie trie = _stateStore.GetStateRoot(stateRootHash);
             return trie.IsCommitted

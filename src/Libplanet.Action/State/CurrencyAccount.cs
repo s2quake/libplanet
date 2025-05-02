@@ -122,7 +122,11 @@ public sealed record class CurrencyAccount(ITrie Trie, int WorldVersion, Currenc
         var prevSenderBalanceRawValue = currencyAccount.GetRawBalance(sender);
         if (prevSenderBalanceRawValue - rawValue < 0)
         {
-            var prevSenderBalance = new FungibleAssetValue { Currency = Currency, RawValue = prevSenderBalanceRawValue };
+            var prevSenderBalance = new FungibleAssetValue
+            {
+                Currency = Currency,
+                RawValue = prevSenderBalanceRawValue,
+            };
             var value = new FungibleAssetValue { Currency = Currency, RawValue = rawValue };
             throw new InsufficientBalanceException(
                 $"Cannot burn or transfer {value} from {sender} as the current balance " +

@@ -17,7 +17,7 @@ namespace Libplanet.Tests
         /// the tip of <paramref name="blockChain"/>.</returns>
         public static World GetNextWorldState(this BlockChain blockChain) =>
             blockChain.GetNextStateRootHash() is HashDigest<SHA256> stateRootHash
-                ? blockChain.GetWorldState(stateRootHash)
+                ? blockChain.GetWorld(stateRootHash)
                 : null;
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Libplanet.Tests
         /// a <see cref="Block"/> associated with given <paramref name="index"/>.</returns>
         public static World GetNextWorldState(this BlockChain blockChain, long index) =>
             blockChain.GetNextStateRootHash(index) is HashDigest<SHA256> stateRootHash
-                ? blockChain.GetWorldState(stateRootHash)
+                ? blockChain.GetWorld(stateRootHash)
                 : null;
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Libplanet.Tests
             this BlockChain blockChain,
             BlockHash blockHash) =>
             blockChain.GetNextStateRootHash(blockHash) is HashDigest<SHA256> stateRootHash
-                ? blockChain.GetWorldState(stateRootHash)
+                ? blockChain.GetWorld(stateRootHash)
                 : null;
     }
 }

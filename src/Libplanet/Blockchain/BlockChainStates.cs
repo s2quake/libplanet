@@ -24,8 +24,8 @@ namespace Libplanet.Blockchain
             _activitySource = new ActivitySource("Libplanet.Blockchain.BlockChainStates");
         }
 
-        /// <inheritdoc cref="IBlockChainStates.GetWorldState(BlockHash)"/>
-        public World GetWorldState(BlockHash offset)
+        /// <inheritdoc cref="IBlockChainStates.GetWorld(BlockHash)"/>
+        public World GetWorld(BlockHash offset)
         {
             using Activity? a = _activitySource
                 .StartActivity(ActivityKind.Internal)?
@@ -33,8 +33,8 @@ namespace Libplanet.Blockchain
             return World.Create(GetTrie(offset), _stateStore);
         }
 
-        /// <inheritdoc cref="IBlockChainStates.GetWorldState(HashDigest{SHA256})"/>
-        public World GetWorldState(HashDigest<SHA256> stateRootHash)
+        /// <inheritdoc cref="IBlockChainStates.GetWorld(HashDigest{SHA256})"/>
+        public World GetWorld(HashDigest<SHA256> stateRootHash)
             => World.Create(GetTrie(stateRootHash), _stateStore);
 
         /// <summary>

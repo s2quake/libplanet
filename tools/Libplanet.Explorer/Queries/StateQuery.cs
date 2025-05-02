@@ -85,9 +85,9 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                     "Either blockHash or stateRootHash must be specified."
                 );
             case (blockhash: not null, _):
-                return context.Source.GetWorldState((BlockHash)blockHash);
+                return context.Source.GetWorld((BlockHash)blockHash);
             case (_, srh: not null):
-                return context.Source.GetWorldState(stateRootHash ?? default);
+                return context.Source.GetWorld(stateRootHash ?? default);
         }
     }
 
@@ -113,7 +113,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 );
             case (blockhash: not null, _):
             {
-                var world = context.Source.GetWorldState((BlockHash)offsetBlockHash);
+                var world = context.Source.GetWorld((BlockHash)offsetBlockHash);
                 return addresses.Select(address =>
                     world.GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(address)
@@ -122,7 +122,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
 
             case (_, srh: not null):
             {
-                var world = context.Source.GetWorldState(offsetStateRootHash ?? default);
+                var world = context.Source.GetWorld(offsetStateRootHash ?? default);
                 return addresses.Select(address =>
                     world.GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(address)
@@ -155,13 +155,13 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
             case (blockhash: not null, _):
             {
                 return context.Source
-                    .GetWorldState((BlockHash)offsetBlockHash)
+                    .GetWorld((BlockHash)offsetBlockHash)
                     .GetBalance(owner, currency);
             }
 
             case (_, srh: not null):
                 return context.Source
-                    .GetWorldState(offsetStateRootHash ?? default)
+                    .GetWorld(offsetStateRootHash ?? default)
                     .GetBalance(owner, currency);
         }
     }
@@ -188,11 +188,11 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 );
             case (blockhash: not null, _):
                 return context.Source
-                    .GetWorldState((BlockHash)offsetBlockHash)
+                    .GetWorld((BlockHash)offsetBlockHash)
                     .GetTotalSupply(currency);
             case (_, srh: not null):
                 return context.Source
-                    .GetWorldState(offsetStateRootHash ?? default)
+                    .GetWorld(offsetStateRootHash ?? default)
                     .GetTotalSupply(currency);
         }
     }
@@ -218,11 +218,11 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 );
             case (blockhash: not null, _):
                 return context.Source
-                    .GetWorldState((BlockHash)offsetBlockHash)
+                    .GetWorld((BlockHash)offsetBlockHash)
                     .GetValidatorSet();
             case (_, srh: not null):
                 return context.Source
-                    .GetWorldState(offsetStateRootHash ?? default)
+                    .GetWorld(offsetStateRootHash ?? default)
                     .GetValidatorSet();
         }
     }
