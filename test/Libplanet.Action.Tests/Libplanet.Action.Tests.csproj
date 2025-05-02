@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Action\Libplanet.Action.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Store\Libplanet.Store.csproj" />
-    <ProjectReference Include="..\Libplanet.Mocks\Libplanet.Mocks.csproj" />
   </ItemGroup>
 
 </Project>

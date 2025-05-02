@@ -48,10 +48,8 @@ public sealed record class World
         {
             return new Account(StateStore.GetStateRoot(new HashDigest<SHA256>(binary.ByteArray)));
         }
-        else
-        {
-            return new Account(StateStore.GetStateRoot(default));
-        }
+
+        return new Account(StateStore.GetStateRoot(default));
     }
 
     public World SetAccount(Address address, Account account) => this with

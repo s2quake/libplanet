@@ -1,11 +1,11 @@
 using Libplanet.Crypto;
-using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
+using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.State;
 
-public static class IWorldExtensions
+public static class WorldExtensions
 {
     public static FungibleAssetValue GetBalance(this World @this, Address address, Currency currency)
         => @this.GetCurrencyAccount(currency).GetBalance(address, currency);
@@ -49,8 +49,15 @@ public static class IWorldExtensions
 
     public static ImmutableSortedSet<Validator> GetValidatorSet(this World @this)
     {
-        var accountState = @this.GetAccount(ReservedAddresses.ValidatorSetAddress);
-        return (ImmutableSortedSet<Validator>)accountState.GetValue(ReservedAddresses.ValidatorSetAddress);
+        var account = @this.GetAccount(ValidatorSetAddress);
+        return (ImmutableSortedSet<Validator>)account.GetValue(ValidatorSetAddress);
+    }
+
+    public static World SetValidatorSet(this World @this, ImmutableSortedSet<Validator> validators)
+    {
+        var account = @this.GetAccount(ValidatorSetAddress);
+        account = account.SetValue(ValidatorSetAddress, validators);
+        return @this.SetAccount(ValidatorSetAddress, account);
     }
 
     internal static CurrencyAccount GetCurrencyAccount(this World @this, Currency currency)
@@ -59,8 +66,7 @@ public static class IWorldExtensions
                 @this.Version,
                 currency);
 
-    internal static World SetCurrencyAccount(
-        this World @this, CurrencyAccount currencyAccount)
+    internal static World SetCurrencyAccount(this World @this, CurrencyAccount currencyAccount)
     {
         if (@this.Version != currencyAccount.WorldVersion)
         {
@@ -71,8 +77,6 @@ public static class IWorldExtensions
                 nameof(currencyAccount));
         }
 
-        return @this.SetAccount(
-            new Address(currencyAccount.Currency.Hash.Bytes),
-            currencyAccount.AsAccount());
+        return @this.SetAccount(new Address(currencyAccount.Currency.Hash.Bytes), currencyAccount.AsAccount());
     }
 }

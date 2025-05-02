@@ -3,7 +3,7 @@ using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Common;
 using Libplanet.Crypto;
-using Libplanet.Mocks;
+using Libplanet.Tests;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -37,7 +37,7 @@ public static class BlockChainStatesFixture
     public static (IBlockChainStates, BlockHash, HashDigest<SHA256>)
         CreateMockBlockChainStates(int version)
     {
-        MockBlockChainStates mockBlockChainStates = new MockBlockChainStates();
+        BlockChainStates mockBlockChainStates = new BlockChainStates();
         World mock = World.Create(mockBlockChainStates.StateStore) with { Version = version };
         mock = mock
             .SetBalance(Address, Amount)

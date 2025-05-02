@@ -10,7 +10,6 @@
             "src/Libplanet.Crypto/Libplanet.Crypto.csproj",
             "tools/Libplanet.Explorer.Cocona/Libplanet.Explorer.Cocona.csproj",
             "tools/Libplanet.Extensions.Cocona/Libplanet.Extensions.Cocona.csproj",
-            "test/Libplanet.Mocks/Libplanet.Mocks.csproj",
             "src/Libplanet.Net/Libplanet.Net.csproj",
             "src/Libplanet.RocksDBStore/Libplanet.RocksDBStore.csproj",
             "src/Libplanet.Store/Libplanet.Store.csproj",

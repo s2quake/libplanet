@@ -5,7 +5,6 @@ using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Crypto;
-using Libplanet.Mocks;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
