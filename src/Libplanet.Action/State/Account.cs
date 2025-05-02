@@ -36,6 +36,9 @@ public sealed record class Account(ITrie Trie)
 
     public object? GetStateOrDefault(Address address) => TryGetState(address, out object? state) ? state : null;
 
+    public T GetStateOrFallback<T>(Address address, T fallback)
+        => GetStateOrDefault(address) is T state ? state : fallback;
+
     public Account RemoveState(Address address) => new(Trie.Remove(ToStateKey(address)));
 
     public bool TryGetState(Address address, [MaybeNullWhen(false)] out object value)

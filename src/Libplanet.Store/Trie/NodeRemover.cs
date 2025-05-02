@@ -21,7 +21,7 @@ internal static class NodeRemover
     private static INode RemoveFromValueNode(ValueNode valueNode, PathCursor cursor)
         => cursor.IsEnd ? NullNode.Value : valueNode;
 
-    private static ShortNode RemoveFromShortNode(ShortNode shortNode, PathCursor cursor)
+    private static INode RemoveFromShortNode(ShortNode shortNode, PathCursor cursor)
     {
         var key = shortNode.Key;
         var nextCursor = cursor.SkipCommonPrefix(cursor.Position, key);
@@ -29,21 +29,18 @@ internal static class NodeRemover
 
         if (commonLength == key.Length)
         {
-            if (Remove(shortNode.Value, nextCursor) is { } node)
-            {
-                return Create(key, node);
-            }
-
-            return null;
+            var node = Remove(shortNode.Value, nextCursor);
+            return Create(key, node);
         }
 
         return shortNode;
 
-        static ShortNode Create(Nibbles key, INode node) => node switch
+        static INode Create(Nibbles key, INode node) => node switch
         {
             ValueNode valueNode => new ShortNode(key, valueNode),
             FullNode fullNode => new ShortNode(key, fullNode),
             ShortNode shortNode => new ShortNode(key.Append(shortNode.Key), shortNode.Value),
+            NullNode => node,
             _ => throw new UnreachableException(
                     $"Unsupported node value: {node.ToBencodex().Inspect()}"),
         };
