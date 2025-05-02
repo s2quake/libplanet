@@ -22,7 +22,7 @@ namespace Libplanet.Tests.Action
 
             Account targetAccount = new Account(targetTrie);
             PrivateKey signer = new PrivateKey();
-            targetAccount = targetAccount.SetState(signer.Address, new Text("Foo"));
+            targetAccount = targetAccount.SetValue(signer.Address, new Text("Foo"));
 
             targetTrie = stateStore.Commit(targetAccount.Trie);
 
@@ -46,15 +46,15 @@ namespace Libplanet.Tests.Action
 
             Account targetAccount = new Account(targetTrie);
             PrivateKey signer = new PrivateKey();
-            targetAccount = targetAccount.SetState(addr1, new Text("One"));
-            targetAccount = targetAccount.SetState(addr2, new Text("Two"));
+            targetAccount = targetAccount.SetValue(addr1, new Text("One"));
+            targetAccount = targetAccount.SetValue(addr2, new Text("Two"));
             targetTrie = stateStore.Commit(targetAccount.Trie);
 
             sourceTrie = targetTrie;
 
             Account sourceAccount = new Account(sourceTrie);
-            sourceAccount = sourceAccount.SetState(addr2, new Text("Two_"));
-            sourceAccount = sourceAccount.SetState(addr3, new Text("Three"));
+            sourceAccount = sourceAccount.SetValue(addr2, new Text("Two_"));
+            sourceAccount = sourceAccount.SetValue(addr3, new Text("Three"));
 
             sourceTrie = stateStore.Commit(sourceAccount.Trie);
 

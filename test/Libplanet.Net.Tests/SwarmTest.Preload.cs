@@ -100,7 +100,7 @@ namespace Libplanet.Net.Tests
                 var state = receiverChain
                     .GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetState(address1);
+                    .GetValue(address1);
 
                 Assert.Equal((Text)"foo,bar,baz", state);
                 Assert.Equal(minerChain.BlockHashes, receiverChain.BlockHashes);
@@ -664,7 +664,7 @@ namespace Libplanet.Net.Tests
                     receiverChain
                         .GetNextWorldState()
                         .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetState(address));
+                        .GetValue(address));
             }
             else
             {
@@ -677,7 +677,7 @@ namespace Libplanet.Net.Tests
                     receiverChain
                         .GetNextWorldState()
                         .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetState(address)
+                        .GetValue(address)
                 );
             }
 

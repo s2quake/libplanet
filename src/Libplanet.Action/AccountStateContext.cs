@@ -12,12 +12,12 @@ public sealed class AccountStateContext(Account account, Address address) : IAcc
 
     public object this[Address address]
     {
-        get => account.GetState(address);
+        get => account.GetValue(address);
         set => throw new NotSupportedException("Setting state is not supported.");
     }
 
     public bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value)
-        => account.TryGetState<T>(address, out value);
+        => account.TryGetValue<T>(address, out value);
 
     public T GetValue<T>(Address address, T fallback)
     {
@@ -29,7 +29,7 @@ public sealed class AccountStateContext(Account account, Address address) : IAcc
         return fallback;
     }
 
-    public bool Contains(Address address) => account.GetState(address) is not null;
+    public bool Contains(Address address) => account.GetValue(address) is not null;
 
     public bool Remove(Address address)
         => throw new NotSupportedException("Removing state is not supported.");

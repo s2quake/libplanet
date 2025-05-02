@@ -60,7 +60,7 @@ public class InitializeTest
         Assert.Equal(_validators, nextWorld.GetValidatorSet());
         Assert.Equal(
             _states[default],
-            nextWorld.GetAccount(ReservedAddresses.LegacyAccount).GetState(default));
+            nextWorld.GetAccount(ReservedAddresses.LegacyAccount).GetValue(default));
     }
 
     [Fact]

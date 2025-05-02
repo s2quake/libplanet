@@ -116,7 +116,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 var world = context.Source.GetWorldState((BlockHash)offsetBlockHash);
                 return addresses.Select(address =>
                     world.GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetState(address)
+                        .GetValue(address)
                 ).ToArray();
             }
 
@@ -125,7 +125,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 var world = context.Source.GetWorldState(offsetStateRootHash ?? default);
                 return addresses.Select(address =>
                     world.GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetState(address)
+                        .GetValue(address)
                 ).ToArray();
             }
         }

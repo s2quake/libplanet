@@ -44,7 +44,7 @@ public static class BlockChainStatesFixture
             .SetBalance(new PrivateKey().Address, AdditionalSupply)
             .SetValidatorSet(Validators);
         Account account = mock.GetAccount(ReservedAddresses.LegacyAccount);
-        account = account.SetState(Address, Value);
+        account = account.SetValue(Address, Value);
         mock = mock.SetAccount(ReservedAddresses.LegacyAccount, account);
 
         var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));

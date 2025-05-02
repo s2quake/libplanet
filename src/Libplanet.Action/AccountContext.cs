@@ -19,25 +19,25 @@ internal sealed class AccountContext(
 
     public object this[Address address]
     {
-        get => _account.GetState(address);
+        get => _account.GetValue(address);
 
         set
         {
             if (value is null)
             {
-                _account = _account.RemoveState(address);
+                _account = _account.RemoveValue(address);
                 setter(this);
             }
             else
             {
-                _account = _account.SetState(address, value);
+                _account = _account.SetValue(address, value);
                 setter(this);
             }
         }
     }
 
     public bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value)
-        => _account.TryGetState<T>(address, out value);
+        => _account.TryGetValue<T>(address, out value);
 
     public T GetValue<T>(Address address, T fallback)
     {
@@ -49,13 +49,13 @@ internal sealed class AccountContext(
         return fallback;
     }
 
-    public bool Contains(Address address) => _account.GetState(address) is not null;
+    public bool Contains(Address address) => _account.GetValue(address) is not null;
 
     public bool Remove(Address address)
     {
-        if (_account.GetState(address) is not null)
+        if (_account.GetValue(address) is not null)
         {
-            _account = _account.RemoveState(address);
+            _account = _account.RemoveValue(address);
             setter(this);
             return true;
         }
