@@ -1,28 +1,14 @@
-using System.Reflection;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
+using Libplanet.Serialization;
 
 namespace Libplanet.Explorer.Tests;
 
-public abstract class SimpleAction : IAction
+public abstract record class SimpleAction : ActionBase
 {
-    public IValue TypeId => this
-        .GetType()
-        .GetCustomAttribute<ActionTypeAttribute>() is ActionTypeAttribute attribute
-            ? attribute.TypeIdentifier
-            : throw new NullReferenceException(
-                $"Given type {this.GetType()} is missing {nameof(ActionTypeAttribute)}.");
-
-    public IValue PlainValue => Dictionary.Empty
-        .Add("type_id", TypeId)
-        .Add("values", Null.Value);
-
-    public void LoadPlainValue(IValue plainValue)
+    protected override void OnExecute(IWorldContext world, IActionContext context)
     {
     }
-
-    public virtual World Execute(IActionContext context) => context.World;
 
     public static SimpleAction GetAction(int seed) =>
         (seed % 10) switch
@@ -40,55 +26,57 @@ public abstract class SimpleAction : IAction
         };
 }
 
-[ActionType(nameof(SimpleAction0))]
-public class SimpleAction0 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction0 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction1))]
-public class SimpleAction1 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction1 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction2))]
-public class SimpleAction2 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction2 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction3))]
-public class SimpleAction3 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction3 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction4))]
-public class SimpleAction4 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction4 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction5))]
-public class SimpleAction5 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction5 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction6))]
-public class SimpleAction6 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction6 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction7))]
-public class SimpleAction7 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction7 : SimpleAction
 {
 }
 
-[ActionType(nameof(SimpleAction8))]
-public class SimpleAction8 : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction8 : SimpleAction
 {
 }
 
 // For overlapping custom action id test and fail test
-[ActionType(nameof(SimpleAction0Fail))]
-public class SimpleAction0Fail : SimpleAction
+[Model(Version = 1)]
+public sealed record class SimpleAction0Fail : SimpleAction
 {
-    public override World Execute(IActionContext context) =>
+    protected override void OnExecute(IWorldContext world, IActionContext context)
+    {
         throw new CurrencyPermissionException("test message", context.Signer, default);
+    }
 }

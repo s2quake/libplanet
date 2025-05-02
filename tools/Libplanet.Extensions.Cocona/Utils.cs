@@ -6,6 +6,7 @@ using global::Cocona;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Common.JsonConverters;
+using Libplanet.Serialization;
 using Libplanet.Store;
 
 namespace Libplanet.Extensions.Cocona;
@@ -245,21 +246,11 @@ public static class Utils
         }
     }
 
-    public class DummyAction : IAction
+    [Model(Version = 1)]
+    public sealed record class DummyAction : ActionBase
     {
-        public DummyAction()
+        protected override void OnExecute(IWorldContext world, IActionContext context)
         {
-            PlainValue = Null.Value;
-        }
-
-        public IValue PlainValue { get; private set; }
-
-        public World Execute(IActionContext context) =>
-        context.World;
-
-        public void LoadPlainValue(IValue plainValue)
-        {
-            PlainValue = plainValue;
         }
     }
 

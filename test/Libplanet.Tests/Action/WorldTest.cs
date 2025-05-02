@@ -71,17 +71,16 @@ public sealed class WorldTest
 
         output.WriteLine("Validators: {0}", _initWorld.GetValidatorSet());
 
-        _initContext = CreateContext(_initWorld, _addr[0]);
+        _initContext = CreateContext(_addr[0]);
     }
 
     public int ProtocolVersion { get; }
 
-    public IActionContext CreateContext(World world, Address signer) => new ActionContext
+    public IActionContext CreateContext(Address signer) => new ActionContext
     {
         Signer = signer,
         Proposer = signer,
         BlockProtocolVersion = ProtocolVersion,
-        World = world,
     };
 
     [Fact]
@@ -131,7 +130,7 @@ public sealed class WorldTest
         Assert.Equal(Value(3, 5), world.GetBalance(_addr[2], _currencies[3]));
 
         var accountDiff = AccountDiff.Create(
-            _initContext.World.GetAccount(ReservedAddresses.LegacyAccount).Trie,
+            _initWorld.GetAccount(ReservedAddresses.LegacyAccount).Trie,
             world.GetAccount(ReservedAddresses.LegacyAccount).Trie);
         Assert.Empty(accountDiff.StateDiffs);
     }
@@ -273,7 +272,7 @@ public sealed class WorldTest
             () => _initWorld.MintAsset(_addr[0], Value(5, 200)));
 
         World delta1 = _initWorld;
-        IActionContext context1 = CreateContext(delta1, _addr[1]);
+        IActionContext context1 = CreateContext(_addr[1]);
         // currencies[0] (DDD) allows everyone to mint
         delta1 = delta1.MintAsset(_addr[2], Value(0, 10));
         Assert.Equal(Value(0, 10), delta1.GetBalance(_addr[2], _currencies[0]));
@@ -312,7 +311,7 @@ public sealed class WorldTest
         Assert.Equal(Value(3, 12), delta0.GetBalance(_addr[1], _currencies[3]));
 
         World delta1 = _initWorld;
-        IActionContext context1 = CreateContext(delta1, _addr[1]);
+        IActionContext context1 = CreateContext(_addr[1]);
         // currencies[0] (AAA) allows everyone to burn
         delta1 = delta1.BurnAsset(_addr[0], Value(0, 2));
         Assert.Equal(Value(0, 3), delta1.GetBalance(_addr[0], _currencies[0]));

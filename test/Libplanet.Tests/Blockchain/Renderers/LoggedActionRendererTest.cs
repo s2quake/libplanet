@@ -59,13 +59,14 @@ namespace Libplanet.Tests.Blockchain.Renderers
             bool called = false;
             LogEvent firstLog = null;
             CommittedActionContext actionContext =
-                new CommittedActionContext(new ActionContext
-                {
-                    BlockHeight = 123,
-                    BlockProtocolVersion = Block.CurrentProtocolVersion,
-                    // LastCommit should not be null if the block height is not 0, just for testing
-                    World = _world,
-                });
+                new CommittedActionContext(
+                    new ActionContext
+                    {
+                        BlockHeight = 123,
+                        BlockProtocolVersion = Block.CurrentProtocolVersion,
+                        // LastCommit should not be null if the block height is not 0, just for testing
+                    },
+                    _world.Trie.Hash);
             Exception actionError = new Exception();
             IActionRenderer actionRenderer;
             if (error)

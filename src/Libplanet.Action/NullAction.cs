@@ -1,33 +1,11 @@
-// using Bencodex.Types;
-// using Libplanet.Action.State;
+using Libplanet.Serialization;
 
-// namespace Libplanet.Action
-// {
-//     /// <summary>
-//     /// An action implementation which does nothing for filling type parameter taking of
-//     /// <see cref="IAction"/>.
-//     /// </summary>
-//     public class NullAction : IAction
-//     {
-//         public NullAction()
-//         {
-//             PlainValue = Null.Value;
-//         }
+namespace Libplanet.Action;
 
-//         public IValue PlainValue
-//         {
-//             get;
-//             private set;
-//         }
-
-//         public void LoadPlainValue(IValue plainValue)
-//         {
-//             PlainValue = plainValue;
-//         }
-
-//         public World Execute(IActionContext context)
-//         {
-//             return context.World;
-//         }
-//     }
-// }
+[Model(Version = 1)]
+public sealed record class NullAction : ActionBase
+{
+    protected override void OnExecute(IWorldContext world, IActionContext context)
+    {
+    }
+}

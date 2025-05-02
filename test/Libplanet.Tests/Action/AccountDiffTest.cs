@@ -74,7 +74,6 @@ namespace Libplanet.Tests.Action
                 Signer = signer,
                 Proposer = signer,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
-                World = World.Create(trie, new TrieStateStore()),
             };
     }
 }

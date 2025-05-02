@@ -1,20 +1,20 @@
-using Bencodex.Types;
-using Libplanet.Action;
-using Libplanet.Action.Loader;
+// using Bencodex.Types;
+// using Libplanet.Action;
+// using Libplanet.Action.Loader;
 
-namespace Libplanet.Node.Tests;
+// namespace Libplanet.Node.Tests;
 
-public sealed class DumbActionLoader : IActionLoader
-{
-    public IAction LoadAction(IValue value)
-    {
-        // if (Registry.IsSystemAction(value))
-        // {
-        //     return Registry.Deserialize(value);
-        // }
+// public sealed class DumbActionLoader : IActionLoader
+// {
+//     public IAction LoadAction(IValue value)
+//     {
+//         // if (Registry.IsSystemAction(value))
+//         // {
+//         //     return Registry.Deserialize(value);
+//         // }
 
-        var action = new DumbAction();
-        action.LoadPlainValue(value);
-        return action;
-    }
-}
+//         var action = new DumbAction();
+//         action.LoadPlainValue(value);
+//         return action;
+//     }
+// }

@@ -27,10 +27,10 @@ public class RendererServiceTest
     {
         var settings = new Dictionary<string, string?>
         {
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.ModulePath)}"]
-                = typeof(DumbActionProvider).Assembly.Location,
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionProviderType)}"]
-                = typeof(DumbActionProvider).FullName,
+            // [$"{ActionOptions.Position}:{nameof(ActionOptions.ModulePath)}"]
+            //     = typeof(DumbActionProvider).Assembly.Location,
+            // [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionProviderType)}"]
+            //     = typeof(DumbActionProvider).FullName,
         };
 
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
@@ -61,10 +61,10 @@ public class RendererServiceTest
     {
         var settings = new Dictionary<string, string?>
         {
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.ModulePath)}"]
-                = typeof(DumbActionProvider).Assembly.Location,
-            [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionProviderType)}"]
-                = typeof(DumbActionProvider).FullName,
+            // [$"{ActionOptions.Position}:{nameof(ActionOptions.ModulePath)}"]
+            //     = typeof(DumbActionProvider).Assembly.Location,
+            // [$"{ActionOptions.Position}:{nameof(ActionOptions.ActionProviderType)}"]
+            //     = typeof(DumbActionProvider).FullName,
         };
 
         var serviceProvider = TestUtility.CreateServiceProvider(settings);

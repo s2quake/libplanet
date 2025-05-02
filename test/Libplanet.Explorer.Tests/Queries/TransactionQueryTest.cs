@@ -71,7 +71,7 @@ public class TransactionQueryTest
         var foo = Currency.Create("FOO", 2);
         var action = new Initialize
         {
-            Validators = [Validator.Create(new PrivateKey().PublicKey, 1 )],
+            Validators = [Validator.Create(new PrivateKey().PublicKey, 1)],
             States = new Dictionary<Address, IValue>
             {
                 [default] = (Text)"initial value"
@@ -103,7 +103,8 @@ public class TransactionQueryTest
     [Fact]
     public async Task NextNonce()
     {
-        async Task AssertNextNonce(long expected, Address address) {
+        async Task AssertNextNonce(long expected, Address address)
+        {
             var result = await ExecuteQueryAsync(@$"
             {{
                 nextNonce(
@@ -125,11 +126,9 @@ public class TransactionQueryTest
         await AssertNextNonce(0, key1.Address);
 
         // staged txs increase next nonce
-        Source.BlockChain.MakeTransaction(
-            key1, ImmutableList<NullAction>.Empty.Add(new NullAction()));
+        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
         await AssertNextNonce(1, key1.Address);
-        Source.BlockChain.MakeTransaction(
-            key1, ImmutableList<NullAction>.Empty.Add(new NullAction()));
+        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
         await AssertNextNonce(2, key1.Address);
         var block = Source.BlockChain.ProposeBlock(new PrivateKey());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
@@ -139,8 +138,7 @@ public class TransactionQueryTest
         await AssertNextNonce(0, key2.Address);
 
         // staging txs of key2 does not increase nonce of key1
-        Source.BlockChain.MakeTransaction(
-            key2, ImmutableList<NullAction>.Empty.Add(new NullAction()));
+        Source.BlockChain.MakeTransaction(key2, [new NullAction()]);
         block = Source.BlockChain.ProposeBlock(
             new PrivateKey(),
             Libplanet.Tests.TestUtils.CreateBlockCommit(block));
@@ -149,11 +147,9 @@ public class TransactionQueryTest
         await AssertNextNonce(2, key1.Address);
 
         // unstaging txs decrease nonce
-        Source.BlockChain.MakeTransaction(
-            key1, ImmutableList<NullAction>.Empty.Add(new NullAction()));
+        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
         await AssertNextNonce(3, key1.Address);
-        Source.BlockChain.MakeTransaction(
-            key1, ImmutableList<NullAction>.Empty.Add(new NullAction()));
+        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
         await AssertNextNonce(4, key1.Address);
         Source.BlockChain.GetStagedTransactionIds()
             .Select(Source.BlockChain.GetTransaction)
