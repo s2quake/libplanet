@@ -25,13 +25,13 @@ public sealed record class CommittedActionEvaluation
                 Proposer = evaluation.InputContext.Proposer,
                 BlockHeight = evaluation.InputContext.BlockHeight,
                 BlockProtocolVersion = evaluation.InputContext.BlockProtocolVersion,
-                PreviousState = evaluation.InputContext.World.Trie.IsCommitted
-                        ? evaluation.InputContext.World.Trie.Hash
+                PreviousState = evaluation.InputWorld.Trie.IsCommitted
+                        ? evaluation.InputWorld.Trie.Hash
                         : throw new ArgumentException("Trie is not recorded"),
                 RandomSeed = evaluation.InputContext.RandomSeed,
             },
-            OutputState = evaluation.OutputState.Trie.IsCommitted
-                    ? evaluation.OutputState.Trie.Hash
+            OutputState = evaluation.OutputWorld.Trie.IsCommitted
+                    ? evaluation.OutputWorld.Trie.Hash
                     : throw new ArgumentException("Trie is not recorded"),
             Exception = evaluation.Exception,
         };

@@ -12,12 +12,12 @@ public abstract record class ActionBase : IAction
     {
     }
 
-    World IAction.Execute(IActionContext context)
+    void IAction.Execute(IWorldContext world, IActionContext context)
     {
-        using var worldContext = new WorldContext(context.World);
+        // using var worldContext = new WorldContext(context.World);
         UseGas(GetType());
-        OnExecute(worldContext, context);
-        return worldContext.Flush();
+        OnExecute(world, context);
+        // return worldContext.Flush();
     }
 
     protected abstract void OnExecute(IWorldContext world, IActionContext context);

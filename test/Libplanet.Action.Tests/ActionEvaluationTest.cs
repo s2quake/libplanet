@@ -63,13 +63,13 @@ namespace Libplanet.Action.Tests
                     Signer = address,
                     TxId = txid,
                     Proposer = address,
-                    BlockHeight =  1,
+                    BlockHeight = 1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = lastCommit,
-                    World = World.Create(),
                     RandomSeed = 123,
                 },
-                OutputState = world,
+                InputWorld = World.Create(),
+                OutputWorld = world,
             };
             var action = (DumbAction)evaluation.Action;
 
@@ -80,12 +80,12 @@ namespace Libplanet.Action.Tests
             Assert.Equal(address, evaluation.InputContext.Proposer);
             Assert.Equal(1, evaluation.InputContext.BlockHeight);
             Assert.Null(
-                evaluation.InputContext.World.GetAccount(
+                evaluation.InputWorld.GetAccount(
                     ReservedAddresses.LegacyAccount).GetState(address)
             );
             Assert.Equal(
                 (Text)"item",
-                evaluation.OutputState.GetAccount(ReservedAddresses.LegacyAccount).GetState(address)
+                evaluation.OutputWorld.GetAccount(ReservedAddresses.LegacyAccount).GetState(address)
             );
             Assert.Equal(lastCommit, evaluation.InputContext.LastCommit);
         }

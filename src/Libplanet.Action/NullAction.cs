@@ -1,33 +1,33 @@
-using Bencodex.Types;
-using Libplanet.Action.State;
+// using Bencodex.Types;
+// using Libplanet.Action.State;
 
-namespace Libplanet.Action
-{
-    /// <summary>
-    /// An action implementation which does nothing for filling type parameter taking of
-    /// <see cref="IAction"/>.
-    /// </summary>
-    public class NullAction : IAction
-    {
-        public NullAction()
-        {
-            PlainValue = Null.Value;
-        }
+// namespace Libplanet.Action
+// {
+//     /// <summary>
+//     /// An action implementation which does nothing for filling type parameter taking of
+//     /// <see cref="IAction"/>.
+//     /// </summary>
+//     public class NullAction : IAction
+//     {
+//         public NullAction()
+//         {
+//             PlainValue = Null.Value;
+//         }
 
-        public IValue PlainValue
-        {
-            get;
-            private set;
-        }
+//         public IValue PlainValue
+//         {
+//             get;
+//             private set;
+//         }
 
-        public void LoadPlainValue(IValue plainValue)
-        {
-            PlainValue = plainValue;
-        }
+//         public void LoadPlainValue(IValue plainValue)
+//         {
+//             PlainValue = plainValue;
+//         }
 
-        public World Execute(IActionContext context)
-        {
-            return context.World;
-        }
-    }
-}
+//         public World Execute(IActionContext context)
+//         {
+//             return context.World;
+//         }
+//     }
+// }
