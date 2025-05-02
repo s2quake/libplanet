@@ -31,7 +31,7 @@ public sealed partial class SerializerTest
     public void IBencodableType_SerializeAndDeserialize_Test(IValue value)
     {
         var serialized = ModelSerializer.Serialize(value);
-        var actualValue = ModelSerializer.Deserialize(serialized, value.GetType())!;
+        var actualValue = ModelSerializer.Deserialize(serialized)!;
         Assert.Equal(value, actualValue);
     }
 

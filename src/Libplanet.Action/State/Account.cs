@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using Bencodex.Types;
 using Libplanet.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using static Libplanet.Action.State.KeyConverters;
 
@@ -8,27 +8,58 @@ namespace Libplanet.Action.State;
 
 public sealed record class Account(ITrie Trie)
 {
-    public IValue GetState(Address address) => Trie[ToStateKey(address)];
+    public Account()
+        : this(new Trie())
+    {
+    }
 
-    public Account SetState(Address address, IValue state) => new(Trie.Set(ToStateKey(address), state));
+    public object GetState(Address address)
+    {
+        var value = Trie[ToStateKey(address)];
+        // if (ModelSerializer.TryGetType(value, out var type))
+        // {
+        //     return ModelSerializer.Deserialize(value, type)
+        //         ?? throw new InvalidOperationException("Failed to deserialize state.");
+        // }
 
-    public IValue? GetStateOrDefault(Address address) => TryGetState(address, out IValue? state) ? state : null;
+        return ModelSerializer.Deserialize(value)
+            ?? throw new InvalidOperationException("Failed to deserialize state.");
+    }
+
+    public Account SetState(Address address, object value)
+    {
+        var k = ToStateKey(address);
+        var v = ModelSerializer.Serialize(value);
+        var trie = Trie.Set(k, v);
+        return new(trie);
+    }
+
+    public object? GetStateOrDefault(Address address) => TryGetState(address, out object? state) ? state : null;
 
     public Account RemoveState(Address address) => new(Trie.Remove(ToStateKey(address)));
 
-    public bool TryGetState(Address address, [MaybeNullWhen(false)] out IValue state)
+    public bool TryGetState(Address address, [MaybeNullWhen(false)] out object value)
     {
-        if (Trie.TryGetValue(ToStateKey(address), out var value))
+        var key = ToStateKey(address);
+        if (Trie.TryGetValue(key, out var v))
         {
-            state = value;
+            value = v;
             return true;
         }
 
-        state = null;
+        value = null;
         return false;
     }
 
-    // Account Account.SetState(Address address, IValue state) => SetState(address, state);
+    public bool TryGetState<T>(Address address, [MaybeNullWhen(false)] out T value)
+    {
+        if (TryGetState(address, out var state) && state is T obj)
+        {
+            value = obj;
+            return true;
+        }
 
-    // Account Account.RemoveState(Address address) => RemoveState(address);
+        value = default;
+        return false;
+    }
 }

@@ -244,13 +244,11 @@ public partial class BlockChainTest : IDisposable
         chain.StageTransaction(tx1);
         Block block1 = chain.ProposeBlock(new PrivateKey());
         chain.Append(block1, CreateBlockCommit(block1));
-        IValue state = chain
+        var result = (BattleResult)chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetState(_fx.Address1);
-        Assert.NotNull(state);
 
-        var result = ModelSerializer.Deserialize<BattleResult>(state);
         Assert.Contains("sword", result.UsedWeapons);
         Assert.Contains("staff", result.UsedWeapons);
         Assert.Contains("orc", result.Targets);
@@ -277,11 +275,11 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(), CreateBlockCommit(chain.Tip));
         chain.Append(block2, CreateBlockCommit(block2));
 
-        state = chain
+        result = (BattleResult)chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetState(_fx.Address1);
-        result = ModelSerializer.Deserialize<BattleResult>(state);
+
         Assert.Contains("bow", result.UsedWeapons);
 
         var tx3 = Transaction.Create(
@@ -302,12 +300,10 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(), CreateBlockCommit(chain.Tip));
         chain.StageTransaction(tx3);
         chain.Append(block3, CreateBlockCommit(block3));
-        state = chain
+        result = (BattleResult)chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetState(_fx.Address1);
-
-        Assert.NotNull(state);
     }
 
     [SkippableFact]
@@ -688,7 +684,7 @@ public partial class BlockChainTest : IDisposable
 
         tracker.ClearLogs();
         Address nonexistent = new PrivateKey().Address;
-        IValue result = chain
+        var result = chain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetState(nonexistent);
@@ -1118,24 +1114,24 @@ public partial class BlockChainTest : IDisposable
             miner2, lastCommit: CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(block3, CreateBlockCommit(block3));
 
-        IValue miner1state = _blockChain
+        var miner1state = (int)_blockChain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetState(miner1.Address);
-        IValue miner2state = _blockChain
+        var miner2state = (int)_blockChain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetState(miner2.Address);
-        IValue rewardState = _blockChain
+        var rewardState = (string)_blockChain
             .GetNextWorldState()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetState(rewardRecordAddress);
 
-        AssertBencodexEqual((Integer)2, miner1state);
-        AssertBencodexEqual((Integer)1, miner2state);
+        Assert.Equal(2, miner1state);
+        Assert.Equal(1, miner2state);
 
-        AssertBencodexEqual(
-            (Text)$"{miner0},{miner1.Address},{miner1.Address},{miner2.Address}",
+        Assert.Equal(
+            $"{miner0},{miner1.Address},{miner1.Address},{miner2.Address}",
             rewardState
         );
     }

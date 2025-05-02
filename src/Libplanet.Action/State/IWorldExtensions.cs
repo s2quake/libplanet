@@ -50,8 +50,7 @@ public static class IWorldExtensions
     public static ImmutableSortedSet<Validator> GetValidatorSet(this World @this)
     {
         var accountState = @this.GetAccount(ReservedAddresses.ValidatorSetAddress);
-        var value = accountState.GetState(ReservedAddresses.ValidatorSetAddress);
-        return ModelSerializer.Deserialize<ImmutableSortedSet<Validator>>(value);
+        return (ImmutableSortedSet<Validator>)accountState.GetState(ReservedAddresses.ValidatorSetAddress);
     }
 
     internal static CurrencyAccount GetCurrencyAccount(this World @this, Currency currency)
