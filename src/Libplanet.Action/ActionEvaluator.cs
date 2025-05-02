@@ -110,7 +110,6 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         }
 
         var inputWorld = world;
-        // var world = context.World;
         Exception? exception = null;
 
         try

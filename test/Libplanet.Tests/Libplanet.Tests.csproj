@@ -29,7 +29,6 @@
     <ProjectReference Include="..\..\src\Libplanet.Store\Libplanet.Store.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Types\Libplanet.Types.csproj" />
     <ProjectReference Include="..\Libplanet.Action.Tests\Libplanet.Action.Tests.csproj" />
-    <ProjectReference Include="..\Libplanet.Mocks\Libplanet.Mocks.csproj" />
   </ItemGroup>
 
   <ItemGroup>

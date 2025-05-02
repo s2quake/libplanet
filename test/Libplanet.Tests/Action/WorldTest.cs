@@ -4,7 +4,6 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Crypto;
-using Libplanet.Mocks;
 using Libplanet.Store;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
