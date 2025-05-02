@@ -39,7 +39,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[3]);
             consensusContext.Start();
 
@@ -141,7 +140,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (_, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[1]);
 
             Assert.Equal(ConsensusStep.Default, consensusContext.Step);
@@ -155,7 +153,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (_, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[1]);
             consensusContext.Start();
             Assert.Throws<InvalidOperationException>(() => consensusContext.Start());
@@ -168,7 +165,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 newHeightDelay,
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[1]);
             consensusContext.Start();
 
@@ -186,7 +182,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[1]);
             consensusContext.Start();
             Assert.True(consensusContext.Height == 1);
@@ -208,7 +203,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[1]);
             consensusContext.StateChanged += (sender, tuple) =>
             {
@@ -277,7 +271,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[0]);
             consensusContext.Start();
             var block = blockChain.ProposeBlock(proposer);
@@ -360,7 +353,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[0]);
             consensusContext.StateChanged += (_, eventArgs) =>
             {
@@ -437,7 +429,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                TestUtils.ActionLoader,
                 TestUtils.PrivateKeys[0]);
             consensusContext.StateChanged += (_, eventArgs) =>
             {

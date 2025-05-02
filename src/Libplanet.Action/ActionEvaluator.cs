@@ -91,7 +91,10 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             evaluations[i] = evaluation;
             world = evaluation.OutputWorld;
 
-            unchecked { randomSeed++; }
+            unchecked
+            {
+                randomSeed++;
+            }
         }
 
         return evaluations;

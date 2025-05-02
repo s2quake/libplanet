@@ -100,43 +100,22 @@ public readonly record struct FungibleAssetValue
         };
     }
 
-    public static FungibleAssetValue Create(Currency currency)
+    public static FungibleAssetValue Create(Currency currency) => new()
     {
-        return new FungibleAssetValue
-        {
-            Currency = currency,
-        };
-    }
+        Currency = currency,
+    };
 
-    public static FungibleAssetValue Create(Currency currency, BigInteger rawValue)
+    public static FungibleAssetValue Create(Currency currency, BigInteger rawValue) => new()
     {
-        return new FungibleAssetValue
-        {
-            Currency = currency,
-            RawValue = rawValue,
-        };
-    }
+        Currency = currency,
+        RawValue = rawValue,
+    };
 
-    public static FungibleAssetValue Create(Currency currency, BigInteger majorUnit, BigInteger minorUnit)
+    public static FungibleAssetValue Create(Currency currency, BigInteger majorUnit, BigInteger minorUnit) => new()
     {
-        return new FungibleAssetValue
-        {
-            Currency = currency,
-            RawValue = currency.GetRawValue(majorUnit, minorUnit),
-        };
-    }
-
-    // public static FungibleAssetValue Create(IValue value)
-    // {
-    //     if (value is not List list)
-    //     {
-    //         throw new ArgumentException($"The given value is not a list: {value}", nameof(value));
-    //     }
-
-    //     var currency = Currency.Create(list[0]);
-    //     var rawValue = (Integer)list[1];
-    //     return FungibleAssetValue.Create(currency, rawValue);
-    // }
+        Currency = currency,
+        RawValue = currency.GetRawValue(majorUnit, minorUnit),
+    };
 
     public static FungibleAssetValue Parse(Currency currency, string value)
     {

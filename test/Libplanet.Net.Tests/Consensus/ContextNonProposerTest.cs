@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
@@ -337,7 +336,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var diffPolicyBlockChain =
                 TestUtils.CreateDummyBlockChain(
-                    policy, new SingleActionLoader<DumbAction>(), blockChain.Genesis);
+                    policy, blockChain.Genesis);
 
             var invalidTx = diffPolicyBlockChain.MakeTransaction(invalidKey, new DumbAction[] { });
 

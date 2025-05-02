@@ -31,8 +31,6 @@ public sealed record class RawBlock
 
     public Address Proposer => Metadata.Proposer;
 
-    // public PublicKey? PublicKey => Metadata.PublicKey;
-
     public BlockHash PreviousHash => Metadata.PreviousHash;
 
     public HashDigest<SHA256>? TxHash => Metadata.TxHash;
@@ -41,31 +39,22 @@ public sealed record class RawBlock
 
     public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
-    public static explicit operator RawBlock(Block block)
+    public static explicit operator RawBlock(Block block) => new()
     {
-        return new RawBlock
-        {
-            Metadata = (BlockMetadata)block.Header,
-            RawHash = block.RawHash,
-            Content = block.Content,
-        };
-    }
+        Metadata = (BlockMetadata)block.Header,
+        RawHash = block.RawHash,
+        Content = block.Content,
+    };
 
-    public static RawBlock Propose(BlockMetadata metadata)
-        => Propose(metadata, new BlockContent());
+    public static RawBlock Propose(BlockMetadata metadata) => Propose(metadata, new BlockContent());
 
     public static RawBlock Propose(BlockMetadata metadata, BlockContent content)
     {
-        var preEvaluationHash = metadata.DerivePreEvaluationHash();
-        // var header = new RawBlockHeader
-        // {
-        //     Metadata = Metadata,
-        //     RawHash = preEvaluationHash,
-        // };
+        var rawHash = metadata.DerivePreEvaluationHash();
         return new RawBlock
         {
             Metadata = metadata,
-            RawHash = preEvaluationHash,
+            RawHash = rawHash,
             Content = content,
         };
     }
@@ -83,7 +72,6 @@ public sealed record class RawBlock
             Height = Metadata.Height,
             Timestamp = Metadata.Timestamp,
             Proposer = Metadata.Proposer,
-            // PublicKey = Metadata.PublicKey,
             PreviousHash = Metadata.PreviousHash,
             TxHash = Metadata.TxHash,
             LastCommit = Metadata.LastCommit,
@@ -95,6 +83,5 @@ public sealed record class RawBlock
 
     public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
-    public void ValidateTimestamp(DateTimeOffset currentTime)
-        => Metadata.ValidateTimestamp(currentTime);
+    public void ValidateTimestamp(DateTimeOffset currentTime) => Metadata.ValidateTimestamp(currentTime);
 }

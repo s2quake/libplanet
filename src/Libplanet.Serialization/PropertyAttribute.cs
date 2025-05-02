@@ -3,5 +3,5 @@
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class PropertyAttribute(int index) : Attribute
 {
-    public int Index { get; } = index;
+    public int Index => index;
 }

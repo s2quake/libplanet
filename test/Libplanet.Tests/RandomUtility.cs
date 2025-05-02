@@ -1,7 +1,6 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Org.BouncyCastle.Crypto.Signers;
 
 namespace Libplanet.Tests;
 

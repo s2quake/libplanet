@@ -1,6 +1,4 @@
-using Libplanet.Action.State;
 using Libplanet.Crypto;
-using Libplanet.Mocks;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;

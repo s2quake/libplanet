@@ -6,7 +6,6 @@ using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain.Renderers;
 using Libplanet.Common;
-using Libplanet.Mocks;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Serilog;

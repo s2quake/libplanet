@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Xunit.Abstractions;

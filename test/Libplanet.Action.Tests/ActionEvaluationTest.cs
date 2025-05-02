@@ -2,7 +2,6 @@ using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Crypto;
-using Libplanet.Mocks;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Serilog;
