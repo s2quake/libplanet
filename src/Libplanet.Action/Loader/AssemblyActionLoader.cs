@@ -24,11 +24,6 @@ public sealed class AssemblyActionLoader : IActionLoader
     {
         try
         {
-            // if (Registry.IsSystemAction(value))
-            // {
-            //     return Registry.Deserialize(value);
-            // }
-
             IAction action;
             if (value is Dictionary pv &&
                 pv.TryGetValue((Text)"type_id", out var rawTypeId) &&

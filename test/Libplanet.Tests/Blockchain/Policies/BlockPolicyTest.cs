@@ -1,5 +1,4 @@
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
@@ -147,7 +146,6 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var actionLoader = new SingleActionLoader<DumbAction>();
             var policy = new BlockPolicy(
                 new PolicyActions
                 {
@@ -174,7 +172,6 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var actionLoader = new SingleActionLoader<DumbAction>();
             var policy = new BlockPolicy(
                 getMaxTransactionsPerBlock: _ => policyLimit);
             var privateKey = new PrivateKey();
@@ -199,7 +196,6 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var actionLoader = new SingleActionLoader<DumbAction>();
             var policy = new BlockPolicy(
                 getMaxTransactionsPerSignerPerBlock: _ => policyLimit);
             var privateKeys = Enumerable.Range(0, keyCount).Select(_ => new PrivateKey()).ToList();

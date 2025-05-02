@@ -10,69 +10,11 @@ namespace Libplanet.Types.Blocks;
 [Model(Version = 1)]
 public sealed record class BlockContent : IEquatable<BlockContent>, IValidatableObject
 {
-    // public BlockContent(
-    //     BlockMetadata metadata,
-    //     IEnumerable<Transaction> transactions,
-    //     IEnumerable<EvidenceBase> evidence)
-    // {
-    //     // Check if TxHash provided by metadata is valid.
-    //     HashDigest<SHA256>? derivedTxHash = DeriveTxHash(transactions);
-    //     if (!((Metadata.TxHash is { } a && derivedTxHash is { } b && a.Equals(b)) ||
-    //         (Metadata.TxHash is null && derivedTxHash is null)))
-    //     {
-    //         throw new InvalidBlockTxHashException(
-    //             $"The block #{Metadata.Index}'s {nameof(Metadata.TxHash)} is invalid.",
-    //             Metadata.TxHash,
-    //             derivedTxHash);
-    //     }
-
-    //     // Check if transactions are ordered with valid nonces.
-    //     transactions.ValidateTxNonces(Metadata.Index);
-    //     TxId? prevId = null;
-    //     foreach (Transaction tx in transactions)
-    //     {
-    //         if (prevId is { } prev && prev.CompareTo(tx.Id) > 0)
-    //         {
-    //             throw new ArgumentException(
-    //                 $"Transactions must be ordered by their {nameof(Transaction.Id)}s.",
-    //                 nameof(transactions));
-    //         }
-
-    //         prevId = tx.Id;
-    //     }
-
-    //     ValidateEvidence(metadata, evidence);
-
-    //     Metadata = metadata;
-    //     _transactions = transactions;
-    //     _evidence = evidence;
-    // }
-
-    // public required BlockMetadata Metadata { get; init; }
-
     [Property(0)]
     public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
 
     [Property(1)]
     public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
-
-    // public int ProtocolVersion => Metadata.ProtocolVersion;
-
-    // public long Index => Metadata.Index;
-
-    // public DateTimeOffset Timestamp => Metadata.Timestamp;
-
-    // public Address Miner => Metadata.Miner;
-
-    // public PublicKey? PublicKey => Metadata.PublicKey;
-
-    // public BlockHash PreviousHash => Metadata.PreviousHash;
-
-    // public HashDigest<SHA256>? TxHash => Metadata.TxHash;
-
-    // public BlockCommit LastCommit => Metadata.LastCommit;
-
-    // public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
     public static HashDigest<SHA256> DeriveTxHash(ImmutableSortedSet<Transaction> transactions)
     {
@@ -149,17 +91,6 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public bool Equals(BlockContent? other) => ModelUtility.Equals(this, other);
-
-    // public RawBlock Propose(BlockMetadata Metadata)
-    // {
-    //     var preEvaluationHash = Metadata.DerivePreEvaluationHash();
-    //     // var header = new RawBlockHeader
-    //     // {
-    //     //     Metadata = Metadata,
-    //     //     RawHash = preEvaluationHash,
-    //     // };
-    //     return new RawBlock { Metadata = Metadata, RawHash = preEvaluationHash, Content = this };
-    // }
 
     private static void ValidateEvidence(
         BlockMetadata metadata,

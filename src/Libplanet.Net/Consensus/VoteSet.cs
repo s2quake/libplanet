@@ -361,7 +361,7 @@ namespace Libplanet.Net.Consensus
             if (!IsCommit())
             {
                 _logger.Information("Failed to create block commit since no +2/3 votes collected");
-                return default;
+                return BlockCommit.Empty;
             }
 
             return new BlockCommit

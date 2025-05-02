@@ -58,23 +58,6 @@ public sealed record class UnsignedTx
     public bool VerifySignature(ImmutableArray<byte> signature) =>
         PublicKey.Verify(Signer, CreateMessage().ToImmutableArray(), signature);
 
-    public override string ToString()
-    {
-        string actions = Actions.ToString() ?? string.Empty;
-        string indentedActions = actions.Replace("\n", "\n  ");
-        return nameof(TxInvoice) + " {\n" +
-            $"  {nameof(UpdatedAddresses)} = ({UpdatedAddresses.Count})" +
-            (UpdatedAddresses.Any()
-                ? $"\n    {string.Join("\n    ", UpdatedAddresses)};\n"
-                : ";\n") +
-            $"  {nameof(Timestamp)} = {Timestamp},\n" +
-            $"  {nameof(GenesisHash)} = {GenesisHash?.ToString() ?? "(null)"},\n" +
-            $"  {nameof(Actions)} = {indentedActions},\n" +
-            $"  {nameof(Nonce)} = {Nonce},\n" +
-            $"  {nameof(Signer)} = {Signer},\n" +
-            "}";
-    }
-
     public Transaction Sign(PrivateKey privateKey) => Transaction.Create(this, privateKey);
 
     public Transaction Verify(ImmutableArray<byte> signature)

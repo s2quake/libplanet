@@ -12,24 +12,43 @@ public sealed record class Block : IEquatable<Block>
 {
     public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
 
-    // private readonly BlockHeader _header;
-    // private readonly RawBlock _preEvaluationBlock;
+    [Property(0)]
+    public required BlockHeader Header { get; init; } = BlockHeader.Empty;
+
+    [Property(1)]
+    public required BlockContent Content { get; init; }
+
+    public int ProtocolVersion => Header.ProtocolVersion;
+
+    public BlockHash Hash => Header.BlockHash;
+
+    public ImmutableArray<byte> Signature => Header.Signature;
+
+    public HashDigest<SHA256> RawHash => Header.RawHash;
+
+    public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
+
+    public long Height => Header.Height;
+
+    public Address Proposer => Header.Proposer;
+
+    public BlockHash PreviousHash => Header.PreviousHash;
+
+    public DateTimeOffset Timestamp => Header.Timestamp;
+
+    public HashDigest<SHA256>? TxHash => Header.TxHash;
+
+    public BlockCommit LastCommit => Header.LastCommit;
+
+    public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
+
+    public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;
+
+    public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
     public static Block Create(
-        BlockHeader header,
-        ImmutableSortedSet<Transaction> transactions,
-        ImmutableSortedSet<EvidenceBase> evidence)
+        BlockHeader header, ImmutableSortedSet<Transaction> transactions, ImmutableSortedSet<EvidenceBase> evidence)
     {
-        // var rawHeader = header.RawBlockHeader;
-        // var metadata = rawHeader.Metadata;
-        // var blockContent = new BlockContent
-        // {
-        //     Metadata = metadata,
-        //     Transactions = transactions,
-        //     Evidence = evidence,
-        // };
-        // var rawBlock = new RawBlock { Content = blockContent, Header = rawHeader };
-        // return new Block(header, rawBlock);
         return new Block
         {
             Header = header,
@@ -62,55 +81,11 @@ public sealed record class Block : IEquatable<Block>
         throw new NotImplementedException();
     }
 
-    // [JsonIgnore]
-    // public BlockHeader Header => _header;
-
-    [Property(0)]
-    public required BlockHeader Header { get; init; } = BlockHeader.Empty;
-
-    [Property(1)]
-    public required BlockContent Content { get; init; }
-
-    public int ProtocolVersion => Header.ProtocolVersion;
-
-    public BlockHash Hash => Header.BlockHash;
-
-    public ImmutableArray<byte> Signature => Header.Signature;
-
-    public HashDigest<SHA256> RawHash => Header.RawHash;
-
-    public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
-
-    public long Height => Header.Height;
-
-    public Address Proposer => Header.Proposer;
-
-    // public PublicKey? PublicKey => Header.PublicKey;
-
-    public BlockHash PreviousHash => Header.PreviousHash;
-
-    public DateTimeOffset Timestamp => Header.Timestamp;
-
-    public HashDigest<SHA256>? TxHash => Header.TxHash;
-
-    public BlockCommit LastCommit => Header.LastCommit;
-
-    public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
-
-    public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;
-
-    public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
-
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public override string ToString() => Hash.ToString();
 
     public bool Equals(Block? other) => ModelUtility.Equals(this, other);
-
-    // public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
-
-    // public void ValidateTimestamp(DateTimeOffset currentTime)
-    // => Header.RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
 
     public string ToExcerptString()
     {

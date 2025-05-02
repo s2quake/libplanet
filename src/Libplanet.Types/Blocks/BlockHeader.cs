@@ -68,8 +68,6 @@ public sealed record class BlockHeader
 
     public Address Proposer { get; init; }
 
-    // public PublicKey? PublicKey { get; init; }
-
     public BlockHash PreviousHash { get; init; }
 
     public HashDigest<SHA256> TxHash { get; init; }
@@ -81,9 +79,4 @@ public sealed record class BlockHeader
     public HashDigest<SHA256> RawHash { get; init; }
 
     public override string ToString() => $"#{Height} {BlockHash}";
-
-    // public void ValidateTimestamp() => RawBlockHeader.Metadata.ValidateTimestamp();
-
-    // public void ValidateTimestamp(DateTimeOffset currentTime)
-    //     => RawBlockHeader.Metadata.ValidateTimestamp(currentTime);
 }

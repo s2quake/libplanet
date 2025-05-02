@@ -18,7 +18,7 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore) : IStateStore
     {
     }
 
-    public IKeyValueStore StateKeyValueStore { get; } = keyValueStore;
+    public IKeyValueStore StateKeyValueStore => keyValueStore;
 
     public void CopyStates(
         IImmutableSet<HashDigest<SHA256>> stateRootHashes, TrieStateStore targetStateStore)

@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
 using Libplanet.Action.Tests.Common;
@@ -17,7 +16,6 @@ using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Serilog;
 using Xunit.Abstractions;
@@ -312,7 +310,6 @@ public partial class BlockChainTest : IDisposable
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
-        var actionLoader = new SingleActionLoader<DumbAction>();
         var generatedRandomValueLogs = new List<int>();
         IActionRenderer[] renderers = Enumerable.Range(0, 2).Select(i =>
             new LoggedActionRenderer(
@@ -386,7 +383,6 @@ public partial class BlockChainTest : IDisposable
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
-        var actionLoader = new SingleActionLoader<DumbAction>();
 
         IActionRenderer renderer = new AnonymousActionRenderer
         {

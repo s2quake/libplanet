@@ -15,13 +15,6 @@ public static class DateTimeOffsetExtensions
                 $"({@this}) is later than now " +
                 $"({currentTime}, threshold: {TimestampThreshold}).";
             throw new InvalidOperationException(message);
-            // string hash = metadata is BlockExcerpt h
-            //     ? $" {h.Hash}"
-            //     : string.Empty;
-            // throw new InvalidOperationException(
-            //     $"The block #{metadata.Index}{hash}'s timestamp " +
-            //     $"({metadata.Timestamp}) is later than now ({currentTime}, " +
-            //     $"threshold: {TimestampThreshold}).");
         }
     }
 }

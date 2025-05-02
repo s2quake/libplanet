@@ -357,8 +357,8 @@ namespace Libplanet.Blockchain
             IStateStore stateStore,
             Block genesisBlock,
             ActionEvaluator actionEvaluator,
-            IEnumerable<IRenderer> renderers = null,
-            IBlockChainStates blockChainStates = null)
+            IEnumerable<IRenderer>? renderers = null,
+            IBlockChainStates? blockChainStates = null)
 #pragma warning restore SA1611  // The documentation for parameters are missing.
         {
             if (store is null)

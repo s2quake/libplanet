@@ -1,7 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
@@ -50,8 +49,6 @@ namespace Libplanet.Net.Tests
             },
             getMaxTransactionsBytes: _ => 50 * 1024);
 
-        public static readonly IActionLoader ActionLoader = new SingleActionLoader<DumbAction>();
-
         public static AppProtocolVersion AppProtocolVersion = AppProtocolVersion.FromToken(
             "1/54684Ac4ee5B933e72144C4968BEa26056880d71/MEQCICGonYW" +
             ".X8y4JpPIyccPYWGrsCXWA95sBfextucz3lOyAiBUoY5t8aYNPT0lwYwC0MSkK3HT7T" +
@@ -92,11 +89,9 @@ namespace Libplanet.Net.Tests
 
         public static BlockChain CreateDummyBlockChain(
             IBlockPolicy? policy = null,
-            IActionLoader? actionLoader = null,
             Block? genesisBlock = null)
         {
             policy ??= Policy;
-            actionLoader ??= ActionLoader;
             var fx = new MemoryStoreFixture(policy.PolicyActions);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
@@ -255,12 +250,11 @@ namespace Libplanet.Net.Tests
             CreateDummyConsensusContext(
                 TimeSpan newHeightDelay,
                 IBlockPolicy? policy = null,
-                IActionLoader? actionLoader = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null)
         {
             policy ??= Policy;
-            var blockChain = CreateDummyBlockChain(policy, actionLoader);
+            var blockChain = CreateDummyBlockChain(policy);
             ConsensusContext? consensusContext = null;
 
             privateKey ??= PrivateKeys[1];
@@ -310,7 +304,6 @@ namespace Libplanet.Net.Tests
                 long height = 1,
                 BlockCommit? lastCommit = null,
                 IBlockPolicy? policy = null,
-                IActionLoader? actionLoader = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null,
                 ImmutableSortedSet<Validator>? validatorSet = null)
@@ -319,11 +312,11 @@ namespace Libplanet.Net.Tests
             privateKey ??= PrivateKeys[1];
             policy ??= Policy;
 
-            var blockChain = CreateDummyBlockChain(policy, actionLoader);
+            var blockChain = CreateDummyBlockChain(policy);
             context = new Context(
                 blockChain,
                 height,
-                lastCommit ?? default,
+                lastCommit ?? BlockCommit.Empty,
                 privateKey,
                 validatorSet ?? blockChain
                     .GetNextWorldState(height - 1)

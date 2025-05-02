@@ -7,7 +7,6 @@ using Libplanet.Common;
 using Libplanet.Crypto;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using static Libplanet.Action.State.KeyConverters;
 using static Libplanet.Tests.TestUtils;

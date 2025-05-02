@@ -36,7 +36,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                null,
                 privateKeys[3]);
 
             var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
@@ -124,7 +123,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                actionLoader: null,
                 privateKeys[3]);
 
             var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
@@ -186,7 +184,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                actionLoader: null,
                 TestUtils.PrivateKeys[3]);
 
             var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
@@ -248,7 +245,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                actionLoader: null,
                 privateKeys[3]);
 
             var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
@@ -310,7 +306,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                actionLoader: null,
                 TestUtils.PrivateKeys[3]);
 
             var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
@@ -372,7 +367,6 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Policy,
-                actionLoader: null,
                 privateKeys[3]);
 
             var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
