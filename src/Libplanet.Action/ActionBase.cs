@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
-using Libplanet.Action.State;
 
 namespace Libplanet.Action;
 
@@ -14,10 +13,8 @@ public abstract record class ActionBase : IAction
 
     void IAction.Execute(IWorldContext world, IActionContext context)
     {
-        // using var worldContext = new WorldContext(context.World);
         UseGas(GetType());
         OnExecute(world, context);
-        // return worldContext.Flush();
     }
 
     protected abstract void OnExecute(IWorldContext world, IActionContext context);

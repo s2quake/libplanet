@@ -345,7 +345,7 @@ public partial class ConsensusContext : IDisposable
             throw new NullReferenceException(
                 $"Could not find the next state root hash for index {height - 1}");
         ImmutableSortedSet<Validator> validatorSet = _blockChain
-            .GetWorldState(nextStateRootHash)
+            .GetWorld(nextStateRootHash)
             .GetValidatorSet();
 
         Context context = new Context(

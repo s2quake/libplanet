@@ -11,8 +11,6 @@ internal sealed class WorldContext(World world) : IDisposable, IWorldContext
     private World _world = world;
     private bool _disposed;
 
-    public bool IsReadOnly => false;
-
     public AccountContext this[Address address]
     {
         get

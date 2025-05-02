@@ -81,14 +81,14 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(
                 new IValue[] { null, null, null, null, (Integer)1 },
                 addresses.Select(_blockChain
-                    .GetWorldState(renders[0].Context.PreviousState)
+                    .GetWorld(renders[0].Context.PreviousState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue)
             );
             Assert.Equal(
                 new IValue[] { (Text)"foo", null, null, null, (Integer)1 },
                 addresses.Select(_blockChain
-                    .GetWorldState(renders[0].NextState)
+                    .GetWorld(renders[0].NextState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue)
             );
@@ -96,35 +96,35 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(2, renders[1].Context.BlockHeight);
             Assert.Equal(
                 addresses.Select(_blockChain
-                    .GetWorldState(renders[0].NextState)
+                    .GetWorld(renders[0].NextState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue),
                 addresses.Select(_blockChain
-                    .GetWorldState(renders[1].Context.PreviousState)
+                    .GetWorld(renders[1].Context.PreviousState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue)
             );
             Assert.Equal(
                 new IValue[] { (Text)"foo", (Text)"bar", null, null, (Integer)1 },
                 addresses.Select(
-                    _blockChain.GetWorldState(renders[1].NextState)
+                    _blockChain.GetWorld(renders[1].NextState)
                         .GetAccount(ReservedAddresses.LegacyAccount).GetValue)
             );
             Assert.Equal("baz", actions[2].Append?.Item);
             Assert.Equal(2, renders[2].Context.BlockHeight);
             Assert.Equal(
                 addresses.Select(
-                    _blockChain.GetWorldState(renders[1].NextState)
+                    _blockChain.GetWorld(renders[1].NextState)
                         .GetAccount(ReservedAddresses.LegacyAccount).GetValue),
                 addresses.Select(
-                    _blockChain.GetWorldState(renders[2].Context.PreviousState)
+                    _blockChain.GetWorld(renders[2].Context.PreviousState)
                         .GetAccount(ReservedAddresses.LegacyAccount).GetValue)
             );
             Assert.Equal(
                 new IValue[] { (Text)"foo", (Text)"bar", (Text)"baz", null, (Integer)1 },
                 addresses.Select(
                     _blockChain
-                        .GetWorldState(renders[2].NextState)
+                        .GetWorld(renders[2].NextState)
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue)
             );
@@ -133,12 +133,12 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(
                 addresses.Select(
                     _blockChain
-                        .GetWorldState(renders[2].NextState)
+                        .GetWorld(renders[2].NextState)
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue),
                 addresses.Select(
                     _blockChain
-                        .GetWorldState(renders[3].Context.PreviousState)
+                        .GetWorld(renders[3].Context.PreviousState)
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue)
             );
@@ -149,7 +149,7 @@ namespace Libplanet.Tests.Blockchain
                 },
                 addresses.Select(
                     _blockChain
-                        .GetWorldState(renders[3].NextState)
+                        .GetWorld(renders[3].NextState)
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue)
             );
@@ -173,21 +173,21 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(
                 (Integer)1,
                 (Integer)_blockChain
-                    .GetWorldState(blockRenders[0].NextState)
+                    .GetWorld(blockRenders[0].NextState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(minerAddress)
             );
             Assert.Equal(
                 (Integer)1,
                 (Integer)_blockChain
-                    .GetWorldState(blockRenders[1].Context.PreviousState)
+                    .GetWorld(blockRenders[1].Context.PreviousState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(minerAddress)
             );
             Assert.Equal(
                 (Integer)2,
                 (Integer)_blockChain
-                    .GetWorldState(blockRenders[1].NextState)
+                    .GetWorld(blockRenders[1].NextState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(minerAddress)
             );
@@ -205,7 +205,7 @@ namespace Libplanet.Tests.Blockchain
 
             TxExecution txe = getTxExecution(block2.Hash, txs[0].Id);
             var outputWorld = _blockChain
-                .GetWorldState(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
+                .GetWorld(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
             Assert.Equal(
                 DumbAction.DumbCurrency * 100,
                 outputWorld.GetBalance(addresses[0], DumbAction.DumbCurrency));
@@ -217,7 +217,7 @@ namespace Libplanet.Tests.Blockchain
                 outputWorld.GetTotalSupply(DumbAction.DumbCurrency));
             txe = getTxExecution(block2.Hash, txs[1].Id);
             outputWorld = _blockChain
-                .GetWorldState(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
+                .GetWorld(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
             Assert.Equal(
                 DumbAction.DumbCurrency * 100,
                 outputWorld.GetBalance(addresses[2], DumbAction.DumbCurrency));
@@ -265,10 +265,10 @@ namespace Libplanet.Tests.Blockchain
             var txExecution1 = getTxExecution(block3.Hash, tx1Transfer.Id);
             _logger.Verbose(nameof(txExecution1) + " = {@TxExecution}", txExecution1);
             Assert.False(txExecution1.Fail);
-            var inputAccount1 = _blockChain.GetWorldState(
+            var inputAccount1 = _blockChain.GetWorld(
                 Assert.IsType<HashDigest<SHA256>>(txExecution1.InputState))
                     .GetAccount(ReservedAddresses.LegacyAccount);
-            var outputWorld1 = _blockChain.GetWorldState(
+            var outputWorld1 = _blockChain.GetWorld(
                 Assert.IsType<HashDigest<SHA256>>(txExecution1.OutputState));
             var outputAccount1 = outputWorld1
                     .GetAccount(ReservedAddresses.LegacyAccount);
@@ -308,7 +308,7 @@ namespace Libplanet.Tests.Blockchain
             var txExecution3 = getTxExecution(block3.Hash, tx3Transfer.Id);
             _logger.Verbose(nameof(txExecution3) + " = {@TxExecution}", txExecution3);
             Assert.False(txExecution3.Fail);
-            var outputWorld3 = _blockChain.GetWorldState(
+            var outputWorld3 = _blockChain.GetWorld(
                 Assert.IsType<HashDigest<SHA256>>(txExecution3.OutputState));
             Assert.Equal(
                 DumbAction.DumbCurrency * 0,
@@ -703,7 +703,7 @@ namespace Libplanet.Tests.Blockchain
                 []);
             blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
             Assert.Equal<byte>(
-                blockChain.GetWorldState(genesis.StateRootHash).Trie.Hash.Bytes,
+                blockChain.GetWorld(genesis.StateRootHash).Trie.Hash.Bytes,
                 blockChain.GetNextWorldState(emptyBlock.Hash).Trie.Hash.Bytes);
         }
 

@@ -6,8 +6,6 @@ namespace Libplanet.Action;
 
 public interface IWorldContext
 {
-    bool IsReadOnly { get; }
-
     IAccountContext this[Address address] { get; }
 
     object this[Address address, Address stateAddress]

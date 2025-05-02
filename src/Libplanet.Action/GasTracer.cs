@@ -4,11 +4,11 @@ namespace Libplanet.Action;
 
 public static class GasTracer
 {
-    private static readonly AsyncLocal<GasMeter> GasMeter = new AsyncLocal<GasMeter>();
+    private static readonly AsyncLocal<GasMeter> GasMeter = new();
 
-    private static readonly AsyncLocal<bool> IsTrace = new AsyncLocal<bool>();
+    private static readonly AsyncLocal<bool> IsTrace = new();
 
-    private static readonly AsyncLocal<bool> IsTraceCancelled = new AsyncLocal<bool>();
+    private static readonly AsyncLocal<bool> IsTraceCancelled = new();
 
     public static long GasUsed => GasMeterValue.GasUsed;
 

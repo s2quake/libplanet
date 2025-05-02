@@ -20,7 +20,7 @@ public class RawStateQuery : ObjectGraphType<IBlockChainStates>
             arguments: new QueryArguments(
                 new QueryArgument<HashDigestSHA256Type> { Name = "stateRootHash" }
             ),
-            resolve: context => context.Source.GetWorldState(
+            resolve: context => context.Source.GetWorld(
                 context.GetArgument<HashDigest<SHA256>>("stateRootHash")).Trie
         );
     }

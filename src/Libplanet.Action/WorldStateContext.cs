@@ -1,7 +1,5 @@
 using Libplanet.Action.State;
 using Libplanet.Crypto;
-using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 
 namespace Libplanet.Action;
@@ -10,13 +8,6 @@ public sealed class WorldStateContext(World world) : IWorldContext
 {
     private readonly Dictionary<Address, AccountStateContext> _accountByAddress = [];
     private readonly World _world = world;
-
-    // public WorldStateContext(ITrie trie, IStateStore stateStore)
-    //     : this(new World(trie, stateStore))
-    // {
-    // }
-
-    public bool IsReadOnly => true;
 
     public AccountStateContext this[Address address]
     {
