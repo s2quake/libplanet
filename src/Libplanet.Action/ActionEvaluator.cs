@@ -45,14 +45,14 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             if (policyActions.BeginBlockActions.Length > 0)
             {
                 evaluationsList.AddRange(EvaluateBeginBlockActions(block, world));
-                world = evaluationsList.Last().OutputState;
+                world = evaluationsList.Last().OutputWorld;
             }
 
             evaluationsList.AddRange([.. EvaluateBlock(block, world)]);
 
             if (policyActions.EndBlockActions.Length > 0)
             {
-                world = evaluationsList.Count > 0 ? evaluationsList.Last().OutputState : world;
+                world = evaluationsList.Count > 0 ? evaluationsList.Last().OutputWorld : world;
                 evaluationsList.AddRange(EvaluateEndBlockActions(block, world));
             }
 
@@ -83,14 +83,13 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
                 BlockProtocolVersion = block.ProtocolVersion,
                 LastCommit = block.LastCommit,
                 Txs = block.Transactions,
-                World = world,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,
                 Evidence = block.Evidence,
             };
-            var evaluation = EvaluateAction(actionContext, action);
+            var evaluation = EvaluateAction(action, world, actionContext);
             evaluations[i] = evaluation;
-            world = evaluation.OutputState;
+            world = evaluation.OutputWorld;
 
             unchecked { randomSeed++; }
         }
@@ -98,21 +97,24 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         return evaluations;
     }
 
-    internal ActionEvaluation EvaluateAction(ActionContext context, IAction action)
+    internal ActionEvaluation EvaluateAction(IAction action, World world, ActionContext actionContext)
     {
-        if (!context.World.Trie.IsCommitted)
+        if (!world.Trie.IsCommitted)
         {
             throw new InvalidOperationException(
-                $"Given {nameof(context)} must have its previous state's " +
+                $"Given {nameof(actionContext)} must have its previous state's " +
                 $"{nameof(ITrie)} recorded.");
         }
 
-        var world = context.World;
+        var inputWorld = world;
+        // var world = context.World;
         Exception? exception = null;
 
         try
         {
-            world = action.Execute(context);
+            using var worldContext = new WorldContext(world);
+            action.Execute(worldContext, actionContext);
+            world = worldContext.Flush();
         }
         catch (OutOfMemoryException)
         {
@@ -134,8 +136,9 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         return new ActionEvaluation
         {
             Action = action,
-            InputContext = context,
-            OutputState = world,
+            InputContext = actionContext,
+            InputWorld = inputWorld,
+            OutputWorld = world,
             Exception = exception,
         };
     }
@@ -152,7 +155,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             foreach (var evaluation in evaluations)
             {
                 evaluationList.Add(evaluation);
-                world = evaluation.OutputState;
+                world = evaluation.OutputWorld;
             }
         }
 
@@ -167,7 +170,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         {
             GasTracer.IsTxAction = true;
             evaluationList.AddRange(EvaluateBeginTxActions(block, tx, world));
-            world = evaluationList.Last().OutputState;
+            world = evaluationList.Last().OutputWorld;
             GasTracer.IsTxAction = false;
         }
 
@@ -177,7 +180,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         if (policyActions.EndTxActions.Length > 0)
         {
             GasTracer.IsTxAction = true;
-            world = evaluationList.Count > 0 ? evaluationList.Last().OutputState : world;
+            world = evaluationList.Count > 0 ? evaluationList.Last().OutputWorld : world;
             evaluationList.AddRange(EvaluateEndTxActions(block, tx, world));
             GasTracer.IsTxAction = false;
         }

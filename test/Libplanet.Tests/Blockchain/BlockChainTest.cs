@@ -1236,7 +1236,7 @@ public partial class BlockChainTest : IDisposable
                     GenesisProposer);
 
                 var evals = actionEvaluator.EvaluateBlock((RawBlock)b, previousState);
-                var dirty = evals.Last().OutputState.Trie
+                var dirty = evals.Last().OutputWorld.Trie
                     .Diff(evals.First().InputContext.World.Trie)
                     .ToList();
                 Assert.NotEmpty(dirty);

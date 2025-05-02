@@ -60,7 +60,6 @@ namespace Libplanet.Action.Tests
                     BlockHeight = 1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = _lastCommit,
-                    World = World.Create(),
                     RandomSeed = seed,
                 };
                 IRandom random = context.GetRandom();
@@ -79,7 +78,6 @@ namespace Libplanet.Action.Tests
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
-                World = World.Create(),
                 RandomSeed = 0,
             };
 
@@ -91,7 +89,6 @@ namespace Libplanet.Action.Tests
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
-                World = World.Create(),
             };
 
             var context3 = new ActionContext
@@ -102,7 +99,6 @@ namespace Libplanet.Action.Tests
                 BlockHeight = 1,
                 BlockProtocolVersion = Block.CurrentProtocolVersion,
                 LastCommit = _lastCommit,
-                World = World.Create(),
             };
 
             (Guid Expected, Guid Diff)[] testCases =
@@ -141,7 +137,6 @@ namespace Libplanet.Action.Tests
                     BlockHeight = 1,
                     BlockProtocolVersion = Block.CurrentProtocolVersion,
                     LastCommit = _lastCommit,
-                    World = World.Create(),
                     RandomSeed = i,
                 };
                 var guid = context.GetRandom().NextGuid().ToString();

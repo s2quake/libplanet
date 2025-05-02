@@ -21,8 +21,6 @@ internal sealed record class ActionContext : IActionContext
 
     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
-    public required World World { get; init; }
-
     public int RandomSeed { get; init; }
 
     public FungibleAssetValue MaxGasPrice { get; init; }
@@ -33,16 +31,16 @@ internal sealed record class ActionContext : IActionContext
 
     public IRandom GetRandom() => new Random(RandomSeed);
 
-    public CommittedActionContext ToCommittedActionContext() => new()
-    {
-        Signer = Signer,
-        TxId = TxId,
-        Proposer = Proposer,
-        BlockHeight = BlockHeight,
-        BlockProtocolVersion = BlockProtocolVersion,
-        PreviousState = World.Trie.IsCommitted
-                ? World.Trie.Hash
-                : throw new ArgumentException("Trie is not recorded"),
-        RandomSeed = RandomSeed,
-    };
+    // public CommittedActionContext ToCommittedActionContext() => new()
+    // {
+    //     Signer = Signer,
+    //     TxId = TxId,
+    //     Proposer = Proposer,
+    //     BlockHeight = BlockHeight,
+    //     BlockProtocolVersion = BlockProtocolVersion,
+    //     PreviousState = World.Trie.IsCommitted
+    //             ? World.Trie.Hash
+    //             : throw new ArgumentException("Trie is not recorded"),
+    //     RandomSeed = RandomSeed,
+    // };
 }

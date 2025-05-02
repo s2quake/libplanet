@@ -7,14 +7,14 @@ namespace Libplanet.Action;
 
 public sealed record class CommittedActionContext
 {
-    public CommittedActionContext(IActionContext context)
+    public CommittedActionContext(IActionContext context, HashDigest<SHA256> previousState)
     {
         Signer = context.Signer;
         TxId = context.TxId;
         Proposer = context.Proposer;
         BlockHeight = context.BlockHeight;
         BlockProtocolVersion = context.BlockProtocolVersion;
-        PreviousState = context.World.Trie.Hash;
+        PreviousState = previousState;
         RandomSeed = context.RandomSeed;
     }
 

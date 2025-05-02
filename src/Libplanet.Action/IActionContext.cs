@@ -21,8 +21,6 @@ public interface IActionContext
 
     BlockCommit LastCommit { get; }
 
-    World World { get; }
-
     int RandomSeed { get; }
 
     FungibleAssetValue MaxGasPrice { get; }

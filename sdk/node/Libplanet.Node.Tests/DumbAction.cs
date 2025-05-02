@@ -1,36 +1,19 @@
-using System.Diagnostics;
-using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Action.State;
+using Libplanet.Serialization;
 
 namespace Libplanet.Node.Tests;
 
-public class DumbAction : IAction
+[Model(Version = 1)]
+public sealed record class DumbAction : ActionBase
 {
+    [Property(0)]
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public IValue PlainValue => Dictionary.Empty
-        .Add("error_message", ErrorMessage);
-
-    public void LoadPlainValue(IValue plainValue)
-    {
-        if (plainValue is Dictionary dictionary)
-        {
-            ErrorMessage = (Text)dictionary["error_message"];
-        }
-        else
-        {
-            throw new UnreachableException("The plain value of DumbAction must be a dictionary.");
-        }
-    }
-
-    public World Execute(IActionContext context)
+    protected override void OnExecute(IWorldContext world, IActionContext context)
     {
         if (ErrorMessage != string.Empty)
         {
             throw new InvalidOperationException(ErrorMessage);
         }
-
-        return context.World;
     }
 }
