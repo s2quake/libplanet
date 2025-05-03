@@ -132,7 +132,6 @@ public class TrieStateStoreTest
                     .ToList());
 
         ITrie worldTrie = stateStore.GetStateRoot(default);
-        worldTrie = worldTrie.SetMetadata(new TrieMetadata(5));
 
         List<HashDigest<SHA256>> accountHashes = new();
         foreach (var elem in data)
