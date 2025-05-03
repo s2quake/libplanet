@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
-using Libplanet.Types;
 using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;

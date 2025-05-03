@@ -1,5 +1,4 @@
 using Libplanet.Action;
-using Libplanet.Node.Options;
 using Libplanet.Node.Services;
 using Microsoft.Extensions.DependencyInjection;
 

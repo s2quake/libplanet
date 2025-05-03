@@ -1,6 +1,5 @@
 using System.IO;
 using System.Security.Cryptography;
-using Libplanet.Types;
 
 namespace Libplanet.Types.Crypto;
 

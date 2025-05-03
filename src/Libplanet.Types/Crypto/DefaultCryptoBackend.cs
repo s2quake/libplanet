@@ -1,7 +1,6 @@
 using System.Text;
 using Nethereum.Util;
 using Secp256k1Net;
-using ByteUtil = Libplanet.Types.ByteUtil;
 
 namespace Libplanet.Types.Crypto;
 

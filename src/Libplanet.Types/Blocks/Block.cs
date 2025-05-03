@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Libplanet.Types;
 using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Evidence;

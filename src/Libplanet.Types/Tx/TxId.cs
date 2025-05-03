@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Bencodex.Types;
-using Libplanet.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
 

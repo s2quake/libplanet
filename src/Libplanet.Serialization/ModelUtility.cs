@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using static Libplanet.Serialization.TypeUtility;
 
 namespace Libplanet.Serialization;
 
