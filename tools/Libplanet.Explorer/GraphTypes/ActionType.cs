@@ -32,7 +32,7 @@ namespace Libplanet.Explorer.GraphTypes
                     switch (encode)
                     {
                         case "hex":
-                            return ByteUtil.Hex(encoded);
+                            return ByteUtility.Hex(encoded);
 
                         case "base64":
                             return Convert.ToBase64String(encoded);

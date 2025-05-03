@@ -46,7 +46,7 @@ public class TrieStateStoreTest
         KeyBytes quxKey = (KeyBytes)"qux";
         var values = ImmutableDictionary<KeyBytes, IValue>.Empty
             .Add(fooKey, (Binary)GetRandomBytes(32))
-            .Add(barKey, (Text)ByteUtil.Hex(GetRandomBytes(32)))
+            .Add(barKey, (Text)ByteUtility.Hex(GetRandomBytes(32)))
             .Add(bazKey, (Bencodex.Types.Boolean)false)
             .Add(quxKey, Bencodex.Types.Dictionary.Empty);
         ITrie trie = stateStore.Commit(
@@ -88,8 +88,8 @@ public class TrieStateStoreTest
         int prevStatesCount = _stateKeyValueStore.Keys.Count();
 
         // NOTE: Avoid possible collision of KeyBytes, just in case.
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(30))] = ByteUtil.ParseHex("00");
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(40))] = ByteUtil.ParseHex("00");
+        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
 
         Assert.Equal(prevStatesCount + 2, _stateKeyValueStore.Keys.Count());
         Assert.Empty(targetStateKeyValueStore.Keys);
@@ -154,8 +154,8 @@ public class TrieStateStoreTest
         int prevStatesCount = _stateKeyValueStore.Keys.Count();
 
         // NOTE: Avoid possible collision of KeyBytes, just in case.
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(30))] = ByteUtil.ParseHex("00");
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(40))] = ByteUtil.ParseHex("00");
+        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
 
         Assert.Equal(prevStatesCount + 2, _stateKeyValueStore.Keys.Count());
         Assert.Empty(targetStateKeyValueStore.Keys);

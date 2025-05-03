@@ -42,7 +42,7 @@ namespace Libplanet.Explorer.Queries
                     }
                 ),
                 resolve: context =>
-                    _codec.Decode(ByteUtil.ParseHex(context.GetArgument<string>("hex")))
+                    _codec.Decode(ByteUtility.ParseHex(context.GetArgument<string>("hex")))
             );
 
             Field<NonNullGraphType<KeyBytesType>>(

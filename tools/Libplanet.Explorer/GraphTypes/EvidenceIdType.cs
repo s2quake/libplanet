@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is string str)
             {
-                return new EvidenceId(ByteUtil.ParseHex(str));
+                return new EvidenceId(ByteUtility.ParseHex(str));
             }
 
             return ThrowValueConversionError(value);
@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is EvidenceId evidenceId)
             {
-                return ByteUtil.Hex(evidenceId.Bytes);
+                return ByteUtility.Hex(evidenceId.Bytes);
             }
 
             return ThrowSerializationError(value);

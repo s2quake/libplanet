@@ -24,7 +24,7 @@ public class ByteArrayExtensionsTest
     [Fact]
     public void IndexOf()
     {
-        Func<string, byte[]> b = ByteUtil.ParseHex;
+        Func<string, byte[]> b = ByteUtility.ParseHex;
         Assert.Equal(-1, Array.Empty<byte>().IndexOf(b("0a0b0c")));
         Assert.Equal(-1, b("0a0b").IndexOf(b("0a0b0c")));
         Assert.Equal(0, b("0a0b0c0d").IndexOf(b("0a0b0c")));

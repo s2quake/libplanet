@@ -49,7 +49,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             Assert.Null(result.Errors);
             Assert.Equal(transaction.Id.ToString(), resultData["id"]);
             Assert.Equal(transaction.Signer.ToString(), resultData["signer"]);
-            Assert.Equal(ByteUtil.Hex(transaction.Signature), resultData["signature"]);
+            Assert.Equal(ByteUtility.Hex(transaction.Signature), resultData["signature"]);
             Assert.Equal(transaction.Nonce, resultData["nonce"]);
             Assert.Equal(
                 new DateTimeOffsetGraphType().Serialize(transaction.Timestamp),

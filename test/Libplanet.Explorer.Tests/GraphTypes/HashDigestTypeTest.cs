@@ -14,13 +14,13 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var bytes = TestUtils.GetRandomBytes(HashDigest<SHA256>.Size);
             var hashDigestSHA256 = new HashDigest<SHA256>(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(
                 hashDigestSHA256,
                 Assert.IsType<HashDigest<SHA256>>(_type.ParseLiteral(new StringValue(hex))));
 
             bytes = TestUtils.GetRandomBytes(HashDigest<SHA1>.Size);
-            hex = ByteUtil.Hex(bytes);
+            hex = ByteUtility.Hex(bytes);
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => _type.ParseLiteral(new StringValue(hex)));
             Assert.Throws<InvalidOperationException>(
@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var bytes = TestUtils.GetRandomBytes(HashDigest<SHA256>.Size);
             var hashDigest = new HashDigest<SHA256>(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(hashDigest, _type.ParseValue(hex));
 
             Assert.Throws<InvalidOperationException>(
@@ -52,7 +52,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             var bytes = TestUtils.GetRandomBytes(HashDigest<SHA256>.Size);
             var hashDigest = new HashDigest<SHA256>(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(hex, _type.Serialize(hashDigest));
 
             Assert.Throws<InvalidOperationException>(() => _type.Serialize(0));

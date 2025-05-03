@@ -1020,11 +1020,11 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task DoNotReceiveBlockFromNodeHavingDifferentGenesisBlock()
         {
-            var keyA = ByteUtil.ParseHex(
+            var keyA = ByteUtility.ParseHex(
                 "8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-            var keyB = ByteUtil.ParseHex(
+            var keyB = ByteUtility.ParseHex(
                 "c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-            var keyC = ByteUtil.ParseHex(
+            var keyC = ByteUtility.ParseHex(
                 "941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
 
             var privateKeyA = new PrivateKey(keyA);

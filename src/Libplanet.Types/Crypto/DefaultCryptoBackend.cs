@@ -71,7 +71,7 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
 
     private static byte[] HashPrefixedMessage(byte[] message)
     {
-        var bytePrefix = ByteUtil.ParseHex("19");
+        var bytePrefix = ByteUtility.ParseHex("19");
         var textBytePrefix = Encoding.UTF8.GetBytes(
             "Ethereum Signed Message:\n" + message.Length);
         var byteList = new List<byte>(

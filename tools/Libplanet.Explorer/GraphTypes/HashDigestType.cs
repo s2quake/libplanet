@@ -37,7 +37,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is string str)
             {
-                return new HashDigest<T>(ByteUtil.ParseHex(str));
+                return new HashDigest<T>(ByteUtility.ParseHex(str));
             }
 
             return ThrowValueConversionError(value);
@@ -52,7 +52,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is HashDigest<T> hashDigest)
             {
-                return ByteUtil.Hex(hashDigest.Bytes);
+                return ByteUtility.Hex(hashDigest.Bytes);
             }
 
             return ThrowSerializationError(value);

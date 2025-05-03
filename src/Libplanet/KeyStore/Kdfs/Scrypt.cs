@@ -128,7 +128,7 @@ namespace Libplanet.KeyStore.Kdfs
             writer.WriteNumber("n", Cost);
             writer.WriteNumber("p", Parallelization);
             writer.WriteNumber("r", BlockSize);
-            writer.WriteString("salt", ByteUtil.Hex(Salt));
+            writer.WriteString("salt", ByteUtility.Hex(Salt));
             writer.WriteEndObject();
             return "scrypt";
         }
@@ -213,7 +213,7 @@ namespace Libplanet.KeyStore.Kdfs
             byte[] salt;
             try
             {
-                salt = ByteUtil.ParseHex(saltString);
+                salt = ByteUtility.ParseHex(saltString);
             }
             catch (ArgumentNullException)
             {

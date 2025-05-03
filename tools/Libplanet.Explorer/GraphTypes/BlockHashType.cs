@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is string str)
             {
-                return new BlockHash(ByteUtil.ParseHex(str));
+                return new BlockHash(ByteUtility.ParseHex(str));
             }
 
             return ThrowValueConversionError(value);
@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is BlockHash blockHash)
             {
-                return ByteUtil.Hex(blockHash.Bytes);
+                return ByteUtility.Hex(blockHash.Bytes);
             }
 
             return ThrowSerializationError(value);

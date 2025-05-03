@@ -28,7 +28,7 @@ public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
 
     public IValue Bencoded => new Binary(Bytes);
 
-    public static BlockHash Parse(string hex) => new(ByteUtil.ParseHexToImmutable(hex));
+    public static BlockHash Parse(string hex) => new(ByteUtility.ParseHexToImmutable(hex));
 
     public static BlockHash Create(HashDigest<SHA256> hashDigest) => new(hashDigest.Bytes);
 
@@ -101,7 +101,7 @@ public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        var hex = ByteUtil.Hex(Bytes);
+        var hex = ByteUtility.Hex(Bytes);
         return format switch
         {
             "h" => hex,

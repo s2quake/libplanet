@@ -59,6 +59,6 @@ public class VoteTypeTest
         Assert.Equal(vote.ValidatorPublicKey.ToString(), resultData["validatorPublicKey"]);
         Assert.Equal(vote.ValidatorPower.ToString(), resultData["validatorPower"]);
         Assert.Equal(vote.Flag.ToString(), resultData["flag"]);
-        Assert.Equal(ByteUtil.Hex(vote.Signature), resultData["signature"]);
+        Assert.Equal(ByteUtility.Hex(vote.Signature), resultData["signature"]);
     }
 }

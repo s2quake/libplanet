@@ -49,8 +49,8 @@ public class MptCommandTest : IDisposable
             var otherKvStoreUri = $"default://{_pathB}";
             var configuration =
                 new ToolConfiguration(new MptConfiguration(new Dictionary<string, string>()));
-            string stateRootHashHex = ByteUtil.Hex(_trieA.Hash.Bytes);
-            string otherStateRootHashHex = ByteUtil.Hex(_trieB.Hash.Bytes);
+            string stateRootHashHex = ByteUtility.Hex(_trieA.Hash.Bytes);
+            string otherStateRootHashHex = ByteUtility.Hex(_trieB.Hash.Bytes);
 
             _command.Diff(
                 kvStoreUri,

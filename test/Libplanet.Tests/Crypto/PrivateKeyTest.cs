@@ -185,7 +185,7 @@ public class PrivateKeyTest
         PrivateKey prvKey = PrivateKey.Parse(
             "82fc9947e878fc7ed01c6c310688603f0a41c8e8704e5b990e8388343b0fd465"
         );
-        byte[] pubkeyBytes = ByteUtil.ParseHex(
+        byte[] pubkeyBytes = ByteUtility.ParseHex(
             "5f706787ac72c1080275c1f398640fb07e9da0b124ae9734b28b8d0f01eda586"
         );
         var pubKey = new PrivateKey(pubkeyBytes).PublicKey;

@@ -39,7 +39,7 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
 
     internal ImmutableArray<byte> Bytes => _bytes;
 
-    public static PublicKey Parse(string hex) => new([.. ByteUtil.ParseHex(hex)], verify: true);
+    public static PublicKey Parse(string hex) => new([.. ByteUtility.ParseHex(hex)], verify: true);
 
     public static bool Verify(
         Address signer, ImmutableArray<byte> message, ImmutableArray<byte> signature)
@@ -96,11 +96,11 @@ public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
     public bool Verify(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature)
         => Verify(Address, message.ToImmutableArray(), signature.ToImmutableArray());
 
-    public override string ToString() => ByteUtil.Hex(ToByteArray(compress: false));
+    public override string ToString() => ByteUtility.Hex(ToByteArray(compress: false));
 
     public string ToString(string? format, IFormatProvider? formatProvider) => format switch
     {
-        "c" => ByteUtil.Hex(ToByteArray(compress: true)),
+        "c" => ByteUtility.Hex(ToByteArray(compress: true)),
         _ => ToString(),
     };
 

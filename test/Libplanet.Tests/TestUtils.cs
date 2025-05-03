@@ -186,7 +186,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static void AssertBytesEqual(
             byte[] expected,
             string actualHex) =>
-            AssertBytesEqual(expected, ByteUtil.ParseHex(actualHex));
+            AssertBytesEqual(expected, ByteUtility.ParseHex(actualHex));
 
         public static void AssertBytesEqual(
             ImmutableArray<byte> expected,
@@ -201,22 +201,22 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static void AssertBytesEqual(
             ImmutableArray<byte> expected,
             string actualHex) =>
-            AssertBytesEqual(expected.ToArray(), ByteUtil.ParseHex(actualHex));
+            AssertBytesEqual(expected.ToArray(), ByteUtility.ParseHex(actualHex));
 
         public static void AssertBytesEqual(
             string expectedHex,
             byte[] actual) =>
-            AssertBytesEqual(ByteUtil.ParseHex(expectedHex), actual);
+            AssertBytesEqual(ByteUtility.ParseHex(expectedHex), actual);
 
         public static void AssertBytesEqual(
             string expectedHex,
             ImmutableArray<byte> actual) =>
-            AssertBytesEqual(ByteUtil.ParseHex(expectedHex), actual.ToArray());
+            AssertBytesEqual(ByteUtility.ParseHex(expectedHex), actual.ToArray());
 
         public static void AssertBytesEqual(
             string expectedHex,
             string actualHex) =>
-            AssertBytesEqual(ByteUtil.ParseHex(expectedHex), ByteUtil.ParseHex(actualHex));
+            AssertBytesEqual(ByteUtility.ParseHex(expectedHex), ByteUtility.ParseHex(actualHex));
 
         public static void AssertBytesEqual(TxId expected, TxId actual) =>
             AssertBytesEqual(expected.Bytes, actual.Bytes);

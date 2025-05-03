@@ -102,7 +102,7 @@ public class BlockTypeTest
         Assert.Null(result.Errors);
         Assert.Equal(block.Height, resultData["index"]);
         Assert.Equal(
-            ByteUtil.Hex(block.Hash.Bytes.ToArray()),
+            ByteUtility.Hex(block.Hash.Bytes.ToArray()),
             resultData["hash"]);
         Assert.Equal(
             block.Proposer.ToString(),
@@ -111,10 +111,10 @@ public class BlockTypeTest
             new DateTimeOffsetGraphType().Serialize(block.Timestamp),
             resultData["timestamp"]);
         Assert.Equal(
-            ByteUtil.Hex(block.StateRootHash.Bytes.ToArray()),
+            ByteUtility.Hex(block.StateRootHash.Bytes.ToArray()),
             resultData["stateRootHash"]);
         Assert.Equal(
-            ByteUtil.Hex(block.RawHash.Bytes.ToArray()),
+            ByteUtility.Hex(block.RawHash.Bytes.ToArray()),
             resultData["preEvaluationHash"]);
 
         var expectedLastCommit = new Dictionary<string, object>()
@@ -138,7 +138,7 @@ public class BlockTypeTest
                         { "validatorPublicKey", lastVotes[0].ValidatorPublicKey.ToString() },
                         { "validatorPower", lastVotes[0].ValidatorPower.ToString() },
                         { "flag", lastVotes[0].Flag.ToString() },
-                        { "signature", ByteUtil.Hex(lastVotes[0].Signature) },
+                        { "signature", ByteUtility.Hex(lastVotes[0].Signature) },
                     }
                 }
             },
@@ -152,6 +152,6 @@ public class BlockTypeTest
 
         Assert.Equal(
             block,
-            ModelSerializer.DeserializeFromBytes<Block>(ByteUtil.ParseHex((string)resultData["raw"])));
+            ModelSerializer.DeserializeFromBytes<Block>(ByteUtility.ParseHex((string)resultData["raw"])));
     }
 }

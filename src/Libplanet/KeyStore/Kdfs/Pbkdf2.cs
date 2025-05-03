@@ -90,7 +90,7 @@ namespace Libplanet.KeyStore.Kdfs
                 "prf",
                 "hmac-" + alg.ToLower(CultureInfo.InvariantCulture).Replace("-", string.Empty)
             );
-            writer.WriteString("salt", ByteUtil.Hex(Salt));
+            writer.WriteString("salt", ByteUtility.Hex(Salt));
             writer.WriteEndObject();
             return "pbkdf2";
         }
@@ -150,7 +150,7 @@ namespace Libplanet.KeyStore.Kdfs
             byte[] salt;
             try
             {
-                salt = ByteUtil.ParseHex(saltString);
+                salt = ByteUtility.ParseHex(saltString);
             }
             catch (ArgumentNullException)
             {

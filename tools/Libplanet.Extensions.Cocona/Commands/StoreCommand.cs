@@ -76,7 +76,7 @@ public class StoreCommand
     )
     {
         IStore store = Utils.LoadStoreFromUri(home);
-        var blockHashes = store.IterateTxIdBlockHashIndex(new TxId(ByteUtil.ParseHex(strTxId)))
+        var blockHashes = store.IterateTxIdBlockHashIndex(new TxId(ByteUtility.ParseHex(strTxId)))
             .ToImmutableArray();
         Console.WriteLine(Utils.SerializeHumanReadable(blockHashes));
         store?.Dispose();
@@ -138,7 +138,7 @@ public class StoreCommand
     )
     {
         IStore store = Utils.LoadStoreFromUri(home);
-        var tx = GetTransaction(store, new TxId(ByteUtil.ParseHex(strTxId)));
+        var tx = GetTransaction(store, new TxId(ByteUtility.ParseHex(strTxId)));
         Console.WriteLine(Utils.SerializeHumanReadable(tx));
         store?.Dispose();
     }

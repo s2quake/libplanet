@@ -82,7 +82,7 @@ public class TxMetadataTest
             .Add(new byte[] { 0x70 }, _key2.PublicKey.ToImmutableArray(compress: false))
             .Add(
                 new byte[] { 0x67 },
-                ByteUtil.ParseHex(
+                ByteUtility.ParseHex(
                     "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"));
         var meta2 = ModelSerializer.Deserialize<TxMetadata>(dict2);
         Assert.Equal(0L, meta2.Nonce);
@@ -144,7 +144,7 @@ public class TxMetadataTest
             .Add(new byte[] { 0x74 }, "2022-01-12T04:56:07.890000Z")
             .Add(
                 new byte[] { 0x67 },
-                ByteUtil.ParseHex(
+                ByteUtility.ParseHex(
                     "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"));
         AssertBencodexEqual(
             expected2,

@@ -101,7 +101,7 @@ public class TransactionTest
     [Fact]
     public void CreateWithCustomActions()
     {
-        var privateKey = new PrivateKey(ByteUtil.ParseHex(
+        var privateKey = new PrivateKey(ByteUtility.ParseHex(
             "cf36ecf9e47c879a0dbf46b2ecd83fd276182ade0265825e3b8c6ba214467b76"));
         var timestamp =
             new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
@@ -136,7 +136,7 @@ public class TransactionTest
             tx.Signature
         );
         AssertBytesEqual(
-            new TxId(ByteUtil.ParseHex(
+            new TxId(ByteUtility.ParseHex(
                 "6b377f828e6e310d986f5812caa732f00841ebaf66ace2b2aab6fe417ee1b84d")),
             tx.Id
         );
@@ -308,7 +308,7 @@ public class TransactionTest
         PublicKey publicKey = privateKey.PublicKey;
         var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
         var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
-        ImmutableArray<byte> signature = ByteUtil.ParseHexToImmutable(
+        ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
         var tx = Transaction.Create(unsignedTx, signature);
@@ -386,7 +386,7 @@ public class TransactionTest
         PublicKey publicKey = privateKey.PublicKey;
         var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
         var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
-        ImmutableArray<byte> signature = ByteUtil.ParseHexToImmutable(
+        ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
         var tx = Transaction.Create(unsignedTx, signature);

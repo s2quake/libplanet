@@ -108,7 +108,7 @@ namespace Libplanet.Explorer.Queries
                     new QueryArgument<IdGraphType> { Name = "id" }
                 ),
                 resolve: context => ExplorerQuery.GetTransaction(
-                    new TxId(ByteUtil.ParseHex(context.GetArgument<string>("id")
+                    new TxId(ByteUtility.ParseHex(context.GetArgument<string>("id")
                         ?? throw new ArgumentException("Given id cannot be null."))))
             );
 
@@ -135,7 +135,7 @@ namespace Libplanet.Explorer.Queries
                 {
                     BlockChain chain = _context.BlockChain;
                     string plainValueString = context.GetArgument<string>("plainValue");
-                    IValue plainValue = _codec.Decode(ByteUtil.ParseHex(plainValueString));
+                    IValue plainValue = _codec.Decode(ByteUtility.ParseHex(plainValueString));
                     var publicKey = PublicKey.Parse(context.GetArgument<string>("publicKey"));
                     Address signer = publicKey.Address;
                     long nonce = context.GetArgument<long?>("nonce") ??
@@ -191,15 +191,15 @@ namespace Libplanet.Explorer.Queries
                 ),
                 resolve: context =>
                 {
-                    ImmutableArray<byte> signature = ByteUtil.ParseHexToImmutable(
+                    ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
                         context.GetArgument<string>("signature")
                     );
                     var unsignedTx = TxMarshaler.DeserializeUnsignedTx(
                         Encoding.UTF8.GetString(
-                            ByteUtil.ParseHex(context.GetArgument<string>("unsignedTransaction")))
+                            ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")))
                     );
                     var signedTransaction = unsignedTx.Verify(signature);
-                    return ByteUtil.Hex(ModelSerializer.SerializeToBytes(signedTransaction));
+                    return ByteUtility.Hex(ModelSerializer.SerializeToBytes(signedTransaction));
                 }
             );
 
@@ -217,7 +217,7 @@ namespace Libplanet.Explorer.Queries
                     var blockChain = _context.BlockChain;
                     var store = _context.Store;
                     var index = _context.Index;
-                    var txId = new TxId(ByteUtil.ParseHex(context.GetArgument<string>("txId")));
+                    var txId = new TxId(ByteUtility.ParseHex(context.GetArgument<string>("txId")));
 
                     if (GetBlockContainingTx(_context, txId) is { } block)
                     {
