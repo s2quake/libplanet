@@ -23,7 +23,7 @@ public static class JsonUtility
         },
     };
 
-    public static string Serialize(object value) => Serialize(value);
+    public static string Serialize(object value) => JsonSerializer.Serialize(value, SerializerOptions);
 
     public static Task<string> SerializeAsync(object value, CancellationToken cancellationToken)
         => Task.Run(() => Serialize(value), cancellationToken);
