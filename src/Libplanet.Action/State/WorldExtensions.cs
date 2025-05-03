@@ -47,6 +47,15 @@ public static class WorldExtensions
         return @this.SetAccount(ValidatorSetAddress, account);
     }
 
+    public static object? GetValueOrDefault(this World @this, Address accountAddress, Address address)
+        => @this.GetAccount(accountAddress).GetValueOrDefault(address);
+
+    public static object GetValue(this World @this, Address accountAddress, Address address)
+        => @this.GetAccount(accountAddress).GetValue(address);
+    
+    public static World SetValue(this World @this, Address accountAddress, Address address, object value)
+        => @this.SetAccount(accountAddress, @this.GetAccount(accountAddress).SetValue(address, value));
+
     internal static CurrencyAccount GetCurrencyAccount(this World @this, Currency currency)
         => new(@this.GetAccount(new Address(currency.Hash.Bytes)).Trie, @this.Signer, currency);
 

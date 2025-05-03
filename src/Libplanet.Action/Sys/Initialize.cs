@@ -27,6 +27,11 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
                 $"{nameof(Initialize)} action can be executed only genesis block.");
         }
 
+        foreach (var (address, value) in States)
+        {
+            world[LegacyAccount, address] = value;
+        }
+
         world[ValidatorSetAddress, ValidatorSetAddress] = Validators;
     }
 }

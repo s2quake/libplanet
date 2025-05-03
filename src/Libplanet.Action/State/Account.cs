@@ -40,7 +40,8 @@ public sealed record class Account(ITrie Trie)
         var key = ToStateKey(address);
         if (Trie.TryGetValue(key, out var v))
         {
-            value = v;
+            value = ModelSerializer.Deserialize(v)
+                ?? throw new InvalidOperationException("Failed to deserialize state.");
             return true;
         }
 
