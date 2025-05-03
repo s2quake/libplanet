@@ -25,7 +25,7 @@ public readonly record struct KeyBytes(in ImmutableArray<byte> Bytes)
         return new KeyBytes(CreateArray(str));
     }
 
-    public static KeyBytes Parse(string hex) => new(ByteUtil.ParseHexToImmutable(hex));
+    public static KeyBytes Parse(string hex) => new(ByteUtility.ParseHexToImmutable(hex));
 
     public static KeyBytes Create(byte[] bytes)
         => bytes.Length is 0 ? Empty : new(ImmutableArray.Create(bytes));
@@ -48,12 +48,12 @@ public readonly record struct KeyBytes(in ImmutableArray<byte> Bytes)
         return hash;
     }
 
-    public override string ToString() => ByteUtil.Hex(Bytes);
+    public override string ToString() => ByteUtility.Hex(Bytes);
 
     public string ToString(string? format, IFormatProvider? formatProvider) => format switch
     {
-        "h" => ByteUtil.Hex(Bytes),
-        "H" => ByteUtil.Hex(Bytes).ToUpperInvariant(),
+        "h" => ByteUtility.Hex(Bytes),
+        "H" => ByteUtility.Hex(Bytes).ToUpperInvariant(),
         _ => ToString(),
     };
 

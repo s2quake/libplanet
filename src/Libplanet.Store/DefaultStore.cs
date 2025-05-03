@@ -546,7 +546,7 @@ public class DefaultStore : StoreBase
 
         foreach (var path in _txIdBlockHashIndex.EnumerateFiles(txPath))
         {
-            yield return new BlockHash(ByteUtil.ParseHex(path.GetName()));
+            yield return new BlockHash(ByteUtility.ParseHex(path.GetName()));
         }
     }
 
@@ -701,7 +701,7 @@ public class DefaultStore : StoreBase
         {
             if (path.FullName.Split('/').LastOrDefault() is { } name)
             {
-                hashes.Add(new BlockHash(ByteUtil.ParseHex(name)));
+                hashes.Add(new BlockHash(ByteUtility.ParseHex(name)));
             }
             else
             {
@@ -940,10 +940,10 @@ public class DefaultStore : StoreBase
     }
 
     internal static Guid ParseChainId(string chainIdString) =>
-        new Guid(ByteUtil.ParseHex(chainIdString));
+        new Guid(ByteUtility.ParseHex(chainIdString));
 
     internal static string FormatChainId(Guid chainId) =>
-        ByteUtil.Hex(chainId.ToByteArray());
+        ByteUtility.Hex(chainId.ToByteArray());
 
     [StoreLoader("default+file")]
     private static (IStore Store, IStateStore StateStore) Loader(Uri storeUri)
@@ -1026,7 +1026,7 @@ public class DefaultStore : StoreBase
 
     private UPath BlockPath(in BlockHash blockHash)
     {
-        string idHex = ByteUtil.Hex(blockHash.Bytes);
+        string idHex = ByteUtility.Hex(blockHash.Bytes);
         if (idHex.Length < 3)
         {
             throw new ArgumentException(

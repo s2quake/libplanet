@@ -164,7 +164,7 @@ public class KeyCommand
         }
         else
         {
-            Console.WriteLine(ByteUtil.Hex(rawKey));
+            Console.WriteLine(ByteUtility.Hex(rawKey));
         }
     }
 
@@ -180,9 +180,9 @@ public class KeyCommand
     )
     {
         var key = new PrivateKey();
-        string priv = ByteUtil.Hex(key.Bytes);
+        string priv = ByteUtility.Hex(key.Bytes);
         string addr = key.Address.ToString();
-        string pub = ByteUtil.Hex(key.PublicKey.ToByteArray(compress: true));
+        string pub = ByteUtility.Hex(key.PublicKey.ToByteArray(compress: true));
 
         if (!noAddress && publicKey)
         {
@@ -249,7 +249,7 @@ public class KeyCommand
         var signature = key.Sign(message);
         if (binaryOutput is null)
         {
-            Console.WriteLine(ByteUtil.Hex(signature));
+            Console.WriteLine(ByteUtility.Hex(signature));
         }
         else if (binaryOutput == "-")
         {
@@ -278,7 +278,7 @@ public class KeyCommand
             ? PublicKey.Parse(key)
             : ValidateRawHex(key).PublicKey;
         string addr = pubKey.Address.ToString();
-        string pub = ByteUtil.Hex(pubKey.ToByteArray(compress: true));
+        string pub = ByteUtility.Hex(pubKey.ToByteArray(compress: true));
         Utils.PrintTable(("Public Key", "Address"), new[] { (pub, addr) });
     }
 

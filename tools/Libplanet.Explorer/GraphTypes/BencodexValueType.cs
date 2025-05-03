@@ -28,7 +28,7 @@ namespace Libplanet.Explorer.GraphTypes
             return value switch
             {
                 null => null,
-                string hex => _codec.Decode(ByteUtil.ParseHex(hex)),
+                string hex => _codec.Decode(ByteUtility.ParseHex(hex)),
                 _ => throw new ArgumentException(
                     $"Expected a hexadecimal string but {value}",
                     nameof(value)

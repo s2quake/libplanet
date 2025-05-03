@@ -64,7 +64,7 @@ namespace Libplanet.Explorer.Executable
         {
             get
             {
-                return Seeds?.Select(seed => $"{ByteUtil.Hex(seed.PublicKey.ToByteArray(true))}," +
+                return Seeds?.Select(seed => $"{ByteUtility.Hex(seed.PublicKey.ToByteArray(true))}," +
                                              $"{seed.EndPoint.Host},{seed.EndPoint.Port}");
             }
 
@@ -79,7 +79,7 @@ namespace Libplanet.Explorer.Executable
                             $"A seed must be a command-separated triple. {str}");
                     }
 
-                    byte[] pubkeyBytes = ByteUtil.ParseHex(parts[0]);
+                    byte[] pubkeyBytes = ByteUtility.ParseHex(parts[0]);
                     var pubkey = new PublicKey([.. pubkeyBytes]);
                     var endpoint = new DnsEndPoint(parts[1], int.Parse(parts[2]));
                     return new BoundPeer(pubkey, endpoint);

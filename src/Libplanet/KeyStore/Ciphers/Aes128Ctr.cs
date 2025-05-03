@@ -70,7 +70,7 @@ namespace Libplanet.KeyStore.Ciphers
         public string WriteJson(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WriteString("iv", ByteUtil.Hex(Iv));
+            writer.WriteString("iv", ByteUtility.Hex(Iv));
             writer.WriteEndObject();
             return "aes-128-ctr";
         }
@@ -104,7 +104,7 @@ namespace Libplanet.KeyStore.Ciphers
             byte[] iv;
             try
             {
-                iv = ByteUtil.ParseHex(ivString);
+                iv = ByteUtility.ParseHex(ivString);
             }
             catch (Exception e)
             {

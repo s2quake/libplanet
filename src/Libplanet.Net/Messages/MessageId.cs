@@ -91,7 +91,7 @@ namespace Libplanet.Net.Messages
                 throw new ArgumentNullException(nameof(hex));
             }
 
-            byte[] bytes = ByteUtil.ParseHex(hex);
+            byte[] bytes = ByteUtility.ParseHex(hex);
             try
             {
                 return new MessageId(bytes);
@@ -109,7 +109,7 @@ namespace Libplanet.Net.Messages
 
         public override bool Equals(object? obj) => obj is MessageId other && Equals(other);
 
-        public override int GetHashCode() => ByteUtil.CalculateHashCode(ToByteArray());
+        public override int GetHashCode() => ByteUtility.CalculateHashCode(ToByteArray());
 
         /// <summary>
         /// Gets a bare mutable <see cref="byte"/> array of
@@ -130,7 +130,7 @@ namespace Libplanet.Net.Messages
         /// </summary>
         /// <returns>64 hexadecimal characters.</returns>
         [Pure]
-        public string ToHex() => ByteUtil.Hex(ToByteArray());
+        public string ToHex() => ByteUtility.Hex(ToByteArray());
 
         /// <summary>
         /// Gets a <see cref="MessageId"/>'s representative string.

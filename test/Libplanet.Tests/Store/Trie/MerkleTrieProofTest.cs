@@ -31,7 +31,7 @@ namespace Libplanet.Tests.Store.Trie
         public readonly ITrie HalfTrie;
 
         public readonly HashDigest<SHA256> HalfTrieHash = new HashDigest<SHA256>(
-            ByteUtil.ParseHex("6cc5c2ca1b7b146268f0d930c58c7e5441b807e72cf16d56f52c869a594b17bf"));
+            ByteUtility.ParseHex("6cc5c2ca1b7b146268f0d930c58c7e5441b807e72cf16d56f52c869a594b17bf"));
 
         // An uncommitted instance of FullTrie.
         public readonly ITrie UncommittedTrie;
@@ -58,7 +58,7 @@ namespace Libplanet.Tests.Store.Trie
         public readonly ITrie FullTrie;
 
         public readonly HashDigest<SHA256> FullTrieHash = new HashDigest<SHA256>(
-            ByteUtil.ParseHex("979a00921d42d2ca63e98c1c2ac07f0eacbb99e363b8f2f7f8e4d19c854b6c20"));
+            ByteUtility.ParseHex("979a00921d42d2ca63e98c1c2ac07f0eacbb99e363b8f2f7f8e4d19c854b6c20"));
 
         public readonly KeyBytes K00 = KeyBytes.Parse("00");
         public readonly KeyBytes K01 = KeyBytes.Parse("01");

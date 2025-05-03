@@ -25,27 +25,4 @@ public sealed record class Attack : ActionBase
             Targets = battleResult.Targets.Add(Target),
         };
     }
-
-    // public override World Execute(IActionContext context)
-    // {
-    //     IImmutableSet<string> usedWeapons = ImmutableHashSet<string>.Empty;
-    //     IImmutableSet<string> targets = ImmutableHashSet<string>.Empty;
-    //     World previousState = context.World;
-    //     Account legacyAccount = previousState.GetAccount(ReservedAddresses.LegacyAccount);
-
-    //     object value = legacyAccount.GetState(TargetAddress);
-    //     if (!ReferenceEquals(value, null))
-    //     {
-    //         var previousResult = BattleResult.FromBencodex((Bencodex.Types.Dictionary)value);
-    //         usedWeapons = previousResult.UsedWeapons;
-    //         targets = previousResult.Targets;
-    //     }
-
-    //     usedWeapons = usedWeapons.Add(Weapon);
-    //     targets = targets.Add(Target);
-    //     var result = new BattleResult(usedWeapons, targets);
-    //     legacyAccount = legacyAccount.SetState(TargetAddress, result.ToBencodex());
-
-    //     return previousState.SetAccount(ReservedAddresses.LegacyAccount, legacyAccount);
-    // }
 }

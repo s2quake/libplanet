@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is string str)
             {
-                return new TxId(ByteUtil.ParseHex(str));
+                return new TxId(ByteUtility.ParseHex(str));
             }
 
             return ThrowValueConversionError(value);
@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is TxId txId)
             {
-                return ByteUtil.Hex(txId.Bytes);
+                return ByteUtility.Hex(txId.Bytes);
             }
 
             return ThrowSerializationError(value);

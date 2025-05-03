@@ -24,8 +24,8 @@ namespace Libplanet.Types.JsonConverters
             }
 
             return typeToConvert == typeof(ImmutableArray<byte>)
-                ? ByteUtil.ParseHexToImmutable(hex)
-                : (IReadOnlyList<byte>?)ByteUtil.ParseHex(hex);
+                ? ByteUtility.ParseHexToImmutable(hex)
+                : (IReadOnlyList<byte>?)ByteUtility.ParseHex(hex);
         }
 
         public override void Write(
@@ -39,7 +39,7 @@ namespace Libplanet.Types.JsonConverters
             }
             else
             {
-                writer.WriteStringValue(ByteUtil.Hex(value is byte[] a ? a : value.ToArray()));
+                writer.WriteStringValue(ByteUtility.Hex(value is byte[] a ? a : value.ToArray()));
             }
         }
     }

@@ -19,7 +19,7 @@ namespace Libplanet.Explorer.GraphTypes
                 name: "hex",
                 description:
                     "A hexadecimal representation of the bencodex value encoded as byte array.",
-                resolve: context => ByteUtil.Hex(_codec.Encode(context.Source))
+                resolve: context => ByteUtility.Hex(_codec.Encode(context.Source))
             );
 
             Field<NonNullGraphType<StringGraphType>>(

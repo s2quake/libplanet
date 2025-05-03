@@ -86,7 +86,7 @@ namespace Libplanet.Explorer.Queries
                     new QueryArgument<EvidenceIdType> { Name = "id" }
                 ),
                 resolve: context => ExplorerQuery.GetEvidence(
-                    new EvidenceId(ByteUtil.ParseHex(context.GetArgument<string>("id")
+                    new EvidenceId(ByteUtility.ParseHex(context.GetArgument<string>("id")
                         ?? throw new ExecutionError("Given id cannot be null."))))
             );
         }

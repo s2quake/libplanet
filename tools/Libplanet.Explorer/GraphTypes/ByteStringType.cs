@@ -15,7 +15,7 @@ namespace Libplanet.Explorer.GraphTypes
         {
             return value switch
             {
-                byte[] b => ByteUtil.Hex(b),
+                byte[] b => ByteUtility.Hex(b),
                 string s => s,
                 _ => null,
             };
@@ -28,7 +28,7 @@ namespace Libplanet.Explorer.GraphTypes
                 case null:
                     return null;
                 case string hex:
-                    return ByteUtil.ParseHex(hex);
+                    return ByteUtility.ParseHex(hex);
                 default:
                     throw new ArgumentException("Expected a hexadecimal string.", nameof(value));
             }

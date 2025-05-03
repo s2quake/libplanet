@@ -11,7 +11,7 @@ public class PublicKeyTest(ITestOutputHelper output)
     [Fact]
     public void Constructor()
     {
-        byte[] bytes = ByteUtil.ParseHex(
+        byte[] bytes = ByteUtility.ParseHex(
             "04b5a24aa2112720423bad39a0205182379d6f2b33e3487c9ab6cc8fc496f8a54" +
             "83440efbbef0657ac2ef6c6ee05db06a94532fda7ddc44a1695e5ce1a3d3c76db");
 
@@ -27,10 +27,10 @@ public class PublicKeyTest(ITestOutputHelper output)
     [Fact]
     public void Format()
     {
-        byte[] bytes = ByteUtil.ParseHex(
+        byte[] bytes = ByteUtility.ParseHex(
             "04b5a24aa2112720423bad39a0205182379d6f2b33e3487c9ab6cc8fc496f8a54" +
             "83440efbbef0657ac2ef6c6ee05db06a94532fda7ddc44a1695e5ce1a3d3c76db");
-        byte[] compressed = ByteUtil.ParseHex(
+        byte[] compressed = ByteUtility.ParseHex(
             "03b5a24aa2112720423bad39a0205182379d6f2b33e3487c9ab6cc8fc496f8a548");
 
         var key = new PublicKey([.. bytes]);
@@ -47,7 +47,7 @@ public class PublicKeyTest(ITestOutputHelper output)
     [Fact]
     public void AddressTest()
     {
-        var privateKey = new PrivateKey(ByteUtil.ParseHex(
+        var privateKey = new PrivateKey(ByteUtility.ParseHex(
             "bee6f9cc62412760b3696e05f6fb4abeb9e83c4f944f83fd62081b7454cbc038"));
         var publicKey = privateKey.PublicKey;
         var expected = Address.Parse("f45A22dD63f6428e85eE0a6E13a763278f57626d");
@@ -111,22 +111,22 @@ public class PublicKeyTest(ITestOutputHelper output)
         byte[][] testMessages =
         [
             // 0) Asn1ParsingException: corrupted stream - out of bounds length found: 77 >= 71
-            ByteUtil.ParseHex(
+            ByteUtility.ParseHex(
                 "91cd3ac5b0ee0642dc5f3c64061d8b87d6a7a1f9bfd3c4159068ebffa229bebb" +
                 "a1b9932496f358b26a4e3611abf1e46cd39d3d8da5b2a1bd082535470306a0b2"),
             // 1) Asn1ParsingException: corrupted stream - out of bounds length found: 104 >= 71
-            ByteUtil.ParseHex(
+            ByteUtility.ParseHex(
                 "dbee28545e490ff2b1311a0545a7498eb1bae9156207ee732f1ee59ec1b18bb4" +
                 "7bdce857e2476eb4988e52263f9b51fdb3ceabb546e00cd4ffb52540637131ff"),
         ];
         byte[][] testSignatures =
         [
             // 0) Asn1ParsingException: corrupted stream - out of bounds length found: 77 >= 71
-            ByteUtil.ParseHex(
+            ByteUtility.ParseHex(
                 "a180c24d8966f1e24fef8e709cb36a9e837e2c04ec3016ef17d51b70be10af64ad846f2" +
                 "a2e97e36cab5a3db623312055bb97c484da9cc6706ad335b34b81243f402ac218433f6f"),
             // 1) Asn1ParsingException: corrupted stream - out of bounds length found: 104 >= 71
-            ByteUtil.ParseHex(
+            ByteUtility.ParseHex(
                 "a5668968bef1ac694b357cd4b4c83494cde8eaf206d66d9ad014582c222e50275c5281d" +
                 "811e83ec12141691164381f378191727b863ff9cef8ee98aa997f461de4557862465b82"),
         ];
@@ -149,16 +149,16 @@ public class PublicKeyTest(ITestOutputHelper output)
                     nameof(PublicKey.Verify),
                     i
                 );
-                output.WriteLine("  message:   {0}", ByteUtil.Hex(message));
-                output.WriteLine("  signature: {0}", ByteUtil.Hex(sig));
+                output.WriteLine("  message:   {0}", ByteUtility.Hex(message));
+                output.WriteLine("  signature: {0}", ByteUtility.Hex(sig));
                 throw;
             }
 
             string msg =
                 $"{nameof(PublicKey.Verify)}() method made an incorrect answer for input " +
                 $"#{i}:\n" +
-                $"  message:   {ByteUtil.Hex(message)}\n" +
-                $"  signature: {ByteUtil.Hex(sig)}\n";
+                $"  message:   {ByteUtility.Hex(message)}\n" +
+                $"  signature: {ByteUtility.Hex(sig)}\n";
             Assert.False(validity, msg);
         }
 
@@ -178,16 +178,16 @@ public class PublicKeyTest(ITestOutputHelper output)
                     nameof(PublicKey),
                     nameof(PublicKey.Verify)
                 );
-                output.WriteLine("  message:   {0}", ByteUtil.Hex(message));
-                output.WriteLine("  signature: {0}", ByteUtil.Hex(sig));
+                output.WriteLine("  message:   {0}", ByteUtility.Hex(message));
+                output.WriteLine("  signature: {0}", ByteUtility.Hex(sig));
                 throw;
             }
 
             string msg =
                 $"{nameof(PublicKey.Verify)}() method made an incorrect answer for the below " +
                 "arbitrary inputs:\n" +
-                $"  message:   {ByteUtil.Hex(message)}\n" +
-                $"  signature: {ByteUtil.Hex(sig)}\n";
+                $"  message:   {ByteUtility.Hex(message)}\n" +
+                $"  signature: {ByteUtility.Hex(sig)}\n";
             Assert.False(validity, msg);
         }
     }

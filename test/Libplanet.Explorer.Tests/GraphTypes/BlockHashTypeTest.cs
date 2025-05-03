@@ -14,7 +14,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var bytes = TestUtils.GetRandomBytes(BlockHash.Size);
             var blockHash = new BlockHash(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(
                 blockHash,
                 Assert.IsType<BlockHash>(_type.ParseLiteral(new StringValue(hex))));
@@ -32,7 +32,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var bytes = TestUtils.GetRandomBytes(BlockHash.Size);
             var blockHash = new BlockHash(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(blockHash, _type.ParseValue(hex));
 
             Assert.Throws<InvalidOperationException>(() => _type.ParseValue(0));
@@ -45,7 +45,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             var bytes = TestUtils.GetRandomBytes(BlockHash.Size);
             var blockHash = new BlockHash(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(hex, _type.Serialize(blockHash));
 
             Assert.Throws<InvalidOperationException>(() => _type.Serialize(0));

@@ -135,7 +135,7 @@ namespace Libplanet.Consensus
         {
             return HashCode.Combine(
                 _metadata.GetHashCode(),
-                ByteUtil.CalculateHashCode(Signature.ToArray()));
+                ByteUtility.CalculateHashCode(Signature.ToArray()));
         }
     }
 }

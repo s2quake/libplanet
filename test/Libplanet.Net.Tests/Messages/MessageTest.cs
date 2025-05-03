@@ -113,7 +113,7 @@ namespace Libplanet.Net.Tests.Messages
             Block genesis = ProposeGenesisBlock(GenesisProposer);
             var message = new BlockHeaderMsg(genesis.Hash, genesis.Header);
             Assert.Equal(
-                new MessageId(ByteUtil.ParseHex(
+                new MessageId(ByteUtility.ParseHex(
                     "e1acbdc4d0cc1eb156cec60d0bf6d40fae3a90192e95719b12e6ee944c71b742")),
                 message.Id);
         }

@@ -14,7 +14,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var bytes = TestUtils.GetRandomBytes(TxId.Size);
             var txId = new TxId(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(
                 txId,
                 Assert.IsType<TxId>(_type.ParseLiteral(new StringValue(hex))));
@@ -32,7 +32,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
 
             var bytes = TestUtils.GetRandomBytes(TxId.Size);
             var txId = new TxId(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(txId, _type.ParseValue(hex));
 
             Assert.Throws<InvalidOperationException>(() => _type.ParseValue(0));
@@ -45,7 +45,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             var bytes = TestUtils.GetRandomBytes(TxId.Size);
             var txId = new TxId(bytes);
-            var hex = ByteUtil.Hex(bytes);
+            var hex = ByteUtility.Hex(bytes);
             Assert.Equal(hex, _type.Serialize(txId));
 
             Assert.Throws<InvalidOperationException>(() => _type.Serialize(0));

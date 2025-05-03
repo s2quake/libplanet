@@ -147,10 +147,10 @@ namespace Libplanet.Net.Messages
                 throw new DifferentAppProtocolVersionException(
                     $"The APV of a received message is invalid:\n" +
                     $"Expected: APV {appProtocolVersion} with " +
-                    $"signature {ByteUtil.Hex(appProtocolVersion.Signature)} by " +
+                    $"signature {ByteUtility.Hex(appProtocolVersion.Signature)} by " +
                     $"signer {appProtocolVersion.Signer}\n" +
                     $"Actual: APV {message.Version} with " +
-                    $"signature: {ByteUtil.Hex(message.Version.Signature)} by " +
+                    $"signature: {ByteUtility.Hex(message.Version.Signature)} by " +
                     $"signer: {message.Version.Signer}\n" +
                     $"Signed by a trusted signer: {trusted}",
                     appProtocolVersion,

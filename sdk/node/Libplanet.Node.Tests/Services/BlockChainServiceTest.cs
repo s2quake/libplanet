@@ -39,19 +39,19 @@ public class BlockChainServiceTest
             string jsonContent = $@"
             {{
                 ""{accountA}"": {{
-                    ""{addressA}"": ""{ByteUtil.Hex(codec.Encode((Text)"A"))}"",
-                    ""{addressB}"": ""{ByteUtil.Hex(codec.Encode((Integer)123))}""
+                    ""{addressA}"": ""{ByteUtility.Hex(codec.Encode((Text)"A"))}"",
+                    ""{addressB}"": ""{ByteUtility.Hex(codec.Encode((Integer)123))}""
                 }},
                 ""{accountB}"": {{
-                    ""{addressA}"": ""{ByteUtil.Hex(codec.Encode((Text)"B"))}"",
-                    ""{addressB}"": ""{ByteUtil.Hex(codec.Encode((Integer)456))}""
+                    ""{addressA}"": ""{ByteUtility.Hex(codec.Encode((Text)"B"))}"",
+                    ""{addressB}"": ""{ByteUtility.Hex(codec.Encode((Integer)456))}""
                 }}
             }}";
             File.WriteAllText(tempFilePath, jsonContent);
             var configDict = new Dictionary<string, string>
             {
                 { "Genesis:GenesisConfigurationPath", tempFilePath },
-                { "Genesis:GenesisKey", ByteUtil.Hex(genesisKey.Bytes.ToArray()) },
+                { "Genesis:GenesisKey", ByteUtility.Hex(genesisKey.Bytes.ToArray()) },
             };
 
             var configuration = new ConfigurationBuilder()

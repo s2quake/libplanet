@@ -200,7 +200,7 @@ public class ApvCommand
         var data = new List<(string, string)>
         {
             ("version", v.Version.ToString(CultureInfo.InvariantCulture)),
-            ("signature", ByteUtil.Hex(v.Signature)),
+            ("signature", ByteUtility.Hex(v.Signature)),
             ("signer", v.Signer.ToString()),
         };
 
@@ -219,7 +219,7 @@ public class ApvCommand
                         return;
 
                     case Binary bin:
-                        table.Add((key, ByteUtil.Hex(bin.ToByteArray())));
+                        table.Add((key, ByteUtility.Hex(bin.ToByteArray())));
                         return;
 
                     case Text t:
@@ -245,7 +245,7 @@ public class ApvCommand
                         {
                             string k = kv.Key switch
                             {
-                                Binary bk => ByteUtil.Hex(bk.ToArray()),
+                                Binary bk => ByteUtility.Hex(bk.ToArray()),
                                 Text txt => txt.Value,
                                 _ => kv.Key.ToString() ?? string.Empty,
                             };

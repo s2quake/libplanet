@@ -30,7 +30,7 @@ public readonly record struct TxId(in ImmutableArray<byte> Bytes)
     {
         try
         {
-            return new TxId(ByteUtil.ParseHexToImmutable(hex));
+            return new TxId(ByteUtility.ParseHexToImmutable(hex));
         }
         catch (Exception e) when (e is not FormatException)
         {
@@ -53,9 +53,9 @@ public readonly record struct TxId(in ImmutableArray<byte> Bytes)
 
     public bool Equals(TxId other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtil.CalculateHashCode(Bytes);
+    public override int GetHashCode() => ByteUtility.CalculateHashCode(Bytes);
 
-    public override string ToString() => ByteUtil.Hex(Bytes);
+    public override string ToString() => ByteUtility.Hex(Bytes);
 
     public int CompareTo(TxId other)
     {

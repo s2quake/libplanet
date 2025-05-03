@@ -51,8 +51,8 @@ public class TransactionQueryTest
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtil.Hex(Encoding.UTF8.GetBytes(tx.UnsignedTx.SerializeUnsignedTx()))}"",
-                signature: ""{ByteUtil.Hex(tx.Signature)}""
+                unsignedTransaction: ""{ByteUtility.Hex(Encoding.UTF8.GetBytes(tx.UnsignedTx.SerializeUnsignedTx()))}"",
+                signature: ""{ByteUtility.Hex(tx.Signature)}""
             )
          }}
          ", QueryGraph, source: Source);
@@ -62,7 +62,7 @@ public class TransactionQueryTest
             Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
         Assert.Equal(
             ModelSerializer.SerializeToBytes(tx),
-            ByteUtil.ParseHex((string)resultDict["bindSignature"]));
+            ByteUtility.ParseHex((string)resultDict["bindSignature"]));
     }
 
     [Fact]
@@ -86,8 +86,8 @@ public class TransactionQueryTest
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtil.Hex(Encoding.UTF8.GetBytes(tx.UnsignedTx.SerializeUnsignedTx()))}"",
-                signature: ""{ByteUtil.Hex(tx.Signature)}""
+                unsignedTransaction: ""{ByteUtility.Hex(Encoding.UTF8.GetBytes(tx.UnsignedTx.SerializeUnsignedTx()))}"",
+                signature: ""{ByteUtility.Hex(tx.Signature)}""
             )
          }}
          ", QueryGraph, source: Source);
@@ -97,7 +97,7 @@ public class TransactionQueryTest
             Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
         Assert.Equal(
             ModelSerializer.SerializeToBytes(tx),
-            ByteUtil.ParseHex((string)resultDict["bindSignature"]));
+            ByteUtility.ParseHex((string)resultDict["bindSignature"]));
     }
 
     [Fact]

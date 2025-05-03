@@ -75,7 +75,7 @@ public class BlockCommitTypeTest
                 { "timestamp", new DateTimeOffsetGraphType().Serialize(vote.Timestamp) },
                 { "validatorPublicKey", vote.ValidatorPublicKey.ToString() },
                 { "flag", vote.Flag.ToString() },
-                { "signature", ByteUtil.Hex(vote.Signature) },
+                { "signature", ByteUtility.Hex(vote.Signature) },
             }
         };
         Assert.Equal(expectedVotes, resultData["votes"]);

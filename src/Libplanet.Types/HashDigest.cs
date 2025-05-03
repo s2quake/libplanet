@@ -59,7 +59,7 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
             throw new ArgumentOutOfRangeException(nameof(hex), message);
         }
 
-        return new HashDigest<T>(ByteUtil.ParseHexToImmutable(hex));
+        return new HashDigest<T>(ByteUtility.ParseHexToImmutable(hex));
     }
 
     public static HashDigest<T> DeriveFrom(byte[] input) => DeriveFrom(input.AsSpan());
@@ -78,7 +78,7 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        var hex = ByteUtil.Hex(Bytes);
+        var hex = ByteUtility.Hex(Bytes);
         return format switch
         {
             "h" => hex,

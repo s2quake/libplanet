@@ -75,16 +75,16 @@ public class MptCommand
         HashDigest<SHA256> originRootHash = trie.Hash;
         HashDigest<SHA256> otherRootHash = otherTrie.Hash;
 
-        string originRootHashHex = ByteUtil.Hex(originRootHash.Bytes);
-        string otherRootHashHex = ByteUtil.Hex(otherRootHash.Bytes);
+        string originRootHashHex = ByteUtility.Hex(originRootHash.Bytes);
+        string otherRootHashHex = ByteUtility.Hex(otherRootHash.Bytes);
         foreach (var (key, targetValue, sourceValue) in trie.Diff(otherTrie))
         {
-            var data = new DiffData(ByteUtil.Hex(key.Bytes), new Dictionary<string, string>
+            var data = new DiffData(ByteUtility.Hex(key.Bytes), new Dictionary<string, string>
             {
                 [otherRootHashHex] = targetValue is null
                     ? "null"
-                    : ByteUtil.Hex(codec.Encode(targetValue)),
-                [originRootHashHex] = ByteUtil.Hex(codec.Encode(sourceValue)),
+                    : ByteUtility.Hex(codec.Encode(targetValue)),
+                [originRootHashHex] = ByteUtility.Hex(codec.Encode(sourceValue)),
             });
 
             Console.WriteLine(JsonSerializer.Serialize(data));
@@ -223,7 +223,7 @@ public class MptCommand
         if (values.Count > 0 && values[0] is { } value)
         {
             var codec = new Codec();
-            Console.WriteLine(ByteUtil.Hex(codec.Encode(value)));
+            Console.WriteLine(ByteUtility.Hex(codec.Encode(value)));
         }
         else
         {

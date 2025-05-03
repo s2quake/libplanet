@@ -438,7 +438,7 @@ public class MerkleTrieTest
         List<(KeyBytes Key, Text Value)> kvs = Enumerable
             .Range(0, 100)
             .Select(_ => TestUtils.GetRandomBytes(random.Next(2, 10)))
-            .Select(bytes => (KeyBytes.Create(bytes), new Text(ByteUtil.Hex(bytes))))
+            .Select(bytes => (KeyBytes.Create(bytes), new Text(ByteUtility.Hex(bytes))))
             .ToList();
         var expected = new Stack<(HashDigest<SHA256>, int, int)>();
 

@@ -35,15 +35,15 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
 
     public bool Equals(Address other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtil.CalculateHashCode(ToByteArray());
+    public override int GetHashCode() => ByteUtility.CalculateHashCode(ToByteArray());
 
     public byte[] ToByteArray() => [.. Bytes];
 
-    public override string ToString() => $"0x{ToChecksumAddress(ByteUtil.Hex(ToByteArray()))}";
+    public override string ToString() => $"0x{ToChecksumAddress(ByteUtility.Hex(ToByteArray()))}";
 
     public string ToString(string? format, IFormatProvider? formatProvider) => format switch
     {
-        "raw" => ToChecksumAddress(ByteUtil.Hex(ToByteArray())),
+        "raw" => ToChecksumAddress(ByteUtility.Hex(ToByteArray())),
         _ => ToString(),
     };
 
@@ -80,18 +80,6 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
         return bytes;
     }
 
-    private static ImmutableArray<byte> GetBytes(IValue value)
-    {
-        if (value is Binary binary)
-        {
-            return binary.ByteArray;
-        }
-
-        throw new ArgumentException(
-            $"Given {nameof(value)} must be a {nameof(Binary)}: {value.GetType()}",
-            nameof(value));
-    }
-
     private static string ToChecksumAddress(string hex)
     {
         var value = new Nethereum.Util.AddressUtil().ConvertToChecksumAddress(hex);
@@ -103,6 +91,14 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
         return value;
     }
 
+    private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
+    {
+        var pubKey = publicKey.ToByteArray(compressed);
+        var bytes = new byte[pubKey.Length - 1];
+        Array.Copy(pubKey, 1, bytes, 0, bytes.Length);
+        return bytes;
+    }
+
     private static ImmutableArray<byte> DeriveAddress(PublicKey publicKey)
     {
         var initaddr = new Nethereum.Util.Sha3Keccack().CalculateHash(
@@ -111,15 +107,7 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
         Array.Copy(initaddr, 12, bytes, 0, initaddr.Length - 12);
         var address = ToChecksumAddress(
             Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(bytes));
-        return ByteUtil.ParseHexToImmutable(address);
-    }
-
-    private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
-    {
-        var pubKey = publicKey.ToByteArray(compressed);
-        var bytes = new byte[pubKey.Length - 1];
-        Array.Copy(pubKey, 1, bytes, 0, bytes.Length);
-        return bytes;
+        return ByteUtility.ParseHexToImmutable(address);
     }
 
     private static ImmutableArray<byte> DeriveAddress(string hex)
@@ -152,7 +140,7 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
 
         try
         {
-            return ByteUtil.ParseHexToImmutable(hex);
+            return ByteUtility.ParseHexToImmutable(hex);
         }
         catch (FormatException e)
         {

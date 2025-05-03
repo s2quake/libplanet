@@ -202,7 +202,7 @@ internal sealed class BlockChainService(
             {
                 account = account.SetValue(
                     Address.Parse(stateKv.Key),
-                    codec.Decode(ByteUtil.ParseHex(stateKv.Value)));
+                    codec.Decode(ByteUtility.ParseHex(stateKv.Value)));
             }
 
             world = world.SetAccount(key, account);

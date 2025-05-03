@@ -23,7 +23,7 @@ public readonly record struct EvidenceId(in ImmutableArray<byte> Bytes)
 
     public static EvidenceId Parse(string hex)
     {
-        ImmutableArray<byte> bytes = ByteUtil.ParseHexToImmutable(hex);
+        ImmutableArray<byte> bytes = ByteUtility.ParseHexToImmutable(hex);
         try
         {
             return new EvidenceId(bytes);
@@ -52,9 +52,9 @@ public readonly record struct EvidenceId(in ImmutableArray<byte> Bytes)
 
     public bool Equals(EvidenceId other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtil.CalculateHashCode(Bytes);
+    public override int GetHashCode() => ByteUtility.CalculateHashCode(Bytes);
 
-    public override string ToString() => ByteUtil.Hex(Bytes);
+    public override string ToString() => ByteUtility.Hex(Bytes);
 
     public int CompareTo(EvidenceId other)
     {

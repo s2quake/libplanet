@@ -227,7 +227,7 @@ namespace Libplanet.KeyStore
                 byte[] bytes;
                 try
                 {
-                    bytes = ByteUtil.ParseHex(str);
+                    bytes = ByteUtility.ParseHex(str);
                 }
                 catch (Exception e)
                 {
@@ -351,14 +351,14 @@ namespace Libplanet.KeyStore
             );
             writer.WriteString("address", $"{Address:raw}".ToLower(CultureInfo.InvariantCulture));
             writer.WriteStartObject("crypto");
-            writer.WriteString("ciphertext", ByteUtil.Hex(Ciphertext));
+            writer.WriteString("ciphertext", ByteUtility.Hex(Ciphertext));
             writer.WritePropertyName("cipherparams");
             string cipherName = Cipher.WriteJson(writer);
             writer.WriteString("cipher", cipherName);
             writer.WritePropertyName("kdfparams");
             string kdfName = Kdf.WriteJson(writer);
             writer.WriteString("kdf", kdfName);
-            writer.WriteString("mac", ByteUtil.Hex(Mac));
+            writer.WriteString("mac", ByteUtility.Hex(Mac));
             writer.WriteEndObject();
             writer.WriteEndObject();
         }

@@ -53,7 +53,7 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
 
         try
         {
-            return new(ByteUtil.ParseHexToImmutable(hex));
+            return new(ByteUtility.ParseHexToImmutable(hex));
         }
         catch (Exception e)
         {

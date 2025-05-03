@@ -22,7 +22,7 @@ public partial class RawStateQueryTest
             = "35303033373132623633626161623938303934616436373865613262323462636534343564303736";
         ExecutionResult result = await ExecuteQueryAsync<RawStateQuery>($@"
         {{
-            trie(stateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}"") {{
+            trie(stateRootHash: ""{ByteUtility.Hex(stateRootHash.Bytes)}"") {{
                 value(key: ""{key}"") {{
                     hex
                 }}
@@ -38,12 +38,12 @@ public partial class RawStateQueryTest
         IDictionary<string, object> value =
             Assert.IsAssignableFrom<IDictionary<string, object>>(trie["value"]);
         Assert.Equal(
-            ByteUtil.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
             Assert.IsAssignableFrom<string>(value["hex"]));
 
         result = await ExecuteQueryAsync<RawStateQuery>($@"
         {{
-            trie(stateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}"") {{
+            trie(stateRootHash: ""{ByteUtility.Hex(stateRootHash.Bytes)}"") {{
                 value(key: ""5f5f5f"") {{
                     hex
                 }}
@@ -59,7 +59,7 @@ public partial class RawStateQueryTest
         value =
             Assert.IsAssignableFrom<IDictionary<string, object>>(trie["value"]);
         Assert.Equal(
-            ByteUtil.Hex(ModelSerializer.SerializeToBytes(Fixture.Validators)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Validators)),
             Assert.IsAssignableFrom<string>(value["hex"]));
     }
 }

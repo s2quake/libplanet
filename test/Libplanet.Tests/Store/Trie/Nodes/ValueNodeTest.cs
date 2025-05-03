@@ -12,7 +12,7 @@ namespace Libplanet.Tests.Store.Trie.Nodes
             var values = new IValue[]
             {
                 Null.Value,
-                (Binary)ByteUtil.ParseHexToImmutable("beef"),
+                (Binary)ByteUtility.ParseHexToImmutable("beef"),
                 (Integer)0xbeef,
                 Dictionary.Empty,
                 List.Empty,
