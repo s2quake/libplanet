@@ -3,7 +3,7 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Consensus;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Store;

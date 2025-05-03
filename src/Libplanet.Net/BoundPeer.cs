@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Net;
 using Bencodex.Types;
 using Destructurama.Attributed;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net
 {
@@ -65,7 +65,7 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// The corresponding <see cref="Libplanet.Crypto.PublicKey"/> of
+        /// The corresponding <see cref="Libplanet.Types.Crypto.PublicKey"/> of
         /// this peer.
         /// </summary>
         [LogAsScalar]

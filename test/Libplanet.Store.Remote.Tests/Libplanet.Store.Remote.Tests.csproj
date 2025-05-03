@@ -13,15 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Remove="Menees.Analyzers.2017" />
-    <PackageReference Remove="StyleCop.Analyzers" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(SkipSonar)' != 'true'">
-    <PackageReference Remove="SonarAnalyzer.CSharp" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Store.Remote\Libplanet.Store.Remote.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using Bencodex.Types;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using Libplanet.Store;

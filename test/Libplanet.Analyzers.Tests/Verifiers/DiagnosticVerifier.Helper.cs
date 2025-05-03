@@ -2,7 +2,7 @@ using System.IO;
 using System.Reflection;
 using Bencodex.Types;
 using Libplanet.Action;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;

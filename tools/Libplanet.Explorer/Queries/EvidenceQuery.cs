@@ -1,6 +1,6 @@
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;

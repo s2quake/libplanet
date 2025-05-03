@@ -1,6 +1,6 @@
 using GraphQL.Types;
 using Libplanet.Blockchain;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Store;

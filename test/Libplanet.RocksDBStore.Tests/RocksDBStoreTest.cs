@@ -3,7 +3,7 @@ using System.Reflection;
 using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
-using Libplanet.Common.Extensions;
+using Libplanet.Types.Extensions;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Tx;

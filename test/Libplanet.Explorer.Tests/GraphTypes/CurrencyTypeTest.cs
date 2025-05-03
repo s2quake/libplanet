@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Explorer.GraphTypes;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;

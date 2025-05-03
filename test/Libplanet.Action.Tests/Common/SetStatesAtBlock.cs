@@ -1,5 +1,5 @@
 using Bencodex.Types;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 
 namespace Libplanet.Action.Tests.Common;

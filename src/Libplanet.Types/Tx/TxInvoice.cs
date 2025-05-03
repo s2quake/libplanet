@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Bencodex.Types;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Assets;

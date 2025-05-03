@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using Libplanet.Common;
+using Libplanet.Types;
 
 namespace Libplanet.Store.Trie;
 

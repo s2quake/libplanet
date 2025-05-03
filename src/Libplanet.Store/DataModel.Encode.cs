@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Reflection;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using BTypes = Bencodex.Types;
 
 namespace Libplanet.Store

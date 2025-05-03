@@ -1,5 +1,5 @@
 using System.Diagnostics.Contracts;
-using Libplanet.Common;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Messages
 {

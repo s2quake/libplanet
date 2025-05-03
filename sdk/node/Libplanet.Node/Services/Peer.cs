@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;

@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;

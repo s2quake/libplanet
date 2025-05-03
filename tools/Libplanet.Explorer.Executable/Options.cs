@@ -1,8 +1,8 @@
 using System.Net;
 using System.Threading.Tasks;
 using Libplanet.Blockchain.Policies;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using Libplanet.Net;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;

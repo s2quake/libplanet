@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Explorer.Queries;
 using Fixture = Libplanet.Explorer.Tests.Fixtures.BlockChainStatesFixture;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;

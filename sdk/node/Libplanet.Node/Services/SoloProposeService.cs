@@ -1,5 +1,5 @@
 using Libplanet.Blockchain;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Node.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

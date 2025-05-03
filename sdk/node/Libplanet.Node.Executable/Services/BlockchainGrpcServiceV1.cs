@@ -1,5 +1,5 @@
 using Grpc.Core;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Node.Services;
 using Libplanet.Types.Blocks;
 

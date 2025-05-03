@@ -1,5 +1,5 @@
 using Bencodex.Types;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Tests.Store.Trie.Nodes

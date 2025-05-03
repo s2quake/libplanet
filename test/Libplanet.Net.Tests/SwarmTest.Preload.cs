@@ -7,7 +7,7 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Blockchain.Renderers.Debug;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;

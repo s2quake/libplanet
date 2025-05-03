@@ -1,5 +1,5 @@
 using System.Net;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net;
 
 namespace Libplanet.Node.Tests;

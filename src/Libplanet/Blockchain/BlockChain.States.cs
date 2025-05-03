@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Action.State;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain

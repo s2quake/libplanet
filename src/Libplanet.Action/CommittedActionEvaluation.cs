@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Libplanet.Common;
+using Libplanet.Types;
 
 namespace Libplanet.Action;
 

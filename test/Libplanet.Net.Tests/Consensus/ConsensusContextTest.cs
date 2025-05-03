@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Libplanet.Consensus;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;

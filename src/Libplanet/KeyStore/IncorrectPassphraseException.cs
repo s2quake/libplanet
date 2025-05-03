@@ -1,4 +1,4 @@
-using Libplanet.Common;
+using Libplanet.Types;
 
 namespace Libplanet.KeyStore
 {

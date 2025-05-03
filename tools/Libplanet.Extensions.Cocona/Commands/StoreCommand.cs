@@ -1,6 +1,6 @@
 using System.Globalization;
 using global::Cocona;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;

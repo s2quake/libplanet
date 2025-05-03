@@ -5,7 +5,7 @@ using Bencodex.Types;
 using global::Cocona;
 using Libplanet.Action;
 using Libplanet.Action.State;
-using Libplanet.Common.JsonConverters;
+using Libplanet.Types.JsonConverters;
 using Libplanet.Serialization;
 using Libplanet.Store;
 

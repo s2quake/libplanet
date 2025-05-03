@@ -1,7 +1,7 @@
 using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 

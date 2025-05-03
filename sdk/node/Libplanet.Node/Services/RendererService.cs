@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Blockchain.Renderers;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Microsoft.Extensions.Logging;
 using R3;

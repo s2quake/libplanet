@@ -1,5 +1,5 @@
 using Libplanet.Action.State;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Action;

@@ -1,5 +1,5 @@
 using GraphQL.Language.AST;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types.Blocks;
 

@@ -1,4 +1,4 @@
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using BTypes = Bencodex.Types;
 using StoreDataModel = Libplanet.Store.DataModel;
 

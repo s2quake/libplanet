@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Bencodex.Types;
 using Libplanet.Action.State;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 
 namespace Libplanet.Action;

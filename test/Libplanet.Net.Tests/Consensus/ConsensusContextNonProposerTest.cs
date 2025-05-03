@@ -1,4 +1,4 @@
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;

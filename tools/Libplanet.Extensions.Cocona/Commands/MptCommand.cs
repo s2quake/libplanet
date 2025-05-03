@@ -4,7 +4,7 @@ using System.Text.Json;
 using Bencodex.Types;
 using global::Cocona;
 using global::Cocona.Help;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Extensions.Cocona.Services;
 using Libplanet.RocksDBStore;

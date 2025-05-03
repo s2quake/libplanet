@@ -3,7 +3,7 @@
 // using Libplanet.Action.Loader;
 // using Libplanet.Action.State;
 // using Libplanet.Blockchain.Policies;
-// using Libplanet.Crypto;
+// using Libplanet.Types.Crypto;
 // using Libplanet.Store;
 // using Libplanet.Store.Trie;
 // using Libplanet.Types.Assets;

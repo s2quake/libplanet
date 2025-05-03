@@ -96,13 +96,13 @@ on GitHub consists of several projects.  There are two types of projects:
     code.  It is distributed as a NuGet package with the same name:
     *[Libplanet][NuGet package]*.
 
- -  *Libplanet.Common*: The common utilities and extensions for *Libplanet*.
+ -  *Libplanet.Types*: The common utilities and extensions for *Libplanet*.
     This is distributed as a distinct NuGet package:
-    *[Libplanet.Common][NuGet package]*.
+    *[Libplanet.Types][NuGet package]*.
 
- -  *Libplanet.Crypto*: The cryptography library for *Libplanet*.
+ -  *Libplanet.Types.Crypto*: The cryptography library for *Libplanet*.
     This is distributed as a distinct NuGet package:
-    *[Libplanet.Crypto][NuGet package]*.
+    *[Libplanet.Types.Crypto][NuGet package]*.
 
  -  *Libplanet.Types*: The common types for *Libplanet*.
     This is distributed as a distinct NuGet package:
@@ -123,10 +123,10 @@ on GitHub consists of several projects.  There are two types of projects:
  -  *Libplanet.Stun*: The project dedicated to implement [TURN & STUN].
     This is distributed as a distinct NuGet package: *[Libplanet.Stun]*.
 
- -  *Libplanet.Crypto.Secp256k1*: The `ICryptoBackend<T>` implementation built
+ -  *Libplanet.Types.Crypto.Secp256k1*: The `ICryptoBackend<T>` implementation built
     on native [libsecp256k1].  As this depends on a platform-dependent library
     (which is written in C), this is distributed as a distinct NuGet package:
-    *[Libplanet.Crypto.Secp256k1]*.
+    *[Libplanet.Types.Crypto.Secp256k1]*.
 
  -  *Libplanet.RocksDBStore*: The `IStore` implementation built on [RocksDB].
     As this depends on platform-dependent libraries (which is written in C/C++),
@@ -188,8 +188,8 @@ on GitHub consists of several projects.  There are two types of projects:
 
  -  *Libplanet.Stun.Tests*: Unit tests of the *Libplanet.Stun* project.
 
- -  *Libplanet.Crypto.Secp256k1.Tests*: Unit tests for
-    the *Libplanet.Crypto.Secp256k1* project.
+ -  *Libplanet.Types.Crypto.Secp256k1.Tests*: Unit tests for
+    the *Libplanet.Types.Crypto.Secp256k1* project.
 
  -  *Libplanet.RocksDBStore.Tests*: Unit tests for the *Libplanet.RocksDBStore*
     project.
@@ -219,7 +219,7 @@ on GitHub consists of several projects.  There are two types of projects:
 [RocksDB]: https://rocksdb.org/
 [gRPC]: https://grpc.io/
 [Libplanet.Stun]: https://www.nuget.org/packages/Libplanet.Stun/
-[Libplanet.Crypto.Secp256k1]: https://www.nuget.org/packages/Libplanet.Crypto.Secp256k1/
+[Libplanet.Types.Crypto.Secp256k1]: https://www.nuget.org/packages/Libplanet.Types.Crypto.Secp256k1/
 [Libplanet.RocksDBStore]: https://www.nuget.org/packages/Libplanet.RocksDBStore/
 [Libplanet.Analyzers]: https://www.nuget.org/packages/Libplanet.Analyzers/
 [Cocona]: https://www.nuget.org/packages/Cocona

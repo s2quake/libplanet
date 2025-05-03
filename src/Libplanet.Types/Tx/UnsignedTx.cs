@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using Bencodex.Types;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;

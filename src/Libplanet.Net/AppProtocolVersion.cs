@@ -1,8 +1,8 @@
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using Bencodex.Types;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net
 {

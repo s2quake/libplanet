@@ -2,8 +2,8 @@
 // using Bencodex.Types;
 // using Libplanet.Action;
 // using Libplanet.Action.Sys;
-// using Libplanet.Common;
-// using Libplanet.Crypto;
+// using Libplanet.Types;
+// using Libplanet.Types.Crypto;
 // using Libplanet.Tests.Blockchain.Evidence;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Evidence;

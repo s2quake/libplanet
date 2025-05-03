@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Blockchain;
 using Libplanet.Consensus;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Serilog;

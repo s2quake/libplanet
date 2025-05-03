@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net;
 using Libplanet.Net.Transports;
 using Libplanet.Node.Options;

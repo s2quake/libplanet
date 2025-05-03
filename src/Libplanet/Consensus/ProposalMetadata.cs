@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 

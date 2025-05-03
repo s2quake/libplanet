@@ -1,6 +1,6 @@
 using System.Diagnostics.Contracts;
 using System.Text.Json;
-using Libplanet.Common;
+using Libplanet.Types;
 
 namespace Libplanet.KeyStore.Kdfs
 {

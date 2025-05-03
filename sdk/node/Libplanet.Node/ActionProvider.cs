@@ -1,7 +1,7 @@
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.Sys;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Node;

@@ -6,7 +6,7 @@ using ImmutableTrie;
 using Libplanet.Action;
 using Libplanet.Action.Sys;
 using Libplanet.Blockchain;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;

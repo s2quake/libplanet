@@ -1,6 +1,6 @@
 using Bencodex.Types;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using Libplanet.Node.Extensions;
 using Libplanet.Node.Services;
 using Microsoft.Extensions.Configuration;

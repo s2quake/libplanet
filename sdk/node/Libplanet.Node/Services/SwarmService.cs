@@ -1,6 +1,6 @@
 using System.Net;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using Libplanet.Net;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Transports;

@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using static Libplanet.Tests.TestUtils;
 
