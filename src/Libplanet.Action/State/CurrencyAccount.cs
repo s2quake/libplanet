@@ -5,7 +5,7 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Action.State;
 
-public sealed record class CurrencyAccount(ITrie Trie, Currency Currency)
+public sealed record class CurrencyAccount(ITrie Trie, Address Signer, Currency Currency)
 {
     public static readonly Address TotalSupplyAddress = Address.Parse("1000000000000000000000000000000000000000");
 
@@ -48,12 +48,12 @@ public sealed record class CurrencyAccount(ITrie Trie, Currency Currency)
                 $"The amount to mint, burn, or transfer must be greater than zero: {rawValue}");
         }
 
-        if (!Currency.CanMint(recipient))
+        if (!Currency.CanMint(Signer))
         {
             throw new CurrencyPermissionException(
-                $"Given {nameof(CurrencyAccount)}'s recipient {recipient} does not have " +
+                $"Given {nameof(CurrencyAccount)}'s recipient {Signer} does not have " +
                 $"the authority to mint or burn currency {Currency}.",
-                recipient,
+                Signer,
                 Currency);
         }
 
@@ -87,12 +87,12 @@ public sealed record class CurrencyAccount(ITrie Trie, Currency Currency)
                 $"The amount to mint, burn, or transfer must be greater than zero: {rawValue}");
         }
 
-        if (!Currency.CanMint(owner))
+        if (!Currency.CanMint(Signer))
         {
             throw new CurrencyPermissionException(
-                $"Given {nameof(CurrencyAccount)}'s owner {owner} does not have " +
+                $"Given {nameof(CurrencyAccount)}'s owner {Signer} does not have " +
                 $"the authority to mint or burn currency {Currency}.",
-                owner,
+                Signer,
                 Currency);
         }
 
