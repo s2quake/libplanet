@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Libplanet.Types;
 using Secp256k1Net;
 
 namespace Libplanet.Types.Crypto;

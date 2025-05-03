@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Types;
 using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;

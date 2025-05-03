@@ -1,5 +1,4 @@
 using Bencodex.Types;
-using Libplanet.Types.Converters;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Types.Converters;

@@ -16,7 +16,6 @@ using Libplanet.Store;
 using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Serilog;
 using Serilog.Events;

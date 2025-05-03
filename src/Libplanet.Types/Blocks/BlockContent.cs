@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
-using Libplanet.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;

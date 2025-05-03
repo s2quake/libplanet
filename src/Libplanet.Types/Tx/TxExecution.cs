@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
-using Libplanet.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 

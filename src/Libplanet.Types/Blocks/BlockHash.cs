@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
-using Libplanet.Types;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
 

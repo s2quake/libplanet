@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Types;
-using Libplanet.Serialization;
 
 namespace Libplanet.Store.Trie.Nodes;
 
