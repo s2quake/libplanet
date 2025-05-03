@@ -185,7 +185,6 @@ internal sealed class BlockChainService(
         }
 
         var nullTrie = stateStore.GetStateRoot(default);
-        nullTrie = nullTrie.SetMetadata(new TrieMetadata(BlockMetadata.CurrentProtocolVersion));
         World world = new World
         {
             Trie = nullTrie,
