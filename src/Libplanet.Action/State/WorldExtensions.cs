@@ -48,7 +48,7 @@ public static class WorldExtensions
     }
 
     internal static CurrencyAccount GetCurrencyAccount(this World @this, Currency currency)
-        => new(@this.GetAccount(new Address(currency.Hash.Bytes)).Trie, currency);
+        => new(@this.GetAccount(new Address(currency.Hash.Bytes)).Trie, @this.Signer, currency);
 
     internal static World SetCurrencyAccount(this World @this, CurrencyAccount currencyAccount)
         => @this.SetAccount(new Address(currencyAccount.Currency.Hash.Bytes), currencyAccount.AsAccount());

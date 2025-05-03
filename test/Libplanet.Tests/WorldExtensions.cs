@@ -25,15 +25,15 @@ public static class WorldExtensions
     private static CurrencyAccount WriteRawBalance(
         CurrencyAccount currencyAccount, Address address, BigInteger rawValue)
     {
-        return new(
-                currencyAccount.Trie.Set(KeyConverters.ToStateKey(address), new Integer(rawValue)),
-                currencyAccount.Currency);
+        var trie = currencyAccount.Trie.Set(KeyConverters.ToStateKey(address), new Integer(rawValue));
+        return currencyAccount with { Trie = trie };
     }
 
     private static CurrencyAccount WriteRawTotalSupply(CurrencyAccount currencyAccount, BigInteger rawValue)
     {
         var key = KeyConverters.ToStateKey(CurrencyAccount.TotalSupplyAddress);
         var value = new Integer(rawValue);
-        return new(currencyAccount.Trie.Set(key, value), currencyAccount.Currency);
+        var trie = currencyAccount.Trie.Set(key, value);
+        return currencyAccount with { Trie = trie };
     }
 }
