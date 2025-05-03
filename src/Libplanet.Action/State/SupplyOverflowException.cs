@@ -2,7 +2,7 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Action.State;
 
-public sealed class SupplyOverflowException(string? message, FungibleAssetValue amount)
+public sealed class SupplyOverflowException(string message, FungibleAssetValue amount)
     : Exception(message)
 {
     public FungibleAssetValue Amount { get; } = amount;

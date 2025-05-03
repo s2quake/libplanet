@@ -12,27 +12,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Remove="StyleCop.Analyzers" />
-    <PackageReference Remove="Microsoft.DotNet.Analyzers.Compatibility" />
-    <PackageReference Remove="SonarAnalyzer.CSharp" />
-
-    <AdditionalFiles Remove="stylecop.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>
-        runtime; build; native; contentfiles; analyzers
-      </IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.27.0.93347">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
-  </ItemGroup>
-
 </Project>

@@ -16,8 +16,6 @@ public sealed record class World
 
     public Address Signer { get; init; }
 
-    public int Version { get; init; }
-
     public ImmutableDictionary<Address, Account> Delta { get; private init; }
         = ImmutableDictionary<Address, Account>.Empty;
 

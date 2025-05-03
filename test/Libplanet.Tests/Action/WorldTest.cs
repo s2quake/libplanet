@@ -9,7 +9,6 @@ using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Tx;
-using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Action;
 
@@ -21,7 +20,7 @@ public sealed class WorldTest
     private readonly World _initWorld;
     private readonly IActionContext _initContext;
 
-    public WorldTest(ITestOutputHelper output)
+    public WorldTest()
     {
         _keys =
         [
@@ -43,7 +42,7 @@ public sealed class WorldTest
             Currencies.CurrencyF,
         ];
 
-        World initMockWorldState = World.Create();
+        World initMockWorldState = World.Create() with { Signer = _addr[0] };
         _initWorld = initMockWorldState
             .SetBalance(_addr[0], _currencies[0], 5)
             .SetBalance(_addr[0], _currencies[2], 10)
@@ -51,24 +50,6 @@ public sealed class WorldTest
             .SetBalance(_addr[1], _currencies[2], 15)
             .SetBalance(_addr[1], _currencies[3], 20)
             .SetValidatorSet([.. _keys.Select(key => Validator.Create(key.PublicKey, 1))]);
-
-        output.WriteLine("Fixtures  Address");
-        int i = 0;
-        foreach (Address address in _addr)
-        {
-            output.WriteLine(
-                "_addr[{0}]  {1}  {2,6}  {3,6}  {4,6}  {5,6}  {6,6}  {7,6}",
-                i++,
-                address,
-                _initWorld.GetBalance(address, _currencies[0]),
-                _initWorld.GetBalance(address, _currencies[1]),
-                _initWorld.GetBalance(address, _currencies[2]),
-                _initWorld.GetBalance(address, _currencies[3]),
-                _initWorld.GetBalance(address, _currencies[4]),
-                _initWorld.GetBalance(address, _currencies[5]));
-        }
-
-        output.WriteLine("Validators: {0}", _initWorld.GetValidatorSet());
 
         _initContext = CreateContext(_addr[0]);
     }
@@ -270,7 +251,7 @@ public sealed class WorldTest
         Assert.Throws<SupplyOverflowException>(
             () => _initWorld.MintAsset(_addr[0], Value(5, 200)));
 
-        World delta1 = _initWorld;
+        World delta1 = _initWorld with { Signer = _addr[1] };
         IActionContext context1 = CreateContext(_addr[1]);
         // currencies[0] (DDD) allows everyone to mint
         delta1 = delta1.MintAsset(_addr[2], Value(0, 10));
@@ -288,12 +269,9 @@ public sealed class WorldTest
     [Fact]
     public void BurnAsset()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            _initWorld.BurnAsset(_addr[0], Value(0, 0)));
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            _initWorld.BurnAsset(_addr[0], Value(0, -1)));
-        Assert.Throws<InsufficientBalanceException>(() =>
-            _initWorld.BurnAsset(_addr[0], Value(0, 6)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _initWorld.BurnAsset(_addr[0], Value(0, 0)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _initWorld.BurnAsset(_addr[0], Value(0, -1)));
+        Assert.Throws<InsufficientBalanceException>(() => _initWorld.BurnAsset(_addr[0], Value(0, 6)));
 
         World delta0 = _initWorld;
         IActionContext context0 = _initContext;
@@ -309,7 +287,7 @@ public sealed class WorldTest
         delta0 = delta0.BurnAsset(_addr[1], Value(3, 8));
         Assert.Equal(Value(3, 12), delta0.GetBalance(_addr[1], _currencies[3]));
 
-        World delta1 = _initWorld;
+        World delta1 = _initWorld with { Signer = _addr[1] };
         IActionContext context1 = CreateContext(_addr[1]);
         // currencies[0] (AAA) allows everyone to burn
         delta1 = delta1.BurnAsset(_addr[0], Value(0, 2));

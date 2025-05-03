@@ -35,10 +35,10 @@ public static class BlockChainStatesFixture
         ImmutableSortedSet.Create([Validator]);
 
     public static (IBlockChainStates, BlockHash, HashDigest<SHA256>)
-        CreateMockBlockChainStates(int version)
+        CreateMockBlockChainStates()
     {
         BlockChainStates mockBlockChainStates = new BlockChainStates();
-        World mock = World.Create(mockBlockChainStates.StateStore) with { Version = version };
+        World mock = World.Create(mockBlockChainStates.StateStore);
         mock = mock
             .SetBalance(Address, Amount)
             .SetBalance(new PrivateKey().Address, AdditionalSupply)

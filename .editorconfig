@@ -51,6 +51,3 @@ indent_size = 2
 [hooks/*]
 indent_size = 2
 continuation_indent_size = 2
-
-[stylecop.json]
-max_line_length =

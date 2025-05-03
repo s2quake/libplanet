@@ -20,12 +20,6 @@ namespace Libplanet.Explorer.GraphTypes
                 resolve: context => context.Source.Trie.Hash
             );
 
-            Field<NonNullGraphType<IntGraphType>>(
-                name: "version",
-                description: "The version of the bakcing data model.",
-                resolve: context => context.Source.Version
-            );
-
             Field<NonNullGraphType<AccountStateType>>(
                 name: "account",
                 description:

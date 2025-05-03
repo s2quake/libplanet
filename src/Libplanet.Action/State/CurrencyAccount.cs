@@ -5,73 +5,58 @@ using Libplanet.Types.Assets;
 
 namespace Libplanet.Action.State;
 
-public sealed record class CurrencyAccount(ITrie Trie, int WorldVersion, Currency Currency)
+public sealed record class CurrencyAccount(ITrie Trie, Currency Currency)
 {
     public static readonly Address TotalSupplyAddress = Address.Parse("1000000000000000000000000000000000000000");
 
-    public FungibleAssetValue GetBalance(Address address, Currency currency)
+    public FungibleAssetValue GetBalance(Address address) => new()
     {
-        CheckCurrency(currency);
-        return new FungibleAssetValue
-        {
-            Currency = Currency,
-            RawValue = GetRawBalance(address),
-        };
-    }
+        Currency = Currency,
+        RawValue = GetRawBalance(address),
+    };
 
-    public FungibleAssetValue GetTotalSupply(Currency currency)
+    public FungibleAssetValue GetTotalSupply() => new()
     {
-        CheckCurrency(currency);
-        return new FungibleAssetValue
-        {
-            Currency = Currency,
-            RawValue = GetRawTotalSupply(),
-        };
-    }
+        Currency = Currency,
+        RawValue = GetRawTotalSupply(),
+    };
 
-    public CurrencyAccount MintAsset(Address recipient, FungibleAssetValue value)
-    {
-        CheckCurrency(value.Currency);
-        if (value.Sign <= 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(value),
-                $"The amount to mint, burn, or transfer must be greater than zero: {value}");
-        }
+    public CurrencyAccount MintAsset(Address recipient, BigInteger rawValue) => MintRawAsset(recipient, rawValue);
 
-        return MintRawAsset(recipient, value.RawValue);
-    }
+    public CurrencyAccount MintAsset(Address recipient, decimal value)
+        => MintRawAsset(recipient, (Currency * value).RawValue);
 
-    public CurrencyAccount BurnAsset(Address owner, FungibleAssetValue value)
-    {
-        CheckCurrency(value.Currency);
-        if (value.Sign <= 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(value),
-                $"The amount to mint, burn, or transfer must be greater than zero: {value}");
-        }
+    public CurrencyAccount BurnAsset(Address owner, BigInteger rawValue) => BurnRawAsset(owner, rawValue);
 
-        return BurnRawAsset(owner, value.RawValue);
-    }
+    public CurrencyAccount BurnAsset(Address owner, decimal value)
+        => BurnRawAsset(owner, (Currency * value).RawValue);
 
-    public CurrencyAccount TransferAsset(Address sender, Address recipient, FungibleAssetValue value)
-    {
-        CheckCurrency(value.Currency);
-        if (value.Sign <= 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(value),
-                $"The amount to mint, burn, or transfer must be greater than zero: {value}");
-        }
+    public CurrencyAccount TransferAsset(Address sender, Address recipient, BigInteger rawValue)
+        => TransferRawAsset(sender, recipient, rawValue);
 
-        return TransferRawAsset(sender, recipient, value.RawValue);
-    }
+    public CurrencyAccount TransferAsset(Address sender, Address recipient, decimal value)
+        => TransferRawAsset(sender, recipient, (Currency * value).RawValue);
 
-    public Account AsAccount() => new Account(Trie);
+    public Account AsAccount() => new(Trie);
 
     private CurrencyAccount MintRawAsset(Address recipient, BigInteger rawValue)
     {
+        if (rawValue.Sign <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rawValue),
+                $"The amount to mint, burn, or transfer must be greater than zero: {rawValue}");
+        }
+
+        if (!Currency.CanMint(recipient))
+        {
+            throw new CurrencyPermissionException(
+                $"Given {nameof(CurrencyAccount)}'s recipient {recipient} does not have " +
+                $"the authority to mint or burn currency {Currency}.",
+                recipient,
+                Currency);
+        }
+
         var currencyAccount = this;
         var prevBalanceRawValue = currencyAccount.GetRawBalance(recipient);
         currencyAccount = currencyAccount.WriteRawBalance(recipient, prevBalanceRawValue + rawValue);
@@ -95,6 +80,22 @@ public sealed record class CurrencyAccount(ITrie Trie, int WorldVersion, Currenc
 
     private CurrencyAccount BurnRawAsset(Address owner, BigInteger rawValue)
     {
+        if (rawValue.Sign <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rawValue),
+                $"The amount to mint, burn, or transfer must be greater than zero: {rawValue}");
+        }
+
+        if (!Currency.CanMint(owner))
+        {
+            throw new CurrencyPermissionException(
+                $"Given {nameof(CurrencyAccount)}'s owner {owner} does not have " +
+                $"the authority to mint or burn currency {Currency}.",
+                owner,
+                Currency);
+        }
+
         var currencyAccount = this;
         var prevBalanceRawValue = currencyAccount.GetRawBalance(owner);
         if (prevBalanceRawValue - rawValue < 0)
@@ -118,6 +119,13 @@ public sealed record class CurrencyAccount(ITrie Trie, int WorldVersion, Currenc
 
     private CurrencyAccount TransferRawAsset(Address sender, Address recipient, BigInteger rawValue)
     {
+        if (rawValue.Sign <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rawValue),
+                $"The amount to mint, burn, or transfer must be greater than zero: {rawValue}");
+        }
+
         var currencyAccount = this;
         var prevSenderBalanceRawValue = currencyAccount.GetRawBalance(sender);
         if (prevSenderBalanceRawValue - rawValue < 0)

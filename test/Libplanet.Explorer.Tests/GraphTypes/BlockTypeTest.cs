@@ -11,13 +11,14 @@ using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Store;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.Serialization;
+using System.Threading.Tasks;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;
 
 public class BlockTypeTest
 {
     [Fact]
-    public async void Query()
+    public async Task Query()
     {
         var privateKey = new PrivateKey();
         var lastBlockHash = new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
@@ -125,7 +126,7 @@ public class BlockTypeTest
                 "votes",
                 new object[]
                 {
-                    new Dictionary<string, object>()
+                    new Dictionary<string, object?>()
                     {
                         { "height", lastVotes[0].Height },
                         { "round", lastVotes[0].Round },

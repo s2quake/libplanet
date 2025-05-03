@@ -15,10 +15,6 @@
   <ItemGroup>
     <None Remove="..\..\README.md" />
     <None Include="README.md" Pack="true" PackagePath="README.md" />
-    <AdditionalFiles Include="..\..\Menees.Analyzers.Settings.xml">
-      <Link>Menees.Analyzers.Settings.xml</Link>
-    </AdditionalFiles>
-    <AdditionalFiles Include="..\..\stylecop.json" />
   </ItemGroup>
 
   <ItemGroup>
