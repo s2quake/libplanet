@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Libplanet.Blockchain;
+using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Net
@@ -103,7 +104,7 @@ namespace Libplanet.Net
                 needed,
                 demand.Peer,
                 demand.ToExcerptString(),
-                blockChain.Tip.ToExcerptString(),
+                JsonUtility.Serialize(blockChain.Tip),
                 oldDemand?.ToExcerptString());
             return needed;
         }
