@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 

@@ -11,10 +11,6 @@
     <PackageReference Remove="StyleCop.Analyzers" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(SkipSonar)' != 'true'">
-    <PackageReference Remove="SonarAnalyzer.CSharp" />
-  </ItemGroup>
-
   <ItemGroup>
     <Protobuf Include="**/*.proto" GrpcServices="Both"/>
     <ProjectReference Include="..\Libplanet.Store\Libplanet.Store.csproj" />

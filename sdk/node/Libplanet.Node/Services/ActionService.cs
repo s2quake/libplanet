@@ -1,6 +1,6 @@
 using Libplanet.Action;
 using Libplanet.Action.Loader;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Node.Actions;
 using Libplanet.Node.Options;
 using Microsoft.Extensions.Options;

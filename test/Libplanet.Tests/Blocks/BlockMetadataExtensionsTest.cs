@@ -1,4 +1,4 @@
-// using Libplanet.Crypto;
+// using Libplanet.Types.Crypto;
 // using Libplanet.Tests.Fixtures;
 // using Libplanet.Types.Blocks;
 // using Xunit;

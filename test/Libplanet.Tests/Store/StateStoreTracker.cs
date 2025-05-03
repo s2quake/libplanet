@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 

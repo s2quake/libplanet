@@ -1,5 +1,5 @@
 using System.Threading;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Serilog;
 
 namespace Libplanet.Net.Protocols

@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Action.State;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
 
 namespace Libplanet.Explorer.Queries;

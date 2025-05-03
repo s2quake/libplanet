@@ -1,5 +1,5 @@
 using Libplanet.Blockchain;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;

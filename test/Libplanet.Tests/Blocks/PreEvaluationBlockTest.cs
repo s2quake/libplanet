@@ -5,8 +5,8 @@
 // using Libplanet.Action.Tests.Common;
 // using Libplanet.Blockchain;
 // using Libplanet.Blockchain.Policies;
-// using Libplanet.Common;
-// using Libplanet.Crypto;
+// using Libplanet.Types;
+// using Libplanet.Types.Crypto;
 // using Libplanet.Tests.Fixtures;
 // using Libplanet.Tests.Store;
 // using Libplanet.Types.Blocks;

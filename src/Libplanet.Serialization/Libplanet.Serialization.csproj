@@ -12,9 +12,4 @@
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- <ProjectReference Include="..\Libplanet.Common\Libplanet.Common.csproj" />
-    <ProjectReference Include="..\Libplanet.Crypto\Libplanet.Crypto.csproj" /> -->
-  </ItemGroup>
-
 </Project>

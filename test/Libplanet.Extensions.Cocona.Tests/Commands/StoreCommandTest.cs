@@ -1,7 +1,7 @@
 using System.IO;
 using global::Cocona;
 using Libplanet.Action;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.RocksDBStore.Tests;
 using Libplanet.Tests;

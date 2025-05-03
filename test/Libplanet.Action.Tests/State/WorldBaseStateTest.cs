@@ -1,6 +1,6 @@
 using Bencodex.Types;
 using Libplanet.Action.State;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;

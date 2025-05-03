@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using Bencodex.Types;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
-using Libplanet.Common;
+using Libplanet.Types;
 
 namespace Libplanet.Store;
 

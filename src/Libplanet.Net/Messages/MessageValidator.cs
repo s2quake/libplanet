@@ -1,6 +1,6 @@
 using System.Globalization;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 

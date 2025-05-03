@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Action;
 

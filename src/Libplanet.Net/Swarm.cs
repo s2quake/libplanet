@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Blockchain;
 #if NETSTANDARD2_0
-using Libplanet.Common;
+using Libplanet.Types;
 #endif
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;

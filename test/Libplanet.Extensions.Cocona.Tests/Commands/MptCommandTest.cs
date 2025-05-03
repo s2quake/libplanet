@@ -1,6 +1,6 @@
 using System.IO;
 using Bencodex.Types;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Store;

@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Action;
 using Libplanet.Blockchain.Policies;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Tests.Store;
 
 namespace Libplanet.Benchmarks

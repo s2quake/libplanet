@@ -6,8 +6,7 @@
           "files": [
             "src/Libplanet/Libplanet.csproj",
             "src/Libplanet.Action/Libplanet.Action.csproj",
-            "src/Libplanet.Common/Libplanet.Common.csproj",
-            "src/Libplanet.Crypto/Libplanet.Crypto.csproj",
+            "src/Libplanet.Types/Libplanet.Types.csproj",
             "tools/Libplanet.Explorer.Cocona/Libplanet.Explorer.Cocona.csproj",
             "tools/Libplanet.Extensions.Cocona/Libplanet.Extensions.Cocona.csproj",
             "src/Libplanet.Net/Libplanet.Net.csproj",

@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using Libplanet.Common.JsonConverters;
+using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Tests.JsonConverters
 {

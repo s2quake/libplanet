@@ -1,4 +1,4 @@
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 
 namespace Libplanet.Net.Messages

@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 

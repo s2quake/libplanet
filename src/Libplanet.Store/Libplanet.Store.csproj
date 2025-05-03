@@ -16,13 +16,7 @@
     <PackageReference Include="Zio" Version="0.7.4" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(SkipSonar)' != 'true'">
-    <PackageReference Remove="SonarAnalyzer.CSharp" />
-  </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\Libplanet.Common\Libplanet.Common.csproj" />
-    <ProjectReference Include="..\Libplanet.Crypto\Libplanet.Crypto.csproj" />
     <ProjectReference Include="..\Libplanet.Types\Libplanet.Types.csproj" />
   </ItemGroup>
 

@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Bencodex.Types;
 using GraphQL.Types;
-using Libplanet.Common;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes
 {

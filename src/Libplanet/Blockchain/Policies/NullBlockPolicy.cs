@@ -1,5 +1,5 @@
 using Libplanet.Action;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 

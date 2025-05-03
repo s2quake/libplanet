@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using static Libplanet.Action.State.KeyConverters;

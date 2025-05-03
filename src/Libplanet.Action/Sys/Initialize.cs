@@ -1,5 +1,5 @@
 using Bencodex.Types;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
 using static Libplanet.Action.State.ReservedAddresses;

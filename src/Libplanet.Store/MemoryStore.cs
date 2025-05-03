@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using System.Web;
 using ImmutableTrie;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;

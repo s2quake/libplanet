@@ -121,14 +121,14 @@ Accounts and addresses
 Libplanet creates digital signatures to find which player node made each
 transaction, without relying on the authority of a centralized server.
 In the similar fashion to [Bitcoin] and [Ethereum], a transaction is signed
-with [ECDSA], and a pair of each player's sole @"Libplanet.Crypto.PrivateKey"
-and @"Libplanet.Crypto.PublicKey" used to sign transactions construct
+with [ECDSA], and a pair of each player's sole @"Libplanet.Types.Crypto.PrivateKey"
+and @"Libplanet.Types.Crypto.PublicKey" used to sign transactions construct
 an *account*.  Since a pair of keys for an account is *chosen* at offline,
 the process of so-called "account creation" can be omitted.
 
 An account can also be identified through the @"Libplanet.Address" which is
-derived from the corresponding @"Libplanet.Crypto.PublicKey".  It is shorter
-than @"Libplanet.Crypto.PublicKey" and follows the same form to Ethereum's.
+derived from the corresponding @"Libplanet.Types.Crypto.PublicKey".  It is shorter
+than @"Libplanet.Types.Crypto.PublicKey" and follows the same form to Ethereum's.
 This means key pairs that have used for Ethereum can be reused for
 Libplanet-backed games too.  For example, a game can raise funding or receive
 donations through Ethereum and then reward people when the game is released.

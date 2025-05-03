@@ -1,6 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;

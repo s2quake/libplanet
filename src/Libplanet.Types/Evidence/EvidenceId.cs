@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Evidence;

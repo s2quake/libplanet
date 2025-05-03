@@ -1,5 +1,5 @@
 ﻿using Libplanet.Action.State;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Assets;
 
 namespace Libplanet.Action;

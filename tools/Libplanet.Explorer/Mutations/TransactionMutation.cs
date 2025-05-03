@@ -1,7 +1,7 @@
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Blockchain;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Serialization;

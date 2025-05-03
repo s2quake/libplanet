@@ -1,8 +1,8 @@
 using System.Diagnostics.Contracts;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 

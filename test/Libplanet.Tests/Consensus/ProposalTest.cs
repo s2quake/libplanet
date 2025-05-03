@@ -1,5 +1,5 @@
 using Libplanet.Consensus;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Tests.Store;
 using Serilog;

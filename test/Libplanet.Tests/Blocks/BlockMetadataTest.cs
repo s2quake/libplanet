@@ -1,13 +1,13 @@
 // using System.Numerics;
 // using System.Security.Cryptography;
-// using Libplanet.Common;
-// using Libplanet.Crypto;
+// using Libplanet.Types;
+// using Libplanet.Types.Crypto;
 // using Libplanet.Tests.Fixtures;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Consensus;
 // using Xunit;
 // using Xunit.Abstractions;
-// using static Libplanet.Common.ByteUtil;
+// using static Libplanet.Types.ByteUtil;
 // using static Libplanet.Tests.TestUtils;
 
 // namespace Libplanet.Tests.Blocks

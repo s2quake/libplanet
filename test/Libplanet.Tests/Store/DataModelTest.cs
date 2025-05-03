@@ -1,4 +1,4 @@
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Store;
 using Serilog;
 using Xunit.Abstractions;

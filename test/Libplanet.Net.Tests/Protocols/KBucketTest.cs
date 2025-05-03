@@ -1,6 +1,6 @@
 using System.Net;
 using System.Threading;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Protocols;
 using Serilog.Core;
 #if NETFRAMEWORK && (NET47 || NET471)

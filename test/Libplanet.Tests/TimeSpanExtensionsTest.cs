@@ -1,4 +1,4 @@
-using Libplanet.Common.Extensions;
+using Libplanet.Types.Extensions;
 
 namespace Libplanet.Tests
 {

@@ -2,14 +2,14 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Blockchain;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 #if NETSTANDARD2_0
-using Libplanet.Common;
+using Libplanet.Types;
 #endif
 
 namespace Libplanet.Net

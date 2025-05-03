@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Security.Cryptography;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Serialization;
 using static Libplanet.Tests.TestUtils;
 

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Serilog;

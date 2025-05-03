@@ -1,6 +1,6 @@
 using System.IO;
 using System.Security.Cryptography;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using NetMQ;

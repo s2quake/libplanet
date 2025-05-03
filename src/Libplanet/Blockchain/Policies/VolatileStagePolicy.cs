@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Threading;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 using Serilog;
 

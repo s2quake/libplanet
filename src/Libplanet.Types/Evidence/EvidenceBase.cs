@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 
 namespace Libplanet.Types.Evidence;

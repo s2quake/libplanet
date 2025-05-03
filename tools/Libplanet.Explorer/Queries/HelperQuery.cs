@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;

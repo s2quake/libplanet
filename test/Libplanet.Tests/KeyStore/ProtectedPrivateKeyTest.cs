@@ -1,6 +1,6 @@
 using System.IO;
 using System.Text;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.KeyStore;
 using Libplanet.KeyStore.Ciphers;
 using Libplanet.KeyStore.Kdfs;

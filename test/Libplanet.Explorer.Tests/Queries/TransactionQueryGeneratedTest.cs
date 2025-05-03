@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
 using Libplanet.Action;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using Libplanet.Explorer.Queries;

@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;

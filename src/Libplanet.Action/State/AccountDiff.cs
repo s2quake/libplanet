@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
-using Libplanet.Common;
-using Libplanet.Crypto;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using Libplanet.Store.Trie;
 
 namespace Libplanet.Action.State;

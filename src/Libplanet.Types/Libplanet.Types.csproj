@@ -10,15 +10,12 @@
     <PackageReference Include="Bencodex" Version="0.16.0" />
     <PackageReference Include="Bencodex.Json" Version="0.16.0" />
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(SkipSonar)' != 'true'">
-    <PackageReference Remove="SonarAnalyzer.CSharp" />
+    <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
+    <PackageReference Include="Secp256k1.Native" Version="0.1.24-alpha" />
+    <PackageReference Include="Nethereum.Util" Version="4.29.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Libplanet.Common\Libplanet.Common.csproj" />
-    <ProjectReference Include="..\Libplanet.Crypto\Libplanet.Crypto.csproj" />
     <ProjectReference Include="..\Libplanet.Serialization\Libplanet.Serialization.csproj" />
   </ItemGroup>
 

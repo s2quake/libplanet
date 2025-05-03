@@ -1,4 +1,4 @@
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using static Libplanet.Action.State.ReservedAddresses;

@@ -1,4 +1,4 @@
-using Libplanet.Common.Extensions;
+using Libplanet.Types.Extensions;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using RocksDbSharp;

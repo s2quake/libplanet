@@ -1,7 +1,7 @@
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
-using Libplanet.Crypto;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 

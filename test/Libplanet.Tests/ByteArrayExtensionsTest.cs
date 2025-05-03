@@ -1,5 +1,5 @@
-using Libplanet.Common;
-using Libplanet.Common.Extensions;
+using Libplanet.Types;
+using Libplanet.Types.Extensions;
 
 namespace Libplanet.Tests;
 

@@ -4,7 +4,7 @@ using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain.Renderers;
-using Libplanet.Common;
+using Libplanet.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 

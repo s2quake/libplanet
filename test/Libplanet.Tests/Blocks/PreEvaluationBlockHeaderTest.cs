@@ -1,11 +1,11 @@
 // using System.Security.Cryptography;
 // using Bencodex.Types;
-// using Libplanet.Common;
-// using Libplanet.Crypto;
+// using Libplanet.Types;
+// using Libplanet.Types.Crypto;
 // using Libplanet.Tests.Fixtures;
 // using Libplanet.Types.Blocks;
 // using Xunit;
-// using static Libplanet.Common.ByteUtil;
+// using static Libplanet.Types.ByteUtil;
 // using static Libplanet.Tests.TestUtils;
 
 // namespace Libplanet.Tests.Blocks
