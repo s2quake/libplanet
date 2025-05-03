@@ -86,14 +86,4 @@ public sealed record class Block : IEquatable<Block>
     public override string ToString() => Hash.ToString();
 
     public bool Equals(Block? other) => ModelUtility.Equals(this, other);
-
-    public string ToExcerptString()
-    {
-        return
-            $"{GetType().Name} {{" +
-            $" {nameof(ProtocolVersion)} = {ProtocolVersion}," +
-            $" {nameof(Height)} = {Height}," +
-            $" {nameof(Hash)} = {Hash}," +
-            " }";
-    }
 }
