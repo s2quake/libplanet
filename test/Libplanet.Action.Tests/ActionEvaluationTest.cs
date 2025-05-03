@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Types.Crypto;
@@ -6,87 +5,75 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Serilog;
 using Xunit.Abstractions;
+using static Libplanet.Action.State.ReservedAddresses;
 
-namespace Libplanet.Action.Tests
+namespace Libplanet.Action.Tests;
+
+public class ActionEvaluationTest
 {
-    public class ActionEvaluationTest
+    private readonly ILogger _logger;
+
+    public ActionEvaluationTest(ITestOutputHelper output)
     {
-        private readonly ILogger _logger;
+        Log.Logger = _logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .Enrich.WithThreadId()
+            .WriteTo.TestOutput(output)
+            .CreateLogger()
+            .ForContext<ActionEvaluationTest>();
+    }
 
-        public ActionEvaluationTest(ITestOutputHelper output)
+    [Fact]
+    public void Constructor()
+    {
+        var random = new System.Random();
+        var txid = random.NextTxId();
+        var address = new PrivateKey().Address;
+        var key = new PrivateKey();
+        var hash = random.NextBlockHash();
+        var lastCommit = new BlockCommit
         {
-            Log.Logger = _logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .Enrich.WithThreadId()
-                .WriteTo.TestOutput(output)
-                .CreateLogger()
-                .ForContext<ActionEvaluationTest>();
-        }
-
-        [Fact]
-        public void Constructor()
-        {
-            var random = new System.Random();
-            var txid = random.NextTxId();
-            Address address = new PrivateKey().Address;
-            var key = new PrivateKey();
-            var hash = random.NextBlockHash();
-            var lastCommit = new BlockCommit
-            {
-                Height = 0,
-                Round = 0,
-                BlockHash = hash,
-                Votes =
-                [
-                    new VoteMetadata
-                    {
-                        Height = 0,
-                        Round = 0,
-                        BlockHash = hash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        ValidatorPublicKey = key.PublicKey,
-                        ValidatorPower = BigInteger.One,
-                        Flag = VoteFlag.PreCommit,
-                    }.Sign(key),
-                ],
-            };
-            World world = World.Create();
-            world = world.SetAccount(
-                ReservedAddresses.LegacyAccount,
-                world.GetAccount(ReservedAddresses.LegacyAccount).SetValue(address, (Text)"item"));
-            var evaluation = new ActionEvaluation
-            {
-                Action = DumbAction.Create((address, "item")),
-                InputContext = new ActionContext
+            BlockHash = hash,
+            Votes =
+            [
+                new VoteMetadata
                 {
-                    Signer = address,
-                    TxId = txid,
-                    Proposer = address,
-                    BlockHeight = 1,
-                    BlockProtocolVersion = Block.CurrentProtocolVersion,
-                    LastCommit = lastCommit,
-                    RandomSeed = 123,
-                },
-                InputWorld = World.Create(),
-                OutputWorld = world,
-            };
-            var action = (DumbAction)evaluation.Action;
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = key.PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key),
+            ],
+        };
+        var world = World.Create();
+        world = world.SetValue(LegacyAccount, address, "item");
+        var evaluation = new ActionEvaluation
+        {
+            Action = DumbAction.Create((address, "item")),
+            InputContext = new ActionContext
+            {
+                Signer = address,
+                TxId = txid,
+                Proposer = address,
+                BlockHeight = 1,
+                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                LastCommit = lastCommit,
+                RandomSeed = 123,
+            },
+            InputWorld = World.Create(),
+            OutputWorld = world,
+        };
+        var action = (DumbAction)evaluation.Action;
 
-            Assert.Equal(address, action.Append?.At);
-            Assert.Equal("item", action.Append?.Item);
-            Assert.Equal(address, evaluation.InputContext.Signer);
-            Assert.Equal(txid, evaluation.InputContext.TxId);
-            Assert.Equal(address, evaluation.InputContext.Proposer);
-            Assert.Equal(1, evaluation.InputContext.BlockHeight);
-            Assert.Null(
-                evaluation.InputWorld.GetAccount(
-                    ReservedAddresses.LegacyAccount).GetValue(address)
-            );
-            Assert.Equal(
-                (Text)"item",
-                evaluation.OutputWorld.GetAccount(ReservedAddresses.LegacyAccount).GetValue(address)
-            );
-            Assert.Equal(lastCommit, evaluation.InputContext.LastCommit);
-        }
+        Assert.Equal(address, action.Append?.At);
+        Assert.Equal("item", action.Append?.Item);
+        Assert.Equal(address, evaluation.InputContext.Signer);
+        Assert.Equal(txid, evaluation.InputContext.TxId);
+        Assert.Equal(address, evaluation.InputContext.Proposer);
+        Assert.Equal(1, evaluation.InputContext.BlockHeight);
+        Assert.Null(evaluation.InputWorld.GetValueOrDefault(LegacyAccount, address));
+        Assert.Equal("item", evaluation.OutputWorld.GetValue(LegacyAccount, address));
+        Assert.Equal(lastCommit, evaluation.InputContext.LastCommit);
     }
 }

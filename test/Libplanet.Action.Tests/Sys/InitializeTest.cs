@@ -4,6 +4,7 @@ using Libplanet.Action.Sys;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.Tests.Sys;
 
@@ -60,7 +61,7 @@ public class InitializeTest
         Assert.Equal(_validators, nextWorld.GetValidatorSet());
         Assert.Equal(
             _states[default],
-            nextWorld.GetAccount(ReservedAddresses.LegacyAccount).GetValue(default));
+            nextWorld.GetValueOrDefault(LegacyAccount, default));
     }
 
     [Fact]

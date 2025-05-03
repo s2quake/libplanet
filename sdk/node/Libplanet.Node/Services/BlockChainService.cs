@@ -11,7 +11,6 @@ using Libplanet.Types.Crypto;
 using Libplanet.Node.Options;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using Microsoft.Extensions.Options;
