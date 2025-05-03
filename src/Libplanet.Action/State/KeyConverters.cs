@@ -35,7 +35,7 @@ public static class KeyConverters
     public static KeyBytes ToStateKey(Address address)
     {
         var addressBytes = address.Bytes;
-        byte[] buffer = new byte[addressBytes.Length * 2];
+        var buffer = new byte[addressBytes.Length * 2];
         for (int i = 0; i < addressBytes.Length; i++)
         {
             buffer[i * 2] = _conversionTable[addressBytes[i] >> 4];
@@ -70,9 +70,8 @@ public static class KeyConverters
         return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
     }
 
-    public static KeyBytes ToFungibleAssetKey(
-        (Address Address, Currency Currency) pair) =>
-        ToFungibleAssetKey(pair.Address, pair.Currency);
+    public static KeyBytes ToFungibleAssetKey((Address Address, Currency Currency) pair)
+    => ToFungibleAssetKey(pair.Address, pair.Currency);
 
     // $"__{ByteUtil.Hex(currency.Hash.ByteArray)}"
     public static KeyBytes ToTotalSupplyKey(Currency currency)

@@ -109,7 +109,7 @@ public abstract class ComparisonAttribute : ValidationAttribute
         {
             if (propertyType == typeof(BigInteger))
             {
-                targetComparable = BigInteger.Parse(@string, NumberStyles.Number);
+                targetComparable = BigInteger.Parse(@string, NumberStyles.Number, CultureInfo.InvariantCulture);
             }
             else
             {
@@ -120,7 +120,7 @@ public abstract class ComparisonAttribute : ValidationAttribute
         }
         else if (value.GetType() != propertyType)
         {
-            targetComparable = Convert.ChangeType(value, propertyType) as IComparable;
+            targetComparable = Convert.ChangeType(value, propertyType, CultureInfo.InvariantCulture) as IComparable;
         }
 
         if (targetComparable is null)
