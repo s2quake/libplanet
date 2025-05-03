@@ -7,30 +7,31 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Explorer.GraphTypes;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using System.Threading.Tasks;
 
-namespace Libplanet.Explorer.Tests.GraphTypes
+namespace Libplanet.Explorer.Tests.GraphTypes;
+
+public class VoteTypeTest
 {
-    public class VoteTypeTest
+    [Fact]
+    public async Task Query()
     {
-        [Fact]
-        public async void Query()
+
+        var privateKey = new PrivateKey();
+        var blockHash = new BlockHash(new byte[32]);
+        var vote = new VoteMetadata
         {
+            Height = 1,
+            Round = 0,
+            BlockHash = blockHash,
+            Timestamp = DateTimeOffset.Now,
+            ValidatorPublicKey =privateKey.PublicKey,
+            ValidatorPower = 123,
+            Flag = VoteFlag.PreCommit,
+        }.Sign(privateKey);
 
-            var privateKey = new PrivateKey();
-            var blockHash = new BlockHash(new byte[32]);
-            var vote = new VoteMetadata
-            {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockHash,
-                Timestamp = DateTimeOffset.Now,
-                ValidatorPublicKey =privateKey.PublicKey,
-                ValidatorPower = 123,
-                Flag = VoteFlag.PreCommit,
-            }.Sign(privateKey);
-
-            var query =
-                @"{
+        var query =
+            @"{
                     height
                     round
                     blockHash
@@ -41,24 +42,23 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     signature
                 }";
 
-            var voteType = new VoteType();
-            ExecutionResult result = await ExecuteQueryAsync(
-                query,
-                voteType,
-                source: vote
-            );
-            Dictionary<string, object> resultData =
-                (Dictionary<string, object>)((ExecutionNode)result.Data!)?.ToValue()!;
-            Assert.Null(result.Errors);
-            Assert.Equal(vote.Height, resultData["height"]);
-            Assert.Equal(vote.Round, resultData["round"]);
-            Assert.Equal(vote.BlockHash.ToString(), resultData["blockHash"]);
-            Assert.Equal(
-                new DateTimeOffsetGraphType().Serialize(vote.Timestamp), resultData["timestamp"]);
-            Assert.Equal(vote.ValidatorPublicKey.ToString(), resultData["validatorPublicKey"]);
-            Assert.Equal(vote.ValidatorPower.ToString(), resultData["validatorPower"]);
-            Assert.Equal(vote.Flag.ToString(), resultData["flag"]);
-            Assert.Equal(ByteUtil.Hex(vote.Signature), resultData["signature"]);
-        }
+        var voteType = new VoteType();
+        ExecutionResult result = await ExecuteQueryAsync(
+            query,
+            voteType,
+            source: vote
+        );
+        Dictionary<string, object> resultData =
+            (Dictionary<string, object>)((ExecutionNode)result.Data!)?.ToValue()!;
+        Assert.Null(result.Errors);
+        Assert.Equal(vote.Height, resultData["height"]);
+        Assert.Equal(vote.Round, resultData["round"]);
+        Assert.Equal(vote.BlockHash.ToString(), resultData["blockHash"]);
+        Assert.Equal(
+            new DateTimeOffsetGraphType().Serialize(vote.Timestamp), resultData["timestamp"]);
+        Assert.Equal(vote.ValidatorPublicKey.ToString(), resultData["validatorPublicKey"]);
+        Assert.Equal(vote.ValidatorPower.ToString(), resultData["validatorPower"]);
+        Assert.Equal(vote.Flag.ToString(), resultData["flag"]);
+        Assert.Equal(ByteUtil.Hex(vote.Signature), resultData["signature"]);
     }
 }

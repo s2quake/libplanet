@@ -5,9 +5,9 @@ namespace Libplanet.Action.Tests.Common;
 
 public static class Currencies
 {
-    public static readonly PrivateKey MinterAKey = new PrivateKey();
+    public static readonly PrivateKey MinterAKey = new();
 
-    public static readonly PrivateKey MinterBKey = new PrivateKey();
+    public static readonly PrivateKey MinterBKey = new();
 
     public static readonly Address MinterA = MinterAKey.Address;
 

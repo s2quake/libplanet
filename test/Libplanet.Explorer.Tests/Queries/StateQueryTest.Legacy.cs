@@ -12,12 +12,10 @@ namespace Libplanet.Explorer.Tests.Queries;
 
 public partial class StateQueryTest
 {
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task States(int version)
+    [Fact]
+    public async Task States()
     {
-        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
+        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             states(
@@ -40,12 +38,10 @@ public partial class StateQueryTest
         Assert.Equal(new[] { _codec.Encode(Fixture.Value), null }, states);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task Balance(int version)
+    [Fact]
+    public async Task Balance()
     {
-        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
+        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             balance(
@@ -82,13 +78,11 @@ public partial class StateQueryTest
         Assert.Equal(Fixture.Amount.ToString(), balanceDict["string"]);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task TotalSupply(int version)
+    [Fact]
+    public async Task TotalSupply()
     {
          var legacyToken = Currency.Create("LEG", 0);
-        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
+        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             totalSupply(
@@ -151,12 +145,10 @@ public partial class StateQueryTest
             totalSupplyDict["quantity"]);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task Validators(int version)
+    [Fact]
+    public async Task Validators()
     {
-        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates(version);
+        (var source, var blockHash, _) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             validators(offsetBlockHash: ""{ByteUtil.Hex(blockHash.Bytes)}"") {{
@@ -176,13 +168,11 @@ public partial class StateQueryTest
         Assert.Equal(Fixture.Validator.Power, validatorDict["power"]);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task ThrowExecutionErrorIfViolateMutualExclusive(int version)
+    [Fact]
+    public async Task ThrowExecutionErrorIfViolateMutualExclusive()
     {
         (var source, var blockHash, var stateRootHash)
-            = Fixture.CreateMockBlockChainStates(version);
+            = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             states(
@@ -197,12 +187,10 @@ public partial class StateQueryTest
         Assert.IsType<ExecutionErrors>(result.Errors);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task StatesBySrh(int version)
+    [Fact]
+    public async Task StatesBySrh()
     {
-        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
+        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             states(
@@ -223,12 +211,10 @@ public partial class StateQueryTest
         Assert.Equal(new[] { _codec.Encode(Fixture.Value), null }, states);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task BalanceBySrh(int version)
+    [Fact]
+    public async Task BalanceBySrh()
     {
-        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
+        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             balance(
@@ -266,13 +252,11 @@ public partial class StateQueryTest
         Assert.Equal(Fixture.Amount.ToString(), balanceDict["string"]);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task TotalSupplyBySrh(int version)
+    [Fact]
+    public async Task TotalSupplyBySrh()
     {
          var legacyToken = Currency.Create("LEG", 0);
-        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
+        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             totalSupply(
@@ -336,12 +320,10 @@ public partial class StateQueryTest
             totalSupplyDict["quantity"]);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(BlockMetadata.CurrentProtocolVersion)]
-    public async Task ValidatorsBySrh(int version)
+    [Fact]
+    public async Task ValidatorsBySrh()
     {
-        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates(version);
+        (var source, _, var stateRootHash) = Fixture.CreateMockBlockChainStates();
         ExecutionResult result = await ExecuteQueryAsync<StateQuery>($@"
         {{
             validators(offsetStateRootHash: ""{ByteUtil.Hex(stateRootHash.Bytes)}"") {{

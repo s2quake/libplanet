@@ -26,18 +26,10 @@
   <ItemGroup>
     <None Remove="..\..\README.md" />
     <None Include="README.md" Pack="true" PackagePath="README.md" />
-    <AdditionalFiles Include="..\..\Menees.Analyzers.Settings.xml">
-      <Link>Menees.Analyzers.Settings.xml</Link>
-    </AdditionalFiles>
-    <AdditionalFiles Include="..\..\stylecop.json" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Cocona.Lite" Version="2.0.*" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(SkipSonar)' != 'true'">
-    <PackageReference Remove="SonarAnalyzer.CSharp" />
   </ItemGroup>
 
   <ItemGroup>

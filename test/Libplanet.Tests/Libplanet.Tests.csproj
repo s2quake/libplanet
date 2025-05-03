@@ -5,13 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Remove="..\..\Menees.Analyzers.Settings.xml" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)Menees.Analyzers.Settings.xml">
-      <Link>Menees.Analyzers.Settings.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AsyncEnumerator" Version="4.0.2" />
     <PackageReference Include="DiffPlex" Version="1.7.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />

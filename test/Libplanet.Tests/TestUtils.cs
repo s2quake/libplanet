@@ -480,7 +480,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Proposer = proposer?.Address ?? previousBlock.Proposer,
                 PreviousHash = previousBlock.Hash,
                 TxHash = BlockContent.DeriveTxHash([.. txs]),
-                LastCommit = lastCommit ?? default,
+                LastCommit = lastCommit ?? BlockCommit.Empty,
                 EvidenceHash = evidenceHash,
             };
             var content = new BlockContent
