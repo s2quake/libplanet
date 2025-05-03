@@ -13,7 +13,7 @@ public sealed class NonDefaultAttribute : ValidationAttribute
         if (value is not null && value.GetType() is { } type && type.IsValueType)
         {
             var defaultValue = _defaultValueByType.GetOrAdd(type, Activator.CreateInstance);
-            return Equals(value, defaultValue) is false;
+            return !Equals(value, defaultValue);
         }
 
         return false;

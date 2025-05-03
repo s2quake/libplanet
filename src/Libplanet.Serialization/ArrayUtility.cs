@@ -19,17 +19,17 @@ public static class ArrayUtility
 
     public static bool IsSupportedArrayType(Type type, [MaybeNullWhen(false)] out Type elementType)
     {
-        if (IsArray(type, out elementType) is true)
+        if (IsArray(type, out elementType))
         {
             return true;
         }
 
-        if (IsImmutableArray(type, out elementType) is true)
+        if (IsImmutableArray(type, out elementType))
         {
             return true;
         }
 
-        if (IsImmutableSortedSet(type, out elementType) is true)
+        if (IsImmutableSortedSet(type, out elementType))
         {
             return true;
         }
@@ -41,7 +41,7 @@ public static class ArrayUtility
 
     public static bool IsArray(Type type, [MaybeNullWhen(false)] out Type elementType)
     {
-        if (typeof(Array).IsAssignableFrom(type) is true)
+        if (typeof(Array).IsAssignableFrom(type))
         {
             elementType = type.GetElementType()!;
             return true;
@@ -55,7 +55,7 @@ public static class ArrayUtility
 
     public static bool IsImmutableArray(Type type, [MaybeNullWhen(false)] out Type elementType)
     {
-        if (type.IsGenericType is true)
+        if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
             if (genericTypeDefinition == typeof(ImmutableArray<>))
@@ -73,7 +73,7 @@ public static class ArrayUtility
 
     public static bool IsImmutableSortedSet(Type type, [MaybeNullWhen(false)] out Type elementType)
     {
-        if (type.IsGenericType is true)
+        if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
             if (genericTypeDefinition == typeof(ImmutableSortedSet<>))

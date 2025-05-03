@@ -57,7 +57,7 @@ public static class ModelSerializer
             var genericArguments = type.GetGenericArguments();
             foreach (var genericArgument in genericArguments)
             {
-                if (CanSupportType(genericArgument) is false)
+                if (!CanSupportType(genericArgument))
                 {
                     return false;
                 }

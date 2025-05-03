@@ -31,7 +31,7 @@ public sealed class ModelResolver : IModelResolver
 
     ImmutableArray<PropertyInfo> IModelResolver.GetProperties(Type type)
     {
-        if (type.IsDefined(typeof(ModelAttribute)) is false && type.IsDefined(typeof(LegacyModelAttribute)) is false)
+        if (!type.IsDefined(typeof(ModelAttribute)) && !type.IsDefined(typeof(LegacyModelAttribute)))
         {
             throw new ArgumentException(
                 $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));

@@ -1,4 +1,3 @@
-using Libplanet.Action.State;
 using Libplanet.Crypto;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
@@ -30,17 +29,4 @@ internal sealed record class ActionContext : IActionContext
     public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
 
     public IRandom GetRandom() => new Random(RandomSeed);
-
-    // public CommittedActionContext ToCommittedActionContext() => new()
-    // {
-    //     Signer = Signer,
-    //     TxId = TxId,
-    //     Proposer = Proposer,
-    //     BlockHeight = BlockHeight,
-    //     BlockProtocolVersion = BlockProtocolVersion,
-    //     PreviousState = World.Trie.IsCommitted
-    //             ? World.Trie.Hash
-    //             : throw new ArgumentException("Trie is not recorded"),
-    //     RandomSeed = RandomSeed,
-    // };
 }
