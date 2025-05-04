@@ -153,7 +153,7 @@ public sealed class WorldTest
             0,
             _keys[0],
             chain.Genesis.Hash,
-            new[] { action }.ToImmutableBytes());
+            new[] { action }.ToBytecodes());
         var block1PreEval = TestUtils.ProposeNext(
             chain.Tip,
             new[] { tx },

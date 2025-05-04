@@ -296,7 +296,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 chainA.Genesis.Hash,
-                Array.Empty<DumbAction>().ToImmutableBytes()
+                Array.Empty<DumbAction>().ToBytecodes()
             );
 
             chainA.StageTransaction(tx);
@@ -405,7 +405,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 chainA.Genesis.Hash,
-                Array.Empty<DumbAction>().ToImmutableBytes()
+                Array.Empty<DumbAction>().ToBytecodes()
             );
 
             chainA.StageTransaction(tx);
@@ -466,7 +466,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 blockChains[size - 1].Genesis.Hash,
-                Array.Empty<DumbAction>().ToImmutableBytes()
+                Array.Empty<DumbAction>().ToBytecodes()
             );
 
             blockChains[size - 1].StageTransaction(tx);

@@ -409,7 +409,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                             Validators = validators ?? [],
                             States = ImmutableDictionary.Create<Address, IValue>(),
                         },
-                    }.ToImmutableBytes(),
+                    }.ToBytecodes(),
                     timestamp: DateTimeOffset.MinValue));
 
             var metadata = new BlockMetadata
@@ -569,7 +569,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     0,
                     privateKey,
                     default,
-                    actions.ToImmutableBytes(),
+                    actions.ToBytecodes(),
                     timestamp: timestamp ?? DateTimeOffset.MinValue),
             }.ToImmutableSortedSet();
 

@@ -73,7 +73,7 @@ public class TransactionTest
             0,
             privateKey,
             default,
-            actions: new[] { action }.ToImmutableBytes(),
+            actions: new[] { action }.ToBytecodes(),
             timestamp: timestamp
         );
 
@@ -118,7 +118,7 @@ public class TransactionTest
             new[]
             {
                 DumbAction.Create((stateStore, "F"), recordRandom: false),
-            }.ToImmutableBytes(),
+            }.ToBytecodes(),
             null,
             0L,
             timestamp
@@ -149,7 +149,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            Array.Empty<DumbAction>().ToImmutableBytes());
+            Array.Empty<DumbAction>().ToBytecodes());
         Assert.Empty(emptyTx.UpdatedAddresses);
     }
 
@@ -161,7 +161,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            Array.Empty<DumbAction>().ToImmutableBytes(),
+            Array.Empty<DumbAction>().ToBytecodes(),
             null,
             0L);
         DateTimeOffset rightAfter = DateTimeOffset.UtcNow;
@@ -178,7 +178,7 @@ public class TransactionTest
                 0,
                 new PrivateKey(),
                 default,
-                Array.Empty<DumbAction>().ToImmutableBytes(),
+                Array.Empty<DumbAction>().ToBytecodes(),
                 null,
                 0L,
                 DateTimeOffset.UtcNow
@@ -277,7 +277,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            actions.ToImmutableBytes()
+            actions.ToBytecodes()
         );
         actions.Add(new DumbAction());
         Assert.Empty(tx.Actions);
@@ -301,7 +301,7 @@ public class TransactionTest
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = actions.ToImmutableBytes(),
+            Actions = actions.ToBytecodes(),
         };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
@@ -379,7 +379,7 @@ public class TransactionTest
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = actions.ToImmutableBytes(),
+            Actions = actions.ToBytecodes(),
         };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");

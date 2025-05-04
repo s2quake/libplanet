@@ -86,7 +86,7 @@ public class TxFixture
                     GenesisHash = genesisHash,
                     UpdatedAddresses = [Address.Parse("c2a86014073d662a4a9bfcf9cb54263dfa4f5cbc")],
                     Timestamp = timestamp,
-                    Actions = actions.ToImmutableBytes(),
+                    Actions = actions.ToBytecodes(),
                 },
                 SigningMetadata = new TxSigningMetadata
                 {

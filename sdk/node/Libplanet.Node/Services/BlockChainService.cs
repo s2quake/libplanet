@@ -135,7 +135,7 @@ internal sealed class BlockChainService(
             nonce: nonce,
             privateKey: genesisKey,
             genesisHash: default,
-            actions: actions.ToImmutableBytes(),
+            actions: actions.ToBytecodes(),
             timestamp: DateTimeOffset.MinValue);
         return BlockChain.ProposeGenesisBlock(
             privateKey: genesisKey,

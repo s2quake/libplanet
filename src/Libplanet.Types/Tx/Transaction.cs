@@ -32,7 +32,7 @@ public sealed record class Transaction
 
     public ImmutableSortedSet<Address> UpdatedAddresses => UnsignedTx.UpdatedAddresses;
 
-    public ImmutableArray<ImmutableArray<byte>> Actions => UnsignedTx.Actions;
+    public ImmutableArray<ActionBytecode> Actions => UnsignedTx.Actions;
 
     public FungibleAssetValue? MaxGasPrice => UnsignedTx.MaxGasPrice;
 
@@ -55,7 +55,7 @@ public sealed record class Transaction
         long nonce,
         PrivateKey privateKey,
         BlockHash genesisHash,
-        ImmutableArray<ImmutableArray<byte>> actions,
+        ImmutableArray<ActionBytecode> actions,
         FungibleAssetValue? maxGasPrice = null,
         long gasLimit = 0L,
         DateTimeOffset? timestamp = null)

@@ -339,7 +339,7 @@ namespace Libplanet.Blockchain
 
                     try
                     {
-                        _ = tx.Actions.FromImmutableBytes();
+                        _ = tx.Actions.Select(item => item.ToAction<IAction>());
                     }
                     catch (Exception e)
                     {

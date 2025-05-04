@@ -187,7 +187,7 @@ namespace Libplanet.Blockchain
         {
             foreach (var tx in block.Transactions)
             {
-                _ = tx.Actions.FromImmutableBytes();
+                _ = tx.Actions.Select(item => item.ToAction<IAction>());
             }
         }
 

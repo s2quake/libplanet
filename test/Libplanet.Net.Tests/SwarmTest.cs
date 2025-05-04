@@ -613,7 +613,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 chainB.Genesis.Hash,
-                Array.Empty<DumbAction>().ToImmutableBytes()
+                Array.Empty<DumbAction>().ToBytecodes()
             );
             chainB.StageTransaction(tx);
             Block block = chainB.ProposeBlock(keyB);

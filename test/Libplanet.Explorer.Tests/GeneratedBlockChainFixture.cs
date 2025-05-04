@@ -82,7 +82,7 @@ public class GeneratedBlockChainFixture
                                 Validators = [Validator.Create(pk.PublicKey, 1)],
                                 States = ImmutableDictionary.Create<Address, IValue>()
                             },
-                        }.ToImmutableBytes()))
+                        }.ToBytecodes()))
                 .ToImmutableSortedSet());
         Chain = BlockChain.Create(
             policy,
@@ -107,10 +107,11 @@ public class GeneratedBlockChainFixture
                 var pk = PrivateKeys[Random.Next(PrivateKeys.Length)];
                 AddBlock(actionsForTransactions
                     .Select(actions =>
-                        actions.Create(
+                        Transaction.Create(
                             nonce: Chain.GetNextTxNonce(pk.Address),
                             privateKey: pk,
-                            genesisHash: Chain.Genesis.Hash))
+                            genesisHash: Chain.Genesis.Hash,
+                            actions: actions.ToBytecodes()))
                     .ToImmutableArray());
             }
         }
@@ -144,8 +145,8 @@ public class GeneratedBlockChainFixture
             privateKey: pk,
             genesisHash: Chain.Genesis.Hash,
             actions: Random.Next() % 2 == 0
-                ? GetRandomActions().ToImmutableBytes()
-                : ImmutableHashSet<SimpleAction>.Empty.ToImmutableBytes(),
+                ? GetRandomActions().ToBytecodes()
+                : ImmutableHashSet<SimpleAction>.Empty.ToBytecodes(),
             maxGasPrice: null,
             gasLimit: 0L);
     }

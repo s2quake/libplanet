@@ -363,7 +363,7 @@ public class StoreCommandTest : IDisposable
             0,
             new PrivateKey(),
             _genesisBlock.Hash,
-            new[] { new Utils.DummyAction() }.ToImmutableBytes(),
+            new[] { new Utils.DummyAction() }.ToBytecodes(),
             null,
             0L,
             DateTimeOffset.UtcNow);
