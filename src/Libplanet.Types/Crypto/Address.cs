@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json.Serialization;
-using Libplanet.Types.Crypto.Converters;
-using Libplanet.Types.Crypto.JsonConverters;
+using Libplanet.Types.Converters;
+using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Crypto;
 

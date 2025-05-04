@@ -1,8 +1,9 @@
 using System.ComponentModel;
 using System.Globalization;
 using Bencodex.Types;
+using Libplanet.Types.Crypto;
 
-namespace Libplanet.Types.Crypto.Converters;
+namespace Libplanet.Types.Converters;
 
 internal sealed class PublicKeyTypeConverter : TypeConverter
 {

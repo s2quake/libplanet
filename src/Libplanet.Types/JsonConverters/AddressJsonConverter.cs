@@ -1,7 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Libplanet.Types.Crypto;
 
-namespace Libplanet.Types.Crypto.JsonConverters;
+namespace Libplanet.Types.JsonConverters;
 
 internal sealed class AddressJsonConverter : JsonConverter<Address>
 {
