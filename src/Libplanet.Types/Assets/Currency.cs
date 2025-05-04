@@ -145,7 +145,7 @@ public readonly record struct Currency : IEquatable<Currency>
         using var buffer = new MemoryStream();
         using var sha1 = GetSHA1();
         using var stream = new CryptoStream(buffer, sha1, CryptoStreamMode.Write);
-        stream.Write(ModelSerializer.SerializeToBytes(this));
+        stream.Write(ModelSerializer.SerializeToBytes(this).AsSpan());
         stream.FlushFinalBlock();
         if (sha1.Hash is { } hash)
         {

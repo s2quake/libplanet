@@ -102,6 +102,47 @@ public static class TypeUtility
 
     public static bool IsBencodexType(Type type) => typeof(IValue).IsAssignableFrom(type);
 
+    public static string GetTypeName(Type type)
+    {
+        var name = GetName(type);
+        var ns = type.Namespace
+            ?? throw new UnreachableException("Type does not have FullName");
+        var assemblyName = type.Assembly.GetName().Name
+             ?? throw new UnreachableException("Assembly does not have Name");
+
+        return $"{ns}.{name}, {assemblyName}";
+    }
+
+    private static string GetName(Type type)
+    {
+        var name = type.Name
+            ?? throw new UnreachableException("Type does not have FullName");
+        var ns = type.Namespace
+            ?? throw new UnreachableException("Type does not have FullName");
+        var assemblyName = type.Assembly.GetName().Name
+             ?? throw new UnreachableException("Assembly does not have Name");
+
+        if (type.IsGenericType)
+        {
+            var genericArguments = type.GetGenericArguments();
+            var nameList = new List<string>(genericArguments.Length);
+            foreach (var genericArgument in genericArguments)
+            {
+                var genericArgumentName = $"[{GetTypeName(genericArgument)}]";
+                nameList.Add(genericArgumentName);
+            }
+
+            name = $"{name}[{string.Join(',', nameList)}]";
+        }
+
+        if (type.DeclaringType is null)
+        {
+            return name;
+        }
+
+        return $"{GetName(type.DeclaringType)}+{name}";
+    }
+
     private static IEnumerable<Type> GetSerializableTypes(Assembly assembly)
     {
         var types = assembly.GetTypes().Where(IsDefined);

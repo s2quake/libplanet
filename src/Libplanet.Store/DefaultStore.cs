@@ -175,22 +175,22 @@ public class DefaultStore : StoreBase
         {
             _db.Mapper.RegisterType(
                 hash => ModelSerializer.SerializeToBytes(hash),
-                b => ModelSerializer.DeserializeFromBytes<BlockHash>(b));
+                b => ModelSerializer.DeserializeFromBytes<BlockHash>(b.AsBinary));
             _db.Mapper.RegisterType(
                 hash => hash.Bytes.ToArray(),
-                b => new HashDigest<SHA256>([.. b.AsBinary]));
+                b => new HashDigest<SHA256>(b.AsBinary));
             _db.Mapper.RegisterType(
                 txid => txid.Bytes.ToArray(),
-                b => new TxId([.. b.AsBinary]));
+                b => new TxId(b.AsBinary));
             _db.Mapper.RegisterType(
                 address => address.ToByteArray(),
-                b => new Address([.. b.AsBinary]));
+                b => new Address(b.AsBinary));
             _db.Mapper.RegisterType(
                 commit => ModelSerializer.SerializeToBytes(commit),
-                b => ModelSerializer.DeserializeFromBytes<BlockCommit>(b));
+                b => ModelSerializer.DeserializeFromBytes<BlockCommit>(b.AsBinary));
             _db.Mapper.RegisterType(
                 evidence => ModelSerializer.SerializeToBytes(evidence),
-                b => ModelSerializer.DeserializeFromBytes<EvidenceId>(b));
+                b => ModelSerializer.DeserializeFromBytes<EvidenceId>(b.AsBinary));
         }
 
         _root.CreateDirectory(TxRootPath);
@@ -631,8 +631,8 @@ public class DefaultStore : StoreBase
         var docId = new BsonValue("c");
         BsonDocument doc = collection.FindById(docId);
         return doc is { } d && d.TryGetValue("v", out BsonValue v)
-            ? ModelSerializer.DeserializeFromBytes<BlockCommit>(v)
-            : default;
+            ? ModelSerializer.DeserializeFromBytes<BlockCommit>(v.AsBinary)
+            : BlockCommit.Empty;
     }
 
     /// <inheritdoc />

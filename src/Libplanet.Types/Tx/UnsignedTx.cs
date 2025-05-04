@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using Bencodex.Types;
 using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
@@ -23,7 +22,7 @@ public sealed record class UnsignedTx
 
     public BlockHash? GenesisHash => Invoice.GenesisHash;
 
-    public ImmutableArray<IValue> Actions => Invoice.Actions;
+    public ImmutableArray<ImmutableArray<byte>> Actions => Invoice.Actions;
 
     public FungibleAssetValue? MaxGasPrice => Invoice.MaxGasPrice;
 
@@ -56,7 +55,7 @@ public sealed record class UnsignedTx
     }
 
     public bool VerifySignature(ImmutableArray<byte> signature) =>
-        PublicKey.Verify(Signer, CreateMessage().ToImmutableArray(), signature);
+        PublicKey.Verify(Signer, [.. CreateMessage()], signature);
 
     public Transaction Sign(PrivateKey privateKey) => Transaction.Create(this, privateKey);
 

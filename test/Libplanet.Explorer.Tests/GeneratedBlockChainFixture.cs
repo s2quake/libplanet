@@ -75,14 +75,14 @@ public class GeneratedBlockChainFixture
                         nonce: i,
                         privateKey: privateKey,
                         genesisHash: default,
-                        actions: new IAction[]
+                        actions: new []
+                        {
+                            new Initialize
                             {
-                                new Initialize
-                                {
-                                    Validators = [Validator.Create(pk.PublicKey, 1)],
-                                    States = ImmutableDictionary.Create<Address, IValue>()
-                                },
-                            }.ToPlainValues()))
+                                Validators = [Validator.Create(pk.PublicKey, 1)],
+                                States = ImmutableDictionary.Create<Address, IValue>()
+                            },
+                        }.ToImmutableBytes()))
                 .ToImmutableSortedSet());
         Chain = BlockChain.Create(
             policy,
@@ -107,11 +107,10 @@ public class GeneratedBlockChainFixture
                 var pk = PrivateKeys[Random.Next(PrivateKeys.Length)];
                 AddBlock(actionsForTransactions
                     .Select(actions =>
-                        Transaction.Create(
+                        actions.Create(
                             nonce: Chain.GetNextTxNonce(pk.Address),
                             privateKey: pk,
-                            genesisHash: Chain.Genesis.Hash,
-                            actions: actions.ToPlainValues()))
+                            genesisHash: Chain.Genesis.Hash))
                     .ToImmutableArray());
             }
         }
@@ -145,8 +144,8 @@ public class GeneratedBlockChainFixture
             privateKey: pk,
             genesisHash: Chain.Genesis.Hash,
             actions: Random.Next() % 2 == 0
-                ? GetRandomActions().ToPlainValues()
-                : ImmutableHashSet<SimpleAction>.Empty.ToPlainValues(),
+                ? GetRandomActions().ToImmutableBytes()
+                : ImmutableHashSet<SimpleAction>.Empty.ToImmutableBytes(),
             maxGasPrice: null,
             gasLimit: 0L);
     }

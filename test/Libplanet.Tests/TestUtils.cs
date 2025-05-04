@@ -402,14 +402,14 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     nonce++,
                     GenesisProposer,
                     default,
-                    actions: new IAction[]
+                    actions: new[]
                     {
                         new Initialize
                         {
                             Validators = validators ?? [],
                             States = ImmutableDictionary.Create<Address, IValue>(),
                         },
-                    }.Select(ModelSerializer.Serialize),
+                    }.ToImmutableBytes(),
                     timestamp: DateTimeOffset.MinValue));
 
             var metadata = new BlockMetadata
@@ -569,7 +569,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     0,
                     privateKey,
                     default,
-                    actions.ToPlainValues(),
+                    actions.ToImmutableBytes(),
                     timestamp: timestamp ?? DateTimeOffset.MinValue),
             }.ToImmutableSortedSet();
 

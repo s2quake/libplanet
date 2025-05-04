@@ -140,7 +140,7 @@ public partial class BlockChainTest
             var genesis = BlockChain.ProposeGenesisBlock(
                 new PrivateKey(),
                 null,
-                new[]
+                (new[]
                 {
                     Transaction.Create(
                         5,  // Invalid nonce,
@@ -149,8 +149,8 @@ public partial class BlockChainTest
                         actions: new[]
                         {
                             DumbAction.Create((new PrivateKey().Address, "foo")),
-                        }.ToPlainValues()),
-                }.ToImmutableSortedSet());
+                        }.ToImmutableBytes()),
+                }).ToImmutableSortedSet());
             Assert.Throws<InvalidOperationException>(() => BlockChain.Create(
                 policy,
                 new VolatileStagePolicy(),
@@ -176,7 +176,7 @@ public partial class BlockChainTest
                 new ActionEvaluator(
                     stateStore: fx.StateStore,
                     policy.PolicyActions));
-            var txs = new[]
+            var txs = (new[]
             {
                 Transaction.Create(
                     5,  // Invalid nonce
@@ -185,8 +185,8 @@ public partial class BlockChainTest
                     new[]
                     {
                         DumbAction.Create((new PrivateKey().Address, "foo")),
-                    }.ToPlainValues()),
-            }.ToImmutableList();
+                    }.ToImmutableBytes()),
+            }).ToImmutableList();
 
             var block = blockChain.ProposeBlock(
                 new PrivateKey(), [.. txs], default, []);
@@ -220,7 +220,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrA, "1a")),
                     DumbAction.Create((addrB, "1b")),
-                }.ToPlainValues()
+                }.ToImmutableBytes()
             ),
             Transaction.Create(
                 1,
@@ -230,7 +230,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrC, "2a")),
                     DumbAction.Create((addrD, "2b")),
-                }.ToPlainValues()
+                }.ToImmutableBytes()
             ),
 
             // pending txs1
@@ -242,7 +242,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrE, "3a")),
                     DumbAction.Create((addrA, "3b")),
-                }.ToPlainValues()
+                }.ToImmutableBytes()
             ),
             Transaction.Create(
                 2,
@@ -252,7 +252,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrB, "4a")),
                     DumbAction.Create((addrC, "4b")),
-                }.ToPlainValues()
+                }.ToImmutableBytes()
             ),
 
             // pending txs2
@@ -264,7 +264,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrD, "5a")),
                     DumbAction.Create((addrE, "5b")),
-                }.ToPlainValues()
+                }.ToImmutableBytes()
             ),
             Transaction.Create(
                 2,
@@ -274,7 +274,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrA, "6a")),
                     DumbAction.Create((addrB, "6b")),
-                }.ToPlainValues()
+                }.ToImmutableBytes()
             ),
         };
 
@@ -427,19 +427,19 @@ public partial class BlockChainTest
                 2,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()
+                Array.Empty<DumbAction>().ToImmutableBytes()
             ),
             Transaction.Create(
                 1,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()
+                Array.Empty<DumbAction>().ToImmutableBytes()
             ),
             Transaction.Create(
                 0,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()
+                Array.Empty<DumbAction>().ToImmutableBytes()
             ),
         };
         StageTransactions(txs);
@@ -454,12 +454,10 @@ public partial class BlockChainTest
         StageTransactions(
             new[]
             {
-                Transaction.Create(
+                Array.Empty<DumbAction>().Create(
                     0,
                     key,
-                    _blockChain.Genesis.Hash,
-                    Array.Empty<DumbAction>().ToPlainValues()
-                ),
+                    _blockChain.Genesis.Hash),
             }
         );
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
@@ -469,12 +467,10 @@ public partial class BlockChainTest
         StageTransactions(
             new[]
             {
-                Transaction.Create(
+                Array.Empty<DumbAction>().Create(
                     0,
                     key,
-                    _blockChain.Genesis.Hash,
-                    Array.Empty<DumbAction>().ToPlainValues()
-                ),
+                    _blockChain.Genesis.Hash),
             }
         );
         Block block2 = _blockChain.ProposeBlock(
@@ -750,7 +746,7 @@ public partial class BlockChainTest
             {
                 GenesisHash = _blockChain.Genesis.Hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Actions = [List.Empty.Add(new Text("Foo"))], // Invalid action
+                Actions = [[0x1]], // Invalid action
             },
             SigningMetadata = new TxSigningMetadata
             {
@@ -763,31 +759,26 @@ public partial class BlockChainTest
             UnsignedTx = unsignedInvalidTx,
             Signature = unsignedInvalidTx.CreateSignature(keyB),
         };
-        Transaction txWithInvalidNonce = Transaction.Create(
-            2, keyB, _blockChain.Genesis.Hash, Array.Empty<DumbAction>().ToPlainValues()
-        );
+        Transaction txWithInvalidNonce = Array.Empty<DumbAction>().Create(
+            2, keyB, _blockChain.Genesis.Hash);
         var txs = new[]
         {
-            Transaction.Create(
+            Array.Empty<DumbAction>().Create(
                 0,
                 keyA,
-                _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()),
-            Transaction.Create(
+                _blockChain.Genesis.Hash),
+            Array.Empty<DumbAction>().Create(
                 1,
                 keyA,
-                _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()),
-            Transaction.Create(
+                _blockChain.Genesis.Hash),
+            Array.Empty<DumbAction>().Create(
                 2,
                 keyA,
-                _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()),
-            Transaction.Create(
+                _blockChain.Genesis.Hash),
+            Array.Empty<DumbAction>().Create(
                 0,
                 keyB,
-                _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()),
+                _blockChain.Genesis.Hash),
             txWithInvalidAction,
             txWithInvalidNonce,
         };

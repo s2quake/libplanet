@@ -11,7 +11,7 @@ public sealed record class SetStatesAtBlock : ActionBase
     {
     }
 
-    public SetStatesAtBlock(Address address, IValue value, Address accountAddress, long blockHeight)
+    public SetStatesAtBlock(Address address, object value, Address accountAddress, long blockHeight)
     {
         Address = address;
         BlockHeight = blockHeight;
@@ -22,8 +22,8 @@ public sealed record class SetStatesAtBlock : ActionBase
     [Property(0)]
     public Address Address { get; init; }
 
-    [Property(1)]
-    public IValue Value { get; init; } = Null.Value;
+    [Property(1, KnownTypes = new[] { typeof(string) })]
+    public object? Value { get; init; }
 
     [Property(2)]
     public Address AccountAddress { get; init; }
@@ -33,7 +33,7 @@ public sealed record class SetStatesAtBlock : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        if (context.BlockHeight == BlockHeight)
+        if (context.BlockHeight == BlockHeight && Value is not null)
         {
             world[AccountAddress, Address] = Value;
         }

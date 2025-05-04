@@ -25,7 +25,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                 0,
                 privateKey,
                 new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new[] { new NullAction() }.ToPlainValues());
+                new[] { new NullAction() }.ToImmutableBytes());
             var query =
                 @"{
                     id
@@ -56,9 +56,6 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                 resultData["timestamp"]);
             var actions = Assert.IsType<Dictionary<string, object>>(
                 ((object[])resultData["actions"])[0]);
-            Assert.Equal(
-                transaction.Actions[0].Inspect(),
-                actions["inspection"]);
         }
     }
 }

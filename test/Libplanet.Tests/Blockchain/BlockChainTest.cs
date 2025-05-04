@@ -197,7 +197,7 @@ public partial class BlockChainTest : IDisposable
                             Validators = TestUtils.Validators,
                             States = ImmutableDictionary.Create<Address, IValue>(),
                         },
-                    }.ToPlainValues(),
+                    }.ToImmutableBytes(),
                 timestamp: DateTimeOffset.UtcNow))
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
@@ -232,12 +232,10 @@ public partial class BlockChainTest : IDisposable
                 TargetAddress = _fx.Address1,
             },
         ];
-        var tx1 = Transaction.Create(
+        var tx1 = actions1.Create(
             0,
             new PrivateKey(),
-            genesisBlock.Hash,
-            actions1.ToPlainValues()
-        );
+            genesisBlock.Hash);
 
         chain.StageTransaction(tx1);
         Block block1 = chain.ProposeBlock(new PrivateKey());
@@ -261,12 +259,10 @@ public partial class BlockChainTest : IDisposable
                 TargetAddress = _fx.Address1,
             },
         ];
-        var tx2 = Transaction.Create(
+        var tx2 = actions2.Create(
             0,
             new PrivateKey(),
-            genesisBlock.Hash,
-            actions2.ToPlainValues()
-        );
+            genesisBlock.Hash);
 
         chain.StageTransaction(tx2);
         Block block2 = chain.ProposeBlock(
@@ -284,7 +280,7 @@ public partial class BlockChainTest : IDisposable
             0,
             new PrivateKey(),
             genesisBlock.Hash,
-            new List<IAction>
+            new[]
             {
                 new Attack
                 {
@@ -292,7 +288,7 @@ public partial class BlockChainTest : IDisposable
                     Target = "orc",
                     TargetAddress = _fx.Address1,
                 },
-            }.ToPlainValues()
+            }.ToImmutableBytes()
         );
         Block block3 = chain.ProposeBlock(
             new PrivateKey(), CreateBlockCommit(chain.Tip));
@@ -573,11 +569,10 @@ public partial class BlockChainTest : IDisposable
             ProposeGenesis(
                 GenesisProposer.PublicKey,
                 [
-                    Transaction.Create(
+                    Array.Empty<DumbAction>().Create(
                         0,
                         new PrivateKey(),
-                        default,
-                        Array.Empty<DumbAction>().ToPlainValues()),
+                        default),
                 ]),
             GenesisProposer);
         var chain = BlockChain.Create(
@@ -623,7 +618,7 @@ public partial class BlockChainTest : IDisposable
             };
             Transaction[] txs =
             {
-                Transaction.Create(0, privateKey, chain.Genesis.Hash, actions.ToPlainValues()),
+                actions.Create(0, privateKey, chain.Genesis.Hash),
             };
             b = chain.ProposeBlock(
                 _fx.Proposer,
@@ -1029,12 +1024,12 @@ public partial class BlockChainTest : IDisposable
         var transaction = txs[0];
         Assert.Equal(0, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(ModelSerializer.Serialize(action), transaction.Actions[0]);
+        Assert.Equal(ModelSerializer.SerializeToImmutableBytes(action), transaction.Actions[0]);
 
         transaction = txs[1];
         Assert.Equal(1, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(ModelSerializer.Serialize(action), transaction.Actions[0]);
+        Assert.Equal(ModelSerializer.SerializeToImmutableBytes(action), transaction.Actions[0]);
     }
 
     [SkippableFact]
@@ -1057,12 +1052,12 @@ public partial class BlockChainTest : IDisposable
         var transaction = txs[0];
         Assert.Equal(0, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(actions.ToPlainValues(), transaction.Actions);
+        Assert.Equal(actions.ToImmutableBytes(), transaction.Actions);
 
         transaction = txs[1];
         Assert.Equal(1, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(actions.ToPlainValues(), transaction.Actions);
+        Assert.Equal(actions.ToImmutableBytes(), transaction.Actions);
     }
 
     [SkippableFact]
@@ -1219,8 +1214,7 @@ public partial class BlockChainTest : IDisposable
                     store.GetTxNonce(chain.Id, signer),
                     privateKey,
                     chain.Genesis.Hash,
-                    new[] { DumbAction.Create((addresses[j], index.ToString())) }
-                        .ToPlainValues()
+                    new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToImmutableBytes()
                 );
                 b = chain.EvaluateAndSign(
                     ProposeNext(
@@ -1393,7 +1387,7 @@ public partial class BlockChainTest : IDisposable
                 nonce: i,
                 privateKey: privateKey,
                 genesisHash: default,
-                actions: new IAction[] { systemAction }.ToPlainValues()))
+                actions: new [] { systemAction }.ToImmutableBytes()))
             .ToArray();
         var customTxs = new[]
         {
@@ -1404,7 +1398,7 @@ public partial class BlockChainTest : IDisposable
                     {
                         UpdatedAddresses = [.. addresses],
                         Timestamp = DateTimeOffset.UtcNow,
-                        Actions = [.. customActions.ToPlainValues()],
+                        Actions = customActions.ToImmutableBytes(),
                         MaxGasPrice = default,
                     },
                     SigningMetadata = new TxSigningMetadata
@@ -1531,11 +1525,10 @@ public partial class BlockChainTest : IDisposable
             });
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
-        var genesisTx = Transaction.Create(
+        var genesisTx = Array.Empty<IAction>().Create(
             0,
             new PrivateKey(),
-            default,
-            List.Empty);
+            default);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);
@@ -1555,7 +1548,7 @@ public partial class BlockChainTest : IDisposable
             0,
             new PrivateKey(),
             default,
-            Array.Empty<DumbAction>().ToPlainValues());
+            Array.Empty<DumbAction>().ToImmutableBytes());
         var nextStateRootHash = chain.GetNextStateRootHash(genesisWithTx.Hash);
         var block = ProposeNextBlock(
             previousBlock: chain.Genesis,
@@ -1601,7 +1594,7 @@ public partial class BlockChainTest : IDisposable
                 nonce: i,
                 privateKey: privateKey,
                 genesisHash: default,
-                actions: new IAction[] { systemAction }.ToPlainValues()))
+                actions: new IAction[] { systemAction }.ToImmutableBytes()))
             .ToImmutableList();
 
         var actionEvaluator = new ActionEvaluator(

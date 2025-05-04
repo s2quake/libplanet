@@ -334,8 +334,8 @@ namespace Libplanet.Tests.Blockchain
             var proposer = new PrivateKey();
             var action1 = DumbModernAction.Create((address1, "foo"));
             var action2 = DumbModernAction.Create((address2, "bar"));
-            var tx1 = Transaction.Create(0, proposer, genesis.Hash, new[] { action1 }.ToPlainValues());
-            var tx2 = Transaction.Create(1, proposer, genesis.Hash, new[] { action2 }.ToPlainValues());
+            var tx1 = new[] { action1 }.Create(0, proposer, genesis.Hash);
+            var tx2 = new[] { action2 }.Create(1, proposer, genesis.Hash);
             var block1 = _blockChain.ProposeBlock(
                 proposer,
                 new[] { tx1 }.ToImmutableSortedSet(),
@@ -588,23 +588,23 @@ namespace Libplanet.Tests.Blockchain
             var signerA = new PrivateKey();
             var signerB = new PrivateKey();
             BlockHash genesis = _blockChain.Genesis.Hash;
-            var emptyActions = Array.Empty<IValue>();
+            var emptyActions = Array.Empty<IAction>();
             Transaction
-                txA0 = Transaction.Create(0, signerA, genesis, emptyActions),
-                txA1 = Transaction.Create(1, signerA, genesis, emptyActions);
+                txA0 = emptyActions.Create(0, signerA, genesis),
+                txA1 = emptyActions.Create(1, signerA, genesis);
             _blockChain.StageTransaction(txA0);
             _blockChain.StageTransaction(txA1);
             Block block = _blockChain.ProposeBlock(signerA);
 
             Transaction
-                txA2 = Transaction.Create(2, signerA, genesis, emptyActions),
-                txA0_ = Transaction.Create(0, signerA, genesis, emptyActions),
-                txA1_ = Transaction.Create(1, signerA, genesis, emptyActions),
-                txB0 = Transaction.Create(1, signerB, genesis, emptyActions),
-                txB1 = Transaction.Create(1, signerB, genesis, emptyActions),
-                txB2 = Transaction.Create(2, signerB, genesis, emptyActions),
-                txB0_ = Transaction.Create(1, signerB, genesis, emptyActions),
-                txB1_ = Transaction.Create(1, signerB, genesis, emptyActions);
+                txA2 = emptyActions.Create(2, signerA, genesis),
+                txA0_ = emptyActions.Create(0, signerA, genesis),
+                txA1_ = emptyActions.Create(1, signerA, genesis),
+                txB0 = emptyActions.Create(1, signerB, genesis),
+                txB1 = emptyActions.Create(1, signerB, genesis),
+                txB2 = emptyActions.Create(2, signerB, genesis),
+                txB0_ = emptyActions.Create(1, signerB, genesis),
+                txB1_ = emptyActions.Create(1, signerB, genesis);
             _blockChain.StageTransaction(txA2);
             _blockChain.StageTransaction(txA0_);
             _blockChain.StageTransaction(txA1_);
@@ -660,14 +660,14 @@ namespace Libplanet.Tests.Blockchain
                     0,
                     fx.Proposer,
                     default,
-                    actions: new IAction[]
+                    actions: new[]
                     {
                         new Initialize
                         {
                             Validators = TestUtils.Validators,
                             States = ImmutableDictionary.Create<Address, IValue>(),
                         },
-                    }.ToPlainValues(),
+                    }.ToImmutableBytes(),
                     timestamp: DateTimeOffset.UtcNow),
             };
             var evs = Array.Empty<EvidenceBase>();
@@ -735,7 +735,7 @@ namespace Libplanet.Tests.Blockchain
             // Append block before state root hash postpone
             var proposer = new PrivateKey();
             var action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "foo"));
-            var tx = Transaction.Create(0, proposer, genesis.Hash, new[] { action }.ToPlainValues());
+            var tx = new[] { action }.Create(0, proposer, genesis.Hash);
             var preBlockBeforeBump = TestUtils.ProposeNext(
                 genesis,
                 new[] { tx }.ToImmutableList(),
@@ -751,7 +751,7 @@ namespace Libplanet.Tests.Blockchain
 
             // Append block after state root hash postpone - previous block is not bumped
             action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "bar"));
-            tx = Transaction.Create(1, proposer, genesis.Hash, new[] { action }.ToPlainValues());
+            tx = new[] { action }.Create(1, proposer, genesis.Hash);
             var blockAfterBump1 = blockChain.ProposeBlock(
                 proposer,
                 new[] { tx }.ToImmutableSortedSet(),
@@ -766,7 +766,7 @@ namespace Libplanet.Tests.Blockchain
 
             // Append block after state root hash postpone - previous block is bumped
             action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "baz"));
-            tx = Transaction.Create(2, proposer, genesis.Hash, new[] { action }.ToPlainValues());
+            tx = new[] { action }.Create(2, proposer, genesis.Hash);
             var blockAfterBump2 = blockChain.ProposeBlock(
                 proposer,
                 new[] { tx }.ToImmutableSortedSet(),

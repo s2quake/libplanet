@@ -213,7 +213,7 @@ public abstract class StoreFixture : IDisposable
             nonce,
             privateKey,
             GenesisBlock.Hash,
-            actions?.ToPlainValues() ?? Array.Empty<DumbAction>().ToPlainValues(),
+            Array.Empty<DumbAction>().ToImmutableBytes(),
             null,
             0L,
             timestamp

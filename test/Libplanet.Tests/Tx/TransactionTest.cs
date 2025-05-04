@@ -73,7 +73,7 @@ public class TransactionTest
             0,
             privateKey,
             default,
-            actions: new IAction[] { action }.ToPlainValues(),
+            actions: new[] { action }.ToImmutableBytes(),
             timestamp: timestamp
         );
 
@@ -118,7 +118,7 @@ public class TransactionTest
             new[]
             {
                 DumbAction.Create((stateStore, "F"), recordRandom: false),
-            }.ToPlainValues(),
+            }.ToImmutableBytes(),
             null,
             0L,
             timestamp
@@ -149,7 +149,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            Array.Empty<DumbAction>().ToPlainValues());
+            Array.Empty<DumbAction>().ToImmutableBytes());
         Assert.Empty(emptyTx.UpdatedAddresses);
     }
 
@@ -161,7 +161,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            Array.Empty<DumbAction>().ToPlainValues(),
+            Array.Empty<DumbAction>().ToImmutableBytes(),
             null,
             0L);
         DateTimeOffset rightAfter = DateTimeOffset.UtcNow;
@@ -176,9 +176,9 @@ public class TransactionTest
         Assert.Throws<ArgumentNullException>(() =>
             Transaction.Create(
                 0,
-                null,
+                new PrivateKey(),
                 default,
-                Array.Empty<DumbAction>().ToPlainValues(),
+                Array.Empty<DumbAction>().ToImmutableBytes(),
                 null,
                 0L,
                 DateTimeOffset.UtcNow
@@ -277,7 +277,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            actions.ToPlainValues()
+            actions.ToImmutableBytes()
         );
         actions.Add(new DumbAction());
         Assert.Empty(tx.Actions);
@@ -295,13 +295,13 @@ public class TransactionTest
         var actions = ImmutableArray.Create<IAction>([
             DumbAction.Create((addressA, "foo")),
             DumbAction.Create((addressB, "bar")),
-        ]).ToPlainValues();
+        ]).ToImmutableArray();
         var invoice = new TxInvoice
         {
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = [.. actions],
+            Actions = actions.ToImmutableBytes(),
         };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
@@ -373,13 +373,13 @@ public class TransactionTest
         var actions = ImmutableArray.Create<IAction>([
             DumbAction.Create((addressA, "foo")),
             DumbAction.Create((addressB, "bar")),
-        ]).ToPlainValues();
+        ]).ToImmutableArray();
         var invoice = new TxInvoice
         {
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = [.. actions],
+            Actions = actions.ToImmutableBytes(),
         };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");

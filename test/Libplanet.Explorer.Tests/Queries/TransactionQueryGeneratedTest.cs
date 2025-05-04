@@ -53,14 +53,14 @@ public class TransactionQueryGeneratedTest
             Fx.Chain.GetNextTxNonce(pk.Address),
             pk,
             Fx.Chain.Genesis.Hash,
-            ImmutableArray<SimpleAction>.Empty.Add(new SimpleAction1()).ToPlainValues());
+            new[] { new SimpleAction1() }.ToImmutableBytes());
         Fx.Chain.StageTransaction(stagingTx);
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);
         Assert.Equal("SUCCESS", queryResult.TxStatus);
         Assert.Equal(successBlock.Height, queryResult.BlockHeight);
         Assert.Equal(successBlock.Hash.ToString(), queryResult.BlockHash);
-        Assert.Equal(new string?[] { null , null }, queryResult.ExceptionNames);
+        Assert.Equal(new string?[] { null, null }, queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(failTx.Id);
         Assert.Equal("FAILURE", queryResult.TxStatus);
         Assert.Equal(failBlock.Height, queryResult.BlockHeight);

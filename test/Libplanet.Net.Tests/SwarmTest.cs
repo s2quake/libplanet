@@ -73,7 +73,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task CanNotStartTwice()
         {
-            Swarm swarm = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarm = await CreateSwarm();
 
             Task t = await Task.WhenAny(
                 swarm.StartAsync(),
@@ -92,13 +92,13 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task HandleReconnection()
         {
-            Swarm seed = await CreateSwarm().ConfigureAwait(false);
+            Swarm seed = await CreateSwarm();
 
             var privateKey = new PrivateKey();
             Swarm swarmA =
-                await CreateSwarm(privateKey: privateKey).ConfigureAwait(false);
+                await CreateSwarm(privateKey: privateKey);
             Swarm swarmB =
-                await CreateSwarm(privateKey: privateKey).ConfigureAwait(false);
+                await CreateSwarm(privateKey: privateKey);
 
             try
             {
@@ -123,8 +123,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task RunConsensusReactorIfOptionGiven()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmB = await CreateConsensusSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
+            Swarm swarmB = await CreateConsensusSwarm();
 
             await StartAsync(swarmA);
             await StartAsync(swarmB);
@@ -142,7 +142,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task StopAsyncTest()
         {
-            Swarm swarm = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarm = await CreateSwarm();
 
             await swarm.StopAsync();
             var task = await StartAsync(swarm);
@@ -161,7 +161,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task CanWaitForRunning()
         {
-            Swarm swarm = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarm = await CreateSwarm();
 
             Assert.False(swarm.Running);
 
@@ -185,8 +185,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task AddPeersWithoutStart()
         {
-            Swarm a = await CreateSwarm().ConfigureAwait(false);
-            Swarm b = await CreateSwarm().ConfigureAwait(false);
+            Swarm a = await CreateSwarm();
+            Swarm b = await CreateSwarm();
 
             try
             {
@@ -207,8 +207,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task AddPeersAsync()
         {
-            Swarm a = await CreateSwarm().ConfigureAwait(false);
-            Swarm b = await CreateSwarm().ConfigureAwait(false);
+            Swarm a = await CreateSwarm();
+            Swarm b = await CreateSwarm();
 
             try
             {
@@ -230,8 +230,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BootstrapException()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
+            Swarm swarmB = await CreateSwarm();
 
             try
             {
@@ -253,10 +253,10 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BootstrapAsyncWithoutStart()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmC = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmD = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
+            Swarm swarmB = await CreateSwarm();
+            Swarm swarmC = await CreateSwarm();
+            Swarm swarmD = await CreateSwarm();
 
             try
             {
@@ -307,9 +307,9 @@ namespace Libplanet.Net.Tests
                 IPAddress.Loopback.ToString(), new IceServer[] { }, 20_001);
 
             Swarm swarmA =
-                await CreateSwarm(keyA, hostOptions: hostOptionsA).ConfigureAwait(false);
+                await CreateSwarm(keyA, hostOptions: hostOptionsA);
             Swarm swarmB =
-                await CreateSwarm(hostOptions: hostOptionsB).ConfigureAwait(false);
+                await CreateSwarm(hostOptions: hostOptionsB);
             await StartAsync(swarmA);
             await StartAsync(swarmB);
 
@@ -327,7 +327,7 @@ namespace Libplanet.Net.Tests
                         ),
                     }.ToImmutableHashSet(),
                     StaticPeersMaintainPeriod = TimeSpan.FromMilliseconds(100),
-                }).ConfigureAwait(false);
+                });
 
             await StartAsync(swarm);
             await AssertThatEventually(() => swarm.Peers.Contains(swarmA.AsPeer), 5_000);
@@ -349,7 +349,7 @@ namespace Libplanet.Net.Tests
             Assert.Contains(swarmB.AsPeer, swarm.Peers);
 
             Swarm swarmC =
-                await CreateSwarm(keyA, hostOptions: hostOptionsA).ConfigureAwait(false);
+                await CreateSwarm(keyA, hostOptions: hostOptionsA);
             await StartAsync(swarmC);
             await AssertThatEventually(() => swarm.Peers.Contains(swarmB.AsPeer), 5_000);
             await AssertThatEventually(() => swarm.Peers.Contains(swarmC.AsPeer), 5_000);
@@ -362,7 +362,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task Cancel()
         {
-            Swarm swarm = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarm = await CreateSwarm();
             var cts = new CancellationTokenSource();
 
             Task task = await StartAsync(
@@ -414,7 +414,7 @@ namespace Libplanet.Net.Tests
                         9000 + i),
                     policy: policy,
                     genesis: genesis,
-                    consensusReactorOption: reactorOpts[i]).ConfigureAwait(false));
+                    consensusReactorOption: reactorOpts[i]));
             }
 
             try
@@ -496,10 +496,10 @@ namespace Libplanet.Net.Tests
             var keyA = new PrivateKey();
 
             Swarm swarmA =
-                await CreateSwarm(keyA).ConfigureAwait(false);
+                await CreateSwarm(keyA);
             Block genesis = swarmA.BlockChain.Genesis;
             Swarm swarmB =
-                await CreateSwarm(genesis: genesis).ConfigureAwait(false);
+                await CreateSwarm(genesis: genesis);
 
             BlockChain chainA = swarmA.BlockChain;
 
@@ -544,10 +544,10 @@ namespace Libplanet.Net.Tests
             var keyA = new PrivateKey();
             var keyB = new PrivateKey();
 
-            Swarm swarmA = await CreateSwarm(keyA).ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm(keyA);
             Block genesis = swarmA.BlockChain.Genesis;
             Swarm swarmB =
-                await CreateSwarm(keyB, genesis: genesis).ConfigureAwait(false);
+                await CreateSwarm(keyB, genesis: genesis);
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -603,17 +603,17 @@ namespace Libplanet.Net.Tests
         {
             var keyB = new PrivateKey();
 
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
             Block genesis = swarmA.BlockChain.Genesis;
             Swarm swarmB =
-                await CreateSwarm(keyB, genesis: genesis).ConfigureAwait(false);
+                await CreateSwarm(keyB, genesis: genesis);
             BlockChain chainB = swarmB.BlockChain;
 
             Transaction tx = Transaction.Create(
                 0,
                 new PrivateKey(),
                 chainB.Genesis.Hash,
-                Array.Empty<DumbAction>().ToPlainValues()
+                Array.Empty<DumbAction>().ToImmutableBytes()
             );
             chainB.StageTransaction(tx);
             Block block = chainB.ProposeBlock(keyB);
@@ -671,7 +671,7 @@ namespace Libplanet.Net.Tests
         {
             var expected = new DnsEndPoint("1.2.3.4", 5678);
             var hostOptions = new HostOptions("1.2.3.4", new IceServer[] { }, 5678);
-            Swarm s = await CreateSwarm(hostOptions: hostOptions).ConfigureAwait(false);
+            Swarm s = await CreateSwarm(hostOptions: hostOptions);
             Assert.Equal(expected, s.EndPoint);
             Assert.Equal(expected, s.AsPeer?.EndPoint);
             CleaningSwarm(s);
@@ -680,7 +680,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task StopGracefullyWhileStarting()
         {
-            Swarm a = await CreateSwarm().ConfigureAwait(false);
+            Swarm a = await CreateSwarm();
 
             Task t = await StartAsync(a);
             bool canceled = false;
@@ -700,7 +700,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task AsPeer()
         {
-            Swarm swarm = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarm = await CreateSwarm();
             Assert.IsType<BoundPeer>(swarm.AsPeer);
 
             await StartAsync(swarm);
@@ -854,8 +854,8 @@ namespace Libplanet.Net.Tests
             var key1 = new PrivateKey();
             var key2 = new PrivateKey();
 
-            var miner1 = await CreateSwarm(chain1, key1).ConfigureAwait(false);
-            var miner2 = await CreateSwarm(chain2, key2).ConfigureAwait(false);
+            var miner1 = await CreateSwarm(chain1, key1);
+            var miner2 = await CreateSwarm(chain2, key2);
 
             var privKey = new PrivateKey();
             var addr = miner1.Address;
@@ -916,14 +916,14 @@ namespace Libplanet.Net.Tests
                     fx1.Store,
                     fx1.StateStore,
                     privateKey: validKey))
-                .ConfigureAwait(false);
+;
             var swarmB = await CreateSwarm(
                 MakeBlockChain(
                     policy,
                     fx2.Store,
                     fx2.StateStore,
                     privateKey: validKey))
-                .ConfigureAwait(false);
+;
 
             var invalidKey = new PrivateKey();
 
@@ -1058,11 +1058,11 @@ namespace Libplanet.Net.Tests
                 genesisBlock: genesisBlockA);
 
             var swarmA =
-                await CreateSwarm(genesisChainA, privateKeyA).ConfigureAwait(false);
+                await CreateSwarm(genesisChainA, privateKeyA);
             var swarmB =
-                await CreateSwarm(genesisChainB, privateKeyB).ConfigureAwait(false);
+                await CreateSwarm(genesisChainB, privateKeyB);
             var swarmC =
-                await CreateSwarm(genesisChainC, privateKeyC).ConfigureAwait(false);
+                await CreateSwarm(genesisChainC, privateKeyC);
             try
             {
                 await StartAsync(swarmA);
@@ -1117,10 +1117,10 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task FindSpecificPeerAsync()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmC = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmD = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
+            Swarm swarmB = await CreateSwarm();
+            Swarm swarmC = await CreateSwarm();
+            Swarm swarmD = await CreateSwarm();
             try
             {
                 await StartAsync(swarmA);
@@ -1161,9 +1161,9 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task FindSpecificPeerAsyncFail()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmC = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
+            Swarm swarmB = await CreateSwarm();
+            Swarm swarmC = await CreateSwarm();
             try
             {
                 await StartAsync(swarmA);
@@ -1200,10 +1200,10 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task FindSpecificPeerAsyncDepthFail()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmC = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmD = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
+            Swarm swarmB = await CreateSwarm();
+            Swarm swarmC = await CreateSwarm();
+            Swarm swarmD = await CreateSwarm();
 
             _output.WriteLine("{0}: {1}", nameof(swarmA), swarmA.AsPeer);
             _output.WriteLine("{0}: {1}", nameof(swarmB), swarmB.AsPeer);
@@ -1250,8 +1250,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task DoNotFillWhenGetAllBlockAtFirstTimeFromSender()
         {
-            Swarm receiver = await CreateSwarm().ConfigureAwait(false);
-            Swarm sender = await CreateSwarm().ConfigureAwait(false);
+            Swarm receiver = await CreateSwarm();
+            Swarm sender = await CreateSwarm();
             await StartAsync(receiver);
             await StartAsync(sender);
 
@@ -1290,8 +1290,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task FillWhenGetAChunkOfBlocksFromSender()
         {
-            Swarm receiver = await CreateSwarm().ConfigureAwait(false);
-            Swarm sender = await CreateSwarm().ConfigureAwait(false);
+            Swarm receiver = await CreateSwarm();
+            Swarm sender = await CreateSwarm();
             await StartAsync(receiver);
             await StartAsync(sender);
 
@@ -1331,8 +1331,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task FillWhenGetAllBlocksFromSender()
         {
-            Swarm receiver = await CreateSwarm().ConfigureAwait(false);
-            Swarm sender = await CreateSwarm().ConfigureAwait(false);
+            Swarm receiver = await CreateSwarm();
+            Swarm sender = await CreateSwarm();
             await StartAsync(receiver);
             await StartAsync(sender);
 
@@ -1448,8 +1448,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task LastMessageTimestamp()
         {
-            Swarm swarm1 = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarm2 = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarm1 = await CreateSwarm();
+            Swarm swarm2 = await CreateSwarm();
 
             Assert.Null(swarm1.LastMessageTimestamp);
 

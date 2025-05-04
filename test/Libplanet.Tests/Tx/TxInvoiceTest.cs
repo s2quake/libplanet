@@ -22,7 +22,7 @@ namespace Libplanet.Tests.Tx
             var random = new System.Random();
             var genesisHash = random.NextBlockHash();
             var timestamp = DateTimeOffset.UtcNow;
-            var actions = ImmutableArray<IValue>.Empty;
+            var actions = ImmutableArray<IAction>.Empty.ToImmutableBytes();
 
             _ = new TxInvoice
             {
@@ -87,18 +87,18 @@ namespace Libplanet.Tests.Tx
             var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((random.NextAddress(), "foo")),
                 DumbAction.Create((random.NextAddress(), "bar")),
-            ]).ToPlainValues().ToImmutableArray();
+            ]).ToImmutableArray().ToImmutableArray();
             var invoice = new TxInvoice
             {
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions,
+                Actions = actions.ToImmutableBytes(),
             };
             Assert.Equal(genesisHash, invoice.GenesisHash);
             Assert.True(updatedAddresses.SetEquals(invoice.UpdatedAddresses));
             Assert.Equal(timestamp, invoice.Timestamp);
-            Assert.Equal(actions, invoice.Actions);
+            Assert.Equal(actions.ToImmutableBytes(), invoice.Actions);
         }
 
         [Fact]
@@ -125,19 +125,19 @@ namespace Libplanet.Tests.Tx
             var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((random.NextAddress(), "foo")),
                 DumbAction.Create((random.NextAddress(), "bar")),
-            ]).ToPlainValues().ToImmutableArray();
+            ]).ToImmutableArray().ToImmutableArray();
             var original = new TxInvoice
             {
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions,
+                Actions = actions.ToImmutableBytes(),
             };
             var copy = original with { };
             Assert.Equal(genesisHash, copy.GenesisHash);
             Assert.True(updatedAddresses.SetEquals(copy.UpdatedAddresses));
             Assert.Equal(timestamp, copy.Timestamp);
-            Assert.Equal(actions, copy.Actions);
+            Assert.Equal(actions.ToImmutableBytes(), copy.Actions);
         }
 
         [Fact]
@@ -150,20 +150,20 @@ namespace Libplanet.Tests.Tx
             var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((AddressA, "foo")),
                 DumbAction.Create((AddressB, "bar")),
-            ]).ToPlainValues().ToImmutableArray();
+            ]).ToImmutableArray().ToImmutableArray();
             var invoice1 = new TxInvoice
             {
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions,
+                Actions = actions.ToImmutableBytes(),
             };
             var invoice2 = new TxInvoice
             {
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions,
+                Actions = actions.ToImmutableBytes(),
             };
             Assert.True(invoice1.Equals(invoice2));
             Assert.True(invoice1.Equals((object)invoice2));
@@ -180,7 +180,7 @@ namespace Libplanet.Tests.Tx
                     GenesisHash = i == 0 ? default : genesisHash,
                     UpdatedAddresses = i == 1 ? [] : updatedAddresses,
                     Timestamp = i == 2 ? DateTimeOffset.MinValue : timestamp,
-                    Actions = i == 3 ? [] : actions,
+                    Actions = i == 3 ? [] : actions.ToImmutableBytes(),
                     MaxGasPrice = i == 4
                         ? FungibleAssetValue.Create(
                             Currency.Create("FOO", 18, [new PrivateKey().Address]),
@@ -204,13 +204,13 @@ namespace Libplanet.Tests.Tx
             var actions = ImmutableArray.Create<IAction>([
                 DumbAction.Create((AddressA, "foo")),
                 DumbAction.Create((AddressB, "bar")),
-            ]).ToPlainValues().ToImmutableArray();
+            ]).ToImmutableArray().ToImmutableArray();
             var invoice = new TxInvoice
             {
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions,
+                Actions = actions.ToImmutableBytes(),
                 MaxGasPrice = FungibleAssetValue.Create(
                     Currency.Create("FOO", 18, [AddressA]),
                     1234,

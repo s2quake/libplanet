@@ -6,6 +6,7 @@ using Libplanet.Types.Tx;
 using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
+using Libplanet.Action;
 
 namespace Libplanet.Benchmarks
 {
@@ -32,8 +33,7 @@ namespace Libplanet.Benchmarks
                 var blockTxs = new List<Transaction>();
                 for (int j = 0; j < i % 5; j++)
                 {
-                    blockTxs.Add(Transaction.Create(
-                        nonce++, key, genesis.Hash, List.Empty));
+                    blockTxs.Add(Array.Empty<IAction>().Create(nonce++, key, genesis.Hash));
                 }
                 block = TestUtils.ProposeNextBlock(
                     block, TestUtils.GenesisProposer, blockTxs);
@@ -72,7 +72,7 @@ namespace Libplanet.Benchmarks
         }
 
         [IterationSetup(
-            Targets = new []
+            Targets = new[]
             {
                 nameof(PutBlockOnManyBlocks),
                 nameof(GetOldBlockOutOfManyBlocks),
@@ -137,7 +137,7 @@ namespace Libplanet.Benchmarks
         }
 
         [IterationSetup(
-            Targets = new []
+            Targets = new[]
             {
                 nameof(PutTxOnManyTxs),
                 nameof(GetOldTxOutOfManyTxs),

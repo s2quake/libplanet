@@ -185,12 +185,9 @@ namespace Libplanet.Blockchain
 
         internal void ValidateBlockLoadActions(Block block)
         {
-            foreach (Transaction tx in block.Transactions)
+            foreach (var tx in block.Transactions)
             {
-                foreach (IValue rawAction in tx.Actions)
-                {
-                    _ = ModelSerializer.Deserialize<IAction>(rawAction);
-                }
+                _ = tx.Actions.FromImmutableBytes();
             }
         }
 

@@ -13,7 +13,6 @@ namespace Libplanet.Types.Tx;
 public sealed record class Transaction
     : IEquatable<Transaction>, IComparable<Transaction>, IComparable, IValidatableObject
 {
-    private static readonly Codec Codec = new();
     private TxId? _id;
 
     [JsonIgnore]
@@ -33,7 +32,7 @@ public sealed record class Transaction
 
     public ImmutableSortedSet<Address> UpdatedAddresses => UnsignedTx.UpdatedAddresses;
 
-    public ImmutableArray<IValue> Actions => UnsignedTx.Actions;
+    public ImmutableArray<ImmutableArray<byte>> Actions => UnsignedTx.Actions;
 
     public FungibleAssetValue? MaxGasPrice => UnsignedTx.MaxGasPrice;
 
@@ -56,14 +55,14 @@ public sealed record class Transaction
         long nonce,
         PrivateKey privateKey,
         BlockHash genesisHash,
-        IEnumerable<IValue> actions,
+        ImmutableArray<ImmutableArray<byte>> actions,
         FungibleAssetValue? maxGasPrice = null,
         long gasLimit = 0L,
         DateTimeOffset? timestamp = null)
     {
         var draftInvoice = new TxInvoice
         {
-            Actions = [.. actions],
+            Actions = actions,
             GenesisHash = genesisHash,
             Timestamp = timestamp ?? DateTimeOffset.UtcNow,
             MaxGasPrice = maxGasPrice ?? default,
