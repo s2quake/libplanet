@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 
@@ -11,10 +12,10 @@ public abstract record class ActionBase : IAction
     {
     }
 
-    void IAction.Execute(IWorldContext world, IActionContext context)
+    void IAction.Execute(IWorldContext worldContext, IActionContext actionContext)
     {
         UseGas(GetType());
-        OnExecute(world, context);
+        OnExecute(worldContext, actionContext);
     }
 
     protected abstract void OnExecute(IWorldContext world, IActionContext context);

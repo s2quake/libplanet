@@ -25,18 +25,21 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void StageTransactionWithDifferentGenesis()
         {
-            Transaction tx1 = new List<DumbAction>().Create(
+            Transaction tx1 = Transaction.Create(
                 0,
                 new PrivateKey(),
-                _blockChain.Genesis.Hash);
-            Transaction tx2 = new List<DumbAction>().Create(
+                _blockChain.Genesis.Hash,
+                []);
+            Transaction tx2 = Transaction.Create(
                 0,
                 new PrivateKey(),
-                default);
-            Transaction tx3 = new List<DumbAction>().Create(
+                default,
+                []);
+            Transaction tx3 = Transaction.Create(
                 0,
                 new PrivateKey(),
-                default(BlockHash));
+                default(BlockHash),
+                []);
 
             Assert.True(_blockChain.StageTransaction(tx1));
             Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);

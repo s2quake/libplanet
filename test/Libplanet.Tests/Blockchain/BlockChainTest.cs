@@ -232,10 +232,11 @@ public partial class BlockChainTest : IDisposable
                 TargetAddress = _fx.Address1,
             },
         ];
-        var tx1 = actions1.Create(
+        var tx1 = Transaction.Create(
             0,
             new PrivateKey(),
-            genesisBlock.Hash);
+            genesisBlock.Hash,
+            actions1.ToBytecodes());
 
         chain.StageTransaction(tx1);
         Block block1 = chain.ProposeBlock(new PrivateKey());
@@ -259,10 +260,11 @@ public partial class BlockChainTest : IDisposable
                 TargetAddress = _fx.Address1,
             },
         ];
-        var tx2 = actions2.Create(
+        var tx2 = Transaction.Create(
             0,
             new PrivateKey(),
-            genesisBlock.Hash);
+            genesisBlock.Hash,
+            actions2.ToBytecodes());
 
         chain.StageTransaction(tx2);
         Block block2 = chain.ProposeBlock(
@@ -569,10 +571,11 @@ public partial class BlockChainTest : IDisposable
             ProposeGenesis(
                 GenesisProposer.PublicKey,
                 [
-                    Array.Empty<DumbAction>().Create(
+                    Transaction.Create(
                         0,
                         new PrivateKey(),
-                        default),
+                        default,
+                        []),
                 ]),
             GenesisProposer);
         var chain = BlockChain.Create(
@@ -618,7 +621,7 @@ public partial class BlockChainTest : IDisposable
             };
             Transaction[] txs =
             {
-                actions.Create(0, privateKey, chain.Genesis.Hash),
+                Transaction.Create(0, privateKey, chain.Genesis.Hash, actions.ToBytecodes()),
             };
             b = chain.ProposeBlock(
                 _fx.Proposer,
@@ -1024,12 +1027,12 @@ public partial class BlockChainTest : IDisposable
         var transaction = txs[0];
         Assert.Equal(0, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(ModelSerializer.SerializeToImmutableBytes(action), transaction.Actions[0]);
+        Assert.Equal(action.ToBytecode(), transaction.Actions[0]);
 
         transaction = txs[1];
         Assert.Equal(1, transaction.Nonce);
         Assert.Equal(address, transaction.Signer);
-        Assert.Equal(ModelSerializer.SerializeToImmutableBytes(action), transaction.Actions[0]);
+        Assert.Equal(action.ToBytecode(), transaction.Actions[0]);
     }
 
     [SkippableFact]
@@ -1525,10 +1528,11 @@ public partial class BlockChainTest : IDisposable
             });
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
-        var genesisTx = Array.Empty<IAction>().Create(
+        var genesisTx = Transaction.Create(
             0,
             new PrivateKey(),
-            default);
+            default,
+            actions: []);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);

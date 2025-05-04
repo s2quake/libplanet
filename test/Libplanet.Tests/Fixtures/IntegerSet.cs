@@ -104,7 +104,7 @@ public sealed class IntegerSet
         Address signerAddress = signer.Address;
         KeyBytes rawStateKey = KeyConverters.ToStateKey(signerAddress);
         long nonce = Chain.GetNextTxNonce(signerAddress);
-        Transaction tx = actions.Create(nonce, signer, Genesis.Hash);
+        Transaction tx = Transaction.Create(nonce, signer, Genesis.Hash, actions.ToBytecodes());
         BigInteger prevState = Chain.GetNextWorldState().GetAccount(
             ReservedAddresses.LegacyAccount).GetValue(signerAddress) is Bencodex.Types.Integer i
                 ? i.Value
@@ -118,7 +118,7 @@ public sealed class IntegerSet
             .SelectMany(t => t.Actions)
             .Aggregate(prevPair, (prev, act) =>
             {
-                var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act);
+                var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes);
                 BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
                 var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
                     .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
@@ -134,7 +134,7 @@ public sealed class IntegerSet
                 ImmutableArray.Create(stagedStates),
                 (delta, act) =>
                 {
-                    var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act);
+                    var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes);
                     BigInteger nextState =
                         a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
                     var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty

@@ -145,7 +145,7 @@ namespace Libplanet.Explorer.Queries
                     var invoice = new TxInvoice
                     {
                         GenesisHash = chain.Genesis.Hash,
-                        Actions = ImmutableArray.Create<ImmutableArray<byte>>(plainBytes.ToImmutableArray()),
+                        Actions = [new ActionBytecode([.. plainBytes])],
                     };
                     var unsignedTx = new UnsignedTx
                     {

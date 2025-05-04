@@ -588,7 +588,7 @@ public partial class ActionEvaluatorTest
             Assert.Equal(block1Txs[expect.TxIdx].Id, eval.InputContext.TxId);
             Assert.Equal(
                 block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
-                ModelSerializer.SerializeToImmutableBytes(eval.Action));
+                eval.Action.ToBytecode());
             Assert.Equal(expect.Signer, eval.InputContext.Signer);
             Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
             Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
@@ -750,7 +750,7 @@ public partial class ActionEvaluatorTest
             Assert.Equal(block2Txs[expect.TxIdx].Id, eval.InputContext.TxId);
             Assert.Equal(
                 block2Txs[expect.TxIdx].Actions[expect.ActionIdx],
-                ModelSerializer.SerializeToBytes(eval.Action));
+                eval.Action.ToBytecode());
             Assert.Equal(expect.Signer, eval.InputContext.Signer);
             Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
             Assert.Equal(block2.Height, eval.InputContext.BlockHeight);
@@ -789,7 +789,7 @@ public partial class ActionEvaluatorTest
                 transfer: (addresses[1], addresses[0], 10)),
             DumbAction.Create((addresses[2], "R")),
         ];
-        var tx = actions.Create(0, _txFx.PrivateKey1, default);
+        var tx = Transaction.Create(0, _txFx.PrivateKey1, default, actions.ToBytecodes());
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
         var block = RawBlock.Propose(
@@ -847,7 +847,7 @@ public partial class ActionEvaluatorTest
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
 
-            Assert.Equal(tx.Actions[i], ModelSerializer.SerializeToBytes(eval.Action));
+            Assert.Equal(tx.Actions[i], eval.Action.ToBytecode());
             Assert.Equal(_txFx.Address1, context.Signer);
             Assert.Equal(tx.Id, context.TxId);
             Assert.Equal(addresses[0], context.Proposer);
@@ -954,7 +954,7 @@ public partial class ActionEvaluatorTest
             block: (RawBlock)blockA,
             tx: txA,
             world: fx.StateStore.GetWorld(blockA.StateRootHash),
-            actions: txA.Actions.FromImmutableBytes());
+            actions: txA.Actions);
 
         Assert.Equal(evalsA.Length, deltaA.Count - 1);
         Assert.Equal(
@@ -972,7 +972,7 @@ public partial class ActionEvaluatorTest
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, txA.Actions[i]);
 
-            Assert.Equal(txA.Actions[i], ModelSerializer.SerializeToImmutableBytes(eval.Action));
+            Assert.Equal(txA.Actions[i], eval.Action.ToBytecode());
             Assert.Equal(txA.Id, context.TxId);
             Assert.Equal(blockA.Proposer, context.Proposer);
             Assert.Equal(blockA.Height, context.BlockHeight);
@@ -1006,7 +1006,7 @@ public partial class ActionEvaluatorTest
             block: (RawBlock)blockB,
             tx: txB,
             world: fx.StateStore.GetWorld(blockB.StateRootHash),
-            actions: txB.Actions.FromImmutableBytes());
+            actions: txB.Actions);
 
         Assert.Equal(evalsB.Length, deltaB.Count - 1);
         Assert.Equal(
@@ -1024,7 +1024,7 @@ public partial class ActionEvaluatorTest
             _logger.Debug("evalsB[{0}] = {@1}", i, eval);
             _logger.Debug("txB.Actions[{0}] = {@1}", i, txB.Actions[i]);
 
-            Assert.Equal(txB.Actions[i], ModelSerializer.SerializeToImmutableBytes(eval.Action));
+            Assert.Equal(txB.Actions[i], eval.Action.ToBytecode());
             Assert.Equal(txB.Id, context.TxId);
             Assert.Equal(blockB.Proposer, context.Proposer);
             Assert.Equal(blockB.Height, context.BlockHeight);
@@ -1442,10 +1442,11 @@ public partial class ActionEvaluatorTest
             },
             store: store,
             stateStore: stateStore);
-        var tx = new[] { payGasAction, }.Create(
+        var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,
             genesisHash: chain.Genesis.Hash,
+            actions: new[] { payGasAction }.ToBytecodes(),
             maxGasPrice: FungibleAssetValue.Create(foo, 1),
             gasLimit: 5);
 
@@ -1507,7 +1508,7 @@ public partial class ActionEvaluatorTest
             block: (RawBlock)block,
             tx: tx,
             world: fx.StateStore.GetWorld(block.StateRootHash),
-            actions: tx.Actions.FromImmutableBytes());
+            actions: tx.Actions);
 
         byte[] preEvaluationHashBytes = block.RawHash.Bytes.ToArray();
         var randomSeeds = Enumerable
