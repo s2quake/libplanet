@@ -43,14 +43,14 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         if (policyActions.BeginBlockActions.Length > 0)
         {
             evaluationsList.AddRange(EvaluateBeginBlockActions(block, world));
-            world = evaluationsList.Last().OutputWorld;
+            world = evaluationsList[^1].OutputWorld;
         }
 
         evaluationsList.AddRange([.. EvaluateBlock(block, world)]);
 
         if (policyActions.EndBlockActions.Length > 0)
         {
-            world = evaluationsList.Count > 0 ? evaluationsList.Last().OutputWorld : world;
+            world = evaluationsList.Count > 0 ? evaluationsList[^1].OutputWorld : world;
             evaluationsList.AddRange(EvaluateEndBlockActions(block, world));
         }
 
@@ -177,7 +177,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         {
             GasTracer.IsTxAction = true;
             evaluationList.AddRange(EvaluateBeginTxActions(block, tx, world));
-            world = evaluationList.Last().OutputWorld;
+            world = evaluationList[^1].OutputWorld;
             GasTracer.IsTxAction = false;
         }
 
@@ -187,7 +187,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         if (policyActions.EndTxActions.Length > 0)
         {
             GasTracer.IsTxAction = true;
-            world = evaluationList.Count > 0 ? evaluationList.Last().OutputWorld : world;
+            world = evaluationList.Count > 0 ? evaluationList[^1].OutputWorld : world;
             evaluationList.AddRange(EvaluateEndTxActions(block, tx, world));
             GasTracer.IsTxAction = false;
         }

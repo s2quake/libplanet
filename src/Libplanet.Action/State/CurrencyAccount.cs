@@ -165,14 +165,4 @@ public sealed record class CurrencyAccount(ITrie Trie, Address Signer, Currency 
 
     private BigInteger GetRawTotalSupply()
         => Trie.GetValue(KeyConverters.ToStateKey(TotalSupplyAddress), (Integer)0).Value;
-
-    private void CheckCurrency(Currency currency)
-    {
-        if (!Currency.Equals(currency))
-        {
-            throw new ArgumentException(
-                $"Given currency {currency} should match the account's currency {Currency}.",
-                nameof(currency));
-        }
-    }
 }

@@ -16,24 +16,4 @@ public static class ActionsExtensions
 
     public static ActionBytecode ToBytecode(this IAction action)
         => new(ModelSerializer.SerializeToImmutableBytes(action));
-
-    // public static Transaction Create(
-    //     this IEnumerable<IAction> actions,
-    //     long nonce,
-    //     PrivateKey privateKey,
-    //     BlockHash genesisHash,
-    //     FungibleAssetValue? maxGasPrice = null,
-    //     long gasLimit = 0L,
-    //     DateTimeOffset? timestamp = null)
-    // {
-    //     return Transaction.Create(
-    //         nonce,
-    //         privateKey,
-    //         genesisHash,
-    //         actions.ToImmutableBytes(),
-    //         maxGasPrice,
-    //         gasLimit,
-    //         timestamp);
-    // }
-
 }
