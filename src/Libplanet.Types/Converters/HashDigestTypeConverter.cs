@@ -52,7 +52,14 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
     private static object ConvertFromString(string @string, Type type)
     {
         var methodInfo = GetParseMethod(type);
-        return methodInfo.Invoke(null, [@string])!;
+        try
+        {
+            return methodInfo.Invoke(null, [@string])!;
+        }
+        catch (TargetInvocationException e) when (e.InnerException is FormatException fe)
+        {
+            throw fe;
+        }
     }
 
     private static object ConvertFromBinary(Binary binary, Type type)

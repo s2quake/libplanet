@@ -118,21 +118,14 @@ public class HashDigestTest
     [Fact]
     public void TypeConverter()
     {
-        TypeConverter converter = TypeDescriptor.GetConverter(typeof(HashDigest<SHA1>));
+        var converter = TypeDescriptor.GetConverter(typeof(HashDigest<SHA1>));
         var sha1 = HashDigest<SHA1>.Parse("62cdb7020ff920e5aa642c3d4066950dd1f01f4d");
         Assert.True(converter.CanConvertFrom(typeof(string)));
-        Assert.Equal(
-            sha1,
-            converter.ConvertFrom("62cdb7020ff920e5aa642c3d4066950dd1f01f4d"));
-        Assert.Equal(
-            sha1,
-            converter.ConvertFrom("62CDB7020FF920E5AA642C3D4066950DD1F01F4D"));
+        Assert.Equal(sha1, converter.ConvertFrom("62cdb7020ff920e5aa642c3d4066950dd1f01f4d"));
+        Assert.Equal(sha1, converter.ConvertFrom("62CDB7020FF920E5AA642C3D4066950DD1F01F4D"));
         Assert.Throws<FormatException>(() => converter.ConvertFrom("INVALID"));
-
         Assert.True(converter.CanConvertTo(typeof(string)));
-        Assert.Equal(
-            "62cdb7020ff920e5aa642c3d4066950dd1f01f4d",
-            converter.ConvertTo(sha1, typeof(string)));
+        Assert.Equal("62cdb7020ff920e5aa642c3d4066950dd1f01f4d", converter.ConvertTo(sha1, typeof(string)));
     }
 
     [SkippableFact]
