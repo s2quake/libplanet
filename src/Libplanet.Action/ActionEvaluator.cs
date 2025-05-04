@@ -37,31 +37,36 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
 
     public CommittedActionEvaluation[] Evaluate(RawBlock block, HashDigest<SHA256> baseStateRootHash)
     {
-        try
+        var world = stateStore.GetWorld(baseStateRootHash);
+        int capacity = GetCapacity(block);
+        var evaluationsList = new List<ActionEvaluation>(capacity);
+        if (policyActions.BeginBlockActions.Length > 0)
         {
-            var world = stateStore.GetWorld(baseStateRootHash);
-            int capacity = GetCapacity(block);
-            var evaluationsList = new List<ActionEvaluation>(capacity);
-            if (policyActions.BeginBlockActions.Length > 0)
-            {
-                evaluationsList.AddRange(EvaluateBeginBlockActions(block, world));
-                world = evaluationsList.Last().OutputWorld;
-            }
-
-            evaluationsList.AddRange([.. EvaluateBlock(block, world)]);
-
-            if (policyActions.EndBlockActions.Length > 0)
-            {
-                world = evaluationsList.Count > 0 ? evaluationsList.Last().OutputWorld : world;
-                evaluationsList.AddRange(EvaluateEndBlockActions(block, world));
-            }
-
-            return [.. evaluationsList.Select(item => (CommittedActionEvaluation)item)];
+            evaluationsList.AddRange(EvaluateBeginBlockActions(block, world));
+            world = evaluationsList.Last().OutputWorld;
         }
-        catch (Exception)
+
+        evaluationsList.AddRange([.. EvaluateBlock(block, world)]);
+
+        if (policyActions.EndBlockActions.Length > 0)
         {
-            throw;
+            world = evaluationsList.Count > 0 ? evaluationsList.Last().OutputWorld : world;
+            evaluationsList.AddRange(EvaluateEndBlockActions(block, world));
         }
+
+        return [.. evaluationsList.Select(item => (CommittedActionEvaluation)item)];
+    }
+
+    internal ActionEvaluation[] EvaluateActions(
+        RawBlock block, Transaction? tx, World world, ImmutableArray<ActionBytecode> actions)
+    {
+        var builder = ImmutableArray.CreateBuilder<IAction>(actions.Length);
+        for (var i = 0; i < actions.Length; i++)
+        {
+            builder.Add(actions[i].ToAction<IAction>());
+        }
+
+        return EvaluateActions(block, tx, world, builder.ToImmutable());
     }
 
     internal ActionEvaluation[] EvaluateActions(

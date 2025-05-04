@@ -17,12 +17,12 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void Lifetime()
         {
             TimeSpan timeBuffer = TimeSpan.FromSeconds(1);
-            Transaction tx = Array.Empty<DumbAction>().Create(
+            Transaction tx = Transaction.Create(
                 0,
                 _key,
                 _fx.GenesisBlock.Hash,
-                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer
-            );
+                [],
+                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer);
             Assert.True(_stagePolicy.Stage(_chain, tx));
             Assert.Equal(tx, _stagePolicy.Get(_chain, tx.Id));
             Assert.Contains(tx, _stagePolicy.Iterate(_chain));
@@ -38,10 +38,11 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void MaxLifetime()
         {
             var stagePolicy = new VolatileStagePolicy(TimeSpan.MaxValue);
-            Transaction tx = Array.Empty<DumbAction>().Create(
+            Transaction tx = Transaction.Create(
                 0,
                 _key,
-                _fx.GenesisBlock.Hash);
+                _fx.GenesisBlock.Hash,
+                []);
             Assert.True(stagePolicy.Stage(_chain, tx));
         }
 
@@ -49,18 +50,18 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void StageUnstage()
         {
             TimeSpan timeBuffer = TimeSpan.FromSeconds(1);
-            Transaction validTx = Array.Empty<DumbAction>().Create(
+            Transaction validTx = Transaction.Create(
                 0,
                 _key,
                 _fx.GenesisBlock.Hash,
-                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer
-            );
-            Transaction staleTx = Array.Empty<DumbAction>().Create(
+                [],
+                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer);
+            Transaction staleTx = Transaction.Create(
                 0,
                 _key,
                 _fx.GenesisBlock.Hash,
-                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime - timeBuffer
-            );
+                [],
+                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime - timeBuffer);
 
             Assert.False(_stagePolicy.Stage(_chain, staleTx));
             Assert.True(_stagePolicy.Stage(_chain, validTx));

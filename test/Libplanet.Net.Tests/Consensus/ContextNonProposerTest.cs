@@ -413,7 +413,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     GenesisHash = blockChain.Genesis.Hash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Actions = [[0x01]], // Invalid action
+                    Actions = [new ActionBytecode([0x01])], // Invalid action
                 },
                 SigningMetadata = new TxSigningMetadata
                 {

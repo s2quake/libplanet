@@ -946,10 +946,11 @@ namespace Libplanet.Net.Tests
                 privateKey,
                 new[] { DumbAction.Create((address, "quz")) });
 
-            var tx4 = new[] { DumbAction.Create((address, "qux")) }.Create(
+            var tx4 = Transaction.Create(
                 4,
                 privateKey,
-                swarm1.BlockChain.Genesis.Hash);
+                swarm1.BlockChain.Genesis.Hash,
+                new[] { DumbAction.Create((address, "qux")) }.ToBytecodes());
 
             try
             {

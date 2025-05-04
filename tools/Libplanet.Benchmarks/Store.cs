@@ -33,7 +33,7 @@ namespace Libplanet.Benchmarks
                 var blockTxs = new List<Transaction>();
                 for (int j = 0; j < i % 5; j++)
                 {
-                    blockTxs.Add(Array.Empty<IAction>().Create(nonce++, key, genesis.Hash));
+                    blockTxs.Add(Transaction.Create(nonce++, key, genesis.Hash, []));
                 }
                 block = TestUtils.ProposeNextBlock(
                     block, TestUtils.GenesisProposer, blockTxs);

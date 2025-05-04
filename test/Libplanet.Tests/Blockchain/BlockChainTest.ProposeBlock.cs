@@ -454,10 +454,11 @@ public partial class BlockChainTest
         StageTransactions(
             new[]
             {
-                Array.Empty<DumbAction>().Create(
+                Transaction.Create(
                     0,
                     key,
-                    _blockChain.Genesis.Hash),
+                    _blockChain.Genesis.Hash,
+                    actions: []),
             }
         );
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
@@ -467,10 +468,11 @@ public partial class BlockChainTest
         StageTransactions(
             new[]
             {
-                Array.Empty<DumbAction>().Create(
+                Transaction.Create(
                     0,
                     key,
-                    _blockChain.Genesis.Hash),
+                    _blockChain.Genesis.Hash,
+                    actions: []),
             }
         );
         Block block2 = _blockChain.ProposeBlock(
@@ -746,7 +748,7 @@ public partial class BlockChainTest
             {
                 GenesisHash = _blockChain.Genesis.Hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Actions = [[0x1]], // Invalid action
+                Actions = [new ActionBytecode([0x11])], // Invalid action
             },
             SigningMetadata = new TxSigningMetadata
             {
@@ -759,26 +761,30 @@ public partial class BlockChainTest
             UnsignedTx = unsignedInvalidTx,
             Signature = unsignedInvalidTx.CreateSignature(keyB),
         };
-        Transaction txWithInvalidNonce = Array.Empty<DumbAction>().Create(
-            2, keyB, _blockChain.Genesis.Hash);
+        Transaction txWithInvalidNonce = Transaction.Create(
+            2, keyB, _blockChain.Genesis.Hash, []);
         var txs = new[]
         {
-            Array.Empty<DumbAction>().Create(
+            Transaction.Create(
                 0,
                 keyA,
-                _blockChain.Genesis.Hash),
-            Array.Empty<DumbAction>().Create(
+                _blockChain.Genesis.Hash,
+                []),
+            Transaction.Create(
                 1,
                 keyA,
-                _blockChain.Genesis.Hash),
-            Array.Empty<DumbAction>().Create(
+                _blockChain.Genesis.Hash,
+                []),
+            Transaction.Create(
                 2,
                 keyA,
-                _blockChain.Genesis.Hash),
-            Array.Empty<DumbAction>().Create(
+                _blockChain.Genesis.Hash,
+                []),
+            Transaction.Create(
                 0,
                 keyB,
-                _blockChain.Genesis.Hash),
+                _blockChain.Genesis.Hash,
+                []),
             txWithInvalidAction,
             txWithInvalidNonce,
         };

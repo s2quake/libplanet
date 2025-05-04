@@ -1,21 +1,21 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Assets;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 
 public static class ActionsExtensions
 {
-    public static IEnumerable<ActionBytecode> ToBytecodes(this IEnumerable<IAction> actions)
-        => actions.Select(item => item.ToBytecode());
+    public static ImmutableArray<ActionBytecode> ToBytecodes(this IEnumerable<IAction> actions)
+        => [.. actions.Select(item => item.ToBytecode())];
 
-    public static ImmutableArray<IAction> FromImmutableBytes(this ImmutableArray<ImmutableArray<byte>> bytes)
-        => [.. bytes.Select(ModelSerializer.DeserializeFromBytes<IAction>)];
+    public static ImmutableArray<IAction> FromImmutableBytes(this ImmutableArray<ActionBytecode> bytecodes)
+        => [.. bytecodes.Select(item => ModelSerializer.DeserializeFromBytes<IAction>(item.Bytes))];
 
     public static T ToAction<T>(this ActionBytecode actionBytecode)
         where T : IAction => ModelSerializer.DeserializeFromBytes<T>(actionBytecode.Bytes);
+
+    public static ActionBytecode ToBytecode(this IAction action)
+        => new(ModelSerializer.SerializeToImmutableBytes(action));
 
     // public static Transaction Create(
     //     this IEnumerable<IAction> actions,
