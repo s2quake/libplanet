@@ -35,7 +35,7 @@ public static class ModelSerializer
 
     public static bool TryGetType(IValue value, [MaybeNullWhen(false)] out Type type)
     {
-        if (ModelData.TryGetObject(value, out var data))
+        if (ModelData.TryGetData(value, out var data))
         {
             var header = data.Header;
             return TypeUtility.TryGetType(header.TypeName, out type);
@@ -110,7 +110,7 @@ public static class ModelSerializer
 
     public static object? Deserialize(IValue value, ModelOptions options)
     {
-        var data = ModelData.GetObject(value);
+        var data = ModelData.GetData(value);
         var header = data.Header;
         var headerType = Type.GetType(header.TypeName)
             ?? throw new ModelSerializationException($"Given type name {header.TypeName} is not found");
@@ -203,7 +203,9 @@ public static class ModelSerializer
             {
                 var item = propertyInfo.GetValue(obj);
                 var itemType = propertyInfo.PropertyType;
-                var serialized = SerializeRawValue(item, itemType, options);
+                var actualType = GetPropertyType(propertyInfo, item);
+                var serialized = itemType != actualType
+                    ? Serialize(item) : SerializeRawValue(item, itemType, options);
                 itemList.Add(serialized);
             }
 
@@ -307,7 +309,8 @@ public static class ModelSerializer
                 var itemInfo = itemInfos[i];
                 var itemType = itemInfo.PropertyType;
                 var serializedValue = list[i];
-                var itemValue = DeserializeRawValue(serializedValue, itemType, options);
+                var itemValue = ModelData.IsData(serializedValue)
+                    ? Deserialize(serializedValue) : DeserializeRawValue(serializedValue, itemType, options);
                 itemInfo.SetValue(obj, itemValue);
             }
 
@@ -326,7 +329,8 @@ public static class ModelSerializer
                 var itemInfo = itemInfos[i];
                 var itemType = itemInfo.PropertyType;
                 var serializedValue = list[i];
-                var itemValue = DeserializeRawValue(serializedValue, itemType, options);
+                var itemValue = ModelData.IsData(serializedValue)
+                    ? Deserialize(serializedValue) : DeserializeRawValue(serializedValue, itemType, options);
                 itemInfo.SetValue(obj, itemValue);
             }
 
@@ -486,5 +490,23 @@ public static class ModelSerializer
         }
 
         throw new ModelCreationException(type);
+    }
+
+    private static Type GetPropertyType(PropertyInfo propertyInfo, object? value)
+    {
+        var type = propertyInfo.PropertyType;
+        if (type == typeof(object) || type.IsAbstract || type.IsInterface)
+        {
+            var propertyAttribute = propertyInfo.GetCustomAttribute<PropertyAttribute>()
+                ?? throw new ModelSerializationException(
+                    $"The property {propertyInfo.Name} of {propertyInfo.DeclaringType} " +
+                    "must be decorated with PropertyAttribute.");
+            if (value is not null && propertyAttribute.KnownTypes.Contains(value.GetType()))
+            {
+                type = value.GetType();
+            }
+        }
+
+        return type;
     }
 }
