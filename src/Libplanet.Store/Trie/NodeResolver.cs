@@ -32,23 +32,18 @@ internal static class NodeResolver
 
         return node switch
         {
-            ValueNode _ => throw new KeyNotFoundException(
-                $"Invalid node value: {node.ToBencodex().Inspect()}"),
+            ValueNode => NullNode.Value,
             ShortNode shortNode
                 => cursor.NextNibbles.StartsWith(shortNode.Key)
                     ? ResolveToNode(shortNode.Value, cursor.Next(shortNode.Key.Length))
-                    : throw new KeyNotFoundException(
-                        $"Invalid node value: {node.ToBencodex().Inspect()}"),
+                    : NullNode.Value,
             FullNode fullNode
-                => ResolveToNode(fullNode.Children[cursor.Current], cursor.Next(1)),
+                => fullNode.GetChild(cursor.Current) is {} child
+                    ? ResolveToNode(child, cursor.Next(1))
+                    : NullNode.Value,
             HashNode hashNode => ResolveToNode(hashNode.Expand(), cursor),
-            _ => throw new InvalidTrieNodeException(
-                $"An unknown type of node was encountered " +
-                $"at {cursor.SubNibbles(cursor.Position):h}: {node.GetType()}"),
+            NullNode _ => NullNode.Value,
+            _ => throw new UnreachableException("An unknown type of node was encountered."),
         };
     }
-
-    private static IValue ThrowKeyNotFoundException(INode node)
-        => throw new KeyNotFoundException(
-            $"Invalid node value: {node.ToBencodex().Inspect()}");
 }

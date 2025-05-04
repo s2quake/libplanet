@@ -80,27 +80,35 @@ public sealed partial record class Trie(INode Node) : ITrie
     }
 
     public INode GetNode(in Nibbles key)
-        => NodeResolver.ResolveToNode(Node, new PathCursor(key));
+    {
+        var node = NodeResolver.ResolveToNode(Node, new PathCursor(key));
+        if (node is NullNode)
+        {
+            throw new KeyNotFoundException($"Key {key} not found in the trie.");
+        }
+
+        return node;
+    }
 
     public INode GetNode(in KeyBytes key)
     {
         var nibbles = Nibbles.FromKeyBytes(key);
-        return GetNode(nibbles) ?? throw new KeyNotFoundException();
+        return GetNode(nibbles);
     }
 
     public bool TryGetNode(in KeyBytes key, [MaybeNullWhen(false)] out INode node)
+        => TryGetNode(Nibbles.FromKeyBytes(key), out node);
+
+    public bool TryGetNode(in Nibbles key, [MaybeNullWhen(false)] out INode node)
     {
-        var nibbles = Nibbles.FromKeyBytes(key);
-        try
+        node = NodeResolver.ResolveToNode(Node, new PathCursor(key));
+        if (node is not NullNode)
         {
-            node = GetNode(nibbles);
             return true;
         }
-        catch (KeyNotFoundException)
-        {
-            node = null;
-            return false;
-        }
+
+        node = null;
+        return false;
     }
 
     public bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value)

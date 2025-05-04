@@ -7,7 +7,7 @@ public partial record class Trie : ITrie
 {
     public IEnumerable<(KeyBytes Path, IValue? TargetValue, IValue SourceValue)> Diff(ITrie other)
     {
-        if (Node is null)
+        if (Node is NullNode)
         {
             yield break;
         }
@@ -18,9 +18,8 @@ public partial record class Trie : ITrie
         while (queue.Count > 0)
         {
             (INode node, Nibbles path) = queue.Dequeue();
-            INode? target = other.GetNode(path);
 
-            if (target is { } targetNode)
+            if (other.TryGetNode(path, out var targetNode))
             {
                 switch (node)
                 {
@@ -74,7 +73,6 @@ public partial record class Trie : ITrie
                                 }
 
                                 continue;
-
                             default:
                                 throw new InvalidTrieNodeException(
                                     $"Unknown node type encountered at {path:h}: " +
@@ -125,21 +123,12 @@ public partial record class Trie : ITrie
         }
     }
 
-    /// <summary>
-    /// Returns the value at the root of <paramref name="node"/>.
-    /// Note that only <see cref="ValueNode"/>s and <see cref="FullNode"/>s are allowed to
-    /// have a value at its root.  If <paramref name="node"/> is a <see cref="HashNode"/>,
-    /// its unhashed version is checked.
-    /// </summary>
-    /// <param name="node">The <see cref="INode"/> to check.</param>
-    /// <returns>The value associated with the root of <paramref name="node"/>.
-    /// If no such value exists, then <see langword="null"/>.</returns>
-    private IValue? ValueAtNodeRoot(INode node) => node switch
+    private static IValue? ValueAtNodeRoot(INode node) => node switch
     {
-        // HashNode hashNode => ValueAtNodeRoot(hashNode.Expand(keyValueStore)),
-        HashNode hashNode => throw new NotSupportedException("HashNode comparison is not supported yet."),
+        HashNode hashNode => ValueAtNodeRoot(hashNode.Expand()),
         ValueNode valueNode => valueNode.Value,
         FullNode fullNode => fullNode.Value is ValueNode valueNode ? valueNode.Value : null,
+        NullNode => null,
         _ => null,
     };
 }

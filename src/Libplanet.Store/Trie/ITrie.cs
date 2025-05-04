@@ -31,6 +31,8 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
 
     INode GetNode(in KeyBytes key);
 
+    bool TryGetNode(in Nibbles key, [MaybeNullWhen(false)] out INode node);
+
     bool TryGetNode(in KeyBytes key, [MaybeNullWhen(false)] out INode node);
 
     bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value);
