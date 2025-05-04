@@ -16,8 +16,8 @@ public sealed record class ContextRecordingAction : ActionBase
     [Property(0)]
     public Address Address { get; init; }
 
-    [Property(1)]
-    public required IValue Value { get; init; }
+    [Property(1, KnownTypes = new[] { typeof(int), typeof(string) })]
+    public required object Value { get; init; }
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {

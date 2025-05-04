@@ -5,26 +5,43 @@ namespace Libplanet.Serialization;
 
 internal sealed record class ModelData : IBencodable
 {
-    private const int ElementCount = 2;
+    private const int ElementCount = 3;
+    public static readonly byte[] MagicValue = "LPNT"u8.ToArray();
 
     public required ModelHeader Header { get; init; }
 
     public required IValue Value { get; init; }
 
     public IValue Bencoded => new List(
+        new Binary(MagicValue),
         Header.Bencoded,
         Value);
 
-    public static bool TryGetObject(IValue value, [MaybeNullWhen(false)] out ModelData data)
+    public static bool IsData(IValue value)
     {
         if (value is List list
             && list.Count == ElementCount
-            && ModelHeader.TryGetHeader(list[0], out var header))
+            && list[0] is Binary binary
+            && binary.ByteArray.AsSpan().SequenceEqual(MagicValue))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool TryGetData(IValue value, [MaybeNullWhen(false)] out ModelData data)
+    {
+        if (value is List list
+            && list.Count == ElementCount
+            && list[0] is Binary binary
+            && binary.ByteArray.AsSpan().SequenceEqual(MagicValue)
+            && ModelHeader.TryGetHeader(list[1], out var header))
         {
             data = new ModelData
             {
                 Header = header,
-                Value = list[1],
+                Value = list[2],
             };
             return true;
         }
@@ -33,7 +50,7 @@ internal sealed record class ModelData : IBencodable
         return false;
     }
 
-    public static ModelData GetObject(IValue value)
+    public static ModelData GetData(IValue value)
     {
         if (value is not List list)
         {
@@ -47,8 +64,8 @@ internal sealed record class ModelData : IBencodable
 
         return new ModelData
         {
-            Header = ModelHeader.Create(list[0]),
-            Value = list[1],
+            Header = ModelHeader.Create(list[1]),
+            Value = list[2],
         };
     }
 
@@ -56,7 +73,7 @@ internal sealed record class ModelData : IBencodable
     {
         try
         {
-            var data = GetObject(value);
+            var data = GetData(value);
             if (typeName != data.Header.TypeName)
             {
                 throw new ModelSerializationException(

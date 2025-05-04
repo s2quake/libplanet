@@ -20,6 +20,7 @@ using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Action.State.KeyConverters;
 using static Libplanet.Tests.TestUtils;
+using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Tests.Action;
 
@@ -95,7 +96,7 @@ public partial class ActionEvaluatorTest
                 genesisHash: default,
                 actions: new IAction[]
                 {
-                    new ContextRecordingAction { Address = txAddress, Value = new Text("Foo") },
+                    new ContextRecordingAction { Address = txAddress, Value = "Foo" },
                 }.ToPlainValues()),
         };
         var evs = Array.Empty<EvidenceBase>();
@@ -128,14 +129,12 @@ public partial class ActionEvaluatorTest
         {
             var actionEvaluations = actionEvaluator.Evaluate(noStateRootBlock, default);
             generatedRandomNumbers.Add(
-                (Integer)World.Create(actionEvaluations[0].OutputState, stateStore)
-                        .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue(ContextRecordingAction.RandomRecordAddress));
+                (int)World.Create(actionEvaluations[0].OutputState, stateStore)
+                        .GetValue(LegacyAccount, ContextRecordingAction.RandomRecordAddress));
             actionEvaluations = actionEvaluator.Evaluate((RawBlock)stateRootBlock, default);
             generatedRandomNumbers.Add(
-                (Integer)World.Create(actionEvaluations[0].OutputState, stateStore)
-                        .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue(ContextRecordingAction.RandomRecordAddress));
+                (int)World.Create(actionEvaluations[0].OutputState, stateStore)
+                        .GetValue(LegacyAccount, ContextRecordingAction.RandomRecordAddress));
         }
 
         for (int i = 1; i < generatedRandomNumbers.Count; ++i)
@@ -1304,7 +1303,7 @@ public partial class ActionEvaluatorTest
                                     new ContextRecordingAction
                                     {
                                         Address = signerNoncePair.signer.Address,
-                                        Value = new Integer(signerNoncePair.nonce),
+                                        Value = signerNoncePair.nonce,
                                     },
                                 }.ToPlainValues()],
                             },

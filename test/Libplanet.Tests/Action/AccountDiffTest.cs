@@ -14,16 +14,16 @@ public class AccountDiffTest
     [Fact]
     public void EmptyAccountStateSource()
     {
-        IStateStore stateStore = new TrieStateStore();
-        ITrie targetTrie = stateStore.GetStateRoot(default);
-        ITrie sourceTrie = stateStore.GetStateRoot(default);
+        var stateStore = new TrieStateStore();
+        var targetTrie = stateStore.GetStateRoot(default);
+        var sourceTrie = stateStore.GetStateRoot(default);
 
-        AccountDiff diff = AccountDiff.Create(targetTrie, sourceTrie);
+        var diff = AccountDiff.Create(targetTrie, sourceTrie);
         Assert.Empty(diff.StateDiffs);
 
-        Account targetAccount = new Account(targetTrie);
-        PrivateKey signer = new PrivateKey();
-        targetAccount = targetAccount.SetValue(signer.Address, new Text("Foo"));
+        var targetAccount = new Account(targetTrie);
+        var signer = new PrivateKey();
+        targetAccount = targetAccount.SetValue(signer.Address, "Foo");
 
         targetTrie = stateStore.Commit(targetAccount.Trie);
 
