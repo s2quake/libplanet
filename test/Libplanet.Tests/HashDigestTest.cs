@@ -76,10 +76,8 @@ public class HashDigestTest
                 continue;
             }
 
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () => new HashDigest<SHA1>(new byte[i]));
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () => HashDigest<SHA1>.Parse(new string('0', i * 2)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new HashDigest<SHA1>(new byte[i]));
+            Assert.Throws<FormatException>(() => HashDigest<SHA1>.Parse(new string('0', i * 2)));
         }
     }
 

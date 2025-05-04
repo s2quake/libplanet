@@ -1,7 +1,7 @@
 using Bencodex.Types;
-using Libplanet.Types.Converters;
+using Libplanet.Types.Crypto;
 
-namespace Libplanet.Types.Crypto.Converters;
+namespace Libplanet.Types.Converters;
 
 internal sealed class AddressTypeConverter : TypeConverterBase<Address, Binary>
 {

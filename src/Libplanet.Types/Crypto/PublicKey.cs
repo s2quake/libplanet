@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using Libplanet.Types.Crypto.Converters;
-using Libplanet.Types.Crypto.JsonConverters;
+using Libplanet.Types.Converters;
+using Libplanet.Types.JsonConverters;
 using Secp256k1Net;
 
 namespace Libplanet.Types.Crypto;
