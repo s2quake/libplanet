@@ -53,7 +53,7 @@ public class TransactionQueryGeneratedTest
             Fx.Chain.GetNextTxNonce(pk.Address),
             pk,
             Fx.Chain.Genesis.Hash,
-            new[] { new SimpleAction1() }.ToImmutableBytes());
+            new[] { new SimpleAction1() }.ToBytecodes());
         Fx.Chain.StageTransaction(stagingTx);
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);

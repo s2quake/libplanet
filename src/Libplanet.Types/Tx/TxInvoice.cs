@@ -12,7 +12,7 @@ public sealed record class TxInvoice : IEquatable<TxInvoice>, IValidatableObject
 {
     [Property(0)]
     [NonDefault]
-    public ImmutableArray<ImmutableArray<byte>> Actions { get; init; } = [];
+    public ImmutableArray<ActionBytecode> Actions { get; init; } = [];
 
     [Property(1)]
     public BlockHash GenesisHash { get; init; }

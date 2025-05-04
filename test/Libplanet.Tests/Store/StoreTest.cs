@@ -734,7 +734,7 @@ namespace Libplanet.Tests.Store
                     txNonce,
                     key,
                     default,
-                    new[] { action }.ToImmutableBytes(),
+                    new[] { action }.ToBytecodes(),
                     null,
                     0L,
                     DateTimeOffset.UtcNow);

@@ -25,7 +25,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                 0,
                 privateKey,
                 new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new[] { new NullAction() }.ToImmutableBytes());
+                new[] { new NullAction() }.ToBytecodes());
             var query =
                 @"{
                     id

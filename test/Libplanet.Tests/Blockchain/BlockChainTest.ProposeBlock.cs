@@ -149,7 +149,7 @@ public partial class BlockChainTest
                         actions: new[]
                         {
                             DumbAction.Create((new PrivateKey().Address, "foo")),
-                        }.ToImmutableBytes()),
+                        }.ToBytecodes()),
                 }).ToImmutableSortedSet());
             Assert.Throws<InvalidOperationException>(() => BlockChain.Create(
                 policy,
@@ -185,7 +185,7 @@ public partial class BlockChainTest
                     new[]
                     {
                         DumbAction.Create((new PrivateKey().Address, "foo")),
-                    }.ToImmutableBytes()),
+                    }.ToBytecodes()),
             }).ToImmutableList();
 
             var block = blockChain.ProposeBlock(
@@ -220,7 +220,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrA, "1a")),
                     DumbAction.Create((addrB, "1b")),
-                }.ToImmutableBytes()
+                }.ToBytecodes()
             ),
             Transaction.Create(
                 1,
@@ -230,7 +230,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrC, "2a")),
                     DumbAction.Create((addrD, "2b")),
-                }.ToImmutableBytes()
+                }.ToBytecodes()
             ),
 
             // pending txs1
@@ -242,7 +242,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrE, "3a")),
                     DumbAction.Create((addrA, "3b")),
-                }.ToImmutableBytes()
+                }.ToBytecodes()
             ),
             Transaction.Create(
                 2,
@@ -252,7 +252,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrB, "4a")),
                     DumbAction.Create((addrC, "4b")),
-                }.ToImmutableBytes()
+                }.ToBytecodes()
             ),
 
             // pending txs2
@@ -264,7 +264,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrD, "5a")),
                     DumbAction.Create((addrE, "5b")),
-                }.ToImmutableBytes()
+                }.ToBytecodes()
             ),
             Transaction.Create(
                 2,
@@ -274,7 +274,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrA, "6a")),
                     DumbAction.Create((addrB, "6b")),
-                }.ToImmutableBytes()
+                }.ToBytecodes()
             ),
         };
 
@@ -427,19 +427,19 @@ public partial class BlockChainTest
                 2,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToImmutableBytes()
+                Array.Empty<DumbAction>().ToBytecodes()
             ),
             Transaction.Create(
                 1,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToImmutableBytes()
+                Array.Empty<DumbAction>().ToBytecodes()
             ),
             Transaction.Create(
                 0,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToImmutableBytes()
+                Array.Empty<DumbAction>().ToBytecodes()
             ),
         };
         StageTransactions(txs);

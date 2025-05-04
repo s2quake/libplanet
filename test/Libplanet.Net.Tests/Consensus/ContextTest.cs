@@ -380,7 +380,7 @@ namespace Libplanet.Net.Tests.Consensus
                 nonce: 0,
                 privateKey: TestUtils.PrivateKeys[1],
                 genesisHash: blockChain.Genesis.Hash,
-                actions: new[] { action }.ToImmutableBytes());
+                actions: new[] { action }.ToBytecodes());
             blockChain.StageTransaction(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
@@ -679,7 +679,7 @@ namespace Libplanet.Net.Tests.Consensus
                 nonce: 0,
                 privateKey: TestUtils.PrivateKeys[1],
                 genesisHash: blockChain.Genesis.Hash,
-                actions: new[] { action }.ToImmutableBytes());
+                actions: new[] { action }.ToBytecodes());
             blockChain.StageTransaction(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 

@@ -667,7 +667,7 @@ namespace Libplanet.Tests.Blockchain
                             Validators = TestUtils.Validators,
                             States = ImmutableDictionary.Create<Address, IValue>(),
                         },
-                    }.ToImmutableBytes(),
+                    }.ToBytecodes(),
                     timestamp: DateTimeOffset.UtcNow),
             };
             var evs = Array.Empty<EvidenceBase>();

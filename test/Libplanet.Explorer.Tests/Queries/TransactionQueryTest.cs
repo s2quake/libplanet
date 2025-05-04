@@ -45,7 +45,7 @@ public class TransactionQueryTest
             0L,
             new PrivateKey(),
             Source.BlockChain.Genesis.Hash,
-            Array.Empty<NullAction>().ToImmutableBytes()
+            Array.Empty<NullAction>().ToBytecodes()
         );
         tx.UnsignedTx.MarshalUnsignedTx();
         ExecutionResult result = await ExecuteQueryAsync(@$"
@@ -81,7 +81,7 @@ public class TransactionQueryTest
             0L,
             new PrivateKey(),
             Source.BlockChain.Genesis.Hash,
-            new IAction[] { action }.ToImmutableBytes()
+            new IAction[] { action }.ToBytecodes()
         );
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{

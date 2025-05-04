@@ -22,7 +22,7 @@ public sealed record class UnsignedTx
 
     public BlockHash? GenesisHash => Invoice.GenesisHash;
 
-    public ImmutableArray<ImmutableArray<byte>> Actions => Invoice.Actions;
+    public ImmutableArray<ActionBytecode> Actions => Invoice.Actions;
 
     public FungibleAssetValue? MaxGasPrice => Invoice.MaxGasPrice;
 

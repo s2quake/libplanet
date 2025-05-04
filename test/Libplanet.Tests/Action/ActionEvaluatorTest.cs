@@ -97,7 +97,7 @@ public partial class ActionEvaluatorTest
                 actions: new IAction[]
                 {
                     new ContextRecordingAction { Address = txAddress, Value = "Foo" },
-                }.ToImmutableBytes()),
+                }.ToBytecodes()),
         };
         var evs = Array.Empty<EvidenceBase>();
         var stateStore = new TrieStateStore();
@@ -161,7 +161,7 @@ public partial class ActionEvaluatorTest
             nonce: 0,
             privateKey: privateKey,
             genesisHash: chain.Genesis.Hash,
-            actions: new[] { action }.ToImmutableBytes());
+            actions: new[] { action }.ToBytecodes());
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();
@@ -477,7 +477,7 @@ public partial class ActionEvaluatorTest
                         {
                             MakeAction(addresses[0], 'A', addresses[1]),
                             MakeAction(addresses[1], 'B', addresses[2]),
-                        }.ToImmutableBytes(),
+                        }.ToBytecodes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -496,7 +496,7 @@ public partial class ActionEvaluatorTest
                         Actions = new IAction[]
                         {
                             MakeAction(addresses[2], 'C', addresses[3]),
-                        }.ToImmutableBytes(),
+                        }.ToBytecodes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -636,7 +636,7 @@ public partial class ActionEvaluatorTest
                         Actions = new IAction[]
                         {
                             MakeAction(addresses[0], 'D'),
-                        }.ToImmutableBytes(),
+                        }.ToBytecodes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -655,7 +655,7 @@ public partial class ActionEvaluatorTest
                         Actions = new[]
                         {
                             MakeAction(addresses[3], 'E'),
-                        }.ToImmutableBytes(),
+                        }.ToBytecodes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -674,7 +674,7 @@ public partial class ActionEvaluatorTest
                         Actions = new []
                         {
                             DumbAction.Create((addresses[4], "F"), transfer: (addresses[0], addresses[4], 8)),
-                        }.ToImmutableBytes(),
+                        }.ToBytecodes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -901,7 +901,7 @@ public partial class ActionEvaluatorTest
             0,
             _txFx.PrivateKey1,
             default,
-            new[] { action }.ToImmutableBytes(),
+            new[] { action }.ToBytecodes(),
             null,
             0L,
             DateTimeOffset.UtcNow);
@@ -1307,7 +1307,7 @@ public partial class ActionEvaluatorTest
                                         Address = signerNoncePair.signer.Address,
                                         Value = signerNoncePair.nonce,
                                     },
-                                }.ToImmutableBytes(),
+                                }.ToBytecodes(),
                             },
                             SigningMetadata = new TxSigningMetadata
                             {
@@ -1396,7 +1396,7 @@ public partial class ActionEvaluatorTest
             actions: new[]
             {
                 payGasAction,
-            }.ToImmutableBytes());
+            }.ToBytecodes());
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();

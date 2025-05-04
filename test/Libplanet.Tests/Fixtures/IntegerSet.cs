@@ -55,7 +55,7 @@ public sealed class IntegerSet
                     {
                         Invoice = new TxInvoice
                         {
-                            Actions = new IAction[] { pair.Action }.ToImmutableBytes(),
+                            Actions = new IAction[] { pair.Action }.ToBytecodes(),
                         },
                         SigningMetadata = new TxSigningMetadata
                         {

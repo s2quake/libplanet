@@ -37,7 +37,7 @@ public class UnsignedTxTest
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = actions.ToImmutableBytes(),
+            Actions = actions.ToBytecodes(),
         };
         _signingMetadata = TxSigningMetadata.Create(PublicKey, 123L);
     }

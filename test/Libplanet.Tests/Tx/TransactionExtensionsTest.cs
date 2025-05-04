@@ -30,7 +30,7 @@ public class TransactionExtensionsTest
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = actions.ToImmutableBytes(),
+            Actions = actions.ToBytecodes(),
         };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");

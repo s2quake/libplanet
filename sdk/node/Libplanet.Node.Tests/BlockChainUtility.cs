@@ -54,7 +54,7 @@ internal static class BlockChainUtility
     {
         var genesisBlock = blockChain.Genesis;
         var nonce = blockChain.GetNextTxNonce(privateKey.Address);
-        var values = actions.ToImmutableBytes();
+        var values = actions.ToBytecodes();
         return Transaction.Create(
             nonce: nonce,
             privateKey: privateKey,

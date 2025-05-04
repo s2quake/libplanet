@@ -22,7 +22,7 @@ namespace Libplanet.Tests.Tx
             var random = new System.Random();
             var genesisHash = random.NextBlockHash();
             var timestamp = DateTimeOffset.UtcNow;
-            var actions = ImmutableArray<IAction>.Empty.ToImmutableBytes();
+            var actions = ImmutableArray<IAction>.Empty.ToBytecodes();
 
             _ = new TxInvoice
             {
@@ -93,12 +93,12 @@ namespace Libplanet.Tests.Tx
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions.ToImmutableBytes(),
+                Actions = actions.ToBytecodes(),
             };
             Assert.Equal(genesisHash, invoice.GenesisHash);
             Assert.True(updatedAddresses.SetEquals(invoice.UpdatedAddresses));
             Assert.Equal(timestamp, invoice.Timestamp);
-            Assert.Equal(actions.ToImmutableBytes(), invoice.Actions);
+            Assert.Equal(actions.ToBytecodes(), invoice.Actions);
         }
 
         [Fact]
@@ -131,13 +131,13 @@ namespace Libplanet.Tests.Tx
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions.ToImmutableBytes(),
+                Actions = actions.ToBytecodes(),
             };
             var copy = original with { };
             Assert.Equal(genesisHash, copy.GenesisHash);
             Assert.True(updatedAddresses.SetEquals(copy.UpdatedAddresses));
             Assert.Equal(timestamp, copy.Timestamp);
-            Assert.Equal(actions.ToImmutableBytes(), copy.Actions);
+            Assert.Equal(actions.ToBytecodes(), copy.Actions);
         }
 
         [Fact]
@@ -156,14 +156,14 @@ namespace Libplanet.Tests.Tx
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions.ToImmutableBytes(),
+                Actions = actions.ToBytecodes(),
             };
             var invoice2 = new TxInvoice
             {
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions.ToImmutableBytes(),
+                Actions = actions.ToBytecodes(),
             };
             Assert.True(invoice1.Equals(invoice2));
             Assert.True(invoice1.Equals((object)invoice2));
@@ -180,7 +180,7 @@ namespace Libplanet.Tests.Tx
                     GenesisHash = i == 0 ? default : genesisHash,
                     UpdatedAddresses = i == 1 ? [] : updatedAddresses,
                     Timestamp = i == 2 ? DateTimeOffset.MinValue : timestamp,
-                    Actions = i == 3 ? [] : actions.ToImmutableBytes(),
+                    Actions = i == 3 ? [] : actions.ToBytecodes(),
                     MaxGasPrice = i == 4
                         ? FungibleAssetValue.Create(
                             Currency.Create("FOO", 18, [new PrivateKey().Address]),
@@ -210,7 +210,7 @@ namespace Libplanet.Tests.Tx
                 GenesisHash = genesisHash,
                 UpdatedAddresses = updatedAddresses,
                 Timestamp = timestamp,
-                Actions = actions.ToImmutableBytes(),
+                Actions = actions.ToBytecodes(),
                 MaxGasPrice = FungibleAssetValue.Create(
                     Currency.Create("FOO", 18, [AddressA]),
                     1234,
