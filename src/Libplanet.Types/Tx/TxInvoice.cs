@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Bencodex.Types;
 using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -13,7 +12,7 @@ public sealed record class TxInvoice : IEquatable<TxInvoice>, IValidatableObject
 {
     [Property(0)]
     [NonDefault]
-    public ImmutableArray<IValue> Actions { get; init; } = [];
+    public ImmutableArray<ImmutableArray<byte>> Actions { get; init; } = [];
 
     [Property(1)]
     public BlockHash GenesisHash { get; init; }

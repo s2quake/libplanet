@@ -751,7 +751,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockAEVChangedOnChainRestart()
         {
             var endBlockActions =
-                new IAction[] { new SetStatesAtBlock(default, (Text)"foo", default, 0), }
+                new IAction[] { new SetStatesAtBlock(default, "foo", default, 0), }
                     .ToImmutableArray();
             var policyWithBlockAction = new BlockPolicy(
                 new PolicyActions

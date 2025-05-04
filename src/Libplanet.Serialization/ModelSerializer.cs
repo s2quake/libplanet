@@ -105,6 +105,8 @@ public static class ModelSerializer
 
     public static byte[] SerializeToBytes(object? obj) => _codec.Encode(Serialize(obj));
 
+    public static ImmutableArray<byte> SerializeToImmutableBytes(object? obj) => [.. _codec.Encode(Serialize(obj))];
+
     public static object? Deserialize(IValue value)
         => Deserialize(value, ModelOptions.Default);
 
@@ -136,9 +138,16 @@ public static class ModelSerializer
             $"Failed to deserialize {typeof(T)} from {value.Inspect()}.");
     }
 
-    public static T DeserializeFromBytes<T>(byte[] bytes)
+    public static T DeserializeFromBytes<T>(ImmutableArray<byte> bytes)
     {
-        return Deserialize<T>(_codec.Decode(bytes))
+        return Deserialize<T>(_codec.Decode([.. bytes]))
+            ?? throw new ModelSerializationException(
+                $"Failed to deserialize {typeof(T)} from bytes.");
+    }
+
+    public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes)
+    {
+        return Deserialize<T>(_codec.Decode([.. bytes]))
             ?? throw new ModelSerializationException(
                 $"Failed to deserialize {typeof(T)} from bytes.");
     }

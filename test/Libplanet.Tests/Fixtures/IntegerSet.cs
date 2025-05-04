@@ -12,6 +12,7 @@ using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
+using Libplanet.Serialization;
 
 namespace Libplanet.Tests.Fixtures;
 
@@ -54,7 +55,7 @@ public sealed class IntegerSet
                     {
                         Invoice = new TxInvoice
                         {
-                            Actions = new IAction[] { pair.Action }.ToPlainValues(),
+                            Actions = new IAction[] { pair.Action }.ToImmutableBytes(),
                         },
                         SigningMetadata = new TxSigningMetadata
                         {
@@ -103,8 +104,7 @@ public sealed class IntegerSet
         Address signerAddress = signer.Address;
         KeyBytes rawStateKey = KeyConverters.ToStateKey(signerAddress);
         long nonce = Chain.GetNextTxNonce(signerAddress);
-        Transaction tx =
-            Transaction.Create(nonce, signer, Genesis.Hash, actions.ToPlainValues());
+        Transaction tx = actions.Create(nonce, signer, Genesis.Hash);
         BigInteger prevState = Chain.GetNextWorldState().GetAccount(
             ReservedAddresses.LegacyAccount).GetValue(signerAddress) is Bencodex.Types.Integer i
                 ? i.Value
@@ -118,7 +118,7 @@ public sealed class IntegerSet
             .SelectMany(t => t.Actions)
             .Aggregate(prevPair, (prev, act) =>
             {
-                var a = TestUtils.ToAction<Arithmetic>(act);
+                var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act);
                 BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
                 var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
                     .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
@@ -134,7 +134,7 @@ public sealed class IntegerSet
                 ImmutableArray.Create(stagedStates),
                 (delta, act) =>
                 {
-                    var a = TestUtils.ToAction<Arithmetic>(act);
+                    var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act);
                     BigInteger nextState =
                         a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
                     var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty

@@ -17,7 +17,7 @@ public sealed class ModelResolver : IModelResolver
 
     Type IModelResolver.GetType(Type type, int version) => GetType(type, version);
 
-    string IModelResolver.GetTypeName(Type type) => GetTypeName(type);
+    string IModelResolver.GetTypeName(Type type) => TypeUtility.GetTypeName(type);
 
     int IModelResolver.GetVersion(Type type)
     {
@@ -143,47 +143,6 @@ public sealed class ModelResolver : IModelResolver
     }
 
     private static Type GetType(Type type, int version) => version is 0 ? type : GetTypes(type)[version - 1];
-
-    private static string GetTypeName(Type type)
-    {
-        var name = GetName(type);
-        var ns = type.Namespace
-            ?? throw new UnreachableException("Type does not have FullName");
-        var assemblyName = type.Assembly.GetName().Name
-             ?? throw new UnreachableException("Assembly does not have Name");
-
-        return $"{ns}.{name}, {assemblyName}";
-    }
-
-    private static string GetName(Type type)
-    {
-        var name = type.Name
-            ?? throw new UnreachableException("Type does not have FullName");
-        var ns = type.Namespace
-            ?? throw new UnreachableException("Type does not have FullName");
-        var assemblyName = type.Assembly.GetName().Name
-             ?? throw new UnreachableException("Assembly does not have Name");
-
-        if (type.IsGenericType)
-        {
-            var genericArguments = type.GetGenericArguments();
-            var nameList = new List<string>(genericArguments.Length);
-            foreach (var genericArgument in genericArguments)
-            {
-                var genericArgumentName = $"[{GetTypeName(genericArgument)}]";
-                nameList.Add(genericArgumentName);
-            }
-
-            name = $"{name}[{string.Join(',', nameList)}]";
-        }
-
-        if (type.DeclaringType is null)
-        {
-            return name;
-        }
-
-        return $"{GetName(type.DeclaringType)}+{name}";
-    }
 
     private static ImmutableArray<Type> CreateTypes(Type type)
     {

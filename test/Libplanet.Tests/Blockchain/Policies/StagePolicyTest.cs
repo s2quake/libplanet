@@ -31,12 +31,10 @@ namespace Libplanet.Tests.Blockchain.Policies
                     _policy.PolicyActions));
             _key = new PrivateKey();
             _txs = Enumerable.Range(0, 5).Select(i =>
-                Transaction.Create(
+                Array.Empty<DumbAction>().Create(
                     i,
                     _key,
-                    _fx.GenesisBlock.Hash,
-                    Enumerable.Empty<DumbAction>().ToPlainValues()
-                )
+                    _fx.GenesisBlock.Hash)
             ).ToArray();
         }
 
@@ -52,12 +50,10 @@ namespace Libplanet.Tests.Blockchain.Policies
                 Assert.Equal(setOne.OrderBy(tx => tx.Id), setTwo.OrderBy(tx => tx.Id));
             }
 
-            var duplicateNonceTx = Transaction.Create(
+            var duplicateNonceTx = Array.Empty<DumbAction>().Create(
                 2,
                 _key,
-                _fx.GenesisBlock.Hash,
-                Enumerable.Empty<DumbAction>().ToPlainValues()
-            );
+                _fx.GenesisBlock.Hash);
 
             Assert.Empty(StagePolicy.Iterate(_chain));
 

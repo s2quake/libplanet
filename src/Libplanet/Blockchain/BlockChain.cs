@@ -621,7 +621,7 @@ namespace Libplanet.Blockchain
                     GetNextTxNonce(privateKey.Address),
                     privateKey,
                     Genesis.Hash,
-                    actions.ToPlainValues(),
+                    actions.ToImmutableBytes(),
                     maxGasPrice,
                     gasLimit,
                     timestamp);

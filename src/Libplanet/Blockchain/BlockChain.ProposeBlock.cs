@@ -339,10 +339,7 @@ namespace Libplanet.Blockchain
 
                     try
                     {
-                        foreach (IValue rawAction in tx.Actions)
-                        {
-                            _ = ModelSerializer.Deserialize<IAction>(rawAction);
-                        }
+                        _ = tx.Actions.FromImmutableBytes();
                     }
                     catch (Exception e)
                     {

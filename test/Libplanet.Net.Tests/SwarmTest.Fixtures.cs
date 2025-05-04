@@ -73,7 +73,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            var action = ModelSerializer.Deserialize<DumbAction>(blocks[1].Transactions.First().Actions.First());
+            var action = blocks[1].Transactions.First().Actions.FromImmutableBytes().OfType<DumbAction>().First();
             return (action.Append is { } s ? s.At : throw new NullReferenceException(), blocks);
         }
 

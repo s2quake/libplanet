@@ -153,7 +153,7 @@ public sealed class WorldTest
             0,
             _keys[0],
             chain.Genesis.Hash,
-            new[] { action }.ToPlainValues());
+            new[] { action }.ToImmutableBytes());
         var block1PreEval = TestUtils.ProposeNext(
             chain.Tip,
             new[] { tx },
@@ -177,11 +177,10 @@ public sealed class WorldTest
 
         // Transfer
         action = DumbAction.Create(null, (_addr[1], _addr[0], 5));
-        tx = Transaction.Create(
+        tx = new[] { action }.Create(
             1,
             _keys[0],
-            chain.Genesis.Hash,
-            new[] { action }.ToPlainValues());
+            chain.Genesis.Hash);
         var block2PreEval = TestUtils.ProposeNext(
             chain.Tip,
             new[] { tx },
@@ -205,11 +204,10 @@ public sealed class WorldTest
 
         // Transfer bugged
         action = DumbAction.Create((_addr[0], "a"), (_addr[0], _addr[0], 1));
-        tx = Transaction.Create(
+        tx = new[] { action }.Create(
             chain.GetNextTxNonce(_addr[0]),
             _keys[0],
-            chain.Genesis.Hash,
-            new[] { action }.ToPlainValues());
+            chain.Genesis.Hash);
         var block3PreEval = TestUtils.ProposeNext(
             chain.Tip,
             new[] { tx },

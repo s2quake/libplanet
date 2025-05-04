@@ -176,7 +176,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             GasTracer.IsTxAction = false;
         }
 
-        var actions = tx.Actions.Select(ModelSerializer.Deserialize<IAction>).ToImmutableArray();
+        var actions = tx.Actions.FromImmutableBytes();
         evaluationList.AddRange(EvaluateActions(block, tx, world, actions));
 
         if (policyActions.EndTxActions.Length > 0)

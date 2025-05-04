@@ -31,13 +31,13 @@ public class UnsignedTxTest
         var actions = ImmutableArray.Create<IAction>([
             DumbAction.Create((AddressA, "foo")),
             DumbAction.Create((AddressB, "bar")),
-        ]).ToPlainValues();
+        ]).ToImmutableArray();
         _invoice = new TxInvoice
         {
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = [.. actions],
+            Actions = actions.ToImmutableBytes(),
         };
         _signingMetadata = TxSigningMetadata.Create(PublicKey, 123L);
     }

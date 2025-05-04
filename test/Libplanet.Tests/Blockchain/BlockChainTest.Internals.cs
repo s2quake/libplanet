@@ -28,7 +28,7 @@ namespace Libplanet.Tests.Blockchain
                     nonce,
                     key,
                     _blockChain.Genesis.Hash,
-                    Array.Empty<DumbAction>().ToPlainValues(),
+                    Array.Empty<DumbAction>().ToImmutableBytes(),
                     null,
                     0L,
                     ts ?? DateTimeOffset.UtcNow);

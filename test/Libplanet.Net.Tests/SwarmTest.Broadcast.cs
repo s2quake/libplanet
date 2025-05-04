@@ -40,11 +40,11 @@ namespace Libplanet.Net.Tests
             var swarmA = await CreateSwarm(
                 privateKey: new PrivateKey(),
                 policy: policy,
-                genesis: genesis).ConfigureAwait(false);
+                genesis: genesis);
             var swarmB = await CreateSwarm(
                 privateKey: new PrivateKey(),
                 policy: policy,
-                genesis: genesis).ConfigureAwait(false);
+                genesis: genesis);
             var chainA = swarmA.BlockChain;
             var chainB = swarmB.BlockChain;
 
@@ -101,7 +101,7 @@ namespace Libplanet.Net.Tests
                 miner,
                 policy: policy,
                 genesis: minerChain.Genesis
-            ).ConfigureAwait(false);
+            );
             BlockChain seedChain = seed.BlockChain;
 
             var privateKey = new PrivateKey();
@@ -109,12 +109,12 @@ namespace Libplanet.Net.Tests
                 privateKey: privateKey,
                 policy: policy,
                 genesis: minerChain.Genesis
-            ).ConfigureAwait(false);
+            );
             Swarm swarmB = await CreateSwarm(
                 privateKey: privateKey,
                 policy: policy,
                 genesis: minerChain.Genesis
-            ).ConfigureAwait(false);
+            );
 
             foreach (BlockHash blockHash in minerChain.BlockHashes.Skip(1).Take(4))
             {
@@ -174,7 +174,7 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastIgnoreFromDifferentGenesisHash()
         {
             var receiverKey = new PrivateKey();
-            Swarm receiverSwarm = await CreateSwarm(receiverKey).ConfigureAwait(false);
+            Swarm receiverSwarm = await CreateSwarm(receiverKey);
             BlockChain receiverChain = receiverSwarm.BlockChain;
             var seedStateStore = new TrieStateStore();
             IBlockPolicy policy = receiverChain.Policy;
@@ -185,7 +185,7 @@ namespace Libplanet.Net.Tests
                 privateKey: receiverKey);
             var seedMiner = new PrivateKey();
             Swarm seedSwarm =
-                await CreateSwarm(seedChain, seedMiner).ConfigureAwait(false);
+                await CreateSwarm(seedChain, seedMiner);
             try
             {
                 await StartAsync(receiverSwarm);
@@ -284,9 +284,9 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastTx()
         {
             var minerA = new PrivateKey();
-            Swarm swarmA = await CreateSwarm(minerA).ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmC = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm(minerA);
+            Swarm swarmB = await CreateSwarm();
+            Swarm swarmC = await CreateSwarm();
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -296,7 +296,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 chainA.Genesis.Hash,
-                new DumbAction[] { }.ToPlainValues()
+                Array.Empty<DumbAction>().ToImmutableBytes()
             );
 
             chainA.StageTransaction(tx);
@@ -332,9 +332,9 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BroadcastTxWhileMining()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
             var minerC = new PrivateKey();
-            Swarm swarmC = await CreateSwarm(minerC).ConfigureAwait(false);
+            Swarm swarmC = await CreateSwarm(minerC);
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainC = swarmC.BlockChain;
@@ -393,9 +393,9 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BroadcastTxAsync()
         {
-            Swarm swarmA = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm().ConfigureAwait(false);
-            Swarm swarmC = await CreateSwarm().ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm();
+            Swarm swarmB = await CreateSwarm();
+            Swarm swarmC = await CreateSwarm();
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -405,7 +405,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 chainA.Genesis.Hash,
-                new DumbAction[] { }.ToPlainValues()
+                Array.Empty<DumbAction>().ToImmutableBytes()
             );
 
             chainA.StageTransaction(tx);
@@ -466,7 +466,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 blockChains[size - 1].Genesis.Hash,
-                new DumbAction[] { }.ToPlainValues()
+                Array.Empty<DumbAction>().ToImmutableBytes()
             );
 
             blockChains[size - 1].StageTransaction(tx);
@@ -525,11 +525,11 @@ namespace Libplanet.Net.Tests
             };
 
             var swarmA =
-                await CreateSwarm(keyA, options: autoBroadcastDisabled).ConfigureAwait(false);
+                await CreateSwarm(keyA, options: autoBroadcastDisabled);
             var swarmB =
-                await CreateSwarm(keyB, options: autoBroadcastDisabled).ConfigureAwait(false);
+                await CreateSwarm(keyB, options: autoBroadcastDisabled);
             var swarmC =
-                await CreateSwarm(keyC, options: autoBroadcastDisabled).ConfigureAwait(false);
+                await CreateSwarm(keyC, options: autoBroadcastDisabled);
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -627,9 +627,9 @@ namespace Libplanet.Net.Tests
             PrivateKey keyC = PrivateKey.Parse(
                 "941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
 
-            var swarmA = await CreateSwarm(keyA).ConfigureAwait(false);
-            var swarmB = await CreateSwarm(keyB).ConfigureAwait(false);
-            var swarmC = await CreateSwarm(keyC).ConfigureAwait(false);
+            var swarmA = await CreateSwarm(keyA);
+            var swarmB = await CreateSwarm(keyB);
+            var swarmC = await CreateSwarm(keyC);
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -696,7 +696,7 @@ namespace Libplanet.Net.Tests
             var blockChain = MakeBlockChain(
                 policy, fx1.Store, fx1.StateStore);
             var privateKey = new PrivateKey();
-            var minerSwarm = await CreateSwarm(blockChain, privateKey).ConfigureAwait(false);
+            var minerSwarm = await CreateSwarm(blockChain, privateKey);
             var fx2 = new MemoryStoreFixture();
             var receiverRenderer = new RecordingActionRenderer();
             var loggedRenderer = new LoggedActionRenderer(
@@ -708,7 +708,7 @@ namespace Libplanet.Net.Tests
                 fx2.StateStore,
                 renderers: new[] { loggedRenderer });
             Swarm receiverSwarm =
-                await CreateSwarm(receiverChain).ConfigureAwait(false);
+                await CreateSwarm(receiverChain);
 
             int renderCount = 0;
 
@@ -780,8 +780,8 @@ namespace Libplanet.Net.Tests
             var keyA = new PrivateKey();
             var keyB = new PrivateKey();
 
-            Swarm swarmA = await CreateSwarm(keyA).ConfigureAwait(false);
-            Swarm swarmB = await CreateSwarm(keyB).ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm(keyA);
+            Swarm swarmB = await CreateSwarm(keyB);
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -823,9 +823,9 @@ namespace Libplanet.Net.Tests
             var keyA = new PrivateKey();
             var keyB = new PrivateKey();
 
-            Swarm swarmA = await CreateSwarm(keyA).ConfigureAwait(false);
+            Swarm swarmA = await CreateSwarm(keyA);
             Swarm swarmB =
-                await CreateSwarm(keyB, genesis: swarmA.BlockChain.Genesis).ConfigureAwait(false);
+                await CreateSwarm(keyB, genesis: swarmA.BlockChain.Genesis);
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -879,9 +879,9 @@ namespace Libplanet.Net.Tests
             var keyB = new PrivateKey();
             var keyC = new PrivateKey();
 
-            var swarmA = await CreateSwarm(keyA).ConfigureAwait(false);
-            var swarmB = await CreateSwarm(keyB).ConfigureAwait(false);
-            var swarmC = await CreateSwarm(keyC).ConfigureAwait(false);
+            var swarmA = await CreateSwarm(keyA);
+            var swarmB = await CreateSwarm(keyB);
+            var swarmC = await CreateSwarm(keyC);
 
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
@@ -931,8 +931,8 @@ namespace Libplanet.Net.Tests
         {
             var privateKey = new PrivateKey();
             var address = privateKey.Address;
-            var swarm1 = await CreateSwarm().ConfigureAwait(false);
-            var swarm2 = await CreateSwarm().ConfigureAwait(false);
+            var swarm1 = await CreateSwarm();
+            var swarm2 = await CreateSwarm();
 
             var tx1 = swarm2.BlockChain.MakeTransaction(
                 privateKey,
@@ -946,11 +946,10 @@ namespace Libplanet.Net.Tests
                 privateKey,
                 new[] { DumbAction.Create((address, "quz")) });
 
-            var tx4 = Transaction.Create(
+            var tx4 = new[] { DumbAction.Create((address, "qux")) }.Create(
                 4,
                 privateKey,
-                swarm1.BlockChain.Genesis.Hash,
-                new[] { DumbAction.Create((address, "qux")) }.ToPlainValues());
+                swarm1.BlockChain.Genesis.Hash);
 
             try
             {
@@ -988,7 +987,7 @@ namespace Libplanet.Net.Tests
             var key = new PrivateKey();
             var apv = new AppProtocolVersionOptions();
             Swarm receiver =
-                await CreateSwarm(appProtocolVersionOptions: apv).ConfigureAwait(false);
+                await CreateSwarm(appProtocolVersionOptions: apv);
             ITransport mockTransport = await NetMQTransport.Create(
                 new PrivateKey(),
                 apv,
@@ -1080,12 +1079,12 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BroadcastEvidence()
         {
-            var cancellationTokenSource = new CancellationTokenSource(Timeout);
+            using var cancellationTokenSource = new CancellationTokenSource(Timeout);
             var minerA = new PrivateKey();
             var validatorAddress = new PrivateKey().Address;
-            var swarmA = await CreateSwarm(minerA).ConfigureAwait(false);
-            var swarmB = await CreateSwarm().ConfigureAwait(false);
-            var swarmC = await CreateSwarm().ConfigureAwait(false);
+            var swarmA = await CreateSwarm(minerA);
+            var swarmB = await CreateSwarm();
+            var swarmC = await CreateSwarm();
 
             var chainA = swarmA.BlockChain;
             var chainB = swarmB.BlockChain;

@@ -97,7 +97,7 @@ public partial class ActionEvaluatorTest
                 actions: new IAction[]
                 {
                     new ContextRecordingAction { Address = txAddress, Value = "Foo" },
-                }.ToPlainValues()),
+                }.ToImmutableBytes()),
         };
         var evs = Array.Empty<EvidenceBase>();
         var stateStore = new TrieStateStore();
@@ -161,7 +161,7 @@ public partial class ActionEvaluatorTest
             nonce: 0,
             privateKey: privateKey,
             genesisHash: chain.Genesis.Hash,
-            actions: new[] { action }.ToPlainValues());
+            actions: new[] { action }.ToImmutableBytes());
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();
@@ -473,10 +473,11 @@ public partial class ActionEvaluatorTest
                         GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[0], addresses[1]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-                        Actions = [.. ImmutableArray.Create<IAction>([
+                        Actions = new IAction[]
+                        {
                             MakeAction(addresses[0], 'A', addresses[1]),
                             MakeAction(addresses[1], 'B', addresses[2]),
-                        ]).ToPlainValues()],
+                        }.ToImmutableBytes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -492,9 +493,10 @@ public partial class ActionEvaluatorTest
                         GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
-                        Actions = [.. ImmutableArray.Create<IAction>([
+                        Actions = new IAction[]
+                        {
                             MakeAction(addresses[2], 'C', addresses[3]),
-                        ]).ToPlainValues()],
+                        }.ToImmutableBytes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -586,7 +588,7 @@ public partial class ActionEvaluatorTest
             Assert.Equal(block1Txs[expect.TxIdx].Id, eval.InputContext.TxId);
             Assert.Equal(
                 block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
-                ModelSerializer.Serialize(eval.Action));
+                ModelSerializer.SerializeToImmutableBytes(eval.Action));
             Assert.Equal(expect.Signer, eval.InputContext.Signer);
             Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
             Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
@@ -631,9 +633,10 @@ public partial class ActionEvaluatorTest
                         GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[0]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
-                        Actions = [.. ImmutableArray.Create<IAction>([
+                        Actions = new IAction[]
+                        {
                             MakeAction(addresses[0], 'D'),
-                        ]).ToPlainValues()],
+                        }.ToImmutableBytes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -649,9 +652,10 @@ public partial class ActionEvaluatorTest
                         GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[3]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-                        Actions = [.. ImmutableArray.Create<IAction>([
+                        Actions = new[]
+                        {
                             MakeAction(addresses[3], 'E'),
-                        ]).ToPlainValues()],
+                        }.ToImmutableBytes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -667,11 +671,10 @@ public partial class ActionEvaluatorTest
                         GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[4]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
-                        Actions = [.. ImmutableArray.Create<IAction>([
-                            DumbAction.Create(
-                                (addresses[4], "F"),
-                                transfer: (addresses[0], addresses[4], 8)),
-                        ]).ToPlainValues()],
+                        Actions = new []
+                        {
+                            DumbAction.Create((addresses[4], "F"), transfer: (addresses[0], addresses[4], 8)),
+                        }.ToImmutableBytes(),
                     },
                     SigningMetadata = new TxSigningMetadata
                     {
@@ -747,7 +750,7 @@ public partial class ActionEvaluatorTest
             Assert.Equal(block2Txs[expect.TxIdx].Id, eval.InputContext.TxId);
             Assert.Equal(
                 block2Txs[expect.TxIdx].Actions[expect.ActionIdx],
-                ModelSerializer.Serialize(eval.Action));
+                ModelSerializer.SerializeToBytes(eval.Action));
             Assert.Equal(expect.Signer, eval.InputContext.Signer);
             Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
             Assert.Equal(block2.Height, eval.InputContext.BlockHeight);
@@ -786,8 +789,7 @@ public partial class ActionEvaluatorTest
                 transfer: (addresses[1], addresses[0], 10)),
             DumbAction.Create((addresses[2], "R")),
         ];
-        var tx =
-            Transaction.Create(0, _txFx.PrivateKey1, default, actions.ToPlainValues());
+        var tx = actions.Create(0, _txFx.PrivateKey1, default);
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
         var block = RawBlock.Propose(
@@ -845,7 +847,7 @@ public partial class ActionEvaluatorTest
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
 
-            Assert.Equal(tx.Actions[i], ModelSerializer.Serialize(eval.Action));
+            Assert.Equal(tx.Actions[i], ModelSerializer.SerializeToBytes(eval.Action));
             Assert.Equal(_txFx.Address1, context.Signer);
             Assert.Equal(tx.Id, context.TxId);
             Assert.Equal(addresses[0], context.Proposer);
@@ -899,7 +901,7 @@ public partial class ActionEvaluatorTest
             0,
             _txFx.PrivateKey1,
             default,
-            new[] { action }.ToPlainValues(),
+            new[] { action }.ToImmutableBytes(),
             null,
             0L,
             DateTimeOffset.UtcNow);
@@ -952,7 +954,7 @@ public partial class ActionEvaluatorTest
             block: (RawBlock)blockA,
             tx: txA,
             world: fx.StateStore.GetWorld(blockA.StateRootHash),
-            actions: [.. txA.Actions.Select(action => (IAction)ToAction<Arithmetic>(action))]);
+            actions: txA.Actions.FromImmutableBytes());
 
         Assert.Equal(evalsA.Length, deltaA.Count - 1);
         Assert.Equal(
@@ -970,7 +972,7 @@ public partial class ActionEvaluatorTest
             _logger.Debug("evalsA[{0}] = {1}", i, eval);
             _logger.Debug("txA.Actions[{0}] = {1}", i, txA.Actions[i]);
 
-            Assert.Equal(txA.Actions[i], ModelSerializer.Serialize(eval.Action));
+            Assert.Equal(txA.Actions[i], ModelSerializer.SerializeToImmutableBytes(eval.Action));
             Assert.Equal(txA.Id, context.TxId);
             Assert.Equal(blockA.Proposer, context.Proposer);
             Assert.Equal(blockA.Height, context.BlockHeight);
@@ -1004,7 +1006,7 @@ public partial class ActionEvaluatorTest
             block: (RawBlock)blockB,
             tx: txB,
             world: fx.StateStore.GetWorld(blockB.StateRootHash),
-            actions: [.. txB.Actions.Select(action => (IAction)ToAction<Arithmetic>(action))]);
+            actions: txB.Actions.FromImmutableBytes());
 
         Assert.Equal(evalsB.Length, deltaB.Count - 1);
         Assert.Equal(
@@ -1022,7 +1024,7 @@ public partial class ActionEvaluatorTest
             _logger.Debug("evalsB[{0}] = {@1}", i, eval);
             _logger.Debug("txB.Actions[{0}] = {@1}", i, txB.Actions[i]);
 
-            Assert.Equal(txB.Actions[i], ModelSerializer.Serialize(eval.Action));
+            Assert.Equal(txB.Actions[i], ModelSerializer.SerializeToImmutableBytes(eval.Action));
             Assert.Equal(txB.Id, context.TxId);
             Assert.Equal(blockB.Proposer, context.Proposer);
             Assert.Equal(blockB.Height, context.BlockHeight);
@@ -1076,7 +1078,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.BeginBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)1,
@@ -1091,7 +1093,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.BeginBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)2,
@@ -1124,7 +1126,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.EndBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)1,
@@ -1140,7 +1142,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.EndBlockActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)2,
@@ -1174,7 +1176,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.BeginTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)1,
@@ -1191,7 +1193,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.BeginTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)2,
@@ -1226,7 +1228,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.EndTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)1,
@@ -1243,7 +1245,7 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal<IAction>(
             chain.Policy.PolicyActions.EndTxActions,
-            evaluations.Select(item => item.Action).ToImmutableArray());
+            ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
             (Integer)2,
@@ -1298,14 +1300,14 @@ public partial class ActionEvaluatorTest
                             {
                                 UpdatedAddresses = [targetAddress],
                                 Timestamp = epoch,
-                                Actions = [.. new IAction[]
+                                Actions = new[]
                                 {
                                     new ContextRecordingAction
                                     {
                                         Address = signerNoncePair.signer.Address,
                                         Value = signerNoncePair.nonce,
                                     },
-                                }.ToPlainValues()],
+                                }.ToImmutableBytes(),
                             },
                             SigningMetadata = new TxSigningMetadata
                             {
@@ -1394,7 +1396,7 @@ public partial class ActionEvaluatorTest
             actions: new[]
             {
                 payGasAction,
-            }.ToPlainValues());
+            }.ToImmutableBytes());
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();
@@ -1440,16 +1442,12 @@ public partial class ActionEvaluatorTest
             },
             store: store,
             stateStore: stateStore);
-        var tx = Transaction.Create(
+        var tx = new[] { payGasAction, }.Create(
             nonce: 0,
             privateKey: privateKey,
             genesisHash: chain.Genesis.Hash,
             maxGasPrice: FungibleAssetValue.Create(foo, 1),
-            gasLimit: 5,
-            actions: new[]
-            {
-                payGasAction,
-            }.ToPlainValues());
+            gasLimit: 5);
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();
@@ -1509,7 +1507,7 @@ public partial class ActionEvaluatorTest
             block: (RawBlock)block,
             tx: tx,
             world: fx.StateStore.GetWorld(block.StateRootHash),
-            actions: [.. tx.Actions.Select(action => (IAction)ToAction<Arithmetic>(action))]);
+            actions: tx.Actions.FromImmutableBytes());
 
         byte[] preEvaluationHashBytes = block.RawHash.Bytes.ToArray();
         var randomSeeds = Enumerable

@@ -151,7 +151,7 @@ public class BlockCommand
                         Validators = validatorSet,
                         States = emptyState.ToImmutableDictionary(),
                     },
-                }.ToPlainValues()))
+                }.ToImmutableBytes()))
             .ToImmutableList();
 
         var policyActions = blockPolicyParams.GetPolicyActions();

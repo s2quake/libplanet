@@ -10,6 +10,7 @@ using Libplanet.Explorer.Interfaces;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
+using Libplanet.Action;
 
 namespace Libplanet.Explorer.Queries
 {
@@ -135,7 +136,7 @@ namespace Libplanet.Explorer.Queries
                 {
                     BlockChain chain = _context.BlockChain;
                     string plainValueString = context.GetArgument<string>("plainValue");
-                    IValue plainValue = _codec.Decode(ByteUtility.ParseHex(plainValueString));
+                    var plainBytes = ByteUtility.ParseHex(plainValueString);
                     var publicKey = PublicKey.Parse(context.GetArgument<string>("publicKey"));
                     Address signer = publicKey.Address;
                     long nonce = context.GetArgument<long?>("nonce") ??
@@ -144,7 +145,7 @@ namespace Libplanet.Explorer.Queries
                     var invoice = new TxInvoice
                     {
                         GenesisHash = chain.Genesis.Hash,
-                        Actions = [plainValue],
+                        Actions = ImmutableArray.Create<ImmutableArray<byte>>(plainBytes.ToImmutableArray()),
                     };
                     var unsignedTx = new UnsignedTx
                     {

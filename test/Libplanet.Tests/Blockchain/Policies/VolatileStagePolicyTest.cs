@@ -17,12 +17,11 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void Lifetime()
         {
             TimeSpan timeBuffer = TimeSpan.FromSeconds(1);
-            Transaction tx = Transaction.Create(
+            Transaction tx = Array.Empty<DumbAction>().Create(
                 0,
                 _key,
                 _fx.GenesisBlock.Hash,
-                Enumerable.Empty<DumbAction>().ToPlainValues(),
-                timestamp: (DateTimeOffset.UtcNow - _stagePolicy.Lifetime) + timeBuffer
+                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer
             );
             Assert.True(_stagePolicy.Stage(_chain, tx));
             Assert.Equal(tx, _stagePolicy.Get(_chain, tx.Id));
@@ -39,12 +38,10 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void MaxLifetime()
         {
             var stagePolicy = new VolatileStagePolicy(TimeSpan.MaxValue);
-            Transaction tx = Transaction.Create(
+            Transaction tx = Array.Empty<DumbAction>().Create(
                 0,
                 _key,
-                _fx.GenesisBlock.Hash,
-                Enumerable.Empty<DumbAction>().ToPlainValues(),
-                timestamp: DateTimeOffset.UtcNow);
+                _fx.GenesisBlock.Hash);
             Assert.True(stagePolicy.Stage(_chain, tx));
         }
 
@@ -52,19 +49,17 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void StageUnstage()
         {
             TimeSpan timeBuffer = TimeSpan.FromSeconds(1);
-            Transaction validTx = Transaction.Create(
+            Transaction validTx = Array.Empty<DumbAction>().Create(
                 0,
                 _key,
                 _fx.GenesisBlock.Hash,
-                Enumerable.Empty<DumbAction>().ToPlainValues(),
-                timestamp: (DateTimeOffset.UtcNow - _stagePolicy.Lifetime) + timeBuffer
+                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer
             );
-            Transaction staleTx = Transaction.Create(
+            Transaction staleTx = Array.Empty<DumbAction>().Create(
                 0,
                 _key,
                 _fx.GenesisBlock.Hash,
-                Enumerable.Empty<DumbAction>().ToPlainValues(),
-                timestamp: (DateTimeOffset.UtcNow - _stagePolicy.Lifetime) - timeBuffer
+                timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime - timeBuffer
             );
 
             Assert.False(_stagePolicy.Stage(_chain, staleTx));

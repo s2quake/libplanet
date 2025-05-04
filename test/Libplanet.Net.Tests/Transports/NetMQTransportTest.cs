@@ -59,7 +59,7 @@ namespace Libplanet.Net.Tests.Transports
                     new PrivateKey(),
                     new AppProtocolVersionOptions(),
                     new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { }, 0)
-                ).ConfigureAwait(false);
+                );
                 transport.ProcessMessageHandler.Register(
                     async m =>
                     {

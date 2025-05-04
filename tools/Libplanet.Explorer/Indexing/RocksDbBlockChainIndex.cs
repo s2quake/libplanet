@@ -8,6 +8,7 @@ using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using RocksDbSharp;
+using Libplanet.Serialization;
 
 namespace Libplanet.Explorer.Indexing;
 
@@ -348,11 +349,13 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                     throw new OperationCanceledException(stoppingToken);
                 }
 
-                if (action is not Dictionary actionDict
-                    || !actionDict.TryGetValue((Text)"type_id", out var typeId))
-                {
-                    continue;
-                }
+                var typeId = new Text(TypeUtility.GetTypeName(action.GetType()));
+
+                // if (action is not Dictionary actionDict
+                //     || !actionDict.TryGetValue((Text)"type_id", out var typeId))
+                // {
+                //     continue;
+                // }
 
                 // Use IValue for string, as "abc" and "abcd" as raw byte strings overlap.
                 writeBatch.Put(

@@ -24,13 +24,13 @@ public class TransactionExtensionsTest
         var actions = ImmutableArray.Create<IAction>([
             DumbAction.Create((AddressA, "foo")),
             DumbAction.Create((AddressB, "bar")),
-        ]).ToPlainValues();
+        ]).ToImmutableArray();
         var invoice = new TxInvoice
         {
             GenesisHash = genesisHash,
             UpdatedAddresses = updatedAddresses,
             Timestamp = timestamp,
-            Actions = [.. actions],
+            Actions = actions.ToImmutableBytes(),
         };
         var privateKey =
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
