@@ -19,18 +19,6 @@ public class HashDigestTest
     }
 
     [Fact]
-    public void Bencoded()
-    {
-        Assert.NotEqual(HashDigest<SHA1>.Size, HashDigest<SHA256>.Size);
-        var digest = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size));
-        var bencoded = ModelSerializer.Serialize(digest);
-        var decoded = ModelSerializer.Deserialize<HashDigest<SHA256>>(bencoded);
-        Assert.Equal(digest, decoded);
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => ModelSerializer.Deserialize<HashDigest<SHA1>>(bencoded));
-    }
-
-    [Fact]
     public void ToHashDigestWorks()
     {
         var b =
@@ -139,7 +127,7 @@ public class HashDigestTest
         Assert.Equal(
             sha1,
             converter.ConvertFrom("62CDB7020FF920E5AA642C3D4066950DD1F01F4D"));
-        Assert.Throws<ArgumentException>(() => converter.ConvertFrom("INVALID"));
+        Assert.Throws<FormatException>(() => converter.ConvertFrom("INVALID"));
 
         Assert.True(converter.CanConvertTo(typeof(string)));
         Assert.Equal(

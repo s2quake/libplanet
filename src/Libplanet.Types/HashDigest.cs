@@ -56,7 +56,7 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
         {
             var message = $"HashDigest<{typeof(T).Name}> requires {Size * 2} " +
                           $"hexadecimal letters, but {hex.Length} was given";
-            throw new ArgumentOutOfRangeException(nameof(hex), message);
+            throw new FormatException(message);
         }
 
         return new HashDigest<T>(ByteUtility.ParseHexToImmutable(hex));
