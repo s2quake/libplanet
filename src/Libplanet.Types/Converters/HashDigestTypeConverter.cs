@@ -16,9 +16,9 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         => sourceType switch
         {
-            Type type when type == typeof(string) => true,
-            Type type when type == typeof(IValue) => true,
-            Type type when type == typeof(Binary) => true,
+            Type type1 when type1 == typeof(string) => true,
+            Type type2 when type2 == typeof(IValue) => true,
+            Type type3 when type3 == typeof(Binary) => true,
             _ => base.CanConvertFrom(context, sourceType),
         };
 
@@ -33,9 +33,9 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
     public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
         => destinationType switch
         {
-            Type type when type == typeof(string) => true,
-            Type type when type == typeof(IValue) => true,
-            Type type when type == typeof(Binary) => true,
+            Type type1 when type1 == typeof(string) => true,
+            Type type2 when type2 == typeof(IValue) => true,
+            Type type3 when type3 == typeof(Binary) => true,
             _ => base.CanConvertTo(context, destinationType),
         };
 
@@ -43,9 +43,9 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
         => destinationType switch
         {
-            Type type when type == typeof(string) => value?.ToString(),
-            Type type when type == typeof(IValue) => ConvertToBinary(value),
-            Type type when type == typeof(Binary) => ConvertToBinary(value),
+            Type type1 when type1 == typeof(string) => value?.ToString(),
+            Type type2 when type2 == typeof(IValue) => ConvertToBinary(value),
+            Type type3 when type3 == typeof(Binary) => ConvertToBinary(value),
             _ => base.ConvertTo(context, culture, value, destinationType),
         };
 
