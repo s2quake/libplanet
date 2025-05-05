@@ -11,7 +11,7 @@ namespace Libplanet.Types.Tx;
 public sealed record class TxInvoice : IEquatable<TxInvoice>, IValidatableObject
 {
     [Property(0)]
-    [NonDefault]
+    [NotDefault]
     public ImmutableArray<ActionBytecode> Actions { get; init; } = [];
 
     [Property(1)]

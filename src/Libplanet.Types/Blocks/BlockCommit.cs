@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Types.Blocks;
@@ -11,15 +13,19 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
     public static BlockCommit Empty { get; } = new();
 
     [Property(0)]
+    [NonNegative]
     public long Height { get; init; }
 
     [Property(1)]
+    [NonNegative]
     public int Round { get; init; }
 
     [Property(2)]
     public BlockHash BlockHash { get; init; }
 
     [Property(3)]
+    [NotDefault]
+    [NotEmpty]
     public ImmutableArray<Vote> Votes { get; init; } = [];
 
     public bool Equals(BlockCommit? other) => ModelUtility.Equals(this, other);
@@ -31,24 +37,6 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (Height < 0)
-        {
-            yield return new ValidationResult(
-                $"Height must be non-negative: {Height}", [nameof(Height)]);
-        }
-
-        if (Round < 0)
-        {
-            yield return new ValidationResult(
-                $"Round must be non-negative: {Round}", [nameof(Round)]);
-        }
-
-        if (Votes.IsDefaultOrEmpty)
-        {
-            yield return new ValidationResult(
-                "Empty set of votes is not allowed.", [nameof(Votes)]);
-        }
-
         var height = Height;
         var round = Round;
         var blockHash = BlockHash;
