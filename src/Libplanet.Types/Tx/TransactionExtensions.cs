@@ -38,21 +38,4 @@ public static class TransactionExtensions
             }
         }
     }
-
-    // public static UnsignedTx Combine(this TxInvoice invoice, TxSigningMetadata signingMetadata)
-    //     => new(invoice, signingMetadata);
-
-    // public static Transaction Sign(this TxInvoice invoice, PrivateKey privateKey, long nonce)
-    //     => invoice.Combine(new TxSigningMetadata(privateKey.Address, nonce)).Sign(privateKey);
-
-    // public static Transaction Sign(this UnsignedTx unsignedTx, PrivateKey privateKey)
-    //     => new(unsignedTx, privateKey);
-
-    // public static Transaction Verify(this UnsignedTx unsignedTx, ImmutableArray<byte> signature)
-    //     => new(unsignedTx, signature);
-
-    // internal static Transaction CombineWithoutVerification(
-    //     this UnsignedTx unsignedTx,
-    //     ImmutableArray<byte> alreadyVerifiedSignature) =>
-    //     Transaction.CombineWithoutVerification(unsignedTx, alreadyVerifiedSignature);
 }

@@ -152,7 +152,7 @@ namespace Libplanet.Explorer.Queries
                         Invoice = invoice,
                         SigningMetadata = signingMetadata,
                     };
-                    return unsignedTx.SerializeUnsignedTx();
+                    return unsignedTx.CreateMessage();
                 }
             );
 
@@ -195,10 +195,7 @@ namespace Libplanet.Explorer.Queries
                     ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
                         context.GetArgument<string>("signature")
                     );
-                    var unsignedTx = TxMarshaler.DeserializeUnsignedTx(
-                        Encoding.UTF8.GetString(
-                            ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")))
-                    );
+                    var unsignedTx = ModelSerializer.DeserializeFromBytes<UnsignedTx>(ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")));
                     var signedTransaction = unsignedTx.Verify(signature);
                     return ByteUtility.Hex(ModelSerializer.SerializeToBytes(signedTransaction));
                 }
