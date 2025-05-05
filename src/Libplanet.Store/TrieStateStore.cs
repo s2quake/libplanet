@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
-using Libplanet.Types;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Store;

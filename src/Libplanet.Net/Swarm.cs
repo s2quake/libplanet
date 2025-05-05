@@ -8,7 +8,6 @@ using Libplanet.Blockchain;
 #if NETSTANDARD2_0
 using Libplanet.Types;
 #endif
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
@@ -17,6 +16,7 @@ using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 using Nito.AsyncEx;
 using Serilog;

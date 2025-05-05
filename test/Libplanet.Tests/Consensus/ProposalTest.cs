@@ -1,7 +1,7 @@
 using Libplanet.Consensus;
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Tests.Store;
+using Libplanet.Types.Crypto;
 using Serilog;
 using Xunit.Abstractions;
 

@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using Libplanet.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.Store;
 

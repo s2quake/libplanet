@@ -1,6 +1,6 @@
 using System.Net;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Protocols;
+using Libplanet.Types.Crypto;
 using Serilog.Core;
 
 namespace Libplanet.Net.Tests.Protocols

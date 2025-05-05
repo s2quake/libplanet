@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
+using Libplanet.Types.Crypto;
 using NetMQ;
 using NetMQ.Sockets;
 

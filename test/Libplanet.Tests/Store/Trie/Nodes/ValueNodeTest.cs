@@ -1,6 +1,6 @@
 using Bencodex.Types;
-using Libplanet.Types;
 using Libplanet.Store.Trie.Nodes;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.Store.Trie.Nodes
 {

@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Action.State;
-using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Queries;
 

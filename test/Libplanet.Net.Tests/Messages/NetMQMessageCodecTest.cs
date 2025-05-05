@@ -3,12 +3,12 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
 using Libplanet.Consensus;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 using NetMQ;
 using static Libplanet.Tests.TestUtils;
 

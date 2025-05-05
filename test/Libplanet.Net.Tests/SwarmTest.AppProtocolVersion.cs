@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net.Tests
 {

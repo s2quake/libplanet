@@ -2,8 +2,8 @@ using System.Text;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Tests.Tx;

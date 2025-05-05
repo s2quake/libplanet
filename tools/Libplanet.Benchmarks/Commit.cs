@@ -1,9 +1,9 @@
 using BenchmarkDotNet.Attributes;
-using Libplanet.Types.Crypto;
+using Libplanet.Serialization;
+using Libplanet.Tests;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Libplanet.Tests;
-using Libplanet.Serialization;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Benchmarks
 {

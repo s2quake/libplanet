@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
-using Libplanet.Types;
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Types;
 using Libplanet.Types.Assets;
+using Libplanet.Types.Crypto;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Assets;

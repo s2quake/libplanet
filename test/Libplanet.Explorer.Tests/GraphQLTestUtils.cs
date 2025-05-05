@@ -2,9 +2,9 @@ using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Explorer.Tests.Queries;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Libplanet.Explorer.Tests;
 

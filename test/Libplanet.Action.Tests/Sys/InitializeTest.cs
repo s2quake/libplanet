@@ -1,9 +1,9 @@
 using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
-using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.Tests.Sys;

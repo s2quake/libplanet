@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using GraphQL.Language.AST;
-using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {

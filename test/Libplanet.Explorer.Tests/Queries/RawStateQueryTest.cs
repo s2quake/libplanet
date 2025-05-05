@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
-using Libplanet.Types;
 using Libplanet.Explorer.Queries;
-using Fixture = Libplanet.Explorer.Tests.Fixtures.BlockChainStatesFixture;
-using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.Serialization;
+using Libplanet.Types;
+using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using Fixture = Libplanet.Explorer.Tests.Fixtures.BlockChainStatesFixture;
 
 namespace Libplanet.Explorer.Tests.Queries;
 

@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using Libplanet.Types.Crypto;
 using Libplanet.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Node.Services;
 

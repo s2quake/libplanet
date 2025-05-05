@@ -1,7 +1,7 @@
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.Tests.Common;

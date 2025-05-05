@@ -3,9 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Blockchain;
 using Libplanet.Consensus;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
+using Libplanet.Types.Crypto;
 using Serilog;
 
 namespace Libplanet.Net.Consensus

@@ -1,7 +1,7 @@
 using System.Net;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
 using NetMQ;
 
 namespace Libplanet.Net.Tests.Messages

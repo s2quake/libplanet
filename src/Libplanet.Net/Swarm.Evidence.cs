@@ -2,10 +2,10 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Blockchain;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Serialization;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 #if NETSTANDARD2_0

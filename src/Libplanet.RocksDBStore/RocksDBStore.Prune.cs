@@ -1,6 +1,6 @@
-using Libplanet.Types.Extensions;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Extensions;
 using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Threading;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Protocols;
+using Libplanet.Types.Crypto;
 using Serilog.Core;
 #if NETFRAMEWORK && (NET47 || NET471)
 using static Libplanet.Tests.HashSetExtensions;

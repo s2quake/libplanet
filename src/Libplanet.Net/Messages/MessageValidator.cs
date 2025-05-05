@@ -1,8 +1,8 @@
 using System.Globalization;
-using Libplanet.Types;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net.Messages
 {

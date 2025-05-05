@@ -1,6 +1,6 @@
 using Grpc.Core;
-using Libplanet.Types;
 using Libplanet.Node.Services;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Node.API.Services;

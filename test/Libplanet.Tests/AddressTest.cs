@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using Bencodex.Types;
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Types.Crypto;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests;

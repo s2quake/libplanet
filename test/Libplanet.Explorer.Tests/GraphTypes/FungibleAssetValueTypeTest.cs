@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
-using Libplanet.Types.Assets;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.Types.Assets;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;

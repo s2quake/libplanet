@@ -2,13 +2,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Bencodex.Types;
-using Libplanet.Types.Extensions;
-using Libplanet.Types.Crypto;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
+using Libplanet.Types.Extensions;
 using Libplanet.Types.Tx;
 using RocksDbSharp;
-using Libplanet.Serialization;
 
 namespace Libplanet.Explorer.Indexing;
 

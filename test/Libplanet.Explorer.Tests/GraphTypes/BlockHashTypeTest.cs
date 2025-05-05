@@ -1,6 +1,6 @@
 using GraphQL.Language.AST;
-using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
