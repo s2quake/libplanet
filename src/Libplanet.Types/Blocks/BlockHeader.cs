@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Blocks;
 

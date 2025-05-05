@@ -2,9 +2,9 @@ using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Action.State;
+using Libplanet.Store.Trie;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
-using Libplanet.Store.Trie;
 
 namespace Libplanet.Explorer.GraphTypes
 {

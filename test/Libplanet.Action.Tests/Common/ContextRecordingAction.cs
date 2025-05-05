@@ -1,5 +1,5 @@
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
+using Libplanet.Types.Crypto;
 using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.Tests.Common;

@@ -1,12 +1,12 @@
 using System.Net;
 using System.Threading.Tasks;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 using NetMQ;
 using Nito.AsyncEx;
 using Serilog;

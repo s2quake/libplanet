@@ -1,13 +1,13 @@
+using System.Threading.Tasks;
 using GraphQL;
-using GraphQL.Types;
 using GraphQL.Execution;
+using GraphQL.Types;
+using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
-using Libplanet.Explorer.GraphTypes;
+using Libplanet.Types.Crypto;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
-using System.Threading.Tasks;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;
 

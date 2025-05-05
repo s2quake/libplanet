@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Assets;

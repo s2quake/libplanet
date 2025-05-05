@@ -1,12 +1,12 @@
 using BenchmarkDotNet.Attributes;
 using Bencodex.Types;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Tx;
+using Libplanet.Action;
 using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
-using Libplanet.Action;
+using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
+using Libplanet.Types.Tx;
 
 namespace Libplanet.Benchmarks
 {

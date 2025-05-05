@@ -1,8 +1,8 @@
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Action.State.ReservedAddresses;

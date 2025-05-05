@@ -2,9 +2,9 @@ using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Blockchain.Policies;
-using Libplanet.Types.Crypto;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 using Xunit.Abstractions;
 

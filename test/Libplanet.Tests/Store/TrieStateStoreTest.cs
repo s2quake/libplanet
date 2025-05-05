@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
-using Libplanet.Types;
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
+using Libplanet.Types.Crypto;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Store;

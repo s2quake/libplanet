@@ -2,10 +2,10 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
+using Libplanet.Types.Crypto;
 using Nito.AsyncEx;
 using Serilog;
 

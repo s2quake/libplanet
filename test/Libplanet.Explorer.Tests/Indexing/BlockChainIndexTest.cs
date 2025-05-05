@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Tx;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Serialization;
+using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
+using Libplanet.Types.Tx;
 
 namespace Libplanet.Explorer.Tests.Indexing;
 

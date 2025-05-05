@@ -1,13 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 using Bencodex.Types;
-using Libplanet.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
+using Libplanet.Types;
 using static System.Linq.Enumerable;
-using static Libplanet.Types.HashDigest<System.Security.Cryptography.SHA256>;
 using static Libplanet.Tests.TestUtils;
+using static Libplanet.Types.HashDigest<System.Security.Cryptography.SHA256>;
 
 namespace Libplanet.Tests.Store.Trie;
 

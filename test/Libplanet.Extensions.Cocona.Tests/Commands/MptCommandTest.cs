@@ -1,11 +1,11 @@
 using System.IO;
 using Bencodex.Types;
-using Libplanet.Types;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Tools.Tests.Services;
+using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;
 

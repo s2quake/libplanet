@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
+using Libplanet.Types.Crypto;
 using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action.State;

@@ -1,6 +1,6 @@
-using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Tx;
 

@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
-using Libplanet.Types;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;

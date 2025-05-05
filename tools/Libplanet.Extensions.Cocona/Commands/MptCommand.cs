@@ -4,12 +4,12 @@ using System.Text.Json;
 using Bencodex.Types;
 using global::Cocona;
 using global::Cocona.Help;
-using Libplanet.Types;
 using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Extensions.Cocona.Services;
 using Libplanet.RocksDBStore;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Commands;
 

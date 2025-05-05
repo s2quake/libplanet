@@ -2,9 +2,9 @@ using System.Diagnostics.Contracts;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Consensus
 {

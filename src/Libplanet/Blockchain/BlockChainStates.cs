@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using Libplanet.Action.State;
-using Libplanet.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain

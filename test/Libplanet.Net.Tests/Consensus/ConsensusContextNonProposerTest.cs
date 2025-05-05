@@ -1,9 +1,9 @@
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 using Nito.AsyncEx;
 using Serilog;
 using xRetry;

@@ -2,8 +2,8 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Bencodex.Types;
-using Libplanet.Types;
 using Libplanet.Store.Trie.Nodes;
+using Libplanet.Types;
 
 namespace Libplanet.Store.Trie;
 

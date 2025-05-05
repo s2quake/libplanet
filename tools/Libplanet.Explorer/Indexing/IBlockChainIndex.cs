@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Types.Crypto;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Explorer.Indexing;

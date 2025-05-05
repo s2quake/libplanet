@@ -1,5 +1,5 @@
-using Libplanet.Types.Crypto;
 using Libplanet.Net.Messages;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net.Options
 {
