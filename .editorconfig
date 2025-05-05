@@ -41,6 +41,15 @@ dotnet_diagnostic.S3903.severity = none
 # SA1611: Element parameters should be documented
 dotnet_diagnostic.SA1611.severity = none
 
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+
+# SA1633: File should have header
+dotnet_diagnostic.SA1633.severity = none
+
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = none
+
 [*.csproj]
 quote_type = double
 

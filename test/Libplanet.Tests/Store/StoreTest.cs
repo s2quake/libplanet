@@ -43,14 +43,14 @@ namespace Libplanet.Tests.Store
             Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.Hash);
             Assert.Equal(
                 new[] { Fx.StoreChainId }.ToImmutableHashSet(),
-                Fx.Store.ListChainIds().ToImmutableHashSet()
+                [.. Fx.Store.ListChainIds()]
             );
 
             Guid arbitraryGuid = Guid.NewGuid();
             Fx.Store.AppendIndex(arbitraryGuid, Fx.Block1.Hash);
             Assert.Equal(
                 new[] { Fx.StoreChainId, arbitraryGuid }.ToImmutableHashSet(),
-                Fx.Store.ListChainIds().ToImmutableHashSet()
+                [.. Fx.Store.ListChainIds()]
             );
         }
 
@@ -73,7 +73,7 @@ namespace Libplanet.Tests.Store
 
             Assert.Equal(
                 new[] { chainB }.ToImmutableHashSet(),
-                Fx.Store.ListChainIds().ToImmutableHashSet()
+                [.. Fx.Store.ListChainIds()]
             );
         }
 
@@ -83,7 +83,7 @@ namespace Libplanet.Tests.Store
             Block block1 = ProposeNextBlock(
                 ProposeGenesisBlock(GenesisProposer),
                 GenesisProposer,
-                new[] { Fx.Transaction1 });
+                [Fx.Transaction1]);
             Fx.Store.AppendIndex(Fx.StoreChainId, block1.Hash);
             Guid arbitraryChainId = Guid.NewGuid();
             Fx.Store.AppendIndex(arbitraryChainId, block1.Hash);
@@ -93,7 +93,7 @@ namespace Libplanet.Tests.Store
 
             Assert.Equal(
                 new[] { arbitraryChainId }.ToImmutableHashSet(),
-                Fx.Store.ListChainIds().ToImmutableHashSet()
+                [.. Fx.Store.ListChainIds()]
             );
             Assert.Equal(0, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
         }
@@ -332,7 +332,7 @@ namespace Libplanet.Tests.Store
             Assert.Equal(1, Fx.Store.CountBlocks());
             Assert.Equal(
                 new HashSet<BlockHash> { Fx.Block1.Hash },
-                Fx.Store.IterateBlockHashes().ToHashSet());
+                [.. Fx.Store.IterateBlockHashes()]);
             Assert.Equal(
                 Fx.Block1,
                 Fx.Store.GetBlock(Fx.Block1.Hash));
@@ -349,7 +349,7 @@ namespace Libplanet.Tests.Store
             Assert.Equal(2, Fx.Store.CountBlocks());
             Assert.Equal(
                 new HashSet<BlockHash> { Fx.Block1.Hash, Fx.Block2.Hash },
-                Fx.Store.IterateBlockHashes().ToHashSet());
+                [.. Fx.Store.IterateBlockHashes()]);
             Assert.Equal(
                 Fx.Block1,
                 Fx.Store.GetBlock(Fx.Block1.Hash));
@@ -368,7 +368,7 @@ namespace Libplanet.Tests.Store
             Assert.Equal(1, Fx.Store.CountBlocks());
             Assert.Equal(
                 new HashSet<BlockHash> { Fx.Block2.Hash },
-                Fx.Store.IterateBlockHashes().ToHashSet());
+                [.. Fx.Store.IterateBlockHashes()]);
             Assert.Null(Fx.Store.GetBlock(Fx.Block1.Hash));
             Assert.Equal(
                 Fx.Block2,
@@ -571,34 +571,34 @@ namespace Libplanet.Tests.Store
             var indexes = store.IterateIndexes(ns).ToArray();
             Assert.Equal(new[] { Fx.Hash1, Fx.Hash2, Fx.Hash3 }, indexes);
 
-            indexes = store.IterateIndexes(ns, 1).ToArray();
+            indexes = [.. store.IterateIndexes(ns, 1)];
             Assert.Equal(new[] { Fx.Hash2, Fx.Hash3 }, indexes);
 
-            indexes = store.IterateIndexes(ns, 2).ToArray();
+            indexes = [.. store.IterateIndexes(ns, 2)];
             Assert.Equal(new[] { Fx.Hash3 }, indexes);
 
-            indexes = store.IterateIndexes(ns, 3).ToArray();
+            indexes = [.. store.IterateIndexes(ns, 3)];
             Assert.Equal(new BlockHash[0], indexes);
 
-            indexes = store.IterateIndexes(ns, 4).ToArray();
+            indexes = [.. store.IterateIndexes(ns, 4)];
             Assert.Equal(new BlockHash[0], indexes);
 
-            indexes = store.IterateIndexes(ns, limit: 0).ToArray();
+            indexes = [.. store.IterateIndexes(ns, limit: 0)];
             Assert.Equal(new BlockHash[0], indexes);
 
-            indexes = store.IterateIndexes(ns, limit: 1).ToArray();
+            indexes = [.. store.IterateIndexes(ns, limit: 1)];
             Assert.Equal(new[] { Fx.Hash1 }, indexes);
 
-            indexes = store.IterateIndexes(ns, limit: 2).ToArray();
+            indexes = [.. store.IterateIndexes(ns, limit: 2)];
             Assert.Equal(new[] { Fx.Hash1, Fx.Hash2 }, indexes);
 
-            indexes = store.IterateIndexes(ns, limit: 3).ToArray();
+            indexes = [.. store.IterateIndexes(ns, limit: 3)];
             Assert.Equal(new[] { Fx.Hash1, Fx.Hash2, Fx.Hash3 }, indexes);
 
-            indexes = store.IterateIndexes(ns, limit: 4).ToArray();
+            indexes = [.. store.IterateIndexes(ns, limit: 4)];
             Assert.Equal(new[] { Fx.Hash1, Fx.Hash2, Fx.Hash3 }, indexes);
 
-            indexes = store.IterateIndexes(ns, 1, 1).ToArray();
+            indexes = [.. store.IterateIndexes(ns, 1, 1)];
             Assert.Equal(new[] { Fx.Hash2 }, indexes);
         }
 
@@ -727,8 +727,8 @@ namespace Libplanet.Tests.Store
                 byte[] digest = md5.ComputeHash(arbitraryBytes);
                 var action = new AtomicityTestAction
                 {
-                    ArbitraryBytes = arbitraryBytes.ToImmutableArray(),
-                    Md5Digest = digest.ToImmutableArray(),
+                    ArbitraryBytes = [.. arbitraryBytes],
+                    Md5Digest = [.. digest],
                 };
                 return Transaction.Create(
                     txNonce,
@@ -1028,7 +1028,7 @@ namespace Libplanet.Tests.Store
                 s1.Copy(to: Fx.Store);
                 Fx.Store.Copy(to: s2);
 
-                Assert.Equal(s1.ListChainIds().ToHashSet(), s2.ListChainIds().ToHashSet());
+                Assert.Equal(s1.ListChainIds().ToHashSet(), [.. s2.ListChainIds()]);
                 Assert.Equal(s1.GetCanonicalChainId(), s2.GetCanonicalChainId());
                 foreach (Guid chainId in s1.ListChainIds())
                 {
@@ -1153,9 +1153,7 @@ namespace Libplanet.Tests.Store
 
                 IEnumerable<BlockHash> indices = fx.Store.GetBlockCommitHashes();
 
-                HashSet<long> indicesFromOperation = indices
-                    .Select(hash => fx.Store.GetBlockCommit(hash).Height)
-                    .ToHashSet();
+                HashSet<long> indicesFromOperation = [.. indices.Select(hash => fx.Store.GetBlockCommit(hash).Height)];
                 HashSet<long> expectedIndices = new HashSet<long>() { 1, 2 };
 
                 Assert.Equal(indicesFromOperation, expectedIndices);
@@ -1266,7 +1264,7 @@ namespace Libplanet.Tests.Store
                 }
 
                 IEnumerable<EvidenceId> ids = fx.Store.IteratePendingEvidenceIds();
-                Assert.Equal(evidence.Select(e => e.Id).ToHashSet(), ids.ToHashSet());
+                Assert.Equal(evidence.Select(e => e.Id).ToHashSet(), [.. ids]);
             }
         }
 

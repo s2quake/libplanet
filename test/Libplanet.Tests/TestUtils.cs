@@ -459,18 +459,15 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static RawBlock ProposeNext(
             Block previousBlock,
-            IReadOnlyList<Transaction>? transactions = null,
+            ImmutableSortedSet<Transaction>? transactions = null,
             PublicKey? proposer = null,
             TimeSpan? blockInterval = null,
             int protocolVersion = Block.CurrentProtocolVersion,
             BlockCommit? lastCommit = null,
-            ImmutableArray<EvidenceBase>? evidence = null)
+            ImmutableSortedSet<EvidenceBase>? evidence = null)
         {
-            var txs = transactions is null
-                ? new List<Transaction>()
-                : transactions.OrderBy(tx => tx.Id).ToList();
-
-            var evidenceHash = BlockContent.DeriveEvidenceHash(evidence ?? []);
+            var txs = transactions ?? [];
+            var evs = evidence ?? [];
             var metadata = new BlockMetadata
             {
                 ProtocolVersion = protocolVersion,
@@ -479,14 +476,14 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                         blockInterval ?? TimeSpan.FromSeconds(15)),
                 Proposer = proposer?.Address ?? previousBlock.Proposer,
                 PreviousHash = previousBlock.Hash,
-                TxHash = BlockContent.DeriveTxHash([.. txs]),
+                TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = lastCommit ?? BlockCommit.Empty,
-                EvidenceHash = evidenceHash,
+                EvidenceHash = BlockContent.DeriveEvidenceHash(evs),
             };
             var content = new BlockContent
             {
-                Transactions = [.. txs],
-                Evidence = [],
+                Transactions = txs,
+                Evidence = evs,
             };
             var preEval = RawBlock.Propose(metadata, content);
             preEval.ValidateTimestamp();
@@ -496,12 +493,12 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static Block ProposeNextBlock(
             Block previousBlock,
             PrivateKey proposer,
-            IReadOnlyList<Transaction>? txs = null,
+            ImmutableSortedSet<Transaction>? txs = null,
             TimeSpan? blockInterval = null,
             int protocolVersion = Block.CurrentProtocolVersion,
             HashDigest<SHA256> stateRootHash = default,
             BlockCommit? lastCommit = null,
-            ImmutableArray<EvidenceBase>? evidence = null)
+            ImmutableSortedSet<EvidenceBase>? evidence = null)
         {
             Skip.IfNot(
                 Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,

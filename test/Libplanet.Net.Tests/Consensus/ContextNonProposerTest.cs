@@ -343,7 +343,7 @@ namespace Libplanet.Net.Tests.Consensus
             Block invalidBlock = diffPolicyBlockChain.EvaluateAndSign(
                 Libplanet.Tests.TestUtils.ProposeNext(
                     blockChain.Genesis,
-                    new[] { invalidTx },
+                    [invalidTx],
                     proposer: TestUtils.PrivateKeys[1].PublicKey,
                     blockInterval: TimeSpan.FromSeconds(10)),
                 TestUtils.PrivateKeys[1]);

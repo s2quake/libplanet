@@ -737,7 +737,7 @@ namespace Libplanet.Tests.Blockchain
             var tx = Transaction.Create(0, proposer, genesis.Hash, new[] { action }.ToBytecodes());
             var preBlockBeforeBump = TestUtils.ProposeNext(
                 genesis,
-                new[] { tx }.ToImmutableList(),
+                [tx],
                 proposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
             var blockBeforeBump = preBlockBeforeBump.Sign(
@@ -753,7 +753,7 @@ namespace Libplanet.Tests.Blockchain
             tx = Transaction.Create(1, proposer, genesis.Hash, new[] { action }.ToBytecodes());
             var blockAfterBump1 = blockChain.ProposeBlock(
                 proposer,
-                new[] { tx }.ToImmutableSortedSet(),
+                [tx],
                 commitBeforeBump,
                 evidence: []);
             Assert.Equal(
@@ -768,7 +768,7 @@ namespace Libplanet.Tests.Blockchain
             tx = Transaction.Create(2, proposer, genesis.Hash, new[] { action }.ToBytecodes());
             var blockAfterBump2 = blockChain.ProposeBlock(
                 proposer,
-                new[] { tx }.ToImmutableSortedSet(),
+                [tx],
                 commitAfterBump1,
                 evidence: []);
             Assert.Equal(

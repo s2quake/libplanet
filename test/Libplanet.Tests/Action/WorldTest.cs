@@ -184,7 +184,7 @@ public sealed class WorldTest
             new[] { action }.ToBytecodes());
         var block2PreEval = TestUtils.ProposeNext(
             chain.Tip,
-            new[] { tx },
+            [tx],
             proposer: privateKey.PublicKey,
             protocolVersion: ProtocolVersion,
             lastCommit: chain.GetBlockCommit(chain.Tip.Height));
@@ -212,7 +212,7 @@ public sealed class WorldTest
             new[] { action }.ToBytecodes());
         var block3PreEval = TestUtils.ProposeNext(
             chain.Tip,
-            new[] { tx },
+            [tx],
             proposer: _keys[1].PublicKey,
             protocolVersion: ProtocolVersion,
             lastCommit: chain.GetBlockCommit(chain.Tip.Height));

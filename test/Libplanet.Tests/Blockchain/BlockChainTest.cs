@@ -448,9 +448,9 @@ public partial class BlockChainTest : IDisposable
         var genesis = _blockChain.Genesis;
 
         Transaction[] txsA =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey),
-        };
+        ];
 
         Block b1 = _blockChain.ProposeBlock(
             _fx.Proposer,
@@ -468,12 +468,12 @@ public partial class BlockChainTest : IDisposable
             _blockChain.Append(b2, CreateBlockCommit(b2)));
 
         Transaction[] txsB =
-        {
+        [
             _fx.MakeTransaction(
                 actions,
                 nonce: 1,
                 privateKey: privateKey),
-        };
+        ];
         b2 = _blockChain.ProposeBlock(
             _fx.Proposer,
             txsB.ToImmutableSortedSet(),
@@ -615,14 +615,14 @@ public partial class BlockChainTest : IDisposable
             Address address = privateKey.Address;
             addresses[i] = address;
             DumbAction[] actions =
-            {
+            [
                 DumbAction.Create((address, "foo")),
                 DumbAction.Create((i < 1 ? address : addresses[i - 1], "bar")),
-            };
+            ];
             Transaction[] txs =
-            {
+            [
                 Transaction.Create(0, privateKey, chain.Genesis.Hash, actions.ToBytecodes()),
-            };
+            ];
             b = chain.ProposeBlock(
                 _fx.Proposer,
                 txs.ToImmutableSortedSet(),
@@ -851,9 +851,9 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(0, _blockChain.GetNextTxNonce(address));
 
         Transaction[] txsA =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 0),
-        };
+        ];
 
         Block b1 = _blockChain.ProposeBlock(
             _fx.Proposer,
@@ -865,38 +865,38 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(1, _blockChain.GetNextTxNonce(address));
 
         Transaction[] txsB =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 1),
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 2),
-        };
+        ];
 
         StageTransactions(txsB);
 
         Assert.Equal(3, _blockChain.GetNextTxNonce(address));
 
         Transaction[] txsC =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 3),
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 3),
-        };
+        ];
         StageTransactions(txsC);
 
         Assert.Equal(4, _blockChain.GetNextTxNonce(address));
 
         Transaction[] txsD =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 5),
-        };
+        ];
         StageTransactions(txsD);
 
         Assert.Equal(4, _blockChain.GetNextTxNonce(address));
 
         Transaction[] txsE =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 4),
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 5),
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 7),
-        };
+        ];
         StageTransactions(txsE);
 
         foreach (var tx in _blockChain.StagePolicy.Iterate(_blockChain))
@@ -920,20 +920,20 @@ public partial class BlockChainTest : IDisposable
         var actions = new[] { DumbAction.Create((address, "foo")) };
 
         Transaction[] txs =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey),
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 1),
-        };
+        ];
 
         StageTransactions(txs);
         Block block = _blockChain.ProposeBlock(privateKey);
         _blockChain.Append(block, CreateBlockCommit(block));
 
         Transaction[] staleTxs =
-        {
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 0),
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 1),
-        };
+        ];
         StageTransactions(staleTxs);
 
         Assert.Equal(2, _blockChain.GetNextTxNonce(address));
@@ -955,7 +955,7 @@ public partial class BlockChainTest : IDisposable
 
         Block ProposeNext(
             Block block,
-            IReadOnlyList<Transaction> txs
+            ImmutableSortedSet<Transaction> txs
         ) =>
             _blockChain.EvaluateAndSign(
                 TestUtils.ProposeNext(
@@ -966,35 +966,35 @@ public partial class BlockChainTest : IDisposable
                     lastCommit: CreateBlockCommit(block)),
                 _fx.Proposer);
 
-        Transaction[] txsA =
-        {
+        var txsA = ImmutableSortedSet.Create(
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 1),
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 0),
-        };
+        ]);
         Block b1 = ProposeNext(genesis, txsA);
         _blockChain.Append(b1, CreateBlockCommit(b1));
 
-        Transaction[] txsB =
-        {
+        var txsB = ImmutableSortedSet.Create(
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 2),
-        };
+        ]);
         Block b2 = ProposeNext(b1, txsB);
         _blockChain.Append(b2, CreateBlockCommit(b2));
 
         // Invalid if nonce is too low
-        Transaction[] txsC =
-        {
+        var txsC = ImmutableSortedSet.Create(
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 1),
-        };
+        ]);
         Block b3a = ProposeNext(b2, txsC);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b3a, CreateBlockCommit(b3a)));
 
         // Invalid if nonce is too high
-        Transaction[] txsD =
-        {
+        var txsD = ImmutableSortedSet.Create(
+        [
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 4),
-        };
+        ]);
         Block b3b = ProposeNext(b2, txsD);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b3b, CreateBlockCommit(b3b)));
@@ -1086,7 +1086,7 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(
             nonces,
-            new long[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         );
     }
 
@@ -1222,7 +1222,7 @@ public partial class BlockChainTest : IDisposable
                 b = chain.EvaluateAndSign(
                     ProposeNext(
                         b,
-                        new[] { tx },
+                        [tx],
                         blockInterval: TimeSpan.FromSeconds(10),
                         proposer: GenesisProposer.PublicKey,
                         lastCommit: CreateBlockCommit(b)),
@@ -1281,14 +1281,14 @@ public partial class BlockChainTest : IDisposable
     {
         Address[] addresses = keys is PrivateKey[] ks
             ? ks.Select(k => k.Address).ToArray()
-            : new[]
-            {
+            :
+            [
                 _fx.Address1,
                 _fx.Address2,
                 _fx.Address3,
                 _fx.Address4,
                 _fx.Address5,
-            };
+            ];
 
         if (addresses.Length != 5)
         {
@@ -1304,7 +1304,7 @@ public partial class BlockChainTest : IDisposable
         ]);
 
         Transaction[] txs =
-        {
+        [
             _fx.MakeTransaction(
                 new[]
                 {
@@ -1323,7 +1323,7 @@ public partial class BlockChainTest : IDisposable
                 timestamp: epoch.AddSeconds(5),
                 nonce: 1,
                 privateKey: privateKey),
-        };
+        ];
 
         return (addresses, txs);
     }
@@ -1557,7 +1557,7 @@ public partial class BlockChainTest : IDisposable
         var block = ProposeNextBlock(
             previousBlock: chain.Genesis,
             proposer: GenesisProposer,
-            txs: new[] { blockTx },
+            txs: [blockTx],
             stateRootHash: (HashDigest<SHA256>)nextStateRootHash);
 
         var e = Assert.Throws<InvalidOperationException>(
