@@ -53,6 +53,13 @@ public sealed record class BlockMetadata
         };
     }
 
+    public static ImmutableArray<byte> MakeSignature(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
+    {
+        var msg = ModelSerializer.SerializeToBytes(stateRootHash);
+        var sig = privateKey.Sign(msg);
+        return ImmutableArray.Create(sig);
+    }
+
     public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
     public void ValidateTimestamp(DateTimeOffset currentTime)
@@ -66,22 +73,13 @@ public sealed record class BlockMetadata
         }
     }
 
-    public BlockHash DeriveBlockHash(
-        in HashDigest<SHA256> stateRootHash,
-        in ImmutableArray<byte> signature)
+    public BlockHash DeriveBlockHash(in HashDigest<SHA256> stateRootHash, in ImmutableArray<byte> signature)
     {
         var list = new List(
             ModelSerializer.Serialize(this),
             ModelSerializer.Serialize(stateRootHash),
             ModelSerializer.Serialize(signature));
         return BlockHash.DeriveFrom(BencodexUtility.Encode(list));
-    }
-
-    public ImmutableArray<byte> MakeSignature(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
-    {
-        var msg = ModelSerializer.SerializeToBytes(stateRootHash);
-        var sig = privateKey.Sign(msg);
-        return ImmutableArray.Create(sig);
     }
 
     public bool VerifySignature(ImmutableArray<byte> signature, HashDigest<SHA256> stateRootHash)

@@ -13,7 +13,6 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
         lock (PrivateKey._lock)
         {
             using var secp = new Secp256k1();
-            var keccak = new Sha3Keccack();
             var messageHash = HashPrefixedMessage(message);
             var keyBytes = privateKey.Bytes.ToArray();
             var sig1 = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
@@ -43,7 +42,6 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
         lock (PrivateKey._lock)
         {
             using var secp = new Secp256k1();
-            var keccak = new Sha3Keccack();
             var publicKeyOutput = new byte[Secp256k1.PUBKEY_LENGTH];
             var serializedKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
             var messageHash = HashPrefixedMessage(message);

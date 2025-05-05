@@ -60,7 +60,7 @@ public sealed record class RawBlock
 
     public Block Sign(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
     {
-        var signature = Metadata.MakeSignature(privateKey, stateRootHash);
+        var signature = BlockMetadata.MakeSignature(privateKey, stateRootHash);
         var blockHash = Metadata.DeriveBlockHash(stateRootHash, signature);
         var header = new BlockHeader
         {

@@ -65,6 +65,6 @@ public static class JsonUtility
         }
 
         static bool ShouldSerialize(object obj, object? value)
-            => value is string @string && string.IsNullOrEmpty(@string) is false;
+            => value is string @string && !string.IsNullOrEmpty(@string);
     }
 }
