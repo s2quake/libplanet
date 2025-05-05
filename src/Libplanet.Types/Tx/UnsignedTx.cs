@@ -4,12 +4,24 @@ using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
+using System.IO;
+using System.Text.Json;
+using Bencodex.Json;
 
 namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
 public sealed record class UnsignedTx
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        WriteIndented = true,
+        Converters =
+        {
+            new BencodexJsonConverter(),
+        },
+    };
+
     [Property(0)]
     public required TxInvoice Invoice { get; init; }
 
@@ -62,9 +74,15 @@ public sealed record class UnsignedTx
     public Transaction Verify(ImmutableArray<byte> signature)
         => new() { UnsignedTx = this, Signature = signature };
 
-    private byte[] CreateMessage()
+    public byte[] CreateMessage()
     {
-        var json = this.SerializeUnsignedTx();
+        var dict = ModelSerializer.Serialize(this);
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true });
+        new BencodexJsonConverter().Write(writer, dict, SerializerOptions);
+        ms.Position = 0;
+        using var sr = new StreamReader(ms);
+        var json = sr.ReadToEnd();
         return Encoding.UTF8.GetBytes(json);
     }
 }

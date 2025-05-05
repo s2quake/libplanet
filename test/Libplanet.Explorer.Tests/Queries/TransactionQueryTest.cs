@@ -47,11 +47,11 @@ public class TransactionQueryTest
             Source.BlockChain.Genesis.Hash,
             Array.Empty<NullAction>().ToBytecodes()
         );
-        tx.UnsignedTx.MarshalUnsignedTx();
+        // tx.UnsignedTx.MarshalUnsignedTx();
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtility.Hex(Encoding.UTF8.GetBytes(tx.UnsignedTx.SerializeUnsignedTx()))}"",
+                unsignedTransaction: ""{ByteUtility.Hex(tx.UnsignedTx.CreateMessage())}"",
                 signature: ""{ByteUtility.Hex(tx.Signature)}""
             )
          }}
@@ -86,7 +86,7 @@ public class TransactionQueryTest
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtility.Hex(Encoding.UTF8.GetBytes(tx.UnsignedTx.SerializeUnsignedTx()))}"",
+                unsignedTransaction: ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(tx.UnsignedTx))}"",
                 signature: ""{ByteUtility.Hex(tx.Signature)}""
             )
          }}

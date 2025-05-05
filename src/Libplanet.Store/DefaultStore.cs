@@ -345,17 +345,9 @@ public class DefaultStore : StoreBase
             return null;
         }
 
-        IValue txNode = Codec.Decode(bytes);
-        if (txNode is Bencodex.Types.Dictionary dict)
-        {
-            Transaction tx = TxMarshaler.UnmarshalTransactionWithoutVerification(dict);
-            _txCache.AddOrUpdate(txid, tx);
-            return tx;
-        }
-
-        throw new DecodingException(
-            $"Expected {typeof(Dictionary).FullName}, but {txNode.GetType().Name} is given"
-        );
+        var tx = ModelSerializer.DeserializeFromBytes<Transaction>(bytes);
+        _txCache.AddOrUpdate(txid, tx);
+        return tx;
     }
 
     public override void PutTransaction(Transaction tx)

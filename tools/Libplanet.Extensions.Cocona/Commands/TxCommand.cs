@@ -3,6 +3,7 @@ using System.Text.Json;
 using Bencodex.Types;
 using global::Cocona;
 using global::Cocona.Help;
+using Libplanet.Serialization;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Extensions.Cocona.Commands;
@@ -90,7 +91,7 @@ public class TxCommand
         UnsignedTx unsignedTx;
         try
         {
-            unsignedTx = TxMarshaler.UnmarshalUnsignedTx(txDict);
+            unsignedTx = ModelSerializer.Deserialize<UnsignedTx>(txDict);
         }
         catch (Exception e)
         {

@@ -6,6 +6,7 @@ using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
+using System.Security.Cryptography;
 
 namespace Libplanet.Types.Tx;
 
@@ -24,7 +25,7 @@ public sealed record class Transaction
     [NonDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
-    public TxId Id => _id ??= TxMarshaler.GetTxId(UnsignedTx, Signature);
+    public TxId Id => _id ??= new TxId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 
     public long Nonce => UnsignedTx.Nonce;
 
