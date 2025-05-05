@@ -13,6 +13,7 @@ using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 using Libplanet.Serialization;
+using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Tests.Fixtures;
 
@@ -99,33 +100,30 @@ public sealed class IntegerSet
 
     public Block Tip => Chain.Tip;
 
-    public TxWithContext Sign(PrivateKey signer, params Arithmetic[] actions)
+    public TxWithContext Sign(PrivateKey signerKey, params Arithmetic[] actions)
     {
-        Address signerAddress = signer.Address;
-        KeyBytes rawStateKey = KeyConverters.ToStateKey(signerAddress);
-        long nonce = Chain.GetNextTxNonce(signerAddress);
-        Transaction tx = Transaction.Create(nonce, signer, Genesis.Hash, actions.ToBytecodes());
-        BigInteger prevState = Chain.GetNextWorldState().GetAccount(
-            ReservedAddresses.LegacyAccount).GetValue(signerAddress) is Bencodex.Types.Integer i
-                ? i.Value
-                : 0;
+        var signer = signerKey.Address;
+        KeyBytes rawStateKey = KeyConverters.ToStateKey(signer);
+        long nonce = Chain.GetNextTxNonce(signer);
+        Transaction tx = Transaction.Create(nonce, signerKey, Genesis.Hash, actions.ToBytecodes());
+        BigInteger prevState = Chain.GetNextWorldState().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
         ITrie prevTrie = GetTrie(Chain.Tip.Hash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);
         (BigInteger, HashDigest<SHA256>) stagedStates = Chain.ListStagedTransactions()
-            .Where(t => t.Signer.Equals(signerAddress))
+            .Where(t => t.Signer.Equals(signer))
             .OrderBy(t => t.Nonce)
             .SelectMany(t => t.Actions)
             .Aggregate(prevPair, (prev, act) =>
             {
                 var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes);
                 BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
-                var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
-                    .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
+                var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty
+                    .Add(rawStateKey, nextState);
                 HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
                     updatedRawStates.Aggregate(
                         prevTrie,
-                        (trie, pair) => trie.Set(pair.Key, pair.Value))).Hash;
+                        (trie, pair) => trie.Set(pair.Key, ModelSerializer.Serialize(pair.Value)))).Hash;
                 return (nextState, nextRootHash);
             });
         Chain.StageTransaction(tx);
@@ -137,12 +135,12 @@ public sealed class IntegerSet
                     var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes);
                     BigInteger nextState =
                         a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
-                    var updatedRawStates = ImmutableDictionary<KeyBytes, IValue>.Empty
-                        .Add(rawStateKey, (Bencodex.Types.Integer)nextState);
+                    var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty
+                        .Add(rawStateKey, nextState);
                     HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
                         updatedRawStates.Aggregate(
                             prevTrie,
-                            (trie, pair) => trie.Set(pair.Key, pair.Value))).Hash;
+                            (trie, pair) => trie.Set(pair.Key, ModelSerializer.Serialize(pair.Value)))).Hash;
                     return delta.Add((nextState, nextRootHash));
                 }
             );

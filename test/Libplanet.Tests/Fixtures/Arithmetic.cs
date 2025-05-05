@@ -41,7 +41,7 @@ public sealed record class Arithmetic : ActionBase
         }
 
         var key = (ReservedAddresses.LegacyAccount, context.Signer);
-        var value = world.GetValue(key, (Integer)0);
+        var value = world.GetValue(key, BigInteger.Zero);
         world[key] = Operator.Calculate(value, Operand);
     }
 }

@@ -50,6 +50,9 @@ public static class WorldExtensions
     public static object? GetValueOrDefault(this World @this, Address accountAddress, Address address)
         => @this.GetAccount(accountAddress).GetValueOrDefault(address);
 
+    public static T GetValueOrFallback<T>(this World @this, Address accountAddress, Address address, T fallback)
+        => @this.GetAccount(accountAddress).GetValueOrFallback(address, fallback);
+
     public static object GetValue(this World @this, Address accountAddress, Address address)
         => @this.GetAccount(accountAddress).GetValue(address);
     

@@ -14,6 +14,11 @@ public partial class TrieStateStore
     public ITrie Commit(ITrie trie)
     {
         var root = trie.Node;
+        if (root is NullNode)
+        {
+            return trie;
+        }
+
         var writeBatch = new WriteBatch(StateKeyValueStore, 4096);
         INode newRoot = Commit(root, writeBatch, _cache);
 
