@@ -28,7 +28,18 @@ public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
 
     public IValue Bencoded => new Binary(Bytes);
 
-    public static BlockHash Parse(string hex) => new(ByteUtility.ParseHexToImmutable(hex));
+    public static BlockHash Parse(string hex)
+    {
+        try
+        {
+            return new(ByteUtility.ParseHexToImmutable(hex));
+        }
+        catch (Exception e)
+        {
+            throw new FormatException(
+                $"The string '{hex}' is not a valid {nameof(BlockHash)}.", e);
+        }
+    }
 
     public static BlockHash Create(HashDigest<SHA256> hashDigest) => new(hashDigest.Bytes);
 
