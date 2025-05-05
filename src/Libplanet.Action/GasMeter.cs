@@ -25,15 +25,7 @@ internal class GasMeter : IGasMeter
             throw new InvalidOperationException();
         }
 
-        long newGasUsed = 0;
-        try
-        {
-            newGasUsed = checked(GasUsed + gas);
-        }
-        catch (OverflowException)
-        {
-            throw;
-        }
+        var newGasUsed = checked(GasUsed + gas);
 
         if (newGasUsed > GasLimit)
         {

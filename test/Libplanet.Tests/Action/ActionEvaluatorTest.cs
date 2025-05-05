@@ -217,29 +217,17 @@ public partial class ActionEvaluatorTest
                 stateStore: stateStore);
 
         Assert.Equal(
-            (Integer)1,
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginBlockValueAddress));
+            (BigInteger)1,
+            chain.GetNextWorldState().GetValue(LegacyAccount, _beginBlockValueAddress));
         Assert.Equal(
-            (Integer)1,
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endBlockValueAddress));
+            (BigInteger)1,
+            chain.GetNextWorldState().GetValue(LegacyAccount, _endBlockValueAddress));
         Assert.Equal(
-            (Integer)chain.Genesis.Transactions.Count,
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginTxValueAddress));
+            (BigInteger)chain.Genesis.Transactions.Count,
+            chain.GetNextWorldState().GetValue(LegacyAccount, _beginTxValueAddress));
         Assert.Equal(
-            (Integer)chain.Genesis.Transactions.Count,
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endTxValueAddress));
+            (BigInteger)chain.Genesis.Transactions.Count,
+            chain.GetNextWorldState().GetValue(LegacyAccount, _endTxValueAddress));
 
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(
@@ -257,29 +245,17 @@ public partial class ActionEvaluatorTest
 
         chain.Append(block, CreateBlockCommit(block));
         Assert.Equal(
-            (Integer)2,
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginBlockValueAddress));
+            (BigInteger)2,
+            chain.GetNextWorldState().GetValue(LegacyAccount, _beginBlockValueAddress));
         Assert.Equal(
-            (Integer)2,
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endBlockValueAddress));
+            (BigInteger)2,
+            chain.GetNextWorldState().GetValue(LegacyAccount, _endBlockValueAddress));
         Assert.Equal(
-            (Integer)(chain.Genesis.Transactions.Count + txs.Length),
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginTxValueAddress));
+            (BigInteger)(chain.Genesis.Transactions.Count + txs.Length),
+            chain.GetNextWorldState().GetValue(LegacyAccount, _beginTxValueAddress));
         Assert.Equal(
-            (Integer)(chain.Genesis.Transactions.Count + txs.Length),
-            chain
-                .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endTxValueAddress));
+            (BigInteger)(chain.Genesis.Transactions.Count + txs.Length),
+            chain.GetNextWorldState().GetValue(LegacyAccount, _endTxValueAddress));
     }
 
     [Fact]
@@ -899,12 +875,10 @@ public partial class ActionEvaluatorTest
             null,
             0L,
             DateTimeOffset.UtcNow);
-        var txs = new Transaction[] { tx };
-        var evs = Array.Empty<EvidenceBase>();
+        var txs = ImmutableSortedSet.Create(tx);
         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
-        IStateStore stateStore = new TrieStateStore();
-        var actionEvaluator = new ActionEvaluator(
-            stateStore: stateStore);
+        var stateStore = new TrieStateStore();
+        var actionEvaluator = new ActionEvaluator(stateStore);
         var block = RawBlock.Propose(
             new BlockMetadata
             {
@@ -912,21 +886,18 @@ public partial class ActionEvaluatorTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = GenesisProposer.Address,
                 PreviousHash = hash,
-                TxHash = BlockContent.DeriveTxHash([.. txs]),
+                TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = CreateBlockCommit(hash, 122, 0),
             },
             new BlockContent
             {
-                Transactions = [.. txs],
-                Evidence = [.. evs],
+                Transactions = txs,
+                Evidence = [],
             });
-        World previousState = stateStore.GetWorld(default);
-        var nextState = actionEvaluator.EvaluateTx(
-            block: block,
-            tx: tx,
-            world: previousState).Last().OutputWorld;
+        var world = stateStore.GetWorld(default);
+        var nextWorld = actionEvaluator.EvaluateTx(block, tx, world)[^1].OutputWorld;
 
-        Assert.Empty(nextState.Trie.Diff(previousState.Trie));
+        Assert.Empty(nextWorld.Trie.Diff(world.Trie));
     }
 
     [Fact]
@@ -952,9 +923,8 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal(evalsA.Length, deltaA.Count - 1);
         Assert.Equal(
-            new Integer(15),
-            evalsA.Last().OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount).GetValue(txA.Signer));
+            (BigInteger)15,
+            evalsA[^1].OutputWorld.GetValue(LegacyAccount, txA.Signer));
         // Assert.All(evalsA, eval => Assert.Empty(eval.InputContext.Txs));
 
         for (int i = 0; i < evalsA.Length; i++)
@@ -972,8 +942,8 @@ public partial class ActionEvaluatorTest
             Assert.Equal(blockA.Height, context.BlockHeight);
             Assert.Equal(txA.Signer, context.Signer);
             Assert.Equal(
-                (Integer)deltaA[i].Value,
-                prevState.GetAccount(ReservedAddresses.LegacyAccount).GetValue(txA.Signer));
+                deltaA[i].Value,
+                prevState.GetValue(LegacyAccount, txA.Signer));
             Assert.Equal(
                 ToStateKey(txA.Signer),
                 Assert.Single(
@@ -981,8 +951,8 @@ public partial class ActionEvaluatorTest
                         prevState.GetAccount(ReservedAddresses.LegacyAccount).Trie))
                 .Path);
             Assert.Equal(
-                (Integer)deltaA[i + 1].Value,
-                outputState.GetAccount(ReservedAddresses.LegacyAccount).GetValue(txA.Signer));
+                deltaA[i + 1].Value,
+                outputState.GetValue(ReservedAddresses.LegacyAccount, txA.Signer));
             Assert.Null(eval.Exception);
         }
 
@@ -1004,9 +974,8 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal(evalsB.Length, deltaB.Count - 1);
         Assert.Equal(
-            new Integer(6),
-            evalsB.Last().OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount).GetValue(txB.Signer));
+            (BigInteger)6,
+            evalsB[^1].OutputWorld.GetValue(LegacyAccount, txB.Signer));
 
         for (int i = 0; i < evalsB.Length; i++)
         {
@@ -1024,11 +993,11 @@ public partial class ActionEvaluatorTest
             Assert.Equal(blockB.Height, context.BlockHeight);
             Assert.Equal(txB.Signer, context.Signer);
             Assert.Equal(
-                (Integer)deltaB[i].Value,
-                prevState.GetAccount(ReservedAddresses.LegacyAccount).GetValue(txB.Signer));
+                deltaB[i].Value,
+                prevState.GetValue(LegacyAccount, txB.Signer));
             Assert.Equal(
-                (Integer)deltaB[i + 1].Value,
-                outputState.GetAccount(ReservedAddresses.LegacyAccount).GetValue(txB.Signer));
+                deltaB[i + 1].Value,
+                outputState.GetValue(LegacyAccount, txB.Signer));
             if (i == 1)
             {
                 Assert.Empty(outputState.Trie.Diff(prevState.Trie));
@@ -1075,10 +1044,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginBlockValueAddress));
+            (BigInteger)1,
+            (BigInteger)evaluations[0].OutputWorld.GetValue(LegacyAccount, _beginBlockValueAddress));
 
         previousState = evaluations[0].OutputWorld;
         evaluations = actionEvaluator.EvaluateBeginBlockActions(
@@ -1090,10 +1057,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginBlockValueAddress));
+            (BigInteger)2,
+            (BigInteger)evaluations[0].OutputWorld.GetValue(LegacyAccount, _beginBlockValueAddress));
     }
 
     [Fact]
@@ -1123,10 +1088,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endBlockValueAddress));
+            (BigInteger)1,
+            evaluations[0].OutputWorld.GetValue(LegacyAccount, _endBlockValueAddress));
         Assert.Equal(genesis.Transactions, evaluations[0].InputContext.Txs);
 
         previousState = evaluations[0].OutputWorld;
@@ -1139,10 +1102,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endBlockValueAddress));
+            (BigInteger)2,
+            evaluations[0].OutputWorld.GetValue(LegacyAccount, _endBlockValueAddress));
     }
 
     [Fact]
@@ -1173,10 +1134,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginTxValueAddress));
+            (BigInteger)1,
+            evaluations[0].OutputWorld.GetValue(LegacyAccount, _beginTxValueAddress));
         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
 
         previousState = evaluations[0].OutputWorld;
@@ -1190,10 +1149,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_beginTxValueAddress));
+            (BigInteger)2,
+            evaluations[0].OutputWorld.GetValue(LegacyAccount, _beginTxValueAddress));
         Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
     }
 
@@ -1225,10 +1182,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)1,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endTxValueAddress));
+            (BigInteger)1,
+            evaluations[0].OutputWorld.GetValue(LegacyAccount, _endTxValueAddress));
         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
 
         previousState = evaluations[0].OutputWorld;
@@ -1242,10 +1197,8 @@ public partial class ActionEvaluatorTest
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
-            (Integer)2,
-            (Integer)evaluations[0].OutputWorld
-                .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(_endTxValueAddress));
+            (BigInteger)2,
+            evaluations[0].OutputWorld.GetValue(LegacyAccount, _endTxValueAddress));
         Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
         Assert.Equal(block.Transactions, evaluations[0].InputContext.Txs);
     }
@@ -1453,11 +1406,7 @@ public partial class ActionEvaluatorTest
             chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
         Assert.Single(evaluations);
-        Assert.NotNull(evaluations.Single().Exception);
-        Assert.NotNull(evaluations.Single().Exception?.InnerException);
-        Assert.Equal(
-            typeof(InvalidOperationException),
-            evaluations.Single().Exception?.InnerException?.GetType());
+        Assert.IsType<InvalidOperationException>(evaluations.Single().Exception);
         Assert.Equal(0, GasTracer.GasAvailable);
         Assert.Equal(5, GasTracer.GasUsed);
     }
