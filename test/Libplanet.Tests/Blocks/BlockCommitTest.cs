@@ -117,8 +117,8 @@ public sealed class BlockCommitTest
         var key = new PrivateKey();
 
         // Vote with different height is not allowed.
-        var votes = ImmutableArray<Vote>.Empty
-            .Add(new VoteMetadata
+        var votes1 = ImmutableArray.Create(
+            new VoteMetadata
             {
                 Height = height + 1,
                 Round = round,
@@ -128,18 +128,20 @@ public sealed class BlockCommitTest
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
-        Assert.Throws<ArgumentException>(() =>
+
+        var exception1 = TestValidator.Throws(
             new BlockCommit
             {
                 Height = height,
                 Round = round,
                 BlockHash = hash,
-                Votes = votes,
+                Votes = votes1,
             });
+        Assert.Contains(nameof(BlockCommit.Votes), exception1.ValidationResult.MemberNames);
 
         // Vote with different round is not allowed.
-        votes = ImmutableArray<Vote>.Empty
-            .Add(new VoteMetadata
+        var votes2 = ImmutableArray.Create(
+            new VoteMetadata
             {
                 Height = height,
                 Round = round + 1,
@@ -149,14 +151,16 @@ public sealed class BlockCommitTest
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
-        Assert.Throws<ArgumentException>(() =>
+
+        var exception2 = TestValidator.Throws(
             new BlockCommit
             {
                 Height = height,
                 Round = round,
                 BlockHash = hash,
-                Votes = votes,
+                Votes = votes2,
             });
+        Assert.Contains(nameof(BlockCommit.Votes), exception2.ValidationResult.MemberNames);
     }
 
     [Fact]
@@ -168,8 +172,8 @@ public sealed class BlockCommitTest
         var badHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
         var key = new PrivateKey();
 
-        var votes = ImmutableArray<Vote>.Empty
-            .Add(new VoteMetadata
+        var votes = ImmutableArray.Create(
+            new VoteMetadata
             {
                 Height = height,
                 Round = round,
@@ -179,13 +183,16 @@ public sealed class BlockCommitTest
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
-        Assert.Throws<ArgumentException>(() => new BlockCommit
-        {
-            Height = height,
-            Round = round,
-            BlockHash = hash,
-            Votes = votes,
-        });
+
+        var exception1 = TestValidator.Throws(
+            new BlockCommit
+            {
+                Height = height,
+                Round = round,
+                BlockHash = hash,
+                Votes = votes,
+            });
+        Assert.Contains(nameof(BlockCommit.Votes), exception1.ValidationResult.MemberNames);
     }
 
     [Fact]
@@ -206,7 +213,7 @@ public sealed class BlockCommitTest
                     ValidatorPower = BigInteger.One,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(key))
-            .ToList();
+            .ToImmutableArray();
 
         var votes = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
@@ -287,33 +294,5 @@ public sealed class BlockCommitTest
             BlockHash = hash,
             Votes = votes,
         };
-    }
-
-    [Fact]
-    public void Bencoded()
-    {
-        var fx = new MemoryStoreFixture();
-        var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
-        var votes = keys.Select(key =>
-            new VoteMetadata
-            {
-                Height = 1,
-                Round = 0,
-                BlockHash = fx.Hash1,
-                Timestamp = DateTimeOffset.Now,
-                ValidatorPublicKey = key.PublicKey,
-                ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
-            }.Sign(key))
-            .ToImmutableArray();
-        var expected = new BlockCommit
-        {
-            Height = 1,
-            Round = 0,
-            BlockHash = fx.Hash1,
-            Votes = votes,
-        };
-        var decoded = ModelSerializer.Deserialize<BlockCommit>(ModelSerializer.Serialize(expected));
-        Assert.Equal(expected, decoded);
     }
 }

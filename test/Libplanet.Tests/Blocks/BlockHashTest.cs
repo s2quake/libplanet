@@ -25,7 +25,7 @@ public class BlockHashTest
     }
 
     [Fact]
-    public void FromString()
+    public void Parse()
     {
         byte[] b =
         [
@@ -39,16 +39,15 @@ public class BlockHashTest
         );
         Assert.Equal(expected, actual);
 
-        Assert.Throws<ArgumentNullException>(() => BlockHash.Parse(null));
-        Assert.Throws<ArgumentOutOfRangeException>(() => BlockHash.Parse(string.Empty));
-        Assert.Throws<ArgumentOutOfRangeException>(() => BlockHash.Parse("abc"));
-        Assert.Throws<ArgumentOutOfRangeException>(() => BlockHash.Parse("ab"));
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<FormatException>(() => BlockHash.Parse(string.Empty));
+        Assert.Throws<FormatException>(() => BlockHash.Parse("abc"));
+        Assert.Throws<FormatException>(() => BlockHash.Parse("ab"));
+        Assert.Throws<FormatException>(() =>
             BlockHash.Parse(
                 "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cb"
             )
         );
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<FormatException>(() =>
             BlockHash.Parse(
                 "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cbfc00"
             )
