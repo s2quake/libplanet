@@ -23,7 +23,7 @@ public sealed record class BlockMetadata
     public DateTimeOffset Timestamp { get; init; }
 
     [Property(3)]
-    [NonDefault]
+    [NotDefault]
     public Address Proposer { get; init; }
 
     [Property(4)]

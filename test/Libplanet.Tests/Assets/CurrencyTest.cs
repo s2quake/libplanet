@@ -50,13 +50,13 @@ public class CurrencyTest
         Assert.Empty(quux.Minters);
 
         Assert.Throws<ValidationException>(
-            () => TestValidator.Validate(Currency.Create(string.Empty, 0)));
+            () => TestValidator.Throws(Currency.Create(string.Empty, 0)));
         Assert.Throws<ValidationException>(
-            () => TestValidator.Validate(Currency.Create("   \n", 1)));
+            () => TestValidator.Throws(Currency.Create("   \n", 1)));
         Assert.Throws<ValidationException>(
-            () => TestValidator.Validate(Currency.Create("BAR", 1, [AddressA, AddressA])));
+            () => TestValidator.Throws(Currency.Create("BAR", 1, [AddressA, AddressA])));
         Assert.Throws<ValidationException>(
-            () => TestValidator.Validate(Currency.Create("TEST", 1, -100, [])));
+            () => TestValidator.Throws(Currency.Create("TEST", 1, -100, [])));
     }
 
     [Fact]

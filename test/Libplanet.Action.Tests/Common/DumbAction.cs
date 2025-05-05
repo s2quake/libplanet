@@ -20,7 +20,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
     [Property(1)]
     public (Address? From, Address? To, BigInteger Amount)? Transfer { get; private set; }
 
-    [NonDefault]
+    [NotDefault]
     [Property(2)]
     public ImmutableSortedSet<Validator>? Validators { get; private set; }
 

@@ -22,7 +22,7 @@ public sealed record class Transaction
 
     [JsonIgnore]
     [Property(1)]
-    [NonDefault]
+    [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
     public TxId Id => _id ??= new TxId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));

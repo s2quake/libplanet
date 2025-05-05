@@ -29,7 +29,7 @@ public readonly record struct Currency : IEquatable<Currency>
     public BigInteger MaximumSupply { get; init; }
 
     [Property(3)]
-    [NonDefault]
+    [NotDefault]
     public ImmutableSortedSet<Address> Minters { get; init; } = [];
 
     public HashDigest<SHA1> Hash => GetHash();

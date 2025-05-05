@@ -52,7 +52,6 @@ public sealed record class World
 
     public World SetAccount(Address address, Account account) => this with
     {
-        Trie = account.Trie,
         Delta = Delta.SetItem(address, account),
     };
 }
