@@ -148,7 +148,7 @@ public partial class ActionEvaluatorTest
     {
         var privateKey = new PrivateKey();
         var address = privateKey.Address;
-        var value = new Text("Foo");
+        var value = "Foo";
 
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
@@ -858,18 +858,12 @@ public partial class ActionEvaluatorTest
                     ? initStates
                     : addresses.Select(
                         prevEval.OutputWorld
-                            .GetAccount(ReservedAddresses.LegacyAccount)
+                            .GetAccount(LegacyAccount)
                             .GetValueOrDefault),
-                addresses.Select(
-                    eval.InputWorld
-                        .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValueOrDefault));
+                addresses.Select(item => eval.InputWorld.GetValueOrDefault(LegacyAccount, item)));
             Assert.Equal(
                 expectedStates[i],
-                addresses.Select(eval.OutputWorld
-                    .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValueOrDefault)
-                    .Select(x => x is Text t ? t.Value : null));
+                addresses.Select(item => (string?)eval.OutputWorld.GetValueOrDefault(LegacyAccount, item)));
             Assert.Equal(
                 prevEval is null
                     ? initBalances

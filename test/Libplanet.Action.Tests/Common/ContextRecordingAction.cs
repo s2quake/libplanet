@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using static Libplanet.Action.State.ReservedAddresses;
