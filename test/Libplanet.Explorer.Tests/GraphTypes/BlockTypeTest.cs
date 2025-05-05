@@ -54,9 +54,9 @@ public class BlockTypeTest
             });
         var stateRootHash =
             new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
-        var signature = preEval.Metadata.MakeSignature(privateKey, stateRootHash);
+        var signature = BlockMetadata.MakeSignature(privateKey, stateRootHash);
         var hash = preEval.Metadata.DeriveBlockHash(stateRootHash, signature);
-        var block = Block.Create(preEval, (stateRootHash, signature, hash));
+        var block = new Block { Header = new BlockHeader(), Content = new BlockContent() };
 
         // FIXME We need to test for `previousBlock` field too.
         var query =

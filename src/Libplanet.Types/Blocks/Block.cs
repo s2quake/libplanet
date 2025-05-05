@@ -59,27 +59,6 @@ public sealed record class Block : IEquatable<Block>
         };
     }
 
-    public static Block Create(
-        RawBlock rawBlock,
-        (
-            HashDigest<SHA256> StateRootHash,
-            ImmutableArray<byte>? Signature,
-            BlockHash Hash
-        ) proof
-    )
-    {
-        var content = rawBlock.Content;
-        var header = new BlockHeader
-        {
-
-        };
-        // return new Block(
-        //     new BlockHeader(
-        //         rawBlock.Header, proof.StateRootHash, proof.Signature ?? [], proof.Hash),
-        //     rawBlock);
-        throw new NotImplementedException();
-    }
-
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public override string ToString() => Hash.ToString();
