@@ -22,7 +22,18 @@ public readonly record struct FungibleAssetValue
 
     public bool IsNegative => RawValue < 0;
 
-    public int Sign => RawValue == 0 ? 0 : RawValue < 0 ? -1 : 1;
+    public int Sign
+    {
+        get
+        {
+            if (RawValue == 0)
+            {
+                return 0;
+            }
+
+            return RawValue < 0 ? -1 : 1;
+        }
+    }
 
     public BigInteger MajorUnit => RawValue / BigInteger.Pow(10, Currency.DecimalPlaces);
 
@@ -230,11 +241,4 @@ public readonly record struct FungibleAssetValue
         "G" => $"{GetQuantityString(fixedDecimalPlaces: true)} {Currency.Ticker}",
         _ => ToString(),
     };
-
-    // public IValue ToBencodex()
-    // {
-    //     return new List(
-    //         Currency.ToBencodex(),
-    //         (Integer)RawValue);
-    // }
 }
