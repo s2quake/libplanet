@@ -30,15 +30,12 @@ namespace Libplanet.Tests.Blocks
                 stateRootHash: HashDigest<SHA256>.Parse(
                     "6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa"),
                 lastCommit: null,
-                evidence: ImmutableArray<EvidenceBase>.Empty
+                evidence: []
             );
             HasTx = TestUtils.ProposeNextBlock(
                 Next,
                 proposer: Miner,
-                txs: new List<Transaction>
-                {
-                    TxFixture.TxWithActions,
-                },
+                txs: [TxFixture.TxWithActions,],
                 protocolVersion: ProtocolVersion,
                 stateRootHash: HashDigest<SHA256>.Parse(
                     "aaeda4f1a6a4aee7fc9a29014cff005109176e83a8e5d28876f2d889680e6421"),

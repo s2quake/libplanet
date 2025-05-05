@@ -1020,11 +1020,11 @@ namespace Libplanet.Net.Tests
             Block block1 = ProposeNextBlock(
                 receiver.BlockChain.Genesis,
                 key,
-                new Transaction[] { });
+                []);
             Block block2 = ProposeNextBlock(
                 block1,
                 key,
-                new Transaction[] { });
+                []);
 
             try
             {

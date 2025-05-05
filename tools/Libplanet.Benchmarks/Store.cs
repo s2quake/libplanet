@@ -36,7 +36,7 @@ namespace Libplanet.Benchmarks
                     blockTxs.Add(Transaction.Create(nonce++, key, genesis.Hash, []));
                 }
                 block = TestUtils.ProposeNextBlock(
-                    block, TestUtils.GenesisProposer, blockTxs);
+                    block, TestUtils.GenesisProposer, [.. blockTxs]);
                 blocks.Add(block);
                 txs.AddRange(blockTxs);
             }

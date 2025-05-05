@@ -58,22 +58,22 @@ public class StoreCommandTest : IDisposable
         _block1 = TestUtils.ProposeNextBlock(
                 _genesisBlock,
                 TestUtils.GenesisProposer,
-                new[] { _transaction1 },
+                [_transaction1],
                 lastCommit: null);
         _block2 = TestUtils.ProposeNextBlock(
                 _block1,
                 TestUtils.GenesisProposer,
-                new[] { _transaction2 },
+                [_transaction2],
                 lastCommit: TestUtils.CreateBlockCommit(_block1));
         _block3 = TestUtils.ProposeNextBlock(
                 _block2,
                 TestUtils.GenesisProposer,
-                new[] { _transaction3 },
+                [_transaction3],
                 lastCommit: TestUtils.CreateBlockCommit(_block2));
         _block4 = TestUtils.ProposeNextBlock(
                 _block3,
                 TestUtils.GenesisProposer,
-                new[] { _transaction3 },
+                [_transaction3],
                 lastCommit: TestUtils.CreateBlockCommit(_block3));
         _block5 = TestUtils.ProposeNextBlock(
                 _block4,

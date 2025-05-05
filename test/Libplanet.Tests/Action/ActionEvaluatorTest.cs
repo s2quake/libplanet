@@ -439,7 +439,7 @@ public partial class ActionEvaluatorTest
         var genesisBlock = ProposeGenesisBlock(TestUtils.GenesisProposer, stateRootHash: trie.Hash);
         var actionEvaluator = new ActionEvaluator(stateStore);
 
-        Transaction[] block1Txs =
+        var block1Txs = ImmutableSortedSet.Create(
         [
             Transaction.Create(
                 unsignedTx: new UnsignedTx
@@ -496,9 +496,9 @@ public partial class ActionEvaluatorTest
                     },
                 },
                 privateKey: _txFx.PrivateKey3),
-        ];
+        ]);
         foreach ((var tx, var i) in block1Txs.Zip(
-            Enumerable.Range(0, block1Txs.Length), (x, y) => (x, y)))
+            Enumerable.Range(0, block1Txs.Count), (x, y) => (x, y)))
         {
             _logger.Debug("{0}[{1}] = {2}", nameof(block1Txs), i, tx.Id);
         }
@@ -596,7 +596,7 @@ public partial class ActionEvaluatorTest
             FungibleAssetValue.Create(DumbAction.DumbCurrency, 105, 0),
             output1.GetBalance(addresses[3], DumbAction.DumbCurrency));
 
-        Transaction[] block2Txs =
+        var block2Txs = ImmutableSortedSet.Create(
         [
             // Note that these timestamps in themselves does not have any meanings but are
             // only arbitrary.  These purpose to make their evaluation order in a block
@@ -658,9 +658,9 @@ public partial class ActionEvaluatorTest
                     },
                 },
                 privateKey: _txFx.PrivateKey3),
-        ];
+        ]);
         foreach ((var tx, var i) in block2Txs.Zip(
-            Enumerable.Range(0, block2Txs.Length), (x, y) => (x, y)))
+            Enumerable.Range(0, block2Txs.Count), (x, y) => (x, y)))
         {
             _logger.Debug("{0}[{1}] = {2}", nameof(block2Txs), i, tx.Id);
         }
