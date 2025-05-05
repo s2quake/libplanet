@@ -70,7 +70,6 @@ public class InitializeTest
         var random = new System.Random();
         Address signer = random.NextAddress();
         var world = World.Create();
-        BlockHash genesisHash = random.NextBlockHash();
         var key = new PrivateKey();
         var hash = random.NextBlockHash();
         var lastCommit = new BlockCommit

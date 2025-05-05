@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
-using Bencodex.Types;
 using Libplanet.Types.Crypto;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -124,22 +123,6 @@ public readonly record struct Currency : IEquatable<Currency>
 #endif
     }
 
-    private static List ToBencodex(ImmutableArray<Address> minters)
-    {
-        if (minters.Length == 0)
-        {
-            return List.Empty;
-        }
-
-        var list = new List(minters.Select(item => ModelSerializer.Serialize(item)));
-        return list;
-    }
-
-    private static ImmutableArray<Address> FromBencodex(List list)
-    {
-        return [.. list.Select(ModelSerializer.Deserialize<Address>)];
-    }
-
     private HashDigest<SHA1> GetHash()
     {
         using var buffer = new MemoryStream();
@@ -149,7 +132,7 @@ public readonly record struct Currency : IEquatable<Currency>
         stream.FlushFinalBlock();
         if (sha1.Hash is { } hash)
         {
-            return new HashDigest<SHA1>(sha1.Hash);
+            return new HashDigest<SHA1>(hash);
         }
 
         throw new InvalidOperationException("Failed to compute the hash.");

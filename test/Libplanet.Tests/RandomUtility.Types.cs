@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using Libplanet.Types;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
+using Libplanet.Types.Tx;
 
 namespace Libplanet.Tests;
 
@@ -16,5 +18,17 @@ public static partial class RandomUtility
     {
         var bytes = Array(Byte, Types.Crypto.Address.Size);
         return new Address(bytes);
+    }
+
+    public static TxId TxId()
+    {
+        var bytes = Array(Byte, Types.Tx.TxId.Size);
+        return new TxId(bytes);
+    }
+
+    public static BlockHash BlockHash()
+    {
+        var bytes = Array(Byte, Types.Blocks.BlockHash.Size);
+        return new BlockHash(bytes);
     }
 }
