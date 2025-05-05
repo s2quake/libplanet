@@ -1,13 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Remove="Menees.Analyzers.2017" />
-    <PackageReference Remove="StyleCop.Analyzers" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\tools\Libplanet.Explorer\Libplanet.Explorer.csproj" />
     <ProjectReference Include="..\Libplanet.Tests\Libplanet.Tests.csproj" />
