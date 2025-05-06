@@ -8,8 +8,7 @@ namespace Libplanet.Analyzers
     [DiagnosticAnalyzer(
         LanguageNames.CSharp,
         LanguageNames.FSharp,
-        LanguageNames.VisualBasic
-    )]
+        LanguageNames.VisualBasic)]
     public class ActionAnalyzer : DiagnosticAnalyzer
     {
         public const string IdPrefix = "LAA";
@@ -28,8 +27,7 @@ namespace Libplanet.Analyzers
                 messageFormat: "DEBUG: {0}",
                 category: "Debug",
                 defaultSeverity: DiagnosticSeverity.Hidden,
-                isEnabledByDefault: true
-            ),
+                isEnabledByDefault: true),
             new DiagnosticDescriptor(
                 id: $"{IdPrefix}1001",
                 title: "SystemRandomBreaksActionDeterminism",
@@ -39,8 +37,7 @@ namespace Libplanet.Analyzers
                 category: "Determinism",
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
-                helpLinkUri: $"{HelpLinkUriPrefix}1001.md"
-            ),
+                helpLinkUri: $"{HelpLinkUriPrefix}1001.md"),
             new DiagnosticDescriptor(
                 id: $"{IdPrefix}1002",
                 title: "DictionariesOrSetsShouldBeOrderedToEnumerate",
@@ -49,8 +46,7 @@ namespace Libplanet.Analyzers
                 category: "Determinism",
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
-                helpLinkUri: $"{HelpLinkUriPrefix}1002.md"
-            ),
+                helpLinkUri: $"{HelpLinkUriPrefix}1002.md"),
         };
 #pragma warning restore SA1118
 
@@ -68,8 +64,7 @@ namespace Libplanet.Analyzers
             context.RegisterOperationAction(
                 LAA1002_DictionarySetEnumeration,
                 OperationKind.Conversion,
-                OperationKind.Loop
-            );
+                OperationKind.Loop);
         }
 
         private static void LAA1001_SystemRandom(OperationAnalysisContext context)
@@ -82,8 +77,7 @@ namespace Libplanet.Analyzers
                 Diagnostic diag = Diagnostic.Create(
                     Rules[$"{IdPrefix}1001"],
                     op.Syntax.GetLocation(),
-                    ts.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
-                );
+                    ts.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                 context.ReportDiagnostic(diag);
             }
         }
@@ -150,8 +144,7 @@ namespace Libplanet.Analyzers
                             TypeEquals(proto.ContainingType, "System.Linq.Enumerable") &&
                             TypeEquals(
                                 proto.ReturnType.OriginalDefinition,
-                                "System.Linq.IOrderedEnumerable`1"
-                            ))
+                                "System.Linq.IOrderedEnumerable`1"))
                         {
                             // Ignores Linq's .OrderBy()/OrderByDescending() methods.
                             return;
@@ -195,8 +188,7 @@ namespace Libplanet.Analyzers
                             Rules[$"{IdPrefix}1002"],
                             conv.Syntax.GetLocation(),
                             valType!.ToDisplayString(symbolFormat),
-                            func
-                        );
+                            func);
                         context.ReportDiagnostic(diag);
                     }
 
@@ -213,8 +205,7 @@ namespace Libplanet.Analyzers
                             Rules[$"{IdPrefix}1002"],
                             collection.Syntax.GetLocation(),
                             collType.ToDisplayString(symbolFormat),
-                            "iterating via foreach"
-                        );
+                            "iterating via foreach");
                         context.ReportDiagnostic(diag);
                     }
 

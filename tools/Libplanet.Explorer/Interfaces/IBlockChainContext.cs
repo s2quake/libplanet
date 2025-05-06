@@ -34,8 +34,7 @@ namespace Libplanet.Explorer.Interfaces
                 {
                     var s = new Schema { Query = new ExplorerQuery(context) };
                     return s;
-                }
-            );
+                });
         }
     }
 }

@@ -17,14 +17,12 @@ public class TxCommand
         [Argument(
             Description = "The file path of the transaction to analyze.  If " +
                 "a hyphen (-) is given it reads from the standard input (if you want to read " +
-                "just a file named \"-\", use \"./-\" instead)."
-        )]
+                "just a file named \"-\", use \"./-\" instead).")]
         string file,
         [Option(
             'u',
             Description = "Analyze an unsigned transaction.  This option is " +
-                "mutually exclusive with -i/--ignore-signature."
-        )]
+                "mutually exclusive with -i/--ignore-signature.")]
         bool unsigned = false,
         [Option(
             'i',
@@ -32,17 +30,14 @@ public class TxCommand
                 "the signature is invalid.  However, it still prints the error message to " +
                 "the standard error, and the exit code is still non-zero if the transaction " +
                 "is invalid in other ways.  This option is mutually exclusive with " +
-                "-u/--unsigned."
-        )]
-        bool ignoreSignature = false
-    )
+                "-u/--unsigned.")]
+        bool ignoreSignature = false)
     {
         if (unsigned && ignoreSignature)
         {
             throw new CommandExitedException(
                 "The -u/--unsigned and -i/--ignore-signature options are mutually exclusive.",
-                -1
-            );
+                -1);
         }
 
         IValue rawTx;
@@ -67,8 +62,7 @@ public class TxCommand
                 {
                     throw new CommandExitedException(
                         $"Failed to read the file {file}; it may not exist nor be readable.",
-                        -1
-                    );
+                        -1);
                 }
             }
         }
@@ -76,16 +70,14 @@ public class TxCommand
         {
             throw new CommandExitedException(
                 $"Failed to decode the {sourceName} as a Bencodex tree: {e}",
-                -1
-            );
+                -1);
         }
 
         if (rawTx is not Bencodex.Types.Dictionary txDict)
         {
             throw new CommandExitedException(
                 $"The {sourceName} is not a Bencodex dictionary.",
-                -1
-            );
+                -1);
         }
 
         UnsignedTx unsignedTx;
@@ -97,8 +89,7 @@ public class TxCommand
         {
             throw new CommandExitedException(
                 $"Failed to deserialize the {sourceName}: {e}",
-                -1
-            );
+                -1);
         }
 
         ImmutableArray<byte>? signature = null;//TxMarshaler.UnmarshalTransactionSignature(txDict);
@@ -106,8 +97,7 @@ public class TxCommand
         {
             throw new CommandExitedException(
                 "The transaction is signed, but the -u/--unsigned option is given.",
-                -1
-            );
+                -1);
         }
 
         bool invalid = false;
@@ -119,8 +109,7 @@ public class TxCommand
                 throw new CommandExitedException(
                     "The transaction is unsigned.  If you want to analyze it anyway, " +
                         "use the -u/--unsigned option.",
-                    -1
-                );
+                    -1);
             }
 
             try
@@ -133,8 +122,7 @@ public class TxCommand
                 Console.Error.WriteLine(
                     "The signature from the transaction {0} is invalid: {1}",
                     sourceName,
-                    e
-                );
+                    e);
             }
 
             if (invalid)
@@ -145,8 +133,7 @@ public class TxCommand
             {
                 Console.Error.WriteLine(
                     "The signature from the transaction {0} is valid.",
-                    sourceName
-                );
+                    sourceName);
             }
         }
 

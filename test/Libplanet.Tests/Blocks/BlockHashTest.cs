@@ -35,8 +35,7 @@ public class BlockHashTest
         ];
         var expected = new BlockHash(b);
         BlockHash actual = BlockHash.Parse(
-            "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cbfc"
-        );
+            "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cbfc");
         Assert.Equal(expected, actual);
 
         Assert.Throws<FormatException>(() => BlockHash.Parse(string.Empty));
@@ -44,14 +43,10 @@ public class BlockHashTest
         Assert.Throws<FormatException>(() => BlockHash.Parse("ab"));
         Assert.Throws<FormatException>(() =>
             BlockHash.Parse(
-                "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cb"
-            )
-        );
+                "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cb"));
         Assert.Throws<FormatException>(() =>
             BlockHash.Parse(
-                "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cbfc00"
-            )
-        );
+                "2831d4c24ae5d1931a16de0a066e233e0eed1d3fdf6d572ad58d1c3705c8cbfc00"));
         Assert.Throws<FormatException>(() => BlockHash.Parse("asdf"));
     }
 
@@ -70,8 +65,7 @@ public class BlockHashTest
 
         Assert.Equal(
             new BlockHash(new byte[32]),
-            BlockHash.Create(default)
-        );
+            BlockHash.Create(default));
     }
 
     [Fact]
@@ -81,13 +75,11 @@ public class BlockHashTest
         AssertBytesEqual(
             BlockHash.Parse(
                 "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"),
-            BlockHash.DeriveFrom(foo)
-        );
+            BlockHash.DeriveFrom(foo));
         AssertBytesEqual(
             BlockHash.Parse(
                 "fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"),
-            BlockHash.DeriveFrom(bar)
-        );
+            BlockHash.DeriveFrom(bar));
     }
 
     [Fact]
@@ -113,7 +105,6 @@ public class BlockHashTest
             "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae");
         AssertJsonSerializable(
             hash,
-            "\"2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae\""
-        );
+            "\"2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae\"");
     }
 }

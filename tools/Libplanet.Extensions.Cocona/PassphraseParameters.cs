@@ -9,8 +9,7 @@ public class PassphraseParameters : ICommandParameterSet
         'p',
         ValueName = "PASSPHRASE",
         Description = "Take passphrase through this option instead of prompt.  " +
-            "Mutually exclusive with --passphrase-file option."
-    )]
+            "Mutually exclusive with --passphrase-file option.")]
     [HasDefaultValue]
     public string? Passphrase { get; set; } = null;
 
@@ -19,8 +18,7 @@ public class PassphraseParameters : ICommandParameterSet
         Description = "Read passphrase from the specified file instead of taking it " +
             "through prompt.  Mutually exclusive with -p/--passphrase option.  " +
             "For standard input, use a hyphen (`-').  For an actual file named a hyphen, " +
-            "prepend `./', i.e., `./-'.  Note that the trailing CR/LF is trimmed."
-    )]
+            "prepend `./', i.e., `./-'.  Note that the trailing CR/LF is trimmed.")]
     [HasDefaultValue]
     public string? PassphraseFile { get; set; } = null;
 
@@ -31,8 +29,7 @@ public class PassphraseParameters : ICommandParameterSet
             if (PassphraseFile is { })
             {
                 throw Utils.Error(
-                    $"-p/--passphrase and --passphrase-file options are mutually exclusive."
-                );
+                    $"-p/--passphrase and --passphrase-file options are mutually exclusive.");
             }
 
             return passphrase;
@@ -45,8 +42,7 @@ public class PassphraseParameters : ICommandParameterSet
                 {
                     Console.Error.WriteLine(
                         "Note: Passphrase is read from standard input (`-').  If you want " +
-                        "to read from a file, prepend `./', i.e.: --passphrase-file=./-"
-                    );
+                        "to read from a file, prepend `./', i.e.: --passphrase-file=./-");
                 }
 
                 return Console.In.ReadToEnd().TrimEnd('\r', '\n');
@@ -67,8 +63,7 @@ public class PassphraseParameters : ICommandParameterSet
             throw Utils.Error(
                 "Error: The standard input is not associated to any terminal device (tty), " +
                 "which means it probably is piped.  If you need to pass the passphrase " +
-                "through pipe, use --passphrase-file=- option instead (`-' means stdin)."
-            );
+                "through pipe, use --passphrase-file=- option instead (`-' means stdin).");
         }
 
         string first = ConsolePasswordReader.Read(prompt);

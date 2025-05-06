@@ -40,28 +40,22 @@ public class HashDigestTest
         byte[] foo = { 0x66, 0x6f, 0x6f }, bar = { 0x62, 0x61, 0x72 };
         Assert.Equal(
             HashDigest<SHA1>.Parse("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"),
-            HashDigest<SHA1>.DeriveFrom(foo)
-        );
+            HashDigest<SHA1>.DeriveFrom(foo));
         Assert.Equal(
             HashDigest<SHA1>.DeriveFrom(foo),
-            HashDigest<SHA1>.DeriveFrom(ImmutableArray.Create(foo))
-        );
+            HashDigest<SHA1>.DeriveFrom(ImmutableArray.Create(foo)));
         Assert.Equal(
             HashDigest<SHA1>.DeriveFrom(foo),
-            HashDigest<SHA1>.DeriveFrom(foo.AsSpan())
-        );
+            HashDigest<SHA1>.DeriveFrom(foo.AsSpan()));
         Assert.Equal(
             HashDigest<SHA1>.Parse("62cdb7020ff920e5aa642c3d4066950dd1f01f4d"),
-            HashDigest<SHA1>.DeriveFrom(bar)
-        );
+            HashDigest<SHA1>.DeriveFrom(bar));
         Assert.Equal(
             HashDigest<MD5>.Parse("acbd18db4cc2f85cedef654fccc4a4d8"),
-            HashDigest<MD5>.DeriveFrom(foo)
-        );
+            HashDigest<MD5>.DeriveFrom(foo));
         Assert.Equal(
             HashDigest<MD5>.Parse("37b51d194a7513e45b56f6524f2d51f2"),
-            HashDigest<MD5>.DeriveFrom(bar)
-        );
+            HashDigest<MD5>.DeriveFrom(bar));
     }
 
     [Fact]
@@ -109,8 +103,7 @@ public class HashDigestTest
         var bAsArray = b.ToImmutableArray();
 
         Assert.Throws<ArgumentOutOfRangeException>(
-            () => new HashDigest<SHA1>(bAsArray)
-        );
+            () => new HashDigest<SHA1>(bAsArray));
     }
 
     [Fact]
@@ -133,7 +126,6 @@ public class HashDigestTest
             HashDigest<SHA1>.Parse("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33");
         AssertJsonSerializable(
             digest,
-            "\"0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33\""
-        );
+            "\"0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33\"");
     }
 }

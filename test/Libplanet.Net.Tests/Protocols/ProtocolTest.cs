@@ -72,8 +72,7 @@ namespace Libplanet.Net.Tests.Protocols
             await Assert.ThrowsAsync<TimeoutException>(() =>
                 transportA.AddPeersAsync(
                     new[] { transportB.AsPeer },
-                    TimeSpan.FromMilliseconds(500))
-            );
+                    TimeSpan.FromMilliseconds(500)));
             Assert.Empty(transportA.ReceivedMessages);
         }
 
@@ -171,8 +170,7 @@ namespace Libplanet.Net.Tests.Protocols
             await Assert.ThrowsAsync<TransportException>(
                 () => transportB.BootstrapAsync(
                     new[] { transportA.AsPeer },
-                    TimeSpan.FromSeconds(3))
-            );
+                    TimeSpan.FromSeconds(3)));
 
             transportA.Dispose();
             transportB.Dispose();

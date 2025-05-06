@@ -17,8 +17,7 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<HashDigestType<SHA256>>>(
                 name: "stateRootHash",
                 description: "The state root hash of the world state.",
-                resolve: context => context.Source.Trie.Hash
-            );
+                resolve: context => context.Source.Trie.Hash);
 
             Field<NonNullGraphType<AccountStateType>>(
                 name: "account",
@@ -29,11 +28,9 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "address",
                         Description = "The address of an account to retrieve.",
-                    }
-                ),
+                    }),
                 resolve: context =>
-                    context.Source.GetAccount(context.GetArgument<Address>("address"))
-            );
+                    context.Source.GetAccount(context.GetArgument<Address>("address")));
 
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<AccountStateType>>>>(
                 name: "accounts",
@@ -45,13 +42,11 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "addresses",
                         Description = "The list of addresses of accounts to retrieve.",
-                    }
-                ),
+                    }),
                 resolve: context => context
                     .GetArgument<Address[]>("addresses")
                     .Select(address => context.Source.GetAccount(address))
-                    .ToArray()
-            );
+                    .ToArray());
 
             Field<NonNullGraphType<FungibleAssetValueType>>(
                 name: "balance",
@@ -66,12 +61,10 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "address",
                         Description = "The address to look up.",
-                    }
-                ),
+                    }),
                 resolve: context => context.Source.GetBalance(
                     context.GetArgument<Address>("address"),
-                    context.GetArgument<Currency>("currency"))
-            );
+                    context.GetArgument<Currency>("currency")));
 
             Field<NonNullGraphType<FungibleAssetValueType>>(
                 name: "totalSupply",
@@ -81,17 +74,14 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "currency",
                         Description = "The currency to look up.",
-                    }
-                ),
+                    }),
                 resolve: context =>
-                    context.Source.GetTotalSupply(context.GetArgument<Currency>("currency"))
-            );
+                    context.Source.GetTotalSupply(context.GetArgument<Currency>("currency")));
 
             Field<NonNullGraphType<IValueType>>(
                 name: "validatorSet",
                 description: "The validator set.",
-                resolve: context => ModelSerializer.Serialize(context.Source.GetValidatorSet())
-            );
+                resolve: context => ModelSerializer.Serialize(context.Source.GetValidatorSet()));
         }
     }
 }

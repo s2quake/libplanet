@@ -25,15 +25,13 @@ namespace Libplanet.KeyStore.Kdfs
             byte[] salt,
             int keyLength,
             int parallelization,
-            int blockSize
-        )
+            int blockSize)
             : this(
                 cost,
                 ImmutableArray.Create(salt, 0, salt.Length),
                 keyLength,
                 parallelization,
-                blockSize
-            )
+                blockSize)
         {
         }
 
@@ -52,31 +50,27 @@ namespace Libplanet.KeyStore.Kdfs
             in ImmutableArray<byte> salt,
             int keyLength,
             int parallelization,
-            int blockSize
-        )
+            int blockSize)
         {
             if (cost < 2 || (cost & (cost - 1)) != 0)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(cost),
-                    "Cost must be a power of 2 greater than 1!"
-                );
+                    "Cost must be a power of 2 greater than 1!");
             }
 
             if (cost > int.MaxValue / 128 / blockSize)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(cost),
-                    "Parameter cost is too large!"
-                );
+                    "Parameter cost is too large!");
             }
 
             if (blockSize > int.MaxValue / 128 / parallelization)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(blockSize),
-                    "Parameter blockSize is too large!"
-                );
+                    "Parameter blockSize is too large!");
             }
 
             Cost = cost;
@@ -116,8 +110,7 @@ namespace Libplanet.KeyStore.Kdfs
         public ImmutableArray<byte> Derive(string passphrase)
         {
             var key = Norgerman.Cryptography.Scrypt.ScryptUtil.Scrypt(
-                passphrase, Salt.ToArray(), Cost, BlockSize, Parallelization, KeyLength
-            );
+                passphrase, Salt.ToArray(), Cost, BlockSize, Parallelization, KeyLength);
             return ImmutableArray.Create(key, 0, KeyLength);
         }
 
@@ -138,66 +131,57 @@ namespace Libplanet.KeyStore.Kdfs
             if (!element.TryGetProperty("n", out JsonElement n))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"kdfparams\" field must have a \"n\" field, ...."
-                );
+                    "The \"kdfparams\" field must have a \"n\" field, ....");
             }
 
             if (n.ValueKind != JsonValueKind.Number || !n.TryGetInt32(out int cost))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"n\" field, the number of iterations, must be a number."
-                );
+                    "The \"n\" field, the number of iterations, must be a number.");
             }
 
             if (!element.TryGetProperty("r", out JsonElement r))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"kdfparams\" field must have a \"r\" field, ...."
-                );
+                    "The \"kdfparams\" field must have a \"r\" field, ....");
             }
 
             if (r.ValueKind != JsonValueKind.Number || !r.TryGetInt32(out int blockSize))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"r\" field, the number of iterations, must be a number."
-                );
+                    "The \"r\" field, the number of iterations, must be a number.");
             }
 
             if (!element.TryGetProperty("p", out JsonElement p))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"kdfparams\" field must have a \"p\" field, ...."
-                );
+                    "The \"kdfparams\" field must have a \"p\" field, ....");
             }
 
             if (p.ValueKind != JsonValueKind.Number || !p.TryGetInt32(out int parallelization))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"n\" field, the number of iterations, must be a number."
-                );
+                    "The \"n\" field, the number of iterations, must be a number.");
             }
 
             if (!element.TryGetProperty("dklen", out JsonElement dklen))
             {
                 throw new InvalidKeyJsonException(
                     "The \"kdfparams\" field must have a \"dklen\" field, " +
-                    "the length of key in bytes."
-                );
+                    "the length of key in bytes.");
             }
 
             if (dklen.ValueKind != JsonValueKind.Number ||
                 !dklen.TryGetInt32(out int keyLength))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"dklen\" field, the length of key in bytes, must be a number."
-                );
+                    "The \"dklen\" field, the length of key in bytes, must be a number.");
             }
 
             if (!element.TryGetProperty("salt", out JsonElement saltElement))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"kdfparams\" field must have a \"salt\" field."
-                );
+                    "The \"kdfparams\" field must have a \"salt\" field.");
             }
 
             string saltString;
@@ -218,14 +202,12 @@ namespace Libplanet.KeyStore.Kdfs
             catch (ArgumentNullException)
             {
                 throw new InvalidKeyJsonException(
-                    "The \"salt\" field must not be null, but a string."
-                );
+                    "The \"salt\" field must not be null, but a string.");
             }
             catch (Exception e)
             {
                 throw new InvalidKeyJsonException(
-                    "The \"salt\" field must be a hexadecimal string of bytes.\n" + e
-                );
+                    "The \"salt\" field must be a hexadecimal string of bytes.\n" + e);
             }
 
             return new Scrypt(cost, salt, keyLength, parallelization, blockSize);

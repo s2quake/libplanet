@@ -58,18 +58,15 @@ namespace Libplanet.Net.Tests.Transports
                 NetMQTransport transport = await NetMQTransport.Create(
                     new PrivateKey(),
                     new AppProtocolVersionOptions(),
-                    new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { }, 0)
-                );
+                    new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { }, 0));
                 transport.ProcessMessageHandler.Register(
                     async m =>
                     {
                         await transport.ReplyMessageAsync(
                             new PongMsg(),
                             m.Identity,
-                            CancellationToken.None
-                        );
-                    }
-                );
+                            CancellationToken.None);
+                    });
                 await InitializeAsync(transport);
 
                 string invalidHost = Guid.NewGuid().ToString();
@@ -82,8 +79,7 @@ namespace Libplanet.Net.Tests.Transports
                 });
                 var invalidPeer = new BoundPeer(
                     new PrivateKey().PublicKey,
-                    new DnsEndPoint(invalidHost, 0)
-                );
+                    new DnsEndPoint(invalidHost, 0));
 
                 CommunicationFailException exc =
                     await Assert.ThrowsAsync<CommunicationFailException>(
@@ -91,9 +87,7 @@ namespace Libplanet.Net.Tests.Transports
                             invalidPeer,
                             new PingMsg(),
                             TimeSpan.FromSeconds(5),
-                            default
-                        )
-                    );
+                            default));
 
                 // Expecting SocketException about host resolving since `invalidPeer` has an
                 // invalid hostname
@@ -104,8 +98,7 @@ namespace Libplanet.Net.Tests.Transports
                     transport.AsPeer,
                     new PingMsg(),
                     TimeSpan.FromSeconds(1),
-                    default
-                );
+                    default);
                 Assert.IsType<PongMsg>(reply.Content);
 
                 await transport.StopAsync(TimeSpan.Zero, CancellationToken.None);
@@ -146,8 +139,7 @@ namespace Libplanet.Net.Tests.Transports
                 privateKey,
                 appProtocolVersionOptions,
                 hostOptions,
-                messageTimestampBuffer
-            );
+                messageTimestampBuffer);
         }
     }
 }

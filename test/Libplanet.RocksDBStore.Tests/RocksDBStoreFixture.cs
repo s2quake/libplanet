@@ -14,8 +14,7 @@ namespace Libplanet.RocksDBStore.Tests
         {
             Path = System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),
-                $"rocksdb_test_{Guid.NewGuid()}"
-            );
+                $"rocksdb_test_{Guid.NewGuid()}");
 
             Scheme = "rocksdb+file://";
 

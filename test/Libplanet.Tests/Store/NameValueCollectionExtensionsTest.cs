@@ -58,8 +58,7 @@ namespace Libplanet.Tests.Store
         {
             NameValueCollection c = ParseQueryString(
                 "num-f=0&num-t=1&yn-f=n&yn-t=y&yesno-f=no&yesno-t=yes&tf-t=t&tf-f=f&" +
-                "truefalse-t=true&truefalse-f=false&onoff-t=on&onoff-f=off&invalid=xyz"
-            );
+                "truefalse-t=true&truefalse-f=false&onoff-t=on&onoff-f=off&invalid=xyz");
             Assert.False(c.GetBoolean("num-f"));
             Assert.False(c.GetBoolean("num-f", true));
             Assert.True(c.GetBoolean("num-t"));

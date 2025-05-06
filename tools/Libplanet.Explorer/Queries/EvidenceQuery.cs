@@ -38,8 +38,7 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "limit",
                         DefaultValue = MaxLimit,
-                    }
-                ),
+                    }),
                 resolve: context =>
                 {
                     var blockHash = context.GetArgument<BlockHash?>("blockHash");
@@ -48,8 +47,7 @@ namespace Libplanet.Explorer.Queries
                     int? limit = context.GetArgument<int?>("limit");
 
                     return ExplorerQuery.ListCommitEvidence(blockHash, desc, offset, limit);
-                }
-            );
+                });
 
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<EvidenceType>>>>(
                 "pendingEvidence",
@@ -68,8 +66,7 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "limit",
                         DefaultValue = MaxLimit,
-                    }
-                ),
+                    }),
                 resolve: context =>
                 {
                     bool desc = context.GetArgument<bool>("desc");
@@ -77,18 +74,15 @@ namespace Libplanet.Explorer.Queries
                     int? limit = context.GetArgument<int?>("limit", null);
 
                     return ExplorerQuery.ListPendingEvidence(desc, offset, limit);
-                }
-            );
+                });
 
             Field<EvidenceType>(
                 "Evidence",
                 arguments: new QueryArguments(
-                    new QueryArgument<EvidenceIdType> { Name = "id" }
-                ),
+                    new QueryArgument<EvidenceIdType> { Name = "id" }),
                 resolve: context => ExplorerQuery.GetEvidence(
                     new EvidenceId(ByteUtility.ParseHex(context.GetArgument<string>("id")
-                        ?? throw new ExecutionError("Given id cannot be null."))))
-            );
+                        ?? throw new ExecutionError("Given id cannot be null.")))));
         }
     }
 }

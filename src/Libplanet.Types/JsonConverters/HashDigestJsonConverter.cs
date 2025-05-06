@@ -10,8 +10,7 @@ namespace Libplanet.Types.JsonConverters;
 [SuppressMessage(
     "StyleCop.CSharp.MaintainabilityRules",
     "SA1402:FileMayOnlyContainASingleClass",
-    Justification = "It's okay to have non-public classes together in a single file."
-)]
+    Justification = "It's okay to have non-public classes together in a single file.")]
 internal class HashDigestJsonConverter : JsonConverter<object>
 {
     private Type? _queriedType;
@@ -32,8 +31,7 @@ internal class HashDigestJsonConverter : JsonConverter<object>
     public override object Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
-        JsonSerializerOptions options
-    )
+        JsonSerializerOptions options)
     {
         if (typeToConvert == typeof(object) && _queriedType is { } t)
         {
@@ -42,8 +40,7 @@ internal class HashDigestJsonConverter : JsonConverter<object>
 
         MethodInfo fromString = typeToConvert.GetMethod(
             "Parse",
-            BindingFlags.Public | BindingFlags.Static
-        )!;
+            BindingFlags.Public | BindingFlags.Static)!;
         string? hex = reader.GetString();
         try
         {
@@ -58,7 +55,6 @@ internal class HashDigestJsonConverter : JsonConverter<object>
     public override void Write(
         Utf8JsonWriter writer,
         object value,
-        JsonSerializerOptions options
-    ) =>
+        JsonSerializerOptions options) =>
         writer.WriteStringValue(value.ToString());
 }

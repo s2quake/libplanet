@@ -77,8 +77,7 @@ namespace Libplanet.Benchmarks
                 nameof(PutBlockOnManyBlocks),
                 nameof(GetOldBlockOutOfManyBlocks),
                 nameof(GetRecentBlockOutOfManyBlocks),
-            }
-        )]
+            })]
         public void PutManyBlocks()
         {
             InitializeFixture();
@@ -142,8 +141,7 @@ namespace Libplanet.Benchmarks
                 nameof(PutTxOnManyTxs),
                 nameof(GetOldTxOutOfManyTxs),
                 nameof(GetRecentTxOutOfManyTxs),
-            }
-        )]
+            })]
         public void PutManyTxs()
         {
             InitializeFixture();

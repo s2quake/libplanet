@@ -429,8 +429,7 @@ namespace Libplanet.Net.Tests.Transports
             PrivateKey privateKey = null,
             AppProtocolVersionOptions appProtocolVersionOptions = null,
             HostOptions hostOptions = null,
-            TimeSpan? messageTimestampBuffer = null
-        )
+            TimeSpan? messageTimestampBuffer = null)
         {
             if (TransportConstructor is null)
             {

@@ -57,8 +57,7 @@ namespace Libplanet.Tests.Store
         public virtual IEnumerable<BlockHash> IterateIndexes(
             Guid chainId,
             int offset = 0,
-            int? limit = null
-        ) =>
+            int? limit = null) =>
             Store.IterateIndexes(chainId, offset, limit);
 
         /// <inheritdoc cref="IStore.IndexBlockHash(Guid, long)"/>
@@ -73,8 +72,7 @@ namespace Libplanet.Tests.Store
         public virtual void ForkBlockIndexes(
             Guid sourceChainId,
             Guid destinationChainId,
-            BlockHash branchpoint
-        ) =>
+            BlockHash branchpoint) =>
             Store.ForkBlockIndexes(sourceChainId, destinationChainId, branchpoint);
 
         /// <inheritdoc cref="IStore.GetTransaction(TxId)"/>

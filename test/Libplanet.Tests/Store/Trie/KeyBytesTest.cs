@@ -11,20 +11,16 @@ namespace Libplanet.Tests.Store.Trie
             AssertBytesEqual(ImmutableArray<byte>.Empty, default(KeyBytes).Bytes);
             AssertBytesEqual(
                 ImmutableArray<byte>.Empty,
-                ((KeyBytes)string.Empty).Bytes
-            );
+                ((KeyBytes)string.Empty).Bytes);
             AssertBytesEqual(
                 ImmutableArray<byte>.Empty.Add(1).Add(2).Add(3).Add(4),
-                new KeyBytes(ImmutableArray<byte>.Empty.Add(1).Add(2).Add(3).Add(4)).Bytes
-            );
+                new KeyBytes(ImmutableArray<byte>.Empty.Add(1).Add(2).Add(3).Add(4)).Bytes);
             AssertBytesEqual(
                 new KeyBytes([1, 2, 3, 4, 5]).Bytes,
-                KeyBytes.Create([1, 2, 3, 4, 5]).Bytes
-            );
+                KeyBytes.Create([1, 2, 3, 4, 5]).Bytes);
             AssertBytesEqual(
                 new KeyBytes([0x66, 0x6f, 0x6f]).Bytes,
-                ((KeyBytes)"foo").Bytes
-            );
+                ((KeyBytes)"foo").Bytes);
         }
 
         [Fact]

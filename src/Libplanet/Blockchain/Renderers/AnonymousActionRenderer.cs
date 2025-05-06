@@ -50,8 +50,7 @@ namespace Libplanet.Blockchain.Renderers
         public void RenderAction(
             IValue action,
             CommittedActionContext context,
-            HashDigest<SHA256> nextState
-        ) =>
+            HashDigest<SHA256> nextState) =>
             ActionRenderer?.Invoke(action, context, nextState);
 
         /// <inheritdoc

@@ -203,8 +203,7 @@ public abstract class StoreFixture : IDisposable
         IEnumerable<DumbAction> actions = null,
         long nonce = 0,
         PrivateKey privateKey = null,
-        DateTimeOffset? timestamp = null
-    )
+        DateTimeOffset? timestamp = null)
     {
         privateKey = privateKey ?? new PrivateKey();
         timestamp = timestamp ?? DateTimeOffset.UtcNow;
@@ -216,7 +215,6 @@ public abstract class StoreFixture : IDisposable
             Array.Empty<DumbAction>().ToBytecodes(),
             null,
             0L,
-            timestamp
-        );
+            timestamp);
     }
 }

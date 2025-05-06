@@ -439,28 +439,22 @@ public class FungibleAssetValueTest
 
         Assert.Equal(
             FungibleAssetValue.Create(FOO, 123, 45),
-            FungibleAssetValue.Parse(FOO, "123.45")
-        );
+            FungibleAssetValue.Parse(FOO, "123.45"));
         Assert.Equal(
             FungibleAssetValue.Create(FOO, 123, 45),
-            FungibleAssetValue.Parse(FOO, "+123.45")
-        );
+            FungibleAssetValue.Parse(FOO, "+123.45"));
         Assert.Equal(
             FungibleAssetValue.Create(FOO, -123, -45),
-            FungibleAssetValue.Parse(FOO, "-123.45")
-        );
+            FungibleAssetValue.Parse(FOO, "-123.45"));
         Assert.Equal(
             FungibleAssetValue.Create(FOO, 123, 40),
-            FungibleAssetValue.Parse(FOO, "123.4")
-        );
+            FungibleAssetValue.Parse(FOO, "123.4"));
         Assert.Equal(
             FungibleAssetValue.Create(FOO, 123, 40),
-            FungibleAssetValue.Parse(FOO, "+123.4")
-        );
+            FungibleAssetValue.Parse(FOO, "+123.4"));
         Assert.Equal(
             FungibleAssetValue.Create(FOO, -123, -40),
-            FungibleAssetValue.Parse(FOO, "-123.4")
-        );
+            FungibleAssetValue.Parse(FOO, "-123.4"));
         Assert.Equal(FungibleAssetValue.Create(FOO, 123, 0), FungibleAssetValue.Parse(FOO, "123"));
         Assert.Equal(FungibleAssetValue.Create(FOO, 12, 0), FungibleAssetValue.Parse(FOO, "+12"));
         Assert.Equal(FungibleAssetValue.Create(FOO, -12, 0), FungibleAssetValue.Parse(FOO, "-12"));

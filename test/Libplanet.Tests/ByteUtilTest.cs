@@ -28,15 +28,12 @@ namespace Libplanet.Tests
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                 },
-                ByteUtility.ParseHex(hex)
-            );
+                ByteUtility.ParseHex(hex));
 
             Assert.Throws<ArgumentOutOfRangeException>(
-                () => ByteUtility.ParseHex("abc")
-            );
+                () => ByteUtility.ParseHex("abc"));
             Assert.Throws<FormatException>(
-                () => ByteUtility.ParseHex("abcdefgh")
-            );
+                () => ByteUtility.ParseHex("abcdefgh"));
         }
 
         [Fact]
@@ -49,8 +46,7 @@ namespace Libplanet.Tests
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                 },
-                ByteUtility.ParseHexToImmutable(hex)
-            );
+                ByteUtility.ParseHexToImmutable(hex));
 
             Assert.Throws<ArgumentOutOfRangeException>(() => ByteUtility.ParseHexToImmutable("abc"));
             Assert.Throws<FormatException>(() => ByteUtility.ParseHexToImmutable("abcdefgh"));
@@ -72,8 +68,7 @@ namespace Libplanet.Tests
 
             Assert.NotEqual(
                 ByteUtility.CalculateHashCode(bytes),
-                ByteUtility.CalculateHashCode(otherBytes)
-            );
+                ByteUtility.CalculateHashCode(otherBytes));
         }
 
         [Fact]
@@ -83,14 +78,11 @@ namespace Libplanet.Tests
             Assert.False(ByteUtility.TimingSafelyCompare(new byte[] { 0 }, new byte[] { 1 }));
             Assert.True(ByteUtility.TimingSafelyCompare(new byte[] { 1 }, new byte[] { 1 }));
             Assert.True(
-                ByteUtility.TimingSafelyCompare(new byte[] { 1, 2, 3, 4 }, new byte[] { 1, 2, 3, 4 })
-            );
+                ByteUtility.TimingSafelyCompare(new byte[] { 1, 2, 3, 4 }, new byte[] { 1, 2, 3, 4 }));
             Assert.False(
-                ByteUtility.TimingSafelyCompare(new byte[] { 1, 2, 3, 4 }, new byte[] { 1, 2, 3, 5 })
-            );
+                ByteUtility.TimingSafelyCompare(new byte[] { 1, 2, 3, 4 }, new byte[] { 1, 2, 3, 5 }));
             Assert.False(
-                ByteUtility.TimingSafelyCompare(new byte[] { 1, 2, 3, 4 }, new byte[] { 1, 2, 3 })
-            );
+                ByteUtility.TimingSafelyCompare(new byte[] { 1, 2, 3, 4 }, new byte[] { 1, 2, 3 }));
         }
 
         [Fact]

@@ -62,12 +62,10 @@ namespace Libplanet.Tests.Store
                 });
             Assert.Equal(
                 Fx.Transaction1,
-                identicalStore.GetTransaction(Fx.Transaction1.Id)
-            );
+                identicalStore.GetTransaction(Fx.Transaction1.Id));
             Assert.Equal(
                 Fx.Transaction2,
-                identicalStore.GetTransaction(Fx.Transaction2.Id)
-            );
+                identicalStore.GetTransaction(Fx.Transaction2.Id));
         }
 
         [Fact]

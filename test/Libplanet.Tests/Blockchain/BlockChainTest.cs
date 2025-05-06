@@ -60,8 +60,7 @@ public partial class BlockChainTest : IDisposable
             new ActionEvaluator(
                 stateStore: _fx.StateStore,
                 _policy.PolicyActions),
-            renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) }
-        );
+            renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) });
         _renderer.ResetRecords();
 
         _validNext = _blockChain.EvaluateAndSign(
@@ -94,11 +93,9 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(chain1.Id, _fx.Store.GetCanonicalChainId());
         Assert.Equal(chain1.Id, _fx.Store.GetCanonicalChainId());
 
-        var beginActions = ImmutableArray.Create<IAction>(
-        );
+        var beginActions = ImmutableArray.Create<IAction>();
         var endActions = ImmutableArray.Create<IAction>(
-            new MinerReward(1)
-        );
+            new MinerReward(1));
 
         var policy = new BlockPolicy(
             new PolicyActions
@@ -162,16 +159,14 @@ public partial class BlockChainTest : IDisposable
         _blockChain.Append(b2, CreateBlockCommit(b2));
         Assert.Equal(
             new[] { genesis.Hash, b1.Hash, b2.Hash },
-            _blockChain.BlockHashes
-        );
+            _blockChain.BlockHashes);
 
         Block b3 = _blockChain.ProposeBlock(
             key, CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(b3, CreateBlockCommit(b3));
         Assert.Equal(
             new[] { genesis.Hash, b1.Hash, b2.Hash, b3.Hash },
-            _blockChain.BlockHashes
-        );
+            _blockChain.BlockHashes);
     }
 
     [SkippableFact]
@@ -290,8 +285,7 @@ public partial class BlockChainTest : IDisposable
                     Target = "orc",
                     TargetAddress = _fx.Address1,
                 },
-            }.ToBytecodes()
-        );
+            }.ToBytecodes());
         Block block3 = chain.ProposeBlock(
             new PrivateKey(), CreateBlockCommit(chain.Tip));
         chain.StageTransaction(tx3);
@@ -318,15 +312,13 @@ public partial class BlockChainTest : IDisposable
                         // affect contexts passed to other action renderers.
                         generatedRandomValueLogs.Add(context.GetRandom().Next()),
                 },
-                Log.Logger.ForContext("RendererIndex", i)
-            )
-        ).ToArray();
+                Log.Logger.ForContext("RendererIndex", i)))
+        .ToArray();
         BlockChain blockChain = MakeBlockChain(
             policy,
             store,
             stateStore,
-            renderers: renderers
-        );
+            renderers: renderers);
         var privateKey = new PrivateKey();
         var action = DumbAction.Create((default, string.Empty));
         var actions = new[] { action };
@@ -635,8 +627,8 @@ public partial class BlockChainTest : IDisposable
         int testingDepth = addresses.Length / 2;
         Address[] targetAddresses = Enumerable.Range(
             testingDepth,
-            Math.Min(10, addresses.Length - testingDepth - 1)
-        ).Select(i => addresses[i]).ToArray();
+            Math.Min(10, addresses.Length - testingDepth - 1))
+        .Select(i => addresses[i]).ToArray();
 
         Assert.All(
             targetAddresses.Select(
@@ -647,8 +639,8 @@ public partial class BlockChainTest : IDisposable
             Assert.NotNull);
 
         var callCount = tracker.Logs.Where(
-            trackLog => trackLog.Method == "GetBlockStates"
-        ).Select(trackLog => trackLog.Params).Count();
+            trackLog => trackLog.Method == "GetBlockStates")
+        .Select(trackLog => trackLog.Params).Count();
         Assert.True(testingDepth >= callCount);
     }
 
@@ -684,12 +676,11 @@ public partial class BlockChainTest : IDisposable
             .GetValue(nonexistent);
         Assert.Null(result);
         var callCount = tracker.Logs.Where(
-            trackLog => trackLog.Method == "GetBlockStates"
-        ).Select(trackLog => trackLog.Params).Count();
+            trackLog => trackLog.Method == "GetBlockStates")
+        .Select(trackLog => trackLog.Params).Count();
         Assert.True(
             callCount <= 1,
-            $"GetBlocksStates() was called {callCount} times"
-        );
+            $"GetBlocksStates() was called {callCount} times");
     }
 
     [SkippableFact]
@@ -769,8 +760,7 @@ public partial class BlockChainTest : IDisposable
                     .GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
-            v => Assert.Equal((Text)"1", v)
-        );
+            v => Assert.Equal((Text)"1", v));
     }
 
     [SkippableFact]
@@ -955,8 +945,7 @@ public partial class BlockChainTest : IDisposable
 
         Block ProposeNext(
             Block block,
-            ImmutableSortedSet<Transaction> txs
-        ) =>
+            ImmutableSortedSet<Transaction> txs) =>
             _blockChain.EvaluateAndSign(
                 TestUtils.ProposeNext(
                     block,
@@ -1086,8 +1075,7 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(
             nonces,
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        );
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
 
     [SkippableFact]
@@ -1126,8 +1114,7 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(
             $"{miner0},{miner1.Address},{miner1.Address},{miner2.Address}",
-            rewardState
-        );
+            rewardState);
     }
 
     /// <summary>
@@ -1217,8 +1204,7 @@ public partial class BlockChainTest : IDisposable
                     store.GetTxNonce(chain.Id, signer),
                     privateKey,
                     chain.Genesis.Hash,
-                    new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes()
-                );
+                    new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes());
                 b = chain.EvaluateAndSign(
                     ProposeNext(
                         b,
@@ -1276,8 +1262,7 @@ public partial class BlockChainTest : IDisposable
     private (Address[], Transaction[]) MakeFixturesForAppendTests(
         PrivateKey privateKey = null,
         DateTimeOffset epoch = default,
-        PrivateKey[] keys = null
-    )
+        PrivateKey[] keys = null)
     {
         Address[] addresses = keys is PrivateKey[] ks
             ? ks.Select(k => k.Address).ToArray()
@@ -1375,8 +1360,7 @@ public partial class BlockChainTest : IDisposable
                 Validators = ImmutableSortedSet.Create(
                     [
                         Validator.Create(validatorPrivKey.PublicKey, BigInteger.One),
-                    ]
-                ),
+                    ]),
             },
         };
 
@@ -1520,7 +1504,7 @@ public partial class BlockChainTest : IDisposable
                 // The following method calls should not throw any exceptions:
                 x?.GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue(default(Address));
+                    .GetValue(default);
                 x?.GetNextWorldState()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(default);
@@ -1582,8 +1566,8 @@ public partial class BlockChainTest : IDisposable
             .Append(BigInteger.One).ToArray();
         var initialValidatorSet =
             ValidatorPrivateKeys.Select(
-                pk => Validator.Create(pk.PublicKey, BigInteger.One)
-            ).ToImmutableSortedSet();
+                pk => Validator.Create(pk.PublicKey, BigInteger.One))
+            .ToImmutableSortedSet();
         var systemActions = new[]
         {
             new Initialize
@@ -1623,8 +1607,7 @@ public partial class BlockChainTest : IDisposable
                 {
                     Validator = Validator.Create(newValidatorPrivateKey.PublicKey),
                 },
-            }
-        );
+            });
         var newBlock = blockChain.ProposeBlock(new PrivateKey());
         var newBlockCommit = new BlockCommit
         {
@@ -1654,8 +1637,7 @@ public partial class BlockChainTest : IDisposable
                 {
                     Validator = Validator.Create(new PrivateKey().PublicKey),
                 },
-            }
-        );
+            });
         var nextBlock = blockChain.ProposeBlock(
             new PrivateKey(), lastCommit: newBlockCommit);
         var nextBlockCommit = new BlockCommit
@@ -1687,8 +1669,7 @@ public partial class BlockChainTest : IDisposable
                 {
                     Validator = Validator.Create(new PrivateKey().PublicKey),
                 },
-            }
-        );
+            });
         var invalidCommitBlock = blockChain.ProposeBlock(
             new PrivateKey(), lastCommit: nextBlockCommit);
 
@@ -1738,8 +1719,7 @@ public partial class BlockChainTest : IDisposable
 
         public override InvalidOperationException ValidateNextBlockTx(
             BlockChain blockChain,
-            Transaction transaction
-        )
+            Transaction transaction)
         {
             _hook(blockChain);
             return new InvalidOperationException("Test Message");
@@ -1751,16 +1731,14 @@ public partial class BlockChainTest : IDisposable
         protected readonly Action<BlockChain> _hook;
 
         public NullPolicyForGetStatesOnCreatingBlockChain(
-            Action<BlockChain> hook
-        )
+            Action<BlockChain> hook)
         {
             _hook = hook;
         }
 
         public override InvalidOperationException ValidateNextBlockTx(
             BlockChain blockChain,
-            Transaction transaction
-        )
+            Transaction transaction)
         {
             _hook(blockChain);
             return base.ValidateNextBlockTx(blockChain, transaction);
@@ -1768,8 +1746,7 @@ public partial class BlockChainTest : IDisposable
 
         public override Exception ValidateNextBlock(
             BlockChain blocks,
-            Block nextBlock
-        )
+            Block nextBlock)
         {
             _hook(blocks);
             return base.ValidateNextBlock(blocks, nextBlock);

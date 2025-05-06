@@ -36,18 +36,15 @@ public class BlockCommand
         [Argument(
             Description = "The file path of the block to analyze.  If " +
                 "a hyphen (-) is given it reads from the standard input (if you want to read " +
-                "just a file named \"-\", use \"./-\" instead)."
-        )]
+                "just a file named \"-\", use \"./-\" instead).")]
         string file,
         [Option(
             'o',
             Description = "The file path to write the analysis result to.  " +
                 "If a hyphen (-) is given it writes to the standard output (if you want to write " +
                 "just a file named \"-\", use \"./-\" instead).  If not given, it writes to " +
-                "the standard output."
-        )]
-        string output = "-"
-    )
+                "the standard output.")]
+        string output = "-")
     {
         using Stream inputStream = file == "-"
             ? Console.OpenStandardInput()
@@ -64,29 +61,25 @@ public class BlockCommand
         {
             throw new CommandExitedException(
                 $"The {sourceName} does not contain a valid Bencodex data: {e.Message}",
-                -1
-            );
+                -1);
         }
         catch (InvalidCastException)
         {
             throw new CommandExitedException(
                 $"The {sourceName} does not contain a valid Bencodex dictionary.",
-                -2
-            );
+                -2);
         }
         catch (InvalidOperationException e)
         {
             throw new CommandExitedException(
                 $"The {sourceName} does not contain a valid block: {e.Message}",
-                -4
-            );
+                -4);
         }
         catch (Exception e) when (e is IndexOutOfRangeException or KeyNotFoundException)
         {
             throw new CommandExitedException(
                 $"The {sourceName} lacks some required fields.",
-                -3
-            );
+                -3);
         }
 
         using Stream outputStream = output == "-"
@@ -121,8 +114,7 @@ public class BlockCommand
         string[] validatorKey,
         BlockPolicyParams blockPolicyParams,
         [Option('f', Description = "Output format.")]
-        OutputFormat format = OutputFormat.Bencodex
-    )
+        OutputFormat format = OutputFormat.Bencodex)
     {
         // FIXME: Declare a ICommandParameterSet type taking key ID and keystore path instead:
         PrivateKey key = new KeyCommand().UnprotectKey(keyId, passphrase, ignoreStdin: true);

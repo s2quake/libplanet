@@ -20,10 +20,8 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
             "world",
             arguments: new QueryArguments(
                 new QueryArgument<BlockHashType> { Name = "blockHash" },
-                new QueryArgument<HashDigestType<SHA256>> { Name = "stateRootHash" }
-            ),
-            resolve: ResolveWorldState
-        );
+                new QueryArgument<HashDigestType<SHA256>> { Name = "stateRootHash" }),
+            resolve: ResolveWorldState);
 
         Field<NonNullGraphType<ListGraphType<BencodexValueType>>>(
             "states",
@@ -32,10 +30,8 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 new QueryArgument<NonNullGraphType<ListGraphType<NonNullGraphType<AddressType>>>>
                     { Name = "addresses" },
                 new QueryArgument<IdGraphType> { Name = "offsetBlockHash" },
-                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }
-            ),
-            resolve: ResolveStates
-        );
+                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }),
+            resolve: ResolveStates);
         Field<NonNullGraphType<FungibleAssetValueType>>(
             "balance",
             description: "Retrieves balance from the legacy account.",
@@ -43,29 +39,23 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 new QueryArgument<NonNullGraphType<AddressType>> { Name = "owner" },
                 new QueryArgument<NonNullGraphType<CurrencyInputType>> { Name = "currency" },
                 new QueryArgument<IdGraphType> { Name = "offsetBlockHash" },
-                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }
-            ),
-            resolve: ResolveBalance
-        );
+                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }),
+            resolve: ResolveBalance);
         Field<FungibleAssetValueType>(
             "totalSupply",
             description: "Retrieves total supply from the legacy account.",
             arguments: new QueryArguments(
                 new QueryArgument<NonNullGraphType<CurrencyInputType>> { Name = "currency" },
                 new QueryArgument<IdGraphType> { Name = "offsetBlockHash" },
-                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }
-            ),
-            resolve: ResolveTotalSupply
-        );
+                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }),
+            resolve: ResolveTotalSupply);
         Field<ListGraphType<NonNullGraphType<ValidatorType>>>(
             "validators",
             description: "Retrieves validator set from the legacy account.",
             arguments: new QueryArguments(
                 new QueryArgument<IdGraphType> { Name = "offsetBlockHash" },
-                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }
-            ),
-            resolve: ResolveValidatorSet
-        );
+                new QueryArgument<HashDigestSHA256Type> { Name = "offsetStateRootHash" }),
+            resolve: ResolveValidatorSet);
     }
 
     private static object ResolveWorldState(IResolveFieldContext<IBlockChainStates> context)
@@ -78,12 +68,10 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         {
             case (blockhash: not null, srh: not null):
                 throw new ExecutionError(
-                    "blockHash and stateRootHash cannot be specified at the same time."
-                );
+                    "blockHash and stateRootHash cannot be specified at the same time.");
             case (blockhash: null, srh: null):
                 throw new ExecutionError(
-                    "Either blockHash or stateRootHash must be specified."
-                );
+                    "Either blockHash or stateRootHash must be specified.");
             case (blockhash: not null, _):
                 return context.Source.GetWorld((BlockHash)blockHash);
             case (_, srh: not null):
@@ -105,19 +93,17 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         {
             case (blockhash: not null, srh: not null):
                 throw new ExecutionError(
-                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time."
-                );
+                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time.");
             case (blockhash: null, srh: null):
                 throw new ExecutionError(
-                    "Either offsetBlockHash or offsetStateRootHash must be specified."
-                );
+                    "Either offsetBlockHash or offsetStateRootHash must be specified.");
             case (blockhash: not null, _):
             {
                 var world = context.Source.GetWorld((BlockHash)offsetBlockHash);
                 return addresses.Select(address =>
                     world.GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue(address)
-                ).ToArray();
+                        .GetValue(address))
+                .ToArray();
             }
 
             case (_, srh: not null):
@@ -125,8 +111,8 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
                 var world = context.Source.GetWorld(offsetStateRootHash ?? default);
                 return addresses.Select(address =>
                     world.GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue(address)
-                ).ToArray();
+                        .GetValue(address))
+                .ToArray();
             }
         }
     }
@@ -146,12 +132,10 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         {
             case (blockhash: not null, srh: not null):
                 throw new ExecutionError(
-                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time."
-                );
+                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time.");
             case (blockhash: null, srh: null):
                 throw new ExecutionError(
-                    "Either offsetBlockHash or offsetStateRootHash must be specified."
-                );
+                    "Either offsetBlockHash or offsetStateRootHash must be specified.");
             case (blockhash: not null, _):
             {
                 return context.Source
@@ -180,12 +164,10 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         {
             case (blockhash: not null, srh: not null):
                 throw new ExecutionError(
-                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time."
-                );
+                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time.");
             case (blockhash: null, srh: null):
                 throw new ExecutionError(
-                    "Either offsetBlockHash or offsetStateRootHash must be specified."
-                );
+                    "Either offsetBlockHash or offsetStateRootHash must be specified.");
             case (blockhash: not null, _):
                 return context.Source
                     .GetWorld((BlockHash)offsetBlockHash)
@@ -210,12 +192,10 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         {
             case (blockhash: not null, srh: not null):
                 throw new ExecutionError(
-                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time."
-                );
+                    "offsetBlockHash and offsetStateRootHash cannot be specified at the same time.");
             case (blockhash: null, srh: null):
                 throw new ExecutionError(
-                    "Either offsetBlockHash or offsetStateRootHash must be specified."
-                );
+                    "Either offsetBlockHash or offsetStateRootHash must be specified.");
             case (blockhash: not null, _):
                 return context.Source
                     .GetWorld((BlockHash)offsetBlockHash)

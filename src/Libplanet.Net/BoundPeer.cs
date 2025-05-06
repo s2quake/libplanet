@@ -122,8 +122,7 @@ namespace Libplanet.Net
             {
                 throw new ArgumentException(
                     $"'{peerInfo}', should have format <pubkey>,<host>,<port>",
-                    nameof(peerInfo)
-                );
+                    nameof(peerInfo));
             }
 
             if (!(tokens[0].Length == 130 || tokens[0].Length == 66))
@@ -131,8 +130,7 @@ namespace Libplanet.Net
                 throw new ArgumentException(
                     $"'{peerInfo}', a length of public key must be 130 or 66 in hexadecimal," +
                     $" but the length of given public key '{tokens[0]}' doesn't.",
-                    nameof(peerInfo)
-                );
+                    nameof(peerInfo));
             }
 
             try
@@ -151,8 +149,7 @@ namespace Libplanet.Net
                 throw new ArgumentException(
                     $"{nameof(peerInfo)} seems invalid. [{peerInfo}]",
                     nameof(peerInfo),
-                    innerException: e
-                );
+                    innerException: e);
             }
         }
 

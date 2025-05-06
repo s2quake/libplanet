@@ -127,8 +127,7 @@ namespace Libplanet.Net
             if (Running)
             {
                 _logger.Warning(
-                    "Swarm is scheduled to destruct, but Transport progress is still running"
-                );
+                    "Swarm is scheduled to destruct, but Transport progress is still running");
             }
         }
 
@@ -226,16 +225,14 @@ namespace Libplanet.Net
         }
 
         public async Task StopAsync(
-            CancellationToken cancellationToken = default
-        )
+            CancellationToken cancellationToken = default)
         {
             await StopAsync(TimeSpan.FromSeconds(1), cancellationToken);
         }
 
         public async Task StopAsync(
             TimeSpan waitFor,
-            CancellationToken cancellationToken = default
-        )
+            CancellationToken cancellationToken = default)
         {
             _logger.Debug("Stopping watching " + nameof(BlockChain) + " for tip changes...");
             BlockChain.TipChanged -= OnBlockChainTipChanged;
@@ -320,8 +317,8 @@ namespace Libplanet.Net
             {
                 _workerCancellationTokenSource = new CancellationTokenSource();
                 _cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(
-                    _workerCancellationTokenSource.Token, cancellationToken
-                ).Token;
+                    _workerCancellationTokenSource.Token, cancellationToken)
+                .Token;
 
                 if (Transport.Running)
                 {
@@ -344,8 +341,7 @@ namespace Libplanet.Net
                         dialTimeout,
                         Options.TipLifespan,
                         Options.MaximumPollPeers,
-                        _cancellationToken
-                    ),
+                        _cancellationToken),
                     () => ConsumeBlockCandidates(
                         TimeSpan.FromMilliseconds(10), true, _cancellationToken),
                     () => RefreshTableAsync(
@@ -366,9 +362,7 @@ namespace Libplanet.Net
                     tasks.Add(
                         () => MaintainStaticPeerAsync(
                             Options.StaticPeersMaintainPeriod,
-                            _cancellationToken
-                        )
-                    );
+                            _cancellationToken));
                 }
 
                 runner = Task.WhenAny(tasks.Select(CreateLongRunningTask));
@@ -489,8 +483,7 @@ namespace Libplanet.Net
         /// <returns><see cref="PeerChainState"/> of the connected <see cref="Peers"/>.</returns>
         public async Task<IEnumerable<PeerChainState>> GetPeerChainStateAsync(
             TimeSpan? dialTimeout,
-            CancellationToken cancellationToken
-        )
+            CancellationToken cancellationToken)
         {
             // FIXME: It would be better if it returns IAsyncEnumerable<PeerChainState> instead.
             return (await DialExistingPeers(dialTimeout, int.MaxValue, cancellationToken))
@@ -563,14 +556,12 @@ namespace Libplanet.Net
             CancellationToken cancellationToken = default)
         {
             using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
-                _logger.Information("Preloading is requested to be cancelled")
-            );
+                _logger.Information("Preloading is requested to be cancelled"));
 
             _logger.Debug(
                 "Tip before preloading: #{TipIndex} {TipHash}",
                 BlockChain.Tip.Height,
-                BlockChain.Tip.Hash
-            );
+                BlockChain.Tip.Hash);
 
             // FIXME: Currently `IProgress<PreloadState>` can be rewinded to the previous stage
             // as it starts from the first stage when it's still not close enough to the topmost
@@ -611,8 +602,7 @@ namespace Libplanet.Net
                         localTip.Height,
                         localTip.Hash,
                         topmostTip.Index,
-                        topmostTip.Hash
-                    );
+                        topmostTip.Hash);
                     break;
                 }
                 else
@@ -626,8 +616,7 @@ namespace Libplanet.Net
                         localTip.Height,
                         localTip.Hash,
                         topmostTip.Index,
-                        topmostTip.Hash
-                    );
+                        topmostTip.Hash);
                 }
 
                 _logger.Information("Preloading (trial #{Trial}) started...", i + 1);
@@ -820,8 +809,7 @@ namespace Libplanet.Net
         internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
             BoundPeer peer,
             List<BlockHash> blockHashes,
-            [EnumeratorCancellation] CancellationToken cancellationToken
-        )
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             _logger.Information(
                 "Trying to download {BlockHashesCount} block(s) from {Peer}...",
@@ -852,8 +840,8 @@ namespace Libplanet.Net
                     blockRecvTimeout,
                     ((hashCount - 1) / request.ChunkSize) + 1,
                     false,
-                    cancellationToken
-                ).ConfigureAwait(false);
+                    cancellationToken)
+                .ConfigureAwait(false);
             }
             catch (CommunicationFailException e) when (e.InnerException is TimeoutException)
             {
@@ -951,8 +939,8 @@ namespace Libplanet.Net
                     txRecvTimeout,
                     txCount,
                     true,
-                    cancellationToken
-                ).ConfigureAwait(false);
+                    cancellationToken)
+                .ConfigureAwait(false);
             }
             catch (CommunicationFailException e) when (e.InnerException is TimeoutException)
             {
@@ -1213,8 +1201,8 @@ namespace Libplanet.Net
                         peer,
                         new GetChainStatusMsg(),
                         dialTimeout,
-                        cancellationToken
-                    ).ContinueWith<(BoundPeer, ChainStatusMsg)>(
+                        cancellationToken)
+                    .ContinueWith<(BoundPeer, ChainStatusMsg)>(
                         task =>
                         {
                             if (task.IsFaulted || task.IsCanceled ||
@@ -1229,9 +1217,7 @@ namespace Libplanet.Net
                                 return (peer, chainStatus);
                             }
                         },
-                        cancellationToken
-                    )
-                );
+                        cancellationToken));
 
             return Task.WhenAll(tasks).ContinueWith(
                 task =>
@@ -1243,8 +1229,7 @@ namespace Libplanet.Net
 
                     return task.Result.ToArray();
                 },
-                cancellationToken
-            );
+                cancellationToken);
         }
 
         private async Task BroadcastBlockAsync(

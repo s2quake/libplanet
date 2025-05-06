@@ -275,8 +275,7 @@ public class TransactionQueryGeneratedTest
                 (string)((IDictionary<string, object>)txData)["id"],
                 (string?)(Source.Index is not null
                     ? ((IDictionary<string, object>)
-                        ((IDictionary<string, object>)txData)["blockRef"]
-                    )["hash"]
+                        ((IDictionary<string, object>)txData)["blockRef"])["hash"]
                     : null)))
             .ToImmutableArray();
     }

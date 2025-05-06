@@ -42,8 +42,7 @@ namespace Libplanet.Net
         public delegate IAsyncEnumerable<Transaction> TxFetcher(
             TPeer peer,
             IEnumerable<TxId> txIds,
-            CancellationToken cancellationToken
-        );
+            CancellationToken cancellationToken);
 
         public delegate void TxBroadcaster(TPeer except, IEnumerable<Transaction> txs);
 
@@ -99,9 +98,7 @@ namespace Libplanet.Net
 
                             _txFetchJobs.TryRemove(peer, out _);
                         },
-                        _cancellationTokenSource.Token
-                    )
-                );
+                        _cancellationTokenSource.Token));
 
                 if (txFetchJob.TryAdd(required, out HashSet<TxId> rest))
                 {
@@ -182,8 +179,7 @@ namespace Libplanet.Net
                     _logger.Information(
                         "No transaction has been staged among received {TxCount} from {Peer}",
                         txs.Count,
-                        peer
-                    );
+                        peer);
                 }
             }
             catch (Exception e)
@@ -229,8 +225,7 @@ namespace Libplanet.Net
                     new UnboundedChannelOptions
                     {
                         SingleReader = true,
-                    }
-                );
+                    });
                 _txIdsWriterLock = new ReaderWriterLockSlim();
 
                 _logger = Log
@@ -276,8 +271,7 @@ namespace Libplanet.Net
 
             private async Task<ISet<Transaction>> RequestAsync(
                 TimeSpan waitFor,
-                CancellationToken cancellationToken
-            )
+                CancellationToken cancellationToken)
             {
                 _ = Task.Run(async () =>
                 {

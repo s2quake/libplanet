@@ -50,8 +50,7 @@ namespace Libplanet.Net
             int version,
             IValue? extra,
             ImmutableArray<byte> signature,
-            Address signer
-        )
+            Address signer)
         {
             Version = version;
             Extra = extra;
@@ -80,8 +79,8 @@ namespace Libplanet.Net
             {
                 string sig = Convert.ToBase64String(
                     Signature.ToArray(),
-                    Base64FormattingOptions.None
-                ).Replace('/', '.');
+                    Base64FormattingOptions.None)
+                .Replace('/', '.');
                 var prefix =
                     $"{Version.ToString(CultureInfo.InvariantCulture)}/{Signer:raw}/{sig}";
                 if (Extra is null)
@@ -91,8 +90,8 @@ namespace Libplanet.Net
 
                 string extra = Convert.ToBase64String(
                     _codec.Encode(Extra),
-                    Base64FormattingOptions.None
-                ).Replace('/', '.');
+                    Base64FormattingOptions.None)
+                .Replace('/', '.');
                 return $"{prefix}/{extra}";
             }
         }
@@ -126,8 +125,7 @@ namespace Libplanet.Net
                 version,
                 extra,
                 ImmutableArray.Create(signer.Sign(GetMessage(version, extra))),
-                new Address(signer.PublicKey)
-            );
+                new Address(signer.PublicKey));
         }
 
         /// <summary>
@@ -261,8 +259,7 @@ namespace Libplanet.Net
         CultureInfo.InvariantCulture,
         Extra is null ? "{0}" : "{0} ({1})",
         Version,
-        Extra
-    );
+        Extra);
 
         /// <summary>
         /// Gets a deterministic message to sign.

@@ -26,10 +26,8 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "currency",
                         Description = "The currency to convert.",
-                    }
-                ),
-                resolve: context => context.GetArgument<Currency>("currency").Hash
-            );
+                    }),
+                resolve: context => context.GetArgument<Currency>("currency").Hash);
 
             Field<NonNullGraphType<IValueType>>(
                 name: "bencodexValue",
@@ -39,11 +37,9 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "hex",
                         Description = "The byte array in hex representation to decode.",
-                    }
-                ),
+                    }),
                 resolve: context =>
-                    _codec.Decode(ByteUtility.ParseHex(context.GetArgument<string>("hex")))
-            );
+                    _codec.Decode(ByteUtility.ParseHex(context.GetArgument<string>("hex"))));
 
             Field<NonNullGraphType<KeyBytesType>>(
                 name: "keyHex",
@@ -53,11 +49,9 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "value",
                         Description = "The string value to convert to key hex.",
-                    }
-                ),
+                    }),
                 resolve: context =>
-                    KeyBytes.Create(Encoding.ASCII.GetBytes(context.GetArgument<string>("value")))
-            );
+                    KeyBytes.Create(Encoding.ASCII.GetBytes(context.GetArgument<string>("value"))));
         }
     }
 }

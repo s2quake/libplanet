@@ -11,18 +11,15 @@ public class CurrencyInputType : InputObjectGraphType<Currency>
         Name = "CurrencyInput";
         Field<NonNullGraphType<StringGraphType>>(
             "ticker",
-            "The ticker symbol, e.g., USD."
-        );
+            "The ticker symbol, e.g., USD.");
         Field<NonNullGraphType<ByteGraphType>>(
             "decimalPlaces",
-            "The number of digits to treat as minor units (i.e., exponents)."
-        );
+            "The number of digits to treat as minor units (i.e., exponents).");
         Field<ListGraphType<NonNullGraphType<AddressType>>>(
             "minters",
             "The addresses who can mint this currency.  If this is null anyone can " +
             "mint the currency.  On the other hand, unlike null, an empty set means no one " +
-            "can mint the currency."
-        );
+            "can mint the currency.");
         Field<BigIntGraphType>("maximumSupplyMajorUnit");
         Field<BigIntGraphType>("maximumSupplyMinorUnit");
     }

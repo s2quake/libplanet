@@ -28,8 +28,7 @@ public class TxResultTypeTest
         ExecutionResult result = await ExecuteQueryAsync(
             query,
             txResultType,
-            source: txResult
-        );
+            source: txResult);
         Assert.Null(result.Errors);
         ExecutionNode executionNode = Assert.IsAssignableFrom<ExecutionNode>(result.Data);
         IDictionary<string, object> dictionary

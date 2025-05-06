@@ -25,8 +25,7 @@ public class ApvCommand
             ValueName = "FILE",
             Description = "Bencodex file to use for extra data.  " +
                 "For standard input, use a hyphen (`-').  " +
-                "For an actual file named a hyphen, prepend `./', i.e., `./-'."
-        )]
+                "For an actual file named a hyphen, prepend `./', i.e., `./-'.")]
         string? extraFile = null,
         [Option(
             'e',
@@ -34,17 +33,14 @@ public class ApvCommand
             Description = "Set a value to a key on extra Bencodex dictionary.  " +
                 "Can be applied multiple times (e.g., `-e foo=1 -e bar=baz').  " +
                 "This option implies the extra data to be a Bencodex dictionary, " +
-                "hence cannot be used together with -E/--extra-file option."
-        )]
-        string[]? extra = null
-    )
+                "hence cannot be used together with -E/--extra-file option.")]
+        string[]? extra = null)
     {
         if (passphrase.PassphraseFile == "-" && extraFile == "-")
         {
             throw Utils.Error(
                 "-P/--passphrase-file and -E/--extra-file cannot read standard input at a " +
-                "time.  Please specify one of both to read from a regular file."
-            );
+                "time.  Please specify one of both to read from a regular file.");
         }
 
         // FIXME: Declare a ICommandParameterSet type taking key ID and keystore path instead:
@@ -55,8 +51,7 @@ public class ApvCommand
             if (extra is string[] e && e.Length > 0)
             {
                 throw Utils.Error(
-                    "-E/--extra-file and -e/--extra cannot be used together at a time."
-                );
+                    "-E/--extra-file and -e/--extra cannot be used together at a time.");
             }
 
             var codec = new Codec();
@@ -88,8 +83,7 @@ public class ApvCommand
                 {
                     throw Utils.Error(
                         "-e/--extra must be a pair of KEY=VALUE, but no equal (=) separator: " +
-                        $"`{pair}'."
-                    );
+                        $"`{pair}'.");
                 }
 
                 string key_ = pair.Substring(0, sepPos);
@@ -109,23 +103,19 @@ public class ApvCommand
         [Argument(
             Name = "APV-TOKEN",
             Description = "An app protocol version token to verify.  " +
-                "Read from the standard input if omitted."
-        )]
+                "Read from the standard input if omitted.")]
         string? token = null,
         [Option(
             'p',
             ValueName = "PUBLIC-KEY",
             Description = "Public key(s) to be used for verification.  " +
-                "Can be applied multiple times."
-        )]
+                "Can be applied multiple times.")]
         PublicKey[]? publicKeys = null,
         [Option(
             'K',
             Description = "Do not use any keys in the key store, " +
-                "but only -p/--public-key options."
-        )]
-        bool noKeyStore = false
-    )
+                "but only -p/--public-key options.")]
+        bool noKeyStore = false)
     {
         AppProtocolVersion v = ParseAppProtocolVersionToken(token);
 
@@ -137,15 +127,13 @@ public class ApvCommand
                 {
                     Console.Error.WriteLine(
                         "The signature successfully was verified using the {0}.",
-                        pubKey
-                    );
+                        pubKey);
                     return;
                 }
 
                 Console.Error.WriteLine(
                     "The signature was failed to verify using the {0}.",
-                    pubKey
-                );
+                    pubKey);
             }
         }
 
@@ -162,21 +150,19 @@ public class ApvCommand
                 // --key-passphrase-file:
                 PublicKey pubKey = keyInstance.UnprotectKey(
                     keyId,
-                    new PassphraseParameters()
-                ).PublicKey;
+                    new PassphraseParameters())
+                .PublicKey;
                 if (v.Verify(pubKey))
                 {
                     Console.Error.WriteLine(
                         "The signature successfully was verified using the key {0}.",
-                        keyId
-                    );
+                        keyId);
                     return;
                 }
 
                 Console.Error.WriteLine(
                     "The signature was failed to verify using the key {0}.",
-                    keyId
-                );
+                    keyId);
             }
         }
 
@@ -188,12 +174,10 @@ public class ApvCommand
         [Argument(
             Name = "APV-TOKEN",
             Description = "An app protocol version token to analyze.  " +
-                "Read from the standard input if omitted."
-        )]
+                "Read from the standard input if omitted.")]
         string? token = null,
         [Option(Description = "Print information of given token as JSON.")]
-        bool json = false
-    )
+        bool json = false)
     {
         AppProtocolVersion v = ParseAppProtocolVersionToken(token);
 

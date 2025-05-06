@@ -7,8 +7,7 @@ namespace Libplanet.Types.JsonConverters;
 internal sealed class AddressJsonConverter : JsonConverter<Address>
 {
     public override Address Read(
-        ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options
-    )
+        ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.GetString() is not { } hex)
         {

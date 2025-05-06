@@ -9,8 +9,7 @@ internal class EvidenceIdJsonConverter : JsonConverter<EvidenceId>
     public override EvidenceId Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
-        JsonSerializerOptions options
-    )
+        JsonSerializerOptions options)
     {
         string hex = reader.GetString() ?? throw new JsonException("Expected a string.");
         try

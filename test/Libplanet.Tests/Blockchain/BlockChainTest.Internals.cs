@@ -20,8 +20,7 @@ namespace Libplanet.Tests.Blockchain
         {
             Skip.IfNot(
                 Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
-                "This test causes timeout"
-            );
+                "This test causes timeout");
 
             Transaction MkTx(PrivateKey key, long nonce, DateTimeOffset? ts = null) =>
                 Transaction.Create(
@@ -79,8 +78,7 @@ namespace Libplanet.Tests.Blockchain
 
             // A is prioritized over B, C, D, E:
             IComparer<Transaction> priority = Comparer<Transaction>.Create(
-                (tx1, tx2) => tx1.Signer.Equals(a.Address) ? -1 : 1
-            );
+                (tx1, tx2) => tx1.Signer.Equals(a.Address) ? -1 : 1);
             stagedTransactions = _blockChain.ListStagedTransactions(priority);
 
             foreach (var tx in stagedTransactions.Take(3))
@@ -135,8 +133,7 @@ namespace Libplanet.Tests.Blockchain
                     pair.Value,
                     _fx.StateStore
                         .GetStateRoot(legacyStateRoot)
-                        .GetMany(new[] { ToStateKey(pair.Key) })[0]
-                );
+                        .GetMany(new[] { ToStateKey(pair.Key) })[0]);
             }
         }
 

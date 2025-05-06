@@ -100,12 +100,10 @@ public class ActionContextTest
         [
             (
                 new Guid("6f460c1a-755d-48e4-ad67-65d5f519dbc8"),
-                new Guid("8286d046-9740-43e4-95cf-ff46699c73c4")
-            ),
+                new Guid("8286d046-9740-43e4-95cf-ff46699c73c4")),
             (
                 new Guid("3b347c2b-f837-4085-ac5e-64005393b30d"),
-                new Guid("3410cda1-5b13-434e-af84-a54adf7a0ea0")
-            ),
+                new Guid("3410cda1-5b13-434e-af84-a54adf7a0ea0")),
         ];
 
         var random1 = actionContext1.GetRandom();

@@ -74,8 +74,7 @@ public class TrieStateStoreTest
             .Select(_ =>
             (
                 KeyBytes.Create(GetRandomBytes(random.Next(1, 20))),
-                (IValue)new Binary(GetRandomBytes(20))
-            ))
+                (IValue)new Binary(GetRandomBytes(20))))
             .ToList();
 
         ITrie trie = stateStore.GetStateRoot(default);
@@ -127,8 +126,7 @@ public class TrieStateStoreTest
                     .Select(__ =>
                     (
                         KeyBytes.Create(GetRandomBytes(random.Next(20))),
-                        (IValue)new Binary(GetRandomBytes(20))
-                    ))
+                        (IValue)new Binary(GetRandomBytes(20))))
                     .ToList());
 
         ITrie worldTrie = stateStore.GetStateRoot(default);

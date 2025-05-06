@@ -20,8 +20,7 @@ namespace Libplanet.Tests.Blocks
                 protocolVersion: ProtocolVersion,
                 miner: Miner,
                 stateRootHash: HashDigest<SHA256>.Parse(
-                    "e2e938f9d8af0a20d16d1c233fc4e8f39157145d003565807e4055ce6b5a0121")
-            );
+                    "e2e938f9d8af0a20d16d1c233fc4e8f39157145d003565807e4055ce6b5a0121"));
             TxFixture = new TxFixture(Genesis.Hash);
             Next = TestUtils.ProposeNextBlock(
                 Genesis,
@@ -30,8 +29,7 @@ namespace Libplanet.Tests.Blocks
                 stateRootHash: HashDigest<SHA256>.Parse(
                     "6a648da9e91c21aa22bdae4e35c338406392aad0db4a0f998c01a7d7973cb8aa"),
                 lastCommit: null,
-                evidence: []
-            );
+                evidence: []);
             HasTx = TestUtils.ProposeNextBlock(
                 Next,
                 proposer: Miner,

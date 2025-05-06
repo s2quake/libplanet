@@ -54,16 +54,14 @@ namespace Libplanet.KeyStore.Ciphers
         [Pure]
         public ImmutableArray<byte> Encrypt(
             in ImmutableArray<byte> key,
-            in ImmutableArray<byte> plaintext
-        ) =>
+            in ImmutableArray<byte> plaintext) =>
             Cipher(true, key, plaintext);
 
         /// <inheritdoc />
         [Pure]
         public ImmutableArray<byte> Decrypt(
             in ImmutableArray<byte> key,
-            in ImmutableArray<byte> ciphertext
-        ) =>
+            in ImmutableArray<byte> ciphertext) =>
             Cipher(false, key, ciphertext);
 
         /// <inheritdoc />
@@ -80,8 +78,7 @@ namespace Libplanet.KeyStore.Ciphers
             if (!paramsElement.TryGetProperty("iv", out JsonElement ivElement))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"cipherparams\" field must have an \"iv\" field."
-                );
+                    "The \"cipherparams\" field must have an \"iv\" field.");
             }
 
             string ivString;
@@ -97,8 +94,7 @@ namespace Libplanet.KeyStore.Ciphers
             if (ivString is null)
             {
                 throw new InvalidKeyJsonException(
-                    "The \"iv\" field must not be null, but a string."
-                );
+                    "The \"iv\" field must not be null, but a string.");
             }
 
             byte[] iv;
@@ -109,8 +105,7 @@ namespace Libplanet.KeyStore.Ciphers
             catch (Exception e)
             {
                 throw new InvalidKeyJsonException(
-                    "The \"iv\" field must be a hexadecimal string of bytes.\n" + e
-                );
+                    "The \"iv\" field must be a hexadecimal string of bytes.\n" + e);
             }
 
             return new Aes128Ctr(iv);
@@ -119,16 +114,14 @@ namespace Libplanet.KeyStore.Ciphers
         private ImmutableArray<byte> Cipher(
             in bool encrypt,
             in ImmutableArray<byte> key,
-            in ImmutableArray<byte> input
-        )
+            in ImmutableArray<byte> input)
         {
             int keyLength = key.Length;
             if (keyLength != 16 && keyLength != 24 && keyLength != 32)
             {
                 throw new ArgumentException(
                     "Key length must be one of 16/24/32 bytes (128/192/256 bits, respectively).",
-                    nameof(key)
-                );
+                    nameof(key));
             }
 
             // FIXME: Rather than depending on BouncyCastle, which is a pure C# implementation,
@@ -137,8 +130,7 @@ namespace Libplanet.KeyStore.Ciphers
 
             KeyParameter keyParam = ParameterUtilities.CreateKeyParameter(
                 "AES128",
-                key.ToArray()
-            );
+                key.ToArray());
             byte[] iv = Iv.ToArray();
             ICipherParameters cipherParams = new ParametersWithIV(keyParam, iv);
             cipher.Init(encrypt, cipherParams);

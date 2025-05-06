@@ -26,8 +26,7 @@ namespace Libplanet.Explorer.Executable
             string iceServerUrl,
             string storePath,
             string storeType,
-            string genesisBlockPath
-        )
+            string genesisBlockPath)
         {
             Debug = debug;
             Host = host;

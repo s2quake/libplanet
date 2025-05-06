@@ -30,15 +30,13 @@ namespace Libplanet.KeyStore
             IKdf kdf,
             byte[] mac,
             ICipher cipher,
-            byte[] ciphertext
-        )
+            byte[] ciphertext)
             : this(
                 address,
                 kdf,
                 ImmutableArray.Create(mac),
                 cipher,
-                ImmutableArray.Create(ciphertext)
-            )
+                ImmutableArray.Create(ciphertext))
         {
         }
 
@@ -56,8 +54,7 @@ namespace Libplanet.KeyStore
             IKdf kdf,
             ImmutableArray<byte> mac,
             ICipher cipher,
-            ImmutableArray<byte> ciphertext
-        )
+            ImmutableArray<byte> ciphertext)
         {
             Address = address;
             Kdf = kdf;
@@ -147,15 +144,13 @@ namespace Libplanet.KeyStore
             {
                 throw new InvalidKeyJsonException(
                     "The root of the key JSON must be an object, but it is a/an " +
-                    $"{rootElement.ValueKind}."
-                );
+                    $"{rootElement.ValueKind}.");
             }
 
             if (!rootElement.TryGetProperty("version", out JsonElement versionElement))
             {
                 throw new InvalidKeyJsonException(
-                    "The key JSON must contain \"version\" field, but it lacks."
-                );
+                    "The key JSON must contain \"version\" field, but it lacks.");
             }
 
             if (versionElement.ValueKind != JsonValueKind.Number ||
@@ -167,8 +162,7 @@ namespace Libplanet.KeyStore
             {
                 throw new UnsupportedKeyJsonException(
                     $"The key JSON format version {versionNum} is unsupported; " +
-                    "Only version 3 is supported."
-                );
+                    "Only version 3 is supported.");
             }
 
             string GetStringProperty(JsonElement element, string fieldName)
@@ -176,8 +170,7 @@ namespace Libplanet.KeyStore
                 if (!element.TryGetProperty(fieldName, out JsonElement fieldElement))
                 {
                     throw new InvalidKeyJsonException(
-                        $"The key JSON must contain \"{fieldName}\" field, but it lacks."
-                    );
+                        $"The key JSON must contain \"{fieldName}\" field, but it lacks.");
                 }
 
                 string str;
@@ -188,15 +181,13 @@ namespace Libplanet.KeyStore
                 catch (InvalidOperationException)
                 {
                     throw new InvalidKeyJsonException(
-                        $"The \"{fieldName}\" field must be a string."
-                    );
+                        $"The \"{fieldName}\" field must be a string.");
                 }
 
                 if (str is null)
                 {
                     throw new InvalidKeyJsonException(
-                        $"The \"{fieldName}\" field must not be null, but a string."
-                    );
+                        $"The \"{fieldName}\" field must not be null, but a string.");
                 }
 
                 return str;
@@ -207,15 +198,13 @@ namespace Libplanet.KeyStore
                 if (!element.TryGetProperty(fieldName, out var fieldElement))
                 {
                     throw new InvalidKeyJsonException(
-                        $"The key JSON must contain \"{fieldName}\" field, but it lacks."
-                    );
+                        $"The key JSON must contain \"{fieldName}\" field, but it lacks.");
                 }
                 else if (fieldElement.ValueKind != JsonValueKind.Object)
                 {
                     throw new InvalidKeyJsonException(
                         $"The \"{fieldName}\" field must be an object, but it is a/an " +
-                        $"{fieldElement.ValueKind}."
-                    );
+                        $"{fieldElement.ValueKind}.");
                 }
 
                 return fieldElement;
@@ -232,8 +221,7 @@ namespace Libplanet.KeyStore
                 catch (Exception e)
                 {
                     throw new InvalidKeyJsonException(
-                        $"The \"{fieldName}\" field must be a hexadecimal string.\n{e}"
-                    );
+                        $"The \"{fieldName}\" field must be a hexadecimal string.\n{e}");
                 }
 
                 return bytes;
@@ -256,8 +244,7 @@ namespace Libplanet.KeyStore
             {
                 throw new InvalidKeyJsonException(
                     "The \"address\" field must contain an Ethereum-style address which " +
-                    "consists of 40 hexadecimal letters: " + e
-                );
+                    "consists of 40 hexadecimal letters: " + e);
             }
 
             var cipher = cipherType switch
@@ -311,8 +298,7 @@ namespace Libplanet.KeyStore
                     "The input passphrase is incorrect.",
                     nameof(passphrase),
                     Mac,
-                    mac
-                );
+                    mac);
             }
 
             ImmutableArray<byte> encKey = MakeEncryptionKey(derivedKey);
@@ -326,8 +312,7 @@ namespace Libplanet.KeyStore
                     "The actual address of the unprotected private key does not match to " +
                     "the expected address of the protected private key.",
                     Address,
-                    actualAddress
-                );
+                    actualAddress);
             }
 
             return key;
@@ -347,8 +332,7 @@ namespace Libplanet.KeyStore
             writer.WriteNumber("version", 3);
             writer.WriteString(
                 "id",
-                (id ?? Guid.NewGuid()).ToString().ToLower(CultureInfo.InvariantCulture)
-            );
+                (id ?? Guid.NewGuid()).ToString().ToLower(CultureInfo.InvariantCulture));
             writer.WriteString("address", $"{Address:raw}".ToLower(CultureInfo.InvariantCulture));
             writer.WriteStartObject("crypto");
             writer.WriteString("ciphertext", ByteUtility.Hex(Ciphertext));
@@ -385,8 +369,7 @@ namespace Libplanet.KeyStore
 
         private static ImmutableArray<byte> CalculateMac(
             ImmutableArray<byte> derivedKey,
-            ImmutableArray<byte> ciphertext
-        )
+            ImmutableArray<byte> ciphertext)
         {
             const int keySubBytes = 16;
             var seal = new byte[keySubBytes + ciphertext.Length];

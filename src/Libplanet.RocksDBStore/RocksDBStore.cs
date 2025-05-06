@@ -123,8 +123,7 @@ public partial class RocksDBStore : StoreBase
         int txEpochUnitSeconds = 86400,
         int blockEpochUnitSeconds = 86400,
         int dbConnectionCacheSize = 100,
-        RocksDBInstanceType type = RocksDBInstanceType.Primary
-    )
+        RocksDBInstanceType type = RocksDBInstanceType.Primary)
     {
         _logger = Log.ForContext<RocksDBStore>();
 
@@ -270,8 +269,7 @@ public partial class RocksDBStore : StoreBase
             {
                 return (
                     db.GetColumnFamily(new Guid(cid).ToString()),
-                    RocksDBStoreBitConverter.ToInt64(db.Get(PreviousChainIndexKeyPrefix, cfh))
-                );
+                    RocksDBStoreBitConverter.ToInt64(db.Get(PreviousChainIndexKeyPrefix, cfh)));
             }
         }
 
@@ -281,8 +279,7 @@ public partial class RocksDBStore : StoreBase
             for (
                 it.Seek(IndexKeyPrefix);
                 it.Valid() && it.Key().StartsWith(IndexKeyPrefix);
-                it.Next()
-            )
+                it.Next())
             {
                 byte[] indexBytes = it.Key().Skip(1).ToArray();
                 long index = RocksDBStoreBitConverter.ToInt64(indexBytes);
@@ -318,12 +315,10 @@ public partial class RocksDBStore : StoreBase
 
         // Migrate total count & chain ID
         long prevCount = RocksDBStoreBitConverter.ToInt64(
-            db.Get(IndexCountKeyPrefix, ccf)
-        );
+            db.Get(IndexCountKeyPrefix, ccf));
         newDb.Put(
             IndexCountKey(ccid),
-            RocksDBStoreBitConverter.GetBytes(prevCount)
-        );
+            RocksDBStoreBitConverter.GetBytes(prevCount));
         newDb.Put(ChainIdKey(ccid), ccid.ToByteArray());
 
         // Migrate tx nonces
@@ -331,8 +326,7 @@ public partial class RocksDBStore : StoreBase
         for (
             it.Seek(TxNonceKeyPrefix);
             it.Valid() && it.Key().StartsWith(TxNonceKeyPrefix);
-            it.Next()
-        )
+            it.Next())
         {
             batch.Put(TxNonceKey(ccid, it.Key().Skip(1).ToArray()), it.Value());
         }
@@ -561,8 +555,7 @@ public partial class RocksDBStore : StoreBase
             writeBatch.Put(key, hash.Bytes.ToArray());
             writeBatch.Put(
                 IndexCountKey(chainId),
-                RocksDBStoreBitConverter.GetBytes(index + 1)
-            );
+                RocksDBStoreBitConverter.GetBytes(index + 1));
             writeBatch.Put(ChainIdKey(chainId), chainId.ToByteArray());
 
             _chainDb.Write(writeBatch);
@@ -582,8 +575,7 @@ public partial class RocksDBStore : StoreBase
     public override void ForkBlockIndexes(
         Guid sourceChainId,
         Guid destinationChainId,
-        BlockHash branchpoint
-    )
+        BlockHash branchpoint)
     {
         BlockHash[] bottoms = IterateIndexes(sourceChainId, 0, 1, true).ToArray();
         BlockHash? genesisHash = bottoms.Any() ? bottoms[0] : (BlockHash?)null;
@@ -617,12 +609,10 @@ public partial class RocksDBStore : StoreBase
         _chainDb.Put(PreviousChainIdKey(destinationChainId), sourceChainId.ToByteArray());
         _chainDb.Put(
             PreviousChainIndexKey(destinationChainId),
-            RocksDBStoreBitConverter.GetBytes(bpIndex)
-        );
+            RocksDBStoreBitConverter.GetBytes(bpIndex));
         _chainDb.Put(
             IndexCountKey(destinationChainId),
-            RocksDBStoreBitConverter.GetBytes(bpIndex + 1)
-        );
+            RocksDBStoreBitConverter.GetBytes(bpIndex + 1));
 
         _chainDb.Put(ChainIdKey(destinationChainId), destinationChainId.ToByteArray());
         AddFork(sourceChainId, destinationChainId);
@@ -922,16 +912,14 @@ public partial class RocksDBStore : StoreBase
     {
         _txIdBlockHashIndexDb.Put(
             TxIdBlockHashIndexKey(txId, blockHash),
-            blockHash.Bytes.ToArray()
-            );
+            blockHash.Bytes.ToArray());
     }
 
     /// <inheritdoc cref="StoreBase.DeleteTxIdBlockHashIndex(TxId, BlockHash)"/>
     public override void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
         _txIdBlockHashIndexDb.Remove(
-            TxIdBlockHashIndexKey(txId, blockHash)
-        );
+            TxIdBlockHashIndexKey(txId, blockHash));
     }
 
     /// <inheritdoc cref="StoreBase.IterateTxIdBlockHashIndex(TxId)"/>
@@ -948,8 +936,7 @@ public partial class RocksDBStore : StoreBase
     public override void PutTxExecution(TxExecution txExecution) =>
         _txExecutionDb.Put(
             TxExecutionKey(txExecution),
-            Codec.Encode(SerializeTxExecution(txExecution))
-        );
+            Codec.Encode(SerializeTxExecution(txExecution)));
 
     /// <inheritdoc cref="StoreBase.GetTxExecution(BlockHash, TxId)"/>
     public override TxExecution? GetTxExecution(BlockHash blockHash, TxId txid)
@@ -1726,8 +1713,7 @@ public partial class RocksDBStore : StoreBase
         Guid chainId,
         long offset,
         long? limit,
-        bool includeDeleted
-    )
+        bool includeDeleted)
     {
         long count = 0;
         Stack<(Guid, long)> chainInfos = new Stack<(Guid, long)>();

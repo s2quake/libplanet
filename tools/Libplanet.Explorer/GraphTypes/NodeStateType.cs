@@ -12,20 +12,16 @@ namespace Libplanet.Explorer.GraphTypes
 
             Field<NonNullGraphType<BoundPeerType>>(
                 name: "self",
-                resolve: context => context.Source.Swarm.AsPeer
-            );
+                resolve: context => context.Source.Swarm.AsPeer);
             Field<NonNullGraphType<BooleanGraphType>>(
                 name: "preloaded",
-                resolve: context => context.Source.Preloaded
-            );
+                resolve: context => context.Source.Preloaded);
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<BoundPeerType>>>>(
                 name: "peers",
-                resolve: context => context.Source.Swarm?.Peers ?? new List<BoundPeer>()
-            );
+                resolve: context => context.Source.Swarm?.Peers ?? new List<BoundPeer>());
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<BoundPeerType>>>>(
                 name: "validators",
-                resolve: context => context.Source.Swarm?.Validators ?? new List<BoundPeer>()
-            );
+                resolve: context => context.Source.Swarm?.Validators ?? new List<BoundPeer>());
         }
     }
 }

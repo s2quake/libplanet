@@ -15,18 +15,13 @@ public class PrivateKeyTest
         Assert.Throws<FormatException>(() => PrivateKey.Parse("870912"));
         Assert.Throws<FormatException>(() =>
             PrivateKey.Parse(
-                "00000000000000000000000000000000000000000000000000000000870912"
-            )
-        );
+                "00000000000000000000000000000000000000000000000000000000870912"));
         Assert.Throws<FormatException>(() =>
             PrivateKey.Parse(
-                "000000000000000000000000000000000000000000000000000000000000870912"
-            )
-        );
+                "000000000000000000000000000000000000000000000000000000000000870912"));
         Assert.Throws<FormatException>(() => PrivateKey.Parse("zz"));
         var actual = PrivateKey.Parse(
-            "e07107ca4b0d19147fa1152a0f2c7884705d59cbb6318e2f901bd28dd9ff78e3"
-        );
+            "e07107ca4b0d19147fa1152a0f2c7884705d59cbb6318e2f901bd28dd9ff78e3");
         AssertBytesEqual(
             new byte[]
             {
@@ -108,8 +103,7 @@ public class PrivateKeyTest
         Assert.Equal(expected, new PrivateKey(keyBytes).PublicKey.ToByteArray(false));
         Assert.Equal(
             expected,
-            new PrivateKey(keyBytes.ToImmutableArray().ToArray()).PublicKey.ToByteArray(false)
-        );
+            new PrivateKey(keyBytes.ToImmutableArray().ToArray()).PublicKey.ToByteArray(false));
     }
 
     [Fact]
@@ -121,8 +115,7 @@ public class PrivateKeyTest
                 0xbe, 0xe6, 0xf9, 0xcc, 0x62, 0x41, 0x27, 0x60, 0xb3, 0x69, 0x6e,
                 0x05, 0xf6, 0xfb, 0x4a, 0xbe, 0xb9, 0xe8, 0x3c, 0x4f, 0x94, 0x4f,
                 0x83, 0xfd, 0x62, 0x08, 0x1b, 0x74, 0x54, 0xcb, 0xc0, 0x38,
-            }
-        );
+            });
         var expected = Address.Parse("f45A22dD63f6428e85eE0a6E13a763278f57626d");
         Assert.Equal(expected, privateKey.Address);
     }
@@ -137,8 +130,7 @@ public class PrivateKeyTest
                 0x8c, 0x29, 0x33, 0xf6, 0x36, 0xd8, 0xb5, 0xa0, 0x01, 0x1e,
                 0xa0, 0x41, 0x12, 0xdb, 0xab, 0xab, 0xf2, 0x95, 0xe5, 0xdd,
                 0xef, 0x88,
-            }
-        );
+            });
         var pubKey = pk.PublicKey;
         var wrongPubKey = new PrivateKey().PublicKey;
         var payload = new byte[]
@@ -183,11 +175,9 @@ public class PrivateKeyTest
     public void ExchangeTest()
     {
         PrivateKey prvKey = PrivateKey.Parse(
-            "82fc9947e878fc7ed01c6c310688603f0a41c8e8704e5b990e8388343b0fd465"
-        );
+            "82fc9947e878fc7ed01c6c310688603f0a41c8e8704e5b990e8388343b0fd465");
         byte[] pubkeyBytes = ByteUtility.ParseHex(
-            "5f706787ac72c1080275c1f398640fb07e9da0b124ae9734b28b8d0f01eda586"
-        );
+            "5f706787ac72c1080275c1f398640fb07e9da0b124ae9734b28b8d0f01eda586");
         var pubKey = new PrivateKey(pubkeyBytes).PublicKey;
 
         var expected = new SymmetricKey(
@@ -197,8 +187,7 @@ public class PrivateKeyTest
                 0xb6, 0x03, 0x83, 0xad, 0xf2, 0xff, 0x23, 0xbc, 0x92, 0x83,
                 0x22, 0xcf, 0xbb, 0x73, 0x8f, 0xca, 0x88, 0xe4, 0x9d, 0x55,
                 0x7d, 0x7e,
-            }
-        );
+            });
         SymmetricKey actual = prvKey.ExchangeKey(pubKey);
 
         Assert.Equal(expected, actual);
@@ -214,8 +203,7 @@ public class PrivateKeyTest
                 0xfa, 0x57, 0x71, 0x71, 0xf4, 0x9c, 0xd3, 0xa9, 0xe6, 0x7a,
                 0xb9, 0x29, 0x57, 0x57, 0xc7, 0x14, 0xe3, 0xf2, 0xf8, 0xc2,
                 0xd5, 0x73,
-            }
-        );
+            });
         var cipherText = new byte[]
         {
             0x03, 0xc6, 0xcc, 0x1a, 0x70, 0xe4, 0x70, 0x0c, 0x96, 0x63, 0x8f, 0xf0, 0xd7, 0x8c,
@@ -241,8 +229,7 @@ public class PrivateKeyTest
                 0xfa, 0x57, 0x71, 0x71, 0xf4, 0x9c, 0xd3, 0xa9, 0xe6, 0x7a,
                 0xb9, 0x29, 0x57, 0x57, 0xc7, 0x14, 0xe3, 0xf2, 0xf8, 0xc2,
                 0xd5, 0x73,
-            }
-        );
+            });
         var key2 = new PrivateKey(
             new byte[]
             {
@@ -250,15 +237,13 @@ public class PrivateKeyTest
                 0xfa, 0x57, 0x71, 0x71, 0xf4, 0x9c, 0xd3, 0xa9, 0xe6, 0x7a,
                 0xb9, 0x29, 0x57, 0x57, 0xc7, 0x14, 0xe3, 0xf2, 0xf8, 0xc2,
                 0xd5, 0x37,
-            }
-        );
+            });
         var message = Encoding.ASCII.GetBytes("test message");
         var cipherText = key1.PublicKey.Encrypt(message);
 
         Assert.Throws<InvalidCiphertextException>(() => key2.Decrypt(cipherText));
         Assert.Throws<InvalidCiphertextException>(
-            () => key2.Decrypt(cipherText.ToImmutableArray())
-        );
+            () => key2.Decrypt(cipherText.ToImmutableArray()));
     }
 
     [Fact]
@@ -271,8 +256,7 @@ public class PrivateKeyTest
                 0xfa, 0x57, 0x71, 0x71, 0xf4, 0x9c, 0xd3, 0xa9, 0xe6, 0x7a,
                 0xb9, 0x29, 0x57, 0x57, 0xc7, 0x14, 0xe3, 0xf2, 0xf8, 0xc2,
                 0xd5, 0x73,
-            }
-        );
+            });
         var key2 = new PrivateKey(
             new byte[]
             {
@@ -280,8 +264,7 @@ public class PrivateKeyTest
                 0xfa, 0x57, 0x71, 0x71, 0xf4, 0x9c, 0xd3, 0xa9, 0xe6, 0x7a,
                 0xb9, 0x29, 0x57, 0x57, 0xc7, 0x14, 0xe3, 0xf2, 0xf8, 0xc2,
                 0xd5, 0x73,
-            }
-        );
+            });
         var key3 = new PrivateKey(
             new byte[]
             {
@@ -289,8 +272,7 @@ public class PrivateKeyTest
                 0xfa, 0x57, 0x71, 0x71, 0xf4, 0x9c, 0xd3, 0xa9, 0xe6, 0x7a,
                 0xb9, 0x29, 0x57, 0x57, 0xc7, 0x14, 0xe3, 0xf2, 0xf8, 0xc2,
                 0xd5, 0x37,
-            }
-        );
+            });
 
         Assert.Equal(key1, key2);
         Assert.NotEqual(key2, key3);
@@ -322,8 +304,7 @@ public class PrivateKeyTest
                 0x2a, 0x0f, 0x2c, 0x78, 0x84, 0x70, 0x5d, 0x59, 0xcb, 0xb6, 0x31,
                 0x8e, 0x2f, 0x90, 0x1b, 0xd2, 0x8d, 0xd9, 0xff, 0x78, 0xe3,
             },
-            actual.Bytes.ToArray()
-        );
+            actual.Bytes.ToArray());
     }
 
     [Fact]

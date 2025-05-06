@@ -40,8 +40,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 string stackTrace,
                 IValue action,
                 CommittedActionContext context,
-                bool unrender = false
-            )
+                bool unrender = false)
                 : base(index, stackTrace)
             {
                 Action = action;
@@ -95,8 +94,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 IValue action,
                 CommittedActionContext context,
                 HashDigest<SHA256> nextState,
-                bool unrender = false
-            )
+                bool unrender = false)
                 : base(index, stackTrace, action, context, unrender: unrender)
             {
                 NextState = nextState;
@@ -131,8 +129,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 IValue action,
                 CommittedActionContext context,
                 Exception exception,
-                bool unrender = false
-            )
+                bool unrender = false)
                 : base(index, stackTrace, action, context, unrender: unrender)
             {
                 Exception = exception;
@@ -157,8 +154,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 string stackTrace,
                 Block oldTip,
                 Block newTip,
-                bool end = false
-            )
+                bool end = false)
                 : base(index, stackTrace)
             {
                 OldTip = oldTip;
@@ -211,8 +207,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                 string stackTrace,
                 Block oldTip,
                 Block newTip,
-                bool end = false
-            )
+                bool end = false)
                 : base(index, stackTrace, oldTip, newTip, end)
             {
             }

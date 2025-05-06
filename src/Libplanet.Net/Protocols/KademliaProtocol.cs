@@ -70,8 +70,7 @@ namespace Libplanet.Net.Protocols
             {
                 throw new PeerDiscoveryException(
                     "No seeds are provided.  If it is intended you should conditionally invoke " +
-                    $"{nameof(BootstrapAsync)}() only when there are seed peers."
-                );
+                    $"{nameof(BootstrapAsync)}() only when there are seed peers.");
             }
 
             foreach (BoundPeer peer in bootstrapPeers.Where(peer => !peer.Address.Equals(_address)))
@@ -189,8 +188,7 @@ namespace Libplanet.Net.Protocols
                             _logger.Debug("Can't validate peer: {Peer}", peer);
                         }
                     },
-                    cancellationToken
-                );
+                    cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch (TimeoutException)
@@ -421,8 +419,8 @@ namespace Libplanet.Net.Protocols
                     peer,
                     new PingMsg(),
                     timeout,
-                    cancellationToken
-                ).ConfigureAwait(false);
+                    cancellationToken)
+                .ConfigureAwait(false);
                 if (!(reply.Content is PongMsg pong))
                 {
                     throw new InvalidMessageContentException(
@@ -611,8 +609,8 @@ namespace Libplanet.Net.Protocols
                     peer,
                     findPeer,
                     timeout,
-                    cancellationToken
-                ).ConfigureAwait(false);
+                    cancellationToken)
+                .ConfigureAwait(false);
                 if (!(reply.Content is NeighborsMsg neighbors))
                 {
                     throw new InvalidMessageContentException(
@@ -695,8 +693,8 @@ namespace Libplanet.Net.Protocols
                     {
                         dialHistory.Add(peer);
                         return PingAsync(peer, _requestTimeout, cancellationToken);
-                    }
-                ).ToList();
+                    })
+                .ToList();
             Task aggregateTask = Task.WhenAll(tasks);
             try
             {
@@ -726,8 +724,7 @@ namespace Libplanet.Net.Protocols
                 if (closestKnownPeer is { } ckp &&
                    string.CompareOrdinal(
                        Kademlia.CalculateDifference(peer.Address, target).ToString("raw", null),
-                       Kademlia.CalculateDifference(ckp.Address, target).ToString("raw", null)
-                   ) >= 1)
+                       Kademlia.CalculateDifference(ckp.Address, target).ToString("raw", null)) >= 1)
                 {
                     break;
                 }

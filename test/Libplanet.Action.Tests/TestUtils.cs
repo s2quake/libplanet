@@ -39,12 +39,9 @@ public static class TestUtils
         string diff = string.Join(
             Environment.NewLine,
             diffModel.Lines.Select(line =>
-                (prefixes.TryGetValue(line.Type, out string prefix) ? prefix : " ") + line.Text
-            )
-        );
+                (prefixes.TryGetValue(line.Type, out string prefix) ? prefix : " ") + line.Text));
         throw new XunitException(
-            "Two Bencodex values are not equal.\n--- Expected\n+++ Actual\n\n" + diff
-        );
+            "Two Bencodex values are not equal.\n--- Expected\n+++ Actual\n\n" + diff);
     }
 
     public static void AssertAccountEqual(Account expected, Account actual)

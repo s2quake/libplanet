@@ -9,14 +9,12 @@ internal class FungibleAssetValueJsonConverter : JsonConverter<FungibleAssetValu
     public override FungibleAssetValue Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
-        JsonSerializerOptions options
-    )
+        JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
             throw new JsonException(
-                $"Expected an object representation of {nameof(FungibleAssetValue)}."
-            );
+                $"Expected an object representation of {nameof(FungibleAssetValue)}.");
         }
 
         reader.Read();
@@ -98,14 +96,12 @@ internal class FungibleAssetValueJsonConverter : JsonConverter<FungibleAssetValu
     public override void Write(
         Utf8JsonWriter writer,
         FungibleAssetValue value,
-        JsonSerializerOptions options
-    )
+        JsonSerializerOptions options)
     {
         writer.WriteStartObject();
         writer.WriteString(
             options.PropertyNamingPolicy?.ConvertName("Quantity") ?? "Quantity",
-            value.GetQuantityString()
-        );
+            value.GetQuantityString());
         writer.WritePropertyName(
             options.PropertyNamingPolicy?.ConvertName("Currency") ?? "Currency");
         JsonSerializer.Serialize(writer, value.Currency, options);

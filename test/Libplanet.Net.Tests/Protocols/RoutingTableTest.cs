@@ -52,8 +52,7 @@ public class RoutingTableTest
         table.AddPeer(peer3);
         Assert.Equal(
             new HashSet<BoundPeer> { peer1, peer2 },
-            table.Peers.ToHashSet()
-        );
+            table.Peers.ToHashSet());
     }
 
     [Fact]

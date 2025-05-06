@@ -11,30 +11,25 @@ public class CurrencyType : ObjectGraphType<Currency>
         Field<NonNullGraphType<StringGraphType>>(
             "ticker",
             "The ticker symbol, e.g., USD.",
-            resolve: context => context.Source.Ticker
-        );
+            resolve: context => context.Source.Ticker);
         Field<NonNullGraphType<ByteGraphType>>(
             "decimalPlaces",
             "The number of digits to treat as minor units (i.e., exponents).",
-            resolve: context => (uint)context.Source.DecimalPlaces
-        );
+            resolve: context => (uint)context.Source.DecimalPlaces);
         Field<ListGraphType<NonNullGraphType<AddressType>>>(
             "minters",
             "The addresses who can mint this currency.  If this is null anyone can " +
                 "mint the currency.  On the other hand, unlike null, an empty set means no one " +
                 "can mint the currency.",
-            resolve: context => context.Source.Minters.ToList()
-        );
+            resolve: context => context.Source.Minters.ToList());
         Field<FungibleAssetValueType>(
             "maximumSupply",
             "The uppermost quantity of currency allowed to exist.  " +
                 "null means unlimited supply.",
-            resolve: context => context.Source.MaximumSupply
-        );
+            resolve: context => context.Source.MaximumSupply);
         Field<NonNullGraphType<ByteStringType>>(
             "hash",
             "The deterministic hash derived from other fields.",
-            resolve: context => context.Source.Hash.Bytes.ToArray()
-        );
+            resolve: context => context.Source.Hash.Bytes.ToArray());
     }
 }

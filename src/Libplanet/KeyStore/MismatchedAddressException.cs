@@ -20,12 +20,10 @@ namespace Libplanet.KeyStore
         public MismatchedAddressException(
             string message,
             in Address expectedAddress,
-            in Address actualAddress
-        )
+            in Address actualAddress)
             : base(
                 $"{message}\nExpected address: {expectedAddress}\n" +
-                $"Actual address: {actualAddress}"
-            )
+                $"Actual address: {actualAddress}")
         {
             ExpectedAddress = expectedAddress;
             ActualAddress = actualAddress;

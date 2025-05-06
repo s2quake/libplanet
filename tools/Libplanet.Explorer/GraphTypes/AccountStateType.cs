@@ -49,8 +49,7 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<HashDigestType<SHA256>>>(
                 name: "stateRootHash",
                 description: "The state root hash associated with this account state.",
-                resolve: context => context.Source.Trie.Hash
-            );
+                resolve: context => context.Source.Trie.Hash);
 
             Field<IValueType>(
                 name: "state",
@@ -60,11 +59,9 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "address",
                         Description = "The address to look up.",
-                    }
-                ),
+                    }),
                 resolve: context =>
-                    context.Source.GetValue(context.GetArgument<Address>("address"))
-            );
+                    context.Source.GetValue(context.GetArgument<Address>("address")));
 
             Field<NonNullGraphType<ListGraphType<IValueType>>>(
                 name: "states",
@@ -75,13 +72,11 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "addresses",
                         Description = "The list of addresses to look up.",
-                    }
-                ),
+                    }),
                 resolve: context =>
                     context.GetArgument<Address[]>("addresses")
                         .Select(address => context.Source.GetValue(address))
-                        .ToArray()
-            );
+                        .ToArray());
 
             Field<IValueType>(
                 name: "balance",
@@ -97,13 +92,11 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "currencyHash",
                         Description = "The currency hash to look up.",
-                    }
-                ),
+                    }),
                 resolve: context =>
                     context.Source.Trie[ToFungibleAssetKey(
                         context.GetArgument<Address>("address"),
-                        context.GetArgument<HashDigest<SHA1>>("currencyHash"))]
-            );
+                        context.GetArgument<HashDigest<SHA1>>("currencyHash"))]);
 
             Field<NonNullGraphType<ListGraphType<IValueType>>>(
                 name: "balances",
@@ -120,14 +113,12 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "currencyHash",
                         Description = "The currency hash to look up.",
-                    }
-                ),
+                    }),
                 resolve: context =>
                     context.GetArgument<Address[]>("addresses")
                         .Select(address => context.Source.Trie[
                             ToFungibleAssetKey(
-                                address, context.GetArgument<HashDigest<SHA1>>("currencyHash"))])
-            );
+                                address, context.GetArgument<HashDigest<SHA1>>("currencyHash"))]));
 
             Field<IValueType>(
                 name: "totalSupply",
@@ -138,19 +129,16 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "currencyHash",
                         Description = "The currency hash to look up.",
-                    }
-                ),
+                    }),
                 resolve: context =>
                     context.Source.Trie[ToTotalSupplyKey(
-                        context.GetArgument<HashDigest<SHA1>>("currencyHash"))]
-            );
+                        context.GetArgument<HashDigest<SHA1>>("currencyHash"))]);
 
             Field<IValueType>(
                 deprecationReason: "Does not work post block protocol version 6.",
                 name: "validatorSet",
                 description: "The validator set.",
-                resolve: context => context.Source.Trie[ValidatorSetKey]
-            );
+                resolve: context => context.Source.Trie[ValidatorSetKey]);
         }
 
         internal static KeyBytes ToFungibleAssetKey(Address address, HashDigest<SHA1> currencyHash)

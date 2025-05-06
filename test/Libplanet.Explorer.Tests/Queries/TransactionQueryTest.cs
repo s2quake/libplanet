@@ -32,8 +32,7 @@ public class TransactionQueryTest
             new MemoryStore(),
             new TrieStateStore(),
             privateKey: new PrivateKey(),
-            timestamp: DateTimeOffset.UtcNow
-        );
+            timestamp: DateTimeOffset.UtcNow);
         Source = new MockBlockChainContext(Chain);
         QueryGraph = new TransactionQuery(Source);
     }
@@ -45,8 +44,7 @@ public class TransactionQueryTest
             0L,
             new PrivateKey(),
             Source.BlockChain.Genesis.Hash,
-            Array.Empty<NullAction>().ToBytecodes()
-        );
+            Array.Empty<NullAction>().ToBytecodes());
         // tx.UnsignedTx.MarshalUnsignedTx();
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
@@ -81,8 +79,7 @@ public class TransactionQueryTest
             0L,
             new PrivateKey(),
             Source.BlockChain.Genesis.Hash,
-            new IAction[] { action }.ToBytecodes()
-        );
+            new IAction[] { action }.ToBytecodes());
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(

@@ -57,8 +57,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
         private static void VerifyDiagnosticResults(
             IEnumerable<Diagnostic> actualResults,
             DiagnosticAnalyzer analyzer,
-            params DiagnosticResult[] expectedResults
-        )
+            params DiagnosticResult[] expectedResults)
         {
             int expectedCount = expectedResults.Count();
             int actualCount = actualResults.Count();
@@ -89,8 +88,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                         analyzer,
                         actual,
                         actual.Location,
-                        expected.Locations.First()
-                    );
+                        expected.Locations.First());
                     Location[] additionalLocations = actual.AdditionalLocations.ToArray();
 
                     msg =
@@ -99,8 +97,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                         $"\r\n    {FormatDiagnostics(analyzer, actual)}\r\n";
                     Assert.True(
                         additionalLocations.Length == expected.Locations.Length - 1,
-                        msg
-                    );
+                        msg);
 
                     for (int j = 0; j < additionalLocations.Length; ++j)
                     {
@@ -108,8 +105,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                             analyzer,
                             actual,
                             additionalLocations[j],
-                            expected.Locations[j + 1]
-                        );
+                            expected.Locations[j + 1]);
                     }
                 }
 
@@ -146,8 +142,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
             DiagnosticAnalyzer analyzer,
             Diagnostic diagnostic,
             Location actual,
-            DiagnosticResultLocation expected
-        )
+            DiagnosticResultLocation expected)
         {
             var actualSpan = actual.GetLineSpan();
 
@@ -159,10 +154,8 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                 actualSpan.Path == expected.Path || (
                     actualSpan.Path != null &&
                     actualSpan.Path.Contains($"{DefaultFilePathPrefix}0.") &&
-                    expected.Path.Contains($"{DefaultFilePathPrefix}.")
-                ),
-                msg
-            );
+                    expected.Path.Contains($"{DefaultFilePathPrefix}.")),
+                msg);
 
             var actualLinePosition = actualSpan.StartLinePosition;
 
@@ -196,8 +189,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
         /// <returns>The diagnostics formatted as a string.</returns>
         private static string FormatDiagnostics(
             DiagnosticAnalyzer analyzer,
-            params Diagnostic[] diagnostics
-        )
+            params Diagnostic[] diagnostics)
         {
             var builder = new StringBuilder();
             for (int i = 0; i < diagnostics.Length; ++i)
@@ -217,8 +209,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                             builder.AppendFormat(
                                 "GetGlobalResult({0}.{1})",
                                 analyzerType.Name,
-                                rule.Id
-                            );
+                                rule.Id);
                         }
                         else
                         {
@@ -240,8 +231,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                                 linePosition.Line + 1,
                                 linePosition.Character + 1,
                                 analyzerType.Name,
-                                rule.Id
-                            );
+                                rule.Id);
                         }
 
                         if (i != diagnostics.Length - 1)
@@ -270,8 +260,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
         private void VerifyDiagnostics(
             string[] sources,
             DiagnosticAnalyzer analyzer,
-            params DiagnosticResult[] expected
-        )
+            params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(sources, LanguageNames.CSharp, analyzer);
             VerifyDiagnosticResults(diagnostics, analyzer, expected);

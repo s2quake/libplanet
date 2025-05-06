@@ -20,8 +20,7 @@ namespace Libplanet.Tests
                 labelA,
                 chainA.BlockHashes.Select(h => chainA[h]).ToArray(),
                 labelB,
-                chainB.BlockHashes.Select(h => chainB[h]).ToArray()
-            );
+                chainB.BlockHashes.Select(h => chainB[h]).ToArray());
 
         public static void CompareBothChains(
             this ILogger logger,
@@ -69,8 +68,7 @@ namespace Libplanet.Tests
                 Print(
                     $"#{idx}",
                     aTipIdx >= idx ? chainA[idx].ToString() : string.Empty,
-                    bTipIdx >= idx ? chainB[idx].ToString() : string.Empty
-                );
+                    bTipIdx >= idx ? chainB[idx].ToString() : string.Empty);
                 idx++;
             }
         }

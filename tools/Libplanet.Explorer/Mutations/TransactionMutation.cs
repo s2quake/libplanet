@@ -27,8 +27,7 @@ namespace Libplanet.Explorer.Mutations
                         #pragma warning disable MEN002
                         Description = "The hexadecimal string of the serialized transaction to stage.",
                         #pragma warning restore MEN002
-                    }
-                ),
+                    }),
                 resolve: context =>
                 {
                     BlockChain chain = _context.BlockChain;
@@ -37,13 +36,11 @@ namespace Libplanet.Explorer.Mutations
                     if (!chain.StageTransaction(tx))
                     {
                         throw new ExecutionError(
-                            "Failed to stage given tx; it may be already expired or ignored."
-                        );
+                            "Failed to stage given tx; it may be already expired or ignored.");
                     }
 
                     return tx;
-                }
-            );
+                });
         }
     }
 }

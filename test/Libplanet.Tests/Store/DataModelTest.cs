@@ -195,20 +195,16 @@ namespace Libplanet.Tests.Store
             Assert.Equal(
                 root.Mid.Str,
                 ((BTypes.Text)(
-                    (BTypes.Dictionary)rootEncoded[nameof(root.Mid)]
-                )[nameof(root.Mid.Str)]).Value);
+                    (BTypes.Dictionary)rootEncoded[nameof(root.Mid)])[nameof(root.Mid.Str)]).Value);
             Assert.Equal(
                 root.Leaf.Str,
                 ((BTypes.Text)(
-                    (BTypes.Dictionary)rootEncoded[nameof(root.Leaf)]
-                )[nameof(root.Leaf.Str)]).Value);
+                    (BTypes.Dictionary)rootEncoded[nameof(root.Leaf)])[nameof(root.Leaf.Str)]).Value);
             Assert.Equal(
                 root.Mid.Leaf.Str,
                 ((BTypes.Text)(
                     (BTypes.Dictionary)(
-                        (BTypes.Dictionary)rootEncoded[nameof(root.Mid)]
-                    )[nameof(root.Mid.Leaf)]
-                )[nameof(root.Mid.Leaf.Str)]).Value);
+                        (BTypes.Dictionary)rootEncoded[nameof(root.Mid)])[nameof(root.Mid.Leaf)])[nameof(root.Mid.Leaf.Str)]).Value);
         }
 
         [Fact]

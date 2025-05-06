@@ -21,7 +21,7 @@ namespace Libplanet.Net.Tests.Messages
                 1,
                 new Bencodex.Types.Integer(0),
                 ImmutableArray<byte>.Empty,
-                default(Address));
+                default);
             var dateTimeOffset = DateTimeOffset.UtcNow;
             Block genesis = ProposeGenesisBlock(GenesisProposer);
             var messageContent = new BlockHeaderMsg(genesis.Hash, genesis.Header);
@@ -41,7 +41,7 @@ namespace Libplanet.Net.Tests.Messages
                 1,
                 new Bencodex.Types.Integer(0),
                 ImmutableArray<byte>.Empty,
-                default(Address));
+                default);
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
             var timestamp = DateTimeOffset.UtcNow;
             var badPrivateKey = new PrivateKey();
@@ -62,7 +62,7 @@ namespace Libplanet.Net.Tests.Messages
                 1,
                 new Bencodex.Types.Integer(0),
                 ImmutableArray<byte>.Empty,
-                default(Address));
+                default);
             var ping = new PingMsg();
             var codec = new NetMQMessageCodec();
             var netMqMessage = codec.Encode(
@@ -94,7 +94,7 @@ namespace Libplanet.Net.Tests.Messages
                 1,
                 new Bencodex.Types.Integer(0),
                 ImmutableArray<byte>.Empty,
-                default(Address));
+                default);
             Assert.Throws<ArgumentException>(
                 () => codec.Decode(new NetMQMessage(), true));
         }
@@ -108,7 +108,7 @@ namespace Libplanet.Net.Tests.Messages
                 1,
                 new Bencodex.Types.Integer(0),
                 ImmutableArray<byte>.Empty,
-                default(Address));
+                default);
             var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);
             Block genesis = ProposeGenesisBlock(GenesisProposer);
             var message = new BlockHeaderMsg(genesis.Hash, genesis.Header);

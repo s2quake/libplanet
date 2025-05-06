@@ -21,8 +21,7 @@ namespace Libplanet.Net.Tests
             var peerInfo = "032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1,3333";
             var expected = new BoundPeer(
                 PublicKey.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
-                new DnsEndPoint("192.168.0.1", 3333)
-            );
+                new DnsEndPoint("192.168.0.1", 3333));
 #pragma warning restore MEN002 // Line is too long
             Assert.Equal(expected, BoundPeer.ParsePeer(peerInfo));
         }
@@ -34,8 +33,7 @@ namespace Libplanet.Net.Tests
             var expected = "032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1,3333";
             var boundPeer = new BoundPeer(
                 PublicKey.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
-                new DnsEndPoint("192.168.0.1", 3333)
-            );
+                new DnsEndPoint("192.168.0.1", 3333));
 #pragma warning restore MEN002 // Line is too long
             Assert.Equal(expected, boundPeer.PeerString);
         }

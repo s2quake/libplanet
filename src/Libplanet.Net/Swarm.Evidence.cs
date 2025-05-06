@@ -48,8 +48,8 @@ namespace Libplanet.Net
                     evidenceRecvTimeout,
                     evidenceCount,
                     true,
-                    cancellationToken
-                ).ConfigureAwait(false);
+                    cancellationToken)
+                .ConfigureAwait(false);
             }
             catch (CommunicationFailException e) when (e.InnerException is TimeoutException)
             {
@@ -187,8 +187,7 @@ namespace Libplanet.Net
             _logger.Information(
                 "Received a {MessageType} message with {EvidenceIdCount} evidenceIds",
                 nameof(EvidenceIdsMsg),
-                evidenceIdsMsg.Ids.Count()
-            );
+                evidenceIdsMsg.Ids.Count());
 
             EvidenceCompletion.Demand(message.Remote, evidenceIdsMsg.Ids);
         }

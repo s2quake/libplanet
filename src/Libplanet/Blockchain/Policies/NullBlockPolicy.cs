@@ -36,8 +36,7 @@ namespace Libplanet.Blockchain.Policies
 
         public virtual Exception ValidateNextBlock(
             BlockChain blockChain,
-            Block nextBlock
-        )
+            Block nextBlock)
         {
             if (_exceptionToThrow != null)
             {

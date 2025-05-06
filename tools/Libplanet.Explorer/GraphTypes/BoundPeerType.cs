@@ -13,18 +13,15 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<PublicKeyType>>(
                 "publicKey",
                 description: "The public key of the peer.",
-                resolve: ctx => ctx.Source.PublicKey
-            );
+                resolve: ctx => ctx.Source.PublicKey);
             Field<NonNullGraphType<StringGraphType>>(
                 name: "endPoint",
                 description: "The endpoint of the peer.",
-                resolve: ctx => ctx.Source.EndPoint.ToString()
-            );
+                resolve: ctx => ctx.Source.EndPoint.ToString());
             Field<StringGraphType>(
                 name: "publicIpAddress",
                 description: "The address of the miner.",
-                resolve: ctx => ctx.Source.PublicIPAddress?.ToString()
-            );
+                resolve: ctx => ctx.Source.PublicIPAddress?.ToString());
         }
     }
 }

@@ -8,13 +8,11 @@ public class UtilsTest
     public void TestHumanReadable()
     {
         var byteArray = ImmutableArray.Create<byte>(
-            0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57
-        );
+            0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57);
         var dateTimeOffset = DateTimeOffset.ParseExact(
             DateTimeOffset.UtcNow.ToString(
                 Utils.DateTimeOffsetFormat,
-                CultureInfo.InvariantCulture
-            ),
+                CultureInfo.InvariantCulture),
             Utils.DateTimeOffsetFormat,
             CultureInfo.InvariantCulture);
         var dummyClass = new DummyClass(byteArray, dateTimeOffset);

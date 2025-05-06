@@ -41,8 +41,7 @@ public partial class BlockChainTest
             (string)_blockChain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(default)
-        );
+                .GetValue(default));
 
         var proposerB = new PrivateKey();
         Block anotherBlock = _blockChain.ProposeBlock(
@@ -61,8 +60,7 @@ public partial class BlockChainTest
             (string)_blockChain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(default)
-        );
+                .GetValue(default));
 
         Block block3 = _blockChain.ProposeBlock(
             new PrivateKey(),
@@ -78,8 +76,7 @@ public partial class BlockChainTest
             (string)_blockChain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(default)
-        );
+                .GetValue(default));
 
         // Tests if ProposeBlock() method automatically fits the number of transactions
         // according to the right size.
@@ -109,12 +106,10 @@ public partial class BlockChainTest
         Assert.False(_blockChain.ContainsBlock(block4.Hash));
         _logger.Debug(
             $"{nameof(block4)}: {0} bytes",
-            ModelSerializer.SerializeToBytes(block4).Length
-        );
+            ModelSerializer.SerializeToBytes(block4).Length);
         _logger.Debug(
             $"{nameof(getMaxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Height)}) = {0}",
-            getMaxTransactionsBytes(block4.Height)
-        );
+            getMaxTransactionsBytes(block4.Height));
         Assert.True(
             ModelSerializer.SerializeToBytes(block4).Length <= getMaxTransactionsBytes(block4.Height));
         Assert.Equal(3, block4.Transactions.Count());
@@ -124,8 +119,7 @@ public partial class BlockChainTest
             (string)_blockChain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(default)
-        );
+                .GetValue(default));
     }
 
     [SkippableFact]
@@ -220,8 +214,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrA, "1a")),
                     DumbAction.Create((addrB, "1b")),
-                }.ToBytecodes()
-            ),
+                }.ToBytecodes()),
             Transaction.Create(
                 1,
                 keys[0],
@@ -230,8 +223,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrC, "2a")),
                     DumbAction.Create((addrD, "2b")),
-                }.ToBytecodes()
-            ),
+                }.ToBytecodes()),
 
             // pending txs1
             Transaction.Create(
@@ -242,8 +234,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrE, "3a")),
                     DumbAction.Create((addrA, "3b")),
-                }.ToBytecodes()
-            ),
+                }.ToBytecodes()),
             Transaction.Create(
                 2,
                 keys[1],
@@ -252,8 +243,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrB, "4a")),
                     DumbAction.Create((addrC, "4b")),
-                }.ToBytecodes()
-            ),
+                }.ToBytecodes()),
 
             // pending txs2
             Transaction.Create(
@@ -264,8 +254,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrD, "5a")),
                     DumbAction.Create((addrE, "5b")),
-                }.ToBytecodes()
-            ),
+                }.ToBytecodes()),
             Transaction.Create(
                 2,
                 keys[2],
@@ -274,8 +263,7 @@ public partial class BlockChainTest
                 {
                     DumbAction.Create((addrA, "6a")),
                     DumbAction.Create((addrB, "6b")),
-                }.ToBytecodes()
-            ),
+                }.ToBytecodes()),
         };
 
         StageTransactions(txs);
@@ -348,8 +336,7 @@ public partial class BlockChainTest
             ((string)(Text)_blockChain
                 .GetNextWorldState()
                 .GetAccount(ReservedAddresses.LegacyAccount)
-                .GetValue(addrD)).Split(new[] { ',' }).ToHashSet()
-        );
+                .GetValue(addrD)).Split(new[] { ',' }).ToHashSet());
         Assert.Equal(
             new Text("5b"),
             _blockChain
@@ -364,8 +351,7 @@ public partial class BlockChainTest
                 nameof(_blockChain.GetTxExecution) + "({Hash}, {Id}) = {TxExecution}",
                 block.Hash,
                 tx.Id,
-                txx
-            );
+                txx);
             Assert.False(txx.Fail);
             Assert.Equal(block.Hash, txx.BlockHash);
             Assert.Equal(tx.Id, txx.TxId);
@@ -427,20 +413,17 @@ public partial class BlockChainTest
                 2,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToBytecodes()
-            ),
+                Array.Empty<DumbAction>().ToBytecodes()),
             Transaction.Create(
                 1,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToBytecodes()
-            ),
+                Array.Empty<DumbAction>().ToBytecodes()),
             Transaction.Create(
                 0,
                 key,
                 _blockChain.Genesis.Hash,
-                Array.Empty<DumbAction>().ToBytecodes()
-            ),
+                Array.Empty<DumbAction>().ToBytecodes()),
         };
         StageTransactions(txs);
         Block block = _blockChain.ProposeBlock(new PrivateKey());
@@ -459,8 +442,7 @@ public partial class BlockChainTest
                     key,
                     _blockChain.Genesis.Hash,
                     actions: []),
-            }
-        );
+            });
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
         _blockChain.Append(block1, CreateBlockCommit(block1));
 
@@ -473,8 +455,7 @@ public partial class BlockChainTest
                     key,
                     _blockChain.Genesis.Hash,
                     actions: []),
-            }
-        );
+            });
         Block block2 = _blockChain.ProposeBlock(
             new PrivateKey(),
             CreateBlockCommit(
@@ -733,8 +714,7 @@ public partial class BlockChainTest
         gathered = _blockChain.GatherTransactionsToPropose(1024 * 1024, 8, 3, 0, txPriority);
         Assert.Equal(
             txsA.Concat(txsB.Take(3)).Concat(txsC).Select(tx => tx.Id).ToArray(),
-            gathered.Select(tx => tx.Id).ToArray()
-        );
+            gathered.Select(tx => tx.Id).ToArray());
     }
 
     [SkippableFact]

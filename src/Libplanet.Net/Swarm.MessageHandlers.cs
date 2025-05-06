@@ -32,8 +32,7 @@ namespace Libplanet.Net
                         tip.ProtocolVersion,
                         BlockChain.Genesis.Hash,
                         tip.Height,
-                        tip.Hash
-                    );
+                        tip.Hash);
 
                     return Transport.ReplyMessageAsync(
                         chainStatus,
@@ -74,16 +73,14 @@ namespace Libplanet.Net
                     return Transport.ReplyMessageAsync(
                         new PongMsg(),
                         message.Identity,
-                        default
-                    );
+                        default);
 
                 case EvidenceIdsMsg evidenceIds:
                     ProcessEvidenceIds(message);
                     return Transport.ReplyMessageAsync(
                         new PongMsg(),
                         message.Identity,
-                        default
-                    );
+                        default);
 
                 case BlockHashesMsg _:
                     _logger.Error(
@@ -96,14 +93,12 @@ namespace Libplanet.Net
                     return Transport.ReplyMessageAsync(
                         new PongMsg(),
                         message.Identity,
-                        default
-                    );
+                        default);
 
                 default:
                     throw new InvalidMessageContentException(
                         $"Failed to handle message: {message.Content}",
-                        message.Content
-                    );
+                        message.Content);
             }
         }
 
@@ -117,8 +112,7 @@ namespace Libplanet.Net
                     "a different genesis block {Hash}",
                     nameof(BlockHeaderMsg),
                     message.Remote,
-                    blockHeaderMsg.GenesisHash
-                );
+                    blockHeaderMsg.GenesisHash);
                 return;
             }
 
@@ -134,8 +128,7 @@ namespace Libplanet.Net
                     ibe,
                     "Received header #{BlockHeight} {BlockHash} is invalid",
                     blockHeaderMsg.HeaderHash,
-                    blockHeaderMsg.HeaderIndex
-                );
+                    blockHeaderMsg.HeaderIndex);
                 return;
             }
 
@@ -150,8 +143,7 @@ namespace Libplanet.Net
                     "Received header #{BlockHeight} {BlockHash} has invalid timestamp: {Timestamp}",
                     header.Height,
                     header.BlockHash,
-                    header.Timestamp
-                );
+                    header.Timestamp);
                 return;
             }
 
@@ -243,8 +235,7 @@ namespace Libplanet.Net
             _logger.Information(
                 "Received a {MessageType} message with {TxIdCount} txIds",
                 nameof(TxIdsMsg),
-                txIdsMsg.Ids.Count()
-            );
+                txIdsMsg.Ids.Count());
 
             TxCompletion.Demand(message.Remote, txIdsMsg.Ids);
         }
@@ -299,8 +290,7 @@ namespace Libplanet.Net
                         _logger.Verbose(
                             "Enqueuing a blocks reply (...{Count}/{Total})...",
                             count,
-                            total
-                        );
+                            total);
                         await Transport.ReplyMessageAsync(response, message.Identity, default);
                         payloads.Clear();
                     }

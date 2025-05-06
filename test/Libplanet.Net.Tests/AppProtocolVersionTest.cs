@@ -22,8 +22,7 @@ namespace Libplanet.Net.Tests
                 0x22, 0x2b, 0xc8, 0xf4, 0x07, 0x5e, 0xbe, 0x87, 0x32, 0x57, 0x34, 0xa9, 0x77, 0x1c,
                 0x3c, 0x87, 0x24, 0x39, 0x4a, 0x71, 0xcc, 0x5f, 0xaa, 0x8b, 0x07, 0x96, 0xbf, 0xb2,
                 0x7c, 0xf7, 0x7f, 0x11, 0xd1, 0x07, 0x49, 0xa2, 0x1c,
-            }.ToImmutableArray()
-        );
+            }.ToImmutableArray());
 
         private static readonly AppProtocolVersion ValidClaimWExtraFixture = new AppProtocolVersion(
             version: 123,
@@ -37,8 +36,7 @@ namespace Libplanet.Net.Tests
                 0x02, 0x20, 0x16, 0xd4, 0xae, 0x72, 0x42, 0x31, 0x63, 0xe9, 0x73, 0x99,
                 0x50, 0x0b, 0xb9, 0x19, 0x49, 0xa1, 0xf2, 0xbb, 0x63, 0x20, 0x99, 0x5a,
                 0x77, 0xd2, 0x15, 0xfd, 0xbd, 0x59, 0x99, 0xec, 0x5c, 0x51,
-            }.ToImmutableArray()
-        );
+            }.ToImmutableArray());
 
         [Fact]
         public void Sign()
@@ -78,8 +76,7 @@ namespace Libplanet.Net.Tests
                 version: ValidClaimFixture.Version + 1,
                 extra: ValidClaimFixture.Extra,
                 signer: ValidClaimFixture.Signer,
-                signature: ValidClaimFixture.Signature
-            );
+                signature: ValidClaimFixture.Signature);
             Assert.False(invalidVersionClaim.Verify(signerPublicKey));
             Assert.False(invalidVersionClaim.Verify(otherPartyPublicKey));
 
@@ -88,8 +85,7 @@ namespace Libplanet.Net.Tests
                 version: ValidClaimFixture.Version,
                 extra: (Bencodex.Types.Text)"invalid extra",
                 signer: ValidClaimFixture.Signer,
-                signature: ValidClaimFixture.Signature
-            );
+                signature: ValidClaimFixture.Signature);
             Assert.False(invalidExtraClaim.Verify(signerPublicKey));
             Assert.False(invalidExtraClaim.Verify(otherPartyPublicKey));
 
@@ -99,8 +95,7 @@ namespace Libplanet.Net.Tests
                 version: ValidClaimFixture.Version,
                 extra: ValidClaimFixture.Extra,
                 signer: otherPartyPublicKey.Address,
-                signature: ValidClaimFixture.Signature
-            );
+                signature: ValidClaimFixture.Signature);
             Assert.False(invalidSigner.Verify(signerPublicKey));
             Assert.False(invalidSigner.Verify(otherPartyPublicKey));
         }
@@ -181,13 +176,10 @@ namespace Libplanet.Net.Tests
                 ImmutableArray.Create(
                     claimWithoutExtra.Signature,
                     0,
-                    claimWithoutExtra.Signature.Length
-                ),
-                new Address(claimWithoutExtra.Signer.Bytes)
-            );
+                    claimWithoutExtra.Signature.Length),
+                new Address(claimWithoutExtra.Signer.Bytes));
             Assert.True(
-                ((IEquatable<AppProtocolVersion>)claimWithoutExtra).Equals(sameClaimWithoutExtra)
-            );
+                ((IEquatable<AppProtocolVersion>)claimWithoutExtra).Equals(sameClaimWithoutExtra));
             Assert.True(((object)claimWithoutExtra).Equals(sameClaimWithoutExtra));
             Assert.Equal(claimWithoutExtra.GetHashCode(), sameClaimWithoutExtra.GetHashCode());
             Assert.True(claimWithoutExtra == sameClaimWithoutExtra);
@@ -230,17 +222,13 @@ namespace Libplanet.Net.Tests
                 AppProtocolVersion.FromToken(
                     "1/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "xsjBeFLGIQ2X14vd8SZJlBuAi2o6kK1igz70KiIryPQHXr6HMlc0qXccPIckOUpxzF+qiweWv7J8" +
-                    "938R0QdJohw="
-                )
-            );
+                    "938R0QdJohw="));
             Assert.Equal(
                 ValidClaimWExtraFixture,
                 AppProtocolVersion.FromToken(
                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
-                    "IJlad9IV.b1ZmexcUQ==/dTM6Zm9v"
-                )
-            );
+                    "IJlad9IV.b1ZmexcUQ==/dTM6Zm9v"));
 
             Assert.Throws<ArgumentNullException>(() => AppProtocolVersion.FromToken(null));
 
@@ -249,33 +237,26 @@ namespace Libplanet.Net.Tests
 
             // No second delimiter
             Assert.Throws<FormatException>(() =>
-                AppProtocolVersion.FromToken("123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4")
-            );
+                AppProtocolVersion.FromToken("123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4"));
 
             // A version is not an integer
             Assert.Throws<FormatException>(() =>
                 AppProtocolVersion.FromToken(
                     "INCORRECT/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
-                    "k9FkhXWoosufldmQuVE="
-                )
-            );
+                    "k9FkhXWoosufldmQuVE="));
 
             // A signer address is incorrect
             Assert.Throws<FormatException>(() =>
                 AppProtocolVersion.FromToken(
                     "123/INCORRECT/" +
                     "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
-                    "k9FkhXWoosufldmQuVE="
-                )
-            );
+                    "k9FkhXWoosufldmQuVE="));
 
             // A signature is not a valid base64 string
             Assert.Throws<FormatException>(() =>
                 AppProtocolVersion.FromToken(
-                    "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/_INCORRECT_"
-                )
-            );
+                    "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/_INCORRECT_"));
 
             // An extra data is not a valid base64 string
             Assert.Throws<FormatException>(() =>
@@ -283,15 +264,13 @@ namespace Libplanet.Net.Tests
                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
                     "IJlad9IV.b1ZmexcUQ==/" +
-                    "_INCORRECT_"
-                )
-            );
+                    "_INCORRECT_"));
         }
 
         [Fact]
         public void DefaultConstructor()
         {
-            AppProtocolVersion defaultValue = default(AppProtocolVersion);
+            AppProtocolVersion defaultValue = default;
             ImmutableArray<byte> defaultSig = defaultValue.Signature;
             Assert.False(defaultSig.IsDefault);
             Assert.True(defaultSig.IsEmpty);

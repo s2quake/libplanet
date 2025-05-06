@@ -22,13 +22,11 @@ namespace Libplanet.KeyStore
             string message,
             string paramName,
             in ImmutableArray<byte> expectedMac,
-            in ImmutableArray<byte> inputMac
-        )
+            in ImmutableArray<byte> inputMac)
             : base(
                 $"{message}\nExpected MAC: {ByteUtility.Hex(expectedMac)}\n" +
                 $"Input MAC: {ByteUtility.Hex(inputMac)}",
-                paramName
-            )
+                paramName)
         {
             ExpectedMac = expectedMac;
             InputMac = inputMac;

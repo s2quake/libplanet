@@ -45,7 +45,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
                     new TransactionType(new MockBlockChainContext()),
                     source: transaction);
             Dictionary<string, object> resultData =
-                (Dictionary<string, object>)((ExecutionNode) result.Data!)?.ToValue()!;
+                (Dictionary<string, object>)((ExecutionNode)result.Data!)?.ToValue()!;
             Assert.Null(result.Errors);
             Assert.Equal(transaction.Id.ToString(), resultData["id"]);
             Assert.Equal(transaction.Signer.ToString(), resultData["signer"]);

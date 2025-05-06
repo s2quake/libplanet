@@ -32,8 +32,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
         /// </returns>
         protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(
             DiagnosticAnalyzer analyzer,
-            Document[] documents
-        )
+            Document[] documents)
         {
             var projects = new HashSet<Project>();
             foreach (var document in documents)
@@ -51,9 +50,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                     throw new InvalidOperationException(
                         "Failed to compile:\n" + string.Join(
                             "\n",
-                            emitted.Diagnostics.Select(d => $"\t{d.ToString()}")
-                        )
-                    );
+                            emitted.Diagnostics.Select(d => $"\t{d.ToString()}")));
                 }
 
                 var compilationWithAnalyzers = result.WithAnalyzers(
@@ -93,8 +90,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
         /// <returns>A document created from the source string.</returns>
         protected static Document CreateDocument(
             string source,
-            string language = LanguageNames.CSharp
-        ) =>
+            string language = LanguageNames.CSharp) =>
             CreateProject(new[] { source }, language).Documents.First();
 
         /// <summary>
@@ -110,8 +106,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
         private static Diagnostic[] GetSortedDiagnostics(
             string[] sources,
             string language,
-            DiagnosticAnalyzer analyzer
-        ) =>
+            DiagnosticAnalyzer analyzer) =>
             GetSortedDiagnosticsFromDocuments(analyzer, GetDocuments(sources, language));
 
         /// <summary>
@@ -145,8 +140,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
             if (sources.Length != documents.Length)
             {
                 throw new InvalidOperationException(
-                    "Amount of sources did not match amount of Documents created."
-                );
+                    "Amount of sources did not match amount of Documents created.");
             }
 
             return documents;
@@ -161,8 +155,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
         /// the source strings.</returns>
         private static Project CreateProject(
             string[] sources,
-            string language = LanguageNames.CSharp
-        )
+            string language = LanguageNames.CSharp)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp
@@ -180,8 +173,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                 typeof(Compilation),
                 typeof(Address),
                 typeof(IAction),
-                typeof(IValue)
-            );
+                typeof(IValue));
             foreach (Assembly assembly in assemblies)
             {
                 if (assembly.IsDynamic)
@@ -191,8 +183,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
 
                 solution = solution.AddMetadataReference(
                     projectId,
-                    MetadataReference.CreateFromFile(assembly.Location)
-                );
+                    MetadataReference.CreateFromFile(assembly.Location));
             }
 
             int count = 0;

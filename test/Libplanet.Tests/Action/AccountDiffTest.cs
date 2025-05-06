@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Store;
@@ -46,14 +45,13 @@ public class AccountDiffTest
         Assert.Empty(diff.StateDiffs);
 
         var targetAccount = new Account(targetTrie);
-        var signer = new PrivateKey();
         targetAccount = targetAccount.SetValue(addr1, "One");
         targetAccount = targetAccount.SetValue(addr2, "Two");
         targetTrie = stateStore.Commit(targetAccount.Trie);
 
         sourceTrie = targetTrie;
 
-        Account sourceAccount = new Account(sourceTrie);
+        var sourceAccount = new Account(sourceTrie);
         sourceAccount = sourceAccount.SetValue(addr2, "Two_");
         sourceAccount = sourceAccount.SetValue(addr3, "Three");
 

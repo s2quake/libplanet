@@ -56,51 +56,44 @@ namespace Libplanet.Analyzers.Tests
             null,
             "int",
             "System.Collections.Generic.HashSet<int>",
-            "new HashSet<int> { 1, 2, 3 }"
-        )]
+            "new HashSet<int> { 1, 2, 3 }")]
         [InlineData(
             false,
             "string, int",
             "System.Collections.Generic.KeyValuePair<string, int>",
             "System.Collections.Generic.Dictionary<string, int>",
-            "new Dictionary<string, int> { [\"foo\"] = 1, [\"bar\"] = 2 }"
-        )]
+            "new Dictionary<string, int> { [\"foo\"] = 1, [\"bar\"] = 2 }")]
         [InlineData(
             true,
             null,
             "int",
             "System.Collections.Generic.List<int>",
-            "new List<int> { 1, 2, 3 }"
-        )]
+            "new List<int> { 1, 2, 3 }")]
         [InlineData(true, null, "char", "char[]", "new char[] { 'a', 'b', 'c' }")]
         [InlineData(
             true,
             null,
             "int",
             "System.Collections.Generic.SortedSet<int>",
-            "new SortedSet<int> { 1, 2, 3 }"
-        )]
+            "new SortedSet<int> { 1, 2, 3 }")]
         [InlineData(
             true,
             "string, int",
             "System.Collections.Generic.KeyValuePair<string, int>",
             "System.Collections.Generic.SortedDictionary<string, int>",
-            "new SortedDictionary<string, int> { [\"foo\"] = 1, [\"bar\"] = 2 }"
-        )]
+            "new SortedDictionary<string, int> { [\"foo\"] = 1, [\"bar\"] = 2 }")]
         [InlineData(
             true,
             "Bencodex.Types.IKey, Bencodex.Types.IValue",
             "System.Collections.Generic.KeyValuePair<Bencodex.Types.IKey, Bencodex.Types.IValue>",
             "Bencodex.Types.Dictionary",
-            "Bencodex.Types.Dictionary.Empty.Add(\"foo\", 1).Add(\"bar\", 2)"
-        )]
+            "Bencodex.Types.Dictionary.Empty.Add(\"foo\", 1).Add(\"bar\", 2)")]
         public void LAA1002_DictionariesOrSetsShouldBeOrderedToEnumerate(
             bool pass,
             string kvTypes,
             string elemType,
             string typeName,
-            string expr
-        )
+            string expr)
         {
             string dictCode = string.Empty;
 

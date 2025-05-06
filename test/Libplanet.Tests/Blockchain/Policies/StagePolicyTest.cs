@@ -35,8 +35,8 @@ namespace Libplanet.Tests.Blockchain.Policies
                     i,
                     _key,
                     _fx.GenesisBlock.Hash,
-                    [])
-            ).ToArray();
+                    []))
+            .ToArray();
         }
 
         protected abstract IStagePolicy StagePolicy { get; }

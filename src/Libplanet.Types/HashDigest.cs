@@ -36,8 +36,8 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
         var methodCall = Expression.Call(null, method);
         var exception = new InvalidCastException($"Failed to invoke {methodCall} static method.");
         var instantiateAlgorithm = Expression.Lambda<Func<T>>(
-            Expression.Coalesce(methodCall, Expression.Throw(Expression.Constant(exception), type))
-        ).Compile();
+            Expression.Coalesce(methodCall, Expression.Throw(Expression.Constant(exception), type)))
+        .Compile();
         Algorithm = new ThreadLocal<T>(instantiateAlgorithm);
         Size = Algorithm.Value!.HashSize / 8;
         DefaultByteArray = [.. Enumerable.Repeat(default(byte), Size)];

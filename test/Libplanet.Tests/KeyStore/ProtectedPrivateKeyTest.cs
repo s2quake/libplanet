@@ -52,8 +52,7 @@ namespace Libplanet.Tests.KeyStore
             KdfFixture,
             MacFixture,
             CipherFixture,
-            CiphertextFixture
-        );
+            CiphertextFixture);
 
         public static readonly byte[] CiphertextFixture2 =
         {
@@ -81,8 +80,7 @@ namespace Libplanet.Tests.KeyStore
         };
 
         public static readonly IKdf KdfFixture2 = new Scrypt(
-            262144, SaltFixture2, 32, 1, 8
-        );
+            262144, SaltFixture2, 32, 1, 8);
 
         public static readonly byte[] MacFixture2 =
         {
@@ -96,8 +94,7 @@ namespace Libplanet.Tests.KeyStore
             KdfFixture2,
             MacFixture2,
             CipherFixture2,
-            CiphertextFixture2
-        );
+            CiphertextFixture2);
 
         [Fact]
         public void Unprotect()
@@ -106,12 +103,10 @@ namespace Libplanet.Tests.KeyStore
             Assert.Equal(AddressFixture, Fixture.Unprotect(PassphraseFixture).Address);
             Assert.Equal(AddressFixture2, Fixture2.Unprotect(PassphraseFixture).Address);
             var incorrectPassphraseException = Assert.Throws<IncorrectPassphraseException>(
-                () => Fixture.Unprotect("wrong passphrase")
-            );
+                () => Fixture.Unprotect("wrong passphrase"));
             TestUtils.AssertBytesEqual(
                 MacFixture.ToImmutableArray(),
-                incorrectPassphraseException.ExpectedMac
-            );
+                incorrectPassphraseException.ExpectedMac);
             Assert.NotEqual(MacFixture, incorrectPassphraseException.InputMac);
 
             var invalidPpk = new ProtectedPrivateKey(
@@ -119,12 +114,10 @@ namespace Libplanet.Tests.KeyStore
                 KdfFixture,
                 MacFixture,
                 CipherFixture,
-                CiphertextFixture
-            );
+                CiphertextFixture);
             var mismatchedAddressException = Assert.Throws<MismatchedAddressException>(
-                () => invalidPpk.Unprotect(PassphraseFixture)
-            );
-            Assert.Equal(default(Address), mismatchedAddressException.ExpectedAddress);
+                () => invalidPpk.Unprotect(PassphraseFixture));
+            Assert.Equal(default, mismatchedAddressException.ExpectedAddress);
             Assert.Equal(AddressFixture, mismatchedAddressException.ActualAddress);
         }
 
@@ -137,8 +130,7 @@ namespace Libplanet.Tests.KeyStore
             ProtectedPrivateKey protectedKey = ProtectedPrivateKey.Protect(privKey, passphrase);
             AssertBytesEqual(
                 privKey.Bytes,
-                protectedKey.Unprotect(passphrase).Bytes
-            );
+                protectedKey.Unprotect(passphrase).Bytes);
             Assert.Throws<IncorrectPassphraseException>(() => protectedKey.Unprotect("WRONG"));
         }
 
@@ -170,8 +162,7 @@ namespace Libplanet.Tests.KeyStore
 
             Assert.Equal(
                 Address.Parse("d80d933db45cc0cf69e9632090f8aaff635dc8e5"),
-                key.Address
-            );
+                key.Address);
             Assert.IsType<Aes128Ctr>(key.Cipher);
             AssertBytesEqual(
                 new byte[]
@@ -180,8 +171,7 @@ namespace Libplanet.Tests.KeyStore
                     0x93, 0xf8, 0x02, 0x97, 0xff, 0x33, 0x9e, 0x1e, 0x3c, 0xb7, 0x67,
                     0x49, 0x61, 0x53, 0x13, 0xcd, 0xc2, 0xaa, 0xa3, 0xb3, 0x7a,
                 }.ToImmutableArray(),
-                key.Ciphertext
-            );
+                key.Ciphertext);
             Assert.IsType<Pbkdf2<Sha256Digest>>(key.Kdf);
             AssertBytesEqual(
                 new byte[]
@@ -190,8 +180,7 @@ namespace Libplanet.Tests.KeyStore
                     0x2a, 0x23, 0x64, 0x98, 0xe5, 0xc9, 0x68, 0x88, 0xbe, 0x6b, 0x5c,
                     0xd6, 0xf3, 0x09, 0x81, 0xaa, 0x89, 0x6b, 0xe8, 0x42, 0xd1,
                 }.ToImmutableArray(),
-                key.Mac
-            );
+                key.Mac);
 
             ProtectedPrivateKey key2 = ProtectedPrivateKey.FromJson(@"{
                 ""address"": ""8e5f4b9b8f84ff90c559c6a4deb3c1febe551f29"",
@@ -218,8 +207,7 @@ namespace Libplanet.Tests.KeyStore
             }");
             Assert.Equal(
                 Address.Parse("8e5f4b9b8f84ff90c559c6a4deb3c1febe551f29"),
-                key2.Address
-            );
+                key2.Address);
             Assert.IsType<Aes128Ctr>(key2.Cipher);
             AssertBytesEqual(
                 new byte[]
@@ -228,8 +216,7 @@ namespace Libplanet.Tests.KeyStore
                     0xb9, 0xb5, 0x6b, 0x42, 0xbe, 0x2c, 0x1e, 0x37, 0x59, 0xe7, 0x7c,
                     0x01, 0x97, 0xcf, 0xa3, 0xa1, 0x36, 0xf1, 0x8d, 0x59, 0x57,
                 }.ToImmutableArray(),
-                key2.Ciphertext
-            );
+                key2.Ciphertext);
             Assert.IsType<Scrypt>(key2.Kdf);
             AssertBytesEqual(
                 new byte[]
@@ -238,8 +225,7 @@ namespace Libplanet.Tests.KeyStore
                     0x74, 0x56, 0xfd, 0x3c, 0x55, 0x8e, 0x50, 0x4c, 0x4d, 0x30, 0x8d,
                     0xdb, 0x83, 0xed, 0xdb, 0x0b, 0x2b, 0x8f, 0x66, 0xf8, 0x34,
                 }.ToImmutableArray(),
-                key2.Mac
-            );
+                key2.Mac);
         }
 
         #pragma warning disable MEN003
@@ -249,32 +235,28 @@ namespace Libplanet.Tests.KeyStore
             Func<string, ProtectedPrivateKey> load = ProtectedPrivateKey.FromJson;
 
             Assert.Throws<InvalidKeyJsonException>(() =>
-                load("[]  // Not an object")
-            );
+                load("[]  // Not an object"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
                     ""address"": ""d80d933db45cc0cf69e9632090f8aaff635dc8e5"",
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     // ""version"": 3,  // Lacks
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
                     ""address"": ""d80d933db45cc0cf69e9632090f8aaff635dc8e5"",
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": true,  // Not a number
-                }")
-            );
+                }"));
 
             Assert.Throws<UnsupportedKeyJsonException>(() =>
                 load(@"{
                     ""address"": ""d80d933db45cc0cf69e9632090f8aaff635dc8e5"",
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 2,  // Unsupported version
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -282,8 +264,7 @@ namespace Libplanet.Tests.KeyStore
                     // ""crypto"": {},  // Lacks
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -291,8 +272,7 @@ namespace Libplanet.Tests.KeyStore
                     ""crypto"": null,  // Not an object
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -317,8 +297,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -343,8 +322,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -369,8 +347,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -395,8 +372,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -421,8 +397,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -447,8 +422,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -473,8 +447,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<UnsupportedKeyJsonException>(() =>
                 load(@"{
@@ -499,8 +472,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -523,8 +495,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -547,8 +518,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -572,8 +542,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -598,8 +567,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -624,8 +592,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<UnsupportedKeyJsonException>(() =>
                 load(@"{
@@ -650,8 +617,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -670,8 +636,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -690,8 +655,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -715,8 +679,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -740,8 +703,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -765,8 +727,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""3b647634-1234-cd02-e93c-02e1c0f54faa"",
                     ""version"": 3,
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 load(@"{
@@ -792,8 +753,7 @@ namespace Libplanet.Tests.KeyStore
                     },
                     ""id"": ""c3348c6a-de9c-4c61-828e-7d6b0ec3da26"",
                     ""version"": 3,
-                }")
-            );
+                }"));
         }
         #pragma warning restore MEN003
 

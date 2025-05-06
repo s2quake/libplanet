@@ -122,8 +122,7 @@ public static class Utils
                 Console.Error.WriteLine(
                     "Warning: The scheme {0}:// for the store URI is deprecated.  " +
                     "Use {0}+file:// instead.",
-                    uri.Scheme
-                );
+                    uri.Scheme);
                 Console.Error.Flush();
                 uri = new Uri($"{uri.Scheme}+file{uri.ToString().Substring(7)}");
                 break;
@@ -145,21 +144,18 @@ public static class Utils
             StoreLoaderAttribute.ListStoreLoaders().ToArray();
         int longestSchemeLength = Math.Max(
             "URI SCHEME".Length,
-            loaders.Max(loader => loader.UriScheme.Length + 1)
-        );
+            loaders.Max(loader => loader.UriScheme.Length + 1));
         string loaderTable = string.Join(
             "\n",
             loaders.Select(pair =>
                 $"  {(pair.UriScheme + ":").PadRight(longestSchemeLength)}" +
-                $"  {pair.DeclaringType.Name}")
-        );
+                $"  {pair.DeclaringType.Name}"));
 
         throw new ArgumentException(
             $"The store URI scheme {uri.Scheme}:// is not supported.  See also " +
             $"the list of supported store URI schemes:\n\n" +
             $"  {"URI SCHEME".PadRight(longestSchemeLength)}  PROVIDED BY\n{loaderTable}\n",
-            nameof(uriString)
-        );
+            nameof(uriString));
     }
 
     public static string SerializeHumanReadable<T>(T target) =>
@@ -173,8 +169,7 @@ public static class Utils
                     new ByteArrayJsonConverter(),
                     new DateTimeOffsetJsonConverter(),
                 },
-            }
-        );
+            });
 
     public static T? DeserializeHumanReadable<T>(string target)
         where T : notnull
@@ -187,8 +182,7 @@ public static class Utils
                     new ByteArrayJsonConverter(),
                     new DateTimeOffsetJsonConverter(),
                 },
-            }
-        );
+            });
 
     private static void PrintTable(object[] header, IEnumerable<object[]> rows)
     {
@@ -264,8 +258,7 @@ public static class Utils
             return DateTimeOffset.ParseExact(
                 jsonString,
                 DateTimeOffsetFormat,
-                CultureInfo.InvariantCulture
-            );
+                CultureInfo.InvariantCulture);
         }
 
         public override void Write(
@@ -276,8 +269,7 @@ public static class Utils
             writer.WriteStringValue(
                 value.ToString(
                     DateTimeOffsetFormat,
-                    CultureInfo.InvariantCulture
-                ));
+                    CultureInfo.InvariantCulture));
         }
     }
 }

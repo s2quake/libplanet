@@ -95,11 +95,9 @@ namespace Libplanet.Tests
             // We can remove these copy-and-pasted lines in the future when Libplanet drops
             // .NET Standard 2.0 support and becomes to support .NET Standard 2.1 or higher.
             Assert.Throws<OverflowException>(
-                () => TimeSpanExtensions.Divide(TimeSpan.FromDays(1), 0)
-            );
+                () => TimeSpanExtensions.Divide(TimeSpan.FromDays(1), 0));
             Assert.Throws<OverflowException>(
-                () => TimeSpanExtensions.Divide(TimeSpan.FromDays(-1), 0)
-            );
+                () => TimeSpanExtensions.Divide(TimeSpan.FromDays(-1), 0));
             Assert.Throws<OverflowException>(() => TimeSpanExtensions.Divide(TimeSpan.Zero, 0));
         }
 
@@ -123,8 +121,7 @@ namespace Libplanet.Tests
             // We can remove these copy-and-pasted lines in the future when Libplanet drops
             // .NET Standard 2.0 support and becomes to support .NET Standard 2.1 or higher.
             ArgumentException e = Assert.Throws<ArgumentException>(
-                () => TimeSpanExtensions.Divide(TimeSpan.FromDays(1), double.NaN)
-            );
+                () => TimeSpanExtensions.Divide(TimeSpan.FromDays(1), double.NaN));
             Assert.Equal("divisor", e.ParamName);
         }
     }

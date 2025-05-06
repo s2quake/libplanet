@@ -146,8 +146,7 @@ public class DefaultStore : StoreBase
             _root = new SubFileSystem(
                 pfs,
                 pfs.ConvertPathFromInternal(options.Path),
-                owned: true
-            );
+                owned: true);
 
             var connectionString = new ConnectionString
             {
@@ -1023,8 +1022,7 @@ public class DefaultStore : StoreBase
         {
             throw new ArgumentException(
                 $"Too short block hash: \"{idHex}\".",
-                nameof(blockHash)
-            );
+                nameof(blockHash));
         }
 
         return UPath.Root / idHex.Substring(0, 2) / idHex.Substring(2);

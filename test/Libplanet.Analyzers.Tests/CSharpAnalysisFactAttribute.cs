@@ -22,8 +22,7 @@ namespace Libplanet.Analyzers.Tests
                     ProjectId.CreateNewId("TestProject"),
                     "TestProject",
                     "TestProject",
-                    LanguageNames.CSharp
-                );
+                    LanguageNames.CSharp);
             }
             catch (NotSupportedException e)
             {

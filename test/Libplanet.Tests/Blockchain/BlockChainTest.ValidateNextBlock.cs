@@ -105,8 +105,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Throws<InvalidOperationException>(
                 () => _blockChain.Append(
                     blockWithAlreadyUsedIndex,
-                    TestUtils.CreateBlockCommit(blockWithAlreadyUsedIndex))
-            );
+                    TestUtils.CreateBlockCommit(blockWithAlreadyUsedIndex)));
 
             Block blockWithIndexAfterNonexistentIndex = _blockChain.EvaluateAndSign(
                 RawBlock.Propose(
@@ -122,8 +121,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Throws<InvalidOperationException>(
                 () => _blockChain.Append(
                     blockWithIndexAfterNonexistentIndex,
-                    TestUtils.CreateBlockCommit(blockWithIndexAfterNonexistentIndex))
-            );
+                    TestUtils.CreateBlockCommit(blockWithIndexAfterNonexistentIndex)));
         }
 
         [SkippableFact]
@@ -177,8 +175,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockInvalidStateRootHash()
         {
             var policy = new BlockPolicy(
-                blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000)
-            );
+                blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
             var stateStore1 = new TrieStateStore();
             IStore store1 = new MemoryStore();
             var actionEvaluator1 = new ActionEvaluator(
@@ -241,8 +238,7 @@ namespace Libplanet.Tests.Blockchain
         {
             var beforePostponeBPV = BlockMetadata.CurrentProtocolVersion;
             var policy = new BlockPolicy(
-                blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000)
-            );
+                blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
             var stateStore = new TrieStateStore();
             IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(

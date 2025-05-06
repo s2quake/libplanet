@@ -57,12 +57,10 @@ namespace Libplanet.Net.Tests.Protocols
             bucket.AddPeer(peer2, DateTimeOffset.UtcNow);
             Assert.Contains(
                 bucket.GetRandomPeer(),
-                new[] { peer1, peer2 }
-            );
+                new[] { peer1, peer2 });
             Assert.Contains(
                 bucket.GetRandomPeer(peer1.Address),
-                new[] { peer2 }
-            );
+                new[] { peer2 });
 
             // Checks for a full bucket.
             Thread.Sleep(100);
@@ -72,18 +70,15 @@ namespace Libplanet.Net.Tests.Protocols
             Assert.True(bucket.IsFull);
             Assert.Equal(
                 bucket.Peers.ToHashSet(),
-                new HashSet<BoundPeer> { peer1, peer2, peer3, peer4 }
-            );
+                new HashSet<BoundPeer> { peer1, peer2, peer3, peer4 });
             Assert.Contains(
                 bucket.GetRandomPeer(),
-                new[] { peer1, peer2, peer3, peer4 }
-            );
+                new[] { peer1, peer2, peer3, peer4 });
             Thread.Sleep(100);
             bucket.AddPeer(peer5, DateTimeOffset.UtcNow);
             Assert.Equal(
                 bucket.Peers.ToHashSet(),
-                new HashSet<BoundPeer> { peer1, peer2, peer3, peer4 }
-            );
+                new HashSet<BoundPeer> { peer1, peer2, peer3, peer4 });
             Assert.False(bucket.Contains(peer5));
             Assert.Equal(peer4, bucket.Head?.Peer);
             Assert.Equal(peer1, bucket.Tail?.Peer);

@@ -57,8 +57,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         public virtual void RenderAction(
             IValue action,
             CommittedActionContext context,
-            HashDigest<SHA256> nextState
-        )
+            HashDigest<SHA256> nextState)
         {
             _records.Add(
                 new RenderRecord.ActionSuccess(
@@ -66,9 +65,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                     stackTrace: RemoveFirstLine(Environment.StackTrace).TrimEnd(),
                     action: action,
                     context: context,
-                    nextState: nextState
-                )
-            );
+                    nextState: nextState));
 
             RenderEventHandler?.Invoke(action, action);
         }
@@ -77,17 +74,14 @@ namespace Libplanet.Blockchain.Renderers.Debug
         public virtual void RenderActionError(
             IValue action,
             CommittedActionContext context,
-            Exception exception
-        ) =>
+            Exception exception) =>
             _records.Add(
                 new RenderRecord.ActionError(
                     index: _nextIndex++,
                     stackTrace: RemoveFirstLine(Environment.StackTrace).TrimEnd(),
                     action: action,
                     context: context,
-                    exception: exception
-                )
-            );
+                    exception: exception));
 
         /// <inheritdoc cref="IRenderer.RenderBlock(Block, Block)"/>
         public virtual void RenderBlock(Block oldTip, Block newTip) =>
@@ -96,9 +90,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                     index: _nextIndex++,
                     stackTrace: RemoveFirstLine(Environment.StackTrace).TrimEnd(),
                     oldTip: oldTip,
-                    newTip: newTip
-                )
-            );
+                    newTip: newTip));
 
         /// <inheritdoc cref="IActionRenderer.RenderBlockEnd(Block, Block)"/>
         public virtual void RenderBlockEnd(Block oldTip, Block newTip) =>
@@ -108,9 +100,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                     stackTrace: RemoveFirstLine(Environment.StackTrace).TrimEnd(),
                     end: true,
                     oldTip: oldTip,
-                    newTip: newTip
-                )
-            );
+                    newTip: newTip));
 
         private static string RemoveFirstLine(string stackTrace)
         {

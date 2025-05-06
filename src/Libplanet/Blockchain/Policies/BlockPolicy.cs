@@ -115,8 +115,7 @@ namespace Libplanet.Blockchain.Policies
                         return new InvalidOperationException(
                             $"The size of block #{block.Height} {block.Hash} is too large where " +
                             $"the maximum number of bytes allowed is {maxTransactionsBytes}: " +
-                            $"{blockBytes}."
-                        );
+                            $"{blockBytes}.");
                     }
                     else if (block.Transactions.Count < minTransactionsPerBlock)
                     {

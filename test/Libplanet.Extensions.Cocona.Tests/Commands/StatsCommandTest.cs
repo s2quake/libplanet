@@ -19,8 +19,7 @@ public class StatsCommandTest : IDisposable
         {
             _storeFixtures = ImmutableArray.Create<StoreFixture>(
                 new DefaultStoreFixture(false),
-                new RocksDBStoreFixture()
-            );
+                new RocksDBStoreFixture());
         }
         catch (TypeInitializationException)
         {

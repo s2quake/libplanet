@@ -32,23 +32,20 @@ namespace Libplanet.Explorer.Queries
                             "offset index range to query, not the result, i.e. excluded " +
                             "blocks due to a block being empty or not matching the miner " +
                             "(if specified in other arguments) are still counted.",
-                    }
-                ),
+                    }),
                 resolve: context =>
                 {
                     bool desc = context.GetArgument<bool>("desc");
                     long offset = context.GetArgument<long>("offset");
                     int? limit = context.GetArgument<int?>("limit", 100);
                     return ExplorerQuery.ListBlocks(desc, offset, limit);
-                }
-            );
+                });
 
             Field<BlockType>(
                 "block",
                 arguments: new QueryArguments(
                     new QueryArgument<IdGraphType> { Name = "hash" },
-                    new QueryArgument<IdGraphType> { Name = "index" }
-                ),
+                    new QueryArgument<IdGraphType> { Name = "index" }),
                 resolve: context =>
                 {
                     string hash = context.GetArgument<string>("hash");
@@ -72,8 +69,7 @@ namespace Libplanet.Explorer.Queries
                     }
 
                     throw new GraphQL.ExecutionError("Unexpected block query");
-                }
-            );
+                });
 
             Name = "BlockQuery";
         }

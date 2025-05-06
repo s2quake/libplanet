@@ -58,8 +58,7 @@ public class BlockCommitTypeTest
         ExecutionResult result = await ExecuteQueryAsync(
             query,
             blockCommitType,
-            source: blockCommit
-        );
+            source: blockCommit);
         Dictionary<string, object> resultData =
             (Dictionary<string, object>)((ExecutionNode)result.Data!)?.ToValue()!;
         Assert.Null(result.Errors);
