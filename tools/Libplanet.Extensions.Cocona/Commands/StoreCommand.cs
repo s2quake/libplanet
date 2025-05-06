@@ -18,8 +18,7 @@ public class StoreCommand
         [Argument("STORE", Description = StoreArgumentDescription)]
         string storeUri,
         [Option("hash", Description = "Show the hash of the chain tip.")]
-        bool showHash
-    )
+        bool showHash)
     {
         IStore store = Utils.LoadStoreFromUri(storeUri);
         Guid? canon = store.GetCanonicalChainId();
@@ -53,8 +52,7 @@ public class StoreCommand
         [Argument("OFFSET", Description = "block height")]
         int offset,
         [Argument("LIMIT", Description = "block height")]
-        int limit
-    )
+        int limit)
     {
         IStore store = Utils.LoadStoreFromUri(home);
         var prev = DateTimeOffset.UtcNow;
@@ -72,8 +70,7 @@ public class StoreCommand
         [Argument("STORE", Description = StoreArgumentDescription)]
         string home,
         [Argument("TX-ID", Description = "tx id")]
-        string strTxId
-    )
+        string strTxId)
     {
         IStore store = Utils.LoadStoreFromUri(home);
         var blockHashes = store.IterateTxIdBlockHashIndex(new TxId(ByteUtility.ParseHex(strTxId)))
@@ -87,12 +84,11 @@ public class StoreCommand
         [Argument("STORE", Description = StoreArgumentDescription)]
         string home,
         [Argument("TX-ID", Description = "tx id")]
-        string strTxId
-    )
+        string strTxId)
     {
         using IStore store = Utils.LoadStoreFromUri(home);
         var txId = TxId.Parse(strTxId);
-        if (!(store.GetFirstTxIdBlockHashIndex(txId) is { } ))
+        if (!(store.GetFirstTxIdBlockHashIndex(txId) is { }))
         {
             throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");
         }
@@ -107,8 +103,7 @@ public class StoreCommand
         [Argument("STORE", Description = StoreArgumentDescription)]
         string home,
         [Argument("BLOCK-INDEX", Description = "block height")]
-        int blockHeight
-    )
+        int blockHeight)
     {
         using IStore store = Utils.LoadStoreFromUri(home);
         var blockHash = GetBlockHash(store, blockHeight);
@@ -121,8 +116,7 @@ public class StoreCommand
         [Argument("STORE", Description = StoreArgumentDescription)]
         string home,
         [Argument("BLOCK-HASH", Description = "block hash")]
-        string blockHash
-    )
+        string blockHash)
     {
         using IStore store = Utils.LoadStoreFromUri(home);
         var block = GetBlock(store, BlockHash.Parse(blockHash));
@@ -134,8 +128,7 @@ public class StoreCommand
         [Argument("STORE", Description = StoreArgumentDescription)]
         string home,
         [Argument("TX-ID", Description = "tx id")]
-        string strTxId
-    )
+        string strTxId)
     {
         IStore store = Utils.LoadStoreFromUri(home);
         var tx = GetTransaction(store, new TxId(ByteUtility.ParseHex(strTxId)));
@@ -177,8 +170,7 @@ public class StoreCommand
         {
             throw Utils.Error(
                 $"Cannot find the block with the height {blockHeight}" +
-                $" within the blockchain {chainId}."
-            );
+                $" within the blockchain {chainId}.");
         }
 
         return blockHash;

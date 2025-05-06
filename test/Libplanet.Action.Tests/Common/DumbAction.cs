@@ -27,8 +27,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
     public static DumbAction Create(
         (Address At, string Item)? append = null,
         (Address? From, Address? To, BigInteger Amount)? transfer = null,
-        ImmutableSortedSet<Validator>? validators = null,
-        bool recordRandom = false)
+        ImmutableSortedSet<Validator>? validators = null)
     {
         if (transfer is { } t && t.From is null && t.To is null)
         {
@@ -54,8 +53,8 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
         if (Append is { } append)
         {
             var key = (ReservedAddresses.LegacyAccount, append.At);
-            var items = world.GetValue(key, ImmutableArray<string>.Empty);
-            world[key] = items.Add(append.Item);
+            var items = world.GetValue(key, string.Empty);
+            world[key] = items == string.Empty ? append.Item : $"{items},{append.Item}";
         }
 
         if (Transfer is { } transfer)

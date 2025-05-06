@@ -143,8 +143,7 @@ If omitted (default) explorer only the local blockchain store.")]
                 "ice-server",
                 new[] { 'I' },
                 Description = "URL to ICE server (TURN/STUN) to work around NAT.")]
-            string iceServerUrl = null
-        )
+            string iceServerUrl = null)
         {
             Options options = new Options(
                 debug,
@@ -217,8 +216,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     if (options.IceServer is null)
                     {
                         Console.Error.WriteLine(
-                            "error: -s/--seed option requires -I/--ice-server as well."
-                        );
+                            "error: -s/--seed option requires -I/--ice-server as well.");
                         Environment.Exit(1);
                         return;
                     }
@@ -245,7 +243,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     {
                         AppProtocolVersion = options.AppProtocolVersionToken is string t
                             ? AppProtocolVersion.FromToken(t)
-                            : default(AppProtocolVersion),
+                            : default,
                     };
 
                     var hostOptions = new HostOptions(null, new[] { options.IceServer });
@@ -278,8 +276,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     {
                         await Task.WhenAll(
                             webHost.RunAsync(cts.Token),
-                            StartSwarmAsync(swarm, cts.Token)
-                        );
+                            StartSwarmAsync(swarm, cts.Token));
                     }
                     catch (OperationCanceledException)
                     {
@@ -393,8 +390,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             public Exception ValidateNextBlock(
                 BlockChain blockChain,
-                Block nextBlock
-            ) => _impl.ValidateNextBlock(blockChain, nextBlock);
+                Block nextBlock) => _impl.ValidateNextBlock(blockChain, nextBlock);
 
             public int GetMaxTransactionsPerSignerPerBlock(long index) =>
                 _impl.GetMaxTransactionsPerSignerPerBlock(index);

@@ -74,8 +74,7 @@ namespace Libplanet.KeyStore.Kdfs
             pdb.Init(
                 PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(passphrase.ToCharArray()),
                 Salt.ToArray(),
-                Iterations
-            );
+                Iterations);
             var key = (KeyParameter)pdb.GenerateDerivedMacParameters(KeyLength * 8);
             return ImmutableArray.Create(key.GetKey(), 0, KeyLength);
         }
@@ -88,8 +87,7 @@ namespace Libplanet.KeyStore.Kdfs
             string alg = new T().AlgorithmName;
             writer.WriteString(
                 "prf",
-                "hmac-" + alg.ToLower(CultureInfo.InvariantCulture).Replace("-", string.Empty)
-            );
+                "hmac-" + alg.ToLower(CultureInfo.InvariantCulture).Replace("-", string.Empty));
             writer.WriteString("salt", ByteUtility.Hex(Salt));
             writer.WriteEndObject();
             return "pbkdf2";
@@ -103,38 +101,33 @@ namespace Libplanet.KeyStore.Kdfs
             if (!element.TryGetProperty("c", out JsonElement c))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"kdfparams\" field must have a \"c\" field, the number of iterations."
-                );
+                    "The \"kdfparams\" field must have a \"c\" field, the number of iterations.");
             }
 
             if (c.ValueKind != JsonValueKind.Number || !c.TryGetInt32(out int iterations))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"c\" field, the number of iterations, must be a number."
-                );
+                    "The \"c\" field, the number of iterations, must be a number.");
             }
 
             if (!element.TryGetProperty("dklen", out JsonElement dklen))
             {
                 throw new InvalidKeyJsonException(
                     "The \"kdfparams\" field must have a \"dklen\" field, " +
-                    "the length of key in bytes."
-                );
+                    "the length of key in bytes.");
             }
 
             if (dklen.ValueKind != JsonValueKind.Number ||
                 !dklen.TryGetInt32(out int keyLength))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"dklen\" field, the length of key in bytes, must be a number."
-                );
+                    "The \"dklen\" field, the length of key in bytes, must be a number.");
             }
 
             if (!element.TryGetProperty("salt", out JsonElement saltElement))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"kdfparams\" field must have a \"salt\" field."
-                );
+                    "The \"kdfparams\" field must have a \"salt\" field.");
             }
 
             string saltString;
@@ -155,21 +148,18 @@ namespace Libplanet.KeyStore.Kdfs
             catch (ArgumentNullException)
             {
                 throw new InvalidKeyJsonException(
-                    "The \"salt\" field must not be null, but a string."
-                );
+                    "The \"salt\" field must not be null, but a string.");
             }
             catch (Exception e)
             {
                 throw new InvalidKeyJsonException(
-                    "The \"salt\" field must be a hexadecimal string of bytes.\n" + e
-                );
+                    "The \"salt\" field must be a hexadecimal string of bytes.\n" + e);
             }
 
             if (!element.TryGetProperty("prf", out JsonElement prfElement))
             {
                 throw new InvalidKeyJsonException(
-                    "The \"kdfparams\" field must have a \"prf\" field."
-                );
+                    "The \"kdfparams\" field must have a \"prf\" field.");
             }
 
             string prf;
@@ -180,8 +170,7 @@ namespace Libplanet.KeyStore.Kdfs
             catch (InvalidOperationException)
             {
                 throw new InvalidKeyJsonException(
-                    "The \"prf\" field must be a string."
-                );
+                    "The \"prf\" field must be a string.");
             }
 
             return prf switch

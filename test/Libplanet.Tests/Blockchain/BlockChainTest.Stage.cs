@@ -38,7 +38,7 @@ namespace Libplanet.Tests.Blockchain
             Transaction tx3 = Transaction.Create(
                 0,
                 new PrivateKey(),
-                default(BlockHash),
+                default,
                 []);
 
             Assert.True(_blockChain.StageTransaction(tx1));
@@ -57,23 +57,19 @@ namespace Libplanet.Tests.Blockchain
             Transaction tx_0_0 = _fx.MakeTransaction(
                 Array.Empty<DumbAction>(),
                 nonce: 0,
-                privateKey: key
-            );
+                privateKey: key);
             Transaction tx_0_1 = _fx.MakeTransaction(
                 Array.Empty<DumbAction>(),
                 nonce: 0,
-                privateKey: key
-            );
+                privateKey: key);
             Transaction tx_1_0 = _fx.MakeTransaction(
                 Array.Empty<DumbAction>(),
                 nonce: 1,
-                privateKey: key
-            );
+                privateKey: key);
             Transaction tx_1_1 = _fx.MakeTransaction(
                 Array.Empty<DumbAction>(),
                 nonce: 1,
-                privateKey: key
-            );
+                privateKey: key);
 
             // stage tx_0_0 -> mine tx_0_0 -> stage tx_0_1
             Assert.True(_blockChain.StageTransaction(tx_0_0));
@@ -96,8 +92,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(2, _blockChain.GetStagedTransactionIds().Count);
             Assert.Equal(
                 txIds.OrderBy(id => id),
-                _blockChain.GetStagedTransactionIds().OrderBy(id => id)
-            );
+                _blockChain.GetStagedTransactionIds().OrderBy(id => id));
             block = _blockChain.ProposeBlock(key, TestUtils.CreateBlockCommit(_blockChain.Tip));
             _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
             // tx_0_1 and tx_1_x should be still staged, just filtered

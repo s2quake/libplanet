@@ -26,8 +26,7 @@ public class FungibleAssetValueTypeTest
                 quantity
                 string
             }",
-            source: fav
-        );
+            source: fav);
         Assert.Null(result.Errors);
         ExecutionNode resultData = Assert.IsAssignableFrom<ExecutionNode>(result.Data);
         IDictionary<string, object> resultDict =

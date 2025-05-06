@@ -16,39 +16,32 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<IdGraphType>>(
                 name: "Id",
                 description: "A unique identifier derived from this transaction content.",
-                resolve: ctx => ctx.Source.Id.ToString()
-            );
+                resolve: ctx => ctx.Source.Id.ToString());
             Field<NonNullGraphType<LongGraphType>>(
                 name: "Nonce",
                 description: "The number of previous transactions committed by the signer of " +
                     "this tx.",
-                resolve: x => x.Source.Nonce
-            );
+                resolve: x => x.Source.Nonce);
             Field(
                 type: typeof(NonNullGraphType<AddressType>),
                 name: "Signer",
                 description: "An address of the account who signed this transaction.",
-                resolve: x => x.Source.Signer
-            );
+                resolve: x => x.Source.Signer);
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<AddressType>>>>(
                 name: "UpdatedAddresses",
                 description: "Addresses whose states were affected by Actions.",
-                resolve: x => x.Source.UpdatedAddresses
-            );
+                resolve: x => x.Source.UpdatedAddresses);
             Field<NonNullGraphType<ByteStringType>>(
                 name: "Signature",
                 description: "A digital signature of the content of this transaction.",
-                resolve: x => x.Source.Signature
-            );
+                resolve: x => x.Source.Signature);
             Field<NonNullGraphType<DateTimeOffsetGraphType>>(
                 name: "Timestamp",
                 description: "The time this transaction was created and signed.",
-                resolve: x => x.Source.Timestamp
-            );
+                resolve: x => x.Source.Timestamp);
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<ActionType>>>>(
                 name: "Actions",
-                description: "A list of actions in this transaction."
-            );
+                description: "A list of actions in this transaction.");
             Field<NonNullGraphType<StringGraphType>>(
                 name: "SerializedPayload",
                 description: "A serialized tx payload in base64 string.",

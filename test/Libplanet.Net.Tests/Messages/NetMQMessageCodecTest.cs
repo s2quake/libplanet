@@ -55,7 +55,7 @@ namespace Libplanet.Net.Tests.Messages
                 1,
                 new Bencodex.Types.Integer(0),
                 ImmutableArray<byte>.Empty,
-                default(Address));
+                default);
             var messageContent = CreateMessage(type);
             var codec = new NetMQMessageCodec();
             NetMQMessage raw =

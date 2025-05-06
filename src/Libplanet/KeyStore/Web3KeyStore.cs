@@ -22,16 +22,14 @@ namespace Libplanet.KeyStore
                     Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                     ".config"),
             "planetarium",
-            "keystore"
-        );
+            "keystore");
 
         private static readonly string NameFormat =
             "UTC--{0:yyyy-MM-dd}T{0:HH-mm-ss}Z--{1:D}";
 
         private static readonly Regex NamePattern = new Regex(
             @"^UTC--\d{4}-\d\d-\d\dT\d\d-\d\d-\d\dZ--([\da-f]{8}-?(?:[\da-f]{4}-?){3}[\da-f]{12})$",
-            RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase
-        );
+            RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
         private readonly ILogger _logger;
 
@@ -57,8 +55,7 @@ namespace Libplanet.KeyStore
                 Directory.CreateDirectory(path);
                 _logger.Debug(
                     "Created a directory {DirectoryPath} as it did not exist",
-                    path
-                );
+                    path);
             }
 
             Path = path;
@@ -125,8 +122,7 @@ namespace Libplanet.KeyStore
                 CultureInfo.InvariantCulture,
                 NameFormat,
                 DateTimeOffset.UtcNow,
-                keyId
-            );
+                keyId);
             var keyPath = System.IO.Path.Combine(Path, filename);
             using Stream f = new FileStream(keyPath, FileMode.CreateNew);
             key.WriteJson(f, keyId);

@@ -19,8 +19,7 @@ public class KeyCommand
     [Command(Description = "List all private keys.")]
     public void List(
         [Option(
-            Description = "Specify key store path to list."
-        )]
+            Description = "Specify key store path to list.")]
         string? path = null)
     {
         ChangeKeyStorePath(path);
@@ -31,14 +30,12 @@ public class KeyCommand
     public void Create(
         PassphraseParameters passphrase,
         [Option(
-            Description = "Print created private key as Web3 Secret Storage format."
-        )]
+            Description = "Print created private key as Web3 Secret Storage format.")]
         bool json = false,
         [Option(Description = "Do not add to the key store, but only show the created key.")]
         bool dryRun = false,
         [Option(Description = "Path to key store")]
-        string? path = null
-    )
+        string? path = null)
     {
         ChangeKeyStorePath(path);
         string passphraseValue = passphrase.Take("Passphrase: ", "Retype passphrase: ");
@@ -65,8 +62,7 @@ public class KeyCommand
         [Option(Description = "Remove without asking passphrase.")]
         bool noPassphrase = false,
         [Option(Description = "Path to key store.")]
-        string? path = null
-    )
+        string? path = null)
     {
         ChangeKeyStorePath(path);
         try
@@ -89,19 +85,16 @@ public class KeyCommand
         [Argument(
             "PRIVATE-KEY",
             Description = "A raw private key in hexadecimal string, or path to Web3 Secret " +
-                            "Storage to import"
-        )]
+                            "Storage to import")]
         string key,
         PassphraseParameters passphrase,
         [Option(
-            Description = "Import Web3 Secret Storage key."
-        )]
+            Description = "Import Web3 Secret Storage key.")]
         bool json = false,
         [Option(Description = "Do not add to the key store, but only show the created key.")]
         bool dryRun = false,
         [Option(Description = "Path to key store.")]
-        string? path = null
-    )
+        string? path = null)
     {
         ChangeKeyStorePath(path);
         if (json)
@@ -139,14 +132,12 @@ public class KeyCommand
         bool publicKey = false,
         [Option(
             'b',
-            Description = "Print raw bytes instead of hexadecimal.  No trailing LF appended."
-        )]
+            Description = "Print raw bytes instead of hexadecimal.  No trailing LF appended.")]
         bool bytes = false,
         [Option(Description = "Export a Web3 Secret Storage Formatted json")]
         bool json = false,
         [Option(Description = "Path to key store to export from.")]
-        string? path = null
-    )
+        string? path = null)
     {
         ChangeKeyStorePath(path);
         PrivateKey key = UnprotectKey(keyId, passphrase);
@@ -170,14 +161,12 @@ public class KeyCommand
 
     [Command(
         Aliases = new[] { "gen" },
-        Description = "Generate a raw private key without storing it."
-    )]
+        Description = "Generate a raw private key without storing it.")]
     public void Generate(
         [Option('A', Description = "Do not show a derived address.")]
         bool noAddress = false,
         [Option('p', Description = "Show a public key as well.")]
-        bool publicKey = false
-    )
+        bool publicKey = false)
     {
         var key = new PrivateKey();
         string priv = ByteUtility.Hex(key.Bytes);
@@ -188,8 +177,7 @@ public class KeyCommand
         {
             Utils.PrintTable(
                 ("Private key", "Address", "Public key"),
-                new[] { (priv, addr, pub) }
-            );
+                new[] { (priv, addr, pub) });
         }
         else if (!noAddress)
         {
@@ -212,8 +200,7 @@ public class KeyCommand
         [Argument(
             "FILE",
             Description = "A path of the file to sign. If you pass '-' dash character, " +
-                            "it will receive the message to sign from stdin."
-        )]
+                            "it will receive the message to sign from stdin.")]
         string path,
         PassphraseParameters passphrase,
         [Option(Description = "A path of the file to save the signature. " +
@@ -223,8 +210,7 @@ public class KeyCommand
                                 "to stdout as default behaviour.")]
         string? binaryOutput = null,
         [Option(Description = "Path to key store to use key from.")]
-        string? storePath = null
-    )
+        string? storePath = null)
     {
         ChangeKeyStorePath(storePath);
         PrivateKey key = UnprotectKey(keyId, passphrase);
@@ -267,12 +253,10 @@ public class KeyCommand
         [Argument(
             "KEY",
             Description = "A raw private key (or a public key if -P/--public-key is used) " +
-                "to derive the address from."
-        )]
+                "to derive the address from.")]
         string key,
         [Option('P', Description = "Derive from a public key instead of a private key.")]
-        bool publicKey = false
-    )
+        bool publicKey = false)
     {
         PublicKey pubKey = publicKey
             ? PublicKey.Parse(key)
@@ -286,8 +270,7 @@ public class KeyCommand
     public PrivateKey UnprotectKey(
         Guid keyId,
         PassphraseParameters passphrase,
-        bool ignoreStdin = false
-    )
+        bool ignoreStdin = false)
     {
         ProtectedPrivateKey ppk;
         try
@@ -313,8 +296,7 @@ public class KeyCommand
 
     private Guid Add(
         ProtectedPrivateKey ppk,
-        bool dryRun
-    )
+        bool dryRun)
     {
         Guid keyId = dryRun ? Guid.NewGuid() : KeyStore.Add(ppk);
         return keyId;
@@ -324,8 +306,7 @@ public class KeyCommand
     {
         Utils.PrintTable(
             ("Key ID", "Address"),
-            keys.Select(t => (t.KeyId.ToString(), t.Key.Address.ToString()))
-        );
+            keys.Select(t => (t.KeyId.ToString(), t.Key.Address.ToString())));
     }
 
     private PrivateKey ValidateRawHex(string rawKeyHex)

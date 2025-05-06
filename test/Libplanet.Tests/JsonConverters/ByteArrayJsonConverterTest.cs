@@ -19,8 +19,7 @@ namespace Libplanet.Tests.JsonConverters
                 converter.Write(
                     writer,
                     (ImmutableArray<byte>?)ImmutableArray.Create<byte>(0x3c, 0xce, 0x82),
-                    null
-                );
+                    null);
                 converter.Write(writer, (ImmutableArray<byte>?)null, null);
                 writer.WriteEndArray();
             }

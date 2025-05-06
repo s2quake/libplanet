@@ -97,8 +97,7 @@ namespace Libplanet.Net.Tests.Transports
         {
             var bp = new BoundPeer(
                 new PrivateKey().PublicKey,
-                new DnsEndPoint(host, port)
-            );
+                new DnsEndPoint(host, port));
             var addr = await bp.ResolveNetMQAddressAsync();
 
             Assert.Contains(addr, expected);
@@ -110,8 +109,7 @@ namespace Libplanet.Net.Tests.Transports
             string hostDoesNotExist = $"{Guid.NewGuid()}.com";
             var bp = new BoundPeer(
                 new PrivateKey().PublicKey,
-                new DnsEndPoint(hostDoesNotExist, 3000)
-            );
+                new DnsEndPoint(hostDoesNotExist, 3000));
             await Assert.ThrowsAnyAsync<SocketException>(async () =>
             {
                 await bp.ResolveNetMQAddressAsync();

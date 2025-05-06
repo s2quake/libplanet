@@ -32,9 +32,7 @@ namespace Libplanet.Explorer
                     builder =>
                         builder.AllowAnyOrigin()
                             .AllowAnyMethod()
-                            .AllowAnyHeader()
-                )
-            );
+                            .AllowAnyHeader()));
             services.AddControllers();
 
             services.AddSingleton<IBlockChainContext, TU>();

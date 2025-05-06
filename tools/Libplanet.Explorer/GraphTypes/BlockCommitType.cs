@@ -12,23 +12,19 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<LongGraphType>>(
                 name: "Height",
                 description: "The height of the block commit.",
-                resolve: x => x.Source.Height
-            );
+                resolve: x => x.Source.Height);
             Field<NonNullGraphType<IntGraphType>>(
                 name: "Round",
                 description: "The round of the block commit.",
-                resolve: x => x.Source.Round
-            );
+                resolve: x => x.Source.Round);
             Field<NonNullGraphType<IdGraphType>>(
                 name: "BlockHash",
                 description: "The hash of the block which contains block commit.",
-                resolve: ctx => ctx.Source.BlockHash.ToString()
-            );
+                resolve: ctx => ctx.Source.BlockHash.ToString());
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<VoteType>>>>(
                 name: "Votes",
                 description: "Total votes of the block commit.",
-                resolve: x => x.Source.Votes
-            );
+                resolve: x => x.Source.Votes);
         }
     }
 }

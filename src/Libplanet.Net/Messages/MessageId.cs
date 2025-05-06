@@ -39,8 +39,7 @@ namespace Libplanet.Net.Messages
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(messageId),
-                    $"{nameof(MessageId)} must be {Size} bytes."
-                );
+                    $"{nameof(MessageId)} must be {Size} bytes.");
             }
 
             _byteArray = messageId.ToImmutableArray();
@@ -100,8 +99,7 @@ namespace Libplanet.Net.Messages
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(hex),
-                    $"Expected {Size * 2} characters, but {hex.Length} characters given."
-                );
+                    $"Expected {Size * 2} characters, but {hex.Length} characters given.");
             }
         }
 

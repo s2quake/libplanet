@@ -147,8 +147,7 @@ public class PublicKeyTest(ITestOutputHelper output)
                     "An unexpected exception is thrown by {0}.{1}() method with input #{2}:",
                     nameof(PublicKey),
                     nameof(PublicKey.Verify),
-                    i
-                );
+                    i);
                 output.WriteLine("  message:   {0}", ByteUtility.Hex(message));
                 output.WriteLine("  signature: {0}", ByteUtility.Hex(sig));
                 throw;
@@ -176,8 +175,7 @@ public class PublicKeyTest(ITestOutputHelper output)
                 output.WriteLine(
                     "An unexpected exception is thrown by {0}.{1}() method with the input:",
                     nameof(PublicKey),
-                    nameof(PublicKey.Verify)
-                );
+                    nameof(PublicKey.Verify));
                 output.WriteLine("  message:   {0}", ByteUtility.Hex(message));
                 output.WriteLine("  signature: {0}", ByteUtility.Hex(sig));
                 throw;

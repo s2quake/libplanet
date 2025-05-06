@@ -49,8 +49,7 @@ namespace Libplanet.Types.JsonConverters
         public override void Write(
             Utf8JsonWriter writer,
             BigInteger value,
-            JsonSerializerOptions options
-        ) =>
+            JsonSerializerOptions options) =>
             writer.WriteRawValue(value.ToString(NumberFormatInfo.InvariantInfo), false);
     }
 }

@@ -27,22 +27,14 @@ namespace Libplanet.Tests.Action;
 public partial class ActionEvaluatorTest
 {
     private readonly ILogger _logger;
-    private readonly ITestOutputHelper _output;
     private readonly BlockPolicy _policy;
     private readonly StoreFixture _storeFx;
     private readonly TxFixture _txFx;
 
-    private readonly Address _beginBlockValueAddress =
-        Address.Parse("0000000000000000000000000000000000000120");
-
-    private readonly Address _endBlockValueAddress =
-        Address.Parse("0000000000000000000000000000000000000121");
-
-    private readonly Address _beginTxValueAddress =
-        Address.Parse("0000000000000000000000000000000000000122");
-
-    private readonly Address _endTxValueAddress =
-        Address.Parse("0000000000000000000000000000000000000123");
+    private readonly Address _beginBlockValueAddress = Address.Parse("0000000000000000000000000000000000000120");
+    private readonly Address _endBlockValueAddress = Address.Parse("0000000000000000000000000000000000000121");
+    private readonly Address _beginTxValueAddress = Address.Parse("0000000000000000000000000000000000000122");
+    private readonly Address _endTxValueAddress = Address.Parse("0000000000000000000000000000000000000123");
 
     public ActionEvaluatorTest(ITestOutputHelper output)
     {
@@ -53,7 +45,6 @@ public partial class ActionEvaluatorTest
             .CreateLogger()
             .ForContext<ActionEvaluatorTest>();
 
-        _output = output;
         _policy = new BlockPolicy(
             new PolicyActions
             {
@@ -176,31 +167,31 @@ public partial class ActionEvaluatorTest
         Assert.Equal(
             chain
                 .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(LegacyAccount)
                 .GetValue(address),
             value);
         Assert.Equal(
             chain
                 .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.MinerRecordAddress),
             block.Proposer);
         Assert.Equal(
             chain
                 .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.SignerRecordAddress),
             tx.Signer);
         Assert.Equal(
             chain
                 .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.BlockIndexRecordAddress),
             block.Height);
         Assert.Equal(
             chain
                 .GetNextWorldState()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.RandomRecordAddress),
             evaluations.Single().InputContext.GetRandom().Next());
     }
@@ -240,7 +231,7 @@ public partial class ActionEvaluatorTest
 
         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
         Assert.Equal(
-            2 + txs.Length * 2 + txs.Aggregate(0, (sum, tx) => sum + tx.Actions.Length),
+            2 + (txs.Length * 2) + txs.Aggregate(0, (sum, tx) => sum + tx.Actions.Length),
             evaluations.Length);
 
         chain.Append(block, CreateBlockCommit(block));
@@ -305,10 +296,10 @@ public partial class ActionEvaluatorTest
 
         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
         Assert.Equal(
-            4 + txs.Length * 4 + txs.Sum(tx => tx.Actions.Length),
+            4 + (txs.Length * 4) + txs.Sum(tx => tx.Actions.Length),
             evaluations.Length);
         Assert.Equal(
-            2 + txs.Length * 2,
+            2 + (txs.Length * 2),
             evaluations.Count(e => e.Exception != null));
     }
 
@@ -409,13 +400,11 @@ public partial class ActionEvaluatorTest
     [Fact]
     public void EvaluateTxs()
     {
-        DumbAction MakeAction(Address address, char identifier, Address? transferTo = null)
+        static DumbAction MakeAction(Address address, char identifier, Address? transferTo = null)
         {
             return DumbAction.Create(
                 append: (address, identifier.ToString()),
-                transfer: transferTo is Address to
-                    ? (address, to, 5)
-                    : ((Address, Address, BigInteger)?)null);
+                transfer: transferTo is Address to ? (address, to, 5) : ((Address, Address, BigInteger)?)null);
         }
 
         Address[] addresses =
@@ -427,14 +416,14 @@ public partial class ActionEvaluatorTest
             _txFx.Address5,
         ];
 
-        IStateStore stateStore = new TrieStateStore();
-        World world = World.Create(stateStore)
+        var stateStore = new TrieStateStore();
+        var world = World.Create(stateStore)
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[3], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[4], DumbAction.DumbCurrency * 100);
-        ITrie trie = stateStore.Commit(world.Trie);
+        var trie = stateStore.CommitWorld(world).Trie;
 
         var genesisBlock = ProposeGenesisBlock(TestUtils.GenesisProposer, stateRootHash: trie.Hash);
         var actionEvaluator = new ActionEvaluator(stateStore);
@@ -508,9 +497,7 @@ public partial class ActionEvaluatorTest
             GenesisProposer,
             block1Txs);
         World previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
-        var evals = actionEvaluator.EvaluateBlock(
-            (RawBlock)block1,
-            previousState).ToImmutableArray();
+        var evals = actionEvaluator.EvaluateBlock((RawBlock)block1, previousState);
         // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
         // have to be updated, since the order may change due to different RawHash.
         (int TxIdx, int ActionIdx, string?[] UpdatedStates, Address Signer)[] expectations =
@@ -532,13 +519,10 @@ public partial class ActionEvaluatorTest
                 .First(x => x.e.Id.Equals(eval.InputContext.TxId))
                 .idx;
             int actionIdx = block1Txs[txIdx].Actions.Select((e, idx) => new { e, idx })
-                .First(x => x.e.Equals(ModelSerializer.Serialize(eval.Action)))
+                .First(x => x.e.Equals(eval.Action.ToBytecode()))
                 .idx;
-            IWorldContext worldState = new WorldStateContext(eval.OutputWorld);
-            var values = addresses.SelectMany(item =>
-            {
-                return worldState.GetValue<ImmutableArray<string?>>((ReservedAddresses.LegacyAccount, item), [null]);
-            });
+            var outputWorld = eval.OutputWorld;
+            var values = addresses.Select(item => outputWorld.GetValueOrDefault(LegacyAccount, item));
             var valueStrings = values.Select(item => item is not null ? $"\"{item}\"" : "null");
             var updatedStates = "new[] { " + string.Join(", ", valueStrings) + " }";
             string signerIdx = "_txFx.Address" + (addresses.Select(
@@ -554,13 +538,10 @@ public partial class ActionEvaluatorTest
         Assert.Equal(expectations.Length, evals.Length);
         foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
         {
-            IWorldContext worldState = new WorldStateContext(eval.OutputWorld);
+            var outputWorld = eval.OutputWorld;
             Assert.Equal(
                 expect.UpdatedStates,
-                addresses.SelectMany(item =>
-                {
-                    return worldState.GetValue<ImmutableArray<string?>>((ReservedAddresses.LegacyAccount, item), [null]);
-                }));
+                addresses.Select(item => outputWorld.GetValueOrDefault(LegacyAccount, item)));
             Assert.Equal(block1Txs[expect.TxIdx].Id, eval.InputContext.TxId);
             Assert.Equal(
                 block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
@@ -573,16 +554,10 @@ public partial class ActionEvaluatorTest
         previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
         ActionEvaluation[] evals1 =
             actionEvaluator.EvaluateBlock((RawBlock)block1, previousState).ToArray();
-        var output1 = World.Create(evals1.Last().OutputWorld.Trie, stateStore);
-        Assert.Equal(
-            (Text)"A",
-            output1.GetAccount(ReservedAddresses.LegacyAccount).GetValue(addresses[0]));
-        Assert.Equal(
-            (Text)"B",
-            output1.GetAccount(ReservedAddresses.LegacyAccount).GetValue(addresses[1]));
-        Assert.Equal(
-            (Text)"C",
-            output1.GetAccount(ReservedAddresses.LegacyAccount).GetValue(addresses[2]));
+        var output1 = World.Create(evals1[^1].OutputWorld.Trie, stateStore);
+        Assert.Equal("A", output1.GetValue(LegacyAccount, addresses[0]));
+        Assert.Equal("B", output1.GetValue(LegacyAccount, addresses[1]));
+        Assert.Equal("C", output1.GetValue(LegacyAccount, addresses[2]));
         Assert.Equal(
             FungibleAssetValue.Create(DumbAction.DumbCurrency, 95, 0),
             output1.GetBalance(addresses[0], DumbAction.DumbCurrency));
@@ -647,7 +622,7 @@ public partial class ActionEvaluatorTest
                         GenesisHash = genesisBlock.Hash,
                         UpdatedAddresses = [addresses[4]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
-                        Actions = new []
+                        Actions = new[]
                         {
                             DumbAction.Create((addresses[4], "F"), transfer: (addresses[0], addresses[4], 8)),
                         }.ToBytecodes(),
@@ -674,17 +649,15 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(block1, true));
 
         // Forcefully reset to null delta
-        previousState = evals1.Last().OutputWorld;
-        evals = actionEvaluator.EvaluateBlock(
-            (RawBlock)block2,
-            previousState).ToImmutableArray();
+        previousState = evals1[^1].OutputWorld;
+        evals = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState);
 
         // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
         // have to be updated, since the order may change due to different RawHash.
         expectations =
         [
-            (0, 0, new[] { "A,D", "B", "C", null, null }, _txFx.Address1),
-            (1, 0, new[] { "A,D", "B", "C", "E", null }, _txFx.Address2),
+            (0, 0, new[] { "A", "B", "C", "E", null }, _txFx.Address2),
+            (1, 0, new[] { "A,D", "B", "C", "E", null }, _txFx.Address1),
             (2, 0, new[] { "A,D", "B", "C", "E", "F" }, _txFx.Address3),
         ];
 
@@ -701,10 +674,10 @@ public partial class ActionEvaluatorTest
                 x => x.e.Id.Equals(eval.InputContext.TxId)).idx;
             int actionIdx = block2Txs[txIdx].Actions.Select(
                 (e, idx) => new { e, idx }).First(
-                x => x.e.Equals(ModelSerializer.Serialize(eval.Action))).idx;
+                x => x.e.Equals(eval.Action.ToBytecode())).idx;
             string updatedStates = "new[] { " + string.Join(", ", addresses.Select(
-                eval.OutputWorld.GetAccount(ReservedAddresses.LegacyAccount).GetValue)
-                .Select(x => x is Text t ? '"' + t.Value + '"' : "null")) + " }";
+                eval.OutputWorld.GetAccount(LegacyAccount).GetValueOrDefault)
+                .Select(x => x is string t ? '"' + t + '"' : "null")) + " }";
             string signerIdx = "_txFx.Address" + (addresses.Select(
                 (e, idx) => new { e, idx }).First(
                 x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
@@ -718,10 +691,8 @@ public partial class ActionEvaluatorTest
         Assert.Equal(expectations.Length, evals.Length);
         foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
         {
-            List<string> updatedStates = addresses
-                .Select(eval.OutputWorld.GetAccount(ReservedAddresses.LegacyAccount).GetValue)
-                .Select(x => x is Text t ? t.Value : null)
-                .ToList();
+            var updatedStates = addresses
+                .Select(eval.OutputWorld.GetAccount(LegacyAccount).GetValueOrDefault);
             Assert.Equal(expect.UpdatedStates, updatedStates);
             Assert.Equal(block2Txs[expect.TxIdx].Id, eval.InputContext.TxId);
             Assert.Equal(
@@ -733,18 +704,12 @@ public partial class ActionEvaluatorTest
             Assert.Null(eval.Exception);
         }
 
-        previousState = evals1.Last().OutputWorld;
+        previousState = evals1[^1].OutputWorld;
         var evals2 = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState).ToArray();
-        var output2 = World.Create(evals2.Last().OutputWorld.Trie, stateStore);
-        Assert.Equal(
-            (Text)"A,D",
-            output2.GetAccount(ReservedAddresses.LegacyAccount).GetValue(addresses[0]));
-        Assert.Equal(
-            (Text)"E",
-            output2.GetAccount(ReservedAddresses.LegacyAccount).GetValue(addresses[3]));
-        Assert.Equal(
-            (Text)"F",
-            output2.GetAccount(ReservedAddresses.LegacyAccount).GetValue(addresses[4]));
+        var output2 = World.Create(evals2[^1].OutputWorld.Trie, stateStore);
+        Assert.Equal("A,D", output2.GetValue(LegacyAccount, addresses[0]));
+        Assert.Equal("E", output2.GetValue(LegacyAccount, addresses[3]));
+        Assert.Equal("F", output2.GetValue(LegacyAccount, addresses[4]));
     }
 
     [Fact]
@@ -786,10 +751,9 @@ public partial class ActionEvaluatorTest
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100);
-        ITrie initTrie = stateStore.Commit(world.Trie);
+        var initTrie = stateStore.CommitWorld(world).Trie;
         var actionEvaluator = new ActionEvaluator(stateStore);
-
-        World previousState = stateStore.GetWorld(initTrie.Hash);
+        var previousState = stateStore.GetWorld(initTrie.Hash);
         var evaluations = actionEvaluator.EvaluateTx(
             block: block,
             tx: tx,
@@ -812,34 +776,26 @@ public partial class ActionEvaluatorTest
         ];
 
         Currency currency = DumbAction.DumbCurrency;
-        IValue[] initStates = new IValue[3];
         BigInteger[] initBalances = [100, 100, 100];
         for (int i = 0; i < evaluations.Length; i++)
         {
-            ActionEvaluation eval = evaluations[i];
-            IActionContext context = eval.InputContext;
-            World prevState = eval.InputWorld;
-            World outputState = eval.OutputWorld;
-            _logger.Debug("evalsA[{0}] = {1}", i, eval);
+            var evaluation = evaluations[i];
+            var inputContext = evaluation.InputContext;
+            _logger.Debug("evalsA[{0}] = {1}", i, evaluation);
             _logger.Debug("txA.Actions[{0}] = {1}", i, tx.Actions[i]);
 
-            Assert.Equal(tx.Actions[i], eval.Action.ToBytecode());
-            Assert.Equal(_txFx.Address1, context.Signer);
-            Assert.Equal(tx.Id, context.TxId);
-            Assert.Equal(addresses[0], context.Proposer);
-            Assert.Equal(1, context.BlockHeight);
+            Assert.Equal(tx.Actions[i], evaluation.Action.ToBytecode());
+            Assert.Equal(_txFx.Address1, inputContext.Signer);
+            Assert.Equal(tx.Id, inputContext.TxId);
+            Assert.Equal(addresses[0], inputContext.Proposer);
+            Assert.Equal(1, inputContext.BlockHeight);
             var prevEval = i > 0 ? evaluations[i - 1] : null;
             Assert.Equal(
-                prevEval is null
-                    ? initStates
-                    : addresses.Select(
-                        prevEval.OutputWorld
-                            .GetAccount(LegacyAccount)
-                            .GetValueOrDefault),
-                addresses.Select(item => eval.InputWorld.GetValueOrDefault(LegacyAccount, item)));
+                addresses.Select(item => prevEval?.OutputWorld?.GetValueOrDefault(LegacyAccount, item)),
+                addresses.Select(item => evaluation.InputWorld.GetValueOrDefault(LegacyAccount, item)));
             Assert.Equal(
                 expectedStates[i],
-                addresses.Select(item => (string?)eval.OutputWorld.GetValueOrDefault(LegacyAccount, item)));
+                addresses.Select(item => (string?)evaluation.OutputWorld.GetValueOrDefault(LegacyAccount, item)));
             Assert.Equal(
                 prevEval is null
                     ? initBalances
@@ -847,11 +803,11 @@ public partial class ActionEvaluatorTest
                         prevEval.OutputWorld
                             .GetBalance(a, currency).RawValue),
                 addresses.Select(
-                    a => eval.InputWorld
+                    a => evaluation.InputWorld
                             .GetBalance(a, currency).RawValue));
             Assert.Equal(
                 expectedBalances[i],
-                addresses.Select(a => eval.OutputWorld
+                addresses.Select(a => evaluation.OutputWorld
                     .GetBalance(a, currency).RawValue));
         }
 
@@ -859,7 +815,7 @@ public partial class ActionEvaluatorTest
         World delta = actionEvaluator.EvaluateTx(
             block: block,
             tx: tx,
-            world: previousState).Last().OutputWorld;
+            world: previousState)[^1].OutputWorld;
         Assert.Empty(evaluations[3].OutputWorld.Trie.Diff(delta.Trie));
     }
 
@@ -947,12 +903,12 @@ public partial class ActionEvaluatorTest
             Assert.Equal(
                 ToStateKey(txA.Signer),
                 Assert.Single(
-                    outputState.GetAccount(ReservedAddresses.LegacyAccount).Trie.Diff(
-                        prevState.GetAccount(ReservedAddresses.LegacyAccount).Trie))
+                    outputState.GetAccount(LegacyAccount).Trie.Diff(
+                        prevState.GetAccount(LegacyAccount).Trie))
                 .Path);
             Assert.Equal(
                 deltaA[i + 1].Value,
-                outputState.GetValue(ReservedAddresses.LegacyAccount, txA.Signer));
+                outputState.GetValue(LegacyAccount, txA.Signer));
             Assert.Null(eval.Exception);
         }
 
@@ -1008,10 +964,7 @@ public partial class ActionEvaluatorTest
             {
                 Assert.Equal(
                     ToStateKey(txB.Signer),
-                    Assert.Single(
-                        outputState.GetAccount(ReservedAddresses.LegacyAccount).Trie.Diff(
-                            prevState.GetAccount(ReservedAddresses.LegacyAccount).Trie))
-                    .Path);
+                    Assert.Single(outputState.GetAccount(LegacyAccount).Trie.Diff(prevState.GetAccount(LegacyAccount).Trie)).Path);
                 Assert.Null(eval.Exception);
             }
         }
@@ -1201,109 +1154,6 @@ public partial class ActionEvaluatorTest
             evaluations[0].OutputWorld.GetValue(LegacyAccount, _endTxValueAddress));
         Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
         Assert.Equal(block.Transactions, evaluations[0].InputContext.Txs);
-    }
-
-    [Theory]
-    [ClassData(typeof(OrderTxsForEvaluationData))]
-    public void OrderTxsForEvaluation(
-        int protocolVersion,
-        List<string> originalAddresses,
-        List<string> orderedAddresses)
-    {
-        const int numSigners = 5;
-        const int numTxsPerSigner = 3;
-        var epoch = DateTimeOffset.FromUnixTimeSeconds(0);
-
-        var txFx = new BlockFixture().TxFixture;
-        var signers = ImmutableArray.Create(
-        [
-            txFx.PrivateKey1,
-            txFx.PrivateKey2,
-            txFx.PrivateKey3,
-            txFx.PrivateKey4,
-            txFx.PrivateKey5,
-        ]);
-        var noncesPerSigner = ImmutableArray.Create<ImmutableArray<int>>(
-        [
-            [0, 2, 1],
-            [1, 0, 2],
-            [1, 2, 0],
-            [2, 0, 1],
-            [2, 1, 0],
-        ]);
-        // Unix Epoch used for hard coded timestamp.
-        ImmutableSortedSet<Transaction> txs =
-            signers.Zip(noncesPerSigner, (signer, nonces) => (signer, nonces))
-                .SelectMany(
-                    signerNoncesPair => signerNoncesPair.nonces,
-                    (signerNoncesPair, nonce) => (signerNoncesPair.signer, nonce))
-                .Select(signerNoncePair =>
-                {
-                    Address targetAddress = signerNoncePair.signer.Address;
-                    return Transaction.Create(
-                        unsignedTx: new UnsignedTx
-                        {
-                            Invoice = new TxInvoice
-                            {
-                                UpdatedAddresses = [targetAddress],
-                                Timestamp = epoch,
-                                Actions = new[]
-                                {
-                                    new ContextRecordingAction
-                                    {
-                                        Address = signerNoncePair.signer.Address,
-                                        Value = signerNoncePair.nonce,
-                                    },
-                                }.ToBytecodes(),
-                            },
-                            SigningMetadata = new TxSigningMetadata
-                            {
-                                Signer = signerNoncePair.signer.Address,
-                                Nonce = signerNoncePair.nonce,
-                            },
-                        },
-                        privateKey: signerNoncePair.signer);
-                }).ToImmutableSortedSet();
-
-        // Rearrange transactions so that transactions are not grouped by signers
-        // while keeping the hard coded mixed order nonces above.
-        txs = txs
-            .Where((tx, i) => i % numTxsPerSigner == 0)
-            .Concat(txs.Where((tx, i) => i % numTxsPerSigner != 0))
-            .ToImmutableSortedSet();
-
-        // FIXME: Invalid length for RawHash.
-        byte[] preEvaluationHashBytes =
-        [
-            0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
-            0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-        ];
-
-        // Sanity check.
-        Assert.True(originalAddresses.SequenceEqual(
-            signers.Select(signer => signer.Address.ToString())));
-
-        var orderedTxs = txs;
-
-        // Check signers are grouped together.
-        for (int i = 0; i < numSigners; i++)
-        {
-            var signerTxs = orderedTxs.Skip(i * numTxsPerSigner).Take(numTxsPerSigner);
-            Assert.True(signerTxs.Select(tx => tx.Signer).Distinct().Count() == 1);
-        }
-
-        // Check nonces are ordered.
-        foreach (var signer in signers)
-        {
-            var signerTxs = orderedTxs.Where(tx => tx.Signer == signer.Address);
-            Assert.Equal(signerTxs.OrderBy(tx => tx.Nonce).ToArray(), signerTxs.ToArray());
-        }
-
-        // Check according to spec.
-        Assert.True(orderedAddresses.SequenceEqual(
-            orderedTxs
-                .Where((tx, i) => i % numTxsPerSigner == 0)
-                .Select(tx => tx.Signer.ToString())));
     }
 
     [Fact]
@@ -1529,7 +1379,7 @@ public partial class ActionEvaluatorTest
         protected override void OnExecute(IWorldContext world, IActionContext context)
         {
             GasTracer.UseGas(GasUsage);
-            var key = (ReservedAddresses.LegacyAccount, context.Signer);
+            var key = (LegacyAccount, context.Signer);
             world[key] = Memo;
 
             if (Receiver is { } receiver && MintValue is { } mintValue)
@@ -1539,63 +1389,3 @@ public partial class ActionEvaluatorTest
         }
     }
 }
-
-#pragma warning disable SA1402 // File may only contain a single type
-internal class OrderTxsForEvaluationData : IEnumerable<object[]>
-{
-    // For fixture sanity.
-    public List<string> OriginalAddresses = new List<string>
-    {
-        "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
-        "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
-        "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
-        "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
-        "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
-    };
-
-    // Spec for protocol version < 3.
-    public List<string> OrderedAddressesV0 = new List<string>
-    {
-        "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
-        "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
-        "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
-        "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
-        "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
-    };
-
-    // Spec for protocol version >= 3.
-    public List<string> OrderedAddressesV3 = new List<string>
-    {
-        "0x921Ba81C0be280C8A2faed79E14aD2a098874759",
-        "0xB0ea0018Ab647418FA81c384194C9167e6A3C925",
-        "0xc2A86014073D662a4a9bFCF9CB54263dfa4F5cBc",
-        "0xfcbfa4977B2Fc7A608E4Bd2F6F0D6b27C0a4cd13",
-        "0x1d2B31bF9A2CA71051f8c66E1C783Ae70EF32798",
-    };
-
-    public IEnumerator<object[]> GetEnumerator()
-    {
-        yield return new object[]
-        {
-            0,
-            OriginalAddresses,
-            OrderedAddressesV0,
-        };
-        yield return new object[]
-        {
-            3,
-            OriginalAddresses,
-            OrderedAddressesV3,
-        };
-        yield return new object[]
-        {
-            BlockMetadata.CurrentProtocolVersion,
-            OriginalAddresses,
-            OrderedAddressesV3,
-        };
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-#pragma warning restore SA1402
-

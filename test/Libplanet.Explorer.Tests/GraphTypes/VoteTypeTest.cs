@@ -46,8 +46,7 @@ public class VoteTypeTest
         ExecutionResult result = await ExecuteQueryAsync(
             query,
             voteType,
-            source: vote
-        );
+            source: vote);
         Dictionary<string, object> resultData =
             (Dictionary<string, object>)((ExecutionNode)result.Data!)?.ToValue()!;
         Assert.Null(result.Errors);

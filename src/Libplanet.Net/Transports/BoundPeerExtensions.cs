@@ -24,8 +24,7 @@ namespace Libplanet.Net.Transports
         /// <returns><see cref="AppProtocolVersion"/> of given peer. </returns>
         public static AppProtocolVersion QueryAppProtocolVersionNetMQ(
             this BoundPeer peer,
-            TimeSpan? timeout = null
-        )
+            TimeSpan? timeout = null)
         {
             using var dealerSocket = new DealerSocket(ToNetMQAddress(peer));
             var privateKey = new PrivateKey();
@@ -58,8 +57,7 @@ namespace Libplanet.Net.Transports
             }
 
             throw new TimeoutException(
-                $"Peer[{peer}] didn't respond within the specified time[{timeout}]."
-            );
+                $"Peer[{peer}] didn't respond within the specified time[{timeout}].");
         }
 
         internal static string ToNetMQAddress(this BoundPeer peer)

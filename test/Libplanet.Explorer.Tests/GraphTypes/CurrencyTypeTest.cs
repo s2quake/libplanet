@@ -67,8 +67,7 @@ public class CurrencyTypeTest
                 minters
                 maximumSupply { quantity }
             }",
-            source: currency
-        );
+            source: currency);
         Assert.Null(result.Errors);
         resultData = Assert.IsAssignableFrom<ExecutionNode>(result.Data);
         resultDict = Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
@@ -82,8 +81,7 @@ public class CurrencyTypeTest
             @"{
                 maximumSupply { quantity }
             }",
-            source: currency
-        );
+            source: currency);
         Assert.Null(result.Errors);
         resultData = Assert.IsAssignableFrom<ExecutionNode>(result.Data);
         resultDict = Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());

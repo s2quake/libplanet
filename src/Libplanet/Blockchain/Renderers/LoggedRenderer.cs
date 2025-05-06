@@ -42,8 +42,7 @@ namespace Libplanet.Blockchain.Renderers
         public LoggedRenderer(
             IRenderer renderer,
             ILogger logger,
-            LogEventLevel level = LogEventLevel.Debug
-        )
+            LogEventLevel level = LogEventLevel.Debug)
         {
             Renderer = renderer;
             Logger = logger
@@ -73,21 +72,18 @@ namespace Libplanet.Blockchain.Renderers
         /// <inheritdoc cref="IRenderer.RenderBlock(Block, Block)"/>
         public void RenderBlock(
             Block oldTip,
-            Block newTip
-        ) =>
+            Block newTip) =>
             LogBlockRendering(
                 nameof(RenderBlock),
                 oldTip,
                 newTip,
-                Renderer.RenderBlock
-            );
+                Renderer.RenderBlock);
 
         protected void LogBlockRendering(
             string methodName,
             Block oldTip,
             Block newTip,
-            System.Action<Block, Block> callback
-        )
+            System.Action<Block, Block> callback)
         {
             Logger.Write(
                 Level,
@@ -96,8 +92,7 @@ namespace Libplanet.Blockchain.Renderers
                 newTip.Height,
                 newTip.Hash,
                 oldTip.Height,
-                oldTip.Hash
-            );
+                oldTip.Hash);
 
             try
             {
@@ -126,8 +121,7 @@ namespace Libplanet.Blockchain.Renderers
                 newTip.Height,
                 newTip.Hash,
                 oldTip.Height,
-                oldTip.Hash
-            );
+                oldTip.Hash);
         }
     }
 }

@@ -19,21 +19,18 @@ namespace Libplanet.Explorer.GraphTypes
                 name: "hex",
                 description:
                     "A hexadecimal representation of the bencodex value encoded as byte array.",
-                resolve: context => ByteUtility.Hex(_codec.Encode(context.Source))
-            );
+                resolve: context => ByteUtility.Hex(_codec.Encode(context.Source)));
 
             Field<NonNullGraphType<StringGraphType>>(
                 name: "base64",
                 description:
                     "A base64 representation of the bencodex value encoded to byte array.",
-                resolve: context => Convert.ToBase64String(_codec.Encode(context.Source))
-            );
+                resolve: context => Convert.ToBase64String(_codec.Encode(context.Source)));
 
             Field<NonNullGraphType<StringGraphType>>(
                 name: "inspection",
                 description: "A human readable representation of the bencodex value.",
-                resolve: context => context.Source.Inspect()
-            );
+                resolve: context => context.Source.Inspect());
 
             Field<NonNullGraphType<StringGraphType>>(
                 name: "json",
@@ -45,8 +42,7 @@ namespace Libplanet.Explorer.GraphTypes
                     var writer = new Utf8JsonWriter(buffer);
                     converter.Write(writer, context.Source, new JsonSerializerOptions());
                     return Encoding.UTF8.GetString(buffer.ToArray());
-                }
-            );
+                });
         }
     }
 }

@@ -111,8 +111,7 @@ namespace Libplanet.Net.Transports
                 },
                 runtimeCt,
                 TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
-                TaskScheduler.Default
-            );
+                TaskScheduler.Default);
 
             _runningEvent = new AsyncManualResetEvent();
             ProcessMessageHandler = new AsyncDelegate<Message>();
@@ -208,8 +207,7 @@ namespace Libplanet.Net.Transports
 
         public async Task StopAsync(
         TimeSpan waitFor,
-        CancellationToken cancellationToken = default
-    )
+        CancellationToken cancellationToken = default)
         {
             if (_disposed)
             {
@@ -292,8 +290,7 @@ namespace Libplanet.Net.Transports
         TimeSpan? timeout,
         int expectedResponses,
         bool returnWhenTimeout,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -315,8 +312,7 @@ namespace Libplanet.Net.Transports
                 CancellationTokenSource.CreateLinkedTokenSource(
                     _runtimeCancellationTokenSource.Token,
                     cancellationToken,
-                    timerCts.Token
-                );
+                    timerCts.Token);
             CancellationToken linkedCt = linkedCts.Token;
 
             Guid reqId = Guid.NewGuid();
@@ -348,8 +344,7 @@ namespace Libplanet.Net.Transports
                     reqId,
                     peer,
                     content,
-                    Interlocked.Read(ref _requestCount)
-                );
+                    Interlocked.Read(ref _requestCount));
 
                 foreach (var i in Enumerable.Range(0, expectedResponses))
                 {
@@ -424,11 +419,9 @@ namespace Libplanet.Net.Transports
                 throw WrapCommunicationFailException(
                     new TimeoutException(
                         $"The operation was canceled due to timeout {timeout!.ToString()}.",
-                        oce
-                    ),
+                        oce),
                     peer,
-                    content
-                );
+                    content);
             }
             catch (OperationCanceledException oce2)
             {
@@ -485,20 +478,17 @@ namespace Libplanet.Net.Transports
                         .AddTag("Peers", boundPeers.Select(x => x.PeerString));
                     await boundPeers.ParallelForEachAsync(
                         peer => SendMessageAsync(peer, content, TimeSpan.FromSeconds(1), ct),
-                        ct
-                    );
+                        ct);
 
                     a?.SetStatus(ActivityStatusCode.Ok);
                 },
-                ct
-            );
+                ct);
 
             _logger.Debug(
                 "Broadcasting message {Message} as {AsPeer} to {PeerCount} peers",
                 content,
                 AsPeer,
-                boundPeers.Count
-            );
+                boundPeers.Count);
         }
 
         public async Task ReplyMessageAsync(
@@ -525,9 +515,7 @@ namespace Libplanet.Net.Transports
                         _appProtocolVersionOptions.AppProtocolVersion,
                         AsPeer,
                         DateTimeOffset.UtcNow,
-                        identity)
-                )
-            );
+                        identity)));
 
             await ev.WaitAsync(cancellationToken);
         }
@@ -581,8 +569,7 @@ namespace Libplanet.Net.Transports
 
                     _logger.Verbose(
                         "A raw message [frame count: {0}] has received",
-                        raw.FrameCount
-                    );
+                        raw.FrameCount);
 
                     if (_runtimeCancellationTokenSource.IsCancellationRequested)
                     {
@@ -652,8 +639,7 @@ namespace Libplanet.Net.Transports
                                     await ReplyMessageAsync(
                                         diffVersion,
                                         message.Identity ?? Array.Empty<byte>(),
-                                        _runtimeCancellationTokenSource.Token
-                                    );
+                                        _runtimeCancellationTokenSource.Token);
                                 }
                             }
                             catch (InvalidMessageContentException ex)
@@ -669,8 +655,8 @@ namespace Libplanet.Net.Transports
                         },
                         CancellationToken.None,
                         TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach,
-                        TaskScheduler.Default
-                    ).Unwrap();
+                        TaskScheduler.Default)
+                    .Unwrap();
                 }
             }
             catch (Exception ex)
@@ -684,8 +670,7 @@ namespace Libplanet.Net.Transports
 
         private void DoReply(
             object? sender,
-            NetMQQueueEventArgs<(AsyncManualResetEvent, Message)> e
-        )
+            NetMQQueueEventArgs<(AsyncManualResetEvent, Message)> e)
         {
             (AsyncManualResetEvent ev, Message message) = e.Queue.Dequeue();
             string reqId = message.Identity is { } identity && identity.Length == 16
@@ -734,8 +719,7 @@ namespace Libplanet.Net.Transports
                     left);
 
                 _ = SynchronizationContext.Current.PostAsync(
-                    () => ProcessRequest(req, req.CancellationToken)
-                );
+                    () => ProcessRequest(req, req.CancellationToken));
 
 #if NETCOREAPP3_0 || NETCOREAPP3_1 || NET
                 _logger.Verbose(waitMsg);
@@ -760,8 +744,7 @@ namespace Libplanet.Net.Transports
                 "Trying to send request {Message} {RequestId} to {Peer}",
                 req.Message.Content.Type,
                 req.Id,
-                req.Peer
-            );
+                req.Peer);
             int receivedCount = 0;
             long? incrementedSocketCount = null;
 
@@ -836,16 +819,14 @@ namespace Libplanet.Net.Transports
                 foreach (var i in Enumerable.Range(0, req.ExpectedResponses))
                 {
                     NetMQMessage raw = await dealer.ReceiveMultipartMessageAsync(
-                        cancellationToken: cancellationToken
-                    );
+                        cancellationToken: cancellationToken);
 
                     _logger.Verbose(
                         "Received a raw message with {FrameCount} frames as a reply to " +
                         "request {RequestId} from {Peer}",
                         raw.FrameCount,
                         req.Id,
-                        req.Peer
-                    );
+                        req.Peer);
                     await channel.Writer.WriteAsync(raw, cancellationToken);
                     receivedCount += 1;
                 }
@@ -921,22 +902,19 @@ namespace Libplanet.Net.Transports
                 },
                 CancellationToken.None,
                 taskCreationOptions,
-                TaskScheduler.Default
-            );
+                TaskScheduler.Default);
         }
 
         private CommunicationFailException WrapCommunicationFailException(
             Exception innerException,
             BoundPeer peer,
-            MessageContent message
-        )
+            MessageContent message)
         {
             return new CommunicationFailException(
                 $"Failed to send and receive replies from {peer} for request {message}.",
                 message.Type,
                 peer,
-                innerException
-            );
+                innerException);
         }
 
         private class MessageRequest

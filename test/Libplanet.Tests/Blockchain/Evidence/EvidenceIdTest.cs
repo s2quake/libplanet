@@ -42,8 +42,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
 
             // Then
             var actualEvidenceId = EvidenceId.Parse(
@@ -96,8 +95,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
 
             // Then
             var expectedHex = "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc";
@@ -116,8 +114,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
 
             // Then
             var expectedString = "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc";
@@ -136,8 +133,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             var sameEvidenceId2 = new EvidenceId(
                 new byte[]
                 {
@@ -145,8 +141,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             var differentEvidenceId = new EvidenceId(
                 new byte[]
                 {
@@ -154,8 +149,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0x00,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0x00,
                     0x9c, 0x00,
-                }
-            );
+                });
 
             // Then
             Assert.Equal(sameEvidenceId1, sameEvidenceId2);
@@ -185,12 +179,10 @@ namespace Libplanet.Tests.Blockchain.Evidence
                 var rightString = right.ToString().ToLower();
                 Assert.Equal(
                     Math.Min(Math.Max(left.CompareTo(right), 1), -1),
-                    Math.Min(Math.Max(leftString.CompareTo(rightString), 1), -1)
-                );
+                    Math.Min(Math.Max(leftString.CompareTo(rightString), 1), -1));
                 Assert.Equal(
                     left.CompareTo(right),
-                    (left as IComparable).CompareTo(right)
-                );
+                    (left as IComparable).CompareTo(right));
             }
         }
 
@@ -231,8 +223,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
                 "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
             AssertJsonSerializable(
                 evidenceId,
-                "\"45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc\""
-            );
+                "\"45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc\"");
         }
     }
 }

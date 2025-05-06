@@ -11,8 +11,7 @@ namespace Libplanet.Tests.Store.Trie.Nodes
         {
             var shortNode = new ShortNode(
                 Nibbles.Parse("beef"),
-                new ValueNode((Text)"foo")
-            );
+                new ValueNode((Text)"foo"));
 
             var expected =
                 new List(new IValue[]

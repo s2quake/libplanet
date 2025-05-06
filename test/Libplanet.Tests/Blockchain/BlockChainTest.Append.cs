@@ -83,15 +83,13 @@ namespace Libplanet.Tests.Blockchain
                 addresses.Select(_blockChain
                     .GetWorld(renders[0].Context.PreviousState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue)
-            );
+                    .GetValue));
             Assert.Equal(
                 new IValue[] { (Text)"foo", null, null, null, (Integer)1 },
                 addresses.Select(_blockChain
                     .GetWorld(renders[0].NextState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue)
-            );
+                    .GetValue));
             Assert.Equal("bar", actions[1].Append?.Item);
             Assert.Equal(2, renders[1].Context.BlockHeight);
             Assert.Equal(
@@ -102,14 +100,12 @@ namespace Libplanet.Tests.Blockchain
                 addresses.Select(_blockChain
                     .GetWorld(renders[1].Context.PreviousState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue)
-            );
+                    .GetValue));
             Assert.Equal(
                 new IValue[] { (Text)"foo", (Text)"bar", null, null, (Integer)1 },
                 addresses.Select(
                     _blockChain.GetWorld(renders[1].NextState)
-                        .GetAccount(ReservedAddresses.LegacyAccount).GetValue)
-            );
+                        .GetAccount(ReservedAddresses.LegacyAccount).GetValue));
             Assert.Equal("baz", actions[2].Append?.Item);
             Assert.Equal(2, renders[2].Context.BlockHeight);
             Assert.Equal(
@@ -118,16 +114,14 @@ namespace Libplanet.Tests.Blockchain
                         .GetAccount(ReservedAddresses.LegacyAccount).GetValue),
                 addresses.Select(
                     _blockChain.GetWorld(renders[2].Context.PreviousState)
-                        .GetAccount(ReservedAddresses.LegacyAccount).GetValue)
-            );
+                        .GetAccount(ReservedAddresses.LegacyAccount).GetValue));
             Assert.Equal(
                 new IValue[] { (Text)"foo", (Text)"bar", (Text)"baz", null, (Integer)1 },
                 addresses.Select(
                     _blockChain
                         .GetWorld(renders[2].NextState)
                         .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue)
-            );
+                        .GetValue));
             Assert.Equal("qux", actions[3].Append?.Item);
             Assert.Equal(2, renders[3].Context.BlockHeight);
             Assert.Equal(
@@ -140,8 +134,7 @@ namespace Libplanet.Tests.Blockchain
                     _blockChain
                         .GetWorld(renders[3].Context.PreviousState)
                         .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue)
-            );
+                        .GetValue));
             Assert.Equal(
                 new IValue[]
                 {
@@ -151,8 +144,7 @@ namespace Libplanet.Tests.Blockchain
                     _blockChain
                         .GetWorld(renders[3].NextState)
                         .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue)
-            );
+                        .GetValue));
 
             Address minerAddress = addresses[4];
             RenderRecord.ActionSuccess[] blockRenders = _renderer.ActionSuccessRecords
@@ -175,22 +167,19 @@ namespace Libplanet.Tests.Blockchain
                 (Integer)_blockChain
                     .GetWorld(blockRenders[0].NextState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue(minerAddress)
-            );
+                    .GetValue(minerAddress));
             Assert.Equal(
                 (Integer)1,
                 (Integer)_blockChain
                     .GetWorld(blockRenders[1].Context.PreviousState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue(minerAddress)
-            );
+                    .GetValue(minerAddress));
             Assert.Equal(
                 (Integer)2,
                 (Integer)_blockChain
                     .GetWorld(blockRenders[1].NextState)
                     .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue(minerAddress)
-            );
+                    .GetValue(minerAddress));
 
             foreach (Transaction tx in txs)
             {
@@ -236,8 +225,7 @@ namespace Libplanet.Tests.Blockchain
                     DumbAction.Create((addresses[0], "bar"), (addresses[0], addresses[2], 20)),
                 },
                 nonce: 0,
-                privateKey: pk
-            );
+                privateKey: pk);
             Transaction tx2Error = _fx.MakeTransaction(
                 new[]
                 {
@@ -246,16 +234,14 @@ namespace Libplanet.Tests.Blockchain
                     DumbAction.Create((pk.Address, "foo"), (addresses[0], addresses[1], -5)),
                 },
                 nonce: 1,
-                privateKey: pk
-            );
+                privateKey: pk);
             Transaction tx3Transfer = _fx.MakeTransaction(
                 new[]
                 {
                     DumbAction.Create((pk.Address, "foo"), (addresses[0], addresses[1], 5)),
                 },
                 nonce: 2,
-                privateKey: pk
-            );
+                privateKey: pk);
             Block block3 = _blockChain.ProposeBlock(
                 keys[4],
                 [tx1Transfer, tx2Error, tx3Transfer],
@@ -393,8 +379,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
             var e = Assert.Throws<InvalidOperationException>(() =>
-                _blockChain.Append(block, TestUtils.CreateBlockCommit(block))
-            );
+                _blockChain.Append(block, TestUtils.CreateBlockCommit(block)));
         }
 
         [SkippableFact]
@@ -422,8 +407,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(manyTxs.Count, block.Transactions.Count);
 
             var e = Assert.Throws<InvalidOperationException>(() =>
-                _blockChain.Append(block, TestUtils.CreateBlockCommit(block))
-            );
+                _blockChain.Append(block, TestUtils.CreateBlockCommit(block)));
         }
 
         // [SkippableFact]

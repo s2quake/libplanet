@@ -220,8 +220,7 @@ namespace Libplanet.Blockchain
                     $"#{block.Height} {block.Hash} is not supported by this node." +
                     $"The highest supported protocol version is {currentProtocolVersion}.";
                 throw new InvalidOperationException(
-                    message
-                );
+                    message);
             }
             else if (actualProtocolVersion < Tip.ProtocolVersion)
             {

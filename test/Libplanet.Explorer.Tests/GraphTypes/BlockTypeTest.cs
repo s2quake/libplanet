@@ -95,8 +95,7 @@ public class BlockTypeTest
         ExecutionResult result = await ExecuteQueryAsync(
             query,
             blockType,
-            source: block
-        );
+            source: block);
         Dictionary<string, object> resultData =
             (Dictionary<string, object>)((ExecutionNode)result.Data!)?.ToValue()!;
         Assert.Null(result.Errors);

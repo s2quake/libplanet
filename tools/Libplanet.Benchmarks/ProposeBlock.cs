@@ -45,8 +45,7 @@ namespace Libplanet.Benchmarks
                 nameof(ProposeBlockTenTransactionsNoAction),
                 nameof(ProposeBlockOneTransactionWithActions),
                 nameof(ProposeBlockTenTransactionsWithActions),
-            }
-        )]
+            })]
         public void CleanupPropose()
         {
             // To unstaging transactions, a block is appended to blockchain.

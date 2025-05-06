@@ -43,14 +43,12 @@ namespace Libplanet.Explorer.GraphTypes
                                 "It supports only 'hex' or 'base64'.";
                             throw new ExecutionError(msg);
                     }
-                }
-            );
+                });
 
             Field<NonNullGraphType<StringGraphType>>(
                 name: "Inspection",
                 description: "A readable representation for debugging.",
-                resolve: ctx => ctx.Source.Inspect()
-            );
+                resolve: ctx => ctx.Source.Inspect());
 
             Field<NonNullGraphType<StringGraphType>>(
                 name: "json",
@@ -62,8 +60,7 @@ namespace Libplanet.Explorer.GraphTypes
                     var writer = new Utf8JsonWriter(buffer);
                     converter.Write(writer, ctx.Source, new JsonSerializerOptions());
                     return Encoding.UTF8.GetString(buffer.ToArray());
-                }
-            );
+                });
         }
     }
 }

@@ -42,8 +42,7 @@ namespace Libplanet.Net
         public delegate IAsyncEnumerable<EvidenceBase> EvidenceFetcher(
             TPeer peer,
             IEnumerable<EvidenceId> evidenceIds,
-            CancellationToken cancellationToken
-        );
+            CancellationToken cancellationToken);
 
         public delegate void EvidenceBroadcaster(TPeer except, IEnumerable<EvidenceBase> evidence);
 
@@ -99,9 +98,7 @@ namespace Libplanet.Net
 
                             _evidenceFetchJobs.TryRemove(peer, out _);
                         },
-                        _cancellationTokenSource.Token
-                    )
-                );
+                        _cancellationTokenSource.Token));
 
                 if (evidenceFetchJob.TryAdd(required, out HashSet<EvidenceId> rest))
                 {
@@ -163,8 +160,7 @@ namespace Libplanet.Net
                     _logger.Information(
                         "No transaction has been staged among received {EvidenceCount} from {Peer}",
                         evidence.Count,
-                        peer
-                    );
+                        peer);
                 }
             }
             catch (Exception e)
@@ -206,8 +202,7 @@ namespace Libplanet.Net
                     new UnboundedChannelOptions
                     {
                         SingleReader = true,
-                    }
-                );
+                    });
                 _evidenceIdsWriterLock = new ReaderWriterLockSlim();
 
                 _logger = Log
@@ -253,8 +248,7 @@ namespace Libplanet.Net
 
             private async Task<ISet<EvidenceBase>> RequestAsync(
                 TimeSpan waitFor,
-                CancellationToken cancellationToken
-            )
+                CancellationToken cancellationToken)
             {
                 _ = Task.Run(async () =>
                 {

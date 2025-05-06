@@ -96,15 +96,13 @@ public class BlockPolicyParams : ICommandParameterSet
             {
                 MethodInfo method = type.GetMethod(
                     methodName,
-                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
-                ) ?? throw new TypeLoadException(
+                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic) ?? throw new TypeLoadException(
                     $"Failed to find a static method named {methodName}() in {type.FullName}.");
 
                 if (method.GetParameters().Length != 0)
                 {
                     throw new TypeLoadException(
-                        $"The factory method {PolicyFactory}() must have no parameters."
-                    );
+                        $"The factory method {PolicyFactory}() must have no parameters.");
                 }
 
                 Type returnType = method.ReturnType;
@@ -112,21 +110,18 @@ public class BlockPolicyParams : ICommandParameterSet
                 {
                     throw new TypeLoadException(
                         $"The return type of {PolicyFactory}() must be " +
-                        $"{nameof(IBlockPolicy)}."
-                    );
+                        $"{nameof(IBlockPolicy)}.");
                 }
 
                 return method.Invoke(null, Array.Empty<object>()) ??
                     throw new InvalidOperationException(
-                        $"The factory method {PolicyFactory}() returned null."
-                    );
+                        $"The factory method {PolicyFactory}() returned null.");
             }
         }
 
         throw new TypeLoadException(
             $"Failed to load policy type {typeName} from assemblies:\n\n" +
-            string.Join("\n", assemblies.Select(asm => asm.FullName))
-        );
+            string.Join("\n", assemblies.Select(asm => asm.FullName)));
     }
 
     internal PolicyActions GetPolicyActions(Assembly[] assemblies)

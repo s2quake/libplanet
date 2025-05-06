@@ -24,12 +24,10 @@ namespace Libplanet.Tests.Store
             Assert.Contains(
                 StoreLoaderAttribute.ListStoreLoaders(),
                 pair => pair.UriScheme == "test" &&
-                    pair.DeclaringType == typeof(StoreLoaderAttributeTest)
-            );
+                    pair.DeclaringType == typeof(StoreLoaderAttributeTest));
             Assert.DoesNotContain(
                 StoreLoaderAttribute.ListStoreLoaders(),
-                pair => pair.UriScheme == "non-existent"
-            );
+                pair => pair.UriScheme == "non-existent");
         }
 
         [Fact]

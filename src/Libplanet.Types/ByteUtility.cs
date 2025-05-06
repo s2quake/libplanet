@@ -35,8 +35,7 @@ public static class ByteUtility
         {
             throw new ArgumentOutOfRangeException(
                 nameof(hex),
-                "A length of a hexadecimal string must be an even number."
-            );
+                "A length of a hexadecimal string must be an even number.");
         }
 
         var bytes = new byte[hex.Length / 2];

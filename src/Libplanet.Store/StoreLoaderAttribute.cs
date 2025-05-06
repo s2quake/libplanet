@@ -61,8 +61,7 @@ namespace Libplanet.Store
                 flags,
                 null,
                 new object[] { storeUri },
-                CultureInfo.CurrentCulture
-            );
+                CultureInfo.CurrentCulture);
         }
 
         /// <summary>

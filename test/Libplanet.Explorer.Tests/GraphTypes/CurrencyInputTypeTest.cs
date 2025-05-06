@@ -84,7 +84,6 @@ class TestQuery : ObjectGraphType
             new QueryArgument<CurrencyInputType>
             {
                 Name = "currency",
-            }
-        ), resolve: context => context.GetArgument<Currency>("currency"));
+            }), resolve: context => context.GetArgument<Currency>("currency"));
     }
 }

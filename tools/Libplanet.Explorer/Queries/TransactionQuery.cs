@@ -49,8 +49,7 @@ namespace Libplanet.Explorer.Queries
                         Name = "offset",
                         DefaultValue = 0,
                     },
-                    new QueryArgument<IntGraphType> { Name = "limit" }
-                ),
+                    new QueryArgument<IntGraphType> { Name = "limit" }),
                 resolve: context =>
                 {
                     var signer = context.GetArgument<Address?>("signer");
@@ -59,8 +58,7 @@ namespace Libplanet.Explorer.Queries
                     int? limit = context.GetArgument<int?>("limit");
 
                     return ExplorerQuery.ListTransactions(signer, desc, offset, limit);
-                }
-            );
+                });
 
             Field<NonNullGraphType<ListGraphType<NonNullGraphType<TransactionType>>>>(
                 "stagedTransactions",
@@ -85,8 +83,7 @@ namespace Libplanet.Explorer.Queries
                         Name = "offset",
                         DefaultValue = 0,
                     },
-                    new QueryArgument<IntGraphType> { Name = "limit" }
-                ),
+                    new QueryArgument<IntGraphType> { Name = "limit" }),
                 resolve: context =>
                 {
                     var signer = context.GetArgument<Address?>("signer");
@@ -98,20 +95,16 @@ namespace Libplanet.Explorer.Queries
                         signer,
                         desc,
                         offset,
-                        limit
-                    );
-                }
-            );
+                        limit);
+                });
 
             Field<TransactionType>(
                 "transaction",
                 arguments: new QueryArguments(
-                    new QueryArgument<IdGraphType> { Name = "id" }
-                ),
+                    new QueryArgument<IdGraphType> { Name = "id" }),
                 resolve: context => ExplorerQuery.GetTransaction(
                     new TxId(ByteUtility.ParseHex(context.GetArgument<string>("id")
-                        ?? throw new ArgumentException("Given id cannot be null."))))
-            );
+                        ?? throw new ArgumentException("Given id cannot be null.")))));
 
             Field<NonNullGraphType<ByteStringType>>(
                 name: "unsignedTransaction",
@@ -130,8 +123,7 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "nonce",
                         Description = "The nonce for Transaction.",
-                    }
-                ),
+                    }),
                 resolve: context =>
                 {
                     BlockChain chain = _context.BlockChain;
@@ -153,8 +145,7 @@ namespace Libplanet.Explorer.Queries
                         SigningMetadata = signingMetadata,
                     };
                     return unsignedTx.CreateMessage();
-                }
-            );
+                });
 
             Field<NonNullGraphType<LongGraphType>>(
                 name: "nextNonce",
@@ -163,11 +154,9 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "address",
                         Description = "Address of the account to get the next tx nonce.",
-                    }
-                ),
+                    }),
                 resolve: context =>
-                    _context.BlockChain.GetNextTxNonce(context.GetArgument<Address>("address"))
-            );
+                    _context.BlockChain.GetNextTxNonce(context.GetArgument<Address>("address")));
 
             Field<NonNullGraphType<StringGraphType>>(
                 name: "bindSignature",
@@ -188,18 +177,15 @@ namespace Libplanet.Explorer.Queries
                         #pragma warning disable MEN002
                         Description = "The hexadecimal string of the given unsigned transaction.",
                         #pragma warning restore MEN002
-                    }
-                ),
+                    }),
                 resolve: context =>
                 {
                     ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
-                        context.GetArgument<string>("signature")
-                    );
+                        context.GetArgument<string>("signature"));
                     var unsignedTx = ModelSerializer.DeserializeFromBytes<UnsignedTx>(ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")));
                     var signedTransaction = unsignedTx.Verify(signature);
                     return ByteUtility.Hex(ModelSerializer.SerializeToBytes(signedTransaction));
-                }
-            );
+                });
 
             Field<NonNullGraphType<TxResultType>>(
                 name: "transactionResult",
@@ -208,8 +194,7 @@ namespace Libplanet.Explorer.Queries
                     {
                         Name = "txId",
                         Description = "transaction id.",
-                    }
-                ),
+                    }),
                 resolve: context =>
                 {
                     var blockChain = _context.BlockChain;
@@ -248,8 +233,7 @@ namespace Libplanet.Explorer.Queries
                                 TxStatus = TxStatus.INVALID,
                             };
                     }
-                }
-            );
+                });
 
             Name = "TransactionQuery";
         }

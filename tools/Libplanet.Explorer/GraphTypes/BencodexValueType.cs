@@ -31,8 +31,7 @@ namespace Libplanet.Explorer.GraphTypes
                 string hex => _codec.Decode(ByteUtility.ParseHex(hex)),
                 _ => throw new ArgumentException(
                     $"Expected a hexadecimal string but {value}",
-                    nameof(value)
-                ),
+                    nameof(value)),
             };
         }
 

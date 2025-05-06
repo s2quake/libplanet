@@ -20,8 +20,7 @@ public class DefaultStoreFixture : StoreFixture, IDisposable
         {
             Path = System.IO.Path.Combine(
                 System.IO.Path.GetTempPath(),
-                $"defaultstore_test_{Guid.NewGuid()}"
-            );
+                $"defaultstore_test_{Guid.NewGuid()}");
         }
 
         Scheme = "default+file://";

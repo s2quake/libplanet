@@ -20,14 +20,12 @@ namespace Libplanet.Tests.KeyStore.Ciphers
         public void Constructor()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Aes128Ctr(new byte[0].ToImmutableArray())
-            );
+                new Aes128Ctr(new byte[0].ToImmutableArray()));
             var random = new Random();
             var buffer = new byte[17];
             random.NextBytes(buffer);
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new Aes128Ctr(buffer.ToImmutableArray())
-            );
+                new Aes128Ctr(buffer.ToImmutableArray()));
         }
 
         [Fact]
@@ -56,39 +54,33 @@ namespace Libplanet.Tests.KeyStore.Ciphers
                     0xbc, 0x7f, 0x2c, 0xa2, 0x3b, 0xfe, 0xe0, 0xdd,
                     0x97, 0x25, 0x22, 0x8a, 0xb2, 0xb0, 0xd9, 0x8a,
                 }.ToImmutableArray(),
-                cipher.Iv
-            );
+                cipher.Iv);
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"{
                     // ""iv"": ""..."",  // lacks
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"{
                     ""iv"": true,  // not a string
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"{
                     ""iv"": null,  // not a string, but null
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"{
                     ""iv"": ""not a hexadecimal string"",
-                }")
-            );
+                }"));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"{
                     ""iv"": ""bc7f2ca23bfee0dd9725228ab2b0d98"",
                     // iv: invalid length
-                }")
-            );
+                }"));
         }
     }
 }

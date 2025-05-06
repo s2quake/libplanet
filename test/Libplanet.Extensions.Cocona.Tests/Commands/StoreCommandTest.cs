@@ -40,8 +40,7 @@ public class StoreCommandTest : IDisposable
         {
             _storeFixtures = ImmutableArray.Create<StoreFixture>(
                 new DefaultStoreFixture(false),
-                new RocksDBStoreFixture()
-            );
+                new RocksDBStoreFixture());
         }
         catch (TypeInitializationException)
         {
@@ -118,18 +117,15 @@ public class StoreCommandTest : IDisposable
         Assert.Throws<ArgumentException>(() =>
             new StoreCommand().BlockByHash(
                 "rocksdb+file+file://" + "/blah",
-                "dummy"
-            ));
+                "dummy"));
         Assert.Throws<ArgumentException>(() =>
             new StoreCommand().BlockByHash(
                 "rocksdb+memory://" + "/blah",
-                "dummy"
-            ));
+                "dummy"));
         Assert.Throws<ArgumentException>(() =>
             new StoreCommand().BlockByHash(
                 "leveldb://" + "/blah",
-                "dummy"
-            ));
+                "dummy"));
     }
 
     [SkippableFact]
@@ -148,8 +144,7 @@ public class StoreCommandTest : IDisposable
             Assert.Throws<CommandExitedException>(() =>
                 new StoreCommand().BlocksByTxId(
                     fx.Scheme + fx.Path,
-                    _transaction4.Id.ToString()
-                ));
+                    _transaction4.Id.ToString()));
         }
     }
 
@@ -172,8 +167,7 @@ public class StoreCommandTest : IDisposable
             Console.SetError(stderr);
             new StoreCommand().BlocksByTxId(
                 fx.Scheme + fx.Path,
-                _transaction3.Id.ToString()
-            );
+                _transaction3.Id.ToString());
             var actual = stdout.ToString();
             _testOutput.WriteLine($"stdout:\n  {actual.Replace("\n", "\n  ")}\n");
             _testOutput.WriteLine($"stderr:\n  {stderr.ToString().Replace("\n", "\n  ")}\n");
@@ -188,8 +182,7 @@ public class StoreCommandTest : IDisposable
                 expected.TrimEnd(),
                 actual.TrimEnd(),
                 ignoreLineEndingDifferences: true,
-                ignoreWhiteSpaceDifferences: true
-            );
+                ignoreWhiteSpaceDifferences: true);
         }
     }
 
@@ -210,8 +203,7 @@ public class StoreCommandTest : IDisposable
             Console.SetOut(sw);
             new StoreCommand().BlockHashesByTxId(
                 fx.Scheme + fx.Path,
-                _transaction3.Id.ToString()
-            );
+                _transaction3.Id.ToString());
             var actual = sw.ToString();
             var expected = Utils.SerializeHumanReadable(new[] { _block3.Hash, _block4.Hash });
             if (expected.TrimEnd() != actual.TrimEnd())
@@ -238,15 +230,13 @@ public class StoreCommandTest : IDisposable
         {
             void AssertTxBlockIndex(
                 Transaction tx,
-                Block block
-            )
+                Block block)
             {
                 using var sw = new StringWriter();
                 Console.SetOut(sw);
                 new StoreCommand().BlocksByTxId(
                     fx.Scheme + fx.Path,
-                    tx.Id.ToString()
-                );
+                    tx.Id.ToString());
                 var actual = sw.ToString();
                 var expected = Utils.SerializeHumanReadable(new[] { block });
                 Assert.Equal(expected.TrimEnd(), actual.TrimEnd());
@@ -265,8 +255,7 @@ public class StoreCommandTest : IDisposable
             Assert.Throws<CommandExitedException>(() =>
                 new StoreCommand().BlockByHash(
                     fx.Scheme + fx.Path,
-                    _block5.Hash.ToString())
-            );
+                    _block5.Hash.ToString()));
         }
     }
 
@@ -294,9 +283,7 @@ public class StoreCommandTest : IDisposable
             Assert.Throws<CommandExitedException>(() =>
                 new StoreCommand().BlockByIndex(
                     fx.Scheme + fx.Path,
-                    9999999 * 100
-                )
-            );
+                    9999999 * 100));
         }
     }
 
@@ -322,8 +309,7 @@ public class StoreCommandTest : IDisposable
             Assert.Throws<CommandExitedException>(() =>
                 new StoreCommand().TxById(
                     fx.Scheme + fx.Path,
-                    fx.Transaction2.Id.ToString())
-            );
+                    fx.Transaction2.Id.ToString()));
         }
     }
 

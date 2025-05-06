@@ -245,8 +245,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
             long ChainTipIndex,
             BlockHash? IndexTipHash) syncMetadata,
         bool log,
-        CancellationToken stoppingToken
-    )
+        CancellationToken stoppingToken)
     {
         var chainId = syncMetadata.ChainId;
         var indexTipIndex = syncMetadata.IndexTipIndex;

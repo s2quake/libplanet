@@ -36,8 +36,7 @@ namespace Libplanet.Explorer.Cocona.Commands
             [Argument("STORE", Description = StoreArgumentDescription)]
             string storeUri,
             [Argument("INDEX", Description = IndexArgumentDescription)]
-            string indexUri
-        )
+            string indexUri)
         {
             try
             {
@@ -69,8 +68,7 @@ namespace Libplanet.Explorer.Cocona.Commands
             {
                 throw new ArgumentException(
                     $"The index URI scheme must contain a transport (e.g. sqlite+file://).",
-                    nameof(uriString)
-                );
+                    nameof(uriString));
             }
 
             if (protocol is "rocksdb" && transport is "file")
@@ -80,8 +78,7 @@ namespace Libplanet.Explorer.Cocona.Commands
 
             throw new ArgumentException(
                 $"The index URI scheme {uri.Scheme}:// is not supported.",
-                nameof(uriString)
-            );
+                nameof(uriString));
         }
     }
 }

@@ -57,8 +57,7 @@ public class TransactionTest
                 0x46, 0xb2, 0xec, 0xd8, 0x3f, 0xd2, 0x76, 0x18, 0x2a, 0xde,
                 0x02, 0x65, 0x82, 0x5e, 0x3b, 0x8c, 0x6b, 0xa2, 0x14, 0x46,
                 0x7b, 0x76,
-            }
-        );
+            });
         var timestamp =
             new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
         var action = new Initialize
@@ -74,8 +73,7 @@ public class TransactionTest
             privateKey,
             default,
             actions: new[] { action }.ToBytecodes(),
-            timestamp: timestamp
-        );
+            timestamp: timestamp);
 
         AssertBytesEqual(privateKey.Address, tx.Signer);
         Assert.Empty(tx.UpdatedAddresses);
@@ -90,12 +88,10 @@ public class TransactionTest
                 0x74, 0x75, 0x5f, 0x6c, 0xdd, 0x69, 0x89, 0x3a, 0x82, 0x72, 0xd2, 0xcf, 0xee,
                 0x31, 0x31, 0x7f, 0x53, 0x39, 0x25, 0xe4, 0x1c, 0xdf, 0x3d, 0x55, 0x61, 0x1b,
             },
-            tx.Signature
-        );
+            tx.Signature);
         AssertBytesEqual(
             TxId.Parse("babd317f0ce9961a528d9c923022fa4e0a360df0437463af7267ac40c5a889e6"),
-            tx.Id
-        );
+            tx.Id);
     }
 
     [Fact]
@@ -109,37 +105,32 @@ public class TransactionTest
             [
                 0xe6, 0x95, 0x1c, 0x43, 0x02, 0xdf, 0x13, 0xf9, 0x29, 0xfc,
                 0xdb, 0xc5, 0x56, 0xd9, 0xac, 0x20, 0x41, 0xfe, 0xf9, 0x5f,
-            ]
-        );
+            ]);
         Transaction tx = Transaction.Create(
             0,
             privateKey,
             default,
             new[]
             {
-                DumbAction.Create((stateStore, "F"), recordRandom: false),
+                DumbAction.Create((stateStore, "F")),
             }.ToBytecodes(),
             null,
             0L,
-            timestamp
-        );
+            timestamp);
 
         Assert.Equal(
             new Address(privateKey.PublicKey),
-            tx.Signer
-        );
+            tx.Signer);
         Assert.Equal(privateKey.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
         AssertBytesEqual(
             "20687120cb1d510e954cb506af5e92d9b4e19cf1ddf509ba104863db202a5e2b7" +
             "77d056be4e09f044182af2ebb79c449a4f619b5c77f5bd34567400e6dfcab881c",
-            tx.Signature
-        );
+            tx.Signature);
         AssertBytesEqual(
             new TxId(ByteUtility.ParseHex(
                 "6b377f828e6e310d986f5812caa732f00841ebaf66ace2b2aab6fe417ee1b84d")),
-            tx.Id
-        );
+            tx.Id);
     }
 
     [Fact]
@@ -181,9 +172,7 @@ public class TransactionTest
                 Array.Empty<DumbAction>().ToBytecodes(),
                 null,
                 0L,
-                DateTimeOffset.UtcNow
-            )
-        );
+                DateTimeOffset.UtcNow));
     }
 
     [Fact]
@@ -196,8 +185,7 @@ public class TransactionTest
                 0x46, 0xb2, 0xec, 0xd8, 0x3f, 0xd2, 0x76, 0x18, 0x2a, 0xde,
                 0x02, 0x65, 0x82, 0x5e, 0x3b, 0x8c, 0x6b, 0xa2, 0x14, 0x46,
                 0x7b, 0x76,
-            }
-        );
+            });
         var timestamp = new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
         var signature = new byte[]
         {
@@ -223,15 +211,13 @@ public class TransactionTest
 
         Assert.Equal(
             new Address(privateKey.PublicKey),
-            tx.Signer
-        );
+            tx.Signer);
         Assert.Equal(ImmutableHashSet<Address>.Empty, tx.UpdatedAddresses);
         Assert.Equal(privateKey.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
         AssertBytesEqual(
             signature,
-            tx.Signature
-        );
+            tx.Signature);
         AssertBytesEqual(
             new TxId(
                 new byte[]
@@ -239,10 +225,8 @@ public class TransactionTest
                     0x35, 0x50, 0x73, 0x12, 0xcf, 0x5b, 0xae, 0xd8, 0xa3, 0x79, 0x69, 0xd2,
                     0xb0, 0xb5, 0x9a, 0x16, 0xe4, 0x88, 0x81, 0xc1, 0x0e, 0xe4, 0xb4, 0x1d,
                     0xed, 0x2d, 0x0f, 0xf5, 0x41, 0xf0, 0x03, 0xd1,
-                }
-            ),
-            tx.Id
-        );
+                }),
+            tx.Id);
 
         var invalidSignature = new byte[]
         {
@@ -265,8 +249,7 @@ public class TransactionTest
             {
                 UnsignedTx = _fx.Tx.UnsignedTx,
                 Signature = new byte[_fx.Tx.Signature.Length].ToImmutableArray(),
-            }
-        );
+            });
     }
 
     [Fact]
@@ -277,8 +260,7 @@ public class TransactionTest
             0,
             _fx.PrivateKey1,
             default,
-            actions.ToBytecodes()
-        );
+            actions.ToBytecodes());
         actions.Add(new DumbAction());
         Assert.Empty(tx.Actions);
     }

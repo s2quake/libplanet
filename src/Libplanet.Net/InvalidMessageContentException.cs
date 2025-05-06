@@ -7,8 +7,7 @@ namespace Libplanet.Net
         internal InvalidMessageContentException(
             string message,
             MessageContent content,
-            Exception innerException
-        )
+            Exception innerException)
             : base(message, innerException)
         {
             Content = content;

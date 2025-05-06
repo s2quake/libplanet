@@ -43,8 +43,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         public override void RenderAction(
             IValue action,
             CommittedActionContext context,
-            HashDigest<SHA256> nextState
-        )
+            HashDigest<SHA256> nextState)
         {
             base.RenderAction(action, context, nextState);
             Validate();
@@ -54,8 +53,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         public override void RenderActionError(
             IValue action,
             CommittedActionContext context,
-            Exception exception
-        )
+            Exception exception)
         {
             base.RenderActionError(action, context, exception);
             Validate();
@@ -119,8 +117,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                                 throw BadRenderExc(
                                     $"{nameof(IRenderer.RenderBlock)} and " +
                                     $"{nameof(IActionRenderer.RenderBlockEnd)} which matches " +
-                                    "to it should have the same oldTip and newTip."
-                                );
+                                    "to it should have the same oldTip and newTip.");
                             }
 
 #pragma warning disable S2583
@@ -137,8 +134,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                             {
                                 throw BadRenderExc(
                                     "An action is from a block which has an unexpected index " +
-                                    $"#{idx} (expected max: #{blockState.NewTip.Height})."
-                                );
+                                    $"#{idx} (expected max: #{blockState.NewTip.Height}).");
                             }
 
                             previousActionBlockIndex = idx;
@@ -148,8 +144,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
                         throw BadRenderExc(
                             $"Expected {nameof(IActionRenderer.RenderBlockEnd)} or " +
                             $"{nameof(IActionRenderer.RenderAction)} or " +
-                            $"{nameof(IActionRenderer.RenderActionError)}"
-                        );
+                            $"{nameof(IActionRenderer.RenderActionError)}");
                     }
 
                     case RenderState.BlockEnd:

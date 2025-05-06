@@ -14,13 +14,11 @@ namespace Libplanet.Tests.KeyStore
             var e = new MismatchedAddressException(
                 "Some message.",
                 expectedAddress,
-                actualAddress
-            );
+                actualAddress);
             Assert.Equal(
                 "Some message.\nExpected address: 0x0000000000000000000000000000000000000000\n" +
                 "Actual address: 0x01234567789aBcdEF01234567789ABCdeF012345",
-                e.Message
-            );
+                e.Message);
             Assert.Equal(expectedAddress, e.ExpectedAddress);
             Assert.Equal(actualAddress, e.ActualAddress);
         }

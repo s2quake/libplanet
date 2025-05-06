@@ -175,8 +175,7 @@ namespace Libplanet.Blockchain
                     "restarted the chain with a new genesis block so that it is incompatible " +
                     "with your existing chain in the local store.";
                 throw new InvalidOperationException(
-                    message: msg
-                );
+                    message: msg);
             }
 
             _nextStateRootHash =
@@ -320,8 +319,7 @@ namespace Libplanet.Blockchain
                 if (!ContainsBlock(blockHash))
                 {
                     throw new KeyNotFoundException(
-                        $"The given hash[{blockHash}] was not found in this chain."
-                    );
+                        $"The given hash[{blockHash}] was not found in this chain.");
                 }
 
                 _rwlock.EnterReadLock();
@@ -977,8 +975,7 @@ namespace Libplanet.Blockchain
             Block block,
             BlockCommit blockCommit,
             bool render,
-            IReadOnlyList<CommittedActionEvaluation> actionEvaluations = null
-        )
+            IReadOnlyList<CommittedActionEvaluation> actionEvaluations = null)
         {
             if (Count == 0)
             {
@@ -1208,8 +1205,7 @@ namespace Libplanet.Blockchain
         /// by the same address, those with greater nonce never comes before those with
         /// lesser nonce.</returns>
         internal ImmutableList<Transaction> ListStagedTransactions(
-            IComparer<Transaction> txPriority = null
-        )
+            IComparer<Transaction> txPriority = null)
         {
             IEnumerable<Transaction> unorderedTxs = StagePolicy.Iterate(this);
             if (txPriority is { } comparer)

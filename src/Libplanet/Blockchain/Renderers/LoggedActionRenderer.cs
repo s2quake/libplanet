@@ -43,8 +43,7 @@ namespace Libplanet.Blockchain.Renderers
         public LoggedActionRenderer(
             IActionRenderer renderer,
             ILogger logger,
-            LogEventLevel level = LogEventLevel.Debug
-        )
+            LogEventLevel level = LogEventLevel.Debug)
             : base(renderer, logger, level)
         {
             ActionRenderer = renderer;
@@ -58,47 +57,40 @@ namespace Libplanet.Blockchain.Renderers
         /// <inheritdoc cref="IActionRenderer.RenderBlockEnd(Block, Block)"/>
         public void RenderBlockEnd(
             Block oldTip,
-            Block newTip
-        ) =>
+            Block newTip) =>
             LogBlockRendering(
                 nameof(RenderBlockEnd),
                 oldTip,
                 newTip,
-                ActionRenderer.RenderBlockEnd
-            );
+                ActionRenderer.RenderBlockEnd);
 
         /// <inheritdoc cref="IActionRenderer.RenderAction"/>
         public void RenderAction(
             IValue action,
             CommittedActionContext context,
-            HashDigest<SHA256> nextState
-        ) =>
+            HashDigest<SHA256> nextState) =>
             LogActionRendering(
                 nameof(RenderAction),
                 action,
                 context,
-                () => ActionRenderer.RenderAction(action, context, nextState)
-            );
+                () => ActionRenderer.RenderAction(action, context, nextState));
 
         /// <inheritdoc cref="IActionRenderer.RenderActionError"/>
         public void RenderActionError(
             IValue action,
             CommittedActionContext context,
-            Exception exception
-        ) =>
+            Exception exception) =>
             LogActionRendering(
                 nameof(RenderActionError),
                 action,
                 context,
-                () => ActionRenderer.RenderActionError(action, context, exception)
-            );
+                () => ActionRenderer.RenderActionError(action, context, exception));
 
         private void LogActionRendering(
             string methodName,
             IValue action,
             CommittedActionContext context,
-            System.Action callback
-        )
+            System.Action callback)
         {
             Type actionType = action.GetType();
             const string startMessage =

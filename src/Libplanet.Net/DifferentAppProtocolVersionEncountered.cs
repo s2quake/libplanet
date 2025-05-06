@@ -15,6 +15,5 @@ namespace Libplanet.Net
     public delegate void DifferentAppProtocolVersionEncountered(
         BoundPeer peer,
         AppProtocolVersion peerVersion,
-        AppProtocolVersion localVersion
-    );
+        AppProtocolVersion localVersion);
 }

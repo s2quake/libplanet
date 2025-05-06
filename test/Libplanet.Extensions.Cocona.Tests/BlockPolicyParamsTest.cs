@@ -25,8 +25,7 @@ public class BlockPolicyParamsTest
             PolicyFactory = $"{GetType().FullName}.{nameof(BlockPolicyFactory)}",
         };
         BlockPolicy blockPolicy = Assert.IsType<BlockPolicy>(
-            blockPolicyParams.GetBlockPolicy(new[] { GetType().Assembly })
-        );
+            blockPolicyParams.GetBlockPolicy(new[] { GetType().Assembly }));
         Assert.Single(blockPolicy.PolicyActions.BeginBlockActions);
         Assert.IsType<NullAction>(blockPolicy.PolicyActions.BeginBlockActions[0]);
         Assert.Single(blockPolicy.PolicyActions.EndBlockActions);

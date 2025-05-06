@@ -30,12 +30,10 @@ namespace Libplanet.Tests.KeyStore
 
             Assert.Equal(
                 new[] { (id, ppk.Address), (id2, ppk2.Address) }.ToHashSet(),
-                KeyStore.List().Select(tuple => (tuple.Item1, tuple.Item2.Address)).ToHashSet()
-            );
+                KeyStore.List().Select(tuple => (tuple.Item1, tuple.Item2.Address)).ToHashSet());
             Assert.Equal(
                 new[] { id, id2 }.ToHashSet(),
-                KeyStore.ListIds().ToHashSet()
-            );
+                KeyStore.ListIds().ToHashSet());
         }
 
         [Fact]

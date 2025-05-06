@@ -164,8 +164,7 @@ namespace Libplanet.Net.Tests
                     "Miner chain",
                     minerChain,
                     "Receiver chain",
-                    receiverChain
-                );
+                    receiverChain);
 
                 minerSwarm.FindNextHashesChunkSize = 3;
                 await receiverSwarm.PreloadAsync(
@@ -177,15 +176,13 @@ namespace Libplanet.Net.Tests
                 await Task.Delay(1000);
 
                 _logger.Verbose(
-                    $"Both chains after synchronization ({nameof(receiverSwarm.PreloadAsync)}):"
-                );
+                    $"Both chains after synchronization ({nameof(receiverSwarm.PreloadAsync)}):");
                 _logger.CompareBothChains(
                     LogEventLevel.Verbose,
                     "Miner chain",
                     minerChain,
                     "Receiver chain",
-                    receiverChain
-                );
+                    receiverChain);
 
                 Assert.Equal(minerChain.Tip.Hash, receiverChain.Tip.Hash);
             }
@@ -343,8 +340,8 @@ namespace Libplanet.Net.Tests
                     policy,
                     new MemoryStore(),
                     new TrieStateStore()),
-                senderKey
-            ).ConfigureAwait(false);
+                senderKey)
+            .ConfigureAwait(false);
 
             int renderCount = 0;
 
@@ -677,8 +674,7 @@ namespace Libplanet.Net.Tests
                     receiverChain
                         .GetNextWorldState()
                         .GetAccount(ReservedAddresses.LegacyAccount)
-                        .GetValue(address)
-                );
+                        .GetValue(address));
             }
 
             CleaningSwarm(minerSwarm);

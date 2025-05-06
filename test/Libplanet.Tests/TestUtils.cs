@@ -172,8 +172,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
                 string s = string.Join(
                     ", ",
-                    bytes.Select(b => b < 0x10 ? $"0x0{b:x}" : $"0x{b:x}")
-                );
+                    bytes.Select(b => b < 0x10 ? $"0x0{b:x}" : $"0x{b:x}"));
                 return bytes.LongLength > limit ? $"{s}, ..." : s;
             }
         }
@@ -279,12 +278,9 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             string diff = string.Join(
                 Environment.NewLine,
                 diffModel.Lines.Select(line =>
-                    (prefixes.TryGetValue(line.Type, out string prefix) ? prefix : " ") + line.Text
-                )
-            );
+                    (prefixes.TryGetValue(line.Type, out string prefix) ? prefix : " ") + line.Text));
             throw new XunitException(
-                "Two Bencodex values are not equal.\n--- Expected\n+++ Actual\n\n" + diff
-            );
+                "Two Bencodex values are not equal.\n--- Expected\n+++ Actual\n\n" + diff);
         }
 
         public static void AssertSorted<T>(IEnumerable<T> expected)
@@ -391,8 +387,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             ImmutableSortedSet<Transaction>? transactions = null,
             ImmutableSortedSet<Validator>? validators = null,
             DateTimeOffset? timestamp = null,
-            int protocolVersion = Block.CurrentProtocolVersion
-        )
+            int protocolVersion = Block.CurrentProtocolVersion)
         {
             var txs = transactions ?? [];
             long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposer.Address));
@@ -435,16 +430,14 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             ImmutableSortedSet<Transaction>? transactions = null,
             DateTimeOffset? timestamp = null,
             int protocolVersion = Block.CurrentProtocolVersion,
-            HashDigest<SHA256> stateRootHash = default
-        )
+            HashDigest<SHA256> stateRootHash = default)
         {
             RawBlock preEval = ProposeGenesis(
                 miner.PublicKey,
                 transactions,
                 null,
                 timestamp,
-                protocolVersion
-            );
+                protocolVersion);
             return preEval.Sign(miner, stateRootHash);
         }
 
@@ -502,8 +495,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         {
             Skip.IfNot(
                 Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
-                "Flaky test : Libplanet.Blocks.InvalidBlockSignatureException"
-            );
+                "Flaky test : Libplanet.Blocks.InvalidBlockSignatureException");
 
             RawBlock preEval = ProposeNext(
                 previousBlock,
@@ -526,8 +518,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             DateTimeOffset? timestamp = null,
             IEnumerable<IRenderer>? renderers = null,
             Block? genesisBlock = null,
-            int protocolVersion = Block.CurrentProtocolVersion
-        )
+            int protocolVersion = Block.CurrentProtocolVersion)
         {
             return MakeBlockChainAndActionEvaluator(
                 policy,
@@ -539,8 +530,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 timestamp,
                 renderers,
                 genesisBlock,
-                protocolVersion
-            ).BlockChain;
+                protocolVersion)
+            .BlockChain;
         }
 
         public static (BlockChain BlockChain, ActionEvaluator ActionEvaluator)
@@ -554,8 +545,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             DateTimeOffset? timestamp = null,
             IEnumerable<IRenderer>? renderers = null,
             Block? genesisBlock = null,
-            int protocolVersion = Block.CurrentProtocolVersion
-        )
+            int protocolVersion = Block.CurrentProtocolVersion)
         {
             actions = actions ?? ImmutableArray<IAction>.Empty;
             privateKey = privateKey ?? GenesisProposer;
@@ -597,8 +587,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 genesisBlock,
                 renderers: renderers ?? new[] { validator = new ValidatingActionRenderer() },
                 blockChainStates: blockChainStates,
-                actionEvaluator: actionEvaluator
-            );
+                actionEvaluator: actionEvaluator);
 #pragma warning restore S1121
 
             return (chain, actionEvaluator);
@@ -609,8 +598,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             TimeSpan timeout,
             TimeSpan delay,
             ITestOutputHelper output = null,
-            string conditionLabel = null
-        )
+            string conditionLabel = null)
         {
             Func<bool> conditionFunc = condition.Compile();
             DateTimeOffset started = DateTimeOffset.UtcNow;
@@ -623,8 +611,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     timeout,
                     conditionLabel is string c1
                         ? c1
-                        : $"satisfying the condition ({condition.Body})"
-                );
+                        : $"satisfying the condition ({condition.Body})");
                 await Task.Delay(delay);
             }
 
@@ -632,15 +619,13 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 conditionFunc(),
                 $"Waited {timeout} but the condition (" +
                     (conditionLabel is string l ? l : condition.Body.ToString()) +
-                    ") has never been satisfied."
-            );
+                    ") has never been satisfied.");
 
             output?.WriteLine(
                 "[{0}/{1}] Done {2}...",
                 DateTimeOffset.UtcNow - started,
                 timeout,
-                conditionLabel is string c2 ? c2 : $"satisfying the condition ({condition.Body})"
-            );
+                conditionLabel is string c2 ? c2 : $"satisfying the condition ({condition.Body})");
         }
 
         public static Task AssertThatEventually(
@@ -648,15 +633,13 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             int timeoutMilliseconds,
             int delayMilliseconds = 100,
             ITestOutputHelper output = null,
-            string conditionLabel = null
-        ) =>
+            string conditionLabel = null) =>
             AssertThatEventually(
                 condition,
                 TimeSpan.FromMilliseconds(timeoutMilliseconds),
                 TimeSpan.FromMilliseconds(delayMilliseconds),
                 output,
-                conditionLabel
-            );
+                conditionLabel);
 
         public static void AssertJsonSerializable<T>(
             T obj,
@@ -666,8 +649,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         {
             Skip.IfNot(
                 Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
-                "System.Text.Json 6.0.0+ does not work well with Unity/Mono."
-            );
+                "System.Text.Json 6.0.0+ does not work well with Unity/Mono.");
 
             var buffer = new MemoryStream();
             JsonSerializer.Serialize(buffer, obj);

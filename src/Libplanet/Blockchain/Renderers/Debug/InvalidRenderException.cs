@@ -12,8 +12,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
         /// <param name="records">Recorded render events.</param>
         public InvalidRenderException(
             string message,
-            IReadOnlyList<RenderRecord> records
-        )
+            IReadOnlyList<RenderRecord> records)
             : base(message)
         {
             Records = records;

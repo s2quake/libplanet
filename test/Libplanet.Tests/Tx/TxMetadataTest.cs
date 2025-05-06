@@ -97,8 +97,7 @@ public class TxMetadataTest
         AssertBytesEqual(
             BlockHash.Parse(
                 "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"),
-            meta2.GenesisHash
-        );
+            meta2.GenesisHash);
     }
 
     [Theory]

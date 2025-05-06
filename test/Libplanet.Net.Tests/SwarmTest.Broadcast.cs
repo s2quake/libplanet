@@ -100,21 +100,18 @@ namespace Libplanet.Net.Tests
             Swarm seed = await CreateSwarm(
                 miner,
                 policy: policy,
-                genesis: minerChain.Genesis
-            );
+                genesis: minerChain.Genesis);
             BlockChain seedChain = seed.BlockChain;
 
             var privateKey = new PrivateKey();
             Swarm swarmA = await CreateSwarm(
                 privateKey: privateKey,
                 policy: policy,
-                genesis: minerChain.Genesis
-            );
+                genesis: minerChain.Genesis);
             Swarm swarmB = await CreateSwarm(
                 privateKey: privateKey,
                 policy: policy,
-                genesis: minerChain.Genesis
-            );
+                genesis: minerChain.Genesis);
 
             foreach (BlockHash blockHash in minerChain.BlockHashes.Skip(1).Take(4))
             {
@@ -220,8 +217,7 @@ namespace Libplanet.Net.Tests
                 Swarm swarm,
                 BlockChain chain,
                 int delay,
-                CancellationToken cancellationToken
-            )
+                CancellationToken cancellationToken)
             {
                 return Task.Run(async () =>
                 {
@@ -296,8 +292,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 chainA.Genesis.Hash,
-                Array.Empty<DumbAction>().ToBytecodes()
-            );
+                Array.Empty<DumbAction>().ToBytecodes());
 
             chainA.StageTransaction(tx);
             Block block = chainA.ProposeBlock(minerA);
@@ -405,8 +400,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 chainA.Genesis.Hash,
-                Array.Empty<DumbAction>().ToBytecodes()
-            );
+                Array.Empty<DumbAction>().ToBytecodes());
 
             chainA.StageTransaction(tx);
 
@@ -466,8 +460,7 @@ namespace Libplanet.Net.Tests
                 0,
                 new PrivateKey(),
                 blockChains[size - 1].Genesis.Hash,
-                Array.Empty<DumbAction>().ToBytecodes()
-            );
+                Array.Empty<DumbAction>().ToBytecodes());
 
             blockChains[size - 1].StageTransaction(tx);
 
@@ -761,8 +754,7 @@ namespace Libplanet.Net.Tests
                 await AssertThatEventually(
                     () => receiverChain.Tip.Equals(block2),
                     5_000,
-                    1_000
-                );
+                    1_000);
                 Assert.Equal(3, receiverChain.Count);
                 Assert.Equal(4, renderCount);
             }

@@ -54,8 +54,7 @@ internal sealed class BlockChainService(
             getMaxTransactionsBytes: l => long.MaxValue,
             getMinTransactionsPerBlock: l => 0,
             getMaxTransactionsPerBlock: l => int.MaxValue,
-            getMaxTransactionsPerSignerPerBlock: l => int.MaxValue
-        );
+            getMaxTransactionsPerSignerPerBlock: l => int.MaxValue);
 
         var blockChainStates = new BlockChainStates(store, stateStore);
         if (store.GetCanonicalChainId() is null)

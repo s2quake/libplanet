@@ -18,8 +18,7 @@ namespace Libplanet.KeyStore.Ciphers
         [Pure]
         ImmutableArray<byte> Encrypt(
             in ImmutableArray<byte> key,
-            in ImmutableArray<byte> plaintext
-        );
+            in ImmutableArray<byte> plaintext);
 
         /// <summary>
         /// Decrypts the given <paramref name="ciphertext"/> using the given <paramref name="key"/>.
@@ -31,8 +30,7 @@ namespace Libplanet.KeyStore.Ciphers
         [Pure]
         ImmutableArray<byte> Decrypt(
             in ImmutableArray<byte> key,
-            in ImmutableArray<byte> ciphertext
-        );
+            in ImmutableArray<byte> ciphertext);
 
         /// <summary>
         /// Dumps the cipher parameters as a JSON representation according to Ethereum's

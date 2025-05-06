@@ -18,10 +18,8 @@ public class RawStateQuery : ObjectGraphType<IBlockChainStates>
             "trie",
             description: "Retrieves trie from given state root hash.",
             arguments: new QueryArguments(
-                new QueryArgument<HashDigestSHA256Type> { Name = "stateRootHash" }
-            ),
+                new QueryArgument<HashDigestSHA256Type> { Name = "stateRootHash" }),
             resolve: context => context.Source.GetWorld(
-                context.GetArgument<HashDigest<SHA256>>("stateRootHash")).Trie
-        );
+                context.GetArgument<HashDigest<SHA256>>("stateRootHash")).Trie);
     }
 }

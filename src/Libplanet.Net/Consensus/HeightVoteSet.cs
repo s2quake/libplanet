@@ -205,7 +205,7 @@ namespace Libplanet.Net.Consensus
                     }
                 }
 
-                return (-1, default(BlockHash));
+                return (-1, default);
             }
         }
 

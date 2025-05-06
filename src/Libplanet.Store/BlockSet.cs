@@ -33,8 +33,7 @@ public sealed class BlockSet(IStore store, int cacheSize = 4096)
             if (block is null)
             {
                 throw new KeyNotFoundException(
-                    $"The given hash[{key}] was not found in this set."
-                );
+                    $"The given hash[{key}] was not found in this set.");
             }
 
             if (!block.Hash.Equals(key))

@@ -1,13 +1,6 @@
-namespace Libplanet.Tests
+namespace Libplanet.Tests;
+
+public sealed class ActionProgress<T>(Action<T> action) : IProgress<T>
 {
-    public sealed class ActionProgress<T> : IProgress<T>
-    {
-        private Action<T> _action;
-
-        public ActionProgress(Action<T> action) =>
-            _action = action ?? throw new ArgumentNullException(nameof(action));
-
-        public void Report(T value) =>
-            _action(value);
-    }
+    public void Report(T value) => action(value);
 }

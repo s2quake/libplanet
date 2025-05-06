@@ -46,8 +46,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     0xea, 0xd3, 0x1e, 0xd7, 0x82, 0xb1, 0x13, 0x5d, 0x75, 0x78, 0xa8,
                     0x9d, 0x95, 0xe3, 0x0c, 0xc9, 0x14, 0x01, 0x0b, 0xa2, 0xed,
                 }.ToImmutableArray(),
-                kdf.Salt
-            );
+                kdf.Salt);
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -57,8 +56,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -68,8 +66,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -79,8 +76,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -90,8 +86,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -101,8 +96,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -112,8 +106,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -123,8 +116,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     // ""prf"": ""hmac-sha256"",  // lacks
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -134,8 +126,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": 123,  // not a string, but a number
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<UnsupportedKeyJsonException>(() =>
                 Load(@"
@@ -145,8 +136,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha512"",  // unsupported prf
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2ed"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -156,8 +146,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     // ""salt"": ""..."",  // lacks
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -167,8 +156,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": 1234,  // not a string, but a number
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -178,8 +166,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""prf"": ""hmac-sha256"",
                     ""salt"": ""not a hexadecimal string"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -190,8 +177,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""salt"": ""3eeaaf35da70928387cae1ead31ed782b1135d7578a89d95e30cc914010ba2e"",
                     // salt: invalid length
                 }
-                ")
-            );
+                "));
         }
     }
 }

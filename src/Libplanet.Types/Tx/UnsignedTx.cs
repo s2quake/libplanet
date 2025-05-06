@@ -56,8 +56,7 @@ public sealed record class UnsignedTx
         {
             throw new ArgumentException(
                 "The given private key does not correspond to the public key.",
-                paramName: nameof(privateKey)
-            );
+                paramName: nameof(privateKey));
         }
 
         byte[] sig = privateKey.Sign(CreateMessage());

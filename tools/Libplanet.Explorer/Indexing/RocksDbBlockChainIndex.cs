@@ -123,8 +123,8 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         await Task.Run(() =>
             TryGetContainedBlockHashById(txId, out var containedBlock)
                 ? containedBlock
-                : (BlockHash?)null
-        ).ConfigureAwait(false);
+                : (BlockHash?)null)
+        .ConfigureAwait(false);
 
     public override BlockHash IndexToBlockHash(long index)
     {

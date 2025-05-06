@@ -17,18 +17,15 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<IdGraphType>>(
             "Hash",
             description: "A block's hash.",
-            resolve: ctx => ctx.Source.Hash.ToString()
-        );
+            resolve: ctx => ctx.Source.Hash.ToString());
         Field<NonNullGraphType<LongGraphType>>(
             name: "Index",
             description: "The height of the block.",
-            resolve: x => x.Source.Height
-        );
+            resolve: x => x.Source.Height);
         Field<NonNullGraphType<AddressType>>(
             name: "Miner",
             description: "The address of the miner.",
-            resolve: x => x.Source.Proposer
-        );
+            resolve: x => x.Source.Proposer);
         // Field<PublicKeyType>(
         //     name: "PublicKey",
         //     description: "The public key of the Miner.",
@@ -52,12 +49,10 @@ public class BlockType : ObjectGraphType<Block>
             resolve: ctx => ctx.Source.Signature.ToBuilder().ToArray());
         Field<NonNullGraphType<ListGraphType<NonNullGraphType<TransactionType>>>>(
             name: "transactions",
-            description: "Transactions belonging to the block."
-        );
+            description: "Transactions belonging to the block.");
         Field<NonNullGraphType<ListGraphType<NonNullGraphType<EvidenceType>>>>(
             name: "evidence",
-            description: "Evidence belonging to the block."
-        );
+            description: "Evidence belonging to the block.");
         Field<BlockCommitType>(
             name: "LastCommit",
             description: "The LastCommit of the block.",
@@ -77,8 +72,7 @@ public class BlockType : ObjectGraphType<Block>
             name: "Nonce",
             description: "The proof-of-work nonce which satisfies the required difficulty.",
             deprecationReason: "Block does not have Nonce field in PBFT.",
-            resolve: _ => new byte[] { }
-        );
+            resolve: _ => new byte[] { });
         Field<NonNullGraphType<ByteStringType>>(
             name: "RawHash",
             description: "The hash of RawBlock.",

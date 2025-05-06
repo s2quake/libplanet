@@ -96,8 +96,7 @@ public sealed class MemoryStore : IStore
         ImmutableTrieList<BlockHash> list = _indexes.AddOrUpdate(
             chainId,
             _ => ImmutableTrieList.Create(hash),
-            (_, list) => list.Add(hash)
-        );
+            (_, list) => list.Add(hash));
         _txNonces.GetOrAdd(chainId, _ => new ConcurrentDictionary<Address, long>());
 
         return list.Count - 1;
@@ -106,8 +105,7 @@ public sealed class MemoryStore : IStore
     public void ForkBlockIndexes(
         Guid sourceChainId,
         Guid destinationChainId,
-        BlockHash branchpoint
-    )
+        BlockHash branchpoint)
     {
         if (_indexes.TryGetValue(sourceChainId, out ImmutableTrieList<BlockHash>? source))
         {
@@ -183,8 +181,7 @@ public sealed class MemoryStore : IStore
         _txBlockIndexes.AddOrUpdate(
             txId,
             _ => ImmutableHashSet.Create(blockHash),
-            (_, set) => set.Add(blockHash)
-        );
+            (_, set) => set.Add(blockHash));
 
     BlockHash? IStore.GetFirstTxIdBlockHashIndex(TxId txId) =>
         _txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set) && set.Any()

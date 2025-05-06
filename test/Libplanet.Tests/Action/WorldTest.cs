@@ -145,8 +145,7 @@ public sealed class WorldTest
             store,
             stateStore,
             protocolVersion: ProtocolVersion,
-            privateKey: privateKey
-        );
+            privateKey: privateKey);
 
         // Mint
         var action = DumbAction.Create(null, (null, _addr[1], 20));

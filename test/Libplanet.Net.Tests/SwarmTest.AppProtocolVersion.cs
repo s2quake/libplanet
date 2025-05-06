@@ -104,8 +104,7 @@ namespace Libplanet.Net.Tests
             void DifferentAppProtocolVersionEncountered(
                 BoundPeer peer,
                 AppProtocolVersion peerVersion,
-                AppProtocolVersion localVersion
-            )
+                AppProtocolVersion localVersion)
             {
                 logs[peer] = peerVersion;
             }
@@ -178,8 +177,7 @@ namespace Libplanet.Net.Tests
                         kv.Key,
                         kv.Value.Version,
                         kv.Value.Signer,
-                        kv.Value.Verify(signer.PublicKey) ? "verified" : "not verified"
-                    );
+                        kv.Value.Verify(signer.PublicKey) ? "verified" : "not verified");
                 }
             }
             finally

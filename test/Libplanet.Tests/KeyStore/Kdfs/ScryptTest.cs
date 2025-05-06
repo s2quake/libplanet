@@ -16,17 +16,14 @@ namespace Libplanet.Tests.KeyStore.Kdfs
         public void ScryptInitialize()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new Scrypt(1, ImmutableArray<byte>.Empty, 0, 1, 8)
+                new Scrypt(1, ImmutableArray<byte>.Empty, 0, 1, 8));
                 // Cost must be a power of 2 greater than 1!
-            );
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new Scrypt(2, ImmutableArray<byte>.Empty, 0, 1, int.MaxValue)
+                new Scrypt(2, ImmutableArray<byte>.Empty, 0, 1, int.MaxValue));
                 // Parameter cost is too large!
-            );
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new Scrypt(2, ImmutableArray<byte>.Empty, 0, int.MaxValue, 8)
+                new Scrypt(2, ImmutableArray<byte>.Empty, 0, int.MaxValue, 8));
                 // Parameter blockSize is too large!
-            );
         }
 
         [SuppressMessage(
@@ -70,8 +67,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     0xcf, 0x93, 0xda, 0xb3, 0x18, 0x6e, 0x48, 0xd3, 0xf8, 0x09, 0x65,
                     0x07, 0x0d, 0x5f, 0xc9, 0xaa, 0xc0, 0x78, 0x11, 0xdc, 0x8f,
                 }.ToImmutableArray(),
-                kdf.Salt
-            );
+                kdf.Salt);
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -82,8 +78,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -94,8 +89,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -106,8 +100,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -118,8 +111,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -130,8 +122,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -142,8 +133,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -154,8 +144,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -166,8 +155,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -178,8 +166,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -190,8 +177,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     // ""r"": 8,  // lacks
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -202,8 +188,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": false,  // not a number
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -214,8 +199,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": null,  // not a number, but null
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8f"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -226,8 +210,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     // ""salt"": ""..."",  // lacks
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -238,8 +221,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": null,
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -250,8 +232,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": 1234,  // not a string, but a number
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -262,8 +243,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""r"": 8,
                     ""salt"": ""not a hexadecimal string"",
                 }
-                ")
-            );
+                "));
 
             Assert.Throws<InvalidKeyJsonException>(() =>
                 Load(@"
@@ -275,8 +255,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
                     ""salt"": ""3ada4bad7033fdaa65684ecf93dab3186e48d3f80965070d5fc9aac07811dc8"",
                     // salt: invalid length
                 }
-                ")
-            );
+                "));
         }
     }
 }

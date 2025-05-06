@@ -133,8 +133,7 @@ namespace Libplanet.Net
         }
 
         private async Task FillBlocksAsync(
-            CancellationToken cancellationToken
-        )
+            CancellationToken cancellationToken)
         {
             var checkInterval = TimeSpan.FromMilliseconds(100);
             while (!cancellationToken.IsCancellationRequested)
@@ -169,8 +168,7 @@ namespace Libplanet.Net
             TimeSpan timeout,
             TimeSpan tipLifespan,
             int maximumPollPeers,
-            CancellationToken cancellationToken
-        )
+            CancellationToken cancellationToken)
         {
             BlockExcerpt lastTip = BlockChain.Tip.Header;
             DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
@@ -188,8 +186,7 @@ namespace Libplanet.Net
                         "pulling blocks from neighbor peers...",
                         lastTip.Index,
                         lastTip.Hash,
-                        lastUpdated
-                    );
+                        lastUpdated);
                     await PullBlocksAsync(
                         timeout, maximumPollPeers, cancellationToken);
                 }

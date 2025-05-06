@@ -86,8 +86,8 @@ namespace Libplanet.Net.Protocols
                     bucket => bucket.ReplacementCache.PeerStates
                         .OrderBy(peerState => peerState.LastUpdated)
                         .Select(peerState => peerState.Peer)
-                        .ToArray()
-                ).ToArray();
+                        .ToArray())
+                .ToArray();
             }
         }
 
@@ -117,8 +117,7 @@ namespace Libplanet.Net.Protocols
             {
                 throw new ArgumentException(
                     "A node is disallowed to remove itself from its routing table.",
-                    nameof(peer)
-                );
+                    nameof(peer));
             }
 
             _logger.Debug("Removing peer {Peer} from the routing table", peer);

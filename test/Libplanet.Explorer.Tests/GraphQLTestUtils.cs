@@ -20,16 +20,14 @@ public static class GraphQLTestUtils
             query,
             new TObjectGraphType(),
             userContext,
-            source
-        );
+            source);
     }
 
     public static Task<ExecutionResult> ExecuteQueryAsync(
         string query,
         IObjectGraphType queryGraphType,
         IDictionary<string, object?>? userContext = null,
-        object? source = null
-    )
+        object? source = null)
     {
         var documentExecutor = new DocumentExecuter();
 
@@ -60,8 +58,7 @@ public static class GraphQLTestUtils
                     // mimics previous way. (call parameterless constructor)
                     return Activator.CreateInstance(type);
                 }
-            }
-        );
+            });
 
         return documentExecutor.ExecuteAsync(
             new ExecutionOptions
@@ -73,7 +70,6 @@ public static class GraphQLTestUtils
                 },
                 UserContext = userContext ?? new Dictionary<string, object?>(),
                 Root = source,
-            }
-        );
+            });
     }
 }

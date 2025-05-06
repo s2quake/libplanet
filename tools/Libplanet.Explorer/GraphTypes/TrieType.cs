@@ -18,10 +18,8 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "key",
                         Description = "The key to search.",
-                    }
-                ),
-                resolve: context => context.Source[context.GetArgument<KeyBytes>("key")]
-            );
+                    }),
+                resolve: context => context.Source[context.GetArgument<KeyBytes>("key")]);
 
             Field<IValueType>(
                 name: "values",
@@ -32,13 +30,11 @@ namespace Libplanet.Explorer.GraphTypes
                     {
                         Name = "keys",
                         Description = "The list of keys to search.",
-                    }
-                ),
+                    }),
                 resolve: context => context
                     .GetArgument<KeyBytes[]>("keys")
                     .Select(key => context.Source[key])
-                    .ToArray()
-            );
+                    .ToArray());
         }
     }
 }

@@ -34,10 +34,8 @@ namespace Libplanet.Tests.KeyStore
                         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                         ".config",
                         "planetarium",
-                        "keystore"
-                    ),
-                    path
-                );
+                        "keystore"),
+                    path);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -45,10 +43,8 @@ namespace Libplanet.Tests.KeyStore
                     Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                         "planetarium",
-                        "keystore"
-                    ),
-                    path
-                );
+                        "keystore"),
+                    path);
             }
         }
 

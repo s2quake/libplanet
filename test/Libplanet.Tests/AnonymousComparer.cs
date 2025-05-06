@@ -1,14 +1,6 @@
-namespace Libplanet.Tests
+namespace Libplanet.Tests;
+
+public class AnonymousComparer<T>(Func<T?, T?, int> comparer) : IComparer<T>
 {
-    public class AnonymousComparer<T> : IComparer<T>
-    {
-        private Func<T, T, int> _comparer;
-
-        public AnonymousComparer(Func<T, T, int> comparer)
-        {
-            _comparer = comparer;
-        }
-
-        public int Compare(T x, T y) => _comparer(x, y);
-    }
+    public int Compare(T? x, T? y) => comparer(x, y);
 }

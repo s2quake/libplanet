@@ -17,8 +17,7 @@ namespace Libplanet.Net.Tests.Messages
                 byte[] bytes = GetRandomBytes(size);
                 Assert.Throws<ArgumentOutOfRangeException>(
                     "messageId",
-                    () => new MessageId(bytes)
-                );
+                    () => new MessageId(bytes));
             }
         }
 
@@ -34,8 +33,7 @@ namespace Libplanet.Net.Tests.Messages
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             Assert.Equal(expected, actual);
 
             Assert.Throws<FormatException>(() => MessageId.FromHex("0g"));
@@ -43,20 +41,17 @@ namespace Libplanet.Net.Tests.Messages
             Assert.Throws<ArgumentOutOfRangeException>(
                 "hex",
                 () => MessageId.FromHex(
-                    "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9c")
-            );
+                    "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9c"));
             Assert.Throws<ArgumentOutOfRangeException>(
                 "hex",
                 () =>
                     MessageId.FromHex(
-                        "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc0")
-            );
+                        "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc0"));
             Assert.Throws<ArgumentOutOfRangeException>(
                 "hex",
                 () =>
                     MessageId.FromHex(
-                        "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc00")
-            );
+                        "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc00"));
         }
 
         [Fact]
@@ -78,8 +73,7 @@ namespace Libplanet.Net.Tests.Messages
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             id.ToByteArray()[0] = 0x00;
             Assert.Equal(0x45, id.ToByteArray()[0]);
         }
@@ -94,12 +88,10 @@ namespace Libplanet.Net.Tests.Messages
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             Assert.Equal(
                 "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc",
-                id.ToHex()
-            );
+                id.ToHex());
         }
 
         [Fact]
@@ -112,12 +104,10 @@ namespace Libplanet.Net.Tests.Messages
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             Assert.Equal(
                 "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc",
-                id.ToString()
-            );
+                id.ToString());
         }
 
         [Fact]
@@ -130,8 +120,7 @@ namespace Libplanet.Net.Tests.Messages
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             var sameId2 = new MessageId(
                 new byte[]
                 {
@@ -139,8 +128,7 @@ namespace Libplanet.Net.Tests.Messages
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                }
-            );
+                });
             var differentId = new MessageId(
                 new byte[]
                 {
@@ -148,8 +136,7 @@ namespace Libplanet.Net.Tests.Messages
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0x00,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0x00,
                     0x9c, 0x00,
-                }
-            );
+                });
 
             Assert.Equal(sameId1, sameId2);
             Assert.NotEqual(sameId2, differentId);
@@ -178,20 +165,16 @@ namespace Libplanet.Net.Tests.Messages
                     rightString = right.ToHex().ToLower();
                 Assert.Equal(
                     Math.Min(Math.Max(left.CompareTo(right), 1), -1),
-                    Math.Min(Math.Max(leftString.CompareTo(rightString), 1), -1)
-                );
+                    Math.Min(Math.Max(leftString.CompareTo(rightString), 1), -1));
                 Assert.Equal(
                     left.CompareTo(right),
-                    (left as IComparable).CompareTo(right)
-                );
+                    (left as IComparable).CompareTo(right));
             }
 
             Assert.Throws<ArgumentNullException>(() =>
-                ids[0].CompareTo(null)
-            );
+                ids[0].CompareTo(null));
             Assert.Throws<ArgumentException>(() =>
-                ids[0].CompareTo("invalid")
-            );
+                ids[0].CompareTo("invalid"));
         }
 
         private byte[] GetRandomBytes(int size)

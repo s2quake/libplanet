@@ -84,8 +84,6 @@ public class UnsignedTxTest
     public void VerifySignature()
     {
         var unsignedTx = UnsignedTx.Create(_invoice, _signingMetadata);
-        var privateKey =
-            PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         var signature = ByteUtility.ParseHexToImmutable(
             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
@@ -142,39 +140,38 @@ public class UnsignedTxTest
         }
     }
 
-#pragma warning disable MEN002  // Long lines are OK for test JSON data.
     [Fact]
     public void JsonSerialization()
     {
+        var expectedJson = @"
+        {
+            ""updatedAddresses"": [
+                ""B61CE2Ce6d28237C1BC6E114616616762f1a12Ab"",
+                ""D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9""
+            ],
+            ""timestamp"": ""2023-03-29T01:02:03.456\u002B00:00"",
+            ""genesisHash"": ""92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265"",
+            ""actions"": [
+                {
+                    ""\uFEFFitem"": ""\uFEFFfoo"",
+                    ""\uFEFFtarget_address"": ""0xd6d639da5a58a78a564c2cd3db55fa7cebe244a9"",
+                    ""\uFEFFtype_id"": ""\uFEFFDumbAction""
+                },
+                {
+                    ""\uFEFFitem"": ""\uFEFFbar"",
+                    ""\uFEFFtarget_address"": ""0xb61ce2ce6d28237c1bc6e114616616762f1a12ab"",
+                    ""\uFEFFtype_id"": ""\uFEFFDumbAction""
+                }
+            ],
+            ""nonce"": 123,
+            ""signer"": ""89F0eE48e8BeaE3131B17Dc79A1282A0D7EdC6b9"",
+            ""maxGasPrice"": null,
+            ""gasLimit"": null,
+        }
+        ";
         TestUtils.AssertJsonSerializable(
             UnsignedTx.Create(_invoice, _signingMetadata),
-            @"
-                    {
-                      ""updatedAddresses"": [
-                        ""B61CE2Ce6d28237C1BC6E114616616762f1a12Ab"",
-                        ""D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9""
-                      ],
-                      ""timestamp"": ""2023-03-29T01:02:03.456\u002B00:00"",
-                      ""genesisHash"": ""92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265"",
-                      ""actions"": [
-                        {
-                          ""\uFEFFitem"": ""\uFEFFfoo"",
-                          ""\uFEFFtarget_address"": ""0xd6d639da5a58a78a564c2cd3db55fa7cebe244a9"",
-                          ""\uFEFFtype_id"": ""\uFEFFDumbAction""
-                        },
-                        {
-                          ""\uFEFFitem"": ""\uFEFFbar"",
-                          ""\uFEFFtarget_address"": ""0xb61ce2ce6d28237c1bc6e114616616762f1a12ab"",
-                          ""\uFEFFtype_id"": ""\uFEFFDumbAction""
-                        }
-                      ],
-                      ""nonce"": 123,
-                      ""signer"": ""89F0eE48e8BeaE3131B17Dc79A1282A0D7EdC6b9"",
-                      ""maxGasPrice"": null,
-                      ""gasLimit"": null,
-                    }
-                ",
+            expectedJson,
             false);
     }
-#pragma warning restore MEN002
 }

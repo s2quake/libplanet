@@ -142,8 +142,7 @@ public sealed class IntegerSet
                             prevTrie,
                             (trie, pair) => trie.Set(pair.Key, ModelSerializer.Serialize(pair.Value)))).Hash;
                     return delta.Add((nextState, nextRootHash));
-                }
-            );
+                });
         return new TxWithContext()
         {
             Tx = tx,
@@ -175,8 +174,7 @@ public sealed class IntegerSet
 
         public void Deconstruct(
             out Transaction tx,
-            out IReadOnlyList<(BigInteger Value, HashDigest<SHA256> RootHash)> expectedDelta
-        )
+            out IReadOnlyList<(BigInteger Value, HashDigest<SHA256> RootHash)> expectedDelta)
         {
             tx = Tx;
             expectedDelta = ExpectedDelta;

@@ -70,8 +70,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
             if (exception)
             {
                 Assert.Throws<ThrowException.SomeException>(
-                    () => renderer.RenderBlock(_genesis, _blockA)
-                );
+                    () => renderer.RenderBlock(_genesis, _blockA));
             }
             else
             {
@@ -85,38 +84,32 @@ namespace Libplanet.Tests.Blockchain.Renderers
             Assert.Equal(LogEventLevel.Debug, firstLog.Level);
             Assert.Equal(
                 "Invoking {MethodName}() for #{NewIndex} {NewHash} (was #{OldIndex} {OldHash})...",
-                firstLog.MessageTemplate.Text
-            );
+                firstLog.MessageTemplate.Text);
             Assert.Equal("\"RenderBlock\"", firstLog.Properties["MethodName"].ToString());
             Assert.Equal(
                 _blockA.Height.ToString(CultureInfo.InvariantCulture),
-                firstLog.Properties["NewIndex"].ToString()
-            );
+                firstLog.Properties["NewIndex"].ToString());
             Assert.Equal($"\"{_blockA.Hash}\"", firstLog.Properties["NewHash"].ToString());
             Assert.Equal(
                 _genesis.Height.ToString(CultureInfo.InvariantCulture),
-                firstLog.Properties["OldIndex"].ToString()
-            );
+                firstLog.Properties["OldIndex"].ToString());
             Assert.Equal($"\"{_genesis.Hash}\"", firstLog.Properties["OldHash"].ToString());
             Assert.Equal(
                 $"\"{typeof(AnonymousRenderer).FullName}\"",
-                firstLog.Properties[Constants.SourceContextPropertyName].ToString()
-            );
+                firstLog.Properties[Constants.SourceContextPropertyName].ToString());
             Assert.Null(firstLog.Exception);
 
             LogEvent secondLog = logEvents[1];
             Assert.Equal(
                 exception ? LogEventLevel.Error : LogEventLevel.Debug,
-                secondLog.Level
-            );
+                secondLog.Level);
             Assert.Equal(
                 exception
                     ? "An exception was thrown during {MethodName}() for #{NewIndex} {NewHash} " +
                         "(was #{OldIndex} {OldHash})"
                     : "Invoked {MethodName}() for #{NewIndex} {NewHash} " +
                         "(was #{OldIndex} {OldHash})",
-                secondLog.MessageTemplate.Text
-            );
+                secondLog.MessageTemplate.Text);
             Assert.Equal(firstLog.Properties["MethodName"], secondLog.Properties["MethodName"]);
             Assert.Equal(firstLog.Properties["NewIndex"], secondLog.Properties["NewIndex"]);
             Assert.Equal(firstLog.Properties["NewHash"], secondLog.Properties["NewHash"]);
@@ -124,8 +117,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
             Assert.Equal(firstLog.Properties["OldHash"], secondLog.Properties["OldHash"]);
             Assert.Equal(
                 firstLog.Properties[Constants.SourceContextPropertyName],
-                secondLog.Properties[Constants.SourceContextPropertyName]
-            );
+                secondLog.Properties[Constants.SourceContextPropertyName]);
             if (exception)
             {
                 Assert.IsType<ThrowException.SomeException>(secondLog.Exception);

@@ -30,7 +30,17 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
 
     public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultByteArray : _bytes;
 
-    public static Address Parse(string hex) => new(DeriveAddress(hex));
+    public static Address Parse(string hex)
+    {
+        try
+        {
+            return new(DeriveAddress(hex));
+        }
+        catch (Exception e)
+        {
+            throw new FormatException($"Failed to parse {nameof(Address)} from hex string: {hex}", e);
+        }
+    }
 
     public bool Equals(Address other) => Bytes.SequenceEqual(other.Bytes);
 
@@ -63,10 +73,15 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
         return 0;
     }
 
-    public int CompareTo(object? obj) => obj is Address other
-        ? CompareTo(other)
-        : throw new ArgumentException(
-            $"Argument {nameof(obj)} is not an ${nameof(Address)}.", nameof(obj));
+    public int CompareTo(object? obj)
+    {
+        if (obj is not Address other)
+        {
+            throw new ArgumentException($"Argument {nameof(obj)} is not an ${nameof(Address)}.", nameof(obj));
+        }
+
+        return CompareTo(other);
+    }
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

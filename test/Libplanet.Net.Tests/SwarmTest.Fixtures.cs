@@ -50,8 +50,7 @@ namespace Libplanet.Net.Tests
                         {
                             chain.MakeTransaction(
                                 signer,
-                                new[] { DumbAction.Create((address, $"Item{i}.{j}")) }
-                            );
+                                new[] { DumbAction.Create((address, $"Item{i}.{j}")) });
                         }
 
                         Block block = chain.ProposeBlock(
@@ -142,8 +141,7 @@ namespace Libplanet.Net.Tests
             AppProtocolVersionOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
-            ConsensusReactorOption? consensusReactorOption = null
-        )
+            ConsensusReactorOption? consensusReactorOption = null)
         {
             appProtocolVersionOptions ??= new AppProtocolVersionOptions();
             hostOptions ??= new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { });

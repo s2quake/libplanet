@@ -15,8 +15,7 @@ namespace Libplanet.Blockchain
         /// <returns>The corresponding <see cref="TxExecution"/>s.</returns>
         internal IEnumerable<TxExecution> MakeTxExecutions(
             Block block,
-            IReadOnlyList<CommittedActionEvaluation> evaluations
-        )
+            IReadOnlyList<CommittedActionEvaluation> evaluations)
         {
             List<(TxId?, List<CommittedActionEvaluation>)> groupedEvals =
                 new List<(TxId?, List<CommittedActionEvaluation>)>();
@@ -38,8 +37,7 @@ namespace Libplanet.Blockchain
                         groupedEvals.Add(
                             (
                                 eval.InputContext.TxId,
-                                new List<CommittedActionEvaluation>() { eval }
-                            ));
+                                new List<CommittedActionEvaluation>() { eval }));
                     }
                 }
             }
@@ -97,8 +95,7 @@ namespace Libplanet.Blockchain
 
             _logger.Verbose(
                 "Updated " + nameof(TxExecution) + "s for {Txs} transactions",
-                count
-            );
+                count);
         }
     }
 }
