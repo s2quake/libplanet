@@ -298,9 +298,11 @@ namespace Libplanet.Blockchain
             {
                 var stateRootHash = GetNextStateRootHash(ev.Height);
                 var worldState = GetWorld(stateRootHash ?? default);
-                var validatorSet = worldState.GetValidatorSet();
-                var evidenceContext = new EvidenceContext(validatorSet);
-                ev.Verify(evidenceContext);
+                var validators = worldState.GetValidatorSet();
+                ValidationUtility.Validate(ev, items: new Dictionary<object, object?>
+                {
+                    [typeof(EvidenceContext)] = new EvidenceContext(validators),
+                });
             }
         }
 

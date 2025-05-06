@@ -73,15 +73,12 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
         return 0;
     }
 
-    public int CompareTo(object? obj)
+    public int CompareTo(object? obj) => obj switch
     {
-        if (obj is not Address other)
-        {
-            throw new ArgumentException($"Argument {nameof(obj)} is not an ${nameof(Address)}.", nameof(obj));
-        }
-
-        return CompareTo(other);
-    }
+        null => 1,
+        Address other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(Address)}.", nameof(obj)),
+    };
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

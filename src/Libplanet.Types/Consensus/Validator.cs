@@ -28,7 +28,12 @@ public sealed record class Validator : IComparable<Validator>, IComparable
 
     public override string ToString() => $"{PublicKey}:{Power}";
 
-    public int CompareTo(object? obj) => obj is Validator other ? CompareTo(other) : 1;
+    public int CompareTo(object? obj) => obj switch
+    {
+        null => 1,
+        Validator other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(Validator)}.", nameof(obj)),
+    };
 
     public int CompareTo(Validator? other)
     {

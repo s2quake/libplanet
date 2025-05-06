@@ -12,6 +12,7 @@ public sealed class ModelResolver : IModelResolver
 {
     public static readonly ModelResolver Default = new();
 
+    private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _declaredPropertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _propertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
 
@@ -40,9 +41,24 @@ public sealed class ModelResolver : IModelResolver
         return _propertiesByType.GetOrAdd(type, CreateProperties);
     }
 
-    internal static ImmutableArray<PropertyInfo> CreateProperties(Type type)
+    private static ImmutableArray<PropertyInfo> CreateProperties(Type type)
     {
-        var query = from propertyInfo in type.GetProperties()
+        var builder = ImmutableArray.CreateBuilder<PropertyInfo>();
+        var currentType = type;
+        while (currentType is not null)
+        {
+            var properties = _declaredPropertiesByType.GetOrAdd(currentType, CreateDeclaredProperties);
+            builder.InsertRange(0, properties);
+            currentType = currentType.BaseType;
+        }
+
+        return builder.ToImmutable();
+    }
+
+    private static ImmutableArray<PropertyInfo> CreateDeclaredProperties(Type type)
+    {
+        var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        var query = from propertyInfo in type.GetProperties(bindingFlags)
                     let propertyAttribute
                         = propertyInfo.GetCustomAttribute<PropertyAttribute>()
                     where propertyAttribute is not null
@@ -67,7 +83,7 @@ public sealed class ModelResolver : IModelResolver
         return builder.ToImmutable();
     }
 
-    internal static ImmutableArray<Type> GetTypes(Type type)
+    private static ImmutableArray<Type> GetTypes(Type type)
         => _typesByType.GetOrAdd(type, CreateTypes);
 
     private static void ValidatorProperty(Type type, PropertyInfo propertyInfo)

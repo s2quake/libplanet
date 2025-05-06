@@ -1,19 +1,18 @@
+using System.ComponentModel;
 using System.Text.Json.Serialization;
-using Bencodex.Types;
-using Libplanet.Serialization;
+using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Tx;
 
 [JsonConverter(typeof(TxIdJsonConverter))]
-[Model(Version = 1)]
+[TypeConverter(typeof(TxIdTypeConverter))]
 public readonly record struct TxId(in ImmutableArray<byte> Bytes)
     : IEquatable<TxId>, IComparable<TxId>, IComparable
 {
     public const int Size = 32;
 
-    private static readonly ImmutableArray<byte> _defaultByteArray
-        = ImmutableArray.Create(new byte[Size]);
+    private static readonly ImmutableArray<byte> _defaultByteArray = ImmutableArray.Create(new byte[Size]);
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
@@ -23,8 +22,6 @@ public readonly record struct TxId(in ImmutableArray<byte> Bytes)
     }
 
     public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultByteArray : _bytes;
-
-    public IValue ToBencodex() => new Binary(Bytes);
 
     public static TxId Parse(string hex)
     {
@@ -37,18 +34,6 @@ public readonly record struct TxId(in ImmutableArray<byte> Bytes)
             throw new FormatException(
                 $"Given {nameof(hex)} must be a hexadecimal string: {e.Message}", e);
         }
-    }
-
-    public static TxId Create(IValue bencoded)
-    {
-        if (bencoded is Binary binary)
-        {
-            return new TxId(binary.ByteArray);
-        }
-
-        var message = $"Given {nameof(bencoded)} must be of type " +
-                      $"{typeof(Binary)}: {bencoded.GetType()}";
-        throw new ArgumentException(message, nameof(bencoded));
     }
 
     public bool Equals(TxId other) => Bytes.SequenceEqual(other.Bytes);
@@ -71,16 +56,12 @@ public readonly record struct TxId(in ImmutableArray<byte> Bytes)
         return 0;
     }
 
-    public int CompareTo(object? obj)
+    public int CompareTo(object? obj) => obj switch
     {
-        if (obj is not TxId other)
-        {
-            throw new ArgumentException(
-                $"Argument {nameof(obj)} is not a ${nameof(TxId)}.", nameof(obj));
-        }
-
-        return CompareTo(other);
-    }
+        null => 1,
+        TxId other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(TxId)}.", nameof(obj)),
+    };
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

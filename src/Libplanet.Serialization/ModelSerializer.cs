@@ -152,6 +152,8 @@ public static class ModelSerializer
                 $"Failed to deserialize {typeof(T)} from bytes.");
     }
 
+    public static T Clone<T>(T obj) => Deserialize<T>(Serialize(obj));
+
     private static IValue Serialize(object obj, Type type, ModelOptions options)
     {
         var header = new ModelHeader

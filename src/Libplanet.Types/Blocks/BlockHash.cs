@@ -10,7 +10,7 @@ namespace Libplanet.Types.Blocks;
 [JsonConverter(typeof(BlockHashJsonConverter))]
 [TypeConverter(typeof(BlockHashTypeConverter))]
 public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
-    : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IBencodable, IFormattable
+    : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IFormattable
 {
     public const int Size = 32;
 
@@ -25,8 +25,6 @@ public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
     }
 
     public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultBytes : _bytes;
-
-    public IValue Bencoded => new Binary(Bytes);
 
     public static BlockHash Parse(string hex)
     {
@@ -103,10 +101,12 @@ public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
         return 0;
     }
 
-    public int CompareTo(object? obj) => obj is BlockHash other
-        ? this.CompareTo(other)
-        : throw new ArgumentException(
-            $"Argument {nameof(obj)} is not an ${nameof(BlockHash)}.", nameof(obj));
+    public int CompareTo(object? obj) => obj switch
+    {
+        null => 1,
+        BlockHash other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(BlockHash)}.", nameof(obj)),
+    };
 
     public override string ToString() => ToString("h", null);
 
