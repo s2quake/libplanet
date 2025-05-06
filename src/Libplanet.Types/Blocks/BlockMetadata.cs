@@ -9,7 +9,7 @@ namespace Libplanet.Types.Blocks;
 [Model(Version = 1)]
 public sealed record class BlockMetadata
 {
-    public const int CurrentProtocolVersion = 9;
+    public const int CurrentProtocolVersion = 0;
 
     private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
 

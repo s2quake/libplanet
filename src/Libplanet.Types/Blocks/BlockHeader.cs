@@ -15,7 +15,7 @@ public sealed record class BlockHeader
 
     public BlockHash BlockHash { get; init; }
 
-    public int ProtocolVersion { get; init; }
+    public int ProtocolVersion { get; init; } = BlockMetadata.CurrentProtocolVersion;
 
     public long Height { get; init; }
 

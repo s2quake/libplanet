@@ -106,7 +106,7 @@ public sealed class IntegerSet
         KeyBytes rawStateKey = KeyConverters.ToStateKey(signer);
         long nonce = Chain.GetNextTxNonce(signer);
         Transaction tx = Transaction.Create(nonce, signerKey, Genesis.Hash, actions.ToBytecodes());
-        BigInteger prevState = Chain.GetNextWorldState().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
+        BigInteger prevState = Chain.GetNextWorld().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
         ITrie prevTrie = GetTrie(Chain.Tip.Hash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);

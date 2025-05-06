@@ -14,12 +14,6 @@ public abstract class StoreFixture : IDisposable
 {
     protected StoreFixture(PolicyActions? policyActions = null)
     {
-        Path = null;
-
-        Scheme = string.Empty;
-
-        StoreChainId = Guid.NewGuid();
-
         Address1 = new Address(
         [
             0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
@@ -132,16 +126,16 @@ public abstract class StoreFixture : IDisposable
             Block4, proposer: Proposer, stateRootHash: genesisNextSrh);
         stateRootHashes[Block5.Hash] = Block5.StateRootHash;
 
-        Transaction1 = MakeTransaction(new List<DumbAction>());
-        Transaction2 = MakeTransaction(new List<DumbAction>());
-        Transaction3 = MakeTransaction(new List<DumbAction>());
+        Transaction1 = MakeTransaction();
+        Transaction2 = MakeTransaction();
+        Transaction3 = MakeTransaction();
     }
 
-    public string Path { get; set; }
+    public string Path { get; set; } = string.Empty;
 
-    public string Scheme { get; set; }
+    public string Scheme { get; set; } = string.Empty;
 
-    public Guid StoreChainId { get; }
+    public Guid StoreChainId { get; } = Guid.NewGuid();
 
     public Address Address1 { get; }
 
@@ -197,24 +191,31 @@ public abstract class StoreFixture : IDisposable
 
     public IKeyValueStore StateKeyValueStore { get; set; }
 
-    public abstract void Dispose();
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     public Transaction MakeTransaction(
-        IEnumerable<DumbAction> actions = null,
+        IEnumerable<DumbAction>? actions = null,
         long nonce = 0,
-        PrivateKey privateKey = null,
+        PrivateKey? privateKey = null,
         DateTimeOffset? timestamp = null)
     {
-        privateKey = privateKey ?? new PrivateKey();
-        timestamp = timestamp ?? DateTimeOffset.UtcNow;
+        privateKey ??= new PrivateKey();
+        timestamp ??= DateTimeOffset.UtcNow;
+        actions ??= [];
 
         return Transaction.Create(
             nonce,
             privateKey,
             GenesisBlock.Hash,
-            Array.Empty<DumbAction>().ToBytecodes(),
+            actions.ToBytecodes(),
             null,
             0L,
             timestamp);
     }
+
+    protected abstract void Dispose(bool disposing);
 }

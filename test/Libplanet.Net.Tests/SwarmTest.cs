@@ -1082,19 +1082,19 @@ namespace Libplanet.Net.Tests
                 Assert.Equal(
                     "1",
                     (Text)genesisChainA
-                        .GetNextWorldState()
+                        .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(signerAddress));
                 Assert.Equal(
                     "2",
                     (Text)genesisChainB
-                        .GetNextWorldState()
+                        .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(signerAddress));
                 Assert.Equal(
                     "1",
                     (Text)genesisChainC
-                        .GetNextWorldState()
+                        .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(signerAddress));
             }

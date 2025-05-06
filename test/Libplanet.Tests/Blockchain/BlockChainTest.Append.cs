@@ -154,7 +154,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(
                 (Integer)2,
                 (Integer)_blockChain
-                    .GetNextWorldState()
+                    .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(minerAddress));
             Assert.Equal(2, blockRenders.Length);
@@ -329,7 +329,7 @@ namespace Libplanet.Tests.Blockchain
                 []);
             var commit1 = TestUtils.CreateBlockCommit(block1);
             _blockChain.Append(block1, commit1);
-            var world1 = _blockChain.GetNextWorldState();
+            var world1 = _blockChain.GetNextWorld();
             Assert.Equal(
                 (Text)"foo",
                 world1.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address1));
@@ -339,7 +339,7 @@ namespace Libplanet.Tests.Blockchain
                 commit1,
                 []);
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
-            var world2 = _blockChain.GetNextWorldState();
+            var world2 = _blockChain.GetNextWorld();
             Assert.Equal(
                 (Text)"bar",
                 world2.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address2));

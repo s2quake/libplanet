@@ -122,7 +122,7 @@ public partial class BlockChainTest : IDisposable
     public void Validators()
     {
         var validatorSet = _blockChain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetValidatorSet();
         _logger.Debug(
             "GenesisBlock is {Hash}, Transactions: {Txs}",
@@ -237,7 +237,7 @@ public partial class BlockChainTest : IDisposable
         Block block1 = chain.ProposeBlock(new PrivateKey());
         chain.Append(block1, CreateBlockCommit(block1));
         var result = (BattleResult)chain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(_fx.Address1);
 
@@ -267,7 +267,7 @@ public partial class BlockChainTest : IDisposable
         chain.Append(block2, CreateBlockCommit(block2));
 
         result = (BattleResult)chain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(_fx.Address1);
 
@@ -291,7 +291,7 @@ public partial class BlockChainTest : IDisposable
         chain.StageTransaction(tx3);
         chain.Append(block3, CreateBlockCommit(block3));
         result = (BattleResult)chain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(_fx.Address1);
     }
@@ -633,7 +633,7 @@ public partial class BlockChainTest : IDisposable
         Assert.All(
             targetAddresses.Select(
                 targetAddress => chain
-                    .GetNextWorldState()
+                    .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(targetAddress)),
             Assert.NotNull);
@@ -671,7 +671,7 @@ public partial class BlockChainTest : IDisposable
         tracker.ClearLogs();
         Address nonexistent = new PrivateKey().Address;
         var result = chain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(nonexistent);
         Assert.Null(result);
@@ -704,14 +704,14 @@ public partial class BlockChainTest : IDisposable
         Assert.All(
             addresses.Select(
                 address => chain
-                    .GetNextWorldState()
+                    .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
             Assert.Null);
         foreach (var address in addresses)
         {
             Assert.Null(chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(address));
         }
@@ -730,7 +730,7 @@ public partial class BlockChainTest : IDisposable
         Assert.All(
             addresses.Select(
                 address => chain
-                    .GetNextWorldState()
+                    .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
             v => Assert.Equal((Text)"1", v));
@@ -739,7 +739,7 @@ public partial class BlockChainTest : IDisposable
             Assert.Equal(
                 (Text)"1",
                 chain
-                    .GetNextWorldState()
+                    .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address));
         }
@@ -751,13 +751,13 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(
             (Text)"1,2",
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(addresses[0]));
         Assert.All(
             addresses.Skip(1).Select(
                 address => chain
-                    .GetNextWorldState()
+                    .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
             v => Assert.Equal((Text)"1", v));
@@ -1097,15 +1097,15 @@ public partial class BlockChainTest : IDisposable
         _blockChain.Append(block3, CreateBlockCommit(block3));
 
         var miner1state = (int)_blockChain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(miner1.Address);
         var miner2state = (int)_blockChain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(miner2.Address);
         var rewardState = (string)_blockChain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(rewardRecordAddress);
 
@@ -1413,7 +1413,7 @@ public partial class BlockChainTest : IDisposable
             actionEvaluator);
 
         var validator = blockChain
-            .GetNextWorldState()
+            .GetNextWorld()
             .GetValidatorSet()[0];
         Assert.Equal(validatorPrivKey.PublicKey, validator.PublicKey);
         Assert.Equal(BigInteger.One, validator.Power);
@@ -1424,7 +1424,7 @@ public partial class BlockChainTest : IDisposable
 
         var states = addresses
             .Select(address => blockChain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(address))
             .ToArray();
@@ -1502,10 +1502,10 @@ public partial class BlockChainTest : IDisposable
             {
                 // ReSharper disable AccessToModifiedClosure
                 // The following method calls should not throw any exceptions:
-                x?.GetNextWorldState()
+                x?.GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(default);
-                x?.GetNextWorldState()
+                x?.GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(default);
                 // ReSharper restore AccessToModifiedClosure

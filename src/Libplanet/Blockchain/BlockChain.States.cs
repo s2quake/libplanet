@@ -25,7 +25,7 @@ namespace Libplanet.Blockchain
         /// Gets the next world state in the <see cref="BlockChain"/>.
         /// </summary>
         /// <returns>The next world state.  If it does not exist, returns null.</returns>
-        public World GetNextWorldState()
+        public World GetNextWorld()
         {
             if (GetNextStateRootHash() is { } nsrh)
             {
