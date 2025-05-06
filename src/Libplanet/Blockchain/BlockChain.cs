@@ -1196,7 +1196,7 @@ public partial class BlockChain : IBlockChainStates
         return null;
     }
 
-    internal ImmutableSortedSet<Transaction> ListStagedTransactions(IComparer<Transaction>? txPriority = null)
+    internal ImmutableArray<Transaction> ListStagedTransactions(IComparer<Transaction>? txPriority = null)
     {
         var unorderedTxs = StagePolicy.Iterate(this);
         if (txPriority is { } comparer)
@@ -1217,7 +1217,7 @@ public partial class BlockChain : IBlockChainStates
             Transaction first = seat.First.Value;
             seat.RemoveFirst();
             return first;
-        }).ToImmutableList();
+        }).ToImmutableArray();
     }
 
     internal IEnumerable<Block> IterateBlocks(int offset = 0, int? limit = null)

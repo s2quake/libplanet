@@ -82,14 +82,14 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             {
                 Signer = tx?.Signer ?? default,
                 TxId = tx?.Id ?? default,
-                Proposer = block.Proposer,
-                BlockHeight = block.Height,
-                BlockProtocolVersion = block.ProtocolVersion,
-                LastCommit = block.LastCommit,
-                Txs = block.Transactions,
+                Proposer = block.Metadata.Proposer,
+                BlockHeight = block.Metadata.Height,
+                BlockProtocolVersion = block.Metadata.ProtocolVersion,
+                LastCommit = block.Metadata.LastCommit,
+                Txs = block.Content.Transactions,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,
-                Evidence = block.Evidence,
+                Evidence = block.Content.Evidences,
             };
             var evaluation = EvaluateAction(action, world, actionContext);
             evaluations[i] = evaluation;
@@ -151,7 +151,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
 
     internal ActionEvaluation[] EvaluateBlock(RawBlock block, World world)
     {
-        var txs = block.Transactions;
+        var txs = block.Content.Transactions;
         var capacity = GetCapacity(block);
         var evaluationList = new List<ActionEvaluation>(capacity);
 
@@ -218,8 +218,8 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
 
     private int GetCapacity(RawBlock block)
     {
-        var txCount = block.Transactions.Count;
-        var actionCount = block.Transactions.Sum(tx => tx.Actions.Length);
+        var txCount = block.Content.Transactions.Count;
+        var actionCount = block.Content.Transactions.Sum(tx => tx.Actions.Length);
         var blockActionCount = policyActions.BeginBlockActions.Length
             + policyActions.EndBlockActions.Length;
         var txActionCount = policyActions.BeginTxActions.Length

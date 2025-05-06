@@ -441,7 +441,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new BlockContent
                 {
                     Transactions = [.. txs],
-                    Evidence = [.. evs],
+                    Evidences = [.. evs],
                 });
             var invalidBlock = preEval.Sign(
                 TestUtils.PrivateKeys[1],

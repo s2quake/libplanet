@@ -1,8 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
 
 namespace Libplanet.Types.Blocks;
 
@@ -17,26 +15,6 @@ public sealed record class RawBlock
 
     [Property(2)]
     public required BlockContent Content { get; init; }
-
-    public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
-
-    public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;
-
-    public int ProtocolVersion => Metadata.ProtocolVersion;
-
-    public long Height => Metadata.Height;
-
-    public DateTimeOffset Timestamp => Metadata.Timestamp;
-
-    public Address Proposer => Metadata.Proposer;
-
-    public BlockHash PreviousHash => Metadata.PreviousHash;
-
-    public HashDigest<SHA256>? TxHash => Metadata.TxHash;
-
-    public BlockCommit LastCommit => Metadata.LastCommit;
-
-    public HashDigest<SHA256>? EvidenceHash => Metadata.EvidenceHash;
 
     public static explicit operator RawBlock(Block block) => new()
     {
@@ -72,10 +50,10 @@ public sealed record class RawBlock
             Timestamp = Metadata.Timestamp,
             Proposer = Metadata.Proposer,
             PreviousHash = Metadata.PreviousHash,
-            TxHash = Metadata.TxHash,
             LastCommit = Metadata.LastCommit,
-            EvidenceHash = Metadata.EvidenceHash,
             RawHash = Metadata.DerivePreEvaluationHash(),
+            TxHash = Content.TxHash,
+            EvidenceHash = Content.EvidenceHash,
         };
         return new Block { Header = header, Content = Content };
     }

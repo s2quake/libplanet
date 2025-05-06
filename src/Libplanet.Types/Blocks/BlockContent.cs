@@ -14,7 +14,11 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
     public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
 
     [Property(1)]
-    public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
+    public ImmutableSortedSet<EvidenceBase> Evidences { get; init; } = [];
+
+    public HashDigest<SHA256> TxHash => DeriveTxHash(Transactions);
+
+    public HashDigest<SHA256> EvidenceHash => DeriveEvidenceHash(Evidences);
 
     public static HashDigest<SHA256> DeriveTxHash(ImmutableSortedSet<Transaction> transactions)
     {

@@ -52,10 +52,9 @@ public partial class BlockChain
                 (RawBlock)block,
                 Store.GetStateRootHash(block.Hash));
 
-    internal Block EvaluateAndSign(
-        RawBlock rawBlock, PrivateKey privateKey)
+    internal Block EvaluateAndSign(RawBlock rawBlock, PrivateKey privateKey)
     {
-        if (rawBlock.Height < 1)
+        if (rawBlock.Metadata.Height < 1)
         {
             throw new ArgumentException(
                 $"Given {nameof(rawBlock)} must have block height " +
@@ -63,7 +62,7 @@ public partial class BlockChain
         }
         else
         {
-            var prevBlock = _blocks[rawBlock.PreviousHash];
+            var prevBlock = _blocks[rawBlock.Metadata.PreviousHash];
             var stateRootHash = GetNextStateRootHash(prevBlock.Hash)
                 ?? throw new NullReferenceException(
                     $"State root hash of block is not prepared");

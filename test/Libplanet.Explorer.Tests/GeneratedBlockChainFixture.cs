@@ -176,7 +176,7 @@ public class GeneratedBlockChainFixture
                 new BlockContent
                 {
                     Transactions = [.. transactions],
-                    Evidence = [],
+                    Evidences = [],
                 }),
             proposer);
         Chain.Append(

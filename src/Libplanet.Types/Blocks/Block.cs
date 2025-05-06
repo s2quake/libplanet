@@ -41,7 +41,7 @@ public sealed record class Block : IEquatable<Block>
 
     public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
 
-    public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidence;
+    public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidences;
 
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
@@ -54,7 +54,7 @@ public sealed record class Block : IEquatable<Block>
             Content = new BlockContent
             {
                 Transactions = transactions,
-                Evidence = evidence,
+                Evidences = evidence,
             },
         };
     }
