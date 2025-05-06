@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -32,8 +31,7 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
 
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
-    public HashDigest<SHA256> ToHash()
-        => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
@@ -46,7 +44,7 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
             vote.Round != round ||
             !blockHash.Equals(vote.BlockHash) ||
             (vote.Flag != VoteFlag.Null && vote.Flag != VoteFlag.PreCommit) ||
-            (vote.Flag == VoteFlag.PreCommit && !vote.Verify())))
+            (vote.Flag == VoteFlag.PreCommit && !ValidationUtility.TryValidate(vote))))
         {
             yield return new ValidationResult(
                 $"Every vote must have the same height as {Height}, the same round " +

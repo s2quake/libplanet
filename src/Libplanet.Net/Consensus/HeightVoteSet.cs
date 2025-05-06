@@ -1,4 +1,5 @@
 using Libplanet.Consensus;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
@@ -144,7 +145,7 @@ namespace Libplanet.Net.Consensus
                         vote);
                 }
 
-                if (!vote.Verify())
+                if (!ValidationUtility.TryValidate(vote))
                 {
                     throw new InvalidVoteException(
                         "Received vote's signature is invalid",
