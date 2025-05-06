@@ -18,6 +18,7 @@ public readonly record struct Currency : IEquatable<Currency>
     }
 
     [Property(0)]
+    [Required]
     [RegularExpression("^[A-Z]{3,5}$")]
     public required string Ticker { get; init; } = string.Empty;
 
@@ -29,7 +30,6 @@ public readonly record struct Currency : IEquatable<Currency>
     public BigInteger MaximumSupply { get; init; }
 
     [Property(3)]
-    [NotDefault]
     public ImmutableSortedSet<Address> Minters { get; init; } = [];
 
     public HashDigest<SHA1> Hash => GetHash();
@@ -47,45 +47,33 @@ public readonly record struct Currency : IEquatable<Currency>
     public static FungibleAssetValue operator *(decimal value, Currency currency) => currency * value;
 
     public static Currency Create(
-        string ticker, byte decimalPlac2es, BigInteger maximumSupply, ImmutableSortedSet<Address> minters)
-    {
-        return new Currency
+        string ticker, byte decimalPlac2es, BigInteger maximumSupply, ImmutableSortedSet<Address> minters) => new()
         {
             Ticker = ticker,
             DecimalPlaces = decimalPlac2es,
             MaximumSupply = maximumSupply,
             Minters = minters,
         };
-    }
 
-    public static Currency Create(string ticker, byte decimalPlaces)
+    public static Currency Create(string ticker, byte decimalPlaces) => new()
     {
-        return new Currency
-        {
-            Ticker = ticker,
-            DecimalPlaces = decimalPlaces,
-        };
-    }
+        Ticker = ticker,
+        DecimalPlaces = decimalPlaces,
+    };
 
-    public static Currency Create(string ticker, byte decimalPlaces, BigInteger maximumSupply)
+    public static Currency Create(string ticker, byte decimalPlaces, BigInteger maximumSupply) => new()
     {
-        return new Currency
-        {
-            Ticker = ticker,
-            DecimalPlaces = decimalPlaces,
-            MaximumSupply = maximumSupply,
-        };
-    }
+        Ticker = ticker,
+        DecimalPlaces = decimalPlaces,
+        MaximumSupply = maximumSupply,
+    };
 
-    public static Currency Create(string ticker, byte decimalPlaces, ImmutableSortedSet<Address> minters)
+    public static Currency Create(string ticker, byte decimalPlaces, ImmutableSortedSet<Address> minters) => new()
     {
-        return new Currency
-        {
-            Ticker = ticker,
-            DecimalPlaces = decimalPlaces,
-            Minters = minters,
-        };
-    }
+        Ticker = ticker,
+        DecimalPlaces = decimalPlaces,
+        Minters = minters,
+    };
 
     public bool CanMint(Address address) => Minters.Count is 0 || Minters.Contains(address);
 

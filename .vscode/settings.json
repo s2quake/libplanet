@@ -82,5 +82,6 @@
     "editor.codeActionsOnSave": {
       "source.organizeImports.rome": "explicit"
     }
-  }
+  },
+  "csharp.debug.justMyCode": true
 }

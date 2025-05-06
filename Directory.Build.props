@@ -23,7 +23,6 @@
     <Authors>Planetarium</Authors>
     <PackageLicenseExpression>LGPL-2.1-or-later</PackageLicenseExpression>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Libplanet.ruleset</CodeAnalysisRuleSet>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>$(NoWarn);S4035;CS1591;NU5104;MEN001;NU1902</NoWarn>
 

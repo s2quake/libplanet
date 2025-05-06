@@ -1,5 +1,5 @@
-using Xunit.Sdk;
 using System.ComponentModel.DataAnnotations;
+using Xunit.Sdk;
 
 namespace Libplanet.Tests;
 
@@ -13,16 +13,29 @@ public static class TestValidator
                 instance: obj,
                 validationContext: new ValidationContext(obj),
                 validateAllProperties: true);
-            throw new XunitException(
-                $"Validation should have failed for {obj.GetType().Name} but it didn't.");
+            throw new XunitException($"Validation should have failed for {obj.GetType().Name} but it didn't.");
         }
         catch (ValidationException e)
         {
             return e;
         }
-        catch (Exception e)
+    }
+
+    public static ValidationException Throws(object obj, string propertyName)
+    {
+        try
         {
-            throw new XunitException("Validation failed", e);
+            return Throws(obj);
+        }
+        catch (ValidationException e)
+        {
+            if (!e.ValidationResult.MemberNames.Contains(propertyName))
+            {
+                throw new XunitException(
+                    $"Validation should have failed for {obj.GetType().Name}.{propertyName} but it didn't.");
+            }
+
+            return e;
         }
     }
 }

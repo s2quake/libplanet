@@ -11,13 +11,10 @@ internal static class NodeInserter
         ValueNode valueNode => InsertToValueNode(valueNode, cursor, value),
         ShortNode shortNode => InsertToShortNode(shortNode, cursor, value),
         FullNode fullNode => InsertToFullNode(fullNode, cursor, value),
-        NullNode nullNode => InsertToNullNode(nullNode, cursor, value),
+        NullNode => InsertToNullNode(cursor, value),
         _ => throw new UnreachableException(
             $"Unsupported node value: {node.ToBencodex().Inspect()}"),
     };
-
-    private static INode InsertToNullNode(NullNode nullNode, in PathCursor cursor, ValueNode value)
-        => cursor.IsEnd ? value : new ShortNode(cursor.NextNibbles, value);
 
     private static INode InsertToNullNode(in PathCursor cursor, ValueNode value)
         => cursor.IsEnd ? value : new ShortNode(cursor.NextNibbles, value);
