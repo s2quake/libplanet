@@ -108,7 +108,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             Assert.False(StagePolicy.Unstage(_chain, _txs[0].Id));
             AssertTxSetEqual(_txs.Skip(1), StagePolicy.Iterate(_chain));
 
-            Assert.True(StagePolicy.Unstage(_chain, _txs.Last().Id));
+            Assert.True(StagePolicy.Unstage(_chain, _txs[^1].Id));
             AssertTxSetEqual(_txs.Skip(1).SkipLast(1), StagePolicy.Iterate(_chain));
 
             Assert.True(StagePolicy.Unstage(_chain, _txs[2].Id));

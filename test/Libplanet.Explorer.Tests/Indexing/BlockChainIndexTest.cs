@@ -214,12 +214,12 @@ public abstract class BlockChainIndexTest
                 return blockCount < 4
                     ? (^0.., blockCount..blockCount)
                     : (
-                    ^(blockCount - blockCount / 4)..,
+                    ^(blockCount - (blockCount / 4))..,
                     (blockCount / 4)..blockCount);
             case SpecialRangeKind.EndFromEnd:
                 return blockCount < 4
                     ? (..^blockCount, ..0)
-                    : (..^(blockCount / 4), ..(blockCount - blockCount / 4));
+                    : (..^(blockCount / 4), ..(blockCount - (blockCount / 4)));
         }
 
         throw new ArgumentOutOfRangeException();

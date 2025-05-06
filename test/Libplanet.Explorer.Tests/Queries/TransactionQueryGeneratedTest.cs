@@ -116,7 +116,7 @@ public class TransactionQueryGeneratedTest
             blocksToTest,
             signer,
             false,
-            blocksToTest.Length / 4 - blocksToTest.Length,
+            (blocksToTest.Length / 4) - blocksToTest.Length,
             null);
         Assert.Equal<IEnumerable<(string Id, string? BlockHash)>>(
             await ExecuteTransactionsQueryAsync(
@@ -124,7 +124,7 @@ public class TransactionQueryGeneratedTest
             await ExecuteTransactionsQueryAsync(
                 signer,
                 false,
-                blocksToTest.Length / 4 - blocksToTest.Length,
+                (blocksToTest.Length / 4) - blocksToTest.Length,
                 null));
         await AssertAgainstTransactionsQuery(
             blocksToTest, signer, true, blocksToTest.Length / 4, null);
@@ -132,7 +132,7 @@ public class TransactionQueryGeneratedTest
             blocksToTest,
             signer,
             true,
-            blocksToTest.Length / 4 - blocksToTest.Length,
+            (blocksToTest.Length / 4) - blocksToTest.Length,
             null);
         Assert.Equal<IEnumerable<(string Id, string? BlockHash)>>(
             await ExecuteTransactionsQueryAsync(
@@ -140,7 +140,7 @@ public class TransactionQueryGeneratedTest
             await ExecuteTransactionsQueryAsync(
                 signer,
                 true,
-                blocksToTest.Length / 4 - blocksToTest.Length,
+                (blocksToTest.Length / 4) - blocksToTest.Length,
                 null));
         await AssertAgainstTransactionsQuery(
             blocksToTest, signer, false, null, blocksToTest.Length / 4);
@@ -156,7 +156,7 @@ public class TransactionQueryGeneratedTest
             blocksToTest,
             signer,
             false,
-            blocksToTest.Length / 3 - blocksToTest.Length,
+            (blocksToTest.Length / 3) - blocksToTest.Length,
             blocksToTest.Length / 4);
         Assert.Equal<IEnumerable<(string Id, string? BlockHash)>>(
             await ExecuteTransactionsQueryAsync(
@@ -167,7 +167,7 @@ public class TransactionQueryGeneratedTest
             await ExecuteTransactionsQueryAsync(
                 signer,
                 false,
-                blocksToTest.Length / 3 - blocksToTest.Length,
+                (blocksToTest.Length / 3) - blocksToTest.Length,
                 blocksToTest.Length / 4));
         await AssertAgainstTransactionsQuery(
             blocksToTest,
@@ -179,7 +179,7 @@ public class TransactionQueryGeneratedTest
             blocksToTest,
             signer,
             true,
-            blocksToTest.Length / 3 - blocksToTest.Length,
+            (blocksToTest.Length / 3) - blocksToTest.Length,
             blocksToTest.Length / 4);
         Assert.Equal<IEnumerable<(string Id, string? BlockHash)>>(
             await ExecuteTransactionsQueryAsync(
@@ -190,7 +190,7 @@ public class TransactionQueryGeneratedTest
             await ExecuteTransactionsQueryAsync(
                 signer,
                 true,
-                blocksToTest.Length / 3 - blocksToTest.Length,
+                (blocksToTest.Length / 3) - blocksToTest.Length,
                 blocksToTest.Length / 4));
     }
 

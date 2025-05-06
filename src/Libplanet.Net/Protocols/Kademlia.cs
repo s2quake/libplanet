@@ -79,7 +79,7 @@ namespace Libplanet.Net.Protocols
         /// <returns>The distance between the two <see cref="Address"/>es given.</returns>
         public static int CalculateDistance(Address left, Address right)
         {
-            return Address.Size * 8 - CommonPrefixLength(left, right);
+            return (Address.Size * 8) - CommonPrefixLength(left, right);
         }
 
         /// <summary>

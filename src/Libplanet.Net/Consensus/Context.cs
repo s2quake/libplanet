@@ -323,7 +323,7 @@ public partial class Context : IDisposable
     {
         return TimeSpan.FromMilliseconds(
             _contextOption.PreVoteTimeoutBase +
-            round * _contextOption.PreVoteTimeoutDelta);
+            (round * _contextOption.PreVoteTimeoutDelta));
     }
 
     /// <summary>
@@ -336,7 +336,7 @@ public partial class Context : IDisposable
     {
         return TimeSpan.FromMilliseconds(
             _contextOption.PreCommitTimeoutBase +
-            round * _contextOption.PreCommitTimeoutDelta);
+            (round * _contextOption.PreCommitTimeoutDelta));
     }
 
     /// <summary>
@@ -349,7 +349,7 @@ public partial class Context : IDisposable
     {
         return TimeSpan.FromMilliseconds(
             _contextOption.ProposeTimeoutBase +
-            round * _contextOption.ProposeTimeoutDelta);
+            (round * _contextOption.ProposeTimeoutDelta));
     }
 
     /// <summary>

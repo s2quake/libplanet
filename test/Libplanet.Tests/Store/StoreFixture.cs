@@ -103,7 +103,7 @@ public abstract class StoreFixture : IDisposable
             default);
         stateRootHashes[GenesisBlock.Hash] = GenesisBlock.StateRootHash;
         var genesisNextSrh = actionEvaluator.Evaluate(
-            (RawBlock)GenesisBlock, GenesisBlock.StateRootHash).Last().OutputState;
+            (RawBlock)GenesisBlock, GenesisBlock.StateRootHash)[^1].OutputState;
         Block1 = TestUtils.ProposeNextBlock(
             GenesisBlock,
             proposer: Proposer,

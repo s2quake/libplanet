@@ -146,7 +146,7 @@ public readonly record struct FungibleAssetValue
         var minorString = match.Groups["minor"].Value.PadRight(decimalPlaces, '0');
         var major = BigInteger.Parse(majorString);
         var minor = BigInteger.Parse(minorString);
-        var rawValue = major * BigInteger.Pow(10, currency.DecimalPlaces) + minor;
+        var rawValue = (major * BigInteger.Pow(10, currency.DecimalPlaces)) + minor;
         if (!isPositive)
         {
             rawValue = -rawValue;

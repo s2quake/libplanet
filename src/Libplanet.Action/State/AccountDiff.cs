@@ -115,7 +115,7 @@ public class AccountDiff
         byte[] buffer = new byte[Address.Size];
         for (int i = 0; i < buffer.Length; i++)
         {
-            buffer[i] = Pack(key.Bytes[i * 2], key.Bytes[i * 2 + 1]);
+            buffer[i] = Pack(key.Bytes[i * 2], key.Bytes[(i * 2) + 1]);
         }
 
         return new Address([.. buffer]);
@@ -132,7 +132,7 @@ public class AccountDiff
         byte[] buffer = new byte[Address.Size];
         for (int i = 0; i < buffer.Length; i++)
         {
-            buffer[i] = Pack(bytes[i * 2], bytes[i * 2 + 1]);
+            buffer[i] = Pack(bytes[i * 2], bytes[(i * 2) + 1]);
         }
 
         return new Address([.. buffer]);

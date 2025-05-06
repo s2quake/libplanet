@@ -73,7 +73,7 @@ public static class ByteUtility
         for (int i = 0; i < bytes.Length; i++)
         {
             chars[i * 2] = _hexCharLookup[bytes[i] >> 4];
-            chars[i * 2 + 1] = _hexCharLookup[bytes[i] & 0xf];
+            chars[(i * 2) + 1] = _hexCharLookup[bytes[i] & 0xf];
         }
 
         string result = new string(chars, 0, length);

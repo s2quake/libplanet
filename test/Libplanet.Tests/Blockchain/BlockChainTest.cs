@@ -1199,7 +1199,7 @@ public partial class BlockChainTest : IDisposable
         {
             for (int j = 0; j < accountsCount; ++j)
             {
-                int index = i * accountsCount + j;
+                int index = (i * accountsCount) + j;
                 Transaction tx = Transaction.Create(
                     store.GetTxNonce(chain.Id, signer),
                     privateKey,
@@ -1215,7 +1215,7 @@ public partial class BlockChainTest : IDisposable
                     GenesisProposer);
 
                 var evals = actionEvaluator.EvaluateBlock((RawBlock)b, previousState);
-                var dirty = evals.Last().OutputWorld.Trie
+                var dirty = evals[^1].OutputWorld.Trie
                     .Diff(evals.First().InputWorld.Trie)
                     .ToList();
                 Assert.NotEmpty(dirty);
