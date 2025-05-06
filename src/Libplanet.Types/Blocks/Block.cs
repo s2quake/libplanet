@@ -9,7 +9,7 @@ namespace Libplanet.Types.Blocks;
 [Model(Version = 1)]
 public sealed record class Block : IEquatable<Block>
 {
-    public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
+    // public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
 
     [Property(0)]
     public required BlockHeader Header { get; init; } = BlockHeader.Empty;
