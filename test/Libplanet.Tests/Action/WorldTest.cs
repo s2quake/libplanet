@@ -166,12 +166,12 @@ public sealed class WorldTest
         Assert.Equal(
             DumbAction.DumbCurrency * 0,
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetBalance(_addr[0], DumbAction.DumbCurrency));
         Assert.Equal(
             DumbAction.DumbCurrency * 20,
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetBalance(_addr[1], DumbAction.DumbCurrency));
 
         // Transfer
@@ -194,12 +194,12 @@ public sealed class WorldTest
         Assert.Equal(
             DumbAction.DumbCurrency * 5,
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetBalance(_addr[0], DumbAction.DumbCurrency));
         Assert.Equal(
             DumbAction.DumbCurrency * 15,
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetBalance(_addr[1], DumbAction.DumbCurrency));
 
         // Transfer bugged

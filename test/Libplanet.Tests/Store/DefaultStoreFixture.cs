@@ -45,7 +45,7 @@ public class DefaultStoreFixture : StoreFixture, IDisposable
         return new TrieStateStore(stateKeyValueStore);
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         Store.Dispose();
         StateStore.Dispose();

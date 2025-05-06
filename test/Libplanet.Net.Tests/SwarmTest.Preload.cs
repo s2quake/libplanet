@@ -98,7 +98,7 @@ namespace Libplanet.Net.Tests
 
                 await receiverSwarm.PreloadAsync();
                 var state = receiverChain
-                    .GetNextWorldState()
+                    .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address1);
 
@@ -659,7 +659,7 @@ namespace Libplanet.Net.Tests
                         Enumerable.Range(0, (int)receiverChain.Tip.Height).Select(i =>
                             string.Join(",", Enumerable.Range(0, 5).Select(j => $"Item{i}.{j}")))),
                     receiverChain
-                        .GetNextWorldState()
+                        .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(address));
             }
@@ -672,7 +672,7 @@ namespace Libplanet.Net.Tests
                         Enumerable.Range(0, 20).Select(i =>
                             string.Join(",", Enumerable.Range(0, 5).Select(j => $"Item{i}.{j}")))),
                     receiverChain
-                        .GetNextWorldState()
+                        .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(address));
             }

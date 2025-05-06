@@ -93,18 +93,18 @@ namespace Libplanet.Blockchain
             ImmutableSortedSet<EvidenceBase>? evidence = null,
             IComparer<Transaction>? txPriority = null)
         {
-            long index = Count;
-            _logger.Debug("Starting to propose block #{Index}...", index);
+            var height = Count;
+            _logger.Debug("Starting to propose block #{Height}...", height);
 
             ImmutableList<Transaction> transactions;
             try
             {
-                transactions = GatherTransactionsToPropose(index, txPriority);
+                transactions = GatherTransactionsToPropose(height, txPriority);
             }
             catch (InvalidOperationException ioe)
             {
                 throw new OperationCanceledException(
-                    $"Failed to gather transactions to propose for block #{index}.",
+                    $"Failed to gather transactions to propose for block #{height}.",
                     ioe);
             }
 
@@ -114,7 +114,7 @@ namespace Libplanet.Blockchain
                 lastCommit ?? BlockCommit.Empty,
                 evidence ?? []);
             _logger.Debug(
-                "Proposed block #{Index} {Hash} with previous hash {PreviousHash}",
+                "Proposed block #{Height} {Hash} with previous hash {PreviousHash}",
                 block.Height,
                 block.Hash,
                 block.PreviousHash);
@@ -212,7 +212,7 @@ namespace Libplanet.Blockchain
         /// to propose.</returns>
         /// <exception cref="InvalidOperationException">Thrown when not all policies
         /// can be satisfied.</exception>
-        internal ImmutableList<Transaction> GatherTransactionsToPropose(
+        internal ImmutableSortedSet<Transaction> GatherTransactionsToPropose(
             long index,
             IComparer<Transaction>? txPriority = null) =>
             GatherTransactionsToPropose(
@@ -241,7 +241,7 @@ namespace Libplanet.Blockchain
         /// <paramref name="maxTransactionsPerSigner"/>.</returns>
         /// <exception cref="InvalidOperationException">Thrown when not all policies
         /// can be satisfied.</exception>
-        internal ImmutableList<Transaction> GatherTransactionsToPropose(
+        internal ImmutableSortedSet<Transaction> GatherTransactionsToPropose(
             long maxTransactionsBytes,
             int maxTransactions,
             int maxTransactionsPerSigner,

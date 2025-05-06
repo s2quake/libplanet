@@ -3,17 +3,16 @@ using Libplanet.Store;
 
 namespace Libplanet.Tests.Store;
 
-public class MemoryStoreFixture : StoreFixture
+public sealed class MemoryStoreFixture : StoreFixture
 {
-    public MemoryStoreFixture(
-        PolicyActions? policyActions = null)
+    public MemoryStoreFixture(PolicyActions? policyActions = null)
         : base(policyActions)
     {
         Store = new MemoryStore();
         StateStore = new TrieStateStore();
     }
 
-    public override void Dispose()
+    protected override void Dispose(bool disposing)
     {
         Store.Dispose();
         StateStore.Dispose();

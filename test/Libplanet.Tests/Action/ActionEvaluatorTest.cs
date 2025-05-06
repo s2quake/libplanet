@@ -166,31 +166,31 @@ public partial class ActionEvaluatorTest
         Assert.Null(evaluations.Single().Exception);
         Assert.Equal(
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(address),
             value);
         Assert.Equal(
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.MinerRecordAddress),
             block.Proposer);
         Assert.Equal(
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.SignerRecordAddress),
             tx.Signer);
         Assert.Equal(
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.BlockIndexRecordAddress),
             block.Height);
         Assert.Equal(
             chain
-                .GetNextWorldState()
+                .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(ContextRecordingAction.RandomRecordAddress),
             evaluations.Single().InputContext.GetRandom().Next());
@@ -209,16 +209,16 @@ public partial class ActionEvaluatorTest
 
         Assert.Equal(
             (BigInteger)1,
-            chain.GetNextWorldState().GetValue(LegacyAccount, _beginBlockValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _beginBlockValueAddress));
         Assert.Equal(
             (BigInteger)1,
-            chain.GetNextWorldState().GetValue(LegacyAccount, _endBlockValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _endBlockValueAddress));
         Assert.Equal(
             (BigInteger)chain.Genesis.Transactions.Count,
-            chain.GetNextWorldState().GetValue(LegacyAccount, _beginTxValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _beginTxValueAddress));
         Assert.Equal(
             (BigInteger)chain.Genesis.Transactions.Count,
-            chain.GetNextWorldState().GetValue(LegacyAccount, _endTxValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _endTxValueAddress));
 
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(
@@ -237,16 +237,16 @@ public partial class ActionEvaluatorTest
         chain.Append(block, CreateBlockCommit(block));
         Assert.Equal(
             (BigInteger)2,
-            chain.GetNextWorldState().GetValue(LegacyAccount, _beginBlockValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _beginBlockValueAddress));
         Assert.Equal(
             (BigInteger)2,
-            chain.GetNextWorldState().GetValue(LegacyAccount, _endBlockValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _endBlockValueAddress));
         Assert.Equal(
             (BigInteger)(chain.Genesis.Transactions.Count + txs.Length),
-            chain.GetNextWorldState().GetValue(LegacyAccount, _beginTxValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _beginTxValueAddress));
         Assert.Equal(
             (BigInteger)(chain.Genesis.Transactions.Count + txs.Length),
-            chain.GetNextWorldState().GetValue(LegacyAccount, _endTxValueAddress));
+            chain.GetNextWorld().GetValue(LegacyAccount, _endTxValueAddress));
     }
 
     [Fact]
