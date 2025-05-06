@@ -38,7 +38,7 @@ internal static class NodeResolver
                     ? ResolveToNode(shortNode.Value, cursor.Next(shortNode.Key.Length))
                     : NullNode.Value,
             FullNode fullNode
-                => fullNode.GetChild(cursor.Current) is {} child
+                => fullNode.GetChild(cursor.Current) is { } child
                     ? ResolveToNode(child, cursor.Next(1))
                     : NullNode.Value,
             HashNode hashNode => ResolveToNode(hashNode.Expand(), cursor),

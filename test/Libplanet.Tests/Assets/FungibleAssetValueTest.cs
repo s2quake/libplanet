@@ -463,34 +463,32 @@ public class FungibleAssetValueTest
     [SkippableFact]
     public void JsonSerialization()
     {
-        var v = FungibleAssetValue.Create(FOO, 123, 45);
-        AssertJsonSerializable(v, @"
+        var foo1 = FungibleAssetValue.Create(FOO, 123, 45);
+        var expectedFoo1Json = @"
             {
                 ""quantity"": ""123.45"",
                 ""currency"": {
-                    ""hash"": ""ea0ec4314a6124d97b42c8f9d15e961030c4f57b"",
+                    ""hash"": ""8079efca64fc19121f21f5e04d5d9a303c96adc5"",
                     ""ticker"": ""FOO"",
                     ""decimalPlaces"": 2,
                     ""minters"": [],
                     ""maximumSupply"": ""0""
                 }
-            }
-        ");
+            }";
+        AssertJsonSerializable(foo1, expectedFoo1Json);
 
-        v = FungibleAssetValue.Create(FOO, -456, 0);
-        AssertJsonSerializable(v, @"
+        var foo2 = FungibleAssetValue.Create(FOO, -456, 0);
+        var expectedFoo2Json = @"
             {
                 ""quantity"": ""-456"",
                 ""currency"": {
-                    ""hash"": ""ea0ec4314a6124d97b42c8f9d15e961030c4f57b"",
+                    ""hash"": ""8079efca64fc19121f21f5e04d5d9a303c96adc5"",
                     ""ticker"": ""FOO"",
                     ""decimalPlaces"": 2,
                     ""minters"": [],
                     ""maximumSupply"": ""0""
                 }
-            }
-        ");
+            }";
+        AssertJsonSerializable(foo2, expectedFoo2Json);
     }
 }
-
-#pragma warning restore S1764

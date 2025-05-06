@@ -131,7 +131,6 @@ public partial record class Trie
 
         while (hashNode is HashNode currentHashNode)
         {
-            // INode unhashedNode = currentHashNode.Expand(keyValueStore);
             INode unhashedNode = currentHashNode.Expand();
             proof.Add(unhashedNode);
             var resolved = ResolveToNextCandidateNode(unhashedNode, cursor);
