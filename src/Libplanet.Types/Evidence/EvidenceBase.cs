@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Crypto;
@@ -11,7 +12,7 @@ public abstract record class EvidenceBase
     private EvidenceId? _id;
 
     [Property(0)]
-    [Positive]
+    [NonNegative]
     public long Height { get; init; }
 
     [Property(1)]
@@ -21,43 +22,22 @@ public abstract record class EvidenceBase
     [Property(2)]
     public DateTimeOffset Timestamp { get; init; }
 
-    public EvidenceId Id => _id ??= new EvidenceId(ModelSerializer.SerializeToBytes(this));
+    public EvidenceId Id => _id ??= new EvidenceId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 
     public int CompareTo(EvidenceBase? other) => Id.CompareTo(other?.Id);
 
-    public int CompareTo(object? obj)
-        => obj is EvidenceBase other ? CompareTo(other: other) : 1;
-
-    public void Verify(IEvidenceContext evidenceContext) => OnVerify(evidenceContext);
+    public int CompareTo(object? obj) => obj switch
+    {
+        null => 1,
+        EvidenceBase other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(EvidenceBase)}.", nameof(obj)),
+    };
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
         => OnValidate(validationContext);
 
-    internal static string GetTypeName(Type evidenceType)
-    {
-        if (!typeof(EvidenceBase).IsAssignableFrom(evidenceType))
-        {
-            throw new ArgumentException(
-                $"Given type {evidenceType} is not a subclass of {nameof(EvidenceBase)}.",
-                nameof(evidenceType));
-        }
-
-        var typeName = evidenceType.FullName;
-        var assemblyName = evidenceType.Assembly.GetName().Name;
-        return $"{typeName}, {assemblyName}";
-    }
-
-    internal static string GetTypeName(EvidenceBase evidence) => GetTypeName(evidence.GetType());
-
-    protected abstract void OnVerify(IEvidenceContext evidenceContext);
-
     protected virtual IEnumerable<ValidationResult> OnValidate(ValidationContext validationContext)
     {
-        if (Height < 0)
-        {
-            yield return new ValidationResult(
-                $"Given {nameof(Height)} cannot be negative: {Height}",
-                [nameof(Height)]);
-        }
+        yield break;
     }
 }

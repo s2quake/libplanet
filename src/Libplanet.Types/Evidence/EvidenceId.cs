@@ -1,16 +1,18 @@
+using System.ComponentModel;
 using System.Text.Json.Serialization;
+using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types.Evidence;
 
 [JsonConverter(typeof(EvidenceIdJsonConverter))]
+[TypeConverter(typeof(EvidenceIdTypeConverter))]
 public readonly record struct EvidenceId(in ImmutableArray<byte> Bytes)
     : IEquatable<EvidenceId>, IComparable<EvidenceId>, IComparable
 {
     public const int Size = 32;
 
-    private static readonly ImmutableArray<byte> _defaultByteArray
-        = ImmutableArray.Create(new byte[Size]);
+    private static readonly ImmutableArray<byte> _defaultByteArray = ImmutableArray.Create(new byte[Size]);
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
@@ -70,16 +72,12 @@ public readonly record struct EvidenceId(in ImmutableArray<byte> Bytes)
         return 0;
     }
 
-    public int CompareTo(object? obj)
+    public int CompareTo(object? obj) => obj switch
     {
-        if (obj is not EvidenceId other)
-        {
-            throw new ArgumentException(
-                $"Argument {nameof(obj)} is not a ${nameof(EvidenceId)}.", nameof(obj));
-        }
-
-        return CompareTo(other);
-    }
+        null => 1,
+        EvidenceId other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(EvidenceId)}.", nameof(obj)),
+    };
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

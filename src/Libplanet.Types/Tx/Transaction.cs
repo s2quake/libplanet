@@ -94,16 +94,12 @@ public sealed record class Transaction
 
     public override int GetHashCode() => Id.GetHashCode();
 
-    public int CompareTo(object? obj)
+    public int CompareTo(object? obj) => obj switch
     {
-        if (obj is not Transaction other)
-        {
-            throw new ArgumentException(
-                $"Expected {nameof(Transaction)} but {obj?.GetType()}");
-        }
-
-        return CompareTo(other);
-    }
+        null => 1,
+        Transaction other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(Transaction)}.", nameof(obj)),
+    };
 
     public int CompareTo(Transaction? other)
     {

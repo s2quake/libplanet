@@ -41,9 +41,9 @@ public static class BencodexUtility
 
     public static IValue ToValue(PublicKey? publicKey) => ModelSerializer.Serialize(publicKey);
 
-    public static IValue ToValue(TxId? txId) => txId?.ToBencodex() ?? Null.Value;
+    public static IValue ToValue(TxId? txId) => ModelSerializer.Serialize(txId);
 
-    public static IValue ToValue(BlockHash? blockHash) => blockHash?.Bencoded ?? Null.Value;
+    public static IValue ToValue(BlockHash? blockHash) => ModelSerializer.Serialize(blockHash);
 
     public static IValue ToValue<T>(ImmutableArray<T> values)
         where T : IBencodable
@@ -56,7 +56,7 @@ public static class BencodexUtility
 
     public static PublicKey ToPublicKey(List list, int index) => ModelSerializer.Deserialize<PublicKey>(list[index]);
 
-    public static TxId ToTxId(List list, int index) => TxId.Create(list[index]);
+    public static TxId ToTxId(List list, int index) => ModelSerializer.Deserialize<TxId>(list[index]);
 
     public static int ToInt32(List list, int index) => (int)(Integer)list[index];
 
@@ -72,8 +72,7 @@ public static class BencodexUtility
         => DateTimeOffset.ParseExact(
             GetString(list, index), TimestampFormat, CultureInfo.InvariantCulture);
 
-    public static BlockHash ToBlockHash(List list, int index)
-        => ModelSerializer.Deserialize<BlockHash>(list[index]);
+    public static BlockHash ToBlockHash(List list, int index) => ModelSerializer.Deserialize<BlockHash>(list[index]);
 
     public static BlockHash? ToBlockHashOrDefault(List list, int index)
     {

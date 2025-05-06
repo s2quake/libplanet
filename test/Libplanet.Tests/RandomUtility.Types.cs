@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
+using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Tests;
@@ -30,5 +31,11 @@ public static partial class RandomUtility
     {
         var bytes = Array(Byte, Types.Blocks.BlockHash.Size);
         return new BlockHash(bytes);
+    }
+
+     public static EvidenceId EvidenceId()
+    {
+        var bytes = Array(Byte, Types.Evidence.EvidenceId.Size);
+        return new EvidenceId(bytes);
     }
 }

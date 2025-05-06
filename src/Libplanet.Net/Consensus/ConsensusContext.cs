@@ -375,7 +375,7 @@ public partial class ConsensusContext : IDisposable
             {
                 var validatorSet = _blockChain.GetValidatorSet(evidenceException.Height);
                 var evidenceContext = new EvidenceContext(validatorSet);
-                var evidence = evidenceException.CreateEvidence(evidenceContext);
+                var evidence = evidenceException.Create(evidenceContext);
                 _blockChain.AddEvidence(evidence);
             }
             catch (Exception e)

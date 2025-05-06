@@ -1211,16 +1211,8 @@ namespace Libplanet.Tests.Store
 
                 EvidenceBase[] evidence =
                 {
-                    DuplicateVoteEvidence.Create(
-                        duplicateVoteOne[0],
-                        duplicateVoteOne[1],
-                        TestUtils.Validators,
-                        duplicateVoteOne[^1].Timestamp),
-                    DuplicateVoteEvidence.Create(
-                        duplicateVoteTwo[0],
-                        duplicateVoteTwo[1],
-                        TestUtils.Validators,
-                        duplicateVoteTwo[^1].Timestamp),
+                    DuplicateVoteEvidence.Create(duplicateVoteOne[0], duplicateVoteOne[1], TestUtils.Validators),
+                    DuplicateVoteEvidence.Create(duplicateVoteTwo[0], duplicateVoteTwo[1], TestUtils.Validators),
                 };
 
                 foreach (var ev in evidence)
@@ -1260,11 +1252,7 @@ namespace Libplanet.Tests.Store
                         ValidatorPower = BigInteger.One,
                         Flag = VoteFlag.PreCommit,
                     }.Sign(signer));
-                EvidenceBase evidence = DuplicateVoteEvidence.Create(
-                    duplicateVote[0],
-                    duplicateVote[1],
-                    TestUtils.Validators,
-                    duplicateVote[^1].Timestamp);
+                var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 
                 Assert.False(fx.Store.ContainsPendingEvidence(evidence.Id));
 
@@ -1306,11 +1294,7 @@ namespace Libplanet.Tests.Store
                         ValidatorPower = BigInteger.One,
                         Flag = VoteFlag.PreCommit,
                     }.Sign(signer));
-                EvidenceBase evidence = DuplicateVoteEvidence.Create(
-                    duplicateVote[0],
-                    duplicateVote[1],
-                    TestUtils.Validators,
-                    duplicateVote[^1].Timestamp);
+                var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 
                 Assert.False(fx.Store.ContainsCommittedEvidence(evidence.Id));
 

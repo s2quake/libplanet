@@ -6,19 +6,19 @@ namespace Libplanet.Tests.Blockchain.Evidence
 {
     public class EvidenceIdTest
     {
-        public static readonly object[][] RandomBytes = new[]
-        {
-            new object[] { GetRandomBytes(0) },
-            new object[] { GetRandomBytes(31) },
-            new object[] { GetRandomBytes(33) },
-        };
+        public static readonly object[][] RandomBytes =
+        [
+            [RandomUtility.Array(RandomUtility.Byte, 0)],
+            [RandomUtility.Array(RandomUtility.Byte, 31)],
+            [RandomUtility.Array(RandomUtility.Byte, 33)],
+        ];
 
         [Theory]
         [MemberData(nameof(RandomBytes))]
         public void Create_WithBytesLengthNot32_FailTest(byte[] evidenceId)
         {
             Assert.Throws<ArgumentOutOfRangeException>(
-                paramName: nameof(evidenceId),
+                paramName: "bytes",
                 testCode: () => new EvidenceId(evidenceId));
         }
 
@@ -27,7 +27,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
         public void Create_WithImmutableBytesLengthNot32_FailTest(byte[] evidenceId)
         {
             Assert.Throws<ArgumentOutOfRangeException>(
-                paramName: nameof(evidenceId),
+                paramName: "bytes",
                 testCode: () => new EvidenceId(evidenceId.ToImmutableArray()));
         }
 
@@ -36,17 +36,15 @@ namespace Libplanet.Tests.Blockchain.Evidence
         {
             // Given
             var expectedEvidenceId = new EvidenceId(
-                new byte[]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                });
+                ]);
 
             // Then
-            var actualEvidenceId = EvidenceId.Parse(
-                "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
+            var actualEvidenceId = EvidenceId.Parse("45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
             Assert.Equal(expectedEvidenceId, actualEvidenceId);
         }
 
@@ -73,7 +71,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
         public void ToByteArray_Test()
         {
             // Given
-            var expectedBytes = GetRandomBytes(EvidenceId.Size);
+            var expectedBytes = RandomUtility.Array(RandomUtility.Byte, EvidenceId.Size);
 
             // When
             var evidenceId = new EvidenceId(expectedBytes);
@@ -89,13 +87,12 @@ namespace Libplanet.Tests.Blockchain.Evidence
         {
             // Given
             var evidenceId = new EvidenceId(
-                new byte[]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                });
+                ]);
 
             // Then
             var expectedHex = "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc";
@@ -108,13 +105,12 @@ namespace Libplanet.Tests.Blockchain.Evidence
         {
             // Given
             var evidenceId = new EvidenceId(
-                new byte[]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                });
+                ]);
 
             // Then
             var expectedString = "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc";
@@ -127,29 +123,26 @@ namespace Libplanet.Tests.Blockchain.Evidence
         {
             // Given
             var sameEvidenceId1 = new EvidenceId(
-                new byte[]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                });
+                ]);
             var sameEvidenceId2 = new EvidenceId(
-                new byte[]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
                     0x9c, 0xcc,
-                });
+                ]);
             var differentEvidenceId = new EvidenceId(
-                new byte[]
-                {
+                [
                     0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0x00,
                     0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0x00,
                     0x9c, 0x00,
-                });
+                ]);
 
             // Then
             Assert.Equal(sameEvidenceId1, sameEvidenceId2);
@@ -166,12 +159,9 @@ namespace Libplanet.Tests.Blockchain.Evidence
         public void Compare_Test()
         {
             const int length = 50;
-            var evidenceIds
-                = Enumerable.Repeat(0, length)
-                            .Select(_ => new EvidenceId(GetRandomBytes(EvidenceId.Size)))
-                            .ToArray();
+            var evidenceIds = RandomUtility.Array(RandomUtility.EvidenceId, length);
 
-            for (int i = 1; i < evidenceIds.Length; i++)
+            for (var i = 1; i < evidenceIds.Length; i++)
             {
                 var left = evidenceIds[i - 1];
                 var right = evidenceIds[i];
@@ -186,24 +176,25 @@ namespace Libplanet.Tests.Blockchain.Evidence
             }
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("invalid")]
-        public void Compare_WithInvalidValue_FailTest(object value)
+        [Fact]
+        public void Compare_WithNull_Test()
         {
-            // Given
-            var evidenceId = new EvidenceId(GetRandomBytes(EvidenceId.Size));
+            var evidenceId = RandomUtility.EvidenceId();
+            Assert.Equal(1, evidenceId.CompareTo(null));
+        }
 
-            // Then
-            Assert.Equal(1, evidenceId.CompareTo(value));
+        [Fact]
+        public void Compare_WithOtherType_Test()
+        {
+            var evidenceId = RandomUtility.EvidenceId();
+            Assert.Throws<ArgumentException>(() => evidenceId.CompareTo("string"));
         }
 
         [Fact]
         public void Bencoded_Test()
         {
-            var expectedEvidenceId = new EvidenceId(GetRandomBytes(EvidenceId.Size));
-            var actualEvidenceId = ModelSerializer.Deserialize<EvidenceId>(
-                ModelSerializer.Serialize(expectedEvidenceId));
+            var expectedEvidenceId = RandomUtility.EvidenceId();
+            var actualEvidenceId = ModelSerializer.Clone(expectedEvidenceId);
             Assert.Equal(expectedEvidenceId, actualEvidenceId);
         }
 
@@ -211,8 +202,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
         public void Bencoded_WithDefaultInstance_Test()
         {
             var expectedEvidenceId = default(EvidenceId);
-            var actualEvidenceId = ModelSerializer.Deserialize<EvidenceId>(
-                ModelSerializer.Serialize(expectedEvidenceId));
+            var actualEvidenceId = ModelSerializer.Clone(expectedEvidenceId);
             Assert.Equal(expectedEvidenceId, actualEvidenceId);
         }
 

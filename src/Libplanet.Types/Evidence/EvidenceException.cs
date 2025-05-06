@@ -1,3 +1,4 @@
+#pragma warning disable SA1402 // File may only contain a single type
 namespace Libplanet.Types.Evidence;
 
 public abstract class EvidenceException : Exception
@@ -14,18 +15,24 @@ public abstract class EvidenceException : Exception
 
     public abstract long Height { get; }
 
-    public EvidenceBase CreateEvidence(IEvidenceContext evidenceContext)
-    {
-        var evidence = OnCreateEvidence(evidenceContext);
-        if (evidence is null)
-        {
-            var message = $"{nameof(OnCreateEvidence)} must return a non-null " +
-                          $"instance of {nameof(EvidenceBase)}.";
-            throw new InvalidOperationException(message);
-        }
+    public abstract EvidenceBase Create(EvidenceContext evidenceContext);
+}
 
-        return evidence;
+public abstract class EvidenceException<T> : EvidenceException
+    where T : EvidenceBase
+{
+    protected EvidenceException(string message)
+        : base(message)
+    {
     }
 
-    protected abstract EvidenceBase OnCreateEvidence(IEvidenceContext evidenceContext);
+    protected EvidenceException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public sealed override EvidenceBase Create(EvidenceContext evidenceContext)
+        => CreateEvidence(evidenceContext);
+
+    public abstract T CreateEvidence(EvidenceContext evidenceContext);
 }

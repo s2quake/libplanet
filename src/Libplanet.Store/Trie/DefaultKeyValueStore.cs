@@ -6,7 +6,7 @@ namespace Libplanet.Store.Trie;
 
 public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
 {
-    private readonly SubFileSystem _fs = CreateFileSystem(path);
+    private readonly FileSystem _fs = path == string.Empty ? new MemoryFileSystem() : CreateFileSystem(path);
     private bool _isDisposed;
 
     public DefaultKeyValueStore()
@@ -21,13 +21,13 @@ public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
     {
         get
         {
-            var path = DataPath(key);
-            if (!_fs.FileExists(path))
+            var dataPath = DataPath(key);
+            if (!_fs.FileExists(dataPath))
             {
                 throw new KeyNotFoundException($"No such key: {key}.");
             }
 
-            return _fs.ReadAllBytes(path);
+            return _fs.ReadAllBytes(dataPath);
         }
 
         set => _fs.WriteAllBytes(DataPath(key), value);
@@ -35,10 +35,10 @@ public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
 
     public bool Remove(in KeyBytes key)
     {
-        var path = DataPath(key);
-        if (_fs.FileExists(path))
+        var dataPath = DataPath(key);
+        if (_fs.FileExists(dataPath))
         {
-            _fs.DeleteFile(path);
+            _fs.DeleteFile(dataPath);
             return true;
         }
 
@@ -61,9 +61,7 @@ public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
     {
         if (!Path.IsPathFullyQualified(path))
         {
-            throw new ArgumentException(
-                $"The path '{path}' is not fully qualified.",
-                nameof(path));
+            throw new ArgumentException($"The path '{path}' is not fully qualified.", nameof(path));
         }
 
         if (!Directory.Exists(path))

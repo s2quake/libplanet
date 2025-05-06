@@ -41,14 +41,9 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        Assert.Throws<ArgumentException>(() =>
-        {
-            DuplicateVoteEvidence.Create(
-                voteRef,
-                voteDup,
-                validators,
-                DateTimeOffset.UtcNow);
-        });
+        TestValidator.Throws(
+            DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
+            nameof(DuplicateVoteEvidence.VoteDup));
     }
 
     [Fact]
@@ -84,14 +79,9 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        Assert.Throws<ArgumentException>(() =>
-        {
-            DuplicateVoteEvidence.Create(
-                voteRef,
-                voteDup,
-                [.. validatorList],
-                DateTimeOffset.UtcNow);
-        });
+        TestValidator.Throws(
+            DuplicateVoteEvidence.Create(voteRef, voteDup, [.. validatorList]),
+            nameof(DuplicateVoteEvidence.VoteDup));
     }
 
     [Fact]
@@ -129,14 +119,9 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKeys[1]);
 
         // When, Then
-        Assert.Throws<ArgumentException>(() =>
-        {
-            DuplicateVoteEvidence.Create(
-                voteRef: voteRef,
-                voteDup: voteDup,
-                validators: validators,
-                timestamp: DateTimeOffset.UtcNow);
-        });
+        TestValidator.Throws(
+            DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
+            nameof(DuplicateVoteEvidence.VoteDup));
     }
 
     [Fact]
@@ -172,14 +157,9 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        Assert.Throws<ArgumentException>(() =>
-        {
-            DuplicateVoteEvidence.Create(
-                voteRef: voteRef,
-                voteDup: voteDup,
-                validators: validators,
-                timestamp: DateTimeOffset.UtcNow);
-        });
+        TestValidator.Throws(
+            DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
+            nameof(DuplicateVoteEvidence.VoteDup));
     }
 
     [Fact]
@@ -216,60 +196,9 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        Assert.Throws<ArgumentException>(() =>
-        {
-            DuplicateVoteEvidence.Create(
-                voteRef: voteRef,
-                voteDup: voteDup,
-                validators: [.. validatorList],
-                timestamp: DateTimeOffset.UtcNow);
-        });
-    }
-
-    [Fact]
-    public void Bencoded()
-    {
-        // Given
-        var privateKey = new PrivateKey();
-        var validatorPublicKey = privateKey.PublicKey;
-        var validatorList = new List<Validator>
-        {
-            Validator.Create(validatorPublicKey, BigInteger.One),
-        };
-
-        var voteRef = new VoteMetadata
-        {
-            Height = 1,
-            Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-            Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
-            ValidatorPower = BigInteger.One,
-            Flag = VoteFlag.PreCommit,
-        }.Sign(privateKey);
-        var voteDup = new VoteMetadata
-        {
-            Height = 1,
-            Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
-            Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
-            ValidatorPower = BigInteger.One,
-            Flag = VoteFlag.PreCommit,
-        }.Sign(privateKey);
-
-        // When
-        var expectedEvidence = DuplicateVoteEvidence.Create(
-            voteRef: voteRef,
-            voteDup: voteDup,
-            validators: [.. validatorList],
-            timestamp: voteDup.Timestamp);
-
-        // Then
-        var actualEvidence = ModelSerializer.Deserialize<DuplicateVoteEvidence>(
-            ModelSerializer.Serialize(expectedEvidence));
-
-        Assert.Equal(expectedEvidence, actualEvidence);
+        TestValidator.Throws(
+            DuplicateVoteEvidence.Create(voteRef, voteDup, [.. validatorList]),
+            nameof(DuplicateVoteEvidence.VoteDup));
     }
 
     [Fact]
@@ -278,10 +207,10 @@ public class DuplicateVoteEvidenceTest
         // Given
         var privateKey = new PrivateKey();
         var validatorPublicKey = privateKey.PublicKey;
-        var validatorList = new List<Validator>
-        {
+        var validators = ImmutableSortedSet.Create(
+        [
             Validator.Create(validatorPublicKey, BigInteger.One),
-        };
+        ]);
 
         var voteRef = new VoteMetadata
         {
@@ -305,17 +234,12 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When
-        var expectedEvidence = DuplicateVoteEvidence.Create(
-            voteRef: voteRef,
-            voteDup: voteDup,
-            validators: [.. validatorList],
-            timestamp: voteDup.Timestamp);
+        var expectedEvidence = DuplicateVoteEvidence.Create(voteRef, voteDup, validators);
 
         // Then
         var bencoded = ModelSerializer.Serialize(expectedEvidence);
         var actualEvidence = ModelSerializer.Deserialize<DuplicateVoteEvidence>(bencoded);
 
-        // Assert.Equal(expectedEvidence.Bencoded, actualEvidence.Bencoded);
         Assert.Equal(expectedEvidence, actualEvidence);
     }
 }

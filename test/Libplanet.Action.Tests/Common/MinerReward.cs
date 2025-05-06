@@ -4,6 +4,7 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Action.Tests.Common;
 
+[Model(Version = 1)]
 public sealed record class MinerReward : ActionBase
 {
     public static readonly Address RewardRecordAddress = Address.Parse("0000000000000000000000000000000000000000");

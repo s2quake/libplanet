@@ -1,3 +1,4 @@
+using Libplanet.Serialization;
 using Libplanet.Types.Tx;
 using static Libplanet.Tests.TestUtils;
 
@@ -151,12 +152,12 @@ public class TxIdTest
     [Fact]
     public void Bencoded()
     {
-        var expected = new TxId(GetRandomBytes(TxId.Size));
-        var deserialized = TxId.Create(expected.ToBencodex());
-        Assert.Equal(expected, deserialized);
+        var expected = RandomUtility.TxId();
+        var actual = ModelSerializer.Clone(expected);
+        Assert.Equal(expected, actual);
         expected = default;
-        deserialized = TxId.Create(expected.ToBencodex());
-        Assert.Equal(expected, deserialized);
+        actual = ModelSerializer.Clone(expected);
+        Assert.Equal(expected, actual);
     }
 
     [SkippableFact]

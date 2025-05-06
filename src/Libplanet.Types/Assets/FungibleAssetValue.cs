@@ -207,17 +207,12 @@ public readonly record struct FungibleAssetValue
     public override int GetHashCode()
         => unchecked((Currency.GetHashCode() * 397) ^ RawValue.GetHashCode());
 
-    public int CompareTo(object? obj)
+    public int CompareTo(object? obj) => obj switch
     {
-        if (obj is not FungibleAssetValue o)
-        {
-            throw new ArgumentException(
-                $"Unable to compare with other than {nameof(FungibleAssetValue)}",
-                nameof(obj));
-        }
-
-        return CompareTo(o);
-    }
+        null => 1,
+        FungibleAssetValue other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(FungibleAssetValue)}.", nameof(obj)),
+    };
 
     public int CompareTo(FungibleAssetValue other)
     {
