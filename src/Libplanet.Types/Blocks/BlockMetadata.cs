@@ -30,13 +30,7 @@ public sealed record class BlockMetadata
     public BlockHash PreviousHash { get; init; }
 
     [Property(5)]
-    public HashDigest<SHA256> TxHash { get; init; }
-
-    [Property(6)]
     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
-
-    [Property(7)]
-    public HashDigest<SHA256> EvidenceHash { get; init; }
 
     public static explicit operator BlockMetadata(BlockHeader header)
     {
@@ -47,9 +41,9 @@ public sealed record class BlockMetadata
             Timestamp = header.Timestamp,
             Proposer = header.Proposer,
             PreviousHash = header.PreviousHash,
-            TxHash = header.TxHash,
+            // TxHash = header.TxHash,
             LastCommit = header.LastCommit,
-            EvidenceHash = header.EvidenceHash,
+            // EvidenceHash = header.EvidenceHash,
         };
     }
 

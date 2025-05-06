@@ -316,7 +316,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             BlockContent expected, BlockContent actual)
         {
             Assert.Equal(expected.Transactions, actual.Transactions);
-            Assert.Equal(expected.Evidence, actual.Evidence);
+            Assert.Equal(expected.Evidences, actual.Evidences);
         }
 
         public static void AssertPreEvaluationBlocksEqual(
@@ -420,7 +420,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var content = new BlockContent
             {
                 Transactions = [.. txs],
-                Evidence = [],
+                Evidences = [],
             };
             return RawBlock.Propose(metadata, content);
         }
@@ -476,7 +476,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var content = new BlockContent
             {
                 Transactions = txs,
-                Evidence = evs,
+                Evidences = evs,
             };
             var preEval = RawBlock.Propose(metadata, content);
             preEval.ValidateTimestamp();

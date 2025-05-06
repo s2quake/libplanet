@@ -666,7 +666,7 @@ namespace Libplanet.Tests.Blockchain
                 new BlockContent
                 {
                     Transactions = [.. txs],
-                    Evidence = [.. evs],
+                    Evidences = [.. evs],
                 });
             var genesis = preEvalGenesis.Sign(
                 fx.Proposer,

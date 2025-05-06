@@ -105,7 +105,7 @@ public partial class ActionEvaluatorTest
             new BlockContent
             {
                 Transactions = [.. txs],
-                Evidence = [.. evs],
+                Evidences = [.. evs],
             });
         var actionEvaluator = new ActionEvaluator(
             stateStore);
@@ -744,7 +744,7 @@ public partial class ActionEvaluatorTest
             new BlockContent
             {
                 Transactions = [.. txs],
-                Evidence = [.. evs],
+                Evidences = [.. evs],
             });
         IStateStore stateStore = new TrieStateStore();
         World world = World.Create(stateStore)
@@ -848,7 +848,7 @@ public partial class ActionEvaluatorTest
             new BlockContent
             {
                 Transactions = txs,
-                Evidence = [],
+                Evidences = [],
             });
         var world = stateStore.GetWorld(default);
         var nextWorld = actionEvaluator.EvaluateTx(block, tx, world)[^1].OutputWorld;
