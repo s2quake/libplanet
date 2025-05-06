@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Evidence;
@@ -10,9 +11,11 @@ public abstract record class EvidenceBase
     private EvidenceId? _id;
 
     [Property(0)]
+    [Positive]
     public long Height { get; init; }
 
     [Property(1)]
+    [NotDefault]
     public Address TargetAddress { get; init; }
 
     [Property(2)]
@@ -26,6 +29,9 @@ public abstract record class EvidenceBase
         => obj is EvidenceBase other ? CompareTo(other: other) : 1;
 
     public void Verify(IEvidenceContext evidenceContext) => OnVerify(evidenceContext);
+
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        => OnValidate(validationContext);
 
     internal static string GetTypeName(Type evidenceType)
     {
@@ -41,8 +47,7 @@ public abstract record class EvidenceBase
         return $"{typeName}, {assemblyName}";
     }
 
-    internal static string GetTypeName(EvidenceBase evidence)
-        => GetTypeName(evidence.GetType());
+    internal static string GetTypeName(EvidenceBase evidence) => GetTypeName(evidence.GetType());
 
     protected abstract void OnVerify(IEvidenceContext evidenceContext);
 
@@ -55,7 +60,4 @@ public abstract record class EvidenceBase
                 [nameof(Height)]);
         }
     }
-
-    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-        => OnValidate(validationContext);
 }

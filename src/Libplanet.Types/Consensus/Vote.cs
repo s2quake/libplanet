@@ -1,16 +1,19 @@
+using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Consensus;
 
 [Model(Version = 1)]
-public sealed record class Vote : IEquatable<Vote>
+public sealed record class Vote : IEquatable<Vote>, IValidatableObject
 {
     [Property(0)]
     public required VoteMetadata Metadata { get; init; }
 
     [Property(1)]
+    [NotDefault]
     public ImmutableArray<byte> Signature { get; init; }
 
     public long Height => Metadata.Height;
@@ -31,43 +34,11 @@ public sealed record class Vote : IEquatable<Vote>
 
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
-    public bool Verify() => Metadata.Verify(Signature);
-
-    private static ImmutableArray<byte> Validate(
-        VoteMetadata metadata, ImmutableArray<byte> signature)
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (signature.IsDefault)
+        if (!Metadata.Verify(Signature))
         {
-            throw new ArgumentException(
-                $"Given {nameof(signature)} should not be set to default; use " +
-                $"an empty array to represent a lack of signature for a {nameof(Vote)}.",
-                nameof(signature));
+            yield return new ValidationResult($"Given {nameof(Signature)} is invalid.", [nameof(Signature)]);
         }
-        else if (!signature.IsEmpty)
-        {
-            if (metadata.Flag != VoteFlag.PreVote && metadata.Flag != VoteFlag.PreCommit)
-            {
-                throw new ArgumentException(
-                    $"If {nameof(signature)} is not empty, {metadata.Flag} should be either " +
-                    $"{VoteFlag.PreVote} or {VoteFlag.PreCommit}",
-                    nameof(signature));
-            }
-            else if (!metadata.Verify(signature))
-            {
-                throw new ArgumentException(
-                    $"Given {nameof(signature)} is invalid.",
-                    nameof(signature));
-            }
-        }
-        else if (signature.IsEmpty &&
-            metadata.Flag != VoteFlag.Null && metadata.Flag != VoteFlag.Unknown)
-        {
-            throw new ArgumentException(
-                $"If {nameof(signature)} is empty, {metadata.Flag} should be either " +
-                $"{VoteFlag.Null} or {VoteFlag.Unknown}",
-                nameof(signature));
-        }
-
-        return signature;
     }
 }

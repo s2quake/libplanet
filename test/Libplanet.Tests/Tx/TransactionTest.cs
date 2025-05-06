@@ -27,11 +27,7 @@ public class TransactionTest
         Assert.Equal(_fx.Tx, tx);
 
         var wrongSig = _fx.TxWithActions.Signature;
-        InvalidOperationException e = Assert.Throws<InvalidOperationException>(
-            () => Transaction.Create(_fx.Tx.UnsignedTx, wrongSig));
-        // TestUtils.AssertBytesEqual(
-        //     "0a5b3d8ac9819ecd8343d6816a0632c20a669c45ad94ffc9f4005af3815a0f1b",
-        //     e.TxId.ByteArray);
+        TestValidator.Throws(Transaction.Create(_fx.Tx.UnsignedTx, wrongSig), nameof(Transaction.Signature));
     }
 
     [Fact]
