@@ -395,7 +395,7 @@ namespace Libplanet.Blockchain
             //         // Header = genesisBlock.RawBlock.Header,
             //     };
             //     var computedStateRootHash =
-            //         actionEvaluator.Evaluate(preEval, default).Last().OutputState;
+            //         actionEvaluator.Evaluate(preEval, default)[^1].OutputState;
             //     if (!genesisBlock.StateRootHash.Equals(computedStateRootHash))
             //     {
             //         throw new InvalidOperationException(

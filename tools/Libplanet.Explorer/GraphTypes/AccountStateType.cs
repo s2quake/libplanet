@@ -145,21 +145,21 @@ namespace Libplanet.Explorer.GraphTypes
         {
             var addressBytes = address.Bytes;
             var currencyBytes = currencyHash.Bytes;
-            byte[] buffer = new byte[addressBytes.Length * 2 + currencyBytes.Length * 2 + 2];
+            byte[] buffer = new byte[(addressBytes.Length * 2) + (currencyBytes.Length * 2) + 2];
 
             buffer[0] = _underScore;
             for (int i = 0; i < addressBytes.Length; i++)
             {
-                buffer[1 + i * 2] = _conversionTable[addressBytes[i] >> 4];
-                buffer[1 + i * 2 + 1] = _conversionTable[addressBytes[i] & 0xf];
+                buffer[1 + (i * 2)] = _conversionTable[addressBytes[i] >> 4];
+                buffer[1 + (i * 2) + 1] = _conversionTable[addressBytes[i] & 0xf];
             }
 
             var offset = addressBytes.Length * 2;
             buffer[offset + 1] = _underScore;
             for (int i = 0; i < currencyBytes.Length; i++)
             {
-                buffer[offset + 2 + i * 2] = _conversionTable[currencyBytes[i] >> 4];
-                buffer[offset + 2 + i * 2 + 1] = _conversionTable[currencyBytes[i] & 0xf];
+                buffer[offset + 2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
+                buffer[offset + 2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
             }
 
             return KeyBytes.Create(buffer);
@@ -168,15 +168,15 @@ namespace Libplanet.Explorer.GraphTypes
         internal static KeyBytes ToTotalSupplyKey(HashDigest<SHA1> currencyHash)
         {
             var currencyBytes = currencyHash.Bytes;
-            byte[] buffer = new byte[currencyBytes.Length * 2 + 2];
+            byte[] buffer = new byte[(currencyBytes.Length * 2) + 2];
 
             buffer[0] = _underScore;
             buffer[1] = _underScore;
 
             for (int i = 0; i < currencyBytes.Length; i++)
             {
-                buffer[2 + i * 2] = _conversionTable[currencyBytes[i] >> 4];
-                buffer[2 + i * 2 + 1] = _conversionTable[currencyBytes[i] & 0xf];
+                buffer[2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
+                buffer[2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
             }
 
             return KeyBytes.Create(buffer);

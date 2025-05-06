@@ -670,7 +670,7 @@ namespace Libplanet.Tests.Blockchain
                 });
             var genesis = preEvalGenesis.Sign(
                 fx.Proposer,
-                actionEvaluator.Evaluate(preEvalGenesis, default).Last().OutputState);
+                actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputState);
             var blockChain = BlockChain.Create(
                 policy,
                 stagePolicy,
@@ -706,7 +706,7 @@ namespace Libplanet.Tests.Blockchain
                 protocolVersion: beforePostponeBPV);
             var genesis = preGenesis.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(preGenesis, default).Last().OutputState);
+                actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
             Assert.Equal(beforePostponeBPV, genesis.ProtocolVersion);
 
             var blockChain = TestUtils.MakeBlockChain(
@@ -727,7 +727,7 @@ namespace Libplanet.Tests.Blockchain
             var blockBeforeBump = preBlockBeforeBump.Sign(
                 proposer,
                 actionEvaluator.Evaluate(
-                    preBlockBeforeBump, genesis.StateRootHash).Last().OutputState);
+                    preBlockBeforeBump, genesis.StateRootHash)[^1].OutputState);
             Assert.Equal(beforePostponeBPV, blockBeforeBump.ProtocolVersion);
             var commitBeforeBump = TestUtils.CreateBlockCommit(blockBeforeBump);
             blockChain.Append(blockBeforeBump, commitBeforeBump);
@@ -762,7 +762,7 @@ namespace Libplanet.Tests.Blockchain
             blockChain.Append(blockAfterBump2, commitAfterBump2);
             Assert.Equal(
                 actionEvaluator.Evaluate(
-                    (RawBlock)blockAfterBump1, blockAfterBump1.StateRootHash).Last().OutputState,
+                    (RawBlock)blockAfterBump1, blockAfterBump1.StateRootHash)[^1].OutputState,
                 blockAfterBump2.StateRootHash);
         }
     }

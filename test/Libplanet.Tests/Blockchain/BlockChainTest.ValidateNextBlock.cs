@@ -249,7 +249,7 @@ namespace Libplanet.Tests.Blockchain
                 protocolVersion: beforePostponeBPV);
             var genesisBlock = preGenesis.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(preGenesis, default).Last().OutputState);
+                actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
             var chain1 = BlockChain.Create(
                 policy,
                 new VolatileStagePolicy(),
@@ -315,7 +315,7 @@ namespace Libplanet.Tests.Blockchain
                 protocolVersion: beforePostponeBPV);
             var genesisBlock = preGenesis.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(preGenesis, default).Last().OutputState);
+                actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
             var chain = BlockChain.Create(
                 policy,
                 new VolatileStagePolicy(),
@@ -339,7 +339,7 @@ namespace Libplanet.Tests.Blockchain
 
             Block block2 = preBlock1.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(preBlock1, genesisBlock.StateRootHash).Last().OutputState);
+                actionEvaluator.Evaluate(preBlock1, genesisBlock.StateRootHash)[^1].OutputState);
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain.Append(block2, TestUtils.CreateBlockCommit(block2)));

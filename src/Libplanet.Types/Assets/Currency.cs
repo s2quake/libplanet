@@ -98,7 +98,7 @@ public readonly record struct Currency : IEquatable<Currency>
                 nameof(minorUnit), $"Minor unit must be less than {10 ^ DecimalPlaces}.");
         }
 
-        return majorUnit * factor + minorUnit;
+        return (majorUnit * factor) + minorUnit;
     }
 
     public override string ToString() => $"{Ticker} ({Hash})";

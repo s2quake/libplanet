@@ -50,7 +50,7 @@ namespace Libplanet.Net
             if (_table.ContainsKey(blockHeader))
             {
                 var root = branch.Blocks.First().Item1;
-                var tip = branch.Blocks.Last().Item1;
+                var tip = branch.Blocks[^1].Item1;
                 _logger.Debug(
                     "Given branch with root #{RootIndex} {RootHash} and " +
                     "tip #{TipIndex} {TipHash} will not be added as the table already contains " +

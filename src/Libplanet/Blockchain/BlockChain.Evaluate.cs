@@ -32,7 +32,7 @@ public partial class BlockChain
 
             if (evaluations.Count > 0)
             {
-                return evaluations.Last().OutputState;
+                return evaluations[^1].OutputState;
             }
             else
             {
@@ -91,7 +91,7 @@ public partial class BlockChain
 
             if (evaluations.Count > 0)
             {
-                return evaluations.Last().OutputState;
+                return evaluations[^1].OutputState;
             }
             else
             {

@@ -1215,12 +1215,12 @@ namespace Libplanet.Tests.Store
                         duplicateVoteOne[0],
                         duplicateVoteOne[1],
                         TestUtils.Validators,
-                        duplicateVoteOne.Last().Timestamp),
+                        duplicateVoteOne[^1].Timestamp),
                     DuplicateVoteEvidence.Create(
                         duplicateVoteTwo[0],
                         duplicateVoteTwo[1],
                         TestUtils.Validators,
-                        duplicateVoteTwo.Last().Timestamp),
+                        duplicateVoteTwo[^1].Timestamp),
                 };
 
                 foreach (var ev in evidence)
@@ -1264,7 +1264,7 @@ namespace Libplanet.Tests.Store
                     duplicateVote[0],
                     duplicateVote[1],
                     TestUtils.Validators,
-                    duplicateVote.Last().Timestamp);
+                    duplicateVote[^1].Timestamp);
 
                 Assert.False(fx.Store.ContainsPendingEvidence(evidence.Id));
 
@@ -1310,7 +1310,7 @@ namespace Libplanet.Tests.Store
                     duplicateVote[0],
                     duplicateVote[1],
                     TestUtils.Validators,
-                    duplicateVote.Last().Timestamp);
+                    duplicateVote[^1].Timestamp);
 
                 Assert.False(fx.Store.ContainsCommittedEvidence(evidence.Id));
 

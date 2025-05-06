@@ -152,7 +152,7 @@ public class RoutingTableTest
         Assert.Equal(
             Enumerable
                 .Range(0, peerCount / 2)
-                .Select(i => peers[i * 2 + 1]).ToHashSet(),
+                .Select(i => peers[(i * 2) + 1]).ToHashSet(),
             table.PeersToRefresh(TimeSpan.FromMinutes(1)).ToHashSet());
     }
 

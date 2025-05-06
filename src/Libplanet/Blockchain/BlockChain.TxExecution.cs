@@ -28,9 +28,9 @@ namespace Libplanet.Blockchain
                 }
                 else
                 {
-                    if (groupedEvals.Last().Item1.Equals(eval.InputContext.TxId))
+                    if (groupedEvals[^1].Item1.Equals(eval.InputContext.TxId))
                     {
-                        groupedEvals.Last().Item2.Add(eval);
+                        groupedEvals[^1].Item2.Add(eval);
                     }
                     else
                     {
@@ -63,7 +63,7 @@ namespace Libplanet.Blockchain
                         BlockHash = block.Hash,
                         TxId = txId,
                         InputState = group.Item2.First().InputContext.PreviousState,
-                        OutputState = group.Item2.Last().OutputState,
+                        OutputState = group.Item2[^1].OutputState,
                         ExceptionNames = [.. exceptions.Select(item => item.Message)],
                     };
 

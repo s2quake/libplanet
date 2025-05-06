@@ -76,6 +76,6 @@ public class CurrencyInputType : InputObjectGraphType<Currency>
         var majorUnitValue = nullableMajorUnit ?? 0;
         var minorUnitValue = nullableMinorUnit ?? 0;
 
-        return majorUnitValue * BigInteger.Pow(10, decimalPlace) + minorUnitValue;
+        return (majorUnitValue * BigInteger.Pow(10, decimalPlace)) + minorUnitValue;
     }
 }

@@ -186,7 +186,7 @@ namespace Libplanet.Net.Protocols
 
             // Select maximum k * 2 peers excluding the target itself.
             bool containsTarget = sorted.Any(peer => peer.Address.Equals(target));
-            int maxCount = (includeTarget && containsTarget) ? k * 2 + 1 : k * 2;
+            int maxCount = (includeTarget && containsTarget) ? (k * 2) + 1 : k * 2;
 
             IEnumerable<BoundPeer> peers = includeTarget
                 ? sorted
