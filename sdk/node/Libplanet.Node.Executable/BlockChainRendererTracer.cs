@@ -15,7 +15,7 @@ internal sealed class BlockChainRendererTracer(
             info => _logger.LogInformation(
                 "-Pattern2- #{Height} Block end: {Hash}",
                 info.NewTip.Height,
-                info.NewTip.Hash));
+                info.NewTip.BlockHash));
         return Task.CompletedTask;
     }
 

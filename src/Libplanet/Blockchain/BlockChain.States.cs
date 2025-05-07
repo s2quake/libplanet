@@ -11,7 +11,7 @@ namespace Libplanet.Blockchain
         /// Gets the current world state in the <see cref="BlockChain"/>.
         /// </summary>
         /// <returns>The current world state.</returns>
-        public World GetWorldState() => GetWorld(Tip.Hash);
+        public World GetWorldState() => GetWorld(Tip.BlockHash);
 
         /// <inheritdoc cref="IBlockChainStates.GetWorld(BlockHash)" />
         public World GetWorld(BlockHash offset)

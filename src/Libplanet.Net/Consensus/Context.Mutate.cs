@@ -248,7 +248,7 @@ namespace Libplanet.Net.Consensus
 
                 if (IsValid(p1.Block) && (_lockedRound == -1 || _lockedValue == p1.Block))
                 {
-                    EnterPreVote(Round, p1.Block.Hash);
+                    EnterPreVote(Round, p1.Block.BlockHash);
                 }
                 else
                 {
@@ -260,7 +260,7 @@ namespace Libplanet.Net.Consensus
                 p2.ValidRound >= 0 &&
                 p2.ValidRound < Round &&
                 _heightVoteSet.PreVotes(p2.ValidRound).TwoThirdsMajority(out BlockHash hash1) &&
-                hash1.Equals(p2.Block.Hash) &&
+                hash1.Equals(p2.Block.BlockHash) &&
                 Step == ConsensusStep.Propose)
             {
                 _logger.Debug(
@@ -272,7 +272,7 @@ namespace Libplanet.Net.Consensus
                 if (IsValid(p2.Block) &&
                     (_lockedRound <= p2.ValidRound || _lockedValue == p2.Block))
                 {
-                    EnterPreVote(Round, p2.Block.Hash);
+                    EnterPreVote(Round, p2.Block.BlockHash);
                 }
                 else
                 {
@@ -287,7 +287,7 @@ namespace Libplanet.Net.Consensus
 
             if (propose is { } p3 &&
                 _heightVoteSet.PreVotes(Round).TwoThirdsMajority(out BlockHash hash2) &&
-                hash2.Equals(p3.Block.Hash) &&
+                hash2.Equals(p3.Block.BlockHash) &&
                 IsValid(p3.Block) &&
                 (Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit) &&
                 !_hasTwoThirdsPreVoteFlags.Contains(Round))
@@ -307,12 +307,12 @@ namespace Libplanet.Net.Consensus
                         ToString());
                     _lockedValue = p3.Block;
                     _lockedRound = Round;
-                    _ = EnterPreCommitWait(Round, p3.Block.Hash);
+                    _ = EnterPreCommitWait(Round, p3.Block.BlockHash);
 
                     // Maybe need to broadcast periodically?
                     PublishMessage(
                         new ConsensusMaj23Msg(
-                            MakeMaj23(Round, p3.Block.Hash, VoteFlag.PreVote)));
+                            MakeMaj23(Round, p3.Block.BlockHash, VoteFlag.PreVote)));
                 }
 
                 _validValue = p3.Block;
@@ -377,7 +377,7 @@ namespace Libplanet.Net.Consensus
             if ((message is ConsensusProposalMsg || message is ConsensusPreCommitMsg) &&
                 GetProposal() is (Block block4, _) &&
                 _heightVoteSet.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
-                block4.Hash.Equals(hash) &&
+                block4.BlockHash.Equals(hash) &&
                 IsValid(block4))
             {
                 _decision = block4;
@@ -386,7 +386,7 @@ namespace Libplanet.Net.Consensus
                 // Maybe need to broadcast periodically?
                 PublishMessage(
                     new ConsensusMaj23Msg(
-                        MakeMaj23(round, block4.Hash, VoteFlag.PreCommit)));
+                        MakeMaj23(round, block4.BlockHash, VoteFlag.PreCommit)));
                 _ = EnterEndCommitWait(Round);
                 return;
             }
@@ -459,7 +459,7 @@ namespace Libplanet.Net.Consensus
                 _logger.Information(
                     "Committing block #{Index} {Hash} (context: {Context})",
                     block.Height,
-                    block.Hash,
+                    block.BlockHash,
                     ToString());
 
                 IsValid(block);
@@ -471,7 +471,7 @@ namespace Libplanet.Net.Consensus
                     e,
                     "Failed to commit block #{Index} {Hash}",
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
                 ExceptionOccurred?.Invoke(this, e);
                 return;
             }
@@ -479,7 +479,7 @@ namespace Libplanet.Net.Consensus
             _logger.Information(
                 "Committed block #{Index} {Hash}",
                 block.Height,
-                block.Hash);
+                block.BlockHash);
         }
 
         /// <summary>

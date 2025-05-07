@@ -89,11 +89,11 @@ namespace Libplanet.Tests.Blockchain.Renderers
             Assert.Equal(
                 _blockA.Height.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["NewIndex"].ToString());
-            Assert.Equal($"\"{_blockA.Hash}\"", firstLog.Properties["NewHash"].ToString());
+            Assert.Equal($"\"{_blockA.BlockHash}\"", firstLog.Properties["NewHash"].ToString());
             Assert.Equal(
                 _genesis.Height.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["OldIndex"].ToString());
-            Assert.Equal($"\"{_genesis.Hash}\"", firstLog.Properties["OldHash"].ToString());
+            Assert.Equal($"\"{_genesis.BlockHash}\"", firstLog.Properties["OldHash"].ToString());
             Assert.Equal(
                 $"\"{typeof(AnonymousRenderer).FullName}\"",
                 firstLog.Properties[Constants.SourceContextPropertyName].ToString());

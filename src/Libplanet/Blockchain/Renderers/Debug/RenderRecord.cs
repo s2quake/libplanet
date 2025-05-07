@@ -185,7 +185,7 @@ namespace Libplanet.Blockchain.Renderers.Debug
             /// <inheritdoc cref="RenderRecord.ToString()"/>
             public override string ToString() =>
                 $"{base.ToString()} " +
-                $"#{OldTip.Height} {OldTip.Hash} -> #{NewTip.Height} {NewTip.Hash} Render..." +
+                $"#{OldTip.Height} {OldTip.BlockHash} -> #{NewTip.Height} {NewTip.BlockHash} Render..." +
                 (End ? "End" : string.Empty);
         }
 

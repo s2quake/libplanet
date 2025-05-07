@@ -6,15 +6,18 @@ public sealed record class BlockExcerpt
 {
     public int ProtocolVersion { get; init; }
 
-    public long Index { get; init; }
+    public long Height { get; init; }
 
-    public BlockHash Hash { get; init; }
+    public BlockHash BlockHash { get; init; }
 
-    public static implicit operator BlockExcerpt(BlockHeader blockHeader)
+    public DateTimeOffset Timestamp { get; init; }
+
+    public static implicit operator BlockExcerpt(Block block)
         => new()
         {
-            ProtocolVersion = blockHeader.ProtocolVersion,
-            Index = blockHeader.Height,
-            Hash = blockHeader.BlockHash,
+            ProtocolVersion = block.Header.ProtocolVersion,
+            Height = block.Header.Height,
+            BlockHash = block.Hash.BlockHash,
+            Timestamp = block.Header.Timestamp,
         };
 }

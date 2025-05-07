@@ -21,7 +21,7 @@ public class AnonymousActionRendererTest
             new ActionContext
             {
                 BlockHeight = 0,
-                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
             },
             _world.Trie.Hash);
 

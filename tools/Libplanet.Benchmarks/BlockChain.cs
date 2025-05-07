@@ -44,7 +44,7 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void ContainsBlock()
         {
-            _blockChain.ContainsBlock(_blockChain.Tip.Hash);
+            _blockChain.ContainsBlock(_blockChain.Tip.BlockHash);
         }
     }
 }

@@ -50,7 +50,7 @@ public partial class BlockChain : IBlockChainStates
     /// <summary>
     /// All <see cref="Block"/>s in the <see cref="BlockChain"/>
     /// storage, including orphan <see cref="Block"/>s.
-    /// Keys are <see cref="Block.Hash"/>es and values are
+    /// Keys are <see cref="Block.BlockHash"/>es and values are
     /// their corresponding <see cref="Block"/>s.
     /// </summary>
     private BlockSet _blocks;
@@ -244,7 +244,7 @@ public partial class BlockChain : IBlockChainStates
     public Guid Id { get; private set; }
 
     /// <summary>
-    /// All <see cref="Block.Hash"/>es in the current index.  The genesis block's hash goes
+    /// All <see cref="Block.BlockHash"/>es in the current index.  The genesis block's hash goes
     /// first, and the tip goes last.
     /// Returns a <see cref="long"/> integer that represents the number of elements in the
     /// <see cref="BlockChain"/>.
@@ -308,7 +308,7 @@ public partial class BlockChain : IBlockChainStates
     /// <summary>
     /// Gets the block corresponding to the <paramref name="blockHash"/>.
     /// </summary>
-    /// <param name="blockHash">A <see cref="Block.Hash"/> of the <see cref="Block"/> to
+    /// <param name="blockHash">A <see cref="Block.BlockHash"/> of the <see cref="Block"/> to
     /// get. </param>
     /// <exception cref="KeyNotFoundException">Thrown when there is no <see cref="Block"/>
     /// with a given <paramref name="blockHash"/>.</exception>
@@ -380,11 +380,11 @@ public partial class BlockChain : IBlockChainStates
 
         var id = Guid.NewGuid();
 
-        // if (genesisBlock.ProtocolVersion < BlockMetadata.SlothProtocolVersion)
+        // if (genesisBlock.ProtocolVersion < BlockHeader.SlothProtocolVersion)
         // {
         //     var preEval = new RawBlock
         //     {
-        //         Metadata = (BlockMetadata)genesisBlock.Header,
+        //         Metadata = (BlockHeader)genesisBlock.Header,
         //         RawHash = genesisBlock.Header.RawHash,
         //         Content = new BlockContent
         //         {
@@ -409,11 +409,11 @@ public partial class BlockChain : IBlockChainStates
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
         store.PutBlock(genesisBlock);
-        store.AppendIndex(id, genesisBlock.Hash);
+        store.AppendIndex(id, genesisBlock.BlockHash);
 
         foreach (var tx in genesisBlock.Transactions)
         {
-            store.PutTxIdBlockHashIndex(tx.Id, genesisBlock.Hash);
+            store.PutTxIdBlockHashIndex(tx.Id, genesisBlock.BlockHash);
         }
 
         foreach (KeyValuePair<Address, long> pair in nonceDeltas)
@@ -499,7 +499,7 @@ public partial class BlockChain : IBlockChainStates
     /// Queries the recorded <see cref="TxExecution"/> for a successful or failed
     /// <see cref="Transaction"/> within a <see cref="Block"/>.
     /// </summary>
-    /// <param name="blockHash">The <see cref="Block.Hash"/> of the <see cref="Block"/>
+    /// <param name="blockHash">The <see cref="Block.BlockHash"/> of the <see cref="Block"/>
     /// that the <see cref="Transaction"/> is executed within.</param>
     /// <param name="txid">The executed <see cref="Transaction"/>'s
     /// <see cref="Transaction.Id"/>.</param>
@@ -557,7 +557,7 @@ public partial class BlockChain : IBlockChainStates
     /// </exception>
     public bool StageTransaction(Transaction transaction)
     {
-        if (!transaction.GenesisHash.Equals(Genesis.Hash))
+        if (!transaction.GenesisHash.Equals(Genesis.BlockHash))
         {
             var msg = "GenesisHash of the transaction is not compatible " +
                       "with the BlockChain.Genesis.Hash.";
@@ -618,7 +618,7 @@ public partial class BlockChain : IBlockChainStates
             Transaction tx = Transaction.Create(
                 GetNextTxNonce(privateKey.Address),
                 privateKey,
-                Genesis.Hash,
+                Genesis.BlockHash,
                 actions.ToBytecodes(),
                 maxGasPrice,
                 gasLimit,
@@ -700,7 +700,7 @@ public partial class BlockChain : IBlockChainStates
         _rwlock.EnterReadLock();
         try
         {
-            return new BlockLocator(Tip.Hash);
+            return new BlockLocator(Tip.BlockHash);
         }
         finally
         {
@@ -734,7 +734,7 @@ public partial class BlockChain : IBlockChainStates
     {
         Block block = this[index];
 
-        // if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
+        // if (block.ProtocolVersion < BlockHeader.PBFTProtocolVersion)
         // {
         //     return null;
         // }
@@ -775,12 +775,12 @@ public partial class BlockChain : IBlockChainStates
         else if (block.Height == 0)
         {
             throw new ArgumentException(
-                $"Cannot append genesis block #{block.Height} {block.Hash} to a chain.",
+                $"Cannot append genesis block #{block.Height} {block.BlockHash} to a chain.",
                 nameof(block));
         }
 
         _logger.Information(
-            "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.Hash);
+            "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.BlockHash);
 
         if (validate)
         {
@@ -840,13 +840,13 @@ public partial class BlockChain : IBlockChainStates
                         "Block #{BlockHeight} {BlockHash} with " +
                         "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
                         block.Height,
-                        block.Hash,
+                        block.BlockHash,
                         block.Timestamp.ToString(
                             TimestampFormat, CultureInfo.InvariantCulture),
                         DateTimeOffset.UtcNow.ToString(
                             TimestampFormat, CultureInfo.InvariantCulture));
 
-                _blocks[block.Hash] = block;
+                _blocks[block.BlockHash] = block;
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
@@ -855,7 +855,7 @@ public partial class BlockChain : IBlockChainStates
 
                 foreach (var tx in block.Transactions)
                 {
-                    Store.PutTxIdBlockHashIndex(tx.Id, block.Hash);
+                    Store.PutTxIdBlockHashIndex(tx.Id, block.BlockHash);
                 }
 
                 if (block.Height != 0 && blockCommit is { })
@@ -873,7 +873,7 @@ public partial class BlockChain : IBlockChainStates
                     Store.PutCommittedEvidence(ev);
                 }
 
-                Store.AppendIndex(Id, block.Hash);
+                Store.AppendIndex(Id, block.BlockHash);
                 _nextStateRootHash = null;
 
                 foreach (var ev in GetPendingEvidence().ToArray())
@@ -895,7 +895,7 @@ public partial class BlockChain : IBlockChainStates
                     "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                     block.Transactions.Count(),
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
                 foreach (Transaction tx in block.Transactions)
                 {
                     UnstageTransaction(tx);
@@ -905,7 +905,7 @@ public partial class BlockChain : IBlockChainStates
                     "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                     block.Transactions.Count(),
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
             }
             else
             {
@@ -913,7 +913,7 @@ public partial class BlockChain : IBlockChainStates
                     "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
                     "for non-canonical chain {ChainID}",
                     block.Height,
-                    block.Hash,
+                    block.BlockHash,
                     Id);
             }
 
@@ -921,7 +921,7 @@ public partial class BlockChain : IBlockChainStates
             _logger.Information(
                 "Appended the block #{BlockHeight} {BlockHash}",
                 block.Height,
-                block.Hash);
+                block.BlockHash);
 
             HashDigest<SHA256> nextStateRootHash =
                 DetermineNextBlockStateRootHash(block, out var actionEvaluations);
@@ -939,7 +939,7 @@ public partial class BlockChain : IBlockChainStates
                     Renderers.Count,
                     ActionRenderers.Count,
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
                 foreach (IRenderer renderer in Renderers)
                 {
                     renderer.RenderBlock(oldTip: prevTip ?? Genesis, newTip: block);
@@ -960,7 +960,7 @@ public partial class BlockChain : IBlockChainStates
                     Renderers.Count,
                     ActionRenderers.Count,
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
             }
         }
         finally
@@ -985,12 +985,12 @@ public partial class BlockChain : IBlockChainStates
         else if (block.Height == 0)
         {
             throw new ArgumentException(
-                $"Cannot append genesis block #{block.Height} {block.Hash} to a chain.",
+                $"Cannot append genesis block #{block.Height} {block.BlockHash} to a chain.",
                 nameof(block));
         }
 
         _logger.Information(
-            "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.Hash);
+            "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.BlockHash);
 
         block.Header.Timestamp.ValidateTimestamp();
 
@@ -1030,12 +1030,12 @@ public partial class BlockChain : IBlockChainStates
                     _logger.Information(
                         "Executing actions in block #{BlockHeight} {BlockHash}...",
                         block.Height,
-                        block.Hash);
+                        block.BlockHash);
                     ValidateBlockPrecededStateRootHash(block, out actionEvaluations);
                     _logger.Information(
                         "Executed actions in block #{BlockHeight} {BlockHash}",
                         block.Height,
-                        block.Hash);
+                        block.BlockHash);
                 }
 
                 // FIXME: Using evaluateActions as a proxy flag for preloading status.
@@ -1047,13 +1047,13 @@ public partial class BlockChain : IBlockChainStates
                         "Block #{BlockHeight} {BlockHash} with " +
                         "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
                         block.Height,
-                        block.Hash,
+                        block.BlockHash,
                         block.Timestamp.ToString(
                             TimestampFormat, CultureInfo.InvariantCulture),
                         DateTimeOffset.UtcNow.ToString(
                             TimestampFormat, CultureInfo.InvariantCulture));
 
-                _blocks[block.Hash] = block;
+                _blocks[block.BlockHash] = block;
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
@@ -1062,7 +1062,7 @@ public partial class BlockChain : IBlockChainStates
 
                 foreach (var tx in block.Transactions)
                 {
-                    Store.PutTxIdBlockHashIndex(tx.Id, block.Hash);
+                    Store.PutTxIdBlockHashIndex(tx.Id, block.BlockHash);
                 }
 
                 if (block.Height != 0 && blockCommit is { })
@@ -1080,7 +1080,7 @@ public partial class BlockChain : IBlockChainStates
                     Store.PutCommittedEvidence(evidence);
                 }
 
-                Store.AppendIndex(Id, block.Hash);
+                Store.AppendIndex(Id, block.BlockHash);
                 _nextStateRootHash = block.StateRootHash;
                 IEnumerable<TxExecution> txExecutions =
                     MakeTxExecutions(block, actionEvaluations);
@@ -1105,7 +1105,7 @@ public partial class BlockChain : IBlockChainStates
                     "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                     block.Transactions.Count(),
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
                 foreach (Transaction tx in block.Transactions)
                 {
                     UnstageTransaction(tx);
@@ -1115,7 +1115,7 @@ public partial class BlockChain : IBlockChainStates
                     "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
                     block.Transactions.Count(),
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
             }
             else
             {
@@ -1123,7 +1123,7 @@ public partial class BlockChain : IBlockChainStates
                     "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
                     "for non-canonical chain {ChainID}",
                     block.Height,
-                    block.Hash,
+                    block.BlockHash,
                     Id);
             }
 
@@ -1131,7 +1131,7 @@ public partial class BlockChain : IBlockChainStates
             _logger.Information(
                 "Appended the block #{BlockHeight} {BlockHash}",
                 block.Height,
-                block.Hash);
+                block.BlockHash);
 
             if (render)
             {
@@ -1141,7 +1141,7 @@ public partial class BlockChain : IBlockChainStates
                     Renderers.Count,
                     ActionRenderers.Count,
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
                 foreach (IRenderer renderer in Renderers)
                 {
                     renderer.RenderBlock(oldTip: prevTip ?? Genesis, newTip: block);
@@ -1162,7 +1162,7 @@ public partial class BlockChain : IBlockChainStates
                     Renderers.Count,
                     ActionRenderers.Count,
                     block.Height,
-                    block.Hash);
+                    block.BlockHash);
             }
         }
         finally
@@ -1196,7 +1196,7 @@ public partial class BlockChain : IBlockChainStates
         return null;
     }
 
-    internal ImmutableArray<Transaction> ListStagedTransactions(IComparer<Transaction>? txPriority = null)
+    internal ImmutableList<Transaction> ListStagedTransactions(IComparer<Transaction>? txPriority = null)
     {
         var unorderedTxs = StagePolicy.Iterate(this);
         if (txPriority is { } comparer)
@@ -1217,7 +1217,7 @@ public partial class BlockChain : IBlockChainStates
             Transaction first = seat.First.Value;
             seat.RemoveFirst();
             return first;
-        }).ToImmutableArray();
+        }).ToImmutableList();
     }
 
     internal IEnumerable<Block> IterateBlocks(int offset = 0, int? limit = null)

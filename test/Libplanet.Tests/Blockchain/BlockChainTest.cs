@@ -65,13 +65,13 @@ public partial class BlockChainTest : IDisposable
 
         _validNext = _blockChain.EvaluateAndSign(
             RawBlock.Propose(
-                new BlockMetadata
+                new BlockHeader
                 {
-                    ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+                    ProtocolVersion = BlockHeader.CurrentProtocolVersion,
                     Height = 1,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
                     Proposer = _fx.Proposer.Address,
-                    PreviousHash = _fx.GenesisBlock.Hash,
+                    PreviousHash = _fx.GenesisBlock.BlockHash,
                 }),
             _fx.Proposer);
     }
@@ -152,20 +152,20 @@ public partial class BlockChainTest : IDisposable
 
         Block b1 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b1, CreateBlockCommit(b1));
-        Assert.Equal(new[] { genesis.Hash, b1.Hash }, _blockChain.BlockHashes);
+        Assert.Equal(new[] { genesis.BlockHash, b1.BlockHash }, _blockChain.BlockHashes);
 
         Block b2 = _blockChain.ProposeBlock(
             key, CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(b2, CreateBlockCommit(b2));
         Assert.Equal(
-            new[] { genesis.Hash, b1.Hash, b2.Hash },
+            new[] { genesis.BlockHash, b1.BlockHash, b2.BlockHash },
             _blockChain.BlockHashes);
 
         Block b3 = _blockChain.ProposeBlock(
             key, CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(b3, CreateBlockCommit(b3));
         Assert.Equal(
-            new[] { genesis.Hash, b1.Hash, b2.Hash, b3.Hash },
+            new[] { genesis.BlockHash, b1.BlockHash, b2.BlockHash, b3.BlockHash },
             _blockChain.BlockHashes);
     }
 
@@ -196,7 +196,7 @@ public partial class BlockChainTest : IDisposable
                 timestamp: DateTimeOffset.UtcNow))
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
-        var genesis = BlockChain.ProposeGenesisBlock(transactions: [.. txs]);
+        var genesis = BlockChain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
         var chain = BlockChain.Create(
             policy,
             new VolatileStagePolicy(),
@@ -230,7 +230,7 @@ public partial class BlockChainTest : IDisposable
         var tx1 = Transaction.Create(
             0,
             new PrivateKey(),
-            genesisBlock.Hash,
+            genesisBlock.BlockHash,
             actions1.ToBytecodes());
 
         chain.StageTransaction(tx1);
@@ -258,7 +258,7 @@ public partial class BlockChainTest : IDisposable
         var tx2 = Transaction.Create(
             0,
             new PrivateKey(),
-            genesisBlock.Hash,
+            genesisBlock.BlockHash,
             actions2.ToBytecodes());
 
         chain.StageTransaction(tx2);
@@ -276,7 +276,7 @@ public partial class BlockChainTest : IDisposable
         var tx3 = Transaction.Create(
             0,
             new PrivateKey(),
-            genesisBlock.Hash,
+            genesisBlock.BlockHash,
             new[]
             {
                 new Attack
@@ -408,9 +408,9 @@ public partial class BlockChainTest : IDisposable
         var key = new PrivateKey();
         IReadOnlyList<BlockHash> hashes;
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(_blockChain.Genesis.Hash));
+        hashes = _blockChain.FindNextHashes(new BlockLocator(_blockChain.Genesis.BlockHash));
         Assert.Single(hashes);
-        Assert.Equal(_blockChain.Genesis.Hash, hashes.First());
+        Assert.Equal(_blockChain.Genesis.BlockHash, hashes.First());
         var block0 = _blockChain.Genesis;
         var block1 = _blockChain.ProposeBlock(key);
         _blockChain.Append(block1, CreateBlockCommit(block1));
@@ -421,14 +421,14 @@ public partial class BlockChainTest : IDisposable
             key, lastCommit: CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(block3, CreateBlockCommit(block3));
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(block0.Hash));
-        Assert.Equal(new[] { block0.Hash, block1.Hash, block2.Hash, block3.Hash }, hashes);
+        hashes = _blockChain.FindNextHashes(new BlockLocator(block0.BlockHash));
+        Assert.Equal(new[] { block0.BlockHash, block1.BlockHash, block2.BlockHash, block3.BlockHash }, hashes);
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(block1.Hash));
-        Assert.Equal(new[] { block1.Hash, block2.Hash, block3.Hash }, hashes);
+        hashes = _blockChain.FindNextHashes(new BlockLocator(block1.BlockHash));
+        Assert.Equal(new[] { block1.BlockHash, block2.BlockHash, block3.BlockHash }, hashes);
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(block0.Hash), count: 2);
-        Assert.Equal(new[] { block0.Hash, block1.Hash }, hashes);
+        hashes = _blockChain.FindNextHashes(new BlockLocator(block0.BlockHash), count: 2);
+        Assert.Equal(new[] { block0.BlockHash, block1.BlockHash }, hashes);
     }
 
     [SkippableFact]
@@ -489,7 +489,7 @@ public partial class BlockChainTest : IDisposable
         }
 
         BlockLocator actual = _blockChain.GetBlockLocator();
-        BlockLocator expected = new BlockLocator(blocks[9].Hash);
+        BlockLocator expected = new BlockLocator(blocks[9].BlockHash);
 
         Assert.Equal(expected, actual);
     }
@@ -500,14 +500,14 @@ public partial class BlockChainTest : IDisposable
         // Note: Getting BlockCommit from PoW block test is not present.
         // Requesting blockCommit of genesis block returns null.
         Assert.Null(_blockChain.GetBlockCommit(0));
-        Assert.Null(_blockChain.GetBlockCommit(_blockChain.Genesis.Hash));
+        Assert.Null(_blockChain.GetBlockCommit(_blockChain.Genesis.BlockHash));
 
         // BlockCommit is put to store when block is appended.
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
         BlockCommit blockCommit1 = CreateBlockCommit(block1);
         _blockChain.Append(block1, blockCommit1);
         Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Height));
-        Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Hash));
+        Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.BlockHash));
 
         // BlockCommit is retrieved from lastCommit.
         Block block2 = _blockChain.ProposeBlock(
@@ -519,7 +519,7 @@ public partial class BlockChainTest : IDisposable
         // These are different due to timestamps on votes.
         Assert.NotEqual(blockCommit1, _blockChain.GetBlockCommit(block1.Height));
         Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Height));
-        Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Hash));
+        Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.BlockHash));
     }
 
     [SkippableFact]
@@ -613,7 +613,7 @@ public partial class BlockChainTest : IDisposable
             ];
             Transaction[] txs =
             [
-                Transaction.Create(0, privateKey, chain.Genesis.Hash, actions.ToBytecodes()),
+                Transaction.Create(0, privateKey, chain.Genesis.BlockHash, actions.ToBytecodes()),
             ];
             b = chain.ProposeBlock(
                 _fx.Proposer,
@@ -779,12 +779,12 @@ public partial class BlockChainTest : IDisposable
             key, lastCommit: CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(b4, CreateBlockCommit(b4));
 
-        Assert.Equal(b1.PreviousHash, _blockChain.Genesis.Hash);
+        Assert.Equal(b1.PreviousHash, _blockChain.Genesis.BlockHash);
 
-        var emptyLocator = new BlockLocator(_blockChain.Genesis.Hash);
+        var emptyLocator = new BlockLocator(_blockChain.Genesis.BlockHash);
         var invalidLocator = new BlockLocator(
             new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)));
-        var locator = new BlockLocator(b4.Hash);
+        var locator = new BlockLocator(b4.BlockHash);
 
         using (var emptyFx = new MemoryStoreFixture(_policy.PolicyActions))
         using (var forkFx = new MemoryStoreFixture(_policy.PolicyActions))
@@ -814,17 +814,17 @@ public partial class BlockChainTest : IDisposable
             fork.Append(b5, CreateBlockCommit(b5));
 
             // Testing emptyChain
-            Assert.Equal(_blockChain.Genesis.Hash, emptyChain.FindBranchpoint(emptyLocator));
+            Assert.Equal(_blockChain.Genesis.BlockHash, emptyChain.FindBranchpoint(emptyLocator));
             Assert.Null(emptyChain.FindBranchpoint(invalidLocator));
             Assert.Null(emptyChain.FindBranchpoint(locator));
 
             // Testing _blockChain
-            Assert.Equal(_blockChain.Genesis.Hash, _blockChain.FindBranchpoint(emptyLocator));
+            Assert.Equal(_blockChain.Genesis.BlockHash, _blockChain.FindBranchpoint(emptyLocator));
             Assert.Null(_blockChain.FindBranchpoint(invalidLocator));
-            Assert.Equal(b4.Hash, _blockChain.FindBranchpoint(locator));
+            Assert.Equal(b4.BlockHash, _blockChain.FindBranchpoint(locator));
 
             // Testing fork
-            Assert.Equal(_blockChain.Genesis.Hash, fork.FindBranchpoint(emptyLocator));
+            Assert.Equal(_blockChain.Genesis.BlockHash, fork.FindBranchpoint(emptyLocator));
             Assert.Null(fork.FindBranchpoint(invalidLocator));
             Assert.Null(fork.FindBranchpoint(locator));
         }
@@ -1185,7 +1185,7 @@ public partial class BlockChainTest : IDisposable
                 store.IncreaseTxNonce(id, tx.Signer);
             }
 
-            store.AppendIndex(id, block.Hash);
+            store.AppendIndex(id, block.BlockHash);
         }
 
         // Build a store with incomplete states
@@ -1203,7 +1203,7 @@ public partial class BlockChainTest : IDisposable
                 Transaction tx = Transaction.Create(
                     store.GetTxNonce(chain.Id, signer),
                     privateKey,
-                    chain.Genesis.Hash,
+                    chain.Genesis.BlockHash,
                     new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes());
                 b = chain.EvaluateAndSign(
                     ProposeNext(
@@ -1221,7 +1221,7 @@ public partial class BlockChainTest : IDisposable
                 Assert.NotEmpty(dirty);
                 store.PutBlock(b);
                 BuildIndex(chain.Id, b);
-                Assert.Equal(b, chain[b.Hash]);
+                Assert.Equal(b, chain[b.BlockHash]);
                 if (presentIndices.Contains((int)b.Height))
                 {
                     presentBlocks.Add(b);
@@ -1445,8 +1445,8 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);
-        var genesisBlockA = BlockChain.ProposeGenesisBlock();
-        var genesisBlockB = BlockChain.ProposeGenesisBlock();
+        var genesisBlockA = BlockChain.ProposeGenesisBlock(new PrivateKey());
+        var genesisBlockB = BlockChain.ProposeGenesisBlock(new PrivateKey());
 
         var blockChain = BlockChain.Create(
             policy,
@@ -1537,7 +1537,7 @@ public partial class BlockChainTest : IDisposable
             new PrivateKey(),
             default,
             Array.Empty<DumbAction>().ToBytecodes());
-        var nextStateRootHash = chain.GetNextStateRootHash(genesisWithTx.Hash);
+        var nextStateRootHash = chain.GetNextStateRootHash(genesisWithTx.BlockHash);
         var block = ProposeNextBlock(
             previousBlock: chain.Genesis,
             proposer: GenesisProposer,
@@ -1613,13 +1613,13 @@ public partial class BlockChainTest : IDisposable
         {
             Height = newBlock.Height,
             Round = 0,
-            BlockHash = newBlock.Hash,
+            BlockHash = newBlock.BlockHash,
             Votes = [.. ValidatorPrivateKeys.Select(
                 pk => new VoteMetadata
                 {
                     Height = newBlock.Height,
                     Round = 0,
-                    BlockHash = newBlock.Hash,
+                    BlockHash = newBlock.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPublicKey = pk.PublicKey,
                     ValidatorPower = TestUtils.Validators.GetValidator(pk.PublicKey).Power,
@@ -1644,14 +1644,14 @@ public partial class BlockChainTest : IDisposable
         {
             Height = nextBlock.Height,
             Round = 0,
-            BlockHash = nextBlock.Hash,
+            BlockHash = nextBlock.BlockHash,
             Votes = [.. Enumerable.Range(0, newValidators.Length)
                 .Select(
                     index => new VoteMetadata
                     {
                         Height = nextBlock.Height,
                         Round = 0,
-                        BlockHash = nextBlock.Hash,
+                        BlockHash = nextBlock.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidatorPublicKey = newValidators[index].PublicKey,
                         ValidatorPower = newValidatorPowers[index],
@@ -1680,14 +1680,14 @@ public partial class BlockChainTest : IDisposable
                 {
                     Height = invalidCommitBlock.Height,
                     Round = 0,
-                    BlockHash = invalidCommitBlock.Hash,
+                    BlockHash = invalidCommitBlock.BlockHash,
                     Votes = [.. Enumerable.Range(0, newValidators.Length)
                         .Select(
                             index => new VoteMetadata
                             {
                                 Height = invalidCommitBlock.Height,
                                 Round = 0,
-                                BlockHash = invalidCommitBlock.Hash,
+                                BlockHash = invalidCommitBlock.BlockHash,
                                 Timestamp = DateTimeOffset.UtcNow,
                                 ValidatorPublicKey = newValidators[index].PublicKey,
                                 ValidatorPower = newValidatorPowers[index],

@@ -55,12 +55,12 @@ namespace Libplanet.Blockchain
             }
 
             int actualProtocolVersion = block.ProtocolVersion;
-            const int currentProtocolVersion = Block.CurrentProtocolVersion;
-            if (block.ProtocolVersion > Block.CurrentProtocolVersion)
+            const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
+            if (block.ProtocolVersion > BlockHeader.CurrentProtocolVersion)
             {
                 throw new InvalidOperationException(
                     $"The protocol version ({actualProtocolVersion}) of the block " +
-                    $"#{block.Height} {block.Hash} is not supported by this node." +
+                    $"#{block.Height} {block.BlockHash} is not supported by this node." +
                     $"The highest supported protocol version is {currentProtocolVersion}.");
             }
 
@@ -83,7 +83,7 @@ namespace Libplanet.Blockchain
             Block block,
             BlockCommit blockCommit)
         {
-            // if (block.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
+            // if (block.ProtocolVersion < BlockHeader.PBFTProtocolVersion)
             // {
             //     if (blockCommit is { })
             //     {
@@ -113,7 +113,7 @@ namespace Libplanet.Blockchain
             if (block.Height != 0 && blockCommit == null)
             {
                 throw new InvalidOperationException(
-                    $"Block #{block.Hash} BlockCommit is required except for the genesis block.");
+                    $"Block #{block.BlockHash} BlockCommit is required except for the genesis block.");
             }
 
             if (block.Height != blockCommit.Height)
@@ -124,10 +124,10 @@ namespace Libplanet.Blockchain
                     $"{blockCommit.Height}.");
             }
 
-            if (!block.Hash.Equals(blockCommit.BlockHash))
+            if (!block.BlockHash.Equals(blockCommit.BlockHash))
             {
                 throw new InvalidOperationException(
-                    $"BlockCommit has different block. Block hash is {block.Hash}, " +
+                    $"BlockCommit has different block. Block hash is {block.BlockHash}, " +
                     $"however, BlockCommit block hash is {blockCommit.BlockHash}.");
             }
 
@@ -135,7 +135,7 @@ namespace Libplanet.Blockchain
             // condition should be checked once more.
             var validators = GetWorld(block.StateRootHash).GetValidatorSet();
 
-            // if (block.ProtocolVersion < BlockMetadata.EvidenceProtocolVersion)
+            // if (block.ProtocolVersion < BlockHeader.EvidenceProtocolVersion)
             // {
             //     validators.ValidateLegacyBlockCommitValidators(blockCommit);
             // }
@@ -204,12 +204,12 @@ namespace Libplanet.Blockchain
             if (block.Height != index)
             {
                 throw new InvalidOperationException(
-                    $"The expected index of block {block.Hash} is #{index}, " +
+                    $"The expected index of block {block.BlockHash} is #{index}, " +
                     $"but its index is #{block.Height}.");
             }
 
             int actualProtocolVersion = block.ProtocolVersion;
-            const int currentProtocolVersion = Block.CurrentProtocolVersion;
+            const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
 
             // FIXME: Crude way of checking protocol version for non-genesis block.
             // Ideally, whether this is called during instantiation should be made more explicit.
@@ -217,7 +217,7 @@ namespace Libplanet.Blockchain
             {
                 string message =
                     $"The protocol version ({actualProtocolVersion}) of the block " +
-                    $"#{block.Height} {block.Hash} is not supported by this node." +
+                    $"#{block.Height} {block.BlockHash} is not supported by this node." +
                     $"The highest supported protocol version is {currentProtocolVersion}.";
                 throw new InvalidOperationException(
                     message);
@@ -231,15 +231,15 @@ namespace Libplanet.Blockchain
             }
 
             Block lastBlock = this[index - 1];
-            BlockHash? prevHash = lastBlock?.Hash;
+            BlockHash? prevHash = lastBlock?.BlockHash;
             DateTimeOffset? prevTimestamp = lastBlock?.Timestamp;
 
             if (!block.PreviousHash.Equals(prevHash))
             {
                 throw new InvalidOperationException(
-                    $"The block #{index} {block.Hash} is not continuous from the " +
+                    $"The block #{index} {block.BlockHash} is not continuous from the " +
                     $"block #{index - 1}; while previous block's hash is " +
-                    $"{prevHash}, the block #{index} {block.Hash}'s pointer to " +
+                    $"{prevHash}, the block #{index} {block.BlockHash}'s pointer to " +
                     "the previous hash refers to " +
                     (block.PreviousHash.ToString() ?? "nothing") + ".");
             }
@@ -247,7 +247,7 @@ namespace Libplanet.Blockchain
             if (block.Timestamp < prevTimestamp)
             {
                 throw new InvalidOperationException(
-                    $"The block #{index} {block.Hash}'s timestamp " +
+                    $"The block #{index} {block.BlockHash}'s timestamp " +
                     $"({block.Timestamp}) is earlier than " +
                     $"the block #{index - 1}'s ({prevTimestamp}).");
             }
@@ -265,7 +265,7 @@ namespace Libplanet.Blockchain
                 // Any block after a PoW block should not have a last commit regardless of
                 // the protocol version.  As we have the target block height > 2, if it is a PoW
                 // block, the previous block would be a PoW block and is covered by this case.
-                // if (lastBlock?.ProtocolVersion < BlockMetadata.PBFTProtocolVersion)
+                // if (lastBlock?.ProtocolVersion < BlockHeader.PBFTProtocolVersion)
                 // {
                 //     if (block.LastCommit is { })
                 //     {
@@ -285,7 +285,7 @@ namespace Libplanet.Blockchain
 
                 try
                 {
-                    var hash = block.PreviousHash == default ? Genesis.Hash : block.PreviousHash;
+                    var hash = block.PreviousHash == default ? Genesis.BlockHash : block.PreviousHash;
                     ValidateBlockCommit(this[hash], block.LastCommit);
                 }
                 catch (InvalidOperationException ibce)
@@ -338,7 +338,7 @@ namespace Libplanet.Blockchain
 
             if (!stateRootHash.Equals(block.StateRootHash))
             {
-                var message = $"Block #{block.Height} {block.Hash}'s state root hash " +
+                var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
                     $"is {block.StateRootHash}, but the execution result is {stateRootHash}.";
                 throw new InvalidOperationException(
                     message);
@@ -372,7 +372,7 @@ namespace Libplanet.Blockchain
             var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
             if (!rootHash.Equals(block.StateRootHash))
             {
-                var message = $"Block #{block.Height} {block.Hash}'s state root hash " +
+                var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
                     $"is {block.StateRootHash}, but the execution result is {rootHash}.";
                 throw new InvalidOperationException(
                     message);

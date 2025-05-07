@@ -34,7 +34,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 Transaction.Create(
                     i,
                     _key,
-                    _fx.GenesisBlock.Hash,
+                    _fx.GenesisBlock.BlockHash,
                     []))
             .ToArray();
         }
@@ -54,7 +54,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             var duplicateNonceTx = Transaction.Create(
                 2,
                 _key,
-                _fx.GenesisBlock.Hash,
+                _fx.GenesisBlock.BlockHash,
                 []);
 
             Assert.Empty(StagePolicy.Iterate(_chain));

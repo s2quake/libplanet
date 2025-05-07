@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             Transaction tx = Transaction.Create(
                 0,
                 _key,
-                _fx.GenesisBlock.Hash,
+                _fx.GenesisBlock.BlockHash,
                 [],
                 timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer);
             Assert.True(_stagePolicy.Stage(_chain, tx));
@@ -41,7 +41,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             Transaction tx = Transaction.Create(
                 0,
                 _key,
-                _fx.GenesisBlock.Hash,
+                _fx.GenesisBlock.BlockHash,
                 []);
             Assert.True(stagePolicy.Stage(_chain, tx));
         }
@@ -53,13 +53,13 @@ namespace Libplanet.Tests.Blockchain.Policies
             Transaction validTx = Transaction.Create(
                 0,
                 _key,
-                _fx.GenesisBlock.Hash,
+                _fx.GenesisBlock.BlockHash,
                 [],
                 timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime + timeBuffer);
             Transaction staleTx = Transaction.Create(
                 0,
                 _key,
-                _fx.GenesisBlock.Hash,
+                _fx.GenesisBlock.BlockHash,
                 [],
                 timestamp: DateTimeOffset.UtcNow - _stagePolicy.Lifetime - timeBuffer);
 

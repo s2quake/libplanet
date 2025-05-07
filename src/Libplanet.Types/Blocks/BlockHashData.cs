@@ -7,6 +7,8 @@ namespace Libplanet.Types.Blocks;
 [Model(Version = 1)]
 public sealed record class BlockHashData : IEquatable<BlockHashData>
 {
+    public static BlockHashData Empty { get; } = new();
+
     [Property(0)]
     public HashDigest<SHA256> StateRootHash { get; init; }
 

@@ -90,9 +90,9 @@ namespace Libplanet.Blockchain.Renderers
                 "Invoking {MethodName}() for #{NewIndex} {NewHash} (was #{OldIndex} {OldHash})...",
                 methodName,
                 newTip.Height,
-                newTip.Hash,
+                newTip.BlockHash,
                 oldTip.Height,
-                oldTip.Hash);
+                oldTip.BlockHash);
 
             try
             {
@@ -108,9 +108,9 @@ namespace Libplanet.Blockchain.Renderers
                     errorMessage,
                     methodName,
                     newTip.Height,
-                    newTip.Hash,
+                    newTip.BlockHash,
                     oldTip.Height,
-                    oldTip.Hash);
+                    oldTip.BlockHash);
                 throw;
             }
 
@@ -119,9 +119,9 @@ namespace Libplanet.Blockchain.Renderers
                 "Invoked {MethodName}() for #{NewIndex} {NewHash} (was #{OldIndex} {OldHash})",
                 methodName,
                 newTip.Height,
-                newTip.Hash,
+                newTip.BlockHash,
                 oldTip.Height,
-                oldTip.Hash);
+                oldTip.BlockHash);
         }
     }
 }

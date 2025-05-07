@@ -5,7 +5,7 @@
 
 // namespace Libplanet.Tests.Blocks
 // {
-//     public class BlockMetadataExtensionsTest : BlockContentFixture
+//     public class BlockHeaderExtensionsTest : BlockContentFixture
 //     {
 //         [Fact]
 //         public void ValidateTimestamp()
@@ -13,7 +13,7 @@
 //             DateTimeOffset now = DateTimeOffset.UtcNow;
 //             DateTimeOffset future = now + TimeSpan.FromSeconds(17);
 //             PublicKey publicKey = new PrivateKey().PublicKey;
-//             IBlockMetadata metadata = new BlockMetadata(
+//             IBlockHeader metadata = new BlockHeader(
 //                 index: 0,
 //                 timestamp: future,
 //                 publicKey: publicKey,

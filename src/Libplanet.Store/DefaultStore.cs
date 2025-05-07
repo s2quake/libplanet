@@ -431,12 +431,12 @@ public class DefaultStore : StoreBase
 
     public override void PutBlock(Block block)
     {
-        if (_blockCache.ContainsKey(block.Hash))
+        if (_blockCache.ContainsKey(block.BlockHash))
         {
             return;
         }
 
-        UPath path = BlockPath(block.Hash);
+        UPath path = BlockPath(block.BlockHash);
         if (_blocks.FileExists(path))
         {
             return;
@@ -449,7 +449,7 @@ public class DefaultStore : StoreBase
 
         BlockDigest digest = BlockDigest.Create(block);
         WriteContentAddressableFile(_blocks, path, ModelSerializer.SerializeToBytes(digest));
-        _blockCache.AddOrUpdate(block.Hash, digest);
+        _blockCache.AddOrUpdate(block.BlockHash, digest);
     }
 
     /// <inheritdoc cref="StoreBase.DeleteBlock(BlockHash)"/>

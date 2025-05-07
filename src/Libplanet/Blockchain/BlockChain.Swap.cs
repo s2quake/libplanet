@@ -28,7 +28,7 @@ namespace Libplanet.Blockchain
             _logger.Debug(
                 "Rendering actions in block #{BlockHeight} {BlockHash}...",
                 block.Height,
-                block.Hash);
+                block.BlockHash);
 
             long count = 0;
             foreach (var evaluation in evaluations)
@@ -62,7 +62,7 @@ namespace Libplanet.Blockchain
                     "block #{BlockHeight} {BlockHash} in {DurationMs} ms",
                     count,
                     block.Height,
-                    block.Hash,
+                    block.BlockHash,
                     stopwatch.ElapsedMilliseconds);
         }
 

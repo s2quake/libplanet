@@ -18,10 +18,10 @@ internal static class BlockChainUtility
         var height = tip.Height + 1;
         var block = blockChain.ProposeBlock(
             proposer: privateKey,
-            lastCommit: blockChain.GetBlockCommit(tip.Hash));
+            lastCommit: blockChain.GetBlockCommit(tip.BlockHash));
         blockChain.Append(
             block,
-            blockChain.GetBlockCommit(tip.Hash),
+            blockChain.GetBlockCommit(tip.BlockHash),
             validate: false);
 
         while (blockChain.Tip.Height < height)
@@ -58,7 +58,7 @@ internal static class BlockChainUtility
         return Transaction.Create(
             nonce: nonce,
             privateKey: privateKey,
-            genesisHash: genesisBlock.Hash,
+            genesisHash: genesisBlock.BlockHash,
             actions: values);
     }
 }

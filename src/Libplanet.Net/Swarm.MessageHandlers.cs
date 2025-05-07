@@ -30,9 +30,9 @@ namespace Libplanet.Net
                     Block tip = BlockChain.Tip;
                     var chainStatus = new ChainStatusMsg(
                         tip.ProtocolVersion,
-                        BlockChain.Genesis.Hash,
+                        BlockChain.Genesis.BlockHash,
                         tip.Height,
-                        tip.Hash);
+                        tip.BlockHash);
 
                     return Transport.ReplyMessageAsync(
                         chainStatus,
@@ -105,7 +105,7 @@ namespace Libplanet.Net
         private void ProcessBlockHeader(Message message)
         {
             var blockHeaderMsg = (BlockHeaderMsg)message.Content;
-            if (!blockHeaderMsg.GenesisHash.Equals(BlockChain.Genesis.Hash))
+            if (!blockHeaderMsg.GenesisHash.Equals(BlockChain.Genesis.BlockHash))
             {
                 _logger.Debug(
                     "{MessageType} message was sent from a peer {Peer} with " +
@@ -117,7 +117,7 @@ namespace Libplanet.Net
             }
 
             BlockHeaderReceived.Set();
-            BlockHeader header;
+            BlockExcerpt header;
             try
             {
                 header = blockHeaderMsg.GetHeader();
@@ -176,7 +176,7 @@ namespace Libplanet.Net
                     header.BlockHash,
                     message.Remote,
                     BlockChain.Tip.Height,
-                    BlockChain.Tip.Hash);
+                    BlockChain.Tip.BlockHash);
                 return;
             }
         }
@@ -277,7 +277,7 @@ namespace Libplanet.Net
                     {
                         byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
                         payloads.Add(blockPayload);
-                        byte[] commitPayload = BlockChain.GetBlockCommit(block.Hash) is { } commit
+                        byte[] commitPayload = BlockChain.GetBlockCommit(block.BlockHash) is { } commit
                             ? ModelSerializer.SerializeToBytes(commit)
                             : Array.Empty<byte>();
                         payloads.Add(commitPayload);

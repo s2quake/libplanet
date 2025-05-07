@@ -793,12 +793,12 @@ public partial class RocksDBStore : StoreBase
 
     public override void PutBlock(Block block)
     {
-        if (_blockCache.ContainsKey(block.Hash))
+        if (_blockCache.ContainsKey(block.BlockHash))
         {
             return;
         }
 
-        byte[] key = BlockKey(block.Hash);
+        byte[] key = BlockKey(block.BlockHash);
 
         if (!(_blockIndexDb.Get(key) is null))
         {
@@ -831,7 +831,7 @@ public partial class RocksDBStore : StoreBase
             byte[] value = ModelSerializer.SerializeToBytes(digest);
             blockDb.Put(key, value);
             _blockIndexDb.Put(key, RocksDBStoreBitConverter.GetBytes(blockDbName));
-            _blockCache.AddOrUpdate(block.Hash, digest);
+            _blockCache.AddOrUpdate(block.BlockHash, digest);
         }
         catch (Exception e)
         {

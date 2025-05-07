@@ -12,11 +12,11 @@
 
 // namespace Libplanet.Tests.Blocks
 // {
-//     public class BlockMetadataTest : BlockContentFixture
+//     public class BlockHeaderTest : BlockContentFixture
 //     {
 //         private readonly ITestOutputHelper _output;
 
-//         public BlockMetadataTest(ITestOutputHelper output)
+//         public BlockHeaderTest(ITestOutputHelper output)
 //         {
 //             _output = output;
 //         }
@@ -24,17 +24,17 @@
 //         [Fact]
 //         public void CopyConstructor()
 //         {
-//             var g = new BlockMetadata(GenesisContent);
-//             AssertBlockMetadataEqual(GenesisContent, g);
-//             var b1 = new BlockMetadata(Block1Content);
-//             AssertBlockMetadataEqual(Block1Content, b1);
+//             var g = new BlockHeader(GenesisContent);
+//             AssertBlockHeaderEqual(GenesisContent, g);
+//             var b1 = new BlockHeader(Block1Content);
+//             AssertBlockHeaderEqual(Block1Content, b1);
 //         }
 
 //         [Fact]
 //         public void ProtocolVersion()
 //         {
 //             Assert.Throws<InvalidBlockProtocolVersionException>(
-//                 () => new BlockMetadata(
+//                 () => new BlockHeader(
 //                     protocolVersion: -1,
 //                     index: Block1Metadata.Index,
 //                     timestamp: Block1Metadata.Timestamp,
@@ -45,8 +45,8 @@
 //                     lastCommit: null,
 //                     evidenceHash: null));
 //             Assert.Throws<InvalidBlockProtocolVersionException>(
-//                 () => new BlockMetadata(
-//                     protocolVersion: BlockMetadata.CurrentProtocolVersion + 1,
+//                 () => new BlockHeader(
+//                     protocolVersion: BlockHeader.CurrentProtocolVersion + 1,
 //                     index: Block1Metadata.Index,
 //                     timestamp: Block1Metadata.Timestamp,
 //                     miner: Block1Metadata.Miner,
@@ -60,7 +60,7 @@
 //         [Fact]
 //         public void Index()
 //         {
-//             Assert.Throws<InvalidBlockIndexException>(() => new BlockMetadata(
+//             Assert.Throws<InvalidBlockIndexException>(() => new BlockHeader(
 //                 index: -1L,
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 publicKey: Block1Metadata.PublicKey,
@@ -75,7 +75,7 @@
 //         {
 //             DateTimeOffset kstTimestamp =
 //                 new DateTimeOffset(2021, 9, 7, 9, 30, 12, 345, TimeSpan.FromHours(9));
-//             BlockMetadata metadata = new BlockMetadata(
+//             BlockHeader metadata = new BlockHeader(
 //                 protocolVersion: Block1Metadata.ProtocolVersion,
 //                 index: Block1Metadata.Index,
 //                 timestamp: kstTimestamp,
@@ -95,7 +95,7 @@
 //         [Fact]
 //         public void PreviousHash()
 //         {
-//             Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
+//             Assert.Throws<InvalidOperationException>(() => new BlockHeader(
 //                 index: GenesisMetadata.Index,
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 publicKey: GenesisMetadata.PublicKey,
@@ -103,7 +103,7 @@
 //                 txHash: GenesisMetadata.TxHash,
 //                 lastCommit: null,
 //                 evidenceHash: null));
-//             Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
+//             Assert.Throws<InvalidOperationException>(() => new BlockHeader(
 //                 index: Block1Metadata.Index,
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 publicKey: Block1Metadata.PublicKey,
@@ -124,7 +124,7 @@
 //                     "public_key",
 //                     ParseHex("0200e02709cc0c051dc105188c454a2e7ef7b36b85da34529d3abc1968167cf54f")
 //                 )
-//                 .Add("protocol_version", BlockMetadata.CurrentProtocolVersion)
+//                 .Add("protocol_version", BlockHeader.CurrentProtocolVersion)
 //                 .Add(
 //                     "transaction_fingerprint",
 //                     ParseHex("5553c7f03ca10f7f9a58b051f65e1d35d52c28d658f3316545075dd07303cd71")
@@ -151,7 +151,7 @@
 //                     "transaction_fingerprint",
 //                     ParseHex("9d6457e7bdc4b19d1f341c45c787cf80a17c514da10d702606cc41f23387badb")
 //                 )
-//                 .Add("protocol_version", BlockMetadata.CurrentProtocolVersion)
+//                 .Add("protocol_version", BlockHeader.CurrentProtocolVersion)
 //                 .Add(
 //                     "evidence_hash",
 //                     ParseHex("e7198889cc4a82a8b7be4b7f428b6201400ef222709f756e540b32bc1e8d5d86")
@@ -230,8 +230,8 @@
 //                     GenerateVote(blockHash, 2, 0, VoteFlag.PreCommit),
 //                     GenerateVote(blockHash, 2, 0, VoteFlag.PreCommit),
 //                 }.ToImmutableArray());
-//             Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
-//                 protocolVersion: BlockMetadata.CurrentProtocolVersion,
+//             Assert.Throws<InvalidOperationException>(() => new BlockHeader(
+//                 protocolVersion: BlockHeader.CurrentProtocolVersion,
 //                 index: 2,
 //                 timestamp: timestamp,
 //                 miner: validatorA.Address,
@@ -252,8 +252,8 @@
 //                     GenerateVote(invalidBlockHash, 1, 0, VoteFlag.PreCommit),
 //                     GenerateVote(invalidBlockHash, 1, 0, VoteFlag.PreCommit),
 //                 }.ToImmutableArray());
-//             Assert.Throws<InvalidOperationException>(() => new BlockMetadata(
-//                 protocolVersion: BlockMetadata.CurrentProtocolVersion,
+//             Assert.Throws<InvalidOperationException>(() => new BlockHeader(
+//                 protocolVersion: BlockHeader.CurrentProtocolVersion,
 //                 index: 2,
 //                 timestamp: timestamp,
 //                 miner: validatorA.Address,
@@ -281,8 +281,8 @@
 //                         BigInteger.One,
 //                         VoteFlag.Null).Sign(null),
 //                 }.ToImmutableArray());
-//             var validMetadata = new BlockMetadata(
-//                 protocolVersion: BlockMetadata.CurrentProtocolVersion,
+//             var validMetadata = new BlockHeader(
+//                 protocolVersion: BlockHeader.CurrentProtocolVersion,
 //                 index: 2,
 //                 timestamp: timestamp,
 //                 miner: validatorA.Address,

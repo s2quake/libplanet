@@ -152,7 +152,7 @@ public sealed class WorldTest
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: _keys[0],
-            genesisHash: chain.Genesis.Hash,
+            genesisHash: chain.Genesis.BlockHash,
             actions: new[] { action }.ToBytecodes());
         var rawBlock1 = TestUtils.ProposeNext(
             previousBlock: chain.Tip,
@@ -160,7 +160,7 @@ public sealed class WorldTest
             proposer: privateKey.PublicKey,
             protocolVersion: ProtocolVersion);
         var stateRootHash1 = chain.DetermineBlockPrecededStateRootHash(rawBlock1, out _);
-        var hash1 = rawBlock1.Metadata.DeriveBlockHash(stateRootHash1, []);
+        var hash1 = rawBlock1.Header.DeriveBlockHash(stateRootHash1, []);
         Block block1 = chain.EvaluateAndSign(rawBlock1, privateKey);
         chain.Append(block1, TestUtils.CreateBlockCommit(block1));
         Assert.Equal(
@@ -179,7 +179,7 @@ public sealed class WorldTest
         tx = Transaction.Create(
             1,
             _keys[0],
-            chain.Genesis.Hash,
+            chain.Genesis.BlockHash,
             new[] { action }.ToBytecodes());
         var block2PreEval = TestUtils.ProposeNext(
             chain.Tip,
@@ -188,7 +188,7 @@ public sealed class WorldTest
             protocolVersion: ProtocolVersion,
             lastCommit: chain.GetBlockCommit(chain.Tip.Height));
         var stateRootHash2 = chain.DetermineBlockPrecededStateRootHash(block2PreEval, out _);
-        var hash2 = block2PreEval.Metadata.DeriveBlockHash(stateRootHash2, []);
+        var hash2 = block2PreEval.Header.DeriveBlockHash(stateRootHash2, []);
         Block block2 = chain.EvaluateAndSign(block2PreEval, privateKey);
         chain.Append(block2, TestUtils.CreateBlockCommit(block2));
         Assert.Equal(
@@ -207,7 +207,7 @@ public sealed class WorldTest
         tx = Transaction.Create(
             chain.GetNextTxNonce(_addr[0]),
             _keys[0],
-            chain.Genesis.Hash,
+            chain.Genesis.BlockHash,
             new[] { action }.ToBytecodes());
         var block3PreEval = TestUtils.ProposeNext(
             chain.Tip,
@@ -216,7 +216,7 @@ public sealed class WorldTest
             protocolVersion: ProtocolVersion,
             lastCommit: chain.GetBlockCommit(chain.Tip.Height));
         var stateRootHash3 = chain.DetermineBlockPrecededStateRootHash(block3PreEval, out _);
-        var hash3 = block3PreEval.Metadata.DeriveBlockHash(stateRootHash3, []);
+        var hash3 = block3PreEval.Header.DeriveBlockHash(stateRootHash3, []);
         Block block3 = chain.EvaluateAndSign(block3PreEval, _keys[1]);
         chain.Append(block3, TestUtils.CreateBlockCommit(block3));
         Assert.Equal(

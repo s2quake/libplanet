@@ -101,9 +101,9 @@ namespace Libplanet.RocksDBStore.Tests
             try
             {
                 Guid cid = Guid.NewGuid();
-                store.AppendIndex(cid, Fx.Block1.Hash);
-                store.AppendIndex(cid, Fx.Block2.Hash);
-                store.AppendIndex(cid, Fx.Block3.Hash);
+                store.AppendIndex(cid, Fx.Block1.BlockHash);
+                store.AppendIndex(cid, Fx.Block2.BlockHash);
+                store.AppendIndex(cid, Fx.Block3.BlockHash);
 
                 store.PutBlock(Fx.Block1);
                 store.PutBlock(Fx.Block2);
@@ -134,9 +134,9 @@ namespace Libplanet.RocksDBStore.Tests
             try
             {
                 Guid cid = Guid.NewGuid();
-                store.AppendIndex(cid, Fx.Block1.Hash);
-                store.AppendIndex(cid, Fx.Block2.Hash);
-                store.AppendIndex(cid, Fx.Block3.Hash);
+                store.AppendIndex(cid, Fx.Block1.BlockHash);
+                store.AppendIndex(cid, Fx.Block2.BlockHash);
+                store.AppendIndex(cid, Fx.Block3.BlockHash);
 
                 store.PutBlock(Fx.Block1);
                 store.PutBlock(Fx.Block2);
@@ -144,7 +144,7 @@ namespace Libplanet.RocksDBStore.Tests
 
                 Assert.Single(store.ListChainIds());
 
-                store.ForkBlockIndexes(cid, Guid.NewGuid(), Fx.Block3.Hash);
+                store.ForkBlockIndexes(cid, Guid.NewGuid(), Fx.Block3.BlockHash);
                 Assert.Equal(2, store.ListChainIds().Count());
             }
             finally
@@ -221,28 +221,28 @@ namespace Libplanet.RocksDBStore.Tests
 
                 Guid cid1 = Guid.NewGuid();
                 int guidLength = cid1.ToByteArray().Length;
-                store.AppendIndex(cid1, Fx.GenesisBlock.Hash);
-                store.AppendIndex(cid1, Fx.Block1.Hash);
-                store.AppendIndex(cid1, Fx.Block2.Hash);
+                store.AppendIndex(cid1, Fx.GenesisBlock.BlockHash);
+                store.AppendIndex(cid1, Fx.Block1.BlockHash);
+                store.AppendIndex(cid1, Fx.Block2.BlockHash);
                 Assert.Single(store.ListChainIds());
                 Assert.Equal(
-                    new[] { Fx.GenesisBlock.Hash, Fx.Block1.Hash, Fx.Block2.Hash },
+                    new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash },
                     store.IterateIndexes(cid1, 0, null));
 
                 Guid cid2 = Guid.NewGuid();
-                store.ForkBlockIndexes(cid1, cid2, Fx.Block1.Hash);
-                store.AppendIndex(cid2, Fx.Block2.Hash);
-                store.AppendIndex(cid2, Fx.Block3.Hash);
+                store.ForkBlockIndexes(cid1, cid2, Fx.Block1.BlockHash);
+                store.AppendIndex(cid2, Fx.Block2.BlockHash);
+                store.AppendIndex(cid2, Fx.Block3.BlockHash);
                 Assert.Equal(2, store.ListChainIds().Count());
                 Assert.Equal(
-                    new[] { Fx.GenesisBlock.Hash, Fx.Block1.Hash, Fx.Block2.Hash, Fx.Block3.Hash },
+                    new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash, Fx.Block3.BlockHash },
                     store.IterateIndexes(cid2, 0, null));
 
                 Guid cid3 = Guid.NewGuid();
-                store.ForkBlockIndexes(cid1, cid3, Fx.Block2.Hash);
+                store.ForkBlockIndexes(cid1, cid3, Fx.Block2.BlockHash);
                 Assert.Equal(3, store.ListChainIds().Count());
                 Assert.Equal(
-                    new[] { Fx.GenesisBlock.Hash, Fx.Block1.Hash, Fx.Block2.Hash },
+                    new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash },
                     store.IterateIndexes(cid3, 0, null));
 
                 Assert.Throws<InvalidOperationException>(() => store.PruneOutdatedChains());
@@ -251,7 +251,7 @@ namespace Libplanet.RocksDBStore.Tests
                 store.PruneOutdatedChains();
                 Assert.Single(store.ListChainIds());
                 Assert.Equal(
-                    new[] { Fx.GenesisBlock.Hash, Fx.Block1.Hash, Fx.Block2.Hash },
+                    new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash },
                     store.IterateIndexes(cid3, 0, null));
                 Assert.Equal(3, store.CountIndex(cid3));
 

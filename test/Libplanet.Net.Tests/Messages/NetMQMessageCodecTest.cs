@@ -93,7 +93,7 @@ namespace Libplanet.Net.Tests.Messages
                 case MessageContent.MessageType.TxIds:
                     return new TxIdsMsg(new[] { transaction.Id });
                 case MessageContent.MessageType.GetBlocks:
-                    return new GetBlocksMsg(new[] { genesis.Hash }, 10);
+                    return new GetBlocksMsg(new[] { genesis.BlockHash }, 10);
                 case MessageContent.MessageType.GetTxs:
                     return new GetTxsMsg(new[] { transaction.Id });
                 case MessageContent.MessageType.Blocks:
@@ -110,17 +110,17 @@ namespace Libplanet.Net.Tests.Messages
                 case MessageContent.MessageType.Neighbors:
                     return new NeighborsMsg(new[] { boundPeer });
                 case MessageContent.MessageType.BlockHeaderMessage:
-                    return new BlockHeaderMsg(genesis.Hash, genesis.Header);
+                    return new BlockHeaderMsg(genesis.BlockHash, genesis);
                 case MessageContent.MessageType.BlockHashes:
-                    return new BlockHashesMsg(new[] { genesis.Hash });
+                    return new BlockHashesMsg(new[] { genesis.BlockHash });
                 case MessageContent.MessageType.GetChainStatus:
                     return new GetChainStatusMsg();
                 case MessageContent.MessageType.ChainStatus:
                     return new ChainStatusMsg(
                         0,
-                        genesis.Hash,
+                        genesis.BlockHash,
                         chain.Tip.Height,
-                        chain.Tip.Hash);
+                        chain.Tip.BlockHash);
                 case MessageContent.MessageType.DifferentVersion:
                     return new DifferentVersionMsg();
                 case MessageContent.MessageType.HaveMessage:
@@ -144,7 +144,7 @@ namespace Libplanet.Net.Tests.Messages
                             {
                                 Height = 0,
                                 Round = 0,
-                                BlockHash = genesis.Hash,
+                                BlockHash = genesis.BlockHash,
                                 Timestamp = DateTimeOffset.UtcNow,
                                 ValidatorPublicKey = privateKey.PublicKey,
                                 ValidatorPower = BigInteger.One,
@@ -156,7 +156,7 @@ namespace Libplanet.Net.Tests.Messages
                         {
                             Height = 0,
                             Round = 0,
-                            BlockHash = genesis.Hash,
+                            BlockHash = genesis.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
                             ValidatorPublicKey = privateKey.PublicKey,
                             ValidatorPower = BigInteger.One,
@@ -167,7 +167,7 @@ namespace Libplanet.Net.Tests.Messages
                         new Maj23Metadata(
                             0,
                             0,
-                            genesis.Hash,
+                            genesis.BlockHash,
                             DateTimeOffset.UtcNow,
                             privateKey.PublicKey,
                             VoteFlag.PreVote).Sign(privateKey));
@@ -176,7 +176,7 @@ namespace Libplanet.Net.Tests.Messages
                         new VoteSetBitsMetadata(
                             0,
                             0,
-                            genesis.Hash,
+                            genesis.BlockHash,
                             DateTimeOffset.UtcNow,
                             privateKey.PublicKey,
                             VoteFlag.PreVote,
@@ -186,7 +186,7 @@ namespace Libplanet.Net.Tests.Messages
                         new ProposalClaimMetadata(
                             0,
                             0,
-                            genesis.Hash,
+                            genesis.BlockHash,
                             DateTimeOffset.UtcNow,
                             privateKey.PublicKey).Sign(privateKey));
                 default:

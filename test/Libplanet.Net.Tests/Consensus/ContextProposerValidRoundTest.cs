@@ -76,7 +76,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[0].Power,
                     1,
                     round: 2,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
@@ -84,7 +84,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[2].Power,
                     height: 1,
                     round: 2,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             await stateChangedToRoundTwoPropose.WaitAsync();
             Assert.Equal(2, context.Round);
@@ -97,7 +97,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[0].Power,
                     height: 1,
                     round: 1,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
@@ -105,7 +105,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[2].Power,
                     height: 1,
                     round: 1,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
@@ -113,7 +113,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[3].Power,
                     1,
                     round: 1,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
 
             await roundTwoVoteSent.WaitAsync();
@@ -171,13 +171,13 @@ namespace Libplanet.Net.Tests.Consensus
             var key = new PrivateKey();
             var differentBlock = blockChain.EvaluateAndSign(
                 RawBlock.Propose(
-                    new BlockMetadata
+                    new BlockHeader
                     {
-                        ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+                        ProtocolVersion = BlockHeader.CurrentProtocolVersion,
                         Height = blockChain.Tip.Height + 1,
                         Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                         Proposer = key.Address,
-                        PreviousHash = blockChain.Tip.Hash,
+                        PreviousHash = blockChain.Tip.BlockHash,
                     },
                     new BlockContent
                     {
@@ -197,7 +197,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[0].Power,
                     height: 1,
                     round: 2,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
@@ -205,7 +205,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[2].Power,
                     height: 1,
                     round: 2,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             await stateChangedToRoundTwoPropose.WaitAsync();
             Assert.Equal(2, context.Round);
@@ -225,7 +225,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[3].Power,
                     height: 1,
                     round: 2,
-                    hash: proposedBlock.Hash,
+                    hash: proposedBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             await stateChangedToRoundTwoPreCommit.WaitAsync();
 
@@ -236,7 +236,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[0].Power,
                     height: 1,
                     round: 3,
-                    hash: differentBlock.Hash,
+                    hash: differentBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(TestUtils.CreateVote(
@@ -244,7 +244,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[2].Power,
                     height: 1,
                     round: 3,
-                    hash: differentBlock.Hash,
+                    hash: differentBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
             await stateChangedToRoundThreePropose.WaitAsync();
             Assert.Equal(3, context.Round);
@@ -257,7 +257,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Validators[3].Power,
                     height: 1,
                     round: 3,
-                    hash: differentBlock.Hash,
+                    hash: differentBlock.BlockHash,
                     flag: VoteFlag.PreVote)));
 
             await roundThreeNilPreVoteSent.WaitAsync();

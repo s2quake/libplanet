@@ -75,7 +75,7 @@
 //                 var txs = new[] { _contents.Block1Tx0 };
 //                 var evs = Array.Empty<EvidenceBase>();
 //                 BlockContent content1 = new BlockContent(
-//                     new BlockMetadata(
+//                     new BlockHeader(
 //                         index: _contents.Block1Content.Index,
 //                         timestamp: DateTimeOffset.UtcNow,
 //                         publicKey: _contents.Block1Content.PublicKey,
@@ -151,7 +151,7 @@
 //                 var txs = new[] { _contents.Block1Tx0 };
 //                 var evs = Array.Empty<EvidenceBase>();
 //                 BlockContent content1 = new BlockContent(
-//                     new BlockMetadata(
+//                     new BlockHeader(
 //                         index: _contents.Block1Content.Index,
 //                         timestamp: DateTimeOffset.UtcNow,
 //                         publicKey: _contents.Block1Content.PublicKey,

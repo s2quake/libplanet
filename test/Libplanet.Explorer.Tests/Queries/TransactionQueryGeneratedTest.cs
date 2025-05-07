@@ -52,26 +52,26 @@ public class TransactionQueryGeneratedTest
         var stagingTx = Transaction.Create(
             Fx.Chain.GetNextTxNonce(pk.Address),
             pk,
-            Fx.Chain.Genesis.Hash,
+            Fx.Chain.Genesis.BlockHash,
             new[] { new SimpleAction1() }.ToBytecodes());
         Fx.Chain.StageTransaction(stagingTx);
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);
         Assert.Equal("SUCCESS", queryResult.TxStatus);
         Assert.Equal(successBlock.Height, queryResult.BlockHeight);
-        Assert.Equal(successBlock.Hash.ToString(), queryResult.BlockHash);
+        Assert.Equal(successBlock.BlockHash.ToString(), queryResult.BlockHash);
         Assert.Equal(new string?[] { null, null }, queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(failTx.Id);
         Assert.Equal("FAILURE", queryResult.TxStatus);
         Assert.Equal(failBlock.Height, queryResult.BlockHeight);
-        Assert.Equal(failBlock.Hash.ToString(), queryResult.BlockHash);
+        Assert.Equal(failBlock.BlockHash.ToString(), queryResult.BlockHash);
         Assert.Equal(
             new string?[] { null, "Libplanet.Action.State.CurrencyPermissionException", null },
             queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(emptyTx.Id);
         Assert.Equal("INCLUDED", queryResult.TxStatus);
         Assert.Equal(emptyBlock.Height, queryResult.BlockHeight);
-        Assert.Equal(emptyBlock.Hash.ToString(), queryResult.BlockHash);
+        Assert.Equal(emptyBlock.BlockHash.ToString(), queryResult.BlockHash);
         Assert.Null(queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(new TxId());
         Assert.Equal("INVALID", queryResult.TxStatus);

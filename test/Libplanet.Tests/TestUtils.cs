@@ -300,7 +300,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             }
         }
 
-        public static void AssertBlockMetadataEqual(BlockMetadata expected, BlockMetadata actual)
+        public static void AssertBlockHeaderEqual(BlockHeader expected, BlockHeader actual)
         {
             Assert.NotNull(expected);
             Assert.NotNull(actual);
@@ -309,7 +309,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             Assert.Equal(expected.Timestamp, actual.Timestamp);
             AssertBytesEqual(expected.Proposer, actual.Proposer);
             AssertBytesEqual(expected.PreviousHash, actual.PreviousHash);
-            AssertBytesEqual(expected.TxHash, actual.TxHash);
         }
 
         public static void AssertBlockContentsEqual(
@@ -323,7 +322,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             RawBlock expected,
             RawBlock actual)
         {
-            AssertBlockMetadataEqual(expected.Metadata, actual.Metadata);
+            AssertBlockHeaderEqual(expected.Header, actual.Header);
             AssertBlockContentsEqual(expected.Content, actual.Content);
         }
 
@@ -344,7 +343,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         {
             var useValidatorPower = true;
             return CreateBlockCommit(
-                block.Hash, block.Height, 0, deterministicTimestamp, useValidatorPower);
+                block.BlockHash, block.Height, 0, deterministicTimestamp, useValidatorPower);
         }
 
         public static BlockCommit CreateBlockCommit(
@@ -387,7 +386,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             ImmutableSortedSet<Transaction>? transactions = null,
             ImmutableSortedSet<Validator>? validators = null,
             DateTimeOffset? timestamp = null,
-            int protocolVersion = Block.CurrentProtocolVersion)
+            int protocolVersion = BlockHeader.CurrentProtocolVersion)
         {
             var txs = transactions ?? [];
             long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposer.Address));
@@ -407,7 +406,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     }.ToBytecodes(),
                     timestamp: DateTimeOffset.MinValue));
 
-            var metadata = new BlockMetadata
+            var metadata = new BlockHeader
             {
                 ProtocolVersion = protocolVersion,
                 Height = 0,
@@ -415,7 +414,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                         new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
                 Proposer = (proposer ?? GenesisProposer.PublicKey).Address,
                 PreviousHash = default,
-                TxHash = BlockContent.DeriveTxHash(txs),
             };
             var content = new BlockContent
             {
@@ -429,7 +427,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             PrivateKey miner,
             ImmutableSortedSet<Transaction>? transactions = null,
             DateTimeOffset? timestamp = null,
-            int protocolVersion = Block.CurrentProtocolVersion,
+            int protocolVersion = BlockHeader.CurrentProtocolVersion,
             HashDigest<SHA256> stateRootHash = default)
         {
             RawBlock preEval = ProposeGenesis(
@@ -455,23 +453,21 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             ImmutableSortedSet<Transaction>? transactions = null,
             PublicKey? proposer = null,
             TimeSpan? blockInterval = null,
-            int protocolVersion = Block.CurrentProtocolVersion,
+            int protocolVersion = BlockHeader.CurrentProtocolVersion,
             BlockCommit? lastCommit = null,
             ImmutableSortedSet<EvidenceBase>? evidence = null)
         {
             var txs = transactions ?? [];
             var evs = evidence ?? [];
-            var metadata = new BlockMetadata
+            var metadata = new BlockHeader
             {
                 ProtocolVersion = protocolVersion,
                 Height = previousBlock.Height + 1,
                 Timestamp = previousBlock.Timestamp.Add(
                         blockInterval ?? TimeSpan.FromSeconds(15)),
                 Proposer = proposer?.Address ?? previousBlock.Proposer,
-                PreviousHash = previousBlock.Hash,
-                TxHash = BlockContent.DeriveTxHash(txs),
+                PreviousHash = previousBlock.BlockHash,
                 LastCommit = lastCommit ?? BlockCommit.Empty,
-                EvidenceHash = BlockContent.DeriveEvidenceHash(evs),
             };
             var content = new BlockContent
             {
@@ -488,7 +484,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             PrivateKey proposer,
             ImmutableSortedSet<Transaction>? txs = null,
             TimeSpan? blockInterval = null,
-            int protocolVersion = Block.CurrentProtocolVersion,
+            int protocolVersion = BlockHeader.CurrentProtocolVersion,
             HashDigest<SHA256> stateRootHash = default,
             BlockCommit? lastCommit = null,
             ImmutableSortedSet<EvidenceBase>? evidence = null)
@@ -518,7 +514,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             DateTimeOffset? timestamp = null,
             IEnumerable<IRenderer>? renderers = null,
             Block? genesisBlock = null,
-            int protocolVersion = Block.CurrentProtocolVersion)
+            int protocolVersion = BlockHeader.CurrentProtocolVersion)
         {
             return MakeBlockChainAndActionEvaluator(
                 policy,
@@ -545,7 +541,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             DateTimeOffset? timestamp = null,
             IEnumerable<IRenderer>? renderers = null,
             Block? genesisBlock = null,
-            int protocolVersion = Block.CurrentProtocolVersion)
+            int protocolVersion = BlockHeader.CurrentProtocolVersion)
         {
             actions = actions ?? ImmutableArray<IAction>.Empty;
             privateKey = privateKey ?? GenesisProposer;

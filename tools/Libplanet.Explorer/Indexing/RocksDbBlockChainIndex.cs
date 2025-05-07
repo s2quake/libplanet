@@ -258,7 +258,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         CancellationToken stoppingToken)
     {
         var minerAddress = blockDigest.Proposer.Bytes.ToArray();
-        var blockHash = blockDigest.Hash.Bytes.ToArray();
+        var blockHash = blockDigest.Hash.BlockHash.Bytes.ToArray();
         var indexToBlockHashKey = IndexToBlockHashPrefix
             .Concat(LongToBigEndianByteArray(blockDigest.Height)).ToArray();
 
@@ -272,7 +272,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
             }
 
             throw new IndexMismatchException(
-                blockDigest.Height, GetTipImpl()!.Value.Hash, blockDigest.Hash);
+                blockDigest.Height, GetTipImpl()!.Value.Hash, blockDigest.Hash.BlockHash);
         }
 
         writeBatch.Put(indexToBlockHashKey, blockHash);

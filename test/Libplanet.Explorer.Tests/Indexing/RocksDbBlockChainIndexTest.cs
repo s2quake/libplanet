@@ -47,7 +47,7 @@ public class RocksDbBlockChainIndexTest: BlockChainIndexTest
             ChainFx.Chain.Store);
         var tip = await Fx.Index.GetTipAsync();
         Assert.Equal(tip, Fx.Index.Tip);
-        Assert.Equal(ChainFx.Chain.Tip.Hash, tip.Hash);
+        Assert.Equal(ChainFx.Chain.Tip.BlockHash, tip.Hash);
         Assert.Equal(ChainFx.Chain.Tip.Height, tip.Index);
     }
 

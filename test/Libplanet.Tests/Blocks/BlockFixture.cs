@@ -11,7 +11,7 @@ namespace Libplanet.Tests.Blocks
 {
     public class BlockFixture
     {
-        public const int ProtocolVersion = BlockMetadata.CurrentProtocolVersion;
+        public const int ProtocolVersion = BlockHeader.CurrentProtocolVersion;
 
         public BlockFixture()
         {
@@ -21,7 +21,7 @@ namespace Libplanet.Tests.Blocks
                 miner: Miner,
                 stateRootHash: HashDigest<SHA256>.Parse(
                     "e2e938f9d8af0a20d16d1c233fc4e8f39157145d003565807e4055ce6b5a0121"));
-            TxFixture = new TxFixture(Genesis.Hash);
+            TxFixture = new TxFixture(Genesis.BlockHash);
             Next = TestUtils.ProposeNextBlock(
                 Genesis,
                 proposer: Miner,
@@ -41,14 +41,14 @@ namespace Libplanet.Tests.Blocks
                 {
                     Height = Next.Height,
                     Round = 0,
-                    BlockHash = Next.Hash,
+                    BlockHash = Next.BlockHash,
                     Votes =
                     [
                         new VoteMetadata
                         {
                             Height = Next.Height,
                             Round = 0,
-                            BlockHash = Next.Hash,
+                            BlockHash = Next.BlockHash,
                             Timestamp = Next.Timestamp,
                             ValidatorPublicKey = Miner.PublicKey,
                             ValidatorPower = TestUtils.Validators.GetValidator(Miner.PublicKey).Power,

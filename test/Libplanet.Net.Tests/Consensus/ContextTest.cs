@@ -213,7 +213,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     Height = 2,
                     Round = 0,
-                    BlockHash = proposedBlock!.Hash,
+                    BlockHash = proposedBlock!.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPublicKey = TestUtils.PrivateKeys[i].PublicKey,
                     ValidatorPower = TestUtils.Validators[i].Power,
@@ -228,7 +228,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     Height = 2,
                     Round = 0,
-                    BlockHash = proposedBlock!.Hash,
+                    BlockHash = proposedBlock!.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPublicKey = TestUtils.PrivateKeys[i].PublicKey,
                     ValidatorPower = TestUtils.Validators[i].Power,
@@ -247,7 +247,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 2,
                 Round = 0,
-                BlockHash = proposedBlock!.Hash,
+                BlockHash = proposedBlock!.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = TestUtils.PrivateKeys[3].PublicKey,
                 ValidatorPower = TestUtils.Validators[3].Power,
@@ -309,7 +309,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[2].Power,
                         2,
                         0,
-                        block.Hash,
+                        block.BlockHash,
                         VoteFlag.PreVote)));
             await exceptionOccurred.WaitAsync();
             Assert.IsType<InvalidConsensusMessageException>(exceptionThrown);
@@ -379,7 +379,7 @@ namespace Libplanet.Net.Tests.Consensus
             var tx = Transaction.Create(
                 nonce: 0,
                 privateKey: TestUtils.PrivateKeys[1],
-                genesisHash: blockChain.Genesis.Hash,
+                genesisHash: blockChain.Genesis.BlockHash,
                 actions: new[] { action }.ToBytecodes());
             blockChain.StageTransaction(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
@@ -396,7 +396,7 @@ namespace Libplanet.Net.Tests.Consensus
                         {
                             Height = 1,
                             Round = 0,
-                            BlockHash = block.Hash,
+                            BlockHash = block.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
                             ValidatorPublicKey = TestUtils.PrivateKeys[i].PublicKey,
                             ValidatorPower = TestUtils.Validators[i].Power,
@@ -413,7 +413,7 @@ namespace Libplanet.Net.Tests.Consensus
                         {
                             Height = 1,
                             Round = 0,
-                            BlockHash = block.Hash,
+                            BlockHash = block.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
                             ValidatorPublicKey = TestUtils.PrivateKeys[i].PublicKey,
                             ValidatorPower = TestUtils.Validators[i].Power,
@@ -437,7 +437,7 @@ namespace Libplanet.Net.Tests.Consensus
                     {
                         Height = 1,
                         Round = 0,
-                        BlockHash = block.Hash,
+                        BlockHash = block.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidatorPublicKey = TestUtils.PrivateKeys[3].PublicKey,
                         ValidatorPower = BigInteger.One,
@@ -517,10 +517,10 @@ namespace Libplanet.Net.Tests.Consensus
                 validatorSet: validatorSet);
             var blockA = blockChain.ProposeBlock(
                 proposer,
-                lastCommit: blockChain.GetBlockCommit(blockChain.Tip.Hash));
+                lastCommit: blockChain.GetBlockCommit(blockChain.Tip.BlockHash));
             var blockB = blockChain.ProposeBlock(
                 proposer,
-                lastCommit: blockChain.GetBlockCommit(blockChain.Tip.Hash));
+                lastCommit: blockChain.GetBlockCommit(blockChain.Tip.BlockHash));
             context.StateChanged += (sender, state) =>
             {
                 if (state.Step != prevStep)
@@ -551,7 +551,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     Height = 1,
                     Round = 0,
-                    BlockHash = blockA.Hash,
+                    BlockHash = blockA.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPublicKey = key2.PublicKey,
                     ValidatorPower = power2,
@@ -580,7 +580,7 @@ namespace Libplanet.Net.Tests.Consensus
             var maj23 = new Maj23Metadata(
                 1,
                 0,
-                blockB.Hash,
+                blockB.BlockHash,
                 DateTimeOffset.UtcNow,
                 key1.PublicKey,
                 VoteFlag.PreVote).Sign(key1);
@@ -590,7 +590,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = blockB.Hash,
+                BlockHash = blockB.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = proposer.PublicKey,
                 ValidatorPower = proposerPower,
@@ -600,7 +600,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = blockB.Hash,
+                BlockHash = blockB.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = key1.PublicKey,
                 ValidatorPower = power1,
@@ -610,7 +610,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = blockB.Hash,
+                BlockHash = blockB.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = key2.PublicKey,
                 ValidatorPower = power2,
@@ -630,7 +630,7 @@ namespace Libplanet.Net.Tests.Consensus
             await stepChanged.WaitAsync();
             Assert.Equal(ConsensusStep.PreCommit, context.Step);
             Assert.Equal(
-                blockB.Hash.ToString(),
+                blockB.BlockHash.ToString(),
                 JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         }
 
@@ -678,7 +678,7 @@ namespace Libplanet.Net.Tests.Consensus
             var tx = Transaction.Create(
                 nonce: 0,
                 privateKey: TestUtils.PrivateKeys[1],
-                genesisHash: blockChain.Genesis.Hash,
+                genesisHash: blockChain.Genesis.BlockHash,
                 actions: new[] { action }.ToBytecodes());
             blockChain.StageTransaction(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
@@ -695,7 +695,7 @@ namespace Libplanet.Net.Tests.Consensus
                         {
                             Height = 1,
                             Round = 0,
-                            BlockHash = block.Hash,
+                            BlockHash = block.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
                             ValidatorPublicKey = TestUtils.PrivateKeys[i].PublicKey,
                             ValidatorPower = TestUtils.Validators[i].Power,
@@ -711,7 +711,7 @@ namespace Libplanet.Net.Tests.Consensus
                         {
                             Height = 1,
                             Round = 0,
-                            BlockHash = block.Hash,
+                            BlockHash = block.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
                             ValidatorPublicKey = TestUtils.PrivateKeys[i].PublicKey,
                             ValidatorPower = TestUtils.Validators[i].Power,
@@ -788,7 +788,7 @@ namespace Libplanet.Net.Tests.Consensus
                     {
                         Height = block.Height,
                         Round = 0,
-                        BlockHash = block.Hash,
+                        BlockHash = block.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidatorPublicKey = TestUtils.PrivateKeys[i].PublicKey,
                         ValidatorPower = TestUtils.Validators[i].Power,
@@ -808,7 +808,7 @@ namespace Libplanet.Net.Tests.Consensus
                         {
                             Height = block.Height,
                             Round = 0,
-                            BlockHash = block.Hash,
+                            BlockHash = block.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
                             ValidatorPublicKey = TestUtils.PrivateKeys[3].PublicKey,
                             ValidatorPower = TestUtils.Validators[3].Power,

@@ -17,7 +17,7 @@
 //         public readonly PrivateKey GenesisKey;
 //         public readonly BlockHash GenesisHash;
 //         public readonly BlockContent GenesisContent;
-//         public readonly BlockMetadata GenesisMetadata;
+//         public readonly BlockHeader GenesisMetadata;
 
 //         public readonly PrivateKey Block1Key;
 //         public readonly PrivateKey Block1Tx0Key;
@@ -28,12 +28,12 @@
 //         public readonly EvidenceBase Block1Ev1;
 //         public readonly BlockContent Block1Content;
 //         public readonly HashDigest<SHA256> Block1TxHash;
-//         public readonly BlockMetadata Block1Metadata;
+//         public readonly BlockHeader Block1Metadata;
 
 //         public readonly BlockContent GenesisContentPv0;
-//         public readonly BlockMetadata GenesisMetadataPv0;
+//         public readonly BlockHeader GenesisMetadataPv0;
 //         public readonly BlockContent Block1ContentPv1;
-//         public readonly BlockMetadata Block1MetadataPv1;
+//         public readonly BlockHeader Block1MetadataPv1;
 
 //         public BlockContentFixture()
 //         {
@@ -61,7 +61,7 @@
 //             };
 //             GenesisContent = new BlockContent
 //             {
-//                 Metadata = new BlockMetadata
+//                 Metadata = new BlockHeader
 //                 {
 //                     Index = 0,
 //                     Timestamp = new DateTimeOffset(2021, 9, 6, 13, 46, 39, 123, kst),
@@ -129,7 +129,7 @@
 //                 .OrderBy(tx => tx.Id).ToList();
 //             Block1Content = new BlockContent
 //             {
-//                 Metadata = new BlockMetadata
+//                 Metadata = new BlockHeader
 //                 {
 //                     Index = 1,
 //                     Timestamp = new DateTimeOffset(2021, 9, 6, 17, 1, 9, 45, kst),
@@ -148,7 +148,7 @@
 
 //             GenesisContentPv0 = new BlockContent
 //             {
-//                 Metadata = new BlockMetadata
+//                 Metadata = new BlockHeader
 //                 {
 //                     ProtocolVersion = 0,
 //                     Index = 0,
@@ -165,7 +165,7 @@
 //             GenesisMetadataPv0 = GenesisContentPv0.Metadata;
 //             Block1ContentPv1 = new BlockContent
 //             {
-//                 Metadata = new BlockMetadata
+//                 Metadata = new BlockHeader
 //                 {
 //                     ProtocolVersion = 1,
 //                     Index = 1,

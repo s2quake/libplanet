@@ -32,7 +32,7 @@
 //     [Property(5)]
 //     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
-//     public static explicit operator BlockMetadata(BlockHeader header)
+//     public static explicit operator BlockMetadata(BlockMetadata header)
 //     {
 //         return new BlockMetadata
 //         {

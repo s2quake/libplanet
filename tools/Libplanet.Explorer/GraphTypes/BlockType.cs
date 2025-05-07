@@ -17,7 +17,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<IdGraphType>>(
             "Hash",
             description: "A block's hash.",
-            resolve: ctx => ctx.Source.Hash.ToString());
+            resolve: ctx => ctx.Source.BlockHash.ToString());
         Field<NonNullGraphType<LongGraphType>>(
             name: "Index",
             description: "The height of the block.",

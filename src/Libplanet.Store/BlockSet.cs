@@ -36,10 +36,10 @@ public sealed class BlockSet(IStore store, int cacheSize = 4096)
                     $"The given hash[{key}] was not found in this set.");
             }
 
-            if (!block.Hash.Equals(key))
+            if (!block.BlockHash.Equals(key))
             {
                 throw new InvalidOperationException(
-                    $"The given hash[{key}] was not equal to actual[{block.Hash}].");
+                    $"The given hash[{key}] was not equal to actual[{block.BlockHash}].");
             }
 
             return block;
@@ -47,7 +47,7 @@ public sealed class BlockSet(IStore store, int cacheSize = 4096)
 
         set
         {
-            if (!value.Hash.Equals(key))
+            if (!value.BlockHash.Equals(key))
             {
                 throw new InvalidOperationException(
                     $"{value}.hash does not match to {key}");
@@ -55,7 +55,7 @@ public sealed class BlockSet(IStore store, int cacheSize = 4096)
 
             value.Header.Timestamp.ValidateTimestamp();
             _store.PutBlock(value);
-            _cache.AddOrUpdate(value.Hash, value);
+            _cache.AddOrUpdate(value.BlockHash, value);
         }
     }
 

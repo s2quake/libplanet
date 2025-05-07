@@ -36,10 +36,10 @@ public abstract class BlockChainIndexTest
         var chain = ChainFx.Chain;
         var block1 = chain.ProposeBlock(
             ChainFx.PrivateKeys[0],
-            chain.GetBlockCommit(chain.Tip.Hash));
+            chain.GetBlockCommit(chain.Tip.BlockHash));
         var block2 = chain.ProposeBlock(
             ChainFx.PrivateKeys[0],
-            chain.GetBlockCommit(chain.Tip.Hash));
+            chain.GetBlockCommit(chain.Tip.BlockHash));
         await index.IndexAsync(
             ModelSerializer.Deserialize<Store.BlockDigest>(ModelSerializer.Serialize(block1)),
             block1.Transactions,
@@ -56,7 +56,7 @@ public abstract class BlockChainIndexTest
     {
         var tip = await Fx.Index.GetTipAsync();
         Assert.Equal(tip, Fx.Index.Tip);
-        Assert.Equal(ChainFx.Chain.Tip.Hash, tip.Hash);
+        Assert.Equal(ChainFx.Chain.Tip.BlockHash, tip.Hash);
         Assert.Equal(ChainFx.Chain.Tip.Height, tip.Index);
     }
 
@@ -87,8 +87,8 @@ public abstract class BlockChainIndexTest
         {
             var inChain = ChainFx.Chain[i];
             // ReSharper disable once MethodHasAsyncOverload
-            Assert.Equal(i, Fx.Index.BlockHashToIndex(inChain.Hash));
-            Assert.Equal(i, await Fx.Index.BlockHashToIndexAsync(inChain.Hash));
+            Assert.Equal(i, Fx.Index.BlockHashToIndex(inChain.BlockHash));
+            Assert.Equal(i, await Fx.Index.BlockHashToIndexAsync(inChain.BlockHash));
         }
 
         Assert.Throws<IndexOutOfRangeException>(() => Fx.Index.BlockHashToIndex(new BlockHash()));
@@ -103,8 +103,8 @@ public abstract class BlockChainIndexTest
         {
             var inChain = ChainFx.Chain[i];
             // ReSharper disable once MethodHasAsyncOverload
-            Assert.Equal(inChain.Hash, Fx.Index.IndexToBlockHash(i));
-            Assert.Equal(inChain.Hash, await Fx.Index.IndexToBlockHashAsync(i));
+            Assert.Equal(inChain.BlockHash, Fx.Index.IndexToBlockHash(i));
+            Assert.Equal(inChain.BlockHash, await Fx.Index.IndexToBlockHashAsync(i));
         }
 
         Assert.Throws<IndexOutOfRangeException>(() => Fx.Index.IndexToBlockHash(long.MaxValue));
@@ -156,7 +156,7 @@ public abstract class BlockChainIndexTest
         Assert.Equal(inChain.Length, indexed.Length);
         for (var i = 0; i < indexed.Length; i++)
         {
-            Assert.Equal(inChain[i].Hash, indexed[i].Hash);
+            Assert.Equal(inChain[i].BlockHash, indexed[i].Hash);
             Assert.Equal(inChain[i].Height, indexed[i].Index);
         }
     }
@@ -249,7 +249,7 @@ public abstract class BlockChainIndexTest
             Assert.Equal(inChain.Length, indexed.Length);
             for (var i = 0; i < indexed.Length; i++)
             {
-                Assert.Equal(inChain[i].Hash, indexed[i].Hash);
+                Assert.Equal(inChain[i].BlockHash, indexed[i].Hash);
                 Assert.Equal(inChain[i].Height, indexed[i].Index);
             }
         }
@@ -264,7 +264,7 @@ public abstract class BlockChainIndexTest
             {
                 // ReSharper disable once MethodHasAsyncOverload
                 var indexed = Fx.Index.GetContainedBlockHashByTxId(txId);
-                Assert.Equal(ChainFx.Chain[i].Hash, indexed);
+                Assert.Equal(ChainFx.Chain[i].BlockHash, indexed);
                 Assert.Equal(indexed, await Fx.Index.GetContainedBlockHashByTxIdAsync(txId));
                 Assert.True(Fx.Index.TryGetContainedBlockHashById(txId, out var indexed2));
                 Assert.Equal(indexed, indexed2);

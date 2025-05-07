@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(4, consensusContext.Height);
             Assert.Equal(0, consensusContext.Round);
 
-            blockCommit = blockChain.GetBlockCommit(blockChain.Tip.Hash);
+            blockCommit = blockChain.GetBlockCommit(blockChain.Tip.BlockHash);
             block = blockChain.ProposeBlock(privateKeys[0], blockCommit);
             blockCommit = TestUtils.CreateBlockCommit(block);
             blockChain.Append(block, blockCommit);

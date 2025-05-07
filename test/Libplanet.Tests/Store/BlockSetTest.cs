@@ -17,8 +17,8 @@ namespace Libplanet.Tests.Store
         [Fact]
         public void CanStoreItem()
         {
-            _set[_fx.Block1.Hash] = _fx.Block1;
-            Assert.Equal(_set[_fx.Block1.Hash], _fx.Block1);
+            _set[_fx.Block1.BlockHash] = _fx.Block1;
+            Assert.Equal(_set[_fx.Block1.BlockHash], _fx.Block1);
         }
 
         [Fact]
@@ -27,16 +27,16 @@ namespace Libplanet.Tests.Store
             Assert.Empty(_set);
             Assert.Empty(_set.Keys);
             Assert.Empty(_set.Values);
-            _set[_fx.Block1.Hash] = _fx.Block1;
-            _set[_fx.Block2.Hash] = _fx.Block2;
-            _set[_fx.Block3.Hash] = _fx.Block3;
+            _set[_fx.Block1.BlockHash] = _fx.Block1;
+            _set[_fx.Block2.BlockHash] = _fx.Block2;
+            _set[_fx.Block3.BlockHash] = _fx.Block3;
 
             Assert.Equal(
                 new HashSet<BlockHash>()
                 {
-                    _fx.Block1.Hash,
-                    _fx.Block2.Hash,
-                    _fx.Block3.Hash,
+                    _fx.Block1.BlockHash,
+                    _fx.Block2.BlockHash,
+                    _fx.Block3.BlockHash,
                 },
                 _set.Keys.ToHashSet());
 
@@ -55,11 +55,11 @@ namespace Libplanet.Tests.Store
         {
             Assert.Empty(_set);
 
-            _set[_fx.Block1.Hash] = _fx.Block1;
+            _set[_fx.Block1.BlockHash] = _fx.Block1;
             Assert.Single(_set);
 
-            _set[_fx.Block2.Hash] = _fx.Block2;
-            _set[_fx.Block3.Hash] = _fx.Block3;
+            _set[_fx.Block2.BlockHash] = _fx.Block2;
+            _set[_fx.Block3.BlockHash] = _fx.Block3;
             Assert.Equal(3, _set.Count);
         }
 
@@ -67,28 +67,28 @@ namespace Libplanet.Tests.Store
         public void CanDetectInvalidHash()
         {
             Assert.Throws<InvalidOperationException>(
-                () => _set[_fx.Block1.Hash] = _fx.Block2);
+                () => _set[_fx.Block1.BlockHash] = _fx.Block2);
         }
 
         [Fact]
         public void CanCheckContainsKey()
         {
-            Assert.False(_set.ContainsKey(_fx.Block1.Hash));
-            Assert.False(_set.ContainsKey(_fx.Block2.Hash));
+            Assert.False(_set.ContainsKey(_fx.Block1.BlockHash));
+            Assert.False(_set.ContainsKey(_fx.Block2.BlockHash));
 
-            _set[_fx.Block1.Hash] = _fx.Block1;
+            _set[_fx.Block1.BlockHash] = _fx.Block1;
 
-            Assert.True(_set.ContainsKey(_fx.Block1.Hash));
-            Assert.False(_set.ContainsKey(_fx.Block2.Hash));
+            Assert.True(_set.ContainsKey(_fx.Block1.BlockHash));
+            Assert.False(_set.ContainsKey(_fx.Block2.BlockHash));
         }
 
         [Fact]
         public void CanRemoveItem()
         {
-            Assert.False(_set.Remove(_fx.Block1.Hash));
-            _set[_fx.Block1.Hash] = _fx.Block1;
-            Assert.True(_set.Remove(_fx.Block1.Hash));
-            Assert.Throws<KeyNotFoundException>(() => { var val = _set[_fx.Block1.Hash]; });
+            Assert.False(_set.Remove(_fx.Block1.BlockHash));
+            _set[_fx.Block1.BlockHash] = _fx.Block1;
+            Assert.True(_set.Remove(_fx.Block1.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => { var val = _set[_fx.Block1.BlockHash]; });
         }
 
         public void Dispose()

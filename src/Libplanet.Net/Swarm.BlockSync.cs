@@ -95,7 +95,7 @@ namespace Libplanet.Net
                     _logger.Verbose(
                         "Got block #{BlockHeight} {BlockHash} from {Peer}",
                         block.Height,
-                        block.Hash,
+                        block.BlockHash,
                         peer);
                     cancellationToken.ThrowIfCancellationRequested();
                     blocks.Add((block, commit));
@@ -115,7 +115,7 @@ namespace Libplanet.Net
                     try
                     {
                         var branch = new Branch(blocks);
-                        BlockCandidateTable.Add(BlockChain.Tip.Header, branch);
+                        BlockCandidateTable.Add(BlockChain.Tip, branch);
                         BlockReceived.Set();
                     }
                     catch (ArgumentException ae)
@@ -170,22 +170,22 @@ namespace Libplanet.Net
             int maximumPollPeers,
             CancellationToken cancellationToken)
         {
-            BlockExcerpt lastTip = BlockChain.Tip.Header;
+            BlockExcerpt lastTip = BlockChain.Tip;
             DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (!lastTip.Hash.Equals(BlockChain.Tip.Hash))
+                if (!lastTip.BlockHash.Equals(BlockChain.Tip.BlockHash))
                 {
                     lastUpdated = DateTimeOffset.UtcNow;
-                    lastTip = BlockChain.Tip.Header;
+                    lastTip = BlockChain.Tip;
                 }
                 else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
                 {
                     _logger.Debug(
                         "Tip #{TipIndex} {TipHash} has expired (last updated: {LastUpdated}); " +
                         "pulling blocks from neighbor peers...",
-                        lastTip.Index,
-                        lastTip.Hash,
+                        lastTip.Height,
+                        lastTip.BlockHash,
                         lastUpdated);
                     await PullBlocksAsync(
                         timeout, maximumPollPeers, cancellationToken);

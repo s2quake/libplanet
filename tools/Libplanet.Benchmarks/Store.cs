@@ -33,7 +33,7 @@ namespace Libplanet.Benchmarks
                 var blockTxs = new List<Transaction>();
                 for (int j = 0; j < i % 5; j++)
                 {
-                    blockTxs.Add(Transaction.Create(nonce++, key, genesis.Hash, []));
+                    blockTxs.Add(Transaction.Create(nonce++, key, genesis.BlockHash, []));
                 }
                 block = TestUtils.ProposeNextBlock(
                     block, TestUtils.GenesisProposer, [.. blockTxs]);
@@ -106,7 +106,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetBlock(Blocks[0].Hash);
+            return _store.GetBlock(Blocks[0].BlockHash);
         }
 
         [Benchmark]
@@ -116,7 +116,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetBlock(Blocks[BlocksCount - 2].Hash);
+            return _store.GetBlock(Blocks[BlocksCount - 2].BlockHash);
         }
 
         [Benchmark]
