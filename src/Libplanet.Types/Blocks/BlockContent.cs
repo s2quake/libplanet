@@ -20,7 +20,16 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
 
     public HashDigest<SHA256> EvidenceHash => DeriveEvidenceHash(Evidences);
 
-    public static HashDigest<SHA256> DeriveTxHash(ImmutableSortedSet<Transaction> transactions)
+    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+
+    public bool Equals(BlockContent? other) => ModelUtility.Equals(this, other);
+
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        yield break;
+    }
+
+    private static HashDigest<SHA256> DeriveTxHash(ImmutableSortedSet<Transaction> transactions)
     {
         if (transactions.Count == 0)
         {
@@ -46,7 +55,7 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
             "Please check the implementation of DeriveTxHash.");
     }
 
-    public static HashDigest<SHA256> DeriveEvidenceHash(ImmutableSortedSet<EvidenceBase> evidence)
+    private static HashDigest<SHA256> DeriveEvidenceHash(ImmutableSortedSet<EvidenceBase> evidence)
     {
         if (evidence.Count == 0)
         {
@@ -70,14 +79,5 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
         throw new UnreachableException(
             "The hash of evidence should not be null. " +
             "Please check the implementation of DeriveEvidenceHash.");
-    }
-
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
-
-    public bool Equals(BlockContent? other) => ModelUtility.Equals(this, other);
-
-    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-    {
-        yield break;
     }
 }

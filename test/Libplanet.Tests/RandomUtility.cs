@@ -112,7 +112,7 @@ public static partial class RandomUtility
         {
             var index = Int32(0, Words.Length);
             var item = Words[index];
-            if (predicate(item) is true)
+            if (predicate(item))
             {
                 return item;
             }
@@ -129,7 +129,7 @@ public static partial class RandomUtility
         {
             var index = Int32(random, 0, Words.Length);
             var item = Words[index];
-            if (predicate(item) is true)
+            if (predicate(item))
             {
                 return item;
             }
@@ -334,7 +334,7 @@ public static partial class RandomUtility
 
     public static T Random<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate)
     {
-        if (enumerable.Any() is false)
+        if (!enumerable.Any())
         {
             throw new InvalidOperationException(
                 "there is no random item that matches the condition.");

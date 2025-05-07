@@ -69,10 +69,10 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
     }
 
     internal ActionEvaluation[] EvaluateActions(
-        RawBlock block, Transaction? tx, World world, ImmutableArray<IAction> actions)
+        RawBlock rawBlock, Transaction? tx, World world, ImmutableArray<IAction> actions)
     {
         var signature = tx?.Signature ?? [];
-        var randomSeed = GenerateRandomSeed(block.Header.DerivePreEvaluationHash().Bytes.AsSpan(), signature);
+        var randomSeed = GenerateRandomSeed(rawBlock.Hash.Bytes.AsSpan(), signature);
         var evaluations = new ActionEvaluation[actions.Length];
 
         for (var i = 0; i < actions.Length; i++)
@@ -82,14 +82,14 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
             {
                 Signer = tx?.Signer ?? default,
                 TxId = tx?.Id ?? default,
-                Proposer = block.Header.Proposer,
-                BlockHeight = block.Header.Height,
-                BlockProtocolVersion = block.Header.ProtocolVersion,
-                LastCommit = block.Header.LastCommit,
-                Txs = block.Content.Transactions,
+                Proposer = rawBlock.Header.Proposer,
+                BlockHeight = rawBlock.Header.Height,
+                BlockProtocolVersion = rawBlock.Header.ProtocolVersion,
+                LastCommit = rawBlock.Header.LastCommit,
+                Txs = rawBlock.Content.Transactions,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,
-                Evidence = block.Content.Evidences,
+                Evidence = rawBlock.Content.Evidences,
             };
             var evaluation = EvaluateAction(action, world, actionContext);
             evaluations[i] = evaluation;

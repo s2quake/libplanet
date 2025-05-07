@@ -33,7 +33,7 @@ public static partial class RandomUtility
         return new BlockHash(bytes);
     }
 
-     public static EvidenceId EvidenceId()
+    public static EvidenceId EvidenceId()
     {
         var bytes = Array(Byte, Types.Evidence.EvidenceId.Size);
         return new EvidenceId(bytes);

@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
-using Bencodex.Types;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
 
@@ -14,8 +13,7 @@ public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
 {
     public const int Size = 32;
 
-    private static readonly ImmutableArray<byte> _defaultBytes
-        = new byte[Size].ToImmutableArray();
+    private static readonly ImmutableArray<byte> _defaultBytes = new byte[Size].ToImmutableArray();
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
@@ -41,12 +39,7 @@ public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
 
     public static BlockHash Create(HashDigest<SHA256> hashDigest) => new(hashDigest.Bytes);
 
-    public static BlockHash DeriveFrom(IReadOnlyList<byte> blockBytes)
-    {
-        SHA256 sha256 = SHA256.Create();
-        byte[] digest = sha256.ComputeHash(blockBytes is byte[] b ? b : blockBytes.ToArray());
-        return new BlockHash(digest);
-    }
+    public static BlockHash Create(ReadOnlySpan<byte> bytes) => new(SHA256.HashData(bytes));
 
     public bool Equals(BlockHash other)
     {

@@ -116,7 +116,7 @@ namespace Libplanet.RocksDBStore
                         {
                             throw new InvalidOperationException(
                                 $"Next block is expected to be of index #{hashes.Count} but " +
-                                $"got #{digest.Height} {digest.Hash}.");
+                                $"got #{digest.Height} {digest.BlockHash}.");
                         }
 
                         // NOTE: This means there is an overlap between two chain ids.
@@ -131,7 +131,7 @@ namespace Libplanet.RocksDBStore
                                 {
                                     throw new InvalidOperationException(
                                         $"The previous hash {previousHash} of a retrieved " +
-                                        $"block #{digest.Height} {digest.Hash} " +
+                                        $"block #{digest.Height} {digest.BlockHash} " +
                                         $"does not match the one iterated so far {targetHash}");
                                 }
                             }
@@ -158,7 +158,7 @@ namespace Libplanet.RocksDBStore
             if (lastDigest.Height != hashes.Count - 1)
             {
                 throw new InvalidOperationException(
-                    $"The last iterated block is #{lastDigest.Height} {lastDigest.Hash} when " +
+                    $"The last iterated block is #{lastDigest.Height} {lastDigest.BlockHash} when " +
                     $"its expected index is {hashes.Count}");
             }
 

@@ -10,7 +10,7 @@ namespace Libplanet.Types.Blocks;
 public sealed record class Block : IEquatable<Block>
 {
     [Property(0)]
-    public required BlockHeader Header { get; init; } = BlockHeader.Empty;
+    public required BlockHeader Header { get; init; }
 
     [Property(1)]
     public required BlockContent Content { get; init; }
@@ -21,7 +21,7 @@ public sealed record class Block : IEquatable<Block>
     [Property(3)]
     public required ImmutableArray<byte> Signature { get; init; }
 
-    public BlockHash BlockHash => Header.DeriveBlockHash(StateRootHash, Signature);
+    public BlockHash BlockHash => BlockHash.Create(ModelSerializer.SerializeToBytes(this));
 
     public long Height => Header.Height;
 
@@ -38,21 +38,6 @@ public sealed record class Block : IEquatable<Block>
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
     public ImmutableSortedSet<EvidenceBase> Evidences => Content.Evidences;
-
-    public static Block Create(
-        BlockHeader header, ImmutableSortedSet<Transaction> transactions, ImmutableSortedSet<EvidenceBase> evidence)
-    {
-        throw new NotImplementedException();
-        // return new Block
-        // {
-        //     Header = header,
-        //     Content = new BlockContent
-        //     {
-        //         Transactions = transactions,
-        //         Evidences = evidence,
-        //     },
-        // };
-    }
 
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
