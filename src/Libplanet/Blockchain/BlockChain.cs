@@ -474,7 +474,7 @@ public partial class BlockChain : IBlockChainStates
     /// <see cref="Transaction"/> with a given <paramref name="txId"/>.</exception>
     public Transaction GetTransaction(TxId txId)
     {
-        if (StagePolicy.Get(this, txId) is { } tx)
+        if (StagePolicy.Get(txId) is { } tx)
         {
             return tx;
         }
@@ -568,26 +568,9 @@ public partial class BlockChain : IBlockChainStates
         return StagePolicy.Stage(this, transaction);
     }
 
-    /// <summary>
-    /// Removes a <paramref name="transaction"/> from the pending list.
-    /// </summary>
-    /// <param name="transaction">A <see cref="Transaction"/>
-    /// to remove from the pending list.</param>
-    /// <returns><see langword="true"/> if unstaging was successful,
-    /// <see langword="false"/> otherwise.</returns>
-    /// <seealso cref="StageTransaction"/>
-    public bool UnstageTransaction(Transaction transaction) =>
-        StagePolicy.Unstage(this, transaction.Id);
+    public bool UnstageTransaction(Transaction transaction) => StagePolicy.Unstage(transaction.Id);
 
-    /// <summary>
-    /// Gets next <see cref="Transaction.Nonce"/> of the address.
-    /// </summary>
-    /// <param name="address">The <see cref="Address"/> from which to obtain the
-    /// <see cref="Transaction.Nonce"/> value.</param>
-    /// <returns>The next <see cref="Transaction.Nonce"/> value of the
-    /// <paramref name="address"/>.</returns>
-    public long GetNextTxNonce(Address address)
-        => StagePolicy.GetNextTxNonce(this, address);
+    public long GetNextTxNonce(Address address) => StagePolicy.GetNextTxNonce(address);
 
     /// <summary>
     /// Creates a new <see cref="Transaction"/> with custom actions and stage it.
@@ -1198,7 +1181,7 @@ public partial class BlockChain : IBlockChainStates
 
     internal ImmutableList<Transaction> ListStagedTransactions(IComparer<Transaction>? txPriority = null)
     {
-        var unorderedTxs = StagePolicy.Iterate(this);
+        var unorderedTxs = StagePolicy.Iterate();
         if (txPriority is { } comparer)
         {
             unorderedTxs = unorderedTxs.OrderBy(tx => tx, comparer).ToImmutableArray();

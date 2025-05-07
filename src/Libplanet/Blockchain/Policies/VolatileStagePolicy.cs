@@ -15,12 +15,12 @@ public sealed class VolatileStagePolicy(TimeSpan lifetime) : IStagePolicy
 
     public TimeSpan Lifetime => lifetime;
 
-    public bool Stage(BlockChain blockChain, Transaction transaction)
+    public bool Stage(Transaction transaction)
         => _staged.TryAdd(transaction.Id, new Item(transaction, false, DateTimeOffset.UtcNow + lifetime));
 
-    public bool Unstage(BlockChain blockChain, TxId txId) => _staged.TryRemove(txId, out _);
+    public bool Unstage(TxId txId) => _staged.TryRemove(txId, out _);
 
-    public bool Ignore(BlockChain blockChain, TxId txId)
+    public bool Ignore(TxId txId)
     {
         if (_staged.TryGetValue(txId, out var item) && !item.IsIgnored)
         {
@@ -31,7 +31,7 @@ public sealed class VolatileStagePolicy(TimeSpan lifetime) : IStagePolicy
         return false;
     }
 
-    public bool Ignores(BlockChain blockChain, TxId txId) => _staged.TryGetValue(txId, out var item) && item.IsIgnored;
+    public bool Ignores(TxId txId) => _staged.TryGetValue(txId, out var item) && item.IsIgnored;
 
     public Transaction Get(BlockChain blockChain, TxId txId, bool filtered = true)
     {
