@@ -206,7 +206,7 @@ public partial class BlockChain
                         i,
                         stagedTransactions.Count,
                         tx.Id);
-                    StagePolicy.Ignore(this, tx.Id);
+                    StagePolicy.Ignore(tx.Id);
                     continue;
                 }
 
