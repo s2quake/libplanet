@@ -60,10 +60,12 @@ public class GeneratedBlockChainFixture
                 key => ImmutableArray<Transaction>.Empty);
 
         var privateKey = new PrivateKey();
-        var policy = new BlockPolicy(
-            blockInterval: TimeSpan.FromMilliseconds(1),
-            getMaxTransactionsPerBlock: _ => int.MaxValue,
-            getMaxTransactionsBytes: _ => long.MaxValue);
+        var policy = new BlockPolicy
+        {
+            BlockInterval = TimeSpan.FromMilliseconds(1),
+            MaxTransactionsPerBlock = int.MaxValue,
+            MaxTransactionsBytes = long.MaxValue,
+        };
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);

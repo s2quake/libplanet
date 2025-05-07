@@ -381,7 +381,7 @@ namespace Libplanet.Net.Tests
             var roundChangedToOnes = Enumerable.Range(0, 4).Select(i =>
                 new AsyncAutoResetEvent()).ToList();
             var roundOneProposed = new AsyncAutoResetEvent();
-            var policy = new NullBlockPolicy();
+            var policy = BlockPolicy.Empty;
             var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
 
             var consensusPeers = Enumerable.Range(0, 4).Select(i =>
@@ -834,7 +834,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task CannotBlockSyncWithForkedChain()
         {
-            var policy = new NullBlockPolicy();
+            var policy = BlockPolicy.Empty;
             var chain1 = MakeBlockChain(
                 policy,
                 new MemoryStore(),
@@ -889,17 +889,19 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            InvalidOperationException IsSignerValid(
-                BlockChain chain, Transaction tx)
+            void IsSignerValid(BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
-                return tx.Signer.Equals(validAddress) ||
-                       tx.Signer.Equals(GenesisProposer.Address)
-                    ? null
-                    : new InvalidOperationException("invalid signer");
+                if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
+                {
+                    throw new InvalidOperationException("invalid signer");
+                }
             }
 
-            var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
+            var policy = new BlockPolicy
+            {
+                TransactionValidation = IsSignerValid,
+            };
             var fx1 = new MemoryStoreFixture();
             var fx2 = new MemoryStoreFixture();
 
@@ -955,17 +957,19 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            InvalidOperationException IsSignerValid(
-                BlockChain chain, Transaction tx)
+            void IsSignerValid(BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
-                return tx.Signer.Equals(validAddress) ||
-                       tx.Signer.Equals(GenesisProposer.Address)
-                    ? null
-                    : new InvalidOperationException("invalid signer");
+                if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
+                {
+                    throw new InvalidOperationException("invalid signer");
+                }
             }
 
-            var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
+            var policy = new BlockPolicy
+            {
+                TransactionValidation = IsSignerValid,
+            };
             var fx1 = new MemoryStoreFixture();
             var fx2 = new MemoryStoreFixture();
 

@@ -102,7 +102,7 @@ namespace Libplanet.Explorer.Executable
 
         public string GenesisBlockPath { get; set; }
 
-        internal async Task<Block> GetGenesisBlockAsync(IBlockPolicy policy)
+        internal async Task<Block> GetGenesisBlockAsync(BlockPolicy policy)
         {
 #if NETSTATNDARD2_1_OR_GREATER
             var uri = new Uri(GenesisBlockPath);

@@ -145,14 +145,16 @@ public class BlockPolicyParamsTest
     }
 
     internal static BlockPolicy BlockPolicyFactory() =>
-        new BlockPolicy(
-            new PolicyActions
+        new BlockPolicy
+        {
+            PolicyActions = new PolicyActions
             {
                 BeginBlockActions = [new NullAction()],
                 EndBlockActions = [new NullAction()],
                 BeginTxActions = [new NullAction()],
                 EndTxActions = [new NullAction()],
-            });
+            },
+        };
 
     internal static BlockPolicy BlockPolicyFactoryWithParams(bool param) =>
         new BlockPolicy();

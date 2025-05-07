@@ -505,7 +505,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         }
 
         public static BlockChain MakeBlockChain(
-            IBlockPolicy policy,
+            BlockPolicy policy,
             IStore store,
             IStateStore stateStore,
             IEnumerable<IAction>? actions = null,
@@ -530,7 +530,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static (BlockChain BlockChain, ActionEvaluator ActionEvaluator)
             MakeBlockChainAndActionEvaluator(
-            IBlockPolicy policy,
+            BlockPolicy policy,
             IStore store,
             IStateStore stateStore,
             IEnumerable<IAction>? actions = null,

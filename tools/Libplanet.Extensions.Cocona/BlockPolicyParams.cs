@@ -34,7 +34,7 @@ public class BlockPolicyParams : ICommandParameterSet
     [Option(
         'F',
         Description = "The qualified name of the factory method to instantiate a " +
-            nameof(IBlockPolicy) + "<T>.  The factory method must be static and " +
+            nameof(BlockPolicy) + "<T>.  The factory method must be static and " +
             "has no parameters.  An assembly that the factory method and " +
             "the policy type belong to has to be loaded using -A/--load-assembly option.")]
     [HasDefaultValue]
@@ -106,11 +106,11 @@ public class BlockPolicyParams : ICommandParameterSet
                 }
 
                 Type returnType = method.ReturnType;
-                if (!typeof(IBlockPolicy).IsAssignableFrom(returnType))
+                if (!typeof(BlockPolicy).IsAssignableFrom(returnType))
                 {
                     throw new TypeLoadException(
                         $"The return type of {PolicyFactory}() must be " +
-                        $"{nameof(IBlockPolicy)}.");
+                        $"{nameof(BlockPolicy)}.");
                 }
 
                 return method.Invoke(null, Array.Empty<object>()) ??
@@ -134,12 +134,12 @@ public class BlockPolicyParams : ICommandParameterSet
 
         PropertyInfo? propertyInfo = policy
             .GetType()
-            .GetProperty(nameof(IBlockPolicy.PolicyActions));
+            .GetProperty(nameof(BlockPolicy.PolicyActions));
         if (propertyInfo is null)
         {
             var message = $"The policy type "
                 + $"'{policy.GetType().FullName}' does not have a "
-                + $"'{nameof(IBlockPolicy.PolicyActions)}' property.";
+                + $"'{nameof(BlockPolicy.PolicyActions)}' property.";
             throw new InvalidOperationException(message);
         }
 
@@ -147,7 +147,7 @@ public class BlockPolicyParams : ICommandParameterSet
         if (value is null)
         {
             var message = $"The value of property "
-                + $"'{nameof(IBlockPolicy.PolicyActions)}' of type "
+                + $"'{nameof(BlockPolicy.PolicyActions)}' of type "
                 + $"'{policy.GetType().FullName}' cannot be null.";
             throw new InvalidOperationException(message);
         }

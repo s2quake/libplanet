@@ -301,21 +301,23 @@ namespace Libplanet.Net.Tests.Consensus
             var timeoutProcessed = false;
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var invalidKey = new PrivateKey();
-            var policy = new BlockPolicy(
-                new PolicyActions
+            var policy = new BlockPolicy
+            {
+                PolicyActions = new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
-                getMaxTransactionsBytes: _ => 50 * 1024,
-                validateNextBlockTx: IsSignerValid);
+                MaxTransactionsBytes = 50 * 1024,
+                TransactionValidation = IsSignerValid,
+            };
 
-            InvalidOperationException? IsSignerValid(
-                BlockChain chain, Transaction tx)
+            static void IsSignerValid(BlockChain chain, Transaction tx)
             {
                 var validAddress = TestUtils.PrivateKeys[1].Address;
-                return tx.Signer.Equals(validAddress)
-                    ? null
-                    : new InvalidOperationException("invalid signer");
+                if (!tx.Signer.Equals(validAddress))
+                {
+                    throw new InvalidOperationException("invalid signer");
+                }
             }
 
             var (blockChain, context) = TestUtils.CreateDummyContext(
@@ -376,12 +378,14 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var nilPreCommitSent = new AsyncAutoResetEvent();
             var txSigner = new PrivateKey();
-            var policy = new BlockPolicy(
-                new PolicyActions
+            var policy = new BlockPolicy
+            {
+                PolicyActions = new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
-                getMaxTransactionsBytes: _ => 50 * 1024);
+                MaxTransactionsBytes = 50 * 1024,
+            };
 
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 policy: policy,

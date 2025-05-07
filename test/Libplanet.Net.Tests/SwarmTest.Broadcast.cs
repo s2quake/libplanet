@@ -34,7 +34,7 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlock()
         {
             const int numBlocks = 5;
-            var policy = new NullBlockPolicy();
+            var policy = BlockPolicy.Empty;
             var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
 
             var swarmA = await CreateSwarm(
@@ -86,7 +86,7 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlockToReconnectedPeer()
         {
             var miner = new PrivateKey();
-            var policy = new NullBlockPolicy();
+            var policy = BlockPolicy.Empty;
             var fx = new MemoryStoreFixture(policy.PolicyActions);
             var minerChain = MakeBlockChain(
                 policy, fx.Store, fx.StateStore);
@@ -174,7 +174,7 @@ namespace Libplanet.Net.Tests
             Swarm receiverSwarm = await CreateSwarm(receiverKey);
             BlockChain receiverChain = receiverSwarm.BlockChain;
             var seedStateStore = new TrieStateStore();
-            IBlockPolicy policy = receiverChain.Policy;
+            BlockPolicy policy = receiverChain.Policy;
             BlockChain seedChain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
@@ -679,11 +679,13 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BroadcastBlockWithSkip()
         {
-            var policy = new BlockPolicy(
-                new PolicyActions
+            var policy = new BlockPolicy
+            {
+                PolicyActions = new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
-                });
+                },
+            };
             var fx1 = new MemoryStoreFixture();
             var blockChain = MakeBlockChain(
                 policy, fx1.Store, fx1.StateStore);

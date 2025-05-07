@@ -110,20 +110,20 @@ public partial class BlockChain
     /// policies:
     /// <list type="bullet">
     ///     <item><description>
-    ///         <see cref="BlockPolicy.GetMaxTransactionsBytes"/>
+    ///         <see cref="BlockPolicy.MaxTransactionsBytes"/>
     ///     </description></item>
     ///     <item><description>
-    ///         <see cref="BlockPolicy.GetMaxTransactionsPerBlock"/>
+    ///         <see cref="BlockPolicy.MaxTransactionsPerBlock"/>
     ///     </description></item>
     ///     <item><description>
-    ///         <see cref="BlockPolicy.GetMaxTransactionsPerSignerPerBlock"/>
+    ///         <see cref="BlockPolicy.MaxTransactionsPerSignerPerBlock"/>
     ///     </description></item>
     ///     <item><description>
-    ///         <see cref="BlockPolicy.GetMinTransactionsPerBlock"/>
+    ///         <see cref="BlockPolicy.MinTransactionsPerBlock"/>
     ///     </description></item>
     /// </list>
     /// </summary>
-    /// <param name="index">The index of the <see cref="Block"/> to propose.</param>
+    /// <param name="height">The index of the <see cref="Block"/> to propose.</param>
     /// <param name="txPriority">An optional comparer for give certain transactions to
     /// priority to belong to the block.  No certain priority by default.</param>
     /// <returns>An <see cref="ImmutableList"/> of <see cref="Transaction"/>s
@@ -131,13 +131,12 @@ public partial class BlockChain
     /// <exception cref="InvalidOperationException">Thrown when not all policies
     /// can be satisfied.</exception>
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
-        long index,
-        IComparer<Transaction>? txPriority = null) =>
-        GatherTransactionsToPropose(
-            Policy.GetMaxTransactionsBytes(index),
-            Policy.GetMaxTransactionsPerBlock(index),
-            Policy.GetMaxTransactionsPerSignerPerBlock(index),
-            Policy.GetMinTransactionsPerBlock(index),
+        long height, IComparer<Transaction>? txPriority = null)
+        => GatherTransactionsToPropose(
+            Policy.MaxTransactionsBytes,
+            Policy.MaxTransactionsPerBlock,
+            Policy.MaxTransactionsPerSignerPerBlock,
+            Policy.MinTransactionsPerBlock,
             txPriority);
 
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
@@ -199,13 +198,12 @@ public partial class BlockChain
 
             if (storedNonces[tx.Signer] <= tx.Nonce && tx.Nonce == nextNonces[tx.Signer])
             {
-                if (Policy.ValidateNextBlockTx(this, tx) is { } tpve)
+                try
                 {
-                    _logger.Debug(
-                        "Ignoring tx {Iter}/{Total} {TxId} as it does not follow policy",
-                        i,
-                        stagedTransactions.Count,
-                        tx.Id);
+                    Policy.ValidateTransaction(this, tx);
+                }
+                catch
+                {
                     StagedTransactions.Ignore(tx.Id);
                     continue;
                 }

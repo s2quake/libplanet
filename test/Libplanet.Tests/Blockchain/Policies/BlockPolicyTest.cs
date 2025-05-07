@@ -17,15 +17,16 @@ namespace Libplanet.Tests.Blockchain.Policies
 
         private StoreFixture _fx;
         private BlockChain _chain;
-        private IBlockPolicy _policy;
+        private BlockPolicy _policy;
 
         public BlockPolicyTest(ITestOutputHelper output)
         {
             _fx = new MemoryStoreFixture();
             _output = output;
-            _policy = new BlockPolicy(
-                new PolicyActions(),
-                blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
+            _policy = new BlockPolicy
+            {
+                BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
+            };
             _chain = BlockChain.Create(
                 _policy,
                 _fx.Store,
@@ -45,13 +46,16 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void Constructors()
         {
             var tenSec = new TimeSpan(0, 0, 10);
-            var a = new BlockPolicy(
-                new PolicyActions(),
-                blockInterval: tenSec);
+            var a = new BlockPolicy
+            {
+                BlockInterval = tenSec,
+            };
             Assert.Equal(tenSec, a.BlockInterval);
 
-            var b = new BlockPolicy(
-                blockInterval: TimeSpan.FromMilliseconds(65000));
+            var b = new BlockPolicy
+            {
+                BlockInterval = TimeSpan.FromMilliseconds(65000),
+            };
             Assert.Equal(
                 new TimeSpan(0, 1, 5),
                 b.BlockInterval);
@@ -67,27 +71,28 @@ namespace Libplanet.Tests.Blockchain.Policies
         {
             var validKey = new PrivateKey();
 
-            InvalidOperationException IsSignerValid(
-                BlockChain chain, Transaction tx)
+            void IsSignerValid(BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
-                return tx.Signer.Equals(validAddress)
-                    ? null
-                    : new InvalidOperationException("invalid signer");
+                if (!tx.Signer.Equals(validAddress))
+                {
+                    throw new InvalidOperationException("invalid signer");
+                }
             }
 
-            var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
+            var policy = new BlockPolicy
+            {
+                TransactionValidation = IsSignerValid,
+            };
 
             // Valid Transaction
             var validTx = _chain.MakeTransaction(validKey, new DumbAction[] { });
-            var expected = policy.ValidateNextBlockTx(_chain, validTx);
-            Assert.Null(expected);
+            policy.ValidateTransaction(_chain, validTx);
 
             // Invalid Transaction
             var invalidKey = new PrivateKey();
             var invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
-            expected = policy.ValidateNextBlockTx(_chain, invalidTx);
-            Assert.NotNull(expected);
+            policy.ValidateTransaction(_chain, invalidTx);
         }
 
         [Fact]
@@ -96,44 +101,43 @@ namespace Libplanet.Tests.Blockchain.Policies
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            InvalidOperationException IsSignerValid(
-                BlockChain chain, Transaction tx)
+            void IsSignerValid(BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
-                return tx.Signer.Equals(validAddress)
-                    ? null
-                    : new InvalidOperationException("invalid signer");
+                if (!tx.Signer.Equals(validAddress))
+                {
+                    throw new InvalidOperationException("invalid signer");
+                }
             }
 
             //Invalid Transaction with inner-exception
-            InvalidOperationException IsSignerValidWithInnerException(
-                BlockChain chain, Transaction tx)
+            void IsSignerValidWithInnerException(BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
-                return tx.Signer.Equals(validAddress)
-                    ? null
-                    : new InvalidOperationException(
+                if (!tx.Signer.Equals(validAddress))
+                {
+                    throw new InvalidOperationException(
                         "invalid signer",
                         new InvalidOperationException("Invalid Signature"));
+                }
             }
 
             // Invalid Transaction without Inner-exception
-            var policy = new BlockPolicy(
-                validateNextBlockTx: IsSignerValid);
+            var policy = new BlockPolicy
+            {
+                TransactionValidation = IsSignerValid,
+            };
 
             var invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
-            var expected = policy.ValidateNextBlockTx(_chain, invalidTx);
-            Assert.NotNull(expected);
-            Assert.Null(expected.InnerException);
+            policy.ValidateTransaction(_chain, invalidTx);
 
             // Invalid Transaction with Inner-exception.
-            policy = new BlockPolicy(
-                validateNextBlockTx: IsSignerValidWithInnerException);
+            policy = new BlockPolicy
+            {
+                TransactionValidation = IsSignerValidWithInnerException,
+            };
 
             invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
-            expected = policy.ValidateNextBlockTx(_chain, invalidTx);
-            Assert.NotNull(expected);
-            Assert.NotNull(expected.InnerException);
         }
 
         [Fact]
@@ -143,12 +147,14 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var policy = new BlockPolicy(
-                new PolicyActions
+            var policy = new BlockPolicy
+            {
+                PolicyActions = new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
-                getMinTransactionsPerBlock: index => index == 0 ? 0 : policyLimit);
+                MinTransactionsPerBlock = policyLimit,
+            };
             var privateKey = new PrivateKey();
             var chain = TestUtils.MakeBlockChain(policy, store, stateStore);
 
@@ -169,8 +175,10 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var policy = new BlockPolicy(
-                getMaxTransactionsPerBlock: _ => policyLimit);
+            var policy = new BlockPolicy
+            {
+                MaxTransactionsPerBlock = policyLimit,
+            };
             var privateKey = new PrivateKey();
             var chain = TestUtils.MakeBlockChain(policy, store, stateStore);
 
@@ -193,8 +201,10 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var policy = new BlockPolicy(
-                getMaxTransactionsPerSignerPerBlock: _ => policyLimit);
+            var policy = new BlockPolicy
+            {
+                MaxTransactionsPerSignerPerBlock = policyLimit,
+            };
             var privateKeys = Enumerable.Range(0, keyCount).Select(_ => new PrivateKey()).ToList();
             var minerKey = privateKeys.First();
             var chain = TestUtils.MakeBlockChain(policy, store, stateStore);

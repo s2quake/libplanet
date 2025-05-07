@@ -41,12 +41,14 @@ public partial class BlockChainTest : IDisposable
             .CreateLogger()
             .ForContext<BlockChainTest>();
 
-        _policy = new BlockPolicy(
-            new PolicyActions
+        _policy = new BlockPolicy
+        {
+            PolicyActions = new PolicyActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
-            getMaxTransactionsBytes: _ => 50 * 1024);
+            MaxTransactionsBytes = 50 * 1024,
+        };
 
         _fx = GetStoreFixture(_policy.PolicyActions);
         _blockChain = BlockChain.Create(
@@ -91,12 +93,14 @@ public partial class BlockChainTest : IDisposable
         var endActions = ImmutableArray.Create<IAction>(
             new MinerReward(1));
 
-        var policy = new BlockPolicy(
-            new PolicyActions
+        var policy = new BlockPolicy
+        {
+            PolicyActions = new PolicyActions
             {
                 BeginBlockActions = beginActions,
                 EndBlockActions = endActions,
-            });
+            },
+        };
         var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
         var z = new BlockChain(
             policy,
@@ -291,7 +295,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void ActionRenderersHaveDistinctContexts()
     {
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var generatedRandomValueLogs = new List<int>();
@@ -315,7 +319,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void RenderActionsAfterBlockIsRendered()
     {
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         BlockChain blockChain = MakeBlockChain(
@@ -347,7 +351,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void RenderActionsAfterAppendComplete()
     {
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
 
@@ -523,14 +527,17 @@ public partial class BlockChainTest : IDisposable
     public void GetStatesOnCreatingBlockChain()
     {
         bool invoked = false;
-        var policy = new NullPolicyForGetStatesOnCreatingBlockChain(
-            c =>
+        var policy = new BlockPolicy
+        {
+            BlockValidation = (_, _) =>
             {
-                // ReSharper disable AccessToModifiedClosure
-                // The following method calls should not throw any exceptions:
                 invoked = true;
-                // ReSharper restore AccessToModifiedClosure
-            });
+            },
+            TransactionValidation = (_, _) =>
+            {
+                invoked = true;
+            },
+        };
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(
@@ -561,7 +568,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void GetStateOnlyDrillsDownUntilRequestedAddressesAreFound()
     {
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
         var tracker = new StoreTracker(_fx.Store);
         var blockChainStates = new BlockChainStates(tracker, _fx.StateStore);
         var chain = new BlockChain(
@@ -622,7 +629,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void GetStateReturnsEarlyForNonexistentAccount()
     {
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
         var tracker = new StoreTracker(_fx.Store);
         var blockChainStates = new BlockChainStates(tracker, _fx.StateStore);
         var chain = new BlockChain(
@@ -662,7 +669,7 @@ public partial class BlockChainTest : IDisposable
     {
         var privateKeys = Enumerable.Range(1, 10).Select(_ => new PrivateKey()).ToList();
         var addresses = privateKeys.Select(key => key.Address).ToList();
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
         var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
         var chain = new BlockChain(
             policy,
@@ -1127,7 +1134,7 @@ public partial class BlockChainTest : IDisposable
         List<int> presentIndices = new List<int>() { 4, 7 };
         List<Block> presentBlocks = new List<Block>();
 
-        IBlockPolicy blockPolicy = new NullBlockPolicy();
+        var blockPolicy = BlockPolicy.Empty;
         store = new StoreTracker(store);
         Guid chainId = Guid.NewGuid();
         var chainStates = new BlockChainStates(store, stateStore);
@@ -1309,7 +1316,7 @@ public partial class BlockChainTest : IDisposable
     private void CreateWithGenesisBlock()
     {
         var storeFixture = new MemoryStoreFixture();
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
 
         var addresses = ImmutableList<Address>.Empty
             .Add(storeFixture.Address1)
@@ -1399,7 +1406,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     private void ConstructWithUnexpectedGenesisBlock()
     {
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var blockChainStates = new BlockChainStates(store, stateStore);
@@ -1456,19 +1463,20 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     private void CheckIfTxPolicyExceptionHasInnerException()
     {
-        var policy = new NullPolicyButTxPolicyAlwaysThrows(
-            x =>
-            {
-                // ReSharper disable AccessToModifiedClosure
-                // The following method calls should not throw any exceptions:
-                x?.GetNextWorld()
-                    .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue(default);
-                x?.GetNextWorld()
-                    .GetAccount(ReservedAddresses.LegacyAccount)
-                    .GetValue(default);
-                // ReSharper restore AccessToModifiedClosure
-            });
+        // var policy = new NullPolicyButTxPolicyAlwaysThrows(
+        //     x =>
+        //     {
+        //         // ReSharper disable AccessToModifiedClosure
+        //         // The following method calls should not throw any exceptions:
+        //         x?.GetNextWorld()
+        //             .GetAccount(ReservedAddresses.LegacyAccount)
+        //             .GetValue(default);
+        //         x?.GetNextWorld()
+        //             .GetAccount(ReservedAddresses.LegacyAccount)
+        //             .GetValue(default);
+        //         // ReSharper restore AccessToModifiedClosure
+        //     });
+        var policy = BlockPolicy.Empty;
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var genesisTx = Transaction.Create(
@@ -1511,7 +1519,7 @@ public partial class BlockChainTest : IDisposable
     private void ValidateNextBlockCommitOnValidatorSetChange()
     {
         var storeFixture = new MemoryStoreFixture();
-        var policy = new NullBlockPolicy();
+        var policy = BlockPolicy.Empty;
 
         var addresses = ImmutableList<Address>.Empty
             .Add(storeFixture.Address1)
@@ -1665,48 +1673,48 @@ public partial class BlockChainTest : IDisposable
             [.. newValidators.Select(pk => Validator.Create(pk.PublicKey, BigInteger.One))]);
     }
 
-    private class
-        NullPolicyButTxPolicyAlwaysThrows : NullPolicyForGetStatesOnCreatingBlockChain
-    {
-        public NullPolicyButTxPolicyAlwaysThrows(
-            Action<BlockChain> hook)
-            : base(hook)
-        {
-        }
+    // private class
+    //     NullPolicyButTxPolicyAlwaysThrows : NullPolicyForGetStatesOnCreatingBlockChain
+    // {
+    //     public NullPolicyButTxPolicyAlwaysThrows(
+    //         Action<BlockChain> hook)
+    //         : base(hook)
+    //     {
+    //     }
 
-        public override InvalidOperationException ValidateNextBlockTx(
-            BlockChain blockChain,
-            Transaction transaction)
-        {
-            _hook(blockChain);
-            return new InvalidOperationException("Test Message");
-        }
-    }
+    //     public override InvalidOperationException ValidateNextBlockTx(
+    //         BlockChain blockChain,
+    //         Transaction transaction)
+    //     {
+    //         _hook(blockChain);
+    //         return new InvalidOperationException("Test Message");
+    //     }
+    // }
 
-    private class NullPolicyForGetStatesOnCreatingBlockChain : NullBlockPolicy
-    {
-        protected readonly Action<BlockChain> _hook;
+    // private class NullPolicyForGetStatesOnCreatingBlockChain : NullBlockPolicy
+    // {
+    //     protected readonly Action<BlockChain> _hook;
 
-        public NullPolicyForGetStatesOnCreatingBlockChain(
-            Action<BlockChain> hook)
-        {
-            _hook = hook;
-        }
+    //     public NullPolicyForGetStatesOnCreatingBlockChain(
+    //         Action<BlockChain> hook)
+    //     {
+    //         _hook = hook;
+    //     }
 
-        public override InvalidOperationException ValidateNextBlockTx(
-            BlockChain blockChain,
-            Transaction transaction)
-        {
-            _hook(blockChain);
-            return base.ValidateNextBlockTx(blockChain, transaction);
-        }
+    //     public override InvalidOperationException ValidateNextBlockTx(
+    //         BlockChain blockChain,
+    //         Transaction transaction)
+    //     {
+    //         _hook(blockChain);
+    //         return base.ValidateNextBlockTx(blockChain, transaction);
+    //     }
 
-        public override Exception ValidateNextBlock(
-            BlockChain blocks,
-            Block nextBlock)
-        {
-            _hook(blocks);
-            return base.ValidateNextBlock(blocks, nextBlock);
-        }
-    }
+    //     public override Exception ValidateNextBlock(
+    //         BlockChain blocks,
+    //         Block nextBlock)
+    //     {
+    //         _hook(blocks);
+    //         return base.ValidateNextBlock(blocks, nextBlock);
+    //     }
+    // }
 }

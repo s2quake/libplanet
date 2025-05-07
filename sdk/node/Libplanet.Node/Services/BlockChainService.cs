@@ -41,15 +41,15 @@ internal sealed class BlockChainService(
             stateStore,
             actionService.PolicyActions);
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);
-        var policy = new BlockPolicy(
-            policyActions: actionService.PolicyActions,
-            blockInterval: TimeSpan.FromSeconds(8),
-            validateNextBlockTx: (chain, transaction) => null,
-            validateNextBlock: (chain, block) => null,
-            getMaxTransactionsBytes: l => long.MaxValue,
-            getMinTransactionsPerBlock: l => 0,
-            getMaxTransactionsPerBlock: l => int.MaxValue,
-            getMaxTransactionsPerSignerPerBlock: l => int.MaxValue);
+        var policy = BlockPolicy.Empty with
+        {
+            PolicyActions = actionService.PolicyActions,
+            BlockInterval = TimeSpan.FromSeconds(8),
+            MaxTransactionsBytes = long.MaxValue,
+            MinTransactionsPerBlock = 0,
+            MaxTransactionsPerBlock = int.MaxValue,
+            MaxTransactionsPerSignerPerBlock = int.MaxValue,
+        };
 
         var blockChainStates = new BlockChainStates(store, stateStore);
         if (store.GetCanonicalChainId() is null)

@@ -74,7 +74,7 @@ namespace Libplanet.RocksDBStore.Tests
                 var store = new RocksDBStore(path);
                 var stateStore = new TrieStateStore();
                 var blocks = BlockChain.Create(
-                    new NullBlockPolicy(),
+                    BlockPolicy.Empty,
                     store,
                     stateStore,
                     Fx.GenesisBlock,
