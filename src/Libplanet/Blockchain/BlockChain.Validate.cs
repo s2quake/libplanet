@@ -318,7 +318,7 @@ namespace Libplanet.Blockchain
         /// is <see langword="null"/>.  This can happen if <paramref name="block"/>
         /// is an index higher than the tip but its result is not ready yet.</exception>
         /// <exception cref="InvalidOperationException">If the state root hash
-        /// calculated by committing to the <see cref="IStateStore"/> does not match
+        /// calculated by committing to the <see cref="TrieStateStore"/> does not match
         /// the <paramref name="block"/>'s <see cref="Block.StateRootHash"/>.</exception>
         /// <seealso cref="EvaluateBlock"/>
         /// <seealso cref="DetermineNextBlockStateRootHash"/>
@@ -355,13 +355,13 @@ namespace Libplanet.Blockchain
         /// <param name="evaluations">The list of <see cref="ActionEvaluation"/>s
         /// from which to extract the states to commit.</param>
         /// <exception cref="InvalidOperationException">If the state root hash
-        /// calculated by committing to the <see cref="IStateStore"/> does not match
+        /// calculated by committing to the <see cref="TrieStateStore"/> does not match
         /// the <paramref name="block"/>'s <see cref="Block.StateRootHash"/>.</exception>
         /// <remarks>
         /// Since the state root hash for can only be calculated from making a commit
-        /// to an <see cref="IStateStore"/>, this always has a side-effect to the
-        /// <see cref="IStateStore"/> regardless of whether the state root hash
-        /// obdatined through committing to the <see cref="IStateStore"/>
+        /// to an <see cref="TrieStateStore"/>, this always has a side-effect to the
+        /// <see cref="TrieStateStore"/> regardless of whether the state root hash
+        /// obdatined through committing to the <see cref="TrieStateStore"/>
         /// matches the <paramref name="block"/>'s <see cref="Block.StateRootHash"/> or not.
         /// </remarks>
         /// <seealso cref="EvaluateBlockPrecededStateRootHash"/>

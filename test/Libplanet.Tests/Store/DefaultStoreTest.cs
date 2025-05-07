@@ -76,7 +76,7 @@ namespace Libplanet.Tests.Store
             File.Delete(tempDirPath);
             var uri = new Uri(tempDirPath, UriKind.Absolute);
             uri = new Uri("default+" + uri);
-            (IStore Store, IStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
+            (IStore Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
             Assert.NotNull(pair);
             IStore store = pair.Value.Store;
             Assert.IsAssignableFrom<DefaultStore>(store);

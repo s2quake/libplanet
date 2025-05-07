@@ -31,16 +31,16 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlock()
         {
             const int numBlocks = 5;
-            var policy = BlockPolicy.Empty;
-            var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
+            var options = new BlockChainOptions();
+            var genesis = new MemoryStoreFixture(options.PolicyActions).GenesisBlock;
 
             var swarmA = await CreateSwarm(
                 privateKey: new PrivateKey(),
-                policy: policy,
+                policy: options,
                 genesis: genesis);
             var swarmB = await CreateSwarm(
                 privateKey: new PrivateKey(),
-                policy: policy,
+                policy: options,
                 genesis: genesis);
             var chainA = swarmA.BlockChain;
             var chainB = swarmB.BlockChain;
@@ -83,7 +83,7 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlockToReconnectedPeer()
         {
             var miner = new PrivateKey();
-            var policy = BlockPolicy.Empty;
+            var policy = BlockChainOptions.Empty;
             var fx = new MemoryStoreFixture(policy.PolicyActions);
             var minerChain = MakeBlockChain(
                 policy, fx.Store, fx.StateStore);
@@ -171,7 +171,7 @@ namespace Libplanet.Net.Tests
             Swarm receiverSwarm = await CreateSwarm(receiverKey);
             BlockChain receiverChain = receiverSwarm.BlockChain;
             var seedStateStore = new TrieStateStore();
-            BlockPolicy policy = receiverChain.Policy;
+            BlockChainOptions policy = receiverChain.Policy;
             BlockChain seedChain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
@@ -433,19 +433,18 @@ namespace Libplanet.Net.Tests
         {
             int size = 5;
 
-            var policy = new BlockPolicy();
             StoreFixture[] fxs = new StoreFixture[size];
             BlockChain[] blockChains = new BlockChain[size];
             Swarm[] swarms = new Swarm[size];
 
             for (int i = 0; i < size; i++)
             {
+                var options = new BlockChainOptions
+                {
+                    Store = fxs[i].Store,
+                };
                 fxs[i] = new MemoryStoreFixture();
-                blockChains[i] = BlockChain.Create(
-                    policy,
-                    fxs[i].Store,
-                    fxs[i].StateStore,
-                    fxs[i].GenesisBlock);
+                blockChains[i] = BlockChain.Create(fxs[i].GenesisBlock, options);
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
             }
 
@@ -673,7 +672,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BroadcastBlockWithSkip()
         {
-            var policy = new BlockPolicy
+            var options = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -682,7 +681,7 @@ namespace Libplanet.Net.Tests
             };
             var fx1 = new MemoryStoreFixture();
             var blockChain = MakeBlockChain(
-                policy, fx1.Store, fx1.StateStore);
+                options, fx1.Store, fx1.StateStore);
             var privateKey = new PrivateKey();
             var minerSwarm = await CreateSwarm(blockChain, privateKey);
             var fx2 = new MemoryStoreFixture();
@@ -691,7 +690,7 @@ namespace Libplanet.Net.Tests
             //     receiverRenderer,
             //     _logger);
             var receiverChain = MakeBlockChain(
-                policy,
+                options,
                 fx2.Store,
                 fx2.StateStore);
             Swarm receiverSwarm =

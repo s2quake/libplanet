@@ -172,9 +172,9 @@ If omitted (default) explorer only the local blockchain store.")]
             try
             {
                 IStore store = LoadStore(options);
-                IStateStore stateStore = new NoOpStateStore();
+                TrieStateStore stateStore = new NoOpStateStore();
 
-                BlockPolicy policy = LoadBlockPolicy(options);
+                BlockChainOptions policy = LoadBlockPolicy(options);
 
                 var blockChain =
                     new BlockChain(
@@ -317,9 +317,9 @@ If omitted (default) explorer only the local blockchain store.")]
             }
         }
 
-        private static BlockPolicy LoadBlockPolicy(Options options)
+        private static BlockChainOptions LoadBlockPolicy(Options options)
         {
-            return new BlockPolicy
+            return new BlockChainOptions
             {
                 PolicyActions = PolicyActions.Empty,
                 BlockInterval = TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
@@ -415,7 +415,7 @@ If omitted (default) explorer only the local blockchain store.")]
             internal static Swarm SwarmSingleton { get; set; }
         }
 
-        private class NoOpStateStore : IStateStore
+        private class NoOpStateStore : TrieStateStore
         {
             public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash) => null;
 

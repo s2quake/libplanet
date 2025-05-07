@@ -326,7 +326,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             TimeSpan newHeightDelay = TimeSpan.FromSeconds(1);
 
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -647,7 +647,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var fx = new MemoryStoreFixture();
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
-                new BlockPolicy(),
+                new BlockChainOptions(),
                 fx.Store,
                 fx.StateStore);
 

@@ -1,18 +1,24 @@
 using Libplanet.Action;
 using Libplanet.Serialization;
+using Libplanet.Store;
+using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain;
 
-public sealed record class BlockPolicy
+public sealed record class BlockChainOptions
 {
-    public static BlockPolicy Empty { get; } = new BlockPolicy
-    {
-        BlockValidation = (_, _) => { },
-    };
+    // public static BlockChainOptions Empty { get; } = new BlockChainOptions
+    // {
+    //     BlockValidation = (_, _) => { },
+    // };
 
-    public static BlockPolicy Default { get; } = new();
+    // public static BlockChainOptions Default { get; } = new();
+
+    public IStore Store { get; init; } = new MemoryStore();
+
+    public IKeyValueStore KeyValueStore { get; init; } = new MemoryKeyValueStore();
 
     public PolicyActions PolicyActions { get; init; } = PolicyActions.Empty;
 

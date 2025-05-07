@@ -27,7 +27,7 @@ public class TransactionQueryTest
     public TransactionQueryTest()
     {
         Chain = Libplanet.Tests.TestUtils.MakeBlockChain(
-            new BlockPolicy(),
+            new BlockChainOptions(),
             new MemoryStore(),
             new TrieStateStore(),
             privateKey: new PrivateKey(),

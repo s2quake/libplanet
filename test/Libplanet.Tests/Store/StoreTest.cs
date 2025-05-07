@@ -964,7 +964,7 @@ namespace Libplanet.Tests.Store
             using (StoreFixture fx2 = FxConstructor())
             {
                 IStore s1 = fx.Store, s2 = fx2.Store;
-                var policy = BlockPolicy.Empty;
+                var policy = BlockChainOptions.Empty;
                 var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
                 var genesis = preEval.Sign(
                     GenesisProposer,

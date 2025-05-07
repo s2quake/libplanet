@@ -173,7 +173,7 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void ValidateNextBlockInvalidStateRootHash()
         {
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
@@ -192,7 +192,7 @@ namespace Libplanet.Tests.Blockchain
             {
                 new SetStatesAtBlock(default, (Text)"foo", default, 0),
             }.ToImmutableArray();
-            var policyWithBlockAction = new BlockPolicy
+            var policyWithBlockAction = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -230,7 +230,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockInvalidStateRootHashBeforePostpone()
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
@@ -263,7 +263,7 @@ namespace Libplanet.Tests.Blockchain
                     }),
                 TestUtils.GenesisProposer);
 
-            var policyWithBlockAction = new BlockPolicy
+            var policyWithBlockAction = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -288,7 +288,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockInvalidStateRootHashOnPostpone()
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -628,7 +628,7 @@ namespace Libplanet.Tests.Blockchain
             var validatorSet = ImmutableSortedSet.Create(
                 [validator1, validator2, validator3, validator4]);
             BlockChain blockChain = TestUtils.MakeBlockChain(
-                BlockPolicy.Empty,
+                BlockChainOptions.Empty,
                 new MemoryStore(),
                 new TrieStateStore(),
                 validatorSet: validatorSet);
@@ -735,7 +735,7 @@ namespace Libplanet.Tests.Blockchain
             var endBlockActions =
                 new IAction[] { new SetStatesAtBlock(default, "foo", default, 0), }
                     .ToImmutableArray();
-            var policyWithBlockAction = new BlockPolicy
+            var policyWithBlockAction = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {

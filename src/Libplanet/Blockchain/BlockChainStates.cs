@@ -8,7 +8,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain;
 
-public sealed class BlockChainStates(IStore store, IStateStore stateStore)
+public sealed class BlockChainStates(IStore store, TrieStateStore stateStore)
 {
     private readonly ActivitySource _activitySource = new("Libplanet.Blockchain.BlockChainStates");
 
@@ -47,7 +47,7 @@ public sealed class BlockChainStates(IStore store, IStateStore stateStore)
         if (!trie.IsCommitted)
         {
             throw new ArgumentException(
-                $"Could not find state root {stateRootHash} in {nameof(IStateStore)}.",
+                $"Could not find state root {stateRootHash} in {nameof(TrieStateStore)}.",
                 nameof(stateRootHash));
         }
 

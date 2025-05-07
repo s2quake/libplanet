@@ -199,8 +199,8 @@ namespace Libplanet.Net.Tests
             const int initialSharedTipHeight = 3;
             const int maliciousTipHeight = 5;
             const int honestTipHeight = 7;
-            var policy = BlockPolicy.Empty;
-            var policyB = BlockPolicy.Empty;
+            var policy = BlockChainOptions.Empty;
+            var policyB = BlockChainOptions.Empty;
             var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
 
             var swarmA = await CreateSwarm(
@@ -318,7 +318,7 @@ namespace Libplanet.Net.Tests
         [RetryFact(Timeout = Timeout)]
         public async Task NoRenderInPreload()
         {
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -445,7 +445,7 @@ namespace Libplanet.Net.Tests
             Swarm minerSwarm = await CreateSwarm(minerKey);
             Swarm receiverSwarm = await CreateSwarm();
             var fxForNominers = new StoreFixture[2];
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -772,7 +772,7 @@ namespace Libplanet.Net.Tests
         {
             var key1 = new PrivateKey();
             var key2 = new PrivateKey();
-            var policy = new BlockPolicy();
+            var policy = new BlockChainOptions();
 
             BlockChain receiverChain = MakeBlockChain(
                 policy,
@@ -838,7 +838,7 @@ namespace Libplanet.Net.Tests
         public async Task UpdateTxExecution()
         {
             PrivateKey seedKey = new PrivateKey();
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {

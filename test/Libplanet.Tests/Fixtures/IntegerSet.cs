@@ -34,7 +34,7 @@ public sealed class IntegerSet
 
     public IntegerSet(
         BigInteger[] initialStates,
-        BlockPolicy? policy = null)
+        BlockChainOptions? policy = null)
     {
         PrivateKeys = initialStates.Select(_ => new PrivateKey()).ToImmutableArray();
         Addresses = PrivateKeys.Select(key => key.Address).ToImmutableArray();
@@ -63,7 +63,7 @@ public sealed class IntegerSet
             .OrderBy(tx => tx.Id)
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
-        policy = policy ?? BlockPolicy.Empty;
+        policy = policy ?? BlockChainOptions.Empty;
         Store = new MemoryStore();
         KVStore = new MemoryKeyValueStore();
         StateStore = new TrieStateStore(KVStore);
@@ -87,7 +87,7 @@ public sealed class IntegerSet
 
     public int Count => Addresses.Count;
 
-    public BlockPolicy Policy => Chain.Policy;
+    public BlockChainOptions Policy => Chain.Policy;
 
     public Block Tip => Chain.Tip;
 

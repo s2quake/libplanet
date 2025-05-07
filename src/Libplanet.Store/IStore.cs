@@ -11,7 +11,7 @@ public interface IStore : IDisposable
 
     void DeleteChainId(Guid chainId);
 
-    Guid? GetCanonicalChainId();
+    Guid GetCanonicalChainId();
 
     void SetCanonicalChainId(Guid chainId);
 

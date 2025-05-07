@@ -112,7 +112,7 @@ public partial class BlockChainTest
     {
         using (var fx = new MemoryStoreFixture())
         {
-            var policy = new BlockPolicy();
+            var policy = new BlockChainOptions();
             var genesis = BlockChain.ProposeGenesisBlock(
                 new PrivateKey(),
                 null,
@@ -140,7 +140,7 @@ public partial class BlockChainTest
     {
         using (var fx = new MemoryStoreFixture())
         {
-            var policy = new BlockPolicy();
+            var policy = new BlockChainOptions();
             var blockChain = BlockChain.Create(
                 policy,
                 fx.Store,
@@ -350,7 +350,7 @@ public partial class BlockChainTest
             }
         }
 
-        var policy = new BlockPolicy
+        var policy = new BlockChainOptions
         {
             TransactionValidation = IsSignerValid,
         };
@@ -455,7 +455,7 @@ public partial class BlockChainTest
         var privateKey2 = new PrivateKey();
         var address2 = privateKey2.Address;
 
-        var policy = new BlockPolicy
+        var policy = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {

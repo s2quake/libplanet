@@ -9,7 +9,7 @@ namespace Libplanet.Explorer.Tests.Fixtures;
 
 // public class BlockChainStates : IBlockChainStates
 // {
-//     private IStateStore _stateStore;
+//     private TrieStateStore _stateStore;
 
 //     private Dictionary<BlockHash, HashDigest<SHA256>> _map;
 
@@ -19,7 +19,7 @@ namespace Libplanet.Explorer.Tests.Fixtures;
 //         _map = new Dictionary<BlockHash, HashDigest<SHA256>>();
 //     }
 
-//     public IStateStore StateStore => _stateStore;
+//     public TrieStateStore StateStore => _stateStore;
 
 //     public void AttachBlockHashToStateRootHash(
 //         BlockHash blockHash,
@@ -64,7 +64,7 @@ namespace Libplanet.Explorer.Tests.Fixtures;
 //         return trie.IsCommitted
 //             ? new World { Trie = trie, StateStore = _stateStore }
 //             : throw new ArgumentException(
-//                 $"Could not find state root {stateRootHash} in {nameof(IStateStore)}.",
+//                 $"Could not find state root {stateRootHash} in {nameof(TrieStateStore)}.",
 //                 nameof(stateRootHash));
 //     }
 // }

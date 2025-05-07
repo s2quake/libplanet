@@ -24,7 +24,7 @@ public class BlockPolicyParamsTest
         {
             PolicyFactory = $"{GetType().FullName}.{nameof(BlockPolicyFactory)}",
         };
-        BlockPolicy blockPolicy = Assert.IsType<BlockPolicy>(
+        BlockChainOptions blockPolicy = Assert.IsType<BlockChainOptions>(
             blockPolicyParams.GetBlockPolicy(new[] { GetType().Assembly }));
         Assert.Single(blockPolicy.PolicyActions.BeginBlockActions);
         Assert.IsType<NullAction>(blockPolicy.PolicyActions.BeginBlockActions[0]);
@@ -144,8 +144,8 @@ public class BlockPolicyParamsTest
         Assert.IsType<NullAction>(Assert.Single(policyActions.EndTxActions));
     }
 
-    internal static BlockPolicy BlockPolicyFactory() =>
-        new BlockPolicy
+    internal static BlockChainOptions BlockPolicyFactory() =>
+        new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {
@@ -156,12 +156,12 @@ public class BlockPolicyParamsTest
             },
         };
 
-    internal static BlockPolicy BlockPolicyFactoryWithParams(bool param) =>
-        new BlockPolicy();
+    internal static BlockChainOptions BlockPolicyFactoryWithParams(bool param) =>
+        new BlockChainOptions();
 
     internal static int BlockPolicyFactoryWithWrongReturnType() => 0;
 
-    internal static BlockPolicy BlockPolicyFactoryReturningNull() => null!;
+    internal static BlockChainOptions BlockPolicyFactoryReturningNull() => null!;
 
-    internal BlockPolicy BlockPolicyFactoryInstanceMethod() => new BlockPolicy();
+    internal BlockChainOptions BlockPolicyFactoryInstanceMethod() => new BlockChainOptions();
 }

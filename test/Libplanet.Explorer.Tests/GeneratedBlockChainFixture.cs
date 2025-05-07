@@ -40,9 +40,6 @@ public class GeneratedBlockChainFixture
         txActionsForSuffixBlocks ??=
             ImmutableArray<ImmutableArray<ImmutableArray<SimpleAction>>>.Empty;
 
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore();
-
         Random = new System.Random(seed);
         MaxTxCount = maxTxCount;
         PrivateKeys = Enumerable
@@ -59,15 +56,12 @@ public class GeneratedBlockChainFixture
                 key => ImmutableArray<Transaction>.Empty);
 
         var privateKey = new PrivateKey();
-        var policy = new BlockPolicy
+        var policy = new BlockChainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(1),
             MaxTransactionsPerBlock = int.MaxValue,
             MaxTransactionsBytes = long.MaxValue,
         };
-        var actionEvaluator = new ActionEvaluator(
-            stateStore,
-            policy.PolicyActions);
         Block genesisBlock = BlockChain.ProposeGenesisBlock(
             proposer: new PrivateKey(),
             transactions: PrivateKeys
@@ -86,11 +80,7 @@ public class GeneratedBlockChainFixture
                             },
                         }.ToBytecodes()))
                 .ToImmutableSortedSet());
-        Chain = BlockChain.Create(
-            policy,
-            store,
-            stateStore,
-            genesisBlock);
+        Chain = BlockChain.Create(genesisBlock, policy);
         MinedBlocks = MinedBlocks.SetItem(
             Chain.Genesis.Proposer,
             ImmutableArray<Block>.Empty.Add(Chain.Genesis));
@@ -170,7 +160,7 @@ public class GeneratedBlockChainFixture
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = proposer.Address,
                     PreviousHash = Chain.Tip.BlockHash,
-                    LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
+                    LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()),
                 },
                 new BlockContent
                 {

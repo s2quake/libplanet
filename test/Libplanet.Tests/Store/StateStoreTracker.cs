@@ -5,12 +5,12 @@ using Libplanet.Types;
 
 namespace Libplanet.Tests.Store;
 
-public sealed class StateStoreTracker : BaseTracker, IStateStore
+public sealed class StateStoreTracker : BaseTracker, TrieStateStore
 {
-    private readonly IStateStore _stateStore;
+    private readonly TrieStateStore _stateStore;
     private bool _disposed = false;
 
-    public StateStoreTracker(IStateStore stateStore)
+    public StateStoreTracker(TrieStateStore stateStore)
     {
         _stateStore = stateStore;
     }

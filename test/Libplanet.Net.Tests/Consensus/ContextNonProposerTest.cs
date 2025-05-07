@@ -300,7 +300,7 @@ namespace Libplanet.Net.Tests.Consensus
             var timeoutProcessed = false;
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var invalidKey = new PrivateKey();
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -377,7 +377,7 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var nilPreCommitSent = new AsyncAutoResetEvent();
             var txSigner = new PrivateKey();
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {

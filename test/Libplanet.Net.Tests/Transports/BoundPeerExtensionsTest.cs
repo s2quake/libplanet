@@ -24,7 +24,7 @@ namespace Libplanet.Net.Tests.Transports
         public async Task QueryAppProtocolVersion()
         {
             var fx = new MemoryStoreFixture();
-            var policy = new BlockPolicy();
+            var policy = new BlockChainOptions();
             var blockchain = MakeBlockChain(
                 policy, fx.Store, fx.StateStore);
             var swarmKey = new PrivateKey();

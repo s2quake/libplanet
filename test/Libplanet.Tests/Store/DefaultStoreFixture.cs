@@ -36,7 +36,7 @@ public class DefaultStoreFixture : StoreFixture, IDisposable
         StateStore = LoadTrieStateStore(Path);
     }
 
-    public IStateStore LoadTrieStateStore(string path)
+    public TrieStateStore LoadTrieStateStore(string path)
     {
         IKeyValueStore stateKeyValueStore =
             new DefaultKeyValueStore(path == string.Empty

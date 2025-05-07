@@ -12,7 +12,7 @@ public sealed record class World
 {
     public required ITrie Trie { get; init; }
 
-    public required IStateStore StateStore { get; init; }
+    public required TrieStateStore StateStore { get; init; }
 
     public Address Signer { get; init; }
 
@@ -21,15 +21,15 @@ public sealed record class World
 
     public static World Create() => Create(new TrieStateStore());
 
-    public static World Create(IStateStore stateStore) => Create(stateStore.GetStateRoot(default), stateStore);
+    public static World Create(TrieStateStore stateStore) => Create(stateStore.GetStateRoot(default), stateStore);
 
-    public static World Create(ITrie trie, IStateStore stateStore) => new()
+    public static World Create(ITrie trie, TrieStateStore stateStore) => new()
     {
         Trie = trie,
         StateStore = stateStore,
     };
 
-    public static World Create(HashDigest<SHA256> stateRootHash, IStateStore stateStore) => new()
+    public static World Create(HashDigest<SHA256> stateRootHash, TrieStateStore stateStore) => new()
     {
         Trie = stateStore.GetStateRoot(stateRootHash),
         StateStore = stateStore,

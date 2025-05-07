@@ -24,7 +24,7 @@ namespace Libplanet.Tests.Store
         [InlineData("memory://")]
         public void Loader(string uri)
         {
-            (IStore Store, IStateStore StateStore)? pair =
+            (IStore Store, TrieStateStore StateStore)? pair =
                 StoreLoaderAttribute.LoadStore(new Uri(uri));
             Assert.NotNull(pair);
             IStore store = pair.Value.Store;

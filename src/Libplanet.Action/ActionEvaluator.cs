@@ -8,9 +8,9 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 
-public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policyActions)
+public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions policyActions)
 {
-    public ActionEvaluator(IStateStore stateStore)
+    public ActionEvaluator(TrieStateStore stateStore)
         : this(stateStore, PolicyActions.Empty)
     {
     }

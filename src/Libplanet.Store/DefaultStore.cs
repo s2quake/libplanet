@@ -236,19 +236,19 @@ public class DefaultStore : StoreBase
     }
 
     /// <inheritdoc />
-    public override Guid? GetCanonicalChainId()
+    public override Guid GetCanonicalChainId()
     {
         LiteCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>("canon");
         var docId = new BsonValue("canon");
         BsonDocument doc = collection.FindById(docId);
         if (doc is null)
         {
-            return null;
+            return Guid.Empty;
         }
 
         return doc.TryGetValue("chainId", out BsonValue ns)
             ? new Guid(ns.AsBinary)
-            : (Guid?)null;
+            : Guid.Empty;
     }
 
     /// <inheritdoc />
@@ -936,7 +936,7 @@ public class DefaultStore : StoreBase
         ByteUtility.Hex(chainId.ToByteArray());
 
     [StoreLoader("default+file")]
-    private static (IStore Store, IStateStore StateStore) Loader(Uri storeUri)
+    private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
     {
         NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
         bool journal = query.GetBoolean("journal", true);

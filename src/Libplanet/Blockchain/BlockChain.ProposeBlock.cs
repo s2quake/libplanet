@@ -109,16 +109,16 @@ public partial class BlockChain
     /// policies:
     /// <list type="bullet">
     ///     <item><description>
-    ///         <see cref="BlockPolicy.MaxTransactionsBytes"/>
+    ///         <see cref="BlockChainOptions.MaxTransactionsBytes"/>
     ///     </description></item>
     ///     <item><description>
-    ///         <see cref="BlockPolicy.MaxTransactionsPerBlock"/>
+    ///         <see cref="BlockChainOptions.MaxTransactionsPerBlock"/>
     ///     </description></item>
     ///     <item><description>
-    ///         <see cref="BlockPolicy.MaxTransactionsPerSignerPerBlock"/>
+    ///         <see cref="BlockChainOptions.MaxTransactionsPerSignerPerBlock"/>
     ///     </description></item>
     ///     <item><description>
-    ///         <see cref="BlockPolicy.MinTransactionsPerBlock"/>
+    ///         <see cref="BlockChainOptions.MinTransactionsPerBlock"/>
     ///     </description></item>
     /// </list>
     /// </summary>

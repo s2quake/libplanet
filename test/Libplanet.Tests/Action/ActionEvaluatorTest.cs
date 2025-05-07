@@ -27,7 +27,7 @@ namespace Libplanet.Tests.Action;
 public partial class ActionEvaluatorTest
 {
     private readonly ILogger _logger;
-    private readonly BlockPolicy _policy;
+    private readonly BlockChainOptions _policy;
     private readonly StoreFixture _storeFx;
     private readonly TxFixture _txFx;
 
@@ -45,7 +45,7 @@ public partial class ActionEvaluatorTest
             .CreateLogger()
             .ForContext<ActionEvaluatorTest>();
 
-        _policy = new BlockPolicy
+        _policy = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {
@@ -145,7 +145,7 @@ public partial class ActionEvaluatorTest
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
+            policy: new BlockChainOptions(),
             store: store,
             stateStore: stateStore);
         var action = new ContextRecordingAction { Address = address, Value = value };
@@ -255,7 +255,7 @@ public partial class ActionEvaluatorTest
     {
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
-        var policyWithExceptions = new BlockPolicy
+        var policyWithExceptions = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {
@@ -748,7 +748,7 @@ public partial class ActionEvaluatorTest
                 Transactions = [.. txs],
                 Evidences = [.. evs],
             });
-        IStateStore stateStore = new TrieStateStore();
+        TrieStateStore stateStore = new TrieStateStore();
         World world = World.Create(stateStore)
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
@@ -1181,7 +1181,7 @@ public partial class ActionEvaluatorTest
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
+            policy: new BlockChainOptions(),
             actions: [freeGasAction,],
             store: store,
             stateStore: stateStore);
@@ -1233,7 +1233,7 @@ public partial class ActionEvaluatorTest
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
-            policy: new BlockPolicy(),
+            policy: new BlockChainOptions(),
             actions: new[]
             {
                 freeGasAction,

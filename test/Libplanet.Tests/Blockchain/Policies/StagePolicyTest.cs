@@ -9,7 +9,7 @@ namespace Libplanet.Tests.Blockchain.Policies;
 
 public abstract class StagePolicyTest
 {
-    protected readonly BlockPolicy _policy;
+    protected readonly BlockChainOptions _policy;
     protected readonly MemoryStoreFixture _fx;
     protected readonly BlockChain _chain;
     protected readonly PrivateKey _key;
@@ -17,7 +17,7 @@ public abstract class StagePolicyTest
 
     protected StagePolicyTest()
     {
-        _policy = new BlockPolicy();
+        _policy = new BlockChainOptions();
         _fx = new MemoryStoreFixture();
         _chain = BlockChain.Create(
             _policy,
