@@ -60,7 +60,7 @@ namespace Libplanet.Blockchain
 
                     yield return new TxExecution
                     {
-                        BlockHash = block.Hash,
+                        BlockHash = block.BlockHash,
                         TxId = txId,
                         InputState = group.Item2.First().InputContext.PreviousState,
                         OutputState = group.Item2[^1].OutputState,
@@ -76,7 +76,7 @@ namespace Libplanet.Blockchain
                 "s for {Txs} transactions within the block #{BlockHeight} {BlockHash}",
                 count,
                 block.Height,
-                block.Hash);
+                block.BlockHash);
         }
 
         internal void UpdateTxExecutions(IEnumerable<TxExecution> txExecutions)

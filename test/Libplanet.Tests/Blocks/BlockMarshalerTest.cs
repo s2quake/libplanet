@@ -114,26 +114,26 @@
 //         }
 
 //         [Fact]
-//         public void MarshalBlockMetadata()
+//         public void MarshalBlockHeader()
 //         {
 //             AssertBencodexEqual(
 //                 _marshaledGenesisMetadata,
-//                 BlockMarshaler.MarshalBlockMetadata(_fx.Genesis)
+//                 BlockMarshaler.MarshalBlockHeader(_fx.Genesis)
 //             );
 //             AssertBencodexEqual(
 //                 _marshaledNextMetadata,
-//                 BlockMarshaler.MarshalBlockMetadata(_fx.Next)
+//                 BlockMarshaler.MarshalBlockHeader(_fx.Next)
 //             );
 //             AssertBencodexEqual(
 //                 _marshaledHasTxMetadata,
-//                 BlockMarshaler.MarshalBlockMetadata(_fx.HasTx)
+//                 BlockMarshaler.MarshalBlockHeader(_fx.HasTx)
 //             );
 //             AssertBencodexEqual(
 //                 Dictionary.Empty
 //                     .Add(IndexKey, 0L)
 //                     .Add(TimestampKey, "2021-09-06T04:46:39.123000Z")
 //                     .Add(MinerKey, _content.GenesisContentPv0.Miner.ToBencodex()),
-//                 BlockMarshaler.MarshalBlockMetadata(_content.GenesisContentPv0)
+//                 BlockMarshaler.MarshalBlockHeader(_content.GenesisContentPv0)
 //             );
 //             AssertBencodexEqual(
 //                 Dictionary.Empty
@@ -148,7 +148,7 @@
 //                     .Add(
 //                         EvidenceHashKey,
 //                         _content.Block1ContentPv1.EvidenceHash?.ByteArray ?? default),
-//                 BlockMarshaler.MarshalBlockMetadata(_content.Block1ContentPv1)
+//                 BlockMarshaler.MarshalBlockHeader(_content.Block1ContentPv1)
 //             );
 //         }
 

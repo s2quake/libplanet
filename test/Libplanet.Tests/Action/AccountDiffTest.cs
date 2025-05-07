@@ -76,6 +76,6 @@ public class AccountDiffTest
         {
             Signer = signer,
             Proposer = signer,
-            BlockProtocolVersion = Block.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
         };
 }

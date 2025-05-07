@@ -25,7 +25,7 @@
 //         [Fact]
 //         public void CopyConstructor()
 //         {
-//             BlockMetadata metadata = new BlockMetadata(_contents.GenesisContent);
+//             BlockHeader metadata = new BlockHeader(_contents.GenesisContent);
 //             var preEvalBlock = new RawBlockHeader(
 //                 metadata, metadata.DerivePreEvaluationHash());
 //             var copy = new RawBlockHeader(preEvalBlock);
@@ -35,16 +35,16 @@
 //         [Fact]
 //         public void ValidatePreEvaluationHash()
 //         {
-//             BlockMetadata metadataPv1 = new BlockMetadata(_contents.Block1ContentPv1);
-//             Assert.True(metadataPv1.ProtocolVersion < BlockMetadata.PBFTProtocolVersion);
+//             BlockHeader metadataPv1 = new BlockHeader(_contents.Block1ContentPv1);
+//             Assert.True(metadataPv1.ProtocolVersion < BlockHeader.PBFTProtocolVersion);
 
 //             // Should be fine.
 //             var preEvaluationBlockHeaderPv1 = new RawBlockHeader(
 //                 metadataPv1,
 //                 new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)));
 
-//             BlockMetadata metadata = new BlockMetadata(_contents.Block1Content);
-//             Assert.False(metadata.ProtocolVersion < BlockMetadata.PBFTProtocolVersion);
+//             BlockHeader metadata = new BlockHeader(_contents.Block1Content);
+//             Assert.False(metadata.ProtocolVersion < BlockHeader.PBFTProtocolVersion);
 //             var rawBlockHeader = new RawBlockHeader(
 //                 metadata,
 //                 metadata.DerivePreEvaluationHash());
@@ -62,7 +62,7 @@
 //                     "public_key",
 //                     ParseHex("0200e02709cc0c051dc105188c454a2e7ef7b36b85da34529d3abc1968167cf54f")
 //                 )
-//                 .Add("protocol_version", BlockMetadata.CurrentProtocolVersion)
+//                 .Add("protocol_version", BlockHeader.CurrentProtocolVersion)
 //                 .Add("state_root_hash", default(HashDigest<SHA256>).ByteArray)
 //                 .Add(
 //                     "transaction_fingerprint",
@@ -108,7 +108,7 @@
 //                         "e7198889cc4a82a8b7be4b7f428b6201400ef222709f756e540b32bc1e8d5d86"
 //                     )
 //                 )
-//                 .Add("protocol_version", BlockMetadata.CurrentProtocolVersion)
+//                 .Add("protocol_version", BlockHeader.CurrentProtocolVersion)
 //                 .Add("state_root_hash", default(HashDigest<SHA256>).ByteArray);
 //             var block1 = new RawBlockHeader(
 //                 _contents.Block1Metadata,

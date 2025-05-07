@@ -68,6 +68,7 @@ public class GeneratedBlockChainFixture
             stateStore,
             policy.PolicyActions);
         Block genesisBlock = BlockChain.ProposeGenesisBlock(
+            privateKey: new PrivateKey(),
             transactions: PrivateKeys
                 .OrderBy(pk => pk.Address.ToString("raw", null))
                 .Select(
@@ -110,7 +111,7 @@ public class GeneratedBlockChainFixture
                         Transaction.Create(
                             nonce: Chain.GetNextTxNonce(pk.Address),
                             privateKey: pk,
-                            genesisHash: Chain.Genesis.Hash,
+                            genesisHash: Chain.Genesis.BlockHash,
                             actions: actions.ToBytecodes()))
                     .ToImmutableArray());
             }
@@ -143,7 +144,7 @@ public class GeneratedBlockChainFixture
         return Transaction.Create(
             nonce: nonce,
             privateKey: pk,
-            genesisHash: Chain.Genesis.Hash,
+            genesisHash: Chain.Genesis.BlockHash,
             actions: Random.Next() % 2 == 0
                 ? GetRandomActions().ToBytecodes()
                 : ImmutableHashSet<SimpleAction>.Empty.ToBytecodes(),
@@ -164,13 +165,12 @@ public class GeneratedBlockChainFixture
         var proposer = PrivateKeys[Random.Next(PrivateKeys.Length)];
         var block = Chain.EvaluateAndSign(
             RawBlock.Propose(
-                new BlockMetadata
+                new BlockHeader
                 {
                     Height = Chain.Tip.Height + 1,
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = proposer.Address,
-                    PreviousHash = Chain.Tip.Hash,
-                    TxHash = BlockContent.DeriveTxHash([.. transactions]),
+                    PreviousHash = Chain.Tip.BlockHash,
                     LastCommit = Chain.Store.GetChainBlockCommit(Chain.Store.GetCanonicalChainId()!.Value),
                 },
                 new BlockContent
@@ -185,14 +185,14 @@ public class GeneratedBlockChainFixture
             {
                 Height = Chain.Tip.Height + 1,
                 Round = 0,
-                BlockHash = block.Hash,
+                BlockHash = block.BlockHash,
                 Votes = PrivateKeys
                     .OrderBy(pk => pk.Address.ToString("raw", null))
                     .Select(pk => new VoteMetadata
                     {
                         Height = Chain.Tip.Height + 1,
                         Round = 0,
-                        BlockHash = block.Hash,
+                        BlockHash = block.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidatorPublicKey = pk.PublicKey,
                         ValidatorPower = BigInteger.One,

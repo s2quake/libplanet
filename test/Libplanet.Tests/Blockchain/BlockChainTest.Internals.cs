@@ -26,7 +26,7 @@ namespace Libplanet.Tests.Blockchain
                 Transaction.Create(
                     nonce,
                     key,
-                    _blockChain.Genesis.Hash,
+                    _blockChain.Genesis.BlockHash,
                     Array.Empty<DumbAction>().ToBytecodes(),
                     null,
                     0L,

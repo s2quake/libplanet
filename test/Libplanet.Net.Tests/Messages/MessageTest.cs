@@ -24,7 +24,7 @@ namespace Libplanet.Net.Tests.Messages
                 default);
             var dateTimeOffset = DateTimeOffset.UtcNow;
             Block genesis = ProposeGenesisBlock(GenesisProposer);
-            var messageContent = new BlockHeaderMsg(genesis.Hash, genesis.Header);
+            var messageContent = new BlockHeaderMsg(genesis.BlockHash, genesis);
             var codec = new NetMQMessageCodec();
             NetMQMessage raw = codec.Encode(
                 new Message(messageContent, apv, peer, dateTimeOffset, null), privateKey);
@@ -111,7 +111,7 @@ namespace Libplanet.Net.Tests.Messages
                 default);
             var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);
             Block genesis = ProposeGenesisBlock(GenesisProposer);
-            var message = new BlockHeaderMsg(genesis.Hash, genesis.Header);
+            var message = new BlockHeaderMsg(genesis.BlockHash, genesis);
             Assert.Equal(
                 new MessageId(ByteUtility.ParseHex(
                     "e1acbdc4d0cc1eb156cec60d0bf6d40fae3a90192e95719b12e6ee944c71b742")),

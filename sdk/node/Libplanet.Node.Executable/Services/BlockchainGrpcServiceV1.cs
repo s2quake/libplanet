@@ -15,7 +15,7 @@ public class BlockchainGrpcServiceV1(IReadChainService blockChain) : Blockchain.
     {
         return Task.FromResult(new GetGenesisBlockReply
         {
-            Hash = _blockChain.Tip.Hash.ToString(),
+            Hash = _blockChain.Tip.BlockHash.ToString(),
         });
     }
 
@@ -23,7 +23,7 @@ public class BlockchainGrpcServiceV1(IReadChainService blockChain) : Blockchain.
     {
         return Task.FromResult(new GetTipReply
         {
-            Hash = _blockChain.Tip.Hash.ToString(),
+            Hash = _blockChain.Tip.BlockHash.ToString(),
             Height = _blockChain.Tip.Height,
         });
     }
@@ -46,7 +46,7 @@ public class BlockchainGrpcServiceV1(IReadChainService blockChain) : Blockchain.
             var block = GetBlock();
             return new GetBlockReply
             {
-                Hash = block.Hash.ToString(),
+                Hash = block.BlockHash.ToString(),
                 Height = block.Height,
                 Proposer = block.Proposer.ToString(),
                 PreviousHash = $"{block.PreviousHash}",

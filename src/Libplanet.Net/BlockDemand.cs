@@ -5,9 +5,9 @@ namespace Libplanet.Net;
 public readonly record struct BlockDemand(
     BlockExcerpt BlockExcerpt, BoundPeer Peer, DateTimeOffset Timestamp)
 {
-    public long Index => BlockExcerpt.Index;
+    public long Index => BlockExcerpt.Height;
 
-    public BlockHash Hash => BlockExcerpt.Hash;
+    public BlockHash Hash => BlockExcerpt.BlockHash;
 
     public static implicit operator BlockExcerpt(BlockDemand blockDemand)
         => blockDemand.BlockExcerpt;
@@ -17,8 +17,8 @@ public readonly record struct BlockDemand(
         return
             $"{GetType().Name} {{" +
             $" {nameof(BlockExcerpt.ProtocolVersion)} = {BlockExcerpt.ProtocolVersion}," +
-            $" {nameof(BlockExcerpt.Index)} = {BlockExcerpt.Index}," +
-            $" {nameof(BlockExcerpt.Hash)} = {BlockExcerpt.Hash}," +
+            $" {nameof(BlockExcerpt.Height)} = {BlockExcerpt.Height}," +
+            $" {nameof(BlockExcerpt.BlockHash)} = {BlockExcerpt.BlockHash}," +
             " }";
     }
 }

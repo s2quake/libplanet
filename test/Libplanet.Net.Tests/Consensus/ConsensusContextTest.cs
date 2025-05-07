@@ -285,7 +285,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = block.Hash,
+                BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = proposer.PublicKey,
                 ValidatorPower = proposerPower,
@@ -295,7 +295,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = block.Hash,
+                BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = TestUtils.PrivateKeys[2].PublicKey,
                 ValidatorPower = TestUtils.Validators[2].Power,
@@ -305,7 +305,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = block.Hash,
+                BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = TestUtils.PrivateKeys[3].PublicKey,
                 ValidatorPower = TestUtils.Validators[3].Power,
@@ -334,11 +334,11 @@ namespace Libplanet.Net.Tests.Consensus
 
             // VoteSetBits expects missing votes
             VoteSetBits voteSetBits = consensusContext.CurrentContext
-                .GetVoteSetBits(0, block.Hash, VoteFlag.PreVote);
+                .GetVoteSetBits(0, block.BlockHash, VoteFlag.PreVote);
             Assert.True(
                 voteSetBits.VoteBits.SequenceEqual(new[] { true, true, false, true }));
             voteSetBits = consensusContext.CurrentContext
-                .GetVoteSetBits(0, block.Hash, VoteFlag.PreCommit);
+                .GetVoteSetBits(0, block.BlockHash, VoteFlag.PreCommit);
             Assert.True(
                 voteSetBits.VoteBits.SequenceEqual(new[] { true, false, false, false }));
         }
@@ -376,7 +376,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = block.Hash,
+                BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = proposer.PublicKey,
                 ValidatorPower = proposerPower,
@@ -386,7 +386,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = block.Hash,
+                BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidatorPublicKey = TestUtils.PrivateKeys[2].PublicKey,
                 ValidatorPower = TestUtils.Validators[2].Power,
@@ -406,7 +406,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new VoteSetBitsMetadata(
                         1,
                         0,
-                        block.Hash,
+                        block.BlockHash,
                         DateTimeOffset.UtcNow,
                         TestUtils.PrivateKeys[1].PublicKey,
                         VoteFlag.PreVote,
@@ -455,7 +455,7 @@ namespace Libplanet.Net.Tests.Consensus
                 new ProposalClaimMetadata(
                         1,
                         0,
-                        block.Hash,
+                        block.BlockHash,
                         DateTimeOffset.UtcNow,
                         TestUtils.PrivateKeys[1].PublicKey)
                     .Sign(TestUtils.PrivateKeys[1]);

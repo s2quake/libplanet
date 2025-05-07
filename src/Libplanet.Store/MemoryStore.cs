@@ -159,7 +159,7 @@ public sealed class MemoryStore : IStore
             _committedEvidence[ev.Id] = ev;
         }
 
-        _blocks[block.Hash] = new BlockDigest
+        _blocks[block.BlockHash] = new BlockDigest
         {
             Header = block.Header,
             TxIds = [.. txs.Select(tx => tx.Id)],

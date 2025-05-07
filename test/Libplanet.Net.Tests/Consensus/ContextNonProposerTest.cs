@@ -63,7 +63,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[2].Power,
                         1,
                         1,
-                        hash: block.Hash,
+                        hash: block.BlockHash,
                         flag: VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(
@@ -72,7 +72,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[3].Power,
                         1,
                         1,
-                        hash: block.Hash,
+                        hash: block.BlockHash,
                         flag: VoteFlag.PreVote)));
 
             // Wait for round 1 prevote step.
@@ -120,7 +120,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[1].Power,
                         1,
                         0,
-                        hash: block.Hash,
+                        hash: block.BlockHash,
                         VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(
@@ -129,7 +129,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[2].Power,
                         1,
                         0,
-                        hash: block.Hash,
+                        hash: block.BlockHash,
                         VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(
@@ -138,11 +138,11 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[3].Power,
                         1,
                         0,
-                        hash: block.Hash,
+                        hash: block.BlockHash,
                         VoteFlag.PreVote)));
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
-            Assert.Equal(block.Hash, preCommit?.BlockHash);
+            Assert.Equal(block.BlockHash, preCommit?.BlockHash);
             Assert.Equal(ConsensusStep.PreCommit, context.Step);
             Assert.Equal(1, context.Height);
             Assert.Equal(0, context.Round);
@@ -153,8 +153,8 @@ namespace Libplanet.Net.Tests.Consensus
 
             Assert.Equal(0, json["locked_round"].GetInt64());
             Assert.Equal(0, json["valid_round"].GetInt64());
-            Assert.Equal(block.Hash.ToString(), json["locked_value"].GetString());
-            Assert.Equal(block.Hash.ToString(), json["valid_value"].GetString());
+            Assert.Equal(block.BlockHash.ToString(), json["locked_value"].GetString());
+            Assert.Equal(block.BlockHash.ToString(), json["valid_value"].GetString());
         }
 
         [Fact(Timeout = Timeout)]
@@ -169,12 +169,12 @@ namespace Libplanet.Net.Tests.Consensus
             var key = new PrivateKey();
             var invalidBlock = blockChain.EvaluateAndSign(
                 RawBlock.Propose(
-                    new BlockMetadata
+                    new BlockHeader
                     {
                         Height = blockChain.Tip.Height + 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = key.Address,
-                        PreviousHash = blockChain.Tip.Hash,
+                        PreviousHash = blockChain.Tip.BlockHash,
                     }),
                 key);
 
@@ -265,13 +265,13 @@ namespace Libplanet.Net.Tests.Consensus
             // 4. PreviousHash should be matched with Tip hash.
             var invalidBlock = blockChain.EvaluateAndSign(
                 RawBlock.Propose(
-                    new BlockMetadata
+                    new BlockHeader
                     {
-                        ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+                        ProtocolVersion = BlockHeader.CurrentProtocolVersion,
                         Height = blockChain.Tip.Height + 2,
                         Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
                         Proposer = TestUtils.PrivateKeys[1].Address,
-                        PreviousHash = blockChain.Tip.Hash,
+                        PreviousHash = blockChain.Tip.BlockHash,
                     }),
                 TestUtils.PrivateKeys[1]);
 
@@ -411,7 +411,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Invoice = new TxInvoice
                 {
-                    GenesisHash = blockChain.Genesis.Hash,
+                    GenesisHash = blockChain.Genesis.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Actions = [new ActionBytecode([0x01])], // Invalid action
                 },
@@ -428,13 +428,12 @@ namespace Libplanet.Net.Tests.Consensus
             var txs = new[] { invalidTx };
             var evs = Array.Empty<EvidenceBase>();
 
-            var metadata = new BlockMetadata
+            var metadata = new BlockHeader
             {
                 Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = TestUtils.PrivateKeys[1].Address,
-                PreviousHash = blockChain.Genesis.Hash,
-                TxHash = BlockContent.DeriveTxHash([.. txs]),
+                PreviousHash = blockChain.Genesis.BlockHash,
             };
             var preEval = RawBlock.Propose(
                 metadata,
@@ -465,7 +464,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[1].Power,
                         1,
                         0,
-                        invalidBlock.Hash,
+                        invalidBlock.BlockHash,
                         VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(
@@ -668,7 +667,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[1].Power,
                         1,
                         0,
-                        hash: block.Hash,
+                        hash: block.BlockHash,
                         flag: VoteFlag.PreVote)));
             context.ProduceMessage(
                 new ConsensusPreVoteMsg(
@@ -719,7 +718,7 @@ namespace Libplanet.Net.Tests.Consensus
                         TestUtils.Validators[1].Power,
                         1,
                         0,
-                        hash: block.Hash,
+                        hash: block.BlockHash,
                         flag: VoteFlag.PreCommit)));
             context.ProduceMessage(
                 new ConsensusPreCommitMsg(

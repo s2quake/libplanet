@@ -48,9 +48,9 @@ namespace Libplanet.Net.Messages
         public static implicit operator BlockExcerpt(ChainStatusMsg msg)
             => new BlockExcerpt
             {
-                Index = msg.TipIndex,
+                Height = msg.TipIndex,
                 ProtocolVersion = msg.ProtocolVersion,
-                Hash = msg.TipHash,
+                BlockHash = msg.TipHash,
             };
     }
 }

@@ -24,7 +24,7 @@ public class ReadChainServiceTest
         var readChainService = serviceProvider.GetRequiredService<IReadChainService>();
         var expectedBlock = await BlockChainUtility.AppendBlockAsync(blockChain);
 
-        Assert.Equal(expectedBlock, readChainService.GetBlock(expectedBlock.Hash));
+        Assert.Equal(expectedBlock, readChainService.GetBlock(expectedBlock.BlockHash));
     }
 
     [Fact]

@@ -30,7 +30,7 @@ public partial class BlockChainTest
         var proposerA = new PrivateKey();
         Block block = _blockChain.ProposeBlock(proposerA);
         _blockChain.Append(block, CreateBlockCommit(block));
-        Assert.True(_blockChain.ContainsBlock(block.Hash));
+        Assert.True(_blockChain.ContainsBlock(block.BlockHash));
         Assert.Equal(2, _blockChain.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block).Length <= getMaxTransactionsBytes(block.Height));
@@ -41,10 +41,10 @@ public partial class BlockChainTest
         var proposerB = new PrivateKey();
         Block anotherBlock = _blockChain.ProposeBlock(
             proposerB,
-            CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
+            CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
             [.. _blockChain.GetPendingEvidence()]);
         _blockChain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
-        Assert.True(_blockChain.ContainsBlock(anotherBlock.Hash));
+        Assert.True(_blockChain.ContainsBlock(anotherBlock.BlockHash));
         Assert.Equal(3, _blockChain.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(anotherBlock).Length <=
@@ -56,9 +56,9 @@ public partial class BlockChainTest
 
         Block block3 = _blockChain.ProposeBlock(
             new PrivateKey(),
-            CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
+            CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
             [.. _blockChain.GetPendingEvidence()]);
-        Assert.False(_blockChain.ContainsBlock(block3.Hash));
+        Assert.False(_blockChain.ContainsBlock(block3.BlockHash));
         Assert.Equal(3, _blockChain.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block3).Length <= getMaxTransactionsBytes(block3.Height));
@@ -90,9 +90,9 @@ public partial class BlockChainTest
 
         Block block4 = _blockChain.ProposeBlock(
             proposer: new PrivateKey(),
-            lastCommit: CreateBlockCommit(_blockChain.Tip.Hash, _blockChain.Tip.Height, 0),
+            lastCommit: CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
             evidence: [.. _blockChain.GetPendingEvidence()]);
-        Assert.False(_blockChain.ContainsBlock(block4.Hash));
+        Assert.False(_blockChain.ContainsBlock(block4.BlockHash));
         _logger.Debug(
             $"{nameof(block4)}: {0} bytes",
             ModelSerializer.SerializeToBytes(block4).Length);
@@ -161,7 +161,7 @@ public partial class BlockChainTest
                 Transaction.Create(
                     5,  // Invalid nonce
                     new PrivateKey(),
-                    _blockChain.Genesis.Hash,
+                    _blockChain.Genesis.BlockHash,
                     new[]
                     {
                         DumbAction.Create((new PrivateKey().Address, "foo")),
@@ -195,7 +195,7 @@ public partial class BlockChainTest
             Transaction.Create(
                 0,
                 keys[0],
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 new[]
                 {
                     DumbAction.Create((addrA, "1a")),
@@ -204,7 +204,7 @@ public partial class BlockChainTest
             Transaction.Create(
                 1,
                 keys[0],
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 new[]
                 {
                     DumbAction.Create((addrC, "2a")),
@@ -215,7 +215,7 @@ public partial class BlockChainTest
             Transaction.Create(
                 1,
                 keys[1],
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 new[]
                 {
                     DumbAction.Create((addrE, "3a")),
@@ -224,7 +224,7 @@ public partial class BlockChainTest
             Transaction.Create(
                 2,
                 keys[1],
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 new[]
                 {
                     DumbAction.Create((addrB, "4a")),
@@ -235,7 +235,7 @@ public partial class BlockChainTest
             Transaction.Create(
                 0,
                 keys[2],
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 new[]
                 {
                     DumbAction.Create((addrD, "5a")),
@@ -244,7 +244,7 @@ public partial class BlockChainTest
             Transaction.Create(
                 2,
                 keys[2],
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 new[]
                 {
                     DumbAction.Create((addrA, "6a")),
@@ -277,13 +277,13 @@ public partial class BlockChainTest
 
         foreach (Transaction tx in txs)
         {
-            Assert.Null(_blockChain.GetTxExecution(_blockChain.Genesis.Hash, tx.Id));
+            Assert.Null(_blockChain.GetTxExecution(_blockChain.Genesis.BlockHash, tx.Id));
         }
 
         Block block = _blockChain.ProposeBlock(keyA);
         _blockChain.Append(block, CreateBlockCommit(block));
 
-        Assert.True(_blockChain.ContainsBlock(block.Hash));
+        Assert.True(_blockChain.ContainsBlock(block.BlockHash));
         Assert.Contains(txs[0], block.Transactions);
         Assert.Contains(txs[1], block.Transactions);
         Assert.DoesNotContain(txs[2], block.Transactions);
@@ -332,16 +332,16 @@ public partial class BlockChainTest
 
         foreach (Transaction tx in new[] { txs[0], txs[1], txs[4] })
         {
-            TxExecution txx = _blockChain.GetTxExecution(block.Hash, tx.Id);
+            TxExecution txx = _blockChain.GetTxExecution(block.BlockHash, tx.Id);
             _logger.Debug(
                 nameof(_blockChain.GetTxExecution) + "({Hash}, {Id}) = {TxExecution}",
-                block.Hash,
+                block.BlockHash,
                 tx.Id,
                 txx);
             Assert.False(txx.Fail);
-            Assert.Equal(block.Hash, txx.BlockHash);
+            Assert.Equal(block.BlockHash, txx.BlockHash);
             Assert.Equal(tx.Id, txx.TxId);
-            Assert.Null(_blockChain.GetTxExecution(_blockChain.Genesis.Hash, tx.Id));
+            Assert.Null(_blockChain.GetTxExecution(_blockChain.Genesis.BlockHash, tx.Id));
         }
     }
 
@@ -398,17 +398,17 @@ public partial class BlockChainTest
             Transaction.Create(
                 2,
                 key,
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 Array.Empty<DumbAction>().ToBytecodes()),
             Transaction.Create(
                 1,
                 key,
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 Array.Empty<DumbAction>().ToBytecodes()),
             Transaction.Create(
                 0,
                 key,
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 Array.Empty<DumbAction>().ToBytecodes()),
         };
         StageTransactions(txs);
@@ -426,7 +426,7 @@ public partial class BlockChainTest
                 Transaction.Create(
                     0,
                     key,
-                    _blockChain.Genesis.Hash,
+                    _blockChain.Genesis.BlockHash,
                     actions: []),
             });
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
@@ -439,13 +439,13 @@ public partial class BlockChainTest
                 Transaction.Create(
                     0,
                     key,
-                    _blockChain.Genesis.Hash,
+                    _blockChain.Genesis.BlockHash,
                     actions: []),
             });
         Block block2 = _blockChain.ProposeBlock(
             new PrivateKey(),
             CreateBlockCommit(
-                _blockChain.Tip.Hash,
+                _blockChain.Tip.BlockHash,
                 _blockChain.Tip.Height,
                 0),
             [.. _blockChain.GetPendingEvidence()]);
@@ -574,7 +574,7 @@ public partial class BlockChainTest
         {
             Height = _blockChain.Tip.Height,
             Round = 0,
-            BlockHash = _blockChain.Tip.Hash,
+            BlockHash = _blockChain.Tip.BlockHash,
             Timestamp = DateTimeOffset.UtcNow,
             ValidatorPublicKey = key.PublicKey,
             ValidatorPower = BigInteger.One,
@@ -584,7 +584,7 @@ public partial class BlockChainTest
         {
             Height = _blockChain.Tip.Height,
             Round = 0,
-            BlockHash = _blockChain.Tip.Hash,
+            BlockHash = _blockChain.Tip.BlockHash,
             Votes = votes,
         };
         Block block = _blockChain.ProposeBlock(
@@ -677,9 +677,8 @@ public partial class BlockChainTest
         StageTransactions(txs);
 
         // Test if minTransactions and minTransactionsPerSigner work:
-        ImmutableList<Transaction> gathered =
-            _blockChain.GatherTransactionsToPropose(1024 * 1024, 5, 3, 0);
-        Assert.Equal(5, gathered.Count);
+        var gathered = _blockChain.GatherTransactionsToPropose(1024 * 1024, 5, 3, 0);
+        Assert.Equal(5, gathered.Length);
         var expectedNonces = new Dictionary<Address, long> { [a] = 0, [b] = 0, [c] = 0 };
         foreach (Transaction tx in gathered)
         {
@@ -712,7 +711,7 @@ public partial class BlockChainTest
         {
             Invoice = new TxInvoice
             {
-                GenesisHash = _blockChain.Genesis.Hash,
+                GenesisHash = _blockChain.Genesis.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Actions = [new ActionBytecode([0x11])], // Invalid action
             },
@@ -728,28 +727,28 @@ public partial class BlockChainTest
             Signature = unsignedInvalidTx.CreateSignature(keyB),
         };
         Transaction txWithInvalidNonce = Transaction.Create(
-            2, keyB, _blockChain.Genesis.Hash, []);
+            2, keyB, _blockChain.Genesis.BlockHash, []);
         var txs = new[]
         {
             Transaction.Create(
                 0,
                 keyA,
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 []),
             Transaction.Create(
                 1,
                 keyA,
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 []),
             Transaction.Create(
                 2,
                 keyA,
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 []),
             Transaction.Create(
                 0,
                 keyB,
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 []),
             txWithInvalidAction,
             txWithInvalidNonce,

@@ -28,7 +28,7 @@ namespace Libplanet.Tests.Blockchain
             Transaction tx1 = Transaction.Create(
                 0,
                 new PrivateKey(),
-                _blockChain.Genesis.Hash,
+                _blockChain.Genesis.BlockHash,
                 []);
             Transaction tx2 = Transaction.Create(
                 0,

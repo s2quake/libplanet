@@ -18,7 +18,7 @@ public sealed class Branch
                          sorted.Skip(1),
                          (prev, next) =>
                              prev.Item1.Height + 1 == next.Item1.Height &&
-                             prev.Item1.Hash.Equals(next.Item1.PreviousHash))
+                             prev.Item1.BlockHash.Equals(next.Item1.PreviousHash))
                      .All(pred => pred))
         {
             throw new ArgumentException(

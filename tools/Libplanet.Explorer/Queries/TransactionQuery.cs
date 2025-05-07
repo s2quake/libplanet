@@ -136,7 +136,7 @@ namespace Libplanet.Explorer.Queries
                     var signingMetadata = TxSigningMetadata.Create(publicKey, nonce);
                     var invoice = new TxInvoice
                     {
-                        GenesisHash = chain.Genesis.Hash,
+                        GenesisHash = chain.Genesis.BlockHash,
                         Actions = [new ActionBytecode([.. plainBytes])],
                     };
                     var unsignedTx = new UnsignedTx
@@ -204,12 +204,12 @@ namespace Libplanet.Explorer.Queries
 
                     if (GetBlockContainingTx(_context, txId) is { } block)
                     {
-                        return _context.BlockChain.GetTxExecution(block.Hash, txId) is { } execution
+                        return _context.BlockChain.GetTxExecution(block.BlockHash, txId) is { } execution
                             ? new TxResult
                             {
                                 TxStatus = execution.Fail ? TxStatus.FAILURE : TxStatus.SUCCESS,
                                 BlockHeight = block.Height,
-                                BlockHash = block.Hash.ToString(),
+                                BlockHash = block.BlockHash.ToString(),
                                 InputState = execution.InputState,
                                 OutputState = execution.OutputState,
                                 ExceptionNames = execution.ExceptionNames,
@@ -218,7 +218,7 @@ namespace Libplanet.Explorer.Queries
                             {
                                 TxStatus = TxStatus.INCLUDED,
                                 BlockHeight = block.Height,
-                                BlockHash = block.Hash.ToString(),
+                                BlockHash = block.BlockHash.ToString(),
                             };
                     }
                     else

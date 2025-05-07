@@ -93,14 +93,13 @@ public partial class ActionEvaluatorTest
         var evs = Array.Empty<EvidenceBase>();
         var stateStore = new TrieStateStore();
         var noStateRootBlock = RawBlock.Propose(
-            new BlockMetadata
+            new BlockHeader
             {
-                ProtocolVersion = Block.CurrentProtocolVersion,
+                ProtocolVersion = BlockHeader.CurrentProtocolVersion,
                 Height = 0,
                 Timestamp = timestamp,
                 Proposer = GenesisProposer.Address,
                 PreviousHash = default,
-                TxHash = BlockContent.DeriveTxHash([.. txs]),
             },
             new BlockContent
             {
@@ -151,7 +150,7 @@ public partial class ActionEvaluatorTest
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
+            genesisHash: chain.Genesis.BlockHash,
             actions: new[] { action }.ToBytecodes());
 
         chain.StageTransaction(tx);
@@ -227,7 +226,7 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(chain.Tip),
             evidence: []);
         var evaluations = actionEvaluator.Evaluate(
-            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
+            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.BlockHash)).ToArray();
 
         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
         Assert.Equal(
@@ -292,7 +291,7 @@ public partial class ActionEvaluatorTest
             CreateBlockCommit(chain.Tip),
             []);
         var evaluations = actionEvaluator.Evaluate(
-            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.Hash)).ToArray();
+            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.BlockHash)).ToArray();
 
         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
         Assert.Equal(
@@ -370,7 +369,7 @@ public partial class ActionEvaluatorTest
     //     var txs = new Transaction[] { tx };
     //     var evs = Array.Empty<EvidenceBase>();
     //     RawBlock block = RawBlock.Propose(
-    //         new BlockMetadata
+    //         new BlockHeader
     //         {
     //             Height = 1L,
     //             Timestamp = DateTimeOffset.UtcNow,
@@ -435,7 +434,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesisBlock.Hash,
+                        GenesisHash = genesisBlock.BlockHash,
                         UpdatedAddresses = [addresses[0], addresses[1]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
                         Actions = new IAction[]
@@ -455,7 +454,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesisBlock.Hash,
+                        GenesisHash = genesisBlock.BlockHash,
                         UpdatedAddresses = [],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
                         Actions = new IAction[]
@@ -474,7 +473,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesisBlock.Hash,
+                        GenesisHash = genesisBlock.BlockHash,
                         UpdatedAddresses = [],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
                         Actions = [],
@@ -498,7 +497,7 @@ public partial class ActionEvaluatorTest
             block1Txs);
         World previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
         var evals = actionEvaluator.EvaluateBlock((RawBlock)block1, previousState);
-        // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
+        // Once the BlockHeader.CurrentProtocolVersion gets bumped, expectations may also
         // have to be updated, since the order may change due to different RawHash.
         (int TxIdx, int ActionIdx, string?[] UpdatedStates, Address Signer)[] expectations =
         [
@@ -581,7 +580,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesisBlock.Hash,
+                        GenesisHash = genesisBlock.BlockHash,
                         UpdatedAddresses = [addresses[0]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
                         Actions = new IAction[]
@@ -600,7 +599,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesisBlock.Hash,
+                        GenesisHash = genesisBlock.BlockHash,
                         UpdatedAddresses = [addresses[3]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
                         Actions = new[]
@@ -619,7 +618,7 @@ public partial class ActionEvaluatorTest
                 {
                     Invoice = new TxInvoice
                     {
-                        GenesisHash = genesisBlock.Hash,
+                        GenesisHash = genesisBlock.BlockHash,
                         UpdatedAddresses = [addresses[4]],
                         Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
                         Actions = new[]
@@ -652,7 +651,7 @@ public partial class ActionEvaluatorTest
         previousState = evals1[^1].OutputWorld;
         evals = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState);
 
-        // Once the BlockMetadata.CurrentProtocolVersion gets bumped, expectations may also
+        // Once the BlockHeader.CurrentProtocolVersion gets bumped, expectations may also
         // have to be updated, since the order may change due to different RawHash.
         expectations =
         [
@@ -734,12 +733,11 @@ public partial class ActionEvaluatorTest
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
         var block = RawBlock.Propose(
-            new BlockMetadata
+            new BlockHeader
             {
                 Height = 1L,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = keys[0].Address,
-                TxHash = BlockContent.DeriveTxHash([.. txs]),
             },
             new BlockContent
             {
@@ -836,13 +834,12 @@ public partial class ActionEvaluatorTest
         var stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(stateStore);
         var block = RawBlock.Propose(
-            new BlockMetadata
+            new BlockHeader
             {
                 Height = 123,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = GenesisProposer.Address,
                 PreviousHash = hash,
-                TxHash = BlockContent.DeriveTxHash(txs),
                 LastCommit = CreateBlockCommit(hash, 122, 0),
             },
             new BlockContent
@@ -1187,7 +1184,7 @@ public partial class ActionEvaluatorTest
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
+            genesisHash: chain.Genesis.BlockHash,
             maxGasPrice: FungibleAssetValue.Create(foo, 1),
             gasLimit: 3,
             actions: new[]
@@ -1242,7 +1239,7 @@ public partial class ActionEvaluatorTest
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,
-            genesisHash: chain.Genesis.Hash,
+            genesisHash: chain.Genesis.BlockHash,
             actions: new[] { payGasAction }.ToBytecodes(),
             maxGasPrice: FungibleAssetValue.Create(foo, 1),
             gasLimit: 5);

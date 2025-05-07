@@ -27,7 +27,7 @@ public partial class BlockChain
                 "hash {Hash} with {Count} action evaluations",
                 stopwatch.ElapsedMilliseconds,
                 block.Height,
-                block.Hash,
+                block.BlockHash,
                 evaluations.Count);
 
             if (evaluations.Count > 0)
@@ -36,7 +36,7 @@ public partial class BlockChain
             }
             else
             {
-                return Store.GetStateRootHash(block.Hash) is { } stateRootHash
+                return Store.GetStateRootHash(block.BlockHash) is { } stateRootHash
                     ? stateRootHash
                     : StateStore.GetStateRoot(default).Hash;
             }
@@ -50,11 +50,11 @@ public partial class BlockChain
     public IReadOnlyList<CommittedActionEvaluation> EvaluateBlock(Block block) =>
             ActionEvaluator.Evaluate(
                 (RawBlock)block,
-                Store.GetStateRootHash(block.Hash));
+                Store.GetStateRootHash(block.BlockHash));
 
     internal Block EvaluateAndSign(RawBlock rawBlock, PrivateKey privateKey)
     {
-        if (rawBlock.Metadata.Height < 1)
+        if (rawBlock.Header.Height < 1)
         {
             throw new ArgumentException(
                 $"Given {nameof(rawBlock)} must have block height " +
@@ -62,8 +62,8 @@ public partial class BlockChain
         }
         else
         {
-            var prevBlock = _blocks[rawBlock.Metadata.PreviousHash];
-            var stateRootHash = GetNextStateRootHash(prevBlock.Hash)
+            var prevBlock = _blocks[rawBlock.Header.PreviousHash];
+            var stateRootHash = GetNextStateRootHash(prevBlock.BlockHash)
                 ?? throw new NullReferenceException(
                     $"State root hash of block is not prepared");
             return rawBlock.Sign(privateKey, stateRootHash);
@@ -84,7 +84,7 @@ public partial class BlockChain
                 "Took {DurationMs} ms to evaluate block #{BlockHeight} " +
                 "pre-evaluation hash {RawHash} with {Count} action evaluations",
                 stopwatch.ElapsedMilliseconds,
-                rawBlock.Height,
+                rawBlock.Header.Height,
                 rawBlock.RawHash,
                 evaluations.Count);
 
@@ -94,7 +94,7 @@ public partial class BlockChain
             }
             else
             {
-                return Store.GetStateRootHash(rawBlock.PreviousHash) is { } prevStateRootHash
+                return Store.GetStateRootHash(rawBlock.Header.PreviousHash) is { } prevStateRootHash
                     ? prevStateRootHash
                     : StateStore.GetStateRoot(default).Hash;
             }
@@ -106,5 +106,5 @@ public partial class BlockChain
     }
 
     internal IReadOnlyList<CommittedActionEvaluation> EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
-        => ActionEvaluator.Evaluate(rawBlock, Store.GetStateRootHash(rawBlock.PreviousHash));
+        => ActionEvaluator.Evaluate(rawBlock, Store.GetStateRootHash(rawBlock.Header.PreviousHash));
 }

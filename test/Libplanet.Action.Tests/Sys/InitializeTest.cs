@@ -47,7 +47,7 @@ public class InitializeTest
             TxId = random.NextTxId(),
             Proposer = random.NextAddress(),
             BlockHeight = 0,
-            BlockProtocolVersion = Block.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
             RandomSeed = 123,
         };
         var initialize = new Initialize
@@ -97,7 +97,7 @@ public class InitializeTest
             TxId = random.NextTxId(),
             Proposer = random.NextAddress(),
             BlockHeight = 10,
-            BlockProtocolVersion = Block.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
             LastCommit = lastCommit,
             RandomSeed = 123,
         };

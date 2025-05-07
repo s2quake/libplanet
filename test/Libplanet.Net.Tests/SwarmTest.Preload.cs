@@ -184,7 +184,7 @@ namespace Libplanet.Net.Tests
                     "Receiver chain",
                     receiverChain);
 
-                Assert.Equal(minerChain.Tip.Hash, receiverChain.Tip.Hash);
+                Assert.Equal(minerChain.Tip.BlockHash, receiverChain.Tip.BlockHash);
             }
             finally
             {
@@ -246,14 +246,14 @@ namespace Libplanet.Net.Tests
             {
                 Height = maliciousTipHeight,
                 Round = 0,
-                BlockHash = specialBlock.Hash,
+                BlockHash = specialBlock.BlockHash,
                 Votes =
                 [
                     new VoteMetadata
                     {
                         Height = maliciousTipHeight,
                         Round = 0,
-                        BlockHash = specialBlock.Hash,
+                        BlockHash = specialBlock.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidatorPublicKey = TestUtils.PrivateKeys[0].PublicKey,
                         ValidatorPower = TestUtils.Validators[0].Power,
@@ -306,8 +306,8 @@ namespace Libplanet.Net.Tests
 
                 Assert.Equal(chainC.Tip, chainA.Tip);
                 Assert.Equal(
-                    chainC.GetBlockCommit(chainC.Tip.Hash),
-                    chainA.GetBlockCommit(chainA.Tip.Hash));
+                    chainC.GetBlockCommit(chainC.Tip.BlockHash),
+                    chainA.GetBlockCommit(chainA.Tip.BlockHash));
             }
             finally
             {
@@ -706,7 +706,7 @@ namespace Libplanet.Net.Tests
 
             (BoundPeer, BlockExcerpt)[] peersWithExcerpt =
             {
-                (minerSwarm.AsPeer, minerChain.Tip.Header),
+                (minerSwarm.AsPeer, minerChain.Tip),
             };
 
             (var _, List<BlockHash> demands) = await receiverSwarm.GetDemandBlockHashes(
@@ -718,7 +718,7 @@ namespace Libplanet.Net.Tests
                 .IterateBlocks()
                 .Where(b => b.Height >= receiverChain.Tip.Height)
                 .Take(FindNextHashesChunkSize)
-                .Select(b => b.Hash);
+                .Select(b => b.BlockHash);
             Assert.Equal(expectedBlocks, demands);
 
             CleaningSwarm(minerSwarm);
@@ -885,7 +885,7 @@ namespace Libplanet.Net.Tests
                 for (int i = 1; i < receiverChain.Count; i++)
                 {
                     Assert.NotNull(fx2.Store.GetTxExecution(
-                        receiverChain[i].Hash,
+                        receiverChain[i].BlockHash,
                         transactions[i - 1].Id));
                 }
             }

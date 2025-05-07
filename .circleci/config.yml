@@ -352,8 +352,8 @@ commands:
             Libplanet.Tests.Blocks.PreEvaluationBlockTest
             Libplanet.Tests.Blocks.PreEvaluationBlockHeaderTest
             Libplanet.Tests.Blocks.BlockContentTest
-            Libplanet.Tests.Blocks.BlockMetadataExtensionsTest
-            Libplanet.Tests.Blocks.BlockMetadataTest
+            Libplanet.Tests.Blocks.BlockHeaderExtensionsTest
+            Libplanet.Tests.Blocks.BlockHeaderTest
           )
           excluded_methods=(
           )

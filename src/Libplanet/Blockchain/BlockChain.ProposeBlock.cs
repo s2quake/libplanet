@@ -21,13 +21,12 @@ public partial class BlockChain
     {
         transactions ??= [];
 
-        var metadata = new BlockMetadata
+        var metadata = new BlockHeader
         {
             Height = 0L,
             Timestamp = timestamp ?? DateTimeOffset.UtcNow,
             Proposer = privateKey.Address,
             PreviousHash = default,
-            TxHash = BlockContent.DeriveTxHash(transactions),
         };
         var content = new BlockContent
         {
@@ -69,7 +68,7 @@ public partial class BlockChain
         _logger.Debug(
             "Proposed block #{Height} {Hash} with previous hash {PreviousHash}",
             block.Height,
-            block.Hash,
+            block.BlockHash,
             block.PreviousHash);
 
         return block;
@@ -111,17 +110,14 @@ public partial class BlockChain
 
         // FIXME: Should use automated public constructor.
         // Manual internal constructor is used purely for testing custom timestamps.
-        var metadata = new BlockMetadata
+        var metadata = new BlockHeader
         {
-            ProtocolVersion = BlockMetadata.CurrentProtocolVersion,
+            ProtocolVersion = BlockHeader.CurrentProtocolVersion,
             Height = index,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
-            // PublicKey = proposer.PublicKey,
             PreviousHash = prevHash,
-            TxHash = BlockContent.DeriveTxHash(transactions),
             LastCommit = lastCommit,
-            EvidenceHash = BlockContent.DeriveEvidenceHash(evidence),
         };
         var blockContent = new BlockContent
         {
@@ -165,7 +161,7 @@ public partial class BlockChain
     /// to propose.</returns>
     /// <exception cref="InvalidOperationException">Thrown when not all policies
     /// can be satisfied.</exception>
-    internal ImmutableSortedSet<Transaction> GatherTransactionsToPropose(
+    internal ImmutableArray<Transaction> GatherTransactionsToPropose(
         long index,
         IComparer<Transaction>? txPriority = null) =>
         GatherTransactionsToPropose(
@@ -194,7 +190,7 @@ public partial class BlockChain
     /// <paramref name="maxTransactionsPerSigner"/>.</returns>
     /// <exception cref="InvalidOperationException">Thrown when not all policies
     /// can be satisfied.</exception>
-    internal ImmutableSortedSet<Transaction> GatherTransactionsToPropose(
+    internal ImmutableArray<Transaction> GatherTransactionsToPropose(
         long maxTransactionsBytes,
         int maxTransactions,
         int maxTransactionsPerSigner,
@@ -362,6 +358,6 @@ public partial class BlockChain
             transactions.Count,
             index,
             stagedTransactions.Count);
-        return transactions.ToImmutableList();
+        return transactions.ToImmutableArray();
     }
 }

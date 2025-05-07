@@ -299,9 +299,9 @@ public partial class Context : IDisposable
             { "round", Round },
             { "step", Step.ToString() },
             { "proposal", Proposal?.ToString() ?? "null" },
-            { "locked_value", _lockedValue?.Hash.ToString() ?? "null" },
+            { "locked_value", _lockedValue?.BlockHash.ToString() ?? "null" },
             { "locked_round", _lockedRound },
-            { "valid_value", _validValue?.Hash.ToString() ?? "null" },
+            { "valid_value", _validValue?.BlockHash.ToString() ?? "null" },
             { "valid_round", _validRound },
         };
         return JsonSerializer.Serialize(dict);
@@ -394,7 +394,7 @@ public partial class Context : IDisposable
     /// </returns>
     private bool IsValid(Block block)
     {
-        if (_blockValidationCache.TryGet(block.Hash, out var isValid))
+        if (_blockValidationCache.TryGet(block.BlockHash, out var isValid))
         {
             return isValid;
         }
@@ -406,7 +406,7 @@ public partial class Context : IDisposable
 
             if (block.Height != Height)
             {
-                _blockValidationCache.AddReplace(block.Hash, false);
+                _blockValidationCache.AddReplace(block.BlockHash, false);
                 return false;
             }
 
@@ -447,8 +447,8 @@ public partial class Context : IDisposable
                     e,
                     "Block #{Index} {Hash} is invalid",
                     block.Height,
-                    block.Hash);
-                _blockValidationCache.AddReplace(block.Hash, false);
+                    block.BlockHash);
+                _blockValidationCache.AddReplace(block.BlockHash, false);
                 return false;
             }
             finally
@@ -456,7 +456,7 @@ public partial class Context : IDisposable
                 _blockChain._rwlock.ExitUpgradeableReadLock();
             }
 
-            _blockValidationCache.AddReplace(block.Hash, true);
+            _blockValidationCache.AddReplace(block.BlockHash, true);
             return true;
         }
     }

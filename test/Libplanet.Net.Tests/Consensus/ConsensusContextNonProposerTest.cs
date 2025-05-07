@@ -64,7 +64,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     Height = 1,
                     Round = 0,
-                    BlockHash = block1.Hash,
+                    BlockHash = block1.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPublicKey = TestUtils.Validators[i].PublicKey,
                     ValidatorPower = TestUtils.Validators[i].Power,
@@ -81,7 +81,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     Height = 1,
                     Round = 0,
-                    BlockHash = block1.Hash,
+                    BlockHash = block1.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPublicKey = TestUtils.Validators[i].PublicKey,
                     ValidatorPower = TestUtils.Validators[i].Power,
@@ -313,7 +313,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
 
             TestUtils.HandleFourPeersPreCommitMessages(
-                 consensusContext, TestUtils.PrivateKeys[2], block.Hash);
+                 consensusContext, TestUtils.PrivateKeys[2], block.BlockHash);
 
             await heightOneEndCommit.WaitAsync();
             var endCommitTime = DateTimeOffset.UtcNow;

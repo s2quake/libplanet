@@ -17,7 +17,7 @@ namespace Libplanet.Net.Tests
         public void Add()
         {
             var table = new BlockCandidateTable();
-            var header = _fx.GenesisBlock.Header;
+            var header = _fx.GenesisBlock;
 
             // Ignore existing key
             var firstBranch = new Branch(

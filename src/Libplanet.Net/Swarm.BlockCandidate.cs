@@ -20,7 +20,7 @@ namespace Libplanet.Net
                 if (BlockCandidateTable.Count > 0)
                 {
                     BlockHeader tipHeader = BlockChain.Tip.Header;
-                    if (BlockCandidateTable.GetCurrentRoundCandidate(tipHeader) is { } branch)
+                    if (BlockCandidateTable.GetCurrentRoundCandidate(BlockChain.Tip) is { } branch)
                     {
                         var root = branch.Blocks.First();
                         var tip = branch.Blocks.Last();
@@ -28,9 +28,9 @@ namespace Libplanet.Net
                             "Consuming branch with root #{RootIndex} {RootHash} " +
                             "and tip #{TipIndex} {TipHash}",
                             root.Item1.Height,
-                            root.Item1.Hash,
+                            root.Item1.BlockHash,
                             tip.Item1.Height,
-                            tip.Item1.Hash);
+                            tip.Item1.BlockHash);
                         _ = BlockCandidateProcess(
                             branch,
                             render,
@@ -64,7 +64,7 @@ namespace Libplanet.Net
                     "{MethodName}() starts to append; current tip is #{Index} {Hash}",
                     nameof(BlockCandidateProcess),
                     BlockChain.Tip.Height,
-                    BlockChain.Tip.Hash);
+                    BlockChain.Tip.BlockHash);
                 AppendBranch(
                     blockChain: BlockChain,
                     candidate: candidate,
@@ -75,7 +75,7 @@ namespace Libplanet.Net
                     "{MethodName}() finished appending blocks; current tip is #{Index} {Hash}",
                     nameof(BlockCandidateProcess),
                     BlockChain.Tip.Height,
-                    BlockChain.Tip.Hash);
+                    BlockChain.Tip.BlockHash);
                 return true;
             }
             catch (Exception e)
@@ -103,7 +103,7 @@ namespace Libplanet.Net
             {
                 _logger.Debug(
                     "There are no blocks to append to block {BlockHash}",
-                    branchpoint.Hash);
+                    branchpoint.BlockHash);
             }
 
             try
@@ -138,7 +138,7 @@ namespace Libplanet.Net
                 }
                 else
                 {
-                    matchFound = branchpoint.Hash.Equals(pair.Item1.Hash);
+                    matchFound = branchpoint.BlockHash.Equals(pair.Item1.BlockHash);
                 }
             }
 
@@ -239,7 +239,7 @@ namespace Libplanet.Net
             try
             {
                 var branch = new Branch(await blocksAsync.ToArrayAsync(cancellationToken));
-                BlockCandidateTable.Add(tip.Header, branch);
+                BlockCandidateTable.Add(tip, branch);
                 return true;
             }
             catch (ArgumentException ae)

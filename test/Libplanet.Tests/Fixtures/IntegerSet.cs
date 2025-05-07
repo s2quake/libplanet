@@ -80,7 +80,7 @@ public sealed class IntegerSet
                 Txs,
                 null,
                 DateTimeOffset.UtcNow,
-                Block.CurrentProtocolVersion),
+                BlockHeader.CurrentProtocolVersion),
             Proposer);
         Chain = BlockChain.Create(
             policy,
@@ -105,10 +105,10 @@ public sealed class IntegerSet
         var signer = signerKey.Address;
         KeyBytes rawStateKey = KeyConverters.ToStateKey(signer);
         long nonce = Chain.GetNextTxNonce(signer);
-        Transaction tx = Transaction.Create(nonce, signerKey, Genesis.Hash, actions.ToBytecodes());
+        Transaction tx = Transaction.Create(nonce, signerKey, Genesis.BlockHash, actions.ToBytecodes());
         BigInteger prevState = Chain.GetNextWorld().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
-        ITrie prevTrie = GetTrie(Chain.Tip.Hash);
+        ITrie prevTrie = GetTrie(Chain.Tip.BlockHash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);
         (BigInteger, HashDigest<SHA256>) stagedStates = Chain.ListStagedTransactions()
             .Where(t => t.Signer.Equals(signer))
@@ -161,7 +161,7 @@ public sealed class IntegerSet
     {
         if (blockHash != default)
         {
-            return StateStore.GetStateRoot(Store.GetBlockDigest(blockHash).StateRootHash);
+            return StateStore.GetStateRoot(Store.GetBlockDigest(blockHash).Hash.StateRootHash);
         }
 
         return StateStore.GetStateRoot(default);

@@ -16,6 +16,8 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>
     [Property(0)]
     public required BlockHeader Header { get; init; }
 
+    public BlockHashData Hash { get; init; } = BlockHashData.Empty;
+
     [Property(1)]
     public ImmutableSortedSet<TxId> TxIds { get; init; } = [];
 
@@ -28,9 +30,9 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>
 
     public BlockHash PreviousHash => Header.PreviousHash;
 
-    public BlockHash Hash => Header.BlockHash;
+    // public BlockHash Hash => Header.BlockHash;
 
-    public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
+    // public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
 
     public static BlockDigest Create(Block block) => new()
     {

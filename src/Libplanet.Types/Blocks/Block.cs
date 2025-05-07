@@ -9,7 +9,7 @@ namespace Libplanet.Types.Blocks;
 [Model(Version = 1)]
 public sealed record class Block : IEquatable<Block>
 {
-    // public const int CurrentProtocolVersion = BlockMetadata.CurrentProtocolVersion;
+    // public const int CurrentProtocolVersion = BlockHeader.CurrentProtocolVersion;
 
     [Property(0)]
     public required BlockHeader Header { get; init; } = BlockHeader.Empty;
@@ -17,15 +17,18 @@ public sealed record class Block : IEquatable<Block>
     [Property(1)]
     public required BlockContent Content { get; init; }
 
+    [Property(1)]
+    public BlockHashData Hash { get; init; } = BlockHashData.Empty;
+
     public int ProtocolVersion => Header.ProtocolVersion;
 
-    public BlockHash Hash => Header.BlockHash;
+    public BlockHash BlockHash => Hash.BlockHash;
 
-    public ImmutableArray<byte> Signature => Header.Signature;
+    public ImmutableArray<byte> Signature => Hash.Signature;
 
-    public HashDigest<SHA256> RawHash => Header.RawHash;
+    public HashDigest<SHA256> RawHash => Hash.RawHash;
 
-    public HashDigest<SHA256> StateRootHash => Header.StateRootHash;
+    public HashDigest<SHA256> StateRootHash => Hash.StateRootHash;
 
     public long Height => Header.Height;
 
@@ -35,11 +38,11 @@ public sealed record class Block : IEquatable<Block>
 
     public DateTimeOffset Timestamp => Header.Timestamp;
 
-    public HashDigest<SHA256>? TxHash => Header.TxHash;
-
     public BlockCommit LastCommit => Header.LastCommit;
 
-    public HashDigest<SHA256>? EvidenceHash => Header.EvidenceHash;
+    public HashDigest<SHA256>? TxHash => Content.TxHash;
+
+    public HashDigest<SHA256>? EvidenceHash => Content.EvidenceHash;
 
     public ImmutableSortedSet<EvidenceBase> Evidence => Content.Evidences;
 
@@ -61,7 +64,7 @@ public sealed record class Block : IEquatable<Block>
 
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
-    public override string ToString() => Hash.ToString();
+    public override string ToString() => BlockHash.ToString();
 
     public bool Equals(Block? other) => ModelUtility.Equals(this, other);
 }

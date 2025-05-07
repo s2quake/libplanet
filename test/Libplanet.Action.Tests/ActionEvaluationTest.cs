@@ -57,7 +57,7 @@ public class ActionEvaluationTest
                 TxId = txid,
                 Proposer = address,
                 BlockHeight = 1,
-                BlockProtocolVersion = Block.CurrentProtocolVersion,
+                BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
                 LastCommit = lastCommit,
                 RandomSeed = 123,
             },

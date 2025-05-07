@@ -95,7 +95,7 @@ public abstract class StoreFixture : IDisposable
         GenesisBlock = preEval.Sign(
             Proposer,
             default);
-        stateRootHashes[GenesisBlock.Hash] = GenesisBlock.StateRootHash;
+        stateRootHashes[GenesisBlock.BlockHash] = GenesisBlock.StateRootHash;
         var genesisNextSrh = actionEvaluator.Evaluate(
             (RawBlock)GenesisBlock, GenesisBlock.StateRootHash)[^1].OutputState;
         Block1 = TestUtils.ProposeNextBlock(
@@ -103,28 +103,28 @@ public abstract class StoreFixture : IDisposable
             proposer: Proposer,
             stateRootHash: genesisNextSrh,
             lastCommit: null);
-        stateRootHashes[Block1.Hash] = Block1.StateRootHash;
+        stateRootHashes[Block1.BlockHash] = Block1.StateRootHash;
         Block2 = TestUtils.ProposeNextBlock(
             Block1,
             proposer: Proposer,
             stateRootHash: genesisNextSrh,
             lastCommit: TestUtils.CreateBlockCommit(Block1));
-        stateRootHashes[Block2.Hash] = Block2.StateRootHash;
+        stateRootHashes[Block2.BlockHash] = Block2.StateRootHash;
         Block3 = TestUtils.ProposeNextBlock(
             Block2,
             proposer: Proposer,
             stateRootHash: genesisNextSrh,
             lastCommit: TestUtils.CreateBlockCommit(Block2));
-        stateRootHashes[Block3.Hash] = Block3.StateRootHash;
+        stateRootHashes[Block3.BlockHash] = Block3.StateRootHash;
         Block3Alt = TestUtils.ProposeNextBlock(
             Block2, proposer: Proposer, stateRootHash: genesisNextSrh);
-        stateRootHashes[Block3Alt.Hash] = Block3Alt.StateRootHash;
+        stateRootHashes[Block3Alt.BlockHash] = Block3Alt.StateRootHash;
         Block4 = TestUtils.ProposeNextBlock(
             Block3, proposer: Proposer, stateRootHash: genesisNextSrh);
-        stateRootHashes[Block4.Hash] = Block4.StateRootHash;
+        stateRootHashes[Block4.BlockHash] = Block4.StateRootHash;
         Block5 = TestUtils.ProposeNextBlock(
             Block4, proposer: Proposer, stateRootHash: genesisNextSrh);
-        stateRootHashes[Block5.Hash] = Block5.StateRootHash;
+        stateRootHashes[Block5.BlockHash] = Block5.StateRootHash;
 
         Transaction1 = MakeTransaction();
         Transaction2 = MakeTransaction();
@@ -210,7 +210,7 @@ public abstract class StoreFixture : IDisposable
         return Transaction.Create(
             nonce,
             privateKey,
-            GenesisBlock.Hash,
+            GenesisBlock.BlockHash,
             actions.ToBytecodes(),
             null,
             0L,

@@ -56,11 +56,11 @@ namespace Libplanet.Net
                     "tip #{TipIndex} {TipHash} will not be added as the table already contains " +
                     "blockheader #{Index} {BlockHash} as its key",
                     root.Height,
-                    root.Hash,
+                    root.BlockHash,
                     tip.Height,
-                    tip.Hash,
-                    blockHeader.Index,
-                    blockHeader.Hash);
+                    tip.BlockHash,
+                    blockHeader.Height,
+                    blockHeader.BlockHash);
                 return;
             }
 

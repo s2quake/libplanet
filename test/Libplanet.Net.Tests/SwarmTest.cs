@@ -512,9 +512,9 @@ namespace Libplanet.Net.Tests
 
                 List<BlockHash> inventories = await swarmB.GetBlockHashes(
                     swarmA.AsPeer,
-                    new BlockLocator(genesis.Hash));
+                    new BlockLocator(genesis.BlockHash));
                 Assert.Equal(
-                    new[] { genesis.Hash, block1.Hash, block2.Hash },
+                    new[] { genesis.BlockHash, block1.BlockHash, block2.BlockHash },
                     inventories);
 
                 (Block, BlockCommit)[] receivedBlocks =
@@ -565,7 +565,7 @@ namespace Libplanet.Net.Tests
 
                 List<BlockHash> hashes = await swarmB.GetBlockHashes(
                     peer,
-                    new BlockLocator(genesis.Hash));
+                    new BlockLocator(genesis.BlockHash));
 
                 ITransport transport = swarmB.Transport;
 
@@ -607,7 +607,7 @@ namespace Libplanet.Net.Tests
             Transaction tx = Transaction.Create(
                 0,
                 new PrivateKey(),
-                chainB.Genesis.Hash,
+                chainB.Genesis.BlockHash,
                 Array.Empty<DumbAction>().ToBytecodes());
             chainB.StageTransaction(tx);
             Block block = chainB.ProposeBlock(keyB);
@@ -821,7 +821,7 @@ namespace Libplanet.Net.Tests
 
                 Assert.NotEqual(swarmA.BlockChain.Genesis, swarmA.BlockChain.Tip);
                 Assert.Contains(
-                    swarmA.BlockChain.Tip.Hash,
+                    swarmA.BlockChain.Tip.BlockHash,
                     seed.BlockChain.BlockHashes);
             }
             finally
@@ -858,7 +858,7 @@ namespace Libplanet.Net.Tests
             Block block1 = miner1.BlockChain.ProposeBlock(
                 key1, CreateBlockCommit(miner1.BlockChain.Tip));
             miner1.BlockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
-            var miner1TipHash = miner1.BlockChain.Tip.Hash;
+            var miner1TipHash = miner1.BlockChain.Tip.BlockHash;
 
             miner2.BlockChain.MakeTransaction(privKey, new[] { DumbAction.Create((addr, item)) });
             Block block2 = miner2.BlockChain.ProposeBlock(
@@ -878,7 +878,7 @@ namespace Libplanet.Net.Tests
             miner2.BroadcastBlock(latest);
 
             await Task.Delay(5_000);
-            Assert.Equal(miner1TipHash, miner1.BlockChain.Tip.Hash);
+            Assert.Equal(miner1TipHash, miner1.BlockChain.Tip.BlockHash);
 
             CleaningSwarm(miner1);
             CleaningSwarm(miner2);
@@ -1491,7 +1491,7 @@ namespace Libplanet.Net.Tests
                 _ = transport.StartAsync();
                 await transport.WaitForRunningAsync();
                 var tasks = new List<Task>();
-                var content = new GetBlocksMsg(new[] { swarm.BlockChain.Genesis.Hash });
+                var content = new GetBlocksMsg(new[] { swarm.BlockChain.Genesis.BlockHash });
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(

@@ -561,7 +561,7 @@ namespace Libplanet.Net
             _logger.Debug(
                 "Tip before preloading: #{TipIndex} {TipHash}",
                 BlockChain.Tip.Height,
-                BlockChain.Tip.Hash);
+                BlockChain.Tip.BlockHash);
 
             // FIXME: Currently `IProgress<PreloadState>` can be rewinded to the previous stage
             // as it starts from the first stage when it's still not close enough to the topmost
@@ -590,8 +590,8 @@ namespace Libplanet.Net
                 Block localTip = BlockChain.Tip;
                 BlockExcerpt topmostTip = peersWithExcerpts
                     .Select(pair => pair.Item2)
-                    .Aggregate((prev, next) => prev.Index > next.Index ? prev : next);
-                if (topmostTip.Index - (i > 0 ? tipDeltaThreshold : 0L) <= localTip.Height)
+                    .Aggregate((prev, next) => prev.Height > next.Height ? prev : next);
+                if (topmostTip.Height - (i > 0 ? tipDeltaThreshold : 0L) <= localTip.Height)
                 {
                     const string msg =
                         "As the local tip (#{LocalTipIndex} {LocalTipHash}) is close enough to " +
@@ -600,9 +600,9 @@ namespace Libplanet.Net
                     _logger.Information(
                         msg,
                         localTip.Height,
-                        localTip.Hash,
-                        topmostTip.Index,
-                        topmostTip.Hash);
+                        localTip.BlockHash,
+                        topmostTip.Height,
+                        topmostTip.BlockHash);
                     break;
                 }
                 else
@@ -614,9 +614,9 @@ namespace Libplanet.Net
                     _logger.Information(
                         msg,
                         localTip.Height,
-                        localTip.Hash,
-                        topmostTip.Index,
-                        topmostTip.Hash);
+                        localTip.BlockHash,
+                        topmostTip.Height,
+                        topmostTip.BlockHash);
                 }
 
                 _logger.Information("Preloading (trial #{Trial}) started...", i + 1);
@@ -874,7 +874,7 @@ namespace Libplanet.Net
 
                         if (count < blockHashes.Count)
                         {
-                            if (blockHashes[count].Equals(block.Hash))
+                            if (blockHashes[count].Equals(block.BlockHash))
                             {
                                 yield return (block, commit);
                                 count++;
@@ -885,7 +885,7 @@ namespace Libplanet.Net
                                     "Expected a block with hash {ExpectedBlockHash} but " +
                                     "received a block with hash {ActualBlockHash}",
                                     blockHashes[count],
-                                    block.Hash);
+                                    block.BlockHash);
                                 yield break;
                             }
                         }
@@ -1059,7 +1059,7 @@ namespace Libplanet.Net
             CancellationToken cancellationToken = default)
         {
             BlockLocator locator = blockChain.GetBlockLocator();
-            long peerIndex = excerpt.Index;
+            long peerIndex = excerpt.Height;
             var downloaded = new List<BlockHash>();
 
             try
@@ -1102,8 +1102,8 @@ namespace Libplanet.Net
             _logger.Information(
                 "Trying to broadcast block #{Index} {Hash}...",
                 block.Height,
-                block.Hash);
-            var message = new BlockHeaderMsg(BlockChain.Genesis.Hash, block.Header);
+                block.BlockHash);
+            var message = new BlockHeaderMsg(BlockChain.Genesis.BlockHash, block);
             BroadcastMessage(except, message);
         }
 
@@ -1141,7 +1141,7 @@ namespace Libplanet.Net
         {
             Random random = new Random();
             Block tip = BlockChain.Tip;
-            BlockHash genesisHash = BlockChain.Genesis.Hash;
+            BlockHash genesisHash = BlockChain.Genesis.BlockHash;
             return (await DialExistingPeers(dialTimeout, maxPeersToDial, cancellationToken))
                 .Where(
                     pair => pair.Item2 is { } chainStatus &&
@@ -1315,7 +1315,7 @@ namespace Libplanet.Net
         /// <paramref name="target"/> is needed, otherwise, <see langword="false"/>.</returns>
         private bool IsBlockNeeded(BlockExcerpt target)
         {
-            return target.Index > BlockChain.Tip.Height;
+            return target.Height > BlockChain.Tip.Height;
         }
 
         private async Task RefreshTableAsync(

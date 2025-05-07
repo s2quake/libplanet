@@ -57,7 +57,7 @@ namespace Libplanet.Net.Tests
 
             Assert.Equal(numBlocks, chainA.Tip.Height);
             Assert.NotEqual(chainA.Tip, chainB.Tip);
-            Assert.NotNull(chainA.GetBlockCommit(chainA.Tip.Hash));
+            Assert.NotNull(chainA.GetBlockCommit(chainA.Tip.BlockHash));
 
             try
             {
@@ -72,8 +72,8 @@ namespace Libplanet.Net.Tests
 
                 Assert.Equal(chainA.Tip, chainB.Tip);
                 Assert.Equal(
-                    chainA.GetBlockCommit(chainA.Tip.Hash),
-                    chainB.GetBlockCommit(chainB.Tip.Hash));
+                    chainA.GetBlockCommit(chainA.Tip.BlockHash),
+                    chainB.GetBlockCommit(chainB.Tip.BlockHash));
             }
             finally
             {
@@ -232,7 +232,7 @@ namespace Libplanet.Net.Tests
                             Log.Debug(
                                 "Block mined. [Node: {0}, Block: {1}]",
                                 swarm.Address,
-                                block.Hash);
+                                block.BlockHash);
                             swarm.BroadcastBlock(block);
                         }
                         catch (OperationCanceledException)
@@ -291,7 +291,7 @@ namespace Libplanet.Net.Tests
             Transaction tx = Transaction.Create(
                 0,
                 new PrivateKey(),
-                chainA.Genesis.Hash,
+                chainA.Genesis.BlockHash,
                 Array.Empty<DumbAction>().ToBytecodes());
 
             chainA.StageTransaction(tx);
@@ -399,7 +399,7 @@ namespace Libplanet.Net.Tests
             Transaction tx = Transaction.Create(
                 0,
                 new PrivateKey(),
-                chainA.Genesis.Hash,
+                chainA.Genesis.BlockHash,
                 Array.Empty<DumbAction>().ToBytecodes());
 
             chainA.StageTransaction(tx);
@@ -459,7 +459,7 @@ namespace Libplanet.Net.Tests
             Transaction tx = Transaction.Create(
                 0,
                 new PrivateKey(),
-                blockChains[size - 1].Genesis.Hash,
+                blockChains[size - 1].Genesis.BlockHash,
                 Array.Empty<DumbAction>().ToBytecodes());
 
             blockChains[size - 1].StageTransaction(tx);
@@ -941,7 +941,7 @@ namespace Libplanet.Net.Tests
             var tx4 = Transaction.Create(
                 4,
                 privateKey,
-                swarm1.BlockChain.Genesis.Hash,
+                swarm1.BlockChain.Genesis.BlockHash,
                 new[] { DumbAction.Create((address, "qux")) }.ToBytecodes());
 
             try
@@ -1026,8 +1026,8 @@ namespace Libplanet.Net.Tests
 
                 // Send block header for block 1.
                 var blockHeaderMsg1 = new BlockHeaderMsg(
-                    receiver.BlockChain.Genesis.Hash,
-                    block1.Header);
+                    receiver.BlockChain.Genesis.BlockHash,
+                    block1);
                 await mockTransport.SendMessageAsync(
                     receiver.AsPeer,
                     blockHeaderMsg1,
@@ -1049,8 +1049,8 @@ namespace Libplanet.Net.Tests
 
                 // Send block header for block 2, make sure it does not spawn new task.
                 var blockHeaderMsg2 = new BlockHeaderMsg(
-                    receiver.BlockChain.Genesis.Hash,
-                    block2.Header);
+                    receiver.BlockChain.Genesis.BlockHash,
+                    block2);
                 await mockTransport.SendMessageAsync(
                     receiver.AsPeer,
                     blockHeaderMsg2,

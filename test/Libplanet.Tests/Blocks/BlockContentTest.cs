@@ -88,7 +88,7 @@
 //             var txs = new[] { tx2, Block1Tx0, Block1Tx1 }.OrderBy(tx => tx.Id).ToImmutableList();
 //             var blockContent = new BlockContent
 //             {
-//                 Metadata = new BlockMetadata
+//                 Metadata = new BlockHeader
 //                 {
 //                     Index = Block1Content.Index,
 //                     Timestamp = DateTimeOffset.UtcNow,
@@ -129,7 +129,7 @@
 //             InvalidOperationException e = Assert.Throws<InvalidOperationException>(
 //                 () => new BlockContent
 //                 {
-//                     Metadata = new BlockMetadata
+//                     Metadata = new BlockHeader
 //                     {
 //                         Index = Block1Content.Index,
 //                         Timestamp = DateTimeOffset.UtcNow,
@@ -169,7 +169,7 @@
 //             InvalidOperationException e = Assert.Throws<InvalidOperationException>(
 //                 () => new BlockContent
 //                 {
-//                     Metadata = new BlockMetadata
+//                     Metadata = new BlockHeader
 //                     {
 //                         Index = Block1Content.Index,
 //                         Timestamp = DateTimeOffset.UtcNow,
@@ -213,7 +213,7 @@
 //             InvalidTxGenesisHashException e = Assert.Throws<InvalidTxGenesisHashException>(
 //                 () => new BlockContent
 //                 {
-//                     Metadata = new BlockMetadata
+//                     Metadata = new BlockHeader
 //                     {
 //                         Index = Block1Content.Index,
 //                         Timestamp = DateTimeOffset.UtcNow,

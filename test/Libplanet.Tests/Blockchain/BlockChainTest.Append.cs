@@ -43,7 +43,7 @@ namespace Libplanet.Tests.Blockchain
             var block1 = _blockChain.ProposeBlock(
                 keys[4], TestUtils.CreateBlockCommit(_blockChain.Tip));
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
-            Assert.NotNull(_blockChain.GetBlockCommit(block1.Hash));
+            Assert.NotNull(_blockChain.GetBlockCommit(block1.BlockHash));
             Block block2 = _blockChain.ProposeBlock(
                 keys[4],
                 [.. txs],
@@ -51,9 +51,9 @@ namespace Libplanet.Tests.Blockchain
                 evidence: []);
             foreach (Transaction tx in txs)
             {
-                Assert.Null(getTxExecution(genesis.Hash, tx.Id));
-                Assert.Null(getTxExecution(block1.Hash, tx.Id));
-                Assert.Null(getTxExecution(block2.Hash, tx.Id));
+                Assert.Null(getTxExecution(genesis.BlockHash, tx.Id));
+                Assert.Null(getTxExecution(block1.BlockHash, tx.Id));
+                Assert.Null(getTxExecution(block2.BlockHash, tx.Id));
             }
 
             foreach (var tx in txs)
@@ -65,10 +65,10 @@ namespace Libplanet.Tests.Blockchain
 
             foreach (var tx in txs)
             {
-                Assert.True(_fx.Store.GetFirstTxIdBlockHashIndex(tx.Id)?.Equals(block2.Hash));
+                Assert.True(_fx.Store.GetFirstTxIdBlockHashIndex(tx.Id)?.Equals(block2.BlockHash));
             }
 
-            Assert.True(_blockChain.ContainsBlock(block2.Hash));
+            Assert.True(_blockChain.ContainsBlock(block2.BlockHash));
 
             RenderRecord.ActionSuccess[] renders = _renderer.ActionSuccessRecords
                 .Where(r => TestUtils.IsDumbAction(r.Action))
@@ -183,16 +183,16 @@ namespace Libplanet.Tests.Blockchain
 
             foreach (Transaction tx in txs)
             {
-                Assert.Null(getTxExecution(genesis.Hash, tx.Id));
-                Assert.Null(getTxExecution(block1.Hash, tx.Id));
+                Assert.Null(getTxExecution(genesis.BlockHash, tx.Id));
+                Assert.Null(getTxExecution(block1.BlockHash, tx.Id));
 
-                TxExecution e = getTxExecution(block2.Hash, tx.Id);
+                TxExecution e = getTxExecution(block2.BlockHash, tx.Id);
                 Assert.False(e.Fail);
-                Assert.Equal(block2.Hash, e.BlockHash);
+                Assert.Equal(block2.BlockHash, e.BlockHash);
                 Assert.Equal(tx.Id, e.TxId);
             }
 
-            TxExecution txe = getTxExecution(block2.Hash, txs[0].Id);
+            TxExecution txe = getTxExecution(block2.BlockHash, txs[0].Id);
             var outputWorld = _blockChain
                 .GetWorld(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
             Assert.Equal(
@@ -204,7 +204,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(
                 DumbAction.DumbCurrency * 200,
                 outputWorld.GetTotalSupply(DumbAction.DumbCurrency));
-            txe = getTxExecution(block2.Hash, txs[1].Id);
+            txe = getTxExecution(block2.BlockHash, txs[1].Id);
             outputWorld = _blockChain
                 .GetWorld(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
             Assert.Equal(
@@ -248,7 +248,7 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 []);
             _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
-            var txExecution1 = getTxExecution(block3.Hash, tx1Transfer.Id);
+            var txExecution1 = getTxExecution(block3.BlockHash, tx1Transfer.Id);
             _logger.Verbose(nameof(txExecution1) + " = {@TxExecution}", txExecution1);
             Assert.False(txExecution1.Fail);
             var inputAccount1 = _blockChain.GetWorld(
@@ -282,16 +282,16 @@ namespace Libplanet.Tests.Blockchain
                 DumbAction.DumbCurrency * 120,
                 outputWorld1.GetBalance(addresses[2], DumbAction.DumbCurrency));
 
-            var txExecution2 = getTxExecution(block3.Hash, tx2Error.Id);
+            var txExecution2 = getTxExecution(block3.BlockHash, tx2Error.Id);
             _logger.Verbose(nameof(txExecution2) + " = {@TxExecution}", txExecution2);
             Assert.True(txExecution2.Fail);
-            Assert.Equal(block3.Hash, txExecution2.BlockHash);
+            Assert.Equal(block3.BlockHash, txExecution2.BlockHash);
             Assert.Equal(tx2Error.Id, txExecution2.TxId);
             Assert.Contains(
                 $"{nameof(System)}.{nameof(ArgumentOutOfRangeException)}",
                 txExecution2.ExceptionNames);
 
-            var txExecution3 = getTxExecution(block3.Hash, tx3Transfer.Id);
+            var txExecution3 = getTxExecution(block3.BlockHash, tx3Transfer.Id);
             _logger.Verbose(nameof(txExecution3) + " = {@TxExecution}", txExecution3);
             Assert.False(txExecution3.Fail);
             var outputWorld3 = _blockChain.GetWorld(
@@ -320,8 +320,8 @@ namespace Libplanet.Tests.Blockchain
             var proposer = new PrivateKey();
             var action1 = DumbModernAction.Create((address1, "foo"));
             var action2 = DumbModernAction.Create((address2, "bar"));
-            var tx1 = Transaction.Create(0, proposer, genesis.Hash, new[] { action1 }.ToBytecodes());
-            var tx2 = Transaction.Create(1, proposer, genesis.Hash, new[] { action2 }.ToBytecodes());
+            var tx1 = Transaction.Create(0, proposer, genesis.BlockHash, new[] { action1 }.ToBytecodes());
+            var tx2 = Transaction.Create(1, proposer, genesis.BlockHash, new[] { action2 }.ToBytecodes());
             var block1 = _blockChain.ProposeBlock(
                 proposer,
                 new[] { tx1 }.ToImmutableSortedSet(),
@@ -571,7 +571,7 @@ namespace Libplanet.Tests.Blockchain
 
             var signerA = new PrivateKey();
             var signerB = new PrivateKey();
-            BlockHash genesis = _blockChain.Genesis.Hash;
+            BlockHash genesis = _blockChain.Genesis.BlockHash;
             Transaction
                 txA0 = Transaction.Create(0, signerA, genesis, actions: []),
                 txA1 = Transaction.Create(1, signerA, genesis, actions: []);
@@ -655,13 +655,12 @@ namespace Libplanet.Tests.Blockchain
             };
             var evs = Array.Empty<EvidenceBase>();
             RawBlock preEvalGenesis = RawBlock.Propose(
-                new BlockMetadata
+                new BlockHeader
                 {
                     Height = 0L,
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = fx.Proposer.Address,
                     PreviousHash = default,
-                    TxHash = BlockContent.DeriveTxHash([.. txs]),
                 },
                 new BlockContent
                 {
@@ -687,13 +686,13 @@ namespace Libplanet.Tests.Blockchain
             blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
             Assert.Equal<byte>(
                 blockChain.GetWorld(genesis.StateRootHash).Trie.Hash.Bytes,
-                blockChain.GetNextWorldState(emptyBlock.Hash).Trie.Hash.Bytes);
+                blockChain.GetNextWorldState(emptyBlock.BlockHash).Trie.Hash.Bytes);
         }
 
         [Fact]
         public void AppendSRHPostponeBPVBump()
         {
-            var beforePostponeBPV = BlockMetadata.CurrentProtocolVersion - 1;
+            var beforePostponeBPV = BlockHeader.CurrentProtocolVersion - 1;
             var policy = new NullBlockPolicy();
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
@@ -718,7 +717,7 @@ namespace Libplanet.Tests.Blockchain
             // Append block before state root hash postpone
             var proposer = new PrivateKey();
             var action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "foo"));
-            var tx = Transaction.Create(0, proposer, genesis.Hash, new[] { action }.ToBytecodes());
+            var tx = Transaction.Create(0, proposer, genesis.BlockHash, new[] { action }.ToBytecodes());
             var preBlockBeforeBump = TestUtils.ProposeNext(
                 genesis,
                 [tx],
@@ -734,14 +733,14 @@ namespace Libplanet.Tests.Blockchain
 
             // Append block after state root hash postpone - previous block is not bumped
             action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "bar"));
-            tx = Transaction.Create(1, proposer, genesis.Hash, new[] { action }.ToBytecodes());
+            tx = Transaction.Create(1, proposer, genesis.BlockHash, new[] { action }.ToBytecodes());
             var blockAfterBump1 = blockChain.ProposeBlock(
                 proposer,
                 [tx],
                 commitBeforeBump,
                 evidence: []);
             Assert.Equal(
-                BlockMetadata.CurrentProtocolVersion,
+                BlockHeader.CurrentProtocolVersion,
                 blockAfterBump1.ProtocolVersion);
             var commitAfterBump1 = TestUtils.CreateBlockCommit(blockAfterBump1);
             blockChain.Append(blockAfterBump1, commitAfterBump1);
@@ -749,14 +748,14 @@ namespace Libplanet.Tests.Blockchain
 
             // Append block after state root hash postpone - previous block is bumped
             action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "baz"));
-            tx = Transaction.Create(2, proposer, genesis.Hash, new[] { action }.ToBytecodes());
+            tx = Transaction.Create(2, proposer, genesis.BlockHash, new[] { action }.ToBytecodes());
             var blockAfterBump2 = blockChain.ProposeBlock(
                 proposer,
                 [tx],
                 commitAfterBump1,
                 evidence: []);
             Assert.Equal(
-                BlockMetadata.CurrentProtocolVersion,
+                BlockHeader.CurrentProtocolVersion,
                 blockAfterBump2.ProtocolVersion);
             var commitAfterBump2 = TestUtils.CreateBlockCommit(blockAfterBump2);
             blockChain.Append(blockAfterBump2, commitAfterBump2);

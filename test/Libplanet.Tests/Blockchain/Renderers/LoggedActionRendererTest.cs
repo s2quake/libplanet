@@ -62,7 +62,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
                     new ActionContext
                     {
                         BlockHeight = 123,
-                        BlockProtocolVersion = Block.CurrentProtocolVersion,
+                        BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
                         // LastCommit should not be null if the block height is not 0, just for testing
                     },
                     _world.Trie.Hash);
@@ -279,11 +279,11 @@ namespace Libplanet.Tests.Blockchain.Renderers
             Assert.Equal(
                 _blockA.Height.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["NewIndex"].ToString());
-            Assert.Equal($"\"{_blockA.Hash}\"", firstLog.Properties["NewHash"].ToString());
+            Assert.Equal($"\"{_blockA.BlockHash}\"", firstLog.Properties["NewHash"].ToString());
             Assert.Equal(
                 _genesis.Height.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["OldIndex"].ToString());
-            Assert.Equal($"\"{_genesis.Hash}\"", firstLog.Properties["OldHash"].ToString());
+            Assert.Equal($"\"{_genesis.BlockHash}\"", firstLog.Properties["OldHash"].ToString());
             Assert.Equal(
                 $"\"{typeof(AnonymousActionRenderer).FullName}\"",
                 firstLog.Properties[Constants.SourceContextPropertyName].ToString());
