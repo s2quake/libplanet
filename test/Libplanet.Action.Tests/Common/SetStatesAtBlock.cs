@@ -22,7 +22,7 @@ public sealed record class SetStatesAtBlock : ActionBase
     [Property(0)]
     public Address Address { get; init; }
 
-    [Property(1, KnownTypes = new[] { typeof(string) })]
+    [Property(1)]
     public object? Value { get; init; }
 
     [Property(2)]

@@ -1358,9 +1358,9 @@ public partial class BlockChainTest : IDisposable
             {
                 States = ImmutableDictionary.Create<Address, IValue>(),
                 Validators = ImmutableSortedSet.Create(
-                    [
-                        Validator.Create(validatorPrivKey.PublicKey, BigInteger.One),
-                    ]),
+                [
+                    Validator.Create(validatorPrivKey.PublicKey, BigInteger.One),
+                ]),
             },
         };
 
@@ -1374,7 +1374,7 @@ public partial class BlockChainTest : IDisposable
                 nonce: i,
                 privateKey: privateKey,
                 genesisHash: default,
-                actions: new [] { systemAction }.ToBytecodes()))
+                actions: new[] { systemAction }.ToBytecodes()))
             .ToArray();
         var customTxs = new[]
         {
@@ -1417,10 +1417,6 @@ public partial class BlockChainTest : IDisposable
             .GetValidatorSet()[0];
         Assert.Equal(validatorPrivKey.PublicKey, validator.PublicKey);
         Assert.Equal(BigInteger.One, validator.Power);
-        // Assert.Equal(
-        //     addresses,
-        //     blockChain.Genesis.Transactions.Single(
-        //         tx => tx.Actions.All(a => !Registry.IsSystemAction(a))).UpdatedAddresses);
 
         var states = addresses
             .Select(address => blockChain
@@ -1428,9 +1424,9 @@ public partial class BlockChainTest : IDisposable
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(address))
             .ToArray();
-        for (int i = 0; i < states.Length; ++i)
+        for (var i = 0; i < states.Length; ++i)
         {
-            Assert.Equal((Text)states[i], i.ToString());
+            Assert.Equal(states[i], i.ToString());
         }
     }
 

@@ -48,7 +48,7 @@ public partial class BlockChainTest
     {
         // Given
         var blockChain = _blockChain;
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var address = new PrivateKey().Address;
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -91,7 +91,7 @@ public partial class BlockChainTest
     {
         // Given
         var blockChain = _blockChain;
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var address = new PrivateKey().Address;
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -108,14 +108,14 @@ public partial class BlockChainTest
     public void AddEvidence_CommittedEvidence_ThrowTest()
     {
         // Given
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
         // When
-        NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(testEvidence));
+        NextBlock(blockChain, proposer, [testEvidence]);
 
         // Then
         Assert.Throws<ArgumentException>(
@@ -126,8 +126,7 @@ public partial class BlockChainTest
     public void AddEvidence_PendingEvidence_ThrowTest()
     {
         // Given
-        var key = TestUtils.ValidatorPrivateKeys.First();
-        var proposer = key;
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -142,7 +141,7 @@ public partial class BlockChainTest
     public void AddEvidence_HeightGreaterThanTip_ThrowTest()
     {
         // Given
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
@@ -158,7 +157,7 @@ public partial class BlockChainTest
     public void AddEvidence_ExpiredEvidence_ThrowTest()
     {
         // Given
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
@@ -198,7 +197,7 @@ public partial class BlockChainTest
     public void CommitEvidence_AddingCommittedEvidence_ThrowTest()
     {
         // Given
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
@@ -216,7 +215,7 @@ public partial class BlockChainTest
     public void CommitEvidence_AddingExpiredEvidence_ThrowTest()
     {
         // Given
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
@@ -241,8 +240,7 @@ public partial class BlockChainTest
     public void CommitEvidence_WithoutPendingEvidence_Test()
     {
         // Given
-        var key = TestUtils.ValidatorPrivateKeys.First();
-        var proposer = key;
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -334,7 +332,7 @@ public partial class BlockChainTest
         // When
         for (var i = index; i < testEvidence.Height + pendingDuration + 1; i++)
         {
-            NextBlock(_blockChain, TestUtils.ValidatorPrivateKeys.First(), emptyEvidence);
+            NextBlock(_blockChain, TestUtils.ValidatorPrivateKeys[0], emptyEvidence);
         }
 
         // Then
@@ -354,7 +352,7 @@ public partial class BlockChainTest
         // When
         for (var i = index; i < testEvidence.Height; i++)
         {
-            NextBlock(_blockChain, TestUtils.ValidatorPrivateKeys.First(), emptyEvidence);
+            NextBlock(_blockChain, TestUtils.ValidatorPrivateKeys[0], emptyEvidence);
         }
 
         // Then
@@ -389,7 +387,7 @@ public partial class BlockChainTest
     [Fact]
     public void AddEvidence_CommitEvidence_DuplicatedVoteEvidence_Test()
     {
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var blockChain = _blockChain;
         var voteRef = new VoteMetadata
@@ -436,7 +434,7 @@ public partial class BlockChainTest
     [Fact]
     public void CommitEvidence_DuplicateVoteEvidence_Test()
     {
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var blockChain = _blockChain;
         var voteRef = new VoteMetadata
         {
@@ -512,7 +510,7 @@ public partial class BlockChainTest
     [Fact]
     public void EvidenceExpired_ThrowTest()
     {
-        var key = TestUtils.ValidatorPrivateKeys.First();
+        var key = TestUtils.ValidatorPrivateKeys[0];
         var proposer = key;
         var blockChain = _blockChain;
         var voteRef = new VoteMetadata

@@ -214,7 +214,7 @@ public static class ModelSerializer
             {
                 var item = propertyInfo.GetValue(obj);
                 var itemType = propertyInfo.PropertyType;
-                var actualType = GetPropertyType(propertyInfo, item);
+                var actualType = GetActualType(itemType, item);
                 var serialized = itemType != actualType
                     ? Serialize(item) : SerializeRawValue(item, itemType, options);
                 itemList.Add(serialized);
@@ -231,7 +231,9 @@ public static class ModelSerializer
 
             foreach (var item in items)
             {
-                var serialized = item is null ? Null.Value : Serialize(item, elementType, options);
+                var actualType = GetActualType(elementType, item);
+                var serialized = elementType != actualType
+                    ? Serialize(item) : SerializeRawValue(item, elementType, options);
                 list.Add(serialized);
             }
 
@@ -437,7 +439,8 @@ public static class ModelSerializer
         var listInstance = (IList)CreateInstance(listType)!;
         foreach (var item in list)
         {
-            var itemValue = item is Null ? null : Deserialize(item, options);
+            var itemValue = ModelData.IsData(item)
+                ? Deserialize(item) : DeserializeRawValue(item, elementType, options);
             listInstance.Add(itemValue);
         }
 
@@ -503,19 +506,11 @@ public static class ModelSerializer
         throw new ModelCreationException(type);
     }
 
-    private static Type GetPropertyType(PropertyInfo propertyInfo, object? value)
+    private static Type GetActualType(Type type, object? value)
     {
-        var type = propertyInfo.PropertyType;
-        if (type == typeof(object) || type.IsAbstract || type.IsInterface)
+        if (value is not null && (type == typeof(object) || type.IsAbstract || type.IsInterface))
         {
-            var propertyAttribute = propertyInfo.GetCustomAttribute<PropertyAttribute>()
-                ?? throw new ModelSerializationException(
-                    $"The property {propertyInfo.Name} of {propertyInfo.DeclaringType} " +
-                    "must be decorated with PropertyAttribute.");
-            if (value is not null && propertyAttribute.KnownTypes.Contains(value.GetType()))
-            {
-                type = value.GetType();
-            }
+            return value.GetType();
         }
 
         return type;
