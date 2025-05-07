@@ -37,18 +37,18 @@ public class AnonymousActionRendererTest
     public void ActionRenderer()
     {
         (IValue, CommittedActionContext, HashDigest<SHA256>)? record = null;
-        var renderer = new AnonymousActionRenderer
-        {
-            ActionRenderer = (action, context, nextState) =>
-                record = (action, context, nextState),
-        };
+        // var renderer = new AnonymousActionRenderer
+        // {
+        //     ActionRenderer = (action, context, nextState) =>
+        //         record = (action, context, nextState),
+        // };
 
-        renderer.RenderActionError(_action, _actionContext, _exception);
-        Assert.Null(record);
-        renderer.RenderBlock(_genesis, _blockA);
-        Assert.Null(record);
+        // renderer.RenderActionError(_action, _actionContext, _exception);
+        // Assert.Null(record);
+        // renderer.RenderBlock(_genesis, _blockA);
+        // Assert.Null(record);
 
-        renderer.RenderAction(_action, _actionContext, _world.Trie.Hash);
+        // renderer.RenderAction(_action, _actionContext, _world.Trie.Hash);
         Assert.NotNull(record);
         Assert.Same(_action, record?.Item1);
         Assert.Same(_actionContext, record?.Item2);
@@ -59,18 +59,18 @@ public class AnonymousActionRendererTest
     public void ActionErrorRenderer()
     {
         (IValue, CommittedActionContext, Exception)? record = null;
-        var renderer = new AnonymousActionRenderer
-        {
-            ActionErrorRenderer = (action, context, exception) =>
-                record = (action, context, exception),
-        };
+        // var renderer = new AnonymousActionRenderer
+        // {
+        //     ActionErrorRenderer = (action, context, exception) =>
+        //         record = (action, context, exception),
+        // };
 
-        renderer.RenderAction(_action, _actionContext, _world.Trie.Hash);
-        Assert.Null(record);
-        renderer.RenderBlock(_genesis, _blockA);
-        Assert.Null(record);
+        // renderer.RenderAction(_action, _actionContext, _world.Trie.Hash);
+        // Assert.Null(record);
+        // renderer.RenderBlock(_genesis, _blockA);
+        // Assert.Null(record);
 
-        renderer.RenderActionError(_action, _actionContext, _exception);
+        // renderer.RenderActionError(_action, _actionContext, _exception);
         Assert.NotNull(record);
         Assert.Same(_action, record?.Item1);
         Assert.Same(_actionContext, record?.Item2);
@@ -81,17 +81,17 @@ public class AnonymousActionRendererTest
     public void BlockRenderer()
     {
         (Block Old, Block New)? record = null;
-        var renderer = new AnonymousActionRenderer
-        {
-            BlockRenderer = (oldTip, newTip) => record = (oldTip, newTip),
-        };
+        // var renderer = new AnonymousActionRenderer
+        // {
+        //     BlockRenderer = (oldTip, newTip) => record = (oldTip, newTip),
+        // };
 
-        renderer.RenderAction(_action, _actionContext, _world.Trie.Hash);
-        Assert.Null(record);
-        renderer.RenderActionError(_action, _actionContext, _exception);
-        Assert.Null(record);
+        // renderer.RenderAction(_action, _actionContext, _world.Trie.Hash);
+        // Assert.Null(record);
+        // renderer.RenderActionError(_action, _actionContext, _exception);
+        // Assert.Null(record);
 
-        renderer.RenderBlock(_genesis, _blockA);
+        // renderer.RenderBlock(_genesis, _blockA);
         Assert.NotNull(record);
         Assert.Same(_genesis, record?.Old);
         Assert.Same(_blockA, record?.New);

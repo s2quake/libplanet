@@ -11,11 +11,9 @@ public class BlockPolicy : IBlockPolicy
 {
     public static readonly TimeSpan DefaultTargetBlockInterval = TimeSpan.FromSeconds(5);
 
-    private readonly Func<BlockChain, Transaction, InvalidOperationException?>
-        _validateNextBlockTx;
+    private readonly Func<BlockChain, Transaction, InvalidOperationException?> _validateNextBlockTx;
 
-    private readonly Func<BlockChain, Block, Exception?>
-        _validateNextBlock;
+    private readonly Func<BlockChain, Block, Exception?> _validateNextBlock;
 
     private readonly PolicyActions _policyActions;
     private readonly Func<long, long> _getMaxTransactionsBytes;
@@ -24,49 +22,6 @@ public class BlockPolicy : IBlockPolicy
     private readonly Func<long, int> _getMaxTransactionsPerSignerPerBlock;
     private readonly Func<long, long> _getMaxEvidencePendingDuration;
 
-    /// <summary>
-    /// <para>
-    /// Creates a default <see cref="BlockPolicy"/> instance.
-    /// </para>
-    /// <para>
-    /// Each unprovided argument will be assigned a default value.  See each parameter
-    /// description for more detail.
-    /// </para>
-    /// </summary>
-    /// <param name="policyActions">
-    /// A class containing policy actions to evaluate at each situation.
-    /// </param>
-    /// <param name="blockInterval">Goes to <see cref="BlockInterval"/>.
-    /// Set to <see cref="DefaultTargetBlockInterval"/> by default.
-    /// </param>
-    /// <param name="validateNextBlockTx">The predicate that determines if
-    /// a <see cref="Transaction"/> follows the policy.  Set to a constant function of
-    /// <see langword="null"/> by default.</param>
-    /// <param name="validateNextBlock">The predicate that determines if
-    /// a <see cref="Block"/> follows the policy.  Set to a default implementation
-    /// where block's hash algorithm type, bytes count, and transactions count are validated.
-    /// </param>
-    /// <param name="getMaxTransactionsBytes">The function determining the maximum size of
-    /// <see cref="Block.Transactions"/> in number of <c>byte</c>s given
-    /// its <see cref="Block.Height"/>.  Goes to <see cref="GetMaxTransactionsBytes"/>.
-    /// Set to a constant size of <c>100</c>KiB, i.e. <c>100 * 1024</c>, by default.</param>
-    /// <param name="getMinTransactionsPerBlock">The function determining the minimum number of
-    /// <see cref="Transaction"/>s that must be included in a <see cref="Block"/>.
-    /// Goes to <see cref="GetMinTransactionsPerBlock"/>.  Set to a constant function
-    /// of <c>0</c> by default.</param>
-    /// <param name="getMaxTransactionsPerBlock">The function determining how many
-    /// <see cref="Transaction"/>s can be included in a <see cref="Block"/>.
-    /// Goes to <see cref="GetMaxTransactionsPerBlock"/>.  Set to a constant function
-    /// of <c>100</c> by default.</param>
-    /// <param name="getMaxTransactionsPerSignerPerBlock">The function determining the maximum
-    /// number of transactions from the same signer that can be included in
-    /// a <see cref="Block"/> given the <see cref="Block"/>'s index.
-    /// Goes to <see cref="GetMaxTransactionsPerSignerPerBlock"/>.  Set to
-    /// <see cref="GetMaxTransactionsPerBlock"/> by default.</param>
-    /// <param name="getMaxEvidencePendingDuration">The function determining the maximum
-    /// pending duration of <see cref="EvidenceBase"/> to be committed.
-    /// Goes to <see cref="GetMaxEvidencePendingDuration"/>.  Set to a constant function
-    /// of <c>10</c> by default.</param>
     public BlockPolicy(
         PolicyActions? policyActions = null,
         TimeSpan? blockInterval = null,
@@ -160,13 +115,9 @@ public class BlockPolicy : IBlockPolicy
 
     public PolicyActions PolicyActions => _policyActions;
 
-    /// <summary>
-    /// Targeted time interval between two consecutive <see cref="Block"/>s.
-    /// </summary>
     public TimeSpan BlockInterval { get; }
 
-    public virtual InvalidOperationException? ValidateNextBlockTx(
-    BlockChain blockChain, Transaction transaction)
+    public virtual InvalidOperationException? ValidateNextBlockTx(BlockChain blockChain, Transaction transaction)
     {
         return _validateNextBlockTx(blockChain, transaction);
     }

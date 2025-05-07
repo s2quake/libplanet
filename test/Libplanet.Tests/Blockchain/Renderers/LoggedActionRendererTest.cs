@@ -67,7 +67,7 @@ namespace Libplanet.Tests.Blockchain.Renderers
                     },
                     _world.Trie.Hash);
             Exception actionError = new Exception();
-            IActionRenderer actionRenderer;
+            // IActionRenderer actionRenderer;
             if (error)
             {
                 Action<IValue, CommittedActionContext, Exception> render = (action, cxt, e) =>
@@ -84,10 +84,10 @@ namespace Libplanet.Tests.Blockchain.Renderers
                         throw new ThrowException.SomeException(string.Empty);
                     }
                 };
-                actionRenderer = new AnonymousActionRenderer
-                {
-                    ActionErrorRenderer = render,
-                };
+                // actionRenderer = new AnonymousActionRenderer
+                // {
+                //     ActionErrorRenderer = render,
+                // };
             }
             else
             {
@@ -106,20 +106,20 @@ namespace Libplanet.Tests.Blockchain.Renderers
                             throw new ThrowException.SomeException(string.Empty);
                         }
                     };
-                actionRenderer = new AnonymousActionRenderer
-                {
-                    ActionRenderer = render,
-                };
+                // actionRenderer = new AnonymousActionRenderer
+                // {
+                //     ActionRenderer = render,
+                // };
             }
 
-            actionRenderer = new LoggedActionRenderer(
-                actionRenderer,
-                _logger,
-                LogEventLevel.Information);
+            // actionRenderer = new LoggedActionRenderer(
+            //     actionRenderer,
+            //     _logger,
+            //     LogEventLevel.Information);
             Assert.False(called);
             Assert.Empty(LogEvents);
 
-            actionRenderer.RenderBlock(_genesis, _blockA);
+            // actionRenderer.RenderBlock(_genesis, _blockA);
             Assert.False(called);
             Assert.Equal(2, LogEvents.Count());
             ResetContext();
@@ -127,14 +127,14 @@ namespace Libplanet.Tests.Blockchain.Renderers
             ThrowException.SomeException thrownException = null;
             try
             {
-                if (error)
-                {
-                    actionRenderer.RenderActionError(_action, actionContext, actionError);
-                }
-                else
-                {
-                    actionRenderer.RenderAction(_action, actionContext, _world.Trie.Hash);
-                }
+                // if (error)
+                // {
+                //     actionRenderer.RenderActionError(_action, actionContext, actionError);
+                // }
+                // else
+                // {
+                //     actionRenderer.RenderAction(_action, actionContext, _world.Trie.Hash);
+                // }
             }
             catch (ThrowException.SomeException e)
             {
@@ -167,9 +167,9 @@ namespace Libplanet.Tests.Blockchain.Renderers
             Assert.Equal(
                 actionContext.BlockHeight.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["BlockHeight"].ToString());
-            Assert.Equal(
-                $"\"{typeof(AnonymousActionRenderer).FullName}\"",
-                firstLog.Properties[Constants.SourceContextPropertyName].ToString());
+            // Assert.Equal(
+            //     $"\"{typeof(AnonymousActionRenderer).FullName}\"",
+            //     firstLog.Properties[Constants.SourceContextPropertyName].ToString());
             Assert.Null(firstLog.Exception);
             Assert.False(firstLog.Properties.ContainsKey("Rehearsal"));
 
@@ -235,37 +235,37 @@ namespace Libplanet.Tests.Blockchain.Renderers
                 }
             }
 
-            IActionRenderer actionRenderer = new AnonymousActionRenderer
-            {
-                BlockRenderer = end ? (Action<Block, Block>)null : Callback,
-                BlockEndRenderer = end ? Callback : (Action<Block, Block>)null,
-            };
-            actionRenderer = new LoggedActionRenderer(actionRenderer, _logger);
-            var invoke = end
-                ? (Action<Block, Block>)actionRenderer.RenderBlockEnd
-                : actionRenderer.RenderBlock;
-            var invokeOpposite = end
-                ? (Action<Block, Block>)actionRenderer.RenderBlock
-                : actionRenderer.RenderBlockEnd;
+            // IActionRenderer actionRenderer = new AnonymousActionRenderer
+            // {
+            //     BlockRenderer = end ? (Action<Block, Block>)null : Callback,
+            //     BlockEndRenderer = end ? Callback : (Action<Block, Block>)null,
+            // };
+            // actionRenderer = new LoggedActionRenderer(actionRenderer, _logger);
+            // var invoke = end
+            //     ? (Action<Block, Block>)actionRenderer.RenderBlockEnd
+            //     : actionRenderer.RenderBlock;
+            // var invokeOpposite = end
+            //     ? (Action<Block, Block>)actionRenderer.RenderBlock
+            //     : actionRenderer.RenderBlockEnd;
             var methodName = end ? "RenderBlockEnd" : "RenderBlock";
 
             Assert.False(called);
             Assert.Empty(LogEvents);
 
-            invokeOpposite(_genesis, _blockA);
+            // invokeOpposite(_genesis, _blockA);
             Assert.False(called);
             Assert.Equal(2, LogEvents.Count());
             ResetContext();
 
-            if (exception)
-            {
-                Assert.Throws<ThrowException.SomeException>(
-                    () => invoke(_genesis, _blockA));
-            }
-            else
-            {
-                invoke(_genesis, _blockA);
-            }
+            // if (exception)
+            // {
+            //     Assert.Throws<ThrowException.SomeException>(
+            //         () => invoke(_genesis, _blockA));
+            // }
+            // else
+            // {
+            //     invoke(_genesis, _blockA);
+            // }
 
             Assert.True(called);
             LogEvent[] logEvents = LogEvents.ToArray();
@@ -284,9 +284,9 @@ namespace Libplanet.Tests.Blockchain.Renderers
                 _genesis.Height.ToString(CultureInfo.InvariantCulture),
                 firstLog.Properties["OldIndex"].ToString());
             Assert.Equal($"\"{_genesis.BlockHash}\"", firstLog.Properties["OldHash"].ToString());
-            Assert.Equal(
-                $"\"{typeof(AnonymousActionRenderer).FullName}\"",
-                firstLog.Properties[Constants.SourceContextPropertyName].ToString());
+            // Assert.Equal(
+            //     $"\"{typeof(AnonymousActionRenderer).FullName}\"",
+            //     firstLog.Properties[Constants.SourceContextPropertyName].ToString());
             Assert.Null(firstLog.Exception);
 
             LogEvent secondLog = logEvents[1];

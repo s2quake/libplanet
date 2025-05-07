@@ -1,9 +1,9 @@
-using Bencodex.Types;
-using Libplanet.Action;
+// using Bencodex.Types;
+// using Libplanet.Action;
 
-namespace Libplanet.Node.Services;
+// namespace Libplanet.Node.Services;
 
-public readonly record struct RenderActionErrorInfo(
-    IValue Action,
-    CommittedActionContext Context,
-    Exception Exception);
+// public readonly record struct RenderActionErrorInfo(
+//     IValue Action,
+//     CommittedActionContext Context,
+//     Exception Exception);

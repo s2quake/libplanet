@@ -512,7 +512,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             ImmutableSortedSet<Validator>? validatorSet = null,
             PrivateKey? privateKey = null,
             DateTimeOffset? timestamp = null,
-            IEnumerable<IRenderer>? renderers = null,
             Block? genesisBlock = null,
             int protocolVersion = BlockHeader.CurrentProtocolVersion)
         {
@@ -524,7 +523,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 validatorSet,
                 privateKey,
                 timestamp,
-                renderers,
                 genesisBlock,
                 protocolVersion)
             .BlockChain;
@@ -539,7 +537,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             ImmutableSortedSet<Validator>? validatorSet = null,
             PrivateKey? privateKey = null,
             DateTimeOffset? timestamp = null,
-            IEnumerable<IRenderer>? renderers = null,
             Block? genesisBlock = null,
             int protocolVersion = BlockHeader.CurrentProtocolVersion)
         {
@@ -573,14 +570,14 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 genesisBlock = preEval.Sign(privateKey, default);
             }
 
-            ValidatingActionRenderer validator = null;
+            // ValidatingActionRenderer validator = null;
 #pragma warning disable S1121
             var chain = BlockChain.Create(
                 policy,
                 store,
                 stateStore,
                 genesisBlock,
-                renderers: renderers ?? new[] { validator = new ValidatingActionRenderer() },
+                // renderers: renderers ?? new[] { validator = new ValidatingActionRenderer() },
                 blockChainStates: blockChainStates,
                 actionEvaluator: actionEvaluator);
 #pragma warning restore S1121
