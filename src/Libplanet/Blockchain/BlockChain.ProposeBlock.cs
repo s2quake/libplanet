@@ -140,25 +140,6 @@ public partial class BlockChain
             Policy.GetMinTransactionsPerBlock(index),
             txPriority);
 
-    /// <summary>
-    /// Gathers <see cref="Transaction"/>s for proposing a next block
-    /// from the current set of staged <see cref="Transaction"/>s.
-    /// </summary>
-    /// <param name="maxTransactionsBytes">The maximum number of bytes a block can have.</param>
-    /// <param name="maxTransactions">The maximum number of <see cref="Transaction"/>s
-    /// allowed.</param>
-    /// <param name="maxTransactionsPerSigner">The maximum number of
-    /// <see cref="Transaction"/>s with the same signer allowed.</param>
-    /// <param name="minTransactions">The minimum number of <see cref="Transaction"/>s
-    /// allowed.</param>
-    /// <param name="txPriority">An optional comparer for give certain transactions to
-    /// priority to belong to the block.  No certain priority by default.</param>
-    /// <returns>An <see cref="ImmutableList"/> of <see cref="Transaction"/>s with its
-    /// count not exceeding <paramref name="maxTransactions"/> and the number of
-    /// <see cref="Transaction"/>s in the list for each signer not exceeding
-    /// <paramref name="maxTransactionsPerSigner"/>.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when not all policies
-    /// can be satisfied.</exception>
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
         long maxTransactionsBytes,
         int maxTransactions,

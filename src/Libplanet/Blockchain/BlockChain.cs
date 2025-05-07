@@ -1201,7 +1201,7 @@ public partial class BlockChain : IBlockChainStates
         var unorderedTxs = StagePolicy.Iterate(this);
         if (txPriority is { } comparer)
         {
-            unorderedTxs = unorderedTxs.OrderBy(tx => tx, comparer);
+            unorderedTxs = unorderedTxs.OrderBy(tx => tx, comparer).ToImmutableArray();
         }
 
         Transaction[] txs = unorderedTxs.ToArray();
@@ -1209,7 +1209,7 @@ public partial class BlockChain : IBlockChainStates
         Dictionary<Address, LinkedList<Transaction>> seats = txs
             .GroupBy(tx => tx.Signer)
             .Select(g => (g.Key, new LinkedList<Transaction>(g.OrderBy(tx => tx.Nonce))))
-            .ToDictionary(pair => pair.Item1, pair => pair.Item2);
+            .ToDictionary(pair => pair.Key, pair => pair.Item2);
 
         return txs.Select(tx =>
         {
