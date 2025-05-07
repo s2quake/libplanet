@@ -14,35 +14,30 @@ namespace Libplanet.Blockchain;
 public partial class BlockChain
 {
     public static Block ProposeGenesisBlock(
-        PrivateKey privateKey,
+        PrivateKey proposer,
         HashDigest<SHA256>? stateRootHash = null,
         ImmutableSortedSet<Transaction>? transactions = null,
         DateTimeOffset? timestamp = null)
     {
-        transactions ??= [];
-
-        var metadata = new BlockHeader
+        var header = new BlockHeader
         {
-            Height = 0L,
             Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-            Proposer = privateKey.Address,
-            PreviousHash = default,
+            Proposer = proposer.Address,
         };
         var content = new BlockContent
         {
-            Transactions = transactions,
+            Transactions = transactions ?? [],
             Evidences = [],
         };
 
-        RawBlock preEval = RawBlock.Create(metadata, content);
-        stateRootHash ??= default;
-        return preEval.Sign(privateKey, (HashDigest<SHA256>)stateRootHash);
+        var rawBlock = RawBlock.Create(header, content);
+        return rawBlock.Sign(proposer, stateRootHash ?? default);
     }
 
     public Block ProposeBlock(
         PrivateKey proposer,
         BlockCommit? lastCommit = null,
-        ImmutableSortedSet<EvidenceBase>? evidence = null,
+        ImmutableSortedSet<EvidenceBase>? evidences = null,
         IComparer<Transaction>? txPriority = null)
     {
         var height = Count;
@@ -62,9 +57,9 @@ public partial class BlockChain
 
         var block = ProposeBlock(
             proposer,
-            transactions.ToImmutableSortedSet(),
             lastCommit ?? BlockCommit.Empty,
-            evidence ?? []);
+            [.. transactions],
+            evidences ?? []);
         _logger.Debug(
             "Proposed block #{Height} {Hash} with previous hash {PreviousHash}",
             block.Height,
@@ -74,30 +69,11 @@ public partial class BlockChain
         return block;
     }
 
-    /// <summary>
-    /// <para>
-    /// Proposes a next <see cref="Block"/> using a specified
-    /// list of <see cref="Transaction"/>s.
-    /// </para>
-    /// <para>
-    /// Unlike <see cref="ProposeBlock(PrivateKey, BlockCommit, ImmutableArray{EvidenceBase}?,
-    /// IComparer{Transaction})"/>,
-    /// this may result in a <see cref="Block"/> that does not conform to the
-    /// <see cref="Policy"/>.
-    /// </para>
-    /// </summary>
-    /// <param name="proposer">The proposer's <see cref="PublicKey"/> that proposes the block.
-    /// </param>
-    /// <param name="transactions">The list of <see cref="Transaction"/>s to include.</param>
-    /// <param name="lastCommit">The <see cref="BlockCommit"/> evidence of the previous
-    /// <see cref="Block"/>.</param>
-    /// <param name="evidence">The <see cref="EvidenceBase"/>s to be committed.</param>
-    /// <returns>A <see cref="Block"/> that is proposed.</returns>
     internal Block ProposeBlock(
         PrivateKey proposer,
-        ImmutableSortedSet<Transaction> transactions,
         BlockCommit lastCommit,
-        ImmutableSortedSet<EvidenceBase> evidence)
+        ImmutableSortedSet<Transaction> transactions,
+        ImmutableSortedSet<EvidenceBase> evidences)
     {
         long index = Count;
         BlockHash prevHash = Store.IndexBlockHash(Id, index - 1)
@@ -122,17 +98,12 @@ public partial class BlockChain
         var blockContent = new BlockContent
         {
             Transactions = transactions,
-            Evidences = evidence,
+            Evidences = evidences,
         };
-        var preEval = RawBlock.Create(metadata, blockContent);
-        return ProposeBlock(proposer, preEval, stateRootHash);
-    }
 
-    internal Block ProposeBlock(
-        PrivateKey proposer,
-        RawBlock rawBlock,
-        HashDigest<SHA256> stateRootHash) =>
-        rawBlock.Sign(proposer, stateRootHash);
+        var rawBlock = RawBlock.Create(metadata, blockContent);
+        return rawBlock.Sign(proposer, stateRootHash);
+    }
 
     /// <summary>
     /// Gathers <see cref="Transaction"/>s for proposing a <see cref="Block"/> for

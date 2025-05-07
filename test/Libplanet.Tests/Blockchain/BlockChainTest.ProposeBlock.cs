@@ -91,7 +91,7 @@ public partial class BlockChainTest
         Block block4 = _blockChain.ProposeBlock(
             proposer: new PrivateKey(),
             lastCommit: CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
-            evidence: [.. _blockChain.GetPendingEvidence()]);
+            evidences: [.. _blockChain.GetPendingEvidence()]);
         Assert.False(_blockChain.ContainsBlock(block4.BlockHash));
         _logger.Debug(
             $"{nameof(block4)}: {0} bytes",
@@ -169,7 +169,7 @@ public partial class BlockChainTest
             }).ToImmutableList();
 
             var block = blockChain.ProposeBlock(
-                new PrivateKey(), [.. txs], default, []);
+                new PrivateKey(), BlockCommit.Empty, [.. txs], []);
             Assert.Throws<InvalidOperationException>(
                 () => blockChain.Append(block, CreateBlockCommit(block)));
         }

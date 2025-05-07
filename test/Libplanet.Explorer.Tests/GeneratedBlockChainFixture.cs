@@ -68,7 +68,7 @@ public class GeneratedBlockChainFixture
             stateStore,
             policy.PolicyActions);
         Block genesisBlock = BlockChain.ProposeGenesisBlock(
-            privateKey: new PrivateKey(),
+            proposer: new PrivateKey(),
             transactions: PrivateKeys
                 .OrderBy(pk => pk.Address.ToString("raw", null))
                 .Select(

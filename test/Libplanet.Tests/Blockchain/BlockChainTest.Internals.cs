@@ -104,8 +104,8 @@ namespace Libplanet.Tests.Blockchain
 
             Block block1 = _blockChain.ProposeBlock(
                 _fx.Proposer,
-                txs.ToImmutableSortedSet(),
                 CreateBlockCommit(_blockChain.Tip),
+                txs.ToImmutableSortedSet(),
                 []);
             _blockChain.Append(block1, CreateBlockCommit(block1), render: true);
 

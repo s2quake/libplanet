@@ -137,7 +137,7 @@ internal sealed class BlockChainService(
             actions: actions.ToBytecodes(),
             timestamp: DateTimeOffset.MinValue);
         return BlockChain.ProposeGenesisBlock(
-            privateKey: genesisKey,
+            proposer: genesisKey,
             transactions: [transaction],
             timestamp: DateTimeOffset.MinValue);
     }
@@ -178,7 +178,7 @@ internal sealed class BlockChainService(
         if (data == null || data.Count == 0)
         {
             return BlockChain.ProposeGenesisBlock(
-                privateKey: genesisKey,
+                proposer: genesisKey,
                 timestamp: DateTimeOffset.MinValue);
         }
 
@@ -216,7 +216,7 @@ internal sealed class BlockChainService(
 
         worldTrie = stateStore.Commit(worldTrie);
         return BlockChain.ProposeGenesisBlock(
-            privateKey: genesisKey,
+            proposer: genesisKey,
             stateRootHash: worldTrie.Hash,
             timestamp: DateTimeOffset.MinValue);
     }
