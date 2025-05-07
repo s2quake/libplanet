@@ -65,6 +65,6 @@ namespace Libplanet.Store
         /// not <see langword="null"/> but the corresponding block is not found in store.
         /// </exception>
         public static HashDigest<SHA256> GetStateRootHash(this IStore store, BlockHash blockHash)
-            => store.GetBlockDigest(blockHash).Hash.StateRootHash;
+            => store.GetBlockDigest(blockHash).StateRootHash;
     }
 }

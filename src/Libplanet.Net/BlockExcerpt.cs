@@ -17,7 +17,7 @@ public sealed record class BlockExcerpt
         {
             ProtocolVersion = block.Header.ProtocolVersion,
             Height = block.Header.Height,
-            BlockHash = block.Hash.BlockHash,
+            BlockHash = block.BlockHash,
             Timestamp = block.Header.Timestamp,
         };
 }

@@ -92,7 +92,7 @@ public partial class ActionEvaluatorTest
         };
         var evs = Array.Empty<EvidenceBase>();
         var stateStore = new TrieStateStore();
-        var noStateRootBlock = RawBlock.Propose(
+        var noStateRootBlock = RawBlock.Create(
             new BlockHeader
             {
                 ProtocolVersion = BlockHeader.CurrentProtocolVersion,
@@ -368,7 +368,7 @@ public partial class ActionEvaluatorTest
     //         actions: new[] { action }.ToPlainValues());
     //     var txs = new Transaction[] { tx };
     //     var evs = Array.Empty<EvidenceBase>();
-    //     RawBlock block = RawBlock.Propose(
+    //     RawBlock block = RawBlock.Create(
     //         new BlockHeader
     //         {
     //             Height = 1L,
@@ -732,7 +732,7 @@ public partial class ActionEvaluatorTest
         var tx = Transaction.Create(0, _txFx.PrivateKey1, default, actions.ToBytecodes());
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
-        var block = RawBlock.Propose(
+        var block = RawBlock.Create(
             new BlockHeader
             {
                 Height = 1L,
@@ -833,7 +833,7 @@ public partial class ActionEvaluatorTest
         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
         var stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(stateStore);
-        var block = RawBlock.Propose(
+        var block = RawBlock.Create(
             new BlockHeader
             {
                 Height = 123,
@@ -1294,13 +1294,14 @@ public partial class ActionEvaluatorTest
             Arithmetic.Add(3));
 
         var block = fx.Propose();
+        var rawBlock = (RawBlock)block;
         var evaluations = actionEvaluator.EvaluateActions(
-            block: (RawBlock)block,
+            block: rawBlock,
             tx: tx,
             world: fx.StateStore.GetWorld(block.StateRootHash),
             actions: tx.Actions);
 
-        byte[] preEvaluationHashBytes = block.RawHash.Bytes.ToArray();
+        byte[] preEvaluationHashBytes = rawBlock.Hash.Bytes.ToArray();
         var randomSeeds = Enumerable
             .Range(0, tx.Actions.Length)
             .Select(offset => ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, tx.Signature) + offset)

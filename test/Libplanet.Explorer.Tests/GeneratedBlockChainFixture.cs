@@ -164,7 +164,7 @@ public class GeneratedBlockChainFixture
     {
         var proposer = PrivateKeys[Random.Next(PrivateKeys.Length)];
         var block = Chain.EvaluateAndSign(
-            RawBlock.Propose(
+            RawBlock.Create(
                 new BlockHeader
                 {
                     Height = Chain.Tip.Height + 1,

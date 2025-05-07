@@ -72,7 +72,7 @@ public sealed class ActionEvaluator(IStateStore stateStore, PolicyActions policy
         RawBlock block, Transaction? tx, World world, ImmutableArray<IAction> actions)
     {
         var signature = tx?.Signature ?? [];
-        var randomSeed = GenerateRandomSeed(block.RawHash.Bytes.AsSpan(), signature);
+        var randomSeed = GenerateRandomSeed(block.Header.DerivePreEvaluationHash().Bytes.AsSpan(), signature);
         var evaluations = new ActionEvaluation[actions.Length];
 
         for (var i = 0; i < actions.Length; i++)

@@ -32,13 +32,6 @@ public sealed record class BlockHeader
     [Property(5)]
     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
-    public static ImmutableArray<byte> MakeSignature(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
-    {
-        var msg = ModelSerializer.SerializeToBytes(stateRootHash);
-        var sig = privateKey.Sign(msg);
-        return ImmutableArray.Create(sig);
-    }
-
     public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
 
     public void ValidateTimestamp(DateTimeOffset currentTime)

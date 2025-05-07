@@ -170,7 +170,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var key = new PrivateKey();
             var differentBlock = blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         ProtocolVersion = BlockHeader.CurrentProtocolVersion,

@@ -55,9 +55,9 @@ namespace Libplanet.Net
                     "Given branch with root #{RootIndex} {RootHash} and " +
                     "tip #{TipIndex} {TipHash} will not be added as the table already contains " +
                     "blockheader #{Index} {BlockHash} as its key",
-                    root.Height,
+                    root.Header.Height,
                     root.BlockHash,
-                    tip.Height,
+                    tip.Header.Height,
                     tip.BlockHash,
                     blockHeader.Height,
                     blockHeader.BlockHash);

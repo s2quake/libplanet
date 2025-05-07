@@ -153,7 +153,7 @@ public sealed class MemoryStore : IStore
             _txs[tx.Id] = tx;
         }
 
-        var evidence = block.Evidence;
+        var evidence = block.Evidences;
         foreach (var ev in evidence)
         {
             _committedEvidence[ev.Id] = ev;
@@ -162,6 +162,8 @@ public sealed class MemoryStore : IStore
         _blocks[block.BlockHash] = new BlockDigest
         {
             Header = block.Header,
+            Hash = block.BlockHash,
+            StateRootHash = block.StateRootHash,
             TxIds = [.. txs.Select(tx => tx.Id)],
             EvidenceIds = [.. evidence.Select(ev => ev.Id)],
         };

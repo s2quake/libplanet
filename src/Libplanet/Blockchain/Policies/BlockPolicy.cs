@@ -149,7 +149,7 @@ namespace Libplanet.Blockchain.Policies
                     }
 
                     long evidenceExpirationHeight = block.Height - maxEvidencePendingDuration;
-                    if (block.Evidence.Any(evidence => evidence.Height < evidenceExpirationHeight))
+                    if (block.Evidences.Any(evidence => evidence.Height < evidenceExpirationHeight))
                     {
                         return new InvalidOperationException(
                             $"Block #{block.Height} {block.BlockHash} includes evidence" +

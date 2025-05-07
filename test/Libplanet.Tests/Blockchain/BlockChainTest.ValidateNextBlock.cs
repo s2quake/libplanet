@@ -16,7 +16,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlock()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -37,7 +37,7 @@ namespace Libplanet.Tests.Blockchain
         {
             var protocolVersion = _blockChain.Tip.ProtocolVersion;
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         ProtocolVersion = protocolVersion,
@@ -53,7 +53,7 @@ namespace Libplanet.Tests.Blockchain
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
             Assert.Throws<ApplicationException>(() => _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 2L,
@@ -69,7 +69,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Throws<InvalidOperationException>(() =>
             {
                 Block block3 = _blockChain.EvaluateAndSign(
-                    RawBlock.Propose(
+                    RawBlock.Create(
                         new BlockHeader
                         {
                             ProtocolVersion = BlockHeader.CurrentProtocolVersion + 1,
@@ -93,7 +93,7 @@ namespace Libplanet.Tests.Blockchain
 
             Block prev = _blockChain.Tip;
             Block blockWithAlreadyUsedIndex = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = prev.Height,
@@ -108,7 +108,7 @@ namespace Libplanet.Tests.Blockchain
                     TestUtils.CreateBlockCommit(blockWithAlreadyUsedIndex)));
 
             Block blockWithIndexAfterNonexistentIndex = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = prev.Height + 2,
@@ -130,7 +130,7 @@ namespace Libplanet.Tests.Blockchain
             _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
 
             Block invalidPreviousHashBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 2,
@@ -155,7 +155,7 @@ namespace Libplanet.Tests.Blockchain
             _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
 
             Block invalidPreviousTimestamp = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 2,
@@ -216,7 +216,7 @@ namespace Libplanet.Tests.Blockchain
                 actionEvaluator2);
 
             Block block1 = chain1.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         ProtocolVersion = BlockHeader.CurrentProtocolVersion,
@@ -259,7 +259,7 @@ namespace Libplanet.Tests.Blockchain
                 actionEvaluator);
 
             Block block1 = chain1.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         ProtocolVersion = beforePostponeBPV,
@@ -324,7 +324,7 @@ namespace Libplanet.Tests.Blockchain
                 genesisBlock,
                 actionEvaluator);
 
-            RawBlock preBlock1 = RawBlock.Propose(
+            RawBlock preBlock1 = RawBlock.Create(
                 new BlockHeader
                 {
                     Height = 1,
@@ -351,7 +351,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitNullAtIndexOne()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -368,7 +368,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitUpperIndexOne()
         {
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -381,7 +381,7 @@ namespace Libplanet.Tests.Blockchain
 
             var blockCommit = TestUtils.CreateBlockCommit(block1);
             Block block2 = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 2L,
@@ -399,7 +399,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitFailsUnexpectedValidator()
         {
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -434,7 +434,7 @@ namespace Libplanet.Tests.Blockchain
             };
 
             Block block2 = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 2L,
@@ -452,7 +452,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitFailsDropExpectedValidator()
         {
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -483,7 +483,7 @@ namespace Libplanet.Tests.Blockchain
                 Votes = votes,
             };
             Block block2 = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 2,
@@ -528,7 +528,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsDifferentBlockHash()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -551,7 +551,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsDifferentHeight()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -574,7 +574,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsDifferentValidatorSet()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -611,7 +611,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsNullBlockCommit()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -644,7 +644,7 @@ namespace Libplanet.Tests.Blockchain
                 new TrieStateStore(),
                 validatorSet: validatorSet);
             Block validNextBlock = blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = 1L,
@@ -769,7 +769,7 @@ namespace Libplanet.Tests.Blockchain
                 actionEvaluator);
 
             Block newValidNext = newChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         ProtocolVersion = BlockHeader.CurrentProtocolVersion,

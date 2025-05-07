@@ -863,7 +863,7 @@ public partial class BlockChain : IBlockChainStates
                     Store.PutChainBlockCommit(Id, blockCommit);
                 }
 
-                foreach (var ev in block.Evidence)
+                foreach (var ev in block.Evidences)
                 {
                     if (Store.GetPendingEvidence(ev.Id) != null)
                     {
@@ -1070,7 +1070,7 @@ public partial class BlockChain : IBlockChainStates
                     Store.PutChainBlockCommit(Id, blockCommit);
                 }
 
-                foreach (var evidence in block.Evidence)
+                foreach (var evidence in block.Evidences)
                 {
                     if (Store.GetPendingEvidence(evidence.Id) != null)
                     {

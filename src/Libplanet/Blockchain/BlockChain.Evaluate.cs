@@ -85,7 +85,7 @@ public partial class BlockChain
                 "pre-evaluation hash {RawHash} with {Count} action evaluations",
                 stopwatch.ElapsedMilliseconds,
                 rawBlock.Header.Height,
-                rawBlock.RawHash,
+                rawBlock.Hash,
                 evaluations.Count);
 
             if (evaluations.Count > 0)
