@@ -654,7 +654,7 @@ namespace Libplanet.Tests.Blockchain
                     timestamp: DateTimeOffset.UtcNow),
             };
             var evs = Array.Empty<EvidenceBase>();
-            RawBlock preEvalGenesis = RawBlock.Propose(
+            RawBlock preEvalGenesis = RawBlock.Create(
                 new BlockHeader
                 {
                     Height = 0L,

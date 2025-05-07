@@ -134,7 +134,7 @@ namespace Libplanet.Explorer.Queries
             var blockChain = Chain;
             var block = blockHash != null ? blockChain[blockHash.Value] : blockChain.Tip;
             var comparer = desc ? EvidenceIdComparer.Descending : EvidenceIdComparer.Ascending;
-            var evidence = block.Evidence
+            var evidence = block.Evidences
                                  .Skip(offset)
                                  .Take(limit ?? int.MaxValue)
                                  .OrderBy(ev => ev.Id, comparer);

@@ -40,7 +40,7 @@ public class BlockTypeTest
             BlockHash = lastBlockHash,
             Votes = lastVotes,
         };
-        var preEval = RawBlock.Propose(
+        var preEval = RawBlock.Create(
             new BlockHeader
             {
                 Height = 2,
@@ -48,15 +48,13 @@ public class BlockTypeTest
                 Proposer = privateKey.Address,
                 PreviousHash = lastBlockHash,
                 LastCommit = lastBlockCommit,
-            },
-            new BlockContent
-            {
             });
         var stateRootHash =
             new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
-        var signature = BlockHeader.MakeSignature(privateKey, stateRootHash);
-        var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
-        var block = new Block { Header = new BlockHeader(), Content = new BlockContent() };
+        // var signature = RawBlock.MakeSignature(privateKey, stateRootHash);
+        // var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
+        // var block = new Block { Header = new BlockHeader(), Content = new BlockContent() };
+        var block = preEval.Sign(privateKey, stateRootHash);
 
         // FIXME We need to test for `previousBlock` field too.
         var query =
@@ -112,9 +110,6 @@ public class BlockTypeTest
         Assert.Equal(
             ByteUtility.Hex(block.StateRootHash.Bytes.ToArray()),
             resultData["stateRootHash"]);
-        Assert.Equal(
-            ByteUtility.Hex(block.RawHash.Bytes.ToArray()),
-            resultData["preEvaluationHash"]);
 
         var expectedLastCommit = new Dictionary<string, object>()
         {

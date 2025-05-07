@@ -168,13 +168,16 @@ namespace Libplanet.Net.Tests.Consensus
 
             var key = new PrivateKey();
             var invalidBlock = blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         Height = blockChain.Tip.Height + 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = key.Address,
                         PreviousHash = blockChain.Tip.BlockHash,
+                    },
+                    new BlockContent
+                    {
                     }),
                 key);
 
@@ -264,7 +267,7 @@ namespace Libplanet.Net.Tests.Consensus
             // 3. Timestamp should be increased monotonically.
             // 4. PreviousHash should be matched with Tip hash.
             var invalidBlock = blockChain.EvaluateAndSign(
-                RawBlock.Propose(
+                RawBlock.Create(
                     new BlockHeader
                     {
                         ProtocolVersion = BlockHeader.CurrentProtocolVersion,
@@ -272,6 +275,9 @@ namespace Libplanet.Net.Tests.Consensus
                         Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
                         Proposer = TestUtils.PrivateKeys[1].Address,
                         PreviousHash = blockChain.Tip.BlockHash,
+                    },
+                    new BlockContent
+                    {
                     }),
                 TestUtils.PrivateKeys[1]);
 
@@ -435,7 +441,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Proposer = TestUtils.PrivateKeys[1].Address,
                 PreviousHash = blockChain.Genesis.BlockHash,
             };
-            var preEval = RawBlock.Propose(
+            var preEval = RawBlock.Create(
                 metadata,
                 new BlockContent
                 {

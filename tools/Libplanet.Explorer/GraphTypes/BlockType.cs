@@ -73,10 +73,6 @@ public class BlockType : ObjectGraphType<Block>
             description: "The proof-of-work nonce which satisfies the required difficulty.",
             deprecationReason: "Block does not have Nonce field in PBFT.",
             resolve: _ => new byte[] { });
-        Field<NonNullGraphType<ByteStringType>>(
-            name: "RawHash",
-            description: "The hash of RawBlock.",
-            resolve: ctx => ctx.Source.RawHash.Bytes.ToArray());
         Field<NonNullGraphType<IntGraphType>>(
             name: "ProtocolVersion",
             description: "The protocol version number of the block.",

@@ -34,7 +34,7 @@ public partial class BlockChain
             Evidences = [],
         };
 
-        RawBlock preEval = RawBlock.Propose(metadata, content);
+        RawBlock preEval = RawBlock.Create(metadata, content);
         stateRootHash ??= default;
         return preEval.Sign(privateKey, (HashDigest<SHA256>)stateRootHash);
     }
@@ -124,7 +124,7 @@ public partial class BlockChain
             Transactions = transactions,
             Evidences = evidence,
         };
-        var preEval = RawBlock.Propose(metadata, blockContent);
+        var preEval = RawBlock.Create(metadata, blockContent);
         return ProposeBlock(proposer, preEval, stateRootHash);
     }
 

@@ -294,7 +294,7 @@ namespace Libplanet.Blockchain
                 }
             }
 
-            foreach (var ev in block.Evidence)
+            foreach (var ev in block.Evidences)
             {
                 var stateRootHash = GetNextStateRootHash(ev.Height);
                 var worldState = GetWorld(stateRootHash ?? default);

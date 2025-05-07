@@ -80,7 +80,7 @@ namespace Libplanet.Net.Tests
                     var waitTasks1 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
                     await Task.WhenAll(waitTasks1);
                     Array.ForEach(blockChains, item => Assert.Equal(i + 1, item.Count));
-                    if (blockChains.Any(item => item[i].Evidence.Count > 0))
+                    if (blockChains.Any(item => item[i].Evidences.Count > 0))
                     {
                         break;
                     }

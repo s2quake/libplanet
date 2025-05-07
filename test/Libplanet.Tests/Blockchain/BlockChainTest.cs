@@ -64,7 +64,7 @@ public partial class BlockChainTest : IDisposable
         _renderer.ResetRecords();
 
         _validNext = _blockChain.EvaluateAndSign(
-            RawBlock.Propose(
+            RawBlock.Create(
                 new BlockHeader
                 {
                     ProtocolVersion = BlockHeader.CurrentProtocolVersion,
