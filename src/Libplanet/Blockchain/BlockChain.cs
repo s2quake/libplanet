@@ -26,19 +26,17 @@ public partial class BlockChain : IBlockChainStates
     private readonly object _txLock;
     private readonly ILogger _logger;
     private readonly IBlockChainStates _blockChainStates;
+    private readonly Subject<RenderBlockInfo> _renderBlock = new();
+    private readonly Subject<RenderActionInfo> _renderAction = new();
+    private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
 
     private BlockSet _blocks;
     private Block _genesis;
 
     private HashDigest<SHA256>? _nextStateRootHash;
 
-    private readonly Subject<RenderBlockInfo> _renderBlock = new();
-    private readonly Subject<RenderActionInfo> _renderAction = new();
-    private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
-
-
     public BlockChain(
-        IBlockPolicy policy,
+        BlockPolicy policy,
         IStore store,
         IStateStore stateStore,
         Block genesisBlock,
@@ -59,7 +57,7 @@ public partial class BlockChain : IBlockChainStates
     }
 
     private BlockChain(
-        IBlockPolicy policy,
+        BlockPolicy policy,
         IStore store,
         IStateStore stateStore,
         Guid id,
@@ -130,7 +128,7 @@ public partial class BlockChain : IBlockChainStates
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
 
-    public IBlockPolicy Policy { get; }
+    public BlockPolicy Policy { get; }
 
     public StagedTransactionCollection StagedTransactions { get; }
 
@@ -152,14 +150,14 @@ public partial class BlockChain : IBlockChainStates
 
     internal bool IsCanonical => Store.GetCanonicalChainId() is Guid guid && Id == guid;
 
-    public Block this[long index]
+    public Block this[long height]
     {
         get
         {
             _rwlock.EnterReadLock();
             try
             {
-                BlockHash? blockHash = Store.GetBlockHash(Id, index);
+                BlockHash? blockHash = Store.GetBlockHash(Id, height);
                 return blockHash is { } bh
                     ? _blocks[bh]
                     : throw new ArgumentOutOfRangeException();
@@ -194,7 +192,7 @@ public partial class BlockChain : IBlockChainStates
     }
 
     public static BlockChain Create(
-        IBlockPolicy policy,
+        BlockPolicy policy,
         IStore store,
         IStateStore stateStore,
         Block genesisBlock,
@@ -492,17 +490,16 @@ public partial class BlockChain : IBlockChainStates
                 ValidateBlockLoadActions(block);
             }
 
-            if (validate && Policy.ValidateNextBlock(this, block) is { } bpve)
+            if (validate)
             {
-                throw bpve;
+                Policy.BlockValidation(this, block);
             }
 
             foreach (Transaction tx in block.Transactions)
             {
-                if (validate && Policy.ValidateNextBlockTx(this, tx) is { } tpve)
+                if (validate)
                 {
-                    throw new InvalidOperationException(
-                        "According to BlockPolicy, this transaction is not valid.");
+                    Policy.ValidateTransaction(this, tx);
                 }
             }
 
@@ -668,18 +665,11 @@ public partial class BlockChain : IBlockChainStates
                     .ToDictionary(signer => signer, signer => Store.GetTxNonce(Id, signer)),
                 block);
 
-            if (Policy.ValidateNextBlock(this, block) is { } bpve)
-            {
-                throw bpve;
-            }
+            Policy.BlockValidation(this, block);
 
             foreach (Transaction tx in block.Transactions)
             {
-                if (Policy.ValidateNextBlockTx(this, tx) is { } tpve)
-                {
-                    throw new InvalidOperationException(
-                        "According to BlockPolicy, this transaction is not valid.");
-                }
+                Policy.ValidateTransaction(this, tx);
             }
 
             _rwlock.EnterWriteLock();

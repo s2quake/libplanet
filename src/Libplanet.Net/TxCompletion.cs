@@ -119,24 +119,15 @@ namespace Libplanet.Net
                     txs.Where(
                         tx =>
                         {
-                            if (_blockChain.Policy.ValidateNextBlockTx(
-                                    _blockChain,
-                                    tx) is { } tpve)
+                            try
                             {
-                                const string message =
-                                    "Received transaction {TxId} from {Peer} will not be " +
-                                    "staged since it does not follow policy";
-                                _logger.Debug(
-                                    tpve,
-                                    message,
-                                    tx.Id,
-                                    peer);
+                                _blockChain.Policy.ValidateTransaction(_blockChain, tx);
+                                return true;
+                            }
+                            catch
+                            {
                                 _blockChain.StagedTransactions.Ignore(tx.Id);
                                 return false;
-                            }
-                            else
-                            {
-                                return true;
                             }
                         }));
 

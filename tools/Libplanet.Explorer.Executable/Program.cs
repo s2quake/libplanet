@@ -175,8 +175,7 @@ If omitted (default) explorer only the local blockchain store.")]
                 IStore store = LoadStore(options);
                 IStateStore stateStore = new NoOpStateStore();
 
-                IBlockPolicy policy =
-                    new DumbBlockPolicy(LoadBlockPolicy(options));
+                BlockPolicy policy = LoadBlockPolicy(options);
 
                 var blockChainStates = new BlockChainStates(store, stateStore);
                 var blockChain =
@@ -326,13 +325,13 @@ If omitted (default) explorer only the local blockchain store.")]
 
         private static BlockPolicy LoadBlockPolicy(Options options)
         {
-            return new BlockPolicy(
-                new PolicyActions(),
-                blockInterval: TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
-                getMaxTransactionsBytes: i => i > 0
-                    ? options.MaxTransactionsBytes
-                    : options.MaxGenesisTransactionsBytes,
-                getMaxTransactionsPerBlock: _ => options.MaxTransactionsPerBlock);
+            return new BlockPolicy
+            {
+                PolicyActions = PolicyActions.Empty,
+                BlockInterval = TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
+                MaxTransactionsBytes = options.MaxTransactionsBytes,
+                MaxTransactionsPerBlock = options.MaxTransactionsPerBlock,
+            };
         }
 
         private static async Task StartSwarmAsync(Swarm swarm, CancellationToken cancellationToken)
@@ -361,41 +360,41 @@ If omitted (default) explorer only the local blockchain store.")]
             await swarm.StartAsync(cancellationToken: cancellationToken);
         }
 
-        internal class DumbBlockPolicy : IBlockPolicy
-        {
-            private readonly IBlockPolicy _impl;
+        // internal class DumbBlockPolicy : BlockPolicy
+        // {
+        //     private readonly BlockPolicy _impl;
 
-            public DumbBlockPolicy(BlockPolicy blockPolicy)
-            {
-                _impl = blockPolicy;
-            }
+        //     public DumbBlockPolicy(BlockPolicy blockPolicy)
+        //     {
+        //         _impl = blockPolicy;
+        //     }
 
-            public PolicyActions PolicyActions => _impl.PolicyActions;
+        //     public PolicyActions PolicyActions => _impl.PolicyActions;
 
-            public int GetMinTransactionsPerBlock(long index) =>
-                _impl.GetMinTransactionsPerBlock(index);
+        //     public int MinTransactionsPerBlock(long index) =>
+        //         _impl.MinTransactionsPerBlock(index);
 
-            public int GetMaxTransactionsPerBlock(long index) =>
-                _impl.GetMaxTransactionsPerBlock(index);
+        //     public int MaxTransactionsPerBlock(long index) =>
+        //         _impl.MaxTransactionsPerBlock(index);
 
-            public long GetMaxTransactionsBytes(long index) =>
-                _impl.GetMaxTransactionsBytes(index);
+        //     public long MaxTransactionsBytes(long index) =>
+        //         _impl.MaxTransactionsBytes(index);
 
-            public InvalidOperationException ValidateNextBlockTx(
-                BlockChain blockChain,
-                Transaction transaction) =>
-                _impl.ValidateNextBlockTx(blockChain, transaction);
+        //     public InvalidOperationException ValidateNextBlockTx(
+        //         BlockChain blockChain,
+        //         Transaction transaction) =>
+        //         _impl.ValidateNextBlockTx(blockChain, transaction);
 
-            public Exception ValidateNextBlock(
-                BlockChain blockChain,
-                Block nextBlock) => _impl.ValidateNextBlock(blockChain, nextBlock);
+        //     public Exception ValidateNextBlock(
+        //         BlockChain blockChain,
+        //         Block nextBlock) => _impl.ValidateNextBlock(blockChain, nextBlock);
 
-            public int GetMaxTransactionsPerSignerPerBlock(long index) =>
-                _impl.GetMaxTransactionsPerSignerPerBlock(index);
+        //     public int GetMaxTransactionsPerSignerPerBlock(long index) =>
+        //         _impl.GetMaxTransactionsPerSignerPerBlock(index);
 
-            public long GetMaxEvidencePendingDuration(long index) =>
-                _impl.GetMaxEvidencePendingDuration(index);
-        }
+        //     public long GetMaxEvidencePendingDuration(long index) =>
+        //         _impl.GetMaxEvidencePendingDuration(index);
+        // }
 
         internal class Startup : IBlockChainContext
         {

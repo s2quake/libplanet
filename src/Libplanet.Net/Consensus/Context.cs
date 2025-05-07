@@ -423,19 +423,11 @@ public partial class Context : IDisposable
                                 _blockChain.Id, signer)),
                     block);
 
-                if (_blockChain.Policy.ValidateNextBlock(
-                    _blockChain, block) is { } bpve)
-                {
-                    throw bpve;
-                }
+                _blockChain.Policy.BlockValidation(_blockChain, block);
 
                 foreach (var tx in block.Transactions)
                 {
-                    if (_blockChain.Policy.ValidateNextBlockTx(
-                        _blockChain, tx) is { } txve)
-                    {
-                        throw txve;
-                    }
+                    _blockChain.Policy.ValidateTransaction(_blockChain, tx);
                 }
 
                 _blockChain.ValidateBlockStateRootHash(block);

@@ -163,8 +163,7 @@ public partial class BlockChainTest
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         var index = blockChain.Tip.Height;
-        var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
-            index: index);
+        var pendingDuration = blockChain.Policy.MaxEvidencePendingDuration;
         var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
         // When
@@ -221,8 +220,7 @@ public partial class BlockChainTest
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         var index = blockChain.Tip.Height;
-        var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
-            index: index);
+        var pendingDuration = blockChain.Policy.MaxEvidencePendingDuration;
         var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
         // When
@@ -325,8 +323,7 @@ public partial class BlockChainTest
         var height = Random.Shared.Next(1, 6);
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
         var index = _blockChain.Tip.Height;
-        var pendingDuration = _blockChain.Policy.GetMaxEvidencePendingDuration(
-            index: index);
+        var pendingDuration = _blockChain.Policy.MaxEvidencePendingDuration;
         var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
         // When
@@ -546,8 +543,7 @@ public partial class BlockChainTest
         Assert.True(blockChain.IsEvidencePending(evidence.Id));
         Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
 
-        var pendingDuration = blockChain.Policy.GetMaxEvidencePendingDuration(
-            index: blockChain.Tip.Height);
+        var pendingDuration = blockChain.Policy.MaxEvidencePendingDuration;
         var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
         for (var i = 0; i < pendingDuration; i++)

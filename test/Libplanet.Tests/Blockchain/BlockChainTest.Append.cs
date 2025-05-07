@@ -311,7 +311,7 @@ namespace Libplanet.Tests.Blockchain
         public void AppendModern()
         {
             _blockChain = TestUtils.MakeBlockChain(
-                new NullBlockPolicy(),
+                BlockPolicy.Empty,
                 new MemoryStore(),
                 new TrieStateStore());
             var genesis = _blockChain.Genesis;
@@ -375,7 +375,7 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 [.. heavyTxs],
                 []);
-            long maxBytes = _blockChain.Policy.GetMaxTransactionsBytes(block.Height);
+            long maxBytes = _blockChain.Policy.MaxTransactionsBytes;
             Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
             var e = Assert.Throws<InvalidOperationException>(() =>
@@ -386,7 +386,7 @@ namespace Libplanet.Tests.Blockchain
         public void AppendFailDueToInvalidTxCount()
         {
             int nonce = 0;
-            int maxTxs = _blockChain.Policy.GetMaxTransactionsPerBlock(1);
+            int maxTxs = _blockChain.Policy.MaxTransactionsPerBlock;
             var manyTxs = new List<Transaction>();
             for (int i = 0; i <= maxTxs; i++)
             {
@@ -413,7 +413,7 @@ namespace Libplanet.Tests.Blockchain
         // [SkippableFact]
         // public void AppendWhenActionEvaluationFailed()
         // {
-        //     var policy = new NullBlockPolicy();
+        //     var policy = BlockPolicy.Empty;
         //     var store = new MemoryStore();
         //     var stateStore =
         //         new TrieStateStore();
@@ -446,16 +446,19 @@ namespace Libplanet.Tests.Blockchain
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            InvalidOperationException IsSignerValid(
-                BlockChain chain, Transaction tx)
+            void IsSignerValid(BlockChain chain, Transaction tx)
             {
                 var validAddress = validKey.Address;
-                return tx.Signer.Equals(validAddress) || tx.Signer.Equals(_fx.Proposer.Address)
-                    ? null
-                    : new InvalidOperationException("invalid signer");
+                if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.Proposer.Address))
+                {
+                    throw new InvalidOperationException("invalid signer");
+                }
             }
 
-            var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
+            var policy = new BlockPolicy
+            {
+                TransactionValidation = IsSignerValid,
+            };
             using (var fx = new MemoryStoreFixture())
             {
                 var blockChain = BlockChain.Create(
@@ -540,8 +543,18 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void AppendValidatesBlock()
         {
-            var policy = new NullBlockPolicy(
-                    new InvalidOperationException(string.Empty));
+            var policy = new BlockPolicy
+            {
+                BlockValidation = (_, _) =>
+                {
+                    throw new InvalidOperationException(string.Empty);
+                },
+                TransactionValidation = (_, _) =>
+                {
+                    throw new InvalidOperationException(string.Empty);
+                },
+            }
+                    ;
             var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
             var blockChain = new BlockChain(
                 policy,
@@ -625,9 +638,10 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void DoesNotMigrateStateWithoutAction()
         {
-            var policy = new BlockPolicy(
-                new PolicyActions(),
-                getMaxTransactionsBytes: _ => 50 * 1024);
+            var policy = new BlockPolicy
+            {
+                MaxTransactionsBytes = 50 * 1024,
+            };
             var fx = GetStoreFixture(policy.PolicyActions);
             // var renderer = new ValidatingActionRenderer();
             var actionEvaluator = new ActionEvaluator(
@@ -688,7 +702,7 @@ namespace Libplanet.Tests.Blockchain
         public void AppendSRHPostponeBPVBump()
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion - 1;
-            var policy = new NullBlockPolicy();
+            var policy = BlockPolicy.Empty;
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
             var actionEvaluator = new ActionEvaluator(

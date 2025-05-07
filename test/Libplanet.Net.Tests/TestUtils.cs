@@ -42,12 +42,14 @@ namespace Libplanet.Net.Tests
         public static readonly ImmutableSortedSet<Validator> Validators
             = Libplanet.Tests.TestUtils.Validators;
 
-        public static readonly IBlockPolicy Policy = new BlockPolicy(
-            new PolicyActions
+        public static readonly BlockPolicy Policy = new BlockPolicy
+        {
+            PolicyActions = new PolicyActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
-            getMaxTransactionsBytes: _ => 50 * 1024);
+            MaxTransactionsBytes = 50 * 1024,
+        };
 
         public static AppProtocolVersion AppProtocolVersion = AppProtocolVersion.FromToken(
             "1/54684Ac4ee5B933e72144C4968BEa26056880d71/MEQCICGonYW" +
@@ -88,7 +90,7 @@ namespace Libplanet.Net.Tests
         }
 
         public static BlockChain CreateDummyBlockChain(
-            IBlockPolicy? policy = null,
+            BlockPolicy? policy = null,
             Block? genesisBlock = null)
         {
             policy ??= Policy;
@@ -249,7 +251,7 @@ namespace Libplanet.Net.Tests
         public static (BlockChain BlockChain, ConsensusContext ConsensusContext)
             CreateDummyConsensusContext(
                 TimeSpan newHeightDelay,
-                IBlockPolicy? policy = null,
+                BlockPolicy? policy = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null)
         {
@@ -303,7 +305,7 @@ namespace Libplanet.Net.Tests
             CreateDummyContext(
                 long height = 1,
                 BlockCommit? lastCommit = null,
-                IBlockPolicy? policy = null,
+                BlockPolicy? policy = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null,
                 ImmutableSortedSet<Validator>? validatorSet = null)

@@ -45,8 +45,9 @@ public partial class ActionEvaluatorTest
             .CreateLogger()
             .ForContext<ActionEvaluatorTest>();
 
-        _policy = new BlockPolicy(
-            new PolicyActions
+        _policy = new BlockPolicy
+        {
+            PolicyActions = new PolicyActions
             {
                 BeginBlockActions =
                 [
@@ -65,7 +66,8 @@ public partial class ActionEvaluatorTest
                     new UpdateValueAction { Address = _endTxValueAddress, Increment = 1 },
                 ],
             },
-            getMaxTransactionsBytes: _ => 50 * 1024);
+            MaxTransactionsBytes = 50 * 1024,
+        };
         _storeFx = new MemoryStoreFixture(_policy.PolicyActions);
         _txFx = new TxFixture(default);
     }
@@ -253,8 +255,9 @@ public partial class ActionEvaluatorTest
     {
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
-        var policyWithExceptions = new BlockPolicy(
-            new PolicyActions
+        var policyWithExceptions = new BlockPolicy
+        {
+            PolicyActions = new PolicyActions
             {
                 BeginBlockActions =
                 [
@@ -276,7 +279,8 @@ public partial class ActionEvaluatorTest
                     new UpdateValueAction { Address = _endTxValueAddress, Increment = 1 },
                     new ThrowException { ThrowOnExecution = true },
                 ],
-            });
+            },
+        };
 
         var (chain, actionEvaluator) =
             TestUtils.MakeBlockChainAndActionEvaluator(

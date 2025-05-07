@@ -21,7 +21,7 @@ public partial class BlockChainTest
     [SkippableFact]
     public void ProposeBlock()
     {
-        Func<long, long> getMaxTransactionsBytes = _blockChain.Policy.GetMaxTransactionsBytes;
+        var maxTransactionsBytes = _blockChain.Policy.MaxTransactionsBytes;
         Assert.Equal(1, _blockChain.Count);
         Assert.Equal(
             $"{GenesisProposer.Address}",
@@ -33,7 +33,7 @@ public partial class BlockChainTest
         Assert.True(_blockChain.ContainsBlock(block.BlockHash));
         Assert.Equal(2, _blockChain.Count);
         Assert.True(
-            ModelSerializer.SerializeToBytes(block).Length <= getMaxTransactionsBytes(block.Height));
+            ModelSerializer.SerializeToBytes(block).Length <= maxTransactionsBytes);
         Assert.Equal(
             $"{GenesisProposer.Address},{proposerA.Address}",
             (string)_blockChain.GetNextWorld().GetValue(LegacyAccount, default));
@@ -48,7 +48,7 @@ public partial class BlockChainTest
         Assert.Equal(3, _blockChain.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(anotherBlock).Length <=
-                getMaxTransactionsBytes(anotherBlock.Height));
+                maxTransactionsBytes);
         var expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
@@ -61,7 +61,7 @@ public partial class BlockChainTest
         Assert.False(_blockChain.ContainsBlock(block3.BlockHash));
         Assert.Equal(3, _blockChain.Count);
         Assert.True(
-            ModelSerializer.SerializeToBytes(block3).Length <= getMaxTransactionsBytes(block3.Height));
+            ModelSerializer.SerializeToBytes(block3).Length <= maxTransactionsBytes);
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
@@ -97,10 +97,10 @@ public partial class BlockChainTest
             $"{nameof(block4)}: {0} bytes",
             ModelSerializer.SerializeToBytes(block4).Length);
         _logger.Debug(
-            $"{nameof(getMaxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Height)}) = {0}",
-            getMaxTransactionsBytes(block4.Height));
+            $"{nameof(maxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Height)}) = {0}",
+            maxTransactionsBytes);
         Assert.True(
-            ModelSerializer.SerializeToBytes(block4).Length <= getMaxTransactionsBytes(block4.Height));
+            ModelSerializer.SerializeToBytes(block4).Length <= maxTransactionsBytes);
         Assert.Equal(3, block4.Transactions.Count);
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
@@ -349,16 +349,19 @@ public partial class BlockChainTest
         var validKey = new PrivateKey();
         var invalidKey = new PrivateKey();
 
-        InvalidOperationException IsSignerValid(
-            BlockChain chain, Transaction tx)
+        void IsSignerValid(BlockChain chain, Transaction tx)
         {
             var validAddress = validKey.Address;
-            return tx.Signer.Equals(validAddress) || tx.Signer.Equals(_fx.Proposer.Address)
-                ? null
-                : new InvalidOperationException("invalid signer");
+            if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.Proposer.Address))
+            {
+                throw new InvalidOperationException("invalid signer");
+            }
         }
 
-        var policy = new BlockPolicy(validateNextBlockTx: IsSignerValid);
+        var policy = new BlockPolicy
+        {
+            TransactionValidation = IsSignerValid,
+        };
         using (var fx = new MemoryStoreFixture())
         {
             var blockChain = BlockChain.Create(
@@ -463,12 +466,14 @@ public partial class BlockChainTest
         var privateKey2 = new PrivateKey();
         var address2 = privateKey2.Address;
 
-        var policy = new BlockPolicy(
-            new PolicyActions
+        var policy = new BlockPolicy
+        {
+            PolicyActions = new PolicyActions
             {
                 BeginBlockActions = [],
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
-            });
+            },
+        };
         var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
 
         var blockChain = new BlockChain(
