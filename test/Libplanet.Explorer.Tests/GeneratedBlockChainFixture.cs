@@ -91,8 +91,7 @@ public class GeneratedBlockChainFixture
             policy,
             store,
             stateStore,
-            genesisBlock,
-            actionEvaluator);
+            genesisBlock);
         MinedBlocks = MinedBlocks.SetItem(
             Chain.Genesis.Proposer,
             ImmutableArray<Block>.Empty.Add(Chain.Genesis));

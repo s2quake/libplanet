@@ -56,10 +56,7 @@ namespace Libplanet.Net.Tests.Consensus
                     TestUtils.Policy,
                     stores[i],
                     stateStore,
-                    fx.GenesisBlock,
-                    new ActionEvaluator(
-                        stateStore: stateStore,
-                        policyActions: TestUtils.Policy.PolicyActions));
+                    fx.GenesisBlock);
             }
 
             for (var i = 0; i < 4; i++)

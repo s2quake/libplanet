@@ -31,10 +31,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 _policy,
                 _fx.Store,
                 _fx.StateStore,
-                _fx.GenesisBlock,
-                new ActionEvaluator(
-                    stateStore: _fx.StateStore,
-                    _policy.PolicyActions));
+                _fx.GenesisBlock);
         }
 
         public void Dispose()

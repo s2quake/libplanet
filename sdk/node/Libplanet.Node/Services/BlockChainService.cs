@@ -37,9 +37,6 @@ internal sealed class BlockChainService(
         IStore store,
         IStateStore stateStore)
     {
-        var actionEvaluator = new ActionEvaluator(
-            stateStore,
-            actionService.PolicyActions);
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);
         var policy = BlockPolicy.Empty with
         {
@@ -59,7 +56,6 @@ internal sealed class BlockChainService(
                 store: store,
                 stateStore: stateStore,
                 genesisBlock: genesisBlock,
-                actionEvaluator: actionEvaluator,
                 blockChainStates: blockChainStates);
         }
 
@@ -68,8 +64,7 @@ internal sealed class BlockChainService(
             store: store,
             stateStore: stateStore,
             genesisBlock: genesisBlock,
-            blockChainStates: blockChainStates,
-            actionEvaluator: actionEvaluator);
+            blockChainStates: blockChainStates);
     }
 
     private static Block CreateGenesisBlock(

@@ -967,9 +967,6 @@ namespace Libplanet.Tests.Store
                 IStore s1 = fx.Store, s2 = fx2.Store;
                 var policy = BlockPolicy.Empty;
                 var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
-                var actionEvaluator = new ActionEvaluator(
-                    fx.StateStore,
-                    policy.PolicyActions);
                 var genesis = preEval.Sign(
                     GenesisProposer,
                     default);
@@ -977,8 +974,7 @@ namespace Libplanet.Tests.Store
                     policy,
                     s1,
                     fx.StateStore,
-                    genesis,
-                    actionEvaluator);
+                    genesis);
 
                 // FIXME: Need to add more complex blocks/transactions.
                 var key = new PrivateKey();

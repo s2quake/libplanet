@@ -578,8 +578,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 stateStore,
                 genesisBlock,
                 // renderers: renderers ?? new[] { validator = new ValidatingActionRenderer() },
-                blockChainStates: blockChainStates,
-                actionEvaluator: actionEvaluator);
+                blockChainStates: blockChainStates);
 #pragma warning restore S1121
 
             return (chain, actionEvaluator);
