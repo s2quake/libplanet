@@ -135,8 +135,8 @@ namespace Libplanet.Tests.Store
             store.DeleteChainId(chainA);
 
             Assert.Empty(store.IterateIndexes(chainA));
-            Assert.Null(store.IndexBlockHash(chainA, 0));
-            Assert.Null(store.IndexBlockHash(chainA, 1));
+            Assert.Null(store.GetBlockHash(chainA, 0));
+            Assert.Null(store.GetBlockHash(chainA, 1));
 
             Assert.Equal(
                 new[]
@@ -146,9 +146,9 @@ namespace Libplanet.Tests.Store
                     Fx.Block2.BlockHash,
                 },
                 store.IterateIndexes(chainB));
-            Assert.Equal(Fx.GenesisBlock.BlockHash, store.IndexBlockHash(chainB, 0));
-            Assert.Equal(Fx.Block1.BlockHash, store.IndexBlockHash(chainB, 1));
-            Assert.Equal(Fx.Block2.BlockHash, store.IndexBlockHash(chainB, 2));
+            Assert.Equal(Fx.GenesisBlock.BlockHash, store.GetBlockHash(chainB, 0));
+            Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHash(chainB, 1));
+            Assert.Equal(Fx.Block2.BlockHash, store.GetBlockHash(chainB, 2));
 
             Assert.Equal(
                 new[]
@@ -159,22 +159,22 @@ namespace Libplanet.Tests.Store
                     Fx.Block3.BlockHash,
                 },
                 store.IterateIndexes(chainC));
-            Assert.Equal(Fx.GenesisBlock.BlockHash, store.IndexBlockHash(chainC, 0));
-            Assert.Equal(Fx.Block1.BlockHash, store.IndexBlockHash(chainC, 1));
-            Assert.Equal(Fx.Block2.BlockHash, store.IndexBlockHash(chainC, 2));
-            Assert.Equal(Fx.Block3.BlockHash, store.IndexBlockHash(chainC, 3));
+            Assert.Equal(Fx.GenesisBlock.BlockHash, store.GetBlockHash(chainC, 0));
+            Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHash(chainC, 1));
+            Assert.Equal(Fx.Block2.BlockHash, store.GetBlockHash(chainC, 2));
+            Assert.Equal(Fx.Block3.BlockHash, store.GetBlockHash(chainC, 3));
 
             // Deleting chainB doesn't effect chainC
             store.DeleteChainId(chainB);
 
             Assert.Empty(store.IterateIndexes(chainA));
-            Assert.Null(store.IndexBlockHash(chainA, 0));
-            Assert.Null(store.IndexBlockHash(chainA, 1));
+            Assert.Null(store.GetBlockHash(chainA, 0));
+            Assert.Null(store.GetBlockHash(chainA, 1));
 
             Assert.Empty(store.IterateIndexes(chainB));
-            Assert.Null(store.IndexBlockHash(chainB, 0));
-            Assert.Null(store.IndexBlockHash(chainB, 1));
-            Assert.Null(store.IndexBlockHash(chainB, 2));
+            Assert.Null(store.GetBlockHash(chainB, 0));
+            Assert.Null(store.GetBlockHash(chainB, 1));
+            Assert.Null(store.GetBlockHash(chainB, 2));
 
             Assert.Equal(
                 new[]
@@ -185,20 +185,20 @@ namespace Libplanet.Tests.Store
                     Fx.Block3.BlockHash,
                 },
                 store.IterateIndexes(chainC));
-            Assert.Equal(Fx.GenesisBlock.BlockHash, store.IndexBlockHash(chainC, 0));
-            Assert.Equal(Fx.Block1.BlockHash, store.IndexBlockHash(chainC, 1));
-            Assert.Equal(Fx.Block2.BlockHash, store.IndexBlockHash(chainC, 2));
-            Assert.Equal(Fx.Block3.BlockHash, store.IndexBlockHash(chainC, 3));
+            Assert.Equal(Fx.GenesisBlock.BlockHash, store.GetBlockHash(chainC, 0));
+            Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHash(chainC, 1));
+            Assert.Equal(Fx.Block2.BlockHash, store.GetBlockHash(chainC, 2));
+            Assert.Equal(Fx.Block3.BlockHash, store.GetBlockHash(chainC, 3));
 
             store.DeleteChainId(chainC);
 
             Assert.Empty(store.IterateIndexes(chainA));
             Assert.Empty(store.IterateIndexes(chainB));
             Assert.Empty(store.IterateIndexes(chainC));
-            Assert.Null(store.IndexBlockHash(chainC, 0));
-            Assert.Null(store.IndexBlockHash(chainC, 1));
-            Assert.Null(store.IndexBlockHash(chainC, 2));
-            Assert.Null(store.IndexBlockHash(chainC, 3));
+            Assert.Null(store.GetBlockHash(chainC, 0));
+            Assert.Null(store.GetBlockHash(chainC, 1));
+            Assert.Null(store.GetBlockHash(chainC, 2));
+            Assert.Null(store.GetBlockHash(chainC, 3));
         }
 
         [SkippableFact]
@@ -286,7 +286,7 @@ namespace Libplanet.Tests.Store
             store.ForkBlockIndexes(chainB, chainC, Fx.Block1.BlockHash);
             Assert.Equal(
                 Fx.Block1.BlockHash,
-                store.IndexBlockHash(chainC, Fx.Block1.Height));
+                store.GetBlockHash(chainC, Fx.Block1.Height));
         }
 
         [SkippableFact]
@@ -308,9 +308,9 @@ namespace Libplanet.Tests.Store
             Assert.Null(Fx.Store.GetBlock(Fx.Block1.BlockHash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block2.BlockHash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block1.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block3.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.False(Fx.Store.DeleteBlock(Fx.Block1.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
@@ -326,9 +326,9 @@ namespace Libplanet.Tests.Store
                 Fx.Store.GetBlock(Fx.Block1.BlockHash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block2.BlockHash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
-            Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockIndex(Fx.Block1.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block3.BlockHash));
+            Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
@@ -345,9 +345,9 @@ namespace Libplanet.Tests.Store
                 Fx.Block2,
                 Fx.Store.GetBlock(Fx.Block2.BlockHash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
-            Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockIndex(Fx.Block1.BlockHash));
-            Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockIndex(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block3.BlockHash));
+            Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
+            Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
@@ -362,9 +362,9 @@ namespace Libplanet.Tests.Store
                 Fx.Block2,
                 Fx.Store.GetBlock(Fx.Block2.BlockHash));
             Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block1.BlockHash));
-            Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockIndex(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockIndex(Fx.Block3.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
+            Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
+            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
@@ -521,26 +521,26 @@ namespace Libplanet.Tests.Store
         {
             Assert.Equal(0, Fx.Store.CountIndex(Fx.StoreChainId));
             Assert.Empty(Fx.Store.IterateIndexes(Fx.StoreChainId));
-            Assert.Null(Fx.Store.IndexBlockHash(Fx.StoreChainId, 0));
-            Assert.Null(Fx.Store.IndexBlockHash(Fx.StoreChainId, -1));
+            Assert.Null(Fx.Store.GetBlockHash(Fx.StoreChainId, 0));
+            Assert.Null(Fx.Store.GetBlockHash(Fx.StoreChainId, -1));
 
             Assert.Equal(0, Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Hash1));
             Assert.Equal(1, Fx.Store.CountIndex(Fx.StoreChainId));
             Assert.Equal(
                 new List<BlockHash> { Fx.Hash1 },
                 Fx.Store.IterateIndexes(Fx.StoreChainId));
-            Assert.Equal(Fx.Hash1, Fx.Store.IndexBlockHash(Fx.StoreChainId, 0));
-            Assert.Equal(Fx.Hash1, Fx.Store.IndexBlockHash(Fx.StoreChainId, -1));
+            Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, 0));
+            Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, -1));
 
             Assert.Equal(1, Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Hash2));
             Assert.Equal(2, Fx.Store.CountIndex(Fx.StoreChainId));
             Assert.Equal(
                 new List<BlockHash> { Fx.Hash1, Fx.Hash2 },
                 Fx.Store.IterateIndexes(Fx.StoreChainId));
-            Assert.Equal(Fx.Hash1, Fx.Store.IndexBlockHash(Fx.StoreChainId, 0));
-            Assert.Equal(Fx.Hash2, Fx.Store.IndexBlockHash(Fx.StoreChainId, 1));
-            Assert.Equal(Fx.Hash2, Fx.Store.IndexBlockHash(Fx.StoreChainId, -1));
-            Assert.Equal(Fx.Hash1, Fx.Store.IndexBlockHash(Fx.StoreChainId, -2));
+            Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, 0));
+            Assert.Equal(Fx.Hash2, Fx.Store.GetBlockHash(Fx.StoreChainId, 1));
+            Assert.Equal(Fx.Hash2, Fx.Store.GetBlockHash(Fx.StoreChainId, -1));
+            Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, -2));
         }
 
         [SkippableFact]
@@ -667,7 +667,7 @@ namespace Libplanet.Tests.Store
             Fx.Store.PutBlock(Fx.Block1);
             Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
             Assert.Equal(1, Fx.Store.CountIndex(Fx.StoreChainId));
-            Assert.Null(Fx.Store.IndexBlockHash(Fx.StoreChainId, 2));
+            Assert.Null(Fx.Store.GetBlockHash(Fx.StoreChainId, 2));
         }
 
         [SkippableFact]
@@ -890,15 +890,15 @@ namespace Libplanet.Tests.Store
                 Array.Empty<BlockHash>(),
                 store.IterateIndexes(chainC, offset: 6));
 
-            Assert.Equal(Fx.Block1.BlockHash, store.IndexBlockHash(chainA, 1));
-            Assert.Equal(Fx.Block1.BlockHash, store.IndexBlockHash(chainB, 1));
-            Assert.Equal(Fx.Block1.BlockHash, store.IndexBlockHash(chainC, 1));
-            Assert.Equal(Fx.Block2.BlockHash, store.IndexBlockHash(chainB, 2));
-            Assert.Equal(Fx.Block2.BlockHash, store.IndexBlockHash(chainC, 2));
-            Assert.Equal(Fx.Block3.BlockHash, store.IndexBlockHash(chainB, 3));
-            Assert.Equal(Fx.Block3.BlockHash, store.IndexBlockHash(chainC, 3));
-            Assert.Equal(Fx.Block4.BlockHash, store.IndexBlockHash(chainC, 4));
-            Assert.Equal(Fx.Block5.BlockHash, store.IndexBlockHash(chainC, 5));
+            Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHash(chainA, 1));
+            Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHash(chainB, 1));
+            Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHash(chainC, 1));
+            Assert.Equal(Fx.Block2.BlockHash, store.GetBlockHash(chainB, 2));
+            Assert.Equal(Fx.Block2.BlockHash, store.GetBlockHash(chainC, 2));
+            Assert.Equal(Fx.Block3.BlockHash, store.GetBlockHash(chainB, 3));
+            Assert.Equal(Fx.Block3.BlockHash, store.GetBlockHash(chainC, 3));
+            Assert.Equal(Fx.Block4.BlockHash, store.GetBlockHash(chainC, 4));
+            Assert.Equal(Fx.Block5.BlockHash, store.GetBlockHash(chainC, 5));
         }
 
         [SkippableFact]

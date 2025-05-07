@@ -99,9 +99,7 @@ namespace Libplanet.Blockchain
             List<BlockHash> path = new List<BlockHash>();
             for (long idx = chain.Tip.Height; idx > target; idx--)
             {
-                path.Add(chain.Store.IndexBlockHash(chain.Id, idx) ??
-                    throw new NullReferenceException(
-                        $"Chain {chain.Id} is missing block #{idx}"));
+                path.Add(chain.Store.GetBlockHash(chain.Id, idx));
             }
 
             return path;

@@ -4,304 +4,297 @@ using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Tests.Store
+namespace Libplanet.Tests.Store;
+
+public sealed class StoreTracker(IStore store) : BaseTracker, IStore
 {
-    public sealed class StoreTracker : BaseTracker, IStore
+    private bool _disposed = false;
+
+    public long AppendIndex(Guid chainId, BlockHash hash)
     {
-        private readonly IStore _store;
-        private bool _disposed = false;
+        Log(nameof(AppendIndex), chainId, hash);
+        return store.AppendIndex(chainId, hash);
+    }
 
-        public StoreTracker(IStore store)
-        {
-            _store = store;
-        }
+    public long CountBlocks()
+    {
+        Log(nameof(CountBlocks));
+        return store.CountBlocks();
+    }
 
-        public long AppendIndex(Guid chainId, BlockHash hash)
-        {
-            Log(nameof(AppendIndex), chainId, hash);
-            return _store.AppendIndex(chainId, hash);
-        }
+    public long CountIndex(Guid chainId)
+    {
+        Log(nameof(CountIndex), chainId);
+        return store.CountIndex(chainId);
+    }
 
-        public long CountBlocks()
-        {
-            Log(nameof(CountBlocks));
-            return _store.CountBlocks();
-        }
+    public bool DeleteBlock(BlockHash blockHash)
+    {
+        Log(nameof(DeleteBlock), blockHash);
+        return store.DeleteBlock(blockHash);
+    }
 
-        public long CountIndex(Guid chainId)
-        {
-            Log(nameof(CountIndex), chainId);
-            return _store.CountIndex(chainId);
-        }
+    public bool ContainsBlock(BlockHash blockHash)
+    {
+        Log(nameof(ContainsBlock), blockHash);
+        return store.ContainsBlock(blockHash);
+    }
 
-        public bool DeleteBlock(BlockHash blockHash)
-        {
-            Log(nameof(DeleteBlock), blockHash);
-            return _store.DeleteBlock(blockHash);
-        }
+    public void PutTxExecution(TxExecution txExecution)
+    {
+        Log(nameof(PutTxExecution), txExecution);
+        store.PutTxExecution(txExecution);
+    }
 
-        public bool ContainsBlock(BlockHash blockHash)
-        {
-            Log(nameof(ContainsBlock), blockHash);
-            return _store.ContainsBlock(blockHash);
-        }
+    public TxExecution GetTxExecution(BlockHash blockHash, TxId txid)
+    {
+        Log(nameof(GetTxExecution), blockHash, txid);
+        return store.GetTxExecution(blockHash, txid);
+    }
 
-        public void PutTxExecution(TxExecution txExecution)
-        {
-            Log(nameof(PutTxExecution), txExecution);
-            _store.PutTxExecution(txExecution);
-        }
+    public void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+    {
+        Log(nameof(PutTxIdBlockHashIndex), txId, blockHash);
+        store.PutTxIdBlockHashIndex(txId, blockHash);
+    }
 
-        public TxExecution GetTxExecution(BlockHash blockHash, TxId txid)
-        {
-            Log(nameof(GetTxExecution), blockHash, txid);
-            return _store.GetTxExecution(blockHash, txid);
-        }
+    public BlockHash? GetFirstTxIdBlockHashIndex(TxId txId)
+    {
+        Log(nameof(GetFirstTxIdBlockHashIndex), txId);
+        return store.GetFirstTxIdBlockHashIndex(txId);
+    }
 
-        public void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
-        {
-            Log(nameof(PutTxIdBlockHashIndex), txId, blockHash);
-            _store.PutTxIdBlockHashIndex(txId, blockHash);
-        }
+    public IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
+    {
+        Log(nameof(IterateTxIdBlockHashIndex), txId);
+        return store.IterateTxIdBlockHashIndex(txId);
+    }
 
-        public BlockHash? GetFirstTxIdBlockHashIndex(TxId txId)
-        {
-            Log(nameof(GetFirstTxIdBlockHashIndex), txId);
-            return _store.GetFirstTxIdBlockHashIndex(txId);
-        }
+    public void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+    {
+        Log(nameof(DeleteTxIdBlockHashIndex), txId, blockHash);
+        store.DeleteTxIdBlockHashIndex(txId, blockHash);
+    }
 
-        public IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
-        {
-            Log(nameof(IterateTxIdBlockHashIndex), txId);
-            return _store.IterateTxIdBlockHashIndex(txId);
-        }
+    public void DeleteChainId(Guid chainId)
+    {
+        Log(nameof(DeleteChainId), chainId);
+        store.DeleteChainId(chainId);
+    }
 
-        public void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
-        {
-            Log(nameof(DeleteTxIdBlockHashIndex), txId, blockHash);
-            _store.DeleteTxIdBlockHashIndex(txId, blockHash);
-        }
+    public Block GetBlock(BlockHash blockHash)
+    {
+        Log(nameof(GetBlock), blockHash);
+        return store.GetBlock(blockHash);
+    }
 
-        public void DeleteChainId(Guid chainId)
-        {
-            Log(nameof(DeleteChainId), chainId);
-            _store.DeleteChainId(chainId);
-        }
+    public long GetBlockHeight(BlockHash blockHash)
+    {
+        Log(nameof(GetBlockHeight), blockHash);
+        return store.GetBlockHeight(blockHash);
+    }
 
-        public Block GetBlock(BlockHash blockHash)
-        {
-            Log(nameof(GetBlock), blockHash);
-            return _store.GetBlock(blockHash);
-        }
+    public BlockDigest GetBlockDigest(BlockHash blockHash)
+    {
+        Log(nameof(GetBlockDigest), blockHash);
+        return store.GetBlockDigest(blockHash);
+    }
 
-        public long? GetBlockIndex(BlockHash blockHash)
-        {
-            Log(nameof(GetBlockIndex), blockHash);
-            return _store.GetBlockIndex(blockHash);
-        }
+    public Transaction GetTransaction(TxId txid)
+    {
+        Log(nameof(GetTransaction), txid);
+        return store.GetTransaction(txid);
+    }
 
-        public BlockDigest GetBlockDigest(BlockHash blockHash)
-        {
-            Log(nameof(GetBlockDigest), blockHash);
-            return _store.GetBlockDigest(blockHash);
-        }
+    public BlockHash GetBlockHash(Guid chainId, long height)
+    {
+        Log(nameof(GetBlockHash), chainId, height);
+        return store.GetBlockHash(chainId, height);
+    }
 
-        public Transaction GetTransaction(TxId txid)
-        {
-            Log(nameof(GetTransaction), txid);
-            return _store.GetTransaction(txid);
-        }
+    public IEnumerable<BlockHash> IterateBlockHashes()
+    {
+        Log(nameof(IterateBlockHashes));
+        return store.IterateBlockHashes();
+    }
 
-        public BlockHash? IndexBlockHash(Guid chainId, long index)
-        {
-            Log(nameof(IndexBlockHash), chainId, index);
-            return _store.IndexBlockHash(chainId, index);
-        }
+    public IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
+    {
+         Log(nameof(IterateIndexes), chainId, offset, limit);
+         return store.IterateIndexes(chainId, offset, limit);
+    }
 
-        public IEnumerable<BlockHash> IterateBlockHashes()
-        {
-            Log(nameof(IterateBlockHashes));
-            return _store.IterateBlockHashes();
-        }
+    public IEnumerable<Guid> ListChainIds()
+    {
+        Log(nameof(ListChainIds));
+        return store.ListChainIds();
+    }
 
-        public IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
-        {
-             Log(nameof(IterateIndexes), chainId, offset, limit);
-             return _store.IterateIndexes(chainId, offset, limit);
-        }
+    public void PutBlock(Block block)
+    {
+        Log(nameof(PutBlock), block);
+        store.PutBlock(block);
+    }
 
-        public IEnumerable<Guid> ListChainIds()
-        {
-            Log(nameof(ListChainIds));
-            return _store.ListChainIds();
-        }
+    public void PutTransaction(Transaction tx)
+    {
+        Log(nameof(PutTransaction), tx);
+        store.PutTransaction(tx);
+    }
 
-        public void PutBlock(Block block)
-        {
-            Log(nameof(PutBlock), block);
-            _store.PutBlock(block);
-        }
+    public bool ContainsTransaction(TxId txId)
+    {
+        Log(nameof(ContainsTransaction), txId);
+        return store.ContainsTransaction(txId);
+    }
 
-        public void PutTransaction(Transaction tx)
-        {
-            Log(nameof(PutTransaction), tx);
-            _store.PutTransaction(tx);
-        }
+    public void ForkBlockIndexes(
+        Guid sourceChainId,
+        Guid destinationChainId,
+        BlockHash branchPoint)
+    {
+        Log(nameof(ForkBlockIndexes), sourceChainId, destinationChainId, branchPoint);
+        store.ForkBlockIndexes(sourceChainId, destinationChainId, branchPoint);
+    }
 
-        public bool ContainsTransaction(TxId txId)
-        {
-            Log(nameof(ContainsTransaction), txId);
-            return _store.ContainsTransaction(txId);
-        }
+    public IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
+    {
+        Log(nameof(ListTxNonces), chainId);
+        return store.ListTxNonces(chainId);
+    }
 
-        public void ForkBlockIndexes(
-            Guid sourceChainId,
-            Guid destinationChainId,
-            BlockHash branchPoint)
-        {
-            Log(nameof(ForkBlockIndexes), sourceChainId, destinationChainId, branchPoint);
-            _store.ForkBlockIndexes(sourceChainId, destinationChainId, branchPoint);
-        }
+    public long GetTxNonce(Guid chainId, Address address)
+    {
+        Log(nameof(GetTxNonce), chainId, address);
+        return store.GetTxNonce(chainId, address);
+    }
 
-        public IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
-        {
-            Log(nameof(ListTxNonces), chainId);
-            return _store.ListTxNonces(chainId);
-        }
+    public void IncreaseTxNonce(Guid chainId, Address address, long delta = 1)
+    {
+        Log(nameof(IncreaseTxNonce), chainId, address, delta);
+        store.IncreaseTxNonce(chainId, address, delta);
+    }
 
-        public long GetTxNonce(Guid chainId, Address address)
-        {
-            Log(nameof(GetTxNonce), chainId, address);
-            return _store.GetTxNonce(chainId, address);
-        }
+    public void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
+    {
+        Log(nameof(ForkTxNonces), sourceChainId, destinationChainId);
+        store.ForkTxNonces(sourceChainId, destinationChainId);
+    }
 
-        public void IncreaseTxNonce(Guid chainId, Address address, long delta = 1)
-        {
-            Log(nameof(IncreaseTxNonce), chainId, address, delta);
-            _store.IncreaseTxNonce(chainId, address, delta);
-        }
+    public void PruneOutdatedChains(bool noopWithoutCanon = false)
+    {
+        Log(nameof(PruneOutdatedChains));
+        store.PruneOutdatedChains();
+    }
 
-        public void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
-        {
-            Log(nameof(ForkTxNonces), sourceChainId, destinationChainId);
-            _store.ForkTxNonces(sourceChainId, destinationChainId);
-        }
+    public BlockCommit GetChainBlockCommit(Guid chainId)
+    {
+        Log(nameof(GetChainBlockCommit), chainId);
+        return store.GetChainBlockCommit(chainId);
+    }
 
-        public void PruneOutdatedChains(bool noopWithoutCanon = false)
-        {
-            Log(nameof(PruneOutdatedChains));
-            _store.PruneOutdatedChains();
-        }
+    public void PutChainBlockCommit(Guid chainId, BlockCommit blockCmmit)
+    {
+        Log(nameof(PutChainBlockCommit), blockCmmit);
+        store.PutChainBlockCommit(chainId, blockCmmit);
+    }
 
-        public BlockCommit GetChainBlockCommit(Guid chainId)
-        {
-            Log(nameof(GetChainBlockCommit), chainId);
-            return _store.GetChainBlockCommit(chainId);
-        }
+    public BlockCommit GetBlockCommit(BlockHash blockHash)
+    {
+        Log(nameof(GetBlockCommit), blockHash);
+        return store.GetBlockCommit(blockHash);
+    }
 
-        public void PutChainBlockCommit(Guid chainId, BlockCommit blockCmmit)
-        {
-            Log(nameof(PutChainBlockCommit), blockCmmit);
-            _store.PutChainBlockCommit(chainId, blockCmmit);
-        }
+    public void PutBlockCommit(BlockCommit commit)
+    {
+        Log(nameof(PutBlockCommit), commit);
+        store.PutBlockCommit(commit);
+    }
 
-        public BlockCommit GetBlockCommit(BlockHash blockHash)
-        {
-            Log(nameof(GetBlockCommit), blockHash);
-            return _store.GetBlockCommit(blockHash);
-        }
+    public void DeleteBlockCommit(BlockHash blockHash)
+    {
+        Log(nameof(DeleteBlockCommit), blockHash);
+        store.DeleteBlockCommit(blockHash);
+    }
 
-        public void PutBlockCommit(BlockCommit commit)
-        {
-            Log(nameof(PutBlockCommit), commit);
-            _store.PutBlockCommit(commit);
-        }
+    public IEnumerable<BlockHash> GetBlockCommitHashes()
+    {
+        Log(nameof(GetBlockCommitHashes));
+        return store.GetBlockCommitHashes();
+    }
 
-        public void DeleteBlockCommit(BlockHash blockHash)
-        {
-            Log(nameof(DeleteBlockCommit), blockHash);
-            _store.DeleteBlockCommit(blockHash);
-        }
+    public IEnumerable<EvidenceId> IteratePendingEvidenceIds()
+    {
+        Log(nameof(IteratePendingEvidenceIds));
+        return store.IteratePendingEvidenceIds();
+    }
 
-        public IEnumerable<BlockHash> GetBlockCommitHashes()
-        {
-            Log(nameof(GetBlockCommitHashes));
-            return _store.GetBlockCommitHashes();
-        }
+    public EvidenceBase GetPendingEvidence(EvidenceId evidenceId)
+    {
+        Log(nameof(GetPendingEvidence));
+        return store.GetPendingEvidence(evidenceId);
+    }
 
-        public IEnumerable<EvidenceId> IteratePendingEvidenceIds()
-        {
-            Log(nameof(IteratePendingEvidenceIds));
-            return _store.IteratePendingEvidenceIds();
-        }
+    public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId)
+    {
+        Log(nameof(GetCommittedEvidence));
+        return store.GetCommittedEvidence(evidenceId);
+    }
 
-        public EvidenceBase GetPendingEvidence(EvidenceId evidenceId)
-        {
-            Log(nameof(GetPendingEvidence));
-            return _store.GetPendingEvidence(evidenceId);
-        }
+    public void PutPendingEvidence(EvidenceBase evidence)
+    {
+        Log(nameof(PutPendingEvidence));
+        store.PutPendingEvidence(evidence);
+    }
 
-        public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId)
-        {
-            Log(nameof(GetCommittedEvidence));
-            return _store.GetCommittedEvidence(evidenceId);
-        }
+    public void PutCommittedEvidence(EvidenceBase evidence)
+    {
+        Log(nameof(PutCommittedEvidence));
+        store.PutCommittedEvidence(evidence);
+    }
 
-        public void PutPendingEvidence(EvidenceBase evidence)
-        {
-            Log(nameof(PutPendingEvidence));
-            _store.PutPendingEvidence(evidence);
-        }
+    public void DeletePendingEvidence(EvidenceId evidenceId)
+    {
+        Log(nameof(DeletePendingEvidence));
+        store.DeletePendingEvidence(evidenceId);
+    }
 
-        public void PutCommittedEvidence(EvidenceBase evidence)
-        {
-            Log(nameof(PutCommittedEvidence));
-            _store.PutCommittedEvidence(evidence);
-        }
+    public void DeleteCommittedEvidence(EvidenceId evidenceId)
+    {
+        Log(nameof(DeleteCommittedEvidence));
+        store.DeleteCommittedEvidence(evidenceId);
+    }
 
-        public void DeletePendingEvidence(EvidenceId evidenceId)
-        {
-            Log(nameof(DeletePendingEvidence));
-            _store.DeletePendingEvidence(evidenceId);
-        }
+    public bool ContainsPendingEvidence(EvidenceId evidenceId)
+    {
+        Log(nameof(ContainsPendingEvidence));
+        return store.ContainsPendingEvidence(evidenceId);
+    }
 
-        public void DeleteCommittedEvidence(EvidenceId evidenceId)
-        {
-            Log(nameof(DeleteCommittedEvidence));
-            _store.DeleteCommittedEvidence(evidenceId);
-        }
+    public bool ContainsCommittedEvidence(EvidenceId evidenceId)
+    {
+        Log(nameof(ContainsCommittedEvidence));
+        return store.ContainsCommittedEvidence(evidenceId);
+    }
 
-        public bool ContainsPendingEvidence(EvidenceId evidenceId)
-        {
-            Log(nameof(ContainsPendingEvidence));
-            return _store.ContainsPendingEvidence(evidenceId);
-        }
+    public Guid? GetCanonicalChainId()
+    {
+        Log(nameof(GetCanonicalChainId));
+        return store.GetCanonicalChainId();
+    }
 
-        public bool ContainsCommittedEvidence(EvidenceId evidenceId)
-        {
-            Log(nameof(ContainsCommittedEvidence));
-            return _store.ContainsCommittedEvidence(evidenceId);
-        }
+    public void SetCanonicalChainId(Guid chainId)
+    {
+        Log(nameof(SetCanonicalChainId), chainId);
+        store.SetCanonicalChainId(chainId);
+    }
 
-        public Guid? GetCanonicalChainId()
+    public void Dispose()
+    {
+        if (!_disposed)
         {
-            Log(nameof(GetCanonicalChainId));
-            return _store.GetCanonicalChainId();
-        }
-
-        public void SetCanonicalChainId(Guid chainId)
-        {
-            Log(nameof(SetCanonicalChainId), chainId);
-            _store.SetCanonicalChainId(chainId);
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _store.Dispose();
-                _disposed = true;
-            }
+            store.Dispose();
+            _disposed = true;
         }
     }
 }

@@ -293,7 +293,7 @@ public partial class BlockChain : IBlockChainStates
             _rwlock.EnterReadLock();
             try
             {
-                BlockHash? blockHash = Store.IndexBlockHash(Id, index);
+                BlockHash? blockHash = Store.GetBlockHash(Id, index);
                 return blockHash is { } bh
                     ? _blocks[bh]
                     : throw new ArgumentOutOfRangeException();
@@ -454,9 +454,9 @@ public partial class BlockChain : IBlockChainStates
         {
             return
                 _blocks.ContainsKey(blockHash) &&
-                Store.GetBlockIndex(blockHash) is { } branchPointIndex &&
+                Store.GetBlockHeight(blockHash) is { } branchPointIndex &&
                 branchPointIndex <= Tip.Height &&
-                Store.IndexBlockHash(Id, branchPointIndex).Equals(blockHash);
+                Store.GetBlockHash(Id, branchPointIndex).Equals(blockHash);
         }
         finally
         {
@@ -661,7 +661,7 @@ public partial class BlockChain : IBlockChainStates
             return Array.Empty<BlockHash>();
         }
 
-        if (!(Store.GetBlockIndex(branchpoint) is { } branchpointIndex))
+        if (!(Store.GetBlockHeight(branchpoint) is { } branchpointIndex))
         {
             return Array.Empty<BlockHash>();
         }

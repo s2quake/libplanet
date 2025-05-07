@@ -4,214 +4,115 @@ using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Tests.Store
+namespace Libplanet.Tests.Store;
+
+public abstract class ProxyStore(IStore store) : IStore
 {
-    /// <summary>
-    /// An thin <see cref="IStore"/> implementation that forwards all method calls to the actual
-    /// <see cref="Store"/> implementation.  As this purposes to override only few parts of
-    /// an existing <see cref="Store"/> implementation with maintaining the rest of methods,
-    /// its all methods are declared as <c>virtual</c>.
-    /// </summary>
-    public abstract class ProxyStore : IStore
-    {
-        /// <summary>
-        /// Creates a new <see cref="ProxyStore"/> instance with the given actual
-        /// <paramref name="store"/> implementation.
-        /// </summary>
-        /// <param name="store">The actual <see cref="IStore"/> implementation.</param>
-        protected ProxyStore(IStore store)
-        {
-            Store = store;
-        }
+    public virtual void Dispose() => store.Dispose();
 
-        /// <summary>
-        /// The actual <see cref="IStore"/> implementation.
-        /// </summary>
-        public IStore Store { get; }
+    public virtual IEnumerable<Guid> ListChainIds() => store.ListChainIds();
 
-        /// <inheritdoc cref="IStore.Dispose()"/>
-        public virtual void Dispose() =>
-            Store.Dispose();
+    public virtual void DeleteChainId(Guid chainId) => store.DeleteChainId(chainId);
 
-        /// <inheritdoc cref="IStore.ListChainIds()"/>
-        public virtual IEnumerable<Guid> ListChainIds() =>
-            Store.ListChainIds();
+    public virtual Guid? GetCanonicalChainId() => store.GetCanonicalChainId();
 
-        /// <inheritdoc cref="IStore.DeleteChainId(Guid)"/>
-        public virtual void DeleteChainId(Guid chainId) =>
-            Store.DeleteChainId(chainId);
+    public virtual void SetCanonicalChainId(Guid chainId) => store.SetCanonicalChainId(chainId);
 
-        /// <inheritdoc cref="IStore.GetCanonicalChainId()"/>
-        public virtual Guid? GetCanonicalChainId() =>
-            Store.GetCanonicalChainId();
+    public virtual long CountIndex(Guid chainId) => store.CountIndex(chainId);
 
-        /// <inheritdoc cref="IStore.SetCanonicalChainId(Guid)"/>
-        public virtual void SetCanonicalChainId(Guid chainId) =>
-            Store.SetCanonicalChainId(chainId);
+    public virtual IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null)
+        => store.IterateIndexes(chainId, offset, limit);
 
-        /// <inheritdoc cref="IStore.CountIndex(Guid)"/>
-        public virtual long CountIndex(Guid chainId) =>
-            Store.CountIndex(chainId);
+    public virtual BlockHash GetBlockHash(Guid chainId, long height) => store.GetBlockHash(chainId, height);
 
-        /// <inheritdoc cref="IStore.IterateIndexes(Guid, int, int?)"/>
-        public virtual IEnumerable<BlockHash> IterateIndexes(
-            Guid chainId,
-            int offset = 0,
-            int? limit = null) =>
-            Store.IterateIndexes(chainId, offset, limit);
+    public virtual long AppendIndex(Guid chainId, BlockHash hash) => store.AppendIndex(chainId, hash);
 
-        /// <inheritdoc cref="IStore.IndexBlockHash(Guid, long)"/>
-        public virtual BlockHash? IndexBlockHash(Guid chainId, long index) =>
-            Store.IndexBlockHash(chainId, index);
+    public virtual void ForkBlockIndexes(
+        Guid sourceChainId,
+        Guid destinationChainId,
+        BlockHash branchpoint) =>
+        store.ForkBlockIndexes(sourceChainId, destinationChainId, branchpoint);
 
-        /// <inheritdoc cref="IStore.AppendIndex(Guid, BlockHash)"/>
-        public virtual long AppendIndex(Guid chainId, BlockHash hash) =>
-            Store.AppendIndex(chainId, hash);
+    public virtual Transaction GetTransaction(TxId txid) => store.GetTransaction(txid);
 
-        /// <inheritdoc cref="IStore.ForkBlockIndexes(Guid, Guid, BlockHash)"/>
-        public virtual void ForkBlockIndexes(
-            Guid sourceChainId,
-            Guid destinationChainId,
-            BlockHash branchpoint) =>
-            Store.ForkBlockIndexes(sourceChainId, destinationChainId, branchpoint);
+    public virtual void PutTransaction(Transaction tx) => store.PutTransaction(tx);
 
-        /// <inheritdoc cref="IStore.GetTransaction(TxId)"/>
-        public virtual Transaction GetTransaction(TxId txid) =>
-            Store.GetTransaction(txid);
+    public virtual IEnumerable<BlockHash> IterateBlockHashes() => store.IterateBlockHashes();
 
-        /// <inheritdoc cref="IStore.GetTransaction(TxId)"/>
-        public virtual void PutTransaction(Transaction tx) =>
-            Store.PutTransaction(tx);
+    public virtual Block GetBlock(BlockHash blockHash) => store.GetBlock(blockHash);
 
-        /// <inheritdoc cref="IStore.IterateBlockHashes()"/>
-        public virtual IEnumerable<BlockHash> IterateBlockHashes() =>
-            Store.IterateBlockHashes();
+    public virtual long GetBlockHeight(BlockHash blockHash) => store.GetBlockHeight(blockHash);
 
-        /// <inheritdoc cref="IStore.GetBlock{T}"/>
-        public virtual Block GetBlock(BlockHash blockHash) =>
-            Store.GetBlock(blockHash);
+    public virtual BlockDigest GetBlockDigest(BlockHash blockHash) => store.GetBlockDigest(blockHash);
 
-        /// <inheritdoc cref="IStore.GetBlockIndex(BlockHash)"/>
-        public virtual long? GetBlockIndex(BlockHash blockHash) =>
-            Store.GetBlockIndex(blockHash);
+    public virtual void PutBlock(Block block) => store.PutBlock(block);
 
-        /// <inheritdoc cref="IStore.GetBlockDigest(BlockHash)"/>
-        public virtual BlockDigest GetBlockDigest(BlockHash blockHash) =>
-            Store.GetBlockDigest(blockHash);
+    public virtual bool DeleteBlock(BlockHash blockHash) => store.DeleteBlock(blockHash);
 
-        /// <inheritdoc cref="IStore.PutBlock{T}(Block{T})"/>
-        public virtual void PutBlock(Block block) =>
-            Store.PutBlock(block);
+    public virtual bool ContainsBlock(BlockHash blockHash) => store.ContainsBlock(blockHash);
 
-        /// <inheritdoc cref="IStore.DeleteBlock(BlockHash)"/>
-        public virtual bool DeleteBlock(BlockHash blockHash) =>
-            Store.DeleteBlock(blockHash);
+    public virtual void PutTxExecution(TxExecution txExecution) => store.PutTxExecution(txExecution);
 
-        /// <inheritdoc cref="IStore.ContainsBlock(BlockHash)"/>
-        public virtual bool ContainsBlock(BlockHash blockHash) =>
-            Store.ContainsBlock(blockHash);
+    public virtual TxExecution GetTxExecution(BlockHash blockHash, TxId txid) => store.GetTxExecution(blockHash, txid);
 
-        /// <inheritdoc cref="IStore.PutTxExecution"/>
-        public virtual void PutTxExecution(TxExecution txExecution) =>
-            Store.PutTxExecution(txExecution);
+    public virtual void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+        => store.PutTxIdBlockHashIndex(txId, blockHash);
 
-        /// <inheritdoc cref="IStore.GetTxExecution(BlockHash, TxId)"/>
-        public virtual TxExecution GetTxExecution(BlockHash blockHash, TxId txid) =>
-            Store.GetTxExecution(blockHash, txid);
+    public virtual BlockHash? GetFirstTxIdBlockHashIndex(TxId txId)
+        => store.GetFirstTxIdBlockHashIndex(txId);
 
-        /// <inheritdoc cref="IStore.PutTxIdBlockHashIndex(TxId, BlockHash)"/>
-        public virtual void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash) =>
-            Store.PutTxIdBlockHashIndex(txId, blockHash);
+    public virtual IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
+        => store.IterateTxIdBlockHashIndex(txId);
 
-        /// <inheritdoc cref="IStore.GetFirstTxIdBlockHashIndex(TxId)"/>
-        public virtual BlockHash? GetFirstTxIdBlockHashIndex(TxId txId) =>
-            Store.GetFirstTxIdBlockHashIndex(txId);
+    public virtual void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+        => store.DeleteTxIdBlockHashIndex(txId, blockHash);
 
-        /// <inheritdoc cref="IStore.IterateTxIdBlockHashIndex(TxId)"/>
-        public virtual IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId) =>
-            Store.IterateTxIdBlockHashIndex(txId);
+    public virtual IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
+        => store.ListTxNonces(chainId);
 
-        /// <inheritdoc cref="IStore.DeleteTxIdBlockHashIndex(TxId, BlockHash)"/>
-        public virtual void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash) =>
-            Store.DeleteTxIdBlockHashIndex(txId, blockHash);
+    public virtual long GetTxNonce(Guid chainId, Address address)
+        => store.GetTxNonce(chainId, address);
 
-        /// <inheritdoc cref="IStore.ListTxNonces(Guid)"/>
-        public virtual IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId) =>
-            Store.ListTxNonces(chainId);
+    public virtual void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
+        => store.IncreaseTxNonce(chainId, signer, delta);
 
-        /// <inheritdoc cref="IStore.GetTxNonce(Guid, Address)"/>
-        public virtual long GetTxNonce(Guid chainId, Address address) =>
-            Store.GetTxNonce(chainId, address);
+    public virtual bool ContainsTransaction(TxId txId) => store.ContainsTransaction(txId);
 
-        /// <inheritdoc cref="IStore.IncreaseTxNonce(Guid, Address, long)"/>
-        public virtual void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1) =>
-            Store.IncreaseTxNonce(chainId, signer, delta);
+    public virtual long CountBlocks() => store.CountBlocks();
 
-        /// <inheritdoc cref="IStore.ContainsTransaction(TxId)"/>
-        public virtual bool ContainsTransaction(TxId txId) =>
-            Store.ContainsTransaction(txId);
+    public virtual void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
+        => store.ForkTxNonces(sourceChainId, destinationChainId);
 
-        /// <inheritdoc cref="IStore.CountBlocks()"/>
-        public virtual long CountBlocks() =>
-            Store.CountBlocks();
+    public void PruneOutdatedChains(bool noopWithoutCanon = false) => store.PruneOutdatedChains(noopWithoutCanon);
 
-        /// <inheritdoc cref="IStore.ForkTxNonces(Guid, Guid)"/>
-        public virtual void ForkTxNonces(Guid sourceChainId, Guid destinationChainId) =>
-            Store.ForkTxNonces(sourceChainId, destinationChainId);
+    public BlockCommit GetChainBlockCommit(Guid chainId) => store.GetChainBlockCommit(chainId);
 
-        /// <inheritdoc cref="IStore.PruneOutdatedChains(bool)"/>
-        public void PruneOutdatedChains(bool noopWithoutCanon = false) =>
-            Store.PruneOutdatedChains(noopWithoutCanon);
+    public void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
+        => store.PutChainBlockCommit(chainId, blockCommit);
 
-        /// <inheritdoc cref="IStore.GetChainBlockCommit" />
-        public BlockCommit GetChainBlockCommit(Guid chainId) =>
-            Store.GetChainBlockCommit(chainId);
+    public BlockCommit GetBlockCommit(BlockHash blockHash) => store.GetBlockCommit(blockHash);
 
-        /// <inheritdoc cref="IStore.PutChainBlockCommit" />
-        public void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit) =>
-            Store.PutChainBlockCommit(chainId, blockCommit);
+    public void PutBlockCommit(BlockCommit blockCommit) => store.PutBlockCommit(blockCommit);
 
-        /// <inheritdoc cref="IStore.GetBlockCommit"/>
-        public BlockCommit GetBlockCommit(BlockHash blockHash) =>
-            Store.GetBlockCommit(blockHash);
+    public void DeleteBlockCommit(BlockHash blockHash) => store.DeleteBlockCommit(blockHash);
 
-        /// <inheritdoc cref="IStore.PutBlockCommit"/>
-        public void PutBlockCommit(BlockCommit blockCommit) =>
-            Store.PutBlockCommit(blockCommit);
+    public IEnumerable<BlockHash> GetBlockCommitHashes() => store.GetBlockCommitHashes();
 
-        /// <inheritdoc cref="IStore.DeleteBlockCommit"/>
-        public void DeleteBlockCommit(BlockHash blockHash) =>
-            Store.DeleteBlockCommit(blockHash);
+    public IEnumerable<EvidenceId> IteratePendingEvidenceIds() => store.IteratePendingEvidenceIds();
 
-        /// <inheritdoc cref="IStore.GetBlockCommitHashes"/>
-        public IEnumerable<BlockHash> GetBlockCommitHashes() =>
-            Store.GetBlockCommitHashes();
+    public EvidenceBase GetPendingEvidence(EvidenceId evidenceId) => store.GetPendingEvidence(evidenceId);
 
-        public IEnumerable<EvidenceId> IteratePendingEvidenceIds() =>
-            Store.IteratePendingEvidenceIds();
+    public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) => store.GetCommittedEvidence(evidenceId);
 
-        public EvidenceBase GetPendingEvidence(EvidenceId evidenceId) =>
-            Store.GetPendingEvidence(evidenceId);
+    public void PutPendingEvidence(EvidenceBase evidence) => store.PutPendingEvidence(evidence);
 
-        public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) =>
-            Store.GetCommittedEvidence(evidenceId);
+    public void PutCommittedEvidence(EvidenceBase evidence) => store.PutCommittedEvidence(evidence);
 
-        public void PutPendingEvidence(EvidenceBase evidence) =>
-            Store.PutPendingEvidence(evidence);
+    public void DeletePendingEvidence(EvidenceId evidenceId) => store.DeletePendingEvidence(evidenceId);
 
-        public void PutCommittedEvidence(EvidenceBase evidence) =>
-            Store.PutCommittedEvidence(evidence);
+    public void DeleteCommittedEvidence(EvidenceId evidenceId) => store.DeleteCommittedEvidence(evidenceId);
 
-        public void DeletePendingEvidence(EvidenceId evidenceId) =>
-            Store.DeletePendingEvidence(evidenceId);
+    public bool ContainsPendingEvidence(EvidenceId evidenceId) => store.ContainsPendingEvidence(evidenceId);
 
-        public void DeleteCommittedEvidence(EvidenceId evidenceId) =>
-            Store.DeleteCommittedEvidence(evidenceId);
-
-        public bool ContainsPendingEvidence(EvidenceId evidenceId) =>
-            Store.ContainsPendingEvidence(evidenceId);
-
-        public bool ContainsCommittedEvidence(EvidenceId evidenceId) =>
-            Store.ContainsCommittedEvidence(evidenceId);
-    }
+    public bool ContainsCommittedEvidence(EvidenceId evidenceId) => store.ContainsCommittedEvidence(evidenceId);
 }

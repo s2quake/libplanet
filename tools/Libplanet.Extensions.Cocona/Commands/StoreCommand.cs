@@ -32,7 +32,7 @@ public class StoreCommand
                 height.ToString(CultureInfo.InvariantCulture),
                 id == canon ? "*" : string.Empty,
                 store.GetBlockDigest(
-                    store.IndexBlockHash(id, height)!.Value)!.BlockHash.ToString());
+                    store.GetBlockHash(id, height))!.BlockHash.ToString());
         });
         if (showHash)
         {
@@ -166,7 +166,7 @@ public class StoreCommand
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
-        if (!(store.IndexBlockHash(chainId, blockHeight) is { } blockHash))
+        if (!(store.GetBlockHash(chainId, blockHeight) is { } blockHash))
         {
             throw Utils.Error(
                 $"Cannot find the block with the height {blockHeight}" +

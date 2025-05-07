@@ -273,22 +273,21 @@ public class DefaultStore : StoreBase
             .Select(i => i.Hash);
     }
 
-    /// <inheritdoc cref="StoreBase.IndexBlockHash(Guid, long)"/>
-    public override BlockHash? IndexBlockHash(Guid chainId, long index)
+    public override BlockHash GetBlockHash(Guid chainId, long height)
     {
-        if (index < 0)
+        if (height < 0)
         {
-            index += CountIndex(chainId);
+            height += CountIndex(chainId);
 
-            if (index < 0)
+            if (height < 0)
             {
-                return null;
+                throw new ArgumentOutOfRangeException(nameof(height), "Height is out of range.");
             }
         }
 
-        HashDoc doc = IndexCollection(chainId).FindById(index + 1);
-        BlockHash? hash = doc is { } d ? d.Hash : (BlockHash?)null;
-        return hash;
+        HashDoc doc = IndexCollection(chainId).FindById(height + 1);
+        return doc is { } d ? d.Hash : throw new ArgumentOutOfRangeException(
+            nameof(height), "Height is out of range.");
     }
 
     /// <inheritdoc cref="StoreBase.AppendIndex(Guid, BlockHash)"/>

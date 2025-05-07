@@ -114,7 +114,7 @@ namespace Libplanet.RocksDBStore.Tests
 
                 Enumerable.Range(0, 3).AsParallel().ForAll(i =>
                 {
-                    var bHash = store.IndexBlockHash(cid, i).Value;
+                    var bHash = store.GetBlockHash(cid, i);
                     var block = store.GetBlock(bHash);
                     Assert.NotNull(block);
                 });

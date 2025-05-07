@@ -502,42 +502,37 @@ public partial class RocksDBStore : StoreBase
         return indexes;
     }
 
-    /// <inheritdoc cref="StoreBase.IndexBlockHash(Guid, long)"/>
-    public override BlockHash? IndexBlockHash(Guid chainId, long index)
+    public override BlockHash GetBlockHash(Guid chainId, long height)
     {
-        try
+        if (height < 0)
         {
-            if (index < 0)
+            height += CountIndex(chainId);
+
+            if (height < 0)
             {
-                index += CountIndex(chainId);
-
-                if (index < 0)
-                {
-                    return null;
-                }
+                throw new ArgumentOutOfRangeException(
+                    nameof(height),
+                    "The index is out of range.");
             }
-
-            if (IsDeletionMarked(chainId))
-            {
-                return null;
-            }
-
-            (Guid ChainId, long Index)? prevChainInfo = GetPreviousChainInfo(chainId);
-            while (prevChainInfo is { } infoNotNull && infoNotNull.Index >= index)
-            {
-                chainId = infoNotNull.ChainId;
-                prevChainInfo = GetPreviousChainInfo(chainId);
-            }
-
-            byte[] indexBytes = RocksDBStoreBitConverter.GetBytes(index);
-            byte[] bytes = _chainDb.Get(IndexKey(chainId, indexBytes));
-            return bytes is null ? (BlockHash?)null : new BlockHash(bytes);
         }
-        catch (Exception e)
+
+        if (IsDeletionMarked(chainId))
         {
-            LogUnexpectedException(nameof(IndexBlockHash), e);
-            return null;
+            throw new ArgumentOutOfRangeException(
+                    nameof(height),
+                    "The index is out of range.");
         }
+
+        (Guid ChainId, long Index)? prevChainInfo = GetPreviousChainInfo(chainId);
+        while (prevChainInfo is { } infoNotNull && infoNotNull.Index >= height)
+        {
+            chainId = infoNotNull.ChainId;
+            prevChainInfo = GetPreviousChainInfo(chainId);
+        }
+
+        byte[] indexBytes = RocksDBStoreBitConverter.GetBytes(height);
+        byte[] bytes = _chainDb.Get(IndexKey(chainId, indexBytes));
+        return new BlockHash(bytes);
     }
 
     /// <inheritdoc cref="StoreBase.AppendIndex(Guid, BlockHash)"/>
@@ -591,7 +586,7 @@ public partial class RocksDBStore : StoreBase
             batch.Delete(k.Key());
         }
 
-        if (!(GetBlockIndex(branchpoint) is { } bpIndex))
+        if (!(GetBlockHeight(branchpoint) is { } bpIndex))
         {
             return;
         }
