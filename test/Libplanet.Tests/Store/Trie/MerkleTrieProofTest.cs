@@ -10,7 +10,7 @@ namespace Libplanet.Tests.Store.Trie
     public class MerkleTrieProofTest
     {
         public readonly IKeyValueStore KeyValueStore = new MemoryKeyValueStore();
-        public readonly IStateStore StateStore;
+        public readonly TrieStateStore StateStore;
 
         // "1b16b1df538ba12dc3f97edbb85caa7050d46c148134290feba80f8236c83db9"
         public readonly ITrie EmptyTrie;

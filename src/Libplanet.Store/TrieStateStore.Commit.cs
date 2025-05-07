@@ -10,7 +10,7 @@ public partial class TrieStateStore
 {
     private static readonly Codec _codec = new Codec();
 
-    /// <inheritdoc cref="IStateStore.Commit"/>
+    /// <inheritdoc cref="TrieStateStore.Commit"/>
     public ITrie Commit(ITrie trie)
     {
         var root = trie.Node;

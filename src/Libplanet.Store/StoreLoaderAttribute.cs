@@ -14,7 +14,7 @@ namespace Libplanet.Store
     /// <c>sample:///home/foo/bar?cache=512</c>:</para>
     /// <code><![CDATA[
     /// [StoreLoader("sample")]
-    /// private static (IStore Store, IStateStore StateStore) Loader(Uri storeUri)
+    /// private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
     /// {
     ///     NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
     ///     int cache = query.GetInt32("cache", 128);
@@ -44,19 +44,19 @@ namespace Libplanet.Store
         public string UriScheme { get; }
 
         /// <summary>
-        /// Loads a pair of <see cref="IStore"/> and <see cref="IStateStore"/> from the specified
+        /// Loads a pair of <see cref="IStore"/> and <see cref="TrieStateStore"/> from the specified
         /// <paramref name="storeUri"/>.
         /// </summary>
         /// <param name="storeUri">A URI referring to a store.</param>
-        /// <returns>A pair of loaded <see cref="IStore"/> and <see cref="IStateStore"/>.</returns>
-        public static (IStore Store, IStateStore StateStore)? LoadStore(Uri storeUri)
+        /// <returns>A pair of loaded <see cref="IStore"/> and <see cref="TrieStateStore"/>.</returns>
+        public static (IStore Store, TrieStateStore StateStore)? LoadStore(Uri storeUri)
         {
             const BindingFlags flags =
                 BindingFlags.Public |
                 BindingFlags.NonPublic |
                 BindingFlags.Static |
                 (BindingFlags)0x2000000;  // BindingFlags.DoNotWrapExceptions
-            return ((IStore, IStateStore)?)FindStoreLoader(storeUri.Scheme)?.Invoke(
+            return ((IStore, TrieStateStore)?)FindStoreLoader(storeUri.Scheme)?.Invoke(
                 null,
                 flags,
                 null,
@@ -77,7 +77,7 @@ namespace Libplanet.Store
         private static IEnumerable<(string UriScheme, MethodInfo Loader)> ListStoreLoaderMethods()
         {
             var paramType = typeof(Uri);
-            var retType = typeof((IStore, IStateStore));
+            var retType = typeof((IStore, TrieStateStore));
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a =>
                 {

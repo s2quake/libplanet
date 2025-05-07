@@ -23,7 +23,7 @@ public class RocksDBStoreFixture : StoreFixture
         StateStore = LoadTrieStateStore(Path);
     }
 
-    public IStateStore LoadTrieStateStore(string path)
+    public TrieStateStore LoadTrieStateStore(string path)
     {
         IKeyValueStore stateKeyValueStore =
             new RocksDBKeyValueStore(System.IO.Path.Combine(path, "states"));

@@ -20,7 +20,7 @@ namespace Libplanet.Benchmarks
         {
             var fx = new DefaultStoreFixture();
             _blockChain = Libplanet.Blockchain.BlockChain.Create(
-                BlockPolicy.Empty,
+                BlockChainOptions.Empty,
                 fx.Store,
                 fx.StateStore,
                 fx.GenesisBlock);

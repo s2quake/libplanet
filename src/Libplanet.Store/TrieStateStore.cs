@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Libplanet.Store;
 
-public partial class TrieStateStore(IKeyValueStore keyValueStore) : IStateStore
+public partial class TrieStateStore(IKeyValueStore keyValueStore)
 {
     private readonly ILogger _logger = Log.ForContext<TrieStateStore>();
     private readonly HashNodeCache _cache = new();

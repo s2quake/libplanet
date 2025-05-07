@@ -33,10 +33,10 @@ internal sealed class BlockChainService(
         IActionService actionService,
         GenesisOptions genesisOptions,
         IStore store,
-        IStateStore stateStore)
+        TrieStateStore stateStore)
     {
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);
-        var policy = BlockPolicy.Empty with
+        var options = new BlockChainOptions
         {
             PolicyActions = actionService.PolicyActions,
             BlockInterval = TimeSpan.FromSeconds(8),
@@ -46,26 +46,18 @@ internal sealed class BlockChainService(
             MaxTransactionsPerSignerPerBlock = int.MaxValue,
         };
 
-        if (store.GetCanonicalChainId() is null)
+        if (store.GetCanonicalChainId() == Guid.Empty)
         {
-            return BlockChain.Create(
-                policy: policy,
-                store: store,
-                stateStore: stateStore,
-                genesisBlock: genesisBlock);
+            return BlockChain.Create(genesisBlock, options);
         }
 
-        return new BlockChain(
-            policy: policy,
-            store: store,
-            stateStore: stateStore,
-            genesisBlock: genesisBlock);
+        return new BlockChain(genesisBlock, options);
     }
 
     private static Block CreateGenesisBlock(
         GenesisOptions genesisOptions,
         IActionService actionService,
-        IStateStore stateStore)
+        TrieStateStore stateStore)
     {
         if (genesisOptions.GenesisBlockPath != string.Empty)
         {
@@ -152,7 +144,7 @@ internal sealed class BlockChainService(
     private static Block CreateGenesisBlockFromConfiguration(
         PrivateKey genesisKey,
         byte[] config,
-        IStateStore stateStore)
+        TrieStateStore stateStore)
     {
         Dictionary<string, Dictionary<string, string>>? data =
             JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(config);

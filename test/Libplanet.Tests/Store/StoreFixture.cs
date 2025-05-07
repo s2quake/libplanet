@@ -185,8 +185,6 @@ public abstract class StoreFixture : IDisposable
 
     public IStore Store { get; set; }
 
-    public IStateStore StateStore { get; set; }
-
     public IKeyValueStore StateHashKeyValueStore { get; set; }
 
     public IKeyValueStore StateKeyValueStore { get; set; }

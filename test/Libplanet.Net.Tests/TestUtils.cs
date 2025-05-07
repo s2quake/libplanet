@@ -41,7 +41,7 @@ namespace Libplanet.Net.Tests
         public static readonly ImmutableSortedSet<Validator> Validators
             = Libplanet.Tests.TestUtils.Validators;
 
-        public static readonly BlockPolicy Policy = new BlockPolicy
+        public static readonly BlockChainOptions Options = new()
         {
             PolicyActions = new PolicyActions
             {
@@ -89,10 +89,10 @@ namespace Libplanet.Net.Tests
         }
 
         public static BlockChain CreateDummyBlockChain(
-            BlockPolicy? policy = null,
+            BlockChainOptions? policy = null,
             Block? genesisBlock = null)
         {
-            policy ??= Policy;
+            policy ??= Options;
             var fx = new MemoryStoreFixture(policy.PolicyActions);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
@@ -250,11 +250,11 @@ namespace Libplanet.Net.Tests
         public static (BlockChain BlockChain, ConsensusContext ConsensusContext)
             CreateDummyConsensusContext(
                 TimeSpan newHeightDelay,
-                BlockPolicy? policy = null,
+                BlockChainOptions? policy = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null)
         {
-            policy ??= Policy;
+            policy ??= Options;
             var blockChain = CreateDummyBlockChain(policy);
             ConsensusContext? consensusContext = null;
 
@@ -304,14 +304,14 @@ namespace Libplanet.Net.Tests
             CreateDummyContext(
                 long height = 1,
                 BlockCommit? lastCommit = null,
-                BlockPolicy? policy = null,
+                BlockChainOptions? policy = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null,
                 ImmutableSortedSet<Validator>? validatorSet = null)
         {
             Context? context = null;
             privateKey ??= PrivateKeys[1];
-            policy ??= Policy;
+            policy ??= Options;
 
             var blockChain = CreateDummyBlockChain(policy);
             context = new Context(

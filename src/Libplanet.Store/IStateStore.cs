@@ -1,12 +1,12 @@
-using System.Security.Cryptography;
-using Libplanet.Store.Trie;
-using Libplanet.Types;
+// using System.Security.Cryptography;
+// using Libplanet.Store.Trie;
+// using Libplanet.Types;
 
-namespace Libplanet.Store;
+// namespace Libplanet.Store;
 
-public interface IStateStore : IDisposable
-{
-    ITrie GetStateRoot(HashDigest<SHA256> stateRootHash);
+// public interface TrieStateStore : IDisposable
+// {
+//     ITrie GetStateRoot(HashDigest<SHA256> stateRootHash);
 
-    ITrie Commit(ITrie trie);
-}
+//     ITrie Commit(ITrie trie);
+// }

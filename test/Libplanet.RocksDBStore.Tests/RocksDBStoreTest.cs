@@ -49,7 +49,7 @@ namespace Libplanet.RocksDBStore.Tests
             var uri = new Uri(tempDirPath, UriKind.Absolute);
             Assert.StartsWith("file://", uri.ToString());
             uri = new Uri("rocksdb+" + uri);
-            (IStore Store, IStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
+            (IStore Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
             Assert.NotNull(pair);
             IStore store = pair.Value.Store;
             Assert.IsAssignableFrom<RocksDBStore>(store);
@@ -73,7 +73,7 @@ namespace Libplanet.RocksDBStore.Tests
                 var store = new RocksDBStore(path);
                 var stateStore = new TrieStateStore();
                 var blocks = BlockChain.Create(
-                    BlockPolicy.Empty,
+                    BlockChainOptions.Empty,
                     store,
                     stateStore,
                     Fx.GenesisBlock);

@@ -380,7 +380,7 @@ namespace Libplanet.Net.Tests
             var roundChangedToOnes = Enumerable.Range(0, 4).Select(i =>
                 new AsyncAutoResetEvent()).ToList();
             var roundOneProposed = new AsyncAutoResetEvent();
-            var policy = BlockPolicy.Empty;
+            var policy = BlockChainOptions.Empty;
             var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
 
             var consensusPeers = Enumerable.Range(0, 4).Select(i =>
@@ -639,7 +639,7 @@ namespace Libplanet.Net.Tests
         public async Task ThrowArgumentExceptionInConstructor()
         {
             var fx = new MemoryStoreFixture();
-            var policy = new BlockPolicy();
+            var policy = new BlockChainOptions();
             var blockchain = MakeBlockChain(
                 policy, fx.Store, fx.StateStore);
             var key = new PrivateKey();
@@ -833,7 +833,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task CannotBlockSyncWithForkedChain()
         {
-            var policy = BlockPolicy.Empty;
+            var policy = BlockChainOptions.Empty;
             var chain1 = MakeBlockChain(
                 policy,
                 new MemoryStore(),
@@ -897,7 +897,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 TransactionValidation = IsSignerValid,
             };
@@ -965,7 +965,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 TransactionValidation = IsSignerValid,
             };
@@ -1032,7 +1032,7 @@ namespace Libplanet.Net.Tests
             var actionsB = new[] { DumbAction.Create((signerAddress, "2")) };
 
             var genesisChainA = MakeBlockChain(
-                new BlockPolicy(),
+                new BlockChainOptions(),
                 new MemoryStore(),
                 new TrieStateStore(),
                 actionsA,
@@ -1040,14 +1040,14 @@ namespace Libplanet.Net.Tests
                 privateKeyA);
             var genesisBlockA = genesisChainA.Genesis;
             var genesisChainB = MakeBlockChain(
-                new BlockPolicy(),
+                new BlockChainOptions(),
                 new MemoryStore(),
                 new TrieStateStore(),
                 actionsB,
                 null,
                 privateKeyB);
             var genesisChainC = MakeBlockChain(
-                new BlockPolicy(),
+                new BlockChainOptions(),
                 new MemoryStore(),
                 new TrieStateStore(),
                 genesisBlock: genesisBlockA);

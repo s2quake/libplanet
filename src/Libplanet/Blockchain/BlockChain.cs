@@ -33,45 +33,28 @@ public partial class BlockChain
 
     private HashDigest<SHA256>? _nextStateRootHash;
 
-    public BlockChain(
-        BlockPolicy policy,
-        IStore store,
-        IStateStore stateStore,
-        Block genesisBlock)
-        : this(
-            policy,
-            store,
-            stateStore,
-            store.GetCanonicalChainId() ??
-                throw new ArgumentException(
-                    $"Given {nameof(store)} does not have canonical chain id set.",
-                    nameof(store)),
-            genesisBlock)
+    public BlockChain(Block genesisBlock, BlockChainOptions options)
+        : this(genesisBlock, options.Store.GetCanonicalChainId(), options)
     {
     }
 
-    private BlockChain(
-        BlockPolicy policy,
-        IStore store,
-        IStateStore stateStore,
-        Guid id,
-        Block genesisBlock)
+    private BlockChain(Block genesisBlock, Guid id, BlockChainOptions options)
     {
-        if (store.CountIndex(id) == 0)
-        {
-            throw new ArgumentException(
-                $"Given store does not contain chain id {id}.", nameof(store));
-        }
+        // if (store.CountIndex(id) == 0)
+        // {
+        //     throw new ArgumentException(
+        //         $"Given store does not contain chain id {id}.", nameof(store));
+        // }
 
         Id = id;
-        Policy = policy;
-        StagedTransactions = new StagedTransactionCollection(store, id);
-        Store = store;
-        StateStore = stateStore;
+        Policy = options;
+        StagedTransactions = new StagedTransactionCollection(options.Store, id);
+        Store = options.Store;
+        StateStore = new TrieStateStore(options.KeyValueStore);
 
-        _blockChainStates = new BlockChainStates(store, stateStore);
+        _blockChainStates = new BlockChainStates(options.Store, StateStore);
 
-        _blocks = new BlockSet(store);
+        _blocks = new BlockSet(options.Store);
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         _txLock = new object();
 
@@ -79,7 +62,7 @@ public partial class BlockChain
             .ForContext<BlockChain>()
             .ForContext("Source", nameof(BlockChain))
             .ForContext("ChainId", Id);
-        ActionEvaluator = new ActionEvaluator(stateStore, policy.PolicyActions);
+        ActionEvaluator = new ActionEvaluator(StateStore, options.PolicyActions);
 
         if (!Genesis.Equals(genesisBlock))
         {
@@ -112,7 +95,7 @@ public partial class BlockChain
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
 
-    public BlockPolicy Policy { get; }
+    public BlockChainOptions Policy { get; }
 
     public StagedTransactionCollection StagedTransactions { get; }
 
@@ -128,7 +111,7 @@ public partial class BlockChain
 
     internal IStore Store { get; }
 
-    internal IStateStore StateStore { get; }
+    internal TrieStateStore StateStore { get; }
 
     internal ActionEvaluator ActionEvaluator { get; }
 
@@ -175,17 +158,13 @@ public partial class BlockChain
         }
     }
 
-    public static BlockChain Create(
-        BlockPolicy policy,
-        IStore store,
-        IStateStore stateStore,
-        Block genesisBlock)
+    public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
     {
-        if (store.GetCanonicalChainId() is { } canonId)
+        if (options.Store.GetCanonicalChainId() is { } canonId)
         {
             throw new ArgumentException(
-                $"Given {nameof(store)} already has its canonical chain id set: {canonId}",
-                nameof(store));
+                $"Given {nameof(options.Store)} already has its canonical chain id set: {canonId}",
+                nameof(options.Store));
         }
 
         var id = Guid.NewGuid();
@@ -218,27 +197,22 @@ public partial class BlockChain
         ValidateGenesis(genesisBlock);
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
-        store.PutBlock(genesisBlock);
-        store.AppendIndex(id, genesisBlock.BlockHash);
+        options.Store.PutBlock(genesisBlock);
+        options.Store.AppendIndex(id, genesisBlock.BlockHash);
 
         foreach (var tx in genesisBlock.Transactions)
         {
-            store.PutTxIdBlockHashIndex(tx.Id, genesisBlock.BlockHash);
+            options.Store.PutTxIdBlockHashIndex(tx.Id, genesisBlock.BlockHash);
         }
 
         foreach (KeyValuePair<Address, long> pair in nonceDeltas)
         {
-            store.IncreaseTxNonce(id, pair.Key, pair.Value);
+            options.Store.IncreaseTxNonce(id, pair.Key, pair.Value);
         }
 
-        store.SetCanonicalChainId(id);
+        options.Store.SetCanonicalChainId(id);
 
-        return new BlockChain(
-            policy,
-            store,
-            stateStore,
-            id,
-            genesisBlock);
+        return new BlockChain(genesisBlock, id, options);
     }
 
     public bool ContainsBlock(BlockHash blockHash)

@@ -42,7 +42,7 @@ public sealed class MemoryStore : IStore
         _txNonces.TryRemove(chainId, out _);
     }
 
-    Guid? IStore.GetCanonicalChainId() => _canonicalChainId;
+    Guid IStore.GetCanonicalChainId() => _canonicalChainId ?? Guid.Empty;
 
     void IStore.SetCanonicalChainId(Guid chainId) => _canonicalChainId = chainId;
 
@@ -309,7 +309,7 @@ public sealed class MemoryStore : IStore
         => _committedEvidence.ContainsKey(evidenceId);
 
     [StoreLoader("memory")]
-    private static (IStore Store, IStateStore StateStore) Loader(Uri storeUri)
+    private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
     {
         NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
         var store = new MemoryStore();

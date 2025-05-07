@@ -16,7 +16,7 @@ public abstract class StoreBase : IStore
 {
     public abstract IEnumerable<Guid> ListChainIds();
 
-    public abstract Guid? GetCanonicalChainId();
+    public abstract Guid GetCanonicalChainId();
 
     public abstract void SetCanonicalChainId(Guid chainId);
 

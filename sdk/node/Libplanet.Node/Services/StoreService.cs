@@ -8,13 +8,13 @@ namespace Libplanet.Node.Services;
 
 internal sealed class StoreService(IOptions<StoreOptions> storeOptions) : IStoreService
 {
-    private IStateStore? _stateStore;
+    private TrieStateStore? _stateStore;
 
     public IStore Store { get; } = CreateStore(storeOptions.Value);
 
     public IKeyValueStore KeyValueStore { get; } = CreateKeyValueStore(storeOptions.Value);
 
-    public IStateStore StateStore => _stateStore ??= new TrieStateStore(KeyValueStore);
+    public TrieStateStore StateStore => _stateStore ??= new TrieStateStore(KeyValueStore);
 
     private static IStore CreateStore(StoreOptions storeOptions)
         => storeOptions.Type switch

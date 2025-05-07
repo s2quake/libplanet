@@ -432,14 +432,14 @@ public partial class RocksDBStore : StoreBase
     }
 
     /// <inheritdoc />
-    public override Guid? GetCanonicalChainId()
+    public override Guid GetCanonicalChainId()
     {
         try
         {
             byte[] bytes = _chainDb.Get(CanonicalChainIdIdKey);
 
             return bytes is null
-                ? (Guid?)null
+                ? Guid.Empty
                 : new Guid(bytes);
         }
         catch (Exception e)
@@ -447,7 +447,7 @@ public partial class RocksDBStore : StoreBase
             LogUnexpectedException(nameof(GetCanonicalChainId), e);
         }
 
-        return (Guid?)null;
+        return Guid.Empty;
     }
 
     /// <inheritdoc />
@@ -1494,7 +1494,7 @@ public partial class RocksDBStore : StoreBase
     }
 
     [StoreLoader("rocksdb+file")]
-    private static (IStore Store, IStateStore StateStore) Loader(Uri storeUri)
+    private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
     {
         NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
         int blockCacheSize = query.GetInt32("block-cache", 512);

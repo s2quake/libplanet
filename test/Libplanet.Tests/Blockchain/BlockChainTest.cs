@@ -24,7 +24,7 @@ public partial class BlockChainTest : IDisposable
 {
     private readonly ILogger _logger;
     private StoreFixture _fx;
-    private BlockPolicy _policy;
+    private BlockChainOptions _policy;
     private BlockChain _blockChain;
     private Block _validNext;
     private StagedTransactionCollection _stagePolicy;
@@ -38,7 +38,7 @@ public partial class BlockChainTest : IDisposable
             .CreateLogger()
             .ForContext<BlockChainTest>();
 
-        _policy = new BlockPolicy
+        _policy = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {
@@ -89,7 +89,7 @@ public partial class BlockChainTest : IDisposable
         var endActions = ImmutableArray.Create<IAction>(
             new MinerReward(1));
 
-        var policy = new BlockPolicy
+        var policy = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {
@@ -163,7 +163,7 @@ public partial class BlockChainTest : IDisposable
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var blockChainStates = new BlockChainStates(store, stateStore);
-        var policy = new BlockPolicy();
+        var policy = new BlockChainOptions();
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);
@@ -285,7 +285,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void ActionRenderersHaveDistinctContexts()
     {
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var generatedRandomValueLogs = new List<int>();
@@ -309,7 +309,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void RenderActionsAfterBlockIsRendered()
     {
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         BlockChain blockChain = MakeBlockChain(
@@ -341,7 +341,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void RenderActionsAfterAppendComplete()
     {
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
 
@@ -517,7 +517,7 @@ public partial class BlockChainTest : IDisposable
     public void GetStatesOnCreatingBlockChain()
     {
         bool invoked = false;
-        var policy = new BlockPolicy
+        var policy = new BlockChainOptions
         {
             BlockValidation = (_, _) =>
             {
@@ -557,7 +557,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void GetStateOnlyDrillsDownUntilRequestedAddressesAreFound()
     {
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         var tracker = new StoreTracker(_fx.Store);
         var chain = new BlockChain(
             policy,
@@ -613,7 +613,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     public void GetStateReturnsEarlyForNonexistentAccount()
     {
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         var tracker = new StoreTracker(_fx.Store);
         var chain = new BlockChain(
             policy,
@@ -648,7 +648,7 @@ public partial class BlockChainTest : IDisposable
     {
         var privateKeys = Enumerable.Range(1, 10).Select(_ => new PrivateKey()).ToList();
         var addresses = privateKeys.Select(key => key.Address).ToList();
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         var chain = new BlockChain(
             policy,
             _fx.Store,
@@ -1097,12 +1097,12 @@ public partial class BlockChainTest : IDisposable
     /// <param name="stateStore">State Store.</param>
     /// <returns>Tuple of addresses and chain.</returns>
     internal static (Address, Address[] Addresses, BlockChain Chain)
-        MakeIncompleteBlockStates(IStore store, IStateStore stateStore)
+        MakeIncompleteBlockStates(IStore store, TrieStateStore stateStore)
     {
         List<int> presentIndices = new List<int>() { 4, 7 };
         List<Block> presentBlocks = new List<Block>();
 
-        var blockPolicy = BlockPolicy.Empty;
+        var blockPolicy = BlockChainOptions.Empty;
         store = new StoreTracker(store);
         Guid chainId = Guid.NewGuid();
         var actionEvaluator = new ActionEvaluator(
@@ -1170,7 +1170,7 @@ public partial class BlockChainTest : IDisposable
             }
         }
 
-        IStateStore incompleteStateStore = new TrieStateStore();
+        TrieStateStore incompleteStateStore = new TrieStateStore();
         ((TrieStateStore)stateStore).CopyStates(
             ImmutableHashSet<HashDigest<SHA256>>.Empty
                 .Add(presentBlocks[0].StateRootHash)
@@ -1279,7 +1279,7 @@ public partial class BlockChainTest : IDisposable
     private void CreateWithGenesisBlock()
     {
         var storeFixture = new MemoryStoreFixture();
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
 
         var addresses = ImmutableList<Address>.Empty
             .Add(storeFixture.Address1)
@@ -1368,7 +1368,7 @@ public partial class BlockChainTest : IDisposable
     [SkippableFact]
     private void ConstructWithUnexpectedGenesisBlock()
     {
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
 
@@ -1432,7 +1432,7 @@ public partial class BlockChainTest : IDisposable
         //             .GetValue(default);
         //         // ReSharper restore AccessToModifiedClosure
         //     });
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var genesisTx = Transaction.Create(
@@ -1474,7 +1474,7 @@ public partial class BlockChainTest : IDisposable
     private void ValidateNextBlockCommitOnValidatorSetChange()
     {
         var storeFixture = new MemoryStoreFixture();
-        var policy = BlockPolicy.Empty;
+        var policy = BlockChainOptions.Empty;
 
         var addresses = ImmutableList<Address>.Empty
             .Add(storeFixture.Address1)

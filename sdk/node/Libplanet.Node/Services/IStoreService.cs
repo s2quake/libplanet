@@ -7,7 +7,7 @@ public interface IStoreService
 {
     IStore Store { get; }
 
-    IStateStore StateStore { get; }
+    TrieStateStore StateStore { get; }
 
     IKeyValueStore KeyValueStore { get; }
 }

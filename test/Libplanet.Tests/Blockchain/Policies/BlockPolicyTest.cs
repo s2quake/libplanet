@@ -16,13 +16,13 @@ namespace Libplanet.Tests.Blockchain.Policies
 
         private StoreFixture _fx;
         private BlockChain _chain;
-        private BlockPolicy _policy;
+        private BlockChainOptions _policy;
 
         public BlockPolicyTest(ITestOutputHelper output)
         {
             _fx = new MemoryStoreFixture();
             _output = output;
-            _policy = new BlockPolicy
+            _policy = new BlockChainOptions
             {
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
@@ -42,13 +42,13 @@ namespace Libplanet.Tests.Blockchain.Policies
         public void Constructors()
         {
             var tenSec = new TimeSpan(0, 0, 10);
-            var a = new BlockPolicy
+            var a = new BlockChainOptions
             {
                 BlockInterval = tenSec,
             };
             Assert.Equal(tenSec, a.BlockInterval);
 
-            var b = new BlockPolicy
+            var b = new BlockChainOptions
             {
                 BlockInterval = TimeSpan.FromMilliseconds(65000),
             };
@@ -56,7 +56,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 new TimeSpan(0, 1, 5),
                 b.BlockInterval);
 
-            var c = new BlockPolicy();
+            var c = new BlockChainOptions();
             Assert.Equal(
                 new TimeSpan(0, 0, 5),
                 c.BlockInterval);
@@ -76,7 +76,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 }
             }
 
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 TransactionValidation = IsSignerValid,
             };
@@ -119,7 +119,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             }
 
             // Invalid Transaction without Inner-exception
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 TransactionValidation = IsSignerValid,
             };
@@ -128,7 +128,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             policy.ValidateTransaction(_chain, invalidTx);
 
             // Invalid Transaction with Inner-exception.
-            policy = new BlockPolicy
+            policy = new BlockChainOptions
             {
                 TransactionValidation = IsSignerValidWithInnerException,
             };
@@ -143,7 +143,7 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -171,7 +171,7 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 MaxTransactionsPerBlock = policyLimit,
             };
@@ -197,7 +197,7 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 MaxTransactionsPerSignerPerBlock = policyLimit,
             };

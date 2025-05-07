@@ -308,7 +308,7 @@ namespace Libplanet.Tests.Blockchain
         public void AppendModern()
         {
             _blockChain = TestUtils.MakeBlockChain(
-                BlockPolicy.Empty,
+                BlockChainOptions.Empty,
                 new MemoryStore(),
                 new TrieStateStore());
             var genesis = _blockChain.Genesis;
@@ -452,7 +452,7 @@ namespace Libplanet.Tests.Blockchain
                 }
             }
 
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 TransactionValidation = IsSignerValid,
             };
@@ -537,7 +537,7 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void AppendValidatesBlock()
         {
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 BlockValidation = (_, _) =>
                 {
@@ -627,7 +627,7 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void DoesNotMigrateStateWithoutAction()
         {
-            var policy = new BlockPolicy
+            var policy = new BlockChainOptions
             {
                 MaxTransactionsBytes = 50 * 1024,
             };
@@ -690,7 +690,7 @@ namespace Libplanet.Tests.Blockchain
         public void AppendSRHPostponeBPVBump()
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion - 1;
-            var policy = BlockPolicy.Empty;
+            var policy = BlockChainOptions.Empty;
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
             var actionEvaluator = new ActionEvaluator(

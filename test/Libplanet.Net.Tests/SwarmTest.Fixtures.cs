@@ -28,7 +28,7 @@ namespace Libplanet.Net.Tests
 
             if (blocks is null)
             {
-                var policy = new BlockPolicy
+                var policy = new BlockChainOptions
                 {
                     PolicyActions = new PolicyActions
                     {
@@ -83,7 +83,7 @@ namespace Libplanet.Net.Tests
             AppProtocolVersionOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
-            BlockPolicy? policy = null,
+            BlockChainOptions? policy = null,
             Block? genesis = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
@@ -110,11 +110,11 @@ namespace Libplanet.Net.Tests
             AppProtocolVersionOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
-            BlockPolicy? policy = null,
+            BlockChainOptions? policy = null,
             Block? genesis = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
-            policy = policy ?? new BlockPolicy
+            policy = policy ?? new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {

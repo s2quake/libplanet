@@ -13,7 +13,7 @@ namespace Libplanet.Tests.Store.Trie
             IValue v01 = new Text("01");
 
             IKeyValueStore keyValueStore = new MemoryKeyValueStore();
-            IStateStore stateStore = new TrieStateStore(keyValueStore);
+            TrieStateStore stateStore = new TrieStateStore(keyValueStore);
             ITrie source = stateStore.GetStateRoot(default);
             ITrie target = stateStore.GetStateRoot(default);
             Assert.Null(target.Node);
@@ -32,7 +32,7 @@ namespace Libplanet.Tests.Store.Trie
             IValue v = new Text(string.Empty);
 
             IKeyValueStore keyValueStore = new MemoryKeyValueStore();
-            IStateStore stateStore = new TrieStateStore(keyValueStore);
+            TrieStateStore stateStore = new TrieStateStore(keyValueStore);
             ITrie source = stateStore.GetStateRoot(default);
             source = source.Set(k, v);
             source = stateStore.Commit(source);
@@ -62,7 +62,7 @@ namespace Libplanet.Tests.Store.Trie
             IValue v0010a = new Text("0010A");
 
             IKeyValueStore keyValueStore = new MemoryKeyValueStore();
-            IStateStore stateStore = new TrieStateStore(keyValueStore);
+            TrieStateStore stateStore = new TrieStateStore(keyValueStore);
             ITrie source = stateStore.GetStateRoot(default);
             source = source.Set(k00, v00);
             source = source.Set(k01, v01);
