@@ -28,8 +28,6 @@ public class TransactionQueryTest
     {
         Chain = Libplanet.Tests.TestUtils.MakeBlockChain(
             new BlockChainOptions(),
-            new MemoryStore(),
-            new TrieStateStore(),
             privateKey: new PrivateKey(),
             timestamp: DateTimeOffset.UtcNow);
         Source = new MockBlockChainContext(Chain);

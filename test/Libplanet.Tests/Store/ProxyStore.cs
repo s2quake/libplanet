@@ -14,7 +14,7 @@ public abstract class ProxyStore(IStore store) : IStore
 
     public virtual void DeleteChainId(Guid chainId) => store.DeleteChainId(chainId);
 
-    public virtual Guid? GetCanonicalChainId() => store.GetCanonicalChainId();
+    public virtual Guid GetCanonicalChainId() => store.GetCanonicalChainId();
 
     public virtual void SetCanonicalChainId(Guid chainId) => store.SetCanonicalChainId(chainId);
 

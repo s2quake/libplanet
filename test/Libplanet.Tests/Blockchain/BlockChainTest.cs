@@ -1279,8 +1279,6 @@ public partial class BlockChainTest : IDisposable
     private void CreateWithGenesisBlock()
     {
         var storeFixture = new MemoryStoreFixture();
-        var policy = BlockChainOptions.Empty;
-
         var addresses = ImmutableList<Address>.Empty
             .Add(storeFixture.Address1)
             .Add(storeFixture.Address2)
@@ -1334,18 +1332,10 @@ public partial class BlockChainTest : IDisposable
                 privateKey: privateKey),
         };
         var txs = systemTxs.Concat(customTxs).ToImmutableList();
-        var blockChainStates = new BlockChainStates(
-            storeFixture.Store, storeFixture.StateStore);
-        var actionEvaluator = new ActionEvaluator(
-            storeFixture.StateStore,
-            policy.PolicyActions);
-        BlockChain blockChain = BlockChain.Create(
-            policy,
-            storeFixture.Store,
-            storeFixture.StateStore,
-            BlockChain.ProposeGenesisBlock(
-                proposer: privateKey,
-                transactions: [.. txs]));
+        var genesisBlock = BlockChain.ProposeGenesisBlock(
+            proposer: privateKey,
+            transactions: [.. txs]);
+        var blockChain = BlockChain.Create(genesisBlock, storeFixture.Options);
 
         var validator = blockChain
             .GetNextWorld()

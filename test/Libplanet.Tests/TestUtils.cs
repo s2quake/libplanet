@@ -502,9 +502,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         }
 
         public static BlockChain MakeBlockChain(
-            BlockChainOptions policy,
-            IStore store,
-            TrieStateStore stateStore,
+            BlockChainOptions options,
             IEnumerable<IAction>? actions = null,
             ImmutableSortedSet<Validator>? validatorSet = null,
             PrivateKey? privateKey = null,
@@ -513,9 +511,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             int protocolVersion = BlockHeader.CurrentProtocolVersion)
         {
             return MakeBlockChainAndActionEvaluator(
-                policy,
-                store,
-                stateStore,
+                options,
                 actions,
                 validatorSet,
                 privateKey,
@@ -527,9 +523,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static (BlockChain BlockChain, ActionEvaluator ActionEvaluator)
             MakeBlockChainAndActionEvaluator(
-            BlockChainOptions policy,
-            IStore store,
-            TrieStateStore stateStore,
+            BlockChainOptions options,
             IEnumerable<IAction>? actions = null,
             ImmutableSortedSet<Validator>? validatorSet = null,
             PrivateKey? privateKey = null,
@@ -552,7 +546,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
             var actionEvaluator = new ActionEvaluator(
                 stateStore: stateStore,
-                policy.PolicyActions);
+                options.PolicyActions);
 
             if (genesisBlock is null)
             {
@@ -568,11 +562,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
             // ValidatingActionRenderer validator = null;
 #pragma warning disable S1121
-            var chain = BlockChain.Create(
-                policy,
-                store,
-                stateStore,
-                genesisBlock);
+            var chain = BlockChain.Create(genesisBlock, options);
 #pragma warning restore S1121
 
             return (chain, actionEvaluator);

@@ -40,8 +40,7 @@ public class StatsCommand
             throw new ArgumentException($"limit must be at least 1: {limit}");
         }
 
-        Guid chainId = store.GetCanonicalChainId()
-            ?? throw Utils.Error($"Failed to find the canonical chain in store.");
+        Guid chainId = store.GetCanonicalChainId();
         long chainLength = store.CountIndex(chainId);
 
         if (offset >= chainLength || (offset < 0 && chainLength + offset < 0))

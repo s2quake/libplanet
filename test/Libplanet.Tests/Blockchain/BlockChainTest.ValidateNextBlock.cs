@@ -173,40 +173,28 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void ValidateNextBlockInvalidStateRootHash()
         {
-            var policy = new BlockChainOptions
+            var options = new BlockChainOptions
             {
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
-            var stateStore1 = new TrieStateStore();
-            IStore store1 = new MemoryStore();
             var genesisBlock = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(TestUtils.GenesisProposer.PublicKey),
                 TestUtils.GenesisProposer);
-            var chain1 = BlockChain.Create(
-                policy,
-                store1,
-                stateStore1,
-                genesisBlock);
 
+            var chain1 = BlockChain.Create(genesisBlock, options);
             var endBlockActions = new IAction[]
             {
                 new SetStatesAtBlock(default, (Text)"foo", default, 0),
             }.ToImmutableArray();
-            var policyWithBlockAction = new BlockChainOptions
+            var options2 = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
                     EndBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 0)],
                 },
-                BlockInterval = policy.BlockInterval,
+                BlockInterval = options.BlockInterval,
             };
-            var stateStore2 = new TrieStateStore();
-            IStore store2 = new MemoryStore();
-            var chain2 = BlockChain.Create(
-                policyWithBlockAction,
-                store2,
-                stateStore2,
-                genesisBlock);
+            var chain2 = BlockChain.Create(genesisBlock, options2);
 
             Block block1 = chain1.EvaluateAndSign(
                 RawBlock.Create(
@@ -230,26 +218,17 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockInvalidStateRootHashBeforePostpone()
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
-            var policy = new BlockChainOptions
+            var options1 = new BlockChainOptions
             {
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
-            var stateStore = new TrieStateStore();
-            IStore store = new MemoryStore();
-            var actionEvaluator = new ActionEvaluator(
-                stateStore,
-                policy.PolicyActions);
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
             var genesisBlock = preGenesis.Sign(
                 TestUtils.GenesisProposer,
                 actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
-            var chain1 = BlockChain.Create(
-                policy,
-                store,
-                stateStore,
-                genesisBlock);
+            var chain1 = BlockChain.Create(genesisBlock, options1);
 
             Block block1 = chain1.EvaluateAndSign(
                 RawBlock.Create(
@@ -270,7 +249,7 @@ namespace Libplanet.Tests.Blockchain
                     BeginBlockActions = [],
                     EndBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 1)],
                 },
-                BlockInterval = policy.BlockInterval,
+                BlockInterval = options1.BlockInterval,
             };
             var chain2 = new BlockChain(
                 policyWithBlockAction,
@@ -288,7 +267,7 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockInvalidStateRootHashOnPostpone()
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
-            var policy = new BlockChainOptions
+            var options = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -296,22 +275,16 @@ namespace Libplanet.Tests.Blockchain
                 },
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
-            var stateStore = new TrieStateStore();
-            IStore store = new MemoryStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
-                policy.PolicyActions);
-            var preGenesis = TestUtils.ProposeGenesis(
+                options.PolicyActions);
+            var rawGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
-            var genesisBlock = preGenesis.Sign(
+            var genesisBlock = rawGenesis.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
-            var chain = BlockChain.Create(
-                policy,
-                store,
-                stateStore,
-                genesisBlock);
+                actionEvaluator.Evaluate(rawGenesis, default)[^1].OutputState);
+            var chain = BlockChain.Create(genesisBlock, options);
 
             RawBlock preBlock1 = RawBlock.Create(
                 new BlockHeader
