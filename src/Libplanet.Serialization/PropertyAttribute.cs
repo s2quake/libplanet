@@ -4,6 +4,4 @@
 public sealed class PropertyAttribute(int index) : Attribute
 {
     public int Index => index;
-
-    public Type[] KnownTypes { get; init; } = [];
 }
