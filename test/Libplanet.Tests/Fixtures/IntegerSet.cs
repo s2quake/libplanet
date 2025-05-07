@@ -31,14 +31,13 @@ public sealed class IntegerSet
     public readonly TrieStateStore StateStore;
 
     public IntegerSet(int[] initialStates)
-        : this([.. initialStates.Select(s => new BigInteger(s))], null, null)
+        : this([.. initialStates.Select(s => new BigInteger(s))], null)
     {
     }
 
     public IntegerSet(
         BigInteger[] initialStates,
-        IBlockPolicy? policy = null,
-        IEnumerable<IRenderer>? renderers = null)
+        IBlockPolicy? policy = null)
     {
         PrivateKeys = initialStates.Select(_ => new PrivateKey()).ToImmutableArray();
         Addresses = PrivateKeys.Select(key => key.Address).ToImmutableArray();
@@ -87,15 +86,12 @@ public sealed class IntegerSet
             Store,
             StateStore,
             Genesis,
-            actionEvaluator,
-            renderers: renderers ?? new[] { new ValidatingActionRenderer() });
+            actionEvaluator);
     }
 
     public int Count => Addresses.Count;
 
     public IBlockPolicy Policy => Chain.Policy;
-
-    public IReadOnlyList<IRenderer> Renderers => Chain.Renderers;
 
     public Block Tip => Chain.Tip;
 

@@ -588,7 +588,7 @@ namespace Libplanet.Net.Tests
                 Assert.DoesNotContain(tx3.Id, chainB.GetStagedTransactionIds());
                 Assert.Contains(
                     tx3.Id,
-                    chainB.StagePolicy.Iterate(filtered: false).Select(tx => tx.Id));
+                    chainB.StagedTransactions.Iterate(filtered: false).Select(tx => tx.Id));
                 Assert.Contains(tx4.Id, chainB.GetStagedTransactionIds());
 
                 await swarmC.TxReceived.WaitAsync();
@@ -596,7 +596,7 @@ namespace Libplanet.Net.Tests
                 Assert.DoesNotContain(tx3.Id, chainC.GetStagedTransactionIds());
                 Assert.DoesNotContain(
                     tx3.Id,
-                    chainC.StagePolicy.Iterate(filtered: false).Select(tx => tx.Id));
+                    chainC.StagedTransactions.Iterate(filtered: false).Select(tx => tx.Id));
                 Assert.Contains(tx4.Id, chainC.GetStagedTransactionIds());
             }
             finally
@@ -690,21 +690,20 @@ namespace Libplanet.Net.Tests
             var privateKey = new PrivateKey();
             var minerSwarm = await CreateSwarm(blockChain, privateKey);
             var fx2 = new MemoryStoreFixture();
-            var receiverRenderer = new RecordingActionRenderer();
-            var loggedRenderer = new LoggedActionRenderer(
-                receiverRenderer,
-                _logger);
+            // var receiverRenderer = new RecordingActionRenderer();
+            // var loggedRenderer = new LoggedActionRenderer(
+            //     receiverRenderer,
+            //     _logger);
             var receiverChain = MakeBlockChain(
                 policy,
                 fx2.Store,
-                fx2.StateStore,
-                renderers: new[] { loggedRenderer });
+                fx2.StateStore);
             Swarm receiverSwarm =
                 await CreateSwarm(receiverChain);
 
             int renderCount = 0;
 
-            receiverRenderer.RenderEventHandler += (_, a) => renderCount += IsDumbAction(a) ? 1 : 0;
+            // receiverRenderer.RenderEventHandler += (_, a) => renderCount += IsDumbAction(a) ? 1 : 0;
 
             Transaction[] transactions =
             {

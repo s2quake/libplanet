@@ -3,7 +3,7 @@ using Libplanet.Node.Services;
 namespace Libplanet.Node.API;
 
 internal sealed class BlockChainRendererTracer(
-    IRendererService rendererService, ILogger<BlockChainRendererTracer> logger)
+    IBlockChainService blockChainService, ILogger<BlockChainRendererTracer> logger)
     : IHostedService
 {
     private readonly ILogger<BlockChainRendererTracer> _logger = logger;
@@ -11,7 +11,7 @@ internal sealed class BlockChainRendererTracer(
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        rendererService.RenderBlockEnd.Subscribe(
+        blockChainService.BlockChain.RenderBlockEnd.Subscribe(
             info => _logger.LogInformation(
                 "-Pattern2- #{Height} Block end: {Hash}",
                 info.NewTip.Height,

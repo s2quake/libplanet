@@ -206,7 +206,7 @@ public partial class BlockChain
                         i,
                         stagedTransactions.Count,
                         tx.Id);
-                    StagePolicy.Ignore(tx.Id);
+                    StagedTransactions.Ignore(tx.Id);
                     continue;
                 }
 
@@ -246,7 +246,7 @@ public partial class BlockChain
                         e,
                         "Failed to load an action in tx; marking tx {TxId} as ignored...",
                         tx.Id);
-                    StagePolicy.Ignore(tx.Id);
+                    StagedTransactions.Ignore(tx.Id);
                     continue;
                 }
 

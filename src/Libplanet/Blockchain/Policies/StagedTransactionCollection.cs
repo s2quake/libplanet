@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Concurrent;
 using Libplanet.Store;
 using Libplanet.Types.Crypto;
@@ -5,19 +6,23 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain.Policies;
 
-public sealed class VolatileStagePolicy(IStore store, Guid blockChainId, TimeSpan lifetime)
+public sealed class StagedTransactionCollection(IStore store, Guid blockChainId, TimeSpan lifetime)
+    : IEnumerable<StagedTransaction>
 {
-    private readonly ConcurrentDictionary<TxId, Item> _staged = new();
+    private readonly ConcurrentDictionary<TxId, StagedTransaction> _staged = new();
 
-    public VolatileStagePolicy(IStore store, Guid blockChainId)
+    public StagedTransactionCollection(IStore store, Guid blockChainId)
         : this(store, blockChainId, TimeSpan.FromSeconds(10 * 60))
     {
     }
 
     public TimeSpan Lifetime => lifetime;
 
-    public bool Stage(Transaction transaction)
-        => _staged.TryAdd(transaction.Id, new Item(transaction, false, DateTimeOffset.UtcNow + lifetime));
+    public bool Stage(Transaction transaction) => _staged.TryAdd(transaction.Id, new StagedTransaction
+    {
+        Transaction = transaction,
+        Lifetime = DateTimeOffset.UtcNow + lifetime,
+    });
 
     public bool Unstage(TxId txId) => _staged.TryRemove(txId, out _);
 
@@ -80,21 +85,7 @@ public sealed class VolatileStagePolicy(IStore store, Guid blockChainId, TimeSpa
         return nonce;
     }
 
-    private sealed record class Item(Transaction Transaction, bool IsIgnored, DateTimeOffset Lifetime)
-    {
-        public bool IsEnabled(IStore store, Guid blockChainId)
-        {
-            if (Lifetime > DateTimeOffset.UtcNow)
-            {
-                return false;
-            }
+    IEnumerator<StagedTransaction> IEnumerable<StagedTransaction>.GetEnumerator() => _staged.Values.GetEnumerator();
 
-            if (store.GetTxNonce(blockChainId, Transaction.Signer) < Transaction.Nonce)
-            {
-                return false;
-            }
-
-            return !IsIgnored;
-        }
-    }
+    IEnumerator IEnumerable.GetEnumerator() => _staged.Values.GetEnumerator();
 }

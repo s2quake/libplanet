@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using System.Threading;
 using Libplanet.Action;
@@ -31,14 +32,18 @@ public partial class BlockChain : IBlockChainStates
 
     private HashDigest<SHA256>? _nextStateRootHash;
 
+    private readonly Subject<RenderBlockInfo> _renderBlock = new();
+    private readonly Subject<RenderActionInfo> _renderAction = new();
+    private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
+
+
     public BlockChain(
         IBlockPolicy policy,
         IStore store,
         IStateStore stateStore,
         Block genesisBlock,
         IBlockChainStates blockChainStates,
-        ActionEvaluator actionEvaluator,
-        IEnumerable<IRenderer>? renderers = null)
+        ActionEvaluator actionEvaluator)
         : this(
             policy,
             store,
@@ -49,8 +54,7 @@ public partial class BlockChain : IBlockChainStates
                     nameof(store)),
             genesisBlock,
             blockChainStates,
-            actionEvaluator,
-            renderers)
+            actionEvaluator)
     {
     }
 
@@ -61,8 +65,7 @@ public partial class BlockChain : IBlockChainStates
         Guid id,
         Block genesisBlock,
         IBlockChainStates blockChainStates,
-        ActionEvaluator actionEvaluator,
-        IEnumerable<IRenderer> renderers)
+        ActionEvaluator actionEvaluator)
     {
         if (store is null)
         {
@@ -80,17 +83,13 @@ public partial class BlockChain : IBlockChainStates
 
         Id = id;
         Policy = policy;
-        StagePolicy = new VolatileStagePolicy(store, id);
+        StagedTransactions = new StagedTransactionCollection(store, id);
         Store = store;
         StateStore = stateStore;
 
         _blockChainStates = blockChainStates;
 
         _blocks = new BlockSet(store);
-        Renderers = renderers is IEnumerable<IRenderer> r
-            ? r.ToImmutableArray()
-            : ImmutableArray<IRenderer>.Empty;
-        ActionRenderers = Renderers.OfType<IActionRenderer>().ToImmutableArray();
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         _txLock = new object();
 
@@ -125,13 +124,15 @@ public partial class BlockChain : IBlockChainStates
 
     internal event EventHandler<(Block OldTip, Block NewTip)> TipChanged;
 
-    public IImmutableList<IRenderer> Renderers { get; }
+    public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
 
-    public IImmutableList<IActionRenderer> ActionRenderers { get; }
+    public IObservable<RenderActionInfo> RenderAction => _renderAction;
+
+    public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
 
     public IBlockPolicy Policy { get; }
 
-    public VolatileStagePolicy StagePolicy { get; }
+    public StagedTransactionCollection StagedTransactions { get; }
 
     public Block Tip => this[-1];
 
@@ -198,7 +199,6 @@ public partial class BlockChain : IBlockChainStates
         IStateStore stateStore,
         Block genesisBlock,
         ActionEvaluator actionEvaluator,
-        IEnumerable<IRenderer>? renderers = null,
         IBlockChainStates? blockChainStates = null)
     {
         if (store is null)
@@ -273,8 +273,7 @@ public partial class BlockChain : IBlockChainStates
             id,
             genesisBlock,
             blockChainStates,
-            actionEvaluator,
-            renderers);
+            actionEvaluator);
     }
 
     public bool ContainsBlock(BlockHash blockHash)
@@ -296,7 +295,7 @@ public partial class BlockChain : IBlockChainStates
 
     public Transaction GetTransaction(TxId txId)
     {
-        if (StagePolicy.Get(txId) is { } tx)
+        if (StagedTransactions.Get(txId) is { } tx)
         {
             return tx;
         }
@@ -337,12 +336,12 @@ public partial class BlockChain : IBlockChainStates
                 msg);
         }
 
-        return StagePolicy.Stage(transaction);
+        return StagedTransactions.Stage(transaction);
     }
 
-    public bool UnstageTransaction(Transaction transaction) => StagePolicy.Unstage(transaction.Id);
+    public bool UnstageTransaction(Transaction transaction) => StagedTransactions.Unstage(transaction.Id);
 
-    public long GetNextTxNonce(Address address) => StagePolicy.GetNextTxNonce(address);
+    public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 
     public Transaction MakeTransaction(
         PrivateKey privateKey,
@@ -371,7 +370,7 @@ public partial class BlockChain : IBlockChainStates
     public IImmutableSet<TxId> GetStagedTransactionIds()
     {
         // FIXME: How about turning this method to the StagedTransactions property?
-        return StagePolicy.Iterate().Select(tx => tx.Id).ToImmutableHashSet();
+        return StagedTransactions.Iterate().Select(tx => tx.Id).ToImmutableHashSet();
     }
 
     public IReadOnlyList<BlockHash> FindNextHashes(
@@ -617,34 +616,13 @@ public partial class BlockChain : IBlockChainStates
 
             if (render)
             {
-                _logger.Information(
-                    "Invoking {RendererCount} renderers and " +
-                    "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
-                    Renderers.Count,
-                    ActionRenderers.Count,
-                    block.Height,
-                    block.BlockHash);
-                foreach (IRenderer renderer in Renderers)
+                _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
+                foreach (var evaluation in actionEvaluations)
                 {
-                    renderer.RenderBlock(oldTip: prevTip ?? Genesis, newTip: block);
+                    _renderAction.OnNext(RenderActionInfo.Create(evaluation));
                 }
 
-                if (ActionRenderers.Any())
-                {
-                    RenderActions(evaluations: actionEvaluations, block: block);
-                    foreach (IActionRenderer renderer in ActionRenderers)
-                    {
-                        renderer.RenderBlockEnd(oldTip: prevTip ?? Genesis, newTip: block);
-                    }
-                }
-
-                _logger.Information(
-                    "Invoked {RendererCount} renderers and " +
-                    "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
-                    Renderers.Count,
-                    ActionRenderers.Count,
-                    block.Height,
-                    block.BlockHash);
+                _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
             }
         }
         finally
@@ -817,34 +795,41 @@ public partial class BlockChain : IBlockChainStates
 
             if (render)
             {
-                _logger.Information(
-                    "Invoking {RendererCount} renderers and " +
-                    "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
-                    Renderers.Count,
-                    ActionRenderers.Count,
-                    block.Height,
-                    block.BlockHash);
-                foreach (IRenderer renderer in Renderers)
+                // _logger.Information(
+                //     "Invoking {RendererCount} renderers and " +
+                //     "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
+                //     Renderers.Count,
+                //     ActionRenderers.Count,
+                //     block.Height,
+                //     block.BlockHash);
+                // foreach (IRenderer renderer in Renderers)
+                // {
+                //     renderer.RenderBlock(oldTip: prevTip ?? Genesis, newTip: block);
+                // }
+
+                // if (ActionRenderers.Any())
+                // {
+                //     RenderActions(evaluations: actionEvaluations, block: block);
+                //     foreach (IActionRenderer renderer in ActionRenderers)
+                //     {
+                //         renderer.RenderBlockEnd(oldTip: prevTip ?? Genesis, newTip: block);
+                //     }
+                // }
+
+                // _logger.Information(
+                //     "Invoked {RendererCount} renderers and " +
+                //     "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
+                //     Renderers.Count,
+                //     ActionRenderers.Count,
+                //     block.Height,
+                //     block.BlockHash);
+                _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
+                foreach (var evaluation in actionEvaluations)
                 {
-                    renderer.RenderBlock(oldTip: prevTip ?? Genesis, newTip: block);
+                    _renderAction.OnNext(RenderActionInfo.Create(evaluation));
                 }
 
-                if (ActionRenderers.Any())
-                {
-                    RenderActions(evaluations: actionEvaluations, block: block);
-                    foreach (IActionRenderer renderer in ActionRenderers)
-                    {
-                        renderer.RenderBlockEnd(oldTip: prevTip ?? Genesis, newTip: block);
-                    }
-                }
-
-                _logger.Information(
-                    "Invoked {RendererCount} renderers and " +
-                    "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
-                    Renderers.Count,
-                    ActionRenderers.Count,
-                    block.Height,
-                    block.BlockHash);
+                _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
             }
         }
         finally
@@ -872,7 +857,7 @@ public partial class BlockChain : IBlockChainStates
 
     internal ImmutableList<Transaction> ListStagedTransactions(IComparer<Transaction>? txPriority = null)
     {
-        var unorderedTxs = StagePolicy.Iterate();
+        var unorderedTxs = StagedTransactions.Iterate();
         if (txPriority is { } comparer)
         {
             unorderedTxs = unorderedTxs.OrderBy(tx => tx, comparer).ToImmutableArray();

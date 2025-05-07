@@ -1,7 +1,7 @@
-using Libplanet.Types.Blocks;
+// using Libplanet.Types.Blocks;
 
-namespace Libplanet.Node.Services;
+// namespace Libplanet.Node.Services;
 
-public readonly record struct RenderBlockInfo(
-    Block OldTip,
-    Block NewTip);
+// public readonly record struct RenderBlockInfo(
+//     Block OldTip,
+//     Block NewTip);

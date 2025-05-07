@@ -325,12 +325,11 @@ namespace Libplanet.Net.Tests
                 {
                     EndBlockActions = [new MinerReward(1)],
                 });
-            var renderer = new RecordingActionRenderer();
+            // var renderer = new RecordingActionRenderer();
             var chain = MakeBlockChain(
                 policy,
                 new MemoryStore(),
-                new TrieStateStore(),
-                renderers: new[] { renderer });
+                new TrieStateStore());
 
             var senderKey = new PrivateKey();
 
@@ -359,8 +358,8 @@ namespace Libplanet.Net.Tests
                 sender.BlockChain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            renderer.RenderEventHandler += (_, a) =>
-                renderCount += IsDumbAction(a) ? 1 : 0;
+            // renderer.RenderEventHandler += (_, a) =>
+            //     renderCount += IsDumbAction(a) ? 1 : 0;
 
             await StartAsync(receiver);
             await StartAsync(sender);

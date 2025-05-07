@@ -38,7 +38,7 @@ public abstract class StagePolicyTest
         .ToArray();
     }
 
-    protected VolatileStagePolicy StagePolicy => _chain.StagePolicy;
+    protected StagedTransactionCollection StagePolicy => _chain.StagedTransactions;
 
     [Fact]
     public void Stage()

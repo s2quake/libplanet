@@ -1,4 +1,5 @@
 using Libplanet.Action;
+using Libplanet.Blockchain;
 using Libplanet.Node.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,10 +12,9 @@ public class RendererServiceTest
     {
         var serviceProvider = TestUtility.CreateServiceProvider();
         var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
-        var rendererService = serviceProvider.GetRequiredService<IRendererService>();
         var blockChain = blockChainService.BlockChain;
 
-        using var observer = new TestObserver<RenderBlockInfo>(rendererService.RenderBlock);
+        using var observer = new TestObserver<RenderBlockInfo>(blockChain.RenderBlock);
         await Assert.RaisesAnyAsync<RenderBlockInfo>(
             attach: handler => observer.Next += handler,
             detach: handler => observer.Next -= handler,
@@ -34,7 +34,6 @@ public class RendererServiceTest
 
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
         var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
-        var rendererService = serviceProvider.GetRequiredService<IRendererService>();
         var blockChain = blockChainService.BlockChain;
 
         var actions = new IAction[]
@@ -44,7 +43,7 @@ public class RendererServiceTest
             new DumbAction(),
         };
 
-        using var observer = new TestObserver<RenderActionInfo>(rendererService.RenderAction);
+        using var observer = new TestObserver<RenderActionInfo>(blockChain.RenderAction);
         await Assert.RaisesAnyAsync<RenderActionInfo>(
             attach: handler => observer.Next += handler,
             detach: handler => observer.Next -= handler,
@@ -68,7 +67,6 @@ public class RendererServiceTest
 
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
         var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
-        var rendererService = serviceProvider.GetRequiredService<IRendererService>();
         var blockChain = blockChainService.BlockChain;
         var errorMessage = "123";
 
@@ -77,9 +75,9 @@ public class RendererServiceTest
             new DumbAction() { ErrorMessage = errorMessage },
         };
 
-        using var observer = new TestObserver<RenderActionErrorInfo>(
-            rendererService.RenderActionError);
-        var errorInfo = await Assert.RaisesAnyAsync<RenderActionErrorInfo>(
+        using var observer = new TestObserver<RenderActionInfo>(
+            blockChain.RenderAction);
+        var errorInfo = await Assert.RaisesAnyAsync<RenderActionInfo>(
             attach: handler => observer.Next += handler,
             detach: handler => observer.Next -= handler,
             testCode: async () =>
@@ -95,10 +93,9 @@ public class RendererServiceTest
     {
         var serviceProvider = TestUtility.CreateServiceProvider();
         var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
-        var rendererService = serviceProvider.GetRequiredService<IRendererService>();
         var blockChain = blockChainService.BlockChain;
 
-        using var observer = new TestObserver<RenderBlockInfo>(rendererService.RenderBlockEnd);
+        using var observer = new TestObserver<RenderBlockInfo>(blockChain.RenderBlockEnd);
         await Assert.RaisesAnyAsync<RenderBlockInfo>(
             attach: handler => observer.Next += handler,
             detach: handler => observer.Next -= handler,

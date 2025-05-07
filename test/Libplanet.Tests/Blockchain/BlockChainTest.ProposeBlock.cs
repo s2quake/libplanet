@@ -450,8 +450,8 @@ public partial class BlockChainTest
 
         Assert.Empty(block2.Transactions);
         Assert.Empty(_blockChain.ListStagedTransactions());
-        Assert.Empty(_blockChain.StagePolicy.Iterate(filtered: true));
-        Assert.Single(_blockChain.StagePolicy.Iterate(filtered: false));
+        Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
+        Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: false));
     }
 
     [SkippableFact]
@@ -764,6 +764,6 @@ public partial class BlockChainTest
 
         // txWithInvalidAction is marked ignored and removed
         Assert.Equal(txs.Length - 1, _blockChain.ListStagedTransactions().Count);
-        Assert.True(_blockChain.StagePolicy.Ignores(txWithInvalidAction.Id));
+        Assert.True(_blockChain.StagedTransactions.Ignores(txWithInvalidAction.Id));
     }
 }

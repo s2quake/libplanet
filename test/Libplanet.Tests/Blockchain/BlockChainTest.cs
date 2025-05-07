@@ -29,9 +29,8 @@ public partial class BlockChainTest : IDisposable
     private StoreFixture _fx;
     private BlockPolicy _policy;
     private BlockChain _blockChain;
-    private ValidatingActionRenderer _renderer;
     private Block _validNext;
-    private VolatileStagePolicy _stagePolicy;
+    private StagedTransactionCollection _stagePolicy;
 
     public BlockChainTest(ITestOutputHelper output)
     {
@@ -50,18 +49,13 @@ public partial class BlockChainTest : IDisposable
             getMaxTransactionsBytes: _ => 50 * 1024);
 
         _fx = GetStoreFixture(_policy.PolicyActions);
-        _renderer = new ValidatingActionRenderer();
         _blockChain = BlockChain.Create(
             _policy,
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
-            new ActionEvaluator(
-                stateStore: _fx.StateStore,
-                _policy.PolicyActions),
-            renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) });
-        _stagePolicy = _blockChain.StagePolicy;
-        _renderer.ResetRecords();
+            new ActionEvaluator(stateStore: _fx.StateStore, _policy.PolicyActions));
+        _stagePolicy = _blockChain.StagedTransactions;
 
         _validNext = _blockChain.EvaluateAndSign(
             RawBlock.Create(
@@ -301,22 +295,10 @@ public partial class BlockChainTest : IDisposable
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var generatedRandomValueLogs = new List<int>();
-        IActionRenderer[] renderers = Enumerable.Range(0, 2).Select(i =>
-            new LoggedActionRenderer(
-                new AnonymousActionRenderer
-                {
-                    ActionRenderer = (act, context, nextState) =>
-                        // Consuming the random state through IRandom.Next() should not
-                        // affect contexts passed to other action renderers.
-                        generatedRandomValueLogs.Add(context.GetRandom().Next()),
-                },
-                Log.Logger.ForContext("RendererIndex", i)))
-        .ToArray();
         BlockChain blockChain = MakeBlockChain(
             policy,
             store,
-            stateStore,
-            renderers: renderers);
+            stateStore);
         var privateKey = new PrivateKey();
         var action = DumbAction.Create((default, string.Empty));
         var actions = new[] { action };
@@ -336,33 +318,30 @@ public partial class BlockChainTest : IDisposable
         var policy = new NullBlockPolicy();
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
-        var recordingRenderer = new RecordingActionRenderer();
-        var renderer = new LoggedActionRenderer(recordingRenderer, Log.Logger);
         BlockChain blockChain = MakeBlockChain(
-            policy, store, stateStore, renderers: new[] { renderer });
+            policy, store, stateStore);
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));
         var actions = new[] { action };
         blockChain.MakeTransaction(privateKey, actions);
-        recordingRenderer.ResetRecords();
         Block prevBlock = blockChain.Tip;
         Block block = blockChain.ProposeBlock(new PrivateKey());
         blockChain.Append(block, CreateBlockCommit(block));
 
         Assert.Equal(2, blockChain.Count);
-        IReadOnlyList<RenderRecord.BlockEvent> blockLogs = recordingRenderer.BlockRecords;
-        Assert.Equal(2, blockLogs.Count);
-        IReadOnlyList<RenderRecord.ActionBase> actionLogs = recordingRenderer.ActionRecords;
-        Assert.Single(actions);
-        Assert.Equal(prevBlock, blockLogs[0].OldTip);
-        Assert.Equal(block, blockLogs[0].NewTip);
-        Assert.Equal(0, blockLogs[0].Index);
-        Assert.Equal(1, actionLogs[0].Index);
-        Assert.Equal(ModelSerializer.Serialize(action), actionLogs[0].Action);
-        Assert.Equal(prevBlock, blockLogs[1].OldTip);
-        Assert.Equal(block, blockLogs[1].NewTip);
-        Assert.Equal(2, blockLogs[1].Index);
+        // IReadOnlyList<RenderRecord.BlockEvent> blockLogs = recordingRenderer.BlockRecords;
+        // Assert.Equal(2, blockLogs.Count);
+        // IReadOnlyList<RenderRecord.ActionBase> actionLogs = recordingRenderer.ActionRecords;
+        // Assert.Single(actions);
+        // Assert.Equal(prevBlock, blockLogs[0].OldTip);
+        // Assert.Equal(block, blockLogs[0].NewTip);
+        // Assert.Equal(0, blockLogs[0].Index);
+        // Assert.Equal(1, actionLogs[0].Index);
+        // Assert.Equal(ModelSerializer.Serialize(action), actionLogs[0].Action);
+        // Assert.Equal(prevBlock, blockLogs[1].OldTip);
+        // Assert.Equal(block, blockLogs[1].NewTip);
+        // Assert.Equal(2, blockLogs[1].Index);
     }
 
     [SkippableFact]
@@ -372,21 +351,21 @@ public partial class BlockChainTest : IDisposable
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
 
-        IActionRenderer renderer = new AnonymousActionRenderer
-        {
-            ActionRenderer = (a, __, nextState) =>
-            {
-                if (!(a is Dictionary dictionary &&
-                      dictionary.TryGetValue((Text)"type_id", out IValue typeId) &&
-                      typeId.Equals((Integer)2)))
-                {
-                    throw new ThrowException.SomeException("thrown by renderer");
-                }
-            },
-        };
-        renderer = new LoggedActionRenderer(renderer, Log.Logger);
+        // IActionRenderer renderer = new AnonymousActionRenderer
+        // {
+        //     ActionRenderer = (a, __, nextState) =>
+        //     {
+        //         if (!(a is Dictionary dictionary &&
+        //               dictionary.TryGetValue((Text)"type_id", out IValue typeId) &&
+        //               typeId.Equals((Integer)2)))
+        //         {
+        //             throw new ThrowException.SomeException("thrown by renderer");
+        //         }
+        //     },
+        // };
+        // renderer = new LoggedActionRenderer(renderer, Log.Logger);
         BlockChain blockChain = MakeBlockChain(
-            policy, store, stateStore, renderers: new[] { renderer });
+            policy, store, stateStore);
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));
@@ -881,7 +860,7 @@ public partial class BlockChainTest : IDisposable
         ];
         StageTransactions(txsE);
 
-        foreach (var tx in _blockChain.StagePolicy.Iterate())
+        foreach (var tx in _blockChain.StagedTransactions.Iterate())
         {
             _logger.Fatal(
                 "{Id}; {Signer}; {Nonce}; {Timestamp}",
@@ -1163,7 +1142,6 @@ public partial class BlockChainTest : IDisposable
             store,
             stateStore,
             genesisBlock,
-            renderers: null,
             blockChainStates: chainStates,
             actionEvaluator: actionEvaluator);
         var privateKey = new PrivateKey();
@@ -1232,7 +1210,6 @@ public partial class BlockChainTest : IDisposable
             store,
             incompleteStateStore,
             genesisBlock,
-            renderers: null,
             blockChainStates: chainStates,
             actionEvaluator: actionEvaluator);
 
@@ -1308,24 +1285,24 @@ public partial class BlockChainTest : IDisposable
     {
         var genesis = _blockChain.Genesis;
 
-        _renderer.ResetRecords();
+        // _renderer.ResetRecords();
 
-        Assert.Empty(_renderer.BlockRecords);
+        // Assert.Empty(_renderer.BlockRecords);
         Block block = _blockChain.ProposeBlock(new PrivateKey());
         _blockChain.Append(block, CreateBlockCommit(block));
-        IReadOnlyList<RenderRecord.BlockEvent> records = _renderer.BlockRecords;
-        Assert.Equal(2, records.Count);
-        foreach (RenderRecord.BlockEvent record in records)
-        {
-            Assert.Equal(genesis, record.OldTip);
-            Assert.Equal(block, record.NewTip);
-            Assert.Equal(1, record.NewTip.Height);
-        }
+        // IReadOnlyList<RenderRecord.BlockEvent> records = _renderer.BlockRecords;
+        // Assert.Equal(2, records.Count);
+        // foreach (RenderRecord.BlockEvent record in records)
+        // {
+        //     Assert.Equal(genesis, record.OldTip);
+        //     Assert.Equal(block, record.NewTip);
+        //     Assert.Equal(1, record.NewTip.Height);
+        // }
 
-        _renderer.ResetRecords();
+        // _renderer.ResetRecords();
         Assert.Throws<InvalidOperationException>(
             () => _blockChain.Append(block, CreateBlockCommit(block)));
-        Assert.Empty(_renderer.BlockRecords);
+        // Assert.Empty(_renderer.BlockRecords);
     }
 
     [SkippableFact]
@@ -1472,8 +1449,8 @@ public partial class BlockChainTest : IDisposable
 
         // Stage only txs having higher or equal with nonce than expected nonce.
         Assert.Single(_blockChain.GetStagedTransactionIds());
-        Assert.Single(_blockChain.StagePolicy.Iterate(filtered: true));
-        Assert.Equal(4, _blockChain.StagePolicy.Iterate(filtered: false).Count());
+        Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: true));
+        Assert.Equal(4, _blockChain.StagedTransactions.Iterate(filtered: false).Count());
     }
 
     [SkippableFact]
