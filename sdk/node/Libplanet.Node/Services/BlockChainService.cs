@@ -48,23 +48,20 @@ internal sealed class BlockChainService(
             MaxTransactionsPerSignerPerBlock = int.MaxValue,
         };
 
-        var blockChainStates = new BlockChainStates(store, stateStore);
         if (store.GetCanonicalChainId() is null)
         {
             return BlockChain.Create(
                 policy: policy,
                 store: store,
                 stateStore: stateStore,
-                genesisBlock: genesisBlock,
-                blockChainStates: blockChainStates);
+                genesisBlock: genesisBlock);
         }
 
         return new BlockChain(
             policy: policy,
             store: store,
             stateStore: stateStore,
-            genesisBlock: genesisBlock,
-            blockChainStates: blockChainStates);
+            genesisBlock: genesisBlock);
     }
 
     private static Block CreateGenesisBlock(

@@ -8,7 +8,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain;
 
-public sealed class BlockChainStates(IStore store, IStateStore stateStore) : IBlockChainStates
+public sealed class BlockChainStates(IStore store, IStateStore stateStore)
 {
     private readonly ActivitySource _activitySource = new("Libplanet.Blockchain.BlockChainStates");
 
