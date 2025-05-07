@@ -20,15 +20,15 @@ using Serilog;
 
 namespace Libplanet.Blockchain;
 
-public partial class BlockChain : IBlockChainStates
+public partial class BlockChain
 {
     internal readonly ReaderWriterLockSlim _rwlock;
     private readonly object _txLock;
     private readonly ILogger _logger;
-    private readonly IBlockChainStates _blockChainStates;
     private readonly Subject<RenderBlockInfo> _renderBlock = new();
     private readonly Subject<RenderActionInfo> _renderAction = new();
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
+    private readonly BlockChainStates _blockChainStates;
 
     private BlockSet _blocks;
     private Block _genesis;
@@ -39,8 +39,7 @@ public partial class BlockChain : IBlockChainStates
         BlockPolicy policy,
         IStore store,
         IStateStore stateStore,
-        Block genesisBlock,
-        IBlockChainStates blockChainStates)
+        Block genesisBlock)
         : this(
             policy,
             store,
@@ -49,8 +48,7 @@ public partial class BlockChain : IBlockChainStates
                 throw new ArgumentException(
                     $"Given {nameof(store)} does not have canonical chain id set.",
                     nameof(store)),
-            genesisBlock,
-            blockChainStates)
+            genesisBlock)
     {
     }
 
@@ -59,21 +57,12 @@ public partial class BlockChain : IBlockChainStates
         IStore store,
         IStateStore stateStore,
         Guid id,
-        Block genesisBlock,
-        IBlockChainStates blockChainStates)
+        Block genesisBlock)
     {
-        if (store is null)
-        {
-            throw new ArgumentNullException(nameof(store));
-        }
-        else if (store.CountIndex(id) == 0)
+        if (store.CountIndex(id) == 0)
         {
             throw new ArgumentException(
                 $"Given store does not contain chain id {id}.", nameof(store));
-        }
-        else if (stateStore is null)
-        {
-            throw new ArgumentNullException(nameof(stateStore));
         }
 
         Id = id;
@@ -82,7 +71,7 @@ public partial class BlockChain : IBlockChainStates
         Store = store;
         StateStore = stateStore;
 
-        _blockChainStates = blockChainStates;
+        _blockChainStates = new BlockChainStates(store, stateStore);
 
         _blocks = new BlockSet(store);
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
@@ -192,18 +181,9 @@ public partial class BlockChain : IBlockChainStates
         BlockPolicy policy,
         IStore store,
         IStateStore stateStore,
-        Block genesisBlock,
-        IBlockChainStates? blockChainStates = null)
+        Block genesisBlock)
     {
-        if (store is null)
-        {
-            throw new ArgumentNullException(nameof(store));
-        }
-        else if (stateStore is null)
-        {
-            throw new ArgumentNullException(nameof(stateStore));
-        }
-        else if (store.GetCanonicalChainId() is { } canonId)
+        if (store.GetCanonicalChainId() is { } canonId)
         {
             throw new ArgumentException(
                 $"Given {nameof(store)} already has its canonical chain id set: {canonId}",
@@ -255,14 +235,12 @@ public partial class BlockChain : IBlockChainStates
 
         store.SetCanonicalChainId(id);
 
-        blockChainStates ??= new BlockChainStates(store, stateStore);
         return new BlockChain(
             policy,
             store,
             stateStore,
             id,
-            genesisBlock,
-            blockChainStates);
+            genesisBlock);
     }
 
     public bool ContainsBlock(BlockHash blockHash)

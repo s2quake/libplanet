@@ -273,13 +273,11 @@ namespace Libplanet.Tests.Blockchain
                 },
                 BlockInterval = policy.BlockInterval,
             };
-            var blockChainStates = new BlockChainStates(store, stateStore);
             var chain2 = new BlockChain(
                 policyWithBlockAction,
                 store,
                 stateStore,
-                genesisBlock,
-                blockChainStates);
+                genesisBlock);
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -726,8 +724,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.Policy,
                 _blockChain.Store,
                 _blockChain.StateStore,
-                _blockChain.Genesis,
-                new BlockChainStates(_blockChain.Store, _blockChain.StateStore));
+                _blockChain.Genesis);
 
             newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
             Assert.Equal(newChain.Tip, _validNext);
@@ -751,8 +748,7 @@ namespace Libplanet.Tests.Blockchain
                 policyWithBlockAction,
                 _blockChain.Store,
                 _blockChain.StateStore,
-                _blockChain.Genesis,
-                new BlockChainStates(_blockChain.Store, _blockChain.StateStore));
+                _blockChain.Genesis);
 
             Block newValidNext = newChain.EvaluateAndSign(
                 RawBlock.Create(

@@ -552,13 +552,11 @@ namespace Libplanet.Tests.Blockchain
                 },
             }
                     ;
-            var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
             var blockChain = new BlockChain(
                 policy,
                 _fx.Store,
                 _fx.StateStore,
-                _fx.GenesisBlock,
-                blockChainStates);
+                _fx.GenesisBlock);
             Assert.Throws<InvalidOperationException>(
                 () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
         }

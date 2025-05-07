@@ -177,14 +177,12 @@ If omitted (default) explorer only the local blockchain store.")]
 
                 BlockPolicy policy = LoadBlockPolicy(options);
 
-                var blockChainStates = new BlockChainStates(store, stateStore);
                 var blockChain =
                     new BlockChain(
                         policy,
                         store,
                         stateStore,
-                        await options.GetGenesisBlockAsync(policy),
-                        blockChainStates);
+                        await options.GetGenesisBlockAsync(policy));
                 Startup.PreloadedSingleton = false;
                 Startup.BlockChainSingleton = blockChain;
                 Startup.StoreSingleton = store;

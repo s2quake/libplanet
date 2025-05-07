@@ -105,15 +105,6 @@ public partial class TrieStateStore
         return Write(encoded, writeBatch, cache);
     }
 
-    /// <summary>
-    /// Writes <paramref name="bencodedNode"/> to storage as an embedded <see cref="INode"/>.
-    /// </summary>
-    /// <param name="bencodedNode">The <see cref="IValue"/> representation of
-    /// an <see cref="INode"/> to embed.</param>
-    /// <param name="writeBatch">A batched writer to use for performance reasons.</param>
-    /// <returns>A <see cref="HashNode"/> already written to storage with
-    /// <paramref name="bencodedNode"/> embedded inside.</returns>
-    /// <param name="cache">A <see cref="HashNodeCache"/> to cache nodes.</param>
     private static HashNode Write(
         IValue bencodedNode, WriteBatch writeBatch, HashNodeCache cache)
     {

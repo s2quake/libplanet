@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Action.State;
+using Libplanet.Blockchain;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
 using Libplanet.Types.Assets;
@@ -10,7 +11,7 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Explorer.Queries;
 
-public class StateQuery : ObjectGraphType<IBlockChainStates>
+public class StateQuery : ObjectGraphType<BlockChainStates>
 {
     public StateQuery()
     {
@@ -58,7 +59,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
             resolve: ResolveValidatorSet);
     }
 
-    private static object ResolveWorldState(IResolveFieldContext<IBlockChainStates> context)
+    private static object ResolveWorldState(IResolveFieldContext<BlockChainStates> context)
     {
         BlockHash? blockHash = context.GetArgument<BlockHash?>("blockHash");
         HashDigest<SHA256>? stateRootHash =
@@ -79,7 +80,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         }
     }
 
-    private static object? ResolveStates(IResolveFieldContext<IBlockChainStates> context)
+    private static object? ResolveStates(IResolveFieldContext<BlockChainStates> context)
     {
         Address[] addresses = context.GetArgument<Address[]>("addresses");
         BlockHash? offsetBlockHash =
@@ -117,7 +118,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         }
     }
 
-    private static object ResolveBalance(IResolveFieldContext<IBlockChainStates> context)
+    private static object ResolveBalance(IResolveFieldContext<BlockChainStates> context)
     {
         Address owner = context.GetArgument<Address>("owner");
         Currency currency = context.GetArgument<Currency>("currency");
@@ -150,7 +151,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         }
     }
 
-    private static object? ResolveTotalSupply(IResolveFieldContext<IBlockChainStates> context)
+    private static object? ResolveTotalSupply(IResolveFieldContext<BlockChainStates> context)
     {
         Currency currency = context.GetArgument<Currency>("currency");
         BlockHash? offsetBlockHash =
@@ -179,7 +180,7 @@ public class StateQuery : ObjectGraphType<IBlockChainStates>
         }
     }
 
-    private static object? ResolveValidatorSet(IResolveFieldContext<IBlockChainStates> context)
+    private static object? ResolveValidatorSet(IResolveFieldContext<BlockChainStates> context)
     {
         BlockHash? offsetBlockHash =
             context.GetArgument<string?>("offsetBlockHash") is { } blockHashString

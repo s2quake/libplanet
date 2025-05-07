@@ -553,7 +553,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     timestamp: timestamp ?? DateTimeOffset.MinValue),
             }.ToImmutableSortedSet();
 
-            var blockChainStates = new BlockChainStates(store, stateStore);
             var actionEvaluator = new ActionEvaluator(
                 stateStore: stateStore,
                 policy.PolicyActions);
@@ -576,9 +575,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 policy,
                 store,
                 stateStore,
-                genesisBlock,
-                // renderers: renderers ?? new[] { validator = new ValidatingActionRenderer() },
-                blockChainStates: blockChainStates);
+                genesisBlock);
 #pragma warning restore S1121
 
             return (chain, actionEvaluator);

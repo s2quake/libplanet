@@ -2,12 +2,13 @@ using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Action.State;
+using Libplanet.Blockchain;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
 
 namespace Libplanet.Explorer.Queries;
 
-public class RawStateQuery : ObjectGraphType<IBlockChainStates>
+public class RawStateQuery : ObjectGraphType<BlockChainStates>
 {
     public RawStateQuery()
     {

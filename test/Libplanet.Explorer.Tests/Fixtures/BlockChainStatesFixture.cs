@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Action.State;
+using Libplanet.Blockchain;
 using Libplanet.Tests;
 using Libplanet.Types;
 using Libplanet.Types.Assets;
@@ -34,22 +35,23 @@ public static class BlockChainStatesFixture
     public static readonly ImmutableSortedSet<Validator> Validators =
         ImmutableSortedSet.Create([Validator]);
 
-    public static (IBlockChainStates, BlockHash, HashDigest<SHA256>)
+    public static (BlockChainStates, BlockHash, HashDigest<SHA256>)
         CreateMockBlockChainStates()
     {
-        BlockChainStates mockBlockChainStates = new BlockChainStates();
-        World mock = World.Create(mockBlockChainStates.StateStore);
-        mock = mock
-            .SetBalance(Address, Amount)
-            .SetBalance(new PrivateKey().Address, AdditionalSupply)
-            .SetValidatorSet(Validators);
-        Account account = mock.GetAccount(ReservedAddresses.LegacyAccount);
-        account = account.SetValue(Address, Value);
-        mock = mock.SetAccount(ReservedAddresses.LegacyAccount, account);
+        throw new NotImplementedException("Mocking BlockChainStates is not implemented yet.");
+        // BlockChainStates mockBlockChainStates = new BlockChainStates();
+        // World mock = World.Create(mockBlockChainStates.StateStore);
+        // mock = mock
+        //     .SetBalance(Address, Amount)
+        //     .SetBalance(new PrivateKey().Address, AdditionalSupply)
+        //     .SetValidatorSet(Validators);
+        // Account account = mock.GetAccount(ReservedAddresses.LegacyAccount);
+        // account = account.SetValue(Address, Value);
+        // mock = mock.SetAccount(ReservedAddresses.LegacyAccount, account);
 
-        var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
-        var stateRootHash = mock.Trie.Hash;
-        mockBlockChainStates.AttachBlockHashToStateRootHash(blockHash, stateRootHash);
-        return (mockBlockChainStates, blockHash, stateRootHash);
+        // var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        // var stateRootHash = mock.Trie.Hash;
+        // mockBlockChainStates.AttachBlockHashToStateRootHash(blockHash, stateRootHash);
+        // return (mockBlockChainStates, blockHash, stateRootHash);
     }
 }

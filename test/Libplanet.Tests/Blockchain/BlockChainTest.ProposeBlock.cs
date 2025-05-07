@@ -464,14 +464,12 @@ public partial class BlockChainTest
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
             },
         };
-        var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
 
         var blockChain = new BlockChain(
             policy,
             _fx.Store,
             _fx.StateStore,
-            _fx.GenesisBlock,
-            blockChainStates);
+            _fx.GenesisBlock);
 
         blockChain.MakeTransaction(privateKey2, new[] { DumbAction.Create((address2, "baz")) });
         var block = blockChain.ProposeBlock(
