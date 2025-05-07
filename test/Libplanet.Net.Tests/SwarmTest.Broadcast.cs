@@ -731,14 +731,14 @@ namespace Libplanet.Net.Tests
 
             Block block1 = blockChain.ProposeBlock(
                 GenesisProposer,
-                new[] { transactions[0] }.ToImmutableSortedSet(),
                 TestUtils.CreateBlockCommit(blockChain.Tip),
+                new[] { transactions[0] }.ToImmutableSortedSet(),
                 []);
             blockChain.Append(block1, TestUtils.CreateBlockCommit(block1), true);
             Block block2 = blockChain.ProposeBlock(
                 GenesisProposer,
-                new[] { transactions[1] }.ToImmutableSortedSet(),
                 CreateBlockCommit(blockChain.Tip),
+                new[] { transactions[1] }.ToImmutableSortedSet(),
                 []);
             blockChain.Append(block2, TestUtils.CreateBlockCommit(block2), true);
 

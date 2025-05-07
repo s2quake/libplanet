@@ -446,15 +446,15 @@ public partial class BlockChainTest : IDisposable
 
         Block b1 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsA.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
+            txsA.ToImmutableSortedSet(),
             []);
         _blockChain.Append(b1, TestUtils.CreateBlockCommit(b1));
 
         Block b2 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsA.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
+            txsA.ToImmutableSortedSet(),
             []);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b2, CreateBlockCommit(b2)));
@@ -468,8 +468,8 @@ public partial class BlockChainTest : IDisposable
         ];
         b2 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsB.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
+            txsB.ToImmutableSortedSet(),
             []);
         _blockChain.Append(b2, CreateBlockCommit(b2));
     }
@@ -617,8 +617,8 @@ public partial class BlockChainTest : IDisposable
             ];
             b = chain.ProposeBlock(
                 _fx.Proposer,
-                txs.ToImmutableSortedSet(),
                 CreateBlockCommit(chain.Tip),
+                txs.ToImmutableSortedSet(),
                 []);
             chain.Append(b, CreateBlockCommit(b));
         }
@@ -847,8 +847,8 @@ public partial class BlockChainTest : IDisposable
 
         Block b1 = _blockChain.ProposeBlock(
             _fx.Proposer,
-            txsA.ToImmutableSortedSet(),
             CreateBlockCommit(_blockChain.Tip),
+            txsA.ToImmutableSortedSet(),
             []);
         _blockChain.Append(b1, CreateBlockCommit(b1));
 
@@ -1408,7 +1408,7 @@ public partial class BlockChainTest : IDisposable
             storeFixture.Store,
             storeFixture.StateStore,
             BlockChain.ProposeGenesisBlock(
-                privateKey: privateKey,
+                proposer: privateKey,
                 transactions: [.. txs]),
             actionEvaluator);
 
@@ -1589,7 +1589,7 @@ public partial class BlockChainTest : IDisposable
             storeFixture.StateStore,
             policy.PolicyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
-            privateKey: privateKey,
+            proposer: privateKey,
             transactions: [.. txs]);
         BlockChain blockChain = BlockChain.Create(
             policy,
