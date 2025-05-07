@@ -54,7 +54,6 @@ namespace Libplanet.Net.Tests.Consensus
                 var stateStore = new TrieStateStore();
                 blockChains[i] = BlockChain.Create(
                     TestUtils.Policy,
-                    new VolatileStagePolicy(),
                     stores[i],
                     stateStore,
                     fx.GenesisBlock,

@@ -18,7 +18,6 @@ namespace Libplanet.Tests.Blockchain.Policies
         private StoreFixture _fx;
         private BlockChain _chain;
         private IBlockPolicy _policy;
-        private IStagePolicy _stagePolicy;
 
         public BlockPolicyTest(ITestOutputHelper output)
         {
@@ -27,10 +26,8 @@ namespace Libplanet.Tests.Blockchain.Policies
             _policy = new BlockPolicy(
                 new PolicyActions(),
                 blockInterval: TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000));
-            _stagePolicy = new VolatileStagePolicy();
             _chain = BlockChain.Create(
                 _policy,
-                _stagePolicy,
                 _fx.Store,
                 _fx.StateStore,
                 _fx.GenesisBlock,

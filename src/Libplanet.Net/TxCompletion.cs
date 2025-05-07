@@ -131,7 +131,7 @@ namespace Libplanet.Net
                                     message,
                                     tx.Id,
                                     peer);
-                                _blockChain.StagePolicy.Ignore(_blockChain, tx.Id);
+                                _blockChain.StagePolicy.Ignore(tx.Id);
                                 return false;
                             }
                             else
@@ -204,8 +204,8 @@ namespace Libplanet.Net
         {
             return new HashSet<TxId>(ids
                 .Where(txId =>
-                    !_blockChain.StagePolicy.Ignores(_blockChain, txId)
-                        && _blockChain.StagePolicy.Get(_blockChain, txId, filtered: false) is null
+                    !_blockChain.StagePolicy.Ignores(txId)
+                        && _blockChain.StagePolicy.Get(txId, filtered: false) is null
                         && _blockChain.Store.GetTransaction(txId) is null));
         }
 

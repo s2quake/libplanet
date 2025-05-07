@@ -246,7 +246,7 @@ public partial class BlockChain
                         e,
                         "Failed to load an action in tx; marking tx {TxId} as ignored...",
                         tx.Id);
-                    StagePolicy.Ignore(this, tx.Id);
+                    StagePolicy.Ignore(tx.Id);
                     continue;
                 }
 

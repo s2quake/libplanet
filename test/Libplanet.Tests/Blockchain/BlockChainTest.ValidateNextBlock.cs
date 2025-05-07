@@ -186,7 +186,6 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.GenesisProposer);
             var chain1 = BlockChain.Create(
                 policy,
-                new VolatileStagePolicy(),
                 store1,
                 stateStore1,
                 genesisBlock,
@@ -209,7 +208,6 @@ namespace Libplanet.Tests.Blockchain
                 policyWithBlockAction.PolicyActions);
             var chain2 = BlockChain.Create(
                 policyWithBlockAction,
-                new VolatileStagePolicy(),
                 store2,
                 stateStore2,
                 genesisBlock,
@@ -252,7 +250,6 @@ namespace Libplanet.Tests.Blockchain
                 actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
             var chain1 = BlockChain.Create(
                 policy,
-                new VolatileStagePolicy(),
                 store,
                 stateStore,
                 genesisBlock,
@@ -280,7 +277,6 @@ namespace Libplanet.Tests.Blockchain
             var blockChainStates = new BlockChainStates(store, stateStore);
             var chain2 = new BlockChain(
                 policyWithBlockAction,
-                new VolatileStagePolicy(),
                 store,
                 stateStore,
                 genesisBlock,
@@ -318,7 +314,6 @@ namespace Libplanet.Tests.Blockchain
                 actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
             var chain = BlockChain.Create(
                 policy,
-                new VolatileStagePolicy(),
                 store,
                 stateStore,
                 genesisBlock,
@@ -732,7 +727,6 @@ namespace Libplanet.Tests.Blockchain
         {
             var newChain = new BlockChain(
                 _blockChain.Policy,
-                _blockChain.StagePolicy,
                 _blockChain.Store,
                 _blockChain.StateStore,
                 _blockChain.Genesis,
@@ -761,7 +755,6 @@ namespace Libplanet.Tests.Blockchain
 
             var newChain = new BlockChain(
                 policyWithBlockAction,
-                _blockChain.StagePolicy,
                 _blockChain.Store,
                 _blockChain.StateStore,
                 _blockChain.Genesis,

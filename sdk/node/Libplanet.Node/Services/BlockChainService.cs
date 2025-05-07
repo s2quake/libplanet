@@ -29,7 +29,6 @@ internal sealed class BlockChainService(
         genesisOptions: genesisOptions.Value,
         store: storeService.Store,
         stateStore: storeService.StateStore,
-        stagePolicy: policyService.StagePolicy,
         renderers: [rendererService]);
 
     public BlockChain BlockChain => _blockChain;
@@ -39,7 +38,6 @@ internal sealed class BlockChainService(
         GenesisOptions genesisOptions,
         IStore store,
         IStateStore stateStore,
-        IStagePolicy stagePolicy,
         IRenderer[] renderers)
     {
         var actionEvaluator = new ActionEvaluator(
@@ -61,7 +59,6 @@ internal sealed class BlockChainService(
         {
             return BlockChain.Create(
                 policy: policy,
-                stagePolicy: stagePolicy,
                 store: store,
                 stateStore: stateStore,
                 genesisBlock: genesisBlock,
@@ -72,7 +69,6 @@ internal sealed class BlockChainService(
 
         return new BlockChain(
             policy: policy,
-            stagePolicy: stagePolicy,
             store: store,
             stateStore: stateStore,
             genesisBlock: genesisBlock,

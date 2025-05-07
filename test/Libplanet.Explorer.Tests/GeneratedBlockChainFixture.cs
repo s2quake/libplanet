@@ -87,7 +87,6 @@ public class GeneratedBlockChainFixture
                 .ToImmutableSortedSet());
         Chain = BlockChain.Create(
             policy,
-            new VolatileStagePolicy(),
             store,
             stateStore,
             genesisBlock,

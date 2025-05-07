@@ -21,7 +21,6 @@ namespace Libplanet.Benchmarks
             var fx = new DefaultStoreFixture();
             _blockChain = Libplanet.Blockchain.BlockChain.Create(
                 new NullBlockPolicy(),
-                new VolatileStagePolicy(),
                 fx.Store,
                 fx.StateStore,
                 fx.GenesisBlock,
