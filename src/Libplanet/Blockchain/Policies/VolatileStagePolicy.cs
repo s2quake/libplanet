@@ -1,15 +1,16 @@
 using System.Collections.Concurrent;
+using Libplanet.Store;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain.Policies;
 
-public sealed class VolatileStagePolicy(TimeSpan lifetime) : IStagePolicy
+public sealed class VolatileStagePolicy(IStore store, Guid blockChainId, TimeSpan lifetime)
 {
     private readonly ConcurrentDictionary<TxId, Item> _staged = new();
 
-    public VolatileStagePolicy()
-        : this(TimeSpan.FromSeconds(10 * 60))
+    public VolatileStagePolicy(IStore store, Guid blockChainId)
+        : this(store, blockChainId, TimeSpan.FromSeconds(10 * 60))
     {
     }
 
@@ -33,11 +34,11 @@ public sealed class VolatileStagePolicy(TimeSpan lifetime) : IStagePolicy
 
     public bool Ignores(TxId txId) => _staged.TryGetValue(txId, out var item) && item.IsIgnored;
 
-    public Transaction Get(BlockChain blockChain, TxId txId, bool filtered = true)
+    public Transaction Get(TxId txId, bool filtered = true)
     {
         if (_staged.TryGetValue(txId, out var item))
         {
-            if (!filtered || item.IsEnabled(blockChain))
+            if (!filtered || item.IsEnabled(store, blockChainId))
             {
                 return item.Transaction;
             }
@@ -48,19 +49,19 @@ public sealed class VolatileStagePolicy(TimeSpan lifetime) : IStagePolicy
         throw new InvalidOperationException($"Transaction {txId} not found in the stage.");
     }
 
-    public ImmutableArray<Transaction> Iterate(BlockChain blockChain, bool filtered = true)
+    public ImmutableArray<Transaction> Iterate(bool filtered = true)
     {
         var query = from item in _staged.Values
-                    where !filtered || item.IsEnabled(blockChain)
+                    where !filtered || item.IsEnabled(store, blockChainId)
                     select item.Transaction;
 
         return [.. query];
     }
 
-    public long GetNextTxNonce(BlockChain blockChain, Address address)
+    public long GetNextTxNonce(Address address)
     {
-        var nonce = blockChain.Store.GetTxNonce(blockChain.Id, address);
-        var txs = Iterate(blockChain, filtered: true)
+        var nonce = store.GetTxNonce(blockChainId, address);
+        var txs = Iterate(filtered: true)
             .Where(tx => tx.Signer.Equals(address))
             .OrderBy(tx => tx.Nonce);
 
@@ -81,14 +82,14 @@ public sealed class VolatileStagePolicy(TimeSpan lifetime) : IStagePolicy
 
     private sealed record class Item(Transaction Transaction, bool IsIgnored, DateTimeOffset Lifetime)
     {
-        public bool IsEnabled(BlockChain blockChain)
+        public bool IsEnabled(IStore store, Guid blockChainId)
         {
             if (Lifetime > DateTimeOffset.UtcNow)
             {
                 return false;
             }
 
-            if (blockChain.Store.GetTxNonce(blockChain.Id, Transaction.Signer) < Transaction.Nonce)
+            if (store.GetTxNonce(blockChainId, Transaction.Signer) < Transaction.Nonce)
             {
                 return false;
             }

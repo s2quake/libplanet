@@ -460,7 +460,6 @@ namespace Libplanet.Tests.Blockchain
             {
                 var blockChain = BlockChain.Create(
                     policy,
-                    new VolatileStagePolicy(),
                     fx.Store,
                     fx.StateStore,
                     fx.GenesisBlock,
@@ -534,8 +533,8 @@ namespace Libplanet.Tests.Blockchain
                 []);
             _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
             Assert.Empty(_blockChain.GetStagedTransactionIds());
-            Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: true));
-            Assert.Single(_blockChain.StagePolicy.Iterate(_blockChain, filtered: false));
+            Assert.Empty(_blockChain.StagePolicy.Iterate(filtered: true));
+            Assert.Single(_blockChain.StagePolicy.Iterate(filtered: false));
         }
 
         [SkippableFact]
@@ -546,7 +545,6 @@ namespace Libplanet.Tests.Blockchain
             var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
             var blockChain = new BlockChain(
                 policy,
-                new VolatileStagePolicy(),
                 _fx.Store,
                 _fx.StateStore,
                 _fx.GenesisBlock,
@@ -615,13 +613,13 @@ namespace Libplanet.Tests.Blockchain
                 {
                     txA2, txB0, txB1, txB2, txB0_, txB1_,
                 }.Select(tx => tx.Id).ToImmutableHashSet(),
-                _blockChain.StagePolicy.Iterate(_blockChain, filtered: true).Select(tx => tx.Id));
+                _blockChain.StagePolicy.Iterate(filtered: true).Select(tx => tx.Id));
             AssertTxIdSetEqual(
                 new Transaction[]
                 {
                     txA2, txA0_, txA1_, txB0, txB1, txB2, txB0_, txB1_,
                 }.Select(tx => tx.Id).ToImmutableHashSet(),
-                _blockChain.StagePolicy.Iterate(_blockChain, filtered: false).Select(tx => tx.Id));
+                _blockChain.StagePolicy.Iterate(filtered: false).Select(tx => tx.Id));
         }
 
         [SkippableFact]
@@ -630,7 +628,6 @@ namespace Libplanet.Tests.Blockchain
             var policy = new BlockPolicy(
                 new PolicyActions(),
                 getMaxTransactionsBytes: _ => 50 * 1024);
-            var stagePolicy = new VolatileStagePolicy();
             var fx = GetStoreFixture(policy.PolicyActions);
             var renderer = new ValidatingActionRenderer();
             var actionEvaluator = new ActionEvaluator(
@@ -672,7 +669,6 @@ namespace Libplanet.Tests.Blockchain
                 actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputState);
             var blockChain = BlockChain.Create(
                 policy,
-                stagePolicy,
                 fx.Store,
                 fx.StateStore,
                 genesis,

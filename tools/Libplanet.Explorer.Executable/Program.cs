@@ -177,13 +177,11 @@ If omitted (default) explorer only the local blockchain store.")]
 
                 IBlockPolicy policy =
                     new DumbBlockPolicy(LoadBlockPolicy(options));
-                IStagePolicy stagePolicy =
-                    new VolatileStagePolicy();
+
                 var blockChainStates = new BlockChainStates(store, stateStore);
                 var blockChain =
                     new BlockChain(
                         policy,
-                        stagePolicy,
                         store,
                         stateStore,
                         await options.GetGenesisBlockAsync(policy),

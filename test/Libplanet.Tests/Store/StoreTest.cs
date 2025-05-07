@@ -975,7 +975,6 @@ namespace Libplanet.Tests.Store
                     default);
                 var blocks = BlockChain.Create(
                     policy,
-                    new VolatileStagePolicy(),
                     s1,
                     fx.StateStore,
                     genesis,

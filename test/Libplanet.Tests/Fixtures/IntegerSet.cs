@@ -84,7 +84,6 @@ public sealed class IntegerSet
             Proposer);
         Chain = BlockChain.Create(
             policy,
-            new VolatileStagePolicy(),
             Store,
             StateStore,
             Genesis,

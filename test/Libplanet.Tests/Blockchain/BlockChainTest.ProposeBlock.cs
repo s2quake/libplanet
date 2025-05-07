@@ -133,7 +133,6 @@ public partial class BlockChainTest
                 }).ToImmutableSortedSet());
             Assert.Throws<InvalidOperationException>(() => BlockChain.Create(
                 policy,
-                new VolatileStagePolicy(),
                 fx.Store,
                 fx.StateStore,
                 genesis,
@@ -149,7 +148,6 @@ public partial class BlockChainTest
             var policy = new BlockPolicy();
             var blockChain = BlockChain.Create(
                 policy,
-                new VolatileStagePolicy(),
                 fx.Store,
                 fx.StateStore,
                 fx.GenesisBlock,
@@ -365,7 +363,6 @@ public partial class BlockChainTest
         {
             var blockChain = BlockChain.Create(
                 policy,
-                new VolatileStagePolicy(),
                 fx.Store,
                 fx.StateStore,
                 fx.GenesisBlock,
@@ -453,8 +450,8 @@ public partial class BlockChainTest
 
         Assert.Empty(block2.Transactions);
         Assert.Empty(_blockChain.ListStagedTransactions());
-        Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: true));
-        Assert.Single(_blockChain.StagePolicy.Iterate(_blockChain, filtered: false));
+        Assert.Empty(_blockChain.StagePolicy.Iterate(filtered: true));
+        Assert.Single(_blockChain.StagePolicy.Iterate(filtered: false));
     }
 
     [SkippableFact]
@@ -476,7 +473,6 @@ public partial class BlockChainTest
 
         var blockChain = new BlockChain(
             policy,
-            new VolatileStagePolicy(),
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
@@ -768,6 +764,6 @@ public partial class BlockChainTest
 
         // txWithInvalidAction is marked ignored and removed
         Assert.Equal(txs.Length - 1, _blockChain.ListStagedTransactions().Count);
-        Assert.True(_blockChain.StagePolicy.Ignores(_blockChain, txWithInvalidAction.Id));
+        Assert.True(_blockChain.StagePolicy.Ignores(txWithInvalidAction.Id));
     }
 }

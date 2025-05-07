@@ -446,7 +446,6 @@ namespace Libplanet.Net.Tests
                 fxs[i] = new MemoryStoreFixture();
                 blockChains[i] = BlockChain.Create(
                     policy,
-                    new VolatileStagePolicy(),
                     fxs[i].Store,
                     fxs[i].StateStore,
                     fxs[i].GenesisBlock,
@@ -589,7 +588,7 @@ namespace Libplanet.Net.Tests
                 Assert.DoesNotContain(tx3.Id, chainB.GetStagedTransactionIds());
                 Assert.Contains(
                     tx3.Id,
-                    chainB.StagePolicy.Iterate(chainB, filtered: false).Select(tx => tx.Id));
+                    chainB.StagePolicy.Iterate(filtered: false).Select(tx => tx.Id));
                 Assert.Contains(tx4.Id, chainB.GetStagedTransactionIds());
 
                 await swarmC.TxReceived.WaitAsync();
@@ -597,7 +596,7 @@ namespace Libplanet.Net.Tests
                 Assert.DoesNotContain(tx3.Id, chainC.GetStagedTransactionIds());
                 Assert.DoesNotContain(
                     tx3.Id,
-                    chainC.StagePolicy.Iterate(chainC, filtered: false).Select(tx => tx.Id));
+                    chainC.StagePolicy.Iterate(filtered: false).Select(tx => tx.Id));
                 Assert.Contains(tx4.Id, chainC.GetStagedTransactionIds());
             }
             finally

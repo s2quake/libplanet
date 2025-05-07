@@ -577,7 +577,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 #pragma warning disable S1121
             var chain = BlockChain.Create(
                 policy,
-                new VolatileStagePolicy(),
                 store,
                 stateStore,
                 genesisBlock,

@@ -16,10 +16,10 @@ namespace Libplanet.Tests.Blockchain
                 _fx.Transaction1,
                 _fx.Transaction2,
             };
-            Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain));
+            Assert.Empty(_blockChain.StagePolicy.Iterate());
 
             StageTransactions(txs);
-            Assert.Equal(txs, _blockChain.StagePolicy.Iterate(_blockChain).ToHashSet());
+            Assert.Equal(txs, _blockChain.StagePolicy.Iterate().ToHashSet());
         }
 
         [SkippableFact]
@@ -76,14 +76,14 @@ namespace Libplanet.Tests.Blockchain
             var block = _blockChain.ProposeBlock(key);
             _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
             Assert.Empty(_blockChain.GetStagedTransactionIds());
-            Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: true));
-            Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: false));
+            Assert.Empty(_blockChain.StagePolicy.Iterate(filtered: true));
+            Assert.Empty(_blockChain.StagePolicy.Iterate(filtered: false));
             // should still able to stage a low nonce tx
             Assert.True(_blockChain.StageTransaction(tx_0_1));
             // tx_0_1 is still staged, just filtered.
             Assert.Empty(_blockChain.GetStagedTransactionIds());
-            Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: true));
-            Assert.NotEmpty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: false));
+            Assert.Empty(_blockChain.StagePolicy.Iterate(filtered: true));
+            Assert.NotEmpty(_blockChain.StagePolicy.Iterate(filtered: false));
 
             // stage tx_1_0 -> stage tx_1_1 -> mine tx_1_0 or tx_1_1
             Assert.True(_blockChain.StageTransaction(tx_1_0));
@@ -97,8 +97,8 @@ namespace Libplanet.Tests.Blockchain
             _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
             // tx_0_1 and tx_1_x should be still staged, just filtered
             Assert.Empty(_blockChain.GetStagedTransactionIds());
-            Assert.Empty(_blockChain.StagePolicy.Iterate(_blockChain, filtered: true));
-            Assert.Equal(2, _blockChain.StagePolicy.Iterate(_blockChain, filtered: false).Count());
+            Assert.Empty(_blockChain.StagePolicy.Iterate(filtered: true));
+            Assert.Equal(2, _blockChain.StagePolicy.Iterate(filtered: false).Count());
         }
 
         [SkippableFact]

@@ -5,197 +5,193 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Blockchain.Policies
+namespace Libplanet.Blockchain.Policies;
+
+public class BlockPolicy : IBlockPolicy
 {
+    public static readonly TimeSpan DefaultTargetBlockInterval = TimeSpan.FromSeconds(5);
+
+    private readonly Func<BlockChain, Transaction, InvalidOperationException?>
+        _validateNextBlockTx;
+
+    private readonly Func<BlockChain, Block, Exception?>
+        _validateNextBlock;
+
+    private readonly PolicyActions _policyActions;
+    private readonly Func<long, long> _getMaxTransactionsBytes;
+    private readonly Func<long, int> _getMinTransactionsPerBlock;
+    private readonly Func<long, int> _getMaxTransactionsPerBlock;
+    private readonly Func<long, int> _getMaxTransactionsPerSignerPerBlock;
+    private readonly Func<long, long> _getMaxEvidencePendingDuration;
+
     /// <summary>
-    /// A default implementation of <see cref="IBlockPolicy"/> interface.
+    /// <para>
+    /// Creates a default <see cref="BlockPolicy"/> instance.
+    /// </para>
+    /// <para>
+    /// Each unprovided argument will be assigned a default value.  See each parameter
+    /// description for more detail.
+    /// </para>
     /// </summary>
-    public class BlockPolicy : IBlockPolicy
+    /// <param name="policyActions">
+    /// A class containing policy actions to evaluate at each situation.
+    /// </param>
+    /// <param name="blockInterval">Goes to <see cref="BlockInterval"/>.
+    /// Set to <see cref="DefaultTargetBlockInterval"/> by default.
+    /// </param>
+    /// <param name="validateNextBlockTx">The predicate that determines if
+    /// a <see cref="Transaction"/> follows the policy.  Set to a constant function of
+    /// <see langword="null"/> by default.</param>
+    /// <param name="validateNextBlock">The predicate that determines if
+    /// a <see cref="Block"/> follows the policy.  Set to a default implementation
+    /// where block's hash algorithm type, bytes count, and transactions count are validated.
+    /// </param>
+    /// <param name="getMaxTransactionsBytes">The function determining the maximum size of
+    /// <see cref="Block.Transactions"/> in number of <c>byte</c>s given
+    /// its <see cref="Block.Height"/>.  Goes to <see cref="GetMaxTransactionsBytes"/>.
+    /// Set to a constant size of <c>100</c>KiB, i.e. <c>100 * 1024</c>, by default.</param>
+    /// <param name="getMinTransactionsPerBlock">The function determining the minimum number of
+    /// <see cref="Transaction"/>s that must be included in a <see cref="Block"/>.
+    /// Goes to <see cref="GetMinTransactionsPerBlock"/>.  Set to a constant function
+    /// of <c>0</c> by default.</param>
+    /// <param name="getMaxTransactionsPerBlock">The function determining how many
+    /// <see cref="Transaction"/>s can be included in a <see cref="Block"/>.
+    /// Goes to <see cref="GetMaxTransactionsPerBlock"/>.  Set to a constant function
+    /// of <c>100</c> by default.</param>
+    /// <param name="getMaxTransactionsPerSignerPerBlock">The function determining the maximum
+    /// number of transactions from the same signer that can be included in
+    /// a <see cref="Block"/> given the <see cref="Block"/>'s index.
+    /// Goes to <see cref="GetMaxTransactionsPerSignerPerBlock"/>.  Set to
+    /// <see cref="GetMaxTransactionsPerBlock"/> by default.</param>
+    /// <param name="getMaxEvidencePendingDuration">The function determining the maximum
+    /// pending duration of <see cref="EvidenceBase"/> to be committed.
+    /// Goes to <see cref="GetMaxEvidencePendingDuration"/>.  Set to a constant function
+    /// of <c>10</c> by default.</param>
+    public BlockPolicy(
+        PolicyActions? policyActions = null,
+        TimeSpan? blockInterval = null,
+        Func<BlockChain, Transaction, InvalidOperationException?>?
+            validateNextBlockTx = null,
+        Func<BlockChain, Block, Exception?>?
+            validateNextBlock = null,
+        Func<long, long>? getMaxTransactionsBytes = null,
+        Func<long, int>? getMinTransactionsPerBlock = null,
+        Func<long, int>? getMaxTransactionsPerBlock = null,
+        Func<long, int>? getMaxTransactionsPerSignerPerBlock = null,
+        Func<long, long>? getMaxEvidencePendingDuration = null)
     {
-        public static readonly TimeSpan DefaultTargetBlockInterval = TimeSpan.FromSeconds(5);
+        _policyActions = policyActions ?? new PolicyActions();
+        BlockInterval = blockInterval ?? DefaultTargetBlockInterval;
+        _getMaxTransactionsBytes = getMaxTransactionsBytes ?? (_ => 100L * 1024L);
+        _getMinTransactionsPerBlock = getMinTransactionsPerBlock ?? (_ => 0);
+        _getMaxTransactionsPerBlock = getMaxTransactionsPerBlock ?? (_ => 100);
+        _getMaxTransactionsPerSignerPerBlock = getMaxTransactionsPerSignerPerBlock
+            ?? GetMaxTransactionsPerBlock;
+        _getMaxEvidencePendingDuration = getMaxEvidencePendingDuration ?? (_ => 10L);
 
-        private readonly Func<BlockChain, Transaction, InvalidOperationException?>
-            _validateNextBlockTx;
-
-        private readonly Func<BlockChain, Block, Exception?>
-            _validateNextBlock;
-
-        private readonly PolicyActions _policyActions;
-        private readonly Func<long, long> _getMaxTransactionsBytes;
-        private readonly Func<long, int> _getMinTransactionsPerBlock;
-        private readonly Func<long, int> _getMaxTransactionsPerBlock;
-        private readonly Func<long, int> _getMaxTransactionsPerSignerPerBlock;
-        private readonly Func<long, long> _getMaxEvidencePendingDuration;
-
-        /// <summary>
-        /// <para>
-        /// Creates a default <see cref="BlockPolicy"/> instance.
-        /// </para>
-        /// <para>
-        /// Each unprovided argument will be assigned a default value.  See each parameter
-        /// description for more detail.
-        /// </para>
-        /// </summary>
-        /// <param name="policyActions">
-        /// A class containing policy actions to evaluate at each situation.
-        /// </param>
-        /// <param name="blockInterval">Goes to <see cref="BlockInterval"/>.
-        /// Set to <see cref="DefaultTargetBlockInterval"/> by default.
-        /// </param>
-        /// <param name="validateNextBlockTx">The predicate that determines if
-        /// a <see cref="Transaction"/> follows the policy.  Set to a constant function of
-        /// <see langword="null"/> by default.</param>
-        /// <param name="validateNextBlock">The predicate that determines if
-        /// a <see cref="Block"/> follows the policy.  Set to a default implementation
-        /// where block's hash algorithm type, bytes count, and transactions count are validated.
-        /// </param>
-        /// <param name="getMaxTransactionsBytes">The function determining the maximum size of
-        /// <see cref="Block.Transactions"/> in number of <c>byte</c>s given
-        /// its <see cref="Block.Height"/>.  Goes to <see cref="GetMaxTransactionsBytes"/>.
-        /// Set to a constant size of <c>100</c>KiB, i.e. <c>100 * 1024</c>, by default.</param>
-        /// <param name="getMinTransactionsPerBlock">The function determining the minimum number of
-        /// <see cref="Transaction"/>s that must be included in a <see cref="Block"/>.
-        /// Goes to <see cref="GetMinTransactionsPerBlock"/>.  Set to a constant function
-        /// of <c>0</c> by default.</param>
-        /// <param name="getMaxTransactionsPerBlock">The function determining how many
-        /// <see cref="Transaction"/>s can be included in a <see cref="Block"/>.
-        /// Goes to <see cref="GetMaxTransactionsPerBlock"/>.  Set to a constant function
-        /// of <c>100</c> by default.</param>
-        /// <param name="getMaxTransactionsPerSignerPerBlock">The function determining the maximum
-        /// number of transactions from the same signer that can be included in
-        /// a <see cref="Block"/> given the <see cref="Block"/>'s index.
-        /// Goes to <see cref="GetMaxTransactionsPerSignerPerBlock"/>.  Set to
-        /// <see cref="GetMaxTransactionsPerBlock"/> by default.</param>
-        /// <param name="getMaxEvidencePendingDuration">The function determining the maximum
-        /// pending duration of <see cref="EvidenceBase"/> to be committed.
-        /// Goes to <see cref="GetMaxEvidencePendingDuration"/>.  Set to a constant function
-        /// of <c>10</c> by default.</param>
-        public BlockPolicy(
-            PolicyActions? policyActions = null,
-            TimeSpan? blockInterval = null,
-            Func<BlockChain, Transaction, InvalidOperationException?>?
-                validateNextBlockTx = null,
-            Func<BlockChain, Block, Exception?>?
-                validateNextBlock = null,
-            Func<long, long>? getMaxTransactionsBytes = null,
-            Func<long, int>? getMinTransactionsPerBlock = null,
-            Func<long, int>? getMaxTransactionsPerBlock = null,
-            Func<long, int>? getMaxTransactionsPerSignerPerBlock = null,
-            Func<long, long>? getMaxEvidencePendingDuration = null)
+        _validateNextBlockTx = validateNextBlockTx ?? ((_, __) => null);
+        if (validateNextBlock is { } vnb)
         {
-            _policyActions = policyActions ?? new PolicyActions();
-            BlockInterval = blockInterval ?? DefaultTargetBlockInterval;
-            _getMaxTransactionsBytes = getMaxTransactionsBytes ?? (_ => 100L * 1024L);
-            _getMinTransactionsPerBlock = getMinTransactionsPerBlock ?? (_ => 0);
-            _getMaxTransactionsPerBlock = getMaxTransactionsPerBlock ?? (_ => 100);
-            _getMaxTransactionsPerSignerPerBlock = getMaxTransactionsPerSignerPerBlock
-                ?? GetMaxTransactionsPerBlock;
-            _getMaxEvidencePendingDuration = getMaxEvidencePendingDuration ?? (_ => 10L);
+            _validateNextBlock = vnb;
+        }
+        else
+        {
+            _validateNextBlock = (blockchain, block) =>
+            {
+                long maxTransactionsBytes = GetMaxTransactionsBytes(block.Height);
+                int minTransactionsPerBlock = GetMinTransactionsPerBlock(block.Height);
+                int maxTransactionsPerBlock = GetMaxTransactionsPerBlock(block.Height);
+                int maxTransactionsPerSignerPerBlock =
+                    GetMaxTransactionsPerSignerPerBlock(block.Height);
+                long maxEvidencePendingDuration = GetMaxEvidencePendingDuration(block.Height);
 
-            _validateNextBlockTx = validateNextBlockTx ?? ((_, __) => null);
-            if (validateNextBlock is { } vnb)
-            {
-                _validateNextBlock = vnb;
-            }
-            else
-            {
-                _validateNextBlock = (blockchain, block) =>
+                long blockBytes = ModelSerializer.Serialize(block.Transactions)
+                    .EncodingLength;
+                if (blockBytes > maxTransactionsBytes)
                 {
-                    long maxTransactionsBytes = GetMaxTransactionsBytes(block.Height);
-                    int minTransactionsPerBlock = GetMinTransactionsPerBlock(block.Height);
-                    int maxTransactionsPerBlock = GetMaxTransactionsPerBlock(block.Height);
-                    int maxTransactionsPerSignerPerBlock =
-                        GetMaxTransactionsPerSignerPerBlock(block.Height);
-                    long maxEvidencePendingDuration = GetMaxEvidencePendingDuration(block.Height);
+                    return new InvalidOperationException(
+                        $"The size of block #{block.Height} {block.BlockHash} is too large where " +
+                        $"the maximum number of bytes allowed is {maxTransactionsBytes}: " +
+                        $"{blockBytes}.");
+                }
+                else if (block.Transactions.Count < minTransactionsPerBlock)
+                {
+                    return new InvalidOperationException(
+                        $"Block #{block.Height} {block.BlockHash} should include " +
+                        $"at least {minTransactionsPerBlock} transaction(s): " +
+                        $"{block.Transactions.Count}");
+                }
+                else if (block.Transactions.Count > maxTransactionsPerBlock)
+                {
+                    return new InvalidOperationException(
+                        $"Block #{block.Height} {block.BlockHash} should include " +
+                        $"at most {maxTransactionsPerBlock} transaction(s): " +
+                        $"{block.Transactions.Count}");
+                }
+                else
+                {
+                    var groups = block.Transactions
+                        .GroupBy(tx => tx.Signer)
+                        .Where(group => group.Count() > maxTransactionsPerSignerPerBlock);
+                    if (groups.FirstOrDefault() is { } offendingGroup)
+                    {
+                        int offendingGroupCount = offendingGroup.Count();
+                        return new InvalidOperationException(
+                            $"Block #{block.Height} {block.BlockHash} includes too many " +
+                            $"transactions from signer {offendingGroup.Key} where " +
+                            $"the maximum number of transactions allowed by a single signer " +
+                            $"per block is {maxTransactionsPerSignerPerBlock}: " +
+                            $"{offendingGroupCount}");
+                    }
+                }
 
-                    long blockBytes = ModelSerializer.Serialize(block.Transactions)
-                        .EncodingLength;
-                    if (blockBytes > maxTransactionsBytes)
-                    {
-                        return new InvalidOperationException(
-                            $"The size of block #{block.Height} {block.BlockHash} is too large where " +
-                            $"the maximum number of bytes allowed is {maxTransactionsBytes}: " +
-                            $"{blockBytes}.");
-                    }
-                    else if (block.Transactions.Count < minTransactionsPerBlock)
-                    {
-                        return new InvalidOperationException(
-                            $"Block #{block.Height} {block.BlockHash} should include " +
-                            $"at least {minTransactionsPerBlock} transaction(s): " +
-                            $"{block.Transactions.Count}");
-                    }
-                    else if (block.Transactions.Count > maxTransactionsPerBlock)
-                    {
-                        return new InvalidOperationException(
-                            $"Block #{block.Height} {block.BlockHash} should include " +
-                            $"at most {maxTransactionsPerBlock} transaction(s): " +
-                            $"{block.Transactions.Count}");
-                    }
-                    else
-                    {
-                        var groups = block.Transactions
-                            .GroupBy(tx => tx.Signer)
-                            .Where(group => group.Count() > maxTransactionsPerSignerPerBlock);
-                        if (groups.FirstOrDefault() is { } offendingGroup)
-                        {
-                            int offendingGroupCount = offendingGroup.Count();
-                            return new InvalidOperationException(
-                                $"Block #{block.Height} {block.BlockHash} includes too many " +
-                                $"transactions from signer {offendingGroup.Key} where " +
-                                $"the maximum number of transactions allowed by a single signer " +
-                                $"per block is {maxTransactionsPerSignerPerBlock}: " +
-                                $"{offendingGroupCount}");
-                        }
-                    }
+                long evidenceExpirationHeight = block.Height - maxEvidencePendingDuration;
+                if (block.Evidences.Any(evidence => evidence.Height < evidenceExpirationHeight))
+                {
+                    return new InvalidOperationException(
+                        $"Block #{block.Height} {block.BlockHash} includes evidence" +
+                        $"that is older than expiration height {evidenceExpirationHeight}");
+                }
 
-                    long evidenceExpirationHeight = block.Height - maxEvidencePendingDuration;
-                    if (block.Evidences.Any(evidence => evidence.Height < evidenceExpirationHeight))
-                    {
-                        return new InvalidOperationException(
-                            $"Block #{block.Height} {block.BlockHash} includes evidence" +
-                            $"that is older than expiration height {evidenceExpirationHeight}");
-                    }
-
-                    return null;
-                };
-            }
+                return null;
+            };
         }
-
-        public PolicyActions PolicyActions => _policyActions;
-
-        /// <summary>
-        /// Targeted time interval between two consecutive <see cref="Block"/>s.
-        /// </summary>
-        public TimeSpan BlockInterval { get; }
-
-        public virtual InvalidOperationException? ValidateNextBlockTx(
-        BlockChain blockChain, Transaction transaction)
-        {
-            return _validateNextBlockTx(blockChain, transaction);
-        }
-
-        public virtual Exception? ValidateNextBlock(
-        BlockChain blockChain,
-        Block nextBlock)
-        {
-            return _validateNextBlock(blockChain, nextBlock);
-        }
-
-        [Pure]
-        public long GetMaxTransactionsBytes(long index) => _getMaxTransactionsBytes(index);
-
-        [Pure]
-        public int GetMinTransactionsPerBlock(long index) => _getMinTransactionsPerBlock(index);
-
-        [Pure]
-        public int GetMaxTransactionsPerBlock(long index) => _getMaxTransactionsPerBlock(index);
-
-        [Pure]
-        public int GetMaxTransactionsPerSignerPerBlock(long index)
-        => _getMaxTransactionsPerSignerPerBlock(index);
-
-        [Pure]
-        public long GetMaxEvidencePendingDuration(long index)
-        => _getMaxEvidencePendingDuration(index);
     }
+
+    public PolicyActions PolicyActions => _policyActions;
+
+    /// <summary>
+    /// Targeted time interval between two consecutive <see cref="Block"/>s.
+    /// </summary>
+    public TimeSpan BlockInterval { get; }
+
+    public virtual InvalidOperationException? ValidateNextBlockTx(
+    BlockChain blockChain, Transaction transaction)
+    {
+        return _validateNextBlockTx(blockChain, transaction);
+    }
+
+    public virtual Exception? ValidateNextBlock(
+    BlockChain blockChain,
+    Block nextBlock)
+    {
+        return _validateNextBlock(blockChain, nextBlock);
+    }
+
+    [Pure]
+    public long GetMaxTransactionsBytes(long index) => _getMaxTransactionsBytes(index);
+
+    [Pure]
+    public int GetMinTransactionsPerBlock(long index) => _getMinTransactionsPerBlock(index);
+
+    [Pure]
+    public int GetMaxTransactionsPerBlock(long index) => _getMaxTransactionsPerBlock(index);
+
+    [Pure]
+    public int GetMaxTransactionsPerSignerPerBlock(long index)
+    => _getMaxTransactionsPerSignerPerBlock(index);
+
+    [Pure]
+    public long GetMaxEvidencePendingDuration(long index)
+    => _getMaxEvidencePendingDuration(index);
 }

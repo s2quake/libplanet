@@ -31,7 +31,7 @@ public partial class BlockChainTest : IDisposable
     private BlockChain _blockChain;
     private ValidatingActionRenderer _renderer;
     private Block _validNext;
-    private IStagePolicy _stagePolicy;
+    private VolatileStagePolicy _stagePolicy;
 
     public BlockChainTest(ITestOutputHelper output)
     {
@@ -48,12 +48,11 @@ public partial class BlockChainTest : IDisposable
                 EndBlockActions = [new MinerReward(1)],
             },
             getMaxTransactionsBytes: _ => 50 * 1024);
-        _stagePolicy = new VolatileStagePolicy();
+
         _fx = GetStoreFixture(_policy.PolicyActions);
         _renderer = new ValidatingActionRenderer();
         _blockChain = BlockChain.Create(
             _policy,
-            _stagePolicy,
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
@@ -61,6 +60,7 @@ public partial class BlockChainTest : IDisposable
                 stateStore: _fx.StateStore,
                 _policy.PolicyActions),
             renderers: new[] { new LoggedActionRenderer(_renderer, Log.Logger) });
+        _stagePolicy = _blockChain.StagePolicy;
         _renderer.ResetRecords();
 
         _validNext = _blockChain.EvaluateAndSign(
@@ -106,7 +106,6 @@ public partial class BlockChainTest : IDisposable
         var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
         var z = new BlockChain(
             policy,
-            new VolatileStagePolicy(),
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
@@ -199,7 +198,6 @@ public partial class BlockChainTest : IDisposable
         var genesis = BlockChain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
         var chain = BlockChain.Create(
             policy,
-            new VolatileStagePolicy(),
             store,
             stateStore,
             genesis,
@@ -572,7 +570,6 @@ public partial class BlockChainTest : IDisposable
             GenesisProposer);
         var chain = BlockChain.Create(
             policy,
-            new VolatileStagePolicy(),
             store,
             stateStore,
             genesisWithTx,
@@ -590,7 +587,6 @@ public partial class BlockChainTest : IDisposable
         var blockChainStates = new BlockChainStates(tracker, _fx.StateStore);
         var chain = new BlockChain(
             policy,
-            new VolatileStagePolicy(),
             tracker,
             _fx.StateStore,
             _fx.GenesisBlock,
@@ -652,7 +648,6 @@ public partial class BlockChainTest : IDisposable
         var blockChainStates = new BlockChainStates(tracker, _fx.StateStore);
         var chain = new BlockChain(
             policy,
-            new VolatileStagePolicy(),
             tracker,
             _fx.StateStore,
             _fx.GenesisBlock,
@@ -692,7 +687,6 @@ public partial class BlockChainTest : IDisposable
         var blockChainStates = new BlockChainStates(_fx.Store, _fx.StateStore);
         var chain = new BlockChain(
             policy,
-            new VolatileStagePolicy(),
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
@@ -791,7 +785,6 @@ public partial class BlockChainTest : IDisposable
         {
             var emptyChain = BlockChain.Create(
                 _blockChain.Policy,
-                new VolatileStagePolicy(),
                 emptyFx.Store,
                 emptyFx.StateStore,
                 emptyFx.GenesisBlock,
@@ -800,7 +793,6 @@ public partial class BlockChainTest : IDisposable
                     _blockChain.Policy.PolicyActions));
             var fork = BlockChain.Create(
                 _blockChain.Policy,
-                new VolatileStagePolicy(),
                 forkFx.Store,
                 forkFx.StateStore,
                 forkFx.GenesisBlock,
@@ -889,7 +881,7 @@ public partial class BlockChainTest : IDisposable
         ];
         StageTransactions(txsE);
 
-        foreach (var tx in _blockChain.StagePolicy.Iterate(_blockChain))
+        foreach (var tx in _blockChain.StagePolicy.Iterate())
         {
             _logger.Fatal(
                 "{Id}; {Signer}; {Nonce}; {Timestamp}",
@@ -1007,7 +999,7 @@ public partial class BlockChainTest : IDisposable
         _blockChain.MakeTransaction(privateKey, actions: new IAction[] { action });
 
         List<Transaction> txs = _stagePolicy
-            .Iterate(_blockChain)
+            .Iterate()
             .OrderBy(tx => tx.Nonce)
             .ToList();
 
@@ -1035,7 +1027,7 @@ public partial class BlockChainTest : IDisposable
         _blockChain.MakeTransaction(privateKey, actions);
 
         List<Transaction> txs = _stagePolicy
-            .Iterate(_blockChain)
+            .Iterate()
             .OrderBy(tx => tx.Nonce)
             .ToList();
 
@@ -1067,7 +1059,7 @@ public partial class BlockChainTest : IDisposable
         var txIds = _blockChain.GetStagedTransactionIds();
 
         var nonces = txIds
-            .Select(id => _stagePolicy.Get(_blockChain, id)
+            .Select(id => _stagePolicy.Get(id)
                 ?? _blockChain.GetTransaction(id))
             .Select(tx => tx.Nonce)
             .OrderBy(nonce => nonce)
@@ -1168,7 +1160,6 @@ public partial class BlockChainTest : IDisposable
             GenesisProposer);
         var chain = BlockChain.Create(
             blockPolicy,
-            new VolatileStagePolicy(),
             store,
             stateStore,
             genesisBlock,
@@ -1238,7 +1229,6 @@ public partial class BlockChainTest : IDisposable
 
         chain = new BlockChain(
             blockPolicy,
-            new VolatileStagePolicy(),
             store,
             incompleteStateStore,
             genesisBlock,
@@ -1404,7 +1394,6 @@ public partial class BlockChainTest : IDisposable
             policy.PolicyActions);
         BlockChain blockChain = BlockChain.Create(
             policy,
-            new VolatileStagePolicy(),
             storeFixture.Store,
             storeFixture.StateStore,
             BlockChain.ProposeGenesisBlock(
@@ -1434,7 +1423,6 @@ public partial class BlockChainTest : IDisposable
     private void ConstructWithUnexpectedGenesisBlock()
     {
         var policy = new NullBlockPolicy();
-        var stagePolicy = new VolatileStagePolicy();
         IStore store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var blockChainStates = new BlockChainStates(store, stateStore);
@@ -1446,7 +1434,6 @@ public partial class BlockChainTest : IDisposable
 
         var blockChain = BlockChain.Create(
             policy,
-            stagePolicy,
             store,
             stateStore,
             genesisBlockA,
@@ -1456,7 +1443,6 @@ public partial class BlockChainTest : IDisposable
         {
             var blockchain = new BlockChain(
                 policy,
-                stagePolicy,
                 store,
                 stateStore,
                 genesisBlockB,
@@ -1486,8 +1472,8 @@ public partial class BlockChainTest : IDisposable
 
         // Stage only txs having higher or equal with nonce than expected nonce.
         Assert.Single(_blockChain.GetStagedTransactionIds());
-        Assert.Single(_blockChain.StagePolicy.Iterate(_blockChain, filtered: true));
-        Assert.Equal(4, _blockChain.StagePolicy.Iterate(_blockChain, filtered: false).Count());
+        Assert.Single(_blockChain.StagePolicy.Iterate(filtered: true));
+        Assert.Equal(4, _blockChain.StagePolicy.Iterate(filtered: false).Count());
     }
 
     [SkippableFact]
@@ -1522,7 +1508,6 @@ public partial class BlockChainTest : IDisposable
 
         var chain = BlockChain.Create(
             policy,
-            new VolatileStagePolicy(),
             store,
             stateStore,
             genesisWithTx,
@@ -1589,7 +1574,6 @@ public partial class BlockChainTest : IDisposable
             transactions: [.. txs]);
         BlockChain blockChain = BlockChain.Create(
             policy,
-            new VolatileStagePolicy(),
             storeFixture.Store,
             storeFixture.StateStore,
             genesis,
