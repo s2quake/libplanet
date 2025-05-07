@@ -24,7 +24,7 @@ public abstract class StoreBase : IStore
 
     public abstract IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit);
 
-    public abstract BlockHash? IndexBlockHash(Guid chainId, long index);
+    public abstract BlockHash GetBlockHash(Guid chainId, long height);
 
     public abstract long AppendIndex(Guid chainId, BlockHash hash);
 
@@ -39,45 +39,10 @@ public abstract class StoreBase : IStore
 
     public abstract IEnumerable<BlockHash> IterateBlockHashes();
 
-    public Block? GetBlock(BlockHash blockHash)
-    {
-        if (GetBlockDigest(blockHash) is BlockDigest blockDigest)
-        {
-            // BlockHeader header = blockDigest.Header;
-            // TxId[] txids = blockDigest.TxIds.ToArray();
-            // var txs = txids.Select(txid => GetTransaction(txid))
-            //                          .OfType<Transaction>()
-            //                          .ToImmutableSortedSet();
-            // var evidenceIds = blockDigest.EvidenceIds.ToArray();
-            // var evidences = evidenceIds.Select(GetCommittedEvidence)
-            //                            .OfType<EvidenceBase>()
-            //                            .ToImmutableSortedSet();
+    public Block GetBlock(BlockHash blockHash)
+        => GetBlockDigest(blockHash).ToBlock(GetTransaction, GetCommittedEvidence);
 
-            // if (txids.Length != txs.Count)
-            // {
-            //     TxId[] missingTxIds = txids.Except(txs.Select(tx => tx.Id)).ToArray();
-            //     throw new InvalidOperationException(
-            //         $"Failed to find {missingTxIds.Length} tx(s) (out of {txs.Count}) " +
-            //         $"at block {blockHash}:\n" + string.Join("\n  ", missingTxIds));
-            // }
-
-            // if (evidenceIds.Length != evidences.Count)
-            // {
-            //     var missingEvidenceIds = evidenceIds.Except(evidences.Select(tx => tx.Id))
-            //                                          .ToArray();
-            //     throw new InvalidOperationException(
-            //         $"Failed to find {missingEvidenceIds.Length} evidence(s) " +
-            //         $"(out of {evidences.Count}) " +
-            //         $"at block {blockHash}:\n" + string.Join("\n  ", missingEvidenceIds));
-            // }
-
-            return blockDigest.ToBlock(GetTransaction, GetCommittedEvidence);
-        }
-
-        return null;
-    }
-
-    public long? GetBlockIndex(BlockHash blockHash)
+    public long GetBlockHeight(BlockHash blockHash)
     {
         return GetBlockDigest(blockHash).Height;
     }

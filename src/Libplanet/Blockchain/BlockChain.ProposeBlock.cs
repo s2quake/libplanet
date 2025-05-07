@@ -75,24 +75,22 @@ public partial class BlockChain
         ImmutableSortedSet<Transaction> transactions,
         ImmutableSortedSet<EvidenceBase> evidences)
     {
-        long index = Count;
-        BlockHash prevHash = Store.IndexBlockHash(Id, index - 1)
-            ?? throw new NullReferenceException($"Chain {Id} is missing block #{index - 1}");
+        var height = Count;
+        var previousHash = Store.GetBlockHash(Id, height - 1);
 
-        HashDigest<SHA256> stateRootHash = GetNextStateRootHash(prevHash) ??
+        HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash) ??
             throw new InvalidOperationException(
                 $"Cannot propose a block as the next state root hash " +
-                $"for block {prevHash} is missing.");
+                $"for block {previousHash} is missing.");
 
         // FIXME: Should use automated public constructor.
         // Manual internal constructor is used purely for testing custom timestamps.
         var metadata = new BlockHeader
         {
-            ProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            Height = index,
+            Height = height,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
-            PreviousHash = prevHash,
+            PreviousHash = previousHash,
             LastCommit = lastCommit,
         };
         var blockContent = new BlockContent

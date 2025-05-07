@@ -19,7 +19,7 @@ public interface IStore : IDisposable
 
     IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null);
 
-    BlockHash? IndexBlockHash(Guid chainId, long index);
+    BlockHash GetBlockHash(Guid chainId, long height);
 
     long AppendIndex(Guid chainId, BlockHash hash);
 
@@ -31,9 +31,9 @@ public interface IStore : IDisposable
 
     IEnumerable<BlockHash> IterateBlockHashes();
 
-    Block? GetBlock(BlockHash blockHash);
+    Block GetBlock(BlockHash blockHash);
 
-    long? GetBlockIndex(BlockHash blockHash);
+    long GetBlockHeight(BlockHash blockHash);
 
     BlockDigest GetBlockDigest(BlockHash blockHash);
 

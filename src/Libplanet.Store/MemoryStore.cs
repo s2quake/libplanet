@@ -10,17 +10,6 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-/// <summary>
-/// Volatile in-memory store.
-/// <para>It is useful for storing temporal small chains, e.g., fixtures for unit tests of
-/// game logic.</para>
-/// <para><see cref="MemoryStore"/> and <see cref="MemoryKeyValueStore"/>-backed
-/// <see cref="TrieStateStore"/> can be instantiated from a URI with <c>memory:</c> scheme
-/// using <see cref="StoreLoaderAttribute.LoadStore(Uri)"/>, e.g.:</para>
-/// <list type="bullet">
-/// <item><description><c>memory:</c></description></item>
-/// </list>
-/// </summary>
 public sealed class MemoryStore : IStore
 {
     private readonly ConcurrentDictionary<Guid, ImmutableTrieList<BlockHash>> _indexes = new();
@@ -73,22 +62,24 @@ public sealed class MemoryStore : IStore
         return [];
     }
 
-    BlockHash? IStore.IndexBlockHash(Guid chainId, long index)
+    BlockHash IStore.GetBlockHash(Guid chainId, long height)
     {
         if (_indexes.TryGetValue(chainId, out var list))
         {
-            if (index < 0)
+            if (height < 0)
             {
-                index += list.Count;
+                height += list.Count;
             }
 
-            if (index < list.Count && index >= 0)
+            if (height < list.Count && height >= 0)
             {
-                return list[(int)index];
+                return list[(int)height];
             }
         }
 
-        return null;
+        throw new ArgumentOutOfRangeException(
+            nameof(height),
+            $"The height {height} is out of range for the chain ID {chainId}.");
     }
 
     long IStore.AppendIndex(Guid chainId, BlockHash hash)
@@ -123,31 +114,37 @@ public sealed class MemoryStore : IStore
 
     IEnumerable<BlockHash> IStore.IterateBlockHashes() => _blocks.Keys;
 
-    Block? IStore.GetBlock(BlockHash blockHash)
+    Block IStore.GetBlock(BlockHash blockHash)
+    {
+        if (!_blocks.TryGetValue(blockHash, out var blockDigest))
+        {
+            throw new KeyNotFoundException(
+                $"The block hash {blockHash} is not found in the store.");
+        }
+
+        return blockDigest.ToBlock(txId => _txs[txId], evId => _committedEvidence[evId]);
+    }
+
+    long IStore.GetBlockHeight(BlockHash blockHash)
     {
         if (!_blocks.TryGetValue(blockHash, out var digest))
         {
-            return null;
+            throw new KeyNotFoundException($"The block hash {blockHash} is not found in the store.");
         }
 
-        return new Block
-        {
-            Header = digest.Header,
-            StateRootHash = digest.StateRootHash,
-            Signature = digest.Signature,
-            Content = new BlockContent
-            {
-                Transactions = [.. digest.TxIds.Select(txid => _txs[txid])],
-                Evidences = [.. digest.EvidenceIds.Select(evId => _committedEvidence[evId])],
-            },
-        };
+        return digest.Height;
     }
 
-    long? IStore.GetBlockIndex(BlockHash blockHash) =>
-        _blocks.TryGetValue(blockHash, out BlockDigest digest) ? digest.Height : null;
+    BlockDigest IStore.GetBlockDigest(BlockHash blockHash)
+    {
+        if (!_blocks.TryGetValue(blockHash, out var blockDigest))
+        {
+            throw new KeyNotFoundException(
+                $"The block hash {blockHash} is not found in the store.");
+        }
 
-    BlockDigest IStore.GetBlockDigest(BlockHash blockHash) =>
-        _blocks.TryGetValue(blockHash, out BlockDigest digest) ? digest : default;
+        return blockDigest;
+    }
 
     void IStore.PutBlock(Block block)
     {
