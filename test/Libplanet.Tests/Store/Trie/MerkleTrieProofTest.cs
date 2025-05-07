@@ -244,6 +244,6 @@ namespace Libplanet.Tests.Store.Trie
         }
 
         private HashNode ToHashNode(INode node) =>
-            new HashNode(HashDigest<SHA256>.DeriveFrom(_codec.Encode(node.ToBencodex())));
+            new HashNode(HashDigest<SHA256>.Create(_codec.Encode(node.ToBencodex())));
    }
 }

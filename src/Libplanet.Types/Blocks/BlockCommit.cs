@@ -31,7 +31,7 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
 
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
-    public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

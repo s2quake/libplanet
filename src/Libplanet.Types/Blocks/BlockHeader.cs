@@ -27,5 +27,5 @@ public sealed record class BlockHeader
     [Property(5)]
     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
 
-    public HashDigest<SHA256> Hash => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA256> Hash => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
 }

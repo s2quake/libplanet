@@ -20,7 +20,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     {
         HashNode hashNode => hashNode.Hash,
         NullNode _ => default,
-        _ => HashDigest<SHA256>.DeriveFrom(_codec.Encode(Node.ToBencodex())),
+        _ => HashDigest<SHA256>.Create(_codec.Encode(Node.ToBencodex())),
     };
 
     public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;

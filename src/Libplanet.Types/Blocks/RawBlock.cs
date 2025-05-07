@@ -13,7 +13,7 @@ public sealed record class RawBlock
     [Property(1)]
     public required BlockContent Content { get; init; }
 
-    public HashDigest<SHA256> Hash => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA256> Hash => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
 
     public static explicit operator RawBlock(Block block) => new()
     {

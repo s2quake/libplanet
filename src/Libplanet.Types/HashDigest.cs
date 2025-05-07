@@ -62,15 +62,10 @@ public readonly record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
         return new HashDigest<T>(ByteUtility.ParseHexToImmutable(hex));
     }
 
-    public static HashDigest<T> DeriveFrom(byte[] bytes) => DeriveFrom(bytes.AsSpan());
-
-    public static HashDigest<T> DeriveFrom(in ImmutableArray<byte> input)
-        => DeriveFrom(input.AsSpan());
-
-    public static HashDigest<T> DeriveFrom(ReadOnlySpan<byte> input)
+    public static HashDigest<T> Create(ReadOnlySpan<byte> bytes)
     {
         Span<byte> buffer = stackalloc byte[Size];
-        Algorithm.Value!.TryComputeHash(input, buffer, out _);
+        Algorithm.Value!.TryComputeHash(bytes, buffer, out _);
         return new HashDigest<T>([.. buffer]);
     }
 

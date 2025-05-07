@@ -196,7 +196,7 @@ public partial record class Trie
             return false;
         }
 
-        return targetHash.Equals(HashDigest<SHA256>.DeriveFrom(bytes));
+        return targetHash.Equals(HashDigest<SHA256>.Create(bytes));
     }
 
     private static (INode NextNode, PathCursor NextCursor)? ResolveToNextCandidateNode(
