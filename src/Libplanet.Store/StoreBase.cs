@@ -43,35 +43,35 @@ public abstract class StoreBase : IStore
     {
         if (GetBlockDigest(blockHash) is BlockDigest blockDigest)
         {
-            BlockHeader header = blockDigest.Header;
-            TxId[] txids = blockDigest.TxIds.ToArray();
-            var txs = txids.Select(txid => GetTransaction(txid))
-                                     .OfType<Transaction>()
-                                     .ToImmutableSortedSet();
-            var evidenceIds = blockDigest.EvidenceIds.ToArray();
-            var evidence = evidenceIds.Select(evidenceId => GetCommittedEvidence(evidenceId))
-                                       .OfType<EvidenceBase>()
-                                       .ToImmutableSortedSet();
+            // BlockHeader header = blockDigest.Header;
+            // TxId[] txids = blockDigest.TxIds.ToArray();
+            // var txs = txids.Select(txid => GetTransaction(txid))
+            //                          .OfType<Transaction>()
+            //                          .ToImmutableSortedSet();
+            // var evidenceIds = blockDigest.EvidenceIds.ToArray();
+            // var evidences = evidenceIds.Select(GetCommittedEvidence)
+            //                            .OfType<EvidenceBase>()
+            //                            .ToImmutableSortedSet();
 
-            if (txids.Length != txs.Count)
-            {
-                TxId[] missingTxIds = txids.Except(txs.Select(tx => tx.Id)).ToArray();
-                throw new InvalidOperationException(
-                    $"Failed to find {missingTxIds.Length} tx(s) (out of {txs.Count}) " +
-                    $"at block {blockHash}:\n" + string.Join("\n  ", missingTxIds));
-            }
+            // if (txids.Length != txs.Count)
+            // {
+            //     TxId[] missingTxIds = txids.Except(txs.Select(tx => tx.Id)).ToArray();
+            //     throw new InvalidOperationException(
+            //         $"Failed to find {missingTxIds.Length} tx(s) (out of {txs.Count}) " +
+            //         $"at block {blockHash}:\n" + string.Join("\n  ", missingTxIds));
+            // }
 
-            if (evidenceIds.Length != evidence.Count)
-            {
-                var missingEvidenceIds = evidenceIds.Except(evidence.Select(tx => tx.Id))
-                                                     .ToArray();
-                throw new InvalidOperationException(
-                    $"Failed to find {missingEvidenceIds.Length} evidence(s) " +
-                    $"(out of {evidence.Count}) " +
-                    $"at block {blockHash}:\n" + string.Join("\n  ", missingEvidenceIds));
-            }
+            // if (evidenceIds.Length != evidences.Count)
+            // {
+            //     var missingEvidenceIds = evidenceIds.Except(evidences.Select(tx => tx.Id))
+            //                                          .ToArray();
+            //     throw new InvalidOperationException(
+            //         $"Failed to find {missingEvidenceIds.Length} evidence(s) " +
+            //         $"(out of {evidences.Count}) " +
+            //         $"at block {blockHash}:\n" + string.Join("\n  ", missingEvidenceIds));
+            // }
 
-            return Block.Create(header, txs, evidence);
+            return blockDigest.ToBlock(GetTransaction, GetCommittedEvidence);
         }
 
         return null;

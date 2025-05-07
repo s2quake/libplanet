@@ -125,18 +125,22 @@ public sealed class MemoryStore : IStore
 
     Block? IStore.GetBlock(BlockHash blockHash)
     {
-        if (!_blocks.TryGetValue(blockHash, out BlockDigest digest))
+        if (!_blocks.TryGetValue(blockHash, out var digest))
         {
             return null;
         }
 
-        BlockHeader header = digest.Header;
-        ImmutableArray<TxId> txids = digest.TxIds.ToImmutableArray();
-        IEnumerable<Transaction> txs = txids.Select(txid => _txs[txid]);
-        ImmutableArray<EvidenceId> evidenceIds = digest.EvidenceIds.ToImmutableArray();
-        IEnumerable<EvidenceBase> evidence
-            = evidenceIds.Select(evId => _committedEvidence[evId]);
-        return Block.Create(header, [.. txs], [.. evidence]);
+        return new Block
+        {
+            Header = digest.Header,
+            StateRootHash = digest.StateRootHash,
+            Signature = digest.Signature,
+            Content = new BlockContent
+            {
+                Transactions = [.. digest.TxIds.Select(txid => _txs[txid])],
+                Evidences = [.. digest.EvidenceIds.Select(evId => _committedEvidence[evId])],
+            },
+        };
     }
 
     long? IStore.GetBlockIndex(BlockHash blockHash) =>
@@ -162,10 +166,11 @@ public sealed class MemoryStore : IStore
         _blocks[block.BlockHash] = new BlockDigest
         {
             Header = block.Header,
-            Hash = block.BlockHash,
             StateRootHash = block.StateRootHash,
+            Signature = block.Signature,
             TxIds = [.. txs.Select(tx => tx.Id)],
             EvidenceIds = [.. evidence.Select(ev => ev.Id)],
+            BlockHash = block.BlockHash,
         };
     }
 

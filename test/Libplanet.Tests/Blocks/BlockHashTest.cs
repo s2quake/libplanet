@@ -65,7 +65,7 @@ public class BlockHashTest
 
         Assert.Equal(
             new BlockHash(new byte[32]),
-            BlockHash.Create(default));
+            BlockHash.Create((HashDigest<SHA256>)default));
     }
 
     [Fact]
@@ -75,11 +75,11 @@ public class BlockHashTest
         AssertBytesEqual(
             BlockHash.Parse(
                 "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"),
-            BlockHash.DeriveFrom(foo));
+            BlockHash.Create(foo));
         AssertBytesEqual(
             BlockHash.Parse(
                 "fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"),
-            BlockHash.DeriveFrom(bar));
+            BlockHash.Create(bar));
     }
 
     [Fact]

@@ -475,7 +475,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Evidences = evs,
             };
             var preEval = RawBlock.Create(metadata, content);
-            preEval.ValidateTimestamp();
+            preEval.Header.Timestamp.ValidateTimestamp();
             return preEval;
         }
 

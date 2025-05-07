@@ -159,8 +159,6 @@ public sealed class WorldTest
             transactions: [tx],
             proposer: privateKey.PublicKey,
             protocolVersion: ProtocolVersion);
-        var stateRootHash1 = chain.DetermineBlockPrecededStateRootHash(rawBlock1, out _);
-        var hash1 = rawBlock1.Header.DeriveBlockHash(stateRootHash1, []);
         Block block1 = chain.EvaluateAndSign(rawBlock1, privateKey);
         chain.Append(block1, TestUtils.CreateBlockCommit(block1));
         Assert.Equal(
@@ -187,8 +185,6 @@ public sealed class WorldTest
             proposer: privateKey.PublicKey,
             protocolVersion: ProtocolVersion,
             lastCommit: chain.GetBlockCommit(chain.Tip.Height));
-        var stateRootHash2 = chain.DetermineBlockPrecededStateRootHash(block2PreEval, out _);
-        var hash2 = block2PreEval.Header.DeriveBlockHash(stateRootHash2, []);
         Block block2 = chain.EvaluateAndSign(block2PreEval, privateKey);
         chain.Append(block2, TestUtils.CreateBlockCommit(block2));
         Assert.Equal(
@@ -215,8 +211,6 @@ public sealed class WorldTest
             proposer: _keys[1].PublicKey,
             protocolVersion: ProtocolVersion,
             lastCommit: chain.GetBlockCommit(chain.Tip.Height));
-        var stateRootHash3 = chain.DetermineBlockPrecededStateRootHash(block3PreEval, out _);
-        var hash3 = block3PreEval.Header.DeriveBlockHash(stateRootHash3, []);
         Block block3 = chain.EvaluateAndSign(block3PreEval, _keys[1]);
         chain.Append(block3, TestUtils.CreateBlockCommit(block3));
         Assert.Equal(

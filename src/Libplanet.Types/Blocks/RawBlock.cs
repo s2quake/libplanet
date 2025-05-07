@@ -10,7 +10,7 @@ public sealed record class RawBlock
     [Property(0)]
     public required BlockHeader Header { get; init; }
 
-    [Property(2)]
+    [Property(1)]
     public required BlockContent Content { get; init; }
 
     public HashDigest<SHA256> Hash => HashDigest<SHA256>.DeriveFrom(ModelSerializer.SerializeToBytes(this));
@@ -36,10 +36,6 @@ public sealed record class RawBlock
         StateRootHash = stateRootHash,
         Signature = MakeSignature(privateKey, stateRootHash),
     };
-
-    public void ValidateTimestamp() => ValidateTimestamp(DateTimeOffset.UtcNow);
-
-    public void ValidateTimestamp(DateTimeOffset currentTime) => Header.ValidateTimestamp(currentTime);
 
     internal static ImmutableArray<byte> MakeSignature(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
     {

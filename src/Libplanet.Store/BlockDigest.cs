@@ -15,16 +15,19 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>
     public required BlockHeader Header { get; init; }
 
     [Property(1)]
-    public required BlockHash Hash { get; init; }
+    public required HashDigest<SHA256> StateRootHash { get; init; }
 
     [Property(2)]
-    public required HashDigest<SHA256> StateRootHash { get; init; }
+    public required ImmutableArray<byte> Signature { get; init; }
 
     [Property(3)]
     public required ImmutableSortedSet<TxId> TxIds { get; init; } = [];
 
     [Property(4)]
     public required ImmutableSortedSet<EvidenceId> EvidenceIds { get; init; } = [];
+
+    [Property(5)]
+    public required BlockHash BlockHash { get; init; }
 
     public long Height => Header.Height;
 
@@ -35,13 +38,26 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>
     public static BlockDigest Create(Block block) => new()
     {
         Header = block.Header,
-        Hash = block.BlockHash,
         StateRootHash = block.StateRootHash,
+        Signature = block.Signature,
         TxIds = [.. block.Content.Transactions.Select(tx => tx.Id)],
         EvidenceIds = [.. block.Content.Evidences.Select(ev => ev.Id)],
+        BlockHash = block.BlockHash,
     };
 
     public override int GetHashCode() => ModelUtility.GetHashCode(this);
 
     public bool Equals(BlockDigest? other) => ModelUtility.Equals(this, other);
+
+    public Block ToBlock(Func<TxId, Transaction> txGetter, Func<EvidenceId, EvidenceBase> evGetter) => new()
+    {
+        Header = Header,
+        StateRootHash = StateRootHash,
+        Signature = Signature,
+        Content = new BlockContent
+        {
+            Transactions = [.. TxIds.Select(txId => txGetter(txId))],
+            Evidences = [.. EvidenceIds.Select(evId => evGetter(evId))],
+        },
+    };
 }

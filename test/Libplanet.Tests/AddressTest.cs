@@ -191,7 +191,7 @@ public class AddressTest
                 left.CompareTo(right as object));
         }
 
-        Assert.Throws<ArgumentException>(() => addresses[0].CompareTo(null));
+        Assert.Equal(1, addresses[0].CompareTo(null));
         Assert.Throws<ArgumentException>(() => addresses[0].CompareTo("invalid"));
     }
 

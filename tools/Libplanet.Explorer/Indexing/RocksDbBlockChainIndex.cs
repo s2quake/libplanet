@@ -258,7 +258,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         CancellationToken stoppingToken)
     {
         var minerAddress = blockDigest.Proposer.Bytes.ToArray();
-        var blockHash = blockDigest.Hash.Bytes.ToArray();
+        var blockHash = blockDigest.BlockHash.Bytes.ToArray();
         var indexToBlockHashKey = IndexToBlockHashPrefix
             .Concat(LongToBigEndianByteArray(blockDigest.Height)).ToArray();
 
@@ -266,13 +266,13 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         if (_db.Get(indexToBlockHashKey) is { } existingHash)
         {
             writeBatch.Dispose();
-            if (new BlockHash(existingHash).Equals(blockDigest.Hash))
+            if (new BlockHash(existingHash).Equals(blockDigest.BlockHash))
             {
                 return;
             }
 
             throw new IndexMismatchException(
-                blockDigest.Height, GetTipImpl()!.Value.Hash, blockDigest.Hash);
+                blockDigest.Height, GetTipImpl()!.Value.Hash, blockDigest.BlockHash);
         }
 
         writeBatch.Put(indexToBlockHashKey, blockHash);
