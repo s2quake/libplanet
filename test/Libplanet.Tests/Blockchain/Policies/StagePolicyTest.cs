@@ -24,10 +24,7 @@ public abstract class StagePolicyTest
             _policy,
             _fx.Store,
             _fx.StateStore,
-            _fx.GenesisBlock,
-            new ActionEvaluator(
-                stateStore: _fx.StateStore,
-                _policy.PolicyActions));
+            _fx.GenesisBlock);
         _key = new PrivateKey();
         _txs = Enumerable.Range(0, 5).Select(i =>
             Transaction.Create(

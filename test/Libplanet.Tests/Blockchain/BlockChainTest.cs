@@ -55,8 +55,7 @@ public partial class BlockChainTest : IDisposable
             _policy,
             _fx.Store,
             _fx.StateStore,
-            _fx.GenesisBlock,
-            new ActionEvaluator(stateStore: _fx.StateStore, _policy.PolicyActions));
+            _fx.GenesisBlock);
         _stagePolicy = _blockChain.StagedTransactions;
 
         _validNext = _blockChain.EvaluateAndSign(
@@ -107,10 +106,7 @@ public partial class BlockChainTest : IDisposable
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
-            blockChainStates,
-            new ActionEvaluator(
-                _fx.StateStore,
-                policy.PolicyActions));
+            blockChainStates);
 
         Assert.Equal(chain1.Id, z.Id);
     }
@@ -198,8 +194,7 @@ public partial class BlockChainTest : IDisposable
             policy,
             store,
             stateStore,
-            genesis,
-            actionEvaluator);
+            genesis);
         Block genesisBlock = chain.Genesis;
 
         IAction[] actions1 =
@@ -558,8 +553,7 @@ public partial class BlockChainTest : IDisposable
             policy,
             store,
             stateStore,
-            genesisWithTx,
-            actionEvaluator);
+            genesisWithTx);
         Assert.False(invoked);
     }
 
@@ -576,10 +570,7 @@ public partial class BlockChainTest : IDisposable
             tracker,
             _fx.StateStore,
             _fx.GenesisBlock,
-            blockChainStates,
-            new ActionEvaluator(
-                _fx.StateStore,
-                policy.PolicyActions));
+            blockChainStates);
 
         Block b = chain.Genesis;
         Address[] addresses = new Address[30];
@@ -637,10 +628,7 @@ public partial class BlockChainTest : IDisposable
             tracker,
             _fx.StateStore,
             _fx.GenesisBlock,
-            blockChainStates,
-            new ActionEvaluator(
-                _fx.StateStore,
-                policy.PolicyActions));
+            blockChainStates);
 
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
@@ -676,10 +664,7 @@ public partial class BlockChainTest : IDisposable
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
-            blockChainStates,
-            new ActionEvaluator(
-                _fx.StateStore,
-                policy.PolicyActions));
+            blockChainStates);
 
         Assert.All(
             addresses.Select(
@@ -773,18 +758,12 @@ public partial class BlockChainTest : IDisposable
                 _blockChain.Policy,
                 emptyFx.Store,
                 emptyFx.StateStore,
-                emptyFx.GenesisBlock,
-                new ActionEvaluator(
-                    stateStore: emptyFx.StateStore,
-                    _blockChain.Policy.PolicyActions));
+                emptyFx.GenesisBlock);
             var fork = BlockChain.Create(
                 _blockChain.Policy,
                 forkFx.Store,
                 forkFx.StateStore,
-                forkFx.GenesisBlock,
-                new ActionEvaluator(
-                    stateStore: forkFx.StateStore,
-                    _blockChain.Policy.PolicyActions));
+                forkFx.GenesisBlock);
             fork.Append(b1, CreateBlockCommit(b1));
             fork.Append(b2, CreateBlockCommit(b2));
             Block b5 = fork.ProposeBlock(
@@ -1149,8 +1128,7 @@ public partial class BlockChainTest : IDisposable
             store,
             stateStore,
             genesisBlock,
-            blockChainStates: chainStates,
-            actionEvaluator: actionEvaluator);
+            blockChainStates: chainStates);
         var privateKey = new PrivateKey();
         Address signer = privateKey.Address;
 
@@ -1217,8 +1195,7 @@ public partial class BlockChainTest : IDisposable
             store,
             incompleteStateStore,
             genesisBlock,
-            blockChainStates: chainStates,
-            actionEvaluator: actionEvaluator);
+            blockChainStates: chainStates);
 
         return (signer, addresses, chain);
     }
@@ -1382,8 +1359,7 @@ public partial class BlockChainTest : IDisposable
             storeFixture.StateStore,
             BlockChain.ProposeGenesisBlock(
                 proposer: privateKey,
-                transactions: [.. txs]),
-            actionEvaluator);
+                transactions: [.. txs]));
 
         var validator = blockChain
             .GetNextWorld()
@@ -1420,8 +1396,7 @@ public partial class BlockChainTest : IDisposable
             policy,
             store,
             stateStore,
-            genesisBlockA,
-            actionEvaluator);
+            genesisBlockA);
 
         Assert.Throws<InvalidOperationException>(() =>
         {
@@ -1430,8 +1405,7 @@ public partial class BlockChainTest : IDisposable
                 store,
                 stateStore,
                 genesisBlockB,
-                blockChainStates,
-                actionEvaluator);
+                blockChainStates);
         });
     }
 
@@ -1495,8 +1469,7 @@ public partial class BlockChainTest : IDisposable
             policy,
             store,
             stateStore,
-            genesisWithTx,
-            actionEvaluator);
+            genesisWithTx);
 
         var blockTx = Transaction.Create(
             0,
@@ -1561,8 +1534,7 @@ public partial class BlockChainTest : IDisposable
             policy,
             storeFixture.Store,
             storeFixture.StateStore,
-            genesis,
-            actionEvaluator);
+            genesis);
 
         blockChain.MakeTransaction(
             new PrivateKey(),

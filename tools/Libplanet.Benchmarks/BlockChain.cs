@@ -29,10 +29,7 @@ namespace Libplanet.Benchmarks
                 BlockPolicy.Empty,
                 _fx.Store,
                 _fx.StateStore,
-                _fx.GenesisBlock,
-                new ActionEvaluator(
-                    stateStore: _fx.StateStore,
-                    policyActions: new PolicyActions()));
+                _fx.GenesisBlock);
             var key = new PrivateKey();
             for (var i = 0; i < 500; i++)
             {

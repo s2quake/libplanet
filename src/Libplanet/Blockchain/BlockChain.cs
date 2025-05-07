@@ -40,8 +40,7 @@ public partial class BlockChain : IBlockChainStates
         IStore store,
         IStateStore stateStore,
         Block genesisBlock,
-        IBlockChainStates blockChainStates,
-        ActionEvaluator actionEvaluator)
+        IBlockChainStates blockChainStates)
         : this(
             policy,
             store,
@@ -51,8 +50,7 @@ public partial class BlockChain : IBlockChainStates
                     $"Given {nameof(store)} does not have canonical chain id set.",
                     nameof(store)),
             genesisBlock,
-            blockChainStates,
-            actionEvaluator)
+            blockChainStates)
     {
     }
 
@@ -62,8 +60,7 @@ public partial class BlockChain : IBlockChainStates
         IStateStore stateStore,
         Guid id,
         Block genesisBlock,
-        IBlockChainStates blockChainStates,
-        ActionEvaluator actionEvaluator)
+        IBlockChainStates blockChainStates)
     {
         if (store is null)
         {
@@ -95,7 +92,7 @@ public partial class BlockChain : IBlockChainStates
             .ForContext<BlockChain>()
             .ForContext("Source", nameof(BlockChain))
             .ForContext("ChainId", Id);
-        ActionEvaluator = actionEvaluator;
+        ActionEvaluator = new ActionEvaluator(stateStore, policy.PolicyActions);
 
         if (!Genesis.Equals(genesisBlock))
         {
@@ -196,7 +193,6 @@ public partial class BlockChain : IBlockChainStates
         IStore store,
         IStateStore stateStore,
         Block genesisBlock,
-        ActionEvaluator actionEvaluator,
         IBlockChainStates? blockChainStates = null)
     {
         if (store is null)
@@ -206,10 +202,6 @@ public partial class BlockChain : IBlockChainStates
         else if (stateStore is null)
         {
             throw new ArgumentNullException(nameof(stateStore));
-        }
-        else if (actionEvaluator is null)
-        {
-            throw new ArgumentNullException(nameof(actionEvaluator));
         }
         else if (store.GetCanonicalChainId() is { } canonId)
         {
@@ -270,8 +262,7 @@ public partial class BlockChain : IBlockChainStates
             stateStore,
             id,
             genesisBlock,
-            blockChainStates,
-            actionEvaluator);
+            blockChainStates);
     }
 
     public bool ContainsBlock(BlockHash blockHash)

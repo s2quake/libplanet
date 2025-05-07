@@ -85,8 +85,7 @@ public sealed class IntegerSet
             policy,
             Store,
             StateStore,
-            Genesis,
-            actionEvaluator);
+            Genesis);
     }
 
     public int Count => Addresses.Count;

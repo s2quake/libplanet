@@ -114,9 +114,6 @@ public partial class BlockChainTest
         using (var fx = new MemoryStoreFixture())
         {
             var policy = new BlockPolicy();
-            var actionEvaluator = new ActionEvaluator(
-                fx.StateStore,
-                policy.PolicyActions);
             var genesis = BlockChain.ProposeGenesisBlock(
                 new PrivateKey(),
                 null,
@@ -135,8 +132,7 @@ public partial class BlockChainTest
                 policy,
                 fx.Store,
                 fx.StateStore,
-                genesis,
-                actionEvaluator));
+                genesis));
         }
     }
 
@@ -150,10 +146,7 @@ public partial class BlockChainTest
                 policy,
                 fx.Store,
                 fx.StateStore,
-                fx.GenesisBlock,
-                new ActionEvaluator(
-                    stateStore: fx.StateStore,
-                    policy.PolicyActions));
+                fx.GenesisBlock);
             var txs = (new[]
             {
                 Transaction.Create(
@@ -368,10 +361,7 @@ public partial class BlockChainTest
                 policy,
                 fx.Store,
                 fx.StateStore,
-                fx.GenesisBlock,
-                new ActionEvaluator(
-                    stateStore: fx.StateStore,
-                    policy.PolicyActions));
+                fx.GenesisBlock);
 
             var validTx = blockChain.MakeTransaction(validKey, new DumbAction[] { });
             var invalidTx = blockChain.MakeTransaction(invalidKey, new DumbAction[] { });
@@ -481,10 +471,7 @@ public partial class BlockChainTest
             _fx.Store,
             _fx.StateStore,
             _fx.GenesisBlock,
-            blockChainStates,
-            new ActionEvaluator(
-                _fx.StateStore,
-                policy.PolicyActions));
+            blockChainStates);
 
         blockChain.MakeTransaction(privateKey2, new[] { DumbAction.Create((address2, "baz")) });
         var block = blockChain.ProposeBlock(

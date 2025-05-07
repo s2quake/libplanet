@@ -180,9 +180,6 @@ namespace Libplanet.Tests.Blockchain
             };
             var stateStore1 = new TrieStateStore();
             IStore store1 = new MemoryStore();
-            var actionEvaluator1 = new ActionEvaluator(
-                stateStore1,
-                policy.PolicyActions);
             var genesisBlock = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(TestUtils.GenesisProposer.PublicKey),
                 TestUtils.GenesisProposer);
@@ -190,8 +187,7 @@ namespace Libplanet.Tests.Blockchain
                 policy,
                 store1,
                 stateStore1,
-                genesisBlock,
-                actionEvaluator1);
+                genesisBlock);
 
             var endBlockActions = new IAction[]
             {
@@ -207,15 +203,11 @@ namespace Libplanet.Tests.Blockchain
             };
             var stateStore2 = new TrieStateStore();
             IStore store2 = new MemoryStore();
-            var actionEvaluator2 = new ActionEvaluator(
-                stateStore2,
-                policyWithBlockAction.PolicyActions);
             var chain2 = BlockChain.Create(
                 policyWithBlockAction,
                 store2,
                 stateStore2,
-                genesisBlock,
-                actionEvaluator2);
+                genesisBlock);
 
             Block block1 = chain1.EvaluateAndSign(
                 RawBlock.Create(
@@ -258,8 +250,7 @@ namespace Libplanet.Tests.Blockchain
                 policy,
                 store,
                 stateStore,
-                genesisBlock,
-                actionEvaluator);
+                genesisBlock);
 
             Block block1 = chain1.EvaluateAndSign(
                 RawBlock.Create(
@@ -288,10 +279,7 @@ namespace Libplanet.Tests.Blockchain
                 store,
                 stateStore,
                 genesisBlock,
-                blockChainStates,
-                new ActionEvaluator(
-                    stateStore,
-                    policyWithBlockAction.PolicyActions));
+                blockChainStates);
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -326,8 +314,7 @@ namespace Libplanet.Tests.Blockchain
                 policy,
                 store,
                 stateStore,
-                genesisBlock,
-                actionEvaluator);
+                genesisBlock);
 
             RawBlock preBlock1 = RawBlock.Create(
                 new BlockHeader
@@ -740,8 +727,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.Store,
                 _blockChain.StateStore,
                 _blockChain.Genesis,
-                new BlockChainStates(_blockChain.Store, _blockChain.StateStore),
-                _blockChain.ActionEvaluator);
+                new BlockChainStates(_blockChain.Store, _blockChain.StateStore));
 
             newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
             Assert.Equal(newChain.Tip, _validNext);
@@ -761,17 +747,12 @@ namespace Libplanet.Tests.Blockchain
                 },
             };
 
-            var actionEvaluator = new ActionEvaluator(
-                _blockChain.StateStore,
-                policyWithBlockAction.PolicyActions);
-
             var newChain = new BlockChain(
                 policyWithBlockAction,
                 _blockChain.Store,
                 _blockChain.StateStore,
                 _blockChain.Genesis,
-                new BlockChainStates(_blockChain.Store, _blockChain.StateStore),
-                actionEvaluator);
+                new BlockChainStates(_blockChain.Store, _blockChain.StateStore));
 
             Block newValidNext = newChain.EvaluateAndSign(
                 RawBlock.Create(
