@@ -1,6 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
-using Libplanet.Blockchain.Policies;
+using Libplanet.Blockchain;
 using Libplanet.Net;
 using Libplanet.Serialization;
 using Libplanet.Types;

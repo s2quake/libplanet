@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Blockchain.Policies;
+using Libplanet.Blockchain;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;

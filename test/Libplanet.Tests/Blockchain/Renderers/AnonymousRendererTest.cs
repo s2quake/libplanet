@@ -1,4 +1,3 @@
-using Libplanet.Blockchain.Renderers;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Tests.Blockchain.Renderers

@@ -1,5 +1,5 @@
 using Libplanet.Action;
-using Libplanet.Blockchain.Policies;
+using Libplanet.Blockchain;
 
 namespace Libplanet.Extensions.Cocona.Tests;
 

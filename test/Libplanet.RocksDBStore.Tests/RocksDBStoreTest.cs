@@ -2,7 +2,6 @@ using System.IO;
 using System.Reflection;
 using Libplanet.Action;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Extensions;

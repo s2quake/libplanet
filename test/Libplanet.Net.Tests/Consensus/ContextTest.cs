@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Blockchain.Policies;
+using Libplanet.Blockchain;
 using Libplanet.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;

@@ -1,6 +1,5 @@
 using System.Globalization;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Blockchain.Renderers;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.TestCorrelator;

@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Blockchain.Policies;
+namespace Libplanet.Blockchain;
 
 public sealed record class BlockPolicy
 {

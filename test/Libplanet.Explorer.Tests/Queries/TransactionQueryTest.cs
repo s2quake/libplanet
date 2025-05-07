@@ -6,7 +6,6 @@ using GraphQL.Execution;
 using Libplanet.Action;
 using Libplanet.Action.Sys;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;
 using Libplanet.Store;

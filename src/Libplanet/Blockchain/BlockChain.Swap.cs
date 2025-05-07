@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Libplanet.Action;
-using Libplanet.Blockchain.Renderers;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 

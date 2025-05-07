@@ -1,7 +1,6 @@
 using System.Net;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
