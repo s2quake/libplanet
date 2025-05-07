@@ -4,7 +4,7 @@ using Libplanet.Store;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Blockchain.Policies;
+namespace Libplanet.Blockchain;
 
 public sealed class StagedTransactionCollection(IStore store, Guid blockChainId, TimeSpan lifetime)
     : IEnumerable<StagedTransaction>

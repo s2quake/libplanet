@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Net.Consensus;
 using Libplanet.Store;
 using Libplanet.Tests.Store;

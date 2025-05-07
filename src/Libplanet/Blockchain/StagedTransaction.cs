@@ -1,7 +1,7 @@
 using Libplanet.Store;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Blockchain.Policies;
+namespace Libplanet.Blockchain;
 
 public sealed record class StagedTransaction
 {

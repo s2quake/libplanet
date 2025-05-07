@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types;

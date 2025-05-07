@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;

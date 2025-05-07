@@ -3,7 +3,6 @@ using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Serialization;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;

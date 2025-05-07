@@ -7,8 +7,6 @@ using System.Threading;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;
-using Libplanet.Blockchain.Policies;
-using Libplanet.Blockchain.Renderers;
 using Libplanet.Store;
 using Libplanet.Types;
 using Libplanet.Types.Assets;

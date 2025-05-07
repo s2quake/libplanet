@@ -7,7 +7,6 @@ using GraphQL.Server;
 using GraphQL.Utilities;
 using Libplanet.Action;
 using Libplanet.Blockchain;
-using Libplanet.Blockchain.Policies;
 using Libplanet.Explorer.Executable.Exceptions;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
