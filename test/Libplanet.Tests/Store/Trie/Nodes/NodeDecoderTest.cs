@@ -11,8 +11,8 @@ public class NodeDecoderTest
     [Fact]
     public void DecodeValidFullNode()
     {
-        var hashA = HashDigest<SHA256>.DeriveFrom(TestUtils.GetRandomBytes(128));
-        var hashB = HashDigest<SHA256>.DeriveFrom(TestUtils.GetRandomBytes(128));
+        var hashA = HashDigest<SHA256>.Create(TestUtils.GetRandomBytes(128));
+        var hashB = HashDigest<SHA256>.Create(TestUtils.GetRandomBytes(128));
         IValue[] values =
         [
             (Binary)hashA.Bytes.ToArray(),

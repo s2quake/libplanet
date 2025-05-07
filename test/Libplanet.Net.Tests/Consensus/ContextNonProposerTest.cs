@@ -450,7 +450,7 @@ namespace Libplanet.Net.Tests.Consensus
                 });
             var invalidBlock = preEval.Sign(
                 TestUtils.PrivateKeys[1],
-                HashDigest<SHA256>.DeriveFrom(TestUtils.GetRandomBytes(1024)));
+                HashDigest<SHA256>.Create(TestUtils.GetRandomBytes(1024)));
 
             context.Start();
             context.ProduceMessage(

@@ -13,7 +13,7 @@ namespace Libplanet.Tests.Store.Trie.Nodes
             var buf = new byte[128];
             var random = new Random();
             random.NextBytes(buf);
-            var hashDigest = HashDigest<SHA256>.DeriveFrom(buf);
+            var hashDigest = HashDigest<SHA256>.Create(buf);
 
             var valueNode = new HashNode(hashDigest);
             Assert.Equal((Binary)hashDigest.Bytes.ToArray(), valueNode.ToBencodex());

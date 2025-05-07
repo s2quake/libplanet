@@ -10,7 +10,7 @@ public interface INode
 
     IEnumerable<INode> Children { get; }
 
-    HashDigest<SHA256> Hash => HashDigest<SHA256>.DeriveFrom(_codec.Encode(ToBencodex()));
+    HashDigest<SHA256> Hash => HashDigest<SHA256>.Create(_codec.Encode(ToBencodex()));
 
     IValue ToBencodex();
 }
