@@ -1,20 +1,16 @@
-using Libplanet.Action;
 using Libplanet.Store;
+using Libplanet.Store.Trie;
 
 namespace Libplanet.Tests.Store;
 
 public sealed class MemoryStoreFixture : StoreFixture
 {
-    public MemoryStoreFixture(PolicyActions? policyActions = null)
-        : base(policyActions)
+    public MemoryStoreFixture()
+        : base(new MemoryStore(), new MemoryKeyValueStore())
     {
-        Store = new MemoryStore();
-        StateStore = new TrieStateStore();
     }
 
     protected override void Dispose(bool disposing)
     {
-        Store.Dispose();
-        StateStore.Dispose();
     }
 }

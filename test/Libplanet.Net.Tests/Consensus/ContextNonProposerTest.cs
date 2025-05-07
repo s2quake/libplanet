@@ -414,7 +414,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            using var fx = new MemoryStoreFixture(policy.PolicyActions);
+            using var fx = new MemoryStoreFixture();
 
             var unsignedInvalidTx = new UnsignedTx
             {

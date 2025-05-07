@@ -326,7 +326,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             TimeSpan newHeightDelay = TimeSpan.FromSeconds(1);
 
-            var policy = new BlockChainOptions
+            var options = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
@@ -334,11 +334,8 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 MaxTransactionsBytes = 50 * 1024,
             };
-            var fx = new MemoryStoreFixture(policy.PolicyActions);
-            var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
-                policy,
-                fx.Store,
-                new TrieStateStore());
+            var fx = new MemoryStoreFixture(options.PolicyActions);
+            var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
 
             Context context = new Context(
                 blockChain,
@@ -646,10 +643,7 @@ namespace Libplanet.Net.Tests.Consensus
             int actionDelay = 2000;
 
             var fx = new MemoryStoreFixture();
-            var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
-                new BlockChainOptions(),
-                fx.Store,
-                fx.StateStore);
+            var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
 
             var consensusContext = new ConsensusContext(
                 new TestUtils.DummyConsensusMessageHandler(message => { }),

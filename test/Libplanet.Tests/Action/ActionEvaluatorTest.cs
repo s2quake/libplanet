@@ -145,7 +145,7 @@ public partial class ActionEvaluatorTest
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
-            policy: new BlockChainOptions(),
+            options: new BlockChainOptions(),
             store: store,
             stateStore: stateStore);
         var action = new ContextRecordingAction { Address = address, Value = value };
@@ -1181,7 +1181,7 @@ public partial class ActionEvaluatorTest
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
-            policy: new BlockChainOptions(),
+            options: new BlockChainOptions(),
             actions: [freeGasAction,],
             store: store,
             stateStore: stateStore);
@@ -1233,7 +1233,7 @@ public partial class ActionEvaluatorTest
         var store = new MemoryStore();
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
-            policy: new BlockChainOptions(),
+            options: new BlockChainOptions(),
             actions: new[]
             {
                 freeGasAction,

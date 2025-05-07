@@ -83,10 +83,8 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlockToReconnectedPeer()
         {
             var miner = new PrivateKey();
-            var policy = BlockChainOptions.Empty;
-            var fx = new MemoryStoreFixture(policy.PolicyActions);
-            var minerChain = MakeBlockChain(
-                policy, fx.Store, fx.StateStore);
+            var fx = new MemoryStoreFixture();
+            var minerChain = MakeBlockChain(fx.Options);
             foreach (int i in Enumerable.Range(0, 10))
             {
                 Block block = minerChain.ProposeBlock(

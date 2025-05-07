@@ -71,12 +71,11 @@ namespace Libplanet.RocksDBStore.Tests
             try
             {
                 var store = new RocksDBStore(path);
-                var stateStore = new TrieStateStore();
-                var blocks = BlockChain.Create(
-                    BlockChainOptions.Empty,
-                    store,
-                    stateStore,
-                    Fx.GenesisBlock);
+                var options = new BlockChainOptions
+                {
+                    Store = store,
+                };
+                _ = BlockChain.Create(Fx.GenesisBlock, options);
                 store.Dispose();
 
                 store = new RocksDBStore(path);

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
+using Libplanet.Blockchain;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
@@ -12,7 +13,7 @@ namespace Libplanet.Tests.Store;
 
 public abstract class StoreFixture : IDisposable
 {
-    protected StoreFixture(PolicyActions? policyActions = null)
+    protected StoreFixture(IStore store, IKeyValueStore keyValueStore)
     {
         Address1 = new Address(
         [
@@ -82,16 +83,19 @@ public abstract class StoreFixture : IDisposable
             0x9c, 0xee,
         ]);
 
-        var stateStore = new TrieStateStore();
+        var stateStore = new TrieStateStore(keyValueStore);
         var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
+        Options = new BlockChainOptions
+        {
+            Store = store,
+            KeyValueStore = keyValueStore,
+        };
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(
             proposer: Proposer.PublicKey,
             validators: TestUtils.Validators);
-        var actionEvaluator = new ActionEvaluator(
-            stateStore,
-            policyActions ?? new PolicyActions());
+        var actionEvaluator = new ActionEvaluator(stateStore, Options.PolicyActions);
         GenesisBlock = preEval.Sign(
             Proposer,
             default);
@@ -188,6 +192,8 @@ public abstract class StoreFixture : IDisposable
     public IKeyValueStore StateHashKeyValueStore { get; set; }
 
     public IKeyValueStore StateKeyValueStore { get; set; }
+
+    public BlockChainOptions Options { get; }
 
     public void Dispose()
     {

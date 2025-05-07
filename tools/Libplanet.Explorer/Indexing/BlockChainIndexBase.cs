@@ -374,9 +374,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     {
         var indexTip = await GetTipAsyncImpl().ConfigureAwait(false);
         var indexTipIndex = indexTip?.Index ?? -1;
-        var chainId = store.GetCanonicalChainId()
-                      ?? throw new InvalidOperationException(
-                          "The store does not contain a valid chain.");
+        var chainId = store.GetCanonicalChainId();
         var chainTipIndex = store.CountIndex(chainId) - 1;
         return (chainId, indexTipIndex, chainTipIndex, indexTip?.Hash);
     }

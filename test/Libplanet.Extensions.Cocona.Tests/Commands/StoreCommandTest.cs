@@ -102,7 +102,6 @@ public class StoreCommandTest : IDisposable
             v.Store.AppendIndex(guid, _block4.BlockHash);
 
             v.Store?.Dispose();
-            v.StateStore?.Dispose();
         }
     }
 
@@ -334,7 +333,6 @@ public class StoreCommandTest : IDisposable
         foreach (var storeFixture in _storeFixtures)
         {
             storeFixture.Store?.Dispose();
-            storeFixture.StateStore?.Dispose();
         }
 
         Console.SetOut(_originalOut);
