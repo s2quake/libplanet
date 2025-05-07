@@ -5,8 +5,8 @@ namespace Libplanet.Serialization;
 
 internal sealed record class ModelData : IBencodable
 {
-    private const int ElementCount = 3;
     public static readonly byte[] MagicValue = "LPNT"u8.ToArray();
+    private const int ElementCount = 3;
 
     public required ModelHeader Header { get; init; }
 
