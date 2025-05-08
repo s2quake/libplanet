@@ -13,7 +13,9 @@ namespace Libplanet.Tests.Store;
 
 public abstract class StoreFixture : IDisposable
 {
-    protected StoreFixture(IStore store, IKeyValueStore keyValueStore)
+    private bool disposedValue;
+
+    protected StoreFixture(BlockChainOptions options)
     {
         Address1 = new Address(
         [
@@ -83,13 +85,9 @@ public abstract class StoreFixture : IDisposable
             0x9c, 0xee,
         ]);
 
-        var stateStore = new TrieStateStore(keyValueStore);
+        var stateStore = new TrieStateStore(options.KeyValueStore);
         var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
-        Options = new BlockChainOptions
-        {
-            Store = store,
-            KeyValueStore = keyValueStore,
-        };
+        Options = options;
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(
@@ -187,19 +185,13 @@ public abstract class StoreFixture : IDisposable
 
     public Transaction Transaction3 { get; }
 
-    public IStore Store { get; set; }
+    public IStore Store => Options.Store;
 
     public IKeyValueStore StateHashKeyValueStore { get; set; }
 
     public IKeyValueStore StateKeyValueStore { get; set; }
 
     public BlockChainOptions Options { get; }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
 
     public Transaction MakeTransaction(
         IEnumerable<DumbAction>? actions = null,
@@ -221,5 +213,25 @@ public abstract class StoreFixture : IDisposable
             timestamp);
     }
 
-    protected abstract void Dispose(bool disposing);
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                // TODO: dispose managed state (managed objects)
+            }
+
+            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            // TODO: set large fields to null
+            disposedValue = true;
+        }
+    }
 }

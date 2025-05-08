@@ -502,7 +502,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         }
 
         public static BlockChain MakeBlockChain(
-            BlockChainOptions options,
+            BlockChainOptions? options = null,
             IEnumerable<IAction>? actions = null,
             ImmutableSortedSet<Validator>? validatorSet = null,
             PrivateKey? privateKey = null,
@@ -523,7 +523,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static (BlockChain BlockChain, ActionEvaluator ActionEvaluator)
             MakeBlockChainAndActionEvaluator(
-            BlockChainOptions options,
+            BlockChainOptions? options,
             IEnumerable<IAction>? actions = null,
             ImmutableSortedSet<Validator>? validatorSet = null,
             PrivateKey? privateKey = null,
@@ -531,8 +531,9 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             Block? genesisBlock = null,
             int protocolVersion = BlockHeader.CurrentProtocolVersion)
         {
-            actions = actions ?? ImmutableArray<IAction>.Empty;
-            privateKey = privateKey ?? GenesisProposer;
+            options ??= new BlockChainOptions();
+            actions ??= ImmutableArray<IAction>.Empty;
+            privateKey ??= GenesisProposer;
 
             var txs = new[]
             {
@@ -545,7 +546,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             }.ToImmutableSortedSet();
 
             var actionEvaluator = new ActionEvaluator(
-                stateStore: stateStore,
+                stateStore: new TrieStateStore(options.KeyValueStore),
                 options.PolicyActions);
 
             if (genesisBlock is null)

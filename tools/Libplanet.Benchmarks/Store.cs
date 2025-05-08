@@ -49,7 +49,7 @@ namespace Libplanet.Benchmarks
         [IterationSetup]
         public void InitializeFixture()
         {
-            _fx = new DefaultStoreFixture();
+            _fx = new MemoryStoreFixture();
             _store = _fx.Store;
         }
 

@@ -39,7 +39,7 @@ public class StoreCommandTest : IDisposable
         try
         {
             _storeFixtures = ImmutableArray.Create<StoreFixture>(
-                new DefaultStoreFixture(false),
+                new MemoryStoreFixture(),
                 new RocksDBStoreFixture());
         }
         catch (TypeInitializationException)

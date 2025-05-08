@@ -18,7 +18,7 @@ public class StatsCommandTest : IDisposable
         try
         {
             _storeFixtures = ImmutableArray.Create<StoreFixture>(
-                new DefaultStoreFixture(false),
+                new MemoryStoreFixture(),
                 new RocksDBStoreFixture());
         }
         catch (TypeInitializationException)
@@ -90,7 +90,7 @@ public class StatsCommandTest : IDisposable
         foreach (var storeFixture in _storeFixtures)
         {
             storeFixture.Store?.Dispose();
-            storeFixture.StateStore?.Dispose();
+            // storeFixture.StateStore?.Dispose();
         }
 
         Console.SetOut(_originalWriter);

@@ -127,11 +127,7 @@ public partial class BlockChainTest
                             DumbAction.Create((new PrivateKey().Address, "foo")),
                         }.ToBytecodes()),
                 }).ToImmutableSortedSet());
-            Assert.Throws<InvalidOperationException>(() => BlockChain.Create(
-                policy,
-                fx.Store,
-                fx.StateStore,
-                genesis));
+            Assert.Throws<InvalidOperationException>(() => BlockChain.Create(genesis, policy));
         }
     }
 
@@ -141,11 +137,7 @@ public partial class BlockChainTest
         using (var fx = new MemoryStoreFixture())
         {
             var policy = new BlockChainOptions();
-            var blockChain = BlockChain.Create(
-                policy,
-                fx.Store,
-                fx.StateStore,
-                fx.GenesisBlock);
+            var blockChain = BlockChain.Create(fx.GenesisBlock, policy);
             var txs = (new[]
             {
                 Transaction.Create(
@@ -356,11 +348,7 @@ public partial class BlockChainTest
         };
         using (var fx = new MemoryStoreFixture())
         {
-            var blockChain = BlockChain.Create(
-                policy,
-                fx.Store,
-                fx.StateStore,
-                fx.GenesisBlock);
+            var blockChain = BlockChain.Create(fx.GenesisBlock, policy);
 
             var validTx = blockChain.MakeTransaction(validKey, new DumbAction[] { });
             var invalidTx = blockChain.MakeTransaction(invalidKey, new DumbAction[] { });
@@ -464,11 +452,7 @@ public partial class BlockChainTest
             },
         };
 
-        var blockChain = new BlockChain(
-            policy,
-            _fx.Store,
-            _fx.StateStore,
-            _fx.GenesisBlock);
+        var blockChain = new BlockChain(_fx.GenesisBlock, policy);
 
         blockChain.MakeTransaction(privateKey2, new[] { DumbAction.Create((address2, "baz")) });
         var block = blockChain.ProposeBlock(

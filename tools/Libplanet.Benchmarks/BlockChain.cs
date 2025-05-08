@@ -21,21 +21,21 @@ namespace Libplanet.Benchmarks
             _fx.Dispose();
         }
 
-        [IterationSetup(Target = nameof(ContainsBlock))]
-        public void SetupChain()
-        {
-            _fx = new DefaultStoreFixture();
-            _blockChain = Libplanet.Blockchain.BlockChain.Create(
-                BlockChainOptions.Empty,
-                _fx.Store,
-                _fx.StateStore,
-                _fx.GenesisBlock);
-            var key = new PrivateKey();
-            for (var i = 0; i < 500; i++)
-            {
-                _blockChain.ProposeBlock(key);
-            }
-        }
+        // [IterationSetup(Target = nameof(ContainsBlock))]
+        // public void SetupChain()
+        // {
+        //     _fx = new DefaultStoreFixture();
+        //     _blockChain = Libplanet.Blockchain.BlockChain.Create(
+        //         BlockChainOptions.Empty,
+        //         _fx.Store,
+        //         _fx.StateStore,
+        //         _fx.GenesisBlock);
+        //     var key = new PrivateKey();
+        //     for (var i = 0; i < 500; i++)
+        //     {
+        //         _blockChain.ProposeBlock(key);
+        //     }
+        // }
 
         [Benchmark]
         public void ContainsBlock()

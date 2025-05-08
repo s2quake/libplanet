@@ -222,6 +222,9 @@ namespace Libplanet.Tests.Blockchain
             {
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
+            var actionEvaluator = new ActionEvaluator(
+                new TrieStateStore(options1.KeyValueStore),
+                options1.PolicyActions);
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
@@ -251,11 +254,7 @@ namespace Libplanet.Tests.Blockchain
                 },
                 BlockInterval = options1.BlockInterval,
             };
-            var chain2 = new BlockChain(
-                policyWithBlockAction,
-                store,
-                stateStore,
-                genesisBlock);
+            var chain2 = new BlockChain(genesisBlock, policyWithBlockAction);
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -276,7 +275,7 @@ namespace Libplanet.Tests.Blockchain
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
             var actionEvaluator = new ActionEvaluator(
-                stateStore,
+                new TrieStateStore(options.KeyValueStore),
                 options.PolicyActions);
             var rawGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
@@ -601,9 +600,6 @@ namespace Libplanet.Tests.Blockchain
             var validatorSet = ImmutableSortedSet.Create(
                 [validator1, validator2, validator3, validator4]);
             BlockChain blockChain = TestUtils.MakeBlockChain(
-                BlockChainOptions.Empty,
-                new MemoryStore(),
-                new TrieStateStore(),
                 validatorSet: validatorSet);
             Block validNextBlock = blockChain.EvaluateAndSign(
                 RawBlock.Create(
@@ -692,12 +688,7 @@ namespace Libplanet.Tests.Blockchain
         [Fact]
         public void ValidateNextBlockOnChainRestart()
         {
-            var newChain = new BlockChain(
-                _blockChain.Policy,
-                _blockChain.Store,
-                _blockChain.StateStore,
-                _blockChain.Genesis);
-
+            var newChain = new BlockChain(_blockChain.Genesis, _blockChain.Policy);
             newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
             Assert.Equal(newChain.Tip, _validNext);
         }
@@ -716,11 +707,7 @@ namespace Libplanet.Tests.Blockchain
                 },
             };
 
-            var newChain = new BlockChain(
-                policyWithBlockAction,
-                _blockChain.Store,
-                _blockChain.StateStore,
-                _blockChain.Genesis);
+            var newChain = new BlockChain(_blockChain.Genesis, policyWithBlockAction);
 
             Block newValidNext = newChain.EvaluateAndSign(
                 RawBlock.Create(

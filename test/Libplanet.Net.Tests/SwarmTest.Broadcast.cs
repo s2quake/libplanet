@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests
         {
             const int numBlocks = 5;
             var options = new BlockChainOptions();
-            var genesis = new MemoryStoreFixture(options.PolicyActions).GenesisBlock;
+            var genesis = new MemoryStoreFixture(options).GenesisBlock;
 
             var swarmA = await CreateSwarm(
                 privateKey: new PrivateKey(),
@@ -85,6 +85,7 @@ namespace Libplanet.Net.Tests
             var miner = new PrivateKey();
             var fx = new MemoryStoreFixture();
             var minerChain = MakeBlockChain(fx.Options);
+            var policy = fx.Options;
             foreach (int i in Enumerable.Range(0, 10))
             {
                 Block block = minerChain.ProposeBlock(
@@ -171,9 +172,7 @@ namespace Libplanet.Net.Tests
             var seedStateStore = new TrieStateStore();
             BlockChainOptions policy = receiverChain.Policy;
             BlockChain seedChain = MakeBlockChain(
-                policy,
-                new MemoryStore(),
-                seedStateStore,
+                options: policy,
                 privateKey: receiverKey);
             var seedMiner = new PrivateKey();
             Swarm seedSwarm =
@@ -677,9 +676,8 @@ namespace Libplanet.Net.Tests
                     EndBlockActions = [new MinerReward(1)],
                 },
             };
-            var fx1 = new MemoryStoreFixture();
-            var blockChain = MakeBlockChain(
-                options, fx1.Store, fx1.StateStore);
+            var fx1 = new MemoryStoreFixture(options);
+            var blockChain = MakeBlockChain(options);
             var privateKey = new PrivateKey();
             var minerSwarm = await CreateSwarm(blockChain, privateKey);
             var fx2 = new MemoryStoreFixture();
@@ -687,12 +685,8 @@ namespace Libplanet.Net.Tests
             // var loggedRenderer = new LoggedActionRenderer(
             //     receiverRenderer,
             //     _logger);
-            var receiverChain = MakeBlockChain(
-                options,
-                fx2.Store,
-                fx2.StateStore);
-            Swarm receiverSwarm =
-                await CreateSwarm(receiverChain);
+            var receiverChain = MakeBlockChain(options);
+            Swarm receiverSwarm = await CreateSwarm(receiverChain);
 
             int renderCount = 0;
 

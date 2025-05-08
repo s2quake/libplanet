@@ -37,11 +37,7 @@ namespace Libplanet.Net.Tests
                 };
                 using (var storeFx = new MemoryStoreFixture())
                 {
-                    var chain =
-                        MakeBlockChain(
-                            policy,
-                            storeFx.Store,
-                            storeFx.StateStore);
+                    var chain = MakeBlockChain(policy);
                     var miner = new PrivateKey();
                     var signer = new PrivateKey();
                     Address address = signer.Address;
@@ -95,14 +91,14 @@ namespace Libplanet.Net.Tests
                 policy,
                 genesis,
                 consensusReactorOption ?? new ConsensusReactorOption
-            {
-                SeedPeers = ImmutableList<BoundPeer>.Empty,
-                ConsensusPeers = ImmutableList<BoundPeer>.Empty,
-                ConsensusPort = 0,
-                ConsensusPrivateKey = new PrivateKey(),
-                ConsensusWorkers = 100,
-                TargetBlockInterval = TimeSpan.FromSeconds(10),
-            });
+                {
+                    SeedPeers = ImmutableList<BoundPeer>.Empty,
+                    ConsensusPeers = ImmutableList<BoundPeer>.Empty,
+                    ConsensusPort = 0,
+                    ConsensusPrivateKey = new PrivateKey(),
+                    ConsensusWorkers = 100,
+                    TargetBlockInterval = TimeSpan.FromSeconds(10),
+                });
         }
 
         private async Task<Swarm> CreateSwarm(
@@ -114,19 +110,15 @@ namespace Libplanet.Net.Tests
             Block? genesis = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
-            policy = policy ?? new BlockChainOptions
+            policy ??= new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
             };
-            var fx = new MemoryStoreFixture(policy.PolicyActions);
-            var blockchain = MakeBlockChain(
-                policy,
-                fx.Store,
-                fx.StateStore,
-                genesisBlock: genesis);
+            var fx = new MemoryStoreFixture(policy);
+            var blockchain = MakeBlockChain(policy, genesisBlock: genesis);
             appProtocolVersionOptions ??= new AppProtocolVersionOptions();
             hostOptions ??= new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { });
 

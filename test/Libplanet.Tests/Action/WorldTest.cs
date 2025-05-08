@@ -140,9 +140,6 @@ public sealed class WorldTest
         var stateStore = new TrieStateStore();
         var privateKey = new PrivateKey();
         BlockChain chain = TestUtils.MakeBlockChain(
-            BlockChainOptions.Empty,
-            store,
-            stateStore,
             protocolVersion: ProtocolVersion,
             privateKey: privateKey);
 

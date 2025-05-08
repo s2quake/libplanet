@@ -380,8 +380,8 @@ namespace Libplanet.Net.Tests
             var roundChangedToOnes = Enumerable.Range(0, 4).Select(i =>
                 new AsyncAutoResetEvent()).ToList();
             var roundOneProposed = new AsyncAutoResetEvent();
-            var policy = BlockChainOptions.Empty;
-            var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
+            var policy = new BlockChainOptions();
+            var genesis = new MemoryStoreFixture(policy).GenesisBlock;
 
             var consensusPeers = Enumerable.Range(0, 4).Select(i =>
                 new BoundPeer(
@@ -640,8 +640,7 @@ namespace Libplanet.Net.Tests
         {
             var fx = new MemoryStoreFixture();
             var policy = new BlockChainOptions();
-            var blockchain = MakeBlockChain(
-                policy, fx.Store, fx.StateStore);
+            var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
             var apv = AppProtocolVersion.Sign(key, 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
@@ -833,15 +832,9 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task CannotBlockSyncWithForkedChain()
         {
-            var policy = BlockChainOptions.Empty;
-            var chain1 = MakeBlockChain(
-                policy,
-                new MemoryStore(),
-                new TrieStateStore());
-            var chain2 = MakeBlockChain(
-                policy,
-                new MemoryStore(),
-                new TrieStateStore());
+            var policy = new BlockChainOptions();
+            var chain1 = MakeBlockChain(policy);
+            var chain2 = MakeBlockChain(policy);
 
             var key1 = new PrivateKey();
             var key2 = new PrivateKey();
@@ -907,15 +900,11 @@ namespace Libplanet.Net.Tests
             var swarmA = await CreateSwarm(
                 MakeBlockChain(
                     policy,
-                    fx1.Store,
-                    fx1.StateStore,
                     privateKey: validKey))
 ;
             var swarmB = await CreateSwarm(
                 MakeBlockChain(
                     policy,
-                    fx2.Store,
-                    fx2.StateStore,
                     privateKey: validKey))
 ;
 
@@ -975,15 +964,11 @@ namespace Libplanet.Net.Tests
             var swarmA = await CreateSwarm(
                 MakeBlockChain(
                     policy,
-                    fx1.Store,
-                    fx1.StateStore,
                     privateKey: validKey,
                     timestamp: DateTimeOffset.MinValue)).ConfigureAwait(false);
             var swarmB = await CreateSwarm(
                 MakeBlockChain(
                     policy,
-                    fx2.Store,
-                    fx2.StateStore,
                     privateKey: validKey,
                     timestamp: DateTimeOffset.MinValue.AddSeconds(1))).ConfigureAwait(false);
 
@@ -1033,23 +1018,17 @@ namespace Libplanet.Net.Tests
 
             var genesisChainA = MakeBlockChain(
                 new BlockChainOptions(),
-                new MemoryStore(),
-                new TrieStateStore(),
                 actionsA,
                 null,
                 privateKeyA);
             var genesisBlockA = genesisChainA.Genesis;
             var genesisChainB = MakeBlockChain(
                 new BlockChainOptions(),
-                new MemoryStore(),
-                new TrieStateStore(),
                 actionsB,
                 null,
                 privateKeyB);
             var genesisChainC = MakeBlockChain(
                 new BlockChainOptions(),
-                new MemoryStore(),
-                new TrieStateStore(),
                 genesisBlock: genesisBlockA);
 
             var swarmA =

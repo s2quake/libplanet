@@ -93,11 +93,9 @@ namespace Libplanet.Net.Tests
             Block? genesisBlock = null)
         {
             policy ??= Options;
-            var fx = new MemoryStoreFixture(policy.PolicyActions);
+            var fx = new MemoryStoreFixture(policy);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
-                fx.Store,
-                new TrieStateStore(),
                 genesisBlock: genesisBlock);
 
             return blockChain;

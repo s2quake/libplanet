@@ -63,7 +63,7 @@ public sealed class IntegerSet
             .OrderBy(tx => tx.Id)
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
-        policy = policy ?? BlockChainOptions.Empty;
+        policy ??= new BlockChainOptions();
         Store = new MemoryStore();
         KVStore = new MemoryKeyValueStore();
         StateStore = new TrieStateStore(KVStore);
@@ -78,11 +78,7 @@ public sealed class IntegerSet
                 DateTimeOffset.UtcNow,
                 BlockHeader.CurrentProtocolVersion),
             Proposer);
-        Chain = BlockChain.Create(
-            policy,
-            Store,
-            StateStore,
-            Genesis);
+        Chain = BlockChain.Create(Genesis, policy);
     }
 
     public int Count => Addresses.Count;
