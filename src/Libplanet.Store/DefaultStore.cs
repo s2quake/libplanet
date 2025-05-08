@@ -10,8 +10,8 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
-using LiteDB;
-using FileMode = LiteDB.FileMode;
+// using LiteDB;
+// using FileMode = LiteDB.FileMode;
 
 namespace Libplanet.Store;
 
@@ -26,11 +26,14 @@ public class DefaultStore : StoreBase
     private readonly TransactionCollection _transactions;
     private readonly BlockCollection _blocks;
     private readonly TxExecutionCollection _txExecutions;
-    private readonly BlockHashCollection _blockHashes;
+    private readonly BlockHashByTxIdCollection _blockHashes;
     private readonly BlockCommitCollection _blockCommits;
     private readonly StateRootHashCollection _nextStateRootHashes;
     private readonly EvidenceCollection _pendingEvidence;
     private readonly EvidenceCollection _committedEvidence;
+    private readonly HeightByChainId _heights;
+    private readonly BlockCommitByChainId _blockCommitByChainId;
+    private readonly StringCollection _metadata;
 
     // private readonly LiteDatabase _db;
 
@@ -42,35 +45,38 @@ public class DefaultStore : StoreBase
         _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
         _blocks = new BlockCollection(_database.GetOrAdd("block"));
         _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
-        _blockHashes = new BlockHashCollection(_database.GetOrAdd("txbindex"));
+        _blockHashes = new BlockHashByTxIdCollection(_database.GetOrAdd("txbindex"));
         _blockCommits = new BlockCommitCollection(_database.GetOrAdd("blockcommit"));
         _nextStateRootHashes = new StateRootHashCollection(_database.GetOrAdd("nextstateroothash"));
         _pendingEvidence = new EvidenceCollection(_database.GetOrAdd("evidencep"));
         _committedEvidence = new EvidenceCollection(_database.GetOrAdd("evidencec"));
+        _heights = new HeightByChainId(_database.GetOrAdd("heights"));
+        _blockCommitByChainId = new BlockCommitByChainId(_database.GetOrAdd("blockcommitb"));
+        _metadata = new StringCollection(_database.GetOrAdd("metadata"));
         if (options.Path == string.Empty)
         {
             // _db = new LiteDatabase(new MemoryStream(), disposeStream: true);
         }
         else
         {
-            var connectionString = new ConnectionString
-            {
-                Filename = Path.Combine(options.Path, "index.ldb"),
-                Journal = options.Journal,
-                CacheSize = options.IndexCacheSize,
-                Flush = options.Flush,
-            };
+            // var connectionString = new ConnectionString
+            // {
+            //     Filename = Path.Combine(options.Path, "index.ldb"),
+            //     Journal = options.Journal,
+            //     CacheSize = options.IndexCacheSize,
+            //     Flush = options.Flush,
+            // };
 
-            if (options.ReadOnly)
-            {
-                connectionString.Mode = FileMode.ReadOnly;
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
-                Type.GetType("Mono.Runtime") is null)
-            {
-                // macOS + .NETCore doesn't support shared lock.
-                connectionString.Mode = FileMode.Exclusive;
-            }
+            // if (options.ReadOnly)
+            // {
+            //     connectionString.Mode = FileMode.ReadOnly;
+            // }
+            // else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
+            //     Type.GetType("Mono.Runtime") is null)
+            // {
+            //     // macOS + .NETCore doesn't support shared lock.
+            //     connectionString.Mode = FileMode.Exclusive;
+            // }
 
             // _db = new LiteDatabase(connectionString);
         }
@@ -104,74 +110,91 @@ public class DefaultStore : StoreBase
 
     public override IEnumerable<Guid> ListChainIds()
     {
-        return _db.GetCollectionNames()
-            .Where(name => name.StartsWith(IndexColPrefix))
-            .Select(name => ParseChainId(name.Substring(IndexColPrefix.Length)));
+        return _heights.Keys;
+        // return _db.GetCollectionNames()
+        //     .Where(name => name.StartsWith(IndexColPrefix))
+        //     .Select(name => ParseChainId(name.Substring(IndexColPrefix.Length)));
     }
 
     public override void DeleteChainId(Guid chainId)
     {
-        _database.Remove(TxNonceCollection(chainId));
-        _db.DropCollection(IndexCollection(chainId).Name);
+        _database.Remove(TxNonceKey(chainId));
+        _database.Remove(IndexKey(chainId));
+        // _db.DropCollection(IndexKey(chainId).Name);
         // _db.DropCollection(TxNonceCollection(chainId).Name);
-        _db.DropCollection(CommitCollection(chainId).Name);
+        // _db.DropCollection(CommitCollection(chainId).Name);
     }
 
     public override Guid GetCanonicalChainId()
     {
-        LiteCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>("canon");
-        var docId = new BsonValue("canon");
-        BsonDocument doc = collection.FindById(docId);
-        if (doc is null)
-        {
-            return Guid.Empty;
-        }
+        return Guid.Parse(_metadata["chainId"]);
+        // LiteCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>("canon");
+        // var docId = new BsonValue("canon");
+        // BsonDocument doc = collection.FindById(docId);
+        // if (doc is null)
+        // {
+        //     return Guid.Empty;
+        // }
 
-        return doc.TryGetValue("chainId", out BsonValue ns)
-            ? new Guid(ns.AsBinary)
-            : Guid.Empty;
+        // return doc.TryGetValue("chainId", out BsonValue ns)
+        //     ? new Guid(ns.AsBinary)
+        //     : Guid.Empty;
     }
 
     public override void SetCanonicalChainId(Guid chainId)
     {
-        LiteCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>("canon");
-        var docId = new BsonValue("canon");
-        byte[] idBytes = chainId.ToByteArray();
-        collection.Upsert(docId, new BsonDocument() { ["chainId"] = new BsonValue(idBytes) });
+        _metadata["chainId"] = chainId.ToString();
+        // LiteCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>("canon");
+        // var docId = new BsonValue("canon");
+        // byte[] idBytes = chainId.ToByteArray();
+        // collection.Upsert(docId, new BsonDocument() { ["chainId"] = new BsonValue(idBytes) });
     }
 
     public override long CountIndex(Guid chainId)
     {
-        return IndexCollection(chainId).Count();
+        return _heights[chainId];
     }
 
     public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
-        return IndexCollection(chainId)
-            .Find(Query.All(), offset, limit ?? int.MaxValue)
-            .Select(i => i.Hash);
+        var collection = IndexCollection(chainId);
+        for (var i = offset; i < (limit ?? int.MaxValue); i++)
+        {
+            if (collection.TryGetValue(i, out var blockHash))
+            {
+                yield return blockHash;
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 
     public override BlockHash GetBlockHash(Guid chainId, long height)
     {
-        if (height < 0)
-        {
-            height += CountIndex(chainId);
+        var collection = IndexCollection(chainId);
+        return collection[height];
+        // if (height < 0)
+        // {
+        //     height += CountIndex(chainId);
 
-            if (height < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(height), "Height is out of range.");
-            }
-        }
+        //     if (height < 0)
+        //     {
+        //         throw new ArgumentOutOfRangeException(nameof(height), "Height is out of range.");
+        //     }
+        // }
 
-        HashDoc doc = IndexCollection(chainId).FindById(height + 1);
-        return doc is { } d ? d.Hash : throw new ArgumentOutOfRangeException(
-            nameof(height), "Height is out of range.");
+        // HashDoc doc = IndexKey(chainId).FindById(height + 1);
+        // return doc is { } d ? d.Hash : throw new ArgumentOutOfRangeException(
+        //     nameof(height), "Height is out of range.");
     }
 
-    public override long AppendIndex(Guid chainId, BlockHash hash)
+    public override void AppendIndex(Guid chainId, long height, BlockHash hash)
     {
-        return IndexCollection(chainId).Insert(new HashDoc { Hash = hash }) - 1;
+        var collection = IndexCollection(chainId);
+        collection.Add(height, hash);
+        _heights[chainId] = height;
     }
 
     public override void ForkBlockIndexes(
@@ -179,22 +202,22 @@ public class DefaultStore : StoreBase
         Guid destinationChainId,
         BlockHash branchpoint)
     {
-        LiteCollection<HashDoc> srcColl = IndexCollection(sourceChainId);
-        LiteCollection<HashDoc> destColl = IndexCollection(destinationChainId);
+        // LiteCollection<HashDoc> srcColl = IndexKey(sourceChainId);
+        // LiteCollection<HashDoc> destColl = IndexKey(destinationChainId);
 
-        BlockHash? genesisHash = IterateIndexes(sourceChainId, 0, 1)
-            .Cast<BlockHash?>()
-            .FirstOrDefault();
+        // BlockHash? genesisHash = IterateIndexes(sourceChainId, 0, 1)
+        //     .Cast<BlockHash?>()
+        //     .FirstOrDefault();
 
-        if (genesisHash is null || branchpoint.Equals(genesisHash))
-        {
-            return;
-        }
+        // if (genesisHash is null || branchpoint.Equals(genesisHash))
+        // {
+        //     return;
+        // }
 
-        destColl.Delete(Query.All());
-        destColl.InsertBulk(srcColl.FindAll().TakeWhile(i => !i.Hash.Equals(branchpoint)));
+        // destColl.Delete(Query.All());
+        // destColl.InsertBulk(srcColl.FindAll().TakeWhile(i => !i.Hash.Equals(branchpoint)));
 
-        AppendIndex(destinationChainId, branchpoint);
+        // AppendIndex(destinationChainId, branchpoint);
     }
 
     public override Transaction GetTransaction(TxId txId)
@@ -285,7 +308,7 @@ public class DefaultStore : StoreBase
 
     public override IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
     {
-        var collection = new NonceCollection(_database.GetOrAdd(TxNonceCollection(chainId)));
+        var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
         foreach (var item in collection)
         {
             yield return item;
@@ -307,7 +330,7 @@ public class DefaultStore : StoreBase
 
     public override long GetTxNonce(Guid chainId, Address address)
     {
-        var collection = new NonceCollection(_database.GetOrAdd(TxNonceCollection(chainId)));
+        var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
         if (collection.TryGetValue(address, out var nonce))
         {
             return nonce;
@@ -329,7 +352,7 @@ public class DefaultStore : StoreBase
 
     public override void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
     {
-        var collection = new NonceCollection(_database.GetOrAdd(TxNonceCollection(chainId)));
+        var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
         if (!collection.TryGetValue(signer, out var nonce))
         {
             nonce = 0L;
@@ -371,22 +394,24 @@ public class DefaultStore : StoreBase
 
     public override BlockCommit GetChainBlockCommit(Guid chainId)
     {
-        LiteCollection<BsonDocument> collection = CommitCollection(chainId);
-        var docId = new BsonValue("c");
-        BsonDocument doc = collection.FindById(docId);
-        return doc is { } d && d.TryGetValue("v", out BsonValue v)
-            ? ModelSerializer.DeserializeFromBytes<BlockCommit>(v.AsBinary)
-            : BlockCommit.Empty;
+        return _blockCommitByChainId[chainId];
+        // LiteCollection<BsonDocument> collection = CommitCollection(chainId);
+        // var docId = new BsonValue("c");
+        // BsonDocument doc = collection.FindById(docId);
+        // return doc is { } d && d.TryGetValue("v", out BsonValue v)
+        //     ? ModelSerializer.DeserializeFromBytes<BlockCommit>(v.AsBinary)
+        //     : BlockCommit.Empty;
     }
 
     public override void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
     {
-        LiteCollection<BsonDocument> collection = CommitCollection(chainId);
-        var docId = new BsonValue("c");
-        BsonDocument doc = collection.FindById(docId);
-        collection.Upsert(
-            docId,
-            new BsonDocument() { ["v"] = new BsonValue(ModelSerializer.SerializeToBytes(blockCommit)) });
+        _blockCommitByChainId[chainId] = blockCommit;
+        // LiteCollection<BsonDocument> collection = CommitCollection(chainId);
+        // var docId = new BsonValue("c");
+        // BsonDocument doc = collection.FindById(docId);
+        // collection.Upsert(
+        //     docId,
+        //     new BsonDocument() { ["v"] = new BsonValue(ModelSerializer.SerializeToBytes(blockCommit)) });
     }
 
     public override BlockCommit GetBlockCommit(BlockHash blockHash)
@@ -525,22 +550,28 @@ public class DefaultStore : StoreBase
     //     return (store, stateStore);
     // }
 
-    private LiteCollection<HashDoc> IndexCollection(in Guid chainId) =>
-        _db.GetCollection<HashDoc>($"{IndexColPrefix}{FormatChainId(chainId)}");
+    private string IndexKey(in Guid chainId)
+        => $"{IndexColPrefix}{FormatChainId(chainId)}";
+
+    private BlockHashCollection IndexCollection(in Guid chainId) =>
+        new(_database.GetOrAdd(IndexKey(chainId)));
 
     // private LiteCollection<BsonDocument> TxNonceCollection(Guid chainId) =>
     //     _db.GetCollection<BsonDocument>($"{TxNonceIdPrefix}{FormatChainId(chainId)}");
 
-    private string TxNonceCollection(Guid chainId)
+    private string TxNonceKey(Guid chainId)
         => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
 
-    private LiteCollection<BsonDocument> CommitCollection(in Guid chainId) =>
-        _db.GetCollection<BsonDocument>($"{CommitColPrefix}{FormatChainId(chainId)}");
+    private string CommitKey(Guid chainId)
+        => $"{CommitColPrefix}{FormatChainId(chainId)}";
 
-    private class HashDoc
-    {
-        public long Id { get; set; }
+    // private LiteCollection<BsonDocument> CommitCollection(in Guid chainId) =>
+    //     _db.GetCollection<BsonDocument>($"{CommitColPrefix}{FormatChainId(chainId)}");
 
-        public BlockHash Hash { get; set; }
-    }
+    // private class HashDoc
+    // {
+    //     public long Id { get; set; }
+
+    //     public BlockHash Hash { get; set; }
+    // }
 }

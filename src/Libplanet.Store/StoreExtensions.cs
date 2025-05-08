@@ -37,7 +37,7 @@ namespace Libplanet.Store
                             $"Could not find block with block hash {blockHash} in store.");
 
                     to.PutBlock(block);
-                    to.AppendIndex(chainId, blockHash);
+                    to.AppendIndex(chainId, block.Height, blockHash);
                 }
 
                 foreach (KeyValuePair<Address, long> kv in from.ListTxNonces(chainId))

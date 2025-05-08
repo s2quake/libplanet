@@ -198,7 +198,7 @@ public partial class BlockChain
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
         options.Store.PutBlock(genesisBlock);
-        options.Store.AppendIndex(id, genesisBlock.BlockHash);
+        options.Store.AppendIndex(id, genesisBlock.Height, genesisBlock.BlockHash);
 
         foreach (var tx in genesisBlock.Transactions)
         {
@@ -494,7 +494,7 @@ public partial class BlockChain
                     Store.PutCommittedEvidence(ev);
                 }
 
-                Store.AppendIndex(Id, block.BlockHash);
+                Store.AppendIndex(Id, block.Height, block.BlockHash);
                 _nextStateRootHash = null;
 
                 foreach (var ev in GetPendingEvidence().ToArray())
@@ -671,7 +671,7 @@ public partial class BlockChain
                     Store.PutCommittedEvidence(evidence);
                 }
 
-                Store.AppendIndex(Id, block.BlockHash);
+                Store.AppendIndex(Id, block.Height, block.BlockHash);
                 _nextStateRootHash = block.StateRootHash;
                 IEnumerable<TxExecution> txExecutions =
                     MakeTxExecutions(block, actionEvaluations);
