@@ -11,7 +11,7 @@ public sealed record class BlockChainOptions
 {
     public IStore Store { get; init; } = new MemoryStore();
 
-    public IKeyValueStore KeyValueStore { get; init; } = new MemoryKeyValueStore();
+    public IDictionary<KeyBytes, byte[]> KeyValueStore { get; init; } = new MemoryKeyValueStore();
 
     public PolicyActions PolicyActions { get; init; } = PolicyActions.Empty;
 

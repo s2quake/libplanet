@@ -1,10 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Zio;
 using Zio.FileSystems;
 
 namespace Libplanet.Store.Trie;
 
-public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
+public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisposable
 {
     private readonly FileSystem _fs = path == string.Empty ? new MemoryFileSystem() : CreateFileSystem(path);
     private bool _isDisposed;
@@ -14,10 +15,7 @@ public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
     {
     }
 
-    public IEnumerable<KeyBytes> Keys =>
-        _fs.EnumerateFiles(UPath.Root).Select(path => KeyBytes.Parse(path.GetName()));
-
-    public byte[] this[in KeyBytes key]
+    public override byte[] this[KeyBytes key]
     {
         get
         {
@@ -33,7 +31,7 @@ public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
         set => _fs.WriteAllBytes(DataPath(key), value);
     }
 
-    public bool Remove(in KeyBytes key)
+    public override bool Remove(KeyBytes key)
     {
         var dataPath = DataPath(key);
         if (_fs.FileExists(dataPath))
@@ -55,7 +53,47 @@ public sealed class DefaultKeyValueStore(string path) : IKeyValueStore
         }
     }
 
-    public bool ContainsKey(in KeyBytes key) => _fs.FileExists(DataPath(key));
+    public override void Add(KeyBytes key, byte[] value)
+    {
+        var dataPath = DataPath(key);
+        if (_fs.FileExists(dataPath))
+        {
+            throw new ArgumentException($"Key {key} already exists", nameof(key));
+        }
+
+        _fs.WriteAllBytes(dataPath, value);
+    }
+
+    public override bool ContainsKey(KeyBytes key) => _fs.FileExists(DataPath(key));
+
+    public override bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value)
+    {
+        var dataPath = DataPath(key);
+        if (_fs.FileExists(dataPath))
+        {
+            value = _fs.ReadAllBytes(dataPath);
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    public override void Clear()
+    {
+        foreach (var file in _fs.EnumerateFiles(UPath.Root))
+        {
+            _fs.DeleteFile(file);
+        }
+    }
+
+    protected override IEnumerable<KeyBytes> EnumerateKeys()
+    {
+        foreach (var item in _fs.EnumerateFiles(UPath.Root))
+        {
+            yield return KeyBytes.Parse(item.GetName());
+        }
+    }
 
     private static SubFileSystem CreateFileSystem(string path)
     {

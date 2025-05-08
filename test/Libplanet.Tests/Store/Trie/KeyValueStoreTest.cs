@@ -10,7 +10,7 @@ namespace Libplanet.Tests.Store.Trie
 
         private const int PreStoredDataValueSize = 32;
 
-        protected IKeyValueStore KeyValueStore { get; set; }
+        protected IDictionary<KeyBytes, byte[]> KeyValueStore { get; set; }
 
         protected Random Random { get; } = new Random();
 

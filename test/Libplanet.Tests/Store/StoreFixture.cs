@@ -187,9 +187,9 @@ public abstract class StoreFixture : IDisposable
 
     public IStore Store => Options.Store;
 
-    public IKeyValueStore StateHashKeyValueStore { get; set; }
+    public IDictionary<KeyBytes, byte[]> StateHashKeyValueStore { get; set; }
 
-    public IKeyValueStore StateKeyValueStore { get; set; }
+    public IDictionary<KeyBytes, byte[]> StateKeyValueStore { get; set; }
 
     public BlockChainOptions Options { get; }
 

@@ -9,5 +9,5 @@ public interface IStoreService
 
     TrieStateStore StateStore { get; }
 
-    IKeyValueStore KeyValueStore { get; }
+    IDictionary<KeyBytes, byte[]> KeyValueStore { get; }
 }

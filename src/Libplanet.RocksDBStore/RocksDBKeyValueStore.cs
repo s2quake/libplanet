@@ -1,11 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using Libplanet.Store.Trie;
 using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore;
 
-public sealed class RocksDBKeyValueStore : IKeyValueStore
+public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
 {
-    private readonly RocksDb _keyValueDb;
+    private readonly RocksDb _rocksDb;
     private bool _disposed;
 
     public RocksDBKeyValueStore(
@@ -18,29 +19,17 @@ public sealed class RocksDBKeyValueStore : IKeyValueStore
             .SetSoftPendingCompactionBytesLimit(1000000000000)
             .SetHardPendingCompactionBytesLimit(1038176821042);
 
-        _keyValueDb = RocksDBUtils.OpenRocksDb(options, path, type: type);
+        _rocksDb = RocksDBUtils.OpenRocksDb(options, path, type: type);
         Type = type;
     }
 
     public RocksDBInstanceType Type { get; }
 
-    public IEnumerable<KeyBytes> Keys
+    public override byte[] this[KeyBytes key]
     {
-        get
-        {
-            using Iterator it = _keyValueDb.NewIterator();
-            for (it.SeekToFirst(); it.Valid(); it.Next())
-            {
-                yield return KeyBytes.Create(it.Key());
-            }
-        }
-    }
-
-    public byte[] this[in KeyBytes key]
-    {
-        get => _keyValueDb.Get(key.AsSpan())
+        get => _rocksDb.Get(key.AsSpan())
             ?? throw new KeyNotFoundException($"No such key: ${key}.");
-        set => _keyValueDb.Put(key.AsSpan(), value);
+        set => _rocksDb.Put(key.AsSpan(), value);
     }
 
     public void SetMany(IDictionary<KeyBytes, byte[]> values)
@@ -52,12 +41,12 @@ public sealed class RocksDBKeyValueStore : IKeyValueStore
             writeBatch.Put(key.AsSpan(), value);
         }
 
-        _keyValueDb.Write(writeBatch);
+        _rocksDb.Write(writeBatch);
     }
 
-    public bool Remove(in KeyBytes key)
+    public override bool Remove(KeyBytes key)
     {
-        _keyValueDb.Remove(key.AsSpan());
+        _rocksDb.Remove(key.AsSpan());
         return true;
     }
 
@@ -65,16 +54,49 @@ public sealed class RocksDBKeyValueStore : IKeyValueStore
     {
         if (!_disposed)
         {
-            _keyValueDb.Dispose();
+            _rocksDb.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
     }
 
-    public bool ContainsKey(in KeyBytes key) => _keyValueDb.Get(key.AsSpan()) is { };
+    public override bool ContainsKey(KeyBytes key) => _rocksDb.Get(key.AsSpan()) is { };
 
     public void TryCatchUpWithPrimary()
     {
-        _keyValueDb.TryCatchUpWithPrimary();
+        _rocksDb.TryCatchUpWithPrimary();
+    }
+
+    public override void Add(KeyBytes key, byte[] value)
+    {
+        if (_rocksDb.Get(key.AsSpan()) is { })
+        {
+            throw new ArgumentException($"Key {key} already exists", nameof(key));
+        }
+
+        _rocksDb.Put(key.AsSpan(), value);
+    }
+
+    public override bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value)
+    {
+        if (_rocksDb.Get(key.AsSpan()) is { } bytes)
+        {
+            value = bytes;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    public override void Clear() => throw new NotSupportedException("Clear is not supported.");
+
+    protected override IEnumerable<KeyBytes> EnumerateKeys()
+    {
+        using var it = _rocksDb.NewIterator();
+        for (it.SeekToFirst(); it.Valid(); it.Next())
+        {
+            yield return KeyBytes.Create(it.Key());
+        }
     }
 }

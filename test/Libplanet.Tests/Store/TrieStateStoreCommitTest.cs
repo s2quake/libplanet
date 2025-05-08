@@ -12,7 +12,7 @@ namespace Libplanet.Tests.Store
         [Fact]
         public void CommitEmptyDoesNotWrite()
         {
-            IKeyValueStore keyValueStore = new MemoryKeyValueStore();
+            var keyValueStore = new MemoryKeyValueStore();
             TrieStateStore stateStore = new TrieStateStore();
             ITrie emptyTrie = stateStore.GetStateRoot(default);
             HashDigest<SHA256> emptyRootHash = emptyTrie.Hash;
@@ -32,7 +32,7 @@ namespace Libplanet.Tests.Store
         [Fact]
         public void Commit()
         {
-            IKeyValueStore keyValueStore = new MemoryKeyValueStore();
+            var keyValueStore = new MemoryKeyValueStore();
             TrieStateStore stateStore = new TrieStateStore(keyValueStore);
             ITrie trie = stateStore.GetStateRoot(default);
 
@@ -61,7 +61,7 @@ namespace Libplanet.Tests.Store
         [Fact]
         public void CommittedNonEmptyTrieRootIsHashNode()
         {
-            IKeyValueStore keyValueStore = new MemoryKeyValueStore();
+            var keyValueStore = new MemoryKeyValueStore();
             TrieStateStore stateStore = new TrieStateStore(keyValueStore);
             ITrie trie = stateStore.GetStateRoot(default);
             trie = trie.Set(KeyBytes.Create([]), new Integer(1));

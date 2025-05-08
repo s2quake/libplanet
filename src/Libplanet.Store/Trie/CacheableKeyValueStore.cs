@@ -1,16 +1,15 @@
+using System.Diagnostics.CodeAnalysis;
 using LruCacheNet;
 
 namespace Libplanet.Store.Trie;
 
-public sealed class CacheableKeyValueStore(IKeyValueStore keyValueStore, int cacheSize = 100)
-    : IKeyValueStore, IDisposable
+public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValueStore, int cacheSize = 100)
+    : KeyValueStoreBase, IDisposable
 {
     private readonly LruCache<KeyBytes, byte[]> _cache = new(cacheSize);
     private bool _isDisposed;
 
-    public IEnumerable<KeyBytes> Keys => keyValueStore.Keys;
-
-    public byte[] this[in KeyBytes key]
+    public override byte[] this[KeyBytes key]
     {
         get
         {
@@ -35,9 +34,7 @@ public sealed class CacheableKeyValueStore(IKeyValueStore keyValueStore, int cac
         }
     }
 
-    public void SetMany(IDictionary<KeyBytes, byte[]> values) => keyValueStore.SetMany(values);
-
-    public bool Remove(in KeyBytes key)
+    public override bool Remove(KeyBytes key)
     {
         if (keyValueStore.Remove(key))
         {
@@ -48,8 +45,7 @@ public sealed class CacheableKeyValueStore(IKeyValueStore keyValueStore, int cac
         return false;
     }
 
-    public bool ContainsKey(in KeyBytes key)
-        => _cache.ContainsKey(key) || keyValueStore.ContainsKey(key);
+    public override bool ContainsKey(KeyBytes key) => _cache.ContainsKey(key) || keyValueStore.ContainsKey(key);
 
     public void Dispose()
     {
@@ -59,4 +55,37 @@ public sealed class CacheableKeyValueStore(IKeyValueStore keyValueStore, int cac
             GC.SuppressFinalize(this);
         }
     }
+
+    public override void Add(KeyBytes key, byte[] value)
+    {
+        keyValueStore.Add(key, value);
+        _cache[key] = value;
+    }
+
+    public override bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value)
+    {
+        if (_cache.TryGetValue(key, out var v) && v is { })
+        {
+            value = v;
+            return true;
+        }
+
+        if (keyValueStore.TryGetValue(key, out var bytes) && bytes is { })
+        {
+            _cache[key] = bytes;
+            value = bytes;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    public override void Clear()
+    {
+        _cache.Clear();
+        keyValueStore.Clear();
+    }
+
+    protected override IEnumerable<KeyBytes> EnumerateKeys() => keyValueStore.Keys;
 }

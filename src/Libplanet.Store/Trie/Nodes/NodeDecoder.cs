@@ -21,7 +21,7 @@ public static class NodeDecoder
     public const NodeTypes HashEmbeddedNodeTypes =
         NodeTypes.Value | NodeTypes.Short | NodeTypes.Full;
 
-    public static INode? Decode(IValue value, NodeTypes nodeTypes, IKeyValueStore keyValueStore)
+    public static INode? Decode(IValue value, NodeTypes nodeTypes, IDictionary<KeyBytes, byte[]> keyValueStore)
     {
         if (value is List list)
         {
@@ -75,7 +75,7 @@ public static class NodeDecoder
     private static ValueNode DecodeValue(List list) => new(list[1]);
 
     // The length and the first element are already checked.
-    private static ShortNode DecodeShort(List list, IKeyValueStore keyValueStore)
+    private static ShortNode DecodeShort(List list, IDictionary<KeyBytes, byte[]> keyValueStore)
     {
         if (list[0] is not Binary binary)
         {
@@ -95,7 +95,7 @@ public static class NodeDecoder
     }
 
     // The length is already checked.
-    private static FullNode DecodeFull(List list, IKeyValueStore keyValueStore)
+    private static FullNode DecodeFull(List list, IDictionary<KeyBytes, byte[]> keyValueStore)
     {
         var builder = ImmutableDictionary.CreateBuilder<byte, INode>();
         for (var i = 0; i < list.Count - 1; i++)
@@ -112,7 +112,7 @@ public static class NodeDecoder
         return new FullNode(builder.ToImmutable(), value);
     }
 
-    private static HashNode DecodeHash(Binary binary, IKeyValueStore keyValueStore)
+    private static HashNode DecodeHash(Binary binary, IDictionary<KeyBytes, byte[]> keyValueStore)
         => new(new HashDigest<SHA256>(binary.ByteArray))
         {
             KeyValueStore = keyValueStore,
