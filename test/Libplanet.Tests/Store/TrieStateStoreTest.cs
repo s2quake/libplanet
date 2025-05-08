@@ -73,7 +73,7 @@ public class TrieStateStoreTest
         List<(KeyBytes, IValue)> kvs = Enumerable.Range(0, 1_000)
             .Select(_ =>
             (
-                KeyBytes.Create(GetRandomBytes(random.Next(1, 20))),
+                new KeyBytes(GetRandomBytes(random.Next(1, 20))),
                 (IValue)new Binary(GetRandomBytes(20))))
             .ToList();
 
@@ -87,8 +87,8 @@ public class TrieStateStoreTest
         int prevStatesCount = _stateKeyValueStore.Keys.Count();
 
         // NOTE: Avoid possible collision of KeyBytes, just in case.
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[new KeyBytes(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[new KeyBytes(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
 
         Assert.Equal(prevStatesCount + 2, _stateKeyValueStore.Keys.Count());
         Assert.Empty(targetStateKeyValueStore.Keys);
@@ -125,7 +125,7 @@ public class TrieStateStoreTest
                     .Range(0, 100)
                     .Select(__ =>
                     (
-                        KeyBytes.Create(GetRandomBytes(random.Next(20))),
+                        new KeyBytes(GetRandomBytes(random.Next(20))),
                         (IValue)new Binary(GetRandomBytes(20))))
                     .ToList());
 
@@ -151,8 +151,8 @@ public class TrieStateStoreTest
         int prevStatesCount = _stateKeyValueStore.Keys.Count();
 
         // NOTE: Avoid possible collision of KeyBytes, just in case.
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
-        _stateKeyValueStore[KeyBytes.Create(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[new KeyBytes(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[new KeyBytes(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
 
         Assert.Equal(prevStatesCount + 2, _stateKeyValueStore.Keys.Count());
         Assert.Empty(targetStateKeyValueStore.Keys);

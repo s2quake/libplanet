@@ -7,7 +7,7 @@ namespace Libplanet.Action.State;
 
 public static class KeyConverters
 {
-    public static readonly KeyBytes ValidatorSetKey = KeyBytes.Create([_underScore, _underScore, _underScore]);
+    public static readonly KeyBytes ValidatorSetKey = new([_underScore, _underScore, _underScore]);
 
     private const byte _underScore = 95; // '_'
 
