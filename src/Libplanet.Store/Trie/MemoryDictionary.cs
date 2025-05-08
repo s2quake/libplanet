@@ -9,6 +9,8 @@ public sealed class MemoryDictionary<TKey, TValue> : KeyValueStoreBase<TKey, TVa
 {
     private readonly ConcurrentDictionary<TKey, TValue> _dictionary = new();
 
+    public override int Count => _dictionary.Count;
+
     public override TValue this[TKey key]
     {
         get => _dictionary[key];
