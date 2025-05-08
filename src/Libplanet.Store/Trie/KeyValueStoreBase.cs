@@ -20,7 +20,7 @@ public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue
 
     ICollection<TValue> IDictionary<TKey, TValue>.Values => _values;
 
-    int ICollection<KeyValuePair<TKey, TValue>>.Count => throw new NotSupportedException();
+    public abstract int Count { get; }
 
     public bool IsReadOnly => false;
 
@@ -77,7 +77,7 @@ public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue
 
     private sealed class KeyCollection(KeyValueStoreBase<TKey, TValue> owner) : ICollection<TKey>
     {
-        public int Count => throw new NotSupportedException("Count is not supported.");
+        public int Count => owner.Count;
 
         public bool IsReadOnly => true;
 
@@ -105,7 +105,7 @@ public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue
 
     private sealed class ValueCollection(KeyValueStoreBase<TKey, TValue> owner) : ICollection<TValue>
     {
-        public int Count => throw new NotSupportedException("Count is not supported.");
+        public int Count => owner.Count;
 
         public bool IsReadOnly => true;
 

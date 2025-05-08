@@ -1,17 +1,9 @@
-using System.Collections.Specialized;
-using System.IO;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Web;
-using Libplanet.Serialization;
-using Libplanet.Store.Trie;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
-// using LiteDB;
-// using FileMode = LiteDB.FileMode;
 
 namespace Libplanet.Store;
 
@@ -20,7 +12,6 @@ public class DefaultStore : StoreBase
     private const string IndexColPrefix = "index_";
     private const string TxNonceIdPrefix = "nonce_";
     private const string CommitColPrefix = "commit_";
-    private const string StatesKvPathDefault = "states";
 
     private readonly DefaultDatabase _database;
     private readonly TransactionCollection _transactions;
@@ -34,8 +25,6 @@ public class DefaultStore : StoreBase
     private readonly HeightByChainId _heights;
     private readonly BlockCommitByChainId _blockCommitByChainId;
     private readonly StringCollection _metadata;
-
-    // private readonly LiteDatabase _db;
 
     private bool _disposed;
 
@@ -53,107 +42,24 @@ public class DefaultStore : StoreBase
         _heights = new HeightByChainId(_database.GetOrAdd("heights"));
         _blockCommitByChainId = new BlockCommitByChainId(_database.GetOrAdd("blockcommitb"));
         _metadata = new StringCollection(_database.GetOrAdd("metadata"));
-        if (options.Path == string.Empty)
-        {
-            // _db = new LiteDatabase(new MemoryStream(), disposeStream: true);
-        }
-        else
-        {
-            // var connectionString = new ConnectionString
-            // {
-            //     Filename = Path.Combine(options.Path, "index.ldb"),
-            //     Journal = options.Journal,
-            //     CacheSize = options.IndexCacheSize,
-            //     Flush = options.Flush,
-            // };
-
-            // if (options.ReadOnly)
-            // {
-            //     connectionString.Mode = FileMode.ReadOnly;
-            // }
-            // else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
-            //     Type.GetType("Mono.Runtime") is null)
-            // {
-            //     // macOS + .NETCore doesn't support shared lock.
-            //     connectionString.Mode = FileMode.Exclusive;
-            // }
-
-            // _db = new LiteDatabase(connectionString);
-        }
-
-        // lock (_db.Mapper)
-        // {
-        //     _db.Mapper.RegisterType(
-        //         hash => ModelSerializer.SerializeToBytes(hash),
-        //         b => ModelSerializer.DeserializeFromBytes<BlockHash>(b.AsBinary));
-        //     _db.Mapper.RegisterType(
-        //         hash => hash.Bytes.ToArray(),
-        //         b => new HashDigest<SHA256>(b.AsBinary));
-        //     _db.Mapper.RegisterType(
-        //         txid => txid.Bytes.ToArray(),
-        //         b => new TxId(b.AsBinary));
-        //     _db.Mapper.RegisterType(
-        //         address => address.ToByteArray(),
-        //         b => new Address(b.AsBinary));
-        //     _db.Mapper.RegisterType(
-        //         commit => ModelSerializer.SerializeToBytes(commit),
-        //         b => ModelSerializer.DeserializeFromBytes<BlockCommit>(b.AsBinary));
-        //     _db.Mapper.RegisterType(
-        //         evidence => ModelSerializer.SerializeToBytes(evidence),
-        //         b => ModelSerializer.DeserializeFromBytes<EvidenceId>(b.AsBinary));
-        // }
-
         Options = options;
     }
 
     public DefaultStoreOptions Options { get; }
 
-    public override IEnumerable<Guid> ListChainIds()
-    {
-        return _heights.Keys;
-        // return _db.GetCollectionNames()
-        //     .Where(name => name.StartsWith(IndexColPrefix))
-        //     .Select(name => ParseChainId(name.Substring(IndexColPrefix.Length)));
-    }
+    public override IEnumerable<Guid> ListChainIds() => _heights.Keys;
 
     public override void DeleteChainId(Guid chainId)
     {
         _database.Remove(TxNonceKey(chainId));
         _database.Remove(IndexKey(chainId));
-        // _db.DropCollection(IndexKey(chainId).Name);
-        // _db.DropCollection(TxNonceCollection(chainId).Name);
-        // _db.DropCollection(CommitCollection(chainId).Name);
     }
 
-    public override Guid GetCanonicalChainId()
-    {
-        return Guid.Parse(_metadata["chainId"]);
-        // LiteCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>("canon");
-        // var docId = new BsonValue("canon");
-        // BsonDocument doc = collection.FindById(docId);
-        // if (doc is null)
-        // {
-        //     return Guid.Empty;
-        // }
+    public override Guid GetCanonicalChainId() => Guid.Parse(_metadata["chainId"]);
 
-        // return doc.TryGetValue("chainId", out BsonValue ns)
-        //     ? new Guid(ns.AsBinary)
-        //     : Guid.Empty;
-    }
+    public override void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
 
-    public override void SetCanonicalChainId(Guid chainId)
-    {
-        _metadata["chainId"] = chainId.ToString();
-        // LiteCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>("canon");
-        // var docId = new BsonValue("canon");
-        // byte[] idBytes = chainId.ToByteArray();
-        // collection.Upsert(docId, new BsonDocument() { ["chainId"] = new BsonValue(idBytes) });
-    }
-
-    public override long CountIndex(Guid chainId)
-    {
-        return _heights[chainId];
-    }
+    public override long CountIndex(Guid chainId) => _heights[chainId];
 
     public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
@@ -175,19 +81,6 @@ public class DefaultStore : StoreBase
     {
         var collection = IndexCollection(chainId);
         return collection[height];
-        // if (height < 0)
-        // {
-        //     height += CountIndex(chainId);
-
-        //     if (height < 0)
-        //     {
-        //         throw new ArgumentOutOfRangeException(nameof(height), "Height is out of range.");
-        //     }
-        // }
-
-        // HashDoc doc = IndexKey(chainId).FindById(height + 1);
-        // return doc is { } d ? d.Hash : throw new ArgumentOutOfRangeException(
-        //     nameof(height), "Height is out of range.");
     }
 
     public override void AppendIndex(Guid chainId, long height, BlockHash hash)
@@ -337,17 +230,6 @@ public class DefaultStore : StoreBase
         }
 
         return 0L;
-
-        // LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
-        // var docId = new BsonValue(address.ToByteArray());
-        // BsonDocument doc = collection.FindById(docId);
-
-        // if (doc is null)
-        // {
-        //     return 0;
-        // }
-
-        // return doc.TryGetValue("v", out BsonValue v) ? v.AsInt64 : 0;
     }
 
     public override void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
@@ -359,11 +241,6 @@ public class DefaultStore : StoreBase
         }
 
         collection[signer] = nonce + delta;
-
-        // long nextNonce = GetTxNonce(chainId, signer) + delta;
-        // LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
-        // var docId = new BsonValue(signer.ToByteArray());
-        // collection.Upsert(docId, new BsonDocument() { ["v"] = new BsonValue(nextNonce) });
     }
 
     public override void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
@@ -395,23 +272,11 @@ public class DefaultStore : StoreBase
     public override BlockCommit GetChainBlockCommit(Guid chainId)
     {
         return _blockCommitByChainId[chainId];
-        // LiteCollection<BsonDocument> collection = CommitCollection(chainId);
-        // var docId = new BsonValue("c");
-        // BsonDocument doc = collection.FindById(docId);
-        // return doc is { } d && d.TryGetValue("v", out BsonValue v)
-        //     ? ModelSerializer.DeserializeFromBytes<BlockCommit>(v.AsBinary)
-        //     : BlockCommit.Empty;
     }
 
     public override void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
     {
         _blockCommitByChainId[chainId] = blockCommit;
-        // LiteCollection<BsonDocument> collection = CommitCollection(chainId);
-        // var docId = new BsonValue("c");
-        // BsonDocument doc = collection.FindById(docId);
-        // collection.Upsert(
-        //     docId,
-        //     new BsonDocument() { ["v"] = new BsonValue(ModelSerializer.SerializeToBytes(blockCommit)) });
     }
 
     public override BlockCommit GetBlockCommit(BlockHash blockHash)
@@ -508,8 +373,6 @@ public class DefaultStore : StoreBase
     {
         if (!_disposed)
         {
-            // _db?.Dispose();
-            // _root.Dispose();
             _disposed = true;
         }
     }
@@ -520,58 +383,12 @@ public class DefaultStore : StoreBase
     internal static string FormatChainId(Guid chainId) =>
         ByteUtility.Hex(chainId.ToByteArray());
 
-    // [StoreLoader("default+file")]
-    // private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
-    // {
-    //     NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
-    //     bool journal = query.GetBoolean("journal", true);
-    //     int indexCacheSize = query.GetInt32("index-cache", 50000);
-    //     int blockCacheSize = query.GetInt32("block-cache", 512);
-    //     int txCacheSize = query.GetInt32("tx-cache", 1024);
-    //     int evidenceCacheSize = query.GetInt32("evidence-cache", 1024);
-    //     bool flush = query.GetBoolean("flush", true);
-    //     bool readOnly = query.GetBoolean("readonly");
-    //     string statesKvPath = query.Get("states-dir") ?? StatesKvPathDefault;
-    //     var options = new DefaultStoreOptions
-    //     {
-    //         Path = storeUri.LocalPath,
-    //         Journal = journal,
-    //         IndexCacheSize = indexCacheSize,
-    //         BlockCacheSize = blockCacheSize,
-    //         TxCacheSize = txCacheSize,
-    //         EvidenceCacheSize = evidenceCacheSize,
-    //         Flush = flush,
-    //         ReadOnly = readOnly,
-    //     };
-
-    //     var store = new DefaultStore(options);
-    //     var stateStore = new TrieStateStore(
-    //         new DefaultKeyValueStore(Path.Combine(storeUri.LocalPath, statesKvPath)));
-    //     return (store, stateStore);
-    // }
-
-    private string IndexKey(in Guid chainId)
+    private static string IndexKey(in Guid chainId)
         => $"{IndexColPrefix}{FormatChainId(chainId)}";
+
+    private static string TxNonceKey(Guid chainId)
+        => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
 
     private BlockHashCollection IndexCollection(in Guid chainId) =>
         new(_database.GetOrAdd(IndexKey(chainId)));
-
-    // private LiteCollection<BsonDocument> TxNonceCollection(Guid chainId) =>
-    //     _db.GetCollection<BsonDocument>($"{TxNonceIdPrefix}{FormatChainId(chainId)}");
-
-    private string TxNonceKey(Guid chainId)
-        => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
-
-    private string CommitKey(Guid chainId)
-        => $"{CommitColPrefix}{FormatChainId(chainId)}";
-
-    // private LiteCollection<BsonDocument> CommitCollection(in Guid chainId) =>
-    //     _db.GetCollection<BsonDocument>($"{CommitColPrefix}{FormatChainId(chainId)}");
-
-    // private class HashDoc
-    // {
-    //     public long Id { get; set; }
-
-    //     public BlockHash Hash { get; set; }
-    // }
 }

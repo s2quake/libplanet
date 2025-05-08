@@ -9,6 +9,8 @@ public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValu
     private readonly LruCache<KeyBytes, byte[]> _cache = new(cacheSize);
     private bool _isDisposed;
 
+    public override int Count => keyValueStore.Count;
+
     public override byte[] this[KeyBytes key]
     {
         get

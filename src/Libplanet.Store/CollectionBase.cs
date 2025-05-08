@@ -27,7 +27,7 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
 
     ICollection<TValue> IDictionary<TKey, TValue>.Values => _values;
 
-    int ICollection<KeyValuePair<TKey, TValue>>.Count => throw new NotSupportedException();
+    public int Count => _dictionary.Count;
 
     public bool IsReadOnly => false;
 
@@ -158,7 +158,7 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
 
     private sealed class KeyCollection(CollectionBase<TKey, TValue> owner) : ICollection<TKey>
     {
-        public int Count => throw new NotSupportedException("Count is not supported.");
+        public int Count => owner.Count;
 
         public bool IsReadOnly => true;
 
@@ -169,7 +169,24 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
         public bool Contains(TKey item) => owner.ContainsKey(item);
 
         public void CopyTo(TKey[] array, int arrayIndex)
-            => throw new NotSupportedException("CopyTo is not supported.");
+        {
+            if (arrayIndex < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+            }
+
+            if (Count > array.Length + arrayIndex)
+            {
+                var message = "The number of elements in the source KeyCollection is greater than the " +
+                              "available space from arrayIndex to the end of the destination array.";
+                throw new ArgumentException(message, nameof(array));
+            }
+
+            foreach (var key in owner.EnumerateKeys())
+            {
+                array[arrayIndex++] = key;
+            }
+        }
 
         public IEnumerator<TKey> GetEnumerator()
         {
@@ -186,7 +203,7 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
 
     private sealed class ValueCollection(CollectionBase<TKey, TValue> owner) : ICollection<TValue>
     {
-        public int Count => throw new NotSupportedException("Count is not supported.");
+        public int Count => owner.Count;
 
         public bool IsReadOnly => true;
 

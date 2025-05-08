@@ -9,11 +9,14 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
 {
     private readonly FileSystem _fs = path == string.Empty ? new MemoryFileSystem() : CreateFileSystem(path);
     private bool _isDisposed;
+    private int? _count;
 
     public DefaultKeyValueStore()
         : this(string.Empty)
     {
     }
+
+    public override int Count => _count ??= _fs.EnumerateFiles(UPath.Root).Count();
 
     public override byte[] this[KeyBytes key]
     {
@@ -28,7 +31,16 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
             return _fs.ReadAllBytes(dataPath);
         }
 
-        set => _fs.WriteAllBytes(DataPath(key), value);
+        set
+        {
+            var dataPath = DataPath(key);
+            var exists = _fs.FileExists(dataPath);
+            _fs.WriteAllBytes(DataPath(key), value);
+            if (!exists && _count is not null)
+            {
+                _count++;
+            }
+        }
     }
 
     public override bool Remove(KeyBytes key)
@@ -37,6 +49,11 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
         if (_fs.FileExists(dataPath))
         {
             _fs.DeleteFile(dataPath);
+            if (_count is not null)
+            {
+                _count--;
+            }
+
             return true;
         }
 
@@ -62,6 +79,10 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
         }
 
         _fs.WriteAllBytes(dataPath, value);
+        if (_count is not null)
+        {
+            _count++;
+        }
     }
 
     public override bool ContainsKey(KeyBytes key) => _fs.FileExists(DataPath(key));
@@ -85,6 +106,8 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
         {
             _fs.DeleteFile(file);
         }
+
+        _count = 0;
     }
 
     protected override IEnumerable<KeyBytes> EnumerateKeys()
