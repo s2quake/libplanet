@@ -1,16 +1,20 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using Libplanet.Store.Trie;
+using LruCacheNet;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store;
 
-public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue>
+public abstract class CollectionBase<TKey, TValue>(IDictionary<KeyBytes, byte[]> dictionary, int cacheSize = 100)
     where TKey : notnull
     where TValue : notnull
 {
+    private readonly LruCache<TKey, TValue> _cache = new(cacheSize);
+
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected KeyValueStoreBase()
+    protected CollectionBase()
     {
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
@@ -24,9 +28,30 @@ public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue
 
     public bool IsReadOnly => false;
 
-    public abstract TValue this[TKey key] { get; set; }
+    public TValue this[TKey key]
+    {
+        get
+        {
+            if (_cache.TryGetValue(key, out var value))
+            {
+                return value;
+            }
 
-    public abstract bool Remove(TKey key);
+            if (dictionary[GetKeyBytes(key)] is { } bytes)
+            {
+                value = GetValue(bytes);
+                _cache[key] = value;
+                return value;
+            }
+
+            throw new KeyNotFoundException($"No such key: ${key}.");
+        }
+    }
+
+    public bool Remove(TKey key)
+    {
+        dictionary.Remove(GetKey(key));
+    }
 
     public abstract void Add(TKey key, TValue value);
 
@@ -75,7 +100,16 @@ public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue
 
     protected virtual bool CompareValue(TValue value1, TValue value2) => value1.Equals(value2);
 
-    private sealed class KeyCollection(KeyValueStoreBase<TKey, TValue> owner) : ICollection<TKey>
+
+    protected abstract KeyBytes GetKeyBytes(TKey key);
+
+    protected abstract TKey GetKey(KeyBytes keyBytes);
+
+    protected abstract byte[] GetBytes(TValue value);
+
+    protected abstract TValue GetValue(byte[] bytes);
+
+    private sealed class KeyCollection(CollectionBase<TKey, TValue> owner) : ICollection<TKey>
     {
         public int Count => throw new NotSupportedException("Count is not supported.");
 
@@ -103,7 +137,7 @@ public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private sealed class ValueCollection(KeyValueStoreBase<TKey, TValue> owner) : ICollection<TValue>
+    private sealed class ValueCollection(CollectionBase<TKey, TValue> owner) : ICollection<TValue>
     {
         public int Count => throw new NotSupportedException("Count is not supported.");
 
@@ -130,9 +164,5 @@ public abstract class KeyValueStoreBase<TKey, TValue> : IDictionary<TKey, TValue
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-}
 
-public abstract class KeyValueStoreBase : KeyValueStoreBase<KeyBytes, byte[]>
-{
-    protected override bool CompareValue(byte[] value1, byte[] value2) => value1.SequenceEqual(value2);
 }
