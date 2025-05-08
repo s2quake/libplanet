@@ -25,7 +25,7 @@ public abstract class ProxyStore(IStore store) : IStore
 
     public virtual BlockHash GetBlockHash(Guid chainId, long height) => store.GetBlockHash(chainId, height);
 
-    public virtual long AppendIndex(Guid chainId, BlockHash hash) => store.AppendIndex(chainId, hash);
+    public virtual void AppendIndex(Guid chainId, long height, BlockHash hash) => store.AppendIndex(chainId, height, hash);
 
     public virtual void ForkBlockIndexes(
         Guid sourceChainId,

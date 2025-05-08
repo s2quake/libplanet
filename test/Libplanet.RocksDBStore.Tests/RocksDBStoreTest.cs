@@ -95,9 +95,9 @@ namespace Libplanet.RocksDBStore.Tests
             try
             {
                 Guid cid = Guid.NewGuid();
-                store.AppendIndex(cid, Fx.Block1.BlockHash);
-                store.AppendIndex(cid, Fx.Block2.BlockHash);
-                store.AppendIndex(cid, Fx.Block3.BlockHash);
+                store.AppendIndex(cid, Fx.Block1.Height, Fx.Block1.BlockHash);
+                store.AppendIndex(cid, Fx.Block2.Height, Fx.Block2.BlockHash);
+                store.AppendIndex(cid, Fx.Block3.Height, Fx.Block3.BlockHash);
 
                 store.PutBlock(Fx.Block1);
                 store.PutBlock(Fx.Block2);
@@ -128,9 +128,9 @@ namespace Libplanet.RocksDBStore.Tests
             try
             {
                 Guid cid = Guid.NewGuid();
-                store.AppendIndex(cid, Fx.Block1.BlockHash);
-                store.AppendIndex(cid, Fx.Block2.BlockHash);
-                store.AppendIndex(cid, Fx.Block3.BlockHash);
+                store.AppendIndex(cid, Fx.Block1.Height, Fx.Block1.BlockHash);
+                store.AppendIndex(cid, Fx.Block2.Height, Fx.Block2.BlockHash);
+                store.AppendIndex(cid, Fx.Block3.Height, Fx.Block3.BlockHash);
 
                 store.PutBlock(Fx.Block1);
                 store.PutBlock(Fx.Block2);
@@ -215,9 +215,9 @@ namespace Libplanet.RocksDBStore.Tests
 
                 Guid cid1 = Guid.NewGuid();
                 int guidLength = cid1.ToByteArray().Length;
-                store.AppendIndex(cid1, Fx.GenesisBlock.BlockHash);
-                store.AppendIndex(cid1, Fx.Block1.BlockHash);
-                store.AppendIndex(cid1, Fx.Block2.BlockHash);
+                store.AppendIndex(cid1, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
+                store.AppendIndex(cid1, Fx.Block1.Height, Fx.Block1.BlockHash);
+                store.AppendIndex(cid1, Fx.Block2.Height, Fx.Block2.BlockHash);
                 Assert.Single(store.ListChainIds());
                 Assert.Equal(
                     new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash },
@@ -225,8 +225,8 @@ namespace Libplanet.RocksDBStore.Tests
 
                 Guid cid2 = Guid.NewGuid();
                 store.ForkBlockIndexes(cid1, cid2, Fx.Block1.BlockHash);
-                store.AppendIndex(cid2, Fx.Block2.BlockHash);
-                store.AppendIndex(cid2, Fx.Block3.BlockHash);
+                store.AppendIndex(cid2, Fx.Block2.Height, Fx.Block2.BlockHash);
+                store.AppendIndex(cid2, Fx.Block3.Height, Fx.Block3.BlockHash);
                 Assert.Equal(2, store.ListChainIds().Count());
                 Assert.Equal(
                     new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash, Fx.Block3.BlockHash },

@@ -1,19 +1,18 @@
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
 public sealed class BlockHashCollection(IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<TxId, ImmutableArray<BlockHash>>(dictionary)
+    : CollectionBase<long, BlockHash>(dictionary)
 {
-    protected override byte[] GetBytes(ImmutableArray<BlockHash> value) => ModelSerializer.SerializeToBytes(value);
+    protected override byte[] GetBytes(BlockHash value) => ModelSerializer.SerializeToBytes(value);
 
-    protected override TxId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);
+    protected override long GetKey(KeyBytes keyBytes) => BitConverter.ToInt64(keyBytes.Bytes.AsSpan());
 
-    protected override KeyBytes GetKeyBytes(TxId key) => new(key.Bytes);
+    protected override KeyBytes GetKeyBytes(long key) => new(BitConverter.GetBytes(key));
 
-    protected override ImmutableArray<BlockHash> GetValue(byte[] bytes)
-        => ModelSerializer.DeserializeFromBytes<ImmutableArray<BlockHash>>(bytes);
+    protected override BlockHash GetValue(byte[] bytes)
+        => ModelSerializer.DeserializeFromBytes<BlockHash>(bytes);
 }
