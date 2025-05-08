@@ -5,17 +5,20 @@ using LruCacheNet;
 
 namespace Libplanet.Store;
 
-public abstract class CollectionBase<TKey, TValue>(IDictionary<KeyBytes, byte[]> dictionary, int cacheSize = 100)
+public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {
-    private readonly LruCache<TKey, TValue> _cache = new(cacheSize);
+    private readonly LruCache<TKey, TValue> _cache;
+    private readonly IDictionary<KeyBytes, byte[]> _dictionary;
 
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected CollectionBase()
+    protected CollectionBase(IDictionary<KeyBytes, byte[]> dictionary, int cacheSize = 100)
     {
+        _cache = new(cacheSize);
+        _dictionary = dictionary;
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
     }
@@ -37,7 +40,7 @@ public abstract class CollectionBase<TKey, TValue>(IDictionary<KeyBytes, byte[]>
                 return value;
             }
 
-            if (dictionary[GetKeyBytes(key)] is { } bytes)
+            if (_dictionary[GetKeyBytes(key)] is { } bytes)
             {
                 value = GetValue(bytes);
                 _cache[key] = value;
@@ -46,20 +49,59 @@ public abstract class CollectionBase<TKey, TValue>(IDictionary<KeyBytes, byte[]>
 
             throw new KeyNotFoundException($"No such key: ${key}.");
         }
+
+        set
+        {
+            _dictionary[GetKeyBytes(key)] = GetBytes(value);
+            _cache[key] = value;
+        }
     }
 
     public bool Remove(TKey key)
     {
-        dictionary.Remove(GetKey(key));
+        _cache.Remove(key);
+        return _dictionary.Remove(GetKeyBytes(key));
     }
 
-    public abstract void Add(TKey key, TValue value);
+    public void Add(TKey key, TValue value)
+    {
+        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _cache[key] = value;
+    }
 
-    public abstract bool ContainsKey(TKey key);
+    public bool ContainsKey(TKey key)
+    {
+        if (_cache.TryGetValue(key, out _))
+        {
+            return true;
+        }
 
-    public abstract bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value);
+        return _dictionary.ContainsKey(GetKeyBytes(key));
+    }
 
-    public abstract void Clear();
+    public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+    {
+        if (_cache.TryGetValue(key, out value) && value is not null)
+        {
+            return true;
+        }
+
+        if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
+        {
+            value = GetValue(bytes);
+            _cache[key] = value;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    public void Clear()
+    {
+        _cache.Clear();
+        _dictionary.Clear();
+    }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
         => Add(item.Key, item.Value);
@@ -82,7 +124,7 @@ public abstract class CollectionBase<TKey, TValue>(IDictionary<KeyBytes, byte[]>
 
     IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
     {
-        foreach (var key in Keys)
+        foreach (var key in EnumerateKeys())
         {
             yield return new KeyValuePair<TKey, TValue>(key, this[key]);
         }
@@ -90,16 +132,21 @@ public abstract class CollectionBase<TKey, TValue>(IDictionary<KeyBytes, byte[]>
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        foreach (var key in Keys)
+        foreach (var key in EnumerateKeys())
         {
             yield return new KeyValuePair<TKey, TValue>(key, this[key]);
         }
     }
 
-    protected abstract IEnumerable<TKey> EnumerateKeys();
+    protected IEnumerable<TKey> EnumerateKeys()
+    {
+        foreach (var key in _dictionary.Keys)
+        {
+            yield return GetKey(key);
+        }
+    }
 
     protected virtual bool CompareValue(TValue value1, TValue value2) => value1.Equals(value2);
-
 
     protected abstract KeyBytes GetKeyBytes(TKey key);
 

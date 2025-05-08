@@ -6,11 +6,6 @@ internal sealed class ImmutableByteArrayTypeConverter : InternalTypeConverterBas
 {
     protected override ImmutableArray<byte> ConvertFromValue(IValue value)
     {
-        if (value is Null)
-        {
-            return default;
-        }
-
         if (value is Binary binary)
         {
             return [.. binary];
@@ -22,11 +17,6 @@ internal sealed class ImmutableByteArrayTypeConverter : InternalTypeConverterBas
 
     protected override IValue ConvertToValue(ImmutableArray<byte> value)
     {
-        if (value.IsDefault)
-        {
-            return Null.Value;
-        }
-
         return new Binary(value.ToArray());
     }
 }

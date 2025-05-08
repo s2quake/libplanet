@@ -9,6 +9,7 @@ namespace Libplanet.Serialization;
 public static class TypeUtility
 {
     private static readonly ConcurrentDictionary<string, Type> _typeByName = [];
+    private static readonly ConcurrentDictionary<Type, object> _defaultByType = [];
 
     static TypeUtility()
     {
@@ -113,14 +114,36 @@ public static class TypeUtility
         return $"{ns}.{name}, {assemblyName}";
     }
 
+    public static bool IsDefault(object? value, Type type)
+    {
+        if (type.IsValueType)
+        {
+            if (value is null)
+            {
+                throw new UnreachableException("ValueType cannot be null");
+            }
+
+            var defaultValue = _defaultByType.GetOrAdd(type, CreateDefault);
+            return ReferenceEquals(value, defaultValue);
+        }
+
+        return value is null;
+
+    }
+
+    public static object? GetDefault(Type type)
+    {
+        if (type.IsValueType)
+        {
+            return _defaultByType.GetOrAdd(type, CreateDefault);
+        }
+
+        return null;
+    }
+
     private static string GetName(Type type)
     {
-        var name = type.Name
-            ?? throw new UnreachableException("Type does not have FullName");
-        var ns = type.Namespace
-            ?? throw new UnreachableException("Type does not have FullName");
-        var assemblyName = type.Assembly.GetName().Name
-             ?? throw new UnreachableException("Assembly does not have Name");
+        var name = type.Name ?? throw new UnreachableException("Type does not have FullName");
 
         if (type.IsGenericType)
         {
@@ -153,4 +176,7 @@ public static class TypeUtility
 
         static bool IsDefined(Type type) => type.IsDefined(typeof(ModelAttribute));
     }
+
+    private static object CreateDefault(Type type)
+        => Activator.CreateInstance(type) ?? throw new UnreachableException("ValueType cannot be null");
 }
