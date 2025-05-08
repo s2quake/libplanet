@@ -52,7 +52,7 @@ public class TrieTest
     [InlineData(1024)]
     public void Commit(int addressCount)
     {
-        IKeyValueStore keyValueStore = new MemoryKeyValueStore();
+        var keyValueStore = new MemoryKeyValueStore();
         TrieStateStore stateStore = new TrieStateStore(keyValueStore);
         ITrie trieA = stateStore.GetStateRoot(default);
 
@@ -89,7 +89,7 @@ public class TrieTest
     [Fact]
     public void EmptyRootHash()
     {
-        IKeyValueStore keyValueStore = new MemoryKeyValueStore();
+        IDictionary<KeyBytes, byte[]> keyValueStore = new MemoryKeyValueStore();
         TrieStateStore stateStore = new TrieStateStore(keyValueStore);
         ITrie trie = stateStore.GetStateRoot(default);
         Assert.Equal(default, trie.Hash);

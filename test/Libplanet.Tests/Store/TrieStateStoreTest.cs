@@ -11,7 +11,7 @@ namespace Libplanet.Tests.Store;
 
 public class TrieStateStoreTest
 {
-    private readonly IKeyValueStore _stateKeyValueStore;
+    private readonly IDictionary<KeyBytes, byte[]> _stateKeyValueStore;
 
     public TrieStateStoreTest()
     {
@@ -67,7 +67,7 @@ public class TrieStateStoreTest
     public void CopyStates()
     {
         var stateStore = new TrieStateStore(_stateKeyValueStore);
-        IKeyValueStore targetStateKeyValueStore = new MemoryKeyValueStore();
+        IDictionary<KeyBytes, byte[]> targetStateKeyValueStore = new MemoryKeyValueStore();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
         List<(KeyBytes, IValue)> kvs = Enumerable.Range(0, 1_000)
@@ -113,7 +113,7 @@ public class TrieStateStoreTest
     public void CopyWorldStates()
     {
         var stateStore = new TrieStateStore(_stateKeyValueStore);
-        IKeyValueStore targetStateKeyValueStore = new MemoryKeyValueStore();
+        IDictionary<KeyBytes, byte[]> targetStateKeyValueStore = new MemoryKeyValueStore();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
         Dictionary<Address, List<(KeyBytes, IValue)>> data = Enumerable

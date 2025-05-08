@@ -29,7 +29,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         => NodeResolver.ResolveToValue(Node, PathCursor.Create(key))
               ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
-    public static Trie Create(HashDigest<SHA256> hashDigest, IKeyValueStore keyValueStore)
+    public static Trie Create(HashDigest<SHA256> hashDigest, IDictionary<KeyBytes, byte[]> keyValueStore)
     {
         var node = new HashNode(hashDigest) { KeyValueStore = keyValueStore };
         return new Trie(node) { IsCommitted = true };

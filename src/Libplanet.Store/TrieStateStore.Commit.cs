@@ -117,11 +117,11 @@ public partial class TrieStateStore
 
     private class WriteBatch
     {
-        private readonly IKeyValueStore _store;
+        private readonly IDictionary<KeyBytes, byte[]> _store;
         private readonly int _batchSize;
         private readonly Dictionary<KeyBytes, byte[]> _batch;
 
-        public WriteBatch(IKeyValueStore store, int batchSize)
+        public WriteBatch(IDictionary<KeyBytes, byte[]> store, int batchSize)
         {
             _store = store;
             _batchSize = batchSize;

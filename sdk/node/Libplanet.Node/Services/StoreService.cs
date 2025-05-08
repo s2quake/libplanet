@@ -12,7 +12,7 @@ internal sealed class StoreService(IOptions<StoreOptions> storeOptions) : IStore
 
     public IStore Store { get; } = CreateStore(storeOptions.Value);
 
-    public IKeyValueStore KeyValueStore { get; } = CreateKeyValueStore(storeOptions.Value);
+    public IDictionary<KeyBytes, byte[]> KeyValueStore { get; } = CreateKeyValueStore(storeOptions.Value);
 
     public TrieStateStore StateStore => _stateStore ??= new TrieStateStore(KeyValueStore);
 
@@ -24,7 +24,7 @@ internal sealed class StoreService(IOptions<StoreOptions> storeOptions) : IStore
             _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
         };
 
-    private static IKeyValueStore CreateKeyValueStore(StoreOptions storeOptions)
+    private static IDictionary<KeyBytes, byte[]> CreateKeyValueStore(StoreOptions storeOptions)
         => storeOptions.Type switch
         {
             StoreType.RocksDB => new RocksDBKeyValueStore(storeOptions.StateStoreName),

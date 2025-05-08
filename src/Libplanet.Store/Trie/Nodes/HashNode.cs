@@ -11,7 +11,7 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
 
     public HashDigest<SHA256> Hash { get; } = HashDigest;
 
-    public IKeyValueStore? KeyValueStore { get; init; }
+    public IDictionary<KeyBytes, byte[]>? KeyValueStore { get; init; }
 
     IEnumerable<INode> INode.Children
     {

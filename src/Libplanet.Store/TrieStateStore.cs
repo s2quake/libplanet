@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Libplanet.Store;
 
-public partial class TrieStateStore(IKeyValueStore keyValueStore)
+public partial class TrieStateStore(IDictionary<KeyBytes, byte[]> keyValueStore)
 {
     private readonly ILogger _logger = Log.ForContext<TrieStateStore>();
     private readonly HashNodeCache _cache = new();
@@ -18,12 +18,12 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore)
     {
     }
 
-    public IKeyValueStore StateKeyValueStore => keyValueStore;
+    public IDictionary<KeyBytes, byte[]> StateKeyValueStore => keyValueStore;
 
     public void CopyStates(
         IImmutableSet<HashDigest<SHA256>> stateRootHashes, TrieStateStore targetStateStore)
     {
-        IKeyValueStore targetKeyValueStore = targetStateStore.StateKeyValueStore;
+        IDictionary<KeyBytes, byte[]> targetKeyValueStore = targetStateStore.StateKeyValueStore;
         var stopwatch = new Stopwatch();
         long count = 0;
         _logger.Verbose("Started {MethodName}()", nameof(CopyStates));
@@ -90,7 +90,7 @@ public partial class TrieStateStore(IKeyValueStore keyValueStore)
     {
         if (!_isDisposed)
         {
-            StateKeyValueStore.Dispose();
+            // StateKeyValueStore.Dispose();
             _isDisposed = true;
             GC.SuppressFinalize(this);
         }

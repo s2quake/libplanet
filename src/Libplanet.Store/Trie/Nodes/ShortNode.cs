@@ -41,7 +41,7 @@ internal sealed record class ShortNode(in Nibbles Key, INode Value) : INode
         if (value is HashNode hashNode && hashNode.KeyValueStore is null)
         {
             var message = $"Given {nameof(value)} cannot be a {nameof(HashNode)} " +
-                $"without a {nameof(IKeyValueStore)}.";
+                $"without a {nameof(IDictionary<KeyBytes, byte[]>)}.";
             throw new ArgumentException(message, nameof(value));
         }
 
