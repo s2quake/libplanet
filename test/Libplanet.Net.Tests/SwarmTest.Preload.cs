@@ -199,9 +199,9 @@ namespace Libplanet.Net.Tests
             const int initialSharedTipHeight = 3;
             const int maliciousTipHeight = 5;
             const int honestTipHeight = 7;
-            var policy = BlockChainOptions.Empty;
-            var policyB = BlockChainOptions.Empty;
-            var genesis = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
+            var policy = new BlockChainOptions();
+            var policyB = new BlockChainOptions();
+            var genesis = new MemoryStoreFixture(policy).GenesisBlock;
 
             var swarmA = await CreateSwarm(
                 privateKey: new PrivateKey(),
@@ -326,19 +326,13 @@ namespace Libplanet.Net.Tests
                 },
             };
             // var renderer = new RecordingActionRenderer();
-            var chain = MakeBlockChain(
-                policy,
-                new MemoryStore(),
-                new TrieStateStore());
+            var chain = MakeBlockChain(policy);
 
             var senderKey = new PrivateKey();
 
             var receiver = await CreateSwarm(chain).ConfigureAwait(false);
             var sender = await CreateSwarm(
-                MakeBlockChain(
-                    policy,
-                    new MemoryStore(),
-                    new TrieStateStore()),
+                MakeBlockChain(policy),
                 senderKey)
             .ConfigureAwait(false);
 
@@ -452,18 +446,12 @@ namespace Libplanet.Net.Tests
                     EndBlockActions = [new MinerReward(1)],
                 },
             };
-            fxForNominers[0] = new MemoryStoreFixture(policy.PolicyActions);
-            fxForNominers[1] = new MemoryStoreFixture(policy.PolicyActions);
+            fxForNominers[0] = new MemoryStoreFixture(policy);
+            fxForNominers[1] = new MemoryStoreFixture(policy);
             var blockChainsForNominers = new[]
             {
-                MakeBlockChain(
-                    policy,
-                    fxForNominers[0].Store,
-                    fxForNominers[0].StateStore),
-                MakeBlockChain(
-                    policy,
-                    fxForNominers[1].Store,
-                    fxForNominers[1].StateStore),
+                MakeBlockChain(policy),
+                MakeBlockChain(policy),
             };
             var nominerSwarm0 =
                 await CreateSwarm(blockChainsForNominers[0]);
@@ -776,19 +764,13 @@ namespace Libplanet.Net.Tests
 
             BlockChain receiverChain = MakeBlockChain(
                 policy,
-                new MemoryStore(),
-                new TrieStateStore(),
                 privateKey: key1);
             BlockChain validSeedChain = MakeBlockChain(
                 policy,
-                new MemoryStore(),
-                new TrieStateStore(),
                 privateKey: key1,
                 genesisBlock: receiverChain.Genesis);
             BlockChain invalidSeedChain = MakeBlockChain(
                 policy,
-                new MemoryStore(),
-                new TrieStateStore(),
                 privateKey: key2);
             Swarm receiverSwarm =
                 await CreateSwarm(receiverChain);
@@ -845,12 +827,10 @@ namespace Libplanet.Net.Tests
                     EndBlockActions = [new MinerReward(1)],
                 },
             };
-            var fx1 = new MemoryStoreFixture(policy.PolicyActions);
-            var fx2 = new MemoryStoreFixture(policy.PolicyActions);
-            var seedChain = MakeBlockChain(
-                policy, fx1.Store, fx1.StateStore);
-            var receiverChain = MakeBlockChain(
-                policy, fx2.Store, fx2.StateStore);
+            var fx1 = new MemoryStoreFixture(policy);
+            var fx2 = new MemoryStoreFixture(policy);
+            var seedChain = MakeBlockChain(policy);
+            var receiverChain = MakeBlockChain(policy);
 
             Swarm seed =
                 await CreateSwarm(seedChain);

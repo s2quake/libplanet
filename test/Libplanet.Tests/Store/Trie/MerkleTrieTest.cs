@@ -60,7 +60,7 @@ public class MerkleTrieTest
     public void ToDictionary()
     {
         using var keyValueStore = new MemoryKeyValueStore();
-        using var stateStore = new TrieStateStore(keyValueStore);
+        var stateStore = new TrieStateStore(keyValueStore);
         var trie = Libplanet.Store.Trie.Trie.Create([
             ([0xbe, 0xef], Dictionary.Empty),
             ([0x01], Null.Value),
@@ -89,7 +89,7 @@ public class MerkleTrieTest
     [Fact]
     public void IterateNodes()
     {
-        using var stateStore = new TrieStateStore();
+        var stateStore = new TrieStateStore();
         var trie = Libplanet.Store.Trie.Trie.Create(
             ([0xbe, 0xef], Dictionary.Empty.Add(GetRandomBytes(32), Null.Value)));
         // There are (ShortNode, ValueNode)
@@ -107,7 +107,7 @@ public class MerkleTrieTest
     [InlineData(false, "_1ab3_639e")]
     public void IterateSubTrie(bool commit, string extraKey)
     {
-        using var stateStore = new TrieStateStore();
+        var stateStore = new TrieStateStore();
         string[] keys =
         [
             "1b418c98",
@@ -135,7 +135,7 @@ public class MerkleTrieTest
     [InlineData(false)]
     public void Set(bool commit)
     {
-        using var stateStore = new TrieStateStore();
+        var stateStore = new TrieStateStore();
         var trie = Libplanet.Store.Trie.Trie.Create(
             ((KeyBytes)"_", Dictionary.Empty));
 
@@ -278,7 +278,7 @@ public class MerkleTrieTest
     [Fact]
     public void GetNode()
     {
-        using var stateStore = new TrieStateStore();
+        var stateStore = new TrieStateStore();
         var keyValues = new (ImmutableArray<byte>, IValue)[]
         {
             ([0x00], new Text("00")),
@@ -308,7 +308,7 @@ public class MerkleTrieTest
     [Fact]
     public void ResolveToValueAtTheEndOfShortNode()
     {
-        using var stateStore = new TrieStateStore();
+        var stateStore = new TrieStateStore();
         var trie = Libplanet.Store.Trie.Trie.Create(
             (Key: [0x00], Value: new Text("00")));
 
@@ -320,7 +320,7 @@ public class MerkleTrieTest
     [Fact]
     public void SetValueToExtendedKey()
     {
-        using var stateStore = new TrieStateStore();
+        var stateStore = new TrieStateStore();
         var value00 = new Text("00");
         var value0000 = new Text("0000");
         var trie = Libplanet.Store.Trie.Trie.Create(

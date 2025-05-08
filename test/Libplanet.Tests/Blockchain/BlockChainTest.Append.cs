@@ -307,10 +307,7 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void AppendModern()
         {
-            _blockChain = TestUtils.MakeBlockChain(
-                BlockChainOptions.Empty,
-                new MemoryStore(),
-                new TrieStateStore());
+            _blockChain = TestUtils.MakeBlockChain();
             var genesis = _blockChain.Genesis;
             var address1 = new Address([.. TestUtils.GetRandomBytes(20)]);
             var address2 = new Address([.. TestUtils.GetRandomBytes(20)]);
@@ -456,13 +453,9 @@ namespace Libplanet.Tests.Blockchain
             {
                 TransactionValidation = IsSignerValid,
             };
-            using (var fx = new MemoryStoreFixture())
+            using (var fx = new MemoryStoreFixture(policy))
             {
-                var blockChain = BlockChain.Create(
-                    policy,
-                    fx.Store,
-                    fx.StateStore,
-                    fx.GenesisBlock);
+                var blockChain = BlockChain.Create(fx.GenesisBlock, policy);
 
                 var validTx = blockChain.MakeTransaction(validKey, Array.Empty<DumbAction>());
                 var invalidTx = blockChain.MakeTransaction(invalidKey, Array.Empty<DumbAction>());
@@ -537,7 +530,7 @@ namespace Libplanet.Tests.Blockchain
         [SkippableFact]
         public void AppendValidatesBlock()
         {
-            var policy = new BlockChainOptions
+            var options = new BlockChainOptions
             {
                 BlockValidation = (_, _) =>
                 {
@@ -549,11 +542,7 @@ namespace Libplanet.Tests.Blockchain
                 },
             }
                     ;
-            var blockChain = new BlockChain(
-                policy,
-                _fx.Store,
-                _fx.StateStore,
-                _fx.GenesisBlock);
+            var blockChain = new BlockChain(_fx.GenesisBlock, options);
             Assert.Throws<InvalidOperationException>(
                 () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
         }
@@ -631,10 +620,10 @@ namespace Libplanet.Tests.Blockchain
             {
                 MaxTransactionsBytes = 50 * 1024,
             };
-            var fx = GetStoreFixture(policy.PolicyActions);
+            var fx = GetStoreFixture(policy);
             // var renderer = new ValidatingActionRenderer();
             var actionEvaluator = new ActionEvaluator(
-                stateStore: fx.StateStore,
+                stateStore: new TrieStateStore(policy.KeyValueStore),
                 policy.PolicyActions);
 
             var txs = new[]
@@ -671,10 +660,8 @@ namespace Libplanet.Tests.Blockchain
                 fx.Proposer,
                 actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputState);
             var blockChain = BlockChain.Create(
-                policy,
-                fx.Store,
-                fx.StateStore,
-                genesis);
+                options: policy,
+                genesisBlock: genesis);
             var emptyBlock = blockChain.ProposeBlock(
                 fx.Proposer,
                 TestUtils.CreateBlockCommit(blockChain.Tip),
@@ -690,12 +677,12 @@ namespace Libplanet.Tests.Blockchain
         public void AppendSRHPostponeBPVBump()
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion - 1;
-            var policy = BlockChainOptions.Empty;
+            var options = new BlockChainOptions();
             var store = new MemoryStore();
             var stateStore = new TrieStateStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,
-                policy.PolicyActions);
+                options.PolicyActions);
 
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
@@ -706,9 +693,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(beforePostponeBPV, genesis.ProtocolVersion);
 
             var blockChain = TestUtils.MakeBlockChain(
-                policy,
-                store,
-                stateStore,
+                options,
                 genesisBlock: genesis);
 
             // Append block before state root hash postpone

@@ -9,13 +9,6 @@ namespace Libplanet.Blockchain;
 
 public sealed record class BlockChainOptions
 {
-    // public static BlockChainOptions Empty { get; } = new BlockChainOptions
-    // {
-    //     BlockValidation = (_, _) => { },
-    // };
-
-    // public static BlockChainOptions Default { get; } = new();
-
     public IStore Store { get; init; } = new MemoryStore();
 
     public IKeyValueStore KeyValueStore { get; init; } = new MemoryKeyValueStore();

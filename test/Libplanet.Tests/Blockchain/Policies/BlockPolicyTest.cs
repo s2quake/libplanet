@@ -26,11 +26,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             {
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
-            _chain = BlockChain.Create(
-                _policy,
-                _fx.Store,
-                _fx.StateStore,
-                _fx.GenesisBlock);
+            _chain = BlockChain.Create(_fx.GenesisBlock, _policy);
         }
 
         public void Dispose()
@@ -152,7 +148,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 MinTransactionsPerBlock = policyLimit,
             };
             var privateKey = new PrivateKey();
-            var chain = TestUtils.MakeBlockChain(policy, store, stateStore);
+            var chain = TestUtils.MakeBlockChain(policy);
 
             _ = chain.MakeTransaction(privateKey, new DumbAction[] { });
             Assert.Single(chain.ListStagedTransactions());
@@ -176,7 +172,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                 MaxTransactionsPerBlock = policyLimit,
             };
             var privateKey = new PrivateKey();
-            var chain = TestUtils.MakeBlockChain(policy, store, stateStore);
+            var chain = TestUtils.MakeBlockChain(policy);
 
             _ = Enumerable
                     .Range(0, generatedTxCount)
@@ -203,7 +199,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             };
             var privateKeys = Enumerable.Range(0, keyCount).Select(_ => new PrivateKey()).ToList();
             var minerKey = privateKeys.First();
-            var chain = TestUtils.MakeBlockChain(policy, store, stateStore);
+            var chain = TestUtils.MakeBlockChain(policy);
 
             privateKeys.ForEach(
                 key => _ = Enumerable

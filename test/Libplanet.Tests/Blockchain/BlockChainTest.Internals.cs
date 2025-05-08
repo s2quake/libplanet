@@ -121,8 +121,9 @@ public partial class BlockChainTest
             { MinerReward.RewardRecordAddress, (Text)$"{minerAddress},{minerAddress}" },
         };
 
+
         IValue legacyStateRootRaw =
-            _fx.StateStore.GetStateRoot(_blockChain.GetNextStateRootHash() ?? default)
+            _blockChain.StateStore.GetStateRoot(_blockChain.GetNextStateRootHash() ?? default)
             [ToStateKey(ReservedAddresses.LegacyAccount)];
         Assert.NotNull(legacyStateRootRaw);
         var legacyStateRoot =
@@ -131,7 +132,7 @@ public partial class BlockChainTest
         {
             AssertBencodexEqual(
                 pair.Value,
-                _fx.StateStore
+                _blockChain.StateStore
                     .GetStateRoot(legacyStateRoot)
                     .GetMany(new[] { ToStateKey(pair.Key) })[0]);
         }

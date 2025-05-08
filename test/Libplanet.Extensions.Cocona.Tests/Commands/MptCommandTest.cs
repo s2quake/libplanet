@@ -25,8 +25,8 @@ public class MptCommandTest : IDisposable
         _pathB = NewTempPath();
         using var stateKeyValueStoreA = new DefaultKeyValueStore(_pathA);
         using var stateKeyValueStoreB = new DefaultKeyValueStore(_pathB);
-        using var stateStoreA = new TrieStateStore(new DefaultKeyValueStore(_pathA));
-        using var stateStoreB = new TrieStateStore(new DefaultKeyValueStore(_pathB));
+        var stateStoreA = new TrieStateStore(new DefaultKeyValueStore(_pathA));
+        var stateStoreB = new TrieStateStore(new DefaultKeyValueStore(_pathB));
         _trieA = stateStoreA.Commit(
             stateStoreA.GetStateRoot(default)
                 .Set((KeyBytes)"deleted", Null.Value)

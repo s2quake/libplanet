@@ -19,11 +19,7 @@ public abstract class StagePolicyTest
     {
         _policy = new BlockChainOptions();
         _fx = new MemoryStoreFixture();
-        _chain = BlockChain.Create(
-            _policy,
-            _fx.Store,
-            _fx.StateStore,
-            _fx.GenesisBlock);
+        _chain = BlockChain.Create(_fx.GenesisBlock, _policy);
         _key = new PrivateKey();
         _txs = Enumerable.Range(0, 5).Select(i =>
             Transaction.Create(

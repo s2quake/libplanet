@@ -334,7 +334,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 MaxTransactionsBytes = 50 * 1024,
             };
-            var fx = new MemoryStoreFixture(options.PolicyActions);
+            var fx = new MemoryStoreFixture(options);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
 
             Context context = new Context(

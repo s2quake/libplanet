@@ -27,7 +27,7 @@ namespace Libplanet.Tests.Action;
 public partial class ActionEvaluatorTest
 {
     private readonly ILogger _logger;
-    private readonly BlockChainOptions _policy;
+    private readonly BlockChainOptions _options;
     private readonly StoreFixture _storeFx;
     private readonly TxFixture _txFx;
 
@@ -45,7 +45,7 @@ public partial class ActionEvaluatorTest
             .CreateLogger()
             .ForContext<ActionEvaluatorTest>();
 
-        _policy = new BlockChainOptions
+        _options = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {
@@ -68,7 +68,7 @@ public partial class ActionEvaluatorTest
             },
             MaxTransactionsBytes = 50 * 1024,
         };
-        _storeFx = new MemoryStoreFixture(_policy.PolicyActions);
+        _storeFx = new MemoryStoreFixture(_options);
         _txFx = new TxFixture(default);
     }
 
@@ -108,8 +108,7 @@ public partial class ActionEvaluatorTest
                 Transactions = [.. txs],
                 Evidences = [.. evs],
             });
-        var actionEvaluator = new ActionEvaluator(
-            stateStore);
+        var actionEvaluator = new ActionEvaluator(stateStore);
         Block stateRootBlock = noStateRootBlock.Sign(
             GenesisProposer,
             stateRootHash: default);
@@ -142,12 +141,7 @@ public partial class ActionEvaluatorTest
         var address = privateKey.Address;
         var value = "Foo";
 
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore();
-        var chain = TestUtils.MakeBlockChain(
-            options: new BlockChainOptions(),
-            store: store,
-            stateStore: stateStore);
+        var chain = TestUtils.MakeBlockChain(options: new BlockChainOptions());
         var action = new ContextRecordingAction { Address = address, Value = value };
         var tx = Transaction.Create(
             nonce: 0,
@@ -200,13 +194,7 @@ public partial class ActionEvaluatorTest
     [Fact]
     public void EvaluateWithPolicyActions()
     {
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore();
-        var (chain, actionEvaluator) =
-            TestUtils.MakeBlockChainAndActionEvaluator(
-                policy: _policy,
-                store: store,
-                stateStore: stateStore);
+        var (chain, actionEvaluator) = TestUtils.MakeBlockChainAndActionEvaluator(options: _options);
 
         Assert.Equal(
             (BigInteger)1,
@@ -253,8 +241,6 @@ public partial class ActionEvaluatorTest
     [Fact]
     public void EvaluateWithPolicyActionsWithException()
     {
-        var store = new MemoryStore();
-        var stateStore = new TrieStateStore();
         var policyWithExceptions = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
@@ -282,11 +268,7 @@ public partial class ActionEvaluatorTest
             },
         };
 
-        var (chain, actionEvaluator) =
-            TestUtils.MakeBlockChainAndActionEvaluator(
-                policy: policyWithExceptions,
-                store: store,
-                stateStore: stateStore);
+        var (chain, actionEvaluator) = TestUtils.MakeBlockChainAndActionEvaluator(options: policyWithExceptions);
 
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(
@@ -975,9 +957,7 @@ public partial class ActionEvaluatorTest
     public void EvaluatePolicyBeginBlockActions()
     {
         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
+            options: _options,
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -988,7 +968,7 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(chain.Tip),
             evidences: []);
 
-        World previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateBeginBlockActions(
             (RawBlock)genesis,
             previousState);
@@ -1019,9 +999,7 @@ public partial class ActionEvaluatorTest
     public void EvaluatePolicyEndBlockActions()
     {
         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
+            options: _options,
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -1032,7 +1010,7 @@ public partial class ActionEvaluatorTest
             [.. txs],
             []);
 
-        World previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateEndBlockActions(
             (RawBlock)genesis,
             previousState);
@@ -1064,9 +1042,7 @@ public partial class ActionEvaluatorTest
     public void EvaluatePolicyBeginTxActions()
     {
         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
+            options: _options,
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -1077,7 +1053,7 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(chain.Tip),
             evidences: []);
 
-        World previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateBeginTxActions(
             (RawBlock)genesis,
             txs[0],
@@ -1112,9 +1088,7 @@ public partial class ActionEvaluatorTest
     public void EvaluatePolicyEndTxActions()
     {
         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
-            policy: _policy,
-            store: _storeFx.Store,
-            stateStore: _storeFx.StateStore,
+            options: _options,
             genesisBlock: _storeFx.GenesisBlock,
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
@@ -1125,7 +1099,7 @@ public partial class ActionEvaluatorTest
             lastCommit: CreateBlockCommit(chain.Tip),
             evidences: []);
 
-        World previousState = _storeFx.StateStore.GetWorld(default);
+        World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateEndTxActions(
             (RawBlock)genesis,
             txs[0],
@@ -1182,9 +1156,7 @@ public partial class ActionEvaluatorTest
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             options: new BlockChainOptions(),
-            actions: [freeGasAction,],
-            store: store,
-            stateStore: stateStore);
+            actions: [freeGasAction]);
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,
@@ -1237,9 +1209,7 @@ public partial class ActionEvaluatorTest
             actions: new[]
             {
                 freeGasAction,
-            },
-            store: store,
-            stateStore: stateStore);
+            });
         var tx = Transaction.Create(
             nonce: 0,
             privateKey: privateKey,

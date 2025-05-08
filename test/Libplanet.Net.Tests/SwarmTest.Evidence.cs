@@ -18,8 +18,8 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task DuplicateVote_Test()
         {
-            var policy = BlockChainOptions.Empty;
-            var genesisBlock = new MemoryStoreFixture(policy.PolicyActions).GenesisBlock;
+            var policy = new BlockChainOptions();
+            var genesisBlock = new MemoryStoreFixture(policy).GenesisBlock;
             var genesisProposer = Libplanet.Tests.TestUtils.GenesisProposer;
             var privateKeys = Libplanet.Tests.TestUtils.ValidatorPrivateKeys.ToArray();
             var count = privateKeys.Length;

@@ -19,12 +19,9 @@ namespace Libplanet.Benchmarks
 
         public AppendBlock()
         {
-            var fx = new DefaultStoreFixture();
+            var fx = new MemoryStoreFixture();
             _blockChain = Libplanet.Blockchain.BlockChain.Create(
-                BlockChainOptions.Empty,
-                fx.Store,
-                fx.StateStore,
-                fx.GenesisBlock);
+                fx.GenesisBlock, fx.Options);
             _privateKey = new PrivateKey();
         }
 

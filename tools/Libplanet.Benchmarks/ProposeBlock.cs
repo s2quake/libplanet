@@ -18,12 +18,8 @@ namespace Libplanet.Benchmarks
 
         public ProposeBlock()
         {
-            var fx = new DefaultStoreFixture();
-            _blockChain = Libplanet.Blockchain.BlockChain.Create(
-                BlockChainOptions.Empty,
-                fx.Store,
-                fx.StateStore,
-                fx.GenesisBlock);
+            var fx = new MemoryStoreFixture();
+            _blockChain = Libplanet.Blockchain.BlockChain.Create(fx.GenesisBlock, fx.Options);
             _privateKey = new PrivateKey();
         }
 

@@ -964,16 +964,12 @@ namespace Libplanet.Tests.Store
             using (StoreFixture fx2 = FxConstructor())
             {
                 IStore s1 = fx.Store, s2 = fx2.Store;
-                var policy = BlockChainOptions.Empty;
+                var policy = new BlockChainOptions();
                 var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
                 var genesis = preEval.Sign(
                     GenesisProposer,
                     default);
-                var blocks = BlockChain.Create(
-                    policy,
-                    s1,
-                    fx.StateStore,
-                    genesis);
+                var blocks = BlockChain.Create(genesis, policy);
 
                 // FIXME: Need to add more complex blocks/transactions.
                 var key = new PrivateKey();

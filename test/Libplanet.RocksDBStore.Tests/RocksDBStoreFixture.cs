@@ -1,5 +1,6 @@
 using System.IO;
 using Libplanet.Action;
+using Libplanet.Blockchain;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
@@ -9,8 +10,8 @@ namespace Libplanet.RocksDBStore.Tests;
 public class RocksDBStoreFixture : StoreFixture
 {
     public RocksDBStoreFixture(
-        PolicyActions policyActions = null)
-        : base(policyActions)
+        BlockChainOptions? options = null)
+        : base(options ?? new BlockChainOptions())
     {
         Path = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),
@@ -19,8 +20,8 @@ public class RocksDBStoreFixture : StoreFixture
         Scheme = "rocksdb+file://";
 
         var store = new RocksDBStore(Path, blockCacheSize: 2, txCacheSize: 2);
-        Store = store;
-        StateStore = LoadTrieStateStore(Path);
+        // Store = store;
+        // StateStore = LoadTrieStateStore(Path);
     }
 
     public TrieStateStore LoadTrieStateStore(string path)
@@ -32,8 +33,8 @@ public class RocksDBStoreFixture : StoreFixture
 
     protected override void Dispose(bool disposing)
     {
-        Store?.Dispose();
-        StateStore?.Dispose();
+        // Store?.Dispose();
+        // StateStore?.Dispose();
 
         if (!(Path is null))
         {
