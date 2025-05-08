@@ -1,37 +1,19 @@
-using System.Diagnostics;
-using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
-using Libplanet.Types;
 using Libplanet.Types.Blocks;
-using Serilog;
 
 namespace Libplanet.Store;
 
 public sealed class BlockCollection(IDictionary<KeyBytes, byte[]> dictionary)
+    : CollectionBase<BlockHash, Block>(dictionary)
 {
-    public Block this[BlockHash blockHash]
-    {
-        get
-        {
-            throw new NotImplementedException(
-                "This method is not implemented. Use GetBlockDigest instead.");
-        }
-    }
+    public BlockDigest GetBlockDigest(BlockHash blockHash) => BlockDigest.Create(this[blockHash]);
 
-    public long GetHeight(BlockHash blockHash)
-        => throw new NotImplementedException(
-            "This method is not implemented. Use GetBlockDigest instead.");
+    protected override byte[] GetBytes(Block value) => ModelSerializer.SerializeToBytes(value);
 
-    public BlockDigest GetBlockDigest(BlockHash blockHash)
-        => throw new NotImplementedException(
-            "This method is not implemented. Use GetBlockDigest instead.");
+    protected override BlockHash GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);
 
-    public void Add(Block block)
-        => throw new NotImplementedException();
+    protected override KeyBytes GetKeyBytes(BlockHash key) => new(key.Bytes);
 
-    public bool Remove(BlockHash blockHash) => throw new NotImplementedException();
-
-    public bool Contains(BlockHash blockHash) => throw new NotImplementedException();
-
+    protected override Block GetValue(byte[] bytes) => ModelSerializer.DeserializeFromBytes<Block>(bytes);
 }

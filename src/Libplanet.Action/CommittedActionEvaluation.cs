@@ -13,27 +13,24 @@ public sealed record class CommittedActionEvaluation
 
     public Exception? Exception { get; init; }
 
-    public static explicit operator CommittedActionEvaluation(ActionEvaluation evaluation)
+    public static explicit operator CommittedActionEvaluation(ActionEvaluation evaluation) => new()
     {
-        return new CommittedActionEvaluation
+        Action = evaluation.Action,
+        InputContext = new CommittedActionContext
         {
-            Action = evaluation.Action,
-            InputContext = new CommittedActionContext
-            {
-                Signer = evaluation.InputContext.Signer,
-                TxId = evaluation.InputContext.TxId,
-                Proposer = evaluation.InputContext.Proposer,
-                BlockHeight = evaluation.InputContext.BlockHeight,
-                BlockProtocolVersion = evaluation.InputContext.BlockProtocolVersion,
-                PreviousState = evaluation.InputWorld.Trie.IsCommitted
+            Signer = evaluation.InputContext.Signer,
+            TxId = evaluation.InputContext.TxId,
+            Proposer = evaluation.InputContext.Proposer,
+            BlockHeight = evaluation.InputContext.BlockHeight,
+            BlockProtocolVersion = evaluation.InputContext.BlockProtocolVersion,
+            PreviousState = evaluation.InputWorld.Trie.IsCommitted
                         ? evaluation.InputWorld.Trie.Hash
                         : throw new ArgumentException("Trie is not recorded"),
-                RandomSeed = evaluation.InputContext.RandomSeed,
-            },
-            OutputState = evaluation.OutputWorld.Trie.IsCommitted
+            RandomSeed = evaluation.InputContext.RandomSeed,
+        },
+        OutputState = evaluation.OutputWorld.Trie.IsCommitted
                     ? evaluation.OutputWorld.Trie.Hash
                     : throw new ArgumentException("Trie is not recorded"),
-            Exception = evaluation.Exception,
-        };
-    }
+        Exception = evaluation.Exception,
+    };
 }
