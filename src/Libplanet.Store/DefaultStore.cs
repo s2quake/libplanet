@@ -32,7 +32,7 @@ public class DefaultStore : StoreBase
     private readonly EvidenceCollection _pendingEvidence;
     private readonly EvidenceCollection _committedEvidence;
 
-    private readonly LiteDatabase _db;
+    // private readonly LiteDatabase _db;
 
     private bool _disposed;
 
@@ -49,7 +49,7 @@ public class DefaultStore : StoreBase
         _committedEvidence = new EvidenceCollection(_database.GetOrAdd("evidencec"));
         if (options.Path == string.Empty)
         {
-            _db = new LiteDatabase(new MemoryStream(), disposeStream: true);
+            // _db = new LiteDatabase(new MemoryStream(), disposeStream: true);
         }
         else
         {
@@ -72,30 +72,30 @@ public class DefaultStore : StoreBase
                 connectionString.Mode = FileMode.Exclusive;
             }
 
-            _db = new LiteDatabase(connectionString);
+            // _db = new LiteDatabase(connectionString);
         }
 
-        lock (_db.Mapper)
-        {
-            _db.Mapper.RegisterType(
-                hash => ModelSerializer.SerializeToBytes(hash),
-                b => ModelSerializer.DeserializeFromBytes<BlockHash>(b.AsBinary));
-            _db.Mapper.RegisterType(
-                hash => hash.Bytes.ToArray(),
-                b => new HashDigest<SHA256>(b.AsBinary));
-            _db.Mapper.RegisterType(
-                txid => txid.Bytes.ToArray(),
-                b => new TxId(b.AsBinary));
-            _db.Mapper.RegisterType(
-                address => address.ToByteArray(),
-                b => new Address(b.AsBinary));
-            _db.Mapper.RegisterType(
-                commit => ModelSerializer.SerializeToBytes(commit),
-                b => ModelSerializer.DeserializeFromBytes<BlockCommit>(b.AsBinary));
-            _db.Mapper.RegisterType(
-                evidence => ModelSerializer.SerializeToBytes(evidence),
-                b => ModelSerializer.DeserializeFromBytes<EvidenceId>(b.AsBinary));
-        }
+        // lock (_db.Mapper)
+        // {
+        //     _db.Mapper.RegisterType(
+        //         hash => ModelSerializer.SerializeToBytes(hash),
+        //         b => ModelSerializer.DeserializeFromBytes<BlockHash>(b.AsBinary));
+        //     _db.Mapper.RegisterType(
+        //         hash => hash.Bytes.ToArray(),
+        //         b => new HashDigest<SHA256>(b.AsBinary));
+        //     _db.Mapper.RegisterType(
+        //         txid => txid.Bytes.ToArray(),
+        //         b => new TxId(b.AsBinary));
+        //     _db.Mapper.RegisterType(
+        //         address => address.ToByteArray(),
+        //         b => new Address(b.AsBinary));
+        //     _db.Mapper.RegisterType(
+        //         commit => ModelSerializer.SerializeToBytes(commit),
+        //         b => ModelSerializer.DeserializeFromBytes<BlockCommit>(b.AsBinary));
+        //     _db.Mapper.RegisterType(
+        //         evidence => ModelSerializer.SerializeToBytes(evidence),
+        //         b => ModelSerializer.DeserializeFromBytes<EvidenceId>(b.AsBinary));
+        // }
 
         Options = options;
     }
@@ -111,8 +111,9 @@ public class DefaultStore : StoreBase
 
     public override void DeleteChainId(Guid chainId)
     {
+        _database.Remove(TxNonceCollection(chainId));
         _db.DropCollection(IndexCollection(chainId).Name);
-        _db.DropCollection(TxNonceCollection(chainId).Name);
+        // _db.DropCollection(TxNonceCollection(chainId).Name);
         _db.DropCollection(CommitCollection(chainId).Name);
     }
 
@@ -284,47 +285,69 @@ public class DefaultStore : StoreBase
 
     public override IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
     {
-        LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
-        foreach (BsonDocument doc in collection.FindAll())
+        var collection = new NonceCollection(_database.GetOrAdd(TxNonceCollection(chainId)));
+        foreach (var item in collection)
         {
-            if (doc.TryGetValue("_id", out BsonValue id) && id.IsBinary)
-            {
-                var address = new Address([.. id.AsBinary]);
-                if (doc.TryGetValue("v", out BsonValue v) && v.IsInt64 && v.AsInt64 > 0)
-                {
-                    yield return new KeyValuePair<Address, long>(address, v.AsInt64);
-                }
-            }
+            yield return item;
         }
+
+        // LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
+        // foreach (BsonDocument doc in collection.FindAll())
+        // {
+        //     if (doc.TryGetValue("_id", out BsonValue id) && id.IsBinary)
+        //     {
+        //         var address = new Address([.. id.AsBinary]);
+        //         if (doc.TryGetValue("v", out BsonValue v) && v.IsInt64 && v.AsInt64 > 0)
+        //         {
+        //             yield return new KeyValuePair<Address, long>(address, v.AsInt64);
+        //         }
+        //     }
+        // }
     }
 
     public override long GetTxNonce(Guid chainId, Address address)
     {
-        LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
-        var docId = new BsonValue(address.ToByteArray());
-        BsonDocument doc = collection.FindById(docId);
-
-        if (doc is null)
+        var collection = new NonceCollection(_database.GetOrAdd(TxNonceCollection(chainId)));
+        if (collection.TryGetValue(address, out var nonce))
         {
-            return 0;
+            return nonce;
         }
 
-        return doc.TryGetValue("v", out BsonValue v) ? v.AsInt64 : 0;
+        return 0L;
+
+        // LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
+        // var docId = new BsonValue(address.ToByteArray());
+        // BsonDocument doc = collection.FindById(docId);
+
+        // if (doc is null)
+        // {
+        //     return 0;
+        // }
+
+        // return doc.TryGetValue("v", out BsonValue v) ? v.AsInt64 : 0;
     }
 
     public override void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
     {
-        long nextNonce = GetTxNonce(chainId, signer) + delta;
-        LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
-        var docId = new BsonValue(signer.ToByteArray());
-        collection.Upsert(docId, new BsonDocument() { ["v"] = new BsonValue(nextNonce) });
+        var collection = new NonceCollection(_database.GetOrAdd(TxNonceCollection(chainId)));
+        if (!collection.TryGetValue(signer, out var nonce))
+        {
+            nonce = 0L;
+        }
+
+        collection[signer] = nonce + delta;
+
+        // long nextNonce = GetTxNonce(chainId, signer) + delta;
+        // LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
+        // var docId = new BsonValue(signer.ToByteArray());
+        // collection.Upsert(docId, new BsonDocument() { ["v"] = new BsonValue(nextNonce) });
     }
 
     public override void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
     {
-        LiteCollection<BsonDocument> srcColl = TxNonceCollection(sourceChainId);
-        LiteCollection<BsonDocument> destColl = TxNonceCollection(destinationChainId);
-        destColl.InsertBulk(srcColl.FindAll());
+        // LiteCollection<BsonDocument> srcColl = TxNonceCollection(sourceChainId);
+        // LiteCollection<BsonDocument> destColl = TxNonceCollection(destinationChainId);
+        // destColl.InsertBulk(srcColl.FindAll());
     }
 
     public override void PruneOutdatedChains(bool noopWithoutCanon = false)
@@ -460,7 +483,7 @@ public class DefaultStore : StoreBase
     {
         if (!_disposed)
         {
-            _db?.Dispose();
+            // _db?.Dispose();
             // _root.Dispose();
             _disposed = true;
         }
@@ -472,41 +495,44 @@ public class DefaultStore : StoreBase
     internal static string FormatChainId(Guid chainId) =>
         ByteUtility.Hex(chainId.ToByteArray());
 
-    [StoreLoader("default+file")]
-    private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
-    {
-        NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
-        bool journal = query.GetBoolean("journal", true);
-        int indexCacheSize = query.GetInt32("index-cache", 50000);
-        int blockCacheSize = query.GetInt32("block-cache", 512);
-        int txCacheSize = query.GetInt32("tx-cache", 1024);
-        int evidenceCacheSize = query.GetInt32("evidence-cache", 1024);
-        bool flush = query.GetBoolean("flush", true);
-        bool readOnly = query.GetBoolean("readonly");
-        string statesKvPath = query.Get("states-dir") ?? StatesKvPathDefault;
-        var options = new DefaultStoreOptions
-        {
-            Path = storeUri.LocalPath,
-            Journal = journal,
-            IndexCacheSize = indexCacheSize,
-            BlockCacheSize = blockCacheSize,
-            TxCacheSize = txCacheSize,
-            EvidenceCacheSize = evidenceCacheSize,
-            Flush = flush,
-            ReadOnly = readOnly,
-        };
+    // [StoreLoader("default+file")]
+    // private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
+    // {
+    //     NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
+    //     bool journal = query.GetBoolean("journal", true);
+    //     int indexCacheSize = query.GetInt32("index-cache", 50000);
+    //     int blockCacheSize = query.GetInt32("block-cache", 512);
+    //     int txCacheSize = query.GetInt32("tx-cache", 1024);
+    //     int evidenceCacheSize = query.GetInt32("evidence-cache", 1024);
+    //     bool flush = query.GetBoolean("flush", true);
+    //     bool readOnly = query.GetBoolean("readonly");
+    //     string statesKvPath = query.Get("states-dir") ?? StatesKvPathDefault;
+    //     var options = new DefaultStoreOptions
+    //     {
+    //         Path = storeUri.LocalPath,
+    //         Journal = journal,
+    //         IndexCacheSize = indexCacheSize,
+    //         BlockCacheSize = blockCacheSize,
+    //         TxCacheSize = txCacheSize,
+    //         EvidenceCacheSize = evidenceCacheSize,
+    //         Flush = flush,
+    //         ReadOnly = readOnly,
+    //     };
 
-        var store = new DefaultStore(options);
-        var stateStore = new TrieStateStore(
-            new DefaultKeyValueStore(Path.Combine(storeUri.LocalPath, statesKvPath)));
-        return (store, stateStore);
-    }
+    //     var store = new DefaultStore(options);
+    //     var stateStore = new TrieStateStore(
+    //         new DefaultKeyValueStore(Path.Combine(storeUri.LocalPath, statesKvPath)));
+    //     return (store, stateStore);
+    // }
 
     private LiteCollection<HashDoc> IndexCollection(in Guid chainId) =>
         _db.GetCollection<HashDoc>($"{IndexColPrefix}{FormatChainId(chainId)}");
 
-    private LiteCollection<BsonDocument> TxNonceCollection(Guid chainId) =>
-        _db.GetCollection<BsonDocument>($"{TxNonceIdPrefix}{FormatChainId(chainId)}");
+    // private LiteCollection<BsonDocument> TxNonceCollection(Guid chainId) =>
+    //     _db.GetCollection<BsonDocument>($"{TxNonceIdPrefix}{FormatChainId(chainId)}");
+
+    private string TxNonceCollection(Guid chainId)
+        => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
 
     private LiteCollection<BsonDocument> CommitCollection(in Guid chainId) =>
         _db.GetCollection<BsonDocument>($"{CommitColPrefix}{FormatChainId(chainId)}");
