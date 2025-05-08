@@ -423,11 +423,11 @@ public partial class Context : IDisposable
                                 _blockChain.Id, signer)),
                     block);
 
-                _blockChain.Policy.BlockValidation(_blockChain, block);
+                _blockChain.Options.BlockValidation(_blockChain, block);
 
                 foreach (var tx in block.Transactions)
                 {
-                    _blockChain.Policy.ValidateTransaction(_blockChain, tx);
+                    _blockChain.Options.ValidateTransaction(_blockChain, tx);
                 }
 
                 _blockChain.ValidateBlockStateRootHash(block);

@@ -974,7 +974,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.BeginBlockActions,
+            chain.Options.PolicyActions.BeginBlockActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
@@ -987,7 +987,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.BeginBlockActions,
+            chain.Options.PolicyActions.BeginBlockActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
@@ -1016,7 +1016,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.EndBlockActions,
+            chain.Options.PolicyActions.EndBlockActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
@@ -1030,7 +1030,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.EndBlockActions,
+            chain.Options.PolicyActions.EndBlockActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
@@ -1060,7 +1060,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.BeginTxActions,
+            chain.Options.PolicyActions.BeginTxActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
@@ -1075,7 +1075,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.BeginTxActions,
+            chain.Options.PolicyActions.BeginTxActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
@@ -1106,7 +1106,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.EndTxActions,
+            chain.Options.PolicyActions.EndTxActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(
@@ -1121,7 +1121,7 @@ public partial class ActionEvaluatorTest
             previousState);
 
         Assert.Equal<IAction>(
-            chain.Policy.PolicyActions.EndTxActions,
+            chain.Options.PolicyActions.EndTxActions,
             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
         Assert.Single(evaluations);
         Assert.Equal(

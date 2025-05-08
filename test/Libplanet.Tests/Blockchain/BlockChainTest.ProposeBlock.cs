@@ -20,7 +20,7 @@ public partial class BlockChainTest
     [SkippableFact]
     public void ProposeBlock()
     {
-        var maxTransactionsBytes = _blockChain.Policy.MaxTransactionsBytes;
+        var maxTransactionsBytes = _blockChain.Options.MaxTransactionsBytes;
         Assert.Equal(1, _blockChain.Count);
         Assert.Equal(
             $"{GenesisProposer.Address}",

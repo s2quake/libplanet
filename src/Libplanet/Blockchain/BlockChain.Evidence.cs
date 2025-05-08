@@ -128,7 +128,7 @@ public partial class BlockChain
     /// otherwise, <see langword="false"/>.
     /// </returns>
     public bool IsEvidenceExpired(EvidenceBase evidence)
-        => evidence.Height + Policy.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
+        => evidence.Height + Options.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
     /// <summary>
     /// Delete pending <see cref="EvidenceBase"/> from the <see cref="Store"/> with

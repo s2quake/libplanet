@@ -132,10 +132,10 @@ public partial class BlockChain
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
         long height, IComparer<Transaction>? txPriority = null)
         => GatherTransactionsToPropose(
-            Policy.MaxTransactionsBytes,
-            Policy.MaxTransactionsPerBlock,
-            Policy.MaxTransactionsPerSignerPerBlock,
-            Policy.MinTransactionsPerBlock,
+            Options.MaxTransactionsBytes,
+            Options.MaxTransactionsPerBlock,
+            Options.MaxTransactionsPerSignerPerBlock,
+            Options.MinTransactionsPerBlock,
             txPriority);
 
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
@@ -199,7 +199,7 @@ public partial class BlockChain
             {
                 try
                 {
-                    Policy.ValidateTransaction(this, tx);
+                    Options.ValidateTransaction(this, tx);
                 }
                 catch
                 {

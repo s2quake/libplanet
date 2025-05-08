@@ -688,7 +688,7 @@ namespace Libplanet.Tests.Blockchain
         [Fact]
         public void ValidateNextBlockOnChainRestart()
         {
-            var newChain = new BlockChain(_blockChain.Genesis, _blockChain.Policy);
+            var newChain = new BlockChain(_blockChain.Genesis, _blockChain.Options);
             newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
             Assert.Equal(newChain.Tip, _validNext);
         }

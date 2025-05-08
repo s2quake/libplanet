@@ -15,7 +15,7 @@ public sealed record class StagedTransaction
 
     public bool IsEnabled(IStore store, Guid blockChainId)
     {
-        if (Lifetime > DateTimeOffset.UtcNow)
+        if (IsExpired)
         {
             return false;
         }

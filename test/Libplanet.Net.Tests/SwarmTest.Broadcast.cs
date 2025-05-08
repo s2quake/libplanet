@@ -170,7 +170,7 @@ namespace Libplanet.Net.Tests
             Swarm receiverSwarm = await CreateSwarm(receiverKey);
             BlockChain receiverChain = receiverSwarm.BlockChain;
             var seedStateStore = new TrieStateStore();
-            BlockChainOptions policy = receiverChain.Policy;
+            BlockChainOptions policy = receiverChain.Options;
             BlockChain seedChain = MakeBlockChain(
                 options: policy,
                 privateKey: receiverKey);

@@ -47,7 +47,7 @@ public partial class BlockChain
         // }
 
         Id = id;
-        Policy = options;
+        Options = options;
         StagedTransactions = new StagedTransactionCollection(options.Store, id);
         Store = options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
@@ -95,7 +95,7 @@ public partial class BlockChain
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
 
-    public BlockChainOptions Policy { get; }
+    public BlockChainOptions Options { get; }
 
     public StagedTransactionCollection StagedTransactions { get; }
 
@@ -160,7 +160,7 @@ public partial class BlockChain
 
     public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
     {
-        if (options.Store.GetCanonicalChainId() is { } canonId)
+        if (options.Store.GetCanonicalChainId() is { } canonId && canonId != Guid.Empty)
         {
             throw new ArgumentException(
                 $"Given {nameof(options.Store)} already has its canonical chain id set: {canonId}",
@@ -433,14 +433,14 @@ public partial class BlockChain
 
             if (validate)
             {
-                Policy.BlockValidation(this, block);
+                Options.BlockValidation?.Invoke(this, block);
             }
 
             foreach (Transaction tx in block.Transactions)
             {
                 if (validate)
                 {
-                    Policy.ValidateTransaction(this, tx);
+                    Options.ValidateTransaction(this, tx);
                 }
             }
 
@@ -606,11 +606,11 @@ public partial class BlockChain
                     .ToDictionary(signer => signer, signer => Store.GetTxNonce(Id, signer)),
                 block);
 
-            Policy.BlockValidation(this, block);
+            Options.BlockValidation(this, block);
 
             foreach (Transaction tx in block.Transactions)
             {
-                Policy.ValidateTransaction(this, tx);
+                Options.ValidateTransaction(this, tx);
             }
 
             _rwlock.EnterWriteLock();

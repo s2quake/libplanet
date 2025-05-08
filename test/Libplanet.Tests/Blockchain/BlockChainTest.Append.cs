@@ -369,7 +369,7 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.CreateBlockCommit(_blockChain.Tip),
                 [.. heavyTxs],
                 []);
-            long maxBytes = _blockChain.Policy.MaxTransactionsBytes;
+            long maxBytes = _blockChain.Options.MaxTransactionsBytes;
             Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
             var e = Assert.Throws<InvalidOperationException>(() =>
@@ -380,7 +380,7 @@ namespace Libplanet.Tests.Blockchain
         public void AppendFailDueToInvalidTxCount()
         {
             int nonce = 0;
-            int maxTxs = _blockChain.Policy.MaxTransactionsPerBlock;
+            int maxTxs = _blockChain.Options.MaxTransactionsPerBlock;
             var manyTxs = new List<Transaction>();
             for (int i = 0; i <= maxTxs; i++)
             {

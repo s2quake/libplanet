@@ -121,7 +121,7 @@ namespace Libplanet.Net
                         {
                             try
                             {
-                                _blockChain.Policy.ValidateTransaction(_blockChain, tx);
+                                _blockChain.Options.ValidateTransaction(_blockChain, tx);
                                 return true;
                             }
                             catch
