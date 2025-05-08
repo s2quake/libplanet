@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.Queries
                         Description = "The string value to convert to key hex.",
                     }),
                 resolve: context =>
-                    KeyBytes.Create(Encoding.ASCII.GetBytes(context.GetArgument<string>("value"))));
+                    new KeyBytes(Encoding.ASCII.GetBytes(context.GetArgument<string>("value"))));
         }
     }
 }

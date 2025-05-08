@@ -96,7 +96,7 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
         using var it = _rocksDb.NewIterator();
         for (it.SeekToFirst(); it.Valid(); it.Next())
         {
-            yield return KeyBytes.Create(it.Key());
+            yield return new KeyBytes(it.Key());
         }
     }
 }

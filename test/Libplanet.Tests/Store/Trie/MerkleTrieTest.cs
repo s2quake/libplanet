@@ -44,16 +44,16 @@ public class MerkleTrieTest
     public void CreateWithSingleKeyValue()
     {
         var store = new MemoryKeyValueStore();
-        var keyValue = (KeyBytes.Create([0xbe, 0xef]), Dictionary.Empty);
+        var keyValue = (new KeyBytes([0xbe, 0xef]), Dictionary.Empty);
         var trie = Libplanet.Store.Trie.Trie.Create(keyValue);
         Assert.Single(trie.ToDictionary());
-        Assert.Equal(Dictionary.Empty, trie[KeyBytes.Create([0xbe, 0xef])]);
-        Assert.Throws<KeyNotFoundException>(() => trie[KeyBytes.Create([0x01])]);
+        Assert.Equal(Dictionary.Empty, trie[new KeyBytes([0xbe, 0xef])]);
+        Assert.Throws<KeyNotFoundException>(() => trie[new KeyBytes([0x01])]);
 
         trie = new TrieStateStore(store).Commit(trie);
         Assert.Single(trie.ToDictionary());
-        Assert.Equal(Dictionary.Empty, trie[KeyBytes.Create([0xbe, 0xef])]);
-        Assert.Throws<KeyNotFoundException>(() => trie[KeyBytes.Create([0x01])]);
+        Assert.Equal(Dictionary.Empty, trie[new KeyBytes([0xbe, 0xef])]);
+        Assert.Throws<KeyNotFoundException>(() => trie[new KeyBytes([0x01])]);
     }
 
     [Fact]
@@ -70,20 +70,20 @@ public class MerkleTrieTest
 
         var states = trie.ToDictionary();
         Assert.Equal(5, states.Count);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x01])]);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x02])]);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x03])]);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x04])]);
-        Assert.Equal(Dictionary.Empty, states[KeyBytes.Create([0xbe, 0xef])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x01])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x02])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x03])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x04])]);
+        Assert.Equal(Dictionary.Empty, states[new KeyBytes([0xbe, 0xef])]);
 
         trie = stateStore.Commit(trie);
         states = trie.ToDictionary();
         Assert.Equal(5, states.Count);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x01])]);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x02])]);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x03])]);
-        Assert.Equal(Null.Value, states[KeyBytes.Create([0x04])]);
-        Assert.Equal(Dictionary.Empty, states[KeyBytes.Create([0xbe, 0xef])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x01])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x02])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x03])]);
+        Assert.Equal(Null.Value, states[new KeyBytes([0x04])]);
+        Assert.Equal(Dictionary.Empty, states[new KeyBytes([0xbe, 0xef])]);
     }
 
     [Fact]
@@ -358,9 +358,9 @@ public class MerkleTrieTest
     public void RemoveValue()
     {
         var stateStore = new TrieStateStore();
-        var key00 = KeyBytes.Create([0x00]);
+        var key00 = new KeyBytes([0x00]);
         var value00 = new Text("00");
-        var key0000 = KeyBytes.Create([0x00, 0x00]);
+        var key0000 = new KeyBytes([0x00, 0x00]);
         var value0000 = new Text("0000");
 
         var trie = Libplanet.Store.Trie.Trie.Create(
@@ -422,7 +422,7 @@ public class MerkleTrieTest
         List<(KeyBytes Key, Text Value)> kvs = Enumerable
             .Range(0, 100)
             .Select(_ => TestUtils.GetRandomBytes(random.Next(2, 10)))
-            .Select(bytes => (KeyBytes.Create(bytes), new Text(ByteUtility.Hex(bytes))))
+            .Select(bytes => (new KeyBytes(bytes), new Text(ByteUtility.Hex(bytes))))
             .ToList();
         var expected = new Stack<(HashDigest<SHA256>, int, int)>();
 
@@ -454,12 +454,12 @@ public class MerkleTrieTest
     public void RemoveValueNoOp()
     {
         var stateStore = new TrieStateStore();
-        var key00 = KeyBytes.Create([0x00]);
-        var key0000 = KeyBytes.Create([0x00, 0x00]);
+        var key00 = new KeyBytes([0x00]);
+        var key0000 = new KeyBytes([0x00, 0x00]);
         var value0000 = new Text("0000");
-        var key0011 = KeyBytes.Create([0x00, 0x11]);
+        var key0011 = new KeyBytes([0x00, 0x11]);
         var value0011 = new Text("0011");
-        var key000000 = KeyBytes.Create([0x00, 0x00, 0x00]);
+        var key000000 = new KeyBytes([0x00, 0x00, 0x00]);
         var trie = Libplanet.Store.Trie.Trie.Create(
             (Key: key0000, Value: value0000),
             (Key: key0011, Value: value0011));

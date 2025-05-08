@@ -66,7 +66,7 @@ public class TrieTest
             trieA = trieA.Set(new KeyBytes(addresses[i].Bytes), states[i]);
         }
 
-        KeyBytes path = KeyBytes.Create(TestUtils.GetRandomBytes(32));
+        KeyBytes path = new KeyBytes(TestUtils.GetRandomBytes(32));
         trieA = trieA.Set(path, (Text)"foo");
         Assert.Equal((Text)"foo", trieA.GetMany(new[] { path })[0]);
 

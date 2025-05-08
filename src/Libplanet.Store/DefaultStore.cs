@@ -20,64 +20,6 @@ using FileMode = LiteDB.FileMode;
 
 namespace Libplanet.Store;
 
-/// <summary>
-/// The default built-in <see cref="IStore"/> implementation.  This stores data in
-/// the file system or in memory.  It also uses <a href="https://www.litedb.org/">LiteDB</a>
-/// for some complex indices.
-/// <para><see cref="DefaultStore"/> and <see cref="DefaultKeyValueStore"/>-backed
-/// <see cref="TrieStateStore"/> can be instantiated from a URI with <c>default+file:</c> scheme
-/// using <see cref="StoreLoaderAttribute.LoadStore(Uri)"/>, e.g.:</para>
-/// <list type="bullet">
-/// <item><description><c>default+file:///var/data/planet/</c></description></item>
-/// <item><description><c>default+file:///c:/Users/john/AppData/Local/planet/</c></description>
-/// </item>
-/// </list>
-/// <para>The following query string parameters are supported:</para>
-/// <list type="table">
-/// <item>
-/// <term><c>journal</c></term>
-/// <description><see langword="true"/> (default) or <see langword="false"/>.  Corresponds to
-/// <see cref="DefaultStore(string, bool, int, int, int, int, bool, bool)"/>'s <c>journal</c>
-/// parameter.</description>
-/// </item>
-/// <item>
-/// <term><c>index-cache</c></term>
-/// <description>Corresponds to
-/// <see cref="DefaultStore(string,bool,int,int,int,int,bool,bool)"/>'s
-/// <c>indexCacheSize</c> parameter.  50000 by default.</description>
-/// </item>
-/// <item>
-/// <term><c>block-cache</c></term>
-/// <description>Corresponds to
-/// <see cref="DefaultStore(string,bool,int,int,int,int,bool,bool)"/>'s
-/// <c>blockCacheSize</c> parameter.  512 by default.</description>
-/// </item>
-/// <item>
-/// <term><c>tx-cache</c></term>
-/// <description>Corresponds to
-/// <see cref="DefaultStore(string,bool,int,int,int,int,bool,bool)"/>'s
-/// <c>txCacheSize</c> parameter.  1024 by default.</description>
-/// </item>
-/// <item>
-/// <term><c>flush</c></term>
-/// <description><see langword="true"/> (default) or <see langword="false"/>.  Corresponds to
-/// <see cref="DefaultStore(string, bool, int, int, int, int, bool, bool)"/>'s <c>flush</c>
-/// parameter.</description>
-/// </item>
-/// <item>
-/// <term><c>readonly</c></term>
-/// <description><see langword="true"/> or <see langword="false"/> (default).  Corresponds to
-/// <see cref="DefaultStore(string, bool, int, int, int, int, bool, bool)"/>'s <c>readOnly</c>
-/// parameter.</description>
-/// </item>
-/// <item>
-/// <term><c>states-dir</c></term>
-/// <description>Corresponds to <see cref="DefaultKeyValueStore(string)"/>'s <c>path</c>
-/// parameter.  It is relative to the URI path, and defaults to <c>states</c>.</description>
-/// </item>
-/// </list>
-/// </summary>
-/// <seealso cref="IStore"/>
 public class DefaultStore : StoreBase
 {
     private const string IndexColPrefix = "index_";
@@ -116,10 +58,6 @@ public class DefaultStore : StoreBase
 
     private bool _disposed;
 
-    /// <summary>
-    /// Creates a new <seealso cref="DefaultStore"/>.
-    /// </summary>
-    /// <param name="options">The options for configuring the store.</param>
     public DefaultStore(DefaultStoreOptions options)
     {
         _logger = Log.ForContext<DefaultStore>();

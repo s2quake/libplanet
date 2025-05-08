@@ -11,7 +11,7 @@ namespace Libplanet.Explorer.GraphTypes
     public class AccountStateType : ObjectGraphType<Account>
     {
         internal static readonly KeyBytes ValidatorSetKey =
-            KeyBytes.Create([_underScore, _underScore, _underScore]);
+            new KeyBytes([_underScore, _underScore, _underScore]);
 
         private const byte _underScore = 95;  // '_'
 
@@ -162,7 +162,7 @@ namespace Libplanet.Explorer.GraphTypes
                 buffer[offset + 2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
             }
 
-            return KeyBytes.Create(buffer);
+            return new KeyBytes(buffer);
         }
 
         internal static KeyBytes ToTotalSupplyKey(HashDigest<SHA1> currencyHash)
@@ -179,7 +179,7 @@ namespace Libplanet.Explorer.GraphTypes
                 buffer[2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
             }
 
-            return KeyBytes.Create(buffer);
+            return new KeyBytes(buffer);
         }
     }
 }

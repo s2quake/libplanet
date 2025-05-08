@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.GraphTypes
 
             if (value is string str)
             {
-                return KeyBytes.Create(ByteUtility.ParseHex(str));
+                return new KeyBytes(ByteUtility.ParseHex(str));
             }
 
             return ThrowValueConversionError(value);

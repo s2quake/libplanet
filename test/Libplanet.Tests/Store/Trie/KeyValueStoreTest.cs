@@ -35,7 +35,7 @@ namespace Libplanet.Tests.Store.Trie
         [SkippableFact]
         public void Set()
         {
-            var key = KeyBytes.Create(Random.NextBytes(PreStoredDataKeySize));
+            var key = new KeyBytes(Random.NextBytes(PreStoredDataKeySize));
             byte[] value = Random.NextBytes(PreStoredDataValueSize);
             KeyValueStore[key] = value;
 
@@ -48,7 +48,7 @@ namespace Libplanet.Tests.Store.Trie
             var values = new Dictionary<KeyBytes, byte[]>();
             foreach (int i in Enumerable.Range(0, 10))
             {
-                values[KeyBytes.Create(Random.NextBytes(PreStoredDataKeySize))] =
+                values[new KeyBytes(Random.NextBytes(PreStoredDataKeySize))] =
                     Random.NextBytes(PreStoredDataValueSize);
             }
 
@@ -131,7 +131,7 @@ namespace Libplanet.Tests.Store.Trie
             KeyBytes randomKey;
             do
             {
-                randomKey = KeyBytes.Create(Random.NextBytes(PreStoredDataKeySize));
+                randomKey = new KeyBytes(Random.NextBytes(PreStoredDataKeySize));
             }
             while (KeyValueStore.ContainsKey(randomKey));
 
@@ -145,7 +145,7 @@ namespace Libplanet.Tests.Store.Trie
 
             for (int i = 0; i < PreStoredDataCount; ++i)
             {
-                PreStoredDataKeys[i] = KeyBytes.Create(Random.NextBytes(PreStoredDataKeySize));
+                PreStoredDataKeys[i] = new KeyBytes(Random.NextBytes(PreStoredDataKeySize));
                 PreStoredDataValues[i] = Random.NextBytes(PreStoredDataValueSize);
                 KeyValueStore[PreStoredDataKeys[i]] = PreStoredDataValues[i];
             }
