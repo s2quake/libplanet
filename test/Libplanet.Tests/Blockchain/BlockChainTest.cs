@@ -709,8 +709,8 @@ public partial class BlockChainTest : IDisposable
         using (var emptyFx = new MemoryStoreFixture(_policy))
         using (var forkFx = new MemoryStoreFixture(_policy))
         {
-            var emptyChain = BlockChain.Create(emptyFx.GenesisBlock, _blockChain.Policy);
-            var fork = BlockChain.Create(forkFx.GenesisBlock, _blockChain.Policy);
+            var emptyChain = BlockChain.Create(emptyFx.GenesisBlock, _blockChain.Options);
+            var fork = BlockChain.Create(forkFx.GenesisBlock, _blockChain.Options);
             fork.Append(b1, CreateBlockCommit(b1));
             fork.Append(b2, CreateBlockCommit(b2));
             Block b5 = fork.ProposeBlock(
