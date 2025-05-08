@@ -1,4 +1,3 @@
-using System.Collections;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Tx;
@@ -6,21 +5,13 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Store;
 
 public sealed class TransactionCollection(IDictionary<KeyBytes, byte[]> dictionary)
+    : CollectionBase<TxId, Transaction>(dictionary)
 {
-    public Transaction this[TxId txid]
-    {
-        get
-        {
-            var key = new KeyBytes(txid.Bytes);
-            var bytes = dictionary[key];
-            return ModelSerializer.DeserializeFromBytes<Transaction>(bytes);
-        }
-    }
+    protected override byte[] GetBytes(Transaction value) => ModelSerializer.SerializeToBytes(value);
 
-    public void Add(Transaction tx)
-    {
-        var key = new KeyBytes(tx.Id.Bytes);
-        dictionary.Add(key, ModelSerializer.SerializeToBytes(tx));
-    }
+    protected override TxId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);
 
+    protected override KeyBytes GetKeyBytes(TxId key) => new(key.Bytes);
+
+    protected override Transaction GetValue(byte[] bytes) => ModelSerializer.DeserializeFromBytes<Transaction>(bytes);
 }

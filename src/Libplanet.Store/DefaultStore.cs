@@ -38,10 +38,12 @@ public class DefaultStore : StoreBase
     private static readonly UPath CommittedEvidenceRootPath = UPath.Root / "evidencec";
     private static readonly Codec Codec = new Codec();
 
+    private readonly TransactionCollection _transactions;
+
     private readonly ILogger _logger;
 
     private readonly IFileSystem _root;
-    private readonly SubFileSystem _txs;
+    // private readonly SubFileSystem _txs;
     private readonly SubFileSystem _blocks;
     private readonly SubFileSystem _txExecutions;
     private readonly SubFileSystem _txIdBlockHashIndex;
@@ -50,7 +52,7 @@ public class DefaultStore : StoreBase
     private readonly SubFileSystem _nextStateRootHashes;
     private readonly SubFileSystem _pendingEvidence;
     private readonly SubFileSystem _committedEvidence;
-    private readonly LruCache<TxId, object> _txCache;
+    // private readonly LruCache<TxId, object> _txCache;
     private readonly LruCache<BlockHash, BlockDigest> _blockCache;
     private readonly LruCache<EvidenceId, EvidenceBase> _evidenceCache;
 
@@ -64,6 +66,7 @@ public class DefaultStore : StoreBase
 
         if (options.Path == string.Empty)
         {
+            _transactions = new TransactionCollection(new DefaultKeyValueStore());
             _root = new MemoryFileSystem();
             _db = new LiteDatabase(new MemoryStream(), disposeStream: true);
         }
@@ -79,6 +82,8 @@ public class DefaultStore : StoreBase
             {
                 Directory.CreateDirectory(options.Path);
             }
+
+            _transactions = new TransactionCollection(new DefaultKeyValueStore(Path.Combine(options.Path, "tx")));
 
             var pfs = new PhysicalFileSystem();
             _root = new SubFileSystem(
@@ -131,7 +136,7 @@ public class DefaultStore : StoreBase
         }
 
         _root.CreateDirectory(TxRootPath);
-        _txs = new SubFileSystem(_root, TxRootPath, owned: false);
+        // _txs = new SubFileSystem(_root, TxRootPath, owned: false);
         _root.CreateDirectory(BlockRootPath);
         _blocks = new SubFileSystem(_root, BlockRootPath, owned: false);
         _root.CreateDirectory(TxExecutionRootPath);
@@ -150,7 +155,7 @@ public class DefaultStore : StoreBase
         _root.CreateDirectory(CommittedEvidenceRootPath);
         _committedEvidence = new SubFileSystem(_root, CommittedEvidenceRootPath, owned: false);
 
-        _txCache = new LruCache<TxId, object>(capacity: options.TxCacheSize);
+        // _txCache = new LruCache<TxId, object>(capacity: options.TxCacheSize);
         _blockCache = new LruCache<BlockHash, BlockDigest>(capacity: options.BlockCacheSize);
         _evidenceCache = new LruCache<EvidenceId, EvidenceBase>(
             capacity: options.EvidenceCacheSize);
@@ -258,53 +263,56 @@ public class DefaultStore : StoreBase
         AppendIndex(destinationChainId, branchpoint);
     }
 
-    public override Transaction? GetTransaction(TxId txid)
+    public override Transaction? GetTransaction(TxId txId)
     {
-        if (_txCache.TryGetValue(txid, out object cachedTx))
-        {
-            return (Transaction)cachedTx;
-        }
+        return _transactions[txId];
+        // if (_txCache.TryGetValue(txid, out object cachedTx))
+        // {
+        //     return (Transaction)cachedTx;
+        // }
 
-        UPath path = TxPath(txid);
-        if (!_txs.FileExists(path))
-        {
-            return null;
-        }
+        // UPath path = TxPath(txid);
+        // if (!_txs.FileExists(path))
+        // {
+        //     return null;
+        // }
 
-        byte[] bytes;
-        try
-        {
-            bytes = _txs.ReadAllBytes(path);
-        }
-        catch (FileNotFoundException)
-        {
-            return null;
-        }
+        // byte[] bytes;
+        // try
+        // {
+        //     bytes = _txs.ReadAllBytes(path);
+        // }
+        // catch (FileNotFoundException)
+        // {
+        //     return null;
+        // }
 
-        var tx = ModelSerializer.DeserializeFromBytes<Transaction>(bytes);
-        _txCache.AddOrUpdate(txid, tx);
-        return tx;
+        // var tx = ModelSerializer.DeserializeFromBytes<Transaction>(bytes);
+        // _txCache.AddOrUpdate(txid, tx);
+        // return tx;
     }
 
     public override void PutTransaction(Transaction tx)
     {
-        if (_txCache.ContainsKey(tx.Id))
-        {
-            return;
-        }
+        // if (_txCache.ContainsKey(tx.Id))
+        // {
+        //     return;
+        // }
 
-        WriteContentAddressableFile(_txs, TxPath(tx.Id), ModelSerializer.SerializeToBytes(tx));
-        _txCache.AddOrUpdate(tx.Id, tx);
+        // WriteContentAddressableFile(_txs, TxPath(tx.Id), ModelSerializer.SerializeToBytes(tx));
+        // _txCache.AddOrUpdate(tx.Id, tx);
+        _transactions.Add(tx.Id, tx);
     }
 
     public override bool ContainsTransaction(TxId txId)
     {
-        if (_txCache.ContainsKey(txId))
-        {
-            return true;
-        }
+        return _transactions.ContainsKey(txId);
+        // if (_txCache.ContainsKey(txId))
+        // {
+        //     return true;
+        // }
 
-        return _txs.FileExists(TxPath(txId));
+        // return _txs.FileExists(TxPath(txId));
     }
 
     /// <inheritdoc cref="StoreBase.IterateBlockHashes()"/>

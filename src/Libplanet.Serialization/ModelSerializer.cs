@@ -277,13 +277,17 @@ public static class ModelSerializer
             return value is Null ? null : DeserializeRawValue(value, nullableType, options);
         }
 
-        if (IsBencodableType(type))
+        if (value is Null)
+        {
+            return GetDefault(type);
+        }
+        else if (IsBencodableType(type))
         {
             return CreateInstance(type, args: [value]);
         }
         else if (IsBencodexType(type))
         {
-            if (type.IsAssignableFrom(value.GetType()))
+            if (type.IsInstanceOfType(value))
             {
                 return value;
             }
@@ -307,10 +311,6 @@ public static class ModelSerializer
             && converter.CanConvertFrom(typeof(IValue)))
         {
             return converter.ConvertFrom(value);
-        }
-        else if (value is Null)
-        {
-            return null;
         }
         else if (type.IsDefined(typeof(ModelAttribute)))
         {
@@ -368,20 +368,10 @@ public static class ModelSerializer
         }
         else if (IsImmutableArray(type, out elementType))
         {
-            if (value is Null)
-            {
-                return ToImmutableEmptyArray(elementType);
-            }
-
             return ToImmutableArray((List)value, elementType, options);
         }
         else if (IsImmutableSortedSet(type, out elementType))
         {
-            if (value is Null)
-            {
-                return ToImmutableEmptySortedSet(elementType);
-            }
-
             return ToImmutableSortedSet((List)value, elementType, options);
         }
         else if (IsValueTupleType(type) || IsTupleType(type))
