@@ -6,7 +6,7 @@ namespace Libplanet.Net.Tests
 {
     public class BlockCandidateTableTest
     {
-        private StoreFixture _fx;
+        private readonly StoreFixture _fx;
 
         public BlockCandidateTableTest()
         {

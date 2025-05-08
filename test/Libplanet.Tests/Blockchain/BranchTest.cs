@@ -7,7 +7,7 @@ namespace Libplanet.Tests.Blockchain
 {
     public class BranchTest
     {
-        private StoreFixture _fx;
+        private readonly StoreFixture _fx;
 
         public BranchTest()
         {

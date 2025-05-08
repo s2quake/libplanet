@@ -13,7 +13,7 @@ namespace Libplanet.Net.Consensus
         private readonly ILogger _logger;
         private long _height;
         private int _round;
-        private ConcurrentDictionary<BoundPeer, ImmutableHashSet<int>> _peerCatchupRounds;
+        private readonly ConcurrentDictionary<BoundPeer, ImmutableHashSet<int>> _peerCatchupRounds;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GossipConsensusMessageCommunicator"/>

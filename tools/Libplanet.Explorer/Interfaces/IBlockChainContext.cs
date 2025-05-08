@@ -23,7 +23,7 @@ namespace Libplanet.Explorer.Interfaces
 
     public static class BlockChainContext
     {
-        private static ConditionalWeakTable<object, Schema> _schemaObjects =
+        private static readonly ConditionalWeakTable<object, Schema> _schemaObjects =
             new ConditionalWeakTable<object, Schema>();
 
         public static Schema GetSchema(this IBlockChainContext context)

@@ -29,9 +29,9 @@ namespace Libplanet.Net.Consensus
 
         private TaskCompletionSource<object?> _runningEvent;
         private CancellationTokenSource? _cancellationTokenSource;
-        private RoutingTable _table;
-        private HashSet<BoundPeer> _denySet;
-        private IProtocol _protocol;
+        private readonly RoutingTable _table;
+        private readonly HashSet<BoundPeer> _denySet;
+        private readonly IProtocol _protocol;
         private ConcurrentDictionary<BoundPeer, HashSet<MessageId>> _haveDict;
 
         /// <summary>

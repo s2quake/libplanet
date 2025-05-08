@@ -28,7 +28,7 @@ public partial class BlockChain
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly BlockChainStates _blockChainStates;
 
-    private BlockSet _blocks;
+    private readonly BlockSet _blocks;
     private Block _genesis;
 
     private HashDigest<SHA256>? _nextStateRootHash;

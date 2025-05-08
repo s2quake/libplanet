@@ -11,11 +11,11 @@ namespace Libplanet.Tests.Blockchain.Renderers;
 
 public class AnonymousActionRendererTest
 {
-    private static IValue _action = ModelSerializer.Serialize(new DumbAction());
+    private static readonly IValue _action = ModelSerializer.Serialize(new DumbAction());
 
-    private static World _world = World.Create();
+    private static readonly World _world = World.Create();
 
-    private static CommittedActionContext _actionContext =
+    private static readonly CommittedActionContext _actionContext =
         new CommittedActionContext(
             new ActionContext
             {
@@ -24,12 +24,12 @@ public class AnonymousActionRendererTest
             },
             _world.Trie.Hash);
 
-    private static Exception _exception = new Exception();
+    private static readonly Exception _exception = new Exception();
 
-    private static Block _genesis =
+    private static readonly Block _genesis =
         TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);
 
-    private static Block _blockA =
+    private static readonly Block _blockA =
         TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposer);
 
     [Fact]

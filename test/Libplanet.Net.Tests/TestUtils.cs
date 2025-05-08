@@ -366,7 +366,7 @@ namespace Libplanet.Net.Tests
 
         public class DummyConsensusMessageHandler : IConsensusMessageCommunicator
         {
-            private Action<ConsensusMsg> _publishMessage;
+            private readonly Action<ConsensusMsg> _publishMessage;
 
             public DummyConsensusMessageHandler(Action<ConsensusMsg> publishMessage)
             {

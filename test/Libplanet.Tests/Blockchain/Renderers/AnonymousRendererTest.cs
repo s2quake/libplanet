@@ -4,10 +4,10 @@ namespace Libplanet.Tests.Blockchain.Renderers
 {
     public class AnonymousRendererTest
     {
-        private static Block _genesis =
+        private static readonly Block _genesis =
             TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);
 
-        private static Block _blockA =
+        private static readonly Block _blockA =
             TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposer);
 
         [Fact]

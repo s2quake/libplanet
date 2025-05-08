@@ -15,7 +15,7 @@ namespace Libplanet.Consensus
     {
         // FIXME: This should be private.  Left as internal for testing reasons.
         internal static readonly Binary SignatureKey = new Binary(new byte[] { 0x53 }); // 'S'
-        private static Codec _codec = new Codec();
+        private static readonly Codec _codec = new Codec();
 
         private readonly VoteSetBitsMetadata _voteSetBitsMetadata;
 

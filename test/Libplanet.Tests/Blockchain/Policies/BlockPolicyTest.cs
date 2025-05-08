@@ -14,9 +14,9 @@ namespace Libplanet.Tests.Blockchain.Policies
 
         private readonly ITestOutputHelper _output;
 
-        private StoreFixture _fx;
-        private BlockChain _chain;
-        private BlockChainOptions _policy;
+        private readonly StoreFixture _fx;
+        private readonly BlockChain _chain;
+        private readonly BlockChainOptions _policy;
 
         public BlockPolicyTest(ITestOutputHelper output)
         {

@@ -23,11 +23,11 @@ namespace Libplanet.Tests.Blockchain;
 public partial class BlockChainTest : IDisposable
 {
     private readonly ILogger _logger;
-    private StoreFixture _fx;
-    private BlockChainOptions _policy;
+    private readonly StoreFixture _fx;
+    private readonly BlockChainOptions _policy;
     private BlockChain _blockChain;
-    private Block _validNext;
-    private StagedTransactionCollection _stagePolicy;
+    private readonly Block _validNext;
+    private readonly StagedTransactionCollection _stagePolicy;
 
     public BlockChainTest(ITestOutputHelper output)
     {

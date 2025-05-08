@@ -11,7 +11,7 @@ namespace Libplanet.Explorer.Queries
 {
     public class HelperQuery : ObjectGraphType
     {
-        private static Codec _codec = new Codec();
+        private static readonly Codec _codec = new Codec();
 
         public HelperQuery()
         {
