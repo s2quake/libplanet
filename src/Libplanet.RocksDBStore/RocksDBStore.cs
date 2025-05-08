@@ -87,8 +87,8 @@ public partial class RocksDBStore : StoreBase
     private readonly ReaderWriterLockSlim _rwNextStateRootHashLock;
     private readonly ReaderWriterLockSlim _rwEvidenceLock;
     private bool _disposed = false;
-    private object _chainForkDeleteLock = new object();
-    private LruCache<Guid, LruCache<(int, int?), List<BlockHash>>> _indexCache;
+    private readonly object _chainForkDeleteLock = new object();
+    private readonly LruCache<Guid, LruCache<(int, int?), List<BlockHash>>> _indexCache;
 
     /// <summary>
     /// Creates a new <seealso cref="RocksDBStore"/>.

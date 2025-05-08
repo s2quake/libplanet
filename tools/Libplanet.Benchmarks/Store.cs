@@ -16,7 +16,7 @@ namespace Libplanet.Benchmarks
         private readonly int BlocksCount = default;
         private readonly ImmutableArray<Transaction> Txs = default;
         private StoreFixture _fx = null;
-        private int TxsCount = default;
+        private readonly int TxsCount = default;
         private IStore _store = null;
 
         public Store()

@@ -9,7 +9,7 @@ namespace Libplanet.Tests.Consensus
 {
     public class ProposalTest
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public ProposalTest(ITestOutputHelper output)
         {

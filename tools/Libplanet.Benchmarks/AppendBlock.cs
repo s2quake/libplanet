@@ -11,8 +11,8 @@ namespace Libplanet.Benchmarks
 {
     public class AppendBlock
     {
-        private Libplanet.Blockchain.BlockChain _blockChain;
-        private PrivateKey _privateKey;
+        private readonly Libplanet.Blockchain.BlockChain _blockChain;
+        private readonly PrivateKey _privateKey;
         private BlockCommit _lastCommit;
         private Block _block;
         private BlockCommit _commit;

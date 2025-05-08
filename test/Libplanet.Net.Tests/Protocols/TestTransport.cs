@@ -28,7 +28,7 @@ namespace Libplanet.Net.Tests.Protocols
 
         private TaskCompletionSource<object> _runningEvent;
         private CancellationTokenSource _swarmCancellationTokenSource;
-        private TimeSpan _networkDelay;
+        private readonly TimeSpan _networkDelay;
         private bool _disposed;
 
         public TestTransport(

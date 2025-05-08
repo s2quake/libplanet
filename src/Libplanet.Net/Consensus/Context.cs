@@ -46,7 +46,7 @@ public partial class Context : IDisposable
     private int _validRound;
     private Block? _decision;
     private int _committedRound;
-    private BlockCommit _lastCommit;
+    private readonly BlockCommit _lastCommit;
 
     public Context(
         BlockChain blockChain,

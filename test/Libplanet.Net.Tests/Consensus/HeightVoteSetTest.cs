@@ -9,9 +9,9 @@ namespace Libplanet.Net.Tests.Consensus
 {
     public class HeightVoteSetTest
     {
-        private BlockChain _blockChain;
-        private BlockCommit _lastCommit;
-        private HeightVoteSet _heightVoteSet;
+        private readonly BlockChain _blockChain;
+        private readonly BlockCommit _lastCommit;
+        private readonly HeightVoteSet _heightVoteSet;
 
         /// <summary>
         /// Sets up a <see cref="BlockChain"/> with tip index of 1, i.e. two blocks.

@@ -9,7 +9,7 @@ namespace Libplanet.Explorer.GraphTypes
 {
     public class IValueType : ObjectGraphType<IValue>
     {
-        private static Codec _codec = new Codec();
+        private static readonly Codec _codec = new Codec();
 
         public IValueType()
         {

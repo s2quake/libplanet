@@ -18,7 +18,7 @@ namespace Libplanet.Net.Tests.Consensus
     {
         private const int PropagationDelay = 25_000;
         private const int Timeout = 60 * 1000;
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public ConsensusReactorTest(ITestOutputHelper output)
         {

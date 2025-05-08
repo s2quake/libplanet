@@ -8,8 +8,8 @@ namespace Libplanet.Benchmarks
 {
     public class BlockChain
     {
-        private StoreFixture _fx;
-        private Libplanet.Blockchain.BlockChain _blockChain;
+        private readonly StoreFixture _fx;
+        private readonly Libplanet.Blockchain.BlockChain _blockChain;
 
         public BlockChain()
         {
