@@ -1,3 +1,4 @@
+using System.Collections;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Tx;
