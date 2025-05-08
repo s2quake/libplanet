@@ -291,7 +291,7 @@ namespace Libplanet.Tests.Store
         [SkippableFact]
         public void CanonicalChainId()
         {
-            Assert.Null(Fx.Store.GetCanonicalChainId());
+            Assert.Equal(Guid.Empty, Fx.Store.GetCanonicalChainId());
             Guid a = Guid.NewGuid();
             Fx.Store.SetCanonicalChainId(a);
             Assert.Equal(a, Fx.Store.GetCanonicalChainId());
@@ -304,12 +304,12 @@ namespace Libplanet.Tests.Store
         public void StoreBlock()
         {
             Assert.Empty(Fx.Store.IterateBlockHashes());
-            Assert.Null(Fx.Store.GetBlock(Fx.Block1.BlockHash));
-            Assert.Null(Fx.Store.GetBlock(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block1.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block2.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.False(Fx.Store.DeleteBlock(Fx.Block1.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
@@ -323,11 +323,11 @@ namespace Libplanet.Tests.Store
             Assert.Equal(
                 Fx.Block1,
                 Fx.Store.GetBlock(Fx.Block1.BlockHash));
-            Assert.Null(Fx.Store.GetBlock(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block2.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
             Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
@@ -343,10 +343,10 @@ namespace Libplanet.Tests.Store
             Assert.Equal(
                 Fx.Block2,
                 Fx.Store.GetBlock(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
             Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
             Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
@@ -356,14 +356,14 @@ namespace Libplanet.Tests.Store
             Assert.Equal(
                 new HashSet<BlockHash> { Fx.Block2.BlockHash },
                 [.. Fx.Store.IterateBlockHashes()]);
-            Assert.Null(Fx.Store.GetBlock(Fx.Block1.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block1.BlockHash));
             Assert.Equal(
                 Fx.Block2,
                 Fx.Store.GetBlock(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlock(Fx.Block3.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
             Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-            Assert.Null(Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
             Assert.True(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
             Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));

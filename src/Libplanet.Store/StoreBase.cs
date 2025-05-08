@@ -33,7 +33,7 @@ public abstract class StoreBase : IStore
         Guid destinationChainId,
         BlockHash branchpoint);
 
-    public abstract Transaction? GetTransaction(TxId txid);
+    public abstract Transaction GetTransaction(TxId txId);
 
     public abstract void PutTransaction(Transaction tx);
 
@@ -57,7 +57,7 @@ public abstract class StoreBase : IStore
 
     public abstract void PutTxExecution(TxExecution txExecution);
 
-    public abstract TxExecution? GetTxExecution(BlockHash blockHash, TxId txid);
+    public abstract TxExecution GetTxExecution(BlockHash blockHash, TxId txId);
 
     public abstract void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
 
@@ -113,7 +113,7 @@ public abstract class StoreBase : IStore
 
     public abstract IEnumerable<BlockHash> GetBlockCommitHashes();
 
-    public abstract HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash);
+    public abstract HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash);
 
     public abstract void PutNextStateRootHash(
         BlockHash blockHash, HashDigest<SHA256> nextStateRootHash);
@@ -122,9 +122,9 @@ public abstract class StoreBase : IStore
 
     public abstract IEnumerable<EvidenceId> IteratePendingEvidenceIds();
 
-    public abstract EvidenceBase? GetPendingEvidence(EvidenceId evidenceId);
+    public abstract EvidenceBase GetPendingEvidence(EvidenceId evidenceId);
 
-    public abstract EvidenceBase? GetCommittedEvidence(EvidenceId evidenceId);
+    public abstract EvidenceBase GetCommittedEvidence(EvidenceId evidenceId);
 
     public abstract void PutPendingEvidence(EvidenceBase evidence);
 
@@ -145,7 +145,7 @@ public abstract class StoreBase : IStore
 
     protected static TxExecution? DeserializeTxExecution(
         BlockHash blockHash,
-        TxId txid,
+        TxId txId,
         IValue decoded,
         ILogger logger)
     {

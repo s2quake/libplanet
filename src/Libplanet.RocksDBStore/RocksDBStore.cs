@@ -1214,7 +1214,7 @@ public partial class RocksDBStore : StoreBase
     }
 
     /// <inheritdoc />
-    public override HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash)
+    public override HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash)
     {
         _rwNextStateRootHashLock.EnterReadLock();
 
@@ -1224,7 +1224,7 @@ public partial class RocksDBStore : StoreBase
             byte[] bytes = _nextStateRootHashDb.Get(key);
             if (bytes is null)
             {
-                return null;
+                return default;
             }
 
             return new HashDigest<SHA256>(bytes);
@@ -1238,7 +1238,7 @@ public partial class RocksDBStore : StoreBase
             _rwNextStateRootHashLock.ExitReadLock();
         }
 
-        return null;
+        return default;
     }
 
     /// <inheritdoc />

@@ -25,7 +25,7 @@ public interface IStore : IDisposable
 
     void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint);
 
-    Transaction? GetTransaction(TxId txid);
+    Transaction? GetTransaction(TxId txId);
 
     void PutTransaction(Transaction tx);
 
@@ -45,7 +45,7 @@ public interface IStore : IDisposable
 
     void PutTxExecution(TxExecution txExecution);
 
-    TxExecution? GetTxExecution(BlockHash blockHash, TxId txid);
+    TxExecution GetTxExecution(BlockHash blockHash, TxId txId);
 
     void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
 
@@ -83,9 +83,9 @@ public interface IStore : IDisposable
 
     IEnumerable<EvidenceId> IteratePendingEvidenceIds();
 
-    EvidenceBase? GetPendingEvidence(EvidenceId evidenceId);
+    EvidenceBase GetPendingEvidence(EvidenceId evidenceId);
 
-    EvidenceBase? GetCommittedEvidence(EvidenceId evidenceId);
+    EvidenceBase GetCommittedEvidence(EvidenceId evidenceId);
 
     void PutPendingEvidence(EvidenceBase evidence);
 

@@ -24,7 +24,7 @@ public sealed record class CommittedActionContext
 
     public Address Signer { get; init; }
 
-    public TxId? TxId { get; init; }
+    public TxId TxId { get; init; }
 
     public Address Proposer { get; init; }
 
