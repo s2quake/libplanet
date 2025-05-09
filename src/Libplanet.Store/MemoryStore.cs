@@ -105,8 +105,8 @@ public sealed class MemoryStore : IStore
         }
     }
 
-    Transaction? IStore.GetTransaction(TxId txid) =>
-        _txs.TryGetValue(txid, out Transaction? untyped) && untyped is Transaction tx
+    Transaction? IStore.GetTransaction(TxId txId) =>
+        _txs.TryGetValue(txId, out Transaction? untyped) && untyped is Transaction tx
             ? tx
             : null;
 
@@ -178,8 +178,11 @@ public sealed class MemoryStore : IStore
     void IStore.PutTxExecution(TxExecution txExecution) =>
         _txExecutions[(txExecution.BlockHash, txExecution.TxId)] = txExecution;
 
-    TxExecution? IStore.GetTxExecution(BlockHash blockHash, TxId txid) =>
-        _txExecutions.TryGetValue((blockHash, txid), out TxExecution? e) ? e : null;
+    TxExecution IStore.GetTxExecution(BlockHash blockHash, TxId txId) =>
+        _txExecutions.TryGetValue((blockHash, txId), out TxExecution? e)
+            ? e
+            : throw new KeyNotFoundException(
+                $"The transaction ID {txId} is not found in the block {blockHash}.");
 
     void IStore.PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash) =>
         _txBlockIndexes.AddOrUpdate(
@@ -187,10 +190,11 @@ public sealed class MemoryStore : IStore
             _ => ImmutableHashSet.Create(blockHash),
             (_, set) => set.Add(blockHash));
 
-    BlockHash? IStore.GetFirstTxIdBlockHashIndex(TxId txId) =>
+    BlockHash IStore.GetFirstTxIdBlockHashIndex(TxId txId) =>
         _txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set) && set.Any()
             ? set.First()
-            : null;
+            : throw new KeyNotFoundException(
+                $"The transaction ID {txId} is not found in the store.");
 
     IEnumerable<BlockHash> IStore.IterateTxIdBlockHashIndex(TxId txId) =>
         _txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set)

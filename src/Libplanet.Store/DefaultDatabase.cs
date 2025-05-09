@@ -28,4 +28,9 @@ public sealed class DefaultDatabase : Database<DefaultKeyValueStore>
 
     protected override DefaultKeyValueStore Create(string key)
         => new(_path == string.Empty ? string.Empty : Path.Combine(_path, key));
+
+    protected override void OnRemove(string key, DefaultKeyValueStore value)
+    {
+        value.Dispose();
+    }
 }

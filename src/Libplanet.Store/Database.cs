@@ -25,7 +25,16 @@ public abstract class Database<TValue> : IReadOnlyDictionary<string, TValue>
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out TValue value)
         => _collectionByKey.TryGetValue(key, out value);
 
-    public bool Remove(string key) => _collectionByKey.TryRemove(key, out _);
+    public bool Remove(string key)
+    {
+        if (_collectionByKey.TryRemove(key, out var value))
+        {
+            OnRemove(key, value);
+            return true;
+        }
+
+        return false;
+    }
 
     IEnumerator<KeyValuePair<string, TValue>> IEnumerable<KeyValuePair<string, TValue>>.GetEnumerator()
         => _collectionByKey.GetEnumerator();
@@ -33,4 +42,8 @@ public abstract class Database<TValue> : IReadOnlyDictionary<string, TValue>
     IEnumerator IEnumerable.GetEnumerator() => _collectionByKey.GetEnumerator();
 
     protected abstract TValue Create(string key);
+
+    protected virtual void OnRemove(string key, TValue value)
+    {
+    }
 }

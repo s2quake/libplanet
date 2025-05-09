@@ -62,7 +62,7 @@ namespace Libplanet.Tests.Blockchain
 
             foreach (var tx in txs)
             {
-                Assert.True(_fx.Store.GetFirstTxIdBlockHashIndex(tx.Id)?.Equals(block2.BlockHash));
+                Assert.True(_fx.Store.GetFirstTxIdBlockHashIndex(tx.Id).Equals(block2.BlockHash));
             }
 
             Assert.True(_blockChain.ContainsBlock(block2.BlockHash));

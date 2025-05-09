@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockHashCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class BlockHashByHeight(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<long, BlockHash>(dictionary)
 {
     protected override byte[] GetBytes(BlockHash value) => ModelSerializer.SerializeToBytes(value);

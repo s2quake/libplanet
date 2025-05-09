@@ -16,6 +16,8 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
     {
     }
 
+    public string Path => path;
+
     public override int Count => _count ??= _fs.EnumerateFiles(UPath.Root).Count();
 
     public override byte[] this[KeyBytes key]
@@ -66,6 +68,11 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
         {
             _fs.Dispose();
             _isDisposed = true;
+            if (System.IO.Path.IsPathFullyQualified(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+
             GC.SuppressFinalize(this);
         }
     }
@@ -120,7 +127,7 @@ public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisp
 
     private static SubFileSystem CreateFileSystem(string path)
     {
-        if (!Path.IsPathFullyQualified(path))
+        if (!System.IO.Path.IsPathFullyQualified(path))
         {
             throw new ArgumentException($"The path '{path}' is not fully qualified.", nameof(path));
         }
