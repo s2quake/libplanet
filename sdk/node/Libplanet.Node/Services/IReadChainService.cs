@@ -8,5 +8,5 @@ public interface IReadChainService
 
     public Block GetBlock(BlockHash hash);
 
-    public Block GetBlock(long height);
+    public Block GetBlock(int height);
 }

@@ -8,7 +8,7 @@ namespace Libplanet.Net.Messages
         public ChainStatusMsg(
             int protocolVersion,
             BlockHash genesisHash,
-            long tipIndex,
+            int tipIndex,
             BlockHash tipHash)
         {
             ProtocolVersion = protocolVersion;
@@ -21,7 +21,7 @@ namespace Libplanet.Net.Messages
         {
             ProtocolVersion = BitConverter.ToInt32(dataFrames[0], 0);
             GenesisHash = new BlockHash(dataFrames[1]);
-            TipIndex = BitConverter.ToInt64(dataFrames[2], 0);
+            TipIndex = BitConverter.ToInt32(dataFrames[2], 0);
             TipHash = new BlockHash(dataFrames[3]);
         }
 
@@ -30,7 +30,7 @@ namespace Libplanet.Net.Messages
         [LogAsScalar]
         public BlockHash GenesisHash { get; }
 
-        public long TipIndex { get; }
+        public int TipIndex { get; }
 
         [LogAsScalar]
         public BlockHash TipHash { get; }

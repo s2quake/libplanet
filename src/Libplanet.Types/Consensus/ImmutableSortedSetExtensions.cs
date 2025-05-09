@@ -7,7 +7,7 @@ namespace Libplanet.Types.Consensus;
 public static class ImmutableSortedSetExtensions
 {
     public static Validator GetProposer(
-        this ImmutableSortedSet<Validator> @this, long height, int round)
+        this ImmutableSortedSet<Validator> @this, int height, int round)
     {
         if (@this.IsEmpty)
         {

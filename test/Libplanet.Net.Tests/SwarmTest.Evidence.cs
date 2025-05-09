@@ -59,7 +59,7 @@ namespace Libplanet.Net.Tests
 
                 var consensusContext = swarms[0].ConsensusReactor.ConsensusContext;
                 var round = 0;
-                var height = 1L;
+                var height = 1;
                 var context = consensusContext.CurrentContext;
                 var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
                 var methodName = "PublishMessage";
@@ -102,7 +102,7 @@ namespace Libplanet.Net.Tests
         }
 
         private static Vote MakeRandomVote(
-            PrivateKey privateKey, long height, int round, VoteFlag flag)
+            PrivateKey privateKey, int height, int round, VoteFlag flag)
         {
             if (flag == VoteFlag.Null || flag == VoteFlag.Unknown)
             {

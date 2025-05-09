@@ -14,7 +14,7 @@ internal sealed record class ActionContext : IActionContext
 
     public Address Proposer { get; init; }
 
-    public long BlockHeight { get; init; }
+    public int BlockHeight { get; init; }
 
     public int BlockProtocolVersion { get; init; }
 

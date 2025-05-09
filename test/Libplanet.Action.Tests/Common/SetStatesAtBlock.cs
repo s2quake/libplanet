@@ -11,7 +11,7 @@ public sealed record class SetStatesAtBlock : ActionBase
     {
     }
 
-    public SetStatesAtBlock(Address address, object value, Address accountAddress, long blockHeight)
+    public SetStatesAtBlock(Address address, object value, Address accountAddress, int blockHeight)
     {
         Address = address;
         BlockHeight = blockHeight;
@@ -29,7 +29,7 @@ public sealed record class SetStatesAtBlock : ActionBase
     public Address AccountAddress { get; init; }
 
     [Property(3)]
-    public long BlockHeight { get; init; }
+    public int BlockHeight { get; init; }
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {

@@ -67,7 +67,7 @@ namespace Libplanet.Consensus
 #pragma warning restore SA1118
 
         /// <inheritdoc cref="ProposalMetadata.Height"/>
-        public long Height => _proposalMetadata.Height;
+        public int Height => _proposalMetadata.Height;
 
         /// <inheritdoc cref="ProposalMetadata.Round"/>
         public int Round => _proposalMetadata.Round;

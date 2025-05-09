@@ -439,7 +439,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var metadata = new BlockHeader
             {
-                Height = 1L,
+                Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = TestUtils.PrivateKeys[1].Address,
                 PreviousHash = blockChain.Genesis.BlockHash,

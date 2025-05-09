@@ -58,10 +58,10 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
     }
 
     /// <inheritdoc />
-    public override long BlockHashToIndex(BlockHash hash) =>
+    public override int BlockHashToIndex(BlockHash hash) =>
         _db.Get(
             BlockHashToIndexPrefix.Concat(hash.Bytes).ToArray()) is { } arr
-            ? BigEndianByteArrayToLong(arr)
+            ? BigEndianByteArrayToInt(arr)
             : throw new IndexOutOfRangeException(
                 $"The hash {hash} does not exist in the index.");
 
@@ -249,6 +249,24 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         }
 
         return BitConverter.ToInt64(val);
+    }
+
+    private static int BigEndianByteArrayToInt(byte[] val)
+    {
+        var len = val.Length;
+        if (len != 4)
+        {
+            throw new ArgumentException(
+                $"a byte array of size 8 must be provided, but the size of given array was {len}.",
+                nameof(val));
+        }
+
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(val);
+        }
+
+        return BitConverter.ToInt32(val);
     }
 
     private void IndexImpl(

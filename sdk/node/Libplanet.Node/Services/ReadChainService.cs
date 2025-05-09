@@ -8,5 +8,5 @@ internal sealed class ReadChainService(IBlockChainService blockChainService) : I
 
     public Block GetBlock(BlockHash hash) => blockChainService.BlockChain[hash];
 
-    public Block GetBlock(long height) => blockChainService.BlockChain[height];
+    public Block GetBlock(int height) => blockChainService.BlockChain[height];
 }

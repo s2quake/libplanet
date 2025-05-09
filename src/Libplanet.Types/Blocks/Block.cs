@@ -23,7 +23,7 @@ public sealed record class Block : IEquatable<Block>
 
     public BlockHash BlockHash => BlockHash.Create(ModelSerializer.SerializeToBytes(this));
 
-    public long Height => Header.Height;
+    public int Height => Header.Height;
 
     public int ProtocolVersion => Header.ProtocolVersion;
 

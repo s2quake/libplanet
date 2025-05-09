@@ -6,7 +6,7 @@ public sealed record class BlockExcerpt
 {
     public int ProtocolVersion { get; init; }
 
-    public long Height { get; init; }
+    public int Height { get; init; }
 
     public BlockHash BlockHash { get; init; }
 

@@ -35,7 +35,7 @@ namespace Libplanet.Consensus
         private static readonly Codec _codec = new Codec();
 
         public VoteSetBitsMetadata(
-            long height,
+            int height,
             int round,
             BlockHash blockHash,
             DateTimeOffset timestamp,
@@ -94,7 +94,7 @@ namespace Libplanet.Consensus
         /// <summary>
         /// A height of the votes in the given vote set.
         /// </summary>
-        public long Height { get; }
+        public int Height { get; }
 
         /// <summary>
         /// A round of the votes in the given vote set.

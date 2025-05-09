@@ -54,7 +54,7 @@ namespace Libplanet.Explorer.Queries
                 {
                     var signer = context.GetArgument<Address?>("signer");
                     bool desc = context.GetArgument<bool>("desc");
-                    long offset = context.GetArgument<long>("offset");
+                    int offset = context.GetArgument<int>("offset");
                     int? limit = context.GetArgument<int?>("limit");
 
                     return ExplorerQuery.ListTransactions(signer, desc, offset, limit);

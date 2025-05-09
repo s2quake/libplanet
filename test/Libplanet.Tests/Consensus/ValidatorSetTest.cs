@@ -113,7 +113,7 @@
 //         public void ValidateBlockCommitValidators()
 //         {
 //             Random random = new Random();
-//             long height = 3;
+//             int height = 3;
 //             int round = 5;
 //             BlockHash hash = random.NextBlockHash();
 

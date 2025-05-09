@@ -200,7 +200,7 @@ namespace Libplanet.Blockchain
                     nameof(block));
             }
 
-            long index = Count;
+            var index = Count;
             if (block.Height != index)
             {
                 throw new InvalidOperationException(

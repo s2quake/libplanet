@@ -60,7 +60,7 @@ namespace Libplanet.Consensus
         /// </list>
         /// </exception>
         public ProposalMetadata(
-            long height,
+            int height,
             int round,
             DateTimeOffset timestamp,
             PublicKey validatorPublicKey,
@@ -115,7 +115,7 @@ namespace Libplanet.Consensus
         /// <summary>
         /// A height of given proposal values.
         /// </summary>
-        public long Height { get; }
+        public int Height { get; }
 
         /// <summary>
         /// A round of given proposal values.

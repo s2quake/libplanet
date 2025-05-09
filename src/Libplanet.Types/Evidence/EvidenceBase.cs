@@ -13,7 +13,7 @@ public abstract record class EvidenceBase
 
     [Property(0)]
     [NonNegative]
-    public long Height { get; init; }
+    public int Height { get; init; }
 
     [Property(1)]
     [NotDefault]

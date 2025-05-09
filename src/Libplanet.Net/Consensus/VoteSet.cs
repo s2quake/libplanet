@@ -10,7 +10,7 @@ namespace Libplanet.Net.Consensus
     public class VoteSet
     {
         private readonly ILogger _logger;
-        private readonly long _height;
+        private readonly int _height;
         private readonly int _round;
         private readonly VoteFlag _voteType;
         private readonly ImmutableSortedSet<Validator> _validatorSet;
@@ -21,7 +21,7 @@ namespace Libplanet.Net.Consensus
         private BlockHash? _maj23; // First 2/3 majority seen
 
         public VoteSet(
-            long height,
+            int height,
             int round,
             VoteFlag voteType,
             ImmutableSortedSet<Validator> validatorSet)
@@ -502,7 +502,7 @@ namespace Libplanet.Net.Consensus
             }
 
             public List<Vote> MappedList(
-                long height, int round, ImmutableSortedSet<Validator> validatorSet)
+                int height, int round, ImmutableSortedSet<Validator> validatorSet)
                 =>
                 validatorSet.Select(item => item.PublicKey).Select(
                     key => Votes.ContainsKey(key)

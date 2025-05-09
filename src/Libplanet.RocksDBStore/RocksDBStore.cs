@@ -465,14 +465,14 @@ public partial class RocksDBStore : StoreBase
         }
     }
 
-    public override long CountIndex(Guid chainId)
+    public override int CountIndex(Guid chainId)
     {
         try
         {
             byte[] bytes = _chainDb.Get(IndexCountKey(chainId));
             return bytes is null
                 ? 0
-                : RocksDBStoreBitConverter.ToInt64(bytes);
+                : RocksDBStoreBitConverter.ToInt32(bytes);
         }
         catch (Exception e)
         {
@@ -502,7 +502,7 @@ public partial class RocksDBStore : StoreBase
         return indexes;
     }
 
-    public override BlockHash GetBlockHash(Guid chainId, long height)
+    public override BlockHash GetBlockHash(Guid chainId, int height)
     {
         if (height < 0)
         {
@@ -536,7 +536,7 @@ public partial class RocksDBStore : StoreBase
     }
 
     /// <inheritdoc cref="StoreBase.AppendIndex(Guid, BlockHash)"/>
-    public override void AppendIndex(Guid chainId, long height, BlockHash hash)
+    public override void AppendIndex(Guid chainId, int height, BlockHash hash)
     {
         long index = CountIndex(chainId);
         try

@@ -65,7 +65,7 @@ namespace Libplanet.Consensus
 #pragma warning restore SA1118
 
         /// <inheritdoc cref="VoteSetBitsMetadata.Height"/>
-        public long Height => _voteSetBitsMetadata.Height;
+        public int Height => _voteSetBitsMetadata.Height;
 
         /// <inheritdoc cref="VoteSetBitsMetadata.Round"/>
         public int Round => _voteSetBitsMetadata.Round;

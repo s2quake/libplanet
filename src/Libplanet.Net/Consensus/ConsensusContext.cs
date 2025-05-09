@@ -59,7 +59,7 @@ public partial class ConsensusContext : IDisposable
 
     public bool Running { get; private set; }
 
-    public long Height => CurrentContext.Height;
+    public int Height => CurrentContext.Height;
 
     public int Round => CurrentContext.Round;
 
@@ -104,7 +104,7 @@ public partial class ConsensusContext : IDisposable
         _blockChain.TipChanged -= OnTipChanged;
     }
 
-    public void NewHeight(long height)
+    public void NewHeight(int height)
     {
         lock (_contextLock)
         {
@@ -171,7 +171,7 @@ public partial class ConsensusContext : IDisposable
 
     public bool HandleMessage(ConsensusMsg consensusMessage)
     {
-        long height = consensusMessage.Height;
+        int height = consensusMessage.Height;
         if (height < Height)
         {
             _logger.Debug(
@@ -199,7 +199,7 @@ public partial class ConsensusContext : IDisposable
 
     public VoteSetBits? HandleMaj23(Maj23 maj23)
     {
-        long height = maj23.Height;
+        int height = maj23.Height;
         if (height < Height)
         {
             _logger.Debug(
@@ -224,7 +224,7 @@ public partial class ConsensusContext : IDisposable
 
     public IEnumerable<ConsensusMsg> HandleVoteSetBits(VoteSetBits voteSetBits)
     {
-        long height = voteSetBits.Height;
+        int height = voteSetBits.Height;
         if (height < Height)
         {
             _logger.Debug(
@@ -251,7 +251,7 @@ public partial class ConsensusContext : IDisposable
 
     public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)
     {
-        long height = proposalClaim.Height;
+        int height = proposalClaim.Height;
         int round = proposalClaim.Round;
         if (height != Height)
         {
@@ -339,7 +339,7 @@ public partial class ConsensusContext : IDisposable
             _newHeightCts.Token);
     }
 
-    private Context CreateContext(long height, BlockCommit lastCommit)
+    private Context CreateContext(int height, BlockCommit lastCommit)
     {
         var nextStateRootHash = _blockChain.GetNextStateRootHash(height - 1) ??
             throw new NullReferenceException(

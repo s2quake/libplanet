@@ -13,7 +13,7 @@ public sealed record class BlockHeader
     public int ProtocolVersion { get; init; } = CurrentProtocolVersion;
 
     [Property(1)]
-    public long Height { get; init; }
+    public int Height { get; init; }
 
     [Property(2)]
     public DateTimeOffset Timestamp { get; init; }

@@ -22,19 +22,19 @@ message GetGenesisBlockReply {
 
 message GetTipReply {
   string hash = 1;
-  int64 height = 2;
+  int32 height = 2;
 }
 
 message GetBlockRequest {
   oneof block_identifier {
-    int64 height = 1;
+    int32 height = 1;
     string hash = 2;
   }
 }
 
 message GetBlockReply {
   string hash = 1;
-  int64 height = 2;
+  int32 height = 2;
   string proposer = 3;
   string previous_hash = 4;
   string state_root_hash = 5;

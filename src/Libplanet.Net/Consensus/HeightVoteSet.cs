@@ -11,12 +11,12 @@ namespace Libplanet.Net.Consensus
     {
         private readonly ILogger _logger;
         private readonly object _lock;
-        private long _height;
+        private int _height;
         private ImmutableSortedSet<Validator> _validatorSet;
         private Dictionary<int, RoundVoteSet> _roundVoteSets;
         private int _round;
 
-        public HeightVoteSet(long height, ImmutableSortedSet<Validator> validatorSet)
+        public HeightVoteSet(int height, ImmutableSortedSet<Validator> validatorSet)
         {
             _logger = Log
                 .ForContext("Tag", "Consensus")
@@ -36,7 +36,7 @@ namespace Libplanet.Net.Consensus
 
         public int Count => _roundVoteSets.Values.Sum(v => v.Count);
 
-        public void Reset(long height, ImmutableSortedSet<Validator> validatorSet)
+        public void Reset(int height, ImmutableSortedSet<Validator> validatorSet)
         {
             lock (_lock)
             {
@@ -49,7 +49,7 @@ namespace Libplanet.Net.Consensus
             }
         }
 
-        public long Height()
+        public int Height()
         {
             lock (_lock)
             {

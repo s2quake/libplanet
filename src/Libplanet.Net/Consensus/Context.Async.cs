@@ -296,7 +296,7 @@ namespace Libplanet.Net.Consensus
         {
             public ContextState(
                 int voteCount,
-                long height,
+                int height,
                 int round,
                 ConsensusStep step,
                 BlockHash? proposal)
@@ -310,7 +310,7 @@ namespace Libplanet.Net.Consensus
 
             public int VoteCount { get; }
 
-            public long Height { get; }
+            public int Height { get; }
 
             public int Round { get; }
 

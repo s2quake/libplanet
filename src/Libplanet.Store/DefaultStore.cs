@@ -68,7 +68,7 @@ public class DefaultStore : StoreBase
 
     public override void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
 
-    public override long CountIndex(Guid chainId) => _heightByChainId[chainId];
+    public override int CountIndex(Guid chainId) => _heightByChainId[chainId];
 
     public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
@@ -86,13 +86,13 @@ public class DefaultStore : StoreBase
         }
     }
 
-    public override BlockHash GetBlockHash(Guid chainId, long height)
+    public override BlockHash GetBlockHash(Guid chainId, int height)
     {
         var collection = IndexCollection(chainId);
         return collection[height];
     }
 
-    public override void AppendIndex(Guid chainId, long height, BlockHash hash)
+    public override void AppendIndex(Guid chainId, int height, BlockHash hash)
     {
         var collection = IndexCollection(chainId);
         collection.Add(height, hash);

@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.Queries
                 resolve: context =>
                 {
                     bool desc = context.GetArgument<bool>("desc");
-                    long offset = context.GetArgument<long>("offset");
+                    int offset = context.GetArgument<int>("offset");
                     int? limit = context.GetArgument<int?>("limit", 100);
                     return ExplorerQuery.ListBlocks(desc, offset, limit);
                 });
@@ -49,7 +49,7 @@ namespace Libplanet.Explorer.Queries
                 resolve: context =>
                 {
                     string hash = context.GetArgument<string>("hash");
-                    long? index = context.GetArgument<long?>("index", null);
+                    int? index = context.GetArgument<int?>("index", null);
 
                     if (!(hash is null ^ index is null))
                     {

@@ -46,7 +46,7 @@ public sealed class MemoryStore : IStore
 
     void IStore.SetCanonicalChainId(Guid chainId) => _canonicalChainId = chainId;
 
-    long IStore.CountIndex(Guid chainId) =>
+    int IStore.CountIndex(Guid chainId) =>
         _indexes.TryGetValue(chainId, out ImmutableTrieList<BlockHash>? index)
         ? index.Count
         : 0;
@@ -62,7 +62,7 @@ public sealed class MemoryStore : IStore
         return [];
     }
 
-    BlockHash IStore.GetBlockHash(Guid chainId, long height)
+    BlockHash IStore.GetBlockHash(Guid chainId, int height)
     {
         if (_indexes.TryGetValue(chainId, out var list))
         {
@@ -82,7 +82,7 @@ public sealed class MemoryStore : IStore
             $"The height {height} is out of range for the chain ID {chainId}.");
     }
 
-    void IStore.AppendIndex(Guid chainId, long height, BlockHash hash)
+    void IStore.AppendIndex(Guid chainId, int height, BlockHash hash)
     {
         ImmutableTrieList<BlockHash> list = _indexes.AddOrUpdate(
             chainId,
@@ -125,7 +125,7 @@ public sealed class MemoryStore : IStore
         return blockDigest.ToBlock(txId => _txs[txId], evId => _committedEvidence[evId]);
     }
 
-    long IStore.GetBlockHeight(BlockHash blockHash)
+    int IStore.GetBlockHeight(BlockHash blockHash)
     {
         if (!_blocks.TryGetValue(blockHash, out var digest))
         {
