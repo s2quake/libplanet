@@ -946,12 +946,11 @@ public abstract class StoreTest
         using (StoreFixture fx2 = FxConstructor())
         {
             IStore s1 = fx.Store, s2 = fx2.Store;
-            var policy = new BlockChainOptions();
             var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
             var genesis = preEval.Sign(
                 GenesisProposer,
                 default);
-            var blocks = BlockChain.Create(genesis, policy);
+            var blocks = BlockChain.Create(genesis, fx.Options);
 
             // FIXME: Need to add more complex blocks/transactions.
             var key = new PrivateKey();
