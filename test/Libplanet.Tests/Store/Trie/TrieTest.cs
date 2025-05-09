@@ -89,7 +89,7 @@ public class TrieTest
     [Fact]
     public void EmptyRootHash()
     {
-        IDictionary<KeyBytes, byte[]> keyValueStore = new MemoryKeyValueStore();
+        var keyValueStore = new MemoryKeyValueStore();
         TrieStateStore stateStore = new TrieStateStore(keyValueStore);
         ITrie trie = stateStore.GetStateRoot(default);
         Assert.Equal(default, trie.Hash);

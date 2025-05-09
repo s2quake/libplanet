@@ -1,7 +1,6 @@
 using Libplanet.Action;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
@@ -11,7 +10,7 @@ public sealed record class BlockChainOptions
 {
     public IStore Store { get; init; } = new MemoryStore();
 
-    public IDictionary<KeyBytes, byte[]> KeyValueStore { get; init; } = new MemoryKeyValueStore();
+    public IKeyValueStore KeyValueStore { get; init; } = new MemoryKeyValueStore();
 
     public PolicyActions PolicyActions { get; init; } = PolicyActions.Empty;
 

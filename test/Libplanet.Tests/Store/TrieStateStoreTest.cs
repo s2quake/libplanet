@@ -11,11 +11,11 @@ namespace Libplanet.Tests.Store;
 
 public class TrieStateStoreTest
 {
-    private readonly IDictionary<KeyBytes, byte[]> _stateKeyValueStore;
+    private readonly IKeyValueStore _stateKeyValueStore;
 
     public TrieStateStoreTest()
     {
-        _stateKeyValueStore = new DefaultKeyValueStore();
+        _stateKeyValueStore = new DefaultTable();
     }
 
     public static KeyBytes KeyFoo { get; } = (KeyBytes)"foo";
@@ -67,7 +67,7 @@ public class TrieStateStoreTest
     public void CopyStates()
     {
         var stateStore = new TrieStateStore(_stateKeyValueStore);
-        IDictionary<KeyBytes, byte[]> targetStateKeyValueStore = new MemoryKeyValueStore();
+        var targetStateKeyValueStore = new MemoryKeyValueStore();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
         List<(KeyBytes, IValue)> kvs = Enumerable.Range(0, 1_000)
@@ -113,7 +113,7 @@ public class TrieStateStoreTest
     public void CopyWorldStates()
     {
         var stateStore = new TrieStateStore(_stateKeyValueStore);
-        IDictionary<KeyBytes, byte[]> targetStateKeyValueStore = new MemoryKeyValueStore();
+        var targetStateKeyValueStore = new MemoryKeyValueStore();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
         Dictionary<Address, List<(KeyBytes, IValue)>> data = Enumerable
@@ -184,10 +184,6 @@ public class TrieStateStoreTest
     public void IdempotentDispose()
 #pragma warning restore S2699 // Tests should include assertions
     {
-        var stateStore = new TrieStateStore(_stateKeyValueStore);
-        stateStore.Dispose();
-#pragma warning disable S3966 // Objects should not be disposed more than once
-        stateStore.Dispose();
-#pragma warning restore S3966 // Objects should not be disposed more than once
+        _ = new TrieStateStore(_stateKeyValueStore);
     }
 }

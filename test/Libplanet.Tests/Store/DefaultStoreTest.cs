@@ -67,6 +67,6 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
         IStore store = pair.Value.Store;
         Assert.IsAssignableFrom<DefaultStore>(store);
         var stateStore = (TrieStateStore)pair.Value.StateStore;
-        Assert.IsAssignableFrom<DefaultKeyValueStore>(stateStore.StateKeyValueStore);
+        Assert.IsAssignableFrom<DefaultTable>(stateStore.StateKeyValueStore);
     }
 }

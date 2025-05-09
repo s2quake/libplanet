@@ -3,7 +3,7 @@ using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 
-public sealed class DefaultDatabase : Database<DefaultKeyValueStore>
+public sealed class DefaultDatabase : Database<DefaultTable>
 {
     private readonly string _path;
 
@@ -26,10 +26,10 @@ public sealed class DefaultDatabase : Database<DefaultKeyValueStore>
         _path = path;
     }
 
-    protected override DefaultKeyValueStore Create(string key)
+    protected override DefaultTable Create(string key)
         => new(_path == string.Empty ? string.Empty : Path.Combine(_path, key));
 
-    protected override void OnRemove(string key, DefaultKeyValueStore value)
+    protected override void OnRemove(string key, DefaultTable value)
     {
         value.Dispose();
     }

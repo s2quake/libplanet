@@ -136,7 +136,6 @@ public static class Utils
 
         if (StoreLoaderAttribute.LoadStore(uri) is { } pair)
         {
-            pair.StateStore.Dispose();
             return pair.Store;
         }
 

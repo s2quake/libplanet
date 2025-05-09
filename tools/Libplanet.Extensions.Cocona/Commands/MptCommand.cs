@@ -29,14 +29,14 @@ public class MptCommand
 
     private const string KVStoreArgumentDescription =
         "The alias name registered through `planet mpt add' command or the URI included " +
-        "the type of " + nameof(IDictionary<KeyBytes, byte[]>) + " implementation and the path where " +
+        "the type of " + nameof(IKeyValueStore) + " implementation and the path where " +
         "it was used at. " + KVStoreURIExample;
 
-    private readonly IImmutableDictionary<string, Func<string, IDictionary<KeyBytes, byte[]>>>
+    private readonly IImmutableDictionary<string, Func<string, IKeyValueStore>>
         _kvStoreConstructors =
-            new Dictionary<string, Func<string, IDictionary<KeyBytes, byte[]>>>
+            new Dictionary<string, Func<string, IKeyValueStore>>
             {
-                ["default"] = kvStorePath => new DefaultKeyValueStore(kvStorePath),
+                ["default"] = kvStorePath => new DefaultTable(kvStorePath),
                 ["rocksdb"] = kvStorePath => new RocksDBKeyValueStore(kvStorePath),
             }.ToImmutableSortedDictionary();
 
@@ -216,7 +216,7 @@ public class MptCommand
     {
         ToolConfiguration toolConfiguration = configurationService.Load();
         kvStoreUri = ConvertKVStoreUri(kvStoreUri, toolConfiguration);
-        IDictionary<KeyBytes, byte[]> keyValueStore = LoadKVStoreFromURI(kvStoreUri);
+        IKeyValueStore keyValueStore = LoadKVStoreFromURI(kvStoreUri);
         var trie = Trie.Create(HashDigest<SHA256>.Parse(stateRootHashHex), keyValueStore);
         KeyBytes stateKeyBytes = (KeyBytes)stateKey;
         IReadOnlyList<IValue?> values = trie.GetMany([stateKeyBytes]);
@@ -239,7 +239,7 @@ public class MptCommand
         Console.Error.WriteLine(helpMessageBuilder.BuildAndRenderForCurrentContext());
     }
 
-    private IDictionary<KeyBytes, byte[]> LoadKVStoreFromURI(string rawUri)
+    private IKeyValueStore LoadKVStoreFromURI(string rawUri)
     {
         var uri = new Uri(rawUri);
         var scheme = uri.Scheme;
@@ -253,7 +253,7 @@ public class MptCommand
 
         if (!_kvStoreConstructors.TryGetValue(
             splitScheme[0],
-            out Func<string, IDictionary<KeyBytes, byte[]>>? constructor))
+            out Func<string, IKeyValueStore>? constructor))
         {
             throw new NotSupportedException(
                 $"No key-value store backend supports the such scheme: {splitScheme[0]}.");

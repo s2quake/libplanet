@@ -5,13 +5,13 @@ using Zio.FileSystems;
 
 namespace Libplanet.Store.Trie;
 
-public sealed class DefaultKeyValueStore(string path) : KeyValueStoreBase, IDisposable
+public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
 {
     private readonly FileSystem _fs = path == string.Empty ? new MemoryFileSystem() : CreateFileSystem(path);
     private bool _isDisposed;
     private int? _count;
 
-    public DefaultKeyValueStore()
+    public DefaultTable()
         : this(string.Empty)
     {
     }

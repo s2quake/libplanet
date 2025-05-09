@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Libplanet.Store;
 using Libplanet.Store.Trie;
 using RocksDbSharp;
 

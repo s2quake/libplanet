@@ -166,47 +166,4 @@ public abstract class StoreBase : IStore
             return null;
         }
     }
-
-    private static Bencodex.Types.Dictionary SerializeGroupedFAVs(
-        IImmutableDictionary<Address, IImmutableDictionary<Currency, FAV>> balanceDelta) =>
-        new Dictionary(
-            balanceDelta.Select(pair =>
-                new KeyValuePair<IKey, IValue>(
-                    new Binary(pair.Key.Bytes),
-                    SerializeFAVs(pair.Value))));
-
-    private static IImmutableDictionary<Address, IImmutableDictionary<Currency, FAV>>
-    DeserializeGroupedFAVs(Bencodex.Types.Dictionary serialized) =>
-        serialized.ToImmutableDictionary(
-            kv => ModelSerializer.Deserialize<Address>(kv.Key),
-            kv => DeserializeFAVs((List)kv.Value));
-
-    private static Bencodex.Types.List SerializeLogs(
-        List<IReadOnlyList<string>> logs) =>
-        new List(logs.Select(l => new List(l.Select(x => (Text)x))));
-
-    private static List<IReadOnlyList<string>> DeserializeLogs(
-        Bencodex.Types.List serialized) =>
-        serialized
-            .Cast<List>()
-            .Select(l => (IReadOnlyList<string>)l.Select(e => (string)(Text)e).ToList())
-            .ToList();
-
-    private static Bencodex.Types.List SerializeFAVs(
-        IImmutableDictionary<Currency, FAV> favs) =>
-        new List(
-            favs.Select(
-                kv => List.Empty.Add(ModelSerializer.Serialize(kv.Key)).Add(kv.Value.RawValue)));
-
-    private static IImmutableDictionary<Currency, FAV> DeserializeFAVs(
-        List serialized) =>
-        serialized.Select(pList =>
-        {
-            var pair = (List)pList;
-            var currency = ModelSerializer.Deserialize<Currency>(pair[0]);
-            BigInteger rawValue = (Bencodex.Types.Integer)pair[1];
-            return new KeyValuePair<Currency, FAV>(
-                currency,
-                new FAV { Currency = currency, RawValue = rawValue });
-        }).ToImmutableDictionary();
 }

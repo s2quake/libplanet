@@ -24,7 +24,7 @@ public sealed class IntegerSet
     public readonly Block Genesis;
     public readonly BlockChain Chain;
     public readonly IStore Store;
-    public readonly IDictionary<KeyBytes, byte[]> KVStore;
+    public readonly IKeyValueStore KVStore;
     public readonly TrieStateStore StateStore;
 
     public IntegerSet(int[] initialStates)

@@ -1,10 +1,8 @@
-using Libplanet.Store.Trie;
-
 namespace Libplanet.Store;
 
-public interface IDatabase : IReadOnlyDictionary<string, IDictionary<KeyBytes, byte[]>>
+public interface IDatabase : IReadOnlyDictionary<string, IKeyValueStore>
 {
-    IDictionary<KeyBytes, byte[]> GetOrAdd(string key);
+    IKeyValueStore GetOrAdd(string key);
 
     public bool Remove(string key);
 }

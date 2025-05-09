@@ -228,5 +228,4 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-
 }

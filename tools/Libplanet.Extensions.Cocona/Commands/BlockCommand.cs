@@ -148,7 +148,7 @@ public class BlockCommand
 
         var policyActions = blockPolicyParams.GetPolicyActions();
         var actionEvaluator = new ActionEvaluator(
-            new TrieStateStore(new DefaultKeyValueStore()),
+            new TrieStateStore(new DefaultTable()),
             policyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
             proposer: key, transactions: [.. txs]);
