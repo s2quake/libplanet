@@ -171,6 +171,11 @@ public class DefaultStore : StoreBase
     public override void PutBlock(Block block)
     {
         _blocks.Add(block.BlockHash, block);
+
+        foreach (Transaction tx in block.Transactions)
+        {
+            PutTransaction(tx);
+        }
     }
 
     public override bool DeleteBlock(BlockHash blockHash)
