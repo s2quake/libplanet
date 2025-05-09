@@ -84,22 +84,22 @@ public class StoreCommandTest : IDisposable
         {
             v.Store.SetCanonicalChainId(guid);
             v.Store.PutBlock(_genesisBlock);
-            v.Store.AppendIndex(guid, _genesisBlock.Height, _genesisBlock.BlockHash);
+            v.Store.AppendIndex(guid, _genesisBlock.BlockHash);
 
             v.Store.PutBlock(_block1);
-            v.Store.AppendIndex(guid, _block1.Height, _block1.BlockHash);
+            v.Store.AppendIndex(guid, _block1.BlockHash);
             v.Store.PutTransaction(_transaction1);
 
             v.Store.PutBlock(_block2);
-            v.Store.AppendIndex(guid, _block2.Height, _block2.BlockHash);
+            v.Store.AppendIndex(guid, _block2.BlockHash);
             v.Store.PutTransaction(_transaction2);
 
             v.Store.PutBlock(_block3);
-            v.Store.AppendIndex(guid, _block3.Height, _block3.BlockHash);
+            v.Store.AppendIndex(guid, _block3.BlockHash);
             v.Store.PutTransaction(_transaction3);
 
             v.Store.PutBlock(_block4);
-            v.Store.AppendIndex(guid, _block4.Height, _block4.BlockHash);
+            v.Store.AppendIndex(guid, _block4.BlockHash);
 
             v.Store?.Dispose();
         }

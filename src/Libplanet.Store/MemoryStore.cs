@@ -82,7 +82,7 @@ public sealed class MemoryStore : IStore
             $"The height {height} is out of range for the chain ID {chainId}.");
     }
 
-    void IStore.AppendIndex(Guid chainId, int height, BlockHash hash)
+    int IStore.AppendIndex(Guid chainId, BlockHash hash)
     {
         ImmutableTrieList<BlockHash> list = _indexes.AddOrUpdate(
             chainId,
@@ -90,7 +90,7 @@ public sealed class MemoryStore : IStore
             (_, list) => list.Add(hash));
         _txNonces.GetOrAdd(chainId, _ => new ConcurrentDictionary<Address, long>());
 
-        // return list.Count - 1;
+        return list.Count - 1;
     }
 
     public void ForkBlockIndexes(

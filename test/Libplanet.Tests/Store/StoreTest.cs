@@ -38,13 +38,13 @@ public abstract class StoreTest
         Assert.Empty(Fx.Store.ListChainIds());
 
         Fx.Store.PutBlock(Fx.Block1);
-        Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.Height, Fx.Block1.BlockHash);
+        Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
         Assert.Equal(
             new[] { Fx.StoreChainId }.ToImmutableHashSet(),
             [.. Fx.Store.ListChainIds()]);
 
         Guid arbitraryGuid = Guid.NewGuid();
-        Fx.Store.AppendIndex(arbitraryGuid, Fx.Block1.Height, Fx.Block1.BlockHash);
+        Fx.Store.AppendIndex(arbitraryGuid, Fx.Block1.BlockHash);
         Assert.Equal(
             new[] { Fx.StoreChainId, arbitraryGuid }.ToImmutableHashSet(),
             [.. Fx.Store.ListChainIds()]);
@@ -60,10 +60,10 @@ public abstract class StoreTest
         Fx.Store.PutBlock(Fx.Block1);
         Fx.Store.PutBlock(Fx.Block2);
 
-        Fx.Store.AppendIndex(chainA, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        Fx.Store.AppendIndex(chainA, Fx.Block1.Height, Fx.Block1.BlockHash);
+        Fx.Store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
+        Fx.Store.AppendIndex(chainA, Fx.Block1.BlockHash);
         Fx.Store.ForkBlockIndexes(chainA, chainB, Fx.Block1.BlockHash);
-        Fx.Store.AppendIndex(chainB, Fx.Block2.Height, Fx.Block2.BlockHash);
+        Fx.Store.AppendIndex(chainB, Fx.Block2.BlockHash);
 
         Fx.Store.DeleteChainId(chainA);
 
@@ -79,9 +79,9 @@ public abstract class StoreTest
             ProposeGenesisBlock(GenesisProposer),
             GenesisProposer,
             [Fx.Transaction1]);
-        Fx.Store.AppendIndex(Fx.StoreChainId, block1.Height, block1.BlockHash);
+        Fx.Store.AppendIndex(Fx.StoreChainId, block1.BlockHash);
         Guid arbitraryChainId = Guid.NewGuid();
-        Fx.Store.AppendIndex(arbitraryChainId, block1.Height, block1.BlockHash);
+        Fx.Store.AppendIndex(arbitraryChainId, block1.BlockHash);
         Fx.Store.IncreaseTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer);
 
         Fx.Store.DeleteChainId(Fx.StoreChainId);
@@ -119,15 +119,15 @@ public abstract class StoreTest
         store.PutBlock(Fx.Block2);
         store.PutBlock(Fx.Block3);
 
-        store.AppendIndex(chainA, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainB, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainC, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainB, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainC, Fx.GenesisBlock.BlockHash);
 
-        store.AppendIndex(chainA, Fx.Block1.Height, Fx.Block1.BlockHash);
+        store.AppendIndex(chainA, Fx.Block1.BlockHash);
         store.ForkBlockIndexes(chainA, chainB, Fx.Block1.BlockHash);
-        store.AppendIndex(chainB, Fx.Block2.Height, Fx.Block2.BlockHash);
+        store.AppendIndex(chainB, Fx.Block2.BlockHash);
         store.ForkBlockIndexes(chainB, chainC, Fx.Block2.BlockHash);
-        store.AppendIndex(chainC, Fx.Block3.Height, Fx.Block3.BlockHash);
+        store.AppendIndex(chainC, Fx.Block3.BlockHash);
 
         // Deleting chainA doesn't effect chainB, chainC
         store.DeleteChainId(chainA);
@@ -211,15 +211,15 @@ public abstract class StoreTest
         store.PutBlock(Fx.Block2);
         store.PutBlock(Fx.Block3);
 
-        store.AppendIndex(chainA, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainB, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainC, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainB, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainC, Fx.GenesisBlock.BlockHash);
 
-        store.AppendIndex(chainA, Fx.Block1.Height, Fx.Block1.BlockHash);
+        store.AppendIndex(chainA, Fx.Block1.BlockHash);
         store.ForkBlockIndexes(chainA, chainB, Fx.Block1.BlockHash);
-        store.AppendIndex(chainB, Fx.Block2.Height, Fx.Block2.BlockHash);
+        store.AppendIndex(chainB, Fx.Block2.BlockHash);
         store.ForkBlockIndexes(chainB, chainC, Fx.Block2.BlockHash);
-        store.AppendIndex(chainC, Fx.Block3.Height, Fx.Block3.BlockHash);
+        store.AppendIndex(chainC, Fx.Block3.BlockHash);
 
         store.DeleteChainId(chainC);
 
@@ -270,8 +270,8 @@ public abstract class StoreTest
         store.PutBlock(Fx.Block2);
         store.PutBlock(Fx.Block3);
 
-        store.AppendIndex(chainA, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainA, Fx.Block1.Height, Fx.Block1.BlockHash);
+        store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainA, Fx.Block1.BlockHash);
         store.ForkBlockIndexes(chainA, chainB, Fx.Block1.BlockHash);
         store.DeleteChainId(chainA);
 
@@ -515,7 +515,7 @@ public abstract class StoreTest
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHash(Fx.StoreChainId, 0));
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHash(Fx.StoreChainId, -1));
 
-        Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.Height, Fx.Hash1);
+        Assert.Equal(0, Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Hash1));
         Assert.Equal(1, Fx.Store.CountIndex(Fx.StoreChainId));
         Assert.Equal(
             [Fx.Hash1],
@@ -523,7 +523,7 @@ public abstract class StoreTest
         Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, 0));
         Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, -1));
 
-        Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block2.Height, Fx.Hash2);
+        Assert.Equal(1, Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Hash2));
         Assert.Equal(2, Fx.Store.CountIndex(Fx.StoreChainId));
         Assert.Equal(
             new List<BlockHash> { Fx.Hash1, Fx.Hash2 },
@@ -540,9 +540,9 @@ public abstract class StoreTest
         var ns = Fx.StoreChainId;
         var store = Fx.Store;
 
-        store.AppendIndex(ns, Fx.Block1.Height, Fx.Hash1);
-        store.AppendIndex(ns, Fx.Block2.Height, Fx.Hash2);
-        store.AppendIndex(ns, Fx.Block3.Height, Fx.Hash3);
+        store.AppendIndex(ns, Fx.Hash1);
+        store.AppendIndex(ns, Fx.Hash2);
+        store.AppendIndex(ns, Fx.Hash3);
 
         var indexes = store.IterateIndexes(ns).ToArray();
         Assert.Equal(new[] { Fx.Hash1, Fx.Hash2, Fx.Hash3 }, indexes);
@@ -656,7 +656,7 @@ public abstract class StoreTest
     public void IndexBlockHashReturnNull()
     {
         Fx.Store.PutBlock(Fx.Block1);
-        Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.Height, Fx.Block1.BlockHash);
+        Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
         Assert.Equal(1, Fx.Store.CountIndex(Fx.StoreChainId));
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHash(Fx.StoreChainId, 2));
     }
@@ -774,14 +774,14 @@ public abstract class StoreTest
         store.PutBlock(Fx.Block2);
         store.PutBlock(Fx.Block3);
 
-        store.AppendIndex(chainA, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainB, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainC, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainB, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainC, Fx.GenesisBlock.BlockHash);
 
-        store.AppendIndex(chainA, Fx.Block1.Height, Fx.Block1.BlockHash);
+        store.AppendIndex(chainA, Fx.Block1.BlockHash);
         store.ForkBlockIndexes(chainA, chainB, Fx.Block1.BlockHash);
-        store.AppendIndex(chainB, Fx.Block2.Height, Fx.Block2.BlockHash);
-        store.AppendIndex(chainB, Fx.Block3.Height, Fx.Block3.BlockHash);
+        store.AppendIndex(chainB, Fx.Block2.BlockHash);
+        store.AppendIndex(chainB, Fx.Block3.BlockHash);
 
         Assert.Equal(
             [
@@ -799,8 +799,8 @@ public abstract class StoreTest
             store.IterateIndexes(chainB));
 
         store.ForkBlockIndexes(chainB, chainC, Fx.Block3.BlockHash);
-        store.AppendIndex(chainC, Fx.Block4.Height, Fx.Block4.BlockHash);
-        store.AppendIndex(chainC, Fx.Block5.Height, Fx.Block5.BlockHash);
+        store.AppendIndex(chainC, Fx.Block4.BlockHash);
+        store.AppendIndex(chainC, Fx.Block5.BlockHash);
 
         Assert.Equal(
             [
@@ -901,13 +901,13 @@ public abstract class StoreTest
         store.PutBlock(Fx.Block3);
         store.PutBlock(anotherBlock3);
 
-        store.AppendIndex(chainA, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(chainA, Fx.Block1.Height, Fx.Block1.BlockHash);
-        store.AppendIndex(chainA, Fx.Block2.Height, Fx.Block2.BlockHash);
-        store.AppendIndex(chainA, Fx.Block3.Height, Fx.Block3.BlockHash);
+        store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(chainA, Fx.Block1.BlockHash);
+        store.AppendIndex(chainA, Fx.Block2.BlockHash);
+        store.AppendIndex(chainA, Fx.Block3.BlockHash);
 
         store.ForkBlockIndexes(chainA, chainB, Fx.Block2.BlockHash);
-        store.AppendIndex(chainB, anotherBlock3.Height, anotherBlock3.BlockHash);
+        store.AppendIndex(chainB, anotherBlock3.BlockHash);
 
         Assert.Equal(
             [
@@ -1308,9 +1308,9 @@ public abstract class StoreTest
         store.PutBlock(Fx.Block3);
 
         Guid cid1 = Guid.NewGuid();
-        store.AppendIndex(cid1, Fx.GenesisBlock.Height, Fx.GenesisBlock.BlockHash);
-        store.AppendIndex(cid1, Fx.Block1.Height, Fx.Block1.BlockHash);
-        store.AppendIndex(cid1, Fx.Block2.Height, Fx.Block2.BlockHash);
+        store.AppendIndex(cid1, Fx.GenesisBlock.BlockHash);
+        store.AppendIndex(cid1, Fx.Block1.BlockHash);
+        store.AppendIndex(cid1, Fx.Block2.BlockHash);
         Assert.Single(store.ListChainIds());
         Assert.Equal(
             [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
@@ -1318,8 +1318,8 @@ public abstract class StoreTest
 
         Guid cid2 = Guid.NewGuid();
         store.ForkBlockIndexes(cid1, cid2, Fx.Block1.BlockHash);
-        store.AppendIndex(cid2, Fx.Block2.Height, Fx.Block2.BlockHash);
-        store.AppendIndex(cid2, Fx.Block3.Height, Fx.Block3.BlockHash);
+        store.AppendIndex(cid2, Fx.Block2.BlockHash);
+        store.AppendIndex(cid2, Fx.Block3.BlockHash);
         Assert.Equal(2, store.ListChainIds().Count());
         Assert.Equal(
             [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash, Fx.Block3.BlockHash],

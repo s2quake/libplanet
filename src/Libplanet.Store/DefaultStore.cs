@@ -92,11 +92,13 @@ public class DefaultStore : StoreBase
         return collection[height];
     }
 
-    public override void AppendIndex(Guid chainId, int height, BlockHash hash)
+    public override int AppendIndex(Guid chainId, BlockHash hash)
     {
         var collection = IndexCollection(chainId);
+        var height = collection.Count;
         collection.Add(height, hash);
         _heightByChainId[chainId] = height;
+        return height;
     }
 
     public override void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint)

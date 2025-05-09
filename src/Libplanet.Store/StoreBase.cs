@@ -26,7 +26,7 @@ public abstract class StoreBase : IStore
 
     public abstract BlockHash GetBlockHash(Guid chainId, int height);
 
-    public abstract void AppendIndex(Guid chainId, int height, BlockHash hash);
+    public abstract int AppendIndex(Guid chainId, BlockHash hash);
 
     public abstract void ForkBlockIndexes(
         Guid sourceChainId,

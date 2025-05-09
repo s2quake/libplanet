@@ -21,7 +21,7 @@ public interface IStore : IDisposable
 
     BlockHash GetBlockHash(Guid chainId, int height);
 
-    void AppendIndex(Guid chainId, int height, BlockHash hash);
+    int AppendIndex(Guid chainId, BlockHash hash);
 
     void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint);
 
