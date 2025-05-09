@@ -460,7 +460,7 @@ public class FungibleAssetValueTest
         Assert.Equal(FungibleAssetValue.Create(FOO, -12, 0), FungibleAssetValue.Parse(FOO, "-12"));
     }
 
-    [SkippableFact]
+    [Fact]
     public void JsonSerialization()
     {
         var foo1 = FungibleAssetValue.Create(FOO, 123, 45);

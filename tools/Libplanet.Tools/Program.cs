@@ -20,9 +20,6 @@ public class Program
         "planetarium",
         "cli.json");
 
-    // Workaround for linking with Libplanet.RocksDBStore.
-    private static readonly Type _rocksdb = typeof(Libplanet.RocksDBStore.RocksDBStore);
-
     public static Task Main(string[] args)
     {
         return CoconaLiteApp.CreateHostBuilder()

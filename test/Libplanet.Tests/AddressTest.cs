@@ -232,7 +232,7 @@ public class AddressTest
         Assert.Equal("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF", converter.ConvertTo(address, typeof(string)));
     }
 
-    [SkippableFact]
+    [Fact]
     public void JsonSerialization()
     {
         var address = Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");

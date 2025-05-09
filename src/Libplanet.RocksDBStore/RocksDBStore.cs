@@ -17,7 +17,7 @@ using Serilog;
 
 namespace Libplanet.RocksDBStore;
 
-public partial class RocksDBStore : StoreBase
+public partial class LegacyRocksDBStore : StoreBase
 {
     private const string BlockDbRootPathName = "block";
     private const string BlockIndexDbName = "blockindex";
@@ -112,7 +112,7 @@ public partial class RocksDBStore : StoreBase
     /// RocksDB connection cache. 100 by default.</param>
     /// <param name="type">Determines the instance type of the internal <see cref="RocksDb"/>
     /// instances.  <see cref="RocksDBInstanceType.Primary"/> by default.</param>
-    public RocksDBStore(
+    public LegacyRocksDBStore(
         string path,
         int blockCacheSize = 512,
         int txCacheSize = 1024,
@@ -125,7 +125,7 @@ public partial class RocksDBStore : StoreBase
         int dbConnectionCacheSize = 100,
         RocksDBInstanceType type = RocksDBInstanceType.Primary)
     {
-        _logger = Log.ForContext<RocksDBStore>();
+        _logger = Log.ForContext<LegacyRocksDBStore>();
 
         if (path is null)
         {
@@ -1510,7 +1510,7 @@ public partial class RocksDBStore : StoreBase
             "instance-type", RocksDBInstanceType.Primary);
 
         string statesKvPath = query.Get("states-dir") ?? StatesKvPathDefault;
-        var store = new RocksDBStore(
+        var store = new LegacyRocksDBStore(
             storeUri.LocalPath,
             blockCacheSize,
             txCacheSize,

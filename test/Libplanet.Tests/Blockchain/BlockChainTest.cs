@@ -69,7 +69,7 @@ public partial class BlockChainTest : IDisposable
         _fx.Dispose();
     }
 
-    [SkippableFact]
+    [Fact]
     public void CanonicalId()
     {
         var chain1 = _blockChain;
@@ -98,7 +98,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(chain1.Id, z.Id);
     }
 
-    [SkippableFact]
+    [Fact]
     public void Validators()
     {
         var validatorSet = _blockChain
@@ -111,7 +111,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(TestUtils.Validators.Count, validatorSet.Count);
     }
 
-    [SkippableFact]
+    [Fact]
     public void CanFindBlockByIndex()
     {
         var genesis = _blockChain.Genesis;
@@ -122,7 +122,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(block, _blockChain[1]);
     }
 
-    [SkippableFact]
+    [Fact]
     public void BlockHashes()
     {
         var key = new PrivateKey();
@@ -149,7 +149,7 @@ public partial class BlockChainTest : IDisposable
             _blockChain.BlockHashes);
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProcessActions()
     {
         var store = new MemoryStore();
@@ -270,7 +270,7 @@ public partial class BlockChainTest : IDisposable
             .GetValue(_fx.Address1);
     }
 
-    [SkippableFact]
+    [Fact]
     public void ActionRenderersHaveDistinctContexts()
     {
         var policy = new BlockChainOptions();
@@ -291,7 +291,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(generatedRandomValueLogs[0], generatedRandomValueLogs[1]);
     }
 
-    [SkippableFact]
+    [Fact]
     public void RenderActionsAfterBlockIsRendered()
     {
         var policy = new BlockChainOptions();
@@ -322,7 +322,7 @@ public partial class BlockChainTest : IDisposable
         // Assert.Equal(2, blockLogs[1].Index);
     }
 
-    [SkippableFact]
+    [Fact]
     public void RenderActionsAfterAppendComplete()
     {
         var policy = new BlockChainOptions();
@@ -356,7 +356,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(2, blockChain.Count);
     }
 
-    [SkippableFact]
+    [Fact]
     public void FindNextHashes()
     {
         var key = new PrivateKey();
@@ -385,7 +385,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(new[] { block0.BlockHash, block1.BlockHash }, hashes);
     }
 
-    [SkippableFact]
+    [Fact]
     public void DetectInvalidTxNonce()
     {
         var privateKey = new PrivateKey();
@@ -428,7 +428,7 @@ public partial class BlockChainTest : IDisposable
         _blockChain.Append(b2, CreateBlockCommit(b2));
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetBlockLocator()
     {
         var key = new PrivateKey();
@@ -448,7 +448,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(expected, actual);
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetBlockCommit()
     {
         // Note: Getting BlockCommit from PoW block test is not present.
@@ -476,7 +476,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.BlockHash));
     }
 
-    [SkippableFact]
+    [Fact]
     public void CleanupBlockCommitStore()
     {
         BlockCommit blockCommit1 = CreateBlockCommit(
@@ -496,7 +496,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(blockCommit3, _blockChain.Store.GetBlockCommit(blockCommit3.BlockHash));
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetStatesOnCreatingBlockChain()
     {
         bool invoked = false;
@@ -533,7 +533,7 @@ public partial class BlockChainTest : IDisposable
 
     // This is a regression test for:
     // https://github.com/planetarium/libplanet/issues/189#issuecomment-482443607.
-    [SkippableFact]
+    [Fact]
     public void GetStateOnlyDrillsDownUntilRequestedAddressesAreFound()
     {
         var policy = new BlockChainOptions();
@@ -585,7 +585,7 @@ public partial class BlockChainTest : IDisposable
         // Assert.True(testingDepth >= callCount);
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetStateReturnsEarlyForNonexistentAccount()
     {
         var policy = new BlockChainOptions();
@@ -613,7 +613,7 @@ public partial class BlockChainTest : IDisposable
         //     $"GetBlocksStates() was called {callCount} times");
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetStateReturnsLatestStatesWhenMultipleAddresses()
     {
         var privateKeys = Enumerable.Range(1, 10).Select(_ => new PrivateKey()).ToList();
@@ -683,7 +683,7 @@ public partial class BlockChainTest : IDisposable
             v => Assert.Equal((Text)"1", v));
     }
 
-    [SkippableFact]
+    [Fact]
     public void FindBranchPoint()
     {
         var key = new PrivateKey();
@@ -734,7 +734,7 @@ public partial class BlockChainTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetNextTxNonce()
     {
         var privateKey = new PrivateKey();
@@ -806,7 +806,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(6, _blockChain.GetNextTxNonce(address));
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetNextTxNonceWithStaleTx()
     {
         var privateKey = new PrivateKey();
@@ -839,7 +839,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(4, _blockChain.GetNextTxNonce(address));
     }
 
-    [SkippableFact]
+    [Fact]
     public void ValidateTxNonces()
     {
         var privateKey = new PrivateKey();
@@ -893,7 +893,7 @@ public partial class BlockChainTest : IDisposable
             _blockChain.Append(b3b, CreateBlockCommit(b3b)));
     }
 
-    [SkippableFact]
+    [Fact]
     public void MakeTransactionWithSystemAction()
     {
         var privateKey = new PrivateKey();
@@ -928,7 +928,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(action.ToBytecode(), transaction.Actions[0]);
     }
 
-    [SkippableFact]
+    [Fact]
     public void MakeTransactionWithCustomActions()
     {
         var privateKey = new PrivateKey();
@@ -956,7 +956,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(actions.ToBytecodes(), transaction.Actions);
     }
 
-    [SkippableFact]
+    [Fact]
     public async Task MakeTransactionConcurrency()
     {
         var privateKey = new PrivateKey();
@@ -982,7 +982,7 @@ public partial class BlockChainTest : IDisposable
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
 
-    [SkippableFact]
+    [Fact]
     public void BlockActionWithMultipleAddress()
     {
         var miner0 = _blockChain.Genesis.Proposer;
@@ -1198,7 +1198,7 @@ public partial class BlockChainTest : IDisposable
         return (addresses, txs);
     }
 
-    [SkippableFact]
+    [Fact]
     private void TipChanged()
     {
         var genesis = _blockChain.Genesis;
@@ -1223,7 +1223,7 @@ public partial class BlockChainTest : IDisposable
         // Assert.Empty(_renderer.BlockRecords);
     }
 
-    [SkippableFact]
+    [Fact]
     private void CreateWithGenesisBlock()
     {
         var storeFixture = new MemoryStoreFixture(new());
@@ -1303,7 +1303,7 @@ public partial class BlockChainTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     private void ConstructWithUnexpectedGenesisBlock()
     {
         var policy = new BlockChainOptions();
@@ -1321,7 +1321,7 @@ public partial class BlockChainTest : IDisposable
         });
     }
 
-    [SkippableFact]
+    [Fact]
     private void FilterLowerNonceTxAfterStaging()
     {
         var privateKey = new PrivateKey();
@@ -1346,7 +1346,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(4, _blockChain.StagedTransactions.Iterate(filtered: false).Count());
     }
 
-    [SkippableFact]
+    [Fact]
     private void CheckIfTxPolicyExceptionHasInnerException()
     {
         // var policy = new NullPolicyButTxPolicyAlwaysThrows(
@@ -1396,7 +1396,7 @@ public partial class BlockChainTest : IDisposable
         Assert.NotNull(e.InnerException);
     }
 
-    [SkippableFact]
+    [Fact]
     private void ValidateNextBlockCommitOnValidatorSetChange()
     {
         var storeFixture = new MemoryStoreFixture();

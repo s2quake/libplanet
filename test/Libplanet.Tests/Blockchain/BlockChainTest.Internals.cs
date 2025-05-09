@@ -15,7 +15,7 @@ namespace Libplanet.Tests.Blockchain;
 
 public partial class BlockChainTest
 {
-    [SkippableFact]
+    [Fact]
     public void ListStagedTransactions()
     {
         Skip.IfNot(
@@ -96,7 +96,7 @@ public partial class BlockChainTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ExecuteActions()
     {
         (var addresses, Transaction[] txs) = MakeFixturesForAppendTests();

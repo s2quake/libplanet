@@ -5,7 +5,7 @@ using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore
 {
-    public partial class RocksDBStore : StoreBase
+    public partial class LegacyRocksDBStore : StoreBase
     {
         /// <inheritdoc cref="IStore.PruneOutdatedChains"/>
         public override void PruneOutdatedChains(bool noopWithoutCanon = false)

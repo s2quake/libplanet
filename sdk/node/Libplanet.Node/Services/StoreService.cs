@@ -19,7 +19,7 @@ internal sealed class StoreService(IOptions<StoreOptions> storeOptions) : IStore
     private static IStore CreateStore(StoreOptions storeOptions)
         => storeOptions.Type switch
         {
-            StoreType.RocksDB => new RocksDBStore.RocksDBStore(storeOptions.StoreName),
+            StoreType.RocksDB => new Store.Store(new RocksDatabase(storeOptions.StoreName)),
             StoreType.InMemory => new MemoryStore(),
             _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
         };

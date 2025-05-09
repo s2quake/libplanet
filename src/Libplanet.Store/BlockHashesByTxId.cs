@@ -5,7 +5,7 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-public sealed class BlockHashByTxIdCollection(IDictionary<KeyBytes, byte[]> dictionary)
+internal sealed class BlockHashesByTxId(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<TxId, ImmutableArray<BlockHash>>(dictionary)
 {
     protected override byte[] GetBytes(ImmutableArray<BlockHash> value) => ModelSerializer.SerializeToBytes(value);

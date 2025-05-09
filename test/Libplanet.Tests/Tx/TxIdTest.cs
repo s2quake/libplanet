@@ -160,7 +160,7 @@ public class TxIdTest
         Assert.Equal(expected, actual);
     }
 
-    [SkippableFact]
+    [Fact]
     public void JsonSerialization()
     {
         TxId txid = TxId.Parse(

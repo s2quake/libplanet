@@ -18,7 +18,7 @@ namespace Libplanet.Tests.Store.Trie
 
         private byte[][] PreStoredDataValues { get; set; }
 
-        [SkippableFact]
+        [Fact]
         public void Get()
         {
             foreach (var (key, expectedValue) in PreStoredDataKeys.Zip(
@@ -32,7 +32,7 @@ namespace Libplanet.Tests.Store.Trie
             Assert.Throws<KeyNotFoundException>(() => KeyValueStore[randomKey]);
         }
 
-        [SkippableFact]
+        [Fact]
         public void Set()
         {
             var key = new KeyBytes(Random.NextBytes(PreStoredDataKeySize));
@@ -42,7 +42,7 @@ namespace Libplanet.Tests.Store.Trie
             Assert.Equal(value, KeyValueStore[key]);
         }
 
-        [SkippableFact]
+        [Fact]
         public void SetMany()
         {
             var values = new Dictionary<KeyBytes, byte[]>();
@@ -61,7 +61,7 @@ namespace Libplanet.Tests.Store.Trie
         }
 
         // This test will cover DefaultKeyValueStore.Set
-        [SkippableFact]
+        [Fact]
         public void Overwrite()
         {
             foreach (var (key, expectedValue) in PreStoredDataKeys.Zip(
@@ -78,7 +78,7 @@ namespace Libplanet.Tests.Store.Trie
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public virtual void Delete()
         {
             foreach (KeyBytes key in PreStoredDataKeys)
@@ -92,7 +92,7 @@ namespace Libplanet.Tests.Store.Trie
             Assert.False(KeyValueStore.ContainsKey(nonExistent));
         }
 
-        [SkippableFact]
+        [Fact]
         public virtual void DeleteMany()
         {
             KeyBytes[] nonExistentKeys = Enumerable.Range(0, 10)
@@ -106,7 +106,7 @@ namespace Libplanet.Tests.Store.Trie
             Assert.All(keys, k => Assert.False(KeyValueStore.ContainsKey(k)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void Exists()
         {
             foreach (var (key, _) in PreStoredDataKeys.Zip(PreStoredDataValues, ValueTuple.Create))
@@ -118,7 +118,7 @@ namespace Libplanet.Tests.Store.Trie
             Assert.False(KeyValueStore.ContainsKey(randomKey));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ListKeys()
         {
             ImmutableHashSet<KeyBytes> keys = KeyValueStore.Keys.ToImmutableHashSet();

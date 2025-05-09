@@ -169,7 +169,7 @@ public class CurrencyTest
         Assert.Equal(bar, ModelSerializer.Deserialize<Currency>(ModelSerializer.Serialize(bar)));
     }
 
-    [SkippableFact]
+    [Fact]
     public void JsonSerialization()
     {
         var foo = Currency.Create("FOO", 2);

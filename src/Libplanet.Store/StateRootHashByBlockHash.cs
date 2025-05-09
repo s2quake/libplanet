@@ -6,7 +6,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class StateRootHashCollection(IDictionary<KeyBytes, byte[]> dictionary)
+internal sealed class StateRootHashByBlockHash(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<BlockHash, HashDigest<SHA256>>(dictionary)
 {
     protected override byte[] GetBytes(HashDigest<SHA256> value) => ModelSerializer.SerializeToBytes(value);

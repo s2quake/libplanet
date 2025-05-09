@@ -11,7 +11,7 @@ namespace Libplanet.Tests.Blockchain
 {
     public partial class BlockChainTest
     {
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlock()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
@@ -31,7 +31,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(_blockChain.Tip, validNextBlock);
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockProtocolVersion()
         {
             var protocolVersion = _blockChain.Tip.ProtocolVersion;
@@ -85,7 +85,7 @@ namespace Libplanet.Tests.Blockchain
             });
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockInvalidIndex()
         {
             _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
@@ -123,7 +123,7 @@ namespace Libplanet.Tests.Blockchain
                     TestUtils.CreateBlockCommit(blockWithIndexAfterNonexistentIndex)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockInvalidPreviousHash()
         {
             _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
@@ -148,7 +148,7 @@ namespace Libplanet.Tests.Blockchain
                         TestUtils.CreateBlockCommit(invalidPreviousHashBlock)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockInvalidTimestamp()
         {
             _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
@@ -170,7 +170,7 @@ namespace Libplanet.Tests.Blockchain
                         TestUtils.CreateBlockCommit(invalidPreviousTimestamp)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockInvalidStateRootHash()
         {
             var options = new BlockChainOptions
@@ -308,7 +308,7 @@ namespace Libplanet.Tests.Blockchain
             chain.Append(block1, TestUtils.CreateBlockCommit(block1));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockLastCommitNullAtIndexOne()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
@@ -325,7 +325,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(_blockChain.Tip, validNextBlock);
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockLastCommitUpperIndexOne()
         {
             Block block1 = _blockChain.EvaluateAndSign(
@@ -356,7 +356,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Equal(_blockChain.Tip, block2);
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockLastCommitFailsUnexpectedValidator()
         {
             Block block1 = _blockChain.EvaluateAndSign(
@@ -409,7 +409,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateNextBlockLastCommitFailsDropExpectedValidator()
         {
             Block block1 = _blockChain.EvaluateAndSign(
@@ -458,7 +458,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateBlockCommitGenesis()
         {
             // Works fine.
@@ -485,7 +485,7 @@ namespace Libplanet.Tests.Blockchain
                 }));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateBlockCommitFailsDifferentBlockHash()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
@@ -508,7 +508,7 @@ namespace Libplanet.Tests.Blockchain
                         0)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateBlockCommitFailsDifferentHeight()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
@@ -531,7 +531,7 @@ namespace Libplanet.Tests.Blockchain
                         0)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateBlockCommitFailsDifferentValidatorSet()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
@@ -568,7 +568,7 @@ namespace Libplanet.Tests.Blockchain
                     }));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateBlockCommitFailsNullBlockCommit()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
@@ -586,7 +586,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.Append(validNextBlock, default));
         }
 
-        [SkippableFact]
+        [Fact]
         public void ValidateBlockCommitFailsInsufficientPower()
         {
             var privateKey1 = new PrivateKey();

@@ -8,6 +8,7 @@ public abstract class Database<TTable> : IDatabase
     where TTable : IKeyValueStore
 {
     private readonly ConcurrentDictionary<string, TTable> _collectionByKey = new();
+    private bool _disposedValue;
 
     public IEnumerable<string> Keys => _collectionByKey.Keys;
 
@@ -52,13 +53,13 @@ public abstract class Database<TTable> : IDatabase
     public IEnumerator<KeyValuePair<string, TTable>> GetEnumerator()
         => _collectionByKey.GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => _collectionByKey.GetEnumerator();
-
-    protected abstract TTable Create(string key);
-
-    protected virtual void OnRemove(string key, TTable value)
+    public void Dispose()
     {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
+
+    IEnumerator IEnumerable.GetEnumerator() => _collectionByKey.GetEnumerator();
 
     IKeyValueStore IDatabase.GetOrAdd(string key) => GetOrAdd(key);
 
@@ -79,6 +80,25 @@ public abstract class Database<TTable> : IDatabase
         foreach (var kvp in _collectionByKey)
         {
             yield return new KeyValuePair<string, IKeyValueStore>(kvp.Key, kvp.Value);
+        }
+    }
+
+    protected abstract TTable Create(string key);
+
+    protected virtual void OnRemove(string key, TTable value)
+    {
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                // Do nothing here.
+            }
+
+            _disposedValue = true;
         }
     }
 }

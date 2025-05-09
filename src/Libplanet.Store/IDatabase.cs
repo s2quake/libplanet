@@ -1,6 +1,6 @@
 namespace Libplanet.Store;
 
-public interface IDatabase : IReadOnlyDictionary<string, IKeyValueStore>
+public interface IDatabase : IReadOnlyDictionary<string, IKeyValueStore>, IDisposable
 {
     IKeyValueStore GetOrAdd(string key);
 

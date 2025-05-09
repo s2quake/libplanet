@@ -206,7 +206,7 @@ namespace Libplanet.Tests.Blockchain.Evidence
             Assert.Equal(expectedEvidenceId, actualEvidenceId);
         }
 
-        [SkippableFact]
+        [Fact]
         public void JsonSerialization()
         {
             EvidenceId evidenceId = EvidenceId.Parse(

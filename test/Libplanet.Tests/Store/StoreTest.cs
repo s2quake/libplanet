@@ -32,7 +32,7 @@ public abstract class StoreTest
         .CreateLogger()
         .ForContext(this.GetType());
 
-    [SkippableFact]
+    [Fact]
     public void ListChainId()
     {
         Assert.Empty(Fx.Store.ListChainIds());
@@ -50,7 +50,7 @@ public abstract class StoreTest
             [.. Fx.Store.ListChainIds()]);
     }
 
-    [SkippableFact]
+    [Fact]
     public void ListChainIdAfterForkAndDelete()
     {
         var chainA = Guid.NewGuid();
@@ -72,7 +72,7 @@ public abstract class StoreTest
             [.. Fx.Store.ListChainIds()]);
     }
 
-    [SkippableFact]
+    [Fact]
     public void DeleteChainId()
     {
         Block block1 = ProposeNextBlock(
@@ -92,7 +92,7 @@ public abstract class StoreTest
         Assert.Equal(0, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
     }
 
-    [SkippableFact]
+    [Fact]
     public void DeleteChainIdIsIdempotent()
     {
         Assert.Empty(Fx.Store.ListChainIds());
@@ -100,7 +100,7 @@ public abstract class StoreTest
         Assert.Empty(Fx.Store.ListChainIds());
     }
 
-    [SkippableFact]
+    [Fact]
     public void DeleteChainIdWithForks()
     {
         Skip.IfNot(
@@ -196,7 +196,7 @@ public abstract class StoreTest
         Assert.Throws<KeyNotFoundException>(() => store.GetBlockHash(chainC, 3));
     }
 
-    [SkippableFact]
+    [Fact]
     public void DeleteChainIdWithForksReverse()
     {
         IStore store = Fx.Store;
@@ -255,7 +255,7 @@ public abstract class StoreTest
         Assert.Empty(store.IterateIndexes(chainC));
     }
 
-    [SkippableFact]
+    [Fact]
     public void ForkFromChainWithDeletion()
     {
         IStore store = Fx.Store;
@@ -281,7 +281,7 @@ public abstract class StoreTest
             store.GetBlockHash(chainC, Fx.Block1.Height));
     }
 
-    [SkippableFact]
+    [Fact]
     public void CanonicalChainId()
     {
         Assert.Equal(Guid.Empty, Fx.Store.GetCanonicalChainId());
@@ -293,7 +293,7 @@ public abstract class StoreTest
         Assert.Equal(b, Fx.Store.GetCanonicalChainId());
     }
 
-    [SkippableFact]
+    [Fact]
     public void StoreBlock()
     {
         Assert.Empty(Fx.Store.IterateBlockHashes());
@@ -362,7 +362,7 @@ public abstract class StoreTest
         Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
     }
 
-    [SkippableFact]
+    [Fact]
     public void TxExecution()
     {
         static void AssertTxExecutionEqual(TxExecution expected, TxExecution actual)
@@ -426,7 +426,7 @@ public abstract class StoreTest
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
     }
 
-    [SkippableFact]
+    [Fact]
     public void TxIdBlockHashIndex()
     {
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId1));
@@ -476,7 +476,7 @@ public abstract class StoreTest
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId3));
     }
 
-    [SkippableFact]
+    [Fact]
     public void StoreTx()
     {
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTransaction(Fx.Transaction1.Id));
@@ -508,7 +508,7 @@ public abstract class StoreTest
         Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction2.Id));
     }
 
-    [SkippableFact]
+    [Fact]
     public void StoreIndex()
     {
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.CountIndex(Fx.StoreChainId));
@@ -534,7 +534,7 @@ public abstract class StoreTest
         Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, -2));
     }
 
-    [SkippableFact]
+    [Fact]
     public void IterateIndexes()
     {
         var ns = Fx.StoreChainId;
@@ -578,7 +578,7 @@ public abstract class StoreTest
         Assert.Equal(new[] { Fx.Hash2 }, indexes);
     }
 
-    [SkippableFact]
+    [Fact]
     public void TxNonce()
     {
         Assert.Equal(0, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
@@ -617,7 +617,7 @@ public abstract class StoreTest
             Fx.Store.ListTxNonces(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
     }
 
-    [SkippableFact]
+    [Fact]
     public void ListTxNonces()
     {
         var chainId1 = Guid.NewGuid();
@@ -656,7 +656,7 @@ public abstract class StoreTest
             Fx.Store.ListTxNonces(chainId2).ToImmutableSortedDictionary());
     }
 
-    [SkippableFact]
+    [Fact]
     public void IndexBlockHashReturnNull()
     {
         Fx.Store.PutBlock(Fx.Block1);
@@ -665,7 +665,7 @@ public abstract class StoreTest
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHash(Fx.StoreChainId, 2));
     }
 
-    [SkippableFact]
+    [Fact]
     public void ContainsBlockWithoutCache()
     {
         Fx.Store.PutBlock(Fx.Block1);
@@ -677,7 +677,7 @@ public abstract class StoreTest
         Assert.True(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
     }
 
-    [SkippableFact]
+    [Fact]
     public void ContainsTransactionWithoutCache()
     {
         Fx.Store.PutTransaction(Fx.Transaction1);
@@ -689,7 +689,7 @@ public abstract class StoreTest
         Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction3.Id));
     }
 
-    [SkippableFact]
+    [Fact]
     public void TxAtomicity()
     {
         Transaction MakeTx(
@@ -763,7 +763,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ForkBlockIndex()
     {
         IStore store = Fx.Store;
@@ -886,7 +886,7 @@ public abstract class StoreTest
         Assert.Equal(Fx.Block5.BlockHash, store.GetBlockHash(chainC, 5));
     }
 
-    [SkippableFact]
+    [Fact]
     public void ForkWithBranch()
     {
         IStore store = Fx.Store;
@@ -939,7 +939,7 @@ public abstract class StoreTest
             store.IterateIndexes(chainB, 3));
     }
 
-    [SkippableFact]
+    [Fact]
     public void Copy()
     {
         using (StoreFixture fx = FxConstructor())
@@ -980,7 +980,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetBlock()
     {
         using (StoreFixture fx = FxConstructor())
@@ -998,7 +998,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetBlockCommit()
     {
         using (StoreFixture fx = FxConstructor())
@@ -1036,7 +1036,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void GetBlockCommitIndices()
     {
         using (StoreFixture fx = FxConstructor())
@@ -1096,7 +1096,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void DeleteLastCommit()
     {
         using (StoreFixture fx = FxConstructor())
@@ -1126,7 +1126,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void IteratePendingEvidenceIds()
     {
         using (StoreFixture fx = FxConstructor())
@@ -1191,7 +1191,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ManipulatePendingEvidence()
     {
         using (StoreFixture fx = FxConstructor())
@@ -1233,7 +1233,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ManipulateCommittedEvidence()
     {
         using (StoreFixture fx = FxConstructor())
@@ -1275,7 +1275,7 @@ public abstract class StoreTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ForkTxNonces()
     {
         IStore store = Fx.Store;
@@ -1296,7 +1296,7 @@ public abstract class StoreTest
         Assert.Equal(1, store.GetTxNonce(destinationChainId, Fx.Address1));
     }
 
-    [SkippableFact]
+    [Fact]
     public void PruneOutdatedChains()
     {
         IStore store = Fx.Store;
@@ -1341,7 +1341,7 @@ public abstract class StoreTest
         Assert.Equal(3, store.CountIndex(cid3));
     }
 
-    [SkippableFact]
+    [Fact]
     public void IdempotentDispose()
     {
 #pragma warning disable S3966 // Objects should not be disposed more than once
