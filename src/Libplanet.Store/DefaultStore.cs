@@ -12,7 +12,7 @@ public class DefaultStore : StoreBase
     private const string IndexColPrefix = "index_";
     private const string TxNonceIdPrefix = "nonce_";
 
-    private readonly DefaultDatabase _database;
+    private readonly IDatabase _database;
     private readonly TransactionCollection _transactions;
     private readonly BlockCollection _blocks;
     private readonly TxExecutionCollection _txExecutions;
