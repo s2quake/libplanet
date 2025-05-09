@@ -519,7 +519,7 @@ public abstract class StoreTest
         Assert.Equal(1, Fx.Store.CountIndex(Fx.StoreChainId));
         Assert.Equal(
             [Fx.Hash1],
-            Fx.Store.IterateIndexes(Fx.StoreChainId, offset: Fx.Block1.Height));
+            Fx.Store.IterateIndexes(Fx.StoreChainId));
         Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, 0));
         Assert.Equal(Fx.Hash1, Fx.Store.GetBlockHash(Fx.StoreChainId, -1));
 
@@ -642,14 +642,18 @@ public abstract class StoreTest
         Fx.Store.IncreaseTxNonce(chainId1, address1);
         Fx.Store.IncreaseTxNonce(chainId1, address2);
         Assert.Equal(
-            new Dictionary<Address, long> { [address1] = 2, [address2] = 1, },
-            Fx.Store.ListTxNonces(chainId1));
+            ImmutableSortedDictionary<Address, long>.Empty
+                .Add(address1, 2)
+                .Add(address2, 1),
+            Fx.Store.ListTxNonces(chainId1).ToImmutableSortedDictionary());
 
         Fx.Store.IncreaseTxNonce(chainId2, address1);
         Fx.Store.IncreaseTxNonce(chainId2, address2);
         Assert.Equal(
-            new Dictionary<Address, long> { [address1] = 1, [address2] = 2, },
-            Fx.Store.ListTxNonces(chainId2));
+            ImmutableSortedDictionary<Address, long>.Empty
+                .Add(address1, 1)
+                .Add(address2, 2),
+            Fx.Store.ListTxNonces(chainId2).ToImmutableSortedDictionary());
     }
 
     [SkippableFact]
@@ -1099,32 +1103,27 @@ public abstract class StoreTest
         using (StoreFixture fx = FxConstructor())
         {
             var validatorPrivateKey = new PrivateKey();
-            BlockCommit blockCommit =
-                new BlockCommit
-                {
-                    Height = 0,
-                    Round = 0,
-                    BlockHash = Fx.GenesisBlock.BlockHash,
-                    Votes =
-                    [
-                        new VoteMetadata
-                        {
-                            Height = 0,
-                            Round = 0,
-                            BlockHash = Fx.GenesisBlock.BlockHash,
-                            Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = validatorPrivateKey.PublicKey,
-                            ValidatorPower = BigInteger.One,
-                            Flag = VoteFlag.PreCommit,
-                        }.Sign(validatorPrivateKey)
-                    ],
-                };
+            var blockCommit = new BlockCommit
+            {
+                BlockHash = Fx.GenesisBlock.BlockHash,
+                Votes =
+                [
+                    new VoteMetadata
+                    {
+                        BlockHash = Fx.GenesisBlock.BlockHash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        ValidatorPublicKey = validatorPrivateKey.PublicKey,
+                        ValidatorPower = BigInteger.One,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(validatorPrivateKey)
+                ],
+            };
 
             fx.Store.PutBlockCommit(blockCommit);
-            Assert.NotNull(fx.Store.GetBlockCommit(blockCommit.BlockHash));
+            Assert.Equal(blockCommit, fx.Store.GetBlockCommit(blockCommit.BlockHash));
 
             fx.Store.DeleteBlockCommit(blockCommit.BlockHash);
-            Assert.Null(fx.Store.GetBlockCommit(blockCommit.BlockHash));
+            Assert.Throws<KeyNotFoundException>(() => fx.Store.GetBlockCommit(blockCommit.BlockHash));
         }
     }
 
@@ -1353,13 +1352,17 @@ public abstract class StoreTest
     }
 
     [Model(Version = 1)]
-    private sealed record class AtomicityTestAction : ActionBase
+    private sealed record class AtomicityTestAction : ActionBase, IEquatable<AtomicityTestAction>
     {
         [Property(0)]
         public ImmutableArray<byte> ArbitraryBytes { get; set; }
 
         [Property(1)]
         public ImmutableArray<byte> Md5Digest { get; set; }
+
+        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+
+        public bool Equals(AtomicityTestAction? other) => ModelUtility.Equals(this, other);
 
         protected override void OnExecute(IWorldContext world, IActionContext context)
         {

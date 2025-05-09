@@ -4,7 +4,7 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store;
 
-public sealed class NonceCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class NonceByAddress(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<Address, long>(dictionary)
 {
     protected override byte[] GetBytes(long value) => ModelSerializer.SerializeToBytes(value);
