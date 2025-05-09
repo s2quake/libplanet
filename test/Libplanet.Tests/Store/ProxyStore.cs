@@ -33,7 +33,7 @@ public abstract class ProxyStore(IStore store) : IStore
         BlockHash branchpoint) =>
         store.ForkBlockIndexes(sourceChainId, destinationChainId, branchpoint);
 
-    public virtual Transaction GetTransaction(TxId txid) => store.GetTransaction(txid);
+    public virtual Transaction GetTransaction(TxId txId) => store.GetTransaction(txId);
 
     public virtual void PutTransaction(Transaction tx) => store.PutTransaction(tx);
 
@@ -53,12 +53,12 @@ public abstract class ProxyStore(IStore store) : IStore
 
     public virtual void PutTxExecution(TxExecution txExecution) => store.PutTxExecution(txExecution);
 
-    public virtual TxExecution GetTxExecution(BlockHash blockHash, TxId txid) => store.GetTxExecution(blockHash, txid);
+    public virtual TxExecution GetTxExecution(BlockHash blockHash, TxId txId) => store.GetTxExecution(blockHash, txId);
 
     public virtual void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
         => store.PutTxIdBlockHashIndex(txId, blockHash);
 
-    public virtual BlockHash? GetFirstTxIdBlockHashIndex(TxId txId)
+    public virtual BlockHash GetFirstTxIdBlockHashIndex(TxId txId)
         => store.GetFirstTxIdBlockHashIndex(txId);
 
     public virtual IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)

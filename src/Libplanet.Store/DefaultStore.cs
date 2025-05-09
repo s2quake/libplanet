@@ -11,7 +11,6 @@ public class DefaultStore : StoreBase
 {
     private const string IndexColPrefix = "index_";
     private const string TxNonceIdPrefix = "nonce_";
-    private const string CommitColPrefix = "commit_";
 
     private readonly DefaultDatabase _database;
     private readonly TransactionCollection _transactions;
@@ -22,7 +21,7 @@ public class DefaultStore : StoreBase
     private readonly StateRootHashCollection _nextStateRootHashes;
     private readonly EvidenceCollection _pendingEvidence;
     private readonly EvidenceCollection _committedEvidence;
-    private readonly HeightByChainId _heights;
+    private readonly HeightByChainId _heightByChainId;
     private readonly BlockCommitByChainId _blockCommitByChainId;
     private readonly StringCollection _metadata;
 
@@ -39,7 +38,7 @@ public class DefaultStore : StoreBase
         _nextStateRootHashes = new StateRootHashCollection(_database.GetOrAdd("nextstateroothash"));
         _pendingEvidence = new EvidenceCollection(_database.GetOrAdd("evidencep"));
         _committedEvidence = new EvidenceCollection(_database.GetOrAdd("evidencec"));
-        _heights = new HeightByChainId(_database.GetOrAdd("heights"));
+        _heightByChainId = new HeightByChainId(_database.GetOrAdd("heights"));
         _blockCommitByChainId = new BlockCommitByChainId(_database.GetOrAdd("blockcommitb"));
         _metadata = new StringCollection(_database.GetOrAdd("metadata"));
         Options = options;
@@ -47,19 +46,29 @@ public class DefaultStore : StoreBase
 
     public DefaultStoreOptions Options { get; }
 
-    public override IEnumerable<Guid> ListChainIds() => _heights.Keys;
+    public override IEnumerable<Guid> ListChainIds() => _heightByChainId.Keys;
 
     public override void DeleteChainId(Guid chainId)
     {
+        _blockCommitByChainId.Remove(chainId);
+        _heightByChainId.Remove(chainId);
         _database.Remove(TxNonceKey(chainId));
         _database.Remove(IndexKey(chainId));
     }
 
-    public override Guid GetCanonicalChainId() => Guid.Parse(_metadata["chainId"]);
+    public override Guid GetCanonicalChainId()
+    {
+        if (!_metadata.TryGetValue("chainId", out var chainId))
+        {
+            return Guid.Empty;
+        }
+
+        return Guid.Parse(chainId);
+    }
 
     public override void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
 
-    public override long CountIndex(Guid chainId) => _heights[chainId];
+    public override long CountIndex(Guid chainId) => _heightByChainId[chainId];
 
     public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
@@ -87,28 +96,27 @@ public class DefaultStore : StoreBase
     {
         var collection = IndexCollection(chainId);
         collection.Add(height, hash);
-        _heights[chainId] = height;
+        _heightByChainId[chainId] = height;
     }
 
-    public override void ForkBlockIndexes(
-        Guid sourceChainId,
-        Guid destinationChainId,
-        BlockHash branchpoint)
+    public override void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint)
     {
-        // LiteCollection<HashDoc> srcColl = IndexKey(sourceChainId);
-        // LiteCollection<HashDoc> destColl = IndexKey(destinationChainId);
+        var srcColl = IndexCollection(sourceChainId);
+        var destColl = IndexCollection(destinationChainId);
 
-        // BlockHash? genesisHash = IterateIndexes(sourceChainId, 0, 1)
-        //     .Cast<BlockHash?>()
-        //     .FirstOrDefault();
+        BlockHash? genesisHash = IterateIndexes(sourceChainId, 0, 1).FirstOrDefault();
 
-        // if (genesisHash is null || branchpoint.Equals(genesisHash))
-        // {
-        //     return;
-        // }
+        if (genesisHash is null || branchpoint.Equals(genesisHash))
+        {
+            return;
+        }
 
-        // destColl.Delete(Query.All());
+        destColl.Clear();
         // destColl.InsertBulk(srcColl.FindAll().TakeWhile(i => !i.Hash.Equals(branchpoint)));
+        foreach (var item in srcColl)
+        {
+            destColl.Add(item.Key, item.Value);
+        }
 
         // AppendIndex(destinationChainId, branchpoint);
     }
@@ -165,12 +173,12 @@ public class DefaultStore : StoreBase
 
     public override void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
-        if (_blockHashes.TryGetValue(txId, out var blockHashes))
+        if (!_blockHashes.TryGetValue(txId, out var blockHashes))
         {
-            blockHashes = ImmutableArray<BlockHash>.Empty;
+            blockHashes = [];
         }
 
-        _blockHashes.Add(txId, blockHashes.Add(blockHash));
+        _blockHashes[txId] = blockHashes.Add(blockHash);
     }
 
     public override IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
@@ -389,6 +397,6 @@ public class DefaultStore : StoreBase
     private static string TxNonceKey(Guid chainId)
         => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
 
-    private BlockHashCollection IndexCollection(in Guid chainId) =>
+    private BlockHashByHeight IndexCollection(in Guid chainId) =>
         new(_database.GetOrAdd(IndexKey(chainId)));
 }

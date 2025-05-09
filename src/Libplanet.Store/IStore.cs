@@ -25,7 +25,7 @@ public interface IStore : IDisposable
 
     void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint);
 
-    Transaction? GetTransaction(TxId txId);
+    Transaction GetTransaction(TxId txId);
 
     void PutTransaction(Transaction tx);
 
@@ -49,7 +49,7 @@ public interface IStore : IDisposable
 
     void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
 
-    BlockHash? GetFirstTxIdBlockHashIndex(TxId txId);
+    BlockHash GetFirstTxIdBlockHashIndex(TxId txId);
 
     IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId);
 

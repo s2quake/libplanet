@@ -61,19 +61,16 @@ public abstract class StoreBase : IStore
 
     public abstract void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
 
-    public BlockHash? GetFirstTxIdBlockHashIndex(TxId txId)
+    public BlockHash GetFirstTxIdBlockHashIndex(TxId txId)
     {
-        BlockHash? blockHash;
-        try
+        var item = IterateTxIdBlockHashIndex(txId).FirstOrDefault();
+        if (item == default)
         {
-            blockHash = IterateTxIdBlockHashIndex(txId).First();
-        }
-        catch (InvalidOperationException)
-        {
-            blockHash = null;
+            throw new KeyNotFoundException(
+                $"The transaction ID {txId} does not exist in the index.");
         }
 
-        return blockHash;
+        return item;
     }
 
     public abstract IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId);
