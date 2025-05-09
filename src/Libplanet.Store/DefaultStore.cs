@@ -68,12 +68,21 @@ public class DefaultStore : StoreBase
 
     public override void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
 
-    public override int CountIndex(Guid chainId) => _heightByChainId[chainId];
+    public override int CountIndex(Guid chainId)
+    {
+        if (!_heightByChainId.ContainsKey(chainId))
+        {
+            throw new KeyNotFoundException("Chain ID not found.");
+        }
+
+        return IndexCollection(chainId).Count;
+    }
 
     public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
         var collection = IndexCollection(chainId);
-        for (var i = offset; i < (limit ?? int.MaxValue); i++)
+        var end = checked(limit is { } l ? offset + l : int.MaxValue);
+        for (var i = offset; i < end; i++)
         {
             if (collection.TryGetValue(i, out var blockHash))
             {
@@ -89,6 +98,11 @@ public class DefaultStore : StoreBase
     public override BlockHash GetBlockHash(Guid chainId, int height)
     {
         var collection = IndexCollection(chainId);
+        if (height < 0)
+        {
+            height += collection.Count;
+        }
+
         return collection[height];
     }
 
@@ -106,21 +120,27 @@ public class DefaultStore : StoreBase
         var srcColl = IndexCollection(sourceChainId);
         var destColl = IndexCollection(destinationChainId);
 
-        BlockHash? genesisHash = IterateIndexes(sourceChainId, 0, 1).FirstOrDefault();
+        BlockHash genesisHash = IterateIndexes(sourceChainId, 0, 1).FirstOrDefault();
 
-        if (genesisHash is null || branchpoint.Equals(genesisHash))
+        if (genesisHash == default || branchpoint.Equals(genesisHash))
         {
             return;
         }
 
         destColl.Clear();
         // destColl.InsertBulk(srcColl.FindAll().TakeWhile(i => !i.Hash.Equals(branchpoint)));
-        foreach (var item in srcColl)
+        for (var i = 0; i < srcColl.Count; i++)
         {
-            destColl.Add(item.Key, item.Value);
+            var item = srcColl[i];
+            if (item.Equals(branchpoint))
+            {
+                break;
+            }
+
+            destColl.Add(i, item);
         }
 
-        // AppendIndex(destinationChainId, branchpoint);
+        AppendIndex(destinationChainId, branchpoint);
     }
 
     public override Transaction GetTransaction(TxId txId)
@@ -130,7 +150,7 @@ public class DefaultStore : StoreBase
 
     public override void PutTransaction(Transaction tx)
     {
-        _transactions.Add(tx.Id, tx);
+        _transactions[tx.Id] = tx;
     }
 
     public override bool ContainsTransaction(TxId txId)
@@ -211,7 +231,7 @@ public class DefaultStore : StoreBase
 
     public override IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
     {
-        var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+        var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
         foreach (var item in collection)
         {
             yield return item;
@@ -233,7 +253,7 @@ public class DefaultStore : StoreBase
 
     public override long GetTxNonce(Guid chainId, Address address)
     {
-        var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+        var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
         if (collection.TryGetValue(address, out var nonce))
         {
             return nonce;
@@ -244,7 +264,7 @@ public class DefaultStore : StoreBase
 
     public override void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
     {
-        var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+        var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
         if (!collection.TryGetValue(signer, out var nonce))
         {
             nonce = 0L;
@@ -255,14 +275,24 @@ public class DefaultStore : StoreBase
 
     public override void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
     {
-        // LiteCollection<BsonDocument> srcColl = TxNonceCollection(sourceChainId);
-        // LiteCollection<BsonDocument> destColl = TxNonceCollection(destinationChainId);
-        // destColl.InsertBulk(srcColl.FindAll());
+        var srcColl = TxNonceCollection(sourceChainId);
+        var destColl = TxNonceCollection(destinationChainId);
+
+        if (destColl.Count > 0)
+        {
+            throw new InvalidOperationException("Destination chain ID already has nonces.");
+        }
+
+        foreach (var item in srcColl)
+        {
+            destColl.Add(item.Key, item.Value);
+        }
     }
 
     public override void PruneOutdatedChains(bool noopWithoutCanon = false)
     {
-        if (!(GetCanonicalChainId() is { } ccid))
+        var ccid = GetCanonicalChainId();
+        if (ccid == Guid.Empty)
         {
             if (noopWithoutCanon)
             {
@@ -401,4 +431,7 @@ public class DefaultStore : StoreBase
 
     private BlockHashByHeight IndexCollection(in Guid chainId) =>
         new(_database.GetOrAdd(IndexKey(chainId)));
+
+    private NonceByAddress TxNonceCollection(in Guid chainId) =>
+        new(_database.GetOrAdd(TxNonceKey(chainId)));
 }
