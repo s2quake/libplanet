@@ -536,9 +536,9 @@ public partial class RocksDBStore : StoreBase
     }
 
     /// <inheritdoc cref="StoreBase.AppendIndex(Guid, BlockHash)"/>
-    public override void AppendIndex(Guid chainId, int height, BlockHash hash)
+    public override int AppendIndex(Guid chainId, BlockHash hash)
     {
-        long index = CountIndex(chainId);
+        int index = CountIndex(chainId);
         try
         {
             byte[] indexBytes = RocksDBStoreBitConverter.GetBytes(index);
@@ -563,7 +563,7 @@ public partial class RocksDBStore : StoreBase
 
         _indexCache.Remove(chainId);
 
-        // return index;
+        return index;
     }
 
     /// <inheritdoc cref="StoreBase.ForkBlockIndexes(Guid, Guid, BlockHash)"/>
