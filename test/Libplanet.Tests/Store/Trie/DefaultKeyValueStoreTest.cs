@@ -4,12 +4,12 @@ namespace Libplanet.Tests.Store.Trie
 {
     public class DefaultKeyValueStoreTest : KeyValueStoreTest, IDisposable
     {
-        private readonly DefaultKeyValueStore _defaultKeyValueStore;
+        private readonly DefaultTable _defaultKeyValueStore;
 
         public DefaultKeyValueStoreTest()
         {
             // Memory mode.
-            KeyValueStore = _defaultKeyValueStore = new DefaultKeyValueStore(null);
+            KeyValueStore = _defaultKeyValueStore = new DefaultTable(null);
             InitializePreStoredData();
         }
 

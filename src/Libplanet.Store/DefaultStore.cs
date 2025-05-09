@@ -128,7 +128,6 @@ public class DefaultStore : StoreBase
         }
 
         destColl.Clear();
-        // destColl.InsertBulk(srcColl.FindAll().TakeWhile(i => !i.Hash.Equals(branchpoint)));
         for (var i = 0; i < srcColl.Count; i++)
         {
             var item = srcColl[i];
@@ -314,129 +313,65 @@ public class DefaultStore : StoreBase
         }
     }
 
-    public override BlockCommit GetChainBlockCommit(Guid chainId)
-    {
-        return _blockCommitByChainId[chainId];
-    }
+    public override BlockCommit GetChainBlockCommit(Guid chainId) => _blockCommitByChainId[chainId];
 
     public override void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
-    {
-        _blockCommitByChainId[chainId] = blockCommit;
-    }
+        => _blockCommitByChainId[chainId] = blockCommit;
 
-    public override BlockCommit GetBlockCommit(BlockHash blockHash)
-    {
-        return _blockCommits[blockHash];
-    }
+    public override BlockCommit GetBlockCommit(BlockHash blockHash) => _blockCommits[blockHash];
 
     public override void PutBlockCommit(BlockCommit blockCommit)
-    {
-        _blockCommits.Add(blockCommit.BlockHash, blockCommit);
-    }
+        => _blockCommits.Add(blockCommit.BlockHash, blockCommit);
 
-    public override void DeleteBlockCommit(BlockHash blockHash)
-    {
-        _blockCommits.Remove(blockHash);
-    }
+    public override void DeleteBlockCommit(BlockHash blockHash) => _blockCommits.Remove(blockHash);
 
-    public override IEnumerable<BlockHash> GetBlockCommitHashes()
-    {
-        return _blockCommits.Keys;
-    }
+    public override IEnumerable<BlockHash> GetBlockCommitHashes() => _blockCommits.Keys;
 
-    public override HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash)
-    {
-        return _nextStateRootHashes[blockHash];
-    }
+    public override HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash) => _nextStateRootHashes[blockHash];
 
     public override void PutNextStateRootHash(BlockHash blockHash, HashDigest<SHA256> nextStateRootHash)
-    {
-        _nextStateRootHashes.Add(blockHash, nextStateRootHash);
-    }
+        => _nextStateRootHashes.Add(blockHash, nextStateRootHash);
 
-    public override void DeleteNextStateRootHash(BlockHash blockHash)
-    {
-        _nextStateRootHashes.Remove(blockHash);
-    }
+    public override void DeleteNextStateRootHash(BlockHash blockHash) => _nextStateRootHashes.Remove(blockHash);
 
-    public override IEnumerable<EvidenceId> IteratePendingEvidenceIds()
-    {
-        return _pendingEvidence.Keys;
-    }
+    public override IEnumerable<EvidenceId> IteratePendingEvidenceIds() => _pendingEvidence.Keys;
 
-    public override EvidenceBase GetPendingEvidence(EvidenceId evidenceId)
-    {
-        return _pendingEvidence[evidenceId];
-    }
+    public override EvidenceBase GetPendingEvidence(EvidenceId evidenceId) => _pendingEvidence[evidenceId];
 
-    public override void PutPendingEvidence(EvidenceBase evidence)
-    {
-        _pendingEvidence.Add(evidence.Id, evidence);
-    }
+    public override void PutPendingEvidence(EvidenceBase evidence) => _pendingEvidence.Add(evidence.Id, evidence);
 
-    public override void DeletePendingEvidence(EvidenceId evidenceId)
-    {
-        _pendingEvidence.Remove(evidenceId);
-    }
+    public override void DeletePendingEvidence(EvidenceId evidenceId) => _pendingEvidence.Remove(evidenceId);
 
-    public override bool ContainsPendingEvidence(EvidenceId evidenceId)
-    {
-        return _pendingEvidence.ContainsKey(evidenceId);
-    }
+    public override bool ContainsPendingEvidence(EvidenceId evidenceId) => _pendingEvidence.ContainsKey(evidenceId);
 
-    public override EvidenceBase GetCommittedEvidence(EvidenceId evidenceId)
-    {
-        return _committedEvidence[evidenceId];
-    }
+    public override EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) => _committedEvidence[evidenceId];
 
-    public override void PutCommittedEvidence(EvidenceBase evidence)
-    {
-        _committedEvidence.Add(evidence.Id, evidence);
-    }
+    public override void PutCommittedEvidence(EvidenceBase evidence) => _committedEvidence.Add(evidence.Id, evidence);
 
-    public override void DeleteCommittedEvidence(EvidenceId evidenceId)
-    {
-        _committedEvidence.Remove(evidenceId);
-    }
+    public override void DeleteCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.Remove(evidenceId);
 
-    public override bool ContainsCommittedEvidence(EvidenceId evidenceId)
-    {
-        return _committedEvidence.ContainsKey(evidenceId);
-    }
+    public override bool ContainsCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.ContainsKey(evidenceId);
 
-    public override long CountBlocks()
-    {
-        // FIXME: This implementation is too inefficient.  Fortunately, this method seems
-        // unused (except for unit tests).  If this is never used why should we maintain
-        // this?  This is basically only for making BlockSet<T> class to implement
-        // IDictionary<HashDigest<SHA256>, Block>.Count property, which is never used either.
-        // We'd better to refactor all such things so that unnecessary APIs are gone away.
-        return IterateBlockHashes().LongCount();
-    }
+    public override long CountBlocks() => IterateBlockHashes().LongCount();
 
     public override void Dispose()
     {
         if (!_disposed)
         {
             _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 
-    internal static Guid ParseChainId(string chainIdString) =>
-        new Guid(ByteUtility.ParseHex(chainIdString));
+    internal static Guid ParseChainId(string chainIdString) => new(ByteUtility.ParseHex(chainIdString));
 
-    internal static string FormatChainId(Guid chainId) =>
-        ByteUtility.Hex(chainId.ToByteArray());
+    internal static string FormatChainId(Guid chainId) => ByteUtility.Hex(chainId.ToByteArray());
 
-    private static string IndexKey(in Guid chainId)
-        => $"{IndexColPrefix}{FormatChainId(chainId)}";
+    private static string IndexKey(in Guid chainId) => $"{IndexColPrefix}{FormatChainId(chainId)}";
 
-    private static string TxNonceKey(Guid chainId)
-        => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
+    private static string TxNonceKey(Guid chainId) => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
 
-    private BlockHashByHeight IndexCollection(in Guid chainId) =>
-        new(_database.GetOrAdd(IndexKey(chainId)));
+    private BlockHashByHeight IndexCollection(in Guid chainId) => new(_database.GetOrAdd(IndexKey(chainId)));
 
-    private NonceByAddress TxNonceCollection(in Guid chainId) =>
-        new(_database.GetOrAdd(TxNonceKey(chainId)));
+    private NonceByAddress TxNonceCollection(in Guid chainId) => new(_database.GetOrAdd(TxNonceKey(chainId)));
 }

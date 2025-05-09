@@ -1,22 +1,21 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 
-public abstract class Database<TValue> : IDatabase
-    where TValue : IDictionary<KeyBytes, byte[]>
+public abstract class Database<TTable> : IDatabase
+    where TTable : IKeyValueStore
 {
-    private readonly ConcurrentDictionary<string, TValue> _collectionByKey = new();
+    private readonly ConcurrentDictionary<string, TTable> _collectionByKey = new();
 
     public IEnumerable<string> Keys => _collectionByKey.Keys;
 
-    public IEnumerable<TValue> Values => _collectionByKey.Values;
+    public IEnumerable<TTable> Values => _collectionByKey.Values;
 
     public int Count => _collectionByKey.Count;
 
-    IEnumerable<IDictionary<KeyBytes, byte[]>> IReadOnlyDictionary<string, IDictionary<KeyBytes, byte[]>>.Values
+    IEnumerable<IKeyValueStore> IReadOnlyDictionary<string, IKeyValueStore>.Values
     {
         get
         {
@@ -27,16 +26,16 @@ public abstract class Database<TValue> : IDatabase
         }
     }
 
-    IDictionary<KeyBytes, byte[]> IReadOnlyDictionary<string, IDictionary<KeyBytes, byte[]>>.this[string key]
+    IKeyValueStore IReadOnlyDictionary<string, IKeyValueStore>.this[string key]
         => _collectionByKey[key];
 
-    public TValue this[string key] => _collectionByKey[key];
+    public TTable this[string key] => _collectionByKey[key];
 
-    public TValue GetOrAdd(string key) => _collectionByKey.GetOrAdd(key, Create);
+    public TTable GetOrAdd(string key) => _collectionByKey.GetOrAdd(key, Create);
 
     public bool ContainsKey(string key) => _collectionByKey.ContainsKey(key);
 
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out TValue value)
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out TTable value)
         => _collectionByKey.TryGetValue(key, out value);
 
     public bool Remove(string key)
@@ -50,20 +49,20 @@ public abstract class Database<TValue> : IDatabase
         return false;
     }
 
-    public IEnumerator<KeyValuePair<string, TValue>> GetEnumerator()
+    public IEnumerator<KeyValuePair<string, TTable>> GetEnumerator()
         => _collectionByKey.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => _collectionByKey.GetEnumerator();
 
-    protected abstract TValue Create(string key);
+    protected abstract TTable Create(string key);
 
-    protected virtual void OnRemove(string key, TValue value)
+    protected virtual void OnRemove(string key, TTable value)
     {
     }
 
-    IDictionary<KeyBytes, byte[]> IDatabase.GetOrAdd(string key) => GetOrAdd(key);
+    IKeyValueStore IDatabase.GetOrAdd(string key) => GetOrAdd(key);
 
-    bool IReadOnlyDictionary<string, IDictionary<KeyBytes, byte[]>>.TryGetValue(string key, out IDictionary<KeyBytes, byte[]> value)
+    bool IReadOnlyDictionary<string, IKeyValueStore>.TryGetValue(string key, out IKeyValueStore value)
     {
         if (_collectionByKey.TryGetValue(key, out var v))
         {
@@ -75,11 +74,11 @@ public abstract class Database<TValue> : IDatabase
         return false;
     }
 
-    IEnumerator<KeyValuePair<string, IDictionary<KeyBytes, byte[]>>> IEnumerable<KeyValuePair<string, IDictionary<KeyBytes, byte[]>>>.GetEnumerator()
+    IEnumerator<KeyValuePair<string, IKeyValueStore>> IEnumerable<KeyValuePair<string, IKeyValueStore>>.GetEnumerator()
     {
         foreach (var kvp in _collectionByKey)
         {
-            yield return new KeyValuePair<string, IDictionary<KeyBytes, byte[]>>(kvp.Key, kvp.Value);
+            yield return new KeyValuePair<string, IKeyValueStore>(kvp.Key, kvp.Value);
         }
     }
 }

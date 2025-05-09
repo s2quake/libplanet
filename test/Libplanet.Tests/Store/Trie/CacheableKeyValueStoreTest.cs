@@ -10,7 +10,7 @@ namespace Libplanet.Tests.Store.Trie
         {
             // Memory mode.
             KeyValueStore = _cacheableKeyValueStore =
-                new CacheableKeyValueStore(new DefaultKeyValueStore(null));
+                new CacheableKeyValueStore(new DefaultTable(null));
             InitializePreStoredData();
         }
 
