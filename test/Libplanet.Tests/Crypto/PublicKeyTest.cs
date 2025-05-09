@@ -312,7 +312,7 @@ public class PublicKeyTest(ITestOutputHelper output)
             converter.ConvertTo(publicKey, typeof(string)));
     }
 
-    [SkippableFact]
+    [Fact]
     public void JsonSerialization()
     {
         var publicKey = new PublicKey([

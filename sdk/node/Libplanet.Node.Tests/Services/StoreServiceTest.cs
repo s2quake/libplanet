@@ -18,7 +18,7 @@ public class StoreServiceTest
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
         var storeService = serviceProvider.GetRequiredService<IStoreService>();
 
-        Assert.IsType<RocksDBStore.RocksDBStore>(storeService.Store);
+        Assert.IsType<Store.Store>(storeService.Store);
         Assert.IsType<RocksDBStore.RocksDBKeyValueStore>(storeService.KeyValueStore);
     }
 

@@ -17,7 +17,7 @@ namespace Libplanet.Tests.Blockchain;
 
 public partial class BlockChainTest
 {
-    [SkippableFact]
+    [Fact]
     public void ProposeBlock()
     {
         var maxTransactionsBytes = _blockChain.Options.MaxTransactionsBytes;
@@ -107,7 +107,7 @@ public partial class BlockChainTest
             (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default));
     }
 
-    [SkippableFact]
+    [Fact]
     public void CanProposeInvalidGenesisBlock()
     {
         using (var fx = new MemoryStoreFixture())
@@ -131,7 +131,7 @@ public partial class BlockChainTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void CanProposeInvalidBlock()
     {
         using (var fx = new MemoryStoreFixture())
@@ -157,7 +157,7 @@ public partial class BlockChainTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProposeBlockWithPendingTxs()
     {
         var keys = new[] { new PrivateKey(), new PrivateKey(), new PrivateKey() };
@@ -327,7 +327,7 @@ public partial class BlockChainTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProposeBlockWithPolicyViolationTx()
     {
         var validKey = new PrivateKey();
@@ -366,7 +366,7 @@ public partial class BlockChainTest
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProposeBlockWithReverseNonces()
     {
         var key = new PrivateKey();
@@ -393,7 +393,7 @@ public partial class BlockChainTest
         Assert.Equal(txs.Length, block.Transactions.Count());
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProposeBlockWithLowerNonces()
     {
         var key = new PrivateKey();
@@ -434,7 +434,7 @@ public partial class BlockChainTest
         Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: false));
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProposeBlockWithBlockAction()
     {
         var privateKey1 = new PrivateKey();
@@ -497,7 +497,7 @@ public partial class BlockChainTest
         Assert.Equal((Text)"baz", state2);
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProposeBlockWithTxPriority()
     {
         var keyA = new PrivateKey();
@@ -535,7 +535,7 @@ public partial class BlockChainTest
             block.Transactions.Select(tx => tx.Id).ToHashSet());
     }
 
-    [SkippableFact]
+    [Fact]
     public void ProposeBlockWithLastCommit()
     {
         var keys = Enumerable.Range(0, 3).Select(_ => new PrivateKey()).ToList();
@@ -565,7 +565,7 @@ public partial class BlockChainTest
         Assert.Equal(block.LastCommit, blockCommit);
     }
 
-    [SkippableFact]
+    [Fact]
     public void IgnoreLowerNonceTxsAndPropose()
     {
         var privateKey = new PrivateKey();
@@ -594,7 +594,7 @@ public partial class BlockChainTest
         Assert.Contains(txsB[3], b2.Transactions);
     }
 
-    [SkippableFact]
+    [Fact]
     public void IgnoreDuplicatedNonceTxs()
     {
         var privateKey = new PrivateKey();
@@ -612,7 +612,7 @@ public partial class BlockChainTest
         Assert.Contains(b.Transactions.Single(), txs);
     }
 
-    [SkippableFact]
+    [Fact]
     public void GatherTransactionsToPropose()
     {
         // TODO: We test more properties of GatherTransactionsToPropose() method:
@@ -671,7 +671,7 @@ public partial class BlockChainTest
             gathered.Select(tx => tx.Id).ToArray());
     }
 
-    [SkippableFact]
+    [Fact]
     public void MarkTransactionsToIgnoreWhileProposing()
     {
         var keyA = new PrivateKey();

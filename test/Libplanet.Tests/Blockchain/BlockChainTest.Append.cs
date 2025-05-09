@@ -304,7 +304,7 @@ namespace Libplanet.Tests.Blockchain
                 outputWorld3.GetBalance(addresses[1], DumbAction.DumbCurrency));
         }
 
-        [SkippableFact]
+        [Fact]
         public void AppendModern()
         {
             _blockChain = TestUtils.MakeBlockChain();
@@ -339,7 +339,7 @@ namespace Libplanet.Tests.Blockchain
                 world2.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address2));
         }
 
-        [SkippableFact]
+        [Fact]
         public void AppendFailDueToInvalidBytesLength()
         {
             DumbAction[] manyActions =
@@ -376,7 +376,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.Append(block, TestUtils.CreateBlockCommit(block)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void AppendFailDueToInvalidTxCount()
         {
             int nonce = 0;
@@ -404,7 +404,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.Append(block, TestUtils.CreateBlockCommit(block)));
         }
 
-        // [SkippableFact]
+        // [Fact]
         // public void AppendWhenActionEvaluationFailed()
         // {
         //     var policy = BlockPolicy.Empty;
@@ -434,7 +434,7 @@ namespace Libplanet.Tests.Blockchain
         //     Assert.IsType<ThrowException.SomeException>(errorRecord.Exception.InnerException);
         // }
 
-        [SkippableFact]
+        [Fact]
         public void AppendBlockWithPolicyViolationTx()
         {
             var validKey = new PrivateKey();
@@ -479,7 +479,7 @@ namespace Libplanet.Tests.Blockchain
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public void UnstageAfterAppendComplete()
         {
             PrivateKey privateKey = new PrivateKey();
@@ -527,7 +527,7 @@ namespace Libplanet.Tests.Blockchain
             Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: false));
         }
 
-        [SkippableFact]
+        [Fact]
         public void AppendValidatesBlock()
         {
             var options = new BlockChainOptions
@@ -547,7 +547,7 @@ namespace Libplanet.Tests.Blockchain
                 () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
         }
 
-        [SkippableFact]
+        [Fact]
         public void AppendWithdrawTxsWithExpiredNoncesFromStage()
         {
             void AssertTxIdSetEqual(
@@ -613,7 +613,7 @@ namespace Libplanet.Tests.Blockchain
                 _blockChain.StagedTransactions.Iterate(filtered: false).Select(tx => tx.Id));
         }
 
-        [SkippableFact]
+        [Fact]
         public void DoesNotMigrateStateWithoutAction()
         {
             var policy = new BlockChainOptions

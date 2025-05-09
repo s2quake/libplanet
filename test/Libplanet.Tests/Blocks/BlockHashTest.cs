@@ -98,7 +98,7 @@ public class BlockHashTest
         Assert.Equal(expected, actual);
     }
 
-    [SkippableFact]
+    [Fact]
     public void JsonSerialization()
     {
         BlockHash hash = BlockHash.Parse(

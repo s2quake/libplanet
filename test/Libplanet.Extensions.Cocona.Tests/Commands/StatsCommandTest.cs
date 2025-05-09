@@ -41,7 +41,7 @@ public class StatsCommandTest : IDisposable
         Dispose();
     }
 
-    [SkippableFact]
+    [Fact]
     [Trait("CircleCI", "Skip")]
     public void SummaryInvalidArguments()
     {

@@ -110,7 +110,7 @@ public class StoreCommandTest : IDisposable
         Dispose();
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestInvalidArguments()
     {
         Assert.Throws<ArgumentException>(() =>
@@ -127,7 +127,7 @@ public class StoreCommandTest : IDisposable
                 "dummy"));
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBlockByTxIdNotExist()
     {
         foreach (var fx in _storeFixtures)
@@ -147,7 +147,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBlockByTxIdTwo()
     {
         foreach (var fx in _storeFixtures)
@@ -185,7 +185,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBlockHashesByTxId()
     {
         foreach (var fx in _storeFixtures)
@@ -214,7 +214,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBuildIndexTxBlockBlockByTxId()
     {
         foreach (var fx in _storeFixtures)
@@ -246,7 +246,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBlockByHashNotExists()
     {
         foreach (var fx in _storeFixtures)
@@ -258,7 +258,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBlockByHash()
     {
         foreach (var fx in _storeFixtures)
@@ -274,7 +274,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBlockByIndexNotExists()
     {
         foreach (var fx in _storeFixtures)
@@ -286,7 +286,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestBlockByIndex()
     {
         foreach (var fx in _storeFixtures)
@@ -300,7 +300,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestTxByIdNotExists()
     {
         foreach (var fx in _storeFixtures)
@@ -312,7 +312,7 @@ public class StoreCommandTest : IDisposable
         }
     }
 
-    [SkippableFact]
+    [Fact]
     public void TestTxById()
     {
         foreach (var fx in _storeFixtures)

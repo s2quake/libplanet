@@ -14,6 +14,7 @@ using Libplanet.Explorer.Schemas;
 using Libplanet.Net;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.RocksDBStore;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
@@ -293,10 +294,10 @@ If omitted (default) explorer only the local blockchain store.")]
             switch (options.StoreType)
             {
                 case "rocksdb":
-                    return new RocksDBStore.RocksDBStore(
+                    return new Store.Store(new RocksDatabase(
                       options.StorePath,
                       maxTotalWalSize: 16 * 1024 * 1024,
-                      keepLogFileNum: 1);
+                      keepLogFileNum: 1));
                 case "default":
                     return new DefaultStore(
                         new DefaultStoreOptions

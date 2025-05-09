@@ -139,7 +139,7 @@ public class StoreCommand
     [Command]
     public void MigrateIndex(string storePath)
     {
-        if (RocksDBStore.RocksDBStore.MigrateChainDBFromColumnFamilies(storePath))
+        if (RocksDBStore.LegacyRocksDBStore.MigrateChainDBFromColumnFamilies(storePath))
         {
             Console.WriteLine("Successfully migrated.");
         }

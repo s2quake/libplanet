@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using RocksDbSharp;
@@ -7,25 +8,23 @@ namespace Libplanet.RocksDBStore;
 
 public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
 {
-    private readonly RocksDb _rocksDb;
+    private readonly string _path;
+    private readonly RocksDBInstanceType _type;
+    private readonly DbOptions _options;
+    private RocksDb _rocksDb;
     private bool _disposed;
     private int? _count;
 
     public RocksDBKeyValueStore(
-        string path,
-        RocksDBInstanceType type = RocksDBInstanceType.Primary,
-        DbOptions? options = null)
+        string path, RocksDBInstanceType type = RocksDBInstanceType.Primary, DbOptions? options = null)
     {
-        options ??= new DbOptions()
-            .SetCreateIfMissing()
-            .SetSoftPendingCompactionBytesLimit(1000000000000)
-            .SetHardPendingCompactionBytesLimit(1038176821042);
-
-        _rocksDb = RocksDBUtils.OpenRocksDb(options, path, type: type);
-        Type = type;
+        _path = path;
+        _type = type;
+        _options = CreateDbOptions(options);
+        _rocksDb = CreateInstance();
     }
 
-    public RocksDBInstanceType Type { get; }
+    public string Path => _path;
 
     public override int Count
     {
@@ -61,18 +60,6 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
             }
         }
     }
-
-    // public void SetMany(IDictionary<KeyBytes, byte[]> values)
-    // {
-    //     using var writeBatch = new WriteBatch();
-
-    //     foreach (var (key, value) in values)
-    //     {
-    //         writeBatch.Put(key.AsSpan(), value);
-    //     }
-
-    //     _rocksDb.Write(writeBatch);
-    // }
 
     public override bool Remove(KeyBytes key)
     {
@@ -133,7 +120,17 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
         return false;
     }
 
-    public override void Clear() => throw new NotSupportedException("Clear is not supported.");
+    public override void Clear()
+    {
+        _rocksDb.Dispose();
+        if (Directory.Exists(_path))
+        {
+            Directory.Delete(_path, recursive: true);
+        }
+
+        _rocksDb = CreateInstance();
+        _count = null;
+    }
 
     protected override IEnumerable<KeyBytes> EnumerateKeys()
     {
@@ -143,4 +140,14 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
             yield return new KeyBytes(it.Key());
         }
     }
+
+    private static DbOptions CreateDbOptions(DbOptions? options)
+    {
+        return options ?? new DbOptions()
+            .SetCreateIfMissing()
+            .SetSoftPendingCompactionBytesLimit(1000000000000)
+            .SetHardPendingCompactionBytesLimit(1038176821042);
+    }
+
+    private RocksDb CreateInstance() => RocksDBUtils.OpenRocksDb(_options, _path, type: _type);
 }

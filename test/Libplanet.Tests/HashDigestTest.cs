@@ -119,7 +119,7 @@ public class HashDigestTest
         Assert.Equal("62cdb7020ff920e5aa642c3d4066950dd1f01f4d", converter.ConvertTo(sha1, typeof(string)));
     }
 
-    [SkippableFact]
+    [Fact]
     public void JsonSerialization()
     {
         HashDigest<SHA1> digest =

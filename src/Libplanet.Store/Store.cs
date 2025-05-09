@@ -7,7 +7,7 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-public class DefaultStore : StoreBase
+public sealed class Store : IStore
 {
     private const string IndexColPrefix = "index_";
     private const string TxNonceIdPrefix = "nonce_";
@@ -16,9 +16,9 @@ public class DefaultStore : StoreBase
     private readonly TransactionCollection _transactions;
     private readonly BlockCollection _blocks;
     private readonly TxExecutionCollection _txExecutions;
-    private readonly BlockHashesByTxId _blockHashes;
-    private readonly BlockCommitByBlockHash _blockCommits;
-    private readonly StateRootHashByBlockHash _nextStateRootHashes;
+    private readonly BlockHashesByTxId _blockHashesByTxId;
+    private readonly BlockCommitByBlockHash _blockCommitByBlockHash;
+    private readonly StateRootHashByBlockHash _stateRootHashByBlockHash;
     private readonly EvidenceCollection _pendingEvidence;
     private readonly EvidenceCollection _committedEvidence;
     private readonly HeightByChainId _heightByChainId;
@@ -27,28 +27,45 @@ public class DefaultStore : StoreBase
 
     private bool _disposed;
 
-    public DefaultStore(DefaultStoreOptions options)
+    public Store(IDatabase database)
     {
-        _database = new DefaultDatabase(options.Path);
+        _database = database;
         _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
         _blocks = new BlockCollection(_database.GetOrAdd("block"));
         _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
-        _blockHashes = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
-        _blockCommits = new BlockCommitByBlockHash(_database.GetOrAdd("blockcommit"));
-        _nextStateRootHashes = new StateRootHashByBlockHash(_database.GetOrAdd("nextstateroothash"));
+        _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
+        _blockCommitByBlockHash = new BlockCommitByBlockHash(_database.GetOrAdd("blockcommit"));
+        _stateRootHashByBlockHash = new StateRootHashByBlockHash(_database.GetOrAdd("nextstateroothash"));
         _pendingEvidence = new EvidenceCollection(_database.GetOrAdd("evidencep"));
         _committedEvidence = new EvidenceCollection(_database.GetOrAdd("evidencec"));
         _heightByChainId = new HeightByChainId(_database.GetOrAdd("heights"));
         _blockCommitByChainId = new BlockCommitByChainId(_database.GetOrAdd("blockcommitb"));
         _metadata = new StringCollection(_database.GetOrAdd("metadata"));
-        Options = options;
     }
 
-    public DefaultStoreOptions Options { get; }
+    public Block GetBlock(BlockHash blockHash)
+        => GetBlockDigest(blockHash).ToBlock(GetTransaction, GetCommittedEvidence);
 
-    public override IEnumerable<Guid> ListChainIds() => _heightByChainId.Keys;
+    public int GetBlockHeight(BlockHash blockHash)
+    {
+        return GetBlockDigest(blockHash).Height;
+    }
 
-    public override void DeleteChainId(Guid chainId)
+    public BlockHash GetFirstTxIdBlockHashIndex(TxId txId)
+    {
+        var item = IterateTxIdBlockHashIndex(txId).FirstOrDefault();
+        if (item == default)
+        {
+            throw new KeyNotFoundException(
+                $"The transaction ID {txId} does not exist in the index.");
+        }
+
+        return item;
+    }
+
+    public IEnumerable<Guid> ListChainIds() => _heightByChainId.Keys;
+
+    public void DeleteChainId(Guid chainId)
     {
         _blockCommitByChainId.Remove(chainId);
         _heightByChainId.Remove(chainId);
@@ -56,7 +73,7 @@ public class DefaultStore : StoreBase
         _database.Remove(IndexKey(chainId));
     }
 
-    public override Guid GetCanonicalChainId()
+    public Guid GetCanonicalChainId()
     {
         if (!_metadata.TryGetValue("chainId", out var chainId))
         {
@@ -66,9 +83,9 @@ public class DefaultStore : StoreBase
         return Guid.Parse(chainId);
     }
 
-    public override void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
+    public void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
 
-    public override int CountIndex(Guid chainId)
+    public int CountIndex(Guid chainId)
     {
         if (!_heightByChainId.ContainsKey(chainId))
         {
@@ -78,7 +95,7 @@ public class DefaultStore : StoreBase
         return IndexCollection(chainId).Count;
     }
 
-    public override IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
+    public IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
     {
         var collection = IndexCollection(chainId);
         var end = checked(limit is { } l ? offset + l : int.MaxValue);
@@ -95,7 +112,7 @@ public class DefaultStore : StoreBase
         }
     }
 
-    public override BlockHash GetBlockHash(Guid chainId, int height)
+    public BlockHash GetBlockHash(Guid chainId, int height)
     {
         var collection = IndexCollection(chainId);
         if (height < 0)
@@ -106,7 +123,7 @@ public class DefaultStore : StoreBase
         return collection[height];
     }
 
-    public override int AppendIndex(Guid chainId, BlockHash hash)
+    public int AppendIndex(Guid chainId, BlockHash hash)
     {
         var collection = IndexCollection(chainId);
         var height = collection.Count;
@@ -115,7 +132,7 @@ public class DefaultStore : StoreBase
         return height;
     }
 
-    public override void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint)
+    public void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint)
     {
         var srcColl = IndexCollection(sourceChainId);
         var destColl = IndexCollection(destinationChainId);
@@ -142,32 +159,32 @@ public class DefaultStore : StoreBase
         AppendIndex(destinationChainId, branchpoint);
     }
 
-    public override Transaction GetTransaction(TxId txId)
+    public Transaction GetTransaction(TxId txId)
     {
         return _transactions[txId];
     }
 
-    public override void PutTransaction(Transaction tx)
+    public void PutTransaction(Transaction tx)
     {
         _transactions[tx.Id] = tx;
     }
 
-    public override bool ContainsTransaction(TxId txId)
+    public bool ContainsTransaction(TxId txId)
     {
         return _transactions.ContainsKey(txId);
     }
 
-    public override IEnumerable<BlockHash> IterateBlockHashes()
+    public IEnumerable<BlockHash> IterateBlockHashes()
     {
         return _blocks.Keys;
     }
 
-    public override BlockDigest GetBlockDigest(BlockHash blockHash)
+    public BlockDigest GetBlockDigest(BlockHash blockHash)
     {
         return _blocks.GetBlockDigest(blockHash);
     }
 
-    public override void PutBlock(Block block)
+    public void PutBlock(Block block)
     {
         _blocks.Add(block.BlockHash, block);
 
@@ -177,39 +194,39 @@ public class DefaultStore : StoreBase
         }
     }
 
-    public override bool DeleteBlock(BlockHash blockHash)
+    public bool DeleteBlock(BlockHash blockHash)
     {
         return _blocks.Remove(blockHash);
     }
 
-    public override bool ContainsBlock(BlockHash blockHash)
+    public bool ContainsBlock(BlockHash blockHash)
     {
         return _blocks.ContainsKey(blockHash);
     }
 
-    public override void PutTxExecution(TxExecution txExecution)
+    public void PutTxExecution(TxExecution txExecution)
     {
         _txExecutions.Add(txExecution);
     }
 
-    public override TxExecution GetTxExecution(BlockHash blockHash, TxId txId)
+    public TxExecution GetTxExecution(BlockHash blockHash, TxId txId)
     {
         return _txExecutions[(blockHash, txId)];
     }
 
-    public override void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+    public void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
-        if (!_blockHashes.TryGetValue(txId, out var blockHashes))
+        if (!_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
         {
             blockHashes = [];
         }
 
-        _blockHashes[txId] = blockHashes.Add(blockHash);
+        _blockHashesByTxId[txId] = blockHashes.Add(blockHash);
     }
 
-    public override IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
+    public IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
     {
-        if (_blockHashes.TryGetValue(txId, out var blockHashes))
+        if (_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
         {
             return blockHashes;
         }
@@ -217,23 +234,23 @@ public class DefaultStore : StoreBase
         return [];
     }
 
-    public override void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+    public void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
-        if (_blockHashes.TryGetValue(txId, out var blockHashes))
+        if (_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
         {
             blockHashes = blockHashes.Remove(blockHash);
             if (blockHashes.IsEmpty)
             {
-                _blockHashes.Remove(txId);
+                _blockHashesByTxId.Remove(txId);
             }
             else
             {
-                _blockHashes[txId] = blockHashes;
+                _blockHashesByTxId[txId] = blockHashes;
             }
         }
     }
 
-    public override IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
+    public IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
     {
         var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
         foreach (var item in collection)
@@ -255,7 +272,7 @@ public class DefaultStore : StoreBase
         // }
     }
 
-    public override long GetTxNonce(Guid chainId, Address address)
+    public long GetTxNonce(Guid chainId, Address address)
     {
         var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
         if (collection.TryGetValue(address, out var nonce))
@@ -266,7 +283,7 @@ public class DefaultStore : StoreBase
         return 0L;
     }
 
-    public override void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
+    public void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
     {
         var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
         if (!collection.TryGetValue(signer, out var nonce))
@@ -277,7 +294,7 @@ public class DefaultStore : StoreBase
         collection[signer] = nonce + delta;
     }
 
-    public override void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
+    public void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
     {
         var srcColl = TxNonceCollection(sourceChainId);
         var destColl = TxNonceCollection(destinationChainId);
@@ -293,7 +310,7 @@ public class DefaultStore : StoreBase
         }
     }
 
-    public override void PruneOutdatedChains(bool noopWithoutCanon = false)
+    public void PruneOutdatedChains(bool noopWithoutCanon = false)
     {
         var ccid = GetCanonicalChainId();
         if (ccid == Guid.Empty)
@@ -313,51 +330,52 @@ public class DefaultStore : StoreBase
         }
     }
 
-    public override BlockCommit GetChainBlockCommit(Guid chainId) => _blockCommitByChainId[chainId];
+    public BlockCommit GetChainBlockCommit(Guid chainId) => _blockCommitByChainId[chainId];
 
-    public override void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
+    public void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
         => _blockCommitByChainId[chainId] = blockCommit;
 
-    public override BlockCommit GetBlockCommit(BlockHash blockHash) => _blockCommits[blockHash];
+    public BlockCommit GetBlockCommit(BlockHash blockHash) => _blockCommitByBlockHash[blockHash];
 
-    public override void PutBlockCommit(BlockCommit blockCommit)
-        => _blockCommits.Add(blockCommit.BlockHash, blockCommit);
+    public void PutBlockCommit(BlockCommit blockCommit)
+        => _blockCommitByBlockHash.Add(blockCommit.BlockHash, blockCommit);
 
-    public override void DeleteBlockCommit(BlockHash blockHash) => _blockCommits.Remove(blockHash);
+    public void DeleteBlockCommit(BlockHash blockHash) => _blockCommitByBlockHash.Remove(blockHash);
 
-    public override IEnumerable<BlockHash> GetBlockCommitHashes() => _blockCommits.Keys;
+    public IEnumerable<BlockHash> GetBlockCommitHashes() => _blockCommitByBlockHash.Keys;
 
-    public override HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash) => _nextStateRootHashes[blockHash];
+    public HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash) => _stateRootHashByBlockHash[blockHash];
 
-    public override void PutNextStateRootHash(BlockHash blockHash, HashDigest<SHA256> nextStateRootHash)
-        => _nextStateRootHashes.Add(blockHash, nextStateRootHash);
+    public void PutNextStateRootHash(BlockHash blockHash, HashDigest<SHA256> nextStateRootHash)
+        => _stateRootHashByBlockHash.Add(blockHash, nextStateRootHash);
 
-    public override void DeleteNextStateRootHash(BlockHash blockHash) => _nextStateRootHashes.Remove(blockHash);
+    public void DeleteNextStateRootHash(BlockHash blockHash) => _stateRootHashByBlockHash.Remove(blockHash);
 
-    public override IEnumerable<EvidenceId> IteratePendingEvidenceIds() => _pendingEvidence.Keys;
+    public IEnumerable<EvidenceId> IteratePendingEvidenceIds() => _pendingEvidence.Keys;
 
-    public override EvidenceBase GetPendingEvidence(EvidenceId evidenceId) => _pendingEvidence[evidenceId];
+    public EvidenceBase GetPendingEvidence(EvidenceId evidenceId) => _pendingEvidence[evidenceId];
 
-    public override void PutPendingEvidence(EvidenceBase evidence) => _pendingEvidence.Add(evidence.Id, evidence);
+    public void PutPendingEvidence(EvidenceBase evidence) => _pendingEvidence.Add(evidence.Id, evidence);
 
-    public override void DeletePendingEvidence(EvidenceId evidenceId) => _pendingEvidence.Remove(evidenceId);
+    public void DeletePendingEvidence(EvidenceId evidenceId) => _pendingEvidence.Remove(evidenceId);
 
-    public override bool ContainsPendingEvidence(EvidenceId evidenceId) => _pendingEvidence.ContainsKey(evidenceId);
+    public bool ContainsPendingEvidence(EvidenceId evidenceId) => _pendingEvidence.ContainsKey(evidenceId);
 
-    public override EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) => _committedEvidence[evidenceId];
+    public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) => _committedEvidence[evidenceId];
 
-    public override void PutCommittedEvidence(EvidenceBase evidence) => _committedEvidence.Add(evidence.Id, evidence);
+    public void PutCommittedEvidence(EvidenceBase evidence) => _committedEvidence.Add(evidence.Id, evidence);
 
-    public override void DeleteCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.Remove(evidenceId);
+    public void DeleteCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.Remove(evidenceId);
 
-    public override bool ContainsCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.ContainsKey(evidenceId);
+    public bool ContainsCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.ContainsKey(evidenceId);
 
-    public override long CountBlocks() => IterateBlockHashes().LongCount();
+    public long CountBlocks() => IterateBlockHashes().LongCount();
 
-    public override void Dispose()
+    public void Dispose()
     {
         if (!_disposed)
         {
+            _database.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
