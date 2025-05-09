@@ -18,7 +18,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -40,7 +40,7 @@ namespace Libplanet.Tests.Blockchain
                     new BlockHeader
                     {
                         ProtocolVersion = protocolVersion,
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -55,7 +55,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 2L,
+                        Height = 2,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.BlockHash,
@@ -72,7 +72,7 @@ namespace Libplanet.Tests.Blockchain
                         new BlockHeader
                         {
                             ProtocolVersion = BlockHeader.CurrentProtocolVersion + 1,
-                            Height = 2L,
+                            Height = 2,
                             Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
                             Proposer = _fx.Proposer.Address,
                             PreviousHash = block1.BlockHash,
@@ -315,7 +315,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -332,7 +332,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -345,7 +345,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 2L,
+                        Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.BlockHash,
@@ -363,7 +363,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -398,7 +398,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 2L,
+                        Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.BlockHash,
@@ -416,7 +416,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -492,7 +492,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -515,7 +515,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -538,7 +538,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -575,7 +575,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
@@ -605,7 +605,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        Height = 1L,
+                        Height = 1,
                         Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = blockChain.Genesis.BlockHash,

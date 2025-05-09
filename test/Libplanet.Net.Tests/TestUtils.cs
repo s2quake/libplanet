@@ -60,7 +60,7 @@ namespace Libplanet.Net.Tests
         public static Vote CreateVote(
             PrivateKey privateKey,
             BigInteger power,
-            long height,
+            int height,
             int round,
             BlockHash hash,
             VoteFlag flag) =>
@@ -104,7 +104,7 @@ namespace Libplanet.Net.Tests
         public static ConsensusProposalMsg CreateConsensusPropose(
             Block block,
             PrivateKey privateKey,
-            long height = 1,
+            int height = 1,
             int round = 0,
             int validRound = -1)
         {
@@ -122,7 +122,7 @@ namespace Libplanet.Net.Tests
         public static BlockCommit CreateBlockCommit(Block block) =>
             Libplanet.Tests.TestUtils.CreateBlockCommit(block);
 
-        public static BlockCommit CreateBlockCommit(BlockHash blockHash, long height, int round) =>
+        public static BlockCommit CreateBlockCommit(BlockHash blockHash, int height, int round) =>
             Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
 
         public static void HandleFourPeersPreCommitMessages(
@@ -277,7 +277,7 @@ namespace Libplanet.Net.Tests
 
         public static Context CreateDummyContext(
             BlockChain blockChain,
-            long height = 1,
+            int height = 1,
             BlockCommit? lastCommit = null,
             PrivateKey? privateKey = null,
             ContextOption? contextOption = null,
@@ -300,7 +300,7 @@ namespace Libplanet.Net.Tests
 
         public static (BlockChain BlockChain, Context Context)
             CreateDummyContext(
-                long height = 1,
+                int height = 1,
                 BlockCommit? lastCommit = null,
                 BlockChainOptions? policy = null,
                 PrivateKey? privateKey = null,
@@ -376,7 +376,7 @@ namespace Libplanet.Net.Tests
             public void PublishMessage(ConsensusMsg message)
                 => _publishMessage(message);
 
-            public void OnStartHeight(long height)
+            public void OnStartHeight(int height)
             {
             }
 

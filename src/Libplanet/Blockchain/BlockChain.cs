@@ -107,7 +107,7 @@ public partial class BlockChain
 
     public IEnumerable<BlockHash> BlockHashes => IterateBlockHashes();
 
-    public long Count => Store.CountIndex(Id);
+    public int Count => Store.CountIndex(Id);
 
     internal IStore Store { get; }
 
@@ -117,7 +117,7 @@ public partial class BlockChain
 
     internal bool IsCanonical => Store.GetCanonicalChainId() is Guid guid && Id == guid;
 
-    public Block this[long height]
+    public Block this[int height]
     {
         get
         {
@@ -367,7 +367,7 @@ public partial class BlockChain
         }
     }
 
-    public BlockCommit GetBlockCommit(long index)
+    public BlockCommit GetBlockCommit(int index)
     {
         Block block = this[index];
 
@@ -874,13 +874,13 @@ public partial class BlockChain
 
     internal HashDigest<SHA256>? GetNextStateRootHash() => _nextStateRootHash;
 
-    internal HashDigest<SHA256>? GetNextStateRootHash(long index) =>
+    internal HashDigest<SHA256>? GetNextStateRootHash(int index) =>
         GetNextStateRootHash(this[index]);
 
     internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) =>
         GetNextStateRootHash(this[blockHash]);
 
-    internal ImmutableSortedSet<Validator> GetValidatorSet(long index)
+    internal ImmutableSortedSet<Validator> GetValidatorSet(int index)
     {
         if (index == 0)
         {

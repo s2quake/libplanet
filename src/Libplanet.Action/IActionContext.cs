@@ -14,7 +14,7 @@ public interface IActionContext
 
     Address Proposer { get; }
 
-    long BlockHeight { get; }
+    int BlockHeight { get; }
 
     int BlockProtocolVersion { get; }
 

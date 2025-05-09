@@ -9,7 +9,7 @@ public sealed record class TestEvidence : EvidenceBase, IEquatable<TestEvidence>
 {
     public Address ValidatorAddress => TargetAddress;
 
-    public static TestEvidence Create(long height, Address validatorAddress, DateTimeOffset timestamp) => new()
+    public static TestEvidence Create(int height, Address validatorAddress, DateTimeOffset timestamp) => new()
     {
         Height = height,
         TargetAddress = validatorAddress,

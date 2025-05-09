@@ -721,7 +721,7 @@ public partial class ActionEvaluatorTest
         var block = RawBlock.Create(
             new BlockHeader
             {
-                Height = 1L,
+                Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = keys[0].Address,
             },

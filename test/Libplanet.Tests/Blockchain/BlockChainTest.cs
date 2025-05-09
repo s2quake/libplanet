@@ -1538,13 +1538,13 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(
             blockChain
-                .GetNextWorldState(0L)
+                .GetNextWorldState(0)
                 .GetValidatorSet(),
             [.. ValidatorPrivateKeys.Select(pk => Validator.Create(pk.PublicKey, BigInteger.One))]);
 
         Assert.Equal(
             blockChain
-                .GetNextWorldState(1L)
+                .GetNextWorldState(1)
                 .GetValidatorSet(),
             [.. newValidators.Select(pk => Validator.Create(pk.PublicKey, BigInteger.One))]);
     }

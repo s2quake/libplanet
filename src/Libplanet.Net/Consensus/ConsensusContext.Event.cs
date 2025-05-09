@@ -7,22 +7,22 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// An event that is invoked when a <see cref="ConsensusMsg"/> is published.
         /// </summary>
-        internal event EventHandler<(long Height, ConsensusMsg Message)>? MessagePublished;
+        internal event EventHandler<(int Height, ConsensusMsg Message)>? MessagePublished;
 
         /// <inheritdoc cref="Context.ExceptionOccurred"/>
-        internal event EventHandler<(long Height, Exception)>? ExceptionOccurred;
+        internal event EventHandler<(int Height, Exception)>? ExceptionOccurred;
 
         /// <inheritdoc cref="Context.TimeoutProcessed"/>
-        internal event EventHandler<(long Height, int Round, ConsensusStep Step)>? TimeoutProcessed;
+        internal event EventHandler<(int Height, int Round, ConsensusStep Step)>? TimeoutProcessed;
 
         /// <inheritdoc cref="Context.StateChanged"/>
         internal event EventHandler<Context.ContextState>? StateChanged;
 
         /// <inheritdoc cref="Context.MessageConsumed"/>
-        internal event EventHandler<(long Height, ConsensusMsg Message)>? MessageConsumed;
+        internal event EventHandler<(int Height, ConsensusMsg Message)>? MessageConsumed;
 
         /// <inheritdoc cref="Context.MutationConsumed"/>
-        internal event EventHandler<(long Height, System.Action)>? MutationConsumed;
+        internal event EventHandler<(int Height, System.Action)>? MutationConsumed;
 
         private void AttachEventHandlers(Context context)
         {

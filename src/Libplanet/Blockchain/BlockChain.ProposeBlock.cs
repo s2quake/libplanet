@@ -130,7 +130,7 @@ public partial class BlockChain
     /// <exception cref="InvalidOperationException">Thrown when not all policies
     /// can be satisfied.</exception>
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
-        long height, IComparer<Transaction>? txPriority = null)
+        int height, IComparer<Transaction>? txPriority = null)
         => GatherTransactionsToPropose(
             Options.MaxTransactionsBytes,
             Options.MaxTransactionsPerBlock,
@@ -145,7 +145,7 @@ public partial class BlockChain
         int minTransactions,
         IComparer<Transaction>? txPriority = null)
     {
-        long index = Count;
+        var index = Count;
         ImmutableList<Transaction> stagedTransactions = ListStagedTransactions(txPriority);
         _logger.Information(
             "Gathering transactions to propose for block #{Index} from {TxCount} " +

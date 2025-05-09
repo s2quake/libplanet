@@ -29,7 +29,7 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>
     [Property(5)]
     public required BlockHash BlockHash { get; init; }
 
-    public long Height => Header.Height;
+    public int Height => Header.Height;
 
     public Address Proposer => Header.Proposer;
 

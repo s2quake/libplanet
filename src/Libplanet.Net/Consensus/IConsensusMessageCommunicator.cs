@@ -19,7 +19,7 @@ namespace Libplanet.Net.Consensus
         /// </summary>
         /// <param name="height"><see cref="Context.Height"/>
         /// to trigger this method.</param>
-        public void OnStartHeight(long height);
+        public void OnStartHeight(int height);
 
         /// <summary>
         /// Method that will be called on the

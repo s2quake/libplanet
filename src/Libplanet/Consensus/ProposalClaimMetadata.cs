@@ -52,7 +52,7 @@ namespace Libplanet.Consensus
         /// </list>
         /// </exception>
         public ProposalClaimMetadata(
-            long height,
+            int height,
             int round,
             BlockHash blockHash,
             DateTimeOffset timestamp,
@@ -97,7 +97,7 @@ namespace Libplanet.Consensus
         /// <summary>
         /// A height of given proposal values.
         /// </summary>
-        public long Height { get; }
+        public int Height { get; }
 
         /// <summary>
         /// A round of given proposal values.

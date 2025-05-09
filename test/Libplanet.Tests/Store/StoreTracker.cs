@@ -106,7 +106,7 @@
 //         return store.GetTransaction(txid);
 //     }
 
-//     public BlockHash GetBlockHash(Guid chainId, long height)
+//     public BlockHash GetBlockHash(Guid chainId, int height)
 //     {
 //         Log(nameof(GetBlockHash), chainId, height);
 //         return store.GetBlockHash(chainId, height);

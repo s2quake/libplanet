@@ -13,7 +13,7 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
 
     [Property(0)]
     [NonNegative]
-    public long Height { get; init; }
+    public int Height { get; init; }
 
     [Property(1)]
     [NonNegative]

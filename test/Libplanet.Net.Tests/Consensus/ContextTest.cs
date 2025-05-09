@@ -339,11 +339,11 @@ namespace Libplanet.Net.Tests.Consensus
 
             Context context = new Context(
                 blockChain,
-                1L,
+                1,
                 default,
                 TestUtils.PrivateKeys[0],
                 blockChain
-                    .GetNextWorldState(0L)
+                    .GetNextWorldState(0)
                     .GetValidatorSet(),
                 contextOption: new ContextOption());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);

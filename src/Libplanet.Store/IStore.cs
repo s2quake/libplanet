@@ -15,13 +15,13 @@ public interface IStore : IDisposable
 
     void SetCanonicalChainId(Guid chainId);
 
-    long CountIndex(Guid chainId);
+    int CountIndex(Guid chainId);
 
     IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null);
 
-    BlockHash GetBlockHash(Guid chainId, long height);
+    BlockHash GetBlockHash(Guid chainId, int height);
 
-    void AppendIndex(Guid chainId, long height, BlockHash hash);
+    void AppendIndex(Guid chainId, int height, BlockHash hash);
 
     void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint);
 
@@ -33,7 +33,7 @@ public interface IStore : IDisposable
 
     Block GetBlock(BlockHash blockHash);
 
-    long GetBlockHeight(BlockHash blockHash);
+    int GetBlockHeight(BlockHash blockHash);
 
     BlockDigest GetBlockDigest(BlockHash blockHash);
 

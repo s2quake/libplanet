@@ -17,7 +17,7 @@ namespace Libplanet.Net.Messages
         /// <param name="round">A <see cref="Context.Round"/> the message is written for.</param>
         protected ConsensusMsg(
             PublicKey validatorPublicKey,
-            long height,
+            int height,
             int round)
         {
             ValidatorPublicKey = validatorPublicKey;
@@ -33,7 +33,7 @@ namespace Libplanet.Net.Messages
         /// <summary>
         /// A <see cref="Context.Height"/> the message is written for.
         /// </summary>
-        public long Height { get; }
+        public int Height { get; }
 
         /// <summary>
         /// A <see cref="Context.Round"/> the message is written for.

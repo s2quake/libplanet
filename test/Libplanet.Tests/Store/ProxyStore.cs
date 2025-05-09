@@ -18,14 +18,14 @@ public abstract class ProxyStore(IStore store) : IStore
 
     public virtual void SetCanonicalChainId(Guid chainId) => store.SetCanonicalChainId(chainId);
 
-    public virtual long CountIndex(Guid chainId) => store.CountIndex(chainId);
+    public virtual int CountIndex(Guid chainId) => store.CountIndex(chainId);
 
     public virtual IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null)
         => store.IterateIndexes(chainId, offset, limit);
 
-    public virtual BlockHash GetBlockHash(Guid chainId, long height) => store.GetBlockHash(chainId, height);
+    public virtual BlockHash GetBlockHash(Guid chainId, int height) => store.GetBlockHash(chainId, height);
 
-    public virtual void AppendIndex(Guid chainId, long height, BlockHash hash) => store.AppendIndex(chainId, height, hash);
+    public virtual void AppendIndex(Guid chainId, int height, BlockHash hash) => store.AppendIndex(chainId, height, hash);
 
     public virtual void ForkBlockIndexes(
         Guid sourceChainId,
@@ -41,7 +41,7 @@ public abstract class ProxyStore(IStore store) : IStore
 
     public virtual Block GetBlock(BlockHash blockHash) => store.GetBlock(blockHash);
 
-    public virtual long GetBlockHeight(BlockHash blockHash) => store.GetBlockHeight(blockHash);
+    public virtual int GetBlockHeight(BlockHash blockHash) => store.GetBlockHeight(blockHash);
 
     public virtual BlockDigest GetBlockDigest(BlockHash blockHash) => store.GetBlockDigest(blockHash);
 

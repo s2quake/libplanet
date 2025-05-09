@@ -10,7 +10,7 @@ namespace Libplanet.Net.Tests.Consensus
     {
         public static async Task WaitUntilHeightAsync(
             ConsensusContext consensusContext,
-            long height,
+            int height,
             CancellationToken cancellationToken)
         {
             if (consensusContext.Height > height)
@@ -31,7 +31,7 @@ namespace Libplanet.Net.Tests.Consensus
 
         public static async Task WaitUntilStateAsync(
             ConsensusContext consensusContext,
-            long height,
+            int height,
             ConsensusStep consensusStep,
             CancellationToken cancellationToken)
         {
@@ -60,7 +60,7 @@ namespace Libplanet.Net.Tests.Consensus
 
         public static async Task<T> WaitUntilPublishedAsync<T>(
             ConsensusContext consensusContext,
-            long height,
+            int height,
             CancellationToken cancellationToken)
             where T : ConsensusMsg
         {
@@ -78,7 +78,7 @@ namespace Libplanet.Net.Tests.Consensus
             }
 
             void ConsensusContext_MessagePublished(
-                object? sender, (long Height, ConsensusMsg Message) e)
+                object? sender, (int Height, ConsensusMsg Message) e)
             {
                 if (e.Message is T { } message && e.Height == height)
                 {

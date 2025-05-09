@@ -85,7 +85,7 @@ namespace Libplanet.Net.Consensus
         /// The index of block that <see cref="ConsensusContext"/> is watching. The value can be
         /// changed by starting a consensus or appending a block.
         /// </summary>
-        public long Height => _consensusContext.Height;
+        public int Height => _consensusContext.Height;
 
         /// <summary>
         /// An <see cref="IEnumerable{BoundPeer}"/> of the validators.

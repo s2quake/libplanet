@@ -29,7 +29,7 @@ namespace Libplanet.Tests
         /// <param name="index">The index of a <see cref="Block"/> to search.</param>
         /// <returns>An <see cref="IWorldState"/> resulting from the execution of
         /// a <see cref="Block"/> associated with given <paramref name="index"/>.</returns>
-        public static World GetNextWorldState(this BlockChain blockChain, long index) =>
+        public static World GetNextWorldState(this BlockChain blockChain, int index) =>
             blockChain.GetNextStateRootHash(index) is HashDigest<SHA256> stateRootHash
                 ? blockChain.GetWorld(stateRootHash)
                 : null;

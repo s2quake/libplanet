@@ -43,7 +43,7 @@ public interface IBlockChainIndex
     /// <returns>The height of the block with the <paramref name="hash"/>.</returns>
     /// <exception cref="IndexOutOfRangeException">Thrown if the <see cref="Block"/> with the
     /// given <paramref name="hash"/> is not indexed yet.</exception>
-    long BlockHashToIndex(BlockHash hash);
+    int BlockHashToIndex(BlockHash hash);
 
     /// <inheritdoc cref="BlockHashToIndex"/>
     Task<long> BlockHashToIndexAsync(BlockHash hash);

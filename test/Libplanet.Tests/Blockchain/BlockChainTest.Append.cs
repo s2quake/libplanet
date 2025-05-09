@@ -646,7 +646,7 @@ namespace Libplanet.Tests.Blockchain
             RawBlock preEvalGenesis = RawBlock.Create(
                 new BlockHeader
                 {
-                    Height = 0L,
+                    Height = 0,
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = fx.Proposer.Address,
                     PreviousHash = default,

@@ -60,7 +60,7 @@ namespace Libplanet.Net.Consensus
         public void PublishMessage(ConsensusMsg message)
         => Gossip.PublishMessage(message);
 
-        public void OnStartHeight(long height)
+        public void OnStartHeight(int height)
         {
             _height = height;
             _peerCatchupRounds.Clear();

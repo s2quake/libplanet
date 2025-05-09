@@ -16,7 +16,7 @@ public sealed record class Vote : IEquatable<Vote>, IValidatableObject
     [NotDefault]
     public ImmutableArray<byte> Signature { get; init; }
 
-    public long Height => Metadata.Height;
+    public int Height => Metadata.Height;
 
     public int Round => Metadata.Round;
 

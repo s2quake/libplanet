@@ -40,7 +40,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         ?? throw new IndexOutOfRangeException("The index is empty.");
 
     /// <inheritdoc />
-    public abstract long BlockHashToIndex(BlockHash hash);
+    public abstract int BlockHashToIndex(BlockHash hash);
 
     /// <inheritdoc />
     public abstract Task<long> BlockHashToIndexAsync(BlockHash hash);

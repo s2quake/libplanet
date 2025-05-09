@@ -345,7 +345,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         public static BlockCommit CreateBlockCommit(
             BlockHash blockHash,
-            long height,
+            int height,
             int round,
             bool deterministicTimestamp = false,
             bool useValidatorPower = true)

@@ -13,7 +13,7 @@ public abstract class EvidenceException : Exception
     {
     }
 
-    public abstract long Height { get; }
+    public abstract int Height { get; }
 
     public abstract EvidenceBase Create(EvidenceContext evidenceContext);
 }

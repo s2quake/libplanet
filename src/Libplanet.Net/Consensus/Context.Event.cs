@@ -8,7 +8,7 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// An event that is invoked when <see cref="Context"/> starts via <see cref="Start"/>.
         /// </summary>
-        internal event EventHandler<long>? HeightStarted;
+        internal event EventHandler<int>? HeightStarted;
 
         /// <summary>
         /// An event that is invoked when <see cref="Context"/> starts a new round

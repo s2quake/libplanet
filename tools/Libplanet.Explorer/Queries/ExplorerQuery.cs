@@ -36,11 +36,11 @@ namespace Libplanet.Explorer.Queries
 
         internal static IEnumerable<Block> ListBlocks(
             bool desc,
-            long offset,
-            long? limit)
+            int offset,
+            int? limit)
         {
             Block tip = Chain.Tip;
-            long tipIndex = tip.Height;
+            int tipIndex = tip.Height;
 
             var blocks = ListBlocks(
                 Chain,
@@ -51,10 +51,10 @@ namespace Libplanet.Explorer.Queries
         }
 
         internal static IEnumerable<Transaction> ListTransactions(
-            Address? signer, bool desc, long offset, int? limit)
+            Address? signer, bool desc, int offset, int? limit)
         {
             Block tip = Chain.Tip;
-            long tipIndex = tip.Height;
+            int tipIndex = tip.Height;
 
             if (offset < 0)
             {
@@ -144,7 +144,7 @@ namespace Libplanet.Explorer.Queries
 
         internal static Block? GetBlockByHash(BlockHash hash) => Store.GetBlock(hash);
 
-        internal static Block GetBlockByIndex(long index) => Chain[index];
+        internal static Block GetBlockByIndex(int index) => Chain[index];
 
         internal static Transaction GetTransaction(TxId id) => Chain.GetTransaction(id);
 
@@ -164,7 +164,7 @@ namespace Libplanet.Explorer.Queries
             return null;
         }
 
-        private static IEnumerable<Block> ListBlocks(BlockChain chain, long from, long limit)
+        private static IEnumerable<Block> ListBlocks(BlockChain chain, int from, int limit)
         {
             if (chain.Tip.Height < from)
             {

@@ -20,13 +20,13 @@ public abstract class StoreBase : IStore
 
     public abstract void SetCanonicalChainId(Guid chainId);
 
-    public abstract long CountIndex(Guid chainId);
+    public abstract int CountIndex(Guid chainId);
 
     public abstract IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit);
 
-    public abstract BlockHash GetBlockHash(Guid chainId, long height);
+    public abstract BlockHash GetBlockHash(Guid chainId, int height);
 
-    public abstract void AppendIndex(Guid chainId, long height, BlockHash hash);
+    public abstract void AppendIndex(Guid chainId, int height, BlockHash hash);
 
     public abstract void ForkBlockIndexes(
         Guid sourceChainId,
@@ -42,7 +42,7 @@ public abstract class StoreBase : IStore
     public Block GetBlock(BlockHash blockHash)
         => GetBlockDigest(blockHash).ToBlock(GetTransaction, GetCommittedEvidence);
 
-    public long GetBlockHeight(BlockHash blockHash)
+    public int GetBlockHeight(BlockHash blockHash)
     {
         return GetBlockDigest(blockHash).Height;
     }

@@ -50,7 +50,7 @@ public partial class Context : IDisposable
 
     public Context(
         BlockChain blockChain,
-        long height,
+        int height,
         BlockCommit lastCommit,
         PrivateKey privateKey,
         ImmutableSortedSet<Validator> validators,
@@ -70,7 +70,7 @@ public partial class Context : IDisposable
 
     private Context(
         BlockChain blockChain,
-        long height,
+        int height,
         BlockCommit lastCommit,
         PrivateKey privateKey,
         ImmutableSortedSet<Validator> validators,
@@ -128,7 +128,7 @@ public partial class Context : IDisposable
     /// <summary>
     /// A target height of this consensus state. This is also a block height now in consensus.
     /// </summary>
-    public long Height { get; }
+    public int Height { get; }
 
     /// <summary>
     /// A round represents of this consensus state.

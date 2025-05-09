@@ -21,7 +21,7 @@ namespace Libplanet.Net.Messages
         /// <param name="flag">A <see cref="VoteFlag"/>.</param>
         protected ConsensusVoteMsg(
             PublicKey validatorPublicKey,
-            long height,
+            int height,
             int round,
             BlockHash blockHash,
             VoteFlag flag)
