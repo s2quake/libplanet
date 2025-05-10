@@ -23,7 +23,7 @@ public sealed class IntegerSet
     public readonly PrivateKey Proposer;
     public readonly Block Genesis;
     public readonly BlockChain Chain;
-    public readonly IStore Store;
+    public readonly Libplanet.Store.Store Store;
     public readonly IKeyValueStore KVStore;
     public readonly TrieStateStore StateStore;
 

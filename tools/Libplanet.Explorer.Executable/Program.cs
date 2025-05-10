@@ -60,7 +60,7 @@ namespace Libplanet.Explorer.Executable
                 .AddGraphTypes(typeof(LibplanetExplorerSchema));
 
             serviceCollection.AddSingleton<IBlockChainContext, Startup>();
-            serviceCollection.AddSingleton<IStore, Libplanet.Store.Store>();
+            serviceCollection.AddSingleton<Libplanet.Store.Store, Libplanet.Store.Store>();
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             var schema = new LibplanetExplorerSchema(serviceProvider);
@@ -172,7 +172,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             try
             {
-                IStore store = LoadStore(options);
+                Libplanet.Store.Store store = LoadStore(options);
                 TrieStateStore stateStore = new NoOpStateStore();
 
                 BlockChainOptions policy = LoadBlockPolicy(options);
@@ -284,7 +284,7 @@ If omitted (default) explorer only the local blockchain store.")]
             }
         }
 
-        private static IStore LoadStore(Options options)
+        private static Libplanet.Store.Store LoadStore(Options options)
         {
             // FIXME: This method basically does the same thing to Libplanet.Extensions.Cocona's
             // Utils.LoadStoreFromUri() method.
@@ -391,7 +391,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             public BlockChain BlockChain => BlockChainSingleton;
 
-            public IStore Store => StoreSingleton;
+            public Libplanet.Store.Store Store => StoreSingleton;
 
             public Swarm Swarm => SwarmSingleton;
 
@@ -405,7 +405,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             internal static BlockChain BlockChainSingleton { get; set; }
 
-            internal static IStore StoreSingleton { get; set; }
+            internal static Libplanet.Store.Store StoreSingleton { get; set; }
 
             internal static Swarm SwarmSingleton { get; set; }
         }

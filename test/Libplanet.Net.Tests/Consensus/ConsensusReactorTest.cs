@@ -37,7 +37,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async void StartAsync()
         {
             var consensusReactors = new ConsensusReactor[4];
-            var stores = new IStore[4];
+            var stores = new Libplanet.Store.Store[4];
             var blockChains = new BlockChain[4];
             var fx = new MemoryStoreFixture();
             var validatorPeers = new List<BoundPeer>();

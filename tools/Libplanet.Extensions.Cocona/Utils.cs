@@ -102,11 +102,11 @@ public static class Utils
             }));
     }
 
-    public static IStore LoadStoreFromUri(string uriString)
+    public static Libplanet.Store.Store LoadStoreFromUri(string uriString)
     {
         // TODO: Cocona supports .NET's TypeConverter protocol for instantiating objects
-        // from CLI options/arguments.  We'd better to implement it for IStore, and simply
-        // use IStore as the option/argument types rather than taking them as strings.
+        // from CLI options/arguments.  We'd better to implement it for Libplanet.Store.Store, and simply
+        // use Libplanet.Store.Store as the option/argument types rather than taking them as strings.
         var uri = new Uri(uriString);
 
         // FIXME: A workaround for MSBuild not including unused references. Find a better way

@@ -1,101 +1,101 @@
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
+// using Libplanet.Types.Blocks;
+// using Libplanet.Types.Crypto;
+// using Libplanet.Types.Evidence;
+// using Libplanet.Types.Tx;
 
-namespace Libplanet.Store;
+// namespace Libplanet.Store;
 
-public interface IStore : IDisposable
-{
-    IEnumerable<Guid> ListChainIds();
+// public interface IStore : IDisposable
+// {
+//     IEnumerable<Guid> ListChainIds();
 
-    void DeleteChainId(Guid chainId);
+//     void DeleteChainId(Guid chainId);
 
-    Guid GetCanonicalChainId();
+//     Guid GetCanonicalChainId();
 
-    void SetCanonicalChainId(Guid chainId);
+//     void SetCanonicalChainId(Guid chainId);
 
-    int CountIndex(Guid chainId);
+//     int CountIndex(Guid chainId);
 
-    IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null);
+//     IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null);
 
-    BlockHash GetBlockHash(Guid chainId, int height);
+//     BlockHash GetBlockHash(Guid chainId, int height);
 
-    int AppendIndex(Guid chainId, BlockHash hash);
+//     int AppendIndex(Guid chainId, BlockHash hash);
 
-    void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint);
+//     void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint);
 
-    Transaction GetTransaction(TxId txId);
+//     Transaction GetTransaction(TxId txId);
 
-    void PutTransaction(Transaction tx);
+//     void PutTransaction(Transaction tx);
 
-    IEnumerable<BlockHash> IterateBlockHashes();
+//     IEnumerable<BlockHash> IterateBlockHashes();
 
-    Block GetBlock(BlockHash blockHash);
+//     Block GetBlock(BlockHash blockHash);
 
-    int GetBlockHeight(BlockHash blockHash);
+//     int GetBlockHeight(BlockHash blockHash);
 
-    BlockDigest GetBlockDigest(BlockHash blockHash);
+//     BlockDigest GetBlockDigest(BlockHash blockHash);
 
-    void PutBlock(Block block);
+//     void PutBlock(Block block);
 
-    bool DeleteBlock(BlockHash blockHash);
+//     bool DeleteBlock(BlockHash blockHash);
 
-    bool ContainsBlock(BlockHash blockHash);
+//     bool ContainsBlock(BlockHash blockHash);
 
-    void PutTxExecution(TxExecution txExecution);
+//     void PutTxExecution(TxExecution txExecution);
 
-    TxExecution GetTxExecution(BlockHash blockHash, TxId txId);
+//     TxExecution GetTxExecution(BlockHash blockHash, TxId txId);
 
-    void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
+//     void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
 
-    BlockHash GetFirstTxIdBlockHashIndex(TxId txId);
+//     BlockHash GetFirstTxIdBlockHashIndex(TxId txId);
 
-    IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId);
+//     IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId);
 
-    void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
+//     void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
 
-    IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId);
+//     IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId);
 
-    long GetTxNonce(Guid chainId, Address address);
+//     long GetTxNonce(Guid chainId, Address address);
 
-    void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1);
+//     void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1);
 
-    bool ContainsTransaction(TxId txId);
+//     bool ContainsTransaction(TxId txId);
 
-    long CountBlocks();
+//     long CountBlocks();
 
-    void ForkTxNonces(Guid sourceChainId, Guid destinationChainId);
+//     void ForkTxNonces(Guid sourceChainId, Guid destinationChainId);
 
-    void PruneOutdatedChains(bool noopWithoutCanon = false);
+//     void PruneOutdatedChains(bool noopWithoutCanon = false);
 
-    BlockCommit GetChainBlockCommit(Guid chainId);
+//     BlockCommit GetChainBlockCommit(Guid chainId);
 
-    void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit);
+//     void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit);
 
-    BlockCommit GetBlockCommit(BlockHash blockHash);
+//     BlockCommit GetBlockCommit(BlockHash blockHash);
 
-    void PutBlockCommit(BlockCommit blockCommit);
+//     void PutBlockCommit(BlockCommit blockCommit);
 
-    void DeleteBlockCommit(BlockHash blockHash);
+//     void DeleteBlockCommit(BlockHash blockHash);
 
-    IEnumerable<BlockHash> GetBlockCommitHashes();
+//     IEnumerable<BlockHash> GetBlockCommitHashes();
 
-    IEnumerable<EvidenceId> IteratePendingEvidenceIds();
+//     IEnumerable<EvidenceId> IteratePendingEvidenceIds();
 
-    EvidenceBase GetPendingEvidence(EvidenceId evidenceId);
+//     EvidenceBase GetPendingEvidence(EvidenceId evidenceId);
 
-    EvidenceBase GetCommittedEvidence(EvidenceId evidenceId);
+//     EvidenceBase GetCommittedEvidence(EvidenceId evidenceId);
 
-    void PutPendingEvidence(EvidenceBase evidence);
+//     void PutPendingEvidence(EvidenceBase evidence);
 
-    void PutCommittedEvidence(EvidenceBase evidence);
+//     void PutCommittedEvidence(EvidenceBase evidence);
 
-    void DeletePendingEvidence(EvidenceId evidenceId);
+//     void DeletePendingEvidence(EvidenceId evidenceId);
 
-    void DeleteCommittedEvidence(EvidenceId evidenceId);
+//     void DeleteCommittedEvidence(EvidenceId evidenceId);
 
-    bool ContainsPendingEvidence(EvidenceId evidenceId);
+//     bool ContainsPendingEvidence(EvidenceId evidenceId);
 
-    bool ContainsCommittedEvidence(EvidenceId evidenceId);
-}
+//     bool ContainsCommittedEvidence(EvidenceId evidenceId);
+// }

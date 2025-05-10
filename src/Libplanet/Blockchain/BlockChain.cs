@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using System.Threading;
+using System.Linq;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;
@@ -49,7 +50,7 @@ public partial class BlockChain
         Id = id;
         Options = options;
         StagedTransactions = new StagedTransactionCollection(options.Store, id);
-        Store = options.Store;
+        Store = (Store.Store)options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
 
         _blockChainStates = new BlockChainStates(options.Store, StateStore);
@@ -67,7 +68,7 @@ public partial class BlockChain
         if (!Genesis.Equals(genesisBlock))
         {
             string msg =
-                $"The genesis block that the given {nameof(IStore)} contains does not match " +
+                $"The genesis block that the given {nameof(Libplanet.Store.Store)} contains does not match " +
                 "to the genesis block that the network expects.  You might pass the wrong " +
                 "store which is incompatible with this chain.  Or your network might " +
                 "restarted the chain with a new genesis block so that it is incompatible " +
@@ -109,7 +110,7 @@ public partial class BlockChain
 
     public int Count => Store.CountIndex(Id);
 
-    internal IStore Store { get; }
+    internal Store.Store Store { get; }
 
     internal TrieStateStore StateStore { get; }
 
@@ -486,22 +487,25 @@ public partial class BlockChain
 
                 foreach (var ev in block.Evidences)
                 {
-                    if (Store.GetPendingEvidence(ev.Id) != null)
-                    {
-                        Store.DeletePendingEvidence(ev.Id);
-                    }
+                    Store.PendingEvidences.Remove(ev.Id);
+                    Store.CommittedEvidences.Add(ev.Id, ev);
+                    // if (Store.GetPendingEvidence(ev.Id) != null)
+                    // {
+                    //     Store.DeletePendingEvidence(ev.Id);
+                    // }
 
-                    Store.PutCommittedEvidence(ev);
+                    // Store.PutCommittedEvidence(ev);
                 }
 
                 Store.AppendIndex(Id, block.BlockHash);
                 _nextStateRootHash = null;
 
-                foreach (var ev in GetPendingEvidence().ToArray())
+                foreach (var ev in Store.PendingEvidences.ToArray())
                 {
-                    if (IsEvidenceExpired(ev))
+                    if (IsEvidenceExpired(ev.Value))
                     {
-                        Store.DeletePendingEvidence(ev.Id);
+                        Store.PendingEvidences.Remove(ev.Key);
+                        // Store.DeletePendingEvidence(ev.Id);
                     }
                 }
             }
@@ -663,12 +667,14 @@ public partial class BlockChain
 
                 foreach (var evidence in block.Evidences)
                 {
-                    if (Store.GetPendingEvidence(evidence.Id) != null)
-                    {
-                        Store.DeletePendingEvidence(evidence.Id);
-                    }
+                    Store.PendingEvidences.Remove(evidence.Id);
+                    // if (Store.GetPendingEvidence(evidence.Id) != null)
+                    // {
+                    //     Store.DeletePendingEvidence(evidence.Id);
+                    // }
 
-                    Store.PutCommittedEvidence(evidence);
+                    // Store.PutCommittedEvidence(evidence);
+                    Store.CommittedEvidences.Add(evidence.Id, evidence);
                 }
 
                 Store.AppendIndex(Id, block.BlockHash);
@@ -677,11 +683,11 @@ public partial class BlockChain
                     MakeTxExecutions(block, actionEvaluations);
                 UpdateTxExecutions(txExecutions);
 
-                foreach (var evidence in GetPendingEvidence().ToArray())
+                foreach (var evidence in Store.PendingEvidences.ToArray())
                 {
-                    if (IsEvidenceExpired(evidence))
+                    if (IsEvidenceExpired(evidence.Value))
                     {
-                        Store.DeletePendingEvidence(evidence.Id);
+                        Store.PendingEvidences.Remove(evidence.Key);
                     }
                 }
             }

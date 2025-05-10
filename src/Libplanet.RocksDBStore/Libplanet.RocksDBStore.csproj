@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Summary>A Libplanet.IStore implementation using RocksDB</Summary>
-    <Description>A Libplanet.IStore implementation using RocksDB</Description>
+    <Summary>A Libplanet.Libplanet.Store.Store implementation using RocksDB</Summary>
+    <Description>A Libplanet.Libplanet.Store.Store implementation using RocksDB</Description>
   </PropertyGroup>
 
   <PropertyGroup>

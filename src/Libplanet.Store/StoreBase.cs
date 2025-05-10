@@ -12,7 +12,7 @@
 
 // namespace Libplanet.Store;
 
-// public abstract class StoreBase : IStore
+// public abstract class StoreBase : Libplanet.Store.Store
 // {
 //     public abstract IEnumerable<Guid> ListChainIds();
 

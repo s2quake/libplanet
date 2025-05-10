@@ -1494,7 +1494,7 @@
 //     }
 
 //     [StoreLoader("rocksdb+file")]
-//     private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
+//     private static (Libplanet.Store.Store Store, TrieStateStore StateStore) Loader(Uri storeUri)
 //     {
 //         NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
 //         int blockCacheSize = query.GetInt32("block-cache", 512);

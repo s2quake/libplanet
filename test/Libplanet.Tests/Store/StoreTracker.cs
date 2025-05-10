@@ -6,7 +6,7 @@
 
 // namespace Libplanet.Tests.Store;
 
-// public sealed class StoreTracker(IStore store) : BaseTracker, IStore
+// public sealed class StoreTracker(Libplanet.Store.Store store) : BaseTracker, Libplanet.Store.Store
 // {
 //     private bool _disposed = false;
 

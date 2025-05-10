@@ -10,13 +10,13 @@ internal sealed class StoreService(IOptions<StoreOptions> storeOptions) : IStore
 {
     private TrieStateStore? _stateStore;
 
-    public IStore Store { get; } = CreateStore(storeOptions.Value);
+    public Libplanet.Store.Store Store { get; } = CreateStore(storeOptions.Value);
 
     public IKeyValueStore KeyValueStore { get; } = CreateKeyValueStore(storeOptions.Value);
 
     public TrieStateStore StateStore => _stateStore ??= new TrieStateStore(KeyValueStore);
 
-    private static IStore CreateStore(StoreOptions storeOptions)
+    private static Libplanet.Store.Store CreateStore(StoreOptions storeOptions)
         => storeOptions.Type switch
         {
             StoreType.RocksDB => new Store.Store(new RocksDatabase(storeOptions.StoreName)),

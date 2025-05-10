@@ -17,7 +17,7 @@ namespace Libplanet.Benchmarks
         private readonly ImmutableArray<Transaction> Txs = default;
         private StoreFixture _fx = null;
         private readonly int TxsCount = default;
-        private IStore _store = null;
+        private Libplanet.Store.Store _store = null;
 
         public Store()
         {

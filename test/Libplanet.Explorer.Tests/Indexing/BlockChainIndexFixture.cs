@@ -8,7 +8,7 @@ public abstract class BlockChainIndexFixture : IBlockChainIndexFixture
 {
     public IBlockChainIndex Index { get; }
 
-    protected BlockChainIndexFixture(IStore store, IBlockChainIndex index)
+    protected BlockChainIndexFixture(Libplanet.Store.Store store, IBlockChainIndex index)
     {
         Index = index;
         Index.SynchronizeAsync(store, CancellationToken.None).GetAwaiter().GetResult();

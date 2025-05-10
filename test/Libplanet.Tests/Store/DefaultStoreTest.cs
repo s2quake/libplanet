@@ -54,9 +54,9 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
     //     File.Delete(tempDirPath);
     //     var uri = new Uri(tempDirPath, UriKind.Absolute);
     //     uri = new Uri("default+" + uri);
-    //     (IStore Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
+    //     (Libplanet.Store.Store Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
     //     Assert.NotNull(pair);
-    //     IStore store = pair.Value.Store;
+    //     Libplanet.Store.Store store = pair.Value.Store;
     //     Assert.IsAssignableFrom<DefaultStore>(store);
     //     var stateStore = (TrieStateStore)pair.Value.StateStore;
     //     Assert.IsAssignableFrom<DefaultTable>(stateStore.StateKeyValueStore);

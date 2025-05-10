@@ -258,7 +258,7 @@ namespace Libplanet.Explorer.Queries
                 }
             }
 
-            // If not found in index, search IStore directly.
+            // If not found in index, search Libplanet.Store.Store directly.
             var blockHashCandidates = context.Store.IterateTxIdBlockHashIndex(txId);
             foreach (var blockHashCandidate in blockHashCandidates)
             {

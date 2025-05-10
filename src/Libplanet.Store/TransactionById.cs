@@ -4,7 +4,7 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-public sealed class TransactionCollection(IDictionary<KeyBytes, byte[]> dictionary)
+internal sealed class TransactionById(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<TxId, Transaction>(dictionary)
 {
     protected override byte[] GetBytes(Transaction value) => ModelSerializer.SerializeToBytes(value);

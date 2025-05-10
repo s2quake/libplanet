@@ -13,7 +13,7 @@ public partial class BlockChainTest
     [Fact]
     public void GetPendingEvidence_Test()
     {
-        Assert.Empty(_blockChain.GetPendingEvidence());
+        Assert.Empty(_blockChain.PendingEvidences);
     }
 
     [Fact]
@@ -26,10 +26,10 @@ public partial class BlockChainTest
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
 
         // When
-        blockChain.AddEvidence(testEvidence);
+        blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence);
 
         // Then
-        Assert.Single(blockChain.GetPendingEvidence());
+        Assert.Single(blockChain.PendingEvidences);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public partial class BlockChainTest
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
         Assert.Throws<KeyNotFoundException>(
-            () => _blockChain.GetPendingEvidence(testEvidence.Id));
+            () => _blockChain.PendingEvidences[testEvidence.Id]);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public partial class BlockChainTest
 
         // Then
         Assert.Throws<KeyNotFoundException>(
-            () => blockChain.GetPendingEvidence(expectedEvidence.Id));
+            () => blockChain.PendingEvidences[expectedEvidence.Id]);
     }
 
     [Fact]
@@ -68,10 +68,10 @@ public partial class BlockChainTest
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-        blockChain.AddEvidence(expectedEvidence);
+        blockChain.PendingEvidences.Add(expectedEvidence.Id, expectedEvidence);
 
         // Then
-        var actualEvidence = blockChain.GetPendingEvidence(expectedEvidence.Id);
+        var actualEvidence = blockChain.PendingEvidences[expectedEvidence.Id];
         Assert.Equal(expectedEvidence, actualEvidence);
     }
 
@@ -83,7 +83,7 @@ public partial class BlockChainTest
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
         Assert.Throws<KeyNotFoundException>(
-            () => _blockChain.GetCommittedEvidence(testEvidence.Id));
+            () => _blockChain.CommittedEvidences[testEvidence.Id]);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public partial class BlockChainTest
         NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(expectedEvidence));
 
         // Then
-        var actualEvidence = blockChain.GetCommittedEvidence(expectedEvidence.Id);
+        var actualEvidence = blockChain.CommittedEvidences[expectedEvidence.Id];
         Assert.Equal(expectedEvidence, actualEvidence);
     }
 
@@ -119,7 +119,7 @@ public partial class BlockChainTest
 
         // Then
         Assert.Throws<ArgumentException>(
-            () => blockChain.AddEvidence(testEvidence));
+            () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
     }
 
     [Fact]
@@ -130,11 +130,11 @@ public partial class BlockChainTest
         var blockChain = _blockChain;
         var address = new PrivateKey().Address;
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-        blockChain.AddEvidence(testEvidence);
+        blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence);
 
         // Then
         Assert.Throws<ArgumentException>(
-            () => blockChain.AddEvidence(testEvidence));
+            () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public partial class BlockChainTest
 
         // Then
         Assert.Throws<ArgumentException>(
-            () => blockChain.AddEvidence(testEvidence));
+            () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public partial class BlockChainTest
 
         // Then
         Assert.Throws<ArgumentException>(
-            () => blockChain.AddEvidence(testEvidence));
+            () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public partial class BlockChainTest
         blockChain.AddEvidence(testEvidence);
 
         // Then
-        Assert.Single(blockChain.GetPendingEvidence());
+        Assert.Single(blockChain.PendingEvidences);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public partial class BlockChainTest
         blockChain.CommitEvidence(testEvidence);
 
         // Then
-        Assert.Empty(blockChain.GetPendingEvidence());
+        Assert.Empty(blockChain.PendingEvidences);
         Assert.True(blockChain.IsEvidenceCommitted(testEvidence.Id));
     }
 
@@ -409,21 +409,21 @@ public partial class BlockChainTest
         }.Sign(key);
         var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
 
-        Assert.Empty(blockChain.GetPendingEvidence());
+        Assert.Empty(blockChain.PendingEvidences);
         Assert.False(blockChain.IsEvidencePending(evidence.Id));
         Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
 
         blockChain.AddEvidence(evidence);
         NextBlock(blockChain, proposer, ImmutableArray<EvidenceBase>.Empty);
 
-        Assert.Single(blockChain.GetPendingEvidence());
-        Assert.Equal(evidence, blockChain.GetPendingEvidence().First());
+        Assert.Single(blockChain.PendingEvidences);
+        Assert.Equal(evidence, blockChain.PendingEvidences.First());
         Assert.True(blockChain.IsEvidencePending(evidence.Id));
         Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
 
         blockChain.CommitEvidence(evidence);
 
-        Assert.Empty(blockChain.GetPendingEvidence());
+        Assert.Empty(blockChain.PendingEvidences);
         Assert.False(blockChain.IsEvidencePending(evidence.Id));
         Assert.True(blockChain.IsEvidenceCommitted(evidence.Id));
     }
@@ -455,13 +455,13 @@ public partial class BlockChainTest
         }.Sign(key);
         var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
 
-        Assert.Empty(blockChain.GetPendingEvidence());
-        Assert.False(blockChain.IsEvidencePending(evidence.Id));
-        Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
+        Assert.Empty(blockChain.PendingEvidences);
+        Assert.False(blockChain.PendingEvidences.ContainsKey(evidence.Id));
+        Assert.False(blockChain.CommittedEvidences.ContainsKey(evidence.Id));
 
         blockChain.CommitEvidence(evidence);
 
-        Assert.Empty(blockChain.GetPendingEvidence());
+        Assert.Empty(blockChain.PendingEvidences);
         Assert.False(blockChain.IsEvidencePending(evidence.Id));
         Assert.True(blockChain.IsEvidenceCommitted(evidence.Id));
     }
@@ -493,13 +493,13 @@ public partial class BlockChainTest
         var validators = ImmutableSortedSet.Create(Validator.Create(key.PublicKey, BigInteger.One));
         var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, validators);
 
-        Assert.Empty(_blockChain.GetPendingEvidence());
+        Assert.Empty(_blockChain.PendingEvidences);
         Assert.False(_blockChain.IsEvidencePending(evidence.Id));
         Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
 
         Assert.Throws<ValidationException>(() => _blockChain.AddEvidence(evidence));
 
-        Assert.Empty(_blockChain.GetPendingEvidence());
+        Assert.Empty(_blockChain.PendingEvidences);
         Assert.False(_blockChain.IsEvidencePending(evidence.Id));
         Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
     }
@@ -532,14 +532,14 @@ public partial class BlockChainTest
         }.Sign(key);
         var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
 
-        Assert.Empty(blockChain.GetPendingEvidence());
+        Assert.Empty(blockChain.PendingEvidences);
         Assert.False(blockChain.IsEvidencePending(evidence.Id));
         Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
 
         blockChain.AddEvidence(evidence);
 
-        Assert.Single(blockChain.GetPendingEvidence());
-        Assert.Equal(evidence, blockChain.GetPendingEvidence().First());
+        Assert.Single(blockChain.PendingEvidences);
+        Assert.Equal(evidence, blockChain.PendingEvidences.First());
         Assert.True(blockChain.IsEvidencePending(evidence.Id));
         Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
 
@@ -552,13 +552,13 @@ public partial class BlockChainTest
         }
 
         Assert.Throws<InvalidOperationException>(
-            () => NextBlock(blockChain, proposer, blockChain.GetPendingEvidence()));
+            () => NextBlock(blockChain, proposer, blockChain.PendingEvidences));
 
-        Assert.Single(blockChain.GetPendingEvidence());
+        Assert.Single(blockChain.PendingEvidences);
 
         NextBlock(blockChain, proposer, emptyEvidence);
 
-        Assert.Empty(blockChain.GetPendingEvidence());
+        Assert.Empty(blockChain.PendingEvidences);
     }
 
     private static Block NextBlock(
