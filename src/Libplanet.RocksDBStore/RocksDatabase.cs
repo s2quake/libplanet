@@ -9,7 +9,7 @@ public sealed class RocksDatabase : Database<RocksDBKeyValueStore>
     private readonly DbOptions _options;
     private readonly ColumnFamilyOptions _colOptions;
     private readonly string _path;
-    private readonly RocksDBInstanceType _instanceType;
+    private readonly RocksDBInstanceType _type;
 
     public RocksDatabase(
         string path,
@@ -41,7 +41,7 @@ public sealed class RocksDatabase : Database<RocksDBKeyValueStore>
             _colOptions = _colOptions.SetMaxLogFileSize(maxLogFileSizeValue);
         }
 
-        _instanceType = type;
+        _type = type;
     }
 
     protected override void Dispose(bool disposing)
@@ -59,7 +59,7 @@ public sealed class RocksDatabase : Database<RocksDBKeyValueStore>
 
     protected override RocksDBKeyValueStore Create(string key)
     {
-        return new RocksDBKeyValueStore(Path.Combine(_path, key), _instanceType, _options);
+        return new RocksDBKeyValueStore(Path.Combine(_path, key), _type, _options);
     }
 
     protected override void OnRemove(string key, RocksDBKeyValueStore value)

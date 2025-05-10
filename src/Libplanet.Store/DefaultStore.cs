@@ -14,7 +14,7 @@ public class DefaultStore : StoreBase
 
     private readonly IDatabase _database;
     private readonly TransactionCollection _transactions;
-    private readonly BlockCollection _blocks;
+    private readonly BlockDigestByBlockHash _blocks;
     private readonly TxExecutionCollection _txExecutions;
     private readonly BlockHashesByTxId _blockHashes;
     private readonly BlockCommitByBlockHash _blockCommits;
@@ -31,7 +31,7 @@ public class DefaultStore : StoreBase
     {
         _database = new DefaultDatabase(options.Path);
         _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
-        _blocks = new BlockCollection(_database.GetOrAdd("block"));
+        _blocks = new BlockDigestByBlockHash(_database.GetOrAdd("block"));
         _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
         _blockHashes = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
         _blockCommits = new BlockCommitByBlockHash(_database.GetOrAdd("blockcommit"));
@@ -164,12 +164,12 @@ public class DefaultStore : StoreBase
 
     public override BlockDigest GetBlockDigest(BlockHash blockHash)
     {
-        return _blocks.GetBlockDigest(blockHash);
+        return _blocks[blockHash];
     }
 
     public override void PutBlock(Block block)
     {
-        _blocks.Add(block.BlockHash, block);
+        _blocks.Add(block.BlockHash, BlockDigest.Create(block));
 
         foreach (Transaction tx in block.Transactions)
         {

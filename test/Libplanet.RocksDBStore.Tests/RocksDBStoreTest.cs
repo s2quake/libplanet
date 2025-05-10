@@ -1,6 +1,5 @@
 using System.IO;
 using System.Reflection;
-using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
@@ -253,7 +252,7 @@ public class RocksDBStoreTest : StoreTest, IDisposable
             store.Dispose();
             store = null;
 
-            chainDb = RocksDb.Open(new DbOptions(), Path.Combine(path, "chain"));
+            chainDb = RocksDb.Open(new DbOptions(), Path.Combine(path, "metadata"));
 
             Assert.Equal(0, KeysWithChainId(chainDb, cid1));
             Assert.Equal(0, KeysWithChainId(chainDb, cid2));

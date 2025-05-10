@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using RocksDbSharp;
@@ -11,6 +13,7 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
     private readonly string _path;
     private readonly RocksDBInstanceType _type;
     private readonly DbOptions _options;
+    private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
     private RocksDb _rocksDb;
     private bool _disposed;
     private int? _count;
@@ -32,6 +35,7 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
         {
             if (_count is null)
             {
+
                 var count = 0;
                 using var it = _rocksDb.NewIterator();
                 for (it.SeekToFirst(); it.Valid(); it.Next())
@@ -83,6 +87,7 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
         {
             _rocksDb.Dispose();
             _disposed = true;
+            Trace.WriteLine($"Disposing RocksDB instance at {_path}");
             GC.SuppressFinalize(this);
         }
     }
@@ -123,6 +128,7 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
     public override void Clear()
     {
         _rocksDb.Dispose();
+        Trace.WriteLine($"Clearing RocksDB instance at {_path}");
         if (Directory.Exists(_path))
         {
             Directory.Delete(_path, recursive: true);
@@ -143,11 +149,18 @@ public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
 
     private static DbOptions CreateDbOptions(DbOptions? options)
     {
-        return options ?? new DbOptions()
+        return new DbOptions()
             .SetCreateIfMissing()
+            .SetCreateMissingColumnFamilies()
+            .SetAllowConcurrentMemtableWrite(true)
+            .SetMaxFileOpeningThreads(5)
             .SetSoftPendingCompactionBytesLimit(1000000000000)
             .SetHardPendingCompactionBytesLimit(1038176821042);
     }
 
-    private RocksDb CreateInstance() => RocksDBUtils.OpenRocksDb(_options, _path, type: _type);
+    private RocksDb CreateInstance()
+    {
+        Trace.WriteLine($"Creating RocksDB instance at {_path}");
+        return RocksDBUtils.OpenRocksDb(_options, _path, type: _type);
+    }
 }
