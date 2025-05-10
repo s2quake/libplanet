@@ -152,7 +152,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void ProcessActions()
     {
-        var store = new MemoryStore();
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var blockChainStates = new BlockChainStates(store, stateStore);
         var policy = new BlockChainOptions();
@@ -274,7 +274,7 @@ public partial class BlockChainTest : IDisposable
     public void ActionRenderersHaveDistinctContexts()
     {
         var policy = new BlockChainOptions();
-        var store = new MemoryStore();
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var generatedRandomValueLogs = new List<int>();
         BlockChain blockChain = MakeBlockChain(policy);
@@ -295,7 +295,7 @@ public partial class BlockChainTest : IDisposable
     public void RenderActionsAfterBlockIsRendered()
     {
         var policy = new BlockChainOptions();
-        var store = new MemoryStore();
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         BlockChain blockChain = MakeBlockChain(policy);
         var privateKey = new PrivateKey();
@@ -326,7 +326,7 @@ public partial class BlockChainTest : IDisposable
     public void RenderActionsAfterAppendComplete()
     {
         var policy = new BlockChainOptions();
-        var store = new MemoryStore();
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
 
         // IActionRenderer renderer = new AnonymousActionRenderer
@@ -511,7 +511,7 @@ public partial class BlockChainTest : IDisposable
                 invoked = true;
             },
         };
-        IStore store = new MemoryStore();
+        IStore store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(
             stateStore,
@@ -1307,7 +1307,7 @@ public partial class BlockChainTest : IDisposable
     private void ConstructWithUnexpectedGenesisBlock()
     {
         var policy = new BlockChainOptions();
-        IStore store = new MemoryStore();
+        IStore store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
 
         var genesisBlockA = BlockChain.ProposeGenesisBlock(new PrivateKey());
@@ -1363,7 +1363,7 @@ public partial class BlockChainTest : IDisposable
         //         // ReSharper restore AccessToModifiedClosure
         //     });
         var policy = new BlockChainOptions();
-        IStore store = new MemoryStore();
+        IStore store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var genesisTx = Transaction.Create(
             0,

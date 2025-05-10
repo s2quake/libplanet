@@ -20,13 +20,13 @@ public sealed class DefaultStoreFixture(BlockChainOptions options, bool memory =
         }
 
         // Scheme = "default+file://";
-        var storeOptions = new DefaultStoreOptions
-        {
-            Path = path,
-            BlockCacheSize = 2,
-            TxCacheSize = 2,
-        };
-        var store = new DefaultStore(storeOptions);
+        // var storeOptions = new DefaultStoreOptions
+        // {
+        //     Path = path,
+        //     BlockCacheSize = 2,
+        //     TxCacheSize = 2,
+        // };
+        var store = new Libplanet.Store.Store(new DefaultDatabase(path));
         return options with { Store = store };
     }
 

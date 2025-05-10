@@ -159,30 +159,15 @@ public sealed class Store : IStore
         AppendIndex(destinationChainId, branchpoint);
     }
 
-    public Transaction GetTransaction(TxId txId)
-    {
-        return _transactions[txId];
-    }
+    public Transaction GetTransaction(TxId txId) => _transactions[txId];
 
-    public void PutTransaction(Transaction tx)
-    {
-        _transactions[tx.Id] = tx;
-    }
+    public void PutTransaction(Transaction tx) => _transactions[tx.Id] = tx;
 
-    public bool ContainsTransaction(TxId txId)
-    {
-        return _transactions.ContainsKey(txId);
-    }
+    public bool ContainsTransaction(TxId txId) => _transactions.ContainsKey(txId);
 
-    public IEnumerable<BlockHash> IterateBlockHashes()
-    {
-        return _blockDigestByBlockHash.Keys;
-    }
+    public IEnumerable<BlockHash> IterateBlockHashes() => _blockDigestByBlockHash.Keys;
 
-    public BlockDigest GetBlockDigest(BlockHash blockHash)
-    {
-        return _blockDigestByBlockHash[blockHash];
-    }
+    public BlockDigest GetBlockDigest(BlockHash blockHash) => _blockDigestByBlockHash[blockHash];
 
     public void PutBlock(Block block)
     {
@@ -194,25 +179,13 @@ public sealed class Store : IStore
         }
     }
 
-    public bool DeleteBlock(BlockHash blockHash)
-    {
-        return _blockDigestByBlockHash.Remove(blockHash);
-    }
+    public bool DeleteBlock(BlockHash blockHash) => _blockDigestByBlockHash.Remove(blockHash);
 
-    public bool ContainsBlock(BlockHash blockHash)
-    {
-        return _blockDigestByBlockHash.ContainsKey(blockHash);
-    }
+    public bool ContainsBlock(BlockHash blockHash) => _blockDigestByBlockHash.ContainsKey(blockHash);
 
-    public void PutTxExecution(TxExecution txExecution)
-    {
-        _txExecutions.Add(txExecution);
-    }
+    public void PutTxExecution(TxExecution txExecution) => _txExecutions.Add(txExecution);
 
-    public TxExecution GetTxExecution(BlockHash blockHash, TxId txId)
-    {
-        return _txExecutions[(blockHash, txId)];
-    }
+    public TxExecution GetTxExecution(BlockHash blockHash, TxId txId) => _txExecutions[(blockHash, txId)];
 
     public void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
@@ -257,19 +230,6 @@ public sealed class Store : IStore
         {
             yield return item;
         }
-
-        // LiteCollection<BsonDocument> collection = TxNonceCollection(chainId);
-        // foreach (BsonDocument doc in collection.FindAll())
-        // {
-        //     if (doc.TryGetValue("_id", out BsonValue id) && id.IsBinary)
-        //     {
-        //         var address = new Address([.. id.AsBinary]);
-        //         if (doc.TryGetValue("v", out BsonValue v) && v.IsInt64 && v.AsInt64 > 0)
-        //         {
-        //             yield return new KeyValuePair<Address, long>(address, v.AsInt64);
-        //         }
-        //     }
-        // }
     }
 
     public long GetTxNonce(Guid chainId, Address address)

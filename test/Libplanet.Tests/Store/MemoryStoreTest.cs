@@ -28,7 +28,7 @@ public class MemoryStoreTest : StoreTest, IDisposable
             StoreLoaderAttribute.LoadStore(new Uri(uri));
         Assert.NotNull(pair);
         IStore store = pair.Value.Store;
-        Assert.IsAssignableFrom<MemoryStore>(store);
+        Assert.IsAssignableFrom<Libplanet.Store.Store>(store);
         var stateStore = (TrieStateStore)pair.Value.StateStore;
         Assert.IsAssignableFrom<MemoryKeyValueStore>(stateStore.StateKeyValueStore);
     }

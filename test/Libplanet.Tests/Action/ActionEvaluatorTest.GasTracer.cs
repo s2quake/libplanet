@@ -32,7 +32,7 @@
 //                 },
 //                 getMaxTransactionsBytes: _ => 50 * 1024);
 
-//             var store = new MemoryStore();
+//             var store = new Libplanet.Store.Store(new MemoryDatabase());
 //             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,
@@ -142,7 +142,7 @@
 //             var gas = Currency.Create("GAS", 18);
 //             var privateKey = new PrivateKey();
 
-//             var store = new MemoryStore();
+//             var store = new Libplanet.Store.Store(new MemoryDatabase());
 //             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,
@@ -182,7 +182,7 @@
 //             var gas = Currency.Create("GAS", 18);
 //             var privateKey = new PrivateKey();
 
-//             var store = new MemoryStore();
+//             var store = new Libplanet.Store.Store(new MemoryDatabase());
 //             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,

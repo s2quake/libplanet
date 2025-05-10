@@ -60,7 +60,7 @@ namespace Libplanet.Explorer.Executable
                 .AddGraphTypes(typeof(LibplanetExplorerSchema));
 
             serviceCollection.AddSingleton<IBlockChainContext, Startup>();
-            serviceCollection.AddSingleton<IStore, MemoryStore>();
+            serviceCollection.AddSingleton<IStore, Libplanet.Store.Store>();
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             var schema = new LibplanetExplorerSchema(serviceProvider);
@@ -299,12 +299,8 @@ If omitted (default) explorer only the local blockchain store.")]
                       maxTotalWalSize: 16 * 1024 * 1024,
                       keepLogFileNum: 1));
                 case "default":
-                    return new DefaultStore(
-                        new DefaultStoreOptions
-                        {
-                            Path = options.StorePath,
-                            ReadOnly = readOnlyMode,
-                        });
+                    return new Store.Store(new DefaultDatabase(
+                        options.StorePath));
                 default:
                     // FIXME: give available store type as argument hint without code duplication.
                     var availableStoreTypes = new[] { "rocksdb", "default" };
