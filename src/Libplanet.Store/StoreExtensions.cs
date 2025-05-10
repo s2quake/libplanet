@@ -6,7 +6,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Store
 {
     /// <summary>
-    /// Convenient extension methods for <see cref="IStore"/>.
+    /// Convenient extension methods for <see cref="Libplanet.Store.Store"/>.
     /// </summary>
     public static class StoreExtensions
     {
@@ -14,13 +14,13 @@ namespace Libplanet.Store
         /// Makes a store, <paramref name="to"/>, logically (but not necessarily physically)
         /// identical to another store, <paramref name="from"/>.  As this copies the contents
         /// of the store, instead of its physicall data, this can be used for migrating
-        /// between two different types of <see cref="IStore"/> implementations.
+        /// between two different types of <see cref="Libplanet.Store.Store"/> implementations.
         /// </summary>
         /// <param name="from">The store containing the source contents.</param>
         /// <param name="to">The store to contain the copied contents. Expected to be empty.</param>
         /// <exception cref="ArgumentException">Thrown when the store passed through
         /// <paramref name="to"/> is not empty.</exception>
-        public static void Copy(this IStore from, IStore to)
+        public static void Copy(this Libplanet.Store.Store from, Libplanet.Store.Store to)
         {
             // TODO: take a IProgress<> so that a caller can be aware the progress of cloning.
             if (to.ListChainIds().Any())
@@ -64,7 +64,7 @@ namespace Libplanet.Store
         /// <exception cref="ArgumentException">Thrown when <paramref name="blockHash"/> is
         /// not <see langword="null"/> but the corresponding block is not found in store.
         /// </exception>
-        public static HashDigest<SHA256> GetStateRootHash(this IStore store, BlockHash blockHash)
+        public static HashDigest<SHA256> GetStateRootHash(this Libplanet.Store.Store store, BlockHash blockHash)
             => store.GetBlockDigest(blockHash).StateRootHash;
     }
 }

@@ -48,9 +48,9 @@ public class RocksDBStoreTest : StoreTest, IDisposable
     //     var uri = new Uri(tempDirPath, UriKind.Absolute);
     //     Assert.StartsWith("file://", uri.ToString());
     //     uri = new Uri("rocksdb+" + uri);
-    //     (IStore Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
+    //     (Libplanet.Store.Store Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
     //     Assert.NotNull(pair);
-    //     IStore store = pair.Value.Store;
+    //     Libplanet.Store.Store store = pair.Value.Store;
     //     Assert.IsAssignableFrom<LegacyRocksDBStore>(store);
     //     var stateStore = (TrieStateStore)pair.Value.StateStore;
     //     var kvStore = typeof(TrieStateStore)

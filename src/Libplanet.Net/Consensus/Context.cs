@@ -361,8 +361,8 @@ public partial class Context : IDisposable
     {
         try
         {
-            var evidence = _blockChain.GetPendingEvidence();
-            Block block = _blockChain.ProposeBlock(_privateKey, _lastCommit, [.. evidence]);
+            var evidence = _blockChain.PendingEvidences;
+            Block block = _blockChain.ProposeBlock(_privateKey, _lastCommit, [.. evidence.Values]);
             _blockChain.Store.PutBlock(block);
             return block;
         }

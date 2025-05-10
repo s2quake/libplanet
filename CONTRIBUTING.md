@@ -128,7 +128,7 @@ on GitHub consists of several projects.  There are two types of projects:
     (which is written in C), this is distributed as a distinct NuGet package:
     *[Libplanet.Types.Crypto.Secp256k1]*.
 
- -  *Libplanet.RocksDBStore*: The `IStore` implementation built on [RocksDB].
+ -  *Libplanet.RocksDBStore*: The `Libplanet.Store.Store` implementation built on [RocksDB].
     As this depends on platform-dependent libraries (which is written in C/C++),
     this is distributed as a distinct NuGet package: *[Libplanet.RocksDBStore]*.
 

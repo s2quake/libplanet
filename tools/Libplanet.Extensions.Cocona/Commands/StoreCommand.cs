@@ -10,7 +10,7 @@ namespace Libplanet.Extensions.Cocona.Commands;
 public class StoreCommand
 {
     private const string StoreArgumentDescription =
-        "The URI denotes the type and path of concrete class for " + nameof(IStore) + "."
+        "The URI denotes the type and path of concrete class for " + nameof(Libplanet.Store.Store) + "."
         + "<store-type>://<store-path> (e.g., rocksdb+file:///path/to/store)";
 
     [Command(Description = "List all chain IDs.")]
@@ -20,7 +20,7 @@ public class StoreCommand
         [Option("hash", Description = "Show the hash of the chain tip.")]
         bool showHash)
     {
-        IStore store = Utils.LoadStoreFromUri(storeUri);
+        Libplanet.Store.Store store = Utils.LoadStoreFromUri(storeUri);
         Guid? canon = store.GetCanonicalChainId();
         var headerWithoutHash = ("Chain ID", "Height", "Canon?");
         var headerWithHash = ("Chain ID", "Height", "Canon?", "Hash");
@@ -54,7 +54,7 @@ public class StoreCommand
         [Argument("LIMIT", Description = "block height")]
         int limit)
     {
-        IStore store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
         var prev = DateTimeOffset.UtcNow;
         foreach (var index in BuildTxIdBlockHashIndex(store, offset, limit))
         {
@@ -72,7 +72,7 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        IStore store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
         var blockHashes = store.IterateTxIdBlockHashIndex(new TxId(ByteUtility.ParseHex(strTxId)))
             .ToImmutableArray();
         Console.WriteLine(Utils.SerializeHumanReadable(blockHashes));
@@ -86,7 +86,7 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        using IStore store = Utils.LoadStoreFromUri(home);
+        using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
         var txId = TxId.Parse(strTxId);
         if (!(store.GetFirstTxIdBlockHashIndex(txId) is { }))
         {
@@ -105,7 +105,7 @@ public class StoreCommand
         [Argument("BLOCK-INDEX", Description = "block height")]
         int blockHeight)
     {
-        using IStore store = Utils.LoadStoreFromUri(home);
+        using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
         var blockHash = GetBlockHash(store, blockHeight);
         var block = GetBlock(store, blockHash);
         Console.WriteLine(Utils.SerializeHumanReadable(block));
@@ -118,7 +118,7 @@ public class StoreCommand
         [Argument("BLOCK-HASH", Description = "block hash")]
         string blockHash)
     {
-        using IStore store = Utils.LoadStoreFromUri(home);
+        using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
         var block = GetBlock(store, BlockHash.Parse(blockHash));
         Console.WriteLine(Utils.SerializeHumanReadable(block));
     }
@@ -130,7 +130,7 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        IStore store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
         var tx = GetTransaction(store, new TxId(ByteUtility.ParseHex(strTxId)));
         Console.WriteLine(Utils.SerializeHumanReadable(tx));
         store?.Dispose();
@@ -150,7 +150,7 @@ public class StoreCommand
         // }
     }
 
-    private static Block GetBlock(IStore store, BlockHash blockHash)
+    private static Block GetBlock(Libplanet.Store.Store store, BlockHash blockHash)
     {
         if (!(store.GetBlock(blockHash) is { } block))
         {
@@ -160,7 +160,7 @@ public class StoreCommand
         return block;
     }
 
-    private static BlockHash GetBlockHash(IStore store, int blockHeight)
+    private static BlockHash GetBlockHash(Libplanet.Store.Store store, int blockHeight)
     {
         if (!(store.GetCanonicalChainId() is { } chainId))
         {
@@ -177,7 +177,7 @@ public class StoreCommand
         return blockHash;
     }
 
-    private static IEnumerable<Block> IterateBlocks(IStore store, TxId txId)
+    private static IEnumerable<Block> IterateBlocks(Libplanet.Store.Store store, TxId txId)
     {
         foreach (var blockHash in store.IterateTxIdBlockHashIndex(txId))
         {
@@ -185,7 +185,7 @@ public class StoreCommand
         }
     }
 
-    private static Transaction GetTransaction(IStore store, TxId txId)
+    private static Transaction GetTransaction(Libplanet.Store.Store store, TxId txId)
     {
         if (!(store.GetTransaction(txId) is { } tx))
         {
@@ -195,7 +195,7 @@ public class StoreCommand
         return tx;
     }
 
-    private static IEnumerable<int> BuildTxIdBlockHashIndex(IStore store, int offset, int limit)
+    private static IEnumerable<int> BuildTxIdBlockHashIndex(Libplanet.Store.Store store, int offset, int limit)
     {
         if (!(store.GetCanonicalChainId() is { } chainId))
         {

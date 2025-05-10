@@ -12,7 +12,7 @@ public class MockBlockChainContext : IBlockChainContext
 
     public BlockChain BlockChain { get; }
 
-    public IStore Store { get; }
+    public Libplanet.Store.Store Store { get; }
 
     public Swarm Swarm { get; }
 
@@ -24,7 +24,7 @@ public class MockBlockChainContext : IBlockChainContext
         Store = BlockChain.Store;
     }
 
-    public MockBlockChainContext(IStore store)
+    public MockBlockChainContext(Libplanet.Store.Store store)
     {
         Store = store;
     }

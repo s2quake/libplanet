@@ -15,7 +15,7 @@ namespace Libplanet.Explorer.Cocona.Commands
     public class IndexCommand : CoconaLiteConsoleAppBase
     {
         private const string StoreArgumentDescription =
-            "The URI that represents the backend of an " + nameof(IStore) + " object."
+            "The URI that represents the backend of an " + nameof(Libplanet.Store.Store) + " object."
             + " <store-type>://<store-path> (e.g., rocksdb+file:///path/to/store)";
 
         private const string IndexArgumentDescription =
@@ -57,8 +57,8 @@ namespace Libplanet.Explorer.Cocona.Commands
         {
             // Adapted from Libplanet.Extensions.Cocona.Utils.LoadStoreFromUri().
             // TODO: Cocona supports .NET's TypeConverter protocol for instantiating objects
-            // from CLI options/arguments.  We'd better to implement it for IStore, and simply
-            // use IStore as the option/argument types rather than taking them as strings.
+            // from CLI options/arguments.  We'd better to implement it for Libplanet.Store.Store, and simply
+            // use Libplanet.Store.Store as the option/argument types rather than taking them as strings.
             var uri = new Uri(uriString);
 
             var protocol = uri.Scheme.Split('+')[0];

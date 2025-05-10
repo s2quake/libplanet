@@ -7,20 +7,20 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-public sealed class Store : IStore
+public sealed class Store
 {
     private const string IndexColPrefix = "index_";
     private const string TxNonceIdPrefix = "nonce_";
 
     private readonly IDatabase _database;
-    private readonly TransactionCollection _transactions;
+    private readonly TransactionById _transactions;
     private readonly BlockDigestByBlockHash _blockDigestByBlockHash;
-    private readonly TxExecutionCollection _txExecutions;
+    private readonly TxExecutionByTxId _txExecutions;
     private readonly BlockHashesByTxId _blockHashesByTxId;
     private readonly BlockCommitByBlockHash _blockCommitByBlockHash;
     private readonly StateRootHashByBlockHash _stateRootHashByBlockHash;
-    private readonly EvidenceCollection _pendingEvidence;
-    private readonly EvidenceCollection _committedEvidence;
+    private readonly PendingEvidenceCollection _pendingEvidence;
+    private readonly CommittedEvidenceCollection _committedEvidence;
     private readonly HeightByChainId _heightByChainId;
     private readonly BlockCommitByChainId _blockCommitByChainId;
     private readonly StringCollection _metadata;
@@ -30,21 +30,25 @@ public sealed class Store : IStore
     public Store(IDatabase database)
     {
         _database = database;
-        _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
+        _transactions = new TransactionById(_database.GetOrAdd("tx"));
         _blockDigestByBlockHash = new BlockDigestByBlockHash(_database.GetOrAdd("block"));
-        _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
+        _txExecutions = new TxExecutionByTxId(_database.GetOrAdd("txexec"));
         _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
         _blockCommitByBlockHash = new BlockCommitByBlockHash(_database.GetOrAdd("blockcommit"));
         _stateRootHashByBlockHash = new StateRootHashByBlockHash(_database.GetOrAdd("nextstateroothash"));
-        _pendingEvidence = new EvidenceCollection(_database.GetOrAdd("evidencep"));
-        _committedEvidence = new EvidenceCollection(_database.GetOrAdd("evidencec"));
+        _pendingEvidence = new PendingEvidenceCollection(_database.GetOrAdd("evidencep"));
+        _committedEvidence = new CommittedEvidenceCollection(_database.GetOrAdd("evidencec"));
         _heightByChainId = new HeightByChainId(_database.GetOrAdd("heights"));
         _blockCommitByChainId = new BlockCommitByChainId(_database.GetOrAdd("blockcommitb"));
         _metadata = new StringCollection(_database.GetOrAdd("metadata"));
     }
 
+    public PendingEvidenceCollection PendingEvidences => _pendingEvidence;
+
+    public CommittedEvidenceCollection CommittedEvidences => _committedEvidence;
+
     public Block GetBlock(BlockHash blockHash)
-        => GetBlockDigest(blockHash).ToBlock(GetTransaction, GetCommittedEvidence);
+        => GetBlockDigest(blockHash).ToBlock(GetTransaction, item => CommittedEvidences[item]);
 
     public int GetBlockHeight(BlockHash blockHash)
     {
@@ -95,7 +99,7 @@ public sealed class Store : IStore
         return IndexCollection(chainId).Count;
     }
 
-    public IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset, int? limit)
+    public IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null)
     {
         var collection = IndexCollection(chainId);
         var end = checked(limit is { } l ? offset + l : int.MaxValue);
@@ -311,23 +315,23 @@ public sealed class Store : IStore
 
     public void DeleteNextStateRootHash(BlockHash blockHash) => _stateRootHashByBlockHash.Remove(blockHash);
 
-    public IEnumerable<EvidenceId> IteratePendingEvidenceIds() => _pendingEvidence.Keys;
+    // public IEnumerable<EvidenceId> IteratePendingEvidenceIds() => _pendingEvidence.Keys;
 
-    public EvidenceBase GetPendingEvidence(EvidenceId evidenceId) => _pendingEvidence[evidenceId];
+    // public EvidenceBase GetPendingEvidence(EvidenceId evidenceId) => _pendingEvidence[evidenceId];
 
-    public void PutPendingEvidence(EvidenceBase evidence) => _pendingEvidence.Add(evidence.Id, evidence);
+    // public void PutPendingEvidence(EvidenceBase evidence) => _pendingEvidence.Add(evidence.Id, evidence);
 
-    public void DeletePendingEvidence(EvidenceId evidenceId) => _pendingEvidence.Remove(evidenceId);
+    // public void DeletePendingEvidence(EvidenceId evidenceId) => _pendingEvidence.Remove(evidenceId);
 
-    public bool ContainsPendingEvidence(EvidenceId evidenceId) => _pendingEvidence.ContainsKey(evidenceId);
+    // public bool ContainsPendingEvidence(EvidenceId evidenceId) => _pendingEvidence.ContainsKey(evidenceId);
 
-    public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) => _committedEvidence[evidenceId];
+    // public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) => _committedEvidence[evidenceId];
 
-    public void PutCommittedEvidence(EvidenceBase evidence) => _committedEvidence.Add(evidence.Id, evidence);
+    // public void PutCommittedEvidence(EvidenceBase evidence) => _committedEvidence.Add(evidence.Id, evidence);
 
-    public void DeleteCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.Remove(evidenceId);
+    // public void DeleteCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.Remove(evidenceId);
 
-    public bool ContainsCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.ContainsKey(evidenceId);
+    // public bool ContainsCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.ContainsKey(evidenceId);
 
     public long CountBlocks() => IterateBlockHashes().LongCount();
 

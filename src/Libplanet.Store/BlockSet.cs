@@ -6,10 +6,10 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockSet(IStore store, int cacheSize = 4096)
+public sealed class BlockSet(Libplanet.Store.Store store, int cacheSize = 4096)
     : IReadOnlyDictionary<BlockHash, Block>
 {
-    private readonly IStore _store = store;
+    private readonly Libplanet.Store.Store _store = store;
     private readonly ICache<BlockHash, Block> _cache = new ConcurrentLruBuilder<BlockHash, Block>()
             .WithCapacity(cacheSize)
             .Build();

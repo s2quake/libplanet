@@ -4,7 +4,7 @@ using Libplanet.Types.Evidence;
 
 namespace Libplanet.Store;
 
-public sealed class EvidenceCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class CommittedEvidenceCollection(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<EvidenceId, EvidenceBase>(dictionary)
 {
     protected override byte[] GetBytes(EvidenceBase value) => ModelSerializer.SerializeToBytes(value);

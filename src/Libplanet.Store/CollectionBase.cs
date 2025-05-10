@@ -5,7 +5,7 @@ using LruCacheNet;
 
 namespace Libplanet.Store;
 
-public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
+public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {
@@ -30,6 +30,10 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>
     public int Count => _dictionary.Count;
 
     public bool IsReadOnly => false;
+
+    IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => _keys;
+
+    IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _values;
 
     public TValue this[TKey key]
     {

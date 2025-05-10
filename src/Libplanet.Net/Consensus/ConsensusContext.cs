@@ -376,14 +376,14 @@ public partial class ConsensusContext : IDisposable
                 var validatorSet = _blockChain.GetValidatorSet(evidenceException.Height);
                 var evidenceContext = new EvidenceContext(validatorSet);
                 var evidence = evidenceException.Create(evidenceContext);
-                _blockChain.AddEvidence(evidence);
+                _blockChain.PendingEvidences.Add(evidence.Id, evidence);
             }
             catch (Exception e)
             {
                 _logger.Error(
                     exception: e,
                     messageTemplate: "Unexpected exception occurred during {FName}()",
-                    propertyValue: nameof(BlockChain.AddEvidence));
+                    propertyValue: nameof(BlockChain.PendingEvidences));
             }
         }
     }

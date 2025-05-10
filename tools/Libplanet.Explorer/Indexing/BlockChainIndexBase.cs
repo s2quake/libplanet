@@ -121,7 +121,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         await IndexAsyncImpl(blockDigest, txs, null, stoppingToken).ConfigureAwait(false);
 
     async Task IBlockChainIndex.SynchronizeForeverAsync(
-        IStore store, TimeSpan pollInterval, CancellationToken stoppingToken)
+        Libplanet.Store.Store store, TimeSpan pollInterval, CancellationToken stoppingToken)
     {
         var syncMetadata = await GetSyncMetadata(store).ConfigureAwait(false);
         await CheckIntegrity(store, syncMetadata).ConfigureAwait(false);
@@ -133,7 +133,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         }
     }
 
-    async Task IBlockChainIndex.SynchronizeAsync(IStore store, CancellationToken stoppingToken)
+    async Task IBlockChainIndex.SynchronizeAsync(Libplanet.Store.Store store, CancellationToken stoppingToken)
     {
         var syncMetadata = await GetSyncMetadata(store).ConfigureAwait(false);
         await CheckIntegrity(store, syncMetadata).ConfigureAwait(false);
@@ -182,7 +182,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     private async Task CheckIntegrity(
-        IStore store,
+        Libplanet.Store.Store store,
         (
             Guid ChainId,
             long IndexTipIndex,
@@ -238,7 +238,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     private async Task SynchronizeAsyncImpl(
-        IStore store,
+        Libplanet.Store.Store store,
         (
             Guid ChainId,
             long IndexTipIndex,
@@ -370,7 +370,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         long IndexTipIndex,
         long ChainTipIndex,
         BlockHash? IndexTipHash)>
-        GetSyncMetadata(IStore store)
+        GetSyncMetadata(Libplanet.Store.Store store)
     {
         var indexTip = await GetTipAsyncImpl().ConfigureAwait(false);
         var indexTipIndex = indexTip?.Index ?? -1;

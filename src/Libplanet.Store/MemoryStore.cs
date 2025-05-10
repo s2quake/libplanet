@@ -10,7 +10,7 @@
 
 // namespace Libplanet.Store;
 
-// public sealed class MemoryStore : IStore
+// public sealed class MemoryStore : Libplanet.Store.Store
 // {
 //     private readonly ConcurrentDictionary<Guid, ImmutableTrieList<BlockHash>> _indexes = new();
 //     private readonly ConcurrentDictionary<BlockHash, BlockDigest> _blocks = new();
@@ -34,24 +34,24 @@
 //         // Do nothing.
 //     }
 
-//     IEnumerable<Guid> IStore.ListChainIds() => _indexes.Keys;
+//     IEnumerable<Guid> Libplanet.Store.Store.ListChainIds() => _indexes.Keys;
 
-//     void IStore.DeleteChainId(Guid chainId)
+//     void Libplanet.Store.Store.DeleteChainId(Guid chainId)
 //     {
 //         _indexes.TryRemove(chainId, out _);
 //         _txNonces.TryRemove(chainId, out _);
 //     }
 
-//     Guid IStore.GetCanonicalChainId() => _canonicalChainId ?? Guid.Empty;
+//     Guid Libplanet.Store.Store.GetCanonicalChainId() => _canonicalChainId ?? Guid.Empty;
 
-//     void IStore.SetCanonicalChainId(Guid chainId) => _canonicalChainId = chainId;
+//     void Libplanet.Store.Store.SetCanonicalChainId(Guid chainId) => _canonicalChainId = chainId;
 
-//     int IStore.CountIndex(Guid chainId) =>
+//     int Libplanet.Store.Store.CountIndex(Guid chainId) =>
 //         _indexes.TryGetValue(chainId, out ImmutableTrieList<BlockHash>? index)
 //         ? index.Count
 //         : 0;
 
-//     IEnumerable<BlockHash> IStore.IterateIndexes(Guid chainId, int offset, int? limit)
+//     IEnumerable<BlockHash> Libplanet.Store.Store.IterateIndexes(Guid chainId, int offset, int? limit)
 //     {
 //         if (_indexes.TryGetValue(chainId, out var list))
 //         {
@@ -62,7 +62,7 @@
 //         return [];
 //     }
 
-//     BlockHash IStore.GetBlockHash(Guid chainId, int height)
+//     BlockHash Libplanet.Store.Store.GetBlockHash(Guid chainId, int height)
 //     {
 //         if (_indexes.TryGetValue(chainId, out var list))
 //         {
@@ -82,7 +82,7 @@
 //             $"The height {height} is out of range for the chain ID {chainId}.");
 //     }
 
-//     int IStore.AppendIndex(Guid chainId, BlockHash hash)
+//     int Libplanet.Store.Store.AppendIndex(Guid chainId, BlockHash hash)
 //     {
 //         ImmutableTrieList<BlockHash> list = _indexes.AddOrUpdate(
 //             chainId,
@@ -105,16 +105,16 @@
 //         }
 //     }
 
-//     Transaction? IStore.GetTransaction(TxId txId) =>
+//     Transaction? Libplanet.Store.Store.GetTransaction(TxId txId) =>
 //         _txs.TryGetValue(txId, out Transaction? untyped) && untyped is Transaction tx
 //             ? tx
 //             : null;
 
-//     void IStore.PutTransaction(Transaction tx) => _txs[tx.Id] = tx;
+//     void Libplanet.Store.Store.PutTransaction(Transaction tx) => _txs[tx.Id] = tx;
 
-//     IEnumerable<BlockHash> IStore.IterateBlockHashes() => _blocks.Keys;
+//     IEnumerable<BlockHash> Libplanet.Store.Store.IterateBlockHashes() => _blocks.Keys;
 
-//     Block IStore.GetBlock(BlockHash blockHash)
+//     Block Libplanet.Store.Store.GetBlock(BlockHash blockHash)
 //     {
 //         if (!_blocks.TryGetValue(blockHash, out var blockDigest))
 //         {
@@ -125,7 +125,7 @@
 //         return blockDigest.ToBlock(txId => _txs[txId], evId => _committedEvidence[evId]);
 //     }
 
-//     int IStore.GetBlockHeight(BlockHash blockHash)
+//     int Libplanet.Store.Store.GetBlockHeight(BlockHash blockHash)
 //     {
 //         if (!_blocks.TryGetValue(blockHash, out var digest))
 //         {
@@ -135,7 +135,7 @@
 //         return digest.Height;
 //     }
 
-//     BlockDigest IStore.GetBlockDigest(BlockHash blockHash)
+//     BlockDigest Libplanet.Store.Store.GetBlockDigest(BlockHash blockHash)
 //     {
 //         if (!_blocks.TryGetValue(blockHash, out var blockDigest))
 //         {
@@ -146,7 +146,7 @@
 //         return blockDigest;
 //     }
 
-//     void IStore.PutBlock(Block block)
+//     void Libplanet.Store.Store.PutBlock(Block block)
 //     {
 //         IReadOnlyList<Transaction> txs = block.Transactions;
 //         foreach (Transaction tx in txs)
@@ -171,37 +171,37 @@
 //         };
 //     }
 
-//     bool IStore.DeleteBlock(BlockHash blockHash) => _blocks.TryRemove(blockHash, out _);
+//     bool Libplanet.Store.Store.DeleteBlock(BlockHash blockHash) => _blocks.TryRemove(blockHash, out _);
 
-//     bool IStore.ContainsBlock(BlockHash blockHash) => _blocks.ContainsKey(blockHash);
+//     bool Libplanet.Store.Store.ContainsBlock(BlockHash blockHash) => _blocks.ContainsKey(blockHash);
 
-//     void IStore.PutTxExecution(TxExecution txExecution) =>
+//     void Libplanet.Store.Store.PutTxExecution(TxExecution txExecution) =>
 //         _txExecutions[(txExecution.BlockHash, txExecution.TxId)] = txExecution;
 
-//     TxExecution IStore.GetTxExecution(BlockHash blockHash, TxId txId) =>
+//     TxExecution Libplanet.Store.Store.GetTxExecution(BlockHash blockHash, TxId txId) =>
 //         _txExecutions.TryGetValue((blockHash, txId), out TxExecution? e)
 //             ? e
 //             : throw new KeyNotFoundException(
 //                 $"The transaction ID {txId} is not found in the block {blockHash}.");
 
-//     void IStore.PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash) =>
+//     void Libplanet.Store.Store.PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash) =>
 //         _txBlockIndexes.AddOrUpdate(
 //             txId,
 //             _ => ImmutableHashSet.Create(blockHash),
 //             (_, set) => set.Add(blockHash));
 
-//     BlockHash IStore.GetFirstTxIdBlockHashIndex(TxId txId) =>
+//     BlockHash Libplanet.Store.Store.GetFirstTxIdBlockHashIndex(TxId txId) =>
 //         _txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set) && set.Any()
 //             ? set.First()
 //             : throw new KeyNotFoundException(
 //                 $"The transaction ID {txId} is not found in the store.");
 
-//     IEnumerable<BlockHash> IStore.IterateTxIdBlockHashIndex(TxId txId) =>
+//     IEnumerable<BlockHash> Libplanet.Store.Store.IterateTxIdBlockHashIndex(TxId txId) =>
 //         _txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set)
 //             ? set
 //             : Enumerable.Empty<BlockHash>();
 
-//     void IStore.DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     void Libplanet.Store.Store.DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
 //     {
 //         while (_txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set) &&
 //                set.Contains(blockHash))
@@ -211,29 +211,29 @@
 //         }
 //     }
 
-//     IEnumerable<KeyValuePair<Address, long>> IStore.ListTxNonces(Guid chainId) =>
+//     IEnumerable<KeyValuePair<Address, long>> Libplanet.Store.Store.ListTxNonces(Guid chainId) =>
 //         _txNonces.TryGetValue(chainId, out ConcurrentDictionary<Address, long>? dict)
 //             ? dict
 //             : Enumerable.Empty<KeyValuePair<Address, long>>();
 
-//     long IStore.GetTxNonce(Guid chainId, Address address) =>
+//     long Libplanet.Store.Store.GetTxNonce(Guid chainId, Address address) =>
 //         _txNonces.TryGetValue(chainId, out ConcurrentDictionary<Address, long>? dict) &&
 //         dict.TryGetValue(address, out long nonce)
 //             ? nonce
 //             : 0;
 
-//     void IStore.IncreaseTxNonce(Guid chainId, Address signer, long delta)
+//     void Libplanet.Store.Store.IncreaseTxNonce(Guid chainId, Address signer, long delta)
 //     {
 //         ConcurrentDictionary<Address, long> dict =
 //             _txNonces.GetOrAdd(chainId, _ => new ConcurrentDictionary<Address, long>());
 //         dict.AddOrUpdate(signer, _ => delta, (_, nonce) => nonce + delta);
 //     }
 
-//     bool IStore.ContainsTransaction(TxId txId) => _txs.ContainsKey(txId);
+//     bool Libplanet.Store.Store.ContainsTransaction(TxId txId) => _txs.ContainsKey(txId);
 
-//     long IStore.CountBlocks() => _blocks.Count;
+//     long Libplanet.Store.Store.CountBlocks() => _blocks.Count;
 
-//     void IStore.ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
+//     void Libplanet.Store.Store.ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
 //     {
 //         if (_txNonces.TryGetValue(sourceChainId, out ConcurrentDictionary<Address, long>? dict))
 //         {
@@ -241,7 +241,7 @@
 //         }
 //     }
 
-//     void IStore.PruneOutdatedChains(bool noopWithoutCanon)
+//     void Libplanet.Store.Store.PruneOutdatedChains(bool noopWithoutCanon)
 //     {
 //         if (!(_canonicalChainId is { } ccid))
 //         {
@@ -255,7 +255,7 @@
 
 //         foreach (Guid id in _indexes.Keys.Where(id => !id.Equals(ccid)))
 //         {
-//             ((IStore)this).DeleteChainId(id);
+//             ((Libplanet.Store.Store)this).DeleteChainId(id);
 //         }
 //     }
 
@@ -313,7 +313,7 @@
 //         => _committedEvidence.ContainsKey(evidenceId);
 
 //     [StoreLoader("memory")]
-//     private static (IStore Store, TrieStateStore StateStore) Loader(Uri storeUri)
+//     private static (Libplanet.Store.Store Store, TrieStateStore StateStore) Loader(Uri storeUri)
 //     {
 //         NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
 //         var store = new Libplanet.Store.Store(new MemoryDatabase());

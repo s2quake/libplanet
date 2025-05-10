@@ -34,7 +34,7 @@ namespace Libplanet.Tests.Store
         public void LoadStore()
         {
             Assert.Null(StoreLoaderAttribute.LoadStore(new Uri("non-existent+test://")));
-            (IStore Store, TrieStateStore StateStore)? pair =
+            (Libplanet.Store.Store Store, TrieStateStore StateStore)? pair =
                 StoreLoaderAttribute.LoadStore(new Uri("test:///"));
             Assert.NotNull(pair);
             Assert.IsAssignableFrom<Libplanet.Store.Store>(pair.Value.Store);
@@ -42,7 +42,7 @@ namespace Libplanet.Tests.Store
         }
 
         [StoreLoader("test")]
-        private static (IStore Store, TrieStateStore StateStore) TestLoader(Uri storeUri)
+        private static (Libplanet.Store.Store Store, TrieStateStore StateStore) TestLoader(Uri storeUri)
         {
             NameValueCollection query = ParseQueryString(storeUri.Query);
             var store = new Libplanet.Store.Store(new MemoryDatabase());

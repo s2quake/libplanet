@@ -7,7 +7,7 @@
 // {
 //     public partial class LegacyRocksDBStore : StoreBase
 //     {
-//         /// <inheritdoc cref="IStore.PruneOutdatedChains"/>
+//         /// <inheritdoc cref="Libplanet.Store.Store.PruneOutdatedChains"/>
 //         public override void PruneOutdatedChains(bool noopWithoutCanon = false)
 //         {
 //             if (!(GetCanonicalChainId() is { } ccid))

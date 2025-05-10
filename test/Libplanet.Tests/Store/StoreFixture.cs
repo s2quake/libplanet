@@ -185,7 +185,7 @@ public abstract class StoreFixture : IDisposable
 
     public Transaction Transaction3 { get; }
 
-    public IStore Store => Options.Store;
+    public Libplanet.Store.Store Store => Options.Store;
 
     public IDictionary<KeyBytes, byte[]> StateHashKeyValueStore { get; set; }
 

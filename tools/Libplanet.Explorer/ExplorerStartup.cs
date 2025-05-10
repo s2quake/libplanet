@@ -36,7 +36,7 @@ namespace Libplanet.Explorer
             services.AddControllers();
 
             services.AddSingleton<IBlockChainContext, TU>();
-            services.AddSingleton<IStore>(
+            services.AddSingleton<Libplanet.Store.Store>(
                 provider => provider.GetRequiredService<IBlockChainContext>().Store);
             services.AddSingleton<IBlockChainIndex>(
                 provider => provider.GetRequiredService<IBlockChainContext>().Index);

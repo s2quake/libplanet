@@ -24,10 +24,10 @@ public class MemoryStoreTest : StoreTest, IDisposable
     [InlineData("memory://")]
     public void Loader(string uri)
     {
-        (IStore Store, TrieStateStore StateStore)? pair =
+        (Libplanet.Store.Store Store, TrieStateStore StateStore)? pair =
             StoreLoaderAttribute.LoadStore(new Uri(uri));
         Assert.NotNull(pair);
-        IStore store = pair.Value.Store;
+        Libplanet.Store.Store store = pair.Value.Store;
         Assert.IsAssignableFrom<Libplanet.Store.Store>(store);
         var stateStore = (TrieStateStore)pair.Value.StateStore;
         Assert.IsAssignableFrom<MemoryKeyValueStore>(stateStore.StateKeyValueStore);

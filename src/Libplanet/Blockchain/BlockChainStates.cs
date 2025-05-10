@@ -8,7 +8,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain;
 
-public sealed class BlockChainStates(IStore store, TrieStateStore stateStore)
+public sealed class BlockChainStates(Libplanet.Store.Store store, TrieStateStore stateStore)
 {
     private readonly ActivitySource _activitySource = new("Libplanet.Blockchain.BlockChainStates");
 
@@ -36,7 +36,7 @@ public sealed class BlockChainStates(IStore store, TrieStateStore stateStore)
         {
             a?.SetStatus(ActivityStatusCode.Error);
             throw new ArgumentException(
-                $"Could not find block hash {blockHash} in {nameof(IStore)}.",
+                $"Could not find block hash {blockHash} in {nameof(Libplanet.Store.Store)}.",
                 nameof(blockHash));
         }
     }

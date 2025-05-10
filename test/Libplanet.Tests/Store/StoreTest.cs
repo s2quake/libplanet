@@ -107,12 +107,12 @@ public abstract class StoreTest
             Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
             "Flaky test : Libplanet.Blocks.InvalidBlockSignatureException");
 
-        IStore store = Fx.Store;
+        Libplanet.Store.Store store = Fx.Store;
         Guid chainA = Guid.NewGuid();
         Guid chainB = Guid.NewGuid();
         Guid chainC = Guid.NewGuid();
 
-        // We need `Block<T>`s because `IStore` can't retrieve index(long) by block hash without
+        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
         store.PutBlock(Fx.GenesisBlock);
         store.PutBlock(Fx.Block1);
@@ -199,12 +199,12 @@ public abstract class StoreTest
     [Fact]
     public void DeleteChainIdWithForksReverse()
     {
-        IStore store = Fx.Store;
+        Libplanet.Store.Store store = Fx.Store;
         Guid chainA = Guid.NewGuid();
         Guid chainB = Guid.NewGuid();
         Guid chainC = Guid.NewGuid();
 
-        // We need `Block<T>`s because `IStore` can't retrieve index(long) by block hash without
+        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
         store.PutBlock(Fx.GenesisBlock);
         store.PutBlock(Fx.Block1);
@@ -258,12 +258,12 @@ public abstract class StoreTest
     [Fact]
     public void ForkFromChainWithDeletion()
     {
-        IStore store = Fx.Store;
+        Libplanet.Store.Store store = Fx.Store;
         Guid chainA = Guid.NewGuid();
         Guid chainB = Guid.NewGuid();
         Guid chainC = Guid.NewGuid();
 
-        // We need `Block<T>`s because `IStore` can't retrieve index(long) by block hash without
+        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
         store.PutBlock(Fx.GenesisBlock);
         store.PutBlock(Fx.Block1);
@@ -766,12 +766,12 @@ public abstract class StoreTest
     [Fact]
     public void ForkBlockIndex()
     {
-        IStore store = Fx.Store;
+        Libplanet.Store.Store store = Fx.Store;
         Guid chainA = Guid.NewGuid();
         Guid chainB = Guid.NewGuid();
         Guid chainC = Guid.NewGuid();
 
-        // We need `Block<T>`s because `IStore` can't retrieve index(long) by block hash without
+        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
         store.PutBlock(Fx.GenesisBlock);
         store.PutBlock(Fx.Block1);
@@ -889,11 +889,11 @@ public abstract class StoreTest
     [Fact]
     public void ForkWithBranch()
     {
-        IStore store = Fx.Store;
+        Libplanet.Store.Store store = Fx.Store;
         Guid chainA = Guid.NewGuid();
         Guid chainB = Guid.NewGuid();
 
-        // We need `Block<T>`s because `IStore` can't retrieve index(long) by block hash without
+        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
         Block anotherBlock3 = ProposeNextBlock(
             Fx.Block2,
@@ -945,7 +945,7 @@ public abstract class StoreTest
         using (StoreFixture fx = FxConstructor())
         using (StoreFixture fx2 = FxConstructor())
         {
-            IStore s1 = fx.Store, s2 = fx2.Store;
+            Libplanet.Store.Store s1 = fx.Store, s2 = fx2.Store;
             var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
             var genesis = preEval.Sign(
                 GenesisProposer,
@@ -1278,7 +1278,7 @@ public abstract class StoreTest
     [Fact]
     public void ForkTxNonces()
     {
-        IStore store = Fx.Store;
+        Libplanet.Store.Store store = Fx.Store;
         Guid sourceChainId = Guid.NewGuid();
         Guid destinationChainId = Guid.NewGuid();
         store.IncreaseTxNonce(sourceChainId, Fx.Address1, 1);
@@ -1299,7 +1299,7 @@ public abstract class StoreTest
     [Fact]
     public void PruneOutdatedChains()
     {
-        IStore store = Fx.Store;
+        Libplanet.Store.Store store = Fx.Store;
         store.PutBlock(Fx.GenesisBlock);
         store.PutBlock(Fx.Block1);
         store.PutBlock(Fx.Block2);

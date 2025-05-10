@@ -5,7 +5,7 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-internal sealed class TxExecutionCollection(IDictionary<KeyBytes, byte[]> dictionary)
+internal sealed class TxExecutionByTxId(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<(BlockHash BlockHash, TxId TxId), TxExecution>(dictionary)
 {
     public void Add(TxExecution txExecution) => Add((txExecution.BlockHash, txExecution.TxId), txExecution);

@@ -13,7 +13,7 @@ public sealed record class StagedTransaction
 
     public bool IsExpired => Lifetime < DateTimeOffset.UtcNow;
 
-    public bool IsEnabled(IStore store, Guid blockChainId)
+    public bool IsEnabled(Libplanet.Store.Store store, Guid blockChainId)
     {
         if (IsExpired)
         {
