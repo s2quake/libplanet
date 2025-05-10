@@ -32,7 +32,7 @@ public class StoreServiceTest
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
         var storeService = serviceProvider.GetRequiredService<IStoreService>();
 
-        Assert.IsType<MemoryStore>(storeService.Store);
+        Assert.IsType<Store.Store>(storeService.Store);
         Assert.IsType<MemoryKeyValueStore>(storeService.KeyValueStore);
     }
 }

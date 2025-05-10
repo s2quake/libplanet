@@ -408,7 +408,7 @@ namespace Libplanet.Tests.Blockchain
         // public void AppendWhenActionEvaluationFailed()
         // {
         //     var policy = BlockPolicy.Empty;
-        //     var store = new MemoryStore();
+        //     var store = new Libplanet.Store.Store(new MemoryDatabase());
         //     var stateStore =
         //         new TrieStateStore();
         //     var actionLoader = new SingleActionLoader<ThrowException>();
@@ -678,7 +678,7 @@ namespace Libplanet.Tests.Blockchain
         {
             var beforePostponeBPV = BlockHeader.CurrentProtocolVersion - 1;
             var options = new BlockChainOptions();
-            var store = new MemoryStore();
+            var store = new Libplanet.Store.Store(new MemoryDatabase());
             var stateStore = new TrieStateStore();
             var actionEvaluator = new ActionEvaluator(
                 stateStore,

@@ -296,7 +296,7 @@ public partial class ActionEvaluatorTest
 
     //     var action = new ThrowException { ThrowOnExecution = true };
 
-    //     var store = new MemoryStore();
+    //     var store = new Libplanet.Store.Store(new MemoryDatabase());
     //     var stateStore = new TrieStateStore();
     //     var chain = TestUtils.MakeBlockChain(
     //         policy: new BlockPolicy(),
@@ -336,7 +336,7 @@ public partial class ActionEvaluatorTest
     //         Deterministic = false,
     //     };
 
-    //     var store = new MemoryStore();
+    //     var store = new Libplanet.Store.Store(new MemoryDatabase());
     //     var stateStore =
     //         new TrieStateStore();
     //     var (chain, actionEvaluator) =
@@ -1152,7 +1152,7 @@ public partial class ActionEvaluatorTest
             Memo = "CHARGE",
         };
 
-        var store = new MemoryStore();
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             options: new BlockChainOptions(),
@@ -1202,7 +1202,7 @@ public partial class ActionEvaluatorTest
             Memo = "CHARGE",
         };
 
-        var store = new MemoryStore();
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             options: new BlockChainOptions(),

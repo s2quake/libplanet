@@ -64,7 +64,7 @@ public sealed class IntegerSet
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
         policy ??= new BlockChainOptions();
-        Store = new MemoryStore();
+        Store = new Libplanet.Store.Store(new MemoryDatabase());
         KVStore = new MemoryKeyValueStore();
         StateStore = new TrieStateStore(KVStore);
         var actionEvaluator = new ActionEvaluator(
