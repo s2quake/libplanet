@@ -111,9 +111,9 @@ public static class Utils
 
         // FIXME: A workaround for MSBuild not including unused references. Find a better way
         // to handle this. See: https://github.com/planetarium/libplanet/issues/2623
-#pragma warning disable CS0219
-        RocksDBStore.LegacyRocksDBStore? rocksDbStore = null;
-#pragma warning restore CS0219
+// #pragma warning disable CS0219
+//         RocksDBStore.LegacyRocksDBStore? rocksDbStore = null;
+// #pragma warning restore CS0219
 
         switch (uri.Scheme)
         {

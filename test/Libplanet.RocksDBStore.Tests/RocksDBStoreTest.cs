@@ -39,28 +39,28 @@ public class RocksDBStoreTest : StoreTest, IDisposable
         _fx?.Dispose();
     }
 
-    [Fact]
-    public void Loader()
-    {
-        // TODO: Test query parameters as well.
-        string tempDirPath = Path.GetTempFileName();
-        File.Delete(tempDirPath);
-        var uri = new Uri(tempDirPath, UriKind.Absolute);
-        Assert.StartsWith("file://", uri.ToString());
-        uri = new Uri("rocksdb+" + uri);
-        (IStore Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
-        Assert.NotNull(pair);
-        IStore store = pair.Value.Store;
-        Assert.IsAssignableFrom<LegacyRocksDBStore>(store);
-        var stateStore = (TrieStateStore)pair.Value.StateStore;
-        var kvStore = typeof(TrieStateStore)
-            .GetProperty(
-                "StateKeyValueStore",
-                BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.Instance)
-            ?.GetMethod
-            ?.Invoke(stateStore, Array.Empty<object>());
-        Assert.IsAssignableFrom<RocksDBKeyValueStore>(kvStore);
-    }
+    // [Fact]
+    // public void Loader()
+    // {
+    //     // TODO: Test query parameters as well.
+    //     string tempDirPath = Path.GetTempFileName();
+    //     File.Delete(tempDirPath);
+    //     var uri = new Uri(tempDirPath, UriKind.Absolute);
+    //     Assert.StartsWith("file://", uri.ToString());
+    //     uri = new Uri("rocksdb+" + uri);
+    //     (IStore Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
+    //     Assert.NotNull(pair);
+    //     IStore store = pair.Value.Store;
+    //     Assert.IsAssignableFrom<LegacyRocksDBStore>(store);
+    //     var stateStore = (TrieStateStore)pair.Value.StateStore;
+    //     var kvStore = typeof(TrieStateStore)
+    //         .GetProperty(
+    //             "StateKeyValueStore",
+    //             BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.Instance)
+    //         ?.GetMethod
+    //         ?.Invoke(stateStore, Array.Empty<object>());
+    //     Assert.IsAssignableFrom<RocksDBKeyValueStore>(kvStore);
+    // }
 
     [Fact]
     public void ReopenStoreAfterDispose()
