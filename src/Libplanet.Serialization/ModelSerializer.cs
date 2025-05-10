@@ -396,7 +396,8 @@ public static class ModelSerializer
         for (var i = 0; i < list.Count; i++)
         {
             var item = list[i];
-            var itemValue = item is Null ? null : Deserialize(item, options);
+            var itemValue = ModelData.IsData(item)
+                ? Deserialize(item) : DeserializeRawValue(item, elementType, options);
             array.SetValue(itemValue, i);
         }
 
@@ -410,7 +411,8 @@ public static class ModelSerializer
         var listInstance = (IList)CreateInstance(listType)!;
         foreach (var item in list)
         {
-            var itemValue = item is Null ? null : Deserialize(item, options);
+            var itemValue = ModelData.IsData(item)
+                ? Deserialize(item) : DeserializeRawValue(item, elementType, options);
             listInstance.Add(itemValue);
         }
 

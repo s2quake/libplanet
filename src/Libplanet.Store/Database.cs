@@ -7,51 +7,60 @@ namespace Libplanet.Store;
 public abstract class Database<TTable> : IDatabase
     where TTable : IKeyValueStore
 {
-    private readonly ConcurrentDictionary<string, TTable> _collectionByKey = new();
+    private readonly object _lock = new();
+    private readonly ConcurrentDictionary<string, TTable> _tableByKey = new();
     private bool _disposedValue;
 
-    public IEnumerable<string> Keys => _collectionByKey.Keys;
+    public IEnumerable<string> Keys => _tableByKey.Keys;
 
-    public IEnumerable<TTable> Values => _collectionByKey.Values;
+    public IEnumerable<TTable> Values => _tableByKey.Values;
 
-    public int Count => _collectionByKey.Count;
+    public int Count => _tableByKey.Count;
 
     IEnumerable<IKeyValueStore> IReadOnlyDictionary<string, IKeyValueStore>.Values
     {
         get
         {
-            foreach (var value in _collectionByKey.Values)
+            foreach (var value in _tableByKey.Values)
             {
                 yield return value;
             }
         }
     }
 
-    IKeyValueStore IReadOnlyDictionary<string, IKeyValueStore>.this[string key]
-        => _collectionByKey[key];
+    IKeyValueStore IReadOnlyDictionary<string, IKeyValueStore>.this[string key] => _tableByKey[key];
 
-    public TTable this[string key] => _collectionByKey[key];
+    public TTable this[string key] => _tableByKey[key];
 
-    public TTable GetOrAdd(string key) => _collectionByKey.GetOrAdd(key, Create);
+    public TTable GetOrAdd(string key)
+    {
+        lock (_lock)
+        {
+            return _tableByKey.GetOrAdd(key, (k, _) => Create(k), string.Empty);
+        }
+    }
 
-    public bool ContainsKey(string key) => _collectionByKey.ContainsKey(key);
+    public bool ContainsKey(string key) => _tableByKey.ContainsKey(key);
 
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out TTable value)
-        => _collectionByKey.TryGetValue(key, out value);
+        => _tableByKey.TryGetValue(key, out value);
 
     public bool Remove(string key)
     {
-        if (_collectionByKey.TryRemove(key, out var value))
+        lock (_lock)
         {
-            OnRemove(key, value);
-            return true;
-        }
+            if (_tableByKey.TryRemove(key, out var value))
+            {
+                OnRemove(key, value);
+                return true;
+            }
 
-        return false;
+            return false;
+        }
     }
 
     public IEnumerator<KeyValuePair<string, TTable>> GetEnumerator()
-        => _collectionByKey.GetEnumerator();
+        => _tableByKey.GetEnumerator();
 
     public void Dispose()
     {
@@ -59,13 +68,13 @@ public abstract class Database<TTable> : IDatabase
         GC.SuppressFinalize(this);
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => _collectionByKey.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => _tableByKey.GetEnumerator();
 
     IKeyValueStore IDatabase.GetOrAdd(string key) => GetOrAdd(key);
 
     bool IReadOnlyDictionary<string, IKeyValueStore>.TryGetValue(string key, out IKeyValueStore value)
     {
-        if (_collectionByKey.TryGetValue(key, out var v))
+        if (_tableByKey.TryGetValue(key, out var v))
         {
             value = v;
             return true;
@@ -77,7 +86,7 @@ public abstract class Database<TTable> : IDatabase
 
     IEnumerator<KeyValuePair<string, IKeyValueStore>> IEnumerable<KeyValuePair<string, IKeyValueStore>>.GetEnumerator()
     {
-        foreach (var kvp in _collectionByKey)
+        foreach (var kvp in _tableByKey)
         {
             yield return new KeyValuePair<string, IKeyValueStore>(kvp.Key, kvp.Value);
         }

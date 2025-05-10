@@ -14,7 +14,7 @@ public sealed class Store : IStore
 
     private readonly IDatabase _database;
     private readonly TransactionCollection _transactions;
-    private readonly BlockCollection _blocks;
+    private readonly BlockDigestByBlockHash _blockDigestByBlockHash;
     private readonly TxExecutionCollection _txExecutions;
     private readonly BlockHashesByTxId _blockHashesByTxId;
     private readonly BlockCommitByBlockHash _blockCommitByBlockHash;
@@ -31,7 +31,7 @@ public sealed class Store : IStore
     {
         _database = database;
         _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
-        _blocks = new BlockCollection(_database.GetOrAdd("block"));
+        _blockDigestByBlockHash = new BlockDigestByBlockHash(_database.GetOrAdd("block"));
         _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
         _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
         _blockCommitByBlockHash = new BlockCommitByBlockHash(_database.GetOrAdd("blockcommit"));
@@ -176,17 +176,17 @@ public sealed class Store : IStore
 
     public IEnumerable<BlockHash> IterateBlockHashes()
     {
-        return _blocks.Keys;
+        return _blockDigestByBlockHash.Keys;
     }
 
     public BlockDigest GetBlockDigest(BlockHash blockHash)
     {
-        return _blocks.GetBlockDigest(blockHash);
+        return _blockDigestByBlockHash[blockHash];
     }
 
     public void PutBlock(Block block)
     {
-        _blocks.Add(block.BlockHash, block);
+        _blockDigestByBlockHash.Add(block.BlockHash, BlockDigest.Create(block));
 
         foreach (Transaction tx in block.Transactions)
         {
@@ -196,12 +196,12 @@ public sealed class Store : IStore
 
     public bool DeleteBlock(BlockHash blockHash)
     {
-        return _blocks.Remove(blockHash);
+        return _blockDigestByBlockHash.Remove(blockHash);
     }
 
     public bool ContainsBlock(BlockHash blockHash)
     {
-        return _blocks.ContainsKey(blockHash);
+        return _blockDigestByBlockHash.ContainsKey(blockHash);
     }
 
     public void PutTxExecution(TxExecution txExecution)
