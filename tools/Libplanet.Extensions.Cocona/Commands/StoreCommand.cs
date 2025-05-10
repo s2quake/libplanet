@@ -139,14 +139,15 @@ public class StoreCommand
     [Command]
     public void MigrateIndex(string storePath)
     {
-        if (RocksDBStore.LegacyRocksDBStore.MigrateChainDBFromColumnFamilies(storePath))
-        {
-            Console.WriteLine("Successfully migrated.");
-        }
-        else
-        {
-            Console.WriteLine("Already migrated, no need to migrate.");
-        }
+        throw new NotImplementedException();
+        // if (RocksDBStore.LegacyRocksDBStore.MigrateChainDBFromColumnFamilies(storePath))
+        // {
+        //     Console.WriteLine("Successfully migrated.");
+        // }
+        // else
+        // {
+        //     Console.WriteLine("Already migrated, no need to migrate.");
+        // }
     }
 
     private static Block GetBlock(IStore store, BlockHash blockHash)
