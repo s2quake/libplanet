@@ -12,6 +12,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
+using Microsoft.VisualBasic;
 using Serilog;
 
 namespace Libplanet.Blockchain;
@@ -870,9 +871,9 @@ public partial class BlockChain
         _logger.Debug("Removing old BlockCommits with heights lower than {Limit}...", limit);
         foreach (var hash in hashes)
         {
-            if (Store.GetBlockCommit(hash) is { } commit && commit.Height < limit)
+            if (Store.BlockCommits.TryGetValue(hash, out var commit) && commit.Height < limit)
             {
-                Store.DeleteBlockCommit(hash);
+                Store.BlockCommits.Remove(hash);
             }
         }
     }

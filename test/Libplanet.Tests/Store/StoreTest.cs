@@ -1028,9 +1028,9 @@ public abstract class StoreTest
                 BlockHash = hash,
                 Votes = votes,
             };
-            fx.Store.PutBlockCommit(commit);
+            fx.Store.BlockCommits.Add(commit);
             BlockCommit storedCommitVotes =
-                fx.Store.GetBlockCommit(commit.BlockHash);
+                fx.Store.BlockCommits[commit.BlockHash];
 
             Assert.Equal(commit, storedCommitVotes);
         }
@@ -1084,12 +1084,12 @@ public abstract class StoreTest
 
             foreach (var blockCommit in blockCommits)
             {
-                fx.Store.PutBlockCommit(blockCommit);
+                fx.Store.BlockCommits.Add(blockCommit);
             }
 
             IEnumerable<BlockHash> indices = fx.Store.GetBlockCommitHashes();
 
-            HashSet<long> indicesFromOperation = [.. indices.Select(hash => fx.Store.GetBlockCommit(hash).Height)];
+            HashSet<long> indicesFromOperation = [.. indices.Select(hash => fx.Store.BlockCommits[hash].Height)];
             HashSet<long> expectedIndices = new HashSet<long>() { 1, 2 };
 
             Assert.Equal(indicesFromOperation, expectedIndices);
@@ -1118,11 +1118,11 @@ public abstract class StoreTest
                 ],
             };
 
-            fx.Store.PutBlockCommit(blockCommit);
-            Assert.Equal(blockCommit, fx.Store.GetBlockCommit(blockCommit.BlockHash));
+            fx.Store.BlockCommits.Add(blockCommit);
+            Assert.Equal(blockCommit, fx.Store.BlockCommits[blockCommit.BlockHash]);
 
-            fx.Store.DeleteBlockCommit(blockCommit.BlockHash);
-            Assert.Throws<KeyNotFoundException>(() => fx.Store.GetBlockCommit(blockCommit.BlockHash));
+            fx.Store.BlockCommits.Remove(blockCommit.BlockHash);
+            Assert.Throws<KeyNotFoundException>(() => fx.Store.BlockCommits[blockCommit.BlockHash]);
         }
     }
 

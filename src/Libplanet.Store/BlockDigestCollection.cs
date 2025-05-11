@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-internal sealed class BlockDigestByBlockHash(IDictionary<KeyBytes, byte[]> dictionary)
+internal sealed class BlockDigestCollection(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<BlockHash, BlockDigest>(dictionary)
 {
     protected override byte[] GetBytes(BlockDigest value) => ModelSerializer.SerializeToBytes(value);
