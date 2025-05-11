@@ -485,14 +485,14 @@ public partial class BlockChainTest : IDisposable
         BlockCommit blockCommit3 = CreateBlockCommit(
             new BlockHash(GetRandomBytes(BlockHash.Size)), 3, 0);
 
-        _blockChain.Store.PutBlockCommit(blockCommit1);
-        _blockChain.Store.PutBlockCommit(blockCommit2);
-        _blockChain.Store.PutBlockCommit(blockCommit3);
+        _blockChain.Store.BlockCommits.Add(blockCommit1);
+        _blockChain.Store.BlockCommits.Add(blockCommit2);
+        _blockChain.Store.BlockCommits.Add(blockCommit3);
         _blockChain.CleanupBlockCommitStore(blockCommit3.Height);
 
-        Assert.Null(_blockChain.Store.GetBlockCommit(blockCommit1.BlockHash));
-        Assert.Null(_blockChain.Store.GetBlockCommit(blockCommit2.BlockHash));
-        Assert.Equal(blockCommit3, _blockChain.Store.GetBlockCommit(blockCommit3.BlockHash));
+        Assert.Null(_blockChain.Store.BlockCommits[blockCommit1.BlockHash]);
+        Assert.Null(_blockChain.Store.BlockCommits[blockCommit2.BlockHash]);
+        Assert.Equal(blockCommit3, _blockChain.Store.BlockCommits[blockCommit3.BlockHash]);
     }
 
     [Fact]

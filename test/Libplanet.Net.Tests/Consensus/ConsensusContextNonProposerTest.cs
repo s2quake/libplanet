@@ -1,6 +1,7 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
+using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
@@ -164,7 +165,7 @@ namespace Libplanet.Net.Tests.Consensus
             Block block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
-            blockChain.Store.PutBlockCommit(TestUtils.CreateBlockCommit(blockChain[1]));
+            blockChain.Store.BlockCommits.Add(TestUtils.CreateBlockCommit(blockChain[1]));
             await proposalSent.WaitAsync();
 
             Assert.Equal(2, consensusContext.Height);
