@@ -239,7 +239,7 @@ public class RocksDBStoreTest : StoreTest, IDisposable
 
             Assert.Throws<InvalidOperationException>(() => store.PruneOutdatedChains());
             store.PruneOutdatedChains(true);
-            store.SetCanonicalChainId(cid3);
+            store.ChainId = cid3;
             store.PruneOutdatedChains();
             Assert.Single(store.ListChainIds());
             Assert.Equal(

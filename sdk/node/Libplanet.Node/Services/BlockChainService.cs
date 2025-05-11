@@ -46,7 +46,7 @@ internal sealed class BlockChainService(
             MaxTransactionsPerSignerPerBlock = int.MaxValue,
         };
 
-        if (store.GetCanonicalChainId() == Guid.Empty)
+        if (store.ChainId == Guid.Empty)
         {
             return BlockChain.Create(genesisBlock, options);
         }

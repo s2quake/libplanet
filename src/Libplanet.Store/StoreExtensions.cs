@@ -46,9 +46,9 @@ namespace Libplanet.Store
                 }
             }
 
-            if (from.GetCanonicalChainId() is Guid canonId)
+            if (from.ChainId is Guid canonId)
             {
-                to.SetCanonicalChainId(canonId);
+                to.ChainId = canonId;
             }
         }
 

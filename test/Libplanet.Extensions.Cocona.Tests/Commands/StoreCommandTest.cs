@@ -82,7 +82,7 @@ public class StoreCommandTest : IDisposable
         var guid = Guid.NewGuid();
         foreach (var v in _storeFixtures)
         {
-            v.Store.SetCanonicalChainId(guid);
+            v.Store.ChainId = guid;
             v.Store.PutBlock(_genesisBlock);
             v.Store.AppendIndex(guid, _genesisBlock.BlockHash);
 
