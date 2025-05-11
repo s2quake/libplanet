@@ -284,13 +284,13 @@ public abstract class StoreTest
     [Fact]
     public void CanonicalChainId()
     {
-        Assert.Equal(Guid.Empty, Fx.Store.GetCanonicalChainId());
+        Assert.Equal(Guid.Empty, Fx.Store.ChainId);
         Guid a = Guid.NewGuid();
-        Fx.Store.SetCanonicalChainId(a);
-        Assert.Equal(a, Fx.Store.GetCanonicalChainId());
+        Fx.Store.ChainId = a;
+        Assert.Equal(a, Fx.Store.ChainId);
         Guid b = Guid.NewGuid();
-        Fx.Store.SetCanonicalChainId(b);
-        Assert.Equal(b, Fx.Store.GetCanonicalChainId());
+        Fx.Store.ChainId = b;
+        Assert.Equal(b, Fx.Store.ChainId);
     }
 
     [Fact]
@@ -965,7 +965,7 @@ public abstract class StoreTest
             Fx.Store.Copy(to: s2);
 
             Assert.Equal(s1.ListChainIds().ToHashSet(), [.. s2.ListChainIds()]);
-            Assert.Equal(s1.GetCanonicalChainId(), s2.GetCanonicalChainId());
+            Assert.Equal(s1.ChainId, s2.ChainId);
             foreach (Guid chainId in s1.ListChainIds())
             {
                 Assert.Equal(s1.IterateIndexes(chainId), s2.IterateIndexes(chainId));
@@ -1332,7 +1332,7 @@ public abstract class StoreTest
 
         Assert.Throws<InvalidOperationException>(() => store.PruneOutdatedChains());
         store.PruneOutdatedChains(true);
-        store.SetCanonicalChainId(cid3);
+        store.ChainId = cid3;
         store.PruneOutdatedChains();
         Assert.Single(store.ListChainIds());
         Assert.Equal(

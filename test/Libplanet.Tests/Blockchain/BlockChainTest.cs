@@ -77,8 +77,8 @@ public partial class BlockChainTest : IDisposable
         chain1.Append(block1, CreateBlockCommit(block1));
         Block block2 = chain1.ProposeBlock(key, CreateBlockCommit(chain1.Tip));
         chain1.Append(block2, CreateBlockCommit(block2));
-        Assert.Equal(chain1.Id, _fx.Store.GetCanonicalChainId());
-        Assert.Equal(chain1.Id, _fx.Store.GetCanonicalChainId());
+        Assert.Equal(chain1.Id, _fx.Store.ChainId);
+        Assert.Equal(chain1.Id, _fx.Store.ChainId);
 
         var beginActions = ImmutableArray.Create<IAction>();
         var endActions = ImmutableArray.Create<IAction>(

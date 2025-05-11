@@ -21,7 +21,7 @@ public class StoreCommand
         bool showHash)
     {
         Libplanet.Store.Store store = Utils.LoadStoreFromUri(storeUri);
-        Guid? canon = store.GetCanonicalChainId();
+        Guid? canon = store.ChainId;
         var headerWithoutHash = ("Chain ID", "Height", "Canon?");
         var headerWithHash = ("Chain ID", "Height", "Canon?", "Hash");
         var chainIds = store.ListChainIds().Select(id =>
@@ -165,16 +165,16 @@ public class StoreCommand
 
     private static BlockHash GetBlockHash(Libplanet.Store.Store store, int blockHeight)
     {
-        if (!(store.GetCanonicalChainId() is { } chainId))
+        if (store.ChainId == Guid.Empty)
         {
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
-        if (!(store.GetBlockHash(chainId, blockHeight) is { } blockHash))
+        if (!(store.GetBlockHash(store.ChainId, blockHeight) is { } blockHash))
         {
             throw Utils.Error(
                 $"Cannot find the block with the height {blockHeight}" +
-                $" within the blockchain {chainId}.");
+                $" within the blockchain {store.ChainId}.");
         }
 
         return blockHash;
@@ -200,13 +200,13 @@ public class StoreCommand
 
     private static IEnumerable<int> BuildTxIdBlockHashIndex(Libplanet.Store.Store store, int offset, int limit)
     {
-        if (!(store.GetCanonicalChainId() is { } chainId))
+        if (store.ChainId == Guid.Empty)
         {
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
         var index = offset;
-        foreach (BlockHash blockHash in store.IterateIndexes(chainId, offset, limit))
+        foreach (BlockHash blockHash in store.IterateIndexes(store.ChainId, offset, limit))
         {
             yield return index++;
             if (!(store.GetBlockDigest(blockHash) is { } blockDigest))

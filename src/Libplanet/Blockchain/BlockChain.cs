@@ -32,7 +32,7 @@ public partial class BlockChain
     private HashDigest<SHA256>? _nextStateRootHash;
 
     public BlockChain(Block genesisBlock, BlockChainOptions options)
-        : this(genesisBlock, options.Store.GetCanonicalChainId(), options)
+        : this(genesisBlock, options.Store.ChainId, options)
     {
     }
 
@@ -113,7 +113,7 @@ public partial class BlockChain
 
     internal ActionEvaluator ActionEvaluator { get; }
 
-    internal bool IsCanonical => Store.GetCanonicalChainId() is Guid guid && Id == guid;
+    internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
 
     public Block this[int height]
     {
@@ -158,7 +158,7 @@ public partial class BlockChain
 
     public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
     {
-        if (options.Store.GetCanonicalChainId() is { } canonId && canonId != Guid.Empty)
+        if (options.Store.ChainId is { } canonId && canonId != Guid.Empty)
         {
             throw new ArgumentException(
                 $"Given {nameof(options.Store)} already has its canonical chain id set: {canonId}",
@@ -208,7 +208,7 @@ public partial class BlockChain
             options.Store.IncreaseTxNonce(id, pair.Key, pair.Value);
         }
 
-        options.Store.SetCanonicalChainId(id);
+        options.Store.ChainId = id;
 
         return new BlockChain(genesisBlock, id, options);
     }

@@ -374,7 +374,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     {
         var indexTip = await GetTipAsyncImpl().ConfigureAwait(false);
         var indexTipIndex = indexTip?.Index ?? -1;
-        var chainId = store.GetCanonicalChainId();
+        var chainId = store.ChainId;
         var chainTipIndex = store.CountIndex(chainId) - 1;
         return (chainId, indexTipIndex, chainTipIndex, indexTip?.Hash);
     }

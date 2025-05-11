@@ -46,6 +46,20 @@ public sealed class Store
 
     public CommittedEvidenceCollection CommittedEvidences => _committedEvidence;
 
+    public Guid ChainId
+    {
+        get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
+        set
+        {
+            if (value == Guid.Empty)
+            {
+                throw new ArgumentException("Chain ID cannot be empty.", nameof(value));
+            }
+
+            _metadata["chainId"] = value.ToString();
+        }
+    }
+
     public Block GetBlock(BlockHash blockHash)
         => GetBlockDigest(blockHash).ToBlock(GetTransaction, item => CommittedEvidences[item]);
 
@@ -76,17 +90,17 @@ public sealed class Store
         _database.Remove(IndexKey(chainId));
     }
 
-    public Guid GetCanonicalChainId()
-    {
-        if (!_metadata.TryGetValue("chainId", out var chainId))
-        {
-            return Guid.Empty;
-        }
+    // public Guid GetCanonicalChainId()
+    // {
+    //     if (!_metadata.TryGetValue("chainId", out var chainId))
+    //     {
+    //         return Guid.Empty;
+    //     }
 
-        return Guid.Parse(chainId);
-    }
+    //     return Guid.Parse(chainId);
+    // }
 
-    public void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
+    // public void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
 
     public int CountIndex(Guid chainId)
     {
@@ -275,7 +289,7 @@ public sealed class Store
 
     public void PruneOutdatedChains(bool noopWithoutCanon = false)
     {
-        var ccid = GetCanonicalChainId();
+        var ccid = ChainId;
         if (ccid == Guid.Empty)
         {
             if (noopWithoutCanon)
