@@ -4,7 +4,6 @@ using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Net;
 using Libplanet.Node.Services;
-using Libplanet.Store;
 
 namespace Libplanet.Node.API.Explorer;
 

@@ -1,4 +1,3 @@
-using System.Text;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Types;

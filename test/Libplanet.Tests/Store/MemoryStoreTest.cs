@@ -1,5 +1,4 @@
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Store;

@@ -1,13 +1,9 @@
-using System.Collections;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
-using Libplanet.Tests.Blocks;
 using Libplanet.Tests.Fixtures;
 using Libplanet.Tests.Store;
 using Libplanet.Tests.Tx;

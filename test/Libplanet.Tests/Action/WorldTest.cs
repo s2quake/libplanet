@@ -8,7 +8,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
-using Org.BouncyCastle.Crypto.Prng;
 
 namespace Libplanet.Tests.Action;
 

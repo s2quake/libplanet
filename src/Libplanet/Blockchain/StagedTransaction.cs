@@ -1,4 +1,3 @@
-using Libplanet.Store;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain;

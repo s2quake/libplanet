@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Concurrent;
-using Libplanet.Store;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 

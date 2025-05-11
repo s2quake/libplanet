@@ -1,8 +1,5 @@
-using System.IO;
-using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 using Libplanet.Tests.Store;
 
 namespace Libplanet.RocksDBStore.Tests;

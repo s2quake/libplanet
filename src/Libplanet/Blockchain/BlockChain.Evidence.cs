@@ -1,6 +1,3 @@
-using System.IO;
-using Libplanet.Action.State;
-using Libplanet.Types;
 using Libplanet.Types.Evidence;
 
 namespace Libplanet.Blockchain;

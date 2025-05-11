@@ -1,5 +1,4 @@
 using Libplanet.Store;
-using Libplanet.Store.Trie;
 
 namespace Libplanet.Node.Services;
 

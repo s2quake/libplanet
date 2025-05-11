@@ -1,5 +1,3 @@
-using Libplanet.Action;
-using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Crypto;

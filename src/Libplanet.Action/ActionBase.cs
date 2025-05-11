@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
-using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 

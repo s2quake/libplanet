@@ -1,6 +1,4 @@
 using System.Threading;
-using Libplanet.Action;
-using Libplanet.Action.Tests.Common;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Tests.Blockchain.Policies;

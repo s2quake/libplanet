@@ -2,7 +2,6 @@ using Libplanet.Blockchain;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Net;
-using Libplanet.Store;
 
 namespace Libplanet.Explorer.Tests.Queries;
 
