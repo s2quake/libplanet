@@ -295,7 +295,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
             var blockDigest = store.GetBlockDigest(indexEnumerator.Current);
             Transaction[] txs = blockDigest.TxIds
-                .Select(txId => store.GetTransaction(txId)
+                .Select(txId => store.Transactions[txId]
                     ?? throw new InvalidOperationException(
                         $"Could not find transaction with txid {txId} in store."))
                 .ToArray();

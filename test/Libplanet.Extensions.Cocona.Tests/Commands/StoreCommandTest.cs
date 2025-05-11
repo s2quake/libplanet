@@ -3,6 +3,7 @@ using global::Cocona;
 using Libplanet.Action;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.RocksDBStore.Tests;
+using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
@@ -88,15 +89,15 @@ public class StoreCommandTest : IDisposable
 
             v.Store.PutBlock(_block1);
             v.Store.AppendIndex(guid, _block1.BlockHash);
-            v.Store.PutTransaction(_transaction1);
+            v.Store.Transactions.Add(_transaction1);
 
             v.Store.PutBlock(_block2);
             v.Store.AppendIndex(guid, _block2.BlockHash);
-            v.Store.PutTransaction(_transaction2);
+            v.Store.Transactions.Add(_transaction2);
 
             v.Store.PutBlock(_block3);
             v.Store.AppendIndex(guid, _block3.BlockHash);
-            v.Store.PutTransaction(_transaction3);
+            v.Store.Transactions.Add(_transaction3);
 
             v.Store.PutBlock(_block4);
             v.Store.AppendIndex(guid, _block4.BlockHash);

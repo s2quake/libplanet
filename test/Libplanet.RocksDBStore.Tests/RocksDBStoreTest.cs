@@ -1,5 +1,6 @@
 using System.IO;
 using Libplanet.Blockchain;
+using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Extensions;
 using Libplanet.Types.Tx;
@@ -159,15 +160,15 @@ public class RocksDBStoreTest : StoreTest, IDisposable
         };
         try
         {
-            store.PutTransaction(Fx.Transaction1);
-            store.PutTransaction(Fx.Transaction2);
-            store.PutTransaction(Fx.Transaction3);
+            store.Transactions.Add(Fx.Transaction1);
+            store.Transactions.Add(Fx.Transaction2);
+            store.Transactions.Add(Fx.Transaction3);
             store.Dispose();
             store = new Store.Store(new RocksDatabase(path));
 
             Enumerable.Range(0, 3).AsParallel().ForAll(i =>
             {
-                Assert.NotNull(store.GetTransaction(txs[i].Id));
+                Assert.NotNull(store.Transactions[txs[i].Id]);
             });
         }
         finally

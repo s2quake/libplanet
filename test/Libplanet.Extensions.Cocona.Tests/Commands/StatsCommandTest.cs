@@ -1,6 +1,7 @@
 using System.IO;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.RocksDBStore.Tests;
+using Libplanet.Store;
 using Libplanet.Tests.Store;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;
@@ -32,7 +33,7 @@ public class StatsCommandTest : IDisposable
             storeFixture.Store.ChainId = guid;
             storeFixture.Store.PutBlock(storeFixture.Block1);
             storeFixture.Store.AppendIndex(guid, storeFixture.Block1.BlockHash);
-            storeFixture.Store.PutTransaction(storeFixture.Transaction1);
+            storeFixture.Store.Transactions.Add(storeFixture.Transaction1);
         }
     }
 

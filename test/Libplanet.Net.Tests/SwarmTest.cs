@@ -922,9 +922,9 @@ namespace Libplanet.Net.Tests
                 swarmA.BroadcastTxs(new[] { validTx, invalidTx });
                 await swarmB.TxReceived.WaitAsync();
 
-                Assert.Equal(swarmB.BlockChain.GetTransaction(validTx.Id), validTx);
+                Assert.Equal(swarmB.BlockChain.Transactions[validTx.Id], validTx);
                 Assert.Throws<KeyNotFoundException>(
-                    () => swarmB.BlockChain.GetTransaction(invalidTx.Id));
+                    () => swarmB.BlockChain.Transactions[invalidTx.Id]);
 
                 Assert.Contains(validTx.Id, swarmB.BlockChain.GetStagedTransactionIds());
                 Assert.DoesNotContain(invalidTx.Id, swarmB.BlockChain.GetStagedTransactionIds());
@@ -983,7 +983,7 @@ namespace Libplanet.Net.Tests
                 swarmA.BroadcastTxs(new[] { tx });
                 await swarmB.TxReceived.WaitAsync();
 
-                Assert.Throws<KeyNotFoundException>(() => swarmB.BlockChain.GetTransaction(tx.Id));
+                Assert.Throws<KeyNotFoundException>(() => swarmB.BlockChain.Transactions[tx.Id]);
                 Assert.DoesNotContain(tx.Id, swarmB.BlockChain.GetStagedTransactionIds());
             }
             finally
