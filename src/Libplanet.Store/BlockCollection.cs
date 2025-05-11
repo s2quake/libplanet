@@ -6,116 +6,118 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockCollection(Libplanet.Store.Store store, int cacheSize = 4096)
+public sealed class BlockCollection(Store store, int cacheSize = 4096)
     : IReadOnlyDictionary<BlockHash, Block>
 {
-    private readonly Libplanet.Store.Store _store = store;
-    private readonly ICache<BlockHash, Block> _cache = new ConcurrentLruBuilder<BlockHash, Block>()
+    private readonly Store _store = store;
+    private readonly ICache<BlockHash, Block> _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
             .WithCapacity(cacheSize)
             .Build();
 
-    public IEnumerable<BlockHash> Keys => [.. _store.IterateBlockHashes()];
+    private readonly ICache<int, Block> _cacheByHeight = new ConcurrentLruBuilder<int, Block>()
+            .WithCapacity(cacheSize)
+            .Build();
 
-    public IEnumerable<Block> Values =>
-        _store.IterateBlockHashes()
-            .Select(GetBlock)
-            .Where(block => block is { })
-            .Select(block => block!)
-            .ToList();
+    public IEnumerable<BlockHash> Keys => _store.BlockDigests.Keys;
+
+    public IEnumerable<Block> Values => _store.BlockDigests.Values
+            .Select(blockDigest => blockDigest.ToBlock(
+                item => _store.Transactions[item],
+                item => _store.CommittedEvidences[item]));
 
     public int Count => _store.BlockDigests.Count;
+
+    public Block this[int height]
+    {
+        get
+        {
+            if (_cacheByHeight.TryGet(height, out var cached))
+            {
+                return cached;
+            }
+
+            var blockHash = _store.BlockHashes[height];
+            var block = this[blockHash];
+            _cacheByHeight.AddOrUpdate(height, block);
+            return block;
+        }
+    }
 
     public Block this[BlockHash blockHash]
     {
         get
         {
-            Block? block = GetBlock(blockHash);
-            if (block is null)
+            if (_cacheByHash.TryGet(blockHash, out var cached))
             {
-                throw new KeyNotFoundException(
-                    $"The given hash[{blockHash}] was not found in this set.");
+                return cached;
             }
 
-            if (!block.BlockHash.Equals(blockHash))
-            {
-                throw new InvalidOperationException(
-                    $"The given hash[{blockHash}] was not equal to actual[{block.BlockHash}].");
-            }
-
+            var blockDigest = _store.BlockDigests[blockHash];
+            var block = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
+            _cacheByHash.AddOrUpdate(blockHash, block);
             return block;
         }
 
         set
         {
-            if (!value.BlockHash.Equals(blockHash))
+            if (value.BlockHash != blockHash)
             {
-                throw new InvalidOperationException(
-                    $"{value}.hash does not match to {blockHash}");
+                throw new ArgumentException(
+                    $"The block hash of the value ({value.BlockHash}) does not match the key ({blockHash}).");
             }
 
-            value.Header.Timestamp.ValidateTimestamp();
-            _store.PutBlock(value);
-            _cache.AddOrUpdate(value.BlockHash, value);
+            Add(value);
         }
     }
 
-    public bool Contains(KeyValuePair<BlockHash, Block> item) => _store.ContainsBlock(item.Key);
-
-    public bool ContainsKey(BlockHash key) => _store.ContainsBlock(key);
+    public bool ContainsKey(BlockHash blockHash) => _store.BlockDigests.ContainsKey(blockHash);
 
     public bool Remove(BlockHash blockHash)
     {
-        _store.BlockCommits.Remove(blockHash);
-        _store.BlockDigests.Remove(blockHash);
-        _cache.TryRemove(blockHash);
+        if (_store.BlockDigests.Remove(blockHash))
+        {
+            _store.BlockCommits.Remove(blockHash);
+            _cacheByHash.TryRemove(blockHash);
+            _cacheByHeight.TryRemove(_store.BlockHashes.IndexOf(blockHash));
+            return true;
+        }
 
-        return deleted;
+        return false;
     }
 
     public void Add(Block block)
     {
-        _store.BlockDigests.Add(block.BlockHash, (BlockDigest)block);
+        _store.BlockDigests.Add(block);
+        _store.BlockHashes.Add(block);
+        _store.Transactions.Add(block);
+        _store.PendingEvidences.Add(block);
+        _store.CommittedEvidences.Add(block);
+
+        _cacheByHash.AddOrUpdate(block.BlockHash, block);
+        _cacheByHeight.AddOrUpdate(block.Height, block);
     }
 
     public bool TryGetValue(BlockHash key, [MaybeNullWhen(false)] out Block value)
     {
-        if (_cache.TryGet(key, out value))
+        if (_cacheByHash.TryGet(key, out value))
         {
             return true;
         }
 
         if (_store.BlockDigests.TryGetValue(key, out var blockDigest))
         {
-            value = blockDigest;
-            _cache.AddOrUpdate(key, value);
+            value = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
+            _cacheByHash.AddOrUpdate(key, value);
             return true;
         }
+
+        return false;
     }
 
     public void Clear()
     {
-        _cache.Clear();
-        _store.BlockCommits.Clear();
-    }
-
-    public void CopyTo(KeyValuePair<BlockHash, Block>[] array, int arrayIndex)
-    {
-        if (arrayIndex < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-        }
-
-        if (Count > array.Length + arrayIndex)
-        {
-            var message = "The number of elements in the source BlockSet is greater than the " +
-                          "available space from arrayIndex to the end of the destination array.";
-            throw new ArgumentException(message, nameof(array));
-        }
-
-        foreach (KeyValuePair<BlockHash, Block> kv in this)
-        {
-            array[arrayIndex++] = kv;
-        }
+        _cacheByHash.Clear();
+        _store.BlockDigests.Clear();
     }
 
     public IEnumerator<KeyValuePair<BlockHash, Block>> GetEnumerator()
@@ -127,16 +129,4 @@ public sealed class BlockCollection(Libplanet.Store.Store store, int cacheSize =
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    private Block GetBlock(BlockHash blockHash)
-    {
-        if (_cache.TryGet(blockHash, out var cached))
-        {
-            return cached;
-        }
-
-        var block = _store.GetBlock(blockHash);
-        _cache.AddOrUpdate(blockHash, block);
-        return block;
-    }
 }

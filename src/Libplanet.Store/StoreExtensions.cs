@@ -28,15 +28,14 @@ namespace Libplanet.Store
                 throw new ArgumentException("The destination store has to be empty.", nameof(to));
             }
 
+            var fromBlocks = new BlockCollection(from);
+            var toBlocks = new BlockCollection(to);
             foreach (Guid chainId in from.ListChainIds().ToArray())
             {
                 foreach (BlockHash blockHash in from.IterateIndexes(chainId))
                 {
-                    Block block = from.GetBlock(blockHash)
-                        ?? throw new InvalidOperationException(
-                            $"Could not find block with block hash {blockHash} in store.");
-
-                    to.PutBlock(block);
+                    var block = fromBlocks[blockHash];
+                    toBlocks.Add(block);
                     to.AppendIndex(chainId, blockHash);
                 }
 
@@ -65,6 +64,6 @@ namespace Libplanet.Store
         /// not <see langword="null"/> but the corresponding block is not found in store.
         /// </exception>
         public static HashDigest<SHA256> GetStateRootHash(this Libplanet.Store.Store store, BlockHash blockHash)
-            => store.GetBlockDigest(blockHash).StateRootHash;
+            => store.BlockDigests[blockHash].StateRootHash;
     }
 }
