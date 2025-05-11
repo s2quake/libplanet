@@ -50,6 +50,8 @@ public sealed class Store
 
     public BlockCommitCollection BlockCommits => _blockCommits;
 
+    public BlockDigestCollection BlockDigests => _blockDigests;
+
     public Guid ChainId
     {
         get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
@@ -356,7 +358,7 @@ public sealed class Store
 
     // public bool ContainsCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.ContainsKey(evidenceId);
 
-    public long CountBlocks() => IterateBlockHashes().LongCount();
+    // public long CountBlocks() => IterateBlockHashes().LongCount();
 
     public void Dispose()
     {
