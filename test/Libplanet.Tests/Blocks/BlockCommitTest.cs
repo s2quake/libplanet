@@ -1,11 +1,9 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using Org.BouncyCastle.Crypto.Prng;
 
 namespace Libplanet.Tests.Blocks;
 

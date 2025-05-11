@@ -1,6 +1,4 @@
-using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 

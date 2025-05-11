@@ -12,7 +12,6 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
-using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;

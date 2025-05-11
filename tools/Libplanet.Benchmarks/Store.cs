@@ -1,7 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using Bencodex.Types;
-using Libplanet.Action;
-using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;

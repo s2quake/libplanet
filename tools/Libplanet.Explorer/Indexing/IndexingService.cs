@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Store;
 using Microsoft.Extensions.Hosting;
 
 namespace Libplanet.Explorer.Indexing;

@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
@@ -14,9 +13,9 @@ public sealed class Store
 
     private readonly IDatabase _database;
     private readonly TransactionById _transactions;
-    private readonly BlockDigestByBlockHash _blockDigestByBlockHash;
     private readonly TxExecutionByTxId _txExecutions;
     private readonly BlockHashesByTxId _blockHashesByTxId;
+    private readonly BlockDigestByBlockHash _blockDigestByBlockHash;
     private readonly BlockCommitByBlockHash _blockCommitByBlockHash;
     private readonly StateRootHashByBlockHash _stateRootHashByBlockHash;
     private readonly PendingEvidenceCollection _pendingEvidence;

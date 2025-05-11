@@ -1,6 +1,5 @@
 using System.IO;
 using Libplanet.Explorer.Indexing;
-using Libplanet.Store;
 
 namespace Libplanet.Explorer.Tests.Indexing;
 

@@ -1,6 +1,3 @@
-using Libplanet.Serialization;
-using Libplanet.Types.Tx;
-
 namespace Libplanet.Action;
 
 public interface IAction

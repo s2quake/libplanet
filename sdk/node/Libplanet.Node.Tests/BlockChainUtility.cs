@@ -1,6 +1,5 @@
 using Libplanet.Action;
 using Libplanet.Blockchain;
-using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;

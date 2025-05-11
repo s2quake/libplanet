@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using Libplanet.Action;
-using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain;

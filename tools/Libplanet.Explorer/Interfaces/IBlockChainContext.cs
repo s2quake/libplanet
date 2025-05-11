@@ -4,7 +4,6 @@ using Libplanet.Blockchain;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Queries;
 using Libplanet.Net;
-using Libplanet.Store;
 
 namespace Libplanet.Explorer.Interfaces
 {

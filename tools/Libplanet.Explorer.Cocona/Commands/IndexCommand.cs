@@ -3,7 +3,6 @@ using Cocona;
 using Cocona.Help;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Extensions.Cocona;
-using Libplanet.Store;
 using Serilog;
 
 namespace Libplanet.Explorer.Cocona.Commands

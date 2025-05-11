@@ -1,7 +1,5 @@
 using System.IO;
-using System.Reflection;
 using Libplanet.Blockchain;
-using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Extensions;
 using Libplanet.Types.Tx;

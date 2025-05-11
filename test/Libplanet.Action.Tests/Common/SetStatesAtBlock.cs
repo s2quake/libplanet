@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 

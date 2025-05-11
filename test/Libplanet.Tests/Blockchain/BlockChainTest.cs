@@ -6,7 +6,6 @@ using Libplanet.Action.State;
 using Libplanet.Action.Sys;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
-using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
