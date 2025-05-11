@@ -35,7 +35,7 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>
 
     public BlockHash PreviousHash => Header.PreviousHash;
 
-    public static BlockDigest Create(Block block) => new()
+    public static explicit operator BlockDigest(Block block) => new()
     {
         Header = block.Header,
         StateRootHash = block.StateRootHash,

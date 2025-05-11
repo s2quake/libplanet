@@ -27,7 +27,7 @@ public partial class BlockChain
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly BlockChainStates _blockChainStates;
 
-    private readonly BlockSet _blocks;
+    private readonly BlockCollection _blocks;
     private Block _genesis;
 
     private HashDigest<SHA256>? _nextStateRootHash;
@@ -53,7 +53,7 @@ public partial class BlockChain
 
         _blockChainStates = new BlockChainStates(options.Store, StateStore);
 
-        _blocks = new BlockSet(options.Store);
+        _blocks = new BlockCollection(options.Store);
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         _txLock = new object();
 
