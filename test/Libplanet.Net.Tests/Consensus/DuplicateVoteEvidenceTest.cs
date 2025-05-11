@@ -91,7 +91,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 4,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-            Assert.Single(blockChain.GetPendingEvidence());
+            Assert.Single(blockChain.PendingEvidences);
             Assert.Equal(4, consensusContext.Height);
             Assert.Equal(0, consensusContext.Round);
 

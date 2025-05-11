@@ -1069,7 +1069,7 @@ namespace Libplanet.Net.Tests
             var chainC = swarmC.BlockChain;
 
             var evidence = TestEvidence.Create(0, validatorAddress, DateTimeOffset.UtcNow);
-            chainA.AddEvidence(evidence);
+            chainA.PendingEvidences.Add(evidence);
 
             try
             {
@@ -1086,8 +1086,8 @@ namespace Libplanet.Net.Tests
                 await swarmC.EvidenceReceived.WaitAsync(cancellationTokenSource.Token);
                 await swarmB.EvidenceReceived.WaitAsync(cancellationTokenSource.Token);
 
-                Assert.Equal(evidence, chainB.GetPendingEvidence(evidence.Id));
-                Assert.Equal(evidence, chainC.GetPendingEvidence(evidence.Id));
+                Assert.Equal(evidence, chainB.PendingEvidences[evidence.Id]);
+                Assert.Equal(evidence, chainC.PendingEvidences[evidence.Id]);
             }
             finally
             {
