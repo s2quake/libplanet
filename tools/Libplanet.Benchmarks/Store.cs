@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
@@ -129,7 +130,7 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void PutFirstTx()
         {
-            _store.PutTransaction(Txs[0]);
+            _store.Transactions.Add(Txs[0]);
         }
 
         [IterationSetup(
@@ -145,7 +146,7 @@ namespace Libplanet.Benchmarks
             int i = 0;
             foreach (Transaction tx in Txs)
             {
-                _store.PutTransaction(tx);
+                _store.Transactions.Add(tx);
                 i++;
                 if (i >= Txs.Length - 1)
                 {
@@ -157,7 +158,7 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void PutTxOnManyTxs()
         {
-            _store.PutTransaction(Txs[TxsCount - 1]);
+            _store.Transactions.Add(Txs[TxsCount - 1]);
         }
 
         [Benchmark]
@@ -167,7 +168,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetTransaction(Txs[0].Id);
+            return _store.Transactions[Txs[0].Id];
         }
 
         [Benchmark]
@@ -177,7 +178,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetTransaction(Txs[TxsCount - 2].Id);
+            return _store.Transactions[Txs[TxsCount - 2].Id];
         }
 
         [Benchmark]
@@ -187,7 +188,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetTransaction(default);
+            return _store.Transactions[default];
         }
     }
 }

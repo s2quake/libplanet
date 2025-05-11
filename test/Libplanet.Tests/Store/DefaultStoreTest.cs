@@ -32,17 +32,17 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
         var path = Path.Combine(Path.GetTempPath(), $"defaultstore_{Guid.NewGuid()}");
         var store = new Libplanet.Store.Store(new DefaultDatabase(path));
 
-        store.PutTransaction(Fx.Transaction1);
+        store.Transactions.Add(Fx.Transaction1);
 
         // If CWD is changed after DefaultStore instance was created
         // the instance should work as it had been.
-        store.PutTransaction(Fx.Transaction2);
+        store.Transactions.Add(Fx.Transaction2);
 
         // The following `identicalStore' instance should be identical to
         // the `store' instance above, i.e., views the same data.
         var identicalStore = new Libplanet.Store.Store(new DefaultDatabase(path));
-        Assert.Equal(Fx.Transaction1, identicalStore.GetTransaction(Fx.Transaction1.Id));
-        Assert.Equal(Fx.Transaction2, identicalStore.GetTransaction(Fx.Transaction2.Id));
+        Assert.Equal(Fx.Transaction1, identicalStore.Transactions[Fx.Transaction1.Id]);
+        Assert.Equal(Fx.Transaction2, identicalStore.Transactions[Fx.Transaction2.Id]);
     }
 
     // [Fact]

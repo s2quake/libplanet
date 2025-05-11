@@ -12,7 +12,7 @@ public sealed class Store
     private const string TxNonceIdPrefix = "nonce_";
 
     private readonly IDatabase _database;
-    private readonly TransactionById _transactions;
+    private readonly TransactionCollection _transactions;
     private readonly TxExecutionByTxId _txExecutions;
     private readonly BlockHashesByTxId _blockHashesByTxId;
     private readonly BlockDigestByBlockHash _blockDigestByBlockHash;
@@ -29,7 +29,7 @@ public sealed class Store
     public Store(IDatabase database)
     {
         _database = database;
-        _transactions = new TransactionById(_database.GetOrAdd("tx"));
+        _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
         _blockDigestByBlockHash = new BlockDigestByBlockHash(_database.GetOrAdd("block"));
         _txExecutions = new TxExecutionByTxId(_database.GetOrAdd("txexec"));
         _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
@@ -46,6 +46,8 @@ public sealed class Store
 
     public CommittedEvidenceCollection CommittedEvidences => _committedEvidence;
 
+    public TransactionCollection Transactions => _transactions;
+
     public Guid ChainId
     {
         get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
@@ -61,7 +63,7 @@ public sealed class Store
     }
 
     public Block GetBlock(BlockHash blockHash)
-        => GetBlockDigest(blockHash).ToBlock(GetTransaction, item => CommittedEvidences[item]);
+        => GetBlockDigest(blockHash).ToBlock(item => Transactions[item], item => CommittedEvidences[item]);
 
     public int GetBlockHeight(BlockHash blockHash)
     {
@@ -176,11 +178,11 @@ public sealed class Store
         AppendIndex(destinationChainId, branchpoint);
     }
 
-    public Transaction GetTransaction(TxId txId) => _transactions[txId];
+    // public Transaction GetTransaction(TxId txId) => _transactions[txId];
 
-    public void PutTransaction(Transaction tx) => _transactions[tx.Id] = tx;
+    // public void PutTransaction(Transaction tx) => _transactions[tx.Id] = tx;
 
-    public bool ContainsTransaction(TxId txId) => _transactions.ContainsKey(txId);
+    // public bool ContainsTransaction(TxId txId) => _transactions.ContainsKey(txId);
 
     public IEnumerable<BlockHash> IterateBlockHashes() => _blockDigestByBlockHash.Keys;
 
@@ -190,9 +192,15 @@ public sealed class Store
     {
         _blockDigestByBlockHash.Add(block.BlockHash, BlockDigest.Create(block));
 
-        foreach (Transaction tx in block.Transactions)
+        foreach (var transaction in block.Transactions)
         {
-            PutTransaction(tx);
+            _transactions[transaction.Id] = transaction;
+        }
+
+        foreach (var evidence in block.Evidences)
+        {
+            CommittedEvidences.Add(evidence);
+            PendingEvidences.Remove(evidence);
         }
     }
 

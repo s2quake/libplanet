@@ -479,33 +479,33 @@ public abstract class StoreTest
     [Fact]
     public void StoreTx()
     {
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTransaction(Fx.Transaction1.Id));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTransaction(Fx.Transaction2.Id));
-        Assert.False(Fx.Store.ContainsTransaction(Fx.Transaction1.Id));
-        Assert.False(Fx.Store.ContainsTransaction(Fx.Transaction2.Id));
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Transactions[Fx.Transaction1.Id]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Transactions[Fx.Transaction2.Id]);
+        Assert.False(Fx.Store.Transactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.False(Fx.Store.Transactions.ContainsKey(Fx.Transaction2.Id));
 
-        Fx.Store.PutTransaction(Fx.Transaction1);
+        Fx.Store.Transactions.Add(Fx.Transaction1);
         Assert.Equal(
             Fx.Transaction1,
-            Fx.Store.GetTransaction(Fx.Transaction1.Id));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTransaction(Fx.Transaction2.Id));
-        Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction1.Id));
-        Assert.False(Fx.Store.ContainsTransaction(Fx.Transaction2.Id));
+            Fx.Store.Transactions[Fx.Transaction1.Id]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Transactions[Fx.Transaction2.Id]);
+        Assert.True(Fx.Store.Transactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.False(Fx.Store.Transactions.ContainsKey(Fx.Transaction2.Id));
 
-        Fx.Store.PutTransaction(Fx.Transaction2);
+        Fx.Store.Transactions.Add(Fx.Transaction2);
         Assert.Equal(
             Fx.Transaction1,
-            Fx.Store.GetTransaction(Fx.Transaction1.Id));
+            Fx.Store.Transactions[Fx.Transaction1.Id]);
         Assert.Equal(
             Fx.Transaction2,
-            Fx.Store.GetTransaction(Fx.Transaction2.Id));
-        Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction1.Id));
-        Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction2.Id));
+            Fx.Store.Transactions[Fx.Transaction2.Id]);
+        Assert.True(Fx.Store.Transactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.True(Fx.Store.Transactions.ContainsKey(Fx.Transaction2.Id));
 
         Assert.Equal(
             Fx.Transaction2,
-            Fx.Store.GetTransaction(Fx.Transaction2.Id));
-        Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction2.Id));
+            Fx.Store.Transactions[Fx.Transaction2.Id]);
+        Assert.True(Fx.Store.Transactions.ContainsKey(Fx.Transaction2.Id));
     }
 
     [Fact]
@@ -680,13 +680,13 @@ public abstract class StoreTest
     [Fact]
     public void ContainsTransactionWithoutCache()
     {
-        Fx.Store.PutTransaction(Fx.Transaction1);
-        Fx.Store.PutTransaction(Fx.Transaction2);
-        Fx.Store.PutTransaction(Fx.Transaction3);
+        Fx.Store.Transactions.Add(Fx.Transaction1);
+        Fx.Store.Transactions.Add(Fx.Transaction2);
+        Fx.Store.Transactions.Add(Fx.Transaction3);
 
-        Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction1.Id));
-        Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction2.Id));
-        Assert.True(Fx.Store.ContainsTransaction(Fx.Transaction3.Id));
+        Assert.True(Fx.Store.Transactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.True(Fx.Store.Transactions.ContainsKey(Fx.Transaction2.Id));
+        Assert.True(Fx.Store.Transactions.ContainsKey(Fx.Transaction3.Id));
     }
 
     [Fact]
@@ -735,13 +735,13 @@ public abstract class StoreTest
                 Transaction tx;
                 for (int j = 0; j < 50; j++)
                 {
-                    Fx.Store.PutTransaction(commonTx);
+                    Fx.Store.Transactions.Add(commonTx);
                 }
 
                 for (int j = 0; j < txCount; j++)
                 {
                     tx = MakeTx(random, md5, key, j + 1);
-                    Fx.Store.PutTransaction(tx);
+                    Fx.Store.Transactions.Add(tx);
                 }
             });
             task.Start();

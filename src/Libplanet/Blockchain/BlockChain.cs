@@ -97,6 +97,8 @@ public partial class BlockChain
 
     public StagedTransactionCollection StagedTransactions { get; }
 
+    public IReadOnlyDictionary<TxId, Transaction> Transactions => Store.Transactions;
+
     public Block Tip => this[-1];
 
     public Block Genesis => _genesis ??= this[0];
@@ -230,28 +232,28 @@ public partial class BlockChain
         }
     }
 
-    public Transaction GetTransaction(TxId txId)
-    {
-        if (StagedTransactions.Get(txId) is { } tx)
-        {
-            return tx;
-        }
+    // public Transaction GetTransaction(TxId txId)
+    // {
+    //     if (StagedTransactions.Get(txId) is { } tx)
+    //     {
+    //         return tx;
+    //     }
 
-        _rwlock.EnterReadLock();
-        try
-        {
-            if (Store.GetTransaction(txId) is { } transaction)
-            {
-                return transaction;
-            }
+    //     _rwlock.EnterReadLock();
+    //     try
+    //     {
+    //         if (Store.GetTransaction(txId) is { } transaction)
+    //         {
+    //             return transaction;
+    //         }
 
-            throw new KeyNotFoundException($"No such transaction: {txId}");
-        }
-        finally
-        {
-            _rwlock.ExitReadLock();
-        }
-    }
+    //         throw new KeyNotFoundException($"No such transaction: {txId}");
+    //     }
+    //     finally
+    //     {
+    //         _rwlock.ExitReadLock();
+    //     }
+    // }
 
     public TxExecution GetTxExecution(BlockHash blockHash, TxId txid) => Store.GetTxExecution(blockHash, txid);
 

@@ -199,7 +199,7 @@ namespace Libplanet.Net
                 {
                     try
                     {
-                        Transaction tx = BlockChain.GetTransaction(txid);
+                        Transaction tx = BlockChain.Transactions[txid];
 
                         if (tx is null)
                         {

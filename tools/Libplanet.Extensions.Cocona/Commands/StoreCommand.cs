@@ -190,7 +190,7 @@ public class StoreCommand
 
     private static Transaction GetTransaction(Libplanet.Store.Store store, TxId txId)
     {
-        if (!(store.GetTransaction(txId) is { } tx))
+        if (!store.Transactions.TryGetValue(txId, out var tx))
         {
             throw Utils.Error($"cannot find the tx with the tx id[{txId.ToString()}]");
         }
