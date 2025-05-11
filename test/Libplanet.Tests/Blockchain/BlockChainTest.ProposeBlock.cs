@@ -41,7 +41,7 @@ public partial class BlockChainTest
         Block anotherBlock = _blockChain.ProposeBlock(
             proposerB,
             CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
         _blockChain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
         Assert.True(_blockChain.ContainsBlock(anotherBlock.BlockHash));
         Assert.Equal(3, _blockChain.Count);
@@ -56,7 +56,7 @@ public partial class BlockChainTest
         Block block3 = _blockChain.ProposeBlock(
             new PrivateKey(),
             CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
         Assert.False(_blockChain.ContainsBlock(block3.BlockHash));
         Assert.Equal(3, _blockChain.Count);
         Assert.True(
@@ -90,7 +90,7 @@ public partial class BlockChainTest
         Block block4 = _blockChain.ProposeBlock(
             proposer: new PrivateKey(),
             lastCommit: CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
-            evidences: [.. _blockChain.GetPendingEvidence()]);
+            evidences: [.. _blockChain.PendingEvidences.Values]);
         Assert.False(_blockChain.ContainsBlock(block4.BlockHash));
         _logger.Debug(
             $"{nameof(block4)}: {0} bytes",
@@ -425,7 +425,7 @@ public partial class BlockChainTest
                 _blockChain.Tip.BlockHash,
                 _blockChain.Tip.Height,
                 0),
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
         _blockChain.Append(block2, CreateBlockCommit(block2));
 
         Assert.Empty(block2.Transactions);
@@ -458,7 +458,7 @@ public partial class BlockChainTest
         var block = blockChain.ProposeBlock(
             privateKey1,
             CreateBlockCommit(_blockChain.Tip),
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
         blockChain.Append(block, CreateBlockCommit(block));
 
         var state1 = blockChain
@@ -479,7 +479,7 @@ public partial class BlockChainTest
         block = blockChain.ProposeBlock(
             privateKey1,
             CreateBlockCommit(_blockChain.Tip),
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
         blockChain.Append(block, CreateBlockCommit(block));
 
         state1 = blockChain
@@ -559,7 +559,7 @@ public partial class BlockChainTest
         Block block = _blockChain.ProposeBlock(
             new PrivateKey(),
             blockCommit,
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
 
         Assert.NotNull(block.LastCommit);
         Assert.Equal(block.LastCommit, blockCommit);
@@ -589,7 +589,7 @@ public partial class BlockChainTest
         Block b2 = _blockChain.ProposeBlock(
             new PrivateKey(),
             CreateBlockCommit(b1),
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
         Assert.Single(b2.Transactions);
         Assert.Contains(txsB[3], b2.Transactions);
     }
@@ -730,7 +730,7 @@ public partial class BlockChainTest
         var block = _blockChain.ProposeBlock(
             new PrivateKey(),
             CreateBlockCommit(_blockChain.Tip),
-            [.. _blockChain.GetPendingEvidence()]);
+            [.. _blockChain.PendingEvidences.Values]);
 
         Assert.DoesNotContain(txWithInvalidNonce, block.Transactions);
         Assert.DoesNotContain(txWithInvalidAction, block.Transactions);

@@ -1,5 +1,6 @@
 using System.Globalization;
 using global::Cocona;
+using Libplanet.Store;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
@@ -85,7 +86,8 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Store store = new Libplanet.Store.Store(new MemoryDatabase());
         var txId = TxId.Parse(strTxId);
         if (!(store.GetFirstTxIdBlockHashIndex(txId) is { }))
         {
@@ -104,7 +106,8 @@ public class StoreCommand
         [Argument("BLOCK-INDEX", Description = "block height")]
         int blockHeight)
     {
-        using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Store store = new Libplanet.Store.Store(new MemoryDatabase());
         var blockHash = GetBlockHash(store, blockHeight);
         var block = GetBlock(store, blockHash);
         Console.WriteLine(Utils.SerializeHumanReadable(block));
@@ -117,7 +120,8 @@ public class StoreCommand
         [Argument("BLOCK-HASH", Description = "block hash")]
         string blockHash)
     {
-        using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Store store = new Libplanet.Store.Store(new MemoryDatabase());
         var block = GetBlock(store, BlockHash.Parse(blockHash));
         Console.WriteLine(Utils.SerializeHumanReadable(block));
     }

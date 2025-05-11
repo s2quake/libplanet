@@ -119,7 +119,7 @@ namespace Libplanet.Explorer.Queries
 
             var blockChain = Chain;
             var comparer = desc ? EvidenceIdComparer.Descending : EvidenceIdComparer.Ascending;
-            var evidence = blockChain.GetPendingEvidence()
+            var evidence = blockChain.PendingEvidences.Values
                                       .Skip(offset)
                                       .Take(limit ?? int.MaxValue)
                                       .OrderBy(ev => ev.Id, comparer);
@@ -147,7 +147,7 @@ namespace Libplanet.Explorer.Queries
 
         internal static Transaction GetTransaction(TxId id) => Chain.GetTransaction(id);
 
-        internal static EvidenceBase GetEvidence(EvidenceId id) => Chain.GetCommittedEvidence(id);
+        internal static EvidenceBase GetEvidence(EvidenceId id) => Chain.CommittedEvidences[id];
 
         private static Block? GetNextBlock(Block block, bool desc)
         {

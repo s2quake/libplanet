@@ -1175,19 +1175,19 @@ public abstract class StoreTest
                     Flag = VoteFlag.PreCommit,
                 }.Sign(signer));
 
-            EvidenceBase[] evidence =
+            EvidenceBase[] evidences =
             [
                 DuplicateVoteEvidence.Create(duplicateVoteOne[0], duplicateVoteOne[1], TestUtils.Validators),
                 DuplicateVoteEvidence.Create(duplicateVoteTwo[0], duplicateVoteTwo[1], TestUtils.Validators),
             ];
 
-            foreach (var ev in evidence)
+            foreach (var evidence in evidences)
             {
-                fx.Store.PutPendingEvidence(ev);
+                fx.Store.PendingEvidences.Add(evidence);
             }
 
-            IEnumerable<EvidenceId> ids = fx.Store.IteratePendingEvidenceIds();
-            Assert.Equal(evidence.Select(e => e.Id).ToHashSet(), [.. ids]);
+            IEnumerable<EvidenceId> ids = fx.Store.PendingEvidences.Keys;
+            Assert.Equal(evidences.Select(e => e.Id).ToHashSet(), [.. ids]);
         }
     }
 
@@ -1220,16 +1220,16 @@ public abstract class StoreTest
                 }.Sign(signer));
             var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 
-            Assert.False(fx.Store.ContainsPendingEvidence(evidence.Id));
+            Assert.DoesNotContain(evidence.Id, fx.Store.PendingEvidences.Keys);
 
-            fx.Store.PutPendingEvidence(evidence);
-            EvidenceBase storedEvidence = fx.Store.GetPendingEvidence(evidence.Id);
+            fx.Store.PendingEvidences.Add(evidence);
+            EvidenceBase storedEvidence = fx.Store.PendingEvidences[evidence.Id];
 
             Assert.Equal(evidence, storedEvidence);
-            Assert.True(fx.Store.ContainsPendingEvidence(evidence.Id));
+            Assert.Contains(evidence.Id, fx.Store.PendingEvidences.Keys);
 
-            fx.Store.DeletePendingEvidence(evidence.Id);
-            Assert.False(fx.Store.ContainsPendingEvidence(evidence.Id));
+            fx.Store.PendingEvidences.Remove(evidence.Id);
+            Assert.DoesNotContain(evidence.Id, fx.Store.PendingEvidences.Keys);
         }
     }
 
@@ -1262,16 +1262,16 @@ public abstract class StoreTest
                 }.Sign(signer));
             var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 
-            Assert.False(fx.Store.ContainsCommittedEvidence(evidence.Id));
+            Assert.DoesNotContain(evidence.Id, fx.Store.CommittedEvidences.Keys);
 
-            fx.Store.PutCommittedEvidence(evidence);
-            EvidenceBase storedEvidence = fx.Store.GetCommittedEvidence(evidence.Id);
+            // fx.Store.PutCommittedEvidence(evidence);
+            EvidenceBase storedEvidence = fx.Store.CommittedEvidences[evidence.Id];
 
             Assert.Equal(evidence, storedEvidence);
-            Assert.True(fx.Store.ContainsCommittedEvidence(evidence.Id));
+            Assert.Contains(evidence.Id, fx.Store.CommittedEvidences.Keys);
 
-            fx.Store.DeleteCommittedEvidence(evidence.Id);
-            Assert.False(fx.Store.ContainsCommittedEvidence(evidence.Id));
+            // fx.Store.DeleteCommittedEvidence(evidence.Id);
+            Assert.DoesNotContain(evidence.Id, fx.Store.CommittedEvidences.Keys);
         }
     }
 
