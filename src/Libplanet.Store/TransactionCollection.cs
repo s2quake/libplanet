@@ -1,5 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
@@ -7,6 +8,14 @@ namespace Libplanet.Store;
 public sealed class TransactionCollection(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<TxId, Transaction>(dictionary)
 {
+    public void Add(Block block)
+    {
+        foreach (var transaction in block.Transactions)
+        {
+            Add(transaction.Id, transaction);
+        }
+    }
+
     protected override byte[] GetBytes(Transaction value) => ModelSerializer.SerializeToBytes(value);
 
     protected override TxId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);

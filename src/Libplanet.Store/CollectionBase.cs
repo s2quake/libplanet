@@ -25,7 +25,7 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
 
     public ICollection<TKey> Keys => _keys;
 
-    ICollection<TValue> IDictionary<TKey, TValue>.Values => _values;
+    public ICollection<TValue> Values => _values;
 
     public int Count => _dictionary.Count;
 

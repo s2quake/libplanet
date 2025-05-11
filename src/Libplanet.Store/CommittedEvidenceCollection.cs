@@ -1,5 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Evidence;
 
 namespace Libplanet.Store;
@@ -7,6 +8,14 @@ namespace Libplanet.Store;
 public sealed class CommittedEvidenceCollection(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<EvidenceId, EvidenceBase>(dictionary)
 {
+    public void Add(Block block)
+    {
+        foreach (var evidence in block.Evidences)
+        {
+            Add(evidence.Id, evidence);
+        }
+    }
+
     protected override byte[] GetBytes(EvidenceBase value) => ModelSerializer.SerializeToBytes(value);
 
     protected override EvidenceId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);

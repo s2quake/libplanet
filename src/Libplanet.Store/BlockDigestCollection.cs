@@ -7,6 +7,8 @@ namespace Libplanet.Store;
 public sealed class BlockDigestCollection(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<BlockHash, BlockDigest>(dictionary)
 {
+    public void Add(Block block) => Add(block.BlockHash, (BlockDigest)block);
+
     protected override byte[] GetBytes(BlockDigest value) => ModelSerializer.SerializeToBytes(value);
 
     protected override BlockHash GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);

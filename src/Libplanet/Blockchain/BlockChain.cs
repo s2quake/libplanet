@@ -53,7 +53,7 @@ public partial class BlockChain
 
         _blockChainStates = new BlockChainStates(options.Store, StateStore);
 
-        _blocks = new BlockCollection(options.Store);
+        _blocks = options.Store.Blocks;
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         _txLock = new object();
 
@@ -106,15 +106,17 @@ public partial class BlockChain
 
     public Guid Id { get; private set; }
 
-    public IEnumerable<BlockHash> BlockHashes => IterateBlockHashes();
+    // public IEnumerable<BlockHash> BlockHashes => IterateBlockHashes();
 
-    public int Count => Store.CountIndex(Id);
+    // public int Count => Store.CountIndex(Id);
 
     internal Store.Store Store { get; }
 
     internal TrieStateStore StateStore { get; }
 
     internal ActionEvaluator ActionEvaluator { get; }
+
+    public BlockCollection Blocks => _blocks;
 
     internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
 
@@ -137,27 +139,27 @@ public partial class BlockChain
         }
     }
 
-    public Block this[in BlockHash blockHash]
-    {
-        get
-        {
-            if (!ContainsBlock(blockHash))
-            {
-                throw new KeyNotFoundException(
-                    $"The given hash[{blockHash}] was not found in this chain.");
-            }
+    // public Block this[in BlockHash blockHash]
+    // {
+    //     get
+    //     {
+    //         if (!ContainsBlock(blockHash))
+    //         {
+    //             throw new KeyNotFoundException(
+    //                 $"The given hash[{blockHash}] was not found in this chain.");
+    //         }
 
-            _rwlock.EnterReadLock();
-            try
-            {
-                return _blocks[blockHash];
-            }
-            finally
-            {
-                _rwlock.ExitReadLock();
-            }
-        }
-    }
+    //         _rwlock.EnterReadLock();
+    //         try
+    //         {
+    //             return _blocks[blockHash];
+    //         }
+    //         finally
+    //         {
+    //             _rwlock.ExitReadLock();
+    //         }
+    //     }
+    // }
 
     public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
     {
@@ -198,7 +200,8 @@ public partial class BlockChain
         ValidateGenesis(genesisBlock);
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
-        options.Store.PutBlock(genesisBlock);
+        // _blocks.Add(genesisBlock);
+        options.Store.Blocks.Add(genesisBlock);
         options.Store.AppendIndex(id, genesisBlock.BlockHash);
 
         foreach (var tx in genesisBlock.Transactions)
@@ -216,22 +219,22 @@ public partial class BlockChain
         return new BlockChain(genesisBlock, id, options);
     }
 
-    public bool ContainsBlock(BlockHash blockHash)
-    {
-        _rwlock.EnterReadLock();
-        try
-        {
-            return
-                _blocks.ContainsKey(blockHash) &&
-                Store.GetBlockHeight(blockHash) is { } branchPointIndex &&
-                branchPointIndex <= Tip.Height &&
-                Store.GetBlockHash(Id, branchPointIndex).Equals(blockHash);
-        }
-        finally
-        {
-            _rwlock.ExitReadLock();
-        }
-    }
+    // public bool ContainsBlock(BlockHash blockHash)
+    // {
+    //     _rwlock.EnterReadLock();
+    //     try
+    //     {
+    //         return
+    //             _blocks.ContainsKey(blockHash) &&
+    //             Store.GetBlockHeight(blockHash) is { } branchPointIndex &&
+    //             branchPointIndex <= Tip.Height &&
+    //             Store.GetBlockHash(Id, branchPointIndex).Equals(blockHash);
+    //     }
+    //     finally
+    //     {
+    //         _rwlock.ExitReadLock();
+    //     }
+    // }
 
     // public Transaction GetTransaction(TxId txId)
     // {
@@ -382,7 +385,7 @@ public partial class BlockChain
             : this[index + 1].LastCommit;
     }
 
-    public BlockCommit GetBlockCommit(BlockHash blockHash) => GetBlockCommit(this[blockHash].Height);
+    public BlockCommit GetBlockCommit(BlockHash blockHash) => Store.BlockCommits[blockHash];
 
     internal void Append(
         Block block,
@@ -579,7 +582,7 @@ public partial class BlockChain
         bool render,
         IReadOnlyList<CommittedActionEvaluation> actionEvaluations = null)
     {
-        if (Count == 0)
+        if (_blocks.Count == 0)
         {
             throw new ArgumentException(
                 "Cannot append a block to an empty chain.");
@@ -777,7 +780,7 @@ public partial class BlockChain
 
     internal BlockHash? FindBranchpoint(BlockLocator locator)
     {
-        if (ContainsBlock(locator.Hash))
+        if (_blocks.ContainsKey(locator.Hash))
         {
             _logger.Debug(
                 "Found a branchpoint with locator [{LocatorHead}]: {Hash}",
@@ -883,8 +886,7 @@ public partial class BlockChain
     internal HashDigest<SHA256>? GetNextStateRootHash(int index) =>
         GetNextStateRootHash(this[index]);
 
-    internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) =>
-        GetNextStateRootHash(this[blockHash]);
+    internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(_blocks[blockHash]);
 
     internal ImmutableSortedSet<Validator> GetValidatorSet(int index)
     {
