@@ -122,47 +122,6 @@ public partial class BlockChain
 
     internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
 
-    // public Block this[int height]
-    // {
-    //     get
-    //     {
-    //         _rwlock.EnterReadLock();
-    //         try
-    //         {
-    //             BlockHash? blockHash = Store.GetBlockHash(Id, height);
-    //             return blockHash is { } bh
-    //                 ? _blocks[bh]
-    //                 : throw new ArgumentOutOfRangeException();
-    //         }
-    //         finally
-    //         {
-    //             _rwlock.ExitReadLock();
-    //         }
-    //     }
-    // }
-
-    // public Block this[in BlockHash blockHash]
-    // {
-    //     get
-    //     {
-    //         if (!ContainsBlock(blockHash))
-    //         {
-    //             throw new KeyNotFoundException(
-    //                 $"The given hash[{blockHash}] was not found in this chain.");
-    //         }
-
-    //         _rwlock.EnterReadLock();
-    //         try
-    //         {
-    //             return _blocks[blockHash];
-    //         }
-    //         finally
-    //         {
-    //             _rwlock.ExitReadLock();
-    //         }
-    //     }
-    // }
-
     public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
     {
         if (options.Store.ChainId is { } canonId && canonId != Guid.Empty)
@@ -206,10 +165,10 @@ public partial class BlockChain
         options.Store.Blocks.Add(genesisBlock);
         // options.Store.AppendIndex(id, genesisBlock.BlockHash);
 
-        foreach (var tx in genesisBlock.Transactions)
-        {
-            options.Store.PutTxIdBlockHashIndex(tx.Id, genesisBlock.BlockHash);
-        }
+        // foreach (var tx in genesisBlock.Transactions)
+        // {
+        //     options.Store.BlockHashByTxId.Add(tx.Id, genesisBlock.BlockHash);
+        // }
 
         foreach (KeyValuePair<Address, long> pair in nonceDeltas)
         {
@@ -221,52 +180,7 @@ public partial class BlockChain
         return new BlockChain(genesisBlock, id, options);
     }
 
-    // public bool ContainsBlock(BlockHash blockHash)
-    // {
-    //     _rwlock.EnterReadLock();
-    //     try
-    //     {
-    //         return
-    //             _blocks.ContainsKey(blockHash) &&
-    //             Store.GetBlockHeight(blockHash) is { } branchPointIndex &&
-    //             branchPointIndex <= Tip.Height &&
-    //             Store.GetBlockHash(Id, branchPointIndex).Equals(blockHash);
-    //     }
-    //     finally
-    //     {
-    //         _rwlock.ExitReadLock();
-    //     }
-    // }
-
-    // public Transaction GetTransaction(TxId txId)
-    // {
-    //     if (StagedTransactions.Get(txId) is { } tx)
-    //     {
-    //         return tx;
-    //     }
-
-    //     _rwlock.EnterReadLock();
-    //     try
-    //     {
-    //         if (Store.GetTransaction(txId) is { } transaction)
-    //         {
-    //             return transaction;
-    //         }
-
-    //         throw new KeyNotFoundException($"No such transaction: {txId}");
-    //     }
-    //     finally
-    //     {
-    //         _rwlock.ExitReadLock();
-    //     }
-    // }
-
-    // public TxExecution GetTxExecution(BlockHash blockHash, TxId txid) => Store.GetTxExecution(blockHash, txid);
-
-    public void Append(
-        Block block,
-        BlockCommit blockCommit,
-        bool validate = true)
+    public void Append(Block block, BlockCommit blockCommit, bool validate = true)
     {
         Append(block, blockCommit, render: true, validate: validate);
     }
@@ -480,10 +394,10 @@ public partial class BlockChain
                     Store.Nonces.Increase(pair.Key, pair.Value);
                 }
 
-                foreach (var tx in block.Transactions)
-                {
-                    Store.PutTxIdBlockHashIndex(tx.Id, block.BlockHash);
-                }
+                // foreach (var tx in block.Transactions)
+                // {
+                //     Store.BlockHashByTxId.Add(tx.Id, block.BlockHash);
+                // }
 
                 if (block.Height != 0 && blockCommit is { })
                 {
@@ -662,10 +576,10 @@ public partial class BlockChain
                     Store.Nonces.Increase(pair.Key, pair.Value);
                 }
 
-                foreach (var tx in block.Transactions)
-                {
-                    Store.PutTxIdBlockHashIndex(tx.Id, block.BlockHash);
-                }
+                // foreach (var tx in block.Transactions)
+                // {
+                //     Store.BlockHashByTxId.Add(tx.Id, block.BlockHash);
+                // }
 
                 if (block.Height != 0 && blockCommit is { })
                 {

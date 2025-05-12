@@ -5,15 +5,46 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-internal sealed class BlockHashesByTxId(IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<TxId, ImmutableArray<BlockHash>>(dictionary)
+public sealed class BlockHashesByTxId(IDictionary<KeyBytes, byte[]> dictionary)
+    : CollectionBase<TxId, ImmutableSortedSet<BlockHash>>(dictionary)
 {
-    protected override byte[] GetBytes(ImmutableArray<BlockHash> value) => ModelSerializer.SerializeToBytes(value);
+    public void Add(TxId txId, BlockHash blockHash)
+    {
+        if (TryGetValue(txId, out ImmutableSortedSet<BlockHash>? blockHashes))
+        {
+            blockHashes = blockHashes.Add(blockHash);
+        }
+        else
+        {
+            blockHashes = [blockHash];
+        }
+
+        Add(txId, blockHashes);
+    }
+
+    public void Remove(TxId txId, BlockHash blockHash)
+    {
+        if (TryGetValue(txId, out ImmutableSortedSet<BlockHash>? blockHashes))
+        {
+            blockHashes = blockHashes.Remove(blockHash);
+            if (blockHashes.IsEmpty)
+            {
+                Remove(txId);
+            }
+            else
+            {
+                Add(txId, blockHashes);
+            }
+        }
+    }
+
+    protected override byte[] GetBytes(ImmutableSortedSet<BlockHash> value)
+        => ModelSerializer.SerializeToBytes(value.ToArray());
 
     protected override TxId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);
 
     protected override KeyBytes GetKeyBytes(TxId key) => new(key.Bytes);
 
-    protected override ImmutableArray<BlockHash> GetValue(byte[] bytes)
-        => ModelSerializer.DeserializeFromBytes<ImmutableArray<BlockHash>>(bytes);
+    protected override ImmutableSortedSet<BlockHash> GetValue(byte[] bytes)
+        => ModelSerializer.DeserializeFromBytes<ImmutableSortedSet<BlockHash>>(bytes);
 }

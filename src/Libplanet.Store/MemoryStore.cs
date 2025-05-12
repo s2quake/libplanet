@@ -184,13 +184,13 @@
 //             : throw new KeyNotFoundException(
 //                 $"The transaction ID {txId} is not found in the block {blockHash}.");
 
-//     void Libplanet.Store.Store.PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash) =>
+//     void Libplanet.Store.Store.BlockHashByTxId.Add(TxId txId, BlockHash blockHash) =>
 //         _txBlockIndexes.AddOrUpdate(
 //             txId,
 //             _ => ImmutableHashSet.Create(blockHash),
 //             (_, set) => set.Add(blockHash));
 
-//     BlockHash Libplanet.Store.Store.GetFirstTxIdBlockHashIndex(TxId txId) =>
+//     BlockHash Libplanet.Store.Store.BlockHashByTxId[TxId txId] =>
 //         _txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set) && set.Any()
 //             ? set.First()
 //             : throw new KeyNotFoundException(
@@ -201,7 +201,7 @@
 //             ? set
 //             : Enumerable.Empty<BlockHash>();
 
-//     void Libplanet.Store.Store.DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     void Libplanet.Store.Store.BlockHashByTxId.Remove(TxId txId, BlockHash blockHash)
 //     {
 //         while (_txBlockIndexes.TryGetValue(txId, out ImmutableHashSet<BlockHash>? set) &&
 //                set.Contains(blockHash))

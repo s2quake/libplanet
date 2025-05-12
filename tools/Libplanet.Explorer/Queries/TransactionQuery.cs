@@ -256,7 +256,7 @@ namespace Libplanet.Explorer.Queries
             }
 
             // If not found in index, search Libplanet.Store.Store directly.
-            var blockHashCandidates = context.Store.IterateTxIdBlockHashIndex(txId);
+            var blockHashCandidates = context.Store.BlockHashesByTxId[txId];
             foreach (var blockHashCandidate in blockHashCandidates)
             {
                 if (context.BlockChain.Blocks.ContainsKey(blockHashCandidate))
