@@ -8,50 +8,50 @@ public sealed class Store
     private static readonly object _lock = new();
 
     private readonly IDatabase _database;
-    private readonly TransactionCollection _transactions;
-    private readonly TxExecutionCollection _txExecutions;
-    private readonly BlockDigestCollection _blockDigests;
-    private readonly BlockCommitCollection _blockCommits;
-    private readonly PendingEvidenceCollection _pendingEvidences;
-    private readonly CommittedEvidenceCollection _committedEvidences;
+    private readonly TransactionStore _transactions;
+    private readonly TxExecutionStore _txExecutions;
+    private readonly BlockDigestStore _blockDigests;
+    private readonly BlockCommitStore _blockCommits;
+    private readonly PendingEvidenceStore _pendingEvidences;
+    private readonly CommittedEvidenceStore _committedEvidences;
     private readonly ChainDigestCollection _chainDigests;
-    private readonly StringCollection _metadata;
+    private readonly MetadataStore _metadata;
     private readonly BlockHashesByTxId _blockHashesByTxId;
-    private BlockCollection? _blocks;
+    private BlockStore? _blocks;
     private BlockHashCollection? _blockHashes;
     private NonceCollection? _nonces;
 
     private readonly ConcurrentDictionary<Guid, NonceCollection> _noncesByChainId = new();
     private readonly ConcurrentDictionary<Guid, BlockHashCollection> _blockHashByChainId = new();
-    private readonly ConcurrentDictionary<Guid, BlockCollection> _blocksByChainId = new();
+    private readonly ConcurrentDictionary<Guid, BlockStore> _blocksByChainId = new();
 
     private bool _disposed;
 
     public Store(IDatabase database)
     {
         _database = database;
-        _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
-        _blockDigests = new BlockDigestCollection(_database.GetOrAdd("block"));
-        _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
-        _blockCommits = new BlockCommitCollection(_database.GetOrAdd("blockcommit"));
-        _pendingEvidences = new PendingEvidenceCollection(_database.GetOrAdd("evidencep"));
-        _committedEvidences = new CommittedEvidenceCollection(_database.GetOrAdd("evidencec"));
+        _transactions = new TransactionStore(_database.GetOrAdd("tx"));
+        _blockDigests = new BlockDigestStore(_database.GetOrAdd("block"));
+        _txExecutions = new TxExecutionStore(_database.GetOrAdd("txexec"));
+        _blockCommits = new BlockCommitStore(_database.GetOrAdd("blockcommit"));
+        _pendingEvidences = new PendingEvidenceStore(_database.GetOrAdd("evidencep"));
+        _committedEvidences = new CommittedEvidenceStore(_database.GetOrAdd("evidencec"));
         _chainDigests = new ChainDigestCollection(_database.GetOrAdd("chaindigest"));
-        _metadata = new StringCollection(_database.GetOrAdd("metadata"));
+        _metadata = new MetadataStore(_database.GetOrAdd("metadata"));
         _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txidblockhash"));
     }
 
-    public PendingEvidenceCollection PendingEvidences => _pendingEvidences;
+    public PendingEvidenceStore PendingEvidences => _pendingEvidences;
 
-    public CommittedEvidenceCollection CommittedEvidences => _committedEvidences;
+    public CommittedEvidenceStore CommittedEvidences => _committedEvidences;
 
-    public TransactionCollection Transactions => _transactions;
+    public TransactionStore Transactions => _transactions;
 
-    public BlockCommitCollection BlockCommits => _blockCommits;
+    public BlockCommitStore BlockCommits => _blockCommits;
 
-    public BlockDigestCollection BlockDigests => _blockDigests;
+    public BlockDigestStore BlockDigests => _blockDigests;
 
-    public TxExecutionCollection TxExecutions => _txExecutions;
+    public TxExecutionStore TxExecutions => _txExecutions;
 
     public ChainDigestCollection ChainDigests => _chainDigests;
 
@@ -75,7 +75,7 @@ public sealed class Store
         }
     }
 
-    public BlockCollection Blocks => _blocks ?? throw new InvalidOperationException("Chain ID is not assigned.");
+    public BlockStore Blocks => _blocks ?? throw new InvalidOperationException("Chain ID is not assigned.");
 
     public BlockHashCollection BlockHashes
         => _blockHashes ?? throw new InvalidOperationException("Chain ID is not assigned.");
@@ -126,7 +126,7 @@ public sealed class Store
         }
     }
 
-    public BlockCollection GetBlockCollection(Guid chainId)
+    public BlockStore GetBlockCollection(Guid chainId)
     {
         lock (_lock)
         {
@@ -140,7 +140,7 @@ public sealed class Store
 
             if (!_blocksByChainId.TryGetValue(chainId, out var blocks))
             {
-                blocks = new BlockCollection(this, chainId);
+                blocks = new BlockStore(this, chainId);
                 _blocksByChainId.TryAdd(chainId, blocks);
             }
 

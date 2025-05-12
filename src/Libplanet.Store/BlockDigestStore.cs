@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockDigestCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class BlockDigestStore(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<BlockHash, BlockDigest>(dictionary)
 {
     public void Add(Block block) => Add(block.BlockHash, (BlockDigest)block);
