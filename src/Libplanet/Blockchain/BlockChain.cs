@@ -78,7 +78,7 @@ public partial class BlockChain
         _nextStateRootHash =
             DetermineNextBlockStateRootHash(Tip, out var actionEvaluations);
         IEnumerable<TxExecution> txExecutions = MakeTxExecutions(Tip, actionEvaluations);
-        UpdateTxExecutions(txExecutions);
+        Store.TxExecutions.AddRange(txExecutions);
     }
 
     ~BlockChain()
@@ -117,6 +117,8 @@ public partial class BlockChain
     internal ActionEvaluator ActionEvaluator { get; }
 
     public BlockCollection Blocks => _blocks;
+
+    public TxExecutionCollection TxExecutions => Store.TxExecutions;
 
     internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
 
@@ -259,7 +261,7 @@ public partial class BlockChain
     //     }
     // }
 
-    public TxExecution GetTxExecution(BlockHash blockHash, TxId txid) => Store.GetTxExecution(blockHash, txid);
+    // public TxExecution GetTxExecution(BlockHash blockHash, TxId txid) => Store.GetTxExecution(blockHash, txid);
 
     public void Append(
         Block block,
@@ -555,9 +557,8 @@ public partial class BlockChain
                 DetermineNextBlockStateRootHash(block, out var actionEvaluations);
             _nextStateRootHash = nextStateRootHash;
 
-            IEnumerable<TxExecution> txExecutions =
-                MakeTxExecutions(block, actionEvaluations);
-            UpdateTxExecutions(txExecutions);
+            IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations);
+            Store.TxExecutions.AddRange(txExecutions);
 
             if (render)
             {
@@ -682,9 +683,8 @@ public partial class BlockChain
 
                 Store.AppendIndex(Id, block.BlockHash);
                 _nextStateRootHash = block.StateRootHash;
-                IEnumerable<TxExecution> txExecutions =
-                    MakeTxExecutions(block, actionEvaluations);
-                UpdateTxExecutions(txExecutions);
+                IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations);
+                Store.TxExecutions.AddRange(txExecutions);
 
                 foreach (var evidence in Store.PendingEvidences.ToArray())
                 {

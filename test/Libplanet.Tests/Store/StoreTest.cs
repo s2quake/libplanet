@@ -372,10 +372,10 @@ public abstract class StoreTest
             Assert.Equal(expected.ExceptionNames, actual.ExceptionNames);
         }
 
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId2));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId1));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId1]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId2]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId1]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId2]);
 
         var inputA = new TxExecution
         {
@@ -385,12 +385,12 @@ public abstract class StoreTest
             OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
             ExceptionNames = [],
         };
-        Fx.Store.PutTxExecution(inputA);
+        Fx.Store.TxExecutions.Add(inputA);
 
-        AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId2));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId1));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
+        AssertTxExecutionEqual(inputA, Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId1]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId2]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId1]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId2]);
 
         var inputB = new TxExecution
         {
@@ -400,12 +400,12 @@ public abstract class StoreTest
             OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
             ExceptionNames = ["AnExceptionName"],
         };
-        Fx.Store.PutTxExecution(inputB);
+        Fx.Store.TxExecutions.Add(inputB);
 
-        AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
-        AssertTxExecutionEqual(inputB, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId2));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId1));
+        AssertTxExecutionEqual(inputA, Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId1]);
+        AssertTxExecutionEqual(inputB, Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId2]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId2]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId1]);
 
         var inputC = new TxExecution
         {
@@ -415,12 +415,12 @@ public abstract class StoreTest
             OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
             ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
         };
-        Fx.Store.PutTxExecution(inputC);
+        Fx.Store.TxExecutions.Add(inputC);
 
-        AssertTxExecutionEqual(inputA, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId1));
-        AssertTxExecutionEqual(inputB, Fx.Store.GetTxExecution(Fx.Hash1, Fx.TxId2));
-        AssertTxExecutionEqual(inputC, Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId1));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetTxExecution(Fx.Hash2, Fx.TxId2));
+        AssertTxExecutionEqual(inputA, Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId1]);
+        AssertTxExecutionEqual(inputB, Fx.Store.TxExecutions[Fx.Hash1, Fx.TxId2]);
+        AssertTxExecutionEqual(inputC, Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId1]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.TxExecutions[Fx.Hash2, Fx.TxId2]);
     }
 
     [Fact]

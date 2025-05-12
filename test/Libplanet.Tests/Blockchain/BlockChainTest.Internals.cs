@@ -153,10 +153,8 @@ public partial class BlockChainTest
             Assert.Equal(expected.ExceptionNames, actual.ExceptionNames);
         }
 
-        Func<BlockHash, TxId, TxExecution> getTxExecution
-            = getTxExecutionViaStore
-            ? (Func<BlockHash, TxId, TxExecution>)_blockChain.Store.GetTxExecution
-            : _blockChain.GetTxExecution;
+        var getTxExecution = new Func<BlockHash, TxId, TxExecution>(
+            (blockHash, txId) => _blockChain.TxExecutions[blockHash, txId]);
 
         Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId1));
         Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId2));
@@ -188,7 +186,7 @@ public partial class BlockChainTest
             OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
             ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
         };
-        _blockChain.UpdateTxExecutions(new TxExecution[] { inputA, inputB, inputC });
+        _blockChain.TxExecutions.AddRange([inputA, inputB, inputC]);
 
         AssertTxExecutionEqual(inputA, getTxExecution(_fx.Hash1, _fx.TxId1));
         AssertTxExecutionEqual(inputB, getTxExecution(_fx.Hash1, _fx.TxId2));
