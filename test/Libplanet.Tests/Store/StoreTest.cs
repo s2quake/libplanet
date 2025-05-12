@@ -82,14 +82,14 @@ public abstract class StoreTest
         Fx.Store.AppendIndex(Fx.StoreChainId, block1.BlockHash);
         Guid arbitraryChainId = Guid.NewGuid();
         Fx.Store.AppendIndex(arbitraryChainId, block1.BlockHash);
-        Fx.Store.IncreaseTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer);
+        Fx.Store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction1.Signer);
 
         Fx.Store.DeleteChainId(Fx.StoreChainId);
 
         Assert.Equal(
             new[] { arbitraryChainId }.ToImmutableHashSet(),
             [.. Fx.Store.ListChainIds()]);
-        Assert.Equal(0, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
+        Assert.Equal(0, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
     }
 
     [Fact]
@@ -578,40 +578,40 @@ public abstract class StoreTest
     [Fact]
     public void TxNonce()
     {
-        Assert.Equal(0, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
-        Assert.Equal(0, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction2.Signer));
+        Assert.Equal(0, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
+        Assert.Equal(0, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
 
-        Fx.Store.IncreaseTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer);
-        Assert.Equal(1, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
-        Assert.Equal(0, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction2.Signer));
+        Fx.Store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction1.Signer);
+        Assert.Equal(1, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
+        Assert.Equal(0, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
         Assert.Equal(
             new Dictionary<Address, long>
             {
                 [Fx.Transaction1.Signer] = 1,
             },
-            Fx.Store.ListTxNonces(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
+            Fx.Store.GetNonceCollection(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
 
-        Fx.Store.IncreaseTxNonce(Fx.StoreChainId, Fx.Transaction2.Signer, 5);
-        Assert.Equal(1, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
-        Assert.Equal(5, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction2.Signer));
+        Fx.Store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction2.Signer, 5);
+        Assert.Equal(1, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
+        Assert.Equal(5, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
         Assert.Equal(
             new Dictionary<Address, long>
             {
                 [Fx.Transaction1.Signer] = 1,
                 [Fx.Transaction2.Signer] = 5,
             },
-            Fx.Store.ListTxNonces(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
+            Fx.Store.GetNonceCollection(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
 
-        Fx.Store.IncreaseTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer, 2);
-        Assert.Equal(3, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction1.Signer));
-        Assert.Equal(5, Fx.Store.GetTxNonce(Fx.StoreChainId, Fx.Transaction2.Signer));
+        Fx.Store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction1.Signer, 2);
+        Assert.Equal(3, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
+        Assert.Equal(5, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
         Assert.Equal(
             new Dictionary<Address, long>
             {
                 [Fx.Transaction1.Signer] = 3,
                 [Fx.Transaction2.Signer] = 5,
             },
-            Fx.Store.ListTxNonces(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
+            Fx.Store.GetNonceCollection(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
     }
 
     [Fact]
@@ -623,34 +623,34 @@ public abstract class StoreTest
         Address address1 = Fx.Address1;
         Address address2 = Fx.Address2;
 
-        Assert.Empty(Fx.Store.ListTxNonces(chainId1));
-        Assert.Empty(Fx.Store.ListTxNonces(chainId2));
+        Assert.Empty(Fx.Store.GetNonceCollection(chainId1));
+        Assert.Empty(Fx.Store.GetNonceCollection(chainId2));
 
-        Fx.Store.IncreaseTxNonce(chainId1, address1);
+        Fx.Store.GetNonceCollection(chainId1).Increase(address1);
         Assert.Equal(
             new Dictionary<Address, long> { [address1] = 1, },
-            Fx.Store.ListTxNonces(chainId1));
+            Fx.Store.GetNonceCollection(chainId1));
 
-        Fx.Store.IncreaseTxNonce(chainId2, address2);
+        Fx.Store.GetNonceCollection(chainId2).Increase(address2);
         Assert.Equal(
             new Dictionary<Address, long> { [address2] = 1, },
-            Fx.Store.ListTxNonces(chainId2));
+            Fx.Store.GetNonceCollection(chainId2));
 
-        Fx.Store.IncreaseTxNonce(chainId1, address1);
-        Fx.Store.IncreaseTxNonce(chainId1, address2);
+        Fx.Store.GetNonceCollection(chainId1).Increase(address1);
+        Fx.Store.GetNonceCollection(chainId1).Increase(address2);
         Assert.Equal(
             ImmutableSortedDictionary<Address, long>.Empty
                 .Add(address1, 2)
                 .Add(address2, 1),
-            Fx.Store.ListTxNonces(chainId1).ToImmutableSortedDictionary());
+            Fx.Store.GetNonceCollection(chainId1).ToImmutableSortedDictionary());
 
-        Fx.Store.IncreaseTxNonce(chainId2, address1);
-        Fx.Store.IncreaseTxNonce(chainId2, address2);
+        Fx.Store.GetNonceCollection(chainId2).Increase(address1);
+        Fx.Store.GetNonceCollection(chainId2).Increase(address2);
         Assert.Equal(
             ImmutableSortedDictionary<Address, long>.Empty
                 .Add(address1, 1)
                 .Add(address2, 2),
-            Fx.Store.ListTxNonces(chainId2).ToImmutableSortedDictionary());
+            Fx.Store.GetNonceCollection(chainId2).ToImmutableSortedDictionary());
     }
 
     [Fact]
@@ -1277,19 +1277,19 @@ public abstract class StoreTest
         Libplanet.Store.Store store = Fx.Store;
         Guid sourceChainId = Guid.NewGuid();
         Guid destinationChainId = Guid.NewGuid();
-        store.IncreaseTxNonce(sourceChainId, Fx.Address1, 1);
-        store.IncreaseTxNonce(sourceChainId, Fx.Address2, 2);
-        store.IncreaseTxNonce(sourceChainId, Fx.Address3, 3);
+        store.GetNonceCollection(sourceChainId).Increase(Fx.Address1, 1);
+        store.GetNonceCollection(sourceChainId).Increase(Fx.Address2, 2);
+        store.GetNonceCollection(sourceChainId).Increase(Fx.Address3, 3);
 
         store.ForkTxNonces(sourceChainId, destinationChainId);
 
-        Assert.Equal(1, store.GetTxNonce(destinationChainId, Fx.Address1));
-        Assert.Equal(2, store.GetTxNonce(destinationChainId, Fx.Address2));
-        Assert.Equal(3, store.GetTxNonce(destinationChainId, Fx.Address3));
+        Assert.Equal(1, store.GetNonceCollection(destinationChainId)[Fx.Address1]);
+        Assert.Equal(2, store.GetNonceCollection(destinationChainId)[Fx.Address2]);
+        Assert.Equal(3, store.GetNonceCollection(destinationChainId)[Fx.Address3]);
 
-        store.IncreaseTxNonce(sourceChainId, Fx.Address1, 1);
-        Assert.Equal(2, store.GetTxNonce(sourceChainId, Fx.Address1));
-        Assert.Equal(1, store.GetTxNonce(destinationChainId, Fx.Address1));
+        store.GetNonceCollection(sourceChainId).Increase(Fx.Address1, 1);
+        Assert.Equal(2, store.GetNonceCollection(sourceChainId)[Fx.Address1]);
+        Assert.Equal(1, store.GetNonceCollection(destinationChainId)[Fx.Address1]);
     }
 
     [Fact]

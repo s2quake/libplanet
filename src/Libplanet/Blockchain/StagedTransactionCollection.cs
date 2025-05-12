@@ -64,7 +64,7 @@ public sealed class StagedTransactionCollection(Libplanet.Store.Store store, Gui
 
     public long GetNextTxNonce(Address address)
     {
-        var nonce = store.GetTxNonce(blockChainId, address);
+        var nonce = store.Nonces[address];
         var txs = Iterate(filtered: true)
             .Where(tx => tx.Signer.Equals(address))
             .OrderBy(tx => tx.Nonce);

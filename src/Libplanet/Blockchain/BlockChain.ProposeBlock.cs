@@ -176,7 +176,7 @@ public partial class BlockChain
             // returns already ordered transactions by its nonce.
             if (!storedNonces.ContainsKey(tx.Signer))
             {
-                storedNonces[tx.Signer] = Store.GetTxNonce(Id, tx.Signer);
+                storedNonces[tx.Signer] = Store.Nonces[tx.Signer];
                 nextNonces[tx.Signer] = storedNonces[tx.Signer];
                 toProposeCounts[tx.Signer] = 0;
             }

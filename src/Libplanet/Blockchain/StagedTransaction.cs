@@ -19,7 +19,7 @@ public sealed record class StagedTransaction
             return false;
         }
 
-        if (store.GetTxNonce(blockChainId, Transaction.Signer) < Transaction.Nonce)
+        if (store.Nonces[Transaction.Signer] < Transaction.Nonce)
         {
             return false;
         }

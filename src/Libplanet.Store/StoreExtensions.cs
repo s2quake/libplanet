@@ -28,8 +28,8 @@ namespace Libplanet.Store
                 throw new ArgumentException("The destination store has to be empty.", nameof(to));
             }
 
-            var fromBlocks = new BlockCollection(from);
-            var toBlocks = new BlockCollection(to);
+            var fromBlocks = from.Blocks;
+            var toBlocks = to.Blocks;
             foreach (Guid chainId in from.ListChainIds().ToArray())
             {
                 foreach (BlockHash blockHash in from.IterateIndexes(chainId))
@@ -39,9 +39,9 @@ namespace Libplanet.Store
                     to.AppendIndex(chainId, blockHash);
                 }
 
-                foreach (KeyValuePair<Address, long> kv in from.ListTxNonces(chainId))
+                foreach (KeyValuePair<Address, long> kv in from.GetNonceCollection(chainId))
                 {
-                    to.IncreaseTxNonce(chainId, kv.Key, kv.Value);
+                    to.GetNonceCollection(chainId).Increase(kv.Key, kv.Value);
                 }
             }
 
