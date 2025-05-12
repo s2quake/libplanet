@@ -5,7 +5,7 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-public sealed class TransactionCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class TransactionStore(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<TxId, Transaction>(dictionary)
 {
     public void Add(Block block)

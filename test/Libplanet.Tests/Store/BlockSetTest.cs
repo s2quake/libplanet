@@ -6,12 +6,12 @@ namespace Libplanet.Tests.Store
     public class BlockSetTest : IDisposable
     {
         private readonly StoreFixture _fx;
-        private readonly BlockCollection _set;
+        private readonly BlockStore _set;
 
         public BlockSetTest()
         {
             _fx = new MemoryStoreFixture();
-            _set = new BlockCollection(_fx.Store, Guid.NewGuid());
+            _set = new BlockStore(_fx.Store, Guid.NewGuid());
         }
 
         [Fact]

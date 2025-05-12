@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockCommitCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class BlockCommitStore(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<BlockHash, BlockCommit>(dictionary)
 {
     protected override byte[] GetBytes(BlockCommit value) => ModelSerializer.SerializeToBytes(value);

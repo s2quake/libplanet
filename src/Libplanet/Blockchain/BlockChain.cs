@@ -27,7 +27,7 @@ public partial class BlockChain
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly BlockChainStates _blockChainStates;
 
-    private readonly BlockCollection _blocks;
+    private readonly BlockStore _blocks;
     private Block _genesis;
 
     private HashDigest<SHA256>? _nextStateRootHash;
@@ -116,9 +116,9 @@ public partial class BlockChain
 
     internal ActionEvaluator ActionEvaluator { get; }
 
-    public BlockCollection Blocks => _blocks;
+    public BlockStore Blocks => _blocks;
 
-    public TxExecutionCollection TxExecutions => Store.TxExecutions;
+    public TxExecutionStore TxExecutions => Store.TxExecutions;
 
     internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
 

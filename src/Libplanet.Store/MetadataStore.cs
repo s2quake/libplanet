@@ -3,7 +3,7 @@ using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 
-public sealed class StringCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class MetadataStore(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<string, string>(dictionary)
 {
     protected override byte[] GetBytes(string value) => Encoding.UTF8.GetBytes(value);

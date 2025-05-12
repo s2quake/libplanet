@@ -6,17 +6,11 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockCollection(Store store, Guid chainId, int cacheSize = 4096)
+public sealed class BlockStore(Store store, int cacheSize = 4096)
     : IReadOnlyDictionary<BlockHash, Block>
 {
     private readonly Store _store = store;
     private readonly ICache<BlockHash, Block> _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
-            .WithCapacity(cacheSize)
-            .Build();
-
-    private readonly BlockHashCollection _blockHashes = store.GetBlockHashes(chainId);
-
-    private readonly ICache<int, Block> _cacheByHeight = new ConcurrentLruBuilder<int, Block>()
             .WithCapacity(cacheSize)
             .Build();
 
@@ -33,15 +27,16 @@ public sealed class BlockCollection(Store store, Guid chainId, int cacheSize = 4
     {
         get
         {
-            if (_cacheByHeight.TryGet(height, out var cached))
-            {
-                return cached;
-            }
+            // if (_cacheByHeight.TryGet(height, out var cached))
+            // {
+            //     return cached;
+            // }
 
-            var blockHash = _blockHashes[height];
-            var block = this[blockHash];
-            _cacheByHeight.AddOrUpdate(height, block);
-            return block;
+            // var blockHash = _blockHashes[height];
+            // var block = this[blockHash];
+            // _cacheByHeight.AddOrUpdate(height, block);
+            // return block;
+            throw new NotImplementedException();
         }
     }
 
@@ -81,11 +76,9 @@ public sealed class BlockCollection(Store store, Guid chainId, int cacheSize = 4
         if (_store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
             _store.BlockDigests.Remove(blockHash);
-            _blockHashes.Remove(blockDigest.Height);
             _store.Transactions.RemoveRange(blockDigest.TxIds);
             _store.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
             _cacheByHash.TryRemove(blockHash);
-            _cacheByHeight.TryRemove(blockDigest.Height);
             return true;
         }
 
@@ -95,31 +88,29 @@ public sealed class BlockCollection(Store store, Guid chainId, int cacheSize = 4
     public void Add(Block block)
     {
         _store.BlockDigests.Add(block);
-        _blockHashes.Add(block);
         _store.Transactions.Add(block);
         _store.PendingEvidences.Add(block);
         _store.CommittedEvidences.Add(block);
-        _store.ChainDigests.Set(chainId, block);
 
         _cacheByHash.AddOrUpdate(block.BlockHash, block);
-        _cacheByHeight.AddOrUpdate(block.Height, block);
     }
 
     public bool TryGetValue(int height, [MaybeNullWhen(false)] out Block value)
     {
-        if (_cacheByHeight.TryGet(height, out value))
-        {
-            return true;
-        }
+        // if (_cacheByHeight.TryGet(height, out value))
+        // {
+        //     return true;
+        // }
 
-        if (_blockHashes.TryGetValue(height, out var blockHash))
-        {
-            value = this[blockHash];
-            _cacheByHeight.AddOrUpdate(height, value);
-            return true;
-        }
+        // if (_blockHashes.TryGetValue(height, out var blockHash))
+        // {
+        //     value = this[blockHash];
+        //     _cacheByHeight.AddOrUpdate(height, value);
+        //     return true;
+        // }
 
-        return false;
+        // return false;
+        throw new NotImplementedException();
     }
 
     public bool TryGetValue(BlockHash blockHash, [MaybeNullWhen(false)] out Block value)

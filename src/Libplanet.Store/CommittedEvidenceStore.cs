@@ -5,7 +5,7 @@ using Libplanet.Types.Evidence;
 
 namespace Libplanet.Store;
 
-public sealed class CommittedEvidenceCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class CommittedEvidenceStore(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<EvidenceId, EvidenceBase>(dictionary)
 {
     public void Add(Block block)
