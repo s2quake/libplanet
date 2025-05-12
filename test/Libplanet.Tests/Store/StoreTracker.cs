@@ -52,16 +52,16 @@
 //         return store.GetTxExecution(blockHash, txid);
 //     }
 
-//     public void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     public void BlockHashByTxId.Add(TxId txId, BlockHash blockHash)
 //     {
-//         Log(nameof(PutTxIdBlockHashIndex), txId, blockHash);
-//         store.PutTxIdBlockHashIndex(txId, blockHash);
+//         Log(nameof(BlockHashByTxId.Add), txId, blockHash);
+//         store.BlockHashByTxId.Add(txId, blockHash);
 //     }
 
-//     public BlockHash? GetFirstTxIdBlockHashIndex(TxId txId)
+//     public BlockHash? BlockHashByTxId[TxId txId]
 //     {
 //         Log(nameof(GetFirstTxIdBlockHashIndex), txId);
-//         return store.GetFirstTxIdBlockHashIndex(txId);
+//         return store.BlockHashByTxId[txId];
 //     }
 
 //     public IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
@@ -70,10 +70,10 @@
 //         return store.IterateTxIdBlockHashIndex(txId);
 //     }
 
-//     public void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     public void BlockHashByTxId.Remove(TxId txId, BlockHash blockHash)
 //     {
-//         Log(nameof(DeleteTxIdBlockHashIndex), txId, blockHash);
-//         store.DeleteTxIdBlockHashIndex(txId, blockHash);
+//         Log(nameof(BlockHashByTxId.Remove), txId, blockHash);
+//         store.BlockHashByTxId.Remove(txId, blockHash);
 //     }
 
 //     public void DeleteChainId(Guid chainId)

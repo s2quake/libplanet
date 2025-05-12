@@ -55,17 +55,17 @@
 
 //     public virtual TxExecution GetTxExecution(BlockHash blockHash, TxId txId) => store.GetTxExecution(blockHash, txId);
 
-//     public virtual void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
-//         => store.PutTxIdBlockHashIndex(txId, blockHash);
+//     public virtual void BlockHashByTxId.Add(TxId txId, BlockHash blockHash)
+//         => store.BlockHashByTxId.Add(txId, blockHash);
 
-//     public virtual BlockHash GetFirstTxIdBlockHashIndex(TxId txId)
-//         => store.GetFirstTxIdBlockHashIndex(txId);
+//     public virtual BlockHash BlockHashByTxId[TxId txId]
+//         => store.BlockHashByTxId[txId];
 
 //     public virtual IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
 //         => store.IterateTxIdBlockHashIndex(txId);
 
-//     public virtual void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
-//         => store.DeleteTxIdBlockHashIndex(txId, blockHash);
+//     public virtual void BlockHashByTxId.Remove(TxId txId, BlockHash blockHash)
+//         => store.BlockHashByTxId.Remove(txId, blockHash);
 
 //     public virtual IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
 //         => store.ListTxNonces(chainId);

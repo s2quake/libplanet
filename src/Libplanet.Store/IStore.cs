@@ -47,13 +47,13 @@
 
 //     TxExecution GetTxExecution(BlockHash blockHash, TxId txId);
 
-//     void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
+//     void BlockHashByTxId.Add(TxId txId, BlockHash blockHash);
 
-//     BlockHash GetFirstTxIdBlockHashIndex(TxId txId);
+//     BlockHash BlockHashByTxId[TxId txId];
 
 //     IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId);
 
-//     void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
+//     void BlockHashByTxId.Remove(TxId txId, BlockHash blockHash);
 
 //     IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId);
 

@@ -59,9 +59,9 @@
 
 //     public abstract TxExecution GetTxExecution(BlockHash blockHash, TxId txId);
 
-//     public abstract void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
+//     public abstract void BlockHashByTxId.Add(TxId txId, BlockHash blockHash);
 
-//     public BlockHash GetFirstTxIdBlockHashIndex(TxId txId)
+//     public BlockHash BlockHashByTxId[TxId txId]
 //     {
 //         var item = IterateTxIdBlockHashIndex(txId).FirstOrDefault();
 //         if (item == default)
@@ -75,7 +75,7 @@
 
 //     public abstract IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId);
 
-//     public abstract void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash);
+//     public abstract void BlockHashByTxId.Remove(TxId txId, BlockHash blockHash);
 
 //     public abstract IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId);
 

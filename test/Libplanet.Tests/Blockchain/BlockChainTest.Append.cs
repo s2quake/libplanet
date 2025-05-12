@@ -55,14 +55,14 @@ public partial class BlockChainTest
 
         foreach (var tx in txs)
         {
-            Assert.Null(_fx.Store.GetFirstTxIdBlockHashIndex(tx.Id));
+            Assert.False(_fx.Store.BlockHashesByTxId.ContainsKey(tx.Id));
         }
 
         _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
 
         foreach (var tx in txs)
         {
-            Assert.True(_fx.Store.GetFirstTxIdBlockHashIndex(tx.Id).Equals(block2.BlockHash));
+            Assert.Contains(block2.BlockHash, _fx.Store.BlockHashesByTxId[tx.Id]);
         }
 
         Assert.True(_blockChain.Blocks.ContainsKey(block2.BlockHash));

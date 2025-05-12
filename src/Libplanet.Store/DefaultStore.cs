@@ -197,7 +197,7 @@
 //         return _txExecutions[(blockHash, txId)];
 //     }
 
-//     public override void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     public override void BlockHashByTxId.Add(TxId txId, BlockHash blockHash)
 //     {
 //         if (!_blockHashes.TryGetValue(txId, out var blockHashes))
 //         {
@@ -217,7 +217,7 @@
 //         return [];
 //     }
 
-//     public override void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     public override void BlockHashByTxId.Remove(TxId txId, BlockHash blockHash)
 //     {
 //         if (_blockHashes.TryGetValue(txId, out var blockHashes))
 //         {

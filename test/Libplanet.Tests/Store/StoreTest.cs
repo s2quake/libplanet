@@ -426,51 +426,51 @@ public abstract class StoreTest
     [Fact]
     public void TxIdBlockHashIndex()
     {
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId1));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId2));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId3));
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId1]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId2]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId3]);
 
-        Fx.Store.PutTxIdBlockHashIndex(Fx.TxId1, Fx.Hash1);
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId2));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId3));
+        Fx.Store.BlockHashesByTxId.Add(Fx.TxId1, Fx.Hash1);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId2]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId3]);
 
-        Fx.Store.PutTxIdBlockHashIndex(Fx.TxId2, Fx.Hash2);
-        Fx.Store.PutTxIdBlockHashIndex(Fx.TxId3, Fx.Hash3);
+        Fx.Store.BlockHashesByTxId.Add(Fx.TxId2, Fx.Hash2);
+        Fx.Store.BlockHashesByTxId.Add(Fx.TxId3, Fx.Hash3);
 
-        Assert.True(Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId1).Equals(Fx.Hash1));
-        Assert.True(Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId2).Equals(Fx.Hash2));
-        Assert.True(Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId3).Equals(Fx.Hash3));
+        Assert.True(Fx.Store.BlockHashesByTxId[Fx.TxId1].Equals(Fx.Hash1));
+        Assert.True(Fx.Store.BlockHashesByTxId[Fx.TxId2].Equals(Fx.Hash2));
+        Assert.True(Fx.Store.BlockHashesByTxId[Fx.TxId3].Equals(Fx.Hash3));
 
-        Fx.Store.PutTxIdBlockHashIndex(Fx.TxId1, Fx.Hash3);
-        Fx.Store.PutTxIdBlockHashIndex(Fx.TxId2, Fx.Hash3);
-        Fx.Store.PutTxIdBlockHashIndex(Fx.TxId3, Fx.Hash1);
-        Assert.Equal(2, Fx.Store.IterateTxIdBlockHashIndex(Fx.TxId1).Count());
-        Assert.Equal(2, Fx.Store.IterateTxIdBlockHashIndex(Fx.TxId2).Count());
-        Assert.Equal(2, Fx.Store.IterateTxIdBlockHashIndex(Fx.TxId3).Count());
+        Fx.Store.BlockHashesByTxId.Add(Fx.TxId1, Fx.Hash3);
+        Fx.Store.BlockHashesByTxId.Add(Fx.TxId2, Fx.Hash3);
+        Fx.Store.BlockHashesByTxId.Add(Fx.TxId3, Fx.Hash1);
+        Assert.Equal(2, Fx.Store.BlockHashesByTxId[Fx.TxId1].Count);
+        Assert.Equal(2, Fx.Store.BlockHashesByTxId[Fx.TxId2].Count);
+        Assert.Equal(2, Fx.Store.BlockHashesByTxId[Fx.TxId3].Count);
 
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId1, Fx.Hash1);
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId2, Fx.Hash2);
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId3, Fx.Hash3);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId1, Fx.Hash1);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId2, Fx.Hash2);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId3, Fx.Hash3);
 
-        Assert.True(Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId1).Equals(Fx.Hash3));
-        Assert.True(Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId2).Equals(Fx.Hash3));
-        Assert.True(Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId3).Equals(Fx.Hash1));
+        Assert.True(Fx.Store.BlockHashesByTxId[Fx.TxId1].Equals(Fx.Hash3));
+        Assert.True(Fx.Store.BlockHashesByTxId[Fx.TxId2].Equals(Fx.Hash3));
+        Assert.True(Fx.Store.BlockHashesByTxId[Fx.TxId3].Equals(Fx.Hash1));
 
-        Assert.Single(Fx.Store.IterateTxIdBlockHashIndex(Fx.TxId1));
-        Assert.Single(Fx.Store.IterateTxIdBlockHashIndex(Fx.TxId2));
-        Assert.Single(Fx.Store.IterateTxIdBlockHashIndex(Fx.TxId3));
+        Assert.Single(Fx.Store.BlockHashesByTxId[Fx.TxId1]);
+        Assert.Single(Fx.Store.BlockHashesByTxId[Fx.TxId2]);
+        Assert.Single(Fx.Store.BlockHashesByTxId[Fx.TxId3]);
 
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId1, Fx.Hash1);
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId2, Fx.Hash2);
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId3, Fx.Hash3);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId1, Fx.Hash1);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId2, Fx.Hash2);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId3, Fx.Hash3);
 
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId1, Fx.Hash3);
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId2, Fx.Hash3);
-        Fx.Store.DeleteTxIdBlockHashIndex(Fx.TxId3, Fx.Hash1);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId1, Fx.Hash3);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId2, Fx.Hash3);
+        Fx.Store.BlockHashesByTxId.Remove(Fx.TxId3, Fx.Hash1);
 
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId1));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId2));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetFirstTxIdBlockHashIndex(Fx.TxId3));
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId1]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId2]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.BlockHashesByTxId[Fx.TxId3]);
     }
 
     [Fact]

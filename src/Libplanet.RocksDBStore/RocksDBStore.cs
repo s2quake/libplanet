@@ -902,16 +902,16 @@
 //         return false;
 //     }
 
-//     /// <inheritdoc cref="StoreBase.PutTxIdBlockHashIndex(TxId, BlockHash)"/>
-//     public override void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     /// <inheritdoc cref="StoreBase.BlockHashByTxId.Add(TxId, BlockHash)"/>
+//     public override void BlockHashByTxId.Add(TxId txId, BlockHash blockHash)
 //     {
 //         _txIdBlockHashIndexDb.Put(
 //             TxIdBlockHashIndexKey(txId, blockHash),
 //             blockHash.Bytes.ToArray());
 //     }
 
-//     /// <inheritdoc cref="StoreBase.DeleteTxIdBlockHashIndex(TxId, BlockHash)"/>
-//     public override void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
+//     /// <inheritdoc cref="StoreBase.BlockHashByTxId.Remove(TxId, BlockHash)"/>
+//     public override void BlockHashByTxId.Remove(TxId txId, BlockHash blockHash)
 //     {
 //         _txIdBlockHashIndexDb.Remove(
 //             TxIdBlockHashIndexKey(txId, blockHash));

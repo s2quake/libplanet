@@ -1,36 +1,25 @@
 using System.Collections.Concurrent;
-using System.Security.Cryptography;
-using Libplanet.Types;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
 public sealed class Store
 {
-    private const string IndexColPrefix = "index_";
-    private const string TxNonceIdPrefix = "nonce_";
     private static readonly object _lock = new();
 
     private readonly IDatabase _database;
     private readonly TransactionCollection _transactions;
     private readonly TxExecutionCollection _txExecutions;
-    private readonly BlockHashesByTxId _blockHashesByTxId;
     private readonly BlockDigestCollection _blockDigests;
     private readonly BlockCommitCollection _blockCommits;
-    // private readonly BlockHashCollection _blockHashes;
     private readonly PendingEvidenceCollection _pendingEvidences;
     private readonly CommittedEvidenceCollection _committedEvidences;
-    // private readonly HeightByChainId _heightByChainId;
-    // private readonly BlockCommitByChainId _blockCommitByChainId;
     private readonly ChainDigestCollection _chainDigests;
     private readonly StringCollection _metadata;
+    private readonly BlockHashesByTxId _blockHashesByTxId;
     private readonly ConcurrentDictionary<Guid, NonceCollection> _noncesByChainId = new();
     private readonly ConcurrentDictionary<Guid, BlockHashCollection> _blockHashByChainId = new();
     private readonly ConcurrentDictionary<Guid, BlockCollection> _blocksByChainId = new();
-    private NonceCollection? _nonces;
-    private BlockCollection? _blocks;
 
     private bool _disposed;
 
@@ -40,15 +29,12 @@ public sealed class Store
         _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
         _blockDigests = new BlockDigestCollection(_database.GetOrAdd("block"));
         _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
-        _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
         _blockCommits = new BlockCommitCollection(_database.GetOrAdd("blockcommit"));
-        // _blockHashes = new BlockHashCollection(_database.GetOrAdd("blockhash"));
         _pendingEvidences = new PendingEvidenceCollection(_database.GetOrAdd("evidencep"));
         _committedEvidences = new CommittedEvidenceCollection(_database.GetOrAdd("evidencec"));
         _chainDigests = new ChainDigestCollection(_database.GetOrAdd("chaindigest"));
-        // _heightByChainId = new HeightByChainId(_database.GetOrAdd("heights"));
-        // _blockCommitByChainId = new BlockCommitByChainId(_database.GetOrAdd("blockcommitb"));
         _metadata = new StringCollection(_database.GetOrAdd("metadata"));
+        _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txidblockhash"));
     }
 
     public PendingEvidenceCollection PendingEvidences => _pendingEvidences;
@@ -61,15 +47,11 @@ public sealed class Store
 
     public BlockDigestCollection BlockDigests => _blockDigests;
 
-    // public BlockHashCollection BlockHashes => _blockHashes;
-
-    public BlockCollection Blocks => GetBlockCollection(ChainId);
-
     public TxExecutionCollection TxExecutions => _txExecutions;
 
-    public NonceCollection Nonces => _nonces ?? throw new InvalidOperationException("Chain ID is not set.");
-
     public ChainDigestCollection ChainDigests => _chainDigests;
+
+    public BlockHashesByTxId BlockHashesByTxId => _blockHashesByTxId;
 
     public Guid ChainId
     {
@@ -82,9 +64,14 @@ public sealed class Store
             }
 
             _metadata["chainId"] = value.ToString();
-            _nonces = GetNonceCollection(value);
         }
     }
+
+    public BlockCollection Blocks => GetBlockCollection(ChainId);
+
+    public BlockHashCollection BlockHashes => GetBlockHashes(ChainId);
+
+    public NonceCollection Nonces => GetNonceCollection(ChainId);
 
     public NonceCollection GetNonceCollection(Guid chainId)
     {
@@ -92,7 +79,7 @@ public sealed class Store
         {
             if (!_noncesByChainId.TryGetValue(chainId, out var nonces))
             {
-                nonces = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+                nonces = new NonceCollection(_database.GetOrAdd($"nonce_{chainId}"));
                 _noncesByChainId.TryAdd(chainId, nonces);
             }
 
@@ -106,7 +93,7 @@ public sealed class Store
         {
             if (!_blockHashByChainId.TryGetValue(chainId, out var blockHashes))
             {
-                blockHashes = new BlockHashCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+                blockHashes = new BlockHashCollection(_database.GetOrAdd($"blockhash_{chainId}"));
                 _blockHashByChainId.TryAdd(chainId, blockHashes);
             }
 
@@ -128,79 +115,16 @@ public sealed class Store
         }
     }
 
-    public BlockHash GetFirstTxIdBlockHashIndex(TxId txId)
-    {
-        var item = IterateTxIdBlockHashIndex(txId).FirstOrDefault();
-        if (item == default)
-        {
-            throw new KeyNotFoundException(
-                $"The transaction ID {txId} does not exist in the index.");
-        }
-
-        return item;
-    }
-
-    // public IEnumerable<Guid> ListChainIds()
+    // public BlockHash BlockHashByTxId[TxId txId]
     // {
-    //     var items = _metadata.Keys.Where(item => item.StartsWith("chainId_"));
-    //     foreach (var item in items)
+    //     var item = IterateTxIdBlockHashIndex(txId).FirstOrDefault();
+    //     if (item == default)
     //     {
-    //         yield return Guid.Parse(item.AsSpan(8));
-    //     }
-    // }
-
-    // public void DeleteChainId(Guid chainId)
-    // {
-    //     _metadata.Remove($"chain_id_{chainId}");
-    //     _database.Remove(TxNonceKey(chainId));
-    //     _database.Remove(IndexKey(chainId));
-    // }
-
-    // public int CountIndex(Guid chainId)
-    // {
-    //     // if (!_heightByChainId.ContainsKey(chainId))
-    //     // {
-    //     //     throw new KeyNotFoundException("Chain ID not found.");
-    //     // }
-
-    //     return IndexCollection(chainId).Count;
-    // }
-
-    // public IEnumerable<BlockHash> IterateIndexes(Guid chainId, int offset = 0, int? limit = null)
-    // {
-    //     var collection = IndexCollection(chainId);
-    //     var end = checked(limit is { } l ? offset + l : int.MaxValue);
-    //     for (var i = offset; i < end; i++)
-    //     {
-    //         if (collection.TryGetValue(i, out var blockHash))
-    //         {
-    //             yield return blockHash;
-    //         }
-    //         else
-    //         {
-    //             break;
-    //         }
-    //     }
-    // }
-
-    // public BlockHash GetBlockHash(Guid chainId, int height)
-    // {
-    //     var collection = IndexCollection(chainId);
-    //     if (height < 0)
-    //     {
-    //         height += collection.Count;
+    //         throw new KeyNotFoundException(
+    //             $"The transaction ID {txId} does not exist in the index.");
     //     }
 
-    //     return collection[height];
-    // }
-
-    // public int AppendIndex(Guid chainId, BlockHash hash)
-    // {
-    //     var collection = IndexCollection(chainId);
-    //     var height = collection.Count;
-    //     collection.Add(height, hash);
-    //     // _heightByChainId[chainId] = height;
-    //     return height;
+    //     return item;
     // }
 
     public void ForkBlockIndexes(Guid sourceChainId, Guid destinationChainId, BlockHash branchpoint)
@@ -234,71 +158,40 @@ public sealed class Store
 
     // public TxExecution GetTxExecution(BlockHash blockHash, TxId txId) => _txExecutions[(blockHash, txId)];
 
-    public void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
-    {
-        if (!_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
-        {
-            blockHashes = [];
-        }
-
-        _blockHashesByTxId[txId] = blockHashes.Add(blockHash);
-    }
-
-    public IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
-    {
-        if (_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
-        {
-            return blockHashes;
-        }
-
-        return [];
-    }
-
-    public void DeleteTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
-    {
-        if (_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
-        {
-            blockHashes = blockHashes.Remove(blockHash);
-            if (blockHashes.IsEmpty)
-            {
-                _blockHashesByTxId.Remove(txId);
-            }
-            else
-            {
-                _blockHashesByTxId[txId] = blockHashes;
-            }
-        }
-    }
-
-    // public IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
+    // public void BlockHashByTxId.Add(TxId txId, BlockHash blockHash)
     // {
-    //     var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
-    //     foreach (var item in collection)
+    //     if (!_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
     //     {
-    //         yield return item;
+    //         blockHashes = [];
     //     }
+
+    //     _blockHashesByTxId[txId] = blockHashes.Add(blockHash);
     // }
 
-    // public long GetTxNonce(Guid chainId, Address address)
+    // public IEnumerable<BlockHash> IterateTxIdBlockHashIndex(TxId txId)
     // {
-    //     var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
-    //     if (collection.TryGetValue(address, out var nonce))
+    //     if (_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
     //     {
-    //         return nonce;
+    //         return blockHashes;
     //     }
 
-    //     return 0L;
+    //     return [];
     // }
 
-    // public void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
+    // public void BlockHashByTxId.Remove(TxId txId, BlockHash blockHash)
     // {
-    //     var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
-    //     if (!collection.TryGetValue(signer, out var nonce))
+    //     if (_blockHashesByTxId.TryGetValue(txId, out var blockHashes))
     //     {
-    //         nonce = 0L;
+    //         blockHashes = blockHashes.Remove(blockHash);
+    //         if (blockHashes.IsEmpty)
+    //         {
+    //             _blockHashesByTxId.Remove(txId);
+    //         }
+    //         else
+    //         {
+    //             _blockHashesByTxId[txId] = blockHashes;
+    //         }
     //     }
-
-    //     collection[signer] = nonce + delta;
     // }
 
     public void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
@@ -337,13 +230,6 @@ public sealed class Store
         }
     }
 
-    // public BlockCommit GetChainBlockCommit(Guid chainId) => _blockCommitByChainId[chainId];
-
-    // public void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
-    //     => _blockCommitByChainId[chainId] = blockCommit;
-
-    // public IEnumerable<BlockHash> GetBlockCommitHashes() => _blockCommits.Keys;
-
     public void Dispose()
     {
         if (!_disposed)
@@ -353,12 +239,4 @@ public sealed class Store
             GC.SuppressFinalize(this);
         }
     }
-
-    internal static Guid ParseChainId(string chainIdString) => new(ByteUtility.ParseHex(chainIdString));
-
-    internal static string FormatChainId(Guid chainId) => ByteUtility.Hex(chainId.ToByteArray());
-
-    private static string IndexKey(in Guid chainId) => $"{IndexColPrefix}{FormatChainId(chainId)}";
-
-    private static string TxNonceKey(Guid chainId) => $"{TxNonceIdPrefix}{FormatChainId(chainId)}";
 }

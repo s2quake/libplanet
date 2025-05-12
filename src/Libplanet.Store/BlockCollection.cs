@@ -55,7 +55,9 @@ public sealed class BlockCollection(Store store, Guid chainId, int cacheSize = 4
             }
 
             var blockDigest = _store.BlockDigests[blockHash];
-            var block = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
+            var block = blockDigest.ToBlock(
+                item => _store.Transactions[item],
+                item => _store.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, block);
             return block;
         }
@@ -128,7 +130,9 @@ public sealed class BlockCollection(Store store, Guid chainId, int cacheSize = 4
 
         if (_store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            value = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
+            value = blockDigest.ToBlock(
+                item => _store.Transactions[item],
+                item => _store.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, value);
             return true;
         }
