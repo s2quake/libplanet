@@ -45,7 +45,7 @@ public partial class BlockChain
         List<BlockHash> path = new List<BlockHash>();
         for (int idx = chain.Tip.Height; idx > target; idx--)
         {
-            path.Add(chain.Store.GetBlockHash(chain.Id, idx));
+            path.Add(chain.Store.GetBlockHashes(chain.Id)[idx]);
         }
 
         return path;

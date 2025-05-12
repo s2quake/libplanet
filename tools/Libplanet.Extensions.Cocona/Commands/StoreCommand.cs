@@ -24,14 +24,14 @@ public class StoreCommand
         Guid? canon = store.ChainId;
         var headerWithoutHash = ("Chain ID", "Height", "Canon?");
         var headerWithHash = ("Chain ID", "Height", "Canon?", "Hash");
-        var chainIds = store.ListChainIds().Select(id =>
+        var chainIds = store.ChainDigests.Keys.Select(id =>
         {
-            var height = store.CountIndex(id) - 1;
+            var height = store.ChainDigests[id].Height - 1;
             return (
                 id.ToString(),
                 height.ToString(CultureInfo.InvariantCulture),
                 id == canon ? "*" : string.Empty,
-                store.BlockDigests[store.GetBlockHash(id, height)].BlockHash.ToString());
+                store.BlockDigests[store.GetBlockHashes(id)[height]].BlockHash.ToString());
         });
         if (showHash)
         {
@@ -169,7 +169,7 @@ public class StoreCommand
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
-        if (!(store.GetBlockHash(store.ChainId, blockHeight) is { } blockHash))
+        if (!store.GetBlockHashes(store.ChainId).TryGetValue(blockHeight, out var blockHash))
         {
             throw Utils.Error(
                 $"Cannot find the block with the height {blockHeight}" +
@@ -205,7 +205,7 @@ public class StoreCommand
         }
 
         var index = offset;
-        foreach (BlockHash blockHash in store.IterateIndexes(store.ChainId, offset, limit))
+        foreach (BlockHash blockHash in store.GetBlockHashes(store.ChainId).IterateIndexes(offset, limit))
         {
             yield return index++;
             if (!store.BlockDigests.TryGetValue(blockHash, out var blockDigest))

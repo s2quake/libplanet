@@ -634,7 +634,7 @@ namespace Libplanet.Net.Tests
 
             cts.Dispose();
 
-            Assert.InRange(receiverChain.Store.ListChainIds().Count(), 0, 1);
+            Assert.InRange(receiverChain.Store.ChainDigests.Count, 0, 1);
 
             if (canceled)
             {

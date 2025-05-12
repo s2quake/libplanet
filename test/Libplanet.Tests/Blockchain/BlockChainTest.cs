@@ -1078,7 +1078,7 @@ public partial class BlockChainTest : IDisposable
                 store.GetNonceCollection(id).Increase(tx.Signer);
             }
 
-            store.AppendIndex(id, block.BlockHash);
+            // store.AppendIndex(id, block.BlockHash);
         }
 
         // Build a store with incomplete states

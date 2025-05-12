@@ -6,7 +6,41 @@ namespace Libplanet.Store;
 public sealed class BlockHashCollection(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<int, BlockHash>(dictionary)
 {
+    public BlockHash this[Index index]
+    {
+        get
+        {
+            if (index.IsFromEnd)
+            {
+                return this[Count - index.Value];
+            }
+
+            if (index.Value < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            return this[index.Value];
+        }
+    }
+
     public void Add(Block block) => Add(block.Height, block.BlockHash);
+
+    public IEnumerable<BlockHash> IterateIndexes(int offset = 0, int? limit = null)
+    {
+        var end = checked(limit is { } l ? offset + l : int.MaxValue);
+        for (var i = offset; i < end; i++)
+        {
+            if (TryGetValue(i, out var blockHash))
+            {
+                yield return blockHash;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
 
     protected override byte[] GetBytes(BlockHash value) => [.. value.Bytes];
 

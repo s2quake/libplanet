@@ -94,9 +94,9 @@ public class RocksDBStoreTest : StoreTest, IDisposable
         try
         {
             Guid cid = Guid.NewGuid();
-            store.AppendIndex(cid, Fx.Block1.BlockHash);
-            store.AppendIndex(cid, Fx.Block2.BlockHash);
-            store.AppendIndex(cid, Fx.Block3.BlockHash);
+            // store.AppendIndex(cid, Fx.Block1.BlockHash);
+            // store.AppendIndex(cid, Fx.Block2.BlockHash);
+            // store.AppendIndex(cid, Fx.Block3.BlockHash);
 
             store.Blocks.Add(Fx.Block1);
             store.Blocks.Add(Fx.Block2);
@@ -107,7 +107,7 @@ public class RocksDBStoreTest : StoreTest, IDisposable
 
             Enumerable.Range(0, 3).AsParallel().ForAll(i =>
             {
-                var bHash = store.GetBlockHash(cid, i);
+                var bHash = store.GetBlockHashes(cid)[i];
                 var block = store.Blocks[bHash];
                 Assert.NotNull(block);
             });
@@ -127,18 +127,18 @@ public class RocksDBStoreTest : StoreTest, IDisposable
         try
         {
             Guid cid = Guid.NewGuid();
-            store.AppendIndex(cid, Fx.Block1.BlockHash);
-            store.AppendIndex(cid, Fx.Block2.BlockHash);
-            store.AppendIndex(cid, Fx.Block3.BlockHash);
+            // store.AppendIndex(cid, Fx.Block1.BlockHash);
+            // store.AppendIndex(cid, Fx.Block2.BlockHash);
+            // store.AppendIndex(cid, Fx.Block3.BlockHash);
 
             store.Blocks.Add(Fx.Block1);
             store.Blocks.Add(Fx.Block2);
             store.Blocks.Add(Fx.Block3);
 
-            Assert.Single(store.ListChainIds());
+            Assert.Single(store.ChainDigests);
 
             store.ForkBlockIndexes(cid, Guid.NewGuid(), Fx.Block3.BlockHash);
-            Assert.Equal(2, store.ListChainIds().Count());
+            Assert.Equal(2, store.ChainDigests.Count);
         }
         finally
         {
@@ -214,39 +214,39 @@ public class RocksDBStoreTest : StoreTest, IDisposable
 
             Guid cid1 = Guid.NewGuid();
             int guidLength = cid1.ToByteArray().Length;
-            store.AppendIndex(cid1, Fx.GenesisBlock.BlockHash);
-            store.AppendIndex(cid1, Fx.Block1.BlockHash);
-            store.AppendIndex(cid1, Fx.Block2.BlockHash);
-            Assert.Single(store.ListChainIds());
+            // store.AppendIndex(cid1, Fx.GenesisBlock.BlockHash);
+            // store.AppendIndex(cid1, Fx.Block1.BlockHash);
+            // store.AppendIndex(cid1, Fx.Block2.BlockHash);
+            Assert.Single(store.ChainDigests);
             Assert.Equal(
                 new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash },
-                store.IterateIndexes(cid1, 0, null));
+                store.GetBlockHashes(cid1).IterateIndexes(0, null));
 
             Guid cid2 = Guid.NewGuid();
             store.ForkBlockIndexes(cid1, cid2, Fx.Block1.BlockHash);
-            store.AppendIndex(cid2, Fx.Block2.BlockHash);
-            store.AppendIndex(cid2, Fx.Block3.BlockHash);
-            Assert.Equal(2, store.ListChainIds().Count());
+            // store.AppendIndex(cid2, Fx.Block2.BlockHash);
+            // store.AppendIndex(cid2, Fx.Block3.BlockHash);
+            Assert.Equal(2, store.ChainDigests.Count);
             Assert.Equal(
                 new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash, Fx.Block3.BlockHash },
-                store.IterateIndexes(cid2, 0, null));
+                store.GetBlockHashes(cid2).IterateIndexes(0, null));
 
             Guid cid3 = Guid.NewGuid();
             store.ForkBlockIndexes(cid1, cid3, Fx.Block2.BlockHash);
-            Assert.Equal(3, store.ListChainIds().Count());
+            Assert.Equal(3, store.ChainDigests.Count);
             Assert.Equal(
                 new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash },
-                store.IterateIndexes(cid3, 0, null));
+                store.GetBlockHashes(cid3).IterateIndexes(0, null));
 
             Assert.Throws<InvalidOperationException>(() => store.PruneOutdatedChains());
             store.PruneOutdatedChains(true);
             store.ChainId = cid3;
             store.PruneOutdatedChains();
-            Assert.Single(store.ListChainIds());
+            Assert.Single(store.ChainDigests);
             Assert.Equal(
                 new[] { Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash },
-                store.IterateIndexes(cid3, 0, null));
-            Assert.Equal(3, store.CountIndex(cid3));
+                store.GetBlockHashes(cid3).IterateIndexes(0, null));
+            Assert.Equal(3, store.ChainDigests[cid3].Height);
 
             store.Dispose();
             store = null;

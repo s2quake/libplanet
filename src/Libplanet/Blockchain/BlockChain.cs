@@ -204,7 +204,7 @@ public partial class BlockChain
 
         // _blocks.Add(genesisBlock);
         options.Store.Blocks.Add(genesisBlock);
-        options.Store.AppendIndex(id, genesisBlock.BlockHash);
+        // options.Store.AppendIndex(id, genesisBlock.BlockHash);
 
         foreach (var tx in genesisBlock.Transactions)
         {
@@ -336,7 +336,7 @@ public partial class BlockChain
         }
 
         var result = new List<BlockHash>();
-        foreach (BlockHash hash in Store.IterateIndexes(Id, block.Height, count))
+        foreach (BlockHash hash in Store.GetBlockHashes(Id).IterateIndexes(block.Height, count))
         {
             if (count == 0)
             {
@@ -354,7 +354,7 @@ public partial class BlockChain
                 "Found {HashCount} hashes from storage with {ChainIdCount} chain ids " +
                 "in {DurationMs} ms",
                 result.Count,
-                Store.ListChainIds().Count(),
+                Store.ChainDigests.Keys.Count,
                 stopwatch.ElapsedMilliseconds);
 
         return result;
@@ -383,7 +383,7 @@ public partial class BlockChain
         // }
 
         return index == Tip.Height
-            ? Store.GetChainBlockCommit(Id)
+            ? Store.ChainDigests[Id].BlockCommit
             : Blocks[index + 1].LastCommit;
     }
 
@@ -487,7 +487,10 @@ public partial class BlockChain
 
                 if (block.Height != 0 && blockCommit is { })
                 {
-                    Store.PutChainBlockCommit(Id, blockCommit);
+                    Store.ChainDigests[Id] = Store.ChainDigests[Id] with
+                    {
+                        BlockCommit = blockCommit,
+                    };
                 }
 
                 foreach (var ev in block.Evidences)
@@ -502,7 +505,7 @@ public partial class BlockChain
                     // Store.PutCommittedEvidence(ev);
                 }
 
-                Store.AppendIndex(Id, block.BlockHash);
+                // Store.AppendIndex(Id, block.BlockHash);
                 _nextStateRootHash = null;
 
                 foreach (var ev in Store.PendingEvidences.ToArray())
@@ -666,7 +669,10 @@ public partial class BlockChain
 
                 if (block.Height != 0 && blockCommit is { })
                 {
-                    Store.PutChainBlockCommit(Id, blockCommit);
+                    Store.ChainDigests[Id] = Store.ChainDigests[Id] with
+                    {
+                        BlockCommit = blockCommit,
+                    };
                 }
 
                 foreach (var evidence in block.Evidences)
@@ -681,7 +687,7 @@ public partial class BlockChain
                     Store.CommittedEvidences.Add(evidence.Id, evidence);
                 }
 
-                Store.AppendIndex(Id, block.BlockHash);
+                // Store.AppendIndex(Id, block.BlockHash);
                 _nextStateRootHash = block.StateRootHash;
                 IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations);
                 Store.TxExecutions.AddRange(txExecutions);
@@ -842,7 +848,7 @@ public partial class BlockChain
 
         try
         {
-            IEnumerable<BlockHash> indices = Store.IterateIndexes(Id, offset, limit);
+            IEnumerable<BlockHash> indices = Store.GetBlockHashes(Id).IterateIndexes(offset, limit);
 
             // NOTE: The reason why this does not simply return indices, but iterates over
             // indices and yields hashes step by step instead, is that we need to ensure
@@ -869,7 +875,7 @@ public partial class BlockChain
                 "non canonical chain.");
         }
 
-        List<BlockHash> hashes = Store.GetBlockCommitHashes().ToList();
+        List<BlockHash> hashes = Store.BlockCommits.Keys.ToList();
 
         _logger.Debug("Removing old BlockCommits with heights lower than {Limit}...", limit);
         foreach (var hash in hashes)

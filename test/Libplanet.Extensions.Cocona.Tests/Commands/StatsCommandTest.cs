@@ -32,7 +32,7 @@ public class StatsCommandTest : IDisposable
             var guid = Guid.NewGuid();
             storeFixture.Store.ChainId = guid;
             storeFixture.Store.Blocks.Add(storeFixture.Block1);
-            storeFixture.Store.AppendIndex(guid, storeFixture.Block1.BlockHash);
+            // storeFixture.Store.AppendIndex(guid, storeFixture.Block1.BlockHash);
             storeFixture.Store.Transactions.Add(storeFixture.Transaction1);
         }
     }

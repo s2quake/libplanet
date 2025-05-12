@@ -11,7 +11,7 @@ namespace Libplanet.Tests.Store
         public BlockSetTest()
         {
             _fx = new MemoryStoreFixture();
-            _set = new BlockCollection(_fx.Store);
+            _set = new BlockCollection(_fx.Store, Guid.NewGuid());
         }
 
         [Fact]

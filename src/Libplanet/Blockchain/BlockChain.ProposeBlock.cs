@@ -74,7 +74,7 @@ public partial class BlockChain
         ImmutableSortedSet<EvidenceBase> evidences)
     {
         var height = _blocks.Count;
-        var previousHash = Store.GetBlockHash(Id, height - 1);
+        var previousHash = Store.GetBlockHashes(Id)[height - 1];
 
         HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash) ??
             throw new InvalidOperationException(

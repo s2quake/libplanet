@@ -23,20 +23,20 @@ namespace Libplanet.Store
         public static void Copy(this Libplanet.Store.Store from, Libplanet.Store.Store to)
         {
             // TODO: take a IProgress<> so that a caller can be aware the progress of cloning.
-            if (to.ListChainIds().Any())
+            if (to.ChainDigests.Keys.Any())
             {
                 throw new ArgumentException("The destination store has to be empty.", nameof(to));
             }
 
             var fromBlocks = from.Blocks;
             var toBlocks = to.Blocks;
-            foreach (Guid chainId in from.ListChainIds().ToArray())
+            foreach (Guid chainId in from.ChainDigests.Keys.ToArray())
             {
-                foreach (BlockHash blockHash in from.IterateIndexes(chainId))
+                foreach (BlockHash blockHash in from.GetBlockHashes(chainId).IterateIndexes())
                 {
                     var block = fromBlocks[blockHash];
                     toBlocks.Add(block);
-                    to.AppendIndex(chainId, blockHash);
+                    // to.AppendIndex(chainId, blockHash);
                 }
 
                 foreach (KeyValuePair<Address, long> kv in from.GetNonceCollection(chainId))
