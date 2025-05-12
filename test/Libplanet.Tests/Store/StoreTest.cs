@@ -35,7 +35,7 @@ public abstract class StoreTest
     [Fact]
     public void ListChainId()
     {
-        Assert.Empty(Fx.Store.ChainDigests.Keys);
+        Assert.Single(Fx.Store.ChainDigests);
 
         Fx.Store.Blocks.Add(Fx.Block1);
         // Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
@@ -44,7 +44,7 @@ public abstract class StoreTest
             [.. Fx.Store.ChainDigests.Keys]);
 
         Guid arbitraryGuid = Guid.NewGuid();
-        // Fx.Store.AppendIndex(arbitraryGuid, Fx.Block1.BlockHash);
+        Fx.Store.GetBlockHashes(arbitraryGuid).Add(Fx.Block1);
         Assert.Equal(
             new[] { Fx.StoreChainId, arbitraryGuid }.ToImmutableHashSet(),
             [.. Fx.Store.ChainDigests.Keys]);
@@ -60,10 +60,10 @@ public abstract class StoreTest
         Fx.Store.Blocks.Add(Fx.Block1);
         Fx.Store.Blocks.Add(Fx.Block2);
 
-        // Fx.Store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
-        // Fx.Store.AppendIndex(chainA, Fx.Block1.BlockHash);
+        Fx.Store.GetBlockHashes(chainA).Add(Fx.GenesisBlock);
+        Fx.Store.GetBlockHashes(chainA).Add(Fx.Block1);
         Fx.Store.ForkBlockIndexes(chainA, chainB, Fx.Block1.BlockHash);
-        // Fx.Store.AppendIndex(chainB, Fx.Block2.BlockHash);
+        Fx.Store.GetBlockHashes(chainB).Add(Fx.Block2);
 
         Fx.Store.ChainDigests.Remove(chainA);
 
