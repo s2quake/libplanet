@@ -74,11 +74,14 @@ public sealed class BlockCollection(Store store, int cacheSize = 4096)
 
     public bool Remove(BlockHash blockHash)
     {
-        if (_store.BlockDigests.Remove(blockHash))
+        if (_store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            _store.BlockCommits.Remove(blockHash);
+            _store.BlockDigests.Remove(blockHash);
+            _store.BlockHashes.Remove(blockDigest.Height);
+            _store.Transactions.RemoveRange(blockDigest.TxIds);
+            _store.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
             _cacheByHash.TryRemove(blockHash);
-            _cacheByHeight.TryRemove(_store.BlockHashes.IndexOf(blockHash));
+            _cacheByHeight.TryRemove(blockDigest.Height);
             return true;
         }
 
@@ -97,17 +100,34 @@ public sealed class BlockCollection(Store store, int cacheSize = 4096)
         _cacheByHeight.AddOrUpdate(block.Height, block);
     }
 
-    public bool TryGetValue(BlockHash key, [MaybeNullWhen(false)] out Block value)
+    public bool TryGetValue(int height, [MaybeNullWhen(false)] out Block value)
     {
-        if (_cacheByHash.TryGet(key, out value))
+        if (_cacheByHeight.TryGet(height, out value))
         {
             return true;
         }
 
-        if (_store.BlockDigests.TryGetValue(key, out var blockDigest))
+        if (_store.BlockHashes.TryGetValue(height, out var blockHash))
+        {
+            value = this[blockHash];
+            _cacheByHeight.AddOrUpdate(height, value);
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryGetValue(BlockHash blockHash, [MaybeNullWhen(false)] out Block value)
+    {
+        if (_cacheByHash.TryGet(blockHash, out value))
+        {
+            return true;
+        }
+
+        if (_store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
             value = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
-            _cacheByHash.AddOrUpdate(key, value);
+            _cacheByHash.AddOrUpdate(blockHash, value);
             return true;
         }
 

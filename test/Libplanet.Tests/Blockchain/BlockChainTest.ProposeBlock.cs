@@ -21,7 +21,7 @@ public partial class BlockChainTest
     public void ProposeBlock()
     {
         var maxTransactionsBytes = _blockChain.Options.MaxTransactionsBytes;
-        Assert.Equal(1, _blockChain.Count);
+        Assert.Equal(1, _blockChain.Blocks.Count);
         Assert.Equal(
             $"{GenesisProposer.Address}",
             (string)_blockChain.GetNextWorld().GetValue(LegacyAccount, default));
@@ -29,8 +29,8 @@ public partial class BlockChainTest
         var proposerA = new PrivateKey();
         Block block = _blockChain.ProposeBlock(proposerA);
         _blockChain.Append(block, CreateBlockCommit(block));
-        Assert.True(_blockChain.ContainsBlock(block.BlockHash));
-        Assert.Equal(2, _blockChain.Count);
+        Assert.True(_blockChain.Blocks.ContainsKey(block.BlockHash));
+        Assert.Equal(2, _blockChain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block).Length <= maxTransactionsBytes);
         Assert.Equal(
@@ -43,8 +43,8 @@ public partial class BlockChainTest
             CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
             [.. _blockChain.PendingEvidences.Values]);
         _blockChain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
-        Assert.True(_blockChain.ContainsBlock(anotherBlock.BlockHash));
-        Assert.Equal(3, _blockChain.Count);
+        Assert.True(_blockChain.Blocks.ContainsKey(anotherBlock.BlockHash));
+        Assert.Equal(3, _blockChain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(anotherBlock).Length <=
                 maxTransactionsBytes);
@@ -57,8 +57,8 @@ public partial class BlockChainTest
             new PrivateKey(),
             CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
             [.. _blockChain.PendingEvidences.Values]);
-        Assert.False(_blockChain.ContainsBlock(block3.BlockHash));
-        Assert.Equal(3, _blockChain.Count);
+        Assert.False(_blockChain.Blocks.ContainsKey(block3.BlockHash));
+        Assert.Equal(3, _blockChain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block3).Length <= maxTransactionsBytes);
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
@@ -91,7 +91,7 @@ public partial class BlockChainTest
             proposer: new PrivateKey(),
             lastCommit: CreateBlockCommit(_blockChain.Tip.BlockHash, _blockChain.Tip.Height, 0),
             evidences: [.. _blockChain.PendingEvidences.Values]);
-        Assert.False(_blockChain.ContainsBlock(block4.BlockHash));
+        Assert.False(_blockChain.Blocks.ContainsKey(block4.BlockHash));
         _logger.Debug(
             $"{nameof(block4)}: {0} bytes",
             ModelSerializer.SerializeToBytes(block4).Length);
@@ -265,7 +265,7 @@ public partial class BlockChainTest
         Block block = _blockChain.ProposeBlock(keyA);
         _blockChain.Append(block, CreateBlockCommit(block));
 
-        Assert.True(_blockChain.ContainsBlock(block.BlockHash));
+        Assert.True(_blockChain.Blocks.ContainsKey(block.BlockHash));
         Assert.Contains(txs[0], block.Transactions);
         Assert.Contains(txs[1], block.Transactions);
         Assert.DoesNotContain(txs[2], block.Transactions);

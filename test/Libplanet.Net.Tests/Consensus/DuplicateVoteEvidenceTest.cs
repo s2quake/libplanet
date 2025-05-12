@@ -174,7 +174,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 4,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-            Assert.Empty(blockChain[3].Evidences);
+            Assert.Empty(blockChain.Blocks[3].Evidences);
         }
 
         [Fact(Timeout = Timeout)]
@@ -235,7 +235,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 4,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-            Assert.Empty(blockChain[3].Evidences);
+            Assert.Empty(blockChain.Blocks[3].Evidences);
         }
 
         [Fact(Timeout = Timeout)]
@@ -296,7 +296,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 4,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-            Assert.Empty(blockChain[3].Evidences);
+            Assert.Empty(blockChain.Blocks[3].Evidences);
         }
 
         [Fact(Timeout = Timeout)]
@@ -357,7 +357,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 4,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-            Assert.Empty(blockChain[3].Evidences);
+            Assert.Empty(blockChain.Blocks[3].Evidences);
         }
 
         [Fact(Timeout = Timeout)]
@@ -418,7 +418,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 4,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-            Assert.Empty(blockChain[3].Evidences);
+            Assert.Empty(blockChain.Blocks[3].Evidences);
         }
     }
 }

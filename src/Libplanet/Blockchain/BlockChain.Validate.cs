@@ -198,7 +198,7 @@ namespace Libplanet.Blockchain
                     nameof(block));
             }
 
-            var index = Count;
+            var index = _blocks.Count;
             if (block.Height != index)
             {
                 throw new InvalidOperationException(
@@ -228,7 +228,7 @@ namespace Libplanet.Blockchain
                 throw new InvalidOperationException(message);
             }
 
-            Block lastBlock = this[index - 1];
+            Block lastBlock = Blocks[index - 1];
             BlockHash? prevHash = lastBlock?.BlockHash;
             DateTimeOffset? prevTimestamp = lastBlock?.Timestamp;
 
@@ -284,7 +284,7 @@ namespace Libplanet.Blockchain
                 try
                 {
                     var hash = block.PreviousHash == default ? Genesis.BlockHash : block.PreviousHash;
-                    ValidateBlockCommit(this[hash], block.LastCommit);
+                    ValidateBlockCommit(_blocks[hash], block.LastCommit);
                 }
                 catch (InvalidOperationException ibce)
                 {

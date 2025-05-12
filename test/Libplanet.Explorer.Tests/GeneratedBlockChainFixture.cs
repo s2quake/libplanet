@@ -84,7 +84,7 @@ public class GeneratedBlockChainFixture
             Chain.Genesis.Proposer,
             ImmutableArray<Block>.Empty.Add(Chain.Genesis));
 
-        while (Chain.Count < blockCount)
+        while (Chain.Blocks.Count < blockCount)
         {
             AddBlock(GetRandomTransactions());
         }

@@ -33,7 +33,7 @@ namespace Libplanet.Tests.Blockchain
                 MakeFixturesForAppendTests(keys: keys);
             var genesis = _blockChain.Genesis;
 
-            Assert.Equal(1, _blockChain.Count);
+            Assert.Equal(1, _blockChain.Blocks.Count);
             // Assert.Empty(_renderer.ActionRecords);
             // Assert.Empty(_renderer.BlockRecords);
             var block1 = _blockChain.ProposeBlock(
@@ -64,7 +64,7 @@ namespace Libplanet.Tests.Blockchain
                 Assert.True(_fx.Store.GetFirstTxIdBlockHashIndex(tx.Id).Equals(block2.BlockHash));
             }
 
-            Assert.True(_blockChain.ContainsBlock(block2.BlockHash));
+            Assert.True(_blockChain.Blocks.ContainsKey(block2.BlockHash));
 
             // RenderRecord.ActionSuccess[] renders = _renderer.ActionSuccessRecords
             //     .Where(r => TestUtils.IsDumbAction(r.Action))

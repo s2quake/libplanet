@@ -60,7 +60,7 @@ namespace Libplanet.Explorer.GraphTypes
                 {
                     if (context is { Index: { } index, BlockChain: { } chain })
                     {
-                        return chain[index.GetContainedBlockHashByTxId(ctx.Source.Id)];
+                        return chain.Blocks[index.GetContainedBlockHashByTxId(ctx.Source.Id)];
                     }
 
                     var exceptionMessage =

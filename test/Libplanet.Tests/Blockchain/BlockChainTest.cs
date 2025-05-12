@@ -114,11 +114,11 @@ public partial class BlockChainTest : IDisposable
     public void CanFindBlockByIndex()
     {
         var genesis = _blockChain.Genesis;
-        Assert.Equal(genesis, _blockChain[0]);
+        Assert.Equal(genesis, _blockChain.Blocks[0]);
 
         Block block = _blockChain.ProposeBlock(new PrivateKey());
         _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-        Assert.Equal(block, _blockChain[1]);
+        Assert.Equal(block, _blockChain.Blocks[1]);
     }
 
     [Fact]
@@ -127,25 +127,25 @@ public partial class BlockChainTest : IDisposable
         var key = new PrivateKey();
         var genesis = _blockChain.Genesis;
 
-        Assert.Single(_blockChain.BlockHashes);
+        Assert.Single(_blockChain.Blocks.Keys);
 
         Block b1 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b1, CreateBlockCommit(b1));
-        Assert.Equal(new[] { genesis.BlockHash, b1.BlockHash }, _blockChain.BlockHashes);
+        Assert.Equal(new[] { genesis.BlockHash, b1.BlockHash }, _blockChain.Blocks.Keys);
 
         Block b2 = _blockChain.ProposeBlock(
             key, CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(b2, CreateBlockCommit(b2));
         Assert.Equal(
             new[] { genesis.BlockHash, b1.BlockHash, b2.BlockHash },
-            _blockChain.BlockHashes);
+            _blockChain.Blocks.Keys);
 
         Block b3 = _blockChain.ProposeBlock(
             key, CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(b3, CreateBlockCommit(b3));
         Assert.Equal(
             new[] { genesis.BlockHash, b1.BlockHash, b2.BlockHash, b3.BlockHash },
-            _blockChain.BlockHashes);
+            _blockChain.Blocks.Keys);
     }
 
     [Fact]
@@ -306,7 +306,7 @@ public partial class BlockChainTest : IDisposable
         Block block = blockChain.ProposeBlock(new PrivateKey());
         blockChain.Append(block, CreateBlockCommit(block));
 
-        Assert.Equal(2, blockChain.Count);
+        Assert.Equal(2, blockChain.Blocks.Count);
         // IReadOnlyList<RenderRecord.BlockEvent> blockLogs = recordingRenderer.BlockRecords;
         // Assert.Equal(2, blockLogs.Count);
         // IReadOnlyList<RenderRecord.ActionBase> actionLogs = recordingRenderer.ActionRecords;
@@ -352,7 +352,7 @@ public partial class BlockChainTest : IDisposable
         ThrowException.SomeException e = Assert.Throws<ThrowException.SomeException>(
             () => blockChain.Append(block, CreateBlockCommit(block)));
         Assert.Equal("thrown by renderer", e.Message);
-        Assert.Equal(2, blockChain.Count);
+        Assert.Equal(2, blockChain.Blocks.Count);
     }
 
     [Fact]
@@ -1112,9 +1112,9 @@ public partial class BlockChainTest : IDisposable
                     .Diff(evals.First().InputWorld.Trie)
                     .ToList();
                 Assert.NotEmpty(dirty);
-                store.PutBlock(b);
+                store.Blocks.Add(b);
                 BuildIndex(chain.Id, b);
-                Assert.Equal(b, chain[b.BlockHash]);
+                Assert.Equal(b, chain.Blocks[b.BlockHash]);
                 if (presentIndices.Contains((int)b.Height))
                 {
                     presentBlocks.Add(b);

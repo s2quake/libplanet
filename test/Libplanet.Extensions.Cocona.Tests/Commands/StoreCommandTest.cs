@@ -84,22 +84,22 @@ public class StoreCommandTest : IDisposable
         foreach (var v in _storeFixtures)
         {
             v.Store.ChainId = guid;
-            v.Store.PutBlock(_genesisBlock);
+            v.Store.Blocks.Add(_genesisBlock);
             v.Store.AppendIndex(guid, _genesisBlock.BlockHash);
 
-            v.Store.PutBlock(_block1);
+            v.Store.Blocks.Add(_block1);
             v.Store.AppendIndex(guid, _block1.BlockHash);
             v.Store.Transactions.Add(_transaction1);
 
-            v.Store.PutBlock(_block2);
+            v.Store.Blocks.Add(_block2);
             v.Store.AppendIndex(guid, _block2.BlockHash);
             v.Store.Transactions.Add(_transaction2);
 
-            v.Store.PutBlock(_block3);
+            v.Store.Blocks.Add(_block3);
             v.Store.AppendIndex(guid, _block3.BlockHash);
             v.Store.Transactions.Add(_transaction3);
 
-            v.Store.PutBlock(_block4);
+            v.Store.Blocks.Add(_block4);
             v.Store.AppendIndex(guid, _block4.BlockHash);
 
             v.Store?.Dispose();

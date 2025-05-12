@@ -63,7 +63,7 @@ public class StatsCommand
 
         foreach (var hash in hashes)
         {
-            BlockDigest blockDigest = store.GetBlockDigest(hash);
+            BlockDigest blockDigest = store.BlockDigests[hash];
             BlockHeader blockHeader = blockDigest.Header;
 
             Console.WriteLine(

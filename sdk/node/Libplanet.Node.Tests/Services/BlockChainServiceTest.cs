@@ -19,7 +19,7 @@ public class BlockChainServiceTest
         var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
         var blockChain = blockChainService.BlockChain;
 
-        Assert.Equal(1, blockChain.Count);
+        Assert.Equal(1, blockChain.Blocks.Count);
     }
 
     [Fact]

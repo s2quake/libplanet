@@ -65,7 +65,7 @@ namespace Libplanet.Explorer.Queries
                 yield break;
             }
 
-            Block? block = Chain[desc ? tipIndex - offset : offset];
+            Block? block = Chain.Blocks[desc ? tipIndex - offset : offset];
             while (block is not null && limit is null or > 0)
             {
                 foreach (var tx in desc ? block.Transactions.Reverse() : block.Transactions)
@@ -131,7 +131,7 @@ namespace Libplanet.Explorer.Queries
             BlockHash? blockHash, bool desc, int offset, int? limit)
         {
             var blockChain = Chain;
-            var block = blockHash != null ? blockChain[blockHash.Value] : blockChain.Tip;
+            var block = blockHash != null ? blockChain.Blocks[blockHash.Value] : blockChain.Tip;
             var comparer = desc ? EvidenceIdComparer.Descending : EvidenceIdComparer.Ascending;
             var evidence = block.Evidences
                                  .Skip(offset)
@@ -141,9 +141,9 @@ namespace Libplanet.Explorer.Queries
             return evidence;
         }
 
-        internal static Block? GetBlockByHash(BlockHash hash) => Store.GetBlock(hash);
+        internal static Block? GetBlockByHash(BlockHash hash) => Store.Blocks[hash];
 
-        internal static Block GetBlockByIndex(int index) => Chain[index];
+        internal static Block GetBlockByIndex(int index) => Chain.Blocks[index];
 
         internal static Transaction GetTransaction(TxId id) => Chain.Transactions[id];
 
@@ -153,11 +153,11 @@ namespace Libplanet.Explorer.Queries
         {
             if (desc && block.PreviousHash is { } prev)
             {
-                return Chain[prev];
+                return Chain.Blocks[prev];
             }
             else if (!desc && block != Chain.Tip)
             {
-                return Chain[block.Height + 1];
+                return Chain.Blocks[block.Height + 1];
             }
 
             return null;
@@ -172,7 +172,7 @@ namespace Libplanet.Explorer.Queries
 
             var count = (int)Math.Min(limit, chain.Tip.Height - from + 1);
             var blocks = Enumerable.Range(0, count)
-                .Select(offset => chain[from + offset])
+                .Select(offset => chain.Blocks[from + offset])
                 .OrderBy(block => block.Height);
 
             return blocks;

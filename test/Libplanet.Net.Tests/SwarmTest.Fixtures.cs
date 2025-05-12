@@ -57,9 +57,9 @@ namespace Libplanet.Net.Tests
                     }
 
                     var blockList = new List<Block>();
-                    for (var i = 1; i < chain.Count; i++)
+                    for (var i = 1; i < chain.Blocks.Count; i++)
                     {
-                        Block block = chain[i];
+                        Block block = chain.Blocks[i];
                         blockList.Add(block);
                     }
 

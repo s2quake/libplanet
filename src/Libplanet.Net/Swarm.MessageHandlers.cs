@@ -273,7 +273,7 @@ namespace Libplanet.Net
                 foreach (BlockHash hash in hashes)
                 {
                     _logger.Verbose(logMsg, count, total, hash, reqId);
-                    if (_store.GetBlock(hash) is { } block)
+                    if (_store.Blocks.TryGetValue(hash, out var block))
                     {
                         byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
                         payloads.Add(blockPayload);

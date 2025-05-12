@@ -78,8 +78,8 @@ namespace Libplanet.Net.Tests
                 {
                     var waitTasks1 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
                     await Task.WhenAll(waitTasks1);
-                    Array.ForEach(blockChains, item => Assert.Equal(i + 1, item.Count));
-                    if (blockChains.Any(item => item[i].Evidences.Count > 0))
+                    Array.ForEach(blockChains, item => Assert.Equal(i + 1, item.Blocks.Count));
+                    if (blockChains.Any(item => item.Blocks[i].Evidences.Count > 0))
                     {
                         break;
                     }
@@ -91,7 +91,7 @@ namespace Libplanet.Net.Tests
                 await Task.WhenAll(waitTasks2);
                 foreach (BlockChain blockChain in blockChains)
                 {
-                    Assert.Equal(i + 1, blockChain.Count);
+                    Assert.Equal(i + 1, blockChain.Blocks.Count);
                 }
             }
             finally

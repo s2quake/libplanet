@@ -34,7 +34,7 @@ public class ReadChainServiceTest
         var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
         var blockChain = blockChainService.BlockChain;
         var readChainService = serviceProvider.GetRequiredService<IReadChainService>();
-        var height = blockChain.Count;
+        var height = blockChain.Blocks.Count;
         var expectedBlock = await BlockChainUtility.AppendBlockAsync(blockChain);
 
         Assert.Equal(expectedBlock, readChainService.GetBlock(height));

@@ -819,7 +819,7 @@ namespace Libplanet.Net.Tests
                 Assert.NotEqual(swarmA.BlockChain.Genesis, swarmA.BlockChain.Tip);
                 Assert.Contains(
                     swarmA.BlockChain.Tip.BlockHash,
-                    seed.BlockChain.BlockHashes);
+                    seed.BlockChain.Blocks.Keys);
             }
             finally
             {
@@ -1055,10 +1055,10 @@ namespace Libplanet.Net.Tests
                 });
 
                 Assert.NotEqual(genesisChainA.Genesis, genesisChainB.Genesis);
-                Assert.Equal(genesisChainA.BlockHashes, genesisChainC.BlockHashes);
-                Assert.Equal(2, genesisChainA.Count);
-                Assert.Equal(1, genesisChainB.Count);
-                Assert.Equal(2, genesisChainC.Count);
+                Assert.Equal(genesisChainA.Blocks.Keys, genesisChainC.Blocks.Keys);
+                Assert.Equal(2, genesisChainA.Blocks.Count);
+                Assert.Equal(1, genesisChainB.Blocks.Count);
+                Assert.Equal(2, genesisChainC.Blocks.Count);
 
                 Assert.Equal(
                     "1",
@@ -1251,7 +1251,7 @@ namespace Libplanet.Net.Tests
                 await receiver.BlockAppended.WaitAsync();
                 Assert.Equal(
                     7,
-                    receiver.BlockChain.Count);
+                    receiver.BlockChain.Blocks.Count);
             }
             finally
             {
@@ -1289,10 +1289,10 @@ namespace Libplanet.Net.Tests
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Count);
+                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
                 Assert.Equal(
                     2,
-                    receiver.BlockChain.Count);
+                    receiver.BlockChain.Blocks.Count);
             }
             finally
             {
@@ -1330,31 +1330,31 @@ namespace Libplanet.Net.Tests
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Count);
+                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
                 sender.BroadcastBlock(sender.BlockChain.Tip);
                 Assert.Equal(
                     3,
-                    receiver.BlockChain.Count);
+                    receiver.BlockChain.Blocks.Count);
 
                 sender.BroadcastBlock(sender.BlockChain.Tip);
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Count);
+                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
                 sender.BroadcastBlock(sender.BlockChain.Tip);
                 Assert.Equal(
                     5,
-                    receiver.BlockChain.Count);
+                    receiver.BlockChain.Blocks.Count);
 
                 sender.BroadcastBlock(sender.BlockChain.Tip);
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Count);
+                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
                 sender.BroadcastBlock(sender.BlockChain.Tip);
                 Assert.Equal(
                     7,
-                    receiver.BlockChain.Count);
+                    receiver.BlockChain.Blocks.Count);
             }
             finally
             {
