@@ -6,13 +6,15 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockCollection(Store store, int cacheSize = 4096)
+public sealed class BlockCollection(Store store, Guid chainId, int cacheSize = 4096)
     : IReadOnlyDictionary<BlockHash, Block>
 {
     private readonly Store _store = store;
     private readonly ICache<BlockHash, Block> _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
             .WithCapacity(cacheSize)
             .Build();
+
+    private readonly BlockHashCollection _blockHashes = store.GetBlockHashes(chainId);
 
     private readonly ICache<int, Block> _cacheByHeight = new ConcurrentLruBuilder<int, Block>()
             .WithCapacity(cacheSize)
@@ -36,7 +38,7 @@ public sealed class BlockCollection(Store store, int cacheSize = 4096)
                 return cached;
             }
 
-            var blockHash = _store.BlockHashes[height];
+            var blockHash = _blockHashes[height];
             var block = this[blockHash];
             _cacheByHeight.AddOrUpdate(height, block);
             return block;
@@ -77,7 +79,7 @@ public sealed class BlockCollection(Store store, int cacheSize = 4096)
         if (_store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
             _store.BlockDigests.Remove(blockHash);
-            _store.BlockHashes.Remove(blockDigest.Height);
+            _blockHashes.Remove(blockDigest.Height);
             _store.Transactions.RemoveRange(blockDigest.TxIds);
             _store.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
             _cacheByHash.TryRemove(blockHash);
@@ -91,11 +93,10 @@ public sealed class BlockCollection(Store store, int cacheSize = 4096)
     public void Add(Block block)
     {
         _store.BlockDigests.Add(block);
-        _store.BlockHashes.Add(block);
+        _blockHashes.Add(block);
         _store.Transactions.Add(block);
         _store.PendingEvidences.Add(block);
         _store.CommittedEvidences.Add(block);
-        
 
         _cacheByHash.AddOrUpdate(block.BlockHash, block);
         _cacheByHeight.AddOrUpdate(block.Height, block);
@@ -108,7 +109,7 @@ public sealed class BlockCollection(Store store, int cacheSize = 4096)
             return true;
         }
 
-        if (_store.BlockHashes.TryGetValue(height, out var blockHash))
+        if (_blockHashes.TryGetValue(height, out var blockHash))
         {
             value = this[blockHash];
             _cacheByHeight.AddOrUpdate(height, value);

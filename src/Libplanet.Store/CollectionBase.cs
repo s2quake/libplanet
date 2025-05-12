@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Store.Trie;
 using LruCacheNet;
@@ -58,19 +59,27 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
         {
             _dictionary[GetKeyBytes(key)] = GetBytes(value);
             _cache[key] = value;
+            OnSet(key, value);
         }
     }
 
     public bool Remove(TKey key)
     {
-        _cache.Remove(key);
-        return _dictionary.Remove(GetKeyBytes(key));
+        if (_dictionary.Remove(GetKeyBytes(key)))
+        {
+            _cache.Remove(key, out var value);
+            OnRemoved(key, value);
+            return true;
+        }
+
+        return false;
     }
 
     public void Add(TKey key, TValue value)
     {
         _dictionary.Add(GetKeyBytes(key), GetBytes(value));
         _cache[key] = value;
+        OnAdded(key, value);
     }
 
     public bool ContainsKey(TKey key)
@@ -159,6 +168,22 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
     protected abstract byte[] GetBytes(TValue value);
 
     protected abstract TValue GetValue(byte[] bytes);
+
+    protected virtual void OnCleared()
+    {
+    }
+
+    protected virtual void OnAdded(TKey key, TValue item)
+    {
+    }
+
+    protected virtual void OnRemoved(TKey key, TValue? item)
+    {
+    }
+
+    protected virtual void OnSet(TKey key, TValue item)
+    {
+    }
 
     private sealed class KeyCollection(CollectionBase<TKey, TValue> owner) : ICollection<TKey>
     {
