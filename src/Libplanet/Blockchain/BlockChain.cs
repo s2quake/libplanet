@@ -213,7 +213,7 @@ public partial class BlockChain
 
         foreach (KeyValuePair<Address, long> pair in nonceDeltas)
         {
-            options.Store.IncreaseTxNonce(id, pair.Key, pair.Value);
+            options.Store.Nonces.Increase(pair.Key, pair.Value);
         }
 
         options.Store.ChainId = id;
@@ -429,7 +429,7 @@ public partial class BlockChain
                 block.Transactions
                     .Select(tx => tx.Signer)
                     .Distinct()
-                    .ToDictionary(signer => signer, signer => Store.GetTxNonce(Id, signer)),
+                    .ToDictionary(signer => signer, signer => Store.Nonces[signer]),
                 block);
 
             if (validate)
@@ -477,7 +477,7 @@ public partial class BlockChain
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
-                    Store.IncreaseTxNonce(Id, pair.Key, pair.Value);
+                    Store.Nonces.Increase(pair.Key, pair.Value);
                 }
 
                 foreach (var tx in block.Transactions)
@@ -611,7 +611,7 @@ public partial class BlockChain
                 block.Transactions
                     .Select(tx => tx.Signer)
                     .Distinct()
-                    .ToDictionary(signer => signer, signer => Store.GetTxNonce(Id, signer)),
+                    .ToDictionary(signer => signer, Store.Nonces.GetOrDefault),
                 block);
 
             Options.BlockValidation(this, block);
@@ -656,7 +656,7 @@ public partial class BlockChain
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
-                    Store.IncreaseTxNonce(Id, pair.Key, pair.Value);
+                    Store.Nonces.Increase(pair.Key, pair.Value);
                 }
 
                 foreach (var tx in block.Transactions)

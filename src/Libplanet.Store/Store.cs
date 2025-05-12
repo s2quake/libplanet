@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
@@ -10,6 +11,7 @@ public sealed class Store
 {
     private const string IndexColPrefix = "index_";
     private const string TxNonceIdPrefix = "nonce_";
+    private static readonly object _lock = new();
 
     private readonly IDatabase _database;
     private readonly TransactionCollection _transactions;
@@ -25,6 +27,8 @@ public sealed class Store
     private readonly BlockCommitByChainId _blockCommitByChainId;
     private readonly StringCollection _metadata;
     private readonly BlockCollection _blocks;
+    private readonly ConcurrentDictionary<Guid, NonceCollection> _noncesByChainId = new();
+    private NonceCollection? _nonces;
 
     private bool _disposed;
 
@@ -62,6 +66,8 @@ public sealed class Store
 
     public TxExecutionCollection TxExecutions => _txExecutions;
 
+    public NonceCollection Nonces => _nonces ?? throw new InvalidOperationException("Chain ID is not set.");
+
     public Guid ChainId
     {
         get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
@@ -73,6 +79,21 @@ public sealed class Store
             }
 
             _metadata["chainId"] = value.ToString();
+            _nonces = GetNonceCollection(value);
+        }
+    }
+
+    public NonceCollection GetNonceCollection(Guid chainId)
+    {
+        lock (_lock)
+        {
+            if (!_noncesByChainId.TryGetValue(chainId, out var nonces))
+            {
+                nonces = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+                _noncesByChainId.TryAdd(chainId, nonces);
+            }
+
+            return nonces;
         }
     }
 
@@ -212,41 +233,41 @@ public sealed class Store
         }
     }
 
-    public IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
-    {
-        var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
-        foreach (var item in collection)
-        {
-            yield return item;
-        }
-    }
+    // public IEnumerable<KeyValuePair<Address, long>> ListTxNonces(Guid chainId)
+    // {
+    //     var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+    //     foreach (var item in collection)
+    //     {
+    //         yield return item;
+    //     }
+    // }
 
-    public long GetTxNonce(Guid chainId, Address address)
-    {
-        var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
-        if (collection.TryGetValue(address, out var nonce))
-        {
-            return nonce;
-        }
+    // public long GetTxNonce(Guid chainId, Address address)
+    // {
+    //     var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+    //     if (collection.TryGetValue(address, out var nonce))
+    //     {
+    //         return nonce;
+    //     }
 
-        return 0L;
-    }
+    //     return 0L;
+    // }
 
-    public void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
-    {
-        var collection = new NonceByAddress(_database.GetOrAdd(TxNonceKey(chainId)));
-        if (!collection.TryGetValue(signer, out var nonce))
-        {
-            nonce = 0L;
-        }
+    // public void IncreaseTxNonce(Guid chainId, Address signer, long delta = 1)
+    // {
+    //     var collection = new NonceCollection(_database.GetOrAdd(TxNonceKey(chainId)));
+    //     if (!collection.TryGetValue(signer, out var nonce))
+    //     {
+    //         nonce = 0L;
+    //     }
 
-        collection[signer] = nonce + delta;
-    }
+    //     collection[signer] = nonce + delta;
+    // }
 
     public void ForkTxNonces(Guid sourceChainId, Guid destinationChainId)
     {
-        var srcColl = TxNonceCollection(sourceChainId);
-        var destColl = TxNonceCollection(destinationChainId);
+        var srcColl = GetNonceCollection(sourceChainId);
+        var destColl = GetNonceCollection(destinationChainId);
 
         if (destColl.Count > 0)
         {
@@ -313,5 +334,5 @@ public sealed class Store
 
     private BlockHashByHeight IndexCollection(in Guid chainId) => new(_database.GetOrAdd(IndexKey(chainId)));
 
-    private NonceByAddress TxNonceCollection(in Guid chainId) => new(_database.GetOrAdd(TxNonceKey(chainId)));
+    private NonceCollection GetNonceCollection(in Guid chainId) => new(_database.GetOrAdd(TxNonceKey(chainId)));
 }

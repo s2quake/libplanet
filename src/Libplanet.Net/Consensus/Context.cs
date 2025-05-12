@@ -419,8 +419,7 @@ public partial class Context : IDisposable
                         .Distinct()
                         .ToDictionary(
                             signer => signer,
-                            signer => _blockChain.Store.GetTxNonce(
-                                _blockChain.Id, signer)),
+                            signer => _blockChain.Store.Nonces[signer]),
                     block);
 
                 _blockChain.Options.BlockValidation(_blockChain, block);
