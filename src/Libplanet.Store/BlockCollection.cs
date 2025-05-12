@@ -95,6 +95,7 @@ public sealed class BlockCollection(Store store, int cacheSize = 4096)
         _store.Transactions.Add(block);
         _store.PendingEvidences.Add(block);
         _store.CommittedEvidences.Add(block);
+        
 
         _cacheByHash.AddOrUpdate(block.BlockHash, block);
         _cacheByHeight.AddOrUpdate(block.Height, block);

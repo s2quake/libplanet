@@ -201,7 +201,7 @@ namespace Libplanet.Explorer.Queries
 
                     if (GetBlockContainingTx(_context, txId) is { } block)
                     {
-                        return _context.BlockChain.GetTxExecution(block.BlockHash, txId) is { } execution
+                        return _context.BlockChain.TxExecutions[block.BlockHash, txId] is { } execution
                             ? new TxResult
                             {
                                 TxStatus = execution.Fail ? TxStatus.FAILURE : TxStatus.SUCCESS,

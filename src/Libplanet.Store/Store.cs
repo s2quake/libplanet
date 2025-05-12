@@ -13,7 +13,7 @@ public sealed class Store
 
     private readonly IDatabase _database;
     private readonly TransactionCollection _transactions;
-    private readonly TxExecutionByTxId _txExecutions;
+    private readonly TxExecutionCollection _txExecutions;
     private readonly BlockHashesByTxId _blockHashesByTxId;
     private readonly BlockDigestCollection _blockDigests;
     private readonly BlockCommitCollection _blockCommits;
@@ -33,7 +33,7 @@ public sealed class Store
         _database = database;
         _transactions = new TransactionCollection(_database.GetOrAdd("tx"));
         _blockDigests = new BlockDigestCollection(_database.GetOrAdd("block"));
-        _txExecutions = new TxExecutionByTxId(_database.GetOrAdd("txexec"));
+        _txExecutions = new TxExecutionCollection(_database.GetOrAdd("txexec"));
         _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txbindex"));
         _blockCommits = new BlockCommitCollection(_database.GetOrAdd("blockcommit"));
         _blockHashes = new BlockHashCollection(_database.GetOrAdd("blockhash"));
@@ -60,6 +60,8 @@ public sealed class Store
 
     public BlockCollection Blocks => _blocks;
 
+    public TxExecutionCollection TxExecutions => _txExecutions;
+
     public Guid ChainId
     {
         get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
@@ -73,14 +75,6 @@ public sealed class Store
             _metadata["chainId"] = value.ToString();
         }
     }
-
-    // public Block GetBlock(BlockHash blockHash)
-    //     => _blockDigests[blockHash].ToBlock(item => Transactions[item], item => CommittedEvidences[item]);
-
-    // public int GetBlockHeight(BlockHash blockHash)
-    // {
-    //     return GetBlockDigest(blockHash).Height;
-    // }
 
     public BlockHash GetFirstTxIdBlockHashIndex(TxId txId)
     {
@@ -103,18 +97,6 @@ public sealed class Store
         _database.Remove(TxNonceKey(chainId));
         _database.Remove(IndexKey(chainId));
     }
-
-    // public Guid GetCanonicalChainId()
-    // {
-    //     if (!_metadata.TryGetValue("chainId", out var chainId))
-    //     {
-    //         return Guid.Empty;
-    //     }
-
-    //     return Guid.Parse(chainId);
-    // }
-
-    // public void SetCanonicalChainId(Guid chainId) => _metadata["chainId"] = chainId.ToString();
 
     public int CountIndex(Guid chainId)
     {
@@ -190,39 +172,9 @@ public sealed class Store
         AppendIndex(destinationChainId, branchpoint);
     }
 
-    // public Transaction GetTransaction(TxId txId) => _transactions[txId];
+    // public void PutTxExecution(TxExecution txExecution) => _txExecutions.Add(txExecution);
 
-    // public void PutTransaction(Transaction tx) => _transactions[tx.Id] = tx;
-
-    // public bool ContainsTransaction(TxId txId) => _transactions.ContainsKey(txId);
-
-    // public IEnumerable<BlockHash> IterateBlockHashes() => _blockDigests.Keys;
-
-    // public BlockDigest GetBlockDigest(BlockHash blockHash) => _blockDigests[blockHash];
-
-    // public void PutBlock(Block block)
-    // {
-    //     _blockDigests.Add(block.BlockHash, BlockDigest.Create(block));
-
-    //     foreach (var transaction in block.Transactions)
-    //     {
-    //         _transactions[transaction.Id] = transaction;
-    //     }
-
-    //     foreach (var evidence in block.Evidences)
-    //     {
-    //         CommittedEvidences.Add(evidence);
-    //         PendingEvidences.Remove(evidence);
-    //     }
-    // }
-
-    // public bool DeleteBlock(BlockHash blockHash) => _blockDigests.Remove(blockHash);
-
-    // public bool ContainsBlock(BlockHash blockHash) => _blockDigests.ContainsKey(blockHash);
-
-    public void PutTxExecution(TxExecution txExecution) => _txExecutions.Add(txExecution);
-
-    public TxExecution GetTxExecution(BlockHash blockHash, TxId txId) => _txExecutions[(blockHash, txId)];
+    // public TxExecution GetTxExecution(BlockHash blockHash, TxId txId) => _txExecutions[(blockHash, txId)];
 
     public void PutTxIdBlockHashIndex(TxId txId, BlockHash blockHash)
     {
@@ -332,13 +284,6 @@ public sealed class Store
     public void PutChainBlockCommit(Guid chainId, BlockCommit blockCommit)
         => _blockCommitByChainId[chainId] = blockCommit;
 
-    // public BlockCommit GetBlockCommit(BlockHash blockHash) => _blockCommitByBlockHash[blockHash];
-
-    // public void PutBlockCommit(BlockCommit blockCommit)
-    //     => _blockCommitByBlockHash.Add(blockCommit.BlockHash, blockCommit);
-
-    // public void DeleteBlockCommit(BlockHash blockHash) => _blockCommitByBlockHash.Remove(blockHash);
-
     public IEnumerable<BlockHash> GetBlockCommitHashes() => _blockCommits.Keys;
 
     public HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash) => _stateRootHashes[blockHash];
@@ -347,26 +292,6 @@ public sealed class Store
         => _stateRootHashes.Add(blockHash, nextStateRootHash);
 
     public void DeleteNextStateRootHash(BlockHash blockHash) => _stateRootHashes.Remove(blockHash);
-
-    // public IEnumerable<EvidenceId> IteratePendingEvidenceIds() => _pendingEvidence.Keys;
-
-    // public EvidenceBase GetPendingEvidence(EvidenceId evidenceId) => _pendingEvidence[evidenceId];
-
-    // public void PutPendingEvidence(EvidenceBase evidence) => _pendingEvidence.Add(evidence.Id, evidence);
-
-    // public void DeletePendingEvidence(EvidenceId evidenceId) => _pendingEvidence.Remove(evidenceId);
-
-    // public bool ContainsPendingEvidence(EvidenceId evidenceId) => _pendingEvidence.ContainsKey(evidenceId);
-
-    // public EvidenceBase GetCommittedEvidence(EvidenceId evidenceId) => _committedEvidence[evidenceId];
-
-    // public void PutCommittedEvidence(EvidenceBase evidence) => _committedEvidence.Add(evidence.Id, evidence);
-
-    // public void DeleteCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.Remove(evidenceId);
-
-    // public bool ContainsCommittedEvidence(EvidenceId evidenceId) => _committedEvidence.ContainsKey(evidenceId);
-
-    // public long CountBlocks() => IterateBlockHashes().LongCount();
 
     public void Dispose()
     {

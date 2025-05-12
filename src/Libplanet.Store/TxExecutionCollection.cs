@@ -5,10 +5,24 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-internal sealed class TxExecutionByTxId(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class TxExecutionCollection(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<(BlockHash BlockHash, TxId TxId), TxExecution>(dictionary)
 {
+    public TxExecution this[BlockHash blockHash, TxId txId]
+    {
+        get => this[(blockHash, txId)];
+        set => this[(blockHash, txId)] = value;
+    }
+
     public void Add(TxExecution txExecution) => Add((txExecution.BlockHash, txExecution.TxId), txExecution);
+
+    public void AddRange(IEnumerable<TxExecution> txExecutions)
+    {
+        foreach (var txExecution in txExecutions)
+        {
+            Add(txExecution);
+        }
+    }
 
     protected override byte[] GetBytes(TxExecution value) => ModelSerializer.SerializeToBytes(value);
 
