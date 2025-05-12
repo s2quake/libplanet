@@ -10,8 +10,8 @@ public sealed record class ChainDigest : IEquatable<ChainDigest>
     public required Guid Id { get; init; }
 
     [Property(1)]
-    public required BlockCommit BlockCommit { get; init; }
+    public BlockCommit BlockCommit { get; init; } = BlockCommit.Empty;
 
     [Property(2)]
-    public required int Height { get; init; }
+    public int Height { get; init; } = -1;
 }
