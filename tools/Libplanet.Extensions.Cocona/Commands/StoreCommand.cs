@@ -31,8 +31,7 @@ public class StoreCommand
                 id.ToString(),
                 height.ToString(CultureInfo.InvariantCulture),
                 id == canon ? "*" : string.Empty,
-                store.GetBlockDigest(
-                    store.GetBlockHash(id, height))!.BlockHash.ToString());
+                store.BlockDigests[store.GetBlockHash(id, height)].BlockHash.ToString());
         });
         if (showHash)
         {
@@ -155,7 +154,7 @@ public class StoreCommand
 
     private static Block GetBlock(Libplanet.Store.Store store, BlockHash blockHash)
     {
-        if (!(store.GetBlock(blockHash) is { } block))
+        if (!(store.Blocks[blockHash] is { } block))
         {
             throw Utils.Error($"cannot find the block with the hash[{blockHash.ToString()}]");
         }
@@ -209,7 +208,7 @@ public class StoreCommand
         foreach (BlockHash blockHash in store.IterateIndexes(store.ChainId, offset, limit))
         {
             yield return index++;
-            if (!(store.GetBlockDigest(blockHash) is { } blockDigest))
+            if (!store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
             {
                 throw Utils.Error(
                     $"Block is missing for BlockHash: {blockHash} index: {index}.");

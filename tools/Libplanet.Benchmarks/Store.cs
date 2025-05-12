@@ -60,13 +60,13 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void PutFirstEmptyBlock()
         {
-            _store.PutBlock(Blocks[0]);
+            _store.Blocks.Add(Blocks[0]);
         }
 
         [Benchmark]
         public void PutFirstBlockWithTxs()
         {
-            _store.PutBlock(Blocks[5]);
+            _store.Blocks.Add(Blocks[5]);
         }
 
         [IterationSetup(
@@ -82,7 +82,7 @@ namespace Libplanet.Benchmarks
             int i = 0;
             foreach (Block block in Blocks)
             {
-                _store.PutBlock(block);
+                _store.Blocks.Add(block);
                 i++;
                 if (i >= Blocks.Length - 1)
                 {
@@ -94,7 +94,7 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void PutBlockOnManyBlocks()
         {
-            _store.PutBlock(Blocks[BlocksCount - 1]);
+            _store.Blocks.Add(Blocks[BlocksCount - 1]);
         }
 
         [Benchmark]
@@ -104,7 +104,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetBlock(Blocks[0].BlockHash);
+            return _store.Blocks[Blocks[0].BlockHash];
         }
 
         [Benchmark]
@@ -114,7 +114,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetBlock(Blocks[BlocksCount - 2].BlockHash);
+            return _store.Blocks[Blocks[BlocksCount - 2].BlockHash];
         }
 
         [Benchmark]
@@ -124,7 +124,7 @@ namespace Libplanet.Benchmarks
             // because without this JIT can remove the below statement at all
             // during dead code elimination optimization.
             // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-            return _store.GetBlock(default);
+            return _store.Blocks[blockHash: default];
         }
 
         [Benchmark]

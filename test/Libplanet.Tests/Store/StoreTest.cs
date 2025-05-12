@@ -37,7 +37,7 @@ public abstract class StoreTest
     {
         Assert.Empty(Fx.Store.ListChainIds());
 
-        Fx.Store.PutBlock(Fx.Block1);
+        Fx.Store.Blocks.Add(Fx.Block1);
         Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
         Assert.Equal(
             new[] { Fx.StoreChainId }.ToImmutableHashSet(),
@@ -56,9 +56,9 @@ public abstract class StoreTest
         var chainA = Guid.NewGuid();
         var chainB = Guid.NewGuid();
 
-        Fx.Store.PutBlock(Fx.GenesisBlock);
-        Fx.Store.PutBlock(Fx.Block1);
-        Fx.Store.PutBlock(Fx.Block2);
+        Fx.Store.Blocks.Add(Fx.GenesisBlock);
+        Fx.Store.Blocks.Add(Fx.Block1);
+        Fx.Store.Blocks.Add(Fx.Block2);
 
         Fx.Store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
         Fx.Store.AppendIndex(chainA, Fx.Block1.BlockHash);
@@ -114,10 +114,10 @@ public abstract class StoreTest
 
         // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
-        store.PutBlock(Fx.GenesisBlock);
-        store.PutBlock(Fx.Block1);
-        store.PutBlock(Fx.Block2);
-        store.PutBlock(Fx.Block3);
+        store.Blocks.Add(Fx.GenesisBlock);
+        store.Blocks.Add(Fx.Block1);
+        store.Blocks.Add(Fx.Block2);
+        store.Blocks.Add(Fx.Block3);
 
         store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
         store.AppendIndex(chainB, Fx.GenesisBlock.BlockHash);
@@ -206,10 +206,10 @@ public abstract class StoreTest
 
         // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
-        store.PutBlock(Fx.GenesisBlock);
-        store.PutBlock(Fx.Block1);
-        store.PutBlock(Fx.Block2);
-        store.PutBlock(Fx.Block3);
+        store.Blocks.Add(Fx.GenesisBlock);
+        store.Blocks.Add(Fx.Block1);
+        store.Blocks.Add(Fx.Block2);
+        store.Blocks.Add(Fx.Block3);
 
         store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
         store.AppendIndex(chainB, Fx.GenesisBlock.BlockHash);
@@ -265,10 +265,10 @@ public abstract class StoreTest
 
         // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
-        store.PutBlock(Fx.GenesisBlock);
-        store.PutBlock(Fx.Block1);
-        store.PutBlock(Fx.Block2);
-        store.PutBlock(Fx.Block3);
+        store.Blocks.Add(Fx.GenesisBlock);
+        store.Blocks.Add(Fx.Block1);
+        store.Blocks.Add(Fx.Block2);
+        store.Blocks.Add(Fx.Block3);
 
         store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
         store.AppendIndex(chainA, Fx.Block1.BlockHash);
@@ -296,70 +296,67 @@ public abstract class StoreTest
     [Fact]
     public void StoreBlock()
     {
-        Assert.Empty(Fx.Store.IterateBlockHashes());
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block1.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
-        Assert.False(Fx.Store.DeleteBlock(Fx.Block1.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
+        Assert.Empty(Fx.Store.Blocks.Keys);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block1.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block3.BlockHash]);
+        Assert.False(Fx.Store.Blocks.Remove(Fx.Block1.BlockHash));
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block1.BlockHash));
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block3.BlockHash));
 
-        Fx.Store.PutBlock(Fx.Block1);
-        Assert.Equal(1, Fx.Store.CountBlocks());
+        Fx.Store.Blocks.Add(Fx.Block1);
+        Assert.Equal(1, Fx.Store.Blocks.Count);
         Assert.Equal(
             new HashSet<BlockHash> { Fx.Block1.BlockHash },
-            [.. Fx.Store.IterateBlockHashes()]);
+            [.. Fx.Store.Blocks.Keys]);
         Assert.Equal(
             Fx.Block1,
-            Fx.Store.GetBlock(Fx.Block1.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
-        Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
-        Assert.True(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
+            Fx.Store.Blocks[Fx.Block1.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block3.BlockHash]);
+        Assert.Equal(Fx.Block1.Height, Fx.Store.Blocks[Fx.Block1.BlockHash].Height);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block3.BlockHash]);
+        Assert.True(Fx.Store.Blocks.ContainsKey(Fx.Block1.BlockHash));
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block3.BlockHash));
 
-        Fx.Store.PutBlock(Fx.Block2);
-        Assert.Equal(2, Fx.Store.CountBlocks());
+        Fx.Store.Blocks.Add(Fx.Block2);
+        Assert.Equal(2, Fx.Store.Blocks.Count);
         Assert.Equal(
             new HashSet<BlockHash> { Fx.Block1.BlockHash, Fx.Block2.BlockHash },
-            [.. Fx.Store.IterateBlockHashes()]);
+            [.. Fx.Store.Blocks.Keys]);
         Assert.Equal(
             Fx.Block1,
-            Fx.Store.GetBlock(Fx.Block1.BlockHash));
+            Fx.Store.Blocks[Fx.Block1.BlockHash]);
         Assert.Equal(
             Fx.Block2,
-            Fx.Store.GetBlock(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
-        Assert.Equal(Fx.Block1.Height, Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
-        Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
-        Assert.True(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
-        Assert.True(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
+            Fx.Store.Blocks[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block3.BlockHash]);
+        Assert.Equal(Fx.Block1.Height, Fx.Store.Blocks[Fx.Block1.BlockHash].Height);
+        Assert.Equal(Fx.Block2.Height, Fx.Store.Blocks[Fx.Block2.BlockHash].Height);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block3.BlockHash]);
+        Assert.True(Fx.Store.Blocks.ContainsKey(Fx.Block1.BlockHash));
+        Assert.True(Fx.Store.Blocks.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block3.BlockHash));
 
-        Assert.True(Fx.Store.DeleteBlock(Fx.Block1.BlockHash));
-        Assert.Equal(1, Fx.Store.CountBlocks());
+        Assert.True(Fx.Store.Blocks.Remove(Fx.Block1.BlockHash));
+        Assert.Equal(1, Fx.Store.Blocks.Count);
         Assert.Equal(
             new HashSet<BlockHash> { Fx.Block2.BlockHash },
-            [.. Fx.Store.IterateBlockHashes()]);
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block1.BlockHash));
+            [.. Fx.Store.Blocks.Keys]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block1.BlockHash]);
         Assert.Equal(
             Fx.Block2,
-            Fx.Store.GetBlock(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlock(Fx.Block3.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block1.BlockHash));
-        Assert.Equal(Fx.Block2.Height, Fx.Store.GetBlockHeight(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHeight(Fx.Block3.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
-        Assert.True(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
-        Assert.False(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
+            Fx.Store.Blocks[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block3.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block1.BlockHash]);
+        Assert.Equal(Fx.Block2.Height, Fx.Store.Blocks[Fx.Block2.BlockHash].Height);
+        Assert.Throws<KeyNotFoundException>(() => Fx.Store.Blocks[Fx.Block3.BlockHash]);
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block1.BlockHash));
+        Assert.True(Fx.Store.Blocks.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(Fx.Store.Blocks.ContainsKey(Fx.Block3.BlockHash));
     }
 
     [Fact]
@@ -659,7 +656,7 @@ public abstract class StoreTest
     [Fact]
     public void IndexBlockHashReturnNull()
     {
-        Fx.Store.PutBlock(Fx.Block1);
+        Fx.Store.Blocks.Add(Fx.Block1);
         Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
         Assert.Equal(1, Fx.Store.CountIndex(Fx.StoreChainId));
         Assert.Throws<KeyNotFoundException>(() => Fx.Store.GetBlockHash(Fx.StoreChainId, 2));
@@ -668,13 +665,13 @@ public abstract class StoreTest
     [Fact]
     public void ContainsBlockWithoutCache()
     {
-        Fx.Store.PutBlock(Fx.Block1);
-        Fx.Store.PutBlock(Fx.Block2);
-        Fx.Store.PutBlock(Fx.Block3);
+        Fx.Store.Blocks.Add(Fx.Block1);
+        Fx.Store.Blocks.Add(Fx.Block2);
+        Fx.Store.Blocks.Add(Fx.Block3);
 
-        Assert.True(Fx.Store.ContainsBlock(Fx.Block1.BlockHash));
-        Assert.True(Fx.Store.ContainsBlock(Fx.Block2.BlockHash));
-        Assert.True(Fx.Store.ContainsBlock(Fx.Block3.BlockHash));
+        Assert.True(Fx.Store.Blocks.ContainsKey(Fx.Block1.BlockHash));
+        Assert.True(Fx.Store.Blocks.ContainsKey(Fx.Block2.BlockHash));
+        Assert.True(Fx.Store.Blocks.ContainsKey(Fx.Block3.BlockHash));
     }
 
     [Fact]
@@ -773,10 +770,10 @@ public abstract class StoreTest
 
         // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
         // actual block...
-        store.PutBlock(Fx.GenesisBlock);
-        store.PutBlock(Fx.Block1);
-        store.PutBlock(Fx.Block2);
-        store.PutBlock(Fx.Block3);
+        store.Blocks.Add(Fx.GenesisBlock);
+        store.Blocks.Add(Fx.Block1);
+        store.Blocks.Add(Fx.Block2);
+        store.Blocks.Add(Fx.Block3);
 
         store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
         store.AppendIndex(chainB, Fx.GenesisBlock.BlockHash);
@@ -899,11 +896,11 @@ public abstract class StoreTest
             Fx.Block2,
             Fx.Proposer,
             lastCommit: CreateBlockCommit(Fx.Block2.BlockHash, 2, 0));
-        store.PutBlock(Fx.GenesisBlock);
-        store.PutBlock(Fx.Block1);
-        store.PutBlock(Fx.Block2);
-        store.PutBlock(Fx.Block3);
-        store.PutBlock(anotherBlock3);
+        store.Blocks.Add(Fx.GenesisBlock);
+        store.Blocks.Add(Fx.Block1);
+        store.Blocks.Add(Fx.Block2);
+        store.Blocks.Add(Fx.Block3);
+        store.Blocks.Add(anotherBlock3);
 
         store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
         store.AppendIndex(chainA, Fx.Block1.BlockHash);
@@ -971,7 +968,7 @@ public abstract class StoreTest
                 Assert.Equal(s1.IterateIndexes(chainId), s2.IterateIndexes(chainId));
                 foreach (BlockHash blockHash in s1.IterateIndexes(chainId))
                 {
-                    Assert.Equal(s1.GetBlock(blockHash), s2.GetBlock(blockHash));
+                    Assert.Equal(s1.Blocks[blockHash], s2.Blocks[blockHash]);
                 }
             }
 
@@ -990,9 +987,8 @@ public abstract class StoreTest
                 genesisBlock,
                 proposer: fx.Proposer);
 
-            fx.Store.PutBlock(block);
-            Block storedBlock =
-                fx.Store.GetBlock(block.BlockHash);
+            fx.Store.Blocks.Add(block);
+            Block storedBlock = fx.Store.Blocks[block.BlockHash];
 
             Assert.Equal(block, storedBlock);
         }
@@ -1300,10 +1296,10 @@ public abstract class StoreTest
     public void PruneOutdatedChains()
     {
         Libplanet.Store.Store store = Fx.Store;
-        store.PutBlock(Fx.GenesisBlock);
-        store.PutBlock(Fx.Block1);
-        store.PutBlock(Fx.Block2);
-        store.PutBlock(Fx.Block3);
+        store.Blocks.Add(Fx.GenesisBlock);
+        store.Blocks.Add(Fx.Block1);
+        store.Blocks.Add(Fx.Block2);
+        store.Blocks.Add(Fx.Block3);
 
         Guid cid1 = Guid.NewGuid();
         store.AppendIndex(cid1, Fx.GenesisBlock.BlockHash);

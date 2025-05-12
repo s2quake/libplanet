@@ -97,7 +97,7 @@ namespace Libplanet.Net.Tests.Consensus
                         Log.Error(
                             "[Failed]: {0} {1}",
                             json["step"].GetString(),
-                            blockChains[node].Count);
+                            blockChains[node].Blocks.Count);
                         isPolka[node] = false;
                     }
                 }
@@ -115,7 +115,7 @@ namespace Libplanet.Net.Tests.Consensus
                         validatorPeers[node].Address.ToString(),
                         json["node_id"].GetString());
                     Assert.Equal(1, json["height"].GetInt32());
-                    Assert.Equal(2, blockChains[node].Count);
+                    Assert.Equal(2, blockChains[node].Blocks.Count);
                     Assert.Equal(0L, json["round"].GetInt32());
                     Assert.Equal("EndCommit", json["step"].GetString());
                 }

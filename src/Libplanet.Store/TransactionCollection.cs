@@ -16,6 +16,14 @@ public sealed class TransactionCollection(IDictionary<KeyBytes, byte[]> dictiona
         }
     }
 
+    public void RemoveRange(IEnumerable<TxId> txIds)
+    {
+        foreach (var txId in txIds)
+        {
+            Remove(txId);
+        }
+    }
+
     protected override byte[] GetBytes(Transaction value) => ModelSerializer.SerializeToBytes(value);
 
     protected override TxId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);

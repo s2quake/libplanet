@@ -109,11 +109,11 @@ namespace Libplanet.Net.Tests
                 policy: policy,
                 genesis: minerChain.Genesis);
 
-            foreach (BlockHash blockHash in minerChain.BlockHashes.Skip(1).Take(4))
+            foreach (BlockHash blockHash in minerChain.Blocks.Keys.Skip(1).Take(4))
             {
                 seedChain.Append(
-                    minerChain[blockHash],
-                    TestUtils.CreateBlockCommit(minerChain[blockHash]));
+                    minerChain.Blocks[blockHash],
+                    TestUtils.CreateBlockCommit(minerChain.Blocks[blockHash]));
             }
 
             try
@@ -133,11 +133,11 @@ namespace Libplanet.Net.Tests
 
                 Assert.DoesNotContain(swarmA.AsPeer, seed.Peers);
 
-                foreach (BlockHash blockHash in minerChain.BlockHashes.Skip(5))
+                foreach (BlockHash blockHash in minerChain.Blocks.Keys.Skip(5))
                 {
                     seedChain.Append(
-                        minerChain[blockHash],
-                        TestUtils.CreateBlockCommit(minerChain[blockHash]));
+                        minerChain.Blocks[blockHash],
+                        TestUtils.CreateBlockCommit(minerChain.Blocks[blockHash]));
                 }
 
                 await swarmB.AddPeersAsync(new[] { seed.AsPeer }, null);
@@ -152,8 +152,8 @@ namespace Libplanet.Net.Tests
 
                 await swarmB.BlockAppended.WaitAsync();
 
-                Assert.NotEqual(seedChain.BlockHashes, swarmA.BlockChain.BlockHashes);
-                Assert.Equal(seedChain.BlockHashes, swarmB.BlockChain.BlockHashes);
+                Assert.NotEqual(seedChain.Blocks.Keys, swarmA.BlockChain.Blocks.Keys);
+                Assert.Equal(seedChain.Blocks.Keys, swarmB.BlockChain.Blocks.Keys);
             }
             finally
             {
@@ -239,7 +239,7 @@ namespace Libplanet.Net.Tests
                         }
                     }
 
-                    swarm.BroadcastBlock(chain[-1]);
+                    swarm.BroadcastBlock(chain.Blocks[-1]);
                     Log.Debug("Mining complete");
                 });
             }
@@ -267,7 +267,7 @@ namespace Libplanet.Net.Tests
             }
 
             _logger.CompareBothChains(LogEventLevel.Debug, "A", chainA, "B", chainB);
-            Assert.Equal(chainA.BlockHashes, chainB.BlockHashes);
+            Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
         }
 
         [Fact(Timeout = Timeout)]
@@ -654,9 +654,9 @@ namespace Libplanet.Net.Tests
                 await swarmC.BlockAppended.WaitAsync();
 
                 Log.Debug("Compare chainA and chainB");
-                Assert.Equal(chainA.BlockHashes, chainB.BlockHashes);
+                Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
                 Log.Debug("Compare chainA and chainC");
-                Assert.Equal(chainA.BlockHashes, chainC.BlockHashes);
+                Assert.Equal(chainA.Blocks.Keys, chainC.Blocks.Keys);
             }
             finally
             {
@@ -740,7 +740,7 @@ namespace Libplanet.Net.Tests
                     () => receiverChain.Tip.Equals(block2),
                     5_000,
                     1_000);
-                Assert.Equal(3, receiverChain.Count);
+                Assert.Equal(3, receiverChain.Blocks.Count);
                 Assert.Equal(4, renderCount);
             }
             finally
@@ -772,20 +772,20 @@ namespace Libplanet.Net.Tests
                 var block = chainA.ProposeBlock(
                     keyA, CreateBlockCommit(chainA.Tip));
                 chainA.Append(block, TestUtils.CreateBlockCommit(block));
-                swarmA.BroadcastBlock(chainA[-1]);
+                swarmA.BroadcastBlock(chainA.Blocks[-1]);
 
                 await swarmB.BlockAppended.WaitAsync();
 
-                Assert.Equal(chainB.BlockHashes, chainA.BlockHashes);
+                Assert.Equal(chainB.Blocks.Keys, chainA.Blocks.Keys);
 
                 block = chainA.ProposeBlock(
                     keyB, CreateBlockCommit(chainA.Tip));
                 chainA.Append(block, TestUtils.CreateBlockCommit(block));
-                swarmA.BroadcastBlock(chainA[-1]);
+                swarmA.BroadcastBlock(chainA.Blocks[-1]);
 
                 await swarmB.BlockAppended.WaitAsync();
 
-                Assert.Equal(chainB.BlockHashes, chainA.BlockHashes);
+                Assert.Equal(chainB.Blocks.Keys, chainA.Blocks.Keys);
             }
             finally
             {
@@ -826,13 +826,13 @@ namespace Libplanet.Net.Tests
                 await StartAsync(swarmB);
 
                 await BootstrapAsync(swarmB, swarmA.AsPeer);
-                swarmA.BroadcastBlock(chainA[-1]);
+                swarmA.BroadcastBlock(chainA.Blocks[-1]);
                 await swarmB.BlockAppended.WaitAsync();
 
-                Assert.Equal(chainA.BlockHashes, chainB.BlockHashes);
+                Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
 
                 CancellationTokenSource cts = new CancellationTokenSource();
-                swarmA.BroadcastBlock(chainA[-1]);
+                swarmA.BroadcastBlock(chainA.Blocks[-1]);
                 Task t = swarmB.BlockAppended.WaitAsync(cts.Token);
 
                 // Actually, previous code may pass this test if message is

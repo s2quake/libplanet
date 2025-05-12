@@ -293,7 +293,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
                 break;
             }
 
-            var blockDigest = store.GetBlockDigest(indexEnumerator.Current);
+            var blockDigest = store.BlockDigests[indexEnumerator.Current];
             Transaction[] txs = blockDigest.TxIds
                 .Select(txId => store.Transactions[txId]
                     ?? throw new InvalidOperationException(

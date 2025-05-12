@@ -251,7 +251,7 @@ namespace Libplanet.Explorer.Queries
             {
                 if (index.TryGetContainedBlockHashById(txId, out var blockHash))
                 {
-                    return context.BlockChain[blockHash];
+                    return context.BlockChain.Blocks[blockHash];
                 }
             }
 
@@ -259,9 +259,9 @@ namespace Libplanet.Explorer.Queries
             var blockHashCandidates = context.Store.IterateTxIdBlockHashIndex(txId);
             foreach (var blockHashCandidate in blockHashCandidates)
             {
-                if (context.BlockChain.ContainsBlock(blockHashCandidate))
+                if (context.BlockChain.Blocks.ContainsKey(blockHashCandidate))
                 {
-                    return context.BlockChain[blockHashCandidate];
+                    return context.BlockChain.Blocks[blockHashCandidate];
                 }
             }
 

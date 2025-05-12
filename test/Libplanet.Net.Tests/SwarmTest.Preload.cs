@@ -45,7 +45,7 @@ namespace Libplanet.Net.Tests
 
                 await receiverSwarm.PreloadAsync();
 
-                Assert.Equal(minerChain.BlockHashes, receiverChain.BlockHashes);
+                Assert.Equal(minerChain.Blocks.Keys, receiverChain.Blocks.Keys);
             }
             finally
             {
@@ -100,7 +100,7 @@ namespace Libplanet.Net.Tests
                     .GetValue(address1);
 
                 Assert.Equal((Text)"foo,bar,baz", state);
-                Assert.Equal(minerChain.BlockHashes, receiverChain.BlockHashes);
+                Assert.Equal(minerChain.Blocks.Keys, receiverChain.Blocks.Keys);
             }
             finally
             {
@@ -361,7 +361,7 @@ namespace Libplanet.Net.Tests
             await receiver.PreloadAsync();
 
             Assert.Equal(sender.BlockChain.Tip, receiver.BlockChain.Tip);
-            Assert.Equal(sender.BlockChain.Count, receiver.BlockChain.Count);
+            Assert.Equal(sender.BlockChain.Blocks.Count, receiver.BlockChain.Blocks.Count);
             Assert.Equal(0, renderCount);
 
             CleaningSwarm(receiver);
@@ -495,7 +495,7 @@ namespace Libplanet.Net.Tests
                 // Await 1 second to make sure all progresses is reported.
                 await Task.Delay(1000);
 
-                Assert.Equal(minerChain.BlockHashes, receiverChain.BlockHashes);
+                Assert.Equal(minerChain.Blocks.Keys, receiverChain.Blocks.Keys);
             }
             finally
             {
@@ -539,7 +539,7 @@ namespace Libplanet.Net.Tests
             await StartAsync(swarm0);
             await StartAsync(swarm1);
 
-            Assert.Equal(swarm0.BlockChain.BlockHashes, swarm1.BlockChain.BlockHashes);
+            Assert.Equal(swarm0.BlockChain.Blocks.Keys, swarm1.BlockChain.Blocks.Keys);
 
             await receiverSwarm.AddPeersAsync(new[] { swarm0.AsPeer, swarm1.AsPeer }, null);
             Assert.Equal(
@@ -565,8 +565,8 @@ namespace Libplanet.Net.Tests
                 0,
                 progress: new ActionProgress<BlockSyncState>(Action));
 
-            Assert.Equal(swarm1.BlockChain.BlockHashes, receiverSwarm.BlockChain.BlockHashes);
-            Assert.Equal(swarm0.BlockChain.BlockHashes, receiverSwarm.BlockChain.BlockHashes);
+            Assert.Equal(swarm1.BlockChain.Blocks.Keys, receiverSwarm.BlockChain.Blocks.Keys);
+            Assert.Equal(swarm0.BlockChain.Blocks.Keys, receiverSwarm.BlockChain.Blocks.Keys);
 
             CleaningSwarm(swarm0);
             CleaningSwarm(swarm1);
@@ -732,7 +732,7 @@ namespace Libplanet.Net.Tests
                 minerKey1, CreateBlockCommit(minerChain1.Tip));
             minerChain1.Append(block2, CreateBlockCommit(block2));
 
-            Assert.True(minerChain1.Count > minerChain2.Count);
+            Assert.True(minerChain1.Blocks.Count > minerChain2.Blocks.Count);
 
             try
             {
@@ -750,7 +750,7 @@ namespace Libplanet.Net.Tests
                 CleaningSwarm(receiverSwarm);
             }
 
-            Assert.Equal(minerChain1.Count, receiverChain.Count);
+            Assert.Equal(minerChain1.Blocks.Count, receiverChain.Blocks.Count);
             Assert.Equal(minerChain1.Tip, receiverChain.Tip);
         }
 
@@ -864,10 +864,10 @@ namespace Libplanet.Net.Tests
 
                 Assert.Equal(receiverChain.Tip, seedChain.Tip);
 
-                for (int i = 1; i < receiverChain.Count; i++)
+                for (int i = 1; i < receiverChain.Blocks.Count; i++)
                 {
                     Assert.NotNull(fx2.Store.GetTxExecution(
-                        receiverChain[i].BlockHash,
+                        receiverChain.Blocks[i].BlockHash,
                         transactions[i - 1].Id));
                 }
             }

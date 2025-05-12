@@ -83,9 +83,9 @@ public abstract class BlockChainIndexTest
     [Fact]
     public async Task BlockHashToIndex()
     {
-        for (var i = 0; i < ChainFx.Chain.Count; i++)
+        for (var i = 0; i < ChainFx.Chain.Blocks.Count; i++)
         {
-            var inChain = ChainFx.Chain[i];
+            var inChain = ChainFx.Chain.Blocks[i];
             // ReSharper disable once MethodHasAsyncOverload
             Assert.Equal(i, Fx.Index.BlockHashToIndex(inChain.BlockHash));
             Assert.Equal(i, await Fx.Index.BlockHashToIndexAsync(inChain.BlockHash));
@@ -99,9 +99,9 @@ public abstract class BlockChainIndexTest
     [Fact]
     public async Task IndexToBlockHash()
     {
-        for (var i = 0; i < ChainFx.Chain.Count; i++)
+        for (var i = 0; i < ChainFx.Chain.Blocks.Count; i++)
         {
-            var inChain = ChainFx.Chain[i];
+            var inChain = ChainFx.Chain.Blocks[i];
             // ReSharper disable once MethodHasAsyncOverload
             Assert.Equal(inChain.BlockHash, Fx.Index.IndexToBlockHash(i));
             Assert.Equal(inChain.BlockHash, await Fx.Index.IndexToBlockHashAsync(i));
@@ -120,15 +120,15 @@ public abstract class BlockChainIndexTest
     [MemberData(nameof(BooleanPermutation3))]
     public async Task GetBlockHashes(bool fromHalfway, bool throughHalfway, bool desc)
     {
-        var blockCount = (int)ChainFx.Chain.Count;
+        var blockCount = (int)ChainFx.Chain.Blocks.Count;
         int? fromHeight = fromHalfway ? blockCount / 4 : null;
         int? maxCount = throughHalfway ? blockCount / 2 : null;
         int rangeEnd =
             maxCount is { } limitValue
                 ? (fromHeight ?? 0) + limitValue
                 : blockCount;
-        var blocks = Enumerable.Range(0, (int)ChainFx.Chain.Count)
-            .Select(i => ChainFx.Chain[i])
+        var blocks = Enumerable.Range(0, (int)ChainFx.Chain.Blocks.Count)
+            .Select(i => ChainFx.Chain.Blocks[i])
             .ToImmutableArray();
         blocks = desc ? blocks.Reverse().ToImmutableArray() : blocks;
         var inChain = Enumerable.Range(fromHeight ?? 0, rangeEnd - (fromHeight ?? 0))
@@ -203,7 +203,7 @@ public abstract class BlockChainIndexTest
 
     public (Range special, Range regular) GetSpecialRange(SpecialRangeKind kind)
     {
-        var blockCount = (int)ChainFx.Chain.Count;
+        var blockCount = (int)ChainFx.Chain.Blocks.Count;
         switch (kind)
         {
             case SpecialRangeKind.OmitStartEnd:
@@ -258,13 +258,13 @@ public abstract class BlockChainIndexTest
     [Fact]
     public async Task GetContainedBlockHashByTxId()
     {
-        for (var i = 0; i < ChainFx.Chain.Count; i++)
+        for (var i = 0; i < ChainFx.Chain.Blocks.Count; i++)
         {
-            foreach (var txId in ChainFx.Chain[i].Transactions.Select(tx => tx.Id))
+            foreach (var txId in ChainFx.Chain.Blocks[i].Transactions.Select(tx => tx.Id))
             {
                 // ReSharper disable once MethodHasAsyncOverload
                 var indexed = Fx.Index.GetContainedBlockHashByTxId(txId);
-                Assert.Equal(ChainFx.Chain[i].BlockHash, indexed);
+                Assert.Equal(ChainFx.Chain.Blocks[i].BlockHash, indexed);
                 Assert.Equal(indexed, await Fx.Index.GetContainedBlockHashByTxIdAsync(txId));
                 Assert.True(Fx.Index.TryGetContainedBlockHashById(txId, out var indexed2));
                 Assert.Equal(indexed, indexed2);

@@ -98,9 +98,9 @@ public class RocksDBStoreTest : StoreTest, IDisposable
             store.AppendIndex(cid, Fx.Block2.BlockHash);
             store.AppendIndex(cid, Fx.Block3.BlockHash);
 
-            store.PutBlock(Fx.Block1);
-            store.PutBlock(Fx.Block2);
-            store.PutBlock(Fx.Block3);
+            store.Blocks.Add(Fx.Block1);
+            store.Blocks.Add(Fx.Block2);
+            store.Blocks.Add(Fx.Block3);
 
             store.Dispose();
             store = new Store.Store(new RocksDatabase(path));
@@ -108,7 +108,7 @@ public class RocksDBStoreTest : StoreTest, IDisposable
             Enumerable.Range(0, 3).AsParallel().ForAll(i =>
             {
                 var bHash = store.GetBlockHash(cid, i);
-                var block = store.GetBlock(bHash);
+                var block = store.Blocks[bHash];
                 Assert.NotNull(block);
             });
         }
@@ -131,9 +131,9 @@ public class RocksDBStoreTest : StoreTest, IDisposable
             store.AppendIndex(cid, Fx.Block2.BlockHash);
             store.AppendIndex(cid, Fx.Block3.BlockHash);
 
-            store.PutBlock(Fx.Block1);
-            store.PutBlock(Fx.Block2);
-            store.PutBlock(Fx.Block3);
+            store.Blocks.Add(Fx.Block1);
+            store.Blocks.Add(Fx.Block2);
+            store.Blocks.Add(Fx.Block3);
 
             Assert.Single(store.ListChainIds());
 
@@ -207,10 +207,10 @@ public class RocksDBStoreTest : StoreTest, IDisposable
 
         try
         {
-            store.PutBlock(Fx.GenesisBlock);
-            store.PutBlock(Fx.Block1);
-            store.PutBlock(Fx.Block2);
-            store.PutBlock(Fx.Block3);
+            store.Blocks.Add(Fx.GenesisBlock);
+            store.Blocks.Add(Fx.Block1);
+            store.Blocks.Add(Fx.Block2);
+            store.Blocks.Add(Fx.Block3);
 
             Guid cid1 = Guid.NewGuid();
             int guidLength = cid1.ToByteArray().Length;

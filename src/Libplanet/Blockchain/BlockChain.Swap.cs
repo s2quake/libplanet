@@ -35,13 +35,13 @@ public partial class BlockChain
         BlockChain chain,
         BlockHash targetHash)
     {
-        if (!chain.ContainsBlock(targetHash))
+        if (!chain.Blocks.ContainsKey(targetHash))
         {
             throw new KeyNotFoundException(
                 $"Given chain {chain.Id} must contain target hash {targetHash}");
         }
 
-        long target = chain[targetHash].Height;
+        long target = chain.Blocks[targetHash].Height;
         List<BlockHash> path = new List<BlockHash>();
         for (int idx = chain.Tip.Height; idx > target; idx--)
         {

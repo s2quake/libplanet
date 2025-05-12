@@ -16,6 +16,14 @@ public sealed class CommittedEvidenceCollection(IDictionary<KeyBytes, byte[]> di
         }
     }
 
+    public void RemoveRange(IEnumerable<EvidenceId> evidenceIds)
+    {
+        foreach (var evidenceId in evidenceIds)
+        {
+            Remove(evidenceId);
+        }
+    }
+
     protected override byte[] GetBytes(EvidenceBase value) => ModelSerializer.SerializeToBytes(value);
 
     protected override EvidenceId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);

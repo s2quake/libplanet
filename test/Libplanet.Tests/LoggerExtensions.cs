@@ -18,9 +18,9 @@ namespace Libplanet.Tests
             logger.CompareBothChains(
                 logLevel,
                 labelA,
-                chainA.BlockHashes.Select(h => chainA[h]).ToArray(),
+                [.. chainA.Blocks.Values],
                 labelB,
-                chainB.BlockHashes.Select(h => chainB[h]).ToArray());
+                [.. chainB.Blocks.Values]);
 
         public static void CompareBothChains(
             this ILogger logger,

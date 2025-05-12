@@ -100,9 +100,9 @@ public partial class BlockChain
 
     public IReadOnlyDictionary<TxId, Transaction> Transactions => Store.Transactions;
 
-    public Block Tip => this[-1];
+    public Block Tip => Blocks[^1];
 
-    public Block Genesis => _genesis ??= this[0];
+    public Block Genesis => _genesis ??= Blocks[0];
 
     public Guid Id { get; private set; }
 
@@ -120,24 +120,24 @@ public partial class BlockChain
 
     internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
 
-    public Block this[int height]
-    {
-        get
-        {
-            _rwlock.EnterReadLock();
-            try
-            {
-                BlockHash? blockHash = Store.GetBlockHash(Id, height);
-                return blockHash is { } bh
-                    ? _blocks[bh]
-                    : throw new ArgumentOutOfRangeException();
-            }
-            finally
-            {
-                _rwlock.ExitReadLock();
-            }
-        }
-    }
+    // public Block this[int height]
+    // {
+    //     get
+    //     {
+    //         _rwlock.EnterReadLock();
+    //         try
+    //         {
+    //             BlockHash? blockHash = Store.GetBlockHash(Id, height);
+    //             return blockHash is { } bh
+    //                 ? _blocks[bh]
+    //                 : throw new ArgumentOutOfRangeException();
+    //         }
+    //         finally
+    //         {
+    //             _rwlock.ExitReadLock();
+    //         }
+    //     }
+    // }
 
     // public Block this[in BlockHash blockHash]
     // {
@@ -328,13 +328,13 @@ public partial class BlockChain
             return Array.Empty<BlockHash>();
         }
 
-        if (!(Store.GetBlockHeight(branchpoint) is { } branchpointIndex))
+        if (!Store.Blocks.TryGetValue(branchpoint, out var block))
         {
             return Array.Empty<BlockHash>();
         }
 
         var result = new List<BlockHash>();
-        foreach (BlockHash hash in Store.IterateIndexes(Id, (int)branchpointIndex, count))
+        foreach (BlockHash hash in Store.IterateIndexes(Id, block.Height, count))
         {
             if (count == 0)
             {
@@ -373,7 +373,7 @@ public partial class BlockChain
 
     public BlockCommit GetBlockCommit(int index)
     {
-        Block block = this[index];
+        Block block = Blocks[index];
 
         // if (block.ProtocolVersion < BlockHeader.PBFTProtocolVersion)
         // {
@@ -382,7 +382,7 @@ public partial class BlockChain
 
         return index == Tip.Height
             ? Store.GetChainBlockCommit(Id)
-            : this[index + 1].LastCommit;
+            : Blocks[index + 1].LastCommit;
     }
 
     public BlockCommit GetBlockCommit(BlockHash blockHash) => Store.BlockCommits[blockHash];
@@ -393,12 +393,12 @@ public partial class BlockChain
         bool render,
         bool validate = true)
     {
-        if (Count == 0)
+        if (_blocks.Count is 0)
         {
             throw new ArgumentException(
                 "Cannot append a block to an empty chain.");
         }
-        else if (block.Height == 0)
+        else if (block.Height is 0)
         {
             throw new ArgumentException(
                 $"Cannot append genesis block #{block.Height} {block.BlockHash} to a chain.",
@@ -884,7 +884,7 @@ public partial class BlockChain
     internal HashDigest<SHA256>? GetNextStateRootHash() => _nextStateRootHash;
 
     internal HashDigest<SHA256>? GetNextStateRootHash(int index) =>
-        GetNextStateRootHash(this[index]);
+        GetNextStateRootHash(Blocks[index]);
 
     internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(_blocks[blockHash]);
 
@@ -911,7 +911,7 @@ public partial class BlockChain
     {
         if (block.Height < Tip.Height)
         {
-            return this[block.Height + 1].StateRootHash;
+            return Blocks[block.Height + 1].StateRootHash;
         }
         else
         {
