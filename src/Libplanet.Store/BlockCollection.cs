@@ -2,14 +2,17 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
+using Libplanet.Store;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet.Store;
 
-public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSize = 4096)
+public sealed class BlockCollection(Libplanet.Store.Store store, Guid chainId, int cacheSize = 4096)
     : IReadOnlyDictionary<BlockHash, Block>
 {
-    private readonly Store.Store _store = store;
+    private readonly Libplanet.Store.Store _store = store;
+    private readonly BlockDigestStore _blockDigests = store.BlockDigests;
+    private readonly BlockHashStore _blockHashes = store.GetBlockHashes(chainId);
     private readonly ICache<BlockHash, Block> _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
             .WithCapacity(cacheSize)
             .Build();
@@ -18,14 +21,30 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
             .WithCapacity(cacheSize)
             .Build();
 
-    public IEnumerable<BlockHash> Keys => _store.BlockDigests.Keys;
+    public IEnumerable<BlockHash> Keys
+    {
+        get
+        {
+            for (var i = 0; i < _blockHashes.Count; i++)
+            {
+                yield return _blockHashes[i];
+            }
+        }
+    }
 
-    public IEnumerable<Block> Values => _store.BlockDigests.Values
-            .Select(blockDigest => blockDigest.ToBlock(
-                item => _store.Transactions[item],
-                item => _store.CommittedEvidences[item]));
+    public IEnumerable<Block> Values
+    {
+        get
+        {
+            for (var i = 0; i < _blockHashes.Count; i++)
+            {
+                var blockHash = _blockHashes[i];
+                yield return this[blockHash];
+            }
+        }
+    }
 
-    public int Count => _store.BlockDigests.Count;
+    public int Count => _blockHashes.Count;
 
     public Block this[int height]
     {
@@ -36,7 +55,7 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
                 return cached;
             }
 
-            var blockHash = _store.BlockHashes[height];
+            var blockHash = _blockHashes[height];
             var block = this[blockHash];
             _cacheByHeight.AddOrUpdate(height, block);
             return block;
@@ -70,7 +89,7 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
                 return cached;
             }
 
-            var blockDigest = _store.BlockDigests[blockHash];
+            var blockDigest = _blockDigests[blockHash];
             var block = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, block);
             return block;
@@ -88,14 +107,19 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
         }
     }
 
-    public bool ContainsKey(BlockHash blockHash) => _store.BlockDigests.ContainsKey(blockHash);
+    public IEnumerable<BlockHash> IterateIndexes(int offset = 0, int? limit = null)
+    {
+        return _blockHashes.IterateIndexes(offset, limit);
+    }
+
+    public bool ContainsKey(BlockHash blockHash) => _blockDigests.ContainsKey(blockHash);
 
     public bool Remove(BlockHash blockHash)
     {
-        if (_store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
+        if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            _store.BlockDigests.Remove(blockHash);
-            _store.BlockHashes.Remove(blockDigest.Height);
+            _blockDigests.Remove(blockHash);
+            _blockHashes.Remove(blockDigest.Height);
             _store.Transactions.RemoveRange(blockDigest.TxIds);
             _store.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
             _cacheByHash.TryRemove(blockHash);
@@ -108,8 +132,8 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
 
     public void Add(Block block)
     {
-        _store.BlockDigests.Add(block);
-        _store.BlockHashes.Add(block);
+        _blockDigests.Add(block);
+        _blockHashes.Add(block);
         _store.Transactions.Add(block);
         _store.PendingEvidences.Add(block);
         _store.CommittedEvidences.Add(block);
@@ -125,7 +149,7 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
             return true;
         }
 
-        if (_store.BlockHashes.TryGetValue(height, out var blockHash))
+        if (_blockHashes.TryGetValue(height, out var blockHash))
         {
             value = this[blockHash];
             _cacheByHeight.AddOrUpdate(height, value);
@@ -142,7 +166,7 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
             return true;
         }
 
-        if (_store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
+        if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
         {
             value = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, value);
@@ -155,7 +179,7 @@ public sealed class BlockCollection(Store.Store store, Guid chainId, int cacheSi
     public void Clear()
     {
         _cacheByHash.Clear();
-        _store.BlockDigests.Clear();
+        _blockDigests.Clear();
     }
 
     public IEnumerator<KeyValuePair<BlockHash, Block>> GetEnumerator()

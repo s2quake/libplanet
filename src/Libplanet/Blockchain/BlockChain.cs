@@ -26,8 +26,8 @@ public partial class BlockChain
     private readonly Subject<RenderActionInfo> _renderAction = new();
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly BlockChainStates _blockChainStates;
+    private readonly Chain _chain;
 
-    private readonly BlockStore _blocks;
     private Block _genesis;
 
     private HashDigest<SHA256>? _nextStateRootHash;
@@ -45,16 +45,36 @@ public partial class BlockChain
         //         $"Given store does not contain chain id {id}.", nameof(store));
         // }
 
+        if (options.Store.ChainId is { } canonId && canonId != Guid.Empty)
+        {
+            throw new ArgumentException(
+                $"Given {nameof(options.Store)} already has its canonical chain id set: {canonId}",
+                nameof(options));
+        }
+
+        options.Store.ChainId = id;
+
         Id = id;
         Options = options;
         StagedTransactions = new StagedTransactionCollection(options.Store, id);
-        Store = (Store.Store)options.Store;
+        Store = options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
-        Blocks = new BlockCollection(options.Store, id);
+        _chain = Store.GetChain(id);
+        Blocks = _chain.Blocks;
+        Nonces = _chain.Nonces;
+
+        ValidateGenesis(genesisBlock);
+        var nonceDeltas = ValidateGenesisNonces(genesisBlock);
+
+        Blocks.Add(genesisBlock);
+
+        foreach (KeyValuePair<Address, long> pair in nonceDeltas)
+        {
+            Nonces.Increase(pair.Key, pair.Value);
+        }
 
         _blockChainStates = new BlockChainStates(options.Store, StateStore);
 
-        _blocks = options.Store.Blocks;
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         _txLock = new object();
 
@@ -107,10 +127,6 @@ public partial class BlockChain
 
     public Guid Id { get; private set; }
 
-    // public IEnumerable<BlockHash> BlockHashes => IterateBlockHashes();
-
-    // public int Count => Store.CountIndex(Id);
-
     internal Store.Store Store { get; }
 
     internal TrieStateStore StateStore { get; }
@@ -119,66 +135,15 @@ public partial class BlockChain
 
     public BlockCollection Blocks { get; }
 
+    public NonceCollection Nonces { get; }
+
     public TxExecutionStore TxExecutions => Store.TxExecutions;
 
     internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
 
     public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
     {
-        if (options.Store.ChainId is { } canonId && canonId != Guid.Empty)
-        {
-            throw new ArgumentException(
-                $"Given {nameof(options.Store)} already has its canonical chain id set: {canonId}",
-                nameof(options.Store));
-        }
-
-        var id = Guid.NewGuid();
-
-        // if (genesisBlock.ProtocolVersion < BlockHeader.SlothProtocolVersion)
-        // {
-        //     var preEval = new RawBlock
-        //     {
-        //         Metadata = (BlockHeader)genesisBlock.Header,
-        //         RawHash = genesisBlock.Header.RawHash,
-        //         Content = new BlockContent
-        //         {
-        //             // Metadata = genesisBlock.RawBlock.Header.Metadata,
-        //             Transactions = genesisBlock.Transactions,
-        //             Evidence = genesisBlock.Evidence,
-        //         },
-        //         // Header = genesisBlock.RawBlock.Header,
-        //     };
-        //     var computedStateRootHash =
-        //         actionEvaluator.Evaluate(preEval, default)[^1].OutputState;
-        //     if (!genesisBlock.StateRootHash.Equals(computedStateRootHash))
-        //     {
-        //         throw new InvalidOperationException(
-        //             $"Given block #{genesisBlock.Index} {genesisBlock.Hash} has " +
-        //             $"a state root hash {genesisBlock.StateRootHash} that is different " +
-        //             $"from the calculated state root hash {computedStateRootHash}");
-        //     }
-        // }
-
-        ValidateGenesis(genesisBlock);
-        var nonceDeltas = ValidateGenesisNonces(genesisBlock);
-
-        // _blocks.Add(genesisBlock);
-        options.Store.Blocks.Add(genesisBlock);
-        // options.Store.AppendIndex(id, genesisBlock.BlockHash);
-
-        // foreach (var tx in genesisBlock.Transactions)
-        // {
-        //     options.Store.BlockHashByTxId.Add(tx.Id, genesisBlock.BlockHash);
-        // }
-
-        foreach (KeyValuePair<Address, long> pair in nonceDeltas)
-        {
-            options.Store.Nonces.Increase(pair.Key, pair.Value);
-        }
-
-        options.Store.ChainId = id;
-
-        return new BlockChain(genesisBlock, id, options);
+        return new BlockChain(genesisBlock, Guid.NewGuid(), options);
     }
 
     public void Append(Block block, BlockCommit blockCommit, bool validate = true)
@@ -213,7 +178,6 @@ public partial class BlockChain
         timestamp = timestamp ?? DateTimeOffset.UtcNow;
         lock (_txLock)
         {
-            // FIXME: Exception should be documented when the genesis block does not exist.
             Transaction tx = Transaction.Create(
                 GetNextTxNonce(privateKey.Address),
                 privateKey,
@@ -229,13 +193,10 @@ public partial class BlockChain
 
     public IImmutableSet<TxId> GetStagedTransactionIds()
     {
-        // FIXME: How about turning this method to the StagedTransactions property?
         return StagedTransactions.Iterate().Select(tx => tx.Id).ToImmutableHashSet();
     }
 
-    public IReadOnlyList<BlockHash> FindNextHashes(
-        BlockLocator locator,
-        int count = 500)
+    public IReadOnlyList<BlockHash> FindNextHashes(BlockLocator locator, int count = 500)
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -245,13 +206,13 @@ public partial class BlockChain
             return Array.Empty<BlockHash>();
         }
 
-        if (!Store.Blocks.TryGetValue(branchpoint, out var block))
+        if (!Blocks.TryGetValue(branchpoint, out var block))
         {
             return Array.Empty<BlockHash>();
         }
 
         var result = new List<BlockHash>();
-        foreach (BlockHash hash in Store.GetBlockHashes(Id).IterateIndexes(block.Height, count))
+        foreach (BlockHash hash in Store.GetChain(Id).BlockHashes.IterateIndexes(block.Height, count))
         {
             if (count == 0)
             {
@@ -269,7 +230,7 @@ public partial class BlockChain
                 "Found {HashCount} hashes from storage with {ChainIdCount} chain ids " +
                 "in {DurationMs} ms",
                 result.Count,
-                Store.ChainDigests.Keys.Count,
+                Store.Chains.Keys.Count,
                 stopwatch.ElapsedMilliseconds);
 
         return result;
@@ -298,7 +259,7 @@ public partial class BlockChain
         // }
 
         return index == Tip.Height
-            ? Store.ChainDigests[Id].BlockCommit
+            ? Store.Chains[Id].BlockCommit
             : Blocks[index + 1].LastCommit;
     }
 
@@ -310,7 +271,7 @@ public partial class BlockChain
         bool render,
         bool validate = true)
     {
-        if (_blocks.Count is 0)
+        if (Blocks.Count is 0)
         {
             throw new ArgumentException(
                 "Cannot append a block to an empty chain.");
@@ -344,7 +305,7 @@ public partial class BlockChain
                 block.Transactions
                     .Select(tx => tx.Signer)
                     .Distinct()
-                    .ToDictionary(signer => signer, signer => Store.Nonces[signer]),
+                    .ToDictionary(signer => signer, signer => Nonces[signer]),
                 block);
 
             if (validate)
@@ -388,11 +349,11 @@ public partial class BlockChain
                         DateTimeOffset.UtcNow.ToString(
                             TimestampFormat, CultureInfo.InvariantCulture));
 
-                _blocks[block.BlockHash] = block;
+                Blocks[block.BlockHash] = block;
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
-                    Store.Nonces.Increase(pair.Key, pair.Value);
+                    Nonces.Increase(pair.Key, pair.Value);
                 }
 
                 // foreach (var tx in block.Transactions)
@@ -402,22 +363,13 @@ public partial class BlockChain
 
                 if (block.Height != 0 && blockCommit is { })
                 {
-                    Store.ChainDigests[Id] = Store.ChainDigests[Id] with
-                    {
-                        BlockCommit = blockCommit,
-                    };
+                    _chain.BlockCommit = blockCommit;
                 }
 
                 foreach (var ev in block.Evidences)
                 {
                     Store.PendingEvidences.Remove(ev.Id);
                     Store.CommittedEvidences.Add(ev.Id, ev);
-                    // if (Store.GetPendingEvidence(ev.Id) != null)
-                    // {
-                    //     Store.DeletePendingEvidence(ev.Id);
-                    // }
-
-                    // Store.PutCommittedEvidence(ev);
                 }
 
                 // Store.AppendIndex(Id, block.BlockHash);
@@ -501,7 +453,7 @@ public partial class BlockChain
         bool render,
         IReadOnlyList<CommittedActionEvaluation> actionEvaluations = null)
     {
-        if (_blocks.Count == 0)
+        if (Blocks.Count == 0)
         {
             throw new ArgumentException(
                 "Cannot append a block to an empty chain.");
@@ -529,7 +481,7 @@ public partial class BlockChain
                 block.Transactions
                     .Select(tx => tx.Signer)
                     .Distinct()
-                    .ToDictionary(signer => signer, Store.Nonces.GetOrDefault),
+                    .ToDictionary(signer => signer, Nonces.GetOrDefault),
                 block);
 
             Options.BlockValidation(this, block);
@@ -570,11 +522,11 @@ public partial class BlockChain
                         DateTimeOffset.UtcNow.ToString(
                             TimestampFormat, CultureInfo.InvariantCulture));
 
-                _blocks[block.BlockHash] = block;
+                Blocks[block.BlockHash] = block;
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
-                    Store.Nonces.Increase(pair.Key, pair.Value);
+                    Nonces.Increase(pair.Key, pair.Value);
                 }
 
                 // foreach (var tx in block.Transactions)
@@ -584,10 +536,7 @@ public partial class BlockChain
 
                 if (block.Height != 0 && blockCommit is { })
                 {
-                    Store.ChainDigests[Id] = Store.ChainDigests[Id] with
-                    {
-                        BlockCommit = blockCommit,
-                    };
+                    _chain.BlockCommit = blockCommit;
                 }
 
                 foreach (var evidence in block.Evidences)
@@ -701,7 +650,7 @@ public partial class BlockChain
 
     internal BlockHash? FindBranchpoint(BlockLocator locator)
     {
-        if (_blocks.ContainsKey(locator.Hash))
+        if (Blocks.ContainsKey(locator.Hash))
         {
             _logger.Debug(
                 "Found a branchpoint with locator [{LocatorHead}]: {Hash}",
@@ -748,7 +697,7 @@ public partial class BlockChain
         {
             foreach (BlockHash hash in IterateBlockHashes(offset, limit))
             {
-                yield return _blocks[hash];
+                yield return Blocks[hash];
             }
         }
         finally
@@ -763,7 +712,7 @@ public partial class BlockChain
 
         try
         {
-            IEnumerable<BlockHash> indices = Store.GetBlockHashes(Id).IterateIndexes(offset, limit);
+            IEnumerable<BlockHash> indices = Store.GetChain(Id).BlockHashes.IterateIndexes(offset, limit);
 
             // NOTE: The reason why this does not simply return indices, but iterates over
             // indices and yields hashes step by step instead, is that we need to ensure
@@ -807,7 +756,7 @@ public partial class BlockChain
     internal HashDigest<SHA256>? GetNextStateRootHash(int index) =>
         GetNextStateRootHash(Blocks[index]);
 
-    internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(_blocks[blockHash]);
+    internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(Blocks[blockHash]);
 
     internal ImmutableSortedSet<Validator> GetValidatorSet(int index)
     {

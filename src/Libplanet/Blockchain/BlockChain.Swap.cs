@@ -4,36 +4,7 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    // internal void RenderActions(IReadOnlyList<CommittedActionEvaluation> evaluations, Block block)
-    // {
-    //     foreach (var evaluation in evaluations)
-    //     {
-    //         _renderAction.OnNext(RenderActionInfo.Create(evaluation));
-    //     }
-    // }
-
-    /// <summary>
-    /// Generates a list of <see cref="BlockHash"/>es to traverse starting from
-    /// the tip of <paramref name="chain"/> to reach <paramref name="targetHash"/>.
-    /// </summary>
-    /// <param name="chain">The <see cref="BlockChain"/> to traverse.</param>
-    /// <param name="targetHash">The target <see cref="BlockHash"/> to reach.</param>
-    /// <returns>
-    /// An <see cref="IReadOnlyList{T}"/> of <see cref="BlockHash"/>es to traverse from
-    /// the tip of <paramref name="chain"/> to reach <paramref name="targetHash"/> excluding
-    /// <paramref name="targetHash"/>.
-    /// </returns>
-    /// <remarks>
-    /// <para>
-    /// This is a reverse of <see cref="GetFastForwardPath"/>.
-    /// </para>
-    /// <para>
-    /// As the genesis is always fixed, returned results never include the genesis.
-    /// </para>
-    /// </remarks>
-    private static IReadOnlyList<BlockHash> GetRewindPath(
-        BlockChain chain,
-        BlockHash targetHash)
+    private static IReadOnlyList<BlockHash> GetRewindPath(BlockChain chain, BlockHash targetHash)
     {
         if (!chain.Blocks.ContainsKey(targetHash))
         {
@@ -41,13 +12,13 @@ public partial class BlockChain
                 $"Given chain {chain.Id} must contain target hash {targetHash}");
         }
 
-        long target = chain.Blocks[targetHash].Height;
-        List<BlockHash> path = new List<BlockHash>();
+        var target = chain.Blocks[targetHash].Height;
+        var pathList = new List<BlockHash>();
         for (int idx = chain.Tip.Height; idx > target; idx--)
         {
-            path.Add(chain.Store.GetBlockHashes(chain.Id)[idx]);
+            pathList.Add(chain._chain.BlockHashes[idx]);
         }
 
-        return path;
+        return pathList;
     }
 }

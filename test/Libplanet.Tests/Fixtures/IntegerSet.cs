@@ -147,7 +147,7 @@ public sealed class IntegerSet
     {
         if (blockHash != default)
         {
-            return StateStore.GetStateRoot(Store.Blocks[blockHash].StateRootHash);
+            return StateStore.GetStateRoot(Chain.Blocks[blockHash].StateRootHash);
         }
 
         return StateStore.GetStateRoot(default);

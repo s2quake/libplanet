@@ -1,39 +1,30 @@
-using System.Collections;
-using System.Diagnostics.CodeAnalysis;
-using BitFaster.Caching;
-using BitFaster.Caching.Lru;
-using Libplanet.Types.Blocks;
+using Libplanet.Serialization;
+using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 
-public sealed class ChainStore(Store store)
-    : IReadOnlyDictionary<Guid, Chain>
+public sealed class ChainStore(Store store, IDictionary<KeyBytes, byte[]> dictionary)
+    : CollectionBase<Guid, Chain>(dictionary)
 {
-    public Chain this[Guid key] => throw new NotImplementedException();
-
-    public IEnumerable<Guid> Keys => throw new NotImplementedException();
-
-    public IEnumerable<Chain> Values => throw new NotImplementedException();
-
-    public int Count => throw new NotImplementedException();
-
-    public bool ContainsKey(Guid key)
+    protected override byte[] GetBytes(Chain value)
     {
-        throw new NotImplementedException();
+        var chainDigest = new ChainDigest
+        {
+            Id = value.Id,
+            Height = value.Blocks.Count,
+            BlockCommit = value.BlockCommit,
+        };
+
+        return ModelSerializer.SerializeToBytes(chainDigest);
     }
 
-    public IEnumerator<KeyValuePair<Guid, Chain>> GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
+    protected override Guid GetKey(KeyBytes keyBytes) => new(keyBytes.AsSpan());
 
-    public bool TryGetValue(Guid key, [MaybeNullWhen(false)] out Chain value)
-    {
-        throw new NotImplementedException();
-    }
+    protected override KeyBytes GetKeyBytes(Guid key) => new(key.ToByteArray());
 
-    IEnumerator IEnumerable.GetEnumerator()
+    protected override Chain GetValue(byte[] bytes)
     {
-        return GetEnumerator();
+        var digest = ModelSerializer.DeserializeFromBytes<ChainDigest>(bytes);
+        return new Chain(store, digest.Id) { BlockCommit = digest.BlockCommit };
     }
 }

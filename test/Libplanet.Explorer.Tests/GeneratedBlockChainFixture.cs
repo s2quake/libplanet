@@ -159,7 +159,7 @@ public class GeneratedBlockChainFixture
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = proposer.Address,
                     PreviousHash = Chain.Tip.BlockHash,
-                    LastCommit = Chain.Store.ChainDigests[Chain.Store.ChainId].BlockCommit,
+                    LastCommit = Chain.Store.Chains[Chain.Store.ChainId].BlockCommit,
                 },
                 new BlockContent
                 {

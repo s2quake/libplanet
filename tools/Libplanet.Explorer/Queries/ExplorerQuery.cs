@@ -141,7 +141,7 @@ namespace Libplanet.Explorer.Queries
             return evidence;
         }
 
-        internal static Block? GetBlockByHash(BlockHash hash) => Store.Blocks[hash];
+        internal static Block? GetBlockByHash(BlockHash hash) => Chain.Blocks[hash];
 
         internal static Block GetBlockByIndex(int index) => Chain.Blocks[index];
 

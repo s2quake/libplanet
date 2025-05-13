@@ -7,12 +7,6 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    /// <summary>
-    /// Makes <see cref="TxExecution"/> instances from the given <paramref name="evaluations"/>.
-    /// </summary>
-    /// <param name="block">The block that evaluated actions belong to.</param>
-    /// <param name="evaluations">The result of evaluated actions.</param>
-    /// <returns>The corresponding <see cref="TxExecution"/>s.</returns>
     internal IEnumerable<TxExecution> MakeTxExecutions(
         Block block,
         IReadOnlyList<CommittedActionEvaluation> evaluations)
@@ -78,23 +72,4 @@ public partial class BlockChain
             block.Height,
             block.BlockHash);
     }
-
-    // internal void UpdateTxExecutions(IEnumerable<TxExecution> txExecutions)
-    // {
-    //     int count = 0;
-    //     foreach (TxExecution txExecution in txExecutions)
-    //     {
-    //         Store.PutTxExecution(txExecution);
-    //         count++;
-
-    //         _logger.Verbose(
-    //             "Updated " + nameof(TxExecution) + " for tx {TxId} within block {BlockHash}",
-    //             txExecution.TxId,
-    //             txExecution.BlockHash);
-    //     }
-
-    //     _logger.Verbose(
-    //         "Updated " + nameof(TxExecution) + "s for {Txs} transactions",
-    //         count);
-    // }
 }

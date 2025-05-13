@@ -195,9 +195,10 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         var indexTipHash = syncMetadata.IndexTipHash;
         if (indexTipIndex >= 0)
         {
+            var chain = store.GetChain(chainId);
             var indexHash = await IndexToBlockHashAsync(0).ConfigureAwait(false);
             using var chainIndexEnumerator =
-                store.GetBlockHashes(chainId).IterateIndexes(limit: 1).GetEnumerator();
+                chain.BlockHashes.IterateIndexes(limit: 1).GetEnumerator();
             if (!chainIndexEnumerator.MoveNext())
             {
                 throw new InvalidOperationException(
@@ -213,9 +214,10 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
         if (indexTipIndex >= 1)
         {
+            var chain = store.GetChain(chainId);
             var commonLatestIndex = Math.Min(indexTipIndex, chainTipIndex);
             using var chainIndexEnumerator =
-                store.GetBlockHashes(chainId).IterateIndexes((int)commonLatestIndex, limit: 1).GetEnumerator();
+                chain.BlockHashes.IterateIndexes((int)commonLatestIndex, limit: 1).GetEnumerator();
             BlockHash? chainTipHash = chainIndexEnumerator.MoveNext()
                 ? chainIndexEnumerator.Current
                 : null;
@@ -278,8 +280,9 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         var populateStart = DateTimeOffset.Now;
         var intervalStart = populateStart;
 
+        var chain = store.GetChain(chainId);
         using var indexEnumerator =
-            store.GetBlockHashes(chainId).IterateIndexes((int)indexTipIndex + 1).GetEnumerator();
+            chain.BlockHashes.IterateIndexes((int)indexTipIndex + 1).GetEnumerator();
         var addBlockContext = GetIndexingContext();
         while (indexEnumerator.MoveNext() && indexTipIndex + processedBlockCount < chainTipIndex)
         {
@@ -375,7 +378,8 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         var indexTip = await GetTipAsyncImpl().ConfigureAwait(false);
         var indexTipIndex = indexTip?.Index ?? -1;
         var chainId = store.ChainId;
-        var chainTipIndex = store.ChainDigests[chainId].Height - 1;
+        var chain = store.GetChain(chainId);
+        var chainTipIndex = chain.Height - 1;
         return (chainId, indexTipIndex, chainTipIndex, indexTip?.Hash);
     }
 }

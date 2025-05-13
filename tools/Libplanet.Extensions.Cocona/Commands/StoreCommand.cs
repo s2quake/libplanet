@@ -24,14 +24,15 @@ public class StoreCommand
         Guid? canon = store.ChainId;
         var headerWithoutHash = ("Chain ID", "Height", "Canon?");
         var headerWithHash = ("Chain ID", "Height", "Canon?", "Hash");
-        var chainIds = store.ChainDigests.Keys.Select(id =>
+        var chainIds = store.Chains.Keys.Select(id =>
         {
-            var height = store.ChainDigests[id].Height - 1;
+            var chain = store.Chains[id];
+            var height = chain.Height - 1;
             return (
                 id.ToString(),
                 height.ToString(CultureInfo.InvariantCulture),
                 id == canon ? "*" : string.Empty,
-                store.BlockDigests[store.GetBlockHashes(id)[height]].BlockHash.ToString());
+                store.BlockDigests[chain.BlockHashes[height]].BlockHash.ToString());
         });
         if (showHash)
         {
@@ -153,7 +154,8 @@ public class StoreCommand
 
     private static Block GetBlock(Libplanet.Store.Store store, BlockHash blockHash)
     {
-        if (!(store.Blocks[blockHash] is { } block))
+        var chain = store.GetChain(store.ChainId);
+        if (!(chain.Blocks[blockHash] is { } block))
         {
             throw Utils.Error($"cannot find the block with the hash[{blockHash.ToString()}]");
         }
@@ -168,7 +170,8 @@ public class StoreCommand
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
-        if (!store.GetBlockHashes(store.ChainId).TryGetValue(blockHeight, out var blockHash))
+        var chain = store.GetChain(store.ChainId);
+        if (!chain.BlockHashes.TryGetValue(blockHeight, out var blockHash))
         {
             throw Utils.Error(
                 $"Cannot find the block with the height {blockHeight}" +
@@ -204,7 +207,8 @@ public class StoreCommand
         }
 
         var index = offset;
-        foreach (BlockHash blockHash in store.GetBlockHashes(store.ChainId).IterateIndexes(offset, limit))
+        var chain = store.GetChain(store.ChainId);
+        foreach (BlockHash blockHash in chain.BlockHashes.IterateIndexes(offset, limit))
         {
             yield return index++;
             if (!store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
