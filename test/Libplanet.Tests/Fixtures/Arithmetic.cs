@@ -1,6 +1,7 @@
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Serialization;
+using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Tests.Fixtures;
 
@@ -39,8 +40,7 @@ public sealed record class Arithmetic : ActionBase
             throw new InvalidOperationException(Error);
         }
 
-        var key = (ReservedAddresses.LegacyAccount, context.Signer);
-        var value = world.GetValue(key, BigInteger.Zero);
-        world[key] = Operator.Calculate(value, Operand);
+        var value = world.GetValue(LegacyAccount, context.Signer, BigInteger.Zero);
+        world[LegacyAccount, context.Signer] = Operator.Calculate(value, Operand);
     }
 }

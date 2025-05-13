@@ -23,12 +23,6 @@ public partial interface IWorldContext
         set => this[name][key] = value;
     }
 
-    object this[ValuePath path]
-    {
-        get => this[path.Name][path.Key];
-        set => this[path.Name][path.Key] = value;
-    }
-
     object this[KeyBytes name, KeyBytes key]
     {
         get => this[name][key];

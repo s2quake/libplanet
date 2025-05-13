@@ -51,7 +51,7 @@ public partial class BlockChainTest
         var expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default));
+            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
 
         Block block3 = _blockChain.ProposeBlock(
             new PrivateKey(),
@@ -64,7 +64,7 @@ public partial class BlockChainTest
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default));
+            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
 
         // Tests if ProposeBlock() method automatically fits the number of transactions
         // according to the right size.
@@ -104,7 +104,7 @@ public partial class BlockChainTest
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default));
+            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
     }
 
     [Fact]

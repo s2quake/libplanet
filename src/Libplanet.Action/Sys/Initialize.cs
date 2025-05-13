@@ -9,8 +9,8 @@ namespace Libplanet.Action.Sys;
 [Model(Version = 1)]
 public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 {
-    public ImmutableDictionary<string, object> States { get; init; }
-        = ImmutableDictionary<string, object>.Empty;
+    public ImmutableDictionary<Address, IValue> States { get; init; }
+        = ImmutableDictionary<Address, IValue>.Empty;
 
     [Property(0)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
@@ -27,9 +27,9 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
                 $"{nameof(Initialize)} action can be executed only genesis block.");
         }
 
-        foreach (var (key, value) in States)
+        foreach (var (address, value) in States)
         {
-            world[LegacyAccount, key] = value;
+            world[LegacyAccount, address] = value;
         }
 
         world[ValidatorSetAddress, ValidatorSetAddress] = Validators;
