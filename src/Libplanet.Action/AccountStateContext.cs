@@ -1,27 +1,27 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Libplanet.Action.State;
-using Libplanet.Types.Crypto;
+using Libplanet.Store.Trie;
 
 namespace Libplanet.Action;
 
-public sealed class AccountStateContext(Account account, Address address) : IAccountContext
+public sealed class AccountStateContext(Account account, KeyBytes name) : IAccountContext
 {
-    public Address Address { get; } = address;
+    public KeyBytes Name { get; } = name;
 
     public bool IsReadOnly => true;
 
-    public object this[Address address]
+    public object this[KeyBytes key]
     {
-        get => account.GetValue(address);
+        get => account.GetValue(key);
         set => throw new NotSupportedException("Setting state is not supported.");
     }
 
-    public bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value)
-        => account.TryGetValue<T>(address, out value);
+    public bool TryGetValue<T>(KeyBytes key, [MaybeNullWhen(false)] out T value)
+        => account.TryGetValue(key, out value);
 
-    public T GetValue<T>(Address address, T fallback)
+    public T GetValue<T>(KeyBytes key, T fallback)
     {
-        if (TryGetValue<T>(address, out var value))
+        if (TryGetValue<T>(key, out var value))
         {
             return value;
         }
@@ -29,8 +29,8 @@ public sealed class AccountStateContext(Account account, Address address) : IAcc
         return fallback;
     }
 
-    public bool Contains(Address address) => account.GetValue(address) is not null;
+    public bool Contains(KeyBytes key) => account.GetValue(key) is not null;
 
-    public bool Remove(Address address)
+    public bool Remove(KeyBytes key)
         => throw new NotSupportedException("Removing state is not supported.");
 }

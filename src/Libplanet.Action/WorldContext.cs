@@ -1,4 +1,5 @@
 ﻿using Libplanet.Action.State;
+using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
@@ -6,29 +7,29 @@ namespace Libplanet.Action;
 
 internal sealed class WorldContext(World world) : IDisposable, IWorldContext
 {
-    private readonly Dictionary<Address, AccountContext> _accountByAddress = [];
+    private readonly Dictionary<KeyBytes, AccountContext> _accountByName = [];
     private readonly HashSet<AccountContext> _dirtyAccounts = [];
     private World _world = world;
     private bool _disposed;
 
-    public AccountContext this[Address address]
+    public AccountContext this[KeyBytes name]
     {
         get
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
 
-            if (!_accountByAddress.TryGetValue(address, out var accountContext))
+            if (!_accountByName.TryGetValue(name, out var accountContext))
             {
-                var account = _world.GetAccount(address);
-                accountContext = new AccountContext(account, address, SetAccount);
-                _accountByAddress[address] = accountContext;
+                var account = _world.GetAccount(name);
+                accountContext = new AccountContext(account, name, SetAccount);
+                _accountByName[name] = accountContext;
             }
 
             return accountContext;
         }
     }
 
-    IAccountContext IWorldContext.this[Address address] => this[address];
+    IAccountContext IWorldContext.this[KeyBytes name] => this[name];
 
     public World Flush()
     {
@@ -37,7 +38,7 @@ internal sealed class WorldContext(World world) : IDisposable, IWorldContext
         var accounts = _dirtyAccounts;
         foreach (var account in accounts)
         {
-            _world = _world.SetAccount(account.Address, account.Account);
+            _world = _world.SetAccount(account.Name, account.Account);
         }
 
         _dirtyAccounts.Clear();

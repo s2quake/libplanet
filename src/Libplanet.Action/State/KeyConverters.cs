@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
@@ -43,6 +44,16 @@ public static class KeyConverters
         }
 
         return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
+    }
+
+    public static KeyBytes ToStateKey(string name)
+    {
+        if (name == string.Empty)
+        {
+            return KeyBytes.Empty;
+        }
+
+        return new KeyBytes(Encoding.UTF8.GetBytes(name));
     }
 
     // $"_{ByteUtil.Hex(address.ByteArray)}_{ByteUtil.Hex(currency.Hash.ByteArray)}"
