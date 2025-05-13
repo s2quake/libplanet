@@ -106,7 +106,8 @@ public class StoreCommand
         int blockHeight)
     {
         // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
-        Libplanet.Store.Store store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var chain = store.Chains[store.ChainId];
         var blockHash = GetBlockHash(store, blockHeight);
         var block = GetBlock(store, blockHash);
         Console.WriteLine(Utils.SerializeHumanReadable(block));
@@ -154,7 +155,7 @@ public class StoreCommand
 
     private static Block GetBlock(Libplanet.Store.Store store, BlockHash blockHash)
     {
-        var chain = store.GetOrAdd(store.ChainId);
+        var chain = store.Chains.GetOrAdd(store.ChainId);
         if (!(chain.Blocks[blockHash] is { } block))
         {
             throw Utils.Error($"cannot find the block with the hash[{blockHash.ToString()}]");

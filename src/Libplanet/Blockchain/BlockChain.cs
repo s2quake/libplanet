@@ -52,14 +52,13 @@ public partial class BlockChain
                 nameof(options));
         }
 
-        options.Store.ChainId = id;
-
         Id = id;
         Options = options;
         StagedTransactions = new StagedTransactionCollection(options.Store, id);
         Store = options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
         _chain = Store.Chains.GetOrAdd(id);
+        Store.ChainId = id;
         Blocks = new BlockCollection(options.Store, id);
         Nonces = _chain.Nonces;
 

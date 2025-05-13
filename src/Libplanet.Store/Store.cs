@@ -12,6 +12,7 @@ public sealed class Store : IDisposable
     private readonly ChainStore _chains;
     private readonly MetadataStore _metadata;
     private readonly BlockHashesByTxId _blockHashesByTxId;
+    private Chain? _chain;
 
     private bool _disposed;
 
@@ -27,6 +28,10 @@ public sealed class Store : IDisposable
         _chains = new ChainStore(_database);
         _metadata = new MetadataStore(_database);
         _blockHashesByTxId = new BlockHashesByTxId(_database);
+        if (_metadata.TryGetValue("chainId", out var chainId))
+        {
+            _chain = _chains[Guid.Parse(chainId)];
+        }
     }
 
     public PendingEvidenceStore PendingEvidences => _pendingEvidences;
@@ -50,14 +55,13 @@ public sealed class Store : IDisposable
         get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
         set
         {
-            if (value == Guid.Empty)
-            {
-                throw new ArgumentException("Chain ID cannot be empty.", nameof(value));
-            }
-
+            _chain = _chains[value];
             _metadata["chainId"] = value.ToString();
         }
     }
+
+    public Chain Chain => _chain ?? throw new InvalidOperationException(
+        "ChainId is not set. Please set ChainId before accessing the Chain property.");
 
     public void Dispose()
     {
