@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Store.Trie;
 using LruCacheNet;

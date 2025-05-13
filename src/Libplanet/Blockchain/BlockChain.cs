@@ -59,8 +59,8 @@ public partial class BlockChain
         StagedTransactions = new StagedTransactionCollection(options.Store, id);
         Store = options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
-        _chain = Store.GetChain(id);
-        Blocks = _chain.Blocks;
+        _chain = Store.Chains.GetOrAdd(id);
+        Blocks = new BlockCollection(options.Store, id);
         Nonces = _chain.Nonces;
 
         ValidateGenesis(genesisBlock);
@@ -135,7 +135,7 @@ public partial class BlockChain
 
     public BlockCollection Blocks { get; }
 
-    public NonceCollection Nonces { get; }
+    public NonceStore Nonces { get; }
 
     public TxExecutionStore TxExecutions => Store.TxExecutions;
 
@@ -212,7 +212,7 @@ public partial class BlockChain
         }
 
         var result = new List<BlockHash>();
-        foreach (BlockHash hash in Store.GetChain(Id).BlockHashes.IterateIndexes(block.Height, count))
+        foreach (BlockHash hash in Store.Chains.GetOrAdd(Id).BlockHashes.IterateIndexes(block.Height, count))
         {
             if (count == 0)
             {
@@ -712,7 +712,7 @@ public partial class BlockChain
 
         try
         {
-            IEnumerable<BlockHash> indices = Store.GetChain(Id).BlockHashes.IterateIndexes(offset, limit);
+            IEnumerable<BlockHash> indices = Store.Chains.GetOrAdd(Id).BlockHashes.IterateIndexes(offset, limit);
 
             // NOTE: The reason why this does not simply return indices, but iterates over
             // indices and yields hashes step by step instead, is that we need to ensure

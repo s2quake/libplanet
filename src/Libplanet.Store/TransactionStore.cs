@@ -5,8 +5,8 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-public sealed class TransactionStore(IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<TxId, Transaction>(dictionary)
+public sealed class TransactionStore(IDatabase database)
+    : CollectionBase<TxId, Transaction>(database.GetOrAdd("tx"))
 {
     public void Add(Block block)
     {

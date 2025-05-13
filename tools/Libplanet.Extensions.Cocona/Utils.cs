@@ -104,57 +104,58 @@ public static class Utils
 
     public static Libplanet.Store.Store LoadStoreFromUri(string uriString)
     {
-        // TODO: Cocona supports .NET's TypeConverter protocol for instantiating objects
-        // from CLI options/arguments.  We'd better to implement it for Libplanet.Store.Store, and simply
-        // use Libplanet.Store.Store as the option/argument types rather than taking them as strings.
-        var uri = new Uri(uriString);
+        throw new NotImplementedException();
+//         // TODO: Cocona supports .NET's TypeConverter protocol for instantiating objects
+//         // from CLI options/arguments.  We'd better to implement it for Libplanet.Store.Store, and simply
+//         // use Libplanet.Store.Store as the option/argument types rather than taking them as strings.
+//         var uri = new Uri(uriString);
 
-        // FIXME: A workaround for MSBuild not including unused references. Find a better way
-        // to handle this. See: https://github.com/planetarium/libplanet/issues/2623
-// #pragma warning disable CS0219
-//         RocksDBStore.LegacyRocksDBStore? rocksDbStore = null;
-// #pragma warning restore CS0219
+//         // FIXME: A workaround for MSBuild not including unused references. Find a better way
+//         // to handle this. See: https://github.com/planetarium/libplanet/issues/2623
+// // #pragma warning disable CS0219
+// //         RocksDBStore.LegacyRocksDBStore? rocksDbStore = null;
+// // #pragma warning restore CS0219
 
-        switch (uri.Scheme)
-        {
-            case "default":
-            case "rocksdb":
-                Console.Error.WriteLine(
-                    "Warning: The scheme {0}:// for the store URI is deprecated.  " +
-                    "Use {0}+file:// instead.",
-                    uri.Scheme);
-                Console.Error.Flush();
-                uri = new Uri($"{uri.Scheme}+file{uri.ToString().Substring(7)}");
-                break;
+//         switch (uri.Scheme)
+//         {
+//             case "default":
+//             case "rocksdb":
+//                 Console.Error.WriteLine(
+//                     "Warning: The scheme {0}:// for the store URI is deprecated.  " +
+//                     "Use {0}+file:// instead.",
+//                     uri.Scheme);
+//                 Console.Error.Flush();
+//                 uri = new Uri($"{uri.Scheme}+file{uri.ToString().Substring(7)}");
+//                 break;
 
-            case "":
-            case null:
-                const string? exceptionMessage = "A store URI must have a scheme, " +
-                                                 "e.g., default+file://, rocksdb+file://.";
-                throw new ArgumentException(exceptionMessage, nameof(uriString));
-        }
+//             case "":
+//             case null:
+//                 const string? exceptionMessage = "A store URI must have a scheme, " +
+//                                                  "e.g., default+file://, rocksdb+file://.";
+//                 throw new ArgumentException(exceptionMessage, nameof(uriString));
+//         }
 
-        if (StoreLoaderAttribute.LoadStore(uri) is { } pair)
-        {
-            return pair.Store;
-        }
+//         if (StoreLoaderAttribute.LoadStore(uri) is { } pair)
+//         {
+//             return pair.Store;
+//         }
 
-        (string UriScheme, Type DeclaringType)[] loaders =
-            StoreLoaderAttribute.ListStoreLoaders().ToArray();
-        int longestSchemeLength = Math.Max(
-            "URI SCHEME".Length,
-            loaders.Max(loader => loader.UriScheme.Length + 1));
-        string loaderTable = string.Join(
-            "\n",
-            loaders.Select(pair =>
-                $"  {(pair.UriScheme + ":").PadRight(longestSchemeLength)}" +
-                $"  {pair.DeclaringType.Name}"));
+//         (string UriScheme, Type DeclaringType)[] loaders =
+//             StoreLoaderAttribute.ListStoreLoaders().ToArray();
+//         int longestSchemeLength = Math.Max(
+//             "URI SCHEME".Length,
+//             loaders.Max(loader => loader.UriScheme.Length + 1));
+//         string loaderTable = string.Join(
+//             "\n",
+//             loaders.Select(pair =>
+//                 $"  {(pair.UriScheme + ":").PadRight(longestSchemeLength)}" +
+//                 $"  {pair.DeclaringType.Name}"));
 
-        throw new ArgumentException(
-            $"The store URI scheme {uri.Scheme}:// is not supported.  See also " +
-            $"the list of supported store URI schemes:\n\n" +
-            $"  {"URI SCHEME".PadRight(longestSchemeLength)}  PROVIDED BY\n{loaderTable}\n",
-            nameof(uriString));
+//         throw new ArgumentException(
+//             $"The store URI scheme {uri.Scheme}:// is not supported.  See also " +
+//             $"the list of supported store URI schemes:\n\n" +
+//             $"  {"URI SCHEME".PadRight(longestSchemeLength)}  PROVIDED BY\n{loaderTable}\n",
+//             nameof(uriString));
     }
 
     public static string SerializeHumanReadable<T>(T target) =>

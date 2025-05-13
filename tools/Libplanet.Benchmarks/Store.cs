@@ -40,7 +40,7 @@ public class Store
             txs.AddRange(blockTxs);
         }
 
-        _chain = _store.GetChain(_store.ChainId);
+        _chain = _store.GetOrAdd(_store.ChainId);
 
         _blocks = blocks.ToImmutableArray();
         BlocksCount = _blocks.Length;

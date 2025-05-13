@@ -1075,7 +1075,7 @@ public partial class BlockChainTest : IDisposable
         {
             foreach (Transaction tx in block.Transactions)
             {
-                store.GetNonceCollection(id).Increase(tx.Signer);
+                store.GetNonces(id).Increase(tx.Signer);
             }
 
             // store.AppendIndex(id, block.BlockHash);
@@ -1094,7 +1094,7 @@ public partial class BlockChainTest : IDisposable
             {
                 int index = (i * accountsCount) + j;
                 Transaction tx = Transaction.Create(
-                    store.GetNonceCollection(chain.Id)[signer],
+                    store.GetNonces(chain.Id)[signer],
                     privateKey,
                     chain.Genesis.BlockHash,
                     new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes());

@@ -30,7 +30,7 @@ public class StatsCommandTest : IDisposable
         foreach (var storeFixture in _storeFixtures)
         {
             var guid = Guid.NewGuid();
-            var chain = storeFixture.Store.GetChain(guid);
+            var chain = storeFixture.Store.GetOrAdd(guid);
             storeFixture.Store.ChainId = guid;
             chain.Blocks.Add(storeFixture.Block1);
             // storeFixture.Store.AppendIndex(guid, storeFixture.Block1.BlockHash);

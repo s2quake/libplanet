@@ -3,8 +3,8 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store;
 
-public sealed class NonceCollection(IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<Address, long>(dictionary)
+public sealed class NonceStore(Guid chainId, IDatabase database)
+    : CollectionBase<Address, long>(database.GetOrAdd($"{chainId}_nonces"))
 {
     public long GetOrDefault(Address signer)
     {

@@ -84,7 +84,7 @@ public class StoreCommandTest : IDisposable
         foreach (var v in _storeFixtures)
         {
             v.Store.ChainId = guid;
-            var chain = v.Store.GetChain(guid);
+            var chain = v.Store.GetOrAdd(guid);
             chain.Blocks.Add(_genesisBlock);
             // v.Store.AppendIndex(guid, _genesisBlock.BlockHash);
 
