@@ -898,7 +898,7 @@ public partial class BlockChain
     {
         if (index == 0)
         {
-            var worldContext = new WorldStateContext(GetNextWorld());
+            IWorldContext worldContext = new WorldStateContext(GetNextWorld());
             return (ImmutableSortedSet<Validator>)worldContext[ReservedAddresses.ValidatorSetAddress][ReservedAddresses.ValidatorSetAddress]; ;
         }
 

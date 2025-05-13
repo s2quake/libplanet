@@ -1347,8 +1347,7 @@ public partial class ActionEvaluatorTest
         protected override void OnExecute(IWorldContext world, IActionContext context)
         {
             GasTracer.UseGas(GasUsage);
-            var key = (LegacyAccount, context.Signer);
-            world[key] = Memo;
+            world[LegacyAccount, context.Signer] = Memo;
 
             if (Receiver is { } receiver && MintValue is { } mintValue)
             {
