@@ -50,6 +50,7 @@ public partial class BlockChain
         StagedTransactions = new StagedTransactionCollection(options.Store, id);
         Store = (Store.Store)options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
+        Blocks = new BlockCollection(options.Store, id);
 
         _blockChainStates = new BlockChainStates(options.Store, StateStore);
 
@@ -116,7 +117,7 @@ public partial class BlockChain
 
     internal ActionEvaluator ActionEvaluator { get; }
 
-    public BlockStore Blocks => _blocks;
+    public BlockCollection Blocks { get; }
 
     public TxExecutionStore TxExecutions => Store.TxExecutions;
 

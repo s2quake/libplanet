@@ -17,13 +17,9 @@ public sealed class Store
     private readonly ChainDigestCollection _chainDigests;
     private readonly MetadataStore _metadata;
     private readonly BlockHashesByTxId _blockHashesByTxId;
-    private BlockStore? _blocks;
-    private BlockHashCollection? _blockHashes;
-    private NonceCollection? _nonces;
 
     private readonly ConcurrentDictionary<Guid, NonceCollection> _noncesByChainId = new();
-    private readonly ConcurrentDictionary<Guid, BlockHashCollection> _blockHashByChainId = new();
-    private readonly ConcurrentDictionary<Guid, BlockStore> _blocksByChainId = new();
+    private readonly ConcurrentDictionary<Guid, BlockHashStore> _blockHashByChainId = new();
 
     private bool _disposed;
 
@@ -69,18 +65,18 @@ public sealed class Store
 
             _metadata["chainId"] = value.ToString();
 
-            _blocks = GetBlockCollection(value);
-            _blockHashes = GetBlockHashes(value);
-            _nonces = GetNonceCollection(value);
+            // _blocks = GetBlockCollection(value);
+            // _blockHashes = GetBlockHashes(value);
+            // _nonces = GetNonceCollection(value);
         }
     }
 
-    public BlockStore Blocks => _blocks ?? throw new InvalidOperationException("Chain ID is not assigned.");
+    // public BlockStore Blocks => _blocks ?? throw new InvalidOperationException("Chain ID is not assigned.");
 
-    public BlockHashCollection BlockHashes
-        => _blockHashes ?? throw new InvalidOperationException("Chain ID is not assigned.");
+    // public BlockHashStore BlockHashes
+    //     => _blockHashes ?? throw new InvalidOperationException("Chain ID is not assigned.");
 
-    public NonceCollection Nonces => _nonces ?? throw new InvalidOperationException("Chain ID is not assigned.");
+    // public NonceCollection Nonces => _nonces ?? throw new InvalidOperationException("Chain ID is not assigned.");
 
     public NonceCollection GetNonceCollection(Guid chainId)
     {
@@ -104,7 +100,7 @@ public sealed class Store
         }
     }
 
-    public BlockHashCollection GetBlockHashes(Guid chainId)
+    public BlockHashStore GetBlockHashes(Guid chainId)
     {
         lock (_lock)
         {
@@ -118,7 +114,7 @@ public sealed class Store
 
             if (!_blockHashByChainId.TryGetValue(chainId, out var blockHashes))
             {
-                blockHashes = new BlockHashCollection(_database.GetOrAdd($"blockhash_{chainId}"));
+                blockHashes = new BlockHashStore(_database.GetOrAdd($"blockhash_{chainId}"));
                 _blockHashByChainId.TryAdd(chainId, blockHashes);
             }
 
@@ -126,27 +122,27 @@ public sealed class Store
         }
     }
 
-    public BlockStore GetBlockCollection(Guid chainId)
-    {
-        lock (_lock)
-        {
-            if (!_chainDigests.ContainsKey(chainId))
-            {
-                _chainDigests[chainId] = new ChainDigest
-                {
-                    Id = chainId,
-                };
-            }
+    // public BlockStore GetBlockCollection(Guid chainId)
+    // {
+    //     lock (_lock)
+    //     {
+    //         if (!_chainDigests.ContainsKey(chainId))
+    //         {
+    //             _chainDigests[chainId] = new ChainDigest
+    //             {
+    //                 Id = chainId,
+    //             };
+    //         }
 
-            if (!_blocksByChainId.TryGetValue(chainId, out var blocks))
-            {
-                blocks = new BlockStore(this, chainId);
-                _blocksByChainId.TryAdd(chainId, blocks);
-            }
+    //         if (!_blocksByChainId.TryGetValue(chainId, out var blocks))
+    //         {
+    //             blocks = new BlockStore(this, chainId);
+    //             _blocksByChainId.TryAdd(chainId, blocks);
+    //         }
 
-            return blocks;
-        }
-    }
+    //         return blocks;
+    //     }
+    // }
 
     // public BlockHash BlockHashByTxId[TxId txId]
     // {
