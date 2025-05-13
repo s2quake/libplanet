@@ -9,372 +9,285 @@ using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
-namespace Libplanet.Blockchain
+namespace Libplanet.Blockchain;
+
+public partial class BlockChain
 {
-    public partial class BlockChain
+    internal static Dictionary<Address, long> ValidateGenesisNonces(
+        Block block)
     {
-        internal static Dictionary<Address, long> ValidateGenesisNonces(
-            Block block)
+        var nonceDeltas = new Dictionary<Address, long>();
+        foreach (Transaction tx in block.Transactions.OrderBy(tx => tx.Nonce))
         {
-            var nonceDeltas = new Dictionary<Address, long>();
-            foreach (Transaction tx in block.Transactions.OrderBy(tx => tx.Nonce))
+            nonceDeltas.TryGetValue(tx.Signer, out var nonceDelta);
+            long expectedNonce = nonceDelta;
+
+            if (!expectedNonce.Equals(tx.Nonce))
             {
-                nonceDeltas.TryGetValue(tx.Signer, out var nonceDelta);
-                long expectedNonce = nonceDelta;
-
-                if (!expectedNonce.Equals(tx.Nonce))
-                {
-                    throw new InvalidOperationException(
-                        $"Transaction {tx.Id} has an invalid nonce {tx.Nonce} that is different " +
-                        $"from expected nonce {expectedNonce}.");
-                }
-
-                nonceDeltas[tx.Signer] = nonceDelta + 1;
+                throw new InvalidOperationException(
+                    $"Transaction {tx.Id} has an invalid nonce {tx.Nonce} that is different " +
+                    $"from expected nonce {expectedNonce}.");
             }
 
-            return nonceDeltas;
+            nonceDeltas[tx.Signer] = nonceDelta + 1;
         }
 
-        /// <summary>
-        /// Checks if given <paramref name="block"/> is a valid genesis <see cref="Block"/>.
-        /// </summary>
-        /// <param name="block">The target <see cref="Block"/> to validate.</param>
-        /// <exception cref="ArgumentException">If <paramref name="block"/> has
-        /// <see cref="Block.Height"/> value anything other than 0.</exception>
-        /// <exception cref="InvalidBlockException">Thrown when given <paramref name="block"/>
-        /// is invalid.</exception>
-        internal static void ValidateGenesis(Block block)
+        return nonceDeltas;
+    }
+
+    internal static void ValidateGenesis(Block block)
+    {
+        if (block.Height != 0)
         {
-            if (block.Height != 0)
-            {
-                throw new ArgumentException(
-                    $"Given {nameof(block)} must have index 0 but has index {block.Height}",
-                    nameof(block));
-            }
-
-            int actualProtocolVersion = block.ProtocolVersion;
-            const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
-            if (block.ProtocolVersion > BlockHeader.CurrentProtocolVersion)
-            {
-                throw new InvalidOperationException(
-                    $"The protocol version ({actualProtocolVersion}) of the block " +
-                    $"#{block.Height} {block.BlockHash} is not supported by this node." +
-                    $"The highest supported protocol version is {currentProtocolVersion}.");
-            }
-
-            if (block.PreviousHash != default)
-            {
-                throw new InvalidOperationException(
-                    "A genesis block should not have previous hash, " +
-                    $"but its value is {block.PreviousHash}.");
-            }
-
-            if (block.LastCommit != BlockCommit.Empty)
-            {
-                throw new InvalidOperationException(
-                    "A genesis block should not have last commit, " +
-                    $"but its value is {block.LastCommit}.");
-            }
+            throw new ArgumentException(
+                $"Given {nameof(block)} must have index 0 but has index {block.Height}",
+                nameof(block));
         }
 
-        internal void ValidateBlockCommit(
-            Block block,
-            BlockCommit blockCommit)
+        int actualProtocolVersion = block.ProtocolVersion;
+        const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
+        if (block.ProtocolVersion > BlockHeader.CurrentProtocolVersion)
         {
-            // if (block.ProtocolVersion < BlockHeader.PBFTProtocolVersion)
-            // {
-            //     if (blockCommit is { })
-            //     {
-            //         throw new InvalidOperationException(
-            //             "PoW Block doesn't have blockCommit.");
-            //     }
-            //     else
-            //     {
-            //         // To allow the PoW block to be appended, we skips the validation.
-            //         return;
-            //     }
-            // }
-
-            if (block.Height == 0)
-            {
-                if (blockCommit is { })
-                {
-                    throw new InvalidOperationException(
-                        "Genesis block does not have blockCommit.");
-                }
-                else
-                {
-                    return;
-                }
-            }
-
-            if (block.Height != 0 && blockCommit == null)
-            {
-                throw new InvalidOperationException(
-                    $"Block #{block.BlockHash} BlockCommit is required except for the genesis block.");
-            }
-
-            if (block.Height != blockCommit.Height)
-            {
-                throw new InvalidOperationException(
-                    "BlockCommit has height value that is not same with block height. " +
-                    $"Block height is {block.Height}, however, BlockCommit height is " +
-                    $"{blockCommit.Height}.");
-            }
-
-            if (!block.BlockHash.Equals(blockCommit.BlockHash))
-            {
-                throw new InvalidOperationException(
-                    $"BlockCommit has different block. Block hash is {block.BlockHash}, " +
-                    $"however, BlockCommit block hash is {blockCommit.BlockHash}.");
-            }
-
-            // FIXME: When the dynamic validator set is possible, the functionality of this
-            // condition should be checked once more.
-            var validators = GetWorld(block.StateRootHash).GetValidatorSet();
-
-            // if (block.ProtocolVersion < BlockHeader.EvidenceProtocolVersion)
-            // {
-            //     validators.ValidateLegacyBlockCommitValidators(blockCommit);
-            // }
-            // else
-            {
-                validators.ValidateBlockCommitValidators(blockCommit);
-            }
-
-            BigInteger commitPower = blockCommit.Votes.Aggregate(
-                BigInteger.Zero,
-                (power, vote) => power + (vote.Flag == VoteFlag.PreCommit
-                    ? validators.GetValidator(vote.ValidatorPublicKey).Power
-                    : BigInteger.Zero));
-            if (validators.GetTwoThirdsPower() >= commitPower)
-            {
-                throw new InvalidOperationException(
-                    $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
-                    $"has insufficient vote power {commitPower} compared to 2/3 of " +
-                    $"the total power {validators.GetTotalPower()}");
-            }
+            throw new InvalidOperationException(
+                $"The protocol version ({actualProtocolVersion}) of the block " +
+                $"#{block.Height} {block.BlockHash} is not supported by this node." +
+                $"The highest supported protocol version is {currentProtocolVersion}.");
         }
 
-        internal Dictionary<Address, long> ValidateBlockNonces(
-            Dictionary<Address, long> storedNonces,
-            Block block)
+        if (block.PreviousHash != default)
         {
-            var nonceDeltas = new Dictionary<Address, long>();
-            foreach (Transaction tx in block.Transactions.OrderBy(tx => tx.Nonce))
-            {
-                nonceDeltas.TryGetValue(tx.Signer, out var nonceDelta);
-                storedNonces.TryGetValue(tx.Signer, out var storedNonce);
-
-                long expectedNonce = nonceDelta + storedNonce;
-
-                if (!expectedNonce.Equals(tx.Nonce))
-                {
-                    throw new InvalidOperationException(
-                        $"Transaction {tx.Id} has an invalid nonce {tx.Nonce} that is different " +
-                        $"from expected nonce {expectedNonce}.");
-                }
-
-                nonceDeltas[tx.Signer] = nonceDelta + 1;
-            }
-
-            return nonceDeltas;
+            throw new InvalidOperationException(
+                "A genesis block should not have previous hash, " +
+                $"but its value is {block.PreviousHash}.");
         }
 
-        internal void ValidateBlockLoadActions(Block block)
+        if (block.LastCommit != BlockCommit.Empty)
         {
-            foreach (var tx in block.Transactions)
-            {
-                _ = tx.Actions.Select(item => item.ToAction<IAction>());
-            }
+            throw new InvalidOperationException(
+                "A genesis block should not have last commit, " +
+                $"but its value is {block.LastCommit}.");
         }
+    }
 
-        internal void ValidateBlock(Block block)
+    internal void ValidateBlockCommit(Block block, BlockCommit blockCommit)
+    {
+        if (block.Height == 0)
         {
-            if (block.Height <= 0)
-            {
-                throw new ArgumentException(
-                    $"Given {nameof(block)} must have a positive index but has index {block.Height}",
-                    nameof(block));
-            }
-
-            var index = _blocks.Count;
-            if (block.Height != index)
+            if (blockCommit is { })
             {
                 throw new InvalidOperationException(
-                    $"The expected index of block {block.BlockHash} is #{index}, " +
-                    $"but its index is #{block.Height}.");
-            }
-
-            int actualProtocolVersion = block.ProtocolVersion;
-            const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
-
-            // FIXME: Crude way of checking protocol version for non-genesis block.
-            // Ideally, whether this is called during instantiation should be made more explicit.
-            if (actualProtocolVersion > currentProtocolVersion)
-            {
-                string message =
-                    $"The protocol version ({actualProtocolVersion}) of the block " +
-                    $"#{block.Height} {block.BlockHash} is not supported by this node." +
-                    $"The highest supported protocol version is {currentProtocolVersion}.";
-                throw new InvalidOperationException(
-                    message);
-            }
-            else if (actualProtocolVersion < Tip.ProtocolVersion)
-            {
-                string message =
-                    "The protocol version is disallowed to be downgraded from the topmost block " +
-                    $"in the chain ({actualProtocolVersion} < {Tip.ProtocolVersion}).";
-                throw new InvalidOperationException(message);
-            }
-
-            Block lastBlock = Blocks[index - 1];
-            BlockHash? prevHash = lastBlock?.BlockHash;
-            DateTimeOffset? prevTimestamp = lastBlock?.Timestamp;
-
-            if (!block.PreviousHash.Equals(prevHash))
-            {
-                throw new InvalidOperationException(
-                    $"The block #{index} {block.BlockHash} is not continuous from the " +
-                    $"block #{index - 1}; while previous block's hash is " +
-                    $"{prevHash}, the block #{index} {block.BlockHash}'s pointer to " +
-                    "the previous hash refers to " +
-                    (block.PreviousHash.ToString() ?? "nothing") + ".");
-            }
-
-            if (block.Timestamp < prevTimestamp)
-            {
-                throw new InvalidOperationException(
-                    $"The block #{index} {block.BlockHash}'s timestamp " +
-                    $"({block.Timestamp}) is earlier than " +
-                    $"the block #{index - 1}'s ({prevTimestamp}).");
-            }
-
-            if (block.Height <= 1)
-            {
-                if (block.LastCommit != BlockCommit.Empty)
-                {
-                    throw new InvalidOperationException(
-                        "The genesis block and the next block should not have lastCommit.");
-                }
+                    "Genesis block does not have blockCommit.");
             }
             else
             {
-                // Any block after a PoW block should not have a last commit regardless of
-                // the protocol version.  As we have the target block height > 2, if it is a PoW
-                // block, the previous block would be a PoW block and is covered by this case.
-                // if (lastBlock?.ProtocolVersion < BlockHeader.PBFTProtocolVersion)
-                // {
-                //     if (block.LastCommit is { })
-                //     {
-                //         throw new InvalidOperationException(
-                //             "A block after a PoW block should not have lastCommit.");
-                //     }
-                // }
-                // else
-                {
-                    if (block.LastCommit == default)
-                    {
-                        throw new InvalidOperationException(
-                            "A PBFT block that does not have zero or one index or " +
-                            "is not a block after a PoW block should have lastCommit.");
-                    }
-                }
-
-                try
-                {
-                    var hash = block.PreviousHash == default ? Genesis.BlockHash : block.PreviousHash;
-                    ValidateBlockCommit(_blocks[hash], block.LastCommit);
-                }
-                catch (InvalidOperationException ibce)
-                {
-                    throw new InvalidOperationException(ibce.Message);
-                }
-            }
-
-            foreach (var ev in block.Evidences)
-            {
-                var stateRootHash = GetNextStateRootHash(ev.Height);
-                var worldState = GetWorld(stateRootHash ?? default);
-                var validators = worldState.GetValidatorSet();
-                ValidationUtility.Validate(ev, items: new Dictionary<object, object?>
-                {
-                    [typeof(EvidenceContext)] = new EvidenceContext(validators),
-                });
-            }
-        }
-
-        /// <summary>
-        /// Validates a result obtained from <see cref="EvaluateBlock"/> by
-        /// comparing the state root hash from <see cref="GetNextStateRootHash(BlockHash)"/>
-        /// which stores state root hash from <see cref="DetermineNextBlockStateRootHash"/>,
-        /// to the one in <paramref name="block"/>.
-        /// </summary>
-        /// <param name="block">The <see cref="Block"/> to validate against.</param>
-        /// <exception cref="InvalidOperationException">If this method is called
-        /// when the result of <see cref="GetNextStateRootHash(BlockHash)"/>
-        /// is <see langword="null"/>.  This can happen if <paramref name="block"/>
-        /// is an index higher than the tip but its result is not ready yet.</exception>
-        /// <exception cref="InvalidOperationException">If the state root hash
-        /// calculated by committing to the <see cref="TrieStateStore"/> does not match
-        /// the <paramref name="block"/>'s <see cref="Block.StateRootHash"/>.</exception>
-        /// <seealso cref="EvaluateBlock"/>
-        /// <seealso cref="DetermineNextBlockStateRootHash"/>
-        internal void ValidateBlockStateRootHash(Block block)
-        {
-            // NOTE: Since previous hash validation is on block validation,
-            // assume block is genesis if previous hash is null.
-            if (!(block.PreviousHash is BlockHash previousHash))
-            {
                 return;
             }
+        }
 
-            HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash) ??
-                throw new InvalidOperationException(
-                    $"Cannot validate a block' state root hash as the next " +
-                    $"state root hash for block {previousHash} is missing.");
+        if (block.Height != 0 && blockCommit == null)
+        {
+            throw new InvalidOperationException(
+                $"Block #{block.BlockHash} BlockCommit is required except for the genesis block.");
+        }
 
-            if (!stateRootHash.Equals(block.StateRootHash))
+        if (block.Height != blockCommit.Height)
+        {
+            throw new InvalidOperationException(
+                "BlockCommit has height value that is not same with block height. " +
+                $"Block height is {block.Height}, however, BlockCommit height is " +
+                $"{blockCommit.Height}.");
+        }
+
+        if (!block.BlockHash.Equals(blockCommit.BlockHash))
+        {
+            throw new InvalidOperationException(
+                $"BlockCommit has different block. Block hash is {block.BlockHash}, " +
+                $"however, BlockCommit block hash is {blockCommit.BlockHash}.");
+        }
+
+        var validators = GetWorld(block.StateRootHash).GetValidatorSet();
+        validators.ValidateBlockCommitValidators(blockCommit);
+        BigInteger commitPower = blockCommit.Votes.Aggregate(
+            BigInteger.Zero,
+            (power, vote) => power + (vote.Flag == VoteFlag.PreCommit
+                ? validators.GetValidator(vote.ValidatorPublicKey).Power
+                : BigInteger.Zero));
+        if (validators.GetTwoThirdsPower() >= commitPower)
+        {
+            throw new InvalidOperationException(
+                $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
+                $"has insufficient vote power {commitPower} compared to 2/3 of " +
+                $"the total power {validators.GetTotalPower()}");
+        }
+    }
+
+    internal Dictionary<Address, long> ValidateBlockNonces(
+        Dictionary<Address, long> storedNonces,
+        Block block)
+    {
+        var nonceDeltas = new Dictionary<Address, long>();
+        foreach (Transaction tx in block.Transactions.OrderBy(tx => tx.Nonce))
+        {
+            nonceDeltas.TryGetValue(tx.Signer, out var nonceDelta);
+            storedNonces.TryGetValue(tx.Signer, out var storedNonce);
+
+            long expectedNonce = nonceDelta + storedNonce;
+
+            if (!expectedNonce.Equals(tx.Nonce))
             {
-                var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
-                    $"is {block.StateRootHash}, but the execution result is {stateRootHash}.";
                 throw new InvalidOperationException(
-                    message);
+                    $"Transaction {tx.Id} has an invalid nonce {tx.Nonce} that is different " +
+                    $"from expected nonce {expectedNonce}.");
+            }
+
+            nonceDeltas[tx.Signer] = nonceDelta + 1;
+        }
+
+        return nonceDeltas;
+    }
+
+    internal void ValidateBlockLoadActions(Block block)
+    {
+        foreach (var tx in block.Transactions)
+        {
+            _ = tx.Actions.Select(item => item.ToAction<IAction>());
+        }
+    }
+
+    internal void ValidateBlock(Block block)
+    {
+        if (block.Height <= 0)
+        {
+            throw new ArgumentException(
+                $"Given {nameof(block)} must have a positive index but has index {block.Height}",
+                nameof(block));
+        }
+
+        var index = Blocks.Count;
+        if (block.Height != index)
+        {
+            throw new InvalidOperationException(
+                $"The expected index of block {block.BlockHash} is #{index}, " +
+                $"but its index is #{block.Height}.");
+        }
+
+        int actualProtocolVersion = block.ProtocolVersion;
+        const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
+
+        // FIXME: Crude way of checking protocol version for non-genesis block.
+        // Ideally, whether this is called during instantiation should be made more explicit.
+        if (actualProtocolVersion > currentProtocolVersion)
+        {
+            string message =
+                $"The protocol version ({actualProtocolVersion}) of the block " +
+                $"#{block.Height} {block.BlockHash} is not supported by this node." +
+                $"The highest supported protocol version is {currentProtocolVersion}.";
+            throw new InvalidOperationException(
+                message);
+        }
+        else if (actualProtocolVersion < Tip.ProtocolVersion)
+        {
+            string message =
+                "The protocol version is disallowed to be downgraded from the topmost block " +
+                $"in the chain ({actualProtocolVersion} < {Tip.ProtocolVersion}).";
+            throw new InvalidOperationException(message);
+        }
+
+        Block lastBlock = Blocks[index - 1];
+        BlockHash? prevHash = lastBlock?.BlockHash;
+        DateTimeOffset? prevTimestamp = lastBlock?.Timestamp;
+
+        if (!block.PreviousHash.Equals(prevHash))
+        {
+            throw new InvalidOperationException(
+                $"The block #{index} {block.BlockHash} is not continuous from the " +
+                $"block #{index - 1}; while previous block's hash is " +
+                $"{prevHash}, the block #{index} {block.BlockHash}'s pointer to " +
+                "the previous hash refers to " +
+                (block.PreviousHash.ToString() ?? "nothing") + ".");
+        }
+
+        if (block.Timestamp < prevTimestamp)
+        {
+            throw new InvalidOperationException(
+                $"The block #{index} {block.BlockHash}'s timestamp " +
+                $"({block.Timestamp}) is earlier than " +
+                $"the block #{index - 1}'s ({prevTimestamp}).");
+        }
+
+        if (block.Height <= 1)
+        {
+            if (block.LastCommit != BlockCommit.Empty)
+            {
+                throw new InvalidOperationException(
+                    "The genesis block and the next block should not have lastCommit.");
+            }
+        }
+        else
+        {
+            if (block.LastCommit == default)
+            {
+                throw new InvalidOperationException(
+                    "A PBFT block that does not have zero or one index or " +
+                    "is not a block after a PoW block should have lastCommit.");
+            }
+
+            try
+            {
+                var hash = block.PreviousHash == default ? Genesis.BlockHash : block.PreviousHash;
+                ValidateBlockCommit(Blocks[hash], block.LastCommit);
+            }
+            catch (InvalidOperationException ibce)
+            {
+                throw new InvalidOperationException(ibce.Message);
             }
         }
 
-        /// <summary>
-        /// Validates a result obtained from <see cref="EvaluateBlockPrecededStateRootHash"/> by
-        /// comparing the state root hash calculated using
-        /// <see cref="DetermineBlockPrecededStateRootHash"/>
-        /// to the one in <paramref name="block"/>.
-        /// </summary>
-        /// <param name="block">The <see cref="Block"/> to validate against.</param>
-        /// <param name="evaluations">The list of <see cref="ActionEvaluation"/>s
-        /// from which to extract the states to commit.</param>
-        /// <exception cref="InvalidOperationException">If the state root hash
-        /// calculated by committing to the <see cref="TrieStateStore"/> does not match
-        /// the <paramref name="block"/>'s <see cref="Block.StateRootHash"/>.</exception>
-        /// <remarks>
-        /// Since the state root hash for can only be calculated from making a commit
-        /// to an <see cref="TrieStateStore"/>, this always has a side-effect to the
-        /// <see cref="TrieStateStore"/> regardless of whether the state root hash
-        /// obdatined through committing to the <see cref="TrieStateStore"/>
-        /// matches the <paramref name="block"/>'s <see cref="Block.StateRootHash"/> or not.
-        /// </remarks>
-        /// <seealso cref="EvaluateBlockPrecededStateRootHash"/>
-        /// <seealso cref="DetermineBlockPrecededStateRootHash"/>
-        internal void ValidateBlockPrecededStateRootHash(
-            Block block, out IReadOnlyList<CommittedActionEvaluation> evaluations)
+        foreach (var ev in block.Evidences)
         {
-            var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
-            if (!rootHash.Equals(block.StateRootHash))
+            var stateRootHash = GetNextStateRootHash(ev.Height);
+            var worldState = GetWorld(stateRootHash ?? default);
+            var validators = worldState.GetValidatorSet();
+            ValidationUtility.Validate(ev, items: new Dictionary<object, object?>
             {
-                var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
-                    $"is {block.StateRootHash}, but the execution result is {rootHash}.";
-                throw new InvalidOperationException(
-                    message);
-            }
+                [typeof(EvidenceContext)] = new EvidenceContext(validators),
+            });
+        }
+    }
+
+    internal void ValidateBlockStateRootHash(Block block)
+    {
+        // NOTE: Since previous hash validation is on block validation,
+        // assume block is genesis if previous hash is null.
+        if (!(block.PreviousHash is BlockHash previousHash))
+        {
+            return;
+        }
+
+        HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash) ??
+            throw new InvalidOperationException(
+                $"Cannot validate a block' state root hash as the next " +
+                $"state root hash for block {previousHash} is missing.");
+
+        if (!stateRootHash.Equals(block.StateRootHash))
+        {
+            var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
+                $"is {block.StateRootHash}, but the execution result is {stateRootHash}.";
+            throw new InvalidOperationException(
+                message);
+        }
+    }
+
+    internal void ValidateBlockPrecededStateRootHash(
+        Block block, out IReadOnlyList<CommittedActionEvaluation> evaluations)
+    {
+        var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
+        if (!rootHash.Equals(block.StateRootHash))
+        {
+            var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
+                $"is {block.StateRootHash}, but the execution result is {rootHash}.";
+            throw new InvalidOperationException(
+                message);
         }
     }
 }

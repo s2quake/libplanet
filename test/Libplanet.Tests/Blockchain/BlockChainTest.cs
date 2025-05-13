@@ -1112,7 +1112,7 @@ public partial class BlockChainTest : IDisposable
                     .Diff(evals.First().InputWorld.Trie)
                     .ToList();
                 Assert.NotEmpty(dirty);
-                store.Blocks.Add(b);
+                chain.Blocks.Add(b);
                 BuildIndex(chain.Id, b);
                 Assert.Equal(b, chain.Blocks[b.BlockHash]);
                 if (presentIndices.Contains((int)b.Height))

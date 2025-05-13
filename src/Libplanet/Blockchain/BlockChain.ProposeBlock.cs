@@ -38,7 +38,7 @@ public partial class BlockChain
         ImmutableSortedSet<EvidenceBase>? evidences = null,
         IComparer<Transaction>? txPriority = null)
     {
-        var height = _blocks.Count;
+        var height = Blocks.Count;
         _logger.Debug("Starting to propose block #{Height}...", height);
 
         ImmutableArray<Transaction> transactions;
@@ -73,8 +73,8 @@ public partial class BlockChain
         ImmutableSortedSet<Transaction> transactions,
         ImmutableSortedSet<EvidenceBase> evidences)
     {
-        var height = _blocks.Count;
-        var previousHash = Store.GetBlockHashes(Id)[height - 1];
+        var height = Blocks.Count;
+        var previousHash = _chain.BlockHashes[height - 1];
 
         HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash) ??
             throw new InvalidOperationException(
@@ -144,7 +144,7 @@ public partial class BlockChain
         int minTransactions,
         IComparer<Transaction>? txPriority = null)
     {
-        var index = _blocks.Count;
+        var index = Blocks.Count;
         ImmutableList<Transaction> stagedTransactions = ListStagedTransactions(txPriority);
         _logger.Information(
             "Gathering transactions to propose for block #{Index} from {TxCount} " +
@@ -176,7 +176,7 @@ public partial class BlockChain
             // returns already ordered transactions by its nonce.
             if (!storedNonces.ContainsKey(tx.Signer))
             {
-                storedNonces[tx.Signer] = Store.Nonces[tx.Signer];
+                storedNonces[tx.Signer] = Nonces[tx.Signer];
                 nextNonces[tx.Signer] = storedNonces[tx.Signer];
                 toProposeCounts[tx.Signer] = 0;
             }

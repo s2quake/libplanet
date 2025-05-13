@@ -14,7 +14,8 @@ public sealed class Store
     private readonly BlockCommitStore _blockCommits;
     private readonly PendingEvidenceStore _pendingEvidences;
     private readonly CommittedEvidenceStore _committedEvidences;
-    private readonly ChainDigestCollection _chainDigests;
+    // private readonly ChainDigestCollection _chainDigests;
+    private readonly ChainStore _chains;
     private readonly MetadataStore _metadata;
     private readonly BlockHashesByTxId _blockHashesByTxId;
 
@@ -32,7 +33,7 @@ public sealed class Store
         _blockCommits = new BlockCommitStore(_database.GetOrAdd("blockcommit"));
         _pendingEvidences = new PendingEvidenceStore(_database.GetOrAdd("evidencep"));
         _committedEvidences = new CommittedEvidenceStore(_database.GetOrAdd("evidencec"));
-        _chainDigests = new ChainDigestCollection(_database.GetOrAdd("chaindigest"));
+        _chains = new ChainStore(this, _database.GetOrAdd("chaindigest"));
         _metadata = new MetadataStore(_database.GetOrAdd("metadata"));
         _blockHashesByTxId = new BlockHashesByTxId(_database.GetOrAdd("txidblockhash"));
     }
@@ -49,7 +50,7 @@ public sealed class Store
 
     public TxExecutionStore TxExecutions => _txExecutions;
 
-    public ChainDigestCollection ChainDigests => _chainDigests;
+    public ChainStore Chains => _chains;
 
     public BlockHashesByTxId BlockHashesByTxId => _blockHashesByTxId;
 
@@ -78,18 +79,24 @@ public sealed class Store
 
     // public NonceCollection Nonces => _nonces ?? throw new InvalidOperationException("Chain ID is not assigned.");
 
+    public Chain GetChain(Guid chainId)
+    {
+        lock (_lock)
+        {
+            if (!_chains.TryGetValue(chainId, out var chain))
+            {
+                chain = new Chain(this, chainId);
+                _chains.TryAdd(chainId, chain);
+            }
+
+            return chain;
+        }
+    }
+
     public NonceCollection GetNonceCollection(Guid chainId)
     {
         lock (_lock)
         {
-            if (!_chainDigests.ContainsKey(chainId))
-            {
-                _chainDigests[chainId] = new ChainDigest
-                {
-                    Id = chainId,
-                };
-            }
-
             if (!_noncesByChainId.TryGetValue(chainId, out var nonces))
             {
                 nonces = new NonceCollection(_database.GetOrAdd($"nonce_{chainId}"));
@@ -100,18 +107,10 @@ public sealed class Store
         }
     }
 
-    public BlockHashStore GetBlockHashes(Guid chainId)
+    internal BlockHashStore GetBlockHashes(Guid chainId)
     {
         lock (_lock)
         {
-            if (!_chainDigests.ContainsKey(chainId))
-            {
-                _chainDigests[chainId] = new ChainDigest
-                {
-                    Id = chainId,
-                };
-            }
-
             if (!_blockHashByChainId.TryGetValue(chainId, out var blockHashes))
             {
                 blockHashes = new BlockHashStore(_database.GetOrAdd($"blockhash_{chainId}"));
@@ -252,11 +251,11 @@ public sealed class Store
             throw new InvalidOperationException("Canonical chain ID is not assigned.");
         }
 
-        Guid[] chainIds = ChainDigests.Keys.ToArray();
-        foreach (Guid id in chainIds.Where(id => !id.Equals(ccid)))
-        {
-            ChainDigests.Remove(id);
-        }
+        // Guid[] chainIds = ChainDigests.Keys.ToArray();
+        // foreach (Guid id in chainIds.Where(id => !id.Equals(ccid)))
+        // {
+        //     ChainDigests.Remove(id);
+        // }
     }
 
     public void Dispose()

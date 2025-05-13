@@ -60,7 +60,7 @@ public partial class BlockChain
         }
         else
         {
-            var prevBlock = _blocks[rawBlock.Header.PreviousHash];
+            var prevBlock = Blocks[rawBlock.Header.PreviousHash];
             var stateRootHash = GetNextStateRootHash(prevBlock.BlockHash)
                 ?? throw new NullReferenceException(
                     $"State root hash of block is not prepared");

@@ -41,7 +41,7 @@ public class StatsCommand
         }
 
         Guid chainId = store.ChainId;
-        long chainLength = store.ChainDigests[chainId].Height;
+        long chainLength = store.Chains[chainId].Height;
 
         if (offset >= chainLength || (offset < 0 && chainLength + offset < 0))
         {
@@ -49,8 +49,8 @@ public class StatsCommand
                 $"invalid offset value {offset} for found chain length {chainLength}");
         }
 
-        IEnumerable<BlockHash> hashes = store.GetBlockHashes(
-            chainId).IterateIndexes(
+        var chain = store.Chains[chainId];
+        IEnumerable<BlockHash> hashes = chain.BlockHashes.IterateIndexes(
             offset: offset >= 0
                 ? (int)offset
                 : (int)(chainLength + offset),
