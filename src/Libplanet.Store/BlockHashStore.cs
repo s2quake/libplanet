@@ -3,7 +3,7 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockHashCollection(IDictionary<KeyBytes, byte[]> dictionary)
+public sealed class BlockHashStore(IDictionary<KeyBytes, byte[]> dictionary)
     : CollectionBase<int, BlockHash>(dictionary)
 {
     public BlockHash this[Index index]
