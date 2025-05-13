@@ -6,7 +6,7 @@ using Libplanet.Tests.Store;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;
 
-public class StatsCommandTest : IDisposable
+public sealed class StatsCommandTest : IDisposable
 {
     private readonly ImmutableArray<StoreFixture> _storeFixtures;
     private readonly StatsCommand _command;
@@ -18,9 +18,7 @@ public class StatsCommandTest : IDisposable
         _originalWriter = Console.Out;
         try
         {
-            _storeFixtures = ImmutableArray.Create<StoreFixture>(
-                new MemoryStoreFixture(),
-                new RocksDBStoreFixture());
+            _storeFixtures = [new MemoryStoreFixture(), new RocksDBStoreFixture()];
         }
         catch (TypeInitializationException)
         {
@@ -29,18 +27,14 @@ public class StatsCommandTest : IDisposable
 
         foreach (var storeFixture in _storeFixtures)
         {
+            var store = storeFixture.Store;
             var guid = Guid.NewGuid();
-            var chain = storeFixture.Store.GetOrAdd(guid);
-            storeFixture.Store.ChainId = guid;
-            chain.Blocks.Add(storeFixture.Block1);
-            // storeFixture.Store.AppendIndex(guid, storeFixture.Block1.BlockHash);
-            storeFixture.Store.Transactions.Add(storeFixture.Transaction1);
+            var chain = store.Chains.GetOrAdd(guid);
+            store.ChainId = guid;
+            store.BlockDigests.Add(storeFixture.Block1);
+            chain.BlockHashes.Add(storeFixture.Block1);
+            store.Transactions.Add(storeFixture.Transaction1);
         }
-    }
-
-    ~StatsCommandTest()
-    {
-        Dispose();
     }
 
     [Fact]
@@ -91,11 +85,11 @@ public class StatsCommandTest : IDisposable
     {
         foreach (var storeFixture in _storeFixtures)
         {
-            storeFixture.Store?.Dispose();
-            // storeFixture.StateStore?.Dispose();
+            storeFixture.Store.Dispose();
         }
 
         Console.SetOut(_originalWriter);
         _originalWriter.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

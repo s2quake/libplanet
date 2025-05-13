@@ -4,8 +4,6 @@ namespace Libplanet.Store;
 
 public sealed class Chain(Guid chainId, IDatabase database)
 {
-    // public BlockStore Blocks { get; } = new BlockStore(store, chainId);
-
     public BlockHashStore BlockHashes { get; } = new BlockHashStore(chainId, database);
 
     public NonceStore Nonces { get; } = new NonceStore(chainId, database);

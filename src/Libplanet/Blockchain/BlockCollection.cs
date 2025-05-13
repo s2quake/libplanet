@@ -24,11 +24,11 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         _blockDigests = _store.BlockDigests;
         _blockHashes = _chain.BlockHashes;
         _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
-        .WithCapacity(cacheSize)
-        .Build();
+            .WithCapacity(cacheSize)
+            .Build();
         _cacheByHeight = new ConcurrentLruBuilder<int, Block>()
-        .WithCapacity(cacheSize)
-        .Build();
+            .WithCapacity(cacheSize)
+            .Build();
     }
 
     public IEnumerable<BlockHash> Keys

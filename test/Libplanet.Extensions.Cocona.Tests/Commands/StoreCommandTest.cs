@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Libplanet.Extensions.Cocona.Tests.Commands;
 
 [Trait("CircleCI", "Skip")]
-public class StoreCommandTest : IDisposable
+public sealed class StoreCommandTest : IDisposable
 {
     private readonly ImmutableArray<StoreFixture> _storeFixtures;
     private readonly ITestOutputHelper _testOutput;
@@ -81,35 +81,31 @@ public class StoreCommandTest : IDisposable
                 lastCommit: TestUtils.CreateBlockCommit(_block4));
 
         var guid = Guid.NewGuid();
-        foreach (var v in _storeFixtures)
+        foreach (var storeFixture in _storeFixtures)
         {
-            v.Store.ChainId = guid;
-            var chain = v.Store.GetOrAdd(guid);
-            chain.Blocks.Add(_genesisBlock);
-            // v.Store.AppendIndex(guid, _genesisBlock.BlockHash);
+            var store = storeFixture.Store;
+            var chain = store.Chains.GetOrAdd(guid);
+            store.ChainId = guid;
+            store.BlockDigests.Add(_genesisBlock);
+            chain.BlockHashes.Add(_genesisBlock);
 
-            chain.Blocks.Add(_block1);
-            // v.Store.AppendIndex(guid, _block1.BlockHash);
-            v.Store.Transactions.Add(_transaction1);
+            store.BlockDigests.Add(_block1);
+            chain.BlockHashes.Add(_block1);
+            store.Transactions.Add(_transaction1);
 
-            chain.Blocks.Add(_block2);
-            // v.Store.AppendIndex(guid, _block2.BlockHash);
-            v.Store.Transactions.Add(_transaction2);
+            store.BlockDigests.Add(_block2);
+            chain.BlockHashes.Add(_block2);
+            store.Transactions.Add(_transaction2);
 
-            chain.Blocks.Add(_block3);
-            // v.Store.AppendIndex(guid, _block3.BlockHash);
-            v.Store.Transactions.Add(_transaction3);
+            store.BlockDigests.Add(_block3);
+            chain.BlockHashes.Add(_block3);
+            store.Transactions.Add(_transaction3);
 
-            chain.Blocks.Add(_block4);
-            // v.Store.AppendIndex(guid, _block4.BlockHash);
+            store.BlockDigests.Add(_block4);
+            chain.BlockHashes.Add(_block4);
 
-            v.Store?.Dispose();
+            storeFixture.Store?.Dispose();
         }
-    }
-
-    ~StoreCommandTest()
-    {
-        Dispose();
     }
 
     [Fact]
@@ -341,6 +337,7 @@ public class StoreCommandTest : IDisposable
         Console.SetError(_originalError);
         _originalOut.Dispose();
         _originalError.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private Transaction DummyTransaction()
