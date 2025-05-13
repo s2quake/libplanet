@@ -3,8 +3,8 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockHashStore(IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<int, BlockHash>(dictionary)
+public sealed class BlockHashStore(Guid chainId, IDatabase database)
+    : CollectionBase<int, BlockHash>(database.GetOrAdd($"{chainId}_block_hash"))
 {
     public BlockHash this[Index index]
     {

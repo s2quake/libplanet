@@ -2,13 +2,13 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class Chain(Store store, Guid chainId)
+public sealed class Chain(Guid chainId, IDatabase database)
 {
-    public BlockCollection Blocks { get; } = new BlockCollection(store, chainId);
+    // public BlockStore Blocks { get; } = new BlockStore(store, chainId);
 
-    public BlockHashStore BlockHashes { get; } = store.GetBlockHashes(chainId);
+    public BlockHashStore BlockHashes { get; } = new BlockHashStore(chainId, database);
 
-    public NonceCollection Nonces { get; } = store.GetNonceCollection(chainId);
+    public NonceStore Nonces { get; } = new NonceStore(chainId, database);
 
     public Guid Id { get; } = chainId;
 

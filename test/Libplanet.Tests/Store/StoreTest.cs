@@ -36,7 +36,7 @@ public abstract class StoreTest
     public void ListChainId()
     {
         Assert.Single(Fx.Store.Chains);
-        var chain = Fx.Store.GetChain(Fx.StoreChainId);
+        var chain = Fx.Store.GetOrAdd(Fx.StoreChainId);
 
         chain.Blocks.Add(Fx.Block1);
         // Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
@@ -56,8 +56,8 @@ public abstract class StoreTest
     {
         var chainAId = Guid.NewGuid();
         var chainBId = Guid.NewGuid();
-        var chainA = Fx.Store.GetChain(chainAId);
-        var chainB = Fx.Store.GetChain(chainBId);
+        var chainA = Fx.Store.GetOrAdd(chainAId);
+        var chainB = Fx.Store.GetOrAdd(chainBId);
 
         chainA.Blocks.Add(Fx.GenesisBlock);
         chainA.Blocks.Add(Fx.Block1);
@@ -65,7 +65,7 @@ public abstract class StoreTest
 
         Fx.Store.GetBlockHashes(chainAId).Add(Fx.GenesisBlock);
         Fx.Store.GetBlockHashes(chainAId).Add(Fx.Block1);
-        Fx.Store.ForkBlockIndexes(chainAId, chainBId, Fx.Block1.BlockHash);
+        // Fx.Store.ForkBlockIndexes(chainAId, chainBId, Fx.Block1.BlockHash);
         Fx.Store.GetBlockHashes(chainBId).Add(Fx.Block2);
 
         Fx.Store.Chains.Remove(chainAId);
@@ -85,14 +85,14 @@ public abstract class StoreTest
         // Fx.Store.AppendIndex(Fx.StoreChainId, block1.BlockHash);
         Guid arbitraryChainId = Guid.NewGuid();
         // Fx.Store.AppendIndex(arbitraryChainId, block1.BlockHash);
-        Fx.Store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction1.Signer);
+        Fx.Store.GetNonces(Fx.StoreChainId).Increase(Fx.Transaction1.Signer);
 
         Fx.Store.Chains.Remove(Fx.StoreChainId);
 
         Assert.Equal(
             new[] { arbitraryChainId }.ToImmutableHashSet(),
             [.. Fx.Store.Chains.Keys]);
-        Assert.Equal(0, Fx.Store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
+        Assert.Equal(0, Fx.Store.GetNonces(Fx.StoreChainId)[Fx.Transaction1.Signer]);
     }
 
     [Fact]

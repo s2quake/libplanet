@@ -5,21 +5,31 @@ using BitFaster.Caching.Lru;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Store;
+namespace Libplanet.Blockchain;
 
-public sealed class BlockCollection(Libplanet.Store.Store store, Guid chainId, int cacheSize = 4096)
-    : IReadOnlyDictionary<BlockHash, Block>
+public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 {
-    private readonly Libplanet.Store.Store _store = store;
-    private readonly BlockDigestStore _blockDigests = store.BlockDigests;
-    private readonly BlockHashStore _blockHashes = store.GetBlockHashes(chainId);
-    private readonly ICache<BlockHash, Block> _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
-            .WithCapacity(cacheSize)
-            .Build();
+    private readonly Libplanet.Store.Store _store;
+    private readonly Chain _chain;
+    private readonly BlockDigestStore _blockDigests;
+    private readonly BlockHashStore _blockHashes;
+    private readonly ICache<BlockHash, Block> _cacheByHash;
 
-    private readonly ICache<int, Block> _cacheByHeight = new ConcurrentLruBuilder<int, Block>()
-            .WithCapacity(cacheSize)
-            .Build();
+    private readonly ICache<int, Block> _cacheByHeight;
+
+    internal BlockCollection(Libplanet.Store.Store store, Guid chainId, int cacheSize = 4096)
+    {
+        _store = store;
+        _chain = store.Chains.GetOrAdd(chainId);
+        _blockDigests = _store.BlockDigests;
+        _blockHashes = _chain.BlockHashes;
+        _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
+        .WithCapacity(cacheSize)
+        .Build();
+        _cacheByHeight = new ConcurrentLruBuilder<int, Block>()
+        .WithCapacity(cacheSize)
+        .Build();
+    }
 
     public IEnumerable<BlockHash> Keys
     {

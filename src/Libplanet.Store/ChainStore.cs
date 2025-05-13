@@ -3,15 +3,31 @@ using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 
-public sealed class ChainStore(Store store, IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<Guid, Chain>(dictionary)
+public sealed class ChainStore(IDatabase database)
+    : CollectionBase<Guid, Chain>(database.GetOrAdd("chains"))
 {
+    private static readonly object _lock = new();
+
+    public Chain GetOrAdd(Guid chainId)
+    {
+        lock (_lock)
+        {
+            if (!TryGetValue(chainId, out var chain))
+            {
+                chain = new Chain(chainId, database);
+                Add(chainId, chain);
+            }
+
+            return chain;
+        }
+    }
+
     protected override byte[] GetBytes(Chain value)
     {
         var chainDigest = new ChainDigest
         {
             Id = value.Id,
-            Height = value.Blocks.Count,
+            Height = value.Height,
             BlockCommit = value.BlockCommit,
         };
 
@@ -25,6 +41,10 @@ public sealed class ChainStore(Store store, IDictionary<KeyBytes, byte[]> dictio
     protected override Chain GetValue(byte[] bytes)
     {
         var digest = ModelSerializer.DeserializeFromBytes<ChainDigest>(bytes);
-        return new Chain(store, digest.Id) { BlockCommit = digest.BlockCommit };
+        return new Chain(digest.Id, database)
+        {
+            BlockCommit = digest.BlockCommit,
+            Height = digest.Height,
+        };
     }
 }

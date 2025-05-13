@@ -5,8 +5,8 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Store;
 
-public sealed class BlockHashesByTxId(IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<TxId, ImmutableSortedSet<BlockHash>>(dictionary)
+public sealed class BlockHashesByTxId(IDatabase database)
+    : CollectionBase<TxId, ImmutableSortedSet<BlockHash>>(database.GetOrAdd("block_hashes_by_tx_id"))
 {
     public void Add(TxId txId, BlockHash blockHash)
     {

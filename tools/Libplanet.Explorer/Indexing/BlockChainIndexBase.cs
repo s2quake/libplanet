@@ -195,7 +195,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         var indexTipHash = syncMetadata.IndexTipHash;
         if (indexTipIndex >= 0)
         {
-            var chain = store.GetChain(chainId);
+            var chain = store.GetOrAdd(chainId);
             var indexHash = await IndexToBlockHashAsync(0).ConfigureAwait(false);
             using var chainIndexEnumerator =
                 chain.BlockHashes.IterateIndexes(limit: 1).GetEnumerator();
@@ -214,7 +214,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
         if (indexTipIndex >= 1)
         {
-            var chain = store.GetChain(chainId);
+            var chain = store.GetOrAdd(chainId);
             var commonLatestIndex = Math.Min(indexTipIndex, chainTipIndex);
             using var chainIndexEnumerator =
                 chain.BlockHashes.IterateIndexes((int)commonLatestIndex, limit: 1).GetEnumerator();
@@ -280,7 +280,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         var populateStart = DateTimeOffset.Now;
         var intervalStart = populateStart;
 
-        var chain = store.GetChain(chainId);
+        var chain = store.GetOrAdd(chainId);
         using var indexEnumerator =
             chain.BlockHashes.IterateIndexes((int)indexTipIndex + 1).GetEnumerator();
         var addBlockContext = GetIndexingContext();
@@ -378,7 +378,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         var indexTip = await GetTipAsyncImpl().ConfigureAwait(false);
         var indexTipIndex = indexTip?.Index ?? -1;
         var chainId = store.ChainId;
-        var chain = store.GetChain(chainId);
+        var chain = store.GetOrAdd(chainId);
         var chainTipIndex = chain.Height - 1;
         return (chainId, indexTipIndex, chainTipIndex, indexTip?.Hash);
     }

@@ -154,7 +154,7 @@ public class StoreCommand
 
     private static Block GetBlock(Libplanet.Store.Store store, BlockHash blockHash)
     {
-        var chain = store.GetChain(store.ChainId);
+        var chain = store.GetOrAdd(store.ChainId);
         if (!(chain.Blocks[blockHash] is { } block))
         {
             throw Utils.Error($"cannot find the block with the hash[{blockHash.ToString()}]");
@@ -170,7 +170,7 @@ public class StoreCommand
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
-        var chain = store.GetChain(store.ChainId);
+        var chain = store.GetOrAdd(store.ChainId);
         if (!chain.BlockHashes.TryGetValue(blockHeight, out var blockHash))
         {
             throw Utils.Error(
@@ -207,7 +207,7 @@ public class StoreCommand
         }
 
         var index = offset;
-        var chain = store.GetChain(store.ChainId);
+        var chain = store.GetOrAdd(store.ChainId);
         foreach (BlockHash blockHash in chain.BlockHashes.IterateIndexes(offset, limit))
         {
             yield return index++;

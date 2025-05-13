@@ -5,8 +5,8 @@ using Libplanet.Types.Evidence;
 
 namespace Libplanet.Store;
 
-public sealed class PendingEvidenceStore(IDictionary<KeyBytes, byte[]> dictionary)
-    : CollectionBase<EvidenceId, EvidenceBase>(dictionary)
+public sealed class PendingEvidenceStore(IDatabase database)
+    : CollectionBase<EvidenceId, EvidenceBase>(database.GetOrAdd("pending_evidence"))
 {
     public void Add(Block block)
     {
