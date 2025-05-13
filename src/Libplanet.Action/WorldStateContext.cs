@@ -27,8 +27,7 @@ public sealed class WorldStateContext(World world) : IWorldContext
 
     IAccountContext IWorldContext.this[KeyBytes name] => this[name];
 
-    public FungibleAssetValue GetBalance(Address address, Currency currency)
-        => _world.GetBalance(address, currency);
+    public FungibleAssetValue GetBalance(Address address, Currency currency) => _world.GetBalance(address, currency);
 
     public void MintAsset(Address recipient, FungibleAssetValue value)
         => throw new NotSupportedException(

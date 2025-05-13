@@ -7,21 +7,6 @@ namespace Libplanet.Action;
 
 public sealed record class CommittedActionContext
 {
-    public CommittedActionContext(IActionContext context, HashDigest<SHA256> previousState)
-    {
-        Signer = context.Signer;
-        TxId = context.TxId;
-        Proposer = context.Proposer;
-        BlockHeight = context.BlockHeight;
-        BlockProtocolVersion = context.BlockProtocolVersion;
-        PreviousState = previousState;
-        RandomSeed = context.RandomSeed;
-    }
-
-    public CommittedActionContext()
-    {
-    }
-
     public Address Signer { get; init; }
 
     public TxId TxId { get; init; }
@@ -35,6 +20,17 @@ public sealed record class CommittedActionContext
     public HashDigest<SHA256> PreviousState { get; init; }
 
     public int RandomSeed { get; init; }
+
+    public static CommittedActionContext Create(IActionContext context, HashDigest<SHA256> previousState) => new()
+    {
+        Signer = context.Signer,
+        TxId = context.TxId,
+        Proposer = context.Proposer,
+        BlockHeight = context.BlockHeight,
+        BlockProtocolVersion = context.BlockProtocolVersion,
+        PreviousState = previousState,
+        RandomSeed = context.RandomSeed,
+    };
 
     public IRandom GetRandom() => new Random(RandomSeed);
 }

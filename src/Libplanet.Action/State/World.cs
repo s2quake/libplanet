@@ -4,7 +4,6 @@ using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action.State;
 
@@ -35,10 +34,6 @@ public sealed record class World
         StateStore = stateStore,
     };
 
-    public Account GetAccount(string name) => GetAccount(ToStateKey(name));
-
-    public Account GetAccount(Address name) => GetAccount(ToStateKey(name));
-
     public Account GetAccount(KeyBytes name)
     {
         if (Delta.TryGetValue(name, out var account))
@@ -53,10 +48,6 @@ public sealed record class World
 
         return new Account(StateStore.GetStateRoot(default));
     }
-
-    public World SetAccount(string name, Account account) => SetAccount(ToStateKey(name), account);
-
-    public World SetAccount(Address name, Account account) => SetAccount(ToStateKey(name), account);
 
     public World SetAccount(KeyBytes name, Account account) => this with
     {

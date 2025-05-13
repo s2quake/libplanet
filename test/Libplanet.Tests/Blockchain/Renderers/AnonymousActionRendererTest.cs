@@ -16,7 +16,7 @@ public class AnonymousActionRendererTest
     private static readonly World _world = World.Create();
 
     private static readonly CommittedActionContext _actionContext =
-        new CommittedActionContext(
+        CommittedActionContext.Create(
             new ActionContext
             {
                 BlockHeight = 0,

@@ -5,8 +5,6 @@ namespace Libplanet.Action;
 
 public partial interface IAccountContext
 {
-    bool IsReadOnly { get; }
-
     object this[KeyBytes key] { get; set; }
 
     bool TryGetValue<T>(KeyBytes key, [MaybeNullWhen(false)] out T value);
