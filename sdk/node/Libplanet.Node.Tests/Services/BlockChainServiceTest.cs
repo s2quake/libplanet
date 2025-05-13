@@ -1,4 +1,5 @@
 using Bencodex.Types;
+using Libplanet.Action.State;
 using Libplanet.Node.Extensions;
 using Libplanet.Node.Services;
 using Libplanet.Types;
@@ -65,11 +66,11 @@ public class BlockChainServiceTest
             var serviceProvider = services.BuildServiceProvider();
             var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
             var blockChain = blockChainService.BlockChain;
-            var worldState = blockChain.GetNextWorld()!;
-            Assert.Equal((Text)"A", worldState.GetAccount(accountA).GetValue(addressA));
-            Assert.Equal((Integer)123, worldState.GetAccount(accountA).GetValue(addressB));
-            Assert.Equal((Text)"B", worldState.GetAccount(accountB).GetValue(addressA));
-            Assert.Equal((Integer)456, worldState.GetAccount(accountB).GetValue(addressB));
+            var world = blockChain.GetNextWorld()!;
+            Assert.Equal((Text)"A", world.GetAccount(accountA).GetValue(addressA));
+            Assert.Equal((Integer)123, world.GetAccount(accountA).GetValue(addressB));
+            Assert.Equal((Text)"B", world.GetAccount(accountB).GetValue(addressA));
+            Assert.Equal((Integer)456, world.GetAccount(accountB).GetValue(addressB));
         }
         finally
         {

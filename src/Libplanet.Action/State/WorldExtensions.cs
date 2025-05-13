@@ -2,12 +2,23 @@ using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
+using static Libplanet.Action.State.KeyConverters;
 using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.State;
 
 public static class WorldExtensions
 {
+    public static Account GetAccount(this World @this, string name) => @this.GetAccount(ToStateKey(name));
+
+    public static Account GetAccount(this World @this, Address name) => @this.GetAccount(ToStateKey(name));
+
+    public static World SetAccount(this World @this, string name, Account account)
+        => @this.SetAccount(ToStateKey(name), account);
+
+    public static World SetAccount(this World @this, Address name, Account account)
+        => @this.SetAccount(ToStateKey(name), account);
+
     public static FungibleAssetValue GetBalance(this World @this, Address address, Currency currency)
         => @this.GetCurrencyAccount(currency).GetBalance(address);
 
