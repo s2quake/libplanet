@@ -16,10 +16,10 @@ internal static class IStateStoreExtensions
     public static World CommitWorld(this TrieStateStore stateStore, World world)
     {
         var trie = world.Trie;
-        foreach (var (address, account) in world.Delta)
+        foreach (var (name, account) in world.Delta)
         {
             var accountTrie = stateStore.Commit(account.Trie);
-            var key = KeyConverters.ToStateKey(address);
+            var key = name;
             var value = new Binary(accountTrie.Hash.Bytes);
             trie = trie.Set(key, value);
         }

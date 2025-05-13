@@ -16,8 +16,8 @@ public sealed record class World
 
     public Address Signer { get; init; }
 
-    public ImmutableDictionary<Address, Account> Delta { get; private init; }
-        = ImmutableDictionary<Address, Account>.Empty;
+    public ImmutableDictionary<KeyBytes, Account> Delta { get; private init; }
+        = ImmutableDictionary<KeyBytes, Account>.Empty;
 
     public static World Create() => Create(new TrieStateStore());
 
@@ -35,14 +35,18 @@ public sealed record class World
         StateStore = stateStore,
     };
 
-    public Account GetAccount(Address address)
+    public Account GetAccount(string name) => GetAccount(ToStateKey(name));
+
+    public Account GetAccount(Address name) => GetAccount(ToStateKey(name));
+
+    public Account GetAccount(KeyBytes name)
     {
-        if (Delta.TryGetValue(address, out var account))
+        if (Delta.TryGetValue(name, out var account))
         {
             return account;
         }
 
-        if (Trie.TryGetValue(ToStateKey(address), out var value) && value is Binary binary)
+        if (Trie.TryGetValue(name, out var value) && value is Binary binary)
         {
             return new Account(StateStore.GetStateRoot(new HashDigest<SHA256>(binary.ByteArray)));
         }
@@ -50,8 +54,12 @@ public sealed record class World
         return new Account(StateStore.GetStateRoot(default));
     }
 
-    public World SetAccount(Address address, Account account) => this with
+    public World SetAccount(string name, Account account) => SetAccount(ToStateKey(name), account);
+
+    public World SetAccount(Address name, Account account) => SetAccount(ToStateKey(name), account);
+
+    public World SetAccount(KeyBytes name, Account account) => this with
     {
-        Delta = Delta.SetItem(address, account),
+        Delta = Delta.SetItem(name, account),
     };
 }

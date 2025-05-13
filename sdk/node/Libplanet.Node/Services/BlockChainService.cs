@@ -146,8 +146,8 @@ internal sealed class BlockChainService(
         byte[] config,
         TrieStateStore stateStore)
     {
-        Dictionary<string, Dictionary<string, string>>? data =
-            JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(config);
+        Dictionary<string, Dictionary<string, object>>? data =
+            JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(config);
         if (data == null || data.Count == 0)
         {
             return BlockChain.ProposeGenesisBlock(
@@ -165,25 +165,23 @@ internal sealed class BlockChainService(
 
         foreach (var accountKv in data)
         {
-            var key = Address.Parse(accountKv.Key);
+            var key = accountKv.Key;
             Account account = world.GetAccount(key);
 
             foreach (var stateKv in accountKv.Value)
             {
-                account = account.SetValue(
-                    Address.Parse(stateKv.Key),
-                    codec.Decode(ByteUtility.ParseHex(stateKv.Value)));
+                account = account.SetValue(stateKv.Key, stateKv.Value);
             }
 
             world = world.SetAccount(key, account);
         }
 
         var worldTrie = world.Trie;
-        foreach (var (address, account) in world.Delta)
+        foreach (var (name, account) in world.Delta)
         {
             var accountTrie = stateStore.Commit(account.Trie);
             worldTrie = worldTrie.Set(
-                KeyConverters.ToStateKey(address),
+                name,
                 new Binary(accountTrie.Hash.Bytes));
         }
 

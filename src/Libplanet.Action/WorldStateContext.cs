@@ -1,4 +1,5 @@
 using Libplanet.Action.State;
+using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
@@ -6,25 +7,25 @@ namespace Libplanet.Action;
 
 public sealed class WorldStateContext(World world) : IWorldContext
 {
-    private readonly Dictionary<Address, AccountStateContext> _accountByAddress = [];
+    private readonly Dictionary<KeyBytes, AccountStateContext> _accountByAddress = [];
     private readonly World _world = world;
 
-    public AccountStateContext this[Address address]
+    public AccountStateContext this[KeyBytes name]
     {
         get
         {
-            if (!_accountByAddress.TryGetValue(address, out var accountContext))
+            if (!_accountByAddress.TryGetValue(name, out var accountContext))
             {
-                var account = _world.GetAccount(address);
-                accountContext = new AccountStateContext(account, address);
-                _accountByAddress[address] = accountContext;
+                var account = _world.GetAccount(name);
+                accountContext = new AccountStateContext(account, name);
+                _accountByAddress[name] = accountContext;
             }
 
             return accountContext;
         }
     }
 
-    IAccountContext IWorldContext.this[Address address] => this[address];
+    IAccountContext IWorldContext.this[KeyBytes name] => this[name];
 
     public FungibleAssetValue GetBalance(Address address, Currency currency)
         => _world.GetBalance(address, currency);

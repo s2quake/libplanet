@@ -1,19 +1,19 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Libplanet.Types.Crypto;
+using Libplanet.Store.Trie;
 
 namespace Libplanet.Action;
 
-public interface IAccountContext
+public partial interface IAccountContext
 {
     bool IsReadOnly { get; }
 
-    object this[Address address] { get; set; }
+    object this[KeyBytes key] { get; set; }
 
-    bool TryGetValue<T>(Address address, [MaybeNullWhen(false)] out T value);
+    bool TryGetValue<T>(KeyBytes key, [MaybeNullWhen(false)] out T value);
 
-    T GetValue<T>(Address address, T fallback);
+    T GetValue<T>(KeyBytes key, T fallback);
 
-    bool Contains(Address address);
+    bool Contains(KeyBytes key);
 
-    bool Remove(Address address);
+    bool Remove(KeyBytes key);
 }
