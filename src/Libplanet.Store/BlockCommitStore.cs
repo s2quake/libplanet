@@ -7,6 +7,8 @@ namespace Libplanet.Store;
 public sealed class BlockCommitStore(IDatabase database)
     : CollectionBase<BlockHash, BlockCommit>(database.GetOrAdd("block_commit"))
 {
+    public void Add(BlockCommit blockCommit) => Add(blockCommit.BlockHash, blockCommit);
+
     protected override byte[] GetBytes(BlockCommit value) => ModelSerializer.SerializeToBytes(value);
 
     protected override BlockHash GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);

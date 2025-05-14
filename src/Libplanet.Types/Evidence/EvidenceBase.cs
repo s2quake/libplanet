@@ -7,7 +7,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Evidence;
 
 public abstract record class EvidenceBase
-    : IEquatable<EvidenceBase>, IComparable<EvidenceBase>, IComparable, IValidatableObject
+    : IEquatable<EvidenceBase>, IComparable<EvidenceBase>, IComparable, IValidatableObject, IHasKey<EvidenceId>
 {
     private EvidenceId? _id;
 
@@ -23,6 +23,8 @@ public abstract record class EvidenceBase
     public DateTimeOffset Timestamp { get; init; }
 
     public EvidenceId Id => _id ??= new EvidenceId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
+
+    EvidenceId IHasKey<EvidenceId>.Key => Id;
 
     public int CompareTo(EvidenceBase? other) => Id.CompareTo(other?.Id);
 

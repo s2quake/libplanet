@@ -7,7 +7,7 @@ namespace Libplanet.Store;
 public sealed class BlockDigestStore(IDatabase database)
     : CollectionBase<BlockHash, BlockDigest>(database.GetOrAdd("block_digest"))
 {
-    public void Add(Block block) => Add(block.BlockHash, (BlockDigest)block);
+    public void Add(Block block) => Add((BlockDigest)block);
 
     protected override byte[] GetBytes(BlockDigest value) => ModelSerializer.SerializeToBytes(value);
 

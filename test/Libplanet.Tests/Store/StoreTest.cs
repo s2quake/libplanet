@@ -803,432 +803,416 @@ public abstract class StoreTest
         }
     }
 
-    //     [Fact]
-    //     public void ForkBlockIndex()
+    [Fact]
+    public void ForkBlockIndex()
+    {
+        var store = Fx.Store;
+        var chainIdA = Guid.NewGuid();
+        var chainIdB = Guid.NewGuid();
+        var chainIdC = Guid.NewGuid();
+        var chainA = store.Chains.GetOrAdd(chainIdA);
+        var chainB = store.Chains.GetOrAdd(chainIdB);
+        var chainC = store.Chains.GetOrAdd(chainIdC);
+
+        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
+        // actual block...
+        store.BlockDigests.Add(Fx.GenesisBlock);
+        store.BlockDigests.Add(Fx.Block1);
+        store.BlockDigests.Add(Fx.Block2);
+        store.BlockDigests.Add(Fx.Block3);
+
+        chainA.BlockHashes.Add(Fx.GenesisBlock);
+        chainB.BlockHashes.Add(Fx.GenesisBlock);
+        chainC.BlockHashes.Add(Fx.GenesisBlock);
+
+        chainA.BlockHashes.Add(Fx.Block1);
+        chainB.ForkFrom(chainA, Fx.Block1.BlockHash);
+        chainB.BlockHashes.Add(Fx.Block2);
+        chainB.BlockHashes.Add(Fx.Block3);
+
+        Assert.Equal(
+            [
+                Fx.GenesisBlock.BlockHash,
+                Fx.Block1.BlockHash,
+            ],
+            chainA.BlockHashes.IterateHeights());
+        Assert.Equal(
+            [
+                Fx.GenesisBlock.BlockHash,
+                Fx.Block1.BlockHash,
+                Fx.Block2.BlockHash,
+                Fx.Block3.BlockHash,
+            ],
+            chainB.BlockHashes.IterateHeights());
+
+        chainC.ForkFrom(chainB, Fx.Block3.BlockHash);
+        chainC.BlockHashes.Add(Fx.Block4);
+        chainC.BlockHashes.Add(Fx.Block5);
+
+        Assert.Equal(
+            [
+                Fx.GenesisBlock.BlockHash,
+                Fx.Block1.BlockHash,
+            ],
+            chainA.BlockHashes.IterateHeights());
+        Assert.Equal(
+            [
+                Fx.GenesisBlock.BlockHash,
+                Fx.Block1.BlockHash,
+                Fx.Block2.BlockHash,
+                Fx.Block3.BlockHash,
+            ],
+            chainB.BlockHashes.IterateHeights());
+        Assert.Equal(
+            [
+                Fx.GenesisBlock.BlockHash,
+                Fx.Block1.BlockHash,
+                Fx.Block2.BlockHash,
+                Fx.Block3.BlockHash,
+                Fx.Block4.BlockHash,
+                Fx.Block5.BlockHash,
+            ],
+            chainC.BlockHashes.IterateHeights());
+
+        Assert.Equal(
+            [
+                Fx.Block1.BlockHash,
+                Fx.Block2.BlockHash,
+                Fx.Block3.BlockHash,
+                Fx.Block4.BlockHash,
+                Fx.Block5.BlockHash,
+            ],
+            chainC.BlockHashes.IterateHeights(height: 1));
+
+        Assert.Equal(
+            [
+                Fx.Block2.BlockHash,
+                Fx.Block3.BlockHash,
+                Fx.Block4.BlockHash,
+                Fx.Block5.BlockHash,
+            ],
+            chainC.BlockHashes.IterateHeights(height: 2));
+
+        Assert.Equal(
+            [
+                Fx.Block3.BlockHash,
+                Fx.Block4.BlockHash,
+                Fx.Block5.BlockHash,
+            ],
+            chainC.BlockHashes.IterateHeights(height: 3));
+
+        Assert.Equal(
+            [
+                Fx.Block4.BlockHash,
+                Fx.Block5.BlockHash,
+            ],
+            chainC.BlockHashes.IterateHeights(height: 4));
+
+        Assert.Equal(
+            [
+                Fx.Block5.BlockHash,
+            ],
+            chainC.BlockHashes.IterateHeights(height: 5));
+
+        Assert.Equal(
+            [],
+            chainC.BlockHashes.IterateHeights(height: 6));
+
+        Assert.Equal(Fx.Block1.BlockHash, chainA.BlockHashes[1]);
+        Assert.Equal(Fx.Block1.BlockHash, chainB.BlockHashes[1]);
+        Assert.Equal(Fx.Block1.BlockHash, chainC.BlockHashes[1]);
+        Assert.Equal(Fx.Block2.BlockHash, chainB.BlockHashes[2]);
+        Assert.Equal(Fx.Block2.BlockHash, chainC.BlockHashes[2]);
+        Assert.Equal(Fx.Block3.BlockHash, chainB.BlockHashes[3]);
+        Assert.Equal(Fx.Block3.BlockHash, chainC.BlockHashes[3]);
+        Assert.Equal(Fx.Block4.BlockHash, chainC.BlockHashes[4]);
+        Assert.Equal(Fx.Block5.BlockHash, chainC.BlockHashes[5]);
+    }
+
+    [Fact]
+    public void ForkWithBranch()
+    {
+        var store = Fx.Store;
+        var chainIdA = Guid.NewGuid();
+        var chainIdB = Guid.NewGuid();
+        var chainA = store.Chains.GetOrAdd(chainIdA);
+        var chainB = store.Chains.GetOrAdd(chainIdB);
+
+        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
+        // actual block...
+        var anotherBlock3 = ProposeNextBlock(
+            Fx.Block2,
+            Fx.Proposer,
+            lastCommit: CreateBlockCommit(Fx.Block2.BlockHash, 2, 0));
+        store.BlockDigests.Add(Fx.GenesisBlock);
+        store.BlockDigests.Add(Fx.Block1);
+        store.BlockDigests.Add(Fx.Block2);
+        store.BlockDigests.Add(Fx.Block3);
+        store.BlockDigests.Add(anotherBlock3);
+
+        chainA.BlockHashes.Add(Fx.GenesisBlock);
+        chainA.BlockHashes.Add(Fx.Block1);
+        chainA.BlockHashes.Add(Fx.Block2);
+        chainA.BlockHashes.Add(Fx.Block3);
+
+        chainB.ForkFrom(chainA, Fx.Block2.BlockHash);
+        chainB.BlockHashes.Add(anotherBlock3);
+
+        Assert.Equal(
+            [
+                Fx.Block2.BlockHash,
+                anotherBlock3.BlockHash,
+            ],
+            chainB.BlockHashes.IterateHeights(2, 2));
+        Assert.Equal(
+            [
+                Fx.Block2.BlockHash,
+                anotherBlock3.BlockHash,
+            ],
+            chainB.BlockHashes.IterateHeights(2));
+        Assert.Equal(
+            [
+                anotherBlock3.BlockHash,
+            ],
+            chainB.BlockHashes.IterateHeights(3, 1));
+        Assert.Equal(
+            [
+                anotherBlock3.BlockHash,
+            ],
+            chainB.BlockHashes.IterateHeights(3));
+    }
+
+    // [Fact]
+    // public void Copy()
+    // {
+    //     using var fx1 = FxConstructor();
+    //     using var fx2 = FxConstructor();
+    //     var s1 = fx1.Store;
+    //     var s2 = fx2.Store;
+    //     var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
+    //     var genesis = preEval.Sign(
+    //         GenesisProposer,
+    //         default);
+    //     var blockChain = BlockChain.Create(genesis, fx1.Options);
+
+    //     var key = new PrivateKey();
+    //     var block = blockChain.ProposeBlock(key);
+    //     blockChain.Append(block, CreateBlockCommit(block));
+    //     block = blockChain.ProposeBlock(key, CreateBlockCommit(blockChain.Tip));
+    //     blockChain.Append(block, CreateBlockCommit(block));
+    //     block = blockChain.ProposeBlock(key, CreateBlockCommit(blockChain.Tip));
+    //     blockChain.Append(block, CreateBlockCommit(block));
+
+    //     s1.Copy(to: Fx.Store);
+    //     store.Copy(to: s2);
+
+    //     Assert.Equal(s1.Chains.Keys.ToHashSet(), [.. s2.Chains.Keys]);
+    //     Assert.Equal(s1.ChainId, s2.ChainId);
+    //     foreach (Guid chainId in s1.Chains.Keys)
     //     {
-    //         Libplanet.Store.Store store = Fx.Store;
-    //         Guid chainA = Guid.NewGuid();
-    //         Guid chainB = Guid.NewGuid();
-    //         Guid chainC = Guid.NewGuid();
-
-    //         // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
-    //         // actual block...
-    //         store.BlockDigests.Add(Fx.GenesisBlock);
-    //         store.BlockDigests.Add(Fx.Block1);
-    //         store.BlockDigests.Add(Fx.Block2);
-    //         store.BlockDigests.Add(Fx.Block3);
-
-    //         // store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
-    //         // store.AppendIndex(chainB, Fx.GenesisBlock.BlockHash);
-    //         // store.AppendIndex(chainC, Fx.GenesisBlock.BlockHash);
-
-    //         // store.AppendIndex(chainA, Fx.Block1.BlockHash);
-    //         store.ForkBlockIndexes(chainA, chainB, Fx.Block1.BlockHash);
-    //         // store.AppendIndex(chainB, Fx.Block2.BlockHash);
-    //         // store.AppendIndex(chainB, Fx.Block3.BlockHash);
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.GenesisBlock.BlockHash,
-    //                 Fx.Block1.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainA).IterateHeights());
-    //         Assert.Equal(
-    //             [
-    //                 Fx.GenesisBlock.BlockHash,
-    //                 Fx.Block1.BlockHash,
-    //                 Fx.Block2.BlockHash,
-    //                 Fx.Block3.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainB).IterateHeights());
-
-    //         store.ForkBlockIndexes(chainB, chainC, Fx.Block3.BlockHash);
-    //         // store.AppendIndex(chainC, Fx.Block4.BlockHash);
-    //         // store.AppendIndex(chainC, Fx.Block5.BlockHash);
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.GenesisBlock.BlockHash,
-    //                 Fx.Block1.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainA).IterateHeights());
-    //         Assert.Equal(
-    //             [
-    //                 Fx.GenesisBlock.BlockHash,
-    //                 Fx.Block1.BlockHash,
-    //                 Fx.Block2.BlockHash,
-    //                 Fx.Block3.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainB).IterateHeights());
-    //         Assert.Equal(
-    //             [
-    //                 Fx.GenesisBlock.BlockHash,
-    //                 Fx.Block1.BlockHash,
-    //                 Fx.Block2.BlockHash,
-    //                 Fx.Block3.BlockHash,
-    //                 Fx.Block4.BlockHash,
-    //                 Fx.Block5.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainC).IterateHeights());
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.Block1.BlockHash,
-    //                 Fx.Block2.BlockHash,
-    //                 Fx.Block3.BlockHash,
-    //                 Fx.Block4.BlockHash,
-    //                 Fx.Block5.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainC).IterateHeights(offset: 1));
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.Block2.BlockHash,
-    //                 Fx.Block3.BlockHash,
-    //                 Fx.Block4.BlockHash,
-    //                 Fx.Block5.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainC).IterateHeights(offset: 2));
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.Block3.BlockHash,
-    //                 Fx.Block4.BlockHash,
-    //                 Fx.Block5.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainC).IterateHeights(offset: 3));
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.Block4.BlockHash,
-    //                 Fx.Block5.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainC).IterateHeights(offset: 4));
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.Block5.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainC).IterateHeights(offset: 5));
-
-    //         Assert.Equal(
-    //             Array.Empty<BlockHash>(),
-    //             store.GetBlockHashes(chainC).IterateHeights(offset: 6));
-
-    //         Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHashes(chainA)[1]);
-    //         Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHashes(chainB)[1]);
-    //         Assert.Equal(Fx.Block1.BlockHash, store.GetBlockHashes(chainC)[1]);
-    //         Assert.Equal(Fx.Block2.BlockHash, store.GetBlockHashes(chainB)[2]);
-    //         Assert.Equal(Fx.Block2.BlockHash, store.GetBlockHashes(chainC)[2]);
-    //         Assert.Equal(Fx.Block3.BlockHash, store.GetBlockHashes(chainB)[3]);
-    //         Assert.Equal(Fx.Block3.BlockHash, store.GetBlockHashes(chainC)[3]);
-    //         Assert.Equal(Fx.Block4.BlockHash, store.GetBlockHashes(chainC)[4]);
-    //         Assert.Equal(Fx.Block5.BlockHash, store.GetBlockHashes(chainC)[5]);
-    //     }
-
-    //     [Fact]
-    //     public void ForkWithBranch()
-    //     {
-    //         Libplanet.Store.Store store = Fx.Store;
-    //         Guid chainA = Guid.NewGuid();
-    //         Guid chainB = Guid.NewGuid();
-
-    //         // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
-    //         // actual block...
-    //         Block anotherBlock3 = ProposeNextBlock(
-    //             Fx.Block2,
-    //             Fx.Proposer,
-    //             lastCommit: CreateBlockCommit(Fx.Block2.BlockHash, 2, 0));
-    //         store.BlockDigests.Add(Fx.GenesisBlock);
-    //         store.BlockDigests.Add(Fx.Block1);
-    //         store.BlockDigests.Add(Fx.Block2);
-    //         store.BlockDigests.Add(Fx.Block3);
-    //         store.BlockDigests.Add(anotherBlock3);
-
-    //         // store.AppendIndex(chainA, Fx.GenesisBlock.BlockHash);
-    //         // store.AppendIndex(chainA, Fx.Block1.BlockHash);
-    //         // store.AppendIndex(chainA, Fx.Block2.BlockHash);
-    //         // store.AppendIndex(chainA, Fx.Block3.BlockHash);
-
-    //         store.ForkBlockIndexes(chainA, chainB, Fx.Block2.BlockHash);
-    //         // store.AppendIndex(chainB, anotherBlock3.BlockHash);
-
-    //         Assert.Equal(
-    //             [
-    //                 Fx.Block2.BlockHash,
-    //                 anotherBlock3.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainB).IterateHeights(2, 2));
-    //         Assert.Equal(
-    //             [
-    //                 Fx.Block2.BlockHash,
-    //                 anotherBlock3.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainB).IterateHeights(2));
-
-    //         Assert.Equal(
-    //             [
-    //                 anotherBlock3.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainB).IterateHeights(3, 1));
-
-    //         Assert.Equal(
-    //             [
-    //                 anotherBlock3.BlockHash,
-    //             ],
-    //             store.GetBlockHashes(chainB).IterateHeights(3));
-    //     }
-
-    //     [Fact]
-    //     public void Copy()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         using (StoreFixture fx2 = FxConstructor())
+    //         Assert.Equal(s1.GetBlockHashes(chainId).IterateHeights(), s2.GetBlockHashes(chainId).IterateHeights());
+    //         foreach (BlockHash blockHash in s1.GetBlockHashes(chainId).IterateHeights())
     //         {
-    //             Libplanet.Store.Store s1 = fx.Store, s2 = fx2.Store;
-    //             var preEval = ProposeGenesis(proposer: GenesisProposer.PublicKey);
-    //             var genesis = preEval.Sign(
-    //                 GenesisProposer,
-    //                 default);
-    //             var blocks = BlockChain.Create(genesis, fx.Options);
-
-    //             // FIXME: Need to add more complex blocks/transactions.
-    //             var key = new PrivateKey();
-    //             var block = blocks.ProposeBlock(key);
-    //             blocks.Append(block, CreateBlockCommit(block));
-    //             block = blocks.ProposeBlock(key, CreateBlockCommit(blocks.Tip));
-    //             blocks.Append(block, CreateBlockCommit(block));
-    //             block = blocks.ProposeBlock(key, CreateBlockCommit(blocks.Tip));
-    //             blocks.Append(block, CreateBlockCommit(block));
-
-    //             s1.Copy(to: Fx.Store);
-    //             store.Copy(to: s2);
-
-    //             Assert.Equal(s1.Chains.Keys.ToHashSet(), [.. s2.Chains.Keys]);
-    //             Assert.Equal(s1.ChainId, s2.ChainId);
-    //             foreach (Guid chainId in s1.Chains.Keys)
-    //             {
-    //                 Assert.Equal(s1.GetBlockHashes(chainId).IterateHeights(), s2.GetBlockHashes(chainId).IterateHeights());
-    //                 foreach (BlockHash blockHash in s1.GetBlockHashes(chainId).IterateHeights())
-    //                 {
-    //                     Assert.Equal(s1.Blocks[blockHash], s2.Blocks[blockHash]);
-    //                 }
-    //             }
-
-    //             // ArgumentException is thrown if the destination store is not empty.
-    //             Assert.Throws<ArgumentException>(() => store.Copy(fx2.Store));
+    //             Assert.Equal(s1.Blocks[blockHash], s2.Blocks[blockHash]);
     //         }
     //     }
 
-    //     [Fact]
-    //     public void GetBlock()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         {
-    //             Block genesisBlock = fx.GenesisBlock;
-    //             Block block = ProposeNextBlock(
-    //                 genesisBlock,
-    //                 proposer: fx.Proposer);
+    //     // ArgumentException is thrown if the destination store is not empty.
+    //     Assert.Throws<ArgumentException>(() => store.Copy(fx2.Store));
+    // }
 
-    //             fx.Store.BlockDigests.Add(block);
-    //             Block storedBlock = fx.Store.Blocks[block.BlockHash];
+    [Fact]
+    public void GetBlock()
+    {
+        using var fx = FxConstructor();
+        var store = fx.Store;
+        var genesisBlock = fx.GenesisBlock;
+        var expectedBlock = ProposeNextBlock(genesisBlock, fx.Proposer);
 
-    //             Assert.Equal(block, storedBlock);
-    //         }
-    //     }
+        store.BlockDigests.Add(expectedBlock);
+        var actualBlock = store.GetBlock(expectedBlock.BlockHash);
 
-    //     [Fact]
-    //     public void GetBlockCommit()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         {
-    //             // Commits with votes
-    //             var height = 1;
-    //             var round = 0;
-    //             var hash = fx.Block2.BlockHash;
-    //             var validators = Enumerable.Range(0, 4)
-    //                 .Select(x => new PrivateKey())
-    //                 .ToArray();
-    //             var votes = validators.Select(validator => new VoteMetadata
-    //             {
-    //                 Height = height,
-    //                 Round = round,
-    //                 BlockHash = hash,
-    //                 Timestamp = DateTimeOffset.UtcNow,
-    //                 ValidatorPublicKey = validator.PublicKey,
-    //                 ValidatorPower = BigInteger.One,
-    //                 Flag = VoteFlag.PreCommit,
-    //             }.Sign(validator)).ToImmutableArray();
+        Assert.Equal(expectedBlock, actualBlock);
+    }
 
-    //             BlockCommit commit = new BlockCommit
-    //             {
-    //                 Height = height,
-    //                 Round = round,
-    //                 BlockHash = hash,
-    //                 Votes = votes,
-    //             };
-    //             fx.Store.BlockCommits.Add(commit);
-    //             BlockCommit storedCommitVotes =
-    //                 fx.Store.BlockCommits[commit.BlockHash];
+    [Fact]
+    public void GetBlockCommit()
+    {
+        using var fx = FxConstructor();
+        var store = fx.Store;
+        var height = 1;
+        var round = 0;
+        var hash = fx.Block2.BlockHash;
+        var validators = Enumerable.Range(0, 4)
+            .Select(x => new PrivateKey())
+            .ToArray();
+        var votes = validators.Select(validator => new VoteMetadata
+        {
+            Height = height,
+            Round = round,
+            BlockHash = hash,
+            Timestamp = DateTimeOffset.UtcNow,
+            ValidatorPublicKey = validator.PublicKey,
+            ValidatorPower = BigInteger.One,
+            Flag = VoteFlag.PreCommit,
+        }.Sign(validator)).ToImmutableArray();
 
-    //             Assert.Equal(commit, storedCommitVotes);
-    //         }
-    //     }
+        var expectedCommit = new BlockCommit
+        {
+            Height = height,
+            Round = round,
+            BlockHash = hash,
+            Votes = votes,
+        };
+        store.BlockCommits.Add(expectedCommit);
 
-    //     [Fact]
-    //     public void GetBlockCommitIndices()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         {
-    //             var votesOne = ImmutableArray<Vote>.Empty
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block1.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = fx.Proposer.PublicKey,
-    //                     ValidatorPower = fx.ProposerPower,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(fx.Proposer));
-    //             var votesTwo = ImmutableArray<Vote>.Empty
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 2,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block2.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = fx.Proposer.PublicKey,
-    //                     ValidatorPower = fx.ProposerPower,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(fx.Proposer));
+        var actualCommit = store.BlockCommits[expectedCommit.BlockHash];
 
-    //             BlockCommit[] blockCommits =
-    //             [
-    //                 new BlockCommit
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block1.BlockHash,
-    //                     Votes = votesOne,
-    //                 },
-    //                 new BlockCommit
-    //                 {
-    //                     Height = 2,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block2.BlockHash,
-    //                     Votes = votesTwo,
-    //                 },
-    //             ];
+        Assert.Equal(expectedCommit, actualCommit);
+    }
 
-    //             foreach (var blockCommit in blockCommits)
-    //             {
-    //                 fx.Store.BlockCommits.Add(blockCommit);
-    //             }
+    [Fact]
+    public void GetBlockCommitIndices()
+    {
+        using var fx = FxConstructor();
+        var votesOne = ImmutableArray<Vote>.Empty
+            .Add(new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = fx.Block1.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = fx.Proposer.PublicKey,
+                ValidatorPower = fx.ProposerPower,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(fx.Proposer));
+        var votesTwo = ImmutableArray<Vote>.Empty
+            .Add(new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = fx.Block2.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = fx.Proposer.PublicKey,
+                ValidatorPower = fx.ProposerPower,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(fx.Proposer));
 
-    //             IEnumerable<BlockHash> indices = fx.Store.BlockCommits.Keys;
+        BlockCommit[] blockCommits =
+        [
+            new BlockCommit
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = fx.Block1.BlockHash,
+                Votes = votesOne,
+            },
+            new BlockCommit
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = fx.Block2.BlockHash,
+                Votes = votesTwo,
+            },
+        ];
 
-    //             HashSet<long> indicesFromOperation = [.. indices.Select(hash => fx.Store.BlockCommits[hash].Height)];
-    //             HashSet<long> expectedIndices = new HashSet<long>() { 1, 2 };
+        fx.Store.BlockCommits.AddRange(blockCommits);
 
-    //             Assert.Equal(indicesFromOperation, expectedIndices);
-    //         }
-    //     }
+        var actualHeight = fx.Store.BlockCommits.Values.Select(item => item.Height).ToImmutableSortedSet();
 
-    //     [Fact]
-    //     public void DeleteLastCommit()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         {
-    //             var validatorPrivateKey = new PrivateKey();
-    //             var blockCommit = new BlockCommit
-    //             {
-    //                 BlockHash = Fx.GenesisBlock.BlockHash,
-    //                 Votes =
-    //                 [
-    //                     new VoteMetadata
-    //                     {
-    //                         BlockHash = Fx.GenesisBlock.BlockHash,
-    //                         Timestamp = DateTimeOffset.UtcNow,
-    //                         ValidatorPublicKey = validatorPrivateKey.PublicKey,
-    //                         ValidatorPower = BigInteger.One,
-    //                         Flag = VoteFlag.PreCommit,
-    //                     }.Sign(validatorPrivateKey)
-    //                 ],
-    //             };
+        Assert.Equal([1, 2], actualHeight);
+    }
 
-    //             fx.Store.BlockCommits.Add(blockCommit);
-    //             Assert.Equal(blockCommit, fx.Store.BlockCommits[blockCommit.BlockHash]);
+    [Fact]
+    public void DeleteLastCommit()
+    {
+        using var fx = FxConstructor();
+        var store = fx.Store;
+        var validatorPrivateKey = new PrivateKey();
+        var blockCommit = new BlockCommit
+        {
+            BlockHash = Fx.GenesisBlock.BlockHash,
+            Votes =
+            [
+                new VoteMetadata
+                {
+                    BlockHash = Fx.GenesisBlock.BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    ValidatorPublicKey = validatorPrivateKey.PublicKey,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(validatorPrivateKey)
+            ],
+        };
 
-    //             fx.Store.BlockCommits.Remove(blockCommit.BlockHash);
-    //             Assert.Throws<KeyNotFoundException>(() => fx.Store.BlockCommits[blockCommit.BlockHash]);
-    //         }
-    //     }
+        store.BlockCommits.Add(blockCommit);
+        Assert.Equal(blockCommit, store.BlockCommits[blockCommit.BlockHash]);
 
-    //     [Fact]
-    //     public void IteratePendingEvidenceIds()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         {
-    //             var signer = TestUtils.ValidatorPrivateKeys[0];
-    //             var duplicateVoteOne = ImmutableArray<Vote>.Empty
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block1.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer))
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block2.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer));
-    //             var duplicateVoteTwo = ImmutableArray<Vote>.Empty
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 2,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block2.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer))
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 2,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block3.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer));
+        store.BlockCommits.Remove(blockCommit.BlockHash);
+        Assert.Throws<KeyNotFoundException>(() => store.BlockCommits[blockCommit.BlockHash]);
+    }
 
-    //             EvidenceBase[] evidences =
-    //             [
-    //                 DuplicateVoteEvidence.Create(duplicateVoteOne[0], duplicateVoteOne[1], TestUtils.Validators),
-    //                 DuplicateVoteEvidence.Create(duplicateVoteTwo[0], duplicateVoteTwo[1], TestUtils.Validators),
-    //             ];
+    [Fact]
+    public void IteratePendingEvidenceIds()
+    {
+        using var fx = FxConstructor();
+        var store = fx.Store;
+        var signer = TestUtils.ValidatorPrivateKeys[0];
+        var duplicateVoteOne = ImmutableArray<Vote>.Empty
+            .Add(new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = fx.Block1.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer))
+            .Add(new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = fx.Block2.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer));
+        var duplicateVoteTwo = ImmutableArray<Vote>.Empty
+            .Add(new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = fx.Block2.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer))
+            .Add(new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = fx.Block3.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer));
 
-    //             foreach (var evidence in evidences)
-    //             {
-    //                 fx.Store.PendingEvidences.Add(evidence);
-    //             }
+        EvidenceBase[] evidences =
+        [
+            DuplicateVoteEvidence.Create(duplicateVoteOne[0], duplicateVoteOne[1], TestUtils.Validators),
+            DuplicateVoteEvidence.Create(duplicateVoteTwo[0], duplicateVoteTwo[1], TestUtils.Validators),
+        ];
 
-    //             IEnumerable<EvidenceId> ids = fx.Store.PendingEvidences.Keys;
-    //             Assert.Equal(evidences.Select(e => e.Id).ToHashSet(), [.. ids]);
-    //         }
-    //     }
+        store.PendingEvidences.AddRange(evidences);
+
+        Assert.Equal(
+            [.. evidences.Select(e => e.Id)],
+            store.PendingEvidences.Keys.ToImmutableSortedSet());
+    }
 
     [Fact]
     public void ManipulatePendingEvidence()

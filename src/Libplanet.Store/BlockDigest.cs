@@ -9,31 +9,33 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Store;
 
 [Model(Version = 1)]
-public sealed record class BlockDigest : IEquatable<BlockDigest>
+public sealed record class BlockDigest : IEquatable<BlockDigest>, IHasKey<BlockHash>
 {
     [Property(0)]
-    public required BlockHeader Header { get; init; }
+    public required BlockHash BlockHash { get; init; }
 
     [Property(1)]
-    public required HashDigest<SHA256> StateRootHash { get; init; }
+    public required BlockHeader Header { get; init; }
 
     [Property(2)]
-    public required ImmutableArray<byte> Signature { get; init; }
+    public required HashDigest<SHA256> StateRootHash { get; init; }
 
     [Property(3)]
-    public required ImmutableSortedSet<TxId> TxIds { get; init; } = [];
+    public required ImmutableArray<byte> Signature { get; init; }
 
     [Property(4)]
-    public required ImmutableSortedSet<EvidenceId> EvidenceIds { get; init; } = [];
+    public required ImmutableSortedSet<TxId> TxIds { get; init; } = [];
 
     [Property(5)]
-    public required BlockHash BlockHash { get; init; }
+    public required ImmutableSortedSet<EvidenceId> EvidenceIds { get; init; } = [];
 
     public int Height => Header.Height;
 
     public Address Proposer => Header.Proposer;
 
     public BlockHash PreviousHash => Header.PreviousHash;
+
+    BlockHash IHasKey<BlockHash>.Key => BlockHash;
 
     public static explicit operator BlockDigest(Block block) => new()
     {
