@@ -259,7 +259,7 @@ public partial class BlockChainTest
 
         foreach (Transaction tx in txs)
         {
-            Assert.Null(_blockChain.TxExecutions[_blockChain.Genesis.BlockHash, tx.Id]);
+            Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
         }
 
         Block block = _blockChain.ProposeBlock(keyA);
@@ -314,11 +314,11 @@ public partial class BlockChainTest
 
         foreach (Transaction tx in new[] { txs[0], txs[1], txs[4] })
         {
-            TxExecution txx = _blockChain.TxExecutions[block.BlockHash, tx.Id];
+            TxExecution txx = _blockChain.TxExecutions[tx.Id, block.BlockHash];
             Assert.False(txx.Fail);
             Assert.Equal(block.BlockHash, txx.BlockHash);
             Assert.Equal(tx.Id, txx.TxId);
-            Assert.Null(_blockChain.TxExecutions[_blockChain.Genesis.BlockHash, tx.Id]);
+            Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
         }
     }
 

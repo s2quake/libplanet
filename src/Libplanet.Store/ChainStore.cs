@@ -27,7 +27,7 @@ public sealed class ChainStore(IDatabase database)
         var chainDigest = new ChainDigest
         {
             Id = value.Id,
-            Height = value.Height,
+            Height = value.GenesisHeight,
             BlockCommit = value.BlockCommit,
         };
 
@@ -44,7 +44,7 @@ public sealed class ChainStore(IDatabase database)
         return new Chain(digest.Id, database)
         {
             BlockCommit = digest.BlockCommit,
-            Height = digest.Height,
+            GenesisHeight = digest.Height,
         };
     }
 }

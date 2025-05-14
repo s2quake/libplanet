@@ -41,7 +41,7 @@ public class StatsCommand
         }
 
         Guid chainId = store.ChainId;
-        long chainLength = store.Chains[chainId].Height;
+        long chainLength = store.Chains[chainId].GenesisHeight;
 
         if (offset >= chainLength || (offset < 0 && chainLength + offset < 0))
         {

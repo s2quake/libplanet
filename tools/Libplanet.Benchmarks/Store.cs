@@ -16,7 +16,7 @@ public class Store
     private StoreFixture _fx = null;
     private readonly int TxsCount = default;
     private Libplanet.Store.Store _store;
-    private Chain _chain;
+    // private Chain _chain;
 
     public Store()
     {
@@ -40,8 +40,6 @@ public class Store
             txs.AddRange(blockTxs);
         }
 
-        _chain = _store.GetOrAdd(_store.ChainId);
-
         _blocks = blocks.ToImmutableArray();
         BlocksCount = _blocks.Length;
         Txs = txs.ToImmutableArray();
@@ -64,13 +62,13 @@ public class Store
     [Benchmark]
     public void PutFirstEmptyBlock()
     {
-        _chain.Blocks.Add(_blocks[0]);
+        _store.AddBlock(_blocks[0]);
     }
 
     [Benchmark]
     public void PutFirstBlockWithTxs()
     {
-        _chain.Blocks.Add(_blocks[5]);
+        _store.AddBlock(_blocks[5]);
     }
 
     [IterationSetup(
@@ -86,7 +84,7 @@ public class Store
         int i = 0;
         foreach (Block block in _blocks)
         {
-            _chain.Blocks.Add(block);
+            _store.AddBlock(block);
             i++;
             if (i >= _blocks.Length - 1)
             {
@@ -98,7 +96,7 @@ public class Store
     [Benchmark]
     public void PutBlockOnManyBlocks()
     {
-        _chain.Blocks.Add(_blocks[BlocksCount - 1]);
+        _store.AddBlock(_blocks[BlocksCount - 1]);
     }
 
     [Benchmark]
@@ -108,7 +106,7 @@ public class Store
         // because without this JIT can remove the below statement at all
         // during dead code elimination optimization.
         // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-        return _chain.Blocks[_blocks[0].BlockHash];
+        return _store.GetBlock(_blocks[0].BlockHash);
     }
 
     [Benchmark]
@@ -118,7 +116,7 @@ public class Store
         // because without this JIT can remove the below statement at all
         // during dead code elimination optimization.
         // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-        return _chain.Blocks[_blocks[BlocksCount - 2].BlockHash];
+        return _store.GetBlock(_blocks[BlocksCount - 2].BlockHash);
     }
 
     [Benchmark]
@@ -128,7 +126,7 @@ public class Store
         // because without this JIT can remove the below statement at all
         // during dead code elimination optimization.
         // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-        return _chain.Blocks[blockHash: default];
+        return _store.GetBlock(blockHash: default);
     }
 
     [Benchmark]

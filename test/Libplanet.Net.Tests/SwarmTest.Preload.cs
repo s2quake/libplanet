@@ -866,7 +866,7 @@ namespace Libplanet.Net.Tests
 
                 for (int i = 1; i < receiverChain.Blocks.Count; i++)
                 {
-                    Assert.NotNull(fx2.Store.TxExecutions[receiverChain.Blocks[i].BlockHash, transactions[i - 1].Id]);
+                    Assert.NotNull(fx2.Store.TxExecutions[transactions[i - 1].Id, receiverChain.Blocks[i].BlockHash]);
                 }
             }
             finally

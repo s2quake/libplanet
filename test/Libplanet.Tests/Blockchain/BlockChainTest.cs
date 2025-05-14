@@ -1073,9 +1073,10 @@ public partial class BlockChainTest : IDisposable
 
         void BuildIndex(Guid id, Block block)
         {
+            var chain = store.Chains[id];
             foreach (Transaction tx in block.Transactions)
             {
-                store.GetNonces(id).Increase(tx.Signer);
+                chain.Nonces.Increase(tx.Signer);
             }
 
             // store.AppendIndex(id, block.BlockHash);
@@ -1085,7 +1086,7 @@ public partial class BlockChainTest : IDisposable
         Block b = chain.Genesis;
         World previousState = stateStore.GetWorld(default);
         const int accountsCount = 5;
-        Address[] addresses = Enumerable.Repeat<object>(null, accountsCount)
+        Address[] addresses = Enumerable.Repeat<object?>(null, accountsCount)
             .Select(_ => new PrivateKey().Address)
             .ToArray();
         for (int i = 0; i < 2; ++i)
@@ -1094,7 +1095,7 @@ public partial class BlockChainTest : IDisposable
             {
                 int index = (i * accountsCount) + j;
                 Transaction tx = Transaction.Create(
-                    store.GetNonces(chain.Id)[signer],
+                    store.GetNonce(chain.Id, signer),
                     privateKey,
                     chain.Genesis.BlockHash,
                     new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes());
