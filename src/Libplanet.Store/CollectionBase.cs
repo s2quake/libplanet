@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using BitFaster.Caching;
+using BitFaster.Caching.Lru;
 using Libplanet.Store.Trie;
-using LruCacheNet;
 
 namespace Libplanet.Store;
 
@@ -10,7 +11,8 @@ public abstract class CollectionBase<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {
-    private readonly LruCache<TKey, TValue> _cache;
+    private readonly ICache<TKey, TValue> _cache;
+
     private readonly IDictionary<KeyBytes, byte[]> _dictionary;
 
     private readonly KeyCollection _keys;
@@ -18,7 +20,9 @@ public abstract class CollectionBase<TKey, TValue>
 
     protected CollectionBase(IDictionary<KeyBytes, byte[]> dictionary, int cacheSize = 100)
     {
-        _cache = new(cacheSize);
+        _cache = new ConcurrentLruBuilder<TKey, TValue>()
+            .WithCapacity(cacheSize)
+            .Build();
         _dictionary = dictionary;
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
@@ -32,18 +36,18 @@ public abstract class CollectionBase<TKey, TValue>
 
     public bool IsReadOnly => false;
 
-    protected bool IsDisposed { get; private set; }
-
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => _keys;
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _values;
+
+    protected bool IsDisposed { get; private set; }
 
     public TValue this[TKey key]
     {
         get
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
-            if (_cache.TryGetValue(key, out var value))
+            if (_cache.TryGet(key, out var value))
             {
                 return value;
             }
@@ -51,7 +55,7 @@ public abstract class CollectionBase<TKey, TValue>
             if (_dictionary[GetKeyBytes(key)] is { } bytes)
             {
                 value = GetValue(bytes);
-                _cache[key] = value;
+                _cache.AddOrUpdate(key, value);
                 return value;
             }
 
@@ -63,7 +67,7 @@ public abstract class CollectionBase<TKey, TValue>
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             OnSet(key, value);
             _dictionary[GetKeyBytes(key)] = GetBytes(value);
-            _cache[key] = value;
+            _cache.AddOrUpdate(key, value);
             OnSetComplete(key, value);
         }
     }
@@ -72,7 +76,7 @@ public abstract class CollectionBase<TKey, TValue>
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         OnRemove(key);
-        if (_cache.Remove(key, out var value))
+        if (_cache.TryRemove(key, out var value))
         {
             _dictionary.Remove(GetKeyBytes(key));
             OnRemoveComplete(key, value);
@@ -93,14 +97,14 @@ public abstract class CollectionBase<TKey, TValue>
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         OnAdd(key, value);
         _dictionary.Add(GetKeyBytes(key), GetBytes(value));
-        _cache[key] = value;
+        _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
     }
 
     public bool ContainsKey(TKey key)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-        if (_cache.TryGetValue(key, out _))
+        if (_cache.TryGet(key, out _))
         {
             return true;
         }
@@ -111,7 +115,7 @@ public abstract class CollectionBase<TKey, TValue>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-        if (_cache.TryGetValue(key, out value) && value is not null)
+        if (_cache.TryGet(key, out value) && value is not null)
         {
             return true;
         }
@@ -119,7 +123,7 @@ public abstract class CollectionBase<TKey, TValue>
         if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
         {
             value = GetValue(bytes);
-            _cache[key] = value;
+            _cache.AddOrUpdate(key, value);
             return true;
         }
 

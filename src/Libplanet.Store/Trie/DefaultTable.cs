@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
+using Libplanet.Types.Threading;
 using Zio;
 using Zio.FileSystems;
 
@@ -8,6 +10,7 @@ namespace Libplanet.Store.Trie;
 public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
 {
     private readonly FileSystem _fs = path == string.Empty ? new MemoryFileSystem() : CreateFileSystem(path);
+    private readonly ReaderWriterLockSlim _lock = new();
     private bool _isDisposed;
     private int? _count;
 
@@ -25,6 +28,7 @@ public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
         get
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
+            using var scope = new ReadScope(_lock);
             var dataPath = DataPath(key);
             if (!_fs.FileExists(dataPath))
             {
@@ -36,6 +40,8 @@ public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
 
         set
         {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+            using var scope = new WriteScope(_lock);
             var dataPath = DataPath(key);
             var exists = _fs.FileExists(dataPath);
             _fs.WriteAllBytes(DataPath(key), value);
@@ -49,6 +55,7 @@ public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
     public override bool Remove(KeyBytes key)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        using var scope = new WriteScope(_lock);
         var dataPath = DataPath(key);
         if (_fs.FileExists(dataPath))
         {
@@ -69,6 +76,7 @@ public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
         if (!_isDisposed)
         {
             _fs.Dispose();
+            _lock.Dispose();
             _isDisposed = true;
             if (System.IO.Path.IsPathFullyQualified(path))
             {
@@ -82,6 +90,7 @@ public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
     public override void Add(KeyBytes key, byte[] value)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        using var scope = new WriteScope(_lock);
         var dataPath = DataPath(key);
         if (_fs.FileExists(dataPath))
         {
@@ -98,12 +107,14 @@ public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
     public override bool ContainsKey(KeyBytes key)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        using var scope = new ReadScope(_lock);
         return _fs.FileExists(DataPath(key));
     }
 
     public override bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        using var scope = new ReadScope(_lock);
         var dataPath = DataPath(key);
         if (_fs.FileExists(dataPath))
         {
@@ -118,6 +129,7 @@ public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
     public override void Clear()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
+        using var scope = new WriteScope(_lock);
         foreach (var file in _fs.EnumerateFiles(UPath.Root))
         {
             _fs.DeleteFile(file);

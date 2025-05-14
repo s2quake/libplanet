@@ -1,12 +1,16 @@
 using System.Diagnostics.CodeAnalysis;
-using LruCacheNet;
+using BitFaster.Caching;
+using BitFaster.Caching.Lru;
 
 namespace Libplanet.Store.Trie;
 
 public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValueStore, int cacheSize = 100)
     : KeyValueStoreBase, IDisposable
 {
-    private readonly LruCache<KeyBytes, byte[]> _cache = new(cacheSize);
+    private readonly ICache<KeyBytes, byte[]> _cache = new ConcurrentLruBuilder<KeyBytes, byte[]>()
+        .WithCapacity(cacheSize)
+        .Build();
+
     private bool _isDisposed;
 
     public override int Count => keyValueStore.Count;
@@ -15,14 +19,14 @@ public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValu
     {
         get
         {
-            if (_cache.TryGetValue(key, out var value) && value is { } v)
+            if (_cache.TryGet(key, out var value) && value is { } v)
             {
                 return v;
             }
 
             if (keyValueStore[key] is { } bytes)
             {
-                _cache[key] = bytes;
+                _cache.AddOrUpdate(key, bytes);
                 return bytes;
             }
 
@@ -32,7 +36,7 @@ public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValu
         set
         {
             keyValueStore[key] = value;
-            _cache[key] = value;
+            _cache.AddOrUpdate(key, value);
         }
     }
 
@@ -40,14 +44,14 @@ public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValu
     {
         if (keyValueStore.Remove(key))
         {
-            _cache.Remove(key);
+            _cache.TryRemove(key);
             return true;
         }
 
         return false;
     }
 
-    public override bool ContainsKey(KeyBytes key) => _cache.ContainsKey(key) || keyValueStore.ContainsKey(key);
+    public override bool ContainsKey(KeyBytes key) => _cache.TryGet(key, out _) || keyValueStore.ContainsKey(key);
 
     public void Dispose()
     {
@@ -61,12 +65,12 @@ public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValu
     public override void Add(KeyBytes key, byte[] value)
     {
         keyValueStore.Add(key, value);
-        _cache[key] = value;
+        _cache.AddOrUpdate(key, value);
     }
 
     public override bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value)
     {
-        if (_cache.TryGetValue(key, out var v) && v is { })
+        if (_cache.TryGet(key, out var v) && v is { })
         {
             value = v;
             return true;
@@ -74,7 +78,7 @@ public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValu
 
         if (keyValueStore.TryGetValue(key, out var bytes) && bytes is { })
         {
-            _cache[key] = bytes;
+            _cache.AddOrUpdate(key, bytes);
             value = bytes;
             return true;
         }

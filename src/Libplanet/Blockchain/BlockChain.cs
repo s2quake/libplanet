@@ -12,7 +12,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
-using Microsoft.VisualBasic;
 using Serilog;
 
 namespace Libplanet.Blockchain;
@@ -480,7 +479,7 @@ public partial class BlockChain
                 block.Transactions
                     .Select(tx => tx.Signer)
                     .Distinct()
-                    .ToDictionary(signer => signer, Nonces.GetOrDefault),
+                    .ToDictionary(signer => signer, _chain.GetNonce),
                 block);
 
             Options.BlockValidation(this, block);

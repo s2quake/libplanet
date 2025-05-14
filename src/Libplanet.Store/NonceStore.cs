@@ -6,17 +6,7 @@ namespace Libplanet.Store;
 public sealed class NonceStore(Guid chainId, IDatabase database)
     : CollectionBase<Address, long>(database.GetOrAdd(GetKey(chainId)))
 {
-    public long GetOrDefault(Address signer)
-    {
-        if (TryGetValue(signer, out long value))
-        {
-            return value;
-        }
-
-        return 0L;
-    }
-
-    public long Increase(Address signer, long delta = 1L) => this[signer] = GetOrDefault(signer) + delta;
+    public long Increase(Address key, long delta = 1L) => this[key] = this.GetValueOrDefault(key) + delta;
 
     internal static string GetKey(Guid chainId) => $"{chainId}_nonces";
 
