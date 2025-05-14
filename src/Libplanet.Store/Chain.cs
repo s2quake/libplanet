@@ -1,9 +1,10 @@
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store;
 
-public sealed class Chain(Guid chainId, IDatabase database) : IDisposable
+public sealed class Chain(Guid chainId, IDatabase database) : IDisposable, IHasKey<Guid>
 {
     private bool _disposed;
 
@@ -22,6 +23,8 @@ public sealed class Chain(Guid chainId, IDatabase database) : IDisposable
     }
 
     public int Height => BlockHashes.Height;
+
+    Guid IHasKey<Guid>.Key => Id;
 
     public long GetNonce(Address address) => Nonces.GetValueOrDefault(address);
 

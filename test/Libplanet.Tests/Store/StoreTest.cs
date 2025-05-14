@@ -489,9 +489,9 @@ public abstract class StoreTest
         Assert.Single(store.TxExecutions[Fx.TxId2].Select(item => item.BlockHash), Fx.Hash3);
         Assert.Single(store.TxExecutions[Fx.TxId3].Select(item => item.BlockHash), Fx.Hash1);
 
-        Assert.True(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash1));
-        Assert.True(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash2));
-        Assert.True(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash3));
+        Assert.False(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash1));
+        Assert.False(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash2));
+        Assert.False(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash3));
 
         Assert.True(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash3));
         Assert.True(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash3));
@@ -1254,114 +1254,117 @@ public abstract class StoreTest
         Assert.DoesNotContain(evidence.Id, store.PendingEvidences.Keys);
     }
 
-    //     [Fact]
-    //     public void ManipulateCommittedEvidence()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         {
-    //             var signer = TestUtils.ValidatorPrivateKeys[0];
-    //             var duplicateVote = ImmutableArray<Vote>.Empty
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block1.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer))
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block2.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer));
-    //             var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
+    [Fact]
+    public void ManipulateCommittedEvidence()
+    {
+        using var fx = FxConstructor();
+        var store = fx.Store;
+        var signer = TestUtils.ValidatorPrivateKeys[0];
+        var duplicateVote = ImmutableArray<Vote>.Empty
+            .Add(new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = fx.Block1.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer))
+            .Add(new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = fx.Block2.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer));
+        var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 
-    //             Assert.DoesNotContain(evidence.Id, fx.Store.CommittedEvidences.Keys);
+        Assert.DoesNotContain(evidence.Id, store.CommittedEvidences.Keys);
 
-    //             // fx.Store.PutCommittedEvidence(evidence);
-    //             EvidenceBase storedEvidence = fx.Store.CommittedEvidences[evidence.Id];
+        store.CommittedEvidences.Add(evidence);
+        var storedEvidence = store.CommittedEvidences[evidence.Id];
 
-    //             Assert.Equal(evidence, storedEvidence);
-    //             Assert.Contains(evidence.Id, fx.Store.CommittedEvidences.Keys);
+        Assert.Equal(evidence, storedEvidence);
+        Assert.Contains(evidence.Id, store.CommittedEvidences.Keys);
 
-    //             // fx.Store.DeleteCommittedEvidence(evidence.Id);
-    //             Assert.DoesNotContain(evidence.Id, fx.Store.CommittedEvidences.Keys);
-    //         }
-    //     }
+        store.CommittedEvidences.Remove(evidence);
+        Assert.DoesNotContain(evidence.Id, store.CommittedEvidences.Keys);
+    }
 
-    //     [Fact]
-    //     public void ForkTxNonces()
-    //     {
-    //         Libplanet.Store.Store store = Fx.Store;
-    //         Guid sourceChainId = Guid.NewGuid();
-    //         Guid destinationChainId = Guid.NewGuid();
-    //         store.GetNonceCollection(sourceChainId).Increase(Fx.Address1, 1);
-    //         store.GetNonceCollection(sourceChainId).Increase(Fx.Address2, 2);
-    //         store.GetNonceCollection(sourceChainId).Increase(Fx.Address3, 3);
+    [Fact]
+    public void ForkTxNonces()
+    {
+        var store = Fx.Store;
+        var sourceChain = store.Chains.GetOrAdd(Guid.NewGuid());
+        var destChain = store.Chains.GetOrAdd(Guid.NewGuid());
+        sourceChain.Nonces.Increase(Fx.Address1, 1);
+        sourceChain.Nonces.Increase(Fx.Address2, 2);
+        sourceChain.Nonces.Increase(Fx.Address3, 3);
 
-    //         store.ForkTxNonces(sourceChainId, destinationChainId);
+        destChain.Nonces.MergeFrom(sourceChain.Nonces);
+        Assert.Equal(1, destChain.Nonces[Fx.Address1]);
+        Assert.Equal(2, destChain.Nonces[Fx.Address2]);
+        Assert.Equal(3, destChain.Nonces[Fx.Address3]);
 
-    //         Assert.Equal(1, store.GetNonceCollection(destinationChainId)[Fx.Address1]);
-    //         Assert.Equal(2, store.GetNonceCollection(destinationChainId)[Fx.Address2]);
-    //         Assert.Equal(3, store.GetNonceCollection(destinationChainId)[Fx.Address3]);
+        sourceChain.Nonces.Increase(Fx.Address1, 1);
+        Assert.Equal(2, sourceChain.Nonces[Fx.Address1]);
+        Assert.Equal(1, destChain.Nonces[Fx.Address1]);
+    }
 
-    //         store.GetNonceCollection(sourceChainId).Increase(Fx.Address1, 1);
-    //         Assert.Equal(2, store.GetNonceCollection(sourceChainId)[Fx.Address1]);
-    //         Assert.Equal(1, store.GetNonceCollection(destinationChainId)[Fx.Address1]);
-    //     }
+    [Fact]
+    public void PruneOutdatedChains()
+    {
+        var store = Fx.Store;
+        store.BlockDigests.Add(Fx.GenesisBlock);
+        store.BlockDigests.Add(Fx.Block1);
+        store.BlockDigests.Add(Fx.Block2);
+        store.BlockDigests.Add(Fx.Block3);
 
-    //     [Fact]
-    //     public void PruneOutdatedChains()
-    //     {
-    //         Libplanet.Store.Store store = Fx.Store;
-    //         var chain = store.GetChain(store.ChainId);
-    //         chain.Blocks.Add(Fx.GenesisBlock);
-    //         chain.Blocks.Add(Fx.Block1);
-    //         chain.Blocks.Add(Fx.Block2);
-    //         chain.Blocks.Add(Fx.Block3);
+        var chain1 = store.Chains.GetOrAdd(Guid.NewGuid());
+        chain1.BlockHashes.Add(Fx.GenesisBlock);
+        chain1.BlockHashes.Add(Fx.Block1);
+        chain1.BlockHashes.Add(Fx.Block2);
+        Assert.Single(store.Chains.Keys);
+        Assert.Equal(
+            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
+            chain1.BlockHashes.IterateHeights(0, null));
 
-    //         Guid cid1 = Guid.NewGuid();
-    //         // store.AppendIndex(cid1, Fx.GenesisBlock.BlockHash);
-    //         // store.AppendIndex(cid1, Fx.Block1.BlockHash);
-    //         // store.AppendIndex(cid1, Fx.Block2.BlockHash);
-    //         Assert.Single(store.Chains.Keys);
-    //         Assert.Equal(
-    //             [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-    //             store.GetBlockHashes(cid1).IterateHeights(0, null));
+        var chain2 = store.Chains.GetOrAdd(Guid.NewGuid());
+        chain2.ForkFrom(chain1, Fx.Block1.BlockHash);
+        chain2.BlockHashes.Add(Fx.Block2);
+        chain2.BlockHashes.Add(Fx.Block3);
+        Assert.Equal(2, store.Chains.Keys.Count);
+        Assert.Equal(
+            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash, Fx.Block3.BlockHash],
+            chain2.BlockHashes.IterateHeights(0, null));
 
-    //         Guid cid2 = Guid.NewGuid();
-    //         store.ForkBlockIndexes(cid1, cid2, Fx.Block1.BlockHash);
-    //         // store.AppendIndex(cid2, Fx.Block2.BlockHash);
-    //         // store.AppendIndex(cid2, Fx.Block3.BlockHash);
-    //         Assert.Equal(2, store.Chains.Keys.Count);
-    //         Assert.Equal(
-    //             [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash, Fx.Block3.BlockHash],
-    //             store.GetBlockHashes(cid2).IterateHeights(0, null));
+        var chain3 = store.Chains.GetOrAdd(Guid.NewGuid());
+        chain3.ForkFrom(chain2, Fx.Block2.BlockHash);
+        Assert.Equal(3, store.Chains.Keys.Count);
+        Assert.Equal(
+            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
+            chain3.BlockHashes.IterateHeights(0, null));
 
-    //         Guid cid3 = Guid.NewGuid();
-    //         store.ForkBlockIndexes(cid1, cid3, Fx.Block2.BlockHash);
-    //         Assert.Equal(3, store.Chains.Keys.Count);
-    //         Assert.Equal(
-    //             [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-    //             store.GetBlockHashes(cid3).IterateHeights(0, null));
+        var outdatedChains = store.Chains.Values
+            .Where(x => x.Id != chain3.Id)
+            .ToImmutableArray();
+        store.ChainId = chain3.Id;
+        store.Chains.RemoveRange(outdatedChains);
+        foreach (var chain in outdatedChains)
+        {
+            chain.Dispose();
+        }
 
-    //         Assert.Throws<InvalidOperationException>(() => store.PruneOutdatedChains());
-    //         store.PruneOutdatedChains(true);
-    //         store.ChainId = cid3;
-    //         store.PruneOutdatedChains();
-    //         Assert.Single(store.Chains.Keys);
-    //         Assert.Equal(
-    //             [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-    //             store.GetBlockHashes(cid3).IterateHeights(0, null));
-    //         Assert.Equal(3, store.Chains[cid3].Height);
-    //     }
+        Assert.Single(store.Chains.Keys);
+        Assert.Equal(
+            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
+            chain3.BlockHashes.IterateHeights(0, null));
+        Assert.Equal(3, chain3.BlockHashes.Count);
+    }
 
     [Fact]
     public void IdempotentDispose()
