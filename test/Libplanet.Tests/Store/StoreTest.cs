@@ -36,16 +36,17 @@ public abstract class StoreTest
     public void ListChainId()
     {
         Assert.Single(Fx.Store.Chains);
-        var chain = Fx.Store.GetOrAdd(Fx.StoreChainId);
+        var chain = Fx.Store.Chain;
 
-        chain.Blocks.Add(Fx.Block1);
-        // Fx.Store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
+        Fx.Store.BlockDigests.Add(Fx.Block1);
+        chain.BlockHashes.Add(Fx.Block1);
         Assert.Equal(
             new[] { Fx.StoreChainId }.ToImmutableHashSet(),
             [.. Fx.Store.Chains.Keys]);
 
         Guid arbitraryGuid = Guid.NewGuid();
-        Fx.Store.GetBlockHashes(arbitraryGuid).Add(Fx.Block1);
+        var arbitraryChain = Fx.Store.Chains.GetOrAdd(arbitraryGuid);
+        arbitraryChain.BlockHashes.Add(Fx.Block1);
         Assert.Equal(
             new[] { Fx.StoreChainId, arbitraryGuid }.ToImmutableHashSet(),
             [.. Fx.Store.Chains.Keys]);
@@ -56,17 +57,17 @@ public abstract class StoreTest
     {
         var chainAId = Guid.NewGuid();
         var chainBId = Guid.NewGuid();
-        var chainA = Fx.Store.GetOrAdd(chainAId);
-        var chainB = Fx.Store.GetOrAdd(chainBId);
+        var chainA = Fx.Store.Chains.GetOrAdd(chainAId);
+        var chainB = Fx.Store.Chains.GetOrAdd(chainBId);
 
-        chainA.Blocks.Add(Fx.GenesisBlock);
-        chainA.Blocks.Add(Fx.Block1);
-        chainA.Blocks.Add(Fx.Block2);
+        Fx.Store.BlockDigests.Add(Fx.GenesisBlock);
+        Fx.Store.BlockDigests.Add(Fx.Block1);
+        Fx.Store.BlockDigests.Add(Fx.Block2);
 
-        Fx.Store.GetBlockHashes(chainAId).Add(Fx.GenesisBlock);
-        Fx.Store.GetBlockHashes(chainAId).Add(Fx.Block1);
+        chainA.BlockHashes.Add(Fx.GenesisBlock);
+        chainA.BlockHashes.Add(Fx.Block1);
         // Fx.Store.ForkBlockIndexes(chainAId, chainBId, Fx.Block1.BlockHash);
-        Fx.Store.GetBlockHashes(chainBId).Add(Fx.Block2);
+        chainB.BlockHashes.Add(Fx.Block2);
 
         Fx.Store.Chains.Remove(chainAId);
 
@@ -82,17 +83,19 @@ public abstract class StoreTest
             ProposeGenesisBlock(GenesisProposer),
             GenesisProposer,
             [Fx.Transaction1]);
-        // Fx.Store.AppendIndex(Fx.StoreChainId, block1.BlockHash);
+        var chain = Fx.Store.Chain;
+        chain.BlockHashes.Add(block1);
         Guid arbitraryChainId = Guid.NewGuid();
-        // Fx.Store.AppendIndex(arbitraryChainId, block1.BlockHash);
-        Fx.Store.GetNonces(Fx.StoreChainId).Increase(Fx.Transaction1.Signer);
+        var arbitraryChain = Fx.Store.Chains.GetOrAdd(arbitraryChainId);
+        arbitraryChain.BlockHashes.Add(block1);
+        chain.Nonces.Increase(Fx.Transaction1.Signer);
 
         Fx.Store.Chains.Remove(Fx.StoreChainId);
 
         Assert.Equal(
             new[] { arbitraryChainId }.ToImmutableHashSet(),
             [.. Fx.Store.Chains.Keys]);
-        Assert.Equal(0, Fx.Store.GetNonces(Fx.StoreChainId)[Fx.Transaction1.Signer]);
+        Assert.Equal(0, chain.Nonces[Fx.Transaction1.Signer]);
     }
 
     [Fact]

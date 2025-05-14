@@ -12,5 +12,7 @@ public sealed class Chain(Guid chainId, IDatabase database)
 
     public BlockCommit BlockCommit { get; set; } = BlockCommit.Empty;
 
-    public int Height { get; set; } = -1;
+    public int GenesisHeight { get; set; }
+
+    public int Height { get; set; }
 }

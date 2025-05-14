@@ -13,5 +13,8 @@ public sealed record class ChainDigest : IEquatable<ChainDigest>
     public BlockCommit BlockCommit { get; init; } = BlockCommit.Empty;
 
     [Property(2)]
-    public int Height { get; init; } = -1;
+    public int GenesisHeight { get; init; }
+
+    [Property(3)]
+    public int Height { get; init; }
 }

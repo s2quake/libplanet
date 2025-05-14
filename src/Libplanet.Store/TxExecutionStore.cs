@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Blocks;
@@ -6,15 +7,17 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Store;
 
 public sealed class TxExecutionStore(IDatabase database)
-    : CollectionBase<(BlockHash BlockHash, TxId TxId), TxExecution>(database.GetOrAdd("tx_execution"))
+    : CollectionBase<TxId, ImmutableArray<TxExecution>>(database.GetOrAdd("tx_execution"))
 {
-    public TxExecution this[BlockHash blockHash, TxId txId]
+    public void Add(TxExecution txExecution)
     {
-        get => this[(blockHash, txId)];
-        set => this[(blockHash, txId)] = value;
-    }
+        if (!TryGetValue(txExecution.TxId, out var txExecutions))
+        {
+            txExecutions = [];
+        }
 
-    public void Add(TxExecution txExecution) => Add((txExecution.BlockHash, txExecution.TxId), txExecution);
+        this[txExecution.TxId] = txExecutions.Add(txExecution);
+    }
 
     public void AddRange(IEnumerable<TxExecution> txExecutions)
     {
@@ -24,13 +27,57 @@ public sealed class TxExecutionStore(IDatabase database)
         }
     }
 
-    protected override byte[] GetBytes(TxExecution value) => ModelSerializer.SerializeToBytes(value);
+    public bool Contains(TxId txId, BlockHash blockHash)
+    {
+        if (TryGetValue(txId, out var txExecutions))
+        {
+            return txExecutions.Any(txExecution => txExecution.BlockHash == blockHash);
+        }
 
-    protected override (BlockHash BlockHash, TxId TxId) GetKey(KeyBytes keyBytes)
-        => (new BlockHash(keyBytes.Bytes[..BlockHash.Size]), new TxId(keyBytes.Bytes[BlockHash.Size..]));
+        return false;
+    }
 
-    protected override KeyBytes GetKeyBytes((BlockHash BlockHash, TxId TxId) key)
-        => new(key.BlockHash.Bytes.AddRange(key.TxId.Bytes));
+    public TxExecution this[TxId txId, BlockHash blockHash]
+    {
+        get
+        {
+            if (TryGetValue(txId, out var txExecutions))
+            {
+                return txExecutions.First(txExecution => txExecution.BlockHash == blockHash);
+            }
 
-    protected override TxExecution GetValue(byte[] bytes) => ModelSerializer.DeserializeFromBytes<TxExecution>(bytes);
+            throw new KeyNotFoundException($"No such key: ${txId}.");
+        }
+    }
+
+    public bool TryGetValue(TxId txId, BlockHash blockHash, [MaybeNullWhen(false)] out TxExecution txExecution)
+    {
+        if (TryGetValue(txId, out var txExecutions))
+        {
+            txExecution = txExecutions.FirstOrDefault(txExecution => txExecution.BlockHash == blockHash);
+            return txExecution != null;
+        }
+
+        txExecution = null;
+        return false;
+    }
+
+    public TxExecution? GetValueOrDefault(TxId txId, BlockHash blockHash)
+    {
+        if (TryGetValue(txId, out var txExecutions))
+        {
+            return txExecutions.FirstOrDefault(txExecution => txExecution.BlockHash == blockHash);
+        }
+
+        return null;
+    }
+
+    protected override byte[] GetBytes(ImmutableArray<TxExecution> value) => ModelSerializer.SerializeToBytes(value);
+
+    protected override TxId GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);
+
+    protected override KeyBytes GetKeyBytes(TxId key) => new(key.Bytes);
+
+    protected override ImmutableArray<TxExecution> GetValue(byte[] bytes)
+        => ModelSerializer.DeserializeFromBytes<ImmutableArray<TxExecution>>(bytes);
 }

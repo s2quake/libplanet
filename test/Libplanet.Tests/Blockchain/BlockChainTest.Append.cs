@@ -23,11 +23,11 @@ public partial class BlockChainTest
     [InlineData(false)]
     public void Append(bool getTxExecutionViaStore)
     {
-        Func<BlockHash, TxId, TxExecution> getTxExecution = new Func<BlockHash, TxId, TxExecution>(
-            (BlockHash blockHash, TxId txId) =>
-            {
-                return _blockChain.TxExecutions[blockHash, txId];
-            });
+        // Func<BlockHash, TxId, TxExecution> getTxExecution = new Func<BlockHash, TxId, TxExecution>(
+        //     (BlockHash blockHash, TxId txId) =>
+        //     {
+        //         return _blockChain.TxExecutions[blockHash, txId];
+        //     });
 
         PrivateKey[] keys = Enumerable.Repeat(0, 5).Select(_ => new PrivateKey()).ToArray();
         (Address[] addresses, Transaction[] txs) =
@@ -46,23 +46,21 @@ public partial class BlockChainTest
             lastCommit: TestUtils.CreateBlockCommit(block1),
             [.. txs],
             evidences: []);
-        foreach (Transaction tx in txs)
+        foreach (var tx in txs)
         {
-            Assert.Null(getTxExecution(genesis.BlockHash, tx.Id));
-            Assert.Null(getTxExecution(block1.BlockHash, tx.Id));
-            Assert.Null(getTxExecution(block2.BlockHash, tx.Id));
+            Assert.Empty(_fx.Store.TxExecutions[tx.Id]);
         }
 
         foreach (var tx in txs)
         {
-            Assert.False(_fx.Store.BlockHashesByTxId.ContainsKey(tx.Id));
+            Assert.False(_fx.Store.TxExecutions.ContainsKey(tx.Id));
         }
 
         _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
 
         foreach (var tx in txs)
         {
-            Assert.Contains(block2.BlockHash, _fx.Store.BlockHashesByTxId[tx.Id]);
+            Assert.True(_fx.Store.TxExecutions.Contains(tx.Id, block2.BlockHash));
         }
 
         Assert.True(_blockChain.Blocks.ContainsKey(block2.BlockHash));
@@ -180,16 +178,16 @@ public partial class BlockChainTest
 
         foreach (Transaction tx in txs)
         {
-            Assert.Null(getTxExecution(genesis.BlockHash, tx.Id));
-            Assert.Null(getTxExecution(block1.BlockHash, tx.Id));
+            Assert.Null(_fx.Store.TxExecutions.GetValueOrDefault(tx.Id, genesis.BlockHash));
+            Assert.Null(_fx.Store.TxExecutions.GetValueOrDefault(tx.Id, block1.BlockHash));
 
-            TxExecution e = getTxExecution(block2.BlockHash, tx.Id);
+            TxExecution e = _fx.Store.TxExecutions[tx.Id, block2.BlockHash];
             Assert.False(e.Fail);
             Assert.Equal(block2.BlockHash, e.BlockHash);
             Assert.Equal(tx.Id, e.TxId);
         }
 
-        TxExecution txe = getTxExecution(block2.BlockHash, txs[0].Id);
+        TxExecution txe = _fx.Store.TxExecutions[txs[0].Id, block2.BlockHash];
         var outputWorld = _blockChain
             .GetWorld(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
         Assert.Equal(
@@ -201,7 +199,7 @@ public partial class BlockChainTest
         Assert.Equal(
             DumbAction.DumbCurrency * 200,
             outputWorld.GetTotalSupply(DumbAction.DumbCurrency));
-        txe = getTxExecution(block2.BlockHash, txs[1].Id);
+        txe = _fx.Store.TxExecutions[txs[1].Id, block2.BlockHash];
         outputWorld = _blockChain
             .GetWorld(Assert.IsType<HashDigest<SHA256>>(txe.OutputState));
         Assert.Equal(
@@ -245,7 +243,7 @@ public partial class BlockChainTest
             [tx1Transfer, tx2Error, tx3Transfer],
             []);
         _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
-        var txExecution1 = getTxExecution(block3.BlockHash, tx1Transfer.Id);
+        var txExecution1 = _fx.Store.TxExecutions[tx1Transfer.Id, block3.BlockHash];
         _logger.Verbose(nameof(txExecution1) + " = {@TxExecution}", txExecution1);
         Assert.False(txExecution1.Fail);
         var inputAccount1 = _blockChain.GetWorld(
@@ -279,7 +277,7 @@ public partial class BlockChainTest
             DumbAction.DumbCurrency * 120,
             outputWorld1.GetBalance(addresses[2], DumbAction.DumbCurrency));
 
-        var txExecution2 = getTxExecution(block3.BlockHash, tx2Error.Id);
+        var txExecution2 = _fx.Store.TxExecutions[tx2Error.Id, block3.BlockHash];
         _logger.Verbose(nameof(txExecution2) + " = {@TxExecution}", txExecution2);
         Assert.True(txExecution2.Fail);
         Assert.Equal(block3.BlockHash, txExecution2.BlockHash);
@@ -288,7 +286,7 @@ public partial class BlockChainTest
             $"{nameof(System)}.{nameof(ArgumentOutOfRangeException)}",
             txExecution2.ExceptionNames);
 
-        var txExecution3 = getTxExecution(block3.BlockHash, tx3Transfer.Id);
+        var txExecution3 = _fx.Store.TxExecutions[tx3Transfer.Id, block3.BlockHash];
         _logger.Verbose(nameof(txExecution3) + " = {@TxExecution}", txExecution3);
         Assert.False(txExecution3.Fail);
         var outputWorld3 = _blockChain.GetWorld(

@@ -1,3 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
+using Libplanet.Types.Blocks;
+using Libplanet.Types.Crypto;
+
 namespace Libplanet.Store;
 
 public sealed class Store : IDisposable
@@ -11,7 +15,7 @@ public sealed class Store : IDisposable
     private readonly CommittedEvidenceStore _committedEvidences;
     private readonly ChainStore _chains;
     private readonly MetadataStore _metadata;
-    private readonly BlockHashesByTxId _blockHashesByTxId;
+    // private readonly BlockHashesByTxId _blockHashesByTxId;
     private Chain? _chain;
 
     private bool _disposed;
@@ -27,7 +31,7 @@ public sealed class Store : IDisposable
         _committedEvidences = new CommittedEvidenceStore(_database);
         _chains = new ChainStore(_database);
         _metadata = new MetadataStore(_database);
-        _blockHashesByTxId = new BlockHashesByTxId(_database);
+        // _blockHashesByTxId = new BlockHashesByTxId(_database);
         if (_metadata.TryGetValue("chainId", out var chainId))
         {
             _chain = _chains[Guid.Parse(chainId)];
@@ -48,7 +52,7 @@ public sealed class Store : IDisposable
 
     public ChainStore Chains => _chains;
 
-    public BlockHashesByTxId BlockHashesByTxId => _blockHashesByTxId;
+    // public BlockHashesByTxId BlockHashesByTxId => _blockHashesByTxId;
 
     public Guid ChainId
     {
@@ -62,6 +66,92 @@ public sealed class Store : IDisposable
 
     public Chain Chain => _chain ?? throw new InvalidOperationException(
         "ChainId is not set. Please set ChainId before accessing the Chain property.");
+
+    public void AddBlock(Block block)
+    {
+        _blockDigests.Add(block);
+        _transactions.Add(block);
+        _pendingEvidences.Add(block);
+        _committedEvidences.Add(block);
+    }
+
+    public Block GetBlock(BlockHash blockHash)
+    {
+        var blockDigest = _blockDigests[blockHash];
+        return blockDigest.ToBlock(item => _transactions[item], item => _committedEvidences[item]);
+    }
+
+    public Block GetBlock(int height) => GetBlock(ChainId, height);
+
+    public Block GetBlock(Guid chainId, int height)
+    {
+        var chain = _chains[chainId];
+        var blockHash = chain.BlockHashes[height];
+        return GetBlock(blockHash);
+    }
+
+    public bool TryGetBlock(BlockHash blockHash, [MaybeNullWhen(false)] out Block block)
+    {
+        if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
+        {
+            block = blockDigest.ToBlock(item => _transactions[item], item => _committedEvidences[item]);
+            return true;
+        }
+
+        block = null;
+        return false;
+    }
+
+    public bool TryGetBlock(int height, [MaybeNullWhen(false)] out Block block)
+        => TryGetBlock(ChainId, height, out block);
+
+    public bool TryGetBlock(Guid chainId, int height, [MaybeNullWhen(false)] out Block block)
+    {
+        var chain = _chains[chainId];
+        if (chain.BlockHashes.TryGetValue(height, out var blockHash))
+        {
+            return TryGetBlock(blockHash, out block);
+        }
+
+        block = null;
+        return false;
+    }
+
+    public Block? GetBlockOrDefault(BlockHash blockHash)
+    {
+        if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
+        {
+            return blockDigest.ToBlock(item => _transactions[item], item => _committedEvidences[item]);
+        }
+
+        return null;
+    }
+
+    public Block? GetBlockOrDefault(int height) => GetBlockOrDefault(ChainId, height);
+
+    public Block? GetBlockOrDefault(Guid chainId, int height)
+    {
+        var chain = _chains[chainId];
+        if (chain.BlockHashes.TryGetValue(height, out var blockHash))
+        {
+            return GetBlockOrDefault(blockHash);
+        }
+
+        return null;
+    }
+
+    public long GetNonce(Address address) => GetNonce(ChainId, address);
+
+    public long GetNonce(Guid chainId, Address address)
+    {
+        var chain = _chains[chainId];
+        if (chain.Nonces.TryGetValue(address, out var nonce))
+        {
+            return nonce;
+        }
+
+        return 0;
+    }
 
     public void Dispose()
     {

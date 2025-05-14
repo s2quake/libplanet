@@ -27,7 +27,7 @@ public class StoreCommand
         var chainIds = store.Chains.Keys.Select(id =>
         {
             var chain = store.Chains[id];
-            var height = chain.Height - 1;
+            var height = chain.GenesisHeight - 1;
             return (
                 id.ToString(),
                 height.ToString(CultureInfo.InvariantCulture),
@@ -73,7 +73,7 @@ public class StoreCommand
         string strTxId)
     {
         Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
-        var blockHashes = store.BlockHashesByTxId[new TxId(ByteUtility.ParseHex(strTxId))];
+        var blockHashes = store.TxExecutions[new TxId(ByteUtility.ParseHex(strTxId))].Select(item => item.BlockHash);
         Console.WriteLine(Utils.SerializeHumanReadable(blockHashes));
         store?.Dispose();
     }
@@ -86,9 +86,9 @@ public class StoreCommand
         string strTxId)
     {
         // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
-        Libplanet.Store.Store store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Store(new MemoryDatabase());
         var txId = TxId.Parse(strTxId);
-        if (!(store.BlockHashesByTxId[txId] is { }))
+        if (!store.TxExecutions.TryGetValue(txId, out var txExecutions) || txExecutions.Length == 0)
         {
             throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");
         }
@@ -155,8 +155,7 @@ public class StoreCommand
 
     private static Block GetBlock(Libplanet.Store.Store store, BlockHash blockHash)
     {
-        var chain = store.Chains.GetOrAdd(store.ChainId);
-        if (!(chain.Blocks[blockHash] is { } block))
+        if (!store.TryGetBlock(blockHash, out var block))
         {
             throw Utils.Error($"cannot find the block with the hash[{blockHash.ToString()}]");
         }
@@ -171,7 +170,7 @@ public class StoreCommand
             throw Utils.Error("Cannot find the main branch of the blockchain.");
         }
 
-        var chain = store.GetOrAdd(store.ChainId);
+        var chain = store.Chain;
         if (!chain.BlockHashes.TryGetValue(blockHeight, out var blockHash))
         {
             throw Utils.Error(
@@ -184,9 +183,9 @@ public class StoreCommand
 
     private static IEnumerable<Block> IterateBlocks(Libplanet.Store.Store store, TxId txId)
     {
-        foreach (var blockHash in store.BlockHashesByTxId[txId])
+        foreach (var txExecution in store.TxExecutions[txId])
         {
-            yield return GetBlock(store, blockHash);
+            yield return GetBlock(store, txExecution.BlockHash);
         }
     }
 
@@ -202,26 +201,27 @@ public class StoreCommand
 
     private static IEnumerable<int> BuildTxIdBlockHashIndex(Libplanet.Store.Store store, int offset, int limit)
     {
-        if (store.ChainId == Guid.Empty)
-        {
-            throw Utils.Error("Cannot find the main branch of the blockchain.");
-        }
+        throw new NotImplementedException("This method cannot be used");
+        // if (store.ChainId == Guid.Empty)
+        // {
+        //     throw Utils.Error("Cannot find the main branch of the blockchain.");
+        // }
 
-        var index = offset;
-        var chain = store.GetOrAdd(store.ChainId);
-        foreach (BlockHash blockHash in chain.BlockHashes.IterateIndexes(offset, limit))
-        {
-            yield return index++;
-            if (!store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
-            {
-                throw Utils.Error(
-                    $"Block is missing for BlockHash: {blockHash} index: {index}.");
-            }
+        // var index = offset;
+        // var chain = store.Chain;
+        // foreach (BlockHash blockHash in chain.BlockHashes.IterateIndexes(offset, limit))
+        // {
+        //     yield return index++;
+        //     if (!store.BlockDigests.TryGetValue(blockHash, out var blockDigest))
+        //     {
+        //         throw Utils.Error(
+        //             $"Block is missing for BlockHash: {blockHash} index: {index}.");
+        //     }
 
-            foreach (TxId txId in blockDigest.TxIds)
-            {
-                store.BlockHashesByTxId.Add(txId, blockHash);
-            }
-        }
+        //     foreach (var txId in blockDigest.TxIds)
+        //     {
+        //         store.TxExecutions.Add(txId, blockHash);
+        //     }
+        // }
     }
 }
