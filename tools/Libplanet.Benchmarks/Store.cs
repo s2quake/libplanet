@@ -132,7 +132,7 @@ public class Store
     [Benchmark]
     public void PutFirstTx()
     {
-        _store.Transactions.Add(Txs[0]);
+        _store.PendingTransactions.Add(Txs[0]);
     }
 
     [IterationSetup(
@@ -148,7 +148,7 @@ public class Store
         int i = 0;
         foreach (Transaction tx in Txs)
         {
-            _store.Transactions.Add(tx);
+            _store.PendingTransactions.Add(tx);
             i++;
             if (i >= Txs.Length - 1)
             {
@@ -160,7 +160,7 @@ public class Store
     [Benchmark]
     public void PutTxOnManyTxs()
     {
-        _store.Transactions.Add(Txs[TxsCount - 1]);
+        _store.PendingTransactions.Add(Txs[TxsCount - 1]);
     }
 
     [Benchmark]
@@ -170,7 +170,7 @@ public class Store
         // because without this JIT can remove the below statement at all
         // during dead code elimination optimization.
         // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-        return _store.Transactions[Txs[0].Id];
+        return _store.PendingTransactions[Txs[0].Id];
     }
 
     [Benchmark]
@@ -180,7 +180,7 @@ public class Store
         // because without this JIT can remove the below statement at all
         // during dead code elimination optimization.
         // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-        return _store.Transactions[Txs[TxsCount - 2].Id];
+        return _store.PendingTransactions[Txs[TxsCount - 2].Id];
     }
 
     [Benchmark]
@@ -190,6 +190,6 @@ public class Store
         // because without this JIT can remove the below statement at all
         // during dead code elimination optimization.
         // https://benchmarkdotnet.org/articles/guides/good-practices.html#avoid-dead-code-elimination
-        return _store.Transactions[default];
+        return _store.PendingTransactions[default];
     }
 }

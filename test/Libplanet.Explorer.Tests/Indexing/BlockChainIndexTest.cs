@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Serialization;
+using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
@@ -41,12 +42,12 @@ public abstract class BlockChainIndexTest
             ChainFx.PrivateKeys[0],
             chain.GetBlockCommit(chain.Tip.BlockHash));
         await index.IndexAsync(
-            ModelSerializer.Deserialize<Store.BlockDigest>(ModelSerializer.Serialize(block1)),
+            ModelSerializer.Deserialize<BlockDigest>(ModelSerializer.Serialize(block1)),
             block1.Transactions,
             CancellationToken.None);
         await Assert.ThrowsAsync<IndexMismatchException>(
             async () => await index.IndexAsync(
-            ModelSerializer.Deserialize<Store.BlockDigest>(ModelSerializer.Serialize(block2)),
+            ModelSerializer.Deserialize<BlockDigest>(ModelSerializer.Serialize(block2)),
             block2.Transactions,
             CancellationToken.None));
     }

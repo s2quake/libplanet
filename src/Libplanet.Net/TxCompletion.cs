@@ -197,7 +197,7 @@ namespace Libplanet.Net
                 .Where(txId =>
                     !_blockChain.StagedTransactions.Ignores(txId)
                         && _blockChain.StagedTransactions.Get(txId, filtered: false) is null
-                        && _blockChain.Store.Transactions[txId] is null));
+                        && _blockChain.Store.PendingTransactions[txId] is null));
         }
 
         private class TxFetchJob

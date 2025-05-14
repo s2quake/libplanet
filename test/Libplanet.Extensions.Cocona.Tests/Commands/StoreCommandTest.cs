@@ -91,15 +91,15 @@ public sealed class StoreCommandTest : IDisposable
 
             store.BlockDigests.Add(_block1);
             chain.BlockHashes.Add(_block1);
-            store.Transactions.Add(_transaction1);
+            store.PendingTransactions.Add(_transaction1);
 
             store.BlockDigests.Add(_block2);
             chain.BlockHashes.Add(_block2);
-            store.Transactions.Add(_transaction2);
+            store.PendingTransactions.Add(_transaction2);
 
             store.BlockDigests.Add(_block3);
             chain.BlockHashes.Add(_block3);
-            store.Transactions.Add(_transaction3);
+            store.PendingTransactions.Add(_transaction3);
 
             store.BlockDigests.Add(_block4);
             chain.BlockHashes.Add(_block4);
