@@ -305,7 +305,6 @@ public abstract class StoreTest
 
         var aId = Guid.NewGuid();
         Assert.Throws<KeyNotFoundException>(() => store.ChainId = aId);
-        store.ChainId = aId;
         var a = store.Chains.GetOrAdd(aId);
         store.ChainId = aId;
         Assert.Equal(aId, store.ChainId);
@@ -604,190 +603,205 @@ public abstract class StoreTest
             chain.BlockHashes.IterateHeights(1, 1));
     }
 
-    //     [Fact]
-    //     public void TxNonce()
-    //     {
-    //         Assert.Equal(0, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
-    //         Assert.Equal(0, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
+    [Fact]
+    public void TxNonce()
+    {
+        var chain = Fx.Store.Chains.GetOrAdd(Fx.StoreChainId);
+        Assert.Equal(0, chain.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(0, chain.GetNonce(Fx.Transaction2.Signer));
 
-    //         store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction1.Signer);
-    //         Assert.Equal(1, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
-    //         Assert.Equal(0, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
-    //         Assert.Equal(
-    //             new Dictionary<Address, long>
-    //             {
-    //                 [Fx.Transaction1.Signer] = 1,
-    //             },
-    //             store.GetNonceCollection(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
+        chain.IncreaseNonce(Fx.Transaction1.Signer);
+        Assert.Equal(1, chain.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(0, chain.GetNonce(Fx.Transaction2.Signer));
+        Assert.Equal(
+            new Dictionary<Address, long>
+            {
+                [Fx.Transaction1.Signer] = 1,
+            }.ToImmutableSortedDictionary(),
+            chain.Nonces.ToImmutableSortedDictionary());
 
-    //         store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction2.Signer, 5);
-    //         Assert.Equal(1, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
-    //         Assert.Equal(5, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
-    //         Assert.Equal(
-    //             new Dictionary<Address, long>
-    //             {
-    //                 [Fx.Transaction1.Signer] = 1,
-    //                 [Fx.Transaction2.Signer] = 5,
-    //             },
-    //             store.GetNonceCollection(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
+        chain.IncreaseNonce(Fx.Transaction2.Signer, 5);
+        Assert.Equal(1, chain.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(5, chain.GetNonce(Fx.Transaction2.Signer));
+        Assert.Equal(
+            new Dictionary<Address, long>
+            {
+                [Fx.Transaction1.Signer] = 1,
+                [Fx.Transaction2.Signer] = 5,
+            }.ToImmutableSortedDictionary(),
+            chain.Nonces.ToImmutableSortedDictionary());
 
-    //         store.GetNonceCollection(Fx.StoreChainId).Increase(Fx.Transaction1.Signer, 2);
-    //         Assert.Equal(3, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction1.Signer]);
-    //         Assert.Equal(5, store.GetNonceCollection(Fx.StoreChainId)[Fx.Transaction2.Signer]);
-    //         Assert.Equal(
-    //             new Dictionary<Address, long>
-    //             {
-    //                 [Fx.Transaction1.Signer] = 3,
-    //                 [Fx.Transaction2.Signer] = 5,
-    //             },
-    //             store.GetNonceCollection(Fx.StoreChainId).ToDictionary(p => p.Key, p => p.Value));
-    //     }
+        chain.IncreaseNonce(Fx.Transaction1.Signer, 2);
+        Assert.Equal(3, chain.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(5, chain.GetNonce(Fx.Transaction2.Signer));
+        Assert.Equal(
+            new Dictionary<Address, long>
+            {
+                [Fx.Transaction1.Signer] = 3,
+                [Fx.Transaction2.Signer] = 5,
+            }.ToImmutableSortedDictionary(),
+            chain.Nonces.ToImmutableSortedDictionary());
+    }
 
-    //     [Fact]
-    //     public void ListTxNonces()
-    //     {
-    //         var chainId1 = Guid.NewGuid();
-    //         var chainId2 = Guid.NewGuid();
+    [Fact]
+    public void ListTxNonces()
+    {
+        var store = Fx.Store;
+        var chainId1 = Guid.NewGuid();
+        var chainId2 = Guid.NewGuid();
+        var chain1 = store.Chains.GetOrAdd(chainId1);
+        var chain2 = store.Chains.GetOrAdd(chainId2);
 
-    //         Address address1 = Fx.Address1;
-    //         Address address2 = Fx.Address2;
+        var address1 = Fx.Address1;
+        var address2 = Fx.Address2;
 
-    //         Assert.Empty(store.GetNonceCollection(chainId1));
-    //         Assert.Empty(store.GetNonceCollection(chainId2));
+        Assert.Empty(chain1.Nonces);
+        Assert.Empty(chain2.Nonces);
 
-    //         store.GetNonceCollection(chainId1).Increase(address1);
-    //         Assert.Equal(
-    //             new Dictionary<Address, long> { [address1] = 1, },
-    //             store.GetNonceCollection(chainId1));
+        chain1.IncreaseNonce(address1);
+        Assert.Equal(
+            new Dictionary<Address, long>
+            {
+                [address1] = 1,
+            }.ToImmutableSortedDictionary(),
+            chain1.Nonces.ToImmutableSortedDictionary());
 
-    //         store.GetNonceCollection(chainId2).Increase(address2);
-    //         Assert.Equal(
-    //             new Dictionary<Address, long> { [address2] = 1, },
-    //             store.GetNonceCollection(chainId2));
+        chain2.IncreaseNonce(address2);
+        Assert.Equal(
+            new Dictionary<Address, long>
+            {
+                [address2] = 1,
+            }.ToImmutableSortedDictionary(),
+            chain2.Nonces.ToImmutableSortedDictionary());
 
-    //         store.GetNonceCollection(chainId1).Increase(address1);
-    //         store.GetNonceCollection(chainId1).Increase(address2);
-    //         Assert.Equal(
-    //             ImmutableSortedDictionary<Address, long>.Empty
-    //                 .Add(address1, 2)
-    //                 .Add(address2, 1),
-    //             store.GetNonceCollection(chainId1).ToImmutableSortedDictionary());
+        chain1.IncreaseNonce(address1);
+        chain1.IncreaseNonce(address2);
+        Assert.Equal(
+            ImmutableSortedDictionary<Address, long>.Empty
+                .Add(address1, 2)
+                .Add(address2, 1),
+            chain1.Nonces.ToImmutableSortedDictionary());
 
-    //         store.GetNonceCollection(chainId2).Increase(address1);
-    //         store.GetNonceCollection(chainId2).Increase(address2);
-    //         Assert.Equal(
-    //             ImmutableSortedDictionary<Address, long>.Empty
-    //                 .Add(address1, 1)
-    //                 .Add(address2, 2),
-    //             store.GetNonceCollection(chainId2).ToImmutableSortedDictionary());
-    //     }
+        chain2.IncreaseNonce(address1);
+        chain2.IncreaseNonce(address2);
+        Assert.Equal(
+            ImmutableSortedDictionary<Address, long>.Empty
+                .Add(address1, 1)
+                .Add(address2, 2),
+            chain2.Nonces.ToImmutableSortedDictionary());
+    }
 
-    //     [Fact]
-    //     public void IndexBlockHashReturnNull()
-    //     {
-    //         store.BlockDigests.Add(Fx.Block1);
-    //         // store.AppendIndex(Fx.StoreChainId, Fx.Block1.BlockHash);
-    //         Assert.Equal(1, store.Chains[Fx.StoreChainId].Height);
-    //         Assert.Throws<KeyNotFoundException>(() => store.GetBlockHashes(Fx.StoreChainId)[2]);
-    //     }
+    [Fact]
+    public void IndexBlockHashReturnNull()
+    {
+        var store = Fx.Store;
+        var chain = store.Chains.GetOrAdd(Fx.StoreChainId);
+        store.BlockDigests.Add(Fx.Block1);
+        chain.BlockHashes.Add(1, Fx.Block1.BlockHash);
+        Assert.Equal(1, chain.Height);
+        Assert.Throws<KeyNotFoundException>(() => chain.BlockHashes[2]);
+    }
 
-    //     [Fact]
-    //     public void ContainsBlockWithoutCache()
-    //     {
-    //         store.BlockDigests.Add(Fx.Block1);
-    //         store.BlockDigests.Add(Fx.Block2);
-    //         store.BlockDigests.Add(Fx.Block3);
+    [Fact]
+    public void ContainsBlockWithoutCache()
+    {
+        var store = Fx.Store;
+        store.BlockDigests.Add(Fx.Block1);
+        store.BlockDigests.Add(Fx.Block2);
+        store.BlockDigests.Add(Fx.Block3);
 
-    //         Assert.True(store.Blocks.ContainsKey(Fx.Block1.BlockHash));
-    //         Assert.True(store.Blocks.ContainsKey(Fx.Block2.BlockHash));
-    //         Assert.True(store.Blocks.ContainsKey(Fx.Block3.BlockHash));
-    //     }
+        Assert.True(store.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
+        Assert.True(store.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
+        Assert.True(store.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
+    }
 
-    //     [Fact]
-    //     public void ContainsTransactionWithoutCache()
-    //     {
-    //         store.Transactions.Add(Fx.Transaction1);
-    //         store.Transactions.Add(Fx.Transaction2);
-    //         store.Transactions.Add(Fx.Transaction3);
+    [Fact]
+    public void ContainsTransactionWithoutCache()
+    {
+        var store = Fx.Store;
+        store.Transactions.Add(Fx.Transaction1);
+        store.Transactions.Add(Fx.Transaction2);
+        store.Transactions.Add(Fx.Transaction3);
 
-    //         Assert.True(store.Transactions.ContainsKey(Fx.Transaction1.Id));
-    //         Assert.True(store.Transactions.ContainsKey(Fx.Transaction2.Id));
-    //         Assert.True(store.Transactions.ContainsKey(Fx.Transaction3.Id));
-    //     }
+        Assert.True(store.Transactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.True(store.Transactions.ContainsKey(Fx.Transaction2.Id));
+        Assert.True(store.Transactions.ContainsKey(Fx.Transaction3.Id));
+    }
 
-    //     [Fact]
-    //     public void TxAtomicity()
-    //     {
-    //         Transaction MakeTx(
-    //             System.Random random,
-    //             MD5 md5,
-    //             PrivateKey key,
-    //             int txNonce)
-    //         {
-    //             byte[] arbitraryBytes = new byte[20];
-    //             random.NextBytes(arbitraryBytes);
-    //             byte[] digest = md5.ComputeHash(arbitraryBytes);
-    //             var action = new AtomicityTestAction
-    //             {
-    //                 ArbitraryBytes = [.. arbitraryBytes],
-    //                 Md5Digest = [.. digest],
-    //             };
-    //             return Transaction.Create(
-    //                 txNonce,
-    //                 key,
-    //                 default,
-    //                 new[] { action }.ToBytecodes(),
-    //                 null,
-    //                 0L,
-    //                 DateTimeOffset.UtcNow);
-    //         }
+    [Fact]
+    public async Task TxAtomicity()
+    {
+        Transaction MakeTx(
+            System.Random random,
+            MD5 md5,
+            PrivateKey key,
+            int txNonce)
+        {
+            byte[] arbitraryBytes = new byte[20];
+            random.NextBytes(arbitraryBytes);
+            byte[] digest = md5.ComputeHash(arbitraryBytes);
+            var action = new AtomicityTestAction
+            {
+                ArbitraryBytes = [.. arbitraryBytes],
+                Md5Digest = [.. digest],
+            };
+            return Transaction.Create(
+                txNonce,
+                key,
+                default,
+                new[] { action }.ToBytecodes(),
+                null,
+                0L,
+                DateTimeOffset.UtcNow);
+        }
 
-    //         const int taskCount = 5;
-    //         const int txCount = 30;
-    //         var md5Hasher = MD5.Create();
-    //         Transaction commonTx = MakeTx(
-    //             new System.Random(),
-    //             md5Hasher,
-    //             new PrivateKey(),
-    //             0);
-    //         Task[] tasks = new Task[taskCount];
-    //         for (int i = 0; i < taskCount; i++)
-    //         {
-    //             var task = new Task(() =>
-    //             {
-    //                 PrivateKey key = new PrivateKey();
-    //                 var random = new System.Random();
-    //                 var md5 = MD5.Create();
-    //                 Transaction tx;
-    //                 for (int j = 0; j < 50; j++)
-    //                 {
-    //                     store.Transactions.Add(commonTx);
-    //                 }
+        const int taskCount = 5;
+        const int txCount = 30;
+        var store = Fx.Store;
+        var md5Hasher = MD5.Create();
+        Transaction commonTx = MakeTx(
+            new System.Random(),
+            md5Hasher,
+            new PrivateKey(),
+            0);
+        Task[] tasks = new Task[taskCount];
+        for (int i = 0; i < taskCount; i++)
+        {
+            var task = new Task(() =>
+            {
+                var key = new PrivateKey();
+                var random = new System.Random();
+                var md5 = MD5.Create();
+                Transaction tx;
+                for (int j = 0; j < 50; j++)
+                {
+                    store.Transactions.TryAdd(commonTx.Id, commonTx);
+                }
 
-    //                 for (int j = 0; j < txCount; j++)
-    //                 {
-    //                     tx = MakeTx(random, md5, key, j + 1);
-    //                     store.Transactions.Add(tx);
-    //                 }
-    //             });
-    //             task.Start();
-    //             tasks[i] = task;
-    //         }
+                for (int j = 0; j < txCount; j++)
+                {
+                    tx = MakeTx(random, md5, key, j + 1);
+                    store.Transactions.TryAdd(tx.Id, tx);
+                }
+            });
+            task.Start();
+            tasks[i] = task;
+        }
 
-    //         try
-    //         {
-    //             Task.WaitAll(tasks);
-    //         }
-    //         catch (AggregateException e)
-    //         {
-    //             foreach (Exception innerException in e.InnerExceptions)
-    //             {
-    //                 TestOutputHelper.WriteLine(innerException.ToString());
-    //             }
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (AggregateException e)
+        {
+            foreach (Exception innerException in e.InnerExceptions)
+            {
+                TestOutputHelper.WriteLine(innerException.ToString());
+            }
 
-    //             throw;
-    //         }
-    //     }
+            throw;
+        }
+    }
 
     //     [Fact]
     //     public void ForkBlockIndex()
@@ -1216,47 +1230,45 @@ public abstract class StoreTest
     //         }
     //     }
 
-    //     [Fact]
-    //     public void ManipulatePendingEvidence()
-    //     {
-    //         using (StoreFixture fx = FxConstructor())
-    //         {
-    //             var signer = TestUtils.ValidatorPrivateKeys[0];
-    //             var duplicateVote = ImmutableArray<Vote>.Empty
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block1.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer))
-    //                 .Add(new VoteMetadata
-    //                 {
-    //                     Height = 1,
-    //                     Round = 0,
-    //                     BlockHash = fx.Block2.BlockHash,
-    //                     Timestamp = DateTimeOffset.UtcNow,
-    //                     ValidatorPublicKey = signer.PublicKey,
-    //                     ValidatorPower = BigInteger.One,
-    //                     Flag = VoteFlag.PreCommit,
-    //                 }.Sign(signer));
-    //             var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
+    [Fact]
+    public void ManipulatePendingEvidence()
+    {
+        var store = Fx.Store;
+        var signer = TestUtils.ValidatorPrivateKeys[0];
+        var duplicateVote = ImmutableArray<Vote>.Empty
+            .Add(new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = Fx.Block1.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer))
+            .Add(new VoteMetadata
+            {
+                Height = 1,
+                Round = 0,
+                BlockHash = Fx.Block2.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidatorPublicKey = signer.PublicKey,
+                ValidatorPower = BigInteger.One,
+                Flag = VoteFlag.PreCommit,
+            }.Sign(signer));
+        var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 
-    //             Assert.DoesNotContain(evidence.Id, fx.Store.PendingEvidences.Keys);
+        Assert.DoesNotContain(evidence.Id, store.PendingEvidences.Keys);
 
-    //             fx.Store.PendingEvidences.Add(evidence);
-    //             EvidenceBase storedEvidence = fx.Store.PendingEvidences[evidence.Id];
+        store.PendingEvidences.Add(evidence);
+        EvidenceBase storedEvidence = store.PendingEvidences[evidence.Id];
 
-    //             Assert.Equal(evidence, storedEvidence);
-    //             Assert.Contains(evidence.Id, fx.Store.PendingEvidences.Keys);
+        Assert.Equal(evidence, storedEvidence);
+        Assert.Contains(evidence.Id, store.PendingEvidences.Keys);
 
-    //             fx.Store.PendingEvidences.Remove(evidence.Id);
-    //             Assert.DoesNotContain(evidence.Id, fx.Store.PendingEvidences.Keys);
-    //         }
-    //     }
+        store.PendingEvidences.Remove(evidence.Id);
+        Assert.DoesNotContain(evidence.Id, store.PendingEvidences.Keys);
+    }
 
     //     [Fact]
     //     public void ManipulateCommittedEvidence()
