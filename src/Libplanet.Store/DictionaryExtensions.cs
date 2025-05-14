@@ -1,23 +1,16 @@
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
+using Libplanet.Types;
 
 namespace Libplanet.Store;
 
 public static class DictionaryExtensions
 {
-    public static void Add(this IDictionary<EvidenceId, EvidenceBase> @this, EvidenceBase evidence)
-        => @this.Add(evidence.Id, evidence);
+    public static void Add<TKey, TValue>(this IDictionary<TKey, TValue> @this, TValue value)
+        where TKey : notnull
+        where TValue : IHasKey<TKey>
+        => @this.Add(value.Key, value);
 
-    public static void Add(this IDictionary<TxId, Transaction> @this, Transaction transaction)
-        => @this.Add(transaction.Id, transaction);
-
-    public static void Add(this IDictionary<BlockHash, BlockCommit> @this, BlockCommit blockCommits)
-        => @this.Add(blockCommits.BlockHash, blockCommits);
-
-    public static void Remove(this IDictionary<EvidenceId, EvidenceBase> @this, EvidenceBase evidence)
-        => @this.Remove(evidence.Id);
-
-    public static void Remove(this IDictionary<BlockHash, BlockCommit> @this, BlockCommit blockCommit)
-        => @this.Remove(blockCommit.BlockHash);
+    public static void Remove<TKey, TValue>(this IDictionary<TKey, TValue> @this, TValue value)
+        where TKey : notnull
+        where TValue : IHasKey<TKey>
+        => @this.Remove(value.Key);
 }

@@ -7,25 +7,27 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableObject
+public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableObject, IHasKey<BlockHash>
 {
     public static BlockCommit Empty { get; } = new();
 
     [Property(0)]
-    [NonNegative]
-    public int Height { get; init; }
+    public BlockHash BlockHash { get; init; }
 
     [Property(1)]
     [NonNegative]
-    public int Round { get; init; }
+    public int Height { get; init; }
 
     [Property(2)]
-    public BlockHash BlockHash { get; init; }
+    [NonNegative]
+    public int Round { get; init; }
 
     [Property(3)]
     [NotDefault]
     [NotEmpty]
     public ImmutableArray<Vote> Votes { get; init; } = [];
+
+    BlockHash IHasKey<BlockHash>.Key => BlockHash;
 
     public bool Equals(BlockCommit? other) => ModelUtility.Equals(this, other);
 

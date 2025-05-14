@@ -1,8 +1,11 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using Libplanet.Store.Trie;
+using Libplanet.Types;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Store;
 
@@ -12,8 +15,8 @@ public abstract class CollectionBase<TKey, TValue>
     where TValue : notnull
 {
     private readonly ICache<TKey, TValue> _cache;
-
     private readonly IDictionary<KeyBytes, byte[]> _dictionary;
+    private readonly ReaderWriterLockSlim _lock = new();
 
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
@@ -47,6 +50,7 @@ public abstract class CollectionBase<TKey, TValue>
         get
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
+            using var scope = new ReadScope(_lock);
             if (_cache.TryGet(key, out var value))
             {
                 return value;
@@ -65,6 +69,7 @@ public abstract class CollectionBase<TKey, TValue>
         set
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
+            using var scope = new WriteScope(_lock);
             OnSet(key, value);
             _dictionary[GetKeyBytes(key)] = GetBytes(value);
             _cache.AddOrUpdate(key, value);
@@ -75,6 +80,7 @@ public abstract class CollectionBase<TKey, TValue>
     public bool Remove(TKey key)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
         OnRemove(key);
         if (_cache.TryRemove(key, out var value))
         {
@@ -92,18 +98,71 @@ public abstract class CollectionBase<TKey, TValue>
         return false;
     }
 
+    public bool TryAdd(TKey key, TValue value)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+        if (_cache.TryGet(key, out _))
+        {
+            return false;
+        }
+
+        if (_dictionary.ContainsKey(GetKeyBytes(key)))
+        {
+            return false;
+        }
+
+        OnAdd(key, value);
+        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _cache.AddOrUpdate(key, value);
+        OnAddComplete(key, value);
+        return true;
+    }
+
     public void Add(TKey key, TValue value)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
+
+        using var scope = new WriteScope(_lock);
         OnAdd(key, value);
         _dictionary.Add(GetKeyBytes(key), GetBytes(value));
         _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
     }
 
+    public void Add<T>(T value)
+        where T : TValue, IHasKey<TKey>
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+
+        using var scope = new WriteScope(_lock);
+        var key = value.Key;
+        OnAdd(key, value);
+        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _cache.AddOrUpdate(key, value);
+        OnAddComplete(key, value);
+    }
+
+    public void AddRange<T>(IEnumerable<T> values)
+        where T : TValue, IHasKey<TKey>
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+
+        using var scope = new WriteScope(_lock);
+        foreach (var value in values)
+        {
+            var key = value.Key;
+            OnAdd(key, value);
+            _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+            _cache.AddOrUpdate(key, value);
+            OnAddComplete(key, value);
+        }
+    }
+
     public bool ContainsKey(TKey key)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new ReadScope(_lock);
         if (_cache.TryGet(key, out _))
         {
             return true;
@@ -115,6 +174,7 @@ public abstract class CollectionBase<TKey, TValue>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new ReadScope(_lock);
         if (_cache.TryGet(key, out value) && value is not null)
         {
             return true;
@@ -134,6 +194,7 @@ public abstract class CollectionBase<TKey, TValue>
     public void Clear()
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
         OnClear();
         _cache.Clear();
         _dictionary.Clear();

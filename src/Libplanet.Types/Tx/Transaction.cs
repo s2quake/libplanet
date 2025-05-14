@@ -11,7 +11,7 @@ namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
 public sealed record class Transaction
-    : IEquatable<Transaction>, IComparable<Transaction>, IComparable, IValidatableObject
+    : IEquatable<Transaction>, IComparable<Transaction>, IComparable, IValidatableObject, IHasKey<TxId>
 {
     private TxId? _id;
 
@@ -41,6 +41,8 @@ public sealed record class Transaction
     public DateTimeOffset Timestamp => UnsignedTx.Timestamp;
 
     public BlockHash? GenesisHash => UnsignedTx.GenesisHash;
+
+    TxId IHasKey<TxId>.Key => Id;
 
     public static Transaction Create(UnsignedTx unsignedTx, ImmutableArray<byte> signature) => new()
     {
