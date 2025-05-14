@@ -21,7 +21,7 @@ public static class NodeDecoder
     public const NodeTypes HashEmbeddedNodeTypes =
         NodeTypes.Value | NodeTypes.Short | NodeTypes.Full;
 
-    public static INode? Decode(IValue value, NodeTypes nodeTypes, IDictionary<KeyBytes, byte[]> keyValueStore)
+    public static INode? Decode(IValue value, NodeTypes nodeTypes, ITable table)
     {
         if (value is List list)
         {
@@ -29,7 +29,7 @@ public static class NodeDecoder
             {
                 if ((nodeTypes & NodeTypes.Full) == NodeTypes.Full)
                 {
-                    return DecodeFull(list, keyValueStore);
+                    return DecodeFull(list, table);
                 }
             }
             else if (list.Count == 2)
@@ -38,7 +38,7 @@ public static class NodeDecoder
                 {
                     if ((nodeTypes & NodeTypes.Short) == NodeTypes.Short)
                     {
-                        return DecodeShort(list, keyValueStore);
+                        return DecodeShort(list, table);
                     }
                 }
                 else if (list[0] is Null)
@@ -54,7 +54,7 @@ public static class NodeDecoder
         {
             if ((nodeTypes & NodeTypes.Hash) == NodeTypes.Hash)
             {
-                return DecodeHash(binary, keyValueStore);
+                return DecodeHash(binary, table);
             }
         }
         else if (value is Null)
@@ -75,7 +75,7 @@ public static class NodeDecoder
     private static ValueNode DecodeValue(List list) => new(list[1]);
 
     // The length and the first element are already checked.
-    private static ShortNode DecodeShort(List list, IDictionary<KeyBytes, byte[]> keyValueStore)
+    private static ShortNode DecodeShort(List list, ITable table)
     {
         if (list[0] is not Binary binary)
         {
@@ -83,7 +83,7 @@ public static class NodeDecoder
             throw new InvalidTrieNodeException(message);
         }
 
-        if (Decode(list[1], ShortValueNodeTypes, keyValueStore) is not { } node)
+        if (Decode(list[1], ShortValueNodeTypes, table) is not { } node)
         {
             var message = $"Failed to decode a {nameof(ShortNode)} from given " +
                           $"{nameof(list)}: {list}";
@@ -95,26 +95,26 @@ public static class NodeDecoder
     }
 
     // The length is already checked.
-    private static FullNode DecodeFull(List list, IDictionary<KeyBytes, byte[]> keyValueStore)
+    private static FullNode DecodeFull(List list, ITable table)
     {
         var builder = ImmutableDictionary.CreateBuilder<byte, INode>();
         for (var i = 0; i < list.Count - 1; i++)
         {
-            var node = Decode(list[i], FullChildNodeTypes, keyValueStore);
+            var node = Decode(list[i], FullChildNodeTypes, table);
             if (node is not null)
             {
                 builder.Add((byte)i, node);
             }
         }
 
-        var value = Decode(list[FullNode.MaximumIndex], FullValueNodeTypes, keyValueStore);
+        var value = Decode(list[FullNode.MaximumIndex], FullValueNodeTypes, table);
 
         return new FullNode(builder.ToImmutable(), value);
     }
 
-    private static HashNode DecodeHash(Binary binary, IDictionary<KeyBytes, byte[]> keyValueStore)
+    private static HashNode DecodeHash(Binary binary, ITable table)
         => new(new HashDigest<SHA256>(binary.ByteArray))
         {
-            KeyValueStore = keyValueStore,
+            Table = table,
         };
 }
