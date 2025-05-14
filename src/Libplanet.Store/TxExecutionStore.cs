@@ -15,10 +15,16 @@ public sealed class TxExecutionStore(IDatabase database)
         {
             if (TryGetValue(txId, out var txExecutions))
             {
-                return txExecutions.First(txExecution => txExecution.BlockHash == blockHash);
+                var txExecution = txExecutions.FirstOrDefault(txExecution => txExecution.BlockHash == blockHash);
+                if (txExecution == default)
+                {
+                    throw new KeyNotFoundException($"No such key: {txId}, {blockHash}.");
+                }
+
+                return txExecution;
             }
 
-            throw new KeyNotFoundException($"No such key: ${txId}.");
+            throw new KeyNotFoundException($"No such key: {txId}.");
         }
     }
 
@@ -27,6 +33,11 @@ public sealed class TxExecutionStore(IDatabase database)
         if (!TryGetValue(txExecution.TxId, out var txExecutions))
         {
             txExecutions = [];
+        }
+
+        if (txExecutions.Contains(txExecution))
+        {
+            throw new InvalidOperationException($"Already contains {txExecution}.");
         }
 
         this[txExecution.TxId] = txExecutions.Add(txExecution);
@@ -70,6 +81,30 @@ public sealed class TxExecutionStore(IDatabase database)
         }
 
         return null;
+    }
+
+    public bool Remove(TxId txId, BlockHash blockHash)
+    {
+        if (TryGetValue(txId, out var txExecutions))
+        {
+            var txExecution = txExecutions.FirstOrDefault(txExecution => txExecution.BlockHash == blockHash);
+            if (txExecution != null)
+            {
+                txExecutions = txExecutions.Remove(txExecution);
+                if (txExecutions.Length == 0)
+                {
+                    Remove(txId);
+                }
+                else
+                {
+                    this[txId] = txExecutions;
+                }
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected override byte[] GetBytes(ImmutableArray<TxExecution> value) => ModelSerializer.SerializeToBytes(value);

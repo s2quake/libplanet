@@ -76,11 +76,13 @@ public abstract class CollectionBase<TKey, TValue>
         {
             _dictionary.Remove(GetKeyBytes(key));
             OnRemoveComplete(key, value);
+            return true;
         }
         else if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
         {
             value = GetValue(bytes);
             OnRemoveComplete(key, value);
+            return true;
         }
 
         return false;
