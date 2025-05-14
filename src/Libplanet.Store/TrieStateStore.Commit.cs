@@ -10,7 +10,6 @@ public partial class TrieStateStore
 {
     private static readonly Codec _codec = new Codec();
 
-    /// <inheritdoc cref="TrieStateStore.Commit"/>
     public ITrie Commit(ITrie trie)
     {
         var root = trie.Node;
@@ -30,7 +29,7 @@ public partial class TrieStateStore
             HashDigest<SHA256> hashDigest = HashDigest<SHA256>.Create(serialized);
 
             writeBatch.Add(new KeyBytes(hashDigest.Bytes), serialized);
-            newRoot = new HashNode(hashDigest) { KeyValueStore = keyValueStore };
+            newRoot = new HashNode(hashDigest) { Table = table };
         }
 
         writeBatch.Flush();
@@ -117,11 +116,11 @@ public partial class TrieStateStore
 
     private class WriteBatch
     {
-        private readonly IDictionary<KeyBytes, byte[]> _store;
+        private readonly ITable _store;
         private readonly int _batchSize;
         private readonly Dictionary<KeyBytes, byte[]> _batch;
 
-        public WriteBatch(IDictionary<KeyBytes, byte[]> store, int batchSize)
+        public WriteBatch(ITable store, int batchSize)
         {
             _store = store;
             _batchSize = batchSize;
@@ -148,7 +147,7 @@ public partial class TrieStateStore
 
         public HashNode Create(HashDigest<SHA256> nodeHash)
         {
-            return new HashNode(nodeHash) { KeyValueStore = _store };
+            return new HashNode(nodeHash) { Table = _store };
         }
     }
 }

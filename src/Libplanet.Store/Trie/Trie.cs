@@ -29,9 +29,9 @@ public sealed partial record class Trie(INode Node) : ITrie
         => NodeResolver.ResolveToValue(Node, PathCursor.Create(key))
               ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
-    public static Trie Create(HashDigest<SHA256> hashDigest, IDictionary<KeyBytes, byte[]> keyValueStore)
+    public static Trie Create(HashDigest<SHA256> hashDigest, ITable table)
     {
-        var node = new HashNode(hashDigest) { KeyValueStore = keyValueStore };
+        var node = new HashNode(hashDigest) { Table = table };
         return new Trie(node) { IsCommitted = true };
     }
 

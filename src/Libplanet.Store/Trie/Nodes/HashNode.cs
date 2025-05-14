@@ -11,7 +11,7 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
 
     public HashDigest<SHA256> Hash { get; } = HashDigest;
 
-    public IDictionary<KeyBytes, byte[]>? KeyValueStore { get; init; }
+    public ITable? Table { get; init; }
 
     IEnumerable<INode> INode.Children
     {
@@ -30,10 +30,10 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
 
     public INode Expand()
     {
-        if (KeyValueStore is not { } keyValueStore)
+        if (Table is not { } table)
         {
             throw new InvalidOperationException(
-                $"{nameof(KeyValueStore)} must be set before calling {nameof(Expand)}.");
+                $"{nameof(Table)} must be set before calling {nameof(Expand)}.");
         }
 
         IValue intermediateValue;
@@ -44,9 +44,9 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
         else
         {
             var keyBytes = new KeyBytes(Hash.Bytes);
-            if (keyValueStore.TryGetValue(keyBytes, out var valueBytes))
+            if (table.TryGetValue(keyBytes, out var valueBytes))
             {
-                intermediateValue = _codec.Decode(keyValueStore[keyBytes]);
+                intermediateValue = _codec.Decode(table[keyBytes]);
                 HashNodeCache.AddOrUpdate(Hash, intermediateValue);
             }
             else
@@ -56,7 +56,7 @@ internal sealed record class HashNode(in HashDigest<SHA256> HashDigest) : INode
         }
 
         return NodeDecoder.Decode(
-            intermediateValue, NodeDecoder.HashEmbeddedNodeTypes, keyValueStore)
+            intermediateValue, NodeDecoder.HashEmbeddedNodeTypes, table)
                 ?? throw new UnreachableException(
                     $"Failed to decode the hash node with hash {Hash}.");
     }
