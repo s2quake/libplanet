@@ -31,48 +31,28 @@ public sealed class BlockHashStore(Guid chainId, IDatabase database)
         get
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
-            if (index.IsFromEnd)
-            {
-                return this[Count - index.Value];
-            }
-
-            if (index.Value < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
-            return base[index.Value];
+            return base[index.GetOffset(Height + 1)];
         }
 
         set
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
-            if (index.IsFromEnd)
-            {
-                base[Count - index.Value] = value;
-            }
-            else if (index.Value < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-            else
-            {
-                base[index.Value] = value;
-            }
+            base[index.GetOffset(Height + 1)] = value;
         }
     }
 
     public void Add(Block block) => Add(block.Height, block.BlockHash);
 
-    public IEnumerable<BlockHash> IterateHeights(int offset = 0, int? limit = null)
+    public IEnumerable<BlockHash> IterateHeights(int height = 0, int? limit = null)
     {
         if (IsDisposed)
         {
             yield break;
         }
 
-        var end = checked(limit is { } l ? offset + l : int.MaxValue);
-        for (var i = offset; i < end; i++)
+        var begin = height + GenesisHeight;
+        var end = checked(limit is { } l ? begin + l : int.MaxValue);
+        for (var i = begin; i < end; i++)
         {
             if (TryGetValue(i, out var blockHash))
             {
