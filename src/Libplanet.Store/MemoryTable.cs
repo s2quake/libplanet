@@ -4,7 +4,7 @@ using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 
-public sealed class MemoryKeyValueStore : KeyValueStoreBase
+public sealed class MemoryTable : TableBase
 {
     private readonly ConcurrentDictionary<KeyBytes, byte[]> _dictionary = new();
 

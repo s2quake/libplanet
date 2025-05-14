@@ -5,7 +5,7 @@ namespace Libplanet.Explorer.Tests.Indexing;
 
 public class RocksDbBlockChainIndexFixture: BlockChainIndexFixture
 {
-    public RocksDbBlockChainIndexFixture(Libplanet.Store.Store store)
+    public RocksDbBlockChainIndexFixture(Libplanet.Store.Repository store)
         : base(
             store,
             new RocksDbBlockChainIndex(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())))

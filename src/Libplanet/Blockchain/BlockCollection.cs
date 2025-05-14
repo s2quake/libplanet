@@ -9,7 +9,7 @@ namespace Libplanet.Blockchain;
 
 public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 {
-    private readonly Libplanet.Store.Store _store;
+    private readonly Libplanet.Store.Repository _store;
     private readonly Chain _chain;
     private readonly BlockDigestStore _blockDigests;
     private readonly BlockHashStore _blockHashes;
@@ -17,7 +17,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     private readonly ICache<int, Block> _cacheByHeight;
 
-    internal BlockCollection(Libplanet.Store.Store store, Guid chainId, int cacheSize = 4096)
+    internal BlockCollection(Libplanet.Store.Repository store, Guid chainId, int cacheSize = 4096)
     {
         _store = store;
         _chain = store.Chains.GetOrAdd(chainId);

@@ -30,7 +30,7 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
     public void ConstructorAcceptsRelativePath()
     {
         var path = Path.Combine(Path.GetTempPath(), $"defaultstore_{Guid.NewGuid()}");
-        var store = new Libplanet.Store.Store(new DefaultDatabase(path));
+        var store = new Libplanet.Store.Repository(new DefaultDatabase(path));
 
         store.PendingTransactions.Add(Fx.Transaction1);
 
@@ -40,7 +40,7 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
 
         // The following `identicalStore' instance should be identical to
         // the `store' instance above, i.e., views the same data.
-        var identicalStore = new Libplanet.Store.Store(new DefaultDatabase(path));
+        var identicalStore = new Libplanet.Store.Repository(new DefaultDatabase(path));
         Assert.Equal(Fx.Transaction1, identicalStore.PendingTransactions[Fx.Transaction1.Id]);
         Assert.Equal(Fx.Transaction2, identicalStore.PendingTransactions[Fx.Transaction2.Id]);
     }

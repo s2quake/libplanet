@@ -5,12 +5,12 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain;
 
-public sealed class StagedTransactionCollection(Libplanet.Store.Store store, Guid blockChainId, TimeSpan lifetime)
+public sealed class StagedTransactionCollection(Libplanet.Store.Repository store, Guid blockChainId, TimeSpan lifetime)
     : IEnumerable<StagedTransaction>
 {
     private readonly ConcurrentDictionary<TxId, StagedTransaction> _staged = new();
 
-    public StagedTransactionCollection(Libplanet.Store.Store store, Guid blockChainId)
+    public StagedTransactionCollection(Libplanet.Store.Repository store, Guid blockChainId)
         : this(store, blockChainId, TimeSpan.FromSeconds(10 * 60))
     {
     }

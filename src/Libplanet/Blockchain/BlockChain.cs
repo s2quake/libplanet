@@ -79,7 +79,7 @@ public partial class BlockChain
         if (!Genesis.Equals(genesisBlock))
         {
             string msg =
-                $"The genesis block that the given {nameof(Libplanet.Store.Store)} contains does not match " +
+                $"The genesis block that the given {nameof(Libplanet.Store.Repository)} contains does not match " +
                 "to the genesis block that the network expects.  You might pass the wrong " +
                 "store which is incompatible with this chain.  Or your network might " +
                 "restarted the chain with a new genesis block so that it is incompatible " +
@@ -119,7 +119,7 @@ public partial class BlockChain
 
     public Guid Id { get; private set; }
 
-    internal Store.Store Store { get; }
+    internal Store.Repository Store { get; }
 
     internal TrieStateStore StateStore { get; }
 

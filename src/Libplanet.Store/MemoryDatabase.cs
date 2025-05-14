@@ -1,6 +1,6 @@
 namespace Libplanet.Store;
 
-public sealed class MemoryDatabase : Database<MemoryKeyValueStore>
+public sealed class MemoryDatabase : Database<MemoryTable>
 {
-    protected override MemoryKeyValueStore Create(string key) => [];
+    protected override MemoryTable Create(string key) => [];
 }

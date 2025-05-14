@@ -1148,7 +1148,7 @@ public partial class ActionEvaluatorTest
             Memo = "CHARGE",
         };
 
-        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             options: new BlockChainOptions(),
@@ -1198,7 +1198,7 @@ public partial class ActionEvaluatorTest
             Memo = "CHARGE",
         };
 
-        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var chain = TestUtils.MakeBlockChain(
             options: new BlockChainOptions(),

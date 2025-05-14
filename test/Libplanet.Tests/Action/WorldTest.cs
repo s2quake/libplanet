@@ -135,7 +135,7 @@ public sealed class WorldTest
     [Fact]
     public void TransferAssetInBlock()
     {
-        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var privateKey = new PrivateKey();
         BlockChain chain = TestUtils.MakeBlockChain(

@@ -23,7 +23,7 @@ public class RocksDBStoreFixture : StoreFixture
     private static BlockChainOptions CreateOptions(BlockChainOptions options)
     {
         var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"rocksdb_test_{Guid.NewGuid()}");
-        var store = new Libplanet.Store.Store(new RocksDatabase(path));
+        var store = new Libplanet.Store.Repository(new RocksDatabase(path));
         return options with { Store = store };
     }
 

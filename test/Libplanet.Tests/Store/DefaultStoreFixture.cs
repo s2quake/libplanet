@@ -26,7 +26,7 @@ public sealed class DefaultStoreFixture(BlockChainOptions options, bool memory =
         //     BlockCacheSize = 2,
         //     TxCacheSize = 2,
         // };
-        var store = new Libplanet.Store.Store(new DefaultDatabase(path));
+        var store = new Libplanet.Store.Repository(new DefaultDatabase(path));
         return options with { Store = store };
     }
 

@@ -9,25 +9,25 @@ internal sealed class StoreService(IOptions<StoreOptions> storeOptions) : IStore
 {
     private TrieStateStore? _stateStore;
 
-    public Libplanet.Store.Store Store { get; } = CreateStore(storeOptions.Value);
+    public Libplanet.Store.Repository Store { get; } = CreateStore(storeOptions.Value);
 
-    public IKeyValueStore KeyValueStore { get; } = CreateKeyValueStore(storeOptions.Value);
+    public ITable KeyValueStore { get; } = CreateKeyValueStore(storeOptions.Value);
 
     public TrieStateStore StateStore => _stateStore ??= new TrieStateStore(KeyValueStore);
 
-    private static Libplanet.Store.Store CreateStore(StoreOptions storeOptions)
+    private static Libplanet.Store.Repository CreateStore(StoreOptions storeOptions)
         => storeOptions.Type switch
         {
-            StoreType.RocksDB => new Store.Store(new RocksDatabase(storeOptions.StoreName)),
-            StoreType.InMemory => new Libplanet.Store.Store(new MemoryDatabase()),
+            StoreType.RocksDB => new Store.Repository(new RocksDatabase(storeOptions.StoreName)),
+            StoreType.InMemory => new Libplanet.Store.Repository(new MemoryDatabase()),
             _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
         };
 
-    private static IKeyValueStore CreateKeyValueStore(StoreOptions storeOptions)
+    private static ITable CreateKeyValueStore(StoreOptions storeOptions)
         => storeOptions.Type switch
         {
             StoreType.RocksDB => new RocksDBKeyValueStore(storeOptions.StateStoreName),
-            StoreType.InMemory => new MemoryKeyValueStore(),
+            StoreType.InMemory => new MemoryTable(),
             _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
         };
 }

@@ -5,7 +5,7 @@ using BitFaster.Caching.Lru;
 namespace Libplanet.Store.Trie;
 
 public sealed class CacheableKeyValueStore(IDictionary<KeyBytes, byte[]> keyValueStore, int cacheSize = 100)
-    : KeyValueStoreBase, IDisposable
+    : TableBase, IDisposable
 {
     private readonly ICache<KeyBytes, byte[]> _cache = new ConcurrentLruBuilder<KeyBytes, byte[]>()
         .WithCapacity(cacheSize)

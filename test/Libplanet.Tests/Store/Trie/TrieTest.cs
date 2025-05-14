@@ -16,7 +16,7 @@ public class TrieTest
     [InlineData(1024)]
     public void GetAndSet(int addressCount)
     {
-        var keyValueStore = new MemoryKeyValueStore();
+        var keyValueStore = new MemoryTable();
         ITrie trie = Libplanet.Store.Trie.Trie.Create(hashDigest: default, keyValueStore);
 
         var addresses = Enumerable
@@ -52,7 +52,7 @@ public class TrieTest
     [InlineData(1024)]
     public void Commit(int addressCount)
     {
-        var keyValueStore = new MemoryKeyValueStore();
+        var keyValueStore = new MemoryTable();
         TrieStateStore stateStore = new TrieStateStore(keyValueStore);
         ITrie trieA = stateStore.GetStateRoot(default);
 
@@ -89,7 +89,7 @@ public class TrieTest
     [Fact]
     public void EmptyRootHash()
     {
-        var keyValueStore = new MemoryKeyValueStore();
+        var keyValueStore = new MemoryTable();
         TrieStateStore stateStore = new TrieStateStore(keyValueStore);
         ITrie trie = stateStore.GetStateRoot(default);
         Assert.Equal(default, trie.Hash);

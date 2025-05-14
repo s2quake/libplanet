@@ -30,7 +30,7 @@ namespace Libplanet.Net
         private readonly AsyncLock _runningMutex;
 
         private readonly ILogger _logger;
-        private readonly Libplanet.Store.Store _store;
+        private readonly Libplanet.Store.Repository _store;
         private readonly ConsensusReactor _consensusReactor;
 
         private CancellationTokenSource _workerCancellationTokenSource;

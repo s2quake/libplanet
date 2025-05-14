@@ -7,7 +7,7 @@ namespace Libplanet.Store;
 
 public static class StoreExtensions
 {
-    public static void Copy(this Store from, Store to)
+    public static void Copy(this Repository from, Repository to)
     {
         // if (to.Chains.Keys.Any())
         // {
@@ -37,6 +37,6 @@ public static class StoreExtensions
         // }
     }
 
-    public static HashDigest<SHA256> GetStateRootHash(this Libplanet.Store.Store store, BlockHash blockHash)
+    public static HashDigest<SHA256> GetStateRootHash(this Libplanet.Store.Repository store, BlockHash blockHash)
         => store.BlockDigests[blockHash].StateRootHash;
 }

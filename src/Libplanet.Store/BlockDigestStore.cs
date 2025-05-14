@@ -5,7 +5,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Store;
 
 public sealed class BlockDigestStore(IDatabase database)
-    : CollectionBase<BlockHash, BlockDigest>(database.GetOrAdd("block_digest"))
+    : StoreBase<BlockHash, BlockDigest>(database.GetOrAdd("block_digest"))
 {
     public void Add(Block block) => Add((BlockDigest)block);
 

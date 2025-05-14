@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Libplanet.Store;
 
 public abstract class Database<TTable> : IDatabase
-    where TTable : IKeyValueStore
+    where TTable : ITable
 {
     private readonly object _lock = new();
     private readonly ConcurrentDictionary<string, TTable> _tableByKey = new();
@@ -17,7 +17,7 @@ public abstract class Database<TTable> : IDatabase
 
     public int Count => _tableByKey.Count;
 
-    IEnumerable<IKeyValueStore> IReadOnlyDictionary<string, IKeyValueStore>.Values
+    IEnumerable<ITable> IReadOnlyDictionary<string, ITable>.Values
     {
         get
         {
@@ -28,7 +28,7 @@ public abstract class Database<TTable> : IDatabase
         }
     }
 
-    IKeyValueStore IReadOnlyDictionary<string, IKeyValueStore>.this[string key] => _tableByKey[key];
+    ITable IReadOnlyDictionary<string, ITable>.this[string key] => _tableByKey[key];
 
     public TTable this[string key] => _tableByKey[key];
 
@@ -70,9 +70,9 @@ public abstract class Database<TTable> : IDatabase
 
     IEnumerator IEnumerable.GetEnumerator() => _tableByKey.GetEnumerator();
 
-    IKeyValueStore IDatabase.GetOrAdd(string key) => GetOrAdd(key);
+    ITable IDatabase.GetOrAdd(string key) => GetOrAdd(key);
 
-    bool IReadOnlyDictionary<string, IKeyValueStore>.TryGetValue(string key, out IKeyValueStore value)
+    bool IReadOnlyDictionary<string, ITable>.TryGetValue(string key, out ITable value)
     {
         if (_tableByKey.TryGetValue(key, out var v))
         {
@@ -84,11 +84,11 @@ public abstract class Database<TTable> : IDatabase
         return false;
     }
 
-    IEnumerator<KeyValuePair<string, IKeyValueStore>> IEnumerable<KeyValuePair<string, IKeyValueStore>>.GetEnumerator()
+    IEnumerator<KeyValuePair<string, ITable>> IEnumerable<KeyValuePair<string, ITable>>.GetEnumerator()
     {
         foreach (var kvp in _tableByKey)
         {
-            yield return new KeyValuePair<string, IKeyValueStore>(kvp.Key, kvp.Value);
+            yield return new KeyValuePair<string, ITable>(kvp.Key, kvp.Value);
         }
     }
 

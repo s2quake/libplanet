@@ -8,7 +8,7 @@ using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore;
 
-public sealed class RocksDBKeyValueStore : KeyValueStoreBase, IDisposable
+public sealed class RocksDBKeyValueStore : TableBase, IDisposable
 {
     private readonly string _path;
     private readonly RocksDBInstanceType _type;

@@ -4,12 +4,12 @@ using Libplanet.Store.Trie;
 
 namespace Libplanet.Store;
 
-public abstract class KeyValueStoreBase : IKeyValueStore
+public abstract class TableBase : ITable
 {
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected KeyValueStoreBase()
+    protected TableBase()
     {
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
@@ -74,7 +74,7 @@ public abstract class KeyValueStoreBase : IKeyValueStore
 
     protected virtual bool CompareValue(byte[] value1, byte[] value2) => value1.SequenceEqual(value2);
 
-    private sealed class KeyCollection(KeyValueStoreBase owner) : ICollection<KeyBytes>
+    private sealed class KeyCollection(TableBase owner) : ICollection<KeyBytes>
     {
         public int Count => owner.Count;
 
@@ -102,7 +102,7 @@ public abstract class KeyValueStoreBase : IKeyValueStore
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private sealed class ValueCollection(KeyValueStoreBase owner) : ICollection<byte[]>
+    private sealed class ValueCollection(TableBase owner) : ICollection<byte[]>
     {
         public int Count => owner.Count;
 

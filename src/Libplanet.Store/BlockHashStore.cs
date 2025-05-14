@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Store;
 
 public sealed class BlockHashStore(Guid chainId, IDatabase database)
-    : CollectionBase<int, BlockHash>(database.GetOrAdd(GetKey(chainId)))
+    : StoreBase<int, BlockHash>(database.GetOrAdd(GetKey(chainId)))
 {
     private int _genesisHeight;
 

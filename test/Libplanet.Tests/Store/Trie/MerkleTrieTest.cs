@@ -24,7 +24,7 @@ public class MerkleTrieTest
     [Fact]
     public void ConstructWithHashDigest()
     {
-        var store = new MemoryKeyValueStore();
+        var store = new MemoryTable();
         var hashDigest = RandomUtility.NextHashDigest<SHA256>();
         var trie = new Libplanet.Store.Trie.Trie(new HashNode(hashDigest) { KeyValueStore = store });
         Assert.Equal(hashDigest, trie.Hash);
@@ -33,7 +33,7 @@ public class MerkleTrieTest
     [Fact]
     public void ConstructWithRootNode()
     {
-        var store = new MemoryKeyValueStore();
+        var store = new MemoryTable();
         var hashDigest = RandomUtility.NextHashDigest<SHA256>();
         var node = new HashNode(hashDigest) { KeyValueStore = store };
         var trie = new Libplanet.Store.Trie.Trie(node);
@@ -43,7 +43,7 @@ public class MerkleTrieTest
     [Fact]
     public void CreateWithSingleKeyValue()
     {
-        var store = new MemoryKeyValueStore();
+        var store = new MemoryTable();
         var keyValue = (new KeyBytes([0xbe, 0xef]), Dictionary.Empty);
         var trie = Libplanet.Store.Trie.Trie.Create(keyValue);
         Assert.Single(trie.ToDictionary());
@@ -59,7 +59,7 @@ public class MerkleTrieTest
     [Fact]
     public void ToDictionary()
     {
-        var keyValueStore = new MemoryKeyValueStore();
+        var keyValueStore = new MemoryTable();
         var stateStore = new TrieStateStore(keyValueStore);
         var trie = Libplanet.Store.Trie.Trie.Create([
             ([0xbe, 0xef], Dictionary.Empty),

@@ -188,7 +188,7 @@ public interface IBlockChainIndex
         BlockDigest blockDigest, IEnumerable<Transaction> txs, CancellationToken token);
 
     internal Task SynchronizeForeverAsync(
-        Libplanet.Store.Store store, TimeSpan pollInterval, CancellationToken stoppingToken);
+        Libplanet.Store.Repository store, TimeSpan pollInterval, CancellationToken stoppingToken);
 
-    internal Task SynchronizeAsync(Libplanet.Store.Store store, CancellationToken stoppingToken);
+    internal Task SynchronizeAsync(Libplanet.Store.Repository store, CancellationToken stoppingToken);
 }

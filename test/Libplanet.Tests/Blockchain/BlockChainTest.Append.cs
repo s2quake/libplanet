@@ -676,7 +676,7 @@ public partial class BlockChainTest
     {
         var beforePostponeBPV = BlockHeader.CurrentProtocolVersion - 1;
         var options = new BlockChainOptions();
-        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(
             stateStore,
