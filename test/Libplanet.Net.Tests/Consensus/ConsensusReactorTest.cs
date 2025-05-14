@@ -36,7 +36,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async void StartAsync()
         {
             var consensusReactors = new ConsensusReactor[4];
-            var stores = new Libplanet.Store.Store[4];
+            var stores = new Libplanet.Store.Repository[4];
             var blockChains = new BlockChain[4];
             var fx = new MemoryStoreFixture();
             var validatorPeers = new List<BoundPeer>();
@@ -50,7 +50,7 @@ namespace Libplanet.Net.Tests.Consensus
                         new DnsEndPoint("127.0.0.1", 6000 + i)));
                 var options = TestUtils.Options with
                 {
-                    Store = new Libplanet.Store.Store(new MemoryDatabase()),
+                    Store = new Libplanet.Store.Repository(new MemoryDatabase()),
                 };
                 blockChains[i] = BlockChain.Create(fx.GenesisBlock, TestUtils.Options);
             }

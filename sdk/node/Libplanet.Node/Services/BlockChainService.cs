@@ -32,7 +32,7 @@ internal sealed class BlockChainService(
     private static BlockChain CreateBlockChain(
         IActionService actionService,
         GenesisOptions genesisOptions,
-        Libplanet.Store.Store store,
+        Libplanet.Store.Repository store,
         TrieStateStore stateStore)
     {
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);

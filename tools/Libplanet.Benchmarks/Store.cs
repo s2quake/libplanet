@@ -15,7 +15,7 @@ public class Store
     private readonly ImmutableArray<Transaction> Txs = default;
     private StoreFixture _fx = null;
     private readonly int TxsCount = default;
-    private Libplanet.Store.Store _store;
+    private Libplanet.Store.Repository _store;
     // private Chain _chain;
 
     public Store()

@@ -4,7 +4,7 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store;
 
-public sealed class Store : IDisposable
+public sealed class Repository : IDisposable
 {
     private readonly IDatabase _database;
     private readonly TxExecutionStore _txExecutions;
@@ -20,7 +20,7 @@ public sealed class Store : IDisposable
 
     private bool _disposed;
 
-    public Store(IDatabase database)
+    public Repository(IDatabase database)
     {
         _database = database;
         _blockDigests = new BlockDigestStore(_database);

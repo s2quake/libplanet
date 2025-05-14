@@ -121,7 +121,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         await IndexAsyncImpl(blockDigest, txs, null, stoppingToken).ConfigureAwait(false);
 
     async Task IBlockChainIndex.SynchronizeForeverAsync(
-        Libplanet.Store.Store store, TimeSpan pollInterval, CancellationToken stoppingToken)
+        Libplanet.Store.Repository store, TimeSpan pollInterval, CancellationToken stoppingToken)
     {
         var syncMetadata = await GetSyncMetadata(store).ConfigureAwait(false);
         await CheckIntegrity(store, syncMetadata).ConfigureAwait(false);
@@ -133,7 +133,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         }
     }
 
-    async Task IBlockChainIndex.SynchronizeAsync(Libplanet.Store.Store store, CancellationToken stoppingToken)
+    async Task IBlockChainIndex.SynchronizeAsync(Libplanet.Store.Repository store, CancellationToken stoppingToken)
     {
         var syncMetadata = await GetSyncMetadata(store).ConfigureAwait(false);
         await CheckIntegrity(store, syncMetadata).ConfigureAwait(false);
@@ -182,7 +182,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     private async Task CheckIntegrity(
-        Libplanet.Store.Store store,
+        Libplanet.Store.Repository store,
         (
             Guid ChainId,
             long IndexTipIndex,
@@ -240,7 +240,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     private async Task SynchronizeAsyncImpl(
-        Libplanet.Store.Store store,
+        Libplanet.Store.Repository store,
         (
             Guid ChainId,
             long IndexTipIndex,
@@ -373,7 +373,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         long IndexTipIndex,
         long ChainTipIndex,
         BlockHash? IndexTipHash)>
-        GetSyncMetadata(Libplanet.Store.Store store)
+        GetSyncMetadata(Libplanet.Store.Repository store)
     {
         var indexTip = await GetTipAsyncImpl().ConfigureAwait(false);
         var indexTipIndex = indexTip?.Index ?? -1;

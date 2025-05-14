@@ -7,7 +7,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Store;
 
 public sealed class TxExecutionStore(IDatabase database)
-    : CollectionBase<TxId, ImmutableArray<TxExecution>>(database.GetOrAdd("tx_execution"))
+    : StoreBase<TxId, ImmutableArray<TxExecution>>(database.GetOrAdd("tx_execution"))
 {
     public TxExecution this[TxId txId, BlockHash blockHash]
     {

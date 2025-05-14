@@ -5,7 +5,7 @@ using Libplanet.Types.Evidence;
 namespace Libplanet.Store;
 
 public abstract class EvidenceStoreBase(IDatabase database, string name)
-    : CollectionBase<EvidenceId, EvidenceBase>(database.GetOrAdd(name))
+    : StoreBase<EvidenceId, EvidenceBase>(database.GetOrAdd(name))
 {
     protected override byte[] GetBytes(EvidenceBase value) => ModelSerializer.SerializeToBytes(value);
 

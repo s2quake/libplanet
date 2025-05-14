@@ -137,7 +137,7 @@ namespace Libplanet.Tests.Blockchain.Policies
         {
             const int policyLimit = 2;
 
-            var store = new Libplanet.Store.Store(new MemoryDatabase());
+            var store = new Libplanet.Store.Repository(new MemoryDatabase());
             var stateStore = new TrieStateStore();
             var policy = new BlockChainOptions
             {
@@ -165,7 +165,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             const int generatedTxCount = 10;
             const int policyLimit = 5;
 
-            var store = new Libplanet.Store.Store(new MemoryDatabase());
+            var store = new Libplanet.Store.Repository(new MemoryDatabase());
             var stateStore = new TrieStateStore();
             var policy = new BlockChainOptions
             {
@@ -191,7 +191,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             const int generatedTxCount = 10;
             const int policyLimit = 4;
 
-            var store = new Libplanet.Store.Store(new MemoryDatabase());
+            var store = new Libplanet.Store.Repository(new MemoryDatabase());
             var stateStore = new TrieStateStore();
             var policy = new BlockChainOptions
             {

@@ -10,7 +10,7 @@ namespace Libplanet.Extensions.Cocona.Commands;
 public class StoreCommand
 {
     private const string StoreArgumentDescription =
-        "The URI denotes the type and path of concrete class for " + nameof(Libplanet.Store.Store) + "."
+        "The URI denotes the type and path of concrete class for " + nameof(Libplanet.Store.Repository) + "."
         + "<store-type>://<store-path> (e.g., rocksdb+file:///path/to/store)";
 
     [Command(Description = "List all chain IDs.")]
@@ -20,7 +20,7 @@ public class StoreCommand
         [Option("hash", Description = "Show the hash of the chain tip.")]
         bool showHash)
     {
-        Libplanet.Store.Store store = Utils.LoadStoreFromUri(storeUri);
+        Libplanet.Store.Repository store = Utils.LoadStoreFromUri(storeUri);
         Guid? canon = store.ChainId;
         var headerWithoutHash = ("Chain ID", "Height", "Canon?");
         var headerWithHash = ("Chain ID", "Height", "Canon?", "Hash");
@@ -54,7 +54,7 @@ public class StoreCommand
         [Argument("LIMIT", Description = "block height")]
         int limit)
     {
-        Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Repository store = Utils.LoadStoreFromUri(home);
         var prev = DateTimeOffset.UtcNow;
         foreach (var index in BuildTxIdBlockHashIndex(store, offset, limit))
         {
@@ -72,7 +72,7 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Repository store = Utils.LoadStoreFromUri(home);
         var blockHashes = store.TxExecutions[new TxId(ByteUtility.ParseHex(strTxId))].Select(item => item.BlockHash);
         Console.WriteLine(Utils.SerializeHumanReadable(blockHashes));
         store?.Dispose();
@@ -86,7 +86,7 @@ public class StoreCommand
         string strTxId)
     {
         // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
-        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var txId = TxId.Parse(strTxId);
         if (!store.TxExecutions.TryGetValue(txId, out var txExecutions) || txExecutions.Length == 0)
         {
@@ -106,7 +106,7 @@ public class StoreCommand
         int blockHeight)
     {
         // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
-        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var chain = store.Chains[store.ChainId];
         var blockHash = GetBlockHash(store, blockHeight);
         var block = GetBlock(store, blockHash);
@@ -121,7 +121,7 @@ public class StoreCommand
         string blockHash)
     {
         // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
-        Libplanet.Store.Store store = new Libplanet.Store.Store(new MemoryDatabase());
+        Libplanet.Store.Repository store = new Libplanet.Store.Repository(new MemoryDatabase());
         var block = GetBlock(store, BlockHash.Parse(blockHash));
         Console.WriteLine(Utils.SerializeHumanReadable(block));
     }
@@ -133,7 +133,7 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
+        Libplanet.Store.Repository store = Utils.LoadStoreFromUri(home);
         var tx = GetTransaction(store, new TxId(ByteUtility.ParseHex(strTxId)));
         Console.WriteLine(Utils.SerializeHumanReadable(tx));
         store?.Dispose();
@@ -153,7 +153,7 @@ public class StoreCommand
         // }
     }
 
-    private static Block GetBlock(Libplanet.Store.Store store, BlockHash blockHash)
+    private static Block GetBlock(Libplanet.Store.Repository store, BlockHash blockHash)
     {
         if (!store.TryGetBlock(blockHash, out var block))
         {
@@ -163,7 +163,7 @@ public class StoreCommand
         return block;
     }
 
-    private static BlockHash GetBlockHash(Libplanet.Store.Store store, int blockHeight)
+    private static BlockHash GetBlockHash(Libplanet.Store.Repository store, int blockHeight)
     {
         if (store.ChainId == Guid.Empty)
         {
@@ -181,7 +181,7 @@ public class StoreCommand
         return blockHash;
     }
 
-    private static IEnumerable<Block> IterateBlocks(Libplanet.Store.Store store, TxId txId)
+    private static IEnumerable<Block> IterateBlocks(Libplanet.Store.Repository store, TxId txId)
     {
         foreach (var txExecution in store.TxExecutions[txId])
         {
@@ -189,7 +189,7 @@ public class StoreCommand
         }
     }
 
-    private static Transaction GetTransaction(Libplanet.Store.Store store, TxId txId)
+    private static Transaction GetTransaction(Libplanet.Store.Repository store, TxId txId)
     {
         if (!store.PendingTransactions.TryGetValue(txId, out var tx))
         {
@@ -199,7 +199,7 @@ public class StoreCommand
         return tx;
     }
 
-    private static IEnumerable<int> BuildTxIdBlockHashIndex(Libplanet.Store.Store store, int offset, int limit)
+    private static IEnumerable<int> BuildTxIdBlockHashIndex(Libplanet.Store.Repository store, int offset, int limit)
     {
         throw new NotImplementedException("This method cannot be used");
         // if (store.ChainId == Guid.Empty)

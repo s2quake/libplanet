@@ -4,9 +4,9 @@ namespace Libplanet.Node.Services;
 
 public interface IStoreService
 {
-    Libplanet.Store.Store Store { get; }
+    Libplanet.Store.Repository Store { get; }
 
     TrieStateStore StateStore { get; }
 
-    IKeyValueStore KeyValueStore { get; }
+    ITable KeyValueStore { get; }
 }

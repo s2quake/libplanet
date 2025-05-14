@@ -31,7 +31,7 @@ namespace Libplanet.Explorer.Queries
 
         private static BlockChain Chain => ChainContext.BlockChain;
 
-        private static Libplanet.Store.Store Store => ChainContext.Store;
+        private static Libplanet.Store.Repository Store => ChainContext.Store;
 
         internal static IEnumerable<Block> ListBlocks(
             bool desc,

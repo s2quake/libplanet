@@ -5,7 +5,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Store;
 
 public sealed class BlockCommitStore(IDatabase database)
-    : CollectionBase<BlockHash, BlockCommit>(database.GetOrAdd("block_commit"))
+    : StoreBase<BlockHash, BlockCommit>(database.GetOrAdd("block_commit"))
 {
     public void Add(BlockCommit blockCommit) => Add(blockCommit.BlockHash, blockCommit);
 

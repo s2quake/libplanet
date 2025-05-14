@@ -58,7 +58,7 @@ namespace Libplanet.Explorer.Executable
                 .AddGraphTypes(typeof(LibplanetExplorerSchema));
 
             serviceCollection.AddSingleton<IBlockChainContext, Startup>();
-            serviceCollection.AddSingleton<Libplanet.Store.Store, Libplanet.Store.Store>();
+            serviceCollection.AddSingleton<Libplanet.Store.Repository, Libplanet.Store.Repository>();
 
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
             var schema = new LibplanetExplorerSchema(serviceProvider);
@@ -170,7 +170,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             try
             {
-                Libplanet.Store.Store store = LoadStore(options);
+                Libplanet.Store.Repository store = LoadStore(options);
                 TrieStateStore stateStore = new NoOpStateStore();
 
                 BlockChainOptions policy = LoadBlockPolicy(options);
@@ -282,7 +282,7 @@ If omitted (default) explorer only the local blockchain store.")]
             }
         }
 
-        private static Libplanet.Store.Store LoadStore(Options options)
+        private static Libplanet.Store.Repository LoadStore(Options options)
         {
             // FIXME: This method basically does the same thing to Libplanet.Extensions.Cocona's
             // Utils.LoadStoreFromUri() method.
@@ -292,12 +292,12 @@ If omitted (default) explorer only the local blockchain store.")]
             switch (options.StoreType)
             {
                 case "rocksdb":
-                    return new Store.Store(new RocksDatabase(
+                    return new Store.Repository(new RocksDatabase(
                       options.StorePath,
                       maxTotalWalSize: 16 * 1024 * 1024,
                       keepLogFileNum: 1));
                 case "default":
-                    return new Store.Store(new DefaultDatabase(
+                    return new Store.Repository(new DefaultDatabase(
                         options.StorePath));
                 default:
                     // FIXME: give available store type as argument hint without code duplication.
@@ -389,7 +389,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             public BlockChain BlockChain => BlockChainSingleton;
 
-            public Libplanet.Store.Store Store => StoreSingleton;
+            public Libplanet.Store.Repository Store => StoreSingleton;
 
             public Swarm Swarm => SwarmSingleton;
 
@@ -403,7 +403,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             internal static BlockChain BlockChainSingleton { get; set; }
 
-            internal static Libplanet.Store.Store StoreSingleton { get; set; }
+            internal static Libplanet.Store.Repository StoreSingleton { get; set; }
 
             internal static Swarm SwarmSingleton { get; set; }
         }

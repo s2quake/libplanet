@@ -8,9 +8,9 @@ namespace Libplanet.Blockchain;
 
 public sealed record class BlockChainOptions
 {
-    public Store.Store Store { get; init; } = new Store.Store(new MemoryDatabase());
+    public Store.Repository Store { get; init; } = new Store.Repository(new MemoryDatabase());
 
-    public IKeyValueStore KeyValueStore { get; init; } = new MemoryKeyValueStore();
+    public ITable KeyValueStore { get; init; } = new MemoryTable();
 
     public PolicyActions PolicyActions { get; init; } = PolicyActions.Empty;
 

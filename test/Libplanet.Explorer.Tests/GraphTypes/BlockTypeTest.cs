@@ -88,7 +88,7 @@ public class BlockTypeTest
                     raw
                 }";
 
-        var store = new Libplanet.Store.Store(new MemoryDatabase());
+        var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var blockType = new BlockType(new MockBlockChainContext(store));
         ExecutionResult result = await ExecuteQueryAsync(
             query,

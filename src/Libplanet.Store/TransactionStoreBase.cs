@@ -5,7 +5,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Store;
 
 public abstract class TransactionStoreBase(IDatabase database, string name)
-    : CollectionBase<TxId, Transaction>(database.GetOrAdd(name))
+    : StoreBase<TxId, Transaction>(database.GetOrAdd(name))
 {
     protected override byte[] GetBytes(Transaction value) => ModelSerializer.SerializeToBytes(value);
 

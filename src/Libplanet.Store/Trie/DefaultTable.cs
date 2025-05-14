@@ -7,7 +7,7 @@ using Zio.FileSystems;
 
 namespace Libplanet.Store.Trie;
 
-public sealed class DefaultTable(string path) : KeyValueStoreBase, IDisposable
+public sealed class DefaultTable(string path) : TableBase, IDisposable
 {
     private readonly FileSystem _fs = path == string.Empty ? new MemoryFileSystem() : CreateFileSystem(path);
     private bool _isDisposed;

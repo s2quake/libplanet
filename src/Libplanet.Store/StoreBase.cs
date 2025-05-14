@@ -9,7 +9,7 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Store;
 
-public abstract class CollectionBase<TKey, TValue>
+public abstract class StoreBase<TKey, TValue>
     : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable
     where TKey : notnull
     where TValue : notnull
@@ -21,7 +21,7 @@ public abstract class CollectionBase<TKey, TValue>
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected CollectionBase(IDictionary<KeyBytes, byte[]> dictionary, int cacheSize = 100)
+    protected StoreBase(IDictionary<KeyBytes, byte[]> dictionary, int cacheSize = 100)
     {
         _cache = new ConcurrentLruBuilder<TKey, TValue>()
             .WithCapacity(cacheSize)
@@ -334,7 +334,7 @@ public abstract class CollectionBase<TKey, TValue>
         return false;
     }
 
-    private sealed class KeyCollection(CollectionBase<TKey, TValue> owner) : ICollection<TKey>
+    private sealed class KeyCollection(StoreBase<TKey, TValue> owner) : ICollection<TKey>
     {
         public int Count => owner.Count;
 
@@ -379,7 +379,7 @@ public abstract class CollectionBase<TKey, TValue>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private sealed class ValueCollection(CollectionBase<TKey, TValue> owner) : ICollection<TValue>
+    private sealed class ValueCollection(StoreBase<TKey, TValue> owner) : ICollection<TValue>
     {
         public int Count => owner.Count;
 

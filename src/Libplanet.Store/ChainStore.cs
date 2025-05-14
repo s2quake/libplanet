@@ -4,7 +4,7 @@ using Libplanet.Store.Trie;
 namespace Libplanet.Store;
 
 public sealed class ChainStore(IDatabase database)
-    : CollectionBase<Guid, Chain>(database.GetOrAdd("chains"))
+    : StoreBase<Guid, Chain>(database.GetOrAdd("chains"))
 {
     private static readonly object _lock = new();
 

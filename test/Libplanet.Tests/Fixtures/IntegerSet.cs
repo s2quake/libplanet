@@ -22,8 +22,8 @@ public sealed class IntegerSet
     public readonly PrivateKey Proposer;
     public readonly Block Genesis;
     public readonly BlockChain Chain;
-    public readonly Libplanet.Store.Store Store;
-    public readonly IKeyValueStore KVStore;
+    public readonly Libplanet.Store.Repository Store;
+    public readonly ITable KVStore;
     public readonly TrieStateStore StateStore;
 
     public IntegerSet(int[] initialStates)
@@ -63,8 +63,8 @@ public sealed class IntegerSet
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
         policy ??= new BlockChainOptions();
-        Store = new Libplanet.Store.Store(new MemoryDatabase());
-        KVStore = new MemoryKeyValueStore();
+        Store = new Libplanet.Store.Repository(new MemoryDatabase());
+        KVStore = new MemoryTable();
         StateStore = new TrieStateStore(KVStore);
         var actionEvaluator = new ActionEvaluator(
             StateStore,

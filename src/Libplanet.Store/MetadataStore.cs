@@ -4,7 +4,7 @@ using Libplanet.Store.Trie;
 namespace Libplanet.Store;
 
 public sealed class MetadataStore(IDatabase database)
-    : CollectionBase<string, string>(database.GetOrAdd("metadata"))
+    : StoreBase<string, string>(database.GetOrAdd("metadata"))
 {
     protected override byte[] GetBytes(string value) => Encoding.UTF8.GetBytes(value);
 

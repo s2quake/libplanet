@@ -14,7 +14,7 @@ namespace Libplanet.Explorer.Cocona.Commands
     public class IndexCommand : CoconaLiteConsoleAppBase
     {
         private const string StoreArgumentDescription =
-            "The URI that represents the backend of an " + nameof(Libplanet.Store.Store) + " object."
+            "The URI that represents the backend of an " + nameof(Libplanet.Store.Repository) + " object."
             + " <store-type>://<store-path> (e.g., rocksdb+file:///path/to/store)";
 
         private const string IndexArgumentDescription =

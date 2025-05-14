@@ -102,7 +102,7 @@ public static class Utils
             }));
     }
 
-    public static Libplanet.Store.Store LoadStoreFromUri(string uriString)
+    public static Libplanet.Store.Repository LoadStoreFromUri(string uriString)
     {
         throw new NotImplementedException();
 //         // TODO: Cocona supports .NET's TypeConverter protocol for instantiating objects
