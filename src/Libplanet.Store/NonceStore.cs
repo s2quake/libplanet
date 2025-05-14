@@ -8,6 +8,21 @@ public sealed class NonceStore(Guid chainId, IDatabase database)
 {
     public long Increase(Address key, long delta = 1L) => this[key] = this.GetValueOrDefault(key) + delta;
 
+    public void MergeFrom(NonceStore source)
+    {
+        foreach (var (key, value) in source)
+        {
+            if (TryGetValue(key, out var nonce))
+            {
+                this[key] = Math.Max(nonce, value);
+            }
+            else
+            {
+                this[key] = value;
+            }
+        }
+    }
+
     internal static string GetKey(Guid chainId) => $"{chainId}_nonces";
 
     protected override byte[] GetBytes(long value) => BitConverter.GetBytes(value);

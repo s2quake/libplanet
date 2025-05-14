@@ -81,21 +81,36 @@ public abstract class CollectionBase<TKey, TValue>
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
-        OnRemove(key);
-        if (_cache.TryRemove(key, out var value))
-        {
-            _dictionary.Remove(GetKeyBytes(key));
-            OnRemoveComplete(key, value);
-            return true;
-        }
-        else if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
-        {
-            value = GetValue(bytes);
-            OnRemoveComplete(key, value);
-            return true;
-        }
+        return RemoveInternal(key);
+    }
 
-        return false;
+    public bool Remove<T>(T value)
+        where T : TValue, IHasKey<TKey>
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+        return RemoveInternal(value.Key);
+    }
+
+    public void RemoveRange(IEnumerable<TKey> keys)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+        foreach (var key in keys.ToArray())
+        {
+            RemoveInternal(key);
+        }
+    }
+
+    public void RemoveRange<T>(IEnumerable<T> values)
+        where T : TValue, IHasKey<TKey>
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+        foreach (var value in values)
+        {
+            RemoveInternal(value.Key);
+        }
     }
 
     public bool TryAdd(TKey key, TValue value)
@@ -298,6 +313,25 @@ public abstract class CollectionBase<TKey, TValue>
         {
             IsDisposed = true;
         }
+    }
+
+    private bool RemoveInternal(TKey key)
+    {
+        OnRemove(key);
+        if (_cache.TryRemove(key, out var value))
+        {
+            _dictionary.Remove(GetKeyBytes(key));
+            OnRemoveComplete(key, value);
+            return true;
+        }
+        else if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
+        {
+            value = GetValue(bytes);
+            OnRemoveComplete(key, value);
+            return true;
+        }
+
+        return false;
     }
 
     private sealed class KeyCollection(CollectionBase<TKey, TValue> owner) : ICollection<TKey>
