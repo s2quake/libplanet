@@ -25,7 +25,7 @@ public sealed record class Block : IEquatable<Block>
 
     public int Height => Header.Height;
 
-    public int ProtocolVersion => Header.ProtocolVersion;
+    public int Version => Header.Version;
 
     public DateTimeOffset Timestamp => Header.Timestamp;
 

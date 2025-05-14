@@ -54,7 +54,7 @@ public partial class BlockChainTest : IDisposable
             RawBlock.Create(
                 new BlockHeader
                 {
-                    ProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                    Version = BlockHeader.CurrentProtocolVersion,
                     Height = 1,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
                     Proposer = _fx.Proposer.Address,

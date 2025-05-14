@@ -141,7 +141,7 @@ public class BlockTypeTest
         Assert.Equal(expectedLastCommit, resultData["lastCommit"]);
 
         Assert.Equal(
-            block.ProtocolVersion,
+            block.Version,
             resultData["protocolVersion"]);
 
         Assert.Equal(

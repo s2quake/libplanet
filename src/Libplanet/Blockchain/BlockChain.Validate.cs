@@ -13,8 +13,7 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    internal static Dictionary<Address, long> ValidateGenesisNonces(
-        Block block)
+    internal static Dictionary<Address, long> ValidateGenesisNonces(Block block)
     {
         var nonceDeltas = new Dictionary<Address, long>();
         foreach (Transaction tx in block.Transactions.OrderBy(tx => tx.Nonce))
@@ -35,39 +34,39 @@ public partial class BlockChain
         return nonceDeltas;
     }
 
-    internal static void ValidateGenesis(Block block)
-    {
-        if (block.Height != 0)
-        {
-            throw new ArgumentException(
-                $"Given {nameof(block)} must have index 0 but has index {block.Height}",
-                nameof(block));
-        }
+    // internal static void ValidateGenesis(Block block)
+    // {
+    //     if (block.Height != 0)
+    //     {
+    //         throw new ArgumentException(
+    //             $"Given {nameof(block)} must have index 0 but has index {block.Height}",
+    //             nameof(block));
+    //     }
 
-        int actualProtocolVersion = block.ProtocolVersion;
-        const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
-        if (block.ProtocolVersion > BlockHeader.CurrentProtocolVersion)
-        {
-            throw new InvalidOperationException(
-                $"The protocol version ({actualProtocolVersion}) of the block " +
-                $"#{block.Height} {block.BlockHash} is not supported by this node." +
-                $"The highest supported protocol version is {currentProtocolVersion}.");
-        }
+    //     int actualProtocolVersion = block.Version;
+    //     const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
+    //     if (block.Version > BlockHeader.CurrentProtocolVersion)
+    //     {
+    //         throw new InvalidOperationException(
+    //             $"The protocol version ({actualProtocolVersion}) of the block " +
+    //             $"#{block.Height} {block.BlockHash} is not supported by this node." +
+    //             $"The highest supported protocol version is {currentProtocolVersion}.");
+    //     }
 
-        if (block.PreviousHash != default)
-        {
-            throw new InvalidOperationException(
-                "A genesis block should not have previous hash, " +
-                $"but its value is {block.PreviousHash}.");
-        }
+    //     if (block.PreviousHash != default)
+    //     {
+    //         throw new InvalidOperationException(
+    //             "A genesis block should not have previous hash, " +
+    //             $"but its value is {block.PreviousHash}.");
+    //     }
 
-        if (block.LastCommit != BlockCommit.Empty)
-        {
-            throw new InvalidOperationException(
-                "A genesis block should not have last commit, " +
-                $"but its value is {block.LastCommit}.");
-        }
-    }
+    //     if (block.LastCommit != BlockCommit.Empty)
+    //     {
+    //         throw new InvalidOperationException(
+    //             "A genesis block should not have last commit, " +
+    //             $"but its value is {block.LastCommit}.");
+    //     }
+    // }
 
     internal void ValidateBlockCommit(Block block, BlockCommit blockCommit)
     {
@@ -171,7 +170,7 @@ public partial class BlockChain
                 $"but its index is #{block.Height}.");
         }
 
-        int actualProtocolVersion = block.ProtocolVersion;
+        int actualProtocolVersion = block.Version;
         const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
 
         // FIXME: Crude way of checking protocol version for non-genesis block.
@@ -185,11 +184,11 @@ public partial class BlockChain
             throw new InvalidOperationException(
                 message);
         }
-        else if (actualProtocolVersion < Tip.ProtocolVersion)
+        else if (actualProtocolVersion < Tip.Version)
         {
             string message =
                 "The protocol version is disallowed to be downgraded from the topmost block " +
-                $"in the chain ({actualProtocolVersion} < {Tip.ProtocolVersion}).";
+                $"in the chain ({actualProtocolVersion} < {Tip.Version}).";
             throw new InvalidOperationException(message);
         }
 

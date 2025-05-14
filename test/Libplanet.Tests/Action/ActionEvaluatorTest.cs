@@ -93,7 +93,7 @@ public partial class ActionEvaluatorTest
         var noStateRootBlock = RawBlock.Create(
             new BlockHeader
             {
-                ProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                Version = BlockHeader.CurrentProtocolVersion,
                 Height = 0,
                 Timestamp = timestamp,
                 Proposer = GenesisProposer.Address,

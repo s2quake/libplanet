@@ -29,7 +29,7 @@ public partial class Swarm
                 // This is based on the assumption that genesis block always exists.
                 Block tip = BlockChain.Tip;
                 var chainStatus = new ChainStatusMsg(
-                    tip.ProtocolVersion,
+                    tip.Version,
                     BlockChain.Genesis.BlockHash,
                     tip.Height,
                     tip.BlockHash);

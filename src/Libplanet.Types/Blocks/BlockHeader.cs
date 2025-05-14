@@ -10,7 +10,7 @@ public sealed record class BlockHeader
     public const int CurrentProtocolVersion = 0;
 
     [Property(0)]
-    public int ProtocolVersion { get; init; } = CurrentProtocolVersion;
+    public int Version { get; init; } = CurrentProtocolVersion;
 
     [Property(1)]
     public int Height { get; init; }

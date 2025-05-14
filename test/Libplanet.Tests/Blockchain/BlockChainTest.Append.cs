@@ -688,7 +688,7 @@ public partial class BlockChainTest
         var genesis = preGenesis.Sign(
             TestUtils.GenesisProposer,
             actionEvaluator.Evaluate(preGenesis, default)[^1].OutputState);
-        Assert.Equal(beforePostponeBPV, genesis.ProtocolVersion);
+        Assert.Equal(beforePostponeBPV, genesis.Version);
 
         var blockChain = TestUtils.MakeBlockChain(
             options,
@@ -707,7 +707,7 @@ public partial class BlockChainTest
             proposer,
             actionEvaluator.Evaluate(
                 preBlockBeforeBump, genesis.StateRootHash)[^1].OutputState);
-        Assert.Equal(beforePostponeBPV, blockBeforeBump.ProtocolVersion);
+        Assert.Equal(beforePostponeBPV, blockBeforeBump.Version);
         var commitBeforeBump = TestUtils.CreateBlockCommit(blockBeforeBump);
         blockChain.Append(blockBeforeBump, commitBeforeBump);
 
@@ -721,7 +721,7 @@ public partial class BlockChainTest
             evidences: []);
         Assert.Equal(
             BlockHeader.CurrentProtocolVersion,
-            blockAfterBump1.ProtocolVersion);
+            blockAfterBump1.Version);
         var commitAfterBump1 = TestUtils.CreateBlockCommit(blockAfterBump1);
         blockChain.Append(blockAfterBump1, commitAfterBump1);
         Assert.Equal(blockBeforeBump.StateRootHash, blockAfterBump1.StateRootHash);
@@ -736,7 +736,7 @@ public partial class BlockChainTest
             evidences: []);
         Assert.Equal(
             BlockHeader.CurrentProtocolVersion,
-            blockAfterBump2.ProtocolVersion);
+            blockAfterBump2.Version);
         var commitAfterBump2 = TestUtils.CreateBlockCommit(blockAfterBump2);
         blockChain.Append(blockAfterBump2, commitAfterBump2);
         Assert.Equal(

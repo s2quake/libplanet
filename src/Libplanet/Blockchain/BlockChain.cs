@@ -27,7 +27,7 @@ public partial class BlockChain
     private readonly BlockChainStates _blockChainStates;
     private readonly Chain _chain;
 
-    private Block _genesis;
+    private Block _genesisBlock;
 
     private HashDigest<SHA256>? _nextStateRootHash;
 
@@ -45,6 +45,8 @@ public partial class BlockChain
                 nameof(options));
         }
 
+        genesisBlock.ValidateAsGenesis();
+
         Id = id;
         Options = options;
         StagedTransactions = new StagedTransactionCollection(options.Store, id);
@@ -55,7 +57,6 @@ public partial class BlockChain
         Blocks = new BlockCollection(options.Store, id);
         Nonces = _chain.Nonces;
 
-        ValidateGenesis(genesisBlock);
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
         Blocks.Add(genesisBlock);
@@ -115,7 +116,7 @@ public partial class BlockChain
 
     public Block Tip => Blocks[^1];
 
-    public Block Genesis => _genesis ??= Blocks[0];
+    public Block Genesis => _genesisBlock ??= Blocks[0];
 
     public Guid Id { get; private set; }
 

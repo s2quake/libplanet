@@ -76,7 +76,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<NonNullGraphType<IntGraphType>>(
             name: "ProtocolVersion",
             description: "The protocol version number of the block.",
-            resolve: ctx => ctx.Source.ProtocolVersion);
+            resolve: ctx => ctx.Source.Version);
         Field<NonNullGraphType<ByteStringType>>(
             name: "Raw",
             description: "The bencodex serialization of the block",
