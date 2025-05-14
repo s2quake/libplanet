@@ -88,7 +88,8 @@ public abstract class StoreFixture : IDisposable
         var stateStore = new TrieStateStore(options.KeyValueStore);
         var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
         Options = options;
-        Options.Store.ChainId = StoreChainId;
+        // Options.Store.Chains.AddNew(StoreChainId);
+        // Options.Store.ChainId = StoreChainId;
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(

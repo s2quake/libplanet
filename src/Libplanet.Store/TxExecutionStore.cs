@@ -9,6 +9,19 @@ namespace Libplanet.Store;
 public sealed class TxExecutionStore(IDatabase database)
     : CollectionBase<TxId, ImmutableArray<TxExecution>>(database.GetOrAdd("tx_execution"))
 {
+    public TxExecution this[TxId txId, BlockHash blockHash]
+    {
+        get
+        {
+            if (TryGetValue(txId, out var txExecutions))
+            {
+                return txExecutions.First(txExecution => txExecution.BlockHash == blockHash);
+            }
+
+            throw new KeyNotFoundException($"No such key: ${txId}.");
+        }
+    }
+
     public void Add(TxExecution txExecution)
     {
         if (!TryGetValue(txExecution.TxId, out var txExecutions))
@@ -35,19 +48,6 @@ public sealed class TxExecutionStore(IDatabase database)
         }
 
         return false;
-    }
-
-    public TxExecution this[TxId txId, BlockHash blockHash]
-    {
-        get
-        {
-            if (TryGetValue(txId, out var txExecutions))
-            {
-                return txExecutions.First(txExecution => txExecution.BlockHash == blockHash);
-            }
-
-            throw new KeyNotFoundException($"No such key: ${txId}.");
-        }
     }
 
     public bool TryGetValue(TxId txId, BlockHash blockHash, [MaybeNullWhen(false)] out TxExecution txExecution)

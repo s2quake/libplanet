@@ -50,7 +50,7 @@ public class StatsCommand
         }
 
         var chain = store.Chains[chainId];
-        IEnumerable<BlockHash> hashes = chain.BlockHashes.IterateIndexes(
+        IEnumerable<BlockHash> hashes = chain.BlockHashes.IterateHeights(
             offset: offset >= 0
                 ? (int)offset
                 : (int)(chainLength + offset),

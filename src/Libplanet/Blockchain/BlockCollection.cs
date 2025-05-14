@@ -119,7 +119,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     public IEnumerable<BlockHash> IterateIndexes(int offset = 0, int? limit = null)
     {
-        return _blockHashes.IterateIndexes(offset, limit);
+        return _blockHashes.IterateHeights(offset, limit);
     }
 
     public bool ContainsKey(BlockHash blockHash) => _blockDigests.ContainsKey(blockHash);

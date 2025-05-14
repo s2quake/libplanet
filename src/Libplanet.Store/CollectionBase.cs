@@ -5,7 +5,8 @@ using LruCacheNet;
 
 namespace Libplanet.Store;
 
-public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+public abstract class CollectionBase<TKey, TValue>
+    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable
     where TKey : notnull
     where TValue : notnull
 {
@@ -31,6 +32,8 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
 
     public bool IsReadOnly => false;
 
+    protected bool IsDisposed { get; private set; }
+
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => _keys;
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _values;
@@ -39,6 +42,7 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
     {
         get
         {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
             if (_cache.TryGetValue(key, out var value))
             {
                 return value;
@@ -56,19 +60,27 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
 
         set
         {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            OnSet(key, value);
             _dictionary[GetKeyBytes(key)] = GetBytes(value);
             _cache[key] = value;
-            OnSet(key, value);
+            OnSetComplete(key, value);
         }
     }
 
     public bool Remove(TKey key)
     {
-        if (_dictionary.Remove(GetKeyBytes(key)))
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        OnRemove(key);
+        if (_cache.Remove(key, out var value))
         {
-            _cache.Remove(key, out var value);
-            OnRemoved(key, value);
-            return true;
+            _dictionary.Remove(GetKeyBytes(key));
+            OnRemoveComplete(key, value);
+        }
+        else if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
+        {
+            value = GetValue(bytes);
+            OnRemoveComplete(key, value);
         }
 
         return false;
@@ -76,13 +88,16 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
 
     public void Add(TKey key, TValue value)
     {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        OnAdd(key, value);
         _dictionary.Add(GetKeyBytes(key), GetBytes(value));
         _cache[key] = value;
-        OnAdded(key, value);
+        OnAddComplete(key, value);
     }
 
     public bool ContainsKey(TKey key)
     {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_cache.TryGetValue(key, out _))
         {
             return true;
@@ -93,6 +108,7 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_cache.TryGetValue(key, out value) && value is not null)
         {
             return true;
@@ -111,8 +127,17 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
 
     public void Clear()
     {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        OnClear();
         _cache.Clear();
         _dictionary.Clear();
+        OnClearComplete();
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
@@ -168,20 +193,44 @@ public abstract class CollectionBase<TKey, TValue> : IDictionary<TKey, TValue>, 
 
     protected abstract TValue GetValue(byte[] bytes);
 
-    protected virtual void OnCleared()
+    protected virtual void OnClear()
     {
     }
 
-    protected virtual void OnAdded(TKey key, TValue item)
+    protected virtual void OnClearComplete()
     {
     }
 
-    protected virtual void OnRemoved(TKey key, TValue? item)
+    protected virtual void OnAdd(TKey key, TValue item)
+    {
+    }
+
+    protected virtual void OnAddComplete(TKey key, TValue item)
+    {
+    }
+
+    protected virtual void OnRemove(TKey key)
+    {
+    }
+
+    protected virtual void OnRemoveComplete(TKey key, TValue item)
     {
     }
 
     protected virtual void OnSet(TKey key, TValue item)
     {
+    }
+
+    protected virtual void OnSetComplete(TKey key, TValue item)
+    {
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!IsDisposed)
+        {
+            IsDisposed = true;
+        }
     }
 
     private sealed class KeyCollection(CollectionBase<TKey, TValue> owner) : ICollection<TKey>
