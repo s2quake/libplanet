@@ -7,10 +7,11 @@ namespace Libplanet.Store;
 public sealed class Store : IDisposable
 {
     private readonly IDatabase _database;
-    private readonly TransactionStore _transactions;
     private readonly TxExecutionStore _txExecutions;
     private readonly BlockDigestStore _blockDigests;
     private readonly BlockCommitStore _blockCommits;
+    private readonly PendingTransactionStore _pendingTransactions;
+    private readonly CommittedTransactionStore _committedTransactions;
     private readonly PendingEvidenceStore _pendingEvidences;
     private readonly CommittedEvidenceStore _committedEvidences;
     private readonly ChainStore _chains;
@@ -22,10 +23,11 @@ public sealed class Store : IDisposable
     public Store(IDatabase database)
     {
         _database = database;
-        _transactions = new TransactionStore(_database);
         _blockDigests = new BlockDigestStore(_database);
         _txExecutions = new TxExecutionStore(_database);
         _blockCommits = new BlockCommitStore(_database);
+        _pendingTransactions = new PendingTransactionStore(_database);
+        _committedTransactions = new CommittedTransactionStore(_database);
         _pendingEvidences = new PendingEvidenceStore(_database);
         _committedEvidences = new CommittedEvidenceStore(_database);
         _chains = new ChainStore(_database);
@@ -40,7 +42,9 @@ public sealed class Store : IDisposable
 
     public CommittedEvidenceStore CommittedEvidences => _committedEvidences;
 
-    public TransactionStore Transactions => _transactions;
+    public PendingTransactionStore PendingTransactions => _pendingTransactions;
+
+    public CommittedTransactionStore CommittedTransactions => _committedTransactions;
 
     public BlockCommitStore BlockCommits => _blockCommits;
 
@@ -74,15 +78,15 @@ public sealed class Store : IDisposable
     public void AddBlock(Block block)
     {
         _blockDigests.Add(block);
-        _transactions.Add(block);
-        _pendingEvidences.Add(block);
-        _committedEvidences.Add(block);
+        _pendingTransactions.AddRange(block.Transactions);
+        _pendingEvidences.RemoveRange(block.Evidences);
+        _committedEvidences.AddRange(block.Evidences);
     }
 
     public Block GetBlock(BlockHash blockHash)
     {
         var blockDigest = _blockDigests[blockHash];
-        return blockDigest.ToBlock(item => _transactions[item], item => _committedEvidences[item]);
+        return blockDigest.ToBlock(item => _pendingTransactions[item], item => _committedEvidences[item]);
     }
 
     public Block GetBlock(int height) => GetBlock(ChainId, height);
@@ -98,7 +102,7 @@ public sealed class Store : IDisposable
     {
         if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            block = blockDigest.ToBlock(item => _transactions[item], item => _committedEvidences[item]);
+            block = blockDigest.ToBlock(item => _pendingTransactions[item], item => _committedEvidences[item]);
             return true;
         }
 
@@ -125,7 +129,7 @@ public sealed class Store : IDisposable
     {
         if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            return blockDigest.ToBlock(item => _transactions[item], item => _committedEvidences[item]);
+            return blockDigest.ToBlock(item => _pendingTransactions[item], item => _committedEvidences[item]);
         }
 
         return null;

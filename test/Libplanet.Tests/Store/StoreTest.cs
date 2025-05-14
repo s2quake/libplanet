@@ -506,33 +506,33 @@ public abstract class StoreTest
     public void StoreTx()
     {
         var store = Fx.Store;
-        Assert.Throws<KeyNotFoundException>(() => store.Transactions[Fx.Transaction1.Id]);
-        Assert.Throws<KeyNotFoundException>(() => store.Transactions[Fx.Transaction2.Id]);
-        Assert.False(store.Transactions.ContainsKey(Fx.Transaction1.Id));
-        Assert.False(store.Transactions.ContainsKey(Fx.Transaction2.Id));
+        Assert.Throws<KeyNotFoundException>(() => store.PendingTransactions[Fx.Transaction1.Id]);
+        Assert.Throws<KeyNotFoundException>(() => store.PendingTransactions[Fx.Transaction2.Id]);
+        Assert.False(store.PendingTransactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.False(store.PendingTransactions.ContainsKey(Fx.Transaction2.Id));
 
-        store.Transactions.Add(Fx.Transaction1);
+        store.PendingTransactions.Add(Fx.Transaction1);
         Assert.Equal(
             Fx.Transaction1,
-            store.Transactions[Fx.Transaction1.Id]);
-        Assert.Throws<KeyNotFoundException>(() => store.Transactions[Fx.Transaction2.Id]);
-        Assert.True(store.Transactions.ContainsKey(Fx.Transaction1.Id));
-        Assert.False(store.Transactions.ContainsKey(Fx.Transaction2.Id));
+            store.PendingTransactions[Fx.Transaction1.Id]);
+        Assert.Throws<KeyNotFoundException>(() => store.PendingTransactions[Fx.Transaction2.Id]);
+        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.False(store.PendingTransactions.ContainsKey(Fx.Transaction2.Id));
 
-        store.Transactions.Add(Fx.Transaction2);
+        store.PendingTransactions.Add(Fx.Transaction2);
         Assert.Equal(
             Fx.Transaction1,
-            store.Transactions[Fx.Transaction1.Id]);
+            store.PendingTransactions[Fx.Transaction1.Id]);
         Assert.Equal(
             Fx.Transaction2,
-            store.Transactions[Fx.Transaction2.Id]);
-        Assert.True(store.Transactions.ContainsKey(Fx.Transaction1.Id));
-        Assert.True(store.Transactions.ContainsKey(Fx.Transaction2.Id));
+            store.PendingTransactions[Fx.Transaction2.Id]);
+        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction2.Id));
 
         Assert.Equal(
             Fx.Transaction2,
-            store.Transactions[Fx.Transaction2.Id]);
-        Assert.True(store.Transactions.ContainsKey(Fx.Transaction2.Id));
+            store.PendingTransactions[Fx.Transaction2.Id]);
+        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction2.Id));
     }
 
     [Fact]
@@ -719,13 +719,13 @@ public abstract class StoreTest
     public void ContainsTransactionWithoutCache()
     {
         var store = Fx.Store;
-        store.Transactions.Add(Fx.Transaction1);
-        store.Transactions.Add(Fx.Transaction2);
-        store.Transactions.Add(Fx.Transaction3);
+        store.PendingTransactions.Add(Fx.Transaction1);
+        store.PendingTransactions.Add(Fx.Transaction2);
+        store.PendingTransactions.Add(Fx.Transaction3);
 
-        Assert.True(store.Transactions.ContainsKey(Fx.Transaction1.Id));
-        Assert.True(store.Transactions.ContainsKey(Fx.Transaction2.Id));
-        Assert.True(store.Transactions.ContainsKey(Fx.Transaction3.Id));
+        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction2.Id));
+        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction3.Id));
     }
 
     [Fact]
@@ -775,13 +775,13 @@ public abstract class StoreTest
                 Transaction tx;
                 for (int j = 0; j < 50; j++)
                 {
-                    store.Transactions.TryAdd(commonTx.Id, commonTx);
+                    store.PendingTransactions.TryAdd(commonTx.Id, commonTx);
                 }
 
                 for (int j = 0; j < txCount; j++)
                 {
                     tx = MakeTx(random, md5, key, j + 1);
-                    store.Transactions.TryAdd(tx.Id, tx);
+                    store.PendingTransactions.TryAdd(tx.Id, tx);
                 }
             });
             task.Start();

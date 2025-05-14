@@ -100,7 +100,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
             }
 
             var blockDigest = _blockDigests[blockHash];
-            var block = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
+            var block = blockDigest.ToBlock(item => _store.PendingTransactions[item], item => _store.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, block);
             return block;
         }
@@ -130,7 +130,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         {
             _blockDigests.Remove(blockHash);
             _blockHashes.Remove(blockDigest.Height);
-            _store.Transactions.RemoveRange(blockDigest.TxIds);
+            _store.PendingTransactions.RemoveRange(blockDigest.TxIds);
             _store.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
             _cacheByHash.TryRemove(blockHash);
             _cacheByHeight.TryRemove(blockDigest.Height);
@@ -142,11 +142,8 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     public void Add(Block block)
     {
-        _blockDigests.Add(block);
-        _blockHashes.Add(block);
-        _store.Transactions.Add(block);
-        _store.PendingEvidences.Add(block);
-        _store.CommittedEvidences.Add(block);
+        _store.AddBlock(block);
+        _chain.BlockHashes.Add(block);
 
         _cacheByHash.AddOrUpdate(block.BlockHash, block);
         _cacheByHeight.AddOrUpdate(block.Height, block);
@@ -178,7 +175,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
         if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            value = blockDigest.ToBlock(item => _store.Transactions[item], item => _store.CommittedEvidences[item]);
+            value = blockDigest.ToBlock(item => _store.PendingTransactions[item], item => _store.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, value);
             return true;
         }

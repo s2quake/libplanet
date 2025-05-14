@@ -33,7 +33,7 @@ public sealed class StatsCommandTest : IDisposable
             store.ChainId = guid;
             store.BlockDigests.Add(storeFixture.Block1);
             chain.BlockHashes.Add(storeFixture.Block1);
-            store.Transactions.Add(storeFixture.Transaction1);
+            store.PendingTransactions.Add(storeFixture.Transaction1);
         }
     }
 

@@ -38,12 +38,6 @@ public partial class BlockChain
 
     private BlockChain(Block genesisBlock, Guid id, BlockChainOptions options)
     {
-        // if (store.CountIndex(id) == 0)
-        // {
-        //     throw new ArgumentException(
-        //         $"Given store does not contain chain id {id}.", nameof(store));
-        // }
-
         if (options.Store.ChainId is { } canonId && canonId != Guid.Empty)
         {
             throw new ArgumentException(
@@ -117,7 +111,7 @@ public partial class BlockChain
 
     public StagedTransactionCollection StagedTransactions { get; }
 
-    public IReadOnlyDictionary<TxId, Transaction> Transactions => Store.Transactions;
+    public IReadOnlyDictionary<TxId, Transaction> Transactions => Store.PendingTransactions;
 
     public Block Tip => Blocks[^1];
 
