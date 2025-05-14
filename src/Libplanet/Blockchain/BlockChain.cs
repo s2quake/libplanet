@@ -211,7 +211,7 @@ public partial class BlockChain
         }
 
         var result = new List<BlockHash>();
-        foreach (BlockHash hash in Store.Chains.GetOrAdd(Id).BlockHashes.IterateIndexes(block.Height, count))
+        foreach (BlockHash hash in Store.Chains.GetOrAdd(Id).BlockHashes.IterateHeights(block.Height, count))
         {
             if (count == 0)
             {
@@ -711,7 +711,7 @@ public partial class BlockChain
 
         try
         {
-            IEnumerable<BlockHash> indices = Store.Chains.GetOrAdd(Id).BlockHashes.IterateIndexes(offset, limit);
+            IEnumerable<BlockHash> indices = Store.Chains.GetOrAdd(Id).BlockHashes.IterateHeights(offset, limit);
 
             // NOTE: The reason why this does not simply return indices, but iterates over
             // indices and yields hashes step by step instead, is that we need to ensure

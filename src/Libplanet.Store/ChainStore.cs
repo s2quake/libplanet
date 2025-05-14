@@ -8,6 +8,21 @@ public sealed class ChainStore(IDatabase database)
 {
     private static readonly object _lock = new();
 
+    public Chain AddNew(Guid chainId)
+    {
+        lock (_lock)
+        {
+            if (TryGetValue(chainId, out var chain))
+            {
+                throw new InvalidOperationException($"Chain with ID {chainId} already exists.");
+            }
+
+            chain = new Chain(chainId, database);
+            Add(chainId, chain);
+            return chain;
+        }
+    }
+
     public Chain GetOrAdd(Guid chainId)
     {
         lock (_lock)

@@ -12,5 +12,4 @@ public sealed record class TransactionDigest : IEquatable<TransactionDigest>
 
     [Property(1)]
     public required BlockHash BlockHash { get; init; }
-
 }

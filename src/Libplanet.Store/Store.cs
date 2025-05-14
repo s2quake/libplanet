@@ -15,7 +15,6 @@ public sealed class Store : IDisposable
     private readonly CommittedEvidenceStore _committedEvidences;
     private readonly ChainStore _chains;
     private readonly MetadataStore _metadata;
-    // private readonly BlockHashesByTxId _blockHashesByTxId;
     private Chain? _chain;
 
     private bool _disposed;
@@ -31,7 +30,6 @@ public sealed class Store : IDisposable
         _committedEvidences = new CommittedEvidenceStore(_database);
         _chains = new ChainStore(_database);
         _metadata = new MetadataStore(_database);
-        // _blockHashesByTxId = new BlockHashesByTxId(_database);
         if (_metadata.TryGetValue("chainId", out var chainId))
         {
             _chain = _chains[Guid.Parse(chainId)];
@@ -52,15 +50,21 @@ public sealed class Store : IDisposable
 
     public ChainStore Chains => _chains;
 
-    // public BlockHashesByTxId BlockHashesByTxId => _blockHashesByTxId;
-
     public Guid ChainId
     {
         get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
         set
         {
-            _chain = _chains[value];
-            _metadata["chainId"] = value.ToString();
+            if (value == Guid.Empty)
+            {
+                _chain = null;
+                _metadata.Remove("chainId");
+            }
+            else
+            {
+                _chain = _chains[value];
+                _metadata["chainId"] = value.ToString();
+            }
         }
     }
 
