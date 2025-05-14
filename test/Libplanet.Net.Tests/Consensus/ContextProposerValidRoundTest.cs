@@ -173,7 +173,7 @@ namespace Libplanet.Net.Tests.Consensus
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        ProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                        Version = BlockHeader.CurrentProtocolVersion,
                         Height = blockChain.Tip.Height + 1,
                         Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                         Proposer = key.Address,

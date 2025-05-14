@@ -15,7 +15,7 @@ public sealed record class BlockExcerpt
     public static implicit operator BlockExcerpt(Block block)
         => new()
         {
-            ProtocolVersion = block.Header.ProtocolVersion,
+            ProtocolVersion = block.Header.Version,
             Height = block.Header.Height,
             BlockHash = block.BlockHash,
             Timestamp = block.Header.Timestamp,

@@ -301,7 +301,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         {
             Assert.NotNull(expected);
             Assert.NotNull(actual);
-            Assert.Equal(expected.ProtocolVersion, actual.ProtocolVersion);
+            Assert.Equal(expected.Version, actual.Version);
             Assert.Equal(expected.Height, actual.Height);
             Assert.Equal(expected.Timestamp, actual.Timestamp);
             AssertBytesEqual(expected.Proposer, actual.Proposer);
@@ -405,7 +405,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
             var metadata = new BlockHeader
             {
-                ProtocolVersion = protocolVersion,
+                Version = protocolVersion,
                 Height = 0,
                 Timestamp = timestamp ??
                         new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
@@ -458,7 +458,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             var evs = evidence ?? [];
             var metadata = new BlockHeader
             {
-                ProtocolVersion = protocolVersion,
+                Version = protocolVersion,
                 Height = previousBlock.Height + 1,
                 Timestamp = previousBlock.Timestamp.Add(
                         blockInterval ?? TimeSpan.FromSeconds(15)),

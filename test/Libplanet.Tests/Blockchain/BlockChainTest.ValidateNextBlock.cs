@@ -34,12 +34,12 @@ namespace Libplanet.Tests.Blockchain
         [Fact]
         public void ValidateNextBlockProtocolVersion()
         {
-            var protocolVersion = _blockChain.Tip.ProtocolVersion;
+            var protocolVersion = _blockChain.Tip.Version;
             Block block1 = _blockChain.EvaluateAndSign(
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        ProtocolVersion = protocolVersion,
+                        Version = protocolVersion,
                         Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
@@ -71,7 +71,7 @@ namespace Libplanet.Tests.Blockchain
                     RawBlock.Create(
                         new BlockHeader
                         {
-                            ProtocolVersion = BlockHeader.CurrentProtocolVersion + 1,
+                            Version = BlockHeader.CurrentProtocolVersion + 1,
                             Height = 2,
                             Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
                             Proposer = _fx.Proposer.Address,
@@ -200,7 +200,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        ProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                        Version = BlockHeader.CurrentProtocolVersion,
                         Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                         Proposer = TestUtils.GenesisProposer.Address,
@@ -237,7 +237,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        ProtocolVersion = beforePostponeBPV,
+                        Version = beforePostponeBPV,
                         Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                         Proposer = TestUtils.GenesisProposer.Address,
@@ -713,7 +713,7 @@ namespace Libplanet.Tests.Blockchain
                 RawBlock.Create(
                     new BlockHeader
                     {
-                        ProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                        Version = BlockHeader.CurrentProtocolVersion,
                         Height = newChain.Tip.Height + 1,
                         Timestamp = newChain.Tip.Timestamp.AddSeconds(1),
                         Proposer = TestUtils.GenesisProposer.Address,

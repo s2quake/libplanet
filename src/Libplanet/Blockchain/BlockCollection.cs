@@ -9,7 +9,7 @@ namespace Libplanet.Blockchain;
 
 public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 {
-    private readonly Libplanet.Store.Repository _store;
+    private readonly Repository _repository;
     private readonly Chain _chain;
     private readonly BlockDigestStore _blockDigests;
     private readonly BlockHashStore _blockHashes;
@@ -17,11 +17,11 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     private readonly ICache<int, Block> _cacheByHeight;
 
-    internal BlockCollection(Libplanet.Store.Repository store, Guid chainId, int cacheSize = 4096)
+    internal BlockCollection(Repository repository, Guid chainId, int cacheSize = 4096)
     {
-        _store = store;
-        _chain = store.Chains.GetOrAdd(chainId);
-        _blockDigests = _store.BlockDigests;
+        _repository = repository;
+        _chain = repository.Chains[chainId];
+        _blockDigests = _repository.BlockDigests;
         _blockHashes = _chain.BlockHashes;
         _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
             .WithCapacity(cacheSize)
@@ -100,7 +100,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
             }
 
             var blockDigest = _blockDigests[blockHash];
-            var block = blockDigest.ToBlock(item => _store.PendingTransactions[item], item => _store.CommittedEvidences[item]);
+            var block = blockDigest.ToBlock(item => _repository.PendingTransactions[item], item => _repository.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, block);
             return block;
         }
@@ -130,8 +130,8 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         {
             _blockDigests.Remove(blockHash);
             _blockHashes.Remove(blockDigest.Height);
-            _store.PendingTransactions.RemoveRange(blockDigest.TxIds);
-            _store.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
+            _repository.PendingTransactions.RemoveRange(blockDigest.TxIds);
+            _repository.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
             _cacheByHash.TryRemove(blockHash);
             _cacheByHeight.TryRemove(blockDigest.Height);
             return true;
@@ -142,7 +142,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     public void Add(Block block)
     {
-        _store.AddBlock(block);
+        _repository.AddBlock(block);
         _chain.BlockHashes.Add(block);
 
         _cacheByHash.AddOrUpdate(block.BlockHash, block);
@@ -175,7 +175,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
         if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            value = blockDigest.ToBlock(item => _store.PendingTransactions[item], item => _store.CommittedEvidences[item]);
+            value = blockDigest.ToBlock(item => _repository.PendingTransactions[item], item => _repository.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, value);
             return true;
         }

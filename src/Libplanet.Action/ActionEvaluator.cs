@@ -84,7 +84,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
                 TxId = tx?.Id ?? default,
                 Proposer = rawBlock.Header.Proposer,
                 BlockHeight = rawBlock.Header.Height,
-                BlockProtocolVersion = rawBlock.Header.ProtocolVersion,
+                BlockProtocolVersion = rawBlock.Header.Version,
                 LastCommit = rawBlock.Header.LastCommit,
                 Txs = rawBlock.Content.Transactions,
                 RandomSeed = randomSeed,
