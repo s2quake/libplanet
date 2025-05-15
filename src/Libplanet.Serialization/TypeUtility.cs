@@ -62,43 +62,6 @@ public static class TypeUtility
     public static bool IsNullableType(Type type)
         => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
-    public static bool IsTupleType(Type type)
-    {
-        if (!type.IsGenericType)
-        {
-            return false;
-        }
-
-        var genericTypeDefinition = type.GetGenericTypeDefinition();
-        return genericTypeDefinition == typeof(Tuple<,>)
-            || genericTypeDefinition == typeof(Tuple<,,>)
-            || genericTypeDefinition == typeof(Tuple<,,,>)
-            || genericTypeDefinition == typeof(Tuple<,,,,>)
-            || genericTypeDefinition == typeof(Tuple<,,,,,>)
-            || genericTypeDefinition == typeof(Tuple<,,,,,,>)
-            || genericTypeDefinition == typeof(Tuple<,,,,,,,>);
-    }
-
-    public static bool IsValueTupleType(Type type)
-    {
-        if (!type.IsGenericType)
-        {
-            return false;
-        }
-
-        var genericTypeDefinition = type.GetGenericTypeDefinition();
-        return genericTypeDefinition == typeof(ValueTuple<>)
-            || genericTypeDefinition == typeof(ValueTuple<,>)
-            || genericTypeDefinition == typeof(ValueTuple<,,>)
-            || genericTypeDefinition == typeof(ValueTuple<,,,>)
-            || genericTypeDefinition == typeof(ValueTuple<,,,,>)
-            || genericTypeDefinition == typeof(ValueTuple<,,,,,>)
-            || genericTypeDefinition == typeof(ValueTuple<,,,,,,>)
-            || genericTypeDefinition == typeof(ValueTuple<,,,,,,,>);
-    }
-
-    public static bool IsLegacyType(Type type) => type.IsDefined(typeof(LegacyModelAttribute));
-
     public static bool IsBencodableType(Type type) => typeof(IBencodable).IsAssignableFrom(type);
 
     public static bool IsBencodexType(Type type) => typeof(IValue).IsAssignableFrom(type);
