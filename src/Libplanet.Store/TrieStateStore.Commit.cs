@@ -8,7 +8,7 @@ namespace Libplanet.Store;
 
 public partial class TrieStateStore
 {
-    private static readonly Codec _codec = new Codec();
+    private static readonly Codec _codec = new();
 
     public ITrie Commit(ITrie trie)
     {
@@ -18,54 +18,51 @@ public partial class TrieStateStore
             return trie;
         }
 
-        var writeBatch = new WriteBatch(StateKeyValueStore, 4096);
-        INode newRoot = Commit(root, writeBatch, _cache);
+        var writeBatch = new WriteBatch(_table, 4096);
+        var newNode = Commit(root, writeBatch);
 
-        // It assumes embedded node if it's not HashNode.
-        if (!(newRoot is HashNode))
+        if (newNode is not HashNode)
         {
-            IValue bencoded = newRoot.ToBencodex();
-            byte[] serialized = _codec.Encode(bencoded);
-            HashDigest<SHA256> hashDigest = HashDigest<SHA256>.Create(serialized);
+            var bencoded = newNode.ToBencodex();
+            var serialized = _codec.Encode(bencoded);
+            var hashDigest = HashDigest<SHA256>.Create(serialized);
 
             writeBatch.Add(new KeyBytes(hashDigest.Bytes), serialized);
-            newRoot = new HashNode(hashDigest) { Table = table };
+            newNode = new HashNode { Hash = hashDigest, Table = table };
         }
 
         writeBatch.Flush();
 
-        return new Trie.Trie(newRoot);
+        return new Trie.Trie(newNode);
     }
 
-    private static INode Commit(INode node, WriteBatch writeBatch, HashNodeCache cache)
-        => node switch
-        {
-            // NOTE: If it is a hashed node, it has been recorded already.
-            HashNode _ => node,
-            FullNode fullNode => CommitFullNode(fullNode, writeBatch, cache),
-            ShortNode shortNode => CommitShortNode(shortNode, writeBatch, cache),
-            ValueNode valueNode => CommitValueNode(valueNode, writeBatch, cache),
-            _ => throw new NotSupportedException("Not supported node came."),
-        };
+    private static INode Commit(INode node, WriteBatch writeBatch) => node switch
+    {
+        // NOTE: If it is a hashed node, it has been recorded already.
+        HashNode _ => node,
+        FullNode fullNode => CommitFullNode(fullNode, writeBatch),
+        ShortNode shortNode => CommitShortNode(shortNode, writeBatch),
+        ValueNode valueNode => CommitValueNode(valueNode, writeBatch),
+        _ => throw new NotSupportedException("Not supported node came."),
+    };
 
-    private static INode CommitFullNode(
-        FullNode fullNode, WriteBatch writeBatch, HashNodeCache cache)
+    private static INode CommitFullNode(FullNode fullNode, WriteBatch writeBatch)
     {
         var virtualValue = fullNode.Value is null
             ? null
-            : Commit(fullNode.Value, writeBatch, cache);
-        var builder = ImmutableDictionary.CreateBuilder<byte, INode?>();
+            : Commit(fullNode.Value, writeBatch);
+        var builder = ImmutableDictionary.CreateBuilder<byte, INode>();
         foreach (var (index, child) in fullNode.Children)
         {
             if (child is not null)
             {
-                builder.Add(index, Commit(child, writeBatch, cache));
+                builder.Add(index, Commit(child, writeBatch));
             }
         }
 
         var virtualChildren = builder.ToImmutable();
 
-        fullNode = new FullNode(virtualChildren, virtualValue);
+        fullNode = new FullNode { Children = virtualChildren, Value = virtualValue };
         IValue encoded = fullNode.ToBencodex();
 
         if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
@@ -73,26 +70,26 @@ public partial class TrieStateStore
             return fullNode;
         }
 
-        return Write(fullNode.ToBencodex(), writeBatch, cache);
+        return Write(fullNode.ToBencodex(), writeBatch);
     }
 
     private static INode CommitShortNode(
-        ShortNode shortNode, WriteBatch writeBatch, HashNodeCache cache)
+        ShortNode shortNode, WriteBatch writeBatch)
     {
         // FIXME: Assumes value is not null.
-        var committedValueNode = Commit(shortNode.Value, writeBatch, cache);
-        shortNode = new ShortNode(shortNode.Key, committedValueNode);
+        var committedValueNode = Commit(shortNode.Value, writeBatch);
+        shortNode = new ShortNode { Key = shortNode.Key, Value = committedValueNode };
         IValue encoded = shortNode.ToBencodex();
         if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
         {
             return shortNode;
         }
 
-        return Write(encoded, writeBatch, cache);
+        return Write(encoded, writeBatch);
     }
 
     private static INode CommitValueNode(
-        ValueNode valueNode, WriteBatch writeBatch, HashNodeCache cache)
+        ValueNode valueNode, WriteBatch writeBatch)
     {
         IValue encoded = valueNode.ToBencodex();
         var nodeSize = encoded.EncodingLength;
@@ -101,11 +98,10 @@ public partial class TrieStateStore
             return valueNode;
         }
 
-        return Write(encoded, writeBatch, cache);
+        return Write(encoded, writeBatch);
     }
 
-    private static HashNode Write(
-        IValue bencodedNode, WriteBatch writeBatch, HashNodeCache cache)
+    private static HashNode Write(IValue bencodedNode, WriteBatch writeBatch)
     {
         byte[] serialized = _codec.Encode(bencodedNode);
         var nodeHash = HashDigest<SHA256>.Create(serialized);
@@ -147,7 +143,7 @@ public partial class TrieStateStore
 
         public HashNode Create(HashDigest<SHA256> nodeHash)
         {
-            return new HashNode(nodeHash) { Table = _store };
+            return new HashNode { Hash = nodeHash, Table = _store };
         }
     }
 }

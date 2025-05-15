@@ -17,7 +17,7 @@ internal static class NodeInserter
     };
 
     private static INode InsertToNullNode(in PathCursor cursor, ValueNode value)
-        => cursor.IsEnd ? value : new ShortNode(cursor.NextNibbles, value);
+        => cursor.IsEnd ? value : new ShortNode { Key = cursor.NextNibbles, Value = value };
 
     private static INode InsertToValueNode(
         ValueNode valueNode, in PathCursor cursor, ValueNode value)
@@ -29,7 +29,7 @@ internal static class NodeInserter
 
         var builder = ImmutableDictionary.CreateBuilder<byte, INode>();
         builder[cursor.Current] = InsertToNullNode(cursor.Next(1), value);
-        return new FullNode(builder.ToImmutable(), valueNode);
+        return new FullNode { Children = builder.ToImmutable(), Value = valueNode };
     }
 
     private static INode InsertToShortNode(
@@ -42,7 +42,7 @@ internal static class NodeInserter
         if (commonLength == key.Length)
         {
             var node = Insert(shortNode.Value, nextCursor, value);
-            return new ShortNode(key, node);
+            return new ShortNode { Key = key, Value = node };
         }
         else
         {
@@ -53,7 +53,7 @@ internal static class NodeInserter
 
             if (nextKey.Length > 0)
             {
-                builder[nextIndex] = new ShortNode(nextKey, shortNode.Value);
+                builder[nextIndex] = new ShortNode { Key = nextKey, Value = shortNode.Value };
             }
             else
             {
@@ -65,10 +65,13 @@ internal static class NodeInserter
                 builder[nextCursor.Current] = InsertToNullNode(nextCursor.Next(1), value);
             }
 
-            var v = nextCursor.Position >= nextCursor.Length ? value : null;
-            var fullNode = new FullNode(builder.ToImmutable(), v);
+            var fullNode = new FullNode
+            {
+                Children = builder.ToImmutable(),
+                Value = nextCursor.Position >= nextCursor.Length ? value : null,
+            };
 
-            return commonNibbles.Length == 0 ? fullNode : new ShortNode(commonNibbles, fullNode);
+            return commonNibbles.Length == 0 ? fullNode : new ShortNode { Key = commonNibbles, Value = fullNode };
         }
     }
 
@@ -77,7 +80,7 @@ internal static class NodeInserter
     {
         if (cursor.IsEnd)
         {
-            return new FullNode(fullNode.Children, value);
+            return new FullNode { Children = fullNode.Children, Value = value };
         }
 
         var index = cursor.Current;

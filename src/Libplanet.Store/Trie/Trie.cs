@@ -31,7 +31,7 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public static Trie Create(HashDigest<SHA256> hashDigest, ITable table)
     {
-        var node = new HashNode(hashDigest) { Table = table };
+        var node = new HashNode { Hash = hashDigest, Table = table };
         return new Trie(node) { IsCommitted = true };
     }
 
@@ -46,8 +46,8 @@ public sealed partial record class Trie(INode Node) : ITrie
         }
 
         var nibble = Nibbles.FromKeyBytes(keyValues[0].Key);
-        var valueNode = new ValueNode(keyValues[0].Value);
-        var shortNode = new ShortNode(nibble, valueNode);
+        var valueNode = new ValueNode { Value = keyValues[0].Value };
+        var shortNode = new ShortNode { Key = nibble, Value = valueNode };
 
         ITrie trie = new Trie(shortNode);
 
@@ -63,7 +63,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     {
         var node = Node;
         var cursor = PathCursor.Create(key);
-        var valueNode = new ValueNode(value);
+        var valueNode = new ValueNode { Value = value };
         var newNode = NodeInserter.Insert(node, cursor, valueNode);
         return new Trie(newNode) { IsCommitted = IsCommitted };
     }

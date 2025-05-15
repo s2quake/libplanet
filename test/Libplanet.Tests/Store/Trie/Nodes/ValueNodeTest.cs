@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Store.Trie.Nodes
 
             foreach (var value in values)
             {
-                var valueNode = new ValueNode(value);
+                var valueNode = new ValueNode { Value = value };
                 var expected = new List(new[]
                 {
                     Null.Value, value,

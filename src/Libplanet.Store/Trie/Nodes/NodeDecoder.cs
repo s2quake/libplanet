@@ -1,3 +1,4 @@
+#pragma warning disable S1066 // Mergeable "if" statements should be combined
 using System.Security.Cryptography;
 using Bencodex.Types;
 using Libplanet.Types;
@@ -72,7 +73,7 @@ public static class NodeDecoder
         => Decode(value, nodeTypes, null!);
 
     // The length and the first element are already checked.
-    private static ValueNode DecodeValue(List list) => new(list[1]);
+    private static ValueNode DecodeValue(List list) => new() { Value = list[1] };
 
     // The length and the first element are already checked.
     private static ShortNode DecodeShort(List list, ITable table)
@@ -91,7 +92,7 @@ public static class NodeDecoder
         }
 
         var key = new Nibbles(binary.ByteArray);
-        return new ShortNode(key, node);
+        return new ShortNode { Key = key, Value = node };
     }
 
     // The length is already checked.
@@ -109,12 +110,12 @@ public static class NodeDecoder
 
         var value = Decode(list[FullNode.MaximumIndex], FullValueNodeTypes, table);
 
-        return new FullNode(builder.ToImmutable(), value);
+        return new FullNode { Children = builder.ToImmutable(), Value = value };
     }
 
-    private static HashNode DecodeHash(Binary binary, ITable table)
-        => new(new HashDigest<SHA256>(binary.ByteArray))
-        {
-            Table = table,
-        };
+    private static HashNode DecodeHash(Binary binary, ITable table) => new()
+    {
+        Hash = new HashDigest<SHA256>(binary.ByteArray),
+        Table = table,
+    };
 }

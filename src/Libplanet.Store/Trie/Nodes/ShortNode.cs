@@ -1,12 +1,17 @@
+using System.ComponentModel.DataAnnotations;
 using Bencodex.Types;
+using Libplanet.Serialization;
 
 namespace Libplanet.Store.Trie.Nodes;
 
-internal sealed record class ShortNode(in Nibbles Key, INode Value) : INode
+[Model(Version = 1)]
+internal sealed record class ShortNode : INode, IValidatableObject
 {
-    public Nibbles Key { get; } = ValidateKey(Key);
+    [Property(0)]
+    public required Nibbles Key { get; init; }
 
-    public INode Value { get; } = ValidateValue(Value);
+    [Property(1)]
+    public required INode Value { get; init; }
 
     IEnumerable<INode> INode.Children => [Value];
 
@@ -20,31 +25,53 @@ internal sealed record class ShortNode(in Nibbles Key, INode Value) : INode
 
     public IValue ToBencodex() => new List(new Binary(Key.ByteArray), Value.ToBencodex());
 
-    private static Nibbles ValidateKey(in Nibbles key)
+    // private static Nibbles ValidateKey(in Nibbles key)
+    // {
+    //     if (key.Length == 0)
+    //     {
+    //         throw new ArgumentException($"Given {nameof(key)} cannot be empty.", nameof(key));
+    //     }
+
+    //     return key;
+    // }
+
+    // private static INode ValidateValue(INode value)
+    // {
+    //     if (value is ShortNode)
+    //     {
+    //         var message = $"Given {nameof(value)} cannot be a {nameof(ShortNode)}.";
+    //         throw new ArgumentException(message, nameof(value));
+    //     }
+
+    //     if (value is HashNode hashNode && hashNode.Table is null)
+    //     {
+    //         var message = $"Given {nameof(value)} cannot be a {nameof(HashNode)} " +
+    //             $"without a {nameof(IDictionary<KeyBytes, byte[]>)}.";
+    //         throw new ArgumentException(message, nameof(value));
+    //     }
+
+    //     return value;
+    // }
+
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (key.Length == 0)
+        if (Key.Length == 0)
         {
-            throw new ArgumentException($"Given {nameof(key)} cannot be empty.", nameof(key));
+            yield return new ValidationResult($"Given {nameof(Key)} cannot be empty.", [nameof(Key)]);
         }
 
-        return key;
-    }
-
-    private static INode ValidateValue(INode value)
-    {
-        if (value is ShortNode)
+        if (Value is ShortNode)
         {
-            var message = $"Given {nameof(value)} cannot be a {nameof(ShortNode)}.";
-            throw new ArgumentException(message, nameof(value));
+            yield return new ValidationResult(
+                $"Given {nameof(Value)} cannot be a {nameof(ShortNode)}.", [nameof(Value)]);
         }
 
-        if (value is HashNode hashNode && hashNode.Table is null)
+        if (Value is HashNode hashNode && hashNode.Table is null)
         {
-            var message = $"Given {nameof(value)} cannot be a {nameof(HashNode)} " +
-                $"without a {nameof(IDictionary<KeyBytes, byte[]>)}.";
-            throw new ArgumentException(message, nameof(value));
+            yield return new ValidationResult(
+                $"Given {nameof(Value)} cannot be a {nameof(HashNode)} " +
+                $"without a {nameof(IDictionary<KeyBytes, byte[]>)}.",
+                [nameof(Value)]);
         }
-
-        return value;
     }
 }

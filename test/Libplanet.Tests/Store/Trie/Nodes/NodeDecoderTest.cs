@@ -39,8 +39,8 @@ public class NodeDecoderTest
         INode node = NodeDecoder.Decode(list, NodeTypes.Full);
         Assert.IsType<FullNode>(node);
         var fullNode = (FullNode)node;
-        Assert.Equal(new HashNode(hashB), fullNode.Value);
-        Assert.Equal(new HashNode(hashA), fullNode.Children[0]);
+        Assert.Equal(new HashNode { Hash = hashB }, fullNode.Value);
+        Assert.Equal(new HashNode { Hash = hashA }, fullNode.Children[0]);
         Assert.Single(fullNode.Children);
     }
 
@@ -66,7 +66,7 @@ public class NodeDecoderTest
         var shortNode = (ShortNode)node;
         Assert.IsType<ValueNode>(shortNode.Value);
         Assert.Equal(Nibbles.Parse("beef"), shortNode.Key);
-        Assert.Equal(new ValueNode((Text)"beef"), shortNode.Value);
+        Assert.Equal(new ValueNode { Value = (Text)"beef" }, shortNode.Value);
     }
 
     [Fact]
@@ -80,24 +80,27 @@ public class NodeDecoderTest
         Assert.IsType<ShortNode>(node);
         var shortNode = (ShortNode)node;
         Assert.IsType<HashNode>(shortNode.Value);
-        Assert.Equal(new HashNode(default), shortNode.Value);
+        Assert.Equal(new HashNode { Hash = default }, shortNode.Value);
     }
 
     [Fact]
     public void OnlyDecodeAllowedNodeType()
     {
-        IValue valueNodeEncoded = new ValueNode(new Text("foo")).ToBencodex();
-        IValue shortNodeEncoded = new ShortNode(
-            Nibbles.Parse("b4"),
-            new ValueNode(new Text("bar"))).ToBencodex();
+        IValue valueNodeEncoded = new ValueNode { Value = new Text("foo") }.ToBencodex();
+        IValue shortNodeEncoded = new ShortNode
+        {
+            Key = Nibbles.Parse("b4"),
+            Value = new ValueNode { Value = new Text("bar"), },
+        }.ToBencodex();
         var children = ImmutableDictionary<byte, INode>.Empty
-            .Add(4, new ValueNode(new Text("4")))
-            .Add(10, new ValueNode(new Text("c")));
-        IValue fullNodeEncoded = new FullNode(children, null).ToBencodex();
+            .Add(4, new ValueNode { Value = new Text("4") })
+            .Add(10, new ValueNode { Value = new Text("c") });
+        IValue fullNodeEncoded = new FullNode { Children = children }.ToBencodex();
         IValue hashNodeEncoded =
-            new HashNode(
-                new HashDigest<SHA256>(
-                    TestUtils.GetRandomBytes(HashDigest<SHA256>.Size))).ToBencodex();
+            new HashNode
+            {
+                Hash = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+            }.ToBencodex();
 
         Assert.Null(NodeDecoder.Decode(Null.Value, NodeDecoder.AnyNodeTypes));
         Assert.IsType<ValueNode>(

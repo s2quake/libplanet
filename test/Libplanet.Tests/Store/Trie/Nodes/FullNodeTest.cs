@@ -9,9 +9,11 @@ public class FullNodeTest
     [Fact]
     public void ToBencodex()
     {
-        var fullNode = new FullNode(
-            Children: ImmutableDictionary<byte, INode>.Empty,
-            Value: new ValueNode(Dictionary.Empty));
+        var fullNode = new FullNode
+        {
+            Children = ImmutableDictionary<byte, INode>.Empty,
+            Value = new ValueNode { Value = Dictionary.Empty },
+        };
 
         var expected =
             new List(Enumerable.Repeat<IValue>(Null.Value, 16).ToImmutableArray()

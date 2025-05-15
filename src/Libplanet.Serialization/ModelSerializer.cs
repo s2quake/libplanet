@@ -405,8 +405,7 @@ public static class ModelSerializer
         return array;
     }
 
-    private static object ToImmutableArray(
-        List list, Type elementType, ModelOptions options)
+    private static object ToImmutableArray(List list, Type elementType, ModelOptions options)
     {
         var listType = typeof(List<>).MakeGenericType(elementType);
         var listInstance = (IList)CreateInstance(listType)!;
@@ -425,8 +424,7 @@ public static class ModelSerializer
         return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
     }
 
-    private static object ToImmutableSortedSet(
-        List list, Type elementType, ModelOptions options)
+    private static object ToImmutableSortedSet(List list, Type elementType, ModelOptions options)
     {
         var listType = typeof(List<>).MakeGenericType(elementType);
         var listInstance = (IList)CreateInstance(listType)!;
@@ -445,8 +443,7 @@ public static class ModelSerializer
         return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
     }
 
-    private static object ToTupleOrValueTuple(
-        List list, Type tupleType, ModelOptions options)
+    private static object ToTupleOrValueTuple(List list, Type tupleType, ModelOptions options)
     {
         var valueList = new List<object?>(list.Count);
         var genericArguments = tupleType.GetGenericArguments();
