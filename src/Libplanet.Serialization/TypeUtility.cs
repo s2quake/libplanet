@@ -141,6 +141,23 @@ public static class TypeUtility
         return null;
     }
 
+    public static object CreateInstance(Type type, params object?[] args)
+    {
+        try
+        {
+            if (Activator.CreateInstance(type, args: args) is { } obj)
+            {
+                return obj;
+            }
+        }
+        catch (Exception e)
+        {
+            throw new ModelCreationException(type, e);
+        }
+
+        throw new ModelCreationException(type);
+    }
+
     private static string GetName(Type type)
     {
         var name = type.Name ?? throw new UnreachableException("Type does not have FullName");
