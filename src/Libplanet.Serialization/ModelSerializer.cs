@@ -1,30 +1,15 @@
-﻿using System.Collections;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Bencodex.Types;
 using Libplanet.Serialization.Converters;
-using Libplanet.Serialization.Descriptors;
-using static Libplanet.Serialization.ArrayUtility;
-using static Libplanet.Serialization.TypeUtility;
 using static Libplanet.Serialization.ModelResolver;
+using static Libplanet.Serialization.TypeUtility;
 
 namespace Libplanet.Serialization;
 
 public static class ModelSerializer
 {
     private static readonly Codec _codec = new();
-    // private static readonly ModelDescriptorBase[] _descriptors =
-    // [
-    //     new ArrayModelDescriptor(),
-    //     new ObjectModelDescriptor(),
-    //     new KeyValuePairModelDescriptor(),
-    //     new ImmutableArrayModelDescriptor(),
-    //     new ImmutableSortedSetModelDescriptor(),
-    //     new ImmutableSortedDictionaryModelDescriptor(),
-    //     new TupleModelDescriptor(),
-    // ];
 
     static ModelSerializer()
     {
@@ -57,52 +42,6 @@ public static class ModelSerializer
         type = null;
         return false;
     }
-
-    // public static bool CanSupportType(Type type)
-    // {
-    //     if (IsNullableType(type))
-    //     {
-    //         return CanSupportType(type.GetGenericArguments()[0]);
-    //     }
-
-    //     if (IsValueTupleType(type) || IsTupleType(type))
-    //     {
-    //         var genericArguments = type.GetGenericArguments();
-    //         foreach (var genericArgument in genericArguments)
-    //         {
-    //             if (!CanSupportType(genericArgument))
-    //             {
-    //                 return false;
-    //             }
-    //         }
-
-    //         return true;
-    //     }
-
-    //     if (IsStandardType(type))
-    //     {
-    //         return true;
-    //     }
-
-    //     if (type.IsDefined(typeof(ModelAttribute)))
-    //     {
-    //         return true;
-    //     }
-
-    //     if (IsSupportedArrayType(type, out var elementType))
-    //     {
-    //         return CanSupportType(elementType);
-    //     }
-
-    //     if (TypeDescriptor.GetConverter(type) is TypeConverter converter
-    //         && converter.CanConvertTo(typeof(IValue))
-    //         && converter.CanConvertFrom(typeof(IValue)))
-    //     {
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
 
     public static IValue Serialize(object? obj)
     {
@@ -222,79 +161,8 @@ public static class ModelSerializer
                 return serialized;
             });
 
-            // var types = descriptor.GetTypes(obj);
-            // var itemList = new List<IValue>(types.Count());
-            // foreach (var item in descriptor.GetValues(obj))
-            // {
-            //     var itemType = descriptor.GetType(item);
-            //     var actualType = GetActualType(itemType, item);
-            //     var serialized = itemType != actualType
-            //         ? Serialize(item) : SerializeRawValue(item, itemType, options);
-            //     itemList.Add(serialized);
-            // }
-
             return new List(items);
         }
-        // else if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute)))
-        // {
-        //     var propertyInfos = ModelResolver.GetProperties(type);
-        //     var itemList = new List<IValue>(propertyInfos.Length);
-        //     foreach (var propertyInfo in propertyInfos)
-        //     {
-        //         var item = propertyInfo.GetValue(obj);
-        //         var itemType = propertyInfo.PropertyType;
-        //         var actualType = GetActualType(itemType, item);
-        //         var serialized = itemType != actualType
-        //             ? Serialize(item) : SerializeRawValue(item, itemType, options);
-        //         itemList.Add(serialized);
-        //     }
-
-        //     return new List(itemList);
-        // }
-        // else if (IsArray(type, out var elementType)
-        //     || IsImmutableArray(type, out elementType)
-        //     || IsImmutableSortedSet(type, out elementType))
-        // {
-        //     var items = (IList)obj;
-        //     var list = new List<IValue>(items.Count);
-
-        //     foreach (var item in items)
-        //     {
-        //         var actualType = GetActualType(elementType, item);
-        //         var serialized = elementType != actualType
-        //             ? Serialize(item) : SerializeRawValue(item, elementType, options);
-        //         list.Add(serialized);
-        //     }
-
-        //     return new List(list);
-        // }
-        // else if (IsValueTupleType(type) || IsTupleType(type))
-        // {
-        //     var genericArguments = type.GetGenericArguments();
-        //     if (obj is not ITuple tuple)
-        //     {
-        //         throw new ModelSerializationException(
-        //             $"The value {obj} is not a tuple of type {type}");
-        //     }
-
-        //     if (genericArguments.Length != tuple.Length)
-        //     {
-        //         throw new ModelSerializationException(
-        //             $"The number of generic arguments {genericArguments.Length} does not match " +
-        //             $"the number of tuple items {tuple.Length}");
-        //     }
-
-        //     var list = new List<IValue>(genericArguments.Length);
-        //     for (var i = 0; i < genericArguments.Length; i++)
-        //     {
-        //         var item = tuple[i];
-        //         var itemType = genericArguments[i];
-        //         var serializedValue = SerializeRawValue(item, itemType, options);
-        //         list.Add(serializedValue);
-        //     }
-
-        //     return new List(list);
-        // }
 
         throw new ModelSerializationException($"Unsupported type {obj.GetType()}");
     }
@@ -353,72 +221,6 @@ public static class ModelSerializer
 
             return descriptor.CreateInstance(type, values);
         }
-        // else if (type.IsDefined(typeof(ModelAttribute)))
-        // {
-        //     var list = (List)value;
-        //     var obj = CreateInstance(type);
-        //     var itemInfos = ModelResolver.GetProperties(type);
-        //     for (var i = 0; i < itemInfos.Length; i++)
-        //     {
-        //         var itemInfo = itemInfos[i];
-        //         var itemType = itemInfo.PropertyType;
-        //         var serializedValue = list[i];
-        //         var itemValue = ModelData.IsData(serializedValue)
-        //             ? Deserialize(serializedValue) : DeserializeRawValue(serializedValue, itemType, options);
-        //         itemInfo.SetValue(obj, itemValue);
-        //     }
-
-        //     return obj;
-        // }
-        // else if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute)
-        // {
-        //     var originType = legacyModelAttribute.OriginType;
-        //     var originVersion = ModelResolver.GetVersion(originType);
-        //     var version = ModelResolver.GetVersion(type);
-        //     var list = (List)value;
-        //     var obj = CreateInstance(type);
-        //     var itemInfos = ModelResolver.GetProperties(type);
-        //     for (var i = 0; i < itemInfos.Length; i++)
-        //     {
-        //         var itemInfo = itemInfos[i];
-        //         var itemType = itemInfo.PropertyType;
-        //         var serializedValue = list[i];
-        //         var itemValue = ModelData.IsData(serializedValue)
-        //             ? Deserialize(serializedValue) : DeserializeRawValue(serializedValue, itemType, options);
-        //         itemInfo.SetValue(obj, itemValue);
-        //     }
-
-        //     while (version < originVersion)
-        //     {
-        //         var args = new object[] { obj };
-        //         type = ModelResolver.GetType(originType, version + 1);
-        //         obj = CreateInstance(type, args: args);
-        //         version++;
-        //     }
-
-        //     return obj;
-        // }
-        // else if (IsArray(type, out var elementType))
-        // {
-        //     if (value is Null)
-        //     {
-        //         return ToEmptyArray(elementType);
-        //     }
-
-        //     return ToArray((List)value, elementType, options);
-        // }
-        // else if (IsImmutableArray(type, out elementType))
-        // {
-        //     return ToImmutableArray((List)value, elementType, options);
-        // }
-        // else if (IsImmutableSortedSet(type, out elementType))
-        // {
-        //     return ToImmutableSortedSet((List)value, elementType, options);
-        // }
-        // else if (IsValueTupleType(type) || IsTupleType(type))
-        // {
-        //     return ToTupleOrValueTuple((List)value, type, options);
-        // }
         else
         {
             var message = $"Unsupported type {type}. Cannot convert value of type " +
@@ -430,94 +232,6 @@ public static class ModelSerializer
             $"Unsupported type {type}. Cannot convert value of type " +
             $"{value.GetType()} to {type}");
     }
-
-    // private static Array ToArray(List list, Type elementType)
-    // {
-    //     var array = Array.CreateInstance(elementType, list.Count);
-    //     for (var i = 0; i < list.Count; i++)
-    //     {
-    //         var item = list[i];
-    //         var itemValue = ModelData.IsData(item)
-    //             ? Deserialize(item) : DeserializeRawValue(item, elementType);
-    //         array.SetValue(itemValue, i);
-    //     }
-
-    //     return array;
-    // }
-
-    // private static object ToImmutableArray(List list, Type elementType)
-    // {
-    //     var listType = typeof(List<>).MakeGenericType(elementType);
-    //     var listInstance = (IList)CreateInstance(listType)!;
-    //     foreach (var item in list)
-    //     {
-    //         var itemValue = ModelData.IsData(item)
-    //             ? Deserialize(item) : DeserializeRawValue(item, elementType);
-    //         listInstance.Add(itemValue);
-    //     }
-
-    //     var methodName = nameof(ImmutableArray.CreateRange);
-    //     var methodInfo = GetCreateRangeMethod(
-    //         typeof(ImmutableArray), methodName, typeof(IEnumerable<>));
-    //     var genericMethodInfo = methodInfo.MakeGenericMethod(elementType);
-    //     var methodArgs = new object?[] { listInstance };
-    //     return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
-    // }
-
-    // private static object ToImmutableSortedSet(List list, Type elementType)
-    // {
-    //     var listType = typeof(List<>).MakeGenericType(elementType);
-    //     var listInstance = (IList)CreateInstance(listType)!;
-    //     foreach (var item in list)
-    //     {
-    //         var itemValue = ModelData.IsData(item)
-    //             ? Deserialize(item) : DeserializeRawValue(item, elementType);
-    //         listInstance.Add(itemValue);
-    //     }
-
-    //     var methodName = nameof(ImmutableSortedSet.CreateRange);
-    //     var methodInfo = GetCreateRangeMethod(
-    //         typeof(ImmutableSortedSet), methodName, typeof(IEnumerable<>));
-    //     var genericMethodInfo = methodInfo.MakeGenericMethod(elementType);
-    //     var methodArgs = new object?[] { listInstance };
-    //     return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
-    // }
-
-    // private static object ToTupleOrValueTuple(List list, Type tupleType)
-    // {
-    //     var valueList = new List<object?>(list.Count);
-    //     var genericArguments = tupleType.GetGenericArguments();
-    //     for (var i = 0; i < genericArguments.Length; i++)
-    //     {
-    //         var item = list[i];
-    //         var itemType = genericArguments[i];
-    //         var itemValue = DeserializeRawValue(item, itemType);
-    //         valueList.Add(itemValue);
-    //     }
-
-    //     return CreateInstance(tupleType, args: [.. valueList]);
-    // }
-
-    // private static MethodInfo GetCreateRangeMethod(Type type, string methodName, Type parameterType)
-    // {
-    //     var parameterName = parameterType.Name;
-    //     var bindingFlags = BindingFlags.Public | BindingFlags.Static;
-    //     var methodInfos = type.GetMethods(bindingFlags);
-
-    //     for (var i = 0; i < methodInfos.Length; i++)
-    //     {
-    //         var methodInfo = methodInfos[i];
-    //         var parameters = methodInfo.GetParameters();
-    //         if (methodInfo.Name == methodName &&
-    //             parameters.Length == 1 &&
-    //             parameters[0].ParameterType.Name == parameterName)
-    //         {
-    //             return methodInfo;
-    //         }
-    //     }
-
-    //     throw new NotSupportedException("The method is not found.");
-    // }
 
     private static object CreateInstance(Type type, params object?[] args)
     {

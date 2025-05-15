@@ -2,12 +2,6 @@ namespace Libplanet.Serialization.Tests;
 
 public sealed partial class ModelSerializerTest
 {
-    // [Fact]
-    // public void CanSupport_LegacyModelType_FailTest()
-    // {
-    //     Assert.False(ModelSerializer.CanSupportType(typeof(Version1_ModelRecord)));
-    // }
-
     [Fact]
     public void LegacyModel_SerializeAndDeserialize_Test()
     {
@@ -18,7 +12,7 @@ public sealed partial class ModelSerializerTest
         Assert.Equal("Hello, World!", actualObject.String);
     }
 
-    [LegacyModel(OriginType = typeof(ModelRecord))]
+    [LegacyModel(OriginType = typeof(ModelRecord), AllowSerialization = true)]
     public sealed record class Version1_ModelRecord
     {
         [Property(0)]

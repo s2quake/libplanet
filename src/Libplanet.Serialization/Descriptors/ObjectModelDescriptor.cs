@@ -57,7 +57,8 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
 
     public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
     {
-        if (type.IsDefined(typeof(LegacyModelAttribute)))
+        if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute
+            && !legacyModelAttribute.AllowSerialization)
         {
             throw new ModelSerializationException("LegacyModelAttribute is not supported");
         }

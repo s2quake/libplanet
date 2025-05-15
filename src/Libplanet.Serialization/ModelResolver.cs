@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Libplanet.Serialization.Descriptors;
-using static Libplanet.Serialization.ArrayUtility;
 
 namespace Libplanet.Serialization;
 
@@ -176,13 +175,13 @@ public static class ModelResolver
     {
         var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
         var query = from propertyInfo in type.GetProperties(bindingFlags)
-                    let propertyAttribute
-                        = propertyInfo.GetCustomAttribute<PropertyAttribute>()
+                    let propertyAttribute = propertyInfo.GetCustomAttribute<PropertyAttribute>()
                     where propertyAttribute is not null
                     orderby propertyAttribute.Index
                     select (propertyInfo, propertyAttribute);
         var items = query.ToArray();
         var builder = ImmutableArray.CreateBuilder<PropertyInfo>(items.Length);
+        var hasArrayProperty = false;
         foreach (var (propertyInfo, propertyAttribute) in items)
         {
             var index = propertyAttribute.Index;
@@ -192,9 +191,17 @@ public static class ModelResolver
                     $"Property {propertyInfo.Name} has an invalid index {index}");
             }
 
-            ValidatorProperty(type, propertyInfo);
+            if (typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
+            {
+                hasArrayProperty = true;
+            }
 
             builder.Add(propertyInfo);
+        }
+
+        if (hasArrayProperty)
+        {
+            ValidateAsEquatable(type);
         }
 
         return builder.ToImmutable();
@@ -202,22 +209,8 @@ public static class ModelResolver
 
     private static ImmutableArray<Type> GetTypes(Type type) => _typesByType.GetOrAdd(type, CreateTypes);
 
-    private static void ValidatorProperty(Type type, PropertyInfo propertyInfo)
+    private static void ValidateAsEquatable(Type type)
     {
-        var propertyType = propertyInfo.PropertyType;
-        if (typeof(IList).IsAssignableFrom(propertyType))
-        {
-            ValidateArrayProperty(type, propertyType);
-        }
-    }
-
-    private static void ValidateArrayProperty(Type type, Type propertyType)
-    {
-        if (!IsStandardArrayType(propertyType))
-        {
-            throw new ModelSerializationException($"Type {propertyType} is not supported.");
-        }
-
         var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
         var equatableType = typeof(IEquatable<>).MakeGenericType(type);
         if (!equatableType.IsAssignableFrom(type))
