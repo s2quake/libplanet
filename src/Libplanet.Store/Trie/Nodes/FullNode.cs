@@ -1,13 +1,20 @@
+using System.ComponentModel.DataAnnotations;
 using Bencodex.Types;
+using Libplanet.Serialization;
 
 namespace Libplanet.Store.Trie.Nodes;
 
-public sealed record class FullNode(ImmutableDictionary<byte, INode> Children, INode? Value)
-    : INode, IEquatable<FullNode>
+[Model(Version = 1)]
+public sealed record class FullNode
+    : INode, IEquatable<FullNode>, IValidatableObject
 {
     public const byte MaximumIndex = 16;
 
-    public ImmutableDictionary<byte, INode> Children { get; } = ValidateChildren(Children);
+    [Property(0)]
+    public required ImmutableDictionary<byte, INode> Children { get; init; }
+
+    [Property(1)]
+    public INode? Value { get; init; }
 
     IEnumerable<INode> INode.Children
     {
@@ -50,7 +57,7 @@ public sealed record class FullNode(ImmutableDictionary<byte, INode> Children, I
             throw new ArgumentException(message, nameof(node));
         }
 
-        return new(Children.SetItem(index, node), Value);
+        return this with { Children = Children.SetItem(index, node) };
     }
 
     public FullNode RemoveChild(byte index)
@@ -61,10 +68,10 @@ public sealed record class FullNode(ImmutableDictionary<byte, INode> Children, I
             throw new ArgumentOutOfRangeException(nameof(index), message);
         }
 
-        return new(Children.Remove(index), Value);
+        return this with { Children = Children.Remove(index) };
     }
 
-    public FullNode SetValue(INode? value) => new(Children, value);
+    public FullNode SetValue(INode? value) => this with { Value = value };
 
     public bool Equals(FullNode? other)
     {
@@ -97,18 +104,36 @@ public sealed record class FullNode(ImmutableDictionary<byte, INode> Children, I
         return new List(items);
     }
 
-    private static ImmutableDictionary<byte, INode> ValidateChildren(
-        ImmutableDictionary<byte, INode> children)
+    // private static ImmutableDictionary<byte, INode> ValidateChildren(
+    //     ImmutableDictionary<byte, INode> children)
+    // {
+    //     foreach (var key in children.Keys)
+    //     {
+    //         if (key > MaximumIndex)
+    //         {
+    //             var message = "The key of FullNode's children should be less than 0x10.";
+    //             throw new ArgumentException(message, nameof(children));
+    //         }
+    //     }
+
+    //     return children;
+    // }
+
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        foreach (var key in children.Keys)
+        foreach (var (key, value) in Children)
         {
             if (key > MaximumIndex)
             {
-                var message = "The key of FullNode's children should be less than 0x10.";
-                throw new ArgumentException(message, nameof(children));
+                yield return new ValidationResult(
+                    "The key of FullNode's children should be less than 0x10.", [nameof(Children)]);
+            }
+
+            if (value is HashNode)
+            {
+                yield return new ValidationResult(
+                    "FullNode cannot have a child of HashNode.", [nameof(Children)]);
             }
         }
-
-        return children;
     }
 }

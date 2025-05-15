@@ -26,7 +26,7 @@ public class MerkleTrieTest
     {
         var store = new MemoryTable();
         var hashDigest = RandomUtility.NextHashDigest<SHA256>();
-        var trie = new Libplanet.Store.Trie.Trie(new HashNode(hashDigest) { Table = store });
+        var trie = new Libplanet.Store.Trie.Trie(new HashNode { Hash = hashDigest, Table = store });
         Assert.Equal(hashDigest, trie.Hash);
     }
 
@@ -35,7 +35,7 @@ public class MerkleTrieTest
     {
         var store = new MemoryTable();
         var hashDigest = RandomUtility.NextHashDigest<SHA256>();
-        var node = new HashNode(hashDigest) { Table = store };
+        var node = new HashNode { Hash = hashDigest, Table = store };
         var trie = new Libplanet.Store.Trie.Trie(node);
         Assert.Equal(hashDigest, trie.Hash);
     }

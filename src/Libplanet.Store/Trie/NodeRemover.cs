@@ -37,9 +37,9 @@ internal static class NodeRemover
 
         static INode Create(Nibbles key, INode node) => node switch
         {
-            ValueNode valueNode => new ShortNode(key, valueNode),
-            FullNode fullNode => new ShortNode(key, fullNode),
-            ShortNode shortNode => new ShortNode(key.Append(shortNode.Key), shortNode.Value),
+            ValueNode valueNode => new ShortNode { Key = key, Value = valueNode },
+            FullNode fullNode => new ShortNode { Key = key, Value = fullNode },
+            ShortNode shortNode => new ShortNode { Key = key.Append(shortNode.Key), Value = shortNode.Value },
             NullNode => node,
             _ => throw new UnreachableException(
                     $"Unsupported node value: {node.ToBencodex().Inspect()}"),
@@ -64,7 +64,7 @@ internal static class NodeRemover
             return fullNode;
         }
 
-        return ReduceFullNode(new FullNode(fullNode.Children, null));
+        return ReduceFullNode(new FullNode { Children = fullNode.Children });
     }
 
     private static INode ReduceFullNode(FullNode fullNode)
@@ -87,8 +87,8 @@ internal static class NodeRemover
             var (index, child) = children.Single();
             child = child is HashNode hn ? hn.Expand() : child;
             return child is ShortNode sn
-                    ? new ShortNode(new Nibbles([index]).Append(sn.Key), sn.Value)
-                    : new ShortNode(new Nibbles([index]), child);
+                    ? new ShortNode { Key = new Nibbles([index]).Append(sn.Key), Value = sn.Value }
+                    : new ShortNode { Key = new Nibbles([index]), Value = child };
         }
         else
         {

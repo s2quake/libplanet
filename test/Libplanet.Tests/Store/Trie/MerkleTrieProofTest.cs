@@ -96,19 +96,22 @@ namespace Libplanet.Tests.Store.Trie
 
             Nibbles n0 = new Nibbles(new byte[] { 0 }.ToImmutableArray());
 
-            INode proofNode0010 = new ValueNode(V0010);
-            INode proofNode001 = new ShortNode(n0, ToHashNode(proofNode0010));
-            INode proofNode00 = new FullNode(
-                ImmutableDictionary<byte, INode>.Empty
-                    .Add(0, new ShortNode(n0, new ValueNode(V0000)))
+            INode proofNode0010 = new ValueNode { Value = V0010 };
+            INode proofNode001 = new ShortNode { Key = n0, Value = ToHashNode(proofNode0010) };
+            INode proofNode00 = new FullNode
+            {
+                Children = ImmutableDictionary<byte, INode>.Empty
+                    .Add(0, new ShortNode { Key = n0, Value = new ValueNode { Value = V0000 } })
                     .Add(1, ToHashNode(proofNode001)),
-                new ValueNode(V00));
-            INode proofNode0 = new FullNode(
-                ImmutableDictionary<byte, INode>.Empty
+                Value = new ValueNode { Value = V00 },
+            };
+            INode proofNode0 = new FullNode
+            {
+                Children = ImmutableDictionary<byte, INode>.Empty
                     .Add(0, ToHashNode(proofNode00))
-                    .Add(1, new ValueNode(V01)),
-                null);
-            INode proofRoot = new ShortNode(n0, ToHashNode(proofNode0));
+                    .Add(1, new ValueNode { Value = V01 }),
+            };
+            INode proofRoot = new ShortNode { Key = n0, Value = ToHashNode(proofNode0) };
             P00 = new List<INode>() { proofRoot, proofNode0, proofNode00 };
             P01 = new List<INode>() { proofRoot, proofNode0 };
             P0000 = new List<INode>() { proofRoot, proofNode0, proofNode00 };
@@ -243,7 +246,9 @@ namespace Libplanet.Tests.Store.Trie
                 V01));  // Wrong proof
         }
 
-        private HashNode ToHashNode(INode node) =>
-            new HashNode(HashDigest<SHA256>.Create(_codec.Encode(node.ToBencodex())));
-   }
+        private HashNode ToHashNode(INode node) => new()
+        {
+            Hash = HashDigest<SHA256>.Create(_codec.Encode(node.ToBencodex())),
+        };
+    }
 }

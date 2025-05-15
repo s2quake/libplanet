@@ -10,19 +10,17 @@ namespace Libplanet.Store;
 public partial class TrieStateStore(ITable table)
 {
     private readonly ILogger _logger = Log.ForContext<TrieStateStore>();
-    private readonly HashNodeCache _cache = new();
+    private readonly ITable _table = table;
 
     public TrieStateStore()
         : this(new MemoryTable())
     {
     }
 
-    public ITable StateKeyValueStore => table;
-
     public void CopyStates(
         IImmutableSet<HashDigest<SHA256>> stateRootHashes, TrieStateStore targetStateStore)
     {
-        var targetKeyValueStore = targetStateStore.StateKeyValueStore;
+        var targetKeyValueStore = targetStateStore._table;
         var stopwatch = new Stopwatch();
         long count = 0;
         _logger.Verbose("Started {MethodName}()", nameof(CopyStates));
@@ -39,7 +37,7 @@ public partial class TrieStateStore(ITable table)
 
             foreach (var (key, value) in stateTrie)
             {
-                targetKeyValueStore[key] = StateKeyValueStore[key];
+                targetKeyValueStore[key] = _table[key];
                 count++;
             }
 
@@ -65,7 +63,7 @@ public partial class TrieStateStore(ITable table)
 
                         foreach (var (key, value) in accountStateTrie)
                         {
-                            targetKeyValueStore[key] = StateKeyValueStore[key];
+                            targetKeyValueStore[key] = _table[key];
                             count++;
                         }
                     }
@@ -83,5 +81,5 @@ public partial class TrieStateStore(ITable table)
     }
 
     public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash)
-        => stateRootHash == default ? new Trie.Trie() : Trie.Trie.Create(stateRootHash, StateKeyValueStore);
+        => stateRootHash == default ? new Trie.Trie() : Trie.Trie.Create(stateRootHash, _table);
 }

@@ -9,9 +9,11 @@ public class ShortNodeTest
     [Fact]
     public void ToBencodex()
     {
-        var shortNode = new ShortNode(
-            Nibbles.Parse("beef"),
-            new ValueNode((Text)"foo"));
+        var shortNode = new ShortNode
+        {
+            Key = Nibbles.Parse("beef"),
+            Value = new ValueNode { Value = (Text)"foo" },
+        };
 
         var expected =
             new List(
