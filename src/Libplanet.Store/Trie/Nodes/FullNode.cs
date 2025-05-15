@@ -11,7 +11,7 @@ public sealed record class FullNode
     public const byte MaximumIndex = 16;
 
     [Property(0)]
-    public required ImmutableDictionary<byte, INode> Children { get; init; }
+    public required ImmutableSortedDictionary<byte, INode> Children { get; init; }
 
     [Property(1)]
     public INode? Value { get; init; }
@@ -85,24 +85,29 @@ public sealed record class FullNode
 
     public override int GetHashCode() => Children.GetHashCode();
 
-    public IValue ToBencodex()
+    public byte[] Serialize()
     {
-        var items = Enumerable.Repeat<IValue>(Null.Value, MaximumIndex + 1).ToArray();
-        foreach (var (key, value) in Children)
-        {
-            if (value is not null)
-            {
-                items[key] = value.ToBencodex();
-            }
-        }
-
-        if (Value is not null)
-        {
-            items[MaximumIndex] = Value.ToBencodex();
-        }
-
-        return new List(items);
+        throw new NotImplementedException();
     }
+
+    // public IValue ToBencodex()
+    // {
+    //     var items = Enumerable.Repeat<IValue>(Null.Value, MaximumIndex + 1).ToArray();
+    //     foreach (var (key, value) in Children)
+    //     {
+    //         if (value is not null)
+    //         {
+    //             items[key] = value.ToBencodex();
+    //         }
+    //     }
+
+    //     if (Value is not null)
+    //     {
+    //         items[MaximumIndex] = Value.ToBencodex();
+    //     }
+
+    //     return new List(items);
+    // }
 
     // private static ImmutableDictionary<byte, INode> ValidateChildren(
     //     ImmutableDictionary<byte, INode> children)

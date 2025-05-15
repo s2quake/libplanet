@@ -44,12 +44,12 @@ public class AccountDiff
             [102] = 15, // 'f'
         }.ToImmutableDictionary();
 
-    private AccountDiff(ImmutableDictionary<Address, (IValue?, IValue)> stateDiff)
+    private AccountDiff(ImmutableDictionary<Address, (object?, object)> stateDiff)
     {
         StateDiffs = stateDiff;
     }
 
-    public ImmutableDictionary<Address, (IValue?, IValue)> StateDiffs { get; }
+    public ImmutableDictionary<Address, (object?, object)> StateDiffs { get; }
 
     public static AccountDiff Create(Account target, Account source)
         => Create(target.Trie, source.Trie);
@@ -58,8 +58,8 @@ public class AccountDiff
     {
         var rawDiffs = source.Diff(target).ToList();
 
-        Dictionary<Address, (IValue?, IValue)> stateDiffs =
-            new Dictionary<Address, (IValue?, IValue)>();
+        Dictionary<Address, (object?, object)> stateDiffs =
+            new Dictionary<Address, (object?, object)>();
 
         foreach (var diff in rawDiffs)
         {
@@ -95,8 +95,8 @@ public class AccountDiff
         return new AccountDiff(stateDiffs.ToImmutableDictionary());
     }
 
-    internal static (Address Address, IValue? TargetValue, IValue SourceValue)
-        ToStateDiff((KeyBytes Path, IValue? TargetValue, IValue SourceValue) encoded)
+    internal static (Address Address, object? TargetValue, object SourceValue)
+        ToStateDiff((KeyBytes Path, object? TargetValue, object SourceValue) encoded)
     {
         return (
             ToAddress(encoded.Path.ToByteArray()),

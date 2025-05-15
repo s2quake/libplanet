@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Bencodex.Types;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
 using Libplanet.Types;
@@ -8,8 +9,6 @@ namespace Libplanet.Store;
 
 public partial class TrieStateStore
 {
-    private static readonly Codec _codec = new();
-
     public ITrie Commit(ITrie trie)
     {
         var root = trie.Node;
@@ -23,8 +22,7 @@ public partial class TrieStateStore
 
         if (newNode is not HashNode)
         {
-            var bencoded = newNode.ToBencodex();
-            var serialized = _codec.Encode(bencoded);
+            var serialized = newNode.Serialize();
             var hashDigest = HashDigest<SHA256>.Create(serialized);
 
             writeBatch.Add(new KeyBytes(hashDigest.Bytes), serialized);
@@ -51,7 +49,7 @@ public partial class TrieStateStore
         var virtualValue = fullNode.Value is null
             ? null
             : Commit(fullNode.Value, writeBatch);
-        var builder = ImmutableDictionary.CreateBuilder<byte, INode>();
+        var builder = ImmutableSortedDictionary.CreateBuilder<byte, INode>();
         foreach (var (index, child) in fullNode.Children)
         {
             if (child is not null)
@@ -63,14 +61,14 @@ public partial class TrieStateStore
         var virtualChildren = builder.ToImmutable();
 
         fullNode = new FullNode { Children = virtualChildren, Value = virtualValue };
-        IValue encoded = fullNode.ToBencodex();
+        // IValue encoded = fullNode.ToBencodex();
 
-        if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
-        {
-            return fullNode;
-        }
+        // if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
+        // {
+        //     return fullNode;
+        // }
 
-        return Write(fullNode.ToBencodex(), writeBatch);
+        return Write(fullNode.Serialize(), writeBatch);
     }
 
     private static INode CommitShortNode(
@@ -79,33 +77,32 @@ public partial class TrieStateStore
         // FIXME: Assumes value is not null.
         var committedValueNode = Commit(shortNode.Value, writeBatch);
         shortNode = new ShortNode { Key = shortNode.Key, Value = committedValueNode };
-        IValue encoded = shortNode.ToBencodex();
-        if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
-        {
-            return shortNode;
-        }
+        // IValue encoded = shortNode.ToBencodex();
+        // if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
+        // {
+        //     return shortNode;
+        // }
 
-        return Write(encoded, writeBatch);
+        return Write(shortNode.Serialize(), writeBatch);
     }
 
-    private static INode CommitValueNode(
-        ValueNode valueNode, WriteBatch writeBatch)
+    private static INode CommitValueNode(ValueNode valueNode, WriteBatch writeBatch)
     {
-        IValue encoded = valueNode.ToBencodex();
-        var nodeSize = encoded.EncodingLength;
-        if (nodeSize <= HashDigest<SHA256>.Size)
-        {
-            return valueNode;
-        }
+        // IValue encoded = valueNode.ToBencodex();
+        // var nodeSize = encoded.EncodingLength;
+        // if (nodeSize <= HashDigest<SHA256>.Size)
+        // {
+        //     return valueNode;
+        // }
 
-        return Write(encoded, writeBatch);
+        return Write(valueNode.Value, writeBatch);
     }
 
-    private static HashNode Write(IValue bencodedNode, WriteBatch writeBatch)
+    private static HashNode Write(object value, WriteBatch writeBatch)
     {
-        byte[] serialized = _codec.Encode(bencodedNode);
+        var serialized = ModelSerializer.SerializeToBytes(value);
         var nodeHash = HashDigest<SHA256>.Create(serialized);
-        HashNodeCache.AddOrUpdate(nodeHash, bencodedNode);
+        HashNodeCache.AddOrUpdate(nodeHash, serialized);
         writeBatch.Add(new KeyBytes(nodeHash.Bytes), serialized);
         return writeBatch.Create(nodeHash);
     }

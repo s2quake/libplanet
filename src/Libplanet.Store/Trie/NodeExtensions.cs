@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
@@ -26,7 +25,7 @@ public static class NodeExtensions
         }
     }
 
-    public static IEnumerable<KeyValuePair<KeyBytes, IValue>> KeyValues(this INode @this)
+    public static IEnumerable<KeyValuePair<KeyBytes, object>> KeyValues(this INode @this)
     {
         var nibbles = @this is ShortNode shortNode ? shortNode.Key : Nibbles.Empty;
         foreach (var item in GetNodes(@this, nibbles))
@@ -35,7 +34,7 @@ public static class NodeExtensions
         }
     }
 
-    private static IEnumerable<KeyValuePair<KeyBytes, IValue>> GetNodes(INode node, Nibbles nibbles)
+    private static IEnumerable<KeyValuePair<KeyBytes, object>> GetNodes(INode node, Nibbles nibbles)
     {
         if (node is FullNode fullNode)
         {

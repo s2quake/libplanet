@@ -75,10 +75,13 @@ public sealed record class UnsignedTx
 
     public byte[] CreateMessage()
     {
-        var dict = ModelSerializer.Serialize(this);
+        throw new NotImplementedException(
+            "The BencodexJsonConverter is not implemented yet.");
+        var dict = ModelSerializer.SerializeToBytes(this);
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true });
-        new BencodexJsonConverter().Write(writer, dict, SerializerOptions);
+        // new BencodexJsonConverter().Write(writer, dict, SerializerOptions);
+
         ms.Position = 0;
         using var sr = new StreamReader(ms);
         var json = sr.ReadToEnd();

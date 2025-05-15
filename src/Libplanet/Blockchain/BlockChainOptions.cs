@@ -43,8 +43,7 @@ public sealed record class BlockChainOptions
         int maxTransactionsPerSignerPerBlock = MaxTransactionsPerSignerPerBlock;
         long maxEvidencePendingDuration = MaxEvidencePendingDuration;
 
-        long blockBytes = ModelSerializer.Serialize(block.Transactions)
-            .EncodingLength;
+        long blockBytes = ModelSerializer.SerializeToBytes(block.Transactions).Length;
         if (blockBytes > maxTransactionsBytes)
         {
             throw new InvalidOperationException(

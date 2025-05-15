@@ -27,8 +27,6 @@ internal sealed record class HashNode : INode
         }
     }
 
-    public IValue ToBencodex() => new Binary(Hash.Bytes);
-
     public override int GetHashCode() => Hash.GetHashCode();
 
     public INode Expand()
@@ -39,7 +37,7 @@ internal sealed record class HashNode : INode
                 $"{nameof(Table)} must be set before calling {nameof(Expand)}.");
         }
 
-        IValue intermediateValue;
+        byte[] intermediateValue;
         if (HashNodeCache.TryGetValue(Hash, out var value))
         {
             intermediateValue = value!;
@@ -49,8 +47,8 @@ internal sealed record class HashNode : INode
             var keyBytes = new KeyBytes(Hash.Bytes);
             if (table.TryGetValue(keyBytes, out var valueBytes))
             {
-                intermediateValue = _codec.Decode(table[keyBytes]);
-                HashNodeCache.AddOrUpdate(Hash, intermediateValue);
+                // intermediateValue = _codec.Decode(valueBytes);
+                HashNodeCache.AddOrUpdate(Hash, valueBytes);
             }
             else
             {
@@ -58,9 +56,15 @@ internal sealed record class HashNode : INode
             }
         }
 
-        return NodeDecoder.Decode(
-            intermediateValue, NodeDecoder.HashEmbeddedNodeTypes, table)
-                ?? throw new UnreachableException(
-                    $"Failed to decode the hash node with hash {Hash}.");
+        throw new NotImplementedException();
+        // return NodeDecoder.Decode(
+        //     intermediateValue, NodeDecoder.HashEmbeddedNodeTypes, table)
+        //         ?? throw new UnreachableException(
+        //             $"Failed to decode the hash node with hash {Hash}.");
+    }
+
+    public byte[] Serialize()
+    {
+        throw new NotImplementedException();
     }
 }

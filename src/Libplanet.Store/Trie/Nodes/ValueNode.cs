@@ -9,9 +9,9 @@ internal sealed record class ValueNode : INode
     IEnumerable<INode> INode.Children => [];
 
     [Property(0)]
-    public required IValue Value { get; init; }
-
-    public IValue ToBencodex() => new List(Null.Value, Value);
+    public required object Value { get; init; }
 
     public override int GetHashCode() => Value.GetHashCode();
+
+    public byte[] Serialize() => ModelSerializer.SerializeToBytes(this);
 }

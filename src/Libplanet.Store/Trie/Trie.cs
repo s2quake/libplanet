@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Store.Trie.Nodes;
 using Libplanet.Types;
 
@@ -20,12 +19,12 @@ public sealed partial record class Trie(INode Node) : ITrie
     {
         HashNode hashNode => hashNode.Hash,
         NullNode _ => default,
-        _ => HashDigest<SHA256>.Create(_codec.Encode(Node.ToBencodex())),
+        _ => Node.Hash,
     };
 
     public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;
 
-    public IValue this[in KeyBytes key]
+    public object this[in KeyBytes key]
         => NodeResolver.ResolveToValue(Node, PathCursor.Create(key))
               ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
@@ -35,10 +34,10 @@ public sealed partial record class Trie(INode Node) : ITrie
         return new Trie(node) { IsCommitted = true };
     }
 
-    public static ITrie Create(params (ImmutableArray<byte> Key, IValue Value)[] keyValues)
+    public static ITrie Create(params (ImmutableArray<byte> Key, object Value)[] keyValues)
         => Create(keyValues.Select(kv => (new KeyBytes(kv.Key), kv.Value)).ToArray());
 
-    public static ITrie Create(params (KeyBytes Key, IValue Value)[] keyValues)
+    public static ITrie Create(params (KeyBytes Key, object Value)[] keyValues)
     {
         if (keyValues.Length == 0)
         {
@@ -59,7 +58,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         return trie;
     }
 
-    public ITrie Set(in KeyBytes key, IValue value)
+    public ITrie Set(in KeyBytes key, object value)
     {
         var node = Node;
         var cursor = PathCursor.Create(key);
@@ -111,7 +110,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         return false;
     }
 
-    public bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value)
+    public bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out object value)
     {
         if (NodeResolver.ResolveToValue(Node, PathCursor.Create(key)) is { } v)
         {
@@ -135,7 +134,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         }
     }
 
-    public IEnumerator<KeyValuePair<KeyBytes, IValue>> GetEnumerator()
+    public IEnumerator<KeyValuePair<KeyBytes, object>> GetEnumerator()
     {
         if (Node is { } node)
         {

@@ -186,8 +186,8 @@ public partial record class Trie
         INode proofNode,
         bool first)
     {
-        IValue bencoded = proofNode.ToBencodex();
-        byte[] bytes = _codec.Encode(bencoded);
+        // IValue bencoded = proofNode.ToBencodex();
+        byte[] bytes = proofNode.Serialize();
 
         // Only the first node in the proof is allowed to be have an encoding
         // length less than SHA256's size.

@@ -6,12 +6,10 @@ namespace Libplanet.Store.Trie;
 
 internal static class NodeResolver
 {
-    public static IValue? ResolveToValue(INode? node, in PathCursor cursor) => node switch
+    public static object? ResolveToValue(INode? node, in PathCursor cursor) => node switch
     {
         null => null,
-        ValueNode valueNode => cursor.IsEnd
-            ? valueNode.Value
-            : null,
+        ValueNode valueNode => cursor.IsEnd ? valueNode.Value : null,
         ShortNode shortNode => cursor.NextNibbles.StartsWith(shortNode.Key)
             ? ResolveToValue(shortNode.Value, cursor.Next(shortNode.Key.Length))
             : null,
