@@ -1,4 +1,5 @@
-using Bencodex.Types;
+using System.Security.Cryptography;
+using Libplanet.Types;
 
 namespace Libplanet.Store.Trie.Nodes;
 
@@ -12,7 +13,7 @@ internal sealed record class NullNode : INode
 
     IEnumerable<INode> INode.Children => [];
 
-    public IValue ToBencodex() => Null.Value;
+    public HashDigest<SHA256> Hash => default;
 
-    public override int GetHashCode() => Null.Value.GetHashCode();
+    public byte[] Serialize() => [0];
 }

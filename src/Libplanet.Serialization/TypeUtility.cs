@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Bencodex.Types;
 
 namespace Libplanet.Serialization;
 
@@ -51,7 +50,7 @@ public static class TypeUtility
 
     public static bool IsStandardType(Type type)
     {
-        if (type.IsEnum || IsBencodableType(type) || IsBencodexType(type))
+        if (type.IsEnum)
         {
             return true;
         }
@@ -62,9 +61,9 @@ public static class TypeUtility
     public static bool IsNullableType(Type type)
         => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
-    public static bool IsBencodableType(Type type) => typeof(IBencodable).IsAssignableFrom(type);
+    // public static bool IsBencodableType(Type type) => typeof(IBencodable).IsAssignableFrom(type);
 
-    public static bool IsBencodexType(Type type) => typeof(IValue).IsAssignableFrom(type);
+    // public static bool IsBencodexType(Type type) => typeof(IValue).IsAssignableFrom(type);
 
     public static string GetTypeName(Type type)
     {

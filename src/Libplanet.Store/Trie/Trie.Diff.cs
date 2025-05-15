@@ -1,11 +1,10 @@
-using Bencodex.Types;
 using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
 
 public partial record class Trie : ITrie
 {
-    public IEnumerable<(KeyBytes Path, IValue? TargetValue, IValue SourceValue)> Diff(ITrie other)
+    public IEnumerable<(KeyBytes Path, object? TargetValue, object SourceValue)> Diff(ITrie other)
     {
         if (Node is NullNode)
         {
@@ -42,7 +41,7 @@ public partial record class Trie : ITrie
                         switch (node)
                         {
                             case ValueNode valueNode:
-                                IValue? targetValue = ValueAtNodeRoot(targetNode);
+                                var targetValue = ValueAtNodeRoot(targetNode);
                                 if (targetValue is { } tv && valueNode.Value.Equals(tv))
                                 {
                                     continue;
@@ -123,7 +122,7 @@ public partial record class Trie : ITrie
         }
     }
 
-    private static IValue? ValueAtNodeRoot(INode node) => node switch
+    private static object? ValueAtNodeRoot(INode node) => node switch
     {
         HashNode hashNode => ValueAtNodeRoot(hashNode.Expand()),
         ValueNode valueNode => valueNode.Value,

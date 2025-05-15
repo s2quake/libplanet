@@ -50,8 +50,9 @@ public partial class TrieStateStore(ITable table)
                     // Ignore metadata
                     if (path.Length > 0)
                     {
-                        var accountStateRootHash
-                            = ModelSerializer.Deserialize<HashDigest<SHA256>>(hash);
+                        // var accountStateRootHash
+                        //     = ModelSerializer.DeserializeFromBytes<HashDigest<SHA256>>(hash);
+                        var accountStateRootHash = (HashDigest<SHA256>)hash;
                         Trie.Trie accountStateTrie =
                             (Trie.Trie)GetStateRoot(accountStateRootHash);
                         if (!accountStateTrie.IsCommitted)

@@ -4,7 +4,7 @@ namespace Libplanet.Store.Trie;
 
 public static class TrieExtensions
 {
-    public static IReadOnlyList<IValue?> GetMany(this ITrie @this, IReadOnlyList<KeyBytes> keys)
+    public static IReadOnlyList<object?> GetMany(this ITrie @this, IReadOnlyList<KeyBytes> keys)
     {
         const int parallelThreshold = 4;
         return keys.Count <= parallelThreshold

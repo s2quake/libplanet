@@ -6,11 +6,9 @@ namespace Libplanet.Store.Trie;
 
 public interface INode
 {
-    private static readonly Codec _codec = new();
-
     IEnumerable<INode> Children { get; }
 
-    HashDigest<SHA256> Hash => HashDigest<SHA256>.Create(_codec.Encode(ToBencodex()));
+    HashDigest<SHA256> Hash => HashDigest<SHA256>.Create(Serialize());
 
-    IValue ToBencodex();
+    byte[] Serialize();
 }

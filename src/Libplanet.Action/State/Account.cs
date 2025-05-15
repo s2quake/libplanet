@@ -14,15 +14,16 @@ public sealed record class Account(ITrie Trie)
     public object GetValue(KeyBytes key)
     {
         var value = Trie[key];
-        return ModelSerializer.Deserialize(value)
-            ?? throw new InvalidOperationException("Failed to deserialize state.");
+        return value;
+        // return ModelSerializer.Deserialize(value)
+        //     ?? throw new InvalidOperationException("Failed to deserialize state.");
     }
 
     public Account SetValue(KeyBytes key, object value)
     {
         var k = key;
-        var v = ModelSerializer.Serialize(value);
-        var trie = Trie.Set(k, v);
+        // var v = ModelSerializer.Serialize(value);
+        var trie = Trie.Set(key, value);
         return new(trie);
     }
 
@@ -37,10 +38,10 @@ public sealed record class Account(ITrie Trie)
 
     public bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out object value)
     {
-        if (Trie.TryGetValue(key, out var v))
+        if (Trie.TryGetValue(key, out value))
         {
-            value = ModelSerializer.Deserialize(v)
-                ?? throw new InvalidOperationException("Failed to deserialize state.");
+            // value = ModelSerializer.Deserialize(v)
+            //     ?? throw new InvalidOperationException("Failed to deserialize state.");
             return true;
         }
 

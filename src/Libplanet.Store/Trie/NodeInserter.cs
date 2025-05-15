@@ -12,8 +12,7 @@ internal static class NodeInserter
         ShortNode shortNode => InsertToShortNode(shortNode, cursor, value),
         FullNode fullNode => InsertToFullNode(fullNode, cursor, value),
         NullNode => InsertToNullNode(cursor, value),
-        _ => throw new UnreachableException(
-            $"Unsupported node value: {node.ToBencodex().Inspect()}"),
+        _ => throw new UnreachableException($"Unsupported node value"),
     };
 
     private static INode InsertToNullNode(in PathCursor cursor, ValueNode value)
@@ -27,7 +26,7 @@ internal static class NodeInserter
             return value;
         }
 
-        var builder = ImmutableDictionary.CreateBuilder<byte, INode>();
+        var builder = ImmutableSortedDictionary.CreateBuilder<byte, INode>();
         builder[cursor.Current] = InsertToNullNode(cursor.Next(1), value);
         return new FullNode { Children = builder.ToImmutable(), Value = valueNode };
     }
@@ -49,7 +48,7 @@ internal static class NodeInserter
             var commonNibbles = cursor.SubNibbles(cursor.Position, commonLength);
             var nextIndex = key[commonNibbles.Length];
             var nextKey = key.Skip(commonNibbles.Length + 1);
-            var builder = ImmutableDictionary.CreateBuilder<byte, INode>();
+            var builder = ImmutableSortedDictionary.CreateBuilder<byte, INode>();
 
             if (nextKey.Length > 0)
             {

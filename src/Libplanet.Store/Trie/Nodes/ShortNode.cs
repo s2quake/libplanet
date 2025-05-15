@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using Bencodex.Types;
 using Libplanet.Serialization;
 
@@ -23,7 +24,16 @@ internal sealed record class ShortNode : INode, IValidatableObject
         }
     }
 
-    public IValue ToBencodex() => new List(new Binary(Key.ByteArray), Value.ToBencodex());
+    public byte[] Serialize()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        writer.Write([.. Key.ByteArray]);
+        writer.Write(Value.Serialize());
+        return stream.ToArray();
+    }
+
+    // public IValue ToBencodex() => new List(new Binary(Key.ByteArray), Value.ToBencodex());
 
     // private static Nibbles ValidateKey(in Nibbles key)
     // {

@@ -1,141 +1,143 @@
 using System.Diagnostics.Contracts;
 using System.Text.Json.Serialization;
 using Bencodex.Types;
+using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Consensus
+namespace Libplanet.Consensus;
+
+/// <summary>
+/// Represents a <see cref="ProposalClaim"/> from a validator for consensus.  It contains an
+/// essential information <see cref="ProposalClaimMetadata"/> to claim a <see cref="Proposal"/>
+/// for a consensus in a height, round, <see cref="BlockHash"/>, and its signature to verify.
+/// The signature is verified in
+/// constructor, so the instance of <see cref="ProposalClaim"/> should be valid.
+/// </summary>
+public class ProposalClaim : IEquatable<ProposalClaim>
 {
+    // FIXME: This should be private.  Left as internal for testing reasons.
+    internal static readonly Binary SignatureKey = new Binary(new byte[] { 0x53 }); // 'S'
+    private static readonly Codec _codec = new Codec();
+
+    private readonly ProposalClaimMetadata _metadata;
+
     /// <summary>
-    /// Represents a <see cref="ProposalClaim"/> from a validator for consensus.  It contains an
-    /// essential information <see cref="ProposalClaimMetadata"/> to claim a <see cref="Proposal"/>
-    /// for a consensus in a height, round, <see cref="BlockHash"/>, and its signature to verify.
-    /// The signature is verified in
-    /// constructor, so the instance of <see cref="ProposalClaim"/> should be valid.
+    /// Instantiates a <see cref="ProposalClaim"/> with given <paramref name="metadata"/>
+    /// and its <paramref name="signature"/>.
     /// </summary>
-    public class ProposalClaim : IEquatable<ProposalClaim>
+    /// <param name="metadata">A <see cref="ProposalClaimMetadata"/> to claim.</param>
+    /// <param name="signature">A signature signed with <paramref name="metadata"/>.
+    /// </param>
+    /// <exception cref="ArgumentNullException">Thrown if given <paramref name="signature"/> is
+    /// empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if given <paramref name="signature"/> is
+    /// invalid and cannot be verified with <paramref name="metadata"/>.</exception>
+    public ProposalClaim(ProposalClaimMetadata metadata, ImmutableArray<byte> signature)
     {
-        // FIXME: This should be private.  Left as internal for testing reasons.
-        internal static readonly Binary SignatureKey = new Binary(new byte[] { 0x53 }); // 'S'
-        private static readonly Codec _codec = new Codec();
+        _metadata = metadata;
+        Signature = signature;
 
-        private readonly ProposalClaimMetadata _metadata;
-
-        /// <summary>
-        /// Instantiates a <see cref="ProposalClaim"/> with given <paramref name="metadata"/>
-        /// and its <paramref name="signature"/>.
-        /// </summary>
-        /// <param name="metadata">A <see cref="ProposalClaimMetadata"/> to claim.</param>
-        /// <param name="signature">A signature signed with <paramref name="metadata"/>.
-        /// </param>
-        /// <exception cref="ArgumentNullException">Thrown if given <paramref name="signature"/> is
-        /// empty.</exception>
-        /// <exception cref="ArgumentException">Thrown if given <paramref name="signature"/> is
-        /// invalid and cannot be verified with <paramref name="metadata"/>.</exception>
-        public ProposalClaim(ProposalClaimMetadata metadata, ImmutableArray<byte> signature)
+        if (signature.IsDefaultOrEmpty)
         {
-            _metadata = metadata;
-            Signature = signature;
-
-            if (signature.IsDefaultOrEmpty)
-            {
-                throw new ArgumentNullException(
-                    nameof(signature),
-                    "Signature cannot be null or empty.");
-            }
-            else if (!Verify())
-            {
-                throw new ArgumentException("Signature is invalid.", nameof(signature));
-            }
+            throw new ArgumentNullException(
+                nameof(signature),
+                "Signature cannot be null or empty.");
         }
-
-        public ProposalClaim(byte[] marshaled)
-            : this((Dictionary)_codec.Decode(marshaled))
+        else if (!Verify())
         {
+            throw new ArgumentException("Signature is invalid.", nameof(signature));
         }
+    }
 
-#pragma warning disable SA1118 // The parameter spans multiple lines
-        public ProposalClaim(Dictionary encoded)
-            : this(
-                new ProposalClaimMetadata(encoded),
-                encoded.ContainsKey(SignatureKey)
-                    ? ((Binary)encoded[SignatureKey]).ByteArray
-                    : ImmutableArray<byte>.Empty)
-        {
-        }
-#pragma warning restore SA1118
+    // public ProposalClaim(byte[] marshaled)
+    //     : this((Dictionary)_codec.Decode(marshaled))
+    // {
+    // }
 
-        /// <inheritdoc cref="ProposalClaimMetadata.Height"/>
-        public int Height => _metadata.Height;
+// #pragma warning disable SA1118 // The parameter spans multiple lines
+//     public ProposalClaim(Dictionary encoded)
+//         : this(
+//             new ProposalClaimMetadata(encoded),
+//             encoded.ContainsKey(SignatureKey)
+//                 ? ((Binary)encoded[SignatureKey]).ByteArray
+//                 : ImmutableArray<byte>.Empty)
+//     {
+//     }
+// #pragma warning restore SA1118
 
-        /// <inheritdoc cref="ProposalClaimMetadata.Round"/>
-        public int Round => _metadata.Round;
+    /// <inheritdoc cref="ProposalClaimMetadata.Height"/>
+    public int Height => _metadata.Height;
 
-        /// <inheritdoc cref="ProposalClaimMetadata.BlockHash"/>
-        public BlockHash BlockHash => _metadata.BlockHash;
+    /// <inheritdoc cref="ProposalClaimMetadata.Round"/>
+    public int Round => _metadata.Round;
 
-        /// <inheritdoc cref="ProposalClaimMetadata.Timestamp"/>
-        public DateTimeOffset Timestamp => _metadata.Timestamp;
+    /// <inheritdoc cref="ProposalClaimMetadata.BlockHash"/>
+    public BlockHash BlockHash => _metadata.BlockHash;
 
-        /// <inheritdoc cref="ProposalClaimMetadata.ValidatorPublicKey"/>
-        public PublicKey ValidatorPublicKey => _metadata.ValidatorPublicKey;
+    /// <inheritdoc cref="ProposalClaimMetadata.Timestamp"/>
+    public DateTimeOffset Timestamp => _metadata.Timestamp;
 
-        /// <summary>
-        /// A signature that signed with <see cref="ProposalMetadata"/>.
-        /// </summary>
-        public ImmutableArray<byte> Signature { get; }
+    /// <inheritdoc cref="ProposalClaimMetadata.ValidatorPublicKey"/>
+    public PublicKey ValidatorPublicKey => _metadata.ValidatorPublicKey;
 
-        /// <summary>
-        /// A Bencodex-encoded value of <see cref="ProposalClaim"/>.
-        /// </summary>
-        [JsonIgnore]
-        public Dictionary Encoded =>
-            !Signature.IsEmpty
-                ? _metadata.Encoded.Add(SignatureKey, Signature)
-                : _metadata.Encoded;
+    /// <summary>
+    /// A signature that signed with <see cref="ProposalMetadata"/>.
+    /// </summary>
+    public ImmutableArray<byte> Signature { get; }
 
-        /// <summary>
-        /// <see cref="byte"/> encoded <see cref="Proposal"/> data.
-        /// </summary>
-        public ImmutableArray<byte> ByteArray => ToByteArray().ToImmutableArray();
+    /// <summary>
+    /// A Bencodex-encoded value of <see cref="ProposalClaim"/>.
+    /// </summary>
+    // [JsonIgnore]
+    // public Dictionary Encoded =>
+    //     !Signature.IsEmpty
+    //         ? _metadata.Encoded.Add(SignatureKey, Signature)
+    //         : _metadata.Encoded;
 
-        public byte[] ToByteArray() => _codec.Encode(Encoded);
+    /// <summary>
+    /// <see cref="byte"/> encoded <see cref="Proposal"/> data.
+    /// </summary>
+    // public ImmutableArray<byte> ByteArray => ToByteArray().ToImmutableArray();
 
-        /// <summary>
-        /// Verifies whether the <see cref="ProposalMetadata"/> is properly signed by
-        /// <see cref="Validator"/>.
-        /// </summary>
-        /// <returns><see langword="true"/> if the <see cref="Signature"/> is not empty
-        /// and is a valid signature signed by <see cref="Validator"/>.</returns>
-        [Pure]
-        public bool Verify() =>
-            !Signature.IsDefaultOrEmpty &&
-            ValidatorPublicKey.Verify(
-                _metadata.ByteArray.ToImmutableArray(),
-                Signature);
+    // public byte[] ToByteArray() => _codec.Encode(Encoded);
 
-        [Pure]
-        public bool Equals(ProposalClaim? other)
-        {
-            return other is ProposalClaim proposalClaim &&
-                   _metadata.Equals(proposalClaim._metadata) &&
-                   Signature.SequenceEqual(proposalClaim.Signature);
-        }
+    /// <summary>
+    /// Verifies whether the <see cref="ProposalMetadata"/> is properly signed by
+    /// <see cref="Validator"/>.
+    /// </summary>
+    /// <returns><see langword="true"/> if the <see cref="Signature"/> is not empty
+    /// and is a valid signature signed by <see cref="Validator"/>.</returns>
+    [Pure]
+    public bool Verify()
+    {
+        return !Signature.IsDefaultOrEmpty &&
+        ValidatorPublicKey.Verify(
+            ModelSerializer.SerializeToBytes(_metadata).ToImmutableArray(),
+            Signature);
+    }
 
-        [Pure]
-        public override bool Equals(object? obj)
-        {
-            return obj is ProposalClaim other && Equals(other);
-        }
+    [Pure]
+    public bool Equals(ProposalClaim? other)
+    {
+        return other is ProposalClaim proposalClaim &&
+               _metadata.Equals(proposalClaim._metadata) &&
+               Signature.SequenceEqual(proposalClaim.Signature);
+    }
 
-        [Pure]
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(
-                _metadata.GetHashCode(),
-                ByteUtility.CalculateHashCode(Signature.ToArray()));
-        }
+    [Pure]
+    public override bool Equals(object? obj)
+    {
+        return obj is ProposalClaim other && Equals(other);
+    }
+
+    [Pure]
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(
+            _metadata.GetHashCode(),
+            ByteUtility.CalculateHashCode(Signature.ToArray()));
     }
 }

@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
@@ -6,39 +5,37 @@ namespace Libplanet.Net.Messages;
 
 internal class BlockHeaderMsg : MessageContent
 {
-    private static readonly Codec Codec = new Codec();
-
     public BlockHeaderMsg(BlockHash genesisHash, BlockExcerpt header)
     {
         GenesisHash = genesisHash;
-        HeaderDictionary = ModelSerializer.Serialize(header);
+        HeaderDictionary = ModelSerializer.SerializeToBytes(header);
     }
 
     public BlockHeaderMsg(byte[][] dataFrames)
     {
         GenesisHash = new BlockHash(dataFrames[0]);
-        HeaderDictionary = Codec.Decode(dataFrames[1]);
+        HeaderDictionary = dataFrames[1];
     }
 
     public BlockHash GenesisHash { get; }
 
-    public IValue HeaderDictionary { get; }
+    public byte[] HeaderDictionary { get; }
 
-    public long HeaderIndex => ModelSerializer.Deserialize<BlockHeader>(HeaderDictionary).Height;
+    public long HeaderIndex => ModelSerializer.DeserializeFromBytes<BlockHeader>(HeaderDictionary).Height;
 
     public BlockExcerpt HeaderHash
-        => ModelSerializer.Deserialize<BlockExcerpt>(HeaderDictionary);
+        => ModelSerializer.DeserializeFromBytes<BlockExcerpt>(HeaderDictionary);
 
     public override MessageType Type => MessageType.BlockHeaderMessage;
 
     public override IEnumerable<byte[]> DataFrames => new[]
     {
         GenesisHash.Bytes.ToArray(),
-        Codec.Encode(HeaderDictionary),
+        HeaderDictionary,
     };
 
     public BlockExcerpt GetHeader()
     {
-        return ModelSerializer.Deserialize<BlockExcerpt>(HeaderDictionary);
+        return ModelSerializer.DeserializeFromBytes<BlockExcerpt>(HeaderDictionary);
     }
 }

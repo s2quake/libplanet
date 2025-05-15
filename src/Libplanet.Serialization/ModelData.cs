@@ -1,94 +1,102 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Bencodex.Types;
+using System.IO;
+using Libplanet.Serialization.Extensions;
 
 namespace Libplanet.Serialization;
 
-internal sealed record class ModelData : IBencodable
+internal sealed record class ModelData
 {
     public static readonly byte[] MagicValue = "LPNT"u8.ToArray();
-    private const int ElementCount = 3;
 
-    public required ModelHeader Header { get; init; }
+    public string TypeName { get; init; } = string.Empty;
 
-    public required IValue Value { get; init; }
+    public int Version { get; set; }
 
-    public IValue Bencoded => new List(
-        new Binary(MagicValue),
-        Header.Bencoded,
-        Value);
-
-    public static bool IsData(IValue value)
+    public void Write(Stream stream)
     {
-        if (value is List list
-            && list.Count == ElementCount
-            && list[0] is Binary binary
-            && binary.ByteArray.AsSpan().SequenceEqual(MagicValue))
-        {
-            return true;
-        }
-
-        return false;
+        stream.Write(MagicValue);
+        stream.WriteString(TypeName);
+        stream.WriteInt32(Version);
     }
 
-    public static bool TryGetData(IValue value, [MaybeNullWhen(false)] out ModelData data)
+    public static bool IsData(Stream stream)
     {
-        if (value is List list
-            && list.Count == ElementCount
-            && list[0] is Binary binary
-            && binary.ByteArray.AsSpan().SequenceEqual(MagicValue)
-            && ModelHeader.TryGetHeader(list[1], out var header))
+        var position = stream.Position;
+        try
         {
-            data = new ModelData
+            var bytes = new byte[MagicValue.Length];
+            if (stream.Read(bytes) == bytes.Length && bytes.SequenceEqual(MagicValue))
             {
-                Header = header,
-                Value = list[2],
-            };
-            return true;
+                return true;
+            }
+
+            return false;
+        }
+        finally
+        {
+            stream.Position = position;
+        }
+    }
+
+    public static bool TryGetData(Stream stream, [MaybeNullWhen(false)] out ModelData data)
+    {
+        try
+        {
+            var bytes = new byte[MagicValue.Length];
+            if (stream.Read(bytes) == bytes.Length && bytes.SequenceEqual(MagicValue))
+            {
+                data = new ModelData
+                {
+                    TypeName = stream.ReadString(),
+                    Version = stream.ReadInt32(),
+                };
+                return true;
+            }
+        }
+        catch
+        {
+            // Ignore exceptions
         }
 
         data = default;
         return false;
     }
 
-    public static ModelData GetData(IValue value)
+    public static ModelData GetData(Stream stream)
     {
-        if (value is not List list)
+        var bytes = new byte[MagicValue.Length];
+        if (stream.Read(bytes) != bytes.Length || !bytes.SequenceEqual(MagicValue))
         {
-            throw new ArgumentException("The value is not a list.", nameof(value));
-        }
-
-        if (list.Count != ElementCount)
-        {
-            throw new ArgumentException("The list does not have two elements.", nameof(value));
+            throw new ModelSerializationException("Invalid magic value.");
         }
 
         return new ModelData
         {
-            Header = ModelHeader.Create(list[1]),
-            Value = list[2],
+            TypeName = stream.ReadString(),
+            Version = stream.ReadInt32(),
         };
     }
 
-    internal static IValue GetValue(IValue value, string typeName)
-    {
-        try
-        {
-            var data = GetData(value);
-            if (typeName != data.Header.TypeName)
-            {
-                throw new ModelSerializationException(
-                    $"Given type name {data.Header.TypeName} is not {typeName}");
-            }
+    // internal static IValue GetValue(IValue value, string typeName)
+    // {
+    //     try
+    //     {
+    //         var data = GetData(value);
+    //         if (typeName != data.Header.TypeName)
+    //         {
+    //             throw new ModelSerializationException(
+    //                 $"Given type name {data.Header.TypeName} is not {typeName}");
+    //         }
 
-            return data.Value;
-        }
-        catch (ModelSerializationException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            throw new ModelSerializationException(e.Message, e);
-        }
-    }
+    //         return data.Value;
+    //     }
+    //     catch (ModelSerializationException)
+    //     {
+    //         throw;
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         throw new ModelSerializationException(e.Message, e);
+    //     }
+    // }
 }

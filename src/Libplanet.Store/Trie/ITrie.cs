@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Store.Trie;
 
-public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
+public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, object>>
 {
     INode Node { get; }
 
@@ -13,15 +13,15 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
 
     bool IsCommitted { get; }
 
-    IValue this[in KeyBytes key] { get; }
+    object this[in KeyBytes key] { get; }
 
-    IValue this[in ImmutableArray<byte> key] => this[new KeyBytes(key)];
+    object this[in ImmutableArray<byte> key] => this[new KeyBytes(key)];
 
-    ITrie Set(in KeyBytes key, IValue value);
+    ITrie Set(in KeyBytes key, object value);
 
-    ITrie Set(in ImmutableArray<byte> key, IValue value) => Set(new KeyBytes(key), value);
+    ITrie Set(in ImmutableArray<byte> key, object value) => Set(new KeyBytes(key), value);
 
-    ITrie Set(string key, IValue value) => Set((KeyBytes)key, value);
+    ITrie Set(string key, object value) => Set((KeyBytes)key, value);
 
     ITrie Remove(in KeyBytes key);
 
@@ -35,12 +35,11 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
 
     bool TryGetNode(in KeyBytes key, [MaybeNullWhen(false)] out INode node);
 
-    bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out IValue value);
+    bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out object value);
 
     bool TryGetValue<T>(in KeyBytes key, [MaybeNullWhen(false)] out T value)
-        where T : IValue
     {
-        if (TryGetValue(key, out IValue? v) && v is T t)
+        if (TryGetValue(key, out object? v) && v is T t)
         {
             value = t;
             return true;
@@ -52,8 +51,7 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, IValue>>
 
     bool ContainsKey(in KeyBytes key);
 
-    T GetValue<T>(in KeyBytes key, T fallback)
-        where T : IValue => TryGetValue(key, out IValue? value) && value is T t ? t : fallback;
+    T GetValue<T>(in KeyBytes key, T fallback) => TryGetValue(key, out object? value) && value is T t ? t : fallback;
 
-    IEnumerable<(KeyBytes Path, IValue? TargetValue, IValue SourceValue)> Diff(ITrie other);
+    IEnumerable<(KeyBytes Path, object? TargetValue, object SourceValue)> Diff(ITrie other);
 }

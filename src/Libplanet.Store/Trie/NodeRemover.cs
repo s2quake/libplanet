@@ -11,8 +11,7 @@ internal static class NodeRemover
         ValueNode valueNode => RemoveFromValueNode(valueNode, cursor),
         ShortNode shortNode => RemoveFromShortNode(shortNode, cursor),
         FullNode fullNode => RemoveFromFullNode(fullNode, cursor),
-        _ => throw new UnreachableException(
-            $"Unsupported node value: {node.ToBencodex().Inspect()}"),
+        _ => throw new UnreachableException($"Unsupported node value"),
     };
 
     private static INode RemoveFromHashNode(HashNode hashNode, PathCursor cursor)
@@ -41,8 +40,7 @@ internal static class NodeRemover
             FullNode fullNode => new ShortNode { Key = key, Value = fullNode },
             ShortNode shortNode => new ShortNode { Key = key.Append(shortNode.Key), Value = shortNode.Value },
             NullNode => node,
-            _ => throw new UnreachableException(
-                    $"Unsupported node value: {node.ToBencodex().Inspect()}"),
+            _ => throw new UnreachableException($"Unsupported node value"),
         };
     }
 
