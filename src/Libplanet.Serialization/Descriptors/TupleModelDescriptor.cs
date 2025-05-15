@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Libplanet.Serialization.Descriptors;
 
@@ -70,7 +68,7 @@ internal sealed class TupleModelDescriptor : ModelDescriptorBase
             || genericTypeDefinition == typeof(Tuple<,,,,,,,>);
     }
 
-    public static bool IsValueTupleType(Type type)
+    private static bool IsValueTupleType(Type type)
     {
         if (!type.IsGenericType)
         {
@@ -86,40 +84,5 @@ internal sealed class TupleModelDescriptor : ModelDescriptorBase
             || genericTypeDefinition == typeof(ValueTuple<,,,,,>)
             || genericTypeDefinition == typeof(ValueTuple<,,,,,,>)
             || genericTypeDefinition == typeof(ValueTuple<,,,,,,,>);
-    }
-
-    private static Type GetElementType(Type type)
-    {
-        if (type.IsGenericType)
-        {
-            var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(ImmutableArray<>))
-            {
-                return type.GetGenericArguments()[0];
-            }
-        }
-
-        throw new UnreachableException("The type is not an ImmutableArray.");
-    }
-
-    private static MethodInfo GetCreateRangeMethod(Type type, string methodName, Type parameterType)
-    {
-        var parameterName = parameterType.Name;
-        var bindingFlags = BindingFlags.Public | BindingFlags.Static;
-        var methodInfos = type.GetMethods(bindingFlags);
-
-        for (var i = 0; i < methodInfos.Length; i++)
-        {
-            var methodInfo = methodInfos[i];
-            var parameters = methodInfo.GetParameters();
-            if (methodInfo.Name == methodName &&
-                parameters.Length == 1 &&
-                parameters[0].ParameterType.Name == parameterName)
-            {
-                return methodInfo;
-            }
-        }
-
-        throw new NotSupportedException("The method is not found.");
     }
 }
