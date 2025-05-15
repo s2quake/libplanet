@@ -58,7 +58,7 @@ public sealed class BoundPeer : IEquatable<BoundPeer>
     //     : this(
     //         new PublicKey([.. ((Binary)bencoded[PublicKeyKey]).ByteArray]),
     //         new DnsEndPoint(
-    //             (Text)bencoded[EndPointHostKey], (Integer)bencoded[EndPointPortKey]),
+    //             bencoded[EndPointHostKey], (Integer)bencoded[EndPointPortKey]),
     //         bencoded[PublicIpAddressKey] is Text text ? IPAddress.Parse(text) : null)
     // {
     // }
@@ -100,7 +100,7 @@ public sealed class BoundPeer : IEquatable<BoundPeer>
     //     .Add(EndPointPortKey, EndPoint.Port)
     //     .Add(
     //         PublicIpAddressKey,
-    //         PublicIPAddress is IPAddress ip ? (IValue)(Text)ip.ToString() : Null.Value);
+    //         PublicIPAddress is IPAddress ip ? (IValue)ip.ToString() : null);
 
     public static bool operator ==(BoundPeer left, BoundPeer right) => left.Equals(right);
 

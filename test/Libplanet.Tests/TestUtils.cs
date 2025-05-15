@@ -661,7 +661,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         {
             throw new NotImplementedException();
             // return action is Dictionary dictionary &&
-            //        dictionary.TryGetValue((Text)"reward", out IValue rewards) &&
+            //        dictionary.TryGetValue("reward", out IValue rewards) &&
             //        rewards is Integer;
         }
 

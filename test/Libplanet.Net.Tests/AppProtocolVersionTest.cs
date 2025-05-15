@@ -1,3 +1,4 @@
+using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net.Tests
@@ -26,7 +27,7 @@ namespace Libplanet.Net.Tests
 
         private static readonly AppProtocolVersion ValidClaimWExtraFixture = new AppProtocolVersion(
             version: 123,
-            extra: (Bencodex.Types.Text)"foo",
+            extra: ModelSerializer.SerializeToBytes("foo"),
             signer: SignerFixture.Address,
             signature: new byte[]
             {
@@ -50,9 +51,9 @@ namespace Libplanet.Net.Tests
             Assert.False(claim.Verify(otherParty));
 
             AppProtocolVersion claimWithExtra =
-                AppProtocolVersion.Sign(signer, 2, (Bencodex.Types.Text)"extra");
+                AppProtocolVersion.Sign(signer, 2, ModelSerializer.SerializeToBytes("extra"));
             Assert.Equal(2, claimWithExtra.Version);
-            Assert.Equal((Bencodex.Types.Text)"extra", claimWithExtra.Extra);
+            Assert.Equal(ModelSerializer.SerializeToBytes("extra"), claimWithExtra.Extra);
             Assert.True(claimWithExtra.Verify(signer.PublicKey));
             Assert.False(claimWithExtra.Verify(otherParty));
 
@@ -83,7 +84,7 @@ namespace Libplanet.Net.Tests
             // A signature is no more valid for a different extra data.
             var invalidExtraClaim = new AppProtocolVersion(
                 version: ValidClaimFixture.Version,
-                extra: (Bencodex.Types.Text)"invalid extra",
+                extra: ModelSerializer.SerializeToBytes("invalid extra"),
                 signer: ValidClaimFixture.Signer,
                 signature: ValidClaimFixture.Signature);
             Assert.False(invalidExtraClaim.Verify(signerPublicKey));
@@ -103,15 +104,14 @@ namespace Libplanet.Net.Tests
         [Fact]
         public void Equality()
         {
-            Codec codec = new Codec();
             var signer = new PrivateKey();
             AppProtocolVersion claim =
-                AppProtocolVersion.Sign(signer, 123, (Bencodex.Types.Text)"foo");
+                AppProtocolVersion.Sign(signer, 123, ModelSerializer.SerializeToBytes("foo"));
 
             // Copy to make sure not to use the same reference
             var address = new Address(claim.Signer.Bytes);
             var version = claim.Version;
-            var extra = codec.Decode(codec.Encode(claim.Extra));
+            var extra = ModelSerializer.SerializeToBytes(ModelSerializer.DeserializeFromBytes(claim.Extra));
             var signature = claim.Signature.ToArray().ToImmutableArray();
 
             // Different version
@@ -125,7 +125,7 @@ namespace Libplanet.Net.Tests
             // Different extra
             var claim3 = new AppProtocolVersion(
                 version,
-                Bencodex.Types.Null.Value,
+                ModelSerializer.SerializeToBytes(null),
                 signature,
                 address);
             Assert.False(((IEquatable<AppProtocolVersion>)claim).Equals(claim3));
@@ -194,7 +194,7 @@ namespace Libplanet.Net.Tests
             Assert.Equal("123", claim.ToString());
 
             AppProtocolVersion claimWithExtra =
-                AppProtocolVersion.Sign(signer, 456, (Bencodex.Types.Text)"extra");
+                AppProtocolVersion.Sign(signer, 456, ModelSerializer.SerializeToBytes("extra"));
             Assert.Equal("456 (Bencodex.Types.Text \"extra\")", claimWithExtra.ToString());
         }
 

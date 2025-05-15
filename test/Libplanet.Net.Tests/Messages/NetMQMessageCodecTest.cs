@@ -51,7 +51,7 @@ namespace Libplanet.Net.Tests.Messages
             var dateTimeOffset = DateTimeOffset.UtcNow;
             var apv = new AppProtocolVersion(
                 1,
-                new Bencodex.Types.Integer(0),
+                ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             var messageContent = CreateMessage(type);
@@ -73,7 +73,6 @@ namespace Libplanet.Net.Tests.Messages
             var privateKey = new PrivateKey();
             var boundPeer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("127.0.0.1", 1000));
             BlockChain chain = MakeBlockChain();
-            var codec = new Codec();
             Block genesis = chain.Genesis;
             var transaction = chain.MakeTransaction(privateKey, new DumbAction[] { });
             switch (type)

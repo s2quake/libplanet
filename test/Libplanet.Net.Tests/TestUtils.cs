@@ -107,7 +107,6 @@ namespace Libplanet.Net.Tests
             int round = 0,
             int validRound = -1)
         {
-            var codec = new Codec();
             return new ConsensusProposalMsg(
                 new ProposalMetadata(
                     height,

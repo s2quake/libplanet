@@ -279,10 +279,10 @@
 
 //             // Try assigning null.
 //             encoded = BTypes.Dictionary.Empty
-//                 .Add(nameof(HasNullableBoolType.Value), BTypes.Null.Value);
+//                 .Add(nameof(HasNullableBoolType.Value), BTypes.null);
 //             Assert.Throws<NotSupportedException>(() => new HasNullableBoolType(encoded));
 //             encoded = BTypes.Dictionary.Empty
-//                 .Add(nameof(HasNullReferencePropertyValue.Value), BTypes.Null.Value);
+//                 .Add(nameof(HasNullReferencePropertyValue.Value), BTypes.null);
 //             Assert.Throws<NotSupportedException>(() => new HasNullReferencePropertyValue(encoded));
 
 //             // Sanity check
@@ -373,7 +373,7 @@
 //                     nameof(ListIntWrapper.Value),
 //                     (BTypes.IValue)BTypes.List.Empty
 //                         .Add((BTypes.IValue)new BTypes.Integer(5))
-//                         .Add(BTypes.Null.Value));
+//                         .Add(BTypes.null));
 //             Assert.Throws<NotSupportedException>(() => new ListIntWrapper(encoded));
 //             encoded = BTypes.Dictionary.Empty
 //                 .Add(
@@ -384,7 +384,7 @@
 //                             (BTypes.IValue)new BTypes.Integer(5))
 //                         .Add(
 //                             (BTypes.IKey)new BTypes.Text("bar"),
-//                             (BTypes.IValue)BTypes.Null.Value));
+//                             (BTypes.IValue)BTypes.null));
 //             Assert.Throws<NotSupportedException>(() => new DictStrIntWrapper(encoded));
 //         }
 

@@ -73,7 +73,7 @@ public class Maj23Metadata : IEquatable<Maj23Metadata>
 //             round: (Integer)encoded[RoundKey],
 //             blockHash: ModelSerializer.Deserialize<BlockHash>(encoded[BlockHashKey]),
 //             timestamp: DateTimeOffset.ParseExact(
-//                 (Text)encoded[TimestampKey],
+//                 encoded[TimestampKey],
 //                 TimestampFormat,
 //                 CultureInfo.InvariantCulture),
 //             validatorPublicKey: new PublicKey(

@@ -146,7 +146,6 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task CanAcceptMessagesAfterCommitFailure()
         {
-            Codec codec = new Codec();
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             ConsensusProposalMsg? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
@@ -488,7 +487,6 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task CanReplaceProposal()
         {
-            var codec = new Codec();
             var privateKeys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToArray();
             // Order keys as validator set's order to run test as intended.
             privateKeys = privateKeys.OrderBy(key => key.Address).ToArray();

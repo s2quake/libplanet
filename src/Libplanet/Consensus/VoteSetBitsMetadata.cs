@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
-// using Bencodex.Types;
-using Libplanet.Serialization;
+// using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
@@ -77,7 +76,7 @@ public class VoteSetBitsMetadata : IEquatable<VoteSetBitsMetadata>
 //             round: (Integer)encoded[RoundKey],
 //             blockHash: ModelSerializer.Deserialize<BlockHash>(encoded[BlockHashKey]),
 //             timestamp: DateTimeOffset.ParseExact(
-//                 (Text)encoded[TimestampKey],
+//                 encoded[TimestampKey],
 //                 TimestampFormat,
 //                 CultureInfo.InvariantCulture),
 //             validatorPublicKey: new PublicKey(

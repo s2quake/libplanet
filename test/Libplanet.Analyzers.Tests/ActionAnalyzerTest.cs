@@ -22,13 +22,12 @@ namespace Libplanet.Analyzers.Tests
         {
             var test = @"
                 using System;
-                using Bencodex.Types;
-                using Libplanet.Action;
+                                using Libplanet.Action;
                 using Libplanet.Action.State;
                 namespace SampleGame {
                     public class SampleAction : IAction {
                         public SampleAction() {}
-                        public IValue PlainValue => Null.Value;
+                        public IValue PlainValue => null;
                         public void LoadPlainValue(IValue plainValue) {}
                         public World Execute(IActionContext context) {
                             new Random().Next();
@@ -113,14 +112,13 @@ namespace Libplanet.Analyzers.Tests
                 using System.Collections.Immutable;
                 using System.Linq;
                 using System.Security.Cryptography;
-                using Bencodex.Types;
-                using Libplanet;
+                                using Libplanet;
                 using Libplanet.Action;
                 using Libplanet.Action.State;
                 namespace SampleGame {
                     public class SampleAction : IAction {
                         public SampleAction() {}
-                        public IValue PlainValue => Null.Value;
+                        public IValue PlainValue => null;
                         public void LoadPlainValue(IValue plainValue) {}
                         public World Execute(IActionContext context) {
                             // Following code should all fail:

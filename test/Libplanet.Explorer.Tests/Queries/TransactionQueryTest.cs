@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Bencodex.Types;
 using GraphQL;
 using GraphQL.Execution;
 using Libplanet.Action;
@@ -65,9 +64,9 @@ public class TransactionQueryTest
         var action = new Initialize
         {
             Validators = [Validator.Create(new PrivateKey().PublicKey, 1)],
-            States = new Dictionary<Address, IValue>
+            States = new Dictionary<Address, object>
             {
-                [default] = (Text)"initial value"
+                [default] = "initial value"
             }.ToImmutableDictionary(),
         };
         var tx = Transaction.Create(

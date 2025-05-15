@@ -1,5 +1,4 @@
-﻿// using Bencodex.Types;
-
+﻿//
 // namespace Libplanet.Serialization.Converters;
 
 // internal sealed class ImmutableByteArrayTypeConverter : InternalTypeConverterBase<ImmutableArray<byte>, IValue>
@@ -24,7 +23,7 @@
 //     {
 //         if (value.IsDefault)
 //         {
-//             return Null.Value;
+//             return null;
 //         }
 
 //         return new Binary(value.ToArray());

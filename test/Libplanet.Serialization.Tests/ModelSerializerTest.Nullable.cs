@@ -13,8 +13,8 @@ public sealed partial class ModelSerializerTest
     {
         var random = new Random(seed);
         var expectedObject = new RecordClassWithNullableProperty(random);
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<RecordClassWithNullableProperty>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<RecordClassWithNullableProperty>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 

@@ -1,6 +1,5 @@
 // using System.Security.Cryptography;
-// using Bencodex.Types;
-// using Libplanet.Store.Trie;
+// // using Libplanet.Store.Trie;
 // using Libplanet.Store.Trie.Nodes;
 // using Libplanet.Types;
 
@@ -16,21 +15,21 @@
 //         IValue[] values =
 //         [
 //             (Binary)hashA.Bytes.ToArray(),
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
-//             Null.Value,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
+//             null,
 //             (Binary)hashB.Bytes.ToArray(),
 //         ];
 //         var list = new List(values);
@@ -49,7 +48,7 @@
 //     [InlineData(18)]
 //     public void DecodeInvalidFullNodeThrowsException(int listCount)
 //     {
-//         var list = new List(Enumerable.Repeat((IValue)Null.Value, listCount));
+//         var list = new List(Enumerable.Repeat((IValue)null, listCount));
 //         Assert.Throws<InvalidTrieNodeException>(
 //             () => NodeDecoder.Decode(list, NodeTypes.Full));
 //     }
@@ -59,14 +58,14 @@
 //     {
 //         var list = List.Empty
 //             .Add(new Binary(Nibbles.Parse("beef").ByteArray))
-//             .Add(new List(new IValue[] { Null.Value, (Text)"beef", }));
+//             .Add(new List(new IValue[] { null, "beef", }));
 
 //         INode node = NodeDecoder.Decode(list, NodeTypes.Short);
 //         Assert.IsType<ShortNode>(node);
 //         var shortNode = (ShortNode)node;
 //         Assert.IsType<ValueNode>(shortNode.Value);
 //         Assert.Equal(Nibbles.Parse("beef"), shortNode.Key);
-//         Assert.Equal(new ValueNode { Value = (Text)"beef" }, shortNode.Value);
+//         Assert.Equal(new ValueNode { Value = "beef" }, shortNode.Value);
 //     }
 
 //     [Fact]
@@ -102,7 +101,7 @@
 //                 Hash = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
 //             }.ToBencodex();
 
-//         Assert.Null(NodeDecoder.Decode(Null.Value, NodeDecoder.AnyNodeTypes));
+//         Assert.Null(NodeDecoder.Decode(null, NodeDecoder.AnyNodeTypes));
 //         Assert.IsType<ValueNode>(
 //             NodeDecoder.Decode(valueNodeEncoded, NodeDecoder.AnyNodeTypes));
 //         Assert.IsType<ShortNode>(
@@ -112,7 +111,7 @@
 //         Assert.IsType<FullNode>(
 //             NodeDecoder.Decode(fullNodeEncoded, NodeDecoder.AnyNodeTypes));
 //         Assert.Throws<InvalidTrieNodeException>(() =>
-//             NodeDecoder.Decode(Null.Value, NodeTypes.Value));
+//             NodeDecoder.Decode(null, NodeTypes.Value));
 //         Assert.Throws<InvalidTrieNodeException>(() =>
 //             NodeDecoder.Decode(valueNodeEncoded, NodeTypes.Short));
 //         Assert.Throws<InvalidTrieNodeException>(() =>

@@ -84,7 +84,7 @@ public class ProposalClaimMetadata : IEquatable<ProposalClaimMetadata>
 //             round: (Integer)encoded[RoundKey],
 //             blockHash: ModelSerializer.Deserialize<BlockHash>(encoded[BlockHashKey]),
 //             timestamp: DateTimeOffset.ParseExact(
-//                 (Text)encoded[TimestampKey],
+//                 encoded[TimestampKey],
 //                 TimestampFormat,
 //                 CultureInfo.InvariantCulture),
 //             validatorPublicKey: new PublicKey(

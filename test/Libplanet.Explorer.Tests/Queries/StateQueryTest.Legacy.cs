@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
 using Libplanet.Explorer.Queries;
+using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.Types.Assets;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
@@ -34,7 +35,7 @@ public partial class StateQueryTest
         object[] states =
             Assert.IsAssignableFrom<object[]>(resultDict["states"]);
         Assert.Equal(2, states.Length);
-        Assert.Equal(new[] { _codec.Encode(Fixture.Value), null }, states);
+        Assert.Equal(new[] { ModelSerializer.SerializeToBytes(Fixture.Value), null }, states);
     }
 
     [Fact]
@@ -207,7 +208,7 @@ public partial class StateQueryTest
             Assert.IsAssignableFrom<IDictionary<string, object>>(resultData!.ToValue());
         object[] states =
             Assert.IsAssignableFrom<object[]>(resultDict["states"]);
-        Assert.Equal(new[] { _codec.Encode(Fixture.Value), null }, states);
+        Assert.Equal(new[] { ModelSerializer.SerializeToBytes(Fixture.Value), null }, states);
     }
 
     [Fact]

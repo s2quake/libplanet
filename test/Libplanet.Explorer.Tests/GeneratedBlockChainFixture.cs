@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.Sys;
 using Libplanet.Blockchain;
@@ -75,7 +74,7 @@ public class GeneratedBlockChainFixture
                             new Initialize
                             {
                                 Validators = [Validator.Create(pk.PublicKey, 1)],
-                                States = ImmutableDictionary.Create<Address, IValue>()
+                                States = ImmutableDictionary.Create<Address, object>()
                             },
                         }.ToBytecodes()))
                 .ToImmutableSortedSet());

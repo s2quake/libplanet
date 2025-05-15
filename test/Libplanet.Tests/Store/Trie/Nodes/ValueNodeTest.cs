@@ -1,5 +1,4 @@
-// using Bencodex.Types;
-// using Libplanet.Store.Trie.Nodes;
+// // using Libplanet.Store.Trie.Nodes;
 // using Libplanet.Types;
 
 // namespace Libplanet.Tests.Store.Trie.Nodes
@@ -11,7 +10,7 @@
 //         {
 //             var values = new IValue[]
 //             {
-//                 Null.Value,
+//                 null,
 //                 (Binary)ByteUtility.ParseHexToImmutable("beef"),
 //                 (Integer)0xbeef,
 //                 Dictionary.Empty,
@@ -23,7 +22,7 @@
 //                 var valueNode = new ValueNode { Value = value };
 //                 var expected = new List(new[]
 //                 {
-//                     Null.Value, value,
+//                     null, value,
 //                 });
 //                 Assert.Equal(expected, valueNode.ToBencodex());
 //             }

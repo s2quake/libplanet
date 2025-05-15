@@ -2,6 +2,7 @@ using System.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net.Tests.Messages
@@ -79,8 +80,8 @@ namespace Libplanet.Net.Tests.Messages
             var unknownSigner = new PrivateKey();
             var version1 = 1;
             var version2 = 2;
-            var extra1 = new Bencodex.Types.Integer(13);
-            var extra2 = new Bencodex.Types.Integer(17);
+            var extra1 = ModelSerializer.SerializeToBytes(13);
+            var extra2 = ModelSerializer.SerializeToBytes(17);
 
             DifferentAppProtocolVersionEncountered callback = (p, pv, lv) => { called = true; };
             var peer = new BoundPeer(trustedSigner.PublicKey, new DnsEndPoint("0.0.0.0", 0));

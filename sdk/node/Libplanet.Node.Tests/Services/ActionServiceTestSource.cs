@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using System.Numerics;
 using System.Linq;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
 using Libplanet.Action.State;

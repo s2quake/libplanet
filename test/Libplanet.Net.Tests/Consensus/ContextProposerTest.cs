@@ -378,7 +378,6 @@ namespace Libplanet.Net.Tests.Consensus
 
             context.Start();
             await proposalSent.WaitAsync();
-            Bencodex.Codec codec = new Bencodex.Codec();
             var proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
                 proposal?.Proposal.MarshaledBlock!);
             Assert.Equal(context.Height + 1, proposedBlock.Height);

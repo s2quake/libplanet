@@ -1,5 +1,4 @@
-// using Bencodex.Types;
-// using Libplanet.Store;
+// // using Libplanet.Store;
 // using Libplanet.Store.Trie;
 // using Libplanet.Types.Crypto;
 
@@ -37,7 +36,7 @@
 
 //         foreach (var address in addresses)
 //         {
-//             states[address] = (Text)address.ToString("raw", null);
+//             states[address] = address.ToString("raw", null);
 //             trie = trie.Set(new KeyBytes(address.Bytes), states[address]);
 //             CheckAddressStates();
 //         }
@@ -67,15 +66,15 @@
 //         }
 
 //         KeyBytes path = new KeyBytes(TestUtils.GetRandomBytes(32));
-//         trieA = trieA.Set(path, (Text)"foo");
-//         Assert.Equal((Text)"foo", trieA.GetMany(new[] { path })[0]);
+//         trieA = trieA.Set(path, "foo");
+//         Assert.Equal("foo", trieA.GetMany(new[] { path })[0]);
 
 //         ITrie trieB = stateStore.Commit(trieA);
-//         Assert.Equal((Text)"foo", trieB.GetMany(new[] { path })[0]);
+//         Assert.Equal("foo", trieB.GetMany(new[] { path })[0]);
 
-//         trieB = trieB.Set(path, (Text)"bar");
-//         Assert.Equal((Text)"foo", trieA.GetMany(new[] { path })[0]);
-//         Assert.Equal((Text)"bar", trieB.GetMany(new[] { path })[0]);
+//         trieB = trieB.Set(path, "bar");
+//         Assert.Equal("foo", trieA.GetMany(new[] { path })[0]);
+//         Assert.Equal("bar", trieB.GetMany(new[] { path })[0]);
 
 //         ITrie trieC = stateStore.Commit(trieB);
 //         ITrie trieD = stateStore.Commit(trieC);

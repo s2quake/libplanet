@@ -6,8 +6,8 @@ public sealed partial class ModelSerializerTest
     public void LegacyModel_SerializeAndDeserialize_Test()
     {
         var expectedObject = new Version1_ModelRecord { Int = Random.Shared.Next() };
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ModelRecord>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<ModelRecord>(serialized)!;
         Assert.Equal(expectedObject.Int, actualObject.Int);
         Assert.Equal("Hello, World!", actualObject.String);
     }
