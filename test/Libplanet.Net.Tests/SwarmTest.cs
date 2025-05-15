@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
@@ -1062,19 +1061,19 @@ namespace Libplanet.Net.Tests
 
                 Assert.Equal(
                     "1",
-                    (Text)genesisChainA
+                    genesisChainA
                         .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(signerAddress));
                 Assert.Equal(
                     "2",
-                    (Text)genesisChainB
+                    genesisChainB
                         .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(signerAddress));
                 Assert.Equal(
                     "1",
-                    (Text)genesisChainC
+                    genesisChainC
                         .GetNextWorld()
                         .GetAccount(ReservedAddresses.LegacyAccount)
                         .GetValue(signerAddress));

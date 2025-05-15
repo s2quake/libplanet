@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Types;
 
 namespace Libplanet.Store.Trie;

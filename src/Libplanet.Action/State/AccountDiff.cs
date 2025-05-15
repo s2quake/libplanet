@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;

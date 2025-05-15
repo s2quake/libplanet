@@ -11,7 +11,7 @@ namespace Libplanet.Explorer.Executable
 {
     public class Options
     {
-        private static readonly Codec Codec = new Codec();
+        // private static readonly Codec Codec = new Codec();
 
         public Options(
             bool debug,

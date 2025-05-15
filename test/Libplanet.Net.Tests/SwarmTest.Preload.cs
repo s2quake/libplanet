@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
@@ -99,7 +98,7 @@ namespace Libplanet.Net.Tests
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address1);
 
-                Assert.Equal((Text)"foo,bar,baz", state);
+                Assert.Equal("foo,bar,baz", state);
                 Assert.Equal(minerChain.Blocks.Keys, receiverChain.Blocks.Keys);
             }
             finally
@@ -642,7 +641,7 @@ namespace Libplanet.Net.Tests
                 Assert.Contains(receiverChain.Tip, blockArray);
                 Assert.NotEqual(blockArray.Last(), receiverChain.Tip);
                 Assert.Equal(
-                    (Text)string.Join(
+                    string.Join(
                         ",",
                         Enumerable.Range(0, (int)receiverChain.Tip.Height).Select(i =>
                             string.Join(",", Enumerable.Range(0, 5).Select(j => $"Item{i}.{j}")))),
@@ -655,7 +654,7 @@ namespace Libplanet.Net.Tests
             {
                 Assert.Equal(minerChain.Tip, receiverChain.Tip);
                 Assert.Equal(
-                    (Text)string.Join(
+                    string.Join(
                         ",",
                         Enumerable.Range(0, 20).Select(i =>
                             string.Join(",", Enumerable.Range(0, 5).Select(j => $"Item{i}.{j}")))),

@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.Sys;
 using Libplanet.Action.Tests.Common;
@@ -59,9 +58,9 @@ public class TransactionTest
         var action = new Initialize
         {
             Validators = [Validator.Create(privateKey.PublicKey, 1)],
-            States = new Dictionary<Address, IValue>
+            States = new Dictionary<Address, object>
             {
-                [default] = (Text)"initial value",
+                [default] = "initial value",
             }.ToImmutableDictionary(),
         };
         Transaction tx = Transaction.Create(

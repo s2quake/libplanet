@@ -44,8 +44,8 @@ namespace Libplanet.Tests.Tx
                 OutputState = random.NextHashDigest<SHA256>(),
                 ExceptionNames = ["SomeException", "AnotherException"],
             };
-            var encoded = ModelSerializer.Serialize(execution);
-            var decoded = ModelSerializer.Deserialize<TxExecution>(
+            var encoded = ModelSerializer.SerializeToBytes(execution);
+            var decoded = ModelSerializer.DeserializeFromBytes<TxExecution>(
                 encoded);
             Assert.Equal(execution.BlockHash, decoded.BlockHash);
             Assert.Equal(execution.TxId, decoded.TxId);

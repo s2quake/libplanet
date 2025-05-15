@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 
@@ -10,7 +9,7 @@ namespace Libplanet.Tests.Store.Trie
         public void EmptySourceNode()
         {
             KeyBytes k01 = KeyBytes.Parse("01");
-            IValue v01 = new Text("01");
+            var v01 = "01";
 
             var keyValueStore = new MemoryTable();
             TrieStateStore stateStore = new TrieStateStore(keyValueStore);
@@ -29,7 +28,7 @@ namespace Libplanet.Tests.Store.Trie
         public void ValueSourceNode()
         {
             KeyBytes k = KeyBytes.Parse(string.Empty);
-            IValue v = new Text(string.Empty);
+            var v = string.Empty;
 
             ITable keyValueStore = new MemoryTable();
             TrieStateStore stateStore = new TrieStateStore(keyValueStore);
@@ -51,15 +50,15 @@ namespace Libplanet.Tests.Store.Trie
         public void Diff(bool commitSource, bool commitTarget)
         {
             KeyBytes k00 = KeyBytes.Parse("00");
-            IValue v00 = new Text("00");
+            var v00 = "00";
             KeyBytes k01 = KeyBytes.Parse("01");
-            IValue v01 = new Text("01");
-            IValue v01a = new Text("01A");
+            var v01 = "01";
+            var v01a = "01A";
             KeyBytes k0000 = KeyBytes.Parse("0000");
-            IValue v0000 = new Text("0000");
+            var v0000 = "0000";
             KeyBytes k0010 = KeyBytes.Parse("0010");
-            IValue v0010 = new Text("0010");
-            IValue v0010a = new Text("0010A");
+            var v0010 = "0010";
+            var v0010a = "0010A";
 
             ITable keyValueStore = new MemoryTable();
             TrieStateStore stateStore = new TrieStateStore(keyValueStore);

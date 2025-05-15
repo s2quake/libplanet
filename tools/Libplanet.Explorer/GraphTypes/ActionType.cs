@@ -1,14 +1,13 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using Bencodex.Types;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes
 {
-    public class ActionType : ObjectGraphType<IValue>
+    public class ActionType : ObjectGraphType<byte[]>
     {
         public ActionType()
         {
@@ -25,8 +24,7 @@ namespace Libplanet.Explorer.GraphTypes
                     }),
                 resolve: ctx =>
                 {
-                    var codec = new Codec();
-                    var encoded = codec.Encode(ctx.Source);
+                    var encoded = ctx.Source;
 
                     var encode = ctx.GetArgument<string>("encode");
                     switch (encode)
@@ -48,18 +46,19 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<StringGraphType>>(
                 name: "Inspection",
                 description: "A readable representation for debugging.",
-                resolve: ctx => ctx.Source.Inspect());
+                resolve: ctx => ctx.Source);
 
             Field<NonNullGraphType<StringGraphType>>(
                 name: "json",
                 description: "A JSON representation of action data",
                 resolve: ctx =>
                 {
-                    var converter = new Bencodex.Json.BencodexJsonConverter();
-                    var buffer = new MemoryStream();
-                    var writer = new Utf8JsonWriter(buffer);
-                    converter.Write(writer, ctx.Source, new JsonSerializerOptions());
-                    return Encoding.UTF8.GetString(buffer.ToArray());
+                    throw new NotImplementedException();
+                    // var converter = new Bencodex.Json.BencodexJsonConverter();
+                    // var buffer = new MemoryStream();
+                    // var writer = new Utf8JsonWriter(buffer);
+                    // converter.Write(writer, ctx.Source, new JsonSerializerOptions());
+                    // return Encoding.UTF8.GetString(buffer.ToArray());
                 });
         }
     }

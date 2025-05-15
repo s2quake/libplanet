@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Store;
 using Libplanet.Types;
 
@@ -20,7 +19,7 @@ internal static class IStateStoreExtensions
         {
             var accountTrie = stateStore.Commit(account.Trie);
             var key = name;
-            var value = new Binary(accountTrie.Hash.Bytes);
+            var value = accountTrie.Hash.Bytes;
             trie = trie.Set(key, value);
         }
 

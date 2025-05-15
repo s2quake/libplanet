@@ -1,31 +1,19 @@
 using Libplanet.Consensus;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Net.Messages;
 
-/// <summary>
-/// A message class for claiming a <see cref="Proposal"/>.
-/// </summary>
 public class ConsensusProposalClaimMsg : ConsensusMsg
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ConsensusProposalClaimMsg"/> class.
-    /// </summary>
-    /// <param name="proposalClaim">A <see cref="ProposalClaim"/> of given height,
-    /// round and <see cref="BlockHash"/>.</param>
     public ConsensusProposalClaimMsg(ProposalClaim proposalClaim)
         : base(proposalClaim.ValidatorPublicKey, proposalClaim.Height, proposalClaim.Round)
     {
         ProposalClaim = proposalClaim;
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ConsensusProposalClaimMsg"/> class
-    /// with marshalled message.
-    /// </summary>
-    /// <param name="dataframes">A marshalled message.</param>
     public ConsensusProposalClaimMsg(byte[][] dataframes)
-        : this(new ProposalClaim(dataframes[0]))
+        : this(ModelSerializer.DeserializeFromBytes<ProposalClaim>(dataframes[0]))
     {
     }
 
@@ -36,7 +24,7 @@ public class ConsensusProposalClaimMsg : ConsensusMsg
 
     /// <inheritdoc cref="MessageContent.DataFrames"/>
     public override IEnumerable<byte[]> DataFrames =>
-        new List<byte[]> { ProposalClaim.ToByteArray() };
+        new List<byte[]> { ModelSerializer.SerializeToBytes(ProposalClaim) };
 
     /// <inheritdoc cref="MessageContent.MessageType"/>
     public override MessageType Type => MessageType.ConsensusProposalClaimMsg;

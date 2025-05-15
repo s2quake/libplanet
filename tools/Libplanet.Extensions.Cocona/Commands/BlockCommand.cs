@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using Bencodex.Types;
 using global::Cocona;
 using ImmutableTrie;
 using Libplanet.Action;
@@ -50,56 +49,57 @@ public class BlockCommand
             ? Console.OpenStandardInput()
             : File.OpenRead(file);
         string sourceName = file == "-" ? "stdin" : $"file {file}";
-        Codec codec = new ();
-        Block block;
-        try
-        {
-            var dict = codec.Decode(inputStream);
-            block = ModelSerializer.Deserialize<Block>(dict);
-        }
-        catch (DecodingException e)
-        {
-            throw new CommandExitedException(
-                $"The {sourceName} does not contain a valid Bencodex data: {e.Message}",
-                -1);
-        }
-        catch (InvalidCastException)
-        {
-            throw new CommandExitedException(
-                $"The {sourceName} does not contain a valid Bencodex dictionary.",
-                -2);
-        }
-        catch (InvalidOperationException e)
-        {
-            throw new CommandExitedException(
-                $"The {sourceName} does not contain a valid block: {e.Message}",
-                -4);
-        }
-        catch (Exception e) when (e is IndexOutOfRangeException or KeyNotFoundException)
-        {
-            throw new CommandExitedException(
-                $"The {sourceName} lacks some required fields.",
-                -3);
-        }
+        throw new NotImplementedException();
+        // Block block;
+        // try
+        // {
+        //     throw new NotImplementedException();
+        //     // var dict = codec.Decode(inputStream);
+        //     // block = ModelSerializer.Deserialize<Block>(dict);
+        // }
+        // catch (DecodingException e)
+        // {
+        //     throw new CommandExitedException(
+        //         $"The {sourceName} does not contain a valid Bencodex data: {e.Message}",
+        //         -1);
+        // }
+        // catch (InvalidCastException)
+        // {
+        //     throw new CommandExitedException(
+        //         $"The {sourceName} does not contain a valid Bencodex dictionary.",
+        //         -2);
+        // }
+        // catch (InvalidOperationException e)
+        // {
+        //     throw new CommandExitedException(
+        //         $"The {sourceName} does not contain a valid block: {e.Message}",
+        //         -4);
+        // }
+        // catch (Exception e) when (e is IndexOutOfRangeException or KeyNotFoundException)
+        // {
+        //     throw new CommandExitedException(
+        //         $"The {sourceName} lacks some required fields.",
+        //         -3);
+        // }
 
-        using Stream outputStream = output == "-"
-            ? Console.OpenStandardOutput()
-            : File.Open(file, FileMode.Create);
-        var writerOptions = new JsonWriterOptions { Indented = true };
-        using (var writer = new Utf8JsonWriter(outputStream, writerOptions))
-        {
-            var serializerOptions = new JsonSerializerOptions
-            {
-                AllowTrailingCommas = false,
-                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                IgnoreReadOnlyProperties = false,
-            };
-            JsonSerializer.Serialize(writer, block, serializerOptions);
-        }
+        // using Stream outputStream = output == "-"
+        //     ? Console.OpenStandardOutput()
+        //     : File.Open(file, FileMode.Create);
+        // var writerOptions = new JsonWriterOptions { Indented = true };
+        // using (var writer = new Utf8JsonWriter(outputStream, writerOptions))
+        // {
+        //     var serializerOptions = new JsonSerializerOptions
+        //     {
+        //         AllowTrailingCommas = false,
+        //         DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
+        //         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        //         IgnoreReadOnlyProperties = false,
+        //     };
+        //     JsonSerializer.Serialize(writer, block, serializerOptions);
+        // }
 
-        using var textWriter = new StreamWriter(outputStream);
-        textWriter.WriteLine();
+        // using var textWriter = new StreamWriter(outputStream);
+        // textWriter.WriteLine();
     }
 
     [Command(Description = "Generate a genesis block.")]
@@ -125,7 +125,7 @@ public class BlockCommand
                 .Select(k => Validator.Create(k, BigInteger.One))
                 .ToImmutableSortedSet();
         var emptyState =
-            ImmutableTrieDictionary<Address, IValue>.Empty;
+            ImmutableTrieDictionary<Address, object>.Empty;
         ImmutableList<Transaction> txs = Array.Empty<Transaction>()
 
             // FIXME: Remove this pragma after fixing the following issue:
@@ -180,8 +180,7 @@ public class BlockCommand
                 break;
 
             default:
-                Codec codec = new ();
-                codec.Encode(ModelSerializer.Serialize(genesis), stream);
+                ModelSerializer.SerializeToBytes(genesis);
                 break;
         }
     }

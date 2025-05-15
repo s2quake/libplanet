@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Text.Json.JsonDiffPatch.Xunit;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Bencodex.Types;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Libplanet.Action;
@@ -246,21 +245,21 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static void AssertBytesEqual(KeyBytes? expected, KeyBytes? actual) =>
             AssertBytesEqual(expected?.ToByteArray() ?? [], actual?.ToByteArray() ?? []);
 
-        public static void AssertBencodexEqual(IValue expected, IValue actual)
+        public static void AssertBencodexEqual(object expected, object actual)
         {
-            bool equal = (expected is null && actual is null) ||
-                (expected is Null && actual is Null) ||
-                (expected is Bencodex.Types.Boolean && actual is Bencodex.Types.Boolean &&
-                    expected.Equals(actual)) ||
-                (expected is Integer && actual is Integer && expected.Equals(actual)) ||
-                (expected is Binary && actual is Binary && expected.Equals(actual)) ||
-                (expected is Text && actual is Text && expected.Equals(actual)) ||
-                (expected is List && actual is List && expected.Equals(actual)) ||
-                (expected is Dictionary && actual is Dictionary && expected.Equals(actual));
-            if (equal)
-            {
-                return;
-            }
+            // bool equal = (expected is null && actual is null) ||
+            //     (expected is Null && actual is Null) ||
+            //     (expected is Bencodex.Types.Boolean && actual is Bencodex.Types.Boolean &&
+            //         expected.Equals(actual)) ||
+            //     (expected is Integer && actual is Integer && expected.Equals(actual)) ||
+            //     (expected is Binary && actual is Binary && expected.Equals(actual)) ||
+            //     (expected is Text && actual is Text && expected.Equals(actual)) ||
+            //     (expected is List && actual is List && expected.Equals(actual)) ||
+            //     (expected is Dictionary && actual is Dictionary && expected.Equals(actual));
+            // if (equal)
+            // {
+            //     return;
+            // }
 
             string expectedInspection = expected?.ToString() ?? "(null)";
             string actualInspection = actual?.ToString() ?? "(null)";
@@ -331,8 +330,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             return bytes;
         }
 
-        public static T ToAction<T>(IValue plainValue)
-            where T : IAction, new() => ModelSerializer.Deserialize<T>(plainValue);
+        public static T ToAction<T>(byte[] plainValue)
+            where T : IAction, new() => ModelSerializer.DeserializeFromBytes<T>(plainValue);
 
         public static BlockCommit CreateBlockCommit(
             Block block,
@@ -398,7 +397,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                         new Initialize
                         {
                             Validators = validators ?? [],
-                            States = ImmutableDictionary.Create<Address, IValue>(),
+                            States = ImmutableDictionary.Create<Address, object>(),
                         },
                     }.ToBytecodes(),
                     timestamp: DateTimeOffset.MinValue));
@@ -650,23 +649,25 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             }
         }
 
-        public static bool IsDumbAction(IValue action)
+        public static bool IsDumbAction(byte[] action)
         {
-            return action is Dictionary dictionary &&
-                dictionary.TryGetValue(new Text("type_id"), out var typeId) &&
-                typeId.Equals(new Text(nameof(DumbAction)));
+            throw new NotImplementedException();
+            // return action is Dictionary dictionary &&
+            //     dictionary.TryGetValue(new Text("type_id"), out var typeId) &&
+            //     typeId.Equals(new Text(nameof(DumbAction)));
         }
 
-        public static bool IsMinerReward(IValue action)
+        public static bool IsMinerReward(byte[] action)
         {
-            return action is Dictionary dictionary &&
-                   dictionary.TryGetValue((Text)"reward", out IValue rewards) &&
-                   rewards is Integer;
+            throw new NotImplementedException();
+            // return action is Dictionary dictionary &&
+            //        dictionary.TryGetValue((Text)"reward", out IValue rewards) &&
+            //        rewards is Integer;
         }
 
-        public static DumbAction ToDumbAction(IValue plainValue)
+        public static DumbAction ToDumbAction(byte[] plainValue)
         {
-            return ModelSerializer.Deserialize<DumbAction>(plainValue);
+            return ModelSerializer.DeserializeFromBytes<DumbAction>(plainValue);
         }
     }
 }

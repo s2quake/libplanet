@@ -109,7 +109,7 @@ public sealed class IntegerSet
                 HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
                     updatedRawStates.Aggregate(
                         prevTrie,
-                        (trie, pair) => trie.Set(pair.Key, ModelSerializer.Serialize(pair.Value)))).Hash;
+                        (trie, pair) => trie.Set(pair.Key, ModelSerializer.SerializeToBytes(pair.Value)))).Hash;
                 return (nextState, nextRootHash);
             });
         Chain.StageTransaction(tx);
@@ -126,7 +126,7 @@ public sealed class IntegerSet
                     HashDigest<SHA256> nextRootHash = Chain.StateStore.Commit(
                         updatedRawStates.Aggregate(
                             prevTrie,
-                            (trie, pair) => trie.Set(pair.Key, ModelSerializer.Serialize(pair.Value)))).Hash;
+                            (trie, pair) => trie.Set(pair.Key, ModelSerializer.SerializeToBytes(pair.Value)))).Hash;
                     return delta.Add((nextState, nextRootHash));
                 });
         return new TxWithContext()

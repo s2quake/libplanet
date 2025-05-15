@@ -1,5 +1,4 @@
 using System.Collections;
-using Bencodex.Types;
 
 namespace Libplanet.Action.Loader;
 
@@ -16,7 +15,7 @@ public sealed class AggregateTypedActionLoader : IActionLoader, IEnumerable<IAct
         _actionLoaderList = [.. actionLoaders];
     }
 
-    public IAction LoadAction(IValue value)
+    public IAction LoadAction(byte[] value)
     {
         foreach (var item in _actionLoaderList)
         {

@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Bencodex.Types;
 
 namespace Libplanet.Serialization.Tests;
 
@@ -11,8 +10,8 @@ public sealed partial class ModelSerializerTest
     public void HasTypeConverter_Test()
     {
         var obj1 = new HasTypeConverter();
-        var serialized = ModelSerializer.Serialize(obj1);
-        var obj2 = ModelSerializer.Deserialize<HasTypeConverter>(serialized);
+        var serialized = ModelSerializer.SerializeToBytes(obj1);
+        var obj2 = ModelSerializer.DeserializeFromBytes<HasTypeConverter>(serialized);
         Assert.Equal(obj1, obj2);
     }
 
@@ -20,7 +19,7 @@ public sealed partial class ModelSerializerTest
     public void NotHasTypeConverter_ThrowTest()
     {
         var obj1 = new NotHasTypeConverter();
-        Assert.Throws<ModelSerializationException>(() => ModelSerializer.Serialize(obj1));
+        Assert.Throws<ModelSerializationException>(() => ModelSerializer.SerializeToBytes(obj1));
     }
 
     [TypeConverter(typeof(HasTypeConverterTypeConverter))]
@@ -38,7 +37,7 @@ public sealed partial class ModelSerializerTest
     {
         public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         {
-            if (typeof(IValue).IsAssignableFrom(sourceType))
+            if (typeof(byte[]).IsAssignableFrom(sourceType))
             {
                 return true;
             }
@@ -48,9 +47,9 @@ public sealed partial class ModelSerializerTest
 
         public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
         {
-            if (value is Integer integer)
+            if (value is byte[] integer)
             {
-                return new HasTypeConverter { Value = checked((int)integer) };
+                return new HasTypeConverter { Value = BitConverter.ToInt32(integer, 0) };
             }
 
             return base.ConvertFrom(context, culture, value);
@@ -58,7 +57,7 @@ public sealed partial class ModelSerializerTest
 
         public override bool CanConvertTo(ITypeDescriptorContext? context, [NotNullWhen(true)] Type? destinationType)
         {
-            if (destinationType == typeof(IValue))
+            if (destinationType == typeof(byte[]))
             {
                 return true;
             }
@@ -69,9 +68,9 @@ public sealed partial class ModelSerializerTest
         public override object? ConvertTo(
             ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
         {
-            if (destinationType == typeof(IValue) && value is HasTypeConverter hasTypeConverter)
+            if (destinationType == typeof(byte[]) && value is HasTypeConverter hasTypeConverter)
             {
-                return new Integer(hasTypeConverter.Value);
+                return BitConverter.GetBytes(hasTypeConverter.Value);
             }
 
             return base.ConvertTo(context, culture, value, destinationType);

@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
@@ -16,7 +15,7 @@ namespace Libplanet.Tests.Blockchain.Renderers;
 
 public class LoggedActionRendererTest : IDisposable
 {
-    private static readonly IValue _action = ModelSerializer.Serialize(new DumbAction());
+    private static readonly byte[] _action = ModelSerializer.SerializeToBytes(new DumbAction());
 
     private static readonly World _world = World.Create();
 
@@ -69,7 +68,7 @@ public class LoggedActionRendererTest : IDisposable
         // IActionRenderer actionRenderer;
         if (error)
         {
-            Action<IValue, CommittedActionContext, Exception> render = (action, cxt, e) =>
+            Action<byte[], CommittedActionContext, Exception> render = (action, cxt, e) =>
             {
                 LogEvent[] logs = LogEvents.ToArray();
                 Assert.Single(logs);
@@ -90,7 +89,7 @@ public class LoggedActionRendererTest : IDisposable
         }
         else
         {
-            Action<IValue, CommittedActionContext, HashDigest<SHA256>> render =
+            Action<byte[], CommittedActionContext, HashDigest<SHA256>> render =
                 (action, cxt, next) =>
                 {
                     LogEvent[] logs = LogEvents.ToArray();

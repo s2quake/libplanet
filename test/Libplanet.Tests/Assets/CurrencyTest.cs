@@ -164,8 +164,8 @@ public class CurrencyTest
         var foo = Currency.Create("FOO", 2);
         var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
 
-        Assert.Equal(foo, ModelSerializer.Deserialize<Currency>(ModelSerializer.Serialize(foo)));
-        Assert.Equal(bar, ModelSerializer.Deserialize<Currency>(ModelSerializer.Serialize(bar)));
+        Assert.Equal(foo, ModelSerializer.Clone(foo));
+        Assert.Equal(bar, ModelSerializer.Clone(bar));
     }
 
     [Fact]

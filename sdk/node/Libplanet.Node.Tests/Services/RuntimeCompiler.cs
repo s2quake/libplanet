@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using System.Text;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
@@ -20,7 +19,6 @@ internal static class RuntimeCompiler
             MetadataReference.CreateFromFile(typeof(ImmutableDictionary<,>).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IAction).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IValue).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(PublicKey).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Block).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IActionProvider).Assembly.Location),

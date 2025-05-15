@@ -1,13 +1,12 @@
-using Bencodex.Types;
 using Libplanet.Types.Evidence;
 
 namespace Libplanet.Types.Converters;
 
-internal sealed class EvidenceIdTypeConverter : TypeConverterBase<EvidenceId, Binary>
+internal sealed class EvidenceIdTypeConverter : TypeConverterBase<EvidenceId>
 {
-    protected override EvidenceId ConvertFromValue(Binary value) => new(value.ToByteArray());
+    protected override EvidenceId ConvertFromValue(byte[] value) => new(value);
 
-    protected override Binary ConvertToValue(EvidenceId value) => new(value.Bytes);
+    protected override byte[] ConvertToValue(EvidenceId value) => [.. value.Bytes];
 
     protected override EvidenceId ConvertFromString(string value) => EvidenceId.Parse(value);
 

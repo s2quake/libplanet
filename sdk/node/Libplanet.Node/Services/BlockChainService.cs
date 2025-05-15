@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Blockchain;
@@ -161,7 +160,6 @@ internal sealed class BlockChainService(
             Trie = nullTrie,
             StateStore = stateStore,
         };
-        var codec = new Codec();
 
         foreach (var accountKv in data)
         {
@@ -182,7 +180,7 @@ internal sealed class BlockChainService(
             var accountTrie = stateStore.Commit(account.Trie);
             worldTrie = worldTrie.Set(
                 name,
-                new Binary(accountTrie.Hash.Bytes));
+                accountTrie.Hash.Bytes);
         }
 
         worldTrie = stateStore.Commit(worldTrie);

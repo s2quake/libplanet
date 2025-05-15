@@ -8,8 +8,6 @@ namespace Libplanet.Store.Trie;
 
 public sealed partial record class Trie(INode Node) : ITrie
 {
-    private static readonly Codec _codec = new();
-
     public Trie()
         : this(NullNode.Value)
     {

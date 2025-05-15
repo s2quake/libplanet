@@ -2,7 +2,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using Bencodex.Json;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
@@ -18,7 +17,7 @@ public sealed record class UnsignedTx
         WriteIndented = true,
         Converters =
         {
-            new BencodexJsonConverter(),
+            // new BencodexJsonConverter(),
         },
     };
 

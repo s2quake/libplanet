@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
@@ -41,9 +40,9 @@ public sealed record class World
             return account;
         }
 
-        if (Trie.TryGetValue(name, out var value) && value is Binary binary)
+        if (Trie.TryGetValue(name, out var value) && value is byte[] binary)
         {
-            return new Account(StateStore.GetStateRoot(new HashDigest<SHA256>(binary.ByteArray)));
+            return new Account(StateStore.GetStateRoot(new HashDigest<SHA256>(binary)));
         }
 
         return new Account(StateStore.GetStateRoot(default));

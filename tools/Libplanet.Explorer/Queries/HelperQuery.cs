@@ -11,8 +11,6 @@ namespace Libplanet.Explorer.Queries
 {
     public class HelperQuery : ObjectGraphType
     {
-        private static readonly Codec _codec = new Codec();
-
         public HelperQuery()
         {
             Name = "HelperQuery";
@@ -38,8 +36,7 @@ namespace Libplanet.Explorer.Queries
                         Name = "hex",
                         Description = "The byte array in hex representation to decode.",
                     }),
-                resolve: context =>
-                    _codec.Decode(ByteUtility.ParseHex(context.GetArgument<string>("hex"))));
+                resolve: context => ByteUtility.ParseHex(context.GetArgument<string>("hex")));
 
             Field<NonNullGraphType<KeyBytesType>>(
                 name: "keyHex",

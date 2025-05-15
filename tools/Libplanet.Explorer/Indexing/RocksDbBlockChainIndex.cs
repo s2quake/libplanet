@@ -1,7 +1,6 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
@@ -25,7 +24,6 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
     private static readonly byte[] TxIdToContainedBlockHashPrefix = { (byte)'t' };
     private static readonly byte[] ActionTypeIdToTxIdPrefix = { (byte)'A' };
     private static readonly byte[] ActionTypeIdPrefix = { (byte)'a' };
-    private static readonly Codec Codec = new();
     private readonly RocksDb _db;
 
     /// <summary>
@@ -367,7 +365,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                     throw new OperationCanceledException(stoppingToken);
                 }
 
-                var typeId = new Text(TypeUtility.GetTypeName(action.GetType()));
+                var typeId = TypeUtility.GetTypeName(action.GetType());
 
                 // if (action is not Dictionary actionDict
                 //     || !actionDict.TryGetValue((Text)"type_id", out var typeId))
@@ -376,18 +374,19 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 // }
 
                 // Use IValue for string, as "abc" and "abcd" as raw byte strings overlap.
-                writeBatch.Put(
-                    ActionTypeIdPrefix.Concat(Codec.Encode(typeId)).ToArray(),
-                    Array.Empty<byte>());
-                PutOrPutDuplicateOrdinal(
-                    ref writeBatch,
-                    ActionTypeIdToTxIdPrefix
-                        .Concat(Codec.Encode(typeId))
-                        .Concat(LongToBigEndianByteArray(tx.Timestamp.UtcTicks))
-                        .ToArray(),
-                    txId,
-                    ref encounteredActionTypeIdToTxIdKeys,
-                    ref duplicateActionTypeIdToTxTimestampOrdinalMemos);
+                throw new NotImplementedException();
+                // writeBatch.Put(
+                //     ActionTypeIdPrefix.Concat(Codec.Encode(typeId)).ToArray(),
+                //     Array.Empty<byte>());
+                // PutOrPutDuplicateOrdinal(
+                //     ref writeBatch,
+                //     ActionTypeIdToTxIdPrefix
+                //         .Concat(Codec.Encode(typeId))
+                //         .Concat(LongToBigEndianByteArray(tx.Timestamp.UtcTicks))
+                //         .ToArray(),
+                //     txId,
+                //     ref encounteredActionTypeIdToTxIdKeys,
+                //     ref duplicateActionTypeIdToTxTimestampOrdinalMemos);
             }
         }
 

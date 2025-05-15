@@ -1,7 +1,6 @@
 using System.Diagnostics.Contracts;
 using System.Reflection;
 using Libplanet.Types.Crypto;
-using BTypes = Bencodex.Types;
 
 namespace Libplanet.Store
 {
@@ -188,37 +187,37 @@ namespace Libplanet.Store
         /// <exception cref="NullReferenceException">Thrown when <paramref name="encoded"/> is
         /// <see langword="null"/> or <see langword="null"/> reference is returned by inner
         /// instantiation.</exception>
-        protected DataModel(BTypes.Dictionary encoded)
-        {
-            if (encoded is BTypes.Dictionary e)
-            {
-                foreach (PropertyInfo property in PropertyInfos)
-                {
-                    Type type = property.PropertyType;
-                    BTypes.IValue value = e[property.Name];
+        // protected DataModel(BTypes.Dictionary encoded)
+        // {
+        //     if (encoded is BTypes.Dictionary e)
+        //     {
+        //         foreach (PropertyInfo property in PropertyInfos)
+        //         {
+        //             Type type = property.PropertyType;
+        //             BTypes.IValue value = e[property.Name];
 
-                    if (type == typeof(bool?)
-                        || type == typeof(int?)
-                        || type == typeof(long?)
-                        || type == typeof(BigInteger?)
-                        || type == typeof(ImmutableArray<byte>?)
-                        || type == typeof(Guid?)
-                        || type == typeof(Address?))
-                    {
-                        throw new NotSupportedException(
-                            $"Nullable value type is not supported: {type}");
-                    }
-                    else
-                    {
-                        property.SetValue(this, DecodeFromIValue(value, type));
-                    }
-                }
-            }
-            else
-            {
-                throw new NullReferenceException($"Argument {nameof(encoded)} cannot be null.");
-            }
-        }
+        //             if (type == typeof(bool?)
+        //                 || type == typeof(int?)
+        //                 || type == typeof(long?)
+        //                 || type == typeof(BigInteger?)
+        //                 || type == typeof(ImmutableArray<byte>?)
+        //                 || type == typeof(Guid?)
+        //                 || type == typeof(Address?))
+        //             {
+        //                 throw new NotSupportedException(
+        //                     $"Nullable value type is not supported: {type}");
+        //             }
+        //             else
+        //             {
+        //                 property.SetValue(this, DecodeFromIValue(value, type));
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         throw new NullReferenceException($"Argument {nameof(encoded)} cannot be null.");
+        //     }
+        // }
 
         /// <summary>
         /// Cached property info for performance.
@@ -234,31 +233,31 @@ namespace Libplanet.Store
         /// or <see langword="null"/> value inside a reference type is encountered.</exception>
         /// <exception cref="ArgumentException">Thrown when an unknown invalid property type is
         /// encountered.</exception>
-        [Pure]
-        public BTypes.Dictionary Encode()
-        {
-            BTypes.Dictionary result = BTypes.Dictionary.Empty;
-            foreach (PropertyInfo property in PropertyInfos)
-            {
-                Type type = property.PropertyType;
-                if (type == typeof(bool?)
-                    || type == typeof(int?)
-                    || type == typeof(long?)
-                    || type == typeof(BigInteger?)
-                    || type == typeof(ImmutableArray<byte>?)
-                    || type == typeof(Guid?)
-                    || type == typeof(Address?))
-                {
-                    throw new NotSupportedException(
-                        $"Nullable value type is not supported: {type}");
-                }
+        // [Pure]
+        // public BTypes.Dictionary Encode()
+        // {
+        //     BTypes.Dictionary result = BTypes.Dictionary.Empty;
+        //     foreach (PropertyInfo property in PropertyInfos)
+        //     {
+        //         Type type = property.PropertyType;
+        //         if (type == typeof(bool?)
+        //             || type == typeof(int?)
+        //             || type == typeof(long?)
+        //             || type == typeof(BigInteger?)
+        //             || type == typeof(ImmutableArray<byte>?)
+        //             || type == typeof(Guid?)
+        //             || type == typeof(Address?))
+        //         {
+        //             throw new NotSupportedException(
+        //                 $"Nullable value type is not supported: {type}");
+        //         }
 
-                // NOTE: Additional IValue casting is needed for this to work.
-                object? value = property.GetValue(this, null);
-                result = result.Add(property.Name, EncodeToIValue(value));
-            }
+        //         // NOTE: Additional IValue casting is needed for this to work.
+        //         object? value = property.GetValue(this, null);
+        //         result = result.Add(property.Name, EncodeToIValue(value));
+        //     }
 
-            return result;
-        }
+        //     return result;
+        // }
     }
 }

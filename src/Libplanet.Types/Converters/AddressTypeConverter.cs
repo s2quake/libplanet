@@ -1,13 +1,12 @@
-using Bencodex.Types;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Converters;
 
-internal sealed class AddressTypeConverter : TypeConverterBase<Address, Binary>
+internal sealed class AddressTypeConverter : TypeConverterBase<Address>
 {
-    protected override Address ConvertFromValue(Binary value) => new(value.ToByteArray());
+    protected override Address ConvertFromValue(byte[] value) => new(value);
 
-    protected override Binary ConvertToValue(Address value) => new(value.Bytes);
+    protected override byte[] ConvertToValue(Address value) => [.. value.Bytes];
 
     protected override Address ConvertFromString(string value) => Address.Parse(value);
 

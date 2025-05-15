@@ -42,12 +42,12 @@ public abstract class BlockChainIndexTest
             ChainFx.PrivateKeys[0],
             chain.GetBlockCommit(chain.Tip.BlockHash));
         await index.IndexAsync(
-            ModelSerializer.Deserialize<BlockDigest>(ModelSerializer.Serialize(block1)),
+            ModelSerializer.Clone<BlockDigest>((BlockDigest)block1),
             block1.Transactions,
             CancellationToken.None);
         await Assert.ThrowsAsync<IndexMismatchException>(
             async () => await index.IndexAsync(
-            ModelSerializer.Deserialize<BlockDigest>(ModelSerializer.Serialize(block2)),
+            ModelSerializer.Clone<BlockDigest>((BlockDigest)block2),
             block2.Transactions,
             CancellationToken.None));
     }

@@ -2,12 +2,10 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using Bencodex.Types;
 
 namespace Libplanet.Types.Converters;
 
-public abstract class TypeConverterBase<TType, TValueType> : TypeConverter
-    where TValueType : IValue
+public abstract class TypeConverterBase<TType> : TypeConverter
 {
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
     {
@@ -16,7 +14,7 @@ public abstract class TypeConverterBase<TType, TValueType> : TypeConverter
             return true;
         }
 
-        if (sourceType == typeof(TValueType) || sourceType == typeof(IValue))
+        if (sourceType == typeof(byte[]))
         {
             return true;
         }
@@ -31,7 +29,7 @@ public abstract class TypeConverterBase<TType, TValueType> : TypeConverter
             return ConvertFromString(@string);
         }
 
-        if (value is TValueType typeValue)
+        if (value is byte[] typeValue)
         {
             return ConvertFromValue(typeValue);
         }
@@ -46,7 +44,7 @@ public abstract class TypeConverterBase<TType, TValueType> : TypeConverter
             return true;
         }
 
-        if (destinationType == typeof(TValueType) || destinationType == typeof(IValue))
+        if (destinationType == typeof(byte[]))
         {
             return true;
         }
@@ -65,11 +63,11 @@ public abstract class TypeConverterBase<TType, TValueType> : TypeConverter
             }
         }
 
-        if (destinationType == typeof(TValueType) || destinationType == typeof(IValue))
+        if (destinationType == typeof(byte[]))
         {
             if (value is null)
             {
-                return Null.Value;
+                return new byte[] { 0 };
             }
 
             if (value is TType typeValue)
@@ -81,9 +79,9 @@ public abstract class TypeConverterBase<TType, TValueType> : TypeConverter
         return base.ConvertTo(context, culture, value, destinationType);
     }
 
-    protected abstract TType ConvertFromValue(TValueType value);
+    protected abstract TType ConvertFromValue(byte[] value);
 
-    protected abstract TValueType ConvertToValue(TType value);
+    protected abstract byte[] ConvertToValue(TType value);
 
     protected abstract new TType ConvertFromString(string value);
 

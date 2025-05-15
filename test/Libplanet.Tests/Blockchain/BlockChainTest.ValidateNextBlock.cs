@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
@@ -184,13 +183,13 @@ namespace Libplanet.Tests.Blockchain
             var chain1 = BlockChain.Create(genesisBlock, options);
             var endBlockActions = new IAction[]
             {
-                new SetStatesAtBlock(default, (Text)"foo", default, 0),
+                new SetStatesAtBlock(default, "foo", default, 0),
             }.ToImmutableArray();
             var options2 = new BlockChainOptions
             {
                 PolicyActions = new PolicyActions
                 {
-                    EndBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 0)],
+                    EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
                 },
                 BlockInterval = options.BlockInterval,
             };
@@ -250,7 +249,7 @@ namespace Libplanet.Tests.Blockchain
                 PolicyActions = new PolicyActions
                 {
                     BeginBlockActions = [],
-                    EndBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 1)],
+                    EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
                 },
                 BlockInterval = options1.BlockInterval,
             };
@@ -270,7 +269,7 @@ namespace Libplanet.Tests.Blockchain
             {
                 PolicyActions = new PolicyActions
                 {
-                    BeginBlockActions = [new SetStatesAtBlock(default, (Text)"foo", default, 1)],
+                    BeginBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
                 },
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };

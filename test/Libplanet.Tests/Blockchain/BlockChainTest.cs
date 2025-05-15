@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
@@ -169,7 +168,7 @@ public partial class BlockChainTest : IDisposable
                         new Initialize
                         {
                             Validators = TestUtils.Validators,
-                            States = ImmutableDictionary.Create<Address, IValue>(),
+                            States = ImmutableDictionary.Create<Address, object>(),
                         },
                     }.ToBytecodes(),
                 timestamp: DateTimeOffset.UtcNow))
@@ -652,11 +651,11 @@ public partial class BlockChainTest : IDisposable
                     .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
-            v => Assert.Equal((Text)"1", v));
+            v => Assert.Equal("1", v));
         foreach (var address in addresses)
         {
             Assert.Equal(
-                (Text)"1",
+                "1",
                 chain
                     .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
@@ -668,7 +667,7 @@ public partial class BlockChainTest : IDisposable
             privateKeys[0], lastCommit: CreateBlockCommit(chain.Tip));
         chain.Append(block2, CreateBlockCommit(block2));
         Assert.Equal(
-            (Text)"1,2",
+            "1,2",
             chain
                 .GetNextWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
@@ -679,7 +678,7 @@ public partial class BlockChainTest : IDisposable
                     .GetNextWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
-            v => Assert.Equal((Text)"1", v));
+            v => Assert.Equal("1", v));
     }
 
     [Fact]
@@ -900,9 +899,9 @@ public partial class BlockChainTest : IDisposable
         var action = new Initialize
         {
             Validators = [Validator.Create(new PrivateKey().PublicKey, 1)],
-            States = new Dictionary<Address, IValue>
+            States = new Dictionary<Address, object>
             {
-                [default] = (Text)"initial value",
+                [default] = "initial value",
             }.ToImmutableDictionary(),
         };
 
@@ -1239,7 +1238,7 @@ public partial class BlockChainTest : IDisposable
         {
             new Initialize
             {
-                States = ImmutableDictionary.Create<Address, IValue>(),
+                States = ImmutableDictionary.Create<Address, object>(),
                 Validators = ImmutableSortedSet.Create(
                 [
                     Validator.Create(validatorPrivKey.PublicKey, BigInteger.One),
@@ -1420,7 +1419,7 @@ public partial class BlockChainTest : IDisposable
             new Initialize
             {
                 Validators = initialValidatorSet,
-                States = ImmutableDictionary.Create<Address, IValue>(),
+                States = ImmutableDictionary.Create<Address, object>(),
             },
         };
         var privateKey = new PrivateKey();

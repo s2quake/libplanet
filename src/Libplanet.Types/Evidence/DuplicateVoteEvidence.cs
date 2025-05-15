@@ -1,4 +1,3 @@
-using Bencodex.Misc;
 using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
 using ValidationContext = System.ComponentModel.DataAnnotations.ValidationContext;
@@ -123,7 +122,7 @@ public sealed record class DuplicateVoteEvidence : EvidenceBase, IEquatable<Dupl
             yield return new ValidationResult(
                 $"Signature of voteRef is invalid: " +
                 $"voteRef {VoteRef}, " +
-                $"signature {VoteRef.Signature.Hex()}");
+                $"signature {VoteRef.Signature}");
         }
 
         if (!ValidationUtility.TryValidate(VoteDup))
@@ -131,7 +130,7 @@ public sealed record class DuplicateVoteEvidence : EvidenceBase, IEquatable<Dupl
             yield return new ValidationResult(
                 $"Signature of voteDup is invalid: " +
                 $"voteDup {VoteDup}, " +
-                $"signature {VoteDup.Signature.Hex()}");
+                $"signature {VoteDup.Signature}");
         }
 
         if (ValidatorPower <= BigInteger.Zero)
