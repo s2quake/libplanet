@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
@@ -36,8 +35,8 @@ namespace Libplanet.Tests.Store
             TrieStateStore stateStore = new TrieStateStore(keyValueStore);
             ITrie trie = stateStore.GetStateRoot(default);
 
-            trie = trie.Set(new KeyBytes(new byte[] { 0x2c, 0x73 }), new Text("2c73"));
-            trie = trie.Set(new KeyBytes(new byte[] { 0x23, 0x4f }), new Text("234f"));
+            trie = trie.Set(new KeyBytes(new byte[] { 0x2c, 0x73 }), "2c73");
+            trie = trie.Set(new KeyBytes(new byte[] { 0x23, 0x4f }), "234f");
 
             HashDigest<SHA256> hashBeforeCommit = trie.Hash;
             trie = stateStore.Commit(trie);
@@ -54,8 +53,8 @@ namespace Libplanet.Tests.Store
 
             trie = stateStore.GetStateRoot(hashAfterCommitOnce);
             Assert.Equal(2, trie.ToDictionary().Count);
-            Assert.Equal(new Text("2c73"), trie[new KeyBytes(new byte[] { 0x2c, 0x73 })]);
-            Assert.Equal(new Text("234f"), trie[new KeyBytes(new byte[] { 0x23, 0x4f })]);
+            Assert.Equal("2c73", trie[new KeyBytes(new byte[] { 0x2c, 0x73 })]);
+            Assert.Equal("234f", trie[new KeyBytes(new byte[] { 0x23, 0x4f })]);
         }
 
         [Fact]
@@ -64,7 +63,7 @@ namespace Libplanet.Tests.Store
             var keyValueStore = new MemoryTable();
             TrieStateStore stateStore = new TrieStateStore(keyValueStore);
             ITrie trie = stateStore.GetStateRoot(default);
-            trie = trie.Set(new KeyBytes([]), new Integer(1));
+            trie = trie.Set(new KeyBytes([]), 1);
             trie = stateStore.Commit(trie);
             HashNode root = Assert.IsType<HashNode>(trie.Node);
             trie = stateStore.GetStateRoot(trie.Hash);

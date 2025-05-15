@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
@@ -9,8 +8,6 @@ namespace Libplanet.Store.Trie.Nodes;
 [Model(Version = 1)]
 internal sealed record class HashNode : INode
 {
-    private static readonly Codec _codec = new();
-
     [Property(0)]
     public required HashDigest<SHA256> Hash { get; init; }
 

@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using static Libplanet.Tests.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
@@ -14,8 +13,8 @@ public sealed partial class ModelSerializerTest
     {
         var random = new Random(seed);
         var expectedObject = new RecordClassWithTuple(random);
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<RecordClassWithTuple>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<RecordClassWithTuple>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 

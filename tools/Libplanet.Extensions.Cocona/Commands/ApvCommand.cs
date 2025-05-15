@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
-using Bencodex.Types;
 using global::Cocona;
 using Libplanet.KeyStore;
 using Libplanet.Net;
@@ -45,7 +44,7 @@ public class ApvCommand
 
         // FIXME: Declare a ICommandParameterSet type taking key ID and keystore path instead:
         PrivateKey key = new KeyCommand().UnprotectKey(keyId, passphrase, ignoreStdin: true);
-        IValue? extraValue = null;
+        byte[]? extraValue = null;
         if (extraFile is string path)
         {
             if (extra is string[] e && e.Length > 0)
@@ -54,7 +53,6 @@ public class ApvCommand
                     "-E/--extra-file and -e/--extra cannot be used together at a time.");
             }
 
-            var codec = new Codec();
             if (path == "-")
             {
                 // Stream for stdin does not support .Seek()
@@ -65,33 +63,35 @@ public class ApvCommand
                 }
 
                 buffer.Seek(0, SeekOrigin.Begin);
-                extraValue = codec.Decode(buffer);
+                extraValue = buffer.ToArray();
             }
             else
             {
                 using Stream stream = File.Open(path, FileMode.Open, FileAccess.Read);
-                extraValue = codec.Decode(stream);
+                throw new NotImplementedException();
+                // extraValue = stream.ReadAllBytes();
             }
         }
         else if (extra is string[] e && e.Length > 0)
         {
-            var dict = Bencodex.Types.Dictionary.Empty;
-            foreach (string pair in e)
-            {
-                int sepPos = pair.IndexOf('=');
-                if (sepPos < 0)
-                {
-                    throw Utils.Error(
-                        "-e/--extra must be a pair of KEY=VALUE, but no equal (=) separator: " +
-                        $"`{pair}'.");
-                }
+            throw new NotImplementedException();
+            // var dict = Bencodex.Types.Dictionary.Empty;
+            // foreach (string pair in e)
+            // {
+            //     int sepPos = pair.IndexOf('=');
+            //     if (sepPos < 0)
+            //     {
+            //         throw Utils.Error(
+            //             "-e/--extra must be a pair of KEY=VALUE, but no equal (=) separator: " +
+            //             $"`{pair}'.");
+            //     }
 
-                string key_ = pair.Substring(0, sepPos);
-                string value = pair.Substring(sepPos + 1);
-                dict = dict.SetItem(key_, value);
-            }
+            //     string key_ = pair.Substring(0, sepPos);
+            //     string value = pair.Substring(sepPos + 1);
+            //     dict = dict.SetItem(key_, value);
+            // }
 
-            extraValue = dict;
+            // extraValue = dict;
         }
 
         AppProtocolVersion v = AppProtocolVersion.Sign(key, version, extraValue);
@@ -188,64 +188,65 @@ public class ApvCommand
             ("signer", v.Signer.ToString()),
         };
 
-        if (v.Extra is IValue extra)
-        {
-            void TreeIntoTable(IValue tree, List<(string, string)> table, string key)
-            {
-                switch (tree)
-                {
-                    case Null _:
-                        table.Add((key, "null"));
-                        return;
+        throw new NotImplementedException();
+        // if (v.Extra is IValue extra)
+        // {
+        //     void TreeIntoTable(IValue tree, List<(string, string)> table, string key)
+        //     {
+        //         switch (tree)
+        //         {
+        //             case Null _:
+        //                 table.Add((key, "null"));
+        //                 return;
 
-                    case Bencodex.Types.Boolean b:
-                        table.Add((key, b ? "true" : "false"));
-                        return;
+        //             case Bencodex.Types.Boolean b:
+        //                 table.Add((key, b ? "true" : "false"));
+        //                 return;
 
-                    case Binary bin:
-                        table.Add((key, ByteUtility.Hex(bin.ToByteArray())));
-                        return;
+        //             case Binary bin:
+        //                 table.Add((key, ByteUtility.Hex(bin.ToByteArray())));
+        //                 return;
 
-                    case Text t:
-                        table.Add((key, t.Value));
-                        return;
+        //             case Text t:
+        //                 table.Add((key, t.Value));
+        //                 return;
 
-                    case Bencodex.Types.Integer i:
-                        table.Add((key, i.Value.ToString(CultureInfo.InvariantCulture)));
-                        return;
+        //             case Bencodex.Types.Integer i:
+        //                 table.Add((key, i.Value.ToString(CultureInfo.InvariantCulture)));
+        //                 return;
 
-                    case Bencodex.Types.List l:
-                        int idx = 0;
-                        foreach (IValue el in l)
-                        {
-                            TreeIntoTable(el, table, $"{key}[{idx}]");
-                            idx++;
-                        }
+        //             case Bencodex.Types.List l:
+        //                 int idx = 0;
+        //                 foreach (IValue el in l)
+        //                 {
+        //                     TreeIntoTable(el, table, $"{key}[{idx}]");
+        //                     idx++;
+        //                 }
 
-                        return;
+        //                 return;
 
-                    case Bencodex.Types.Dictionary d:
-                        foreach (KeyValuePair<IKey, IValue> kv in d)
-                        {
-                            string k = kv.Key switch
-                            {
-                                Binary bk => ByteUtility.Hex(bk.ToArray()),
-                                Text txt => txt.Value,
-                                _ => kv.Key.ToString() ?? string.Empty,
-                            };
-                            TreeIntoTable(kv.Value, table, $"{key}.{k}");
-                        }
+        //             case Bencodex.Types.Dictionary d:
+        //                 foreach (KeyValuePair<IKey, IValue> kv in d)
+        //                 {
+        //                     string k = kv.Key switch
+        //                     {
+        //                         Binary bk => ByteUtility.Hex(bk.ToArray()),
+        //                         Text txt => txt.Value,
+        //                         _ => kv.Key.ToString() ?? string.Empty,
+        //                     };
+        //                     TreeIntoTable(kv.Value, table, $"{key}.{k}");
+        //                 }
 
-                        return;
+        //                 return;
 
-                    default:
-                        table.Add((key, tree.ToString() ?? string.Empty));
-                        return;
-                }
-            }
+        //             default:
+        //                 table.Add((key, tree.ToString() ?? string.Empty));
+        //                 return;
+        //         }
+        //     }
 
-            TreeIntoTable(v.Extra, data, "extra");
-        }
+        //     TreeIntoTable(v.Extra, data, "extra");
+        // }
 
         if (json)
         {

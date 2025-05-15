@@ -6,7 +6,7 @@ namespace Libplanet.Explorer.GraphTypes
 {
     public class BencodexValueType : StringGraphType
     {
-        private static readonly Codec _codec = new();
+        // private static readonly Codec _codec = new();
 
         public BencodexValueType()
         {
@@ -15,24 +15,26 @@ namespace Libplanet.Explorer.GraphTypes
 
         public override object? Serialize(object? value)
         {
-            if (value is Bencodex.Types.IValue iv)
-            {
-                return _codec.Encode(iv);
-            }
+            throw new NotImplementedException();
+            // if (value is Bencodex.Types.IValue iv)
+            // {
+            //     return _codec.Encode(iv);
+            // }
 
-            return value;
+            // return value;
         }
 
         public override object? ParseValue(object? value)
         {
-            return value switch
-            {
-                null => null,
-                string hex => _codec.Decode(ByteUtility.ParseHex(hex)),
-                _ => throw new ArgumentException(
-                    $"Expected a hexadecimal string but {value}",
-                    nameof(value)),
-            };
+            throw new NotImplementedException();
+            // return value switch
+            // {
+            //     null => null,
+            //     string hex => _codec.Decode(ByteUtility.ParseHex(hex)),
+            //     _ => throw new ArgumentException(
+            //         $"Expected a hexadecimal string but {value}",
+            //         nameof(value)),
+            // };
         }
 
         public override object? ParseLiteral(IValue? value)

@@ -237,8 +237,8 @@ public class DuplicateVoteEvidenceTest
         var expectedEvidence = DuplicateVoteEvidence.Create(voteRef, voteDup, validators);
 
         // Then
-        var bencoded = ModelSerializer.Serialize(expectedEvidence);
-        var actualEvidence = ModelSerializer.Deserialize<DuplicateVoteEvidence>(bencoded);
+        var bencoded = ModelSerializer.SerializeToBytes(expectedEvidence);
+        var actualEvidence = ModelSerializer.DeserializeFromBytes<DuplicateVoteEvidence>(bencoded);
 
         Assert.Equal(expectedEvidence, actualEvidence);
     }

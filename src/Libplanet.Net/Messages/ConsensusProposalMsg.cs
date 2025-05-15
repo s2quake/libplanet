@@ -1,5 +1,6 @@
 using Libplanet.Consensus;
 using Libplanet.Net.Consensus;
+using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Net.Messages
@@ -27,7 +28,7 @@ namespace Libplanet.Net.Messages
         /// </summary>
         /// <param name="dataframes">A marshalled message.</param>
         public ConsensusProposalMsg(byte[][] dataframes)
-            : this(proposal: new Proposal(dataframes[0]))
+            : this(proposal: ModelSerializer.DeserializeFromBytes<Proposal>(dataframes[0]))
         {
         }
 
@@ -43,7 +44,7 @@ namespace Libplanet.Net.Messages
 
         /// <inheritdoc cref="MessageContent.DataFrames"/>
         public override IEnumerable<byte[]> DataFrames =>
-            new List<byte[]> { Proposal.ToByteArray() };
+            new List<byte[]> { ModelSerializer.SerializeToBytes(Proposal) };
 
         /// <inheritdoc cref="MessageContent.MessageType"/>
         public override MessageType Type => MessageType.ConsensusProposal;

@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Globalization;
-using Bencodex.Types;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Converters;
@@ -9,8 +8,7 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
 {
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         => sourceType == typeof(string)
-            || sourceType == typeof(IValue)
-            || sourceType == typeof(Binary)
+            || sourceType == typeof(byte[])
             || base.CanConvertFrom(context, sourceType);
 
     public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
@@ -19,9 +17,9 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
         {
             return PublicKey.Parse(@string);
         }
-        else if (value is Binary binary)
+        else if (value is byte[] binary)
         {
-            return new PublicKey([.. binary.ToByteArray()], verify: false);
+            return new PublicKey([.. binary], verify: false);
         }
 
         return base.ConvertFrom(context, culture, value);
@@ -29,8 +27,7 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
 
     public override bool CanConvertTo(ITypeDescriptorContext? context, Type? destinationType)
         => destinationType == typeof(string)
-            || destinationType == typeof(IValue)
-            || destinationType == typeof(Binary)
+            || destinationType == typeof(byte[])
             || base.CanConvertTo(context, destinationType);
 
     public override object? ConvertTo(
@@ -43,9 +40,9 @@ internal sealed class PublicKeyTypeConverter : TypeConverter
                 return (object?)publicKey.ToString("c", null);
             }
 
-            if (destinationType == typeof(IValue) || destinationType == typeof(Binary))
+            if (destinationType == typeof(byte[]))
             {
-                return new Binary(publicKey.Bytes);
+                return publicKey.Bytes.ToArray();
             }
         }
 

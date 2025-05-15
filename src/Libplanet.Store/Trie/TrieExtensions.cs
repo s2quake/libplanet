@@ -1,5 +1,3 @@
-using Bencodex.Types;
-
 namespace Libplanet.Store.Trie;
 
 public static class TrieExtensions

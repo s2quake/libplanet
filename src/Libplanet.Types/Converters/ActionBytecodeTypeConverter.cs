@@ -1,13 +1,12 @@
-using Bencodex.Types;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Types.Converters;
 
-internal sealed class ActionBytecodeTypeConverter : TypeConverterBase<ActionBytecode, Binary>
+internal sealed class ActionBytecodeTypeConverter : TypeConverterBase<ActionBytecode>
 {
-    protected override ActionBytecode ConvertFromValue(Binary value) => new(value.ByteArray);
+    protected override ActionBytecode ConvertFromValue(byte[] value) => new([.. value]);
 
-    protected override Binary ConvertToValue(ActionBytecode value) => new(value.Bytes);
+    protected override byte[] ConvertToValue(ActionBytecode value) => [.. value.Bytes];
 
     protected override ActionBytecode ConvertFromString(string value) => new(ByteUtility.ParseHexToImmutable(value));
 

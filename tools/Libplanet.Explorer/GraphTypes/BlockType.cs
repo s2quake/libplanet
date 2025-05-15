@@ -7,8 +7,6 @@ namespace Libplanet.Explorer.GraphTypes;
 
 public class BlockType : ObjectGraphType<Block>
 {
-    private static readonly Codec _codec = new();
-
     public BlockType(IBlockChainContext context)
     {
         Name = "Block";

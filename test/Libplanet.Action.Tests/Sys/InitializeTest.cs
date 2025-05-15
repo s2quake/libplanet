@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
 using Libplanet.Types.Blocks;
@@ -15,11 +14,11 @@ public class InitializeTest
         Validator.Create(new PrivateKey().PublicKey, BigInteger.One),
     ]);
 
-    private static readonly ImmutableDictionary<Address, IValue>
+    private static readonly ImmutableDictionary<Address, object>
         _states =
-        new Dictionary<Address, IValue>
+        new Dictionary<Address, object>
         {
-            [default] = (Text)"initial value",
+            [default] = "initial value",
         }.ToImmutableDictionary();
 
     [Fact]

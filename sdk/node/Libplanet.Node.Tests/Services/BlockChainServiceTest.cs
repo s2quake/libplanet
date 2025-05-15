@@ -1,7 +1,7 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Node.Extensions;
 using Libplanet.Node.Services;
+using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
 using Microsoft.Extensions.Configuration;
@@ -33,19 +33,18 @@ public class BlockChainServiceTest
         var accountB = Address.Parse("0000000000000000000000000000000000000001");
         var addressA = Address.Parse("0000000000000000000000000000000000000000");
         var addressB = Address.Parse("0000000000000000000000000000000000000001");
-        var codec = new Codec();
 
         try
         {
             string jsonContent = $@"
             {{
                 ""{accountA}"": {{
-                    ""{addressA}"": ""{ByteUtility.Hex(codec.Encode((Text)"A"))}"",
-                    ""{addressB}"": ""{ByteUtility.Hex(codec.Encode((Integer)123))}""
+                    ""{addressA}"": ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes("A"))}"",
+                    ""{addressB}"": ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(123))}""
                 }},
                 ""{accountB}"": {{
-                    ""{addressA}"": ""{ByteUtility.Hex(codec.Encode((Text)"B"))}"",
-                    ""{addressB}"": ""{ByteUtility.Hex(codec.Encode((Integer)456))}""
+                    ""{addressA}"": ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes("B"))}"",
+                    ""{addressB}"": ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(456))}""
                 }}
             }}";
             File.WriteAllText(tempFilePath, jsonContent);
@@ -67,10 +66,10 @@ public class BlockChainServiceTest
             var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
             var blockChain = blockChainService.BlockChain;
             var world = blockChain.GetNextWorld()!;
-            Assert.Equal((Text)"A", world.GetAccount(accountA).GetValue(addressA));
-            Assert.Equal((Integer)123, world.GetAccount(accountA).GetValue(addressB));
-            Assert.Equal((Text)"B", world.GetAccount(accountB).GetValue(addressA));
-            Assert.Equal((Integer)456, world.GetAccount(accountB).GetValue(addressB));
+            Assert.Equal("A", world.GetAccount(accountA).GetValue(addressA));
+            Assert.Equal(123, world.GetAccount(accountA).GetValue(addressB));
+            Assert.Equal("B", world.GetAccount(accountB).GetValue(addressA));
+            Assert.Equal(456, world.GetAccount(accountB).GetValue(addressB));
         }
         finally
         {

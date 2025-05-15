@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
@@ -152,17 +151,17 @@ public sealed record class CurrencyAccount(ITrie Trie, Address Signer, Currency 
 
     private CurrencyAccount WriteRawBalance(Address address, BigInteger rawValue) => this with
     {
-        Trie = Trie.Set(KeyConverters.ToStateKey(address), new Integer(rawValue)),
+        Trie = Trie.Set(KeyConverters.ToStateKey(address), rawValue),
     };
 
     private CurrencyAccount WriteRawTotalSupply(BigInteger rawValue) => this with
     {
-        Trie = Trie.Set(KeyConverters.ToStateKey(TotalSupplyAddress), new Integer(rawValue)),
+        Trie = Trie.Set(KeyConverters.ToStateKey(TotalSupplyAddress), rawValue),
     };
 
     private BigInteger GetRawBalance(Address address)
-        => Trie.GetValue(KeyConverters.ToStateKey(address), (Integer)0).Value;
+        => Trie.GetValue(KeyConverters.ToStateKey(address), BigInteger.Zero);
 
     private BigInteger GetRawTotalSupply()
-        => Trie.GetValue(KeyConverters.ToStateKey(TotalSupplyAddress), (Integer)0).Value;
+        => Trie.GetValue(KeyConverters.ToStateKey(TotalSupplyAddress), BigInteger.Zero);
 }

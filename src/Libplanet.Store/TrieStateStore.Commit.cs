@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;

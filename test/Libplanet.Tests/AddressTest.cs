@@ -168,7 +168,7 @@ public class AddressTest
     public void SerializeAndDeserializeWithDefault()
     {
         var defaultAddress = default(Address);
-        Address deserializedAddress = ModelSerializer.Deserialize<Address>(ModelSerializer.Serialize(defaultAddress));
+        Address deserializedAddress = ModelSerializer.Clone(defaultAddress);
         Assert.Equal(default, deserializedAddress);
     }
 
@@ -212,10 +212,10 @@ public class AddressTest
     public void Bencoded()
     {
         var expected = RandomUtility.Address();
-        var deserialized = ModelSerializer.Deserialize<Address>(ModelSerializer.Serialize(expected));
+        var deserialized = ModelSerializer.Clone(expected);
         Assert.Equal(expected, deserialized);
         expected = default;
-        deserialized = ModelSerializer.Deserialize<Address>(ModelSerializer.Serialize(expected));
+        deserialized = ModelSerializer.Clone(expected);
         Assert.Equal(expected, deserialized);
     }
 

@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action.State;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
@@ -25,14 +24,14 @@ public static class WorldExtensions
     private static CurrencyAccount WriteRawBalance(
         CurrencyAccount currencyAccount, Address address, BigInteger rawValue)
     {
-        var trie = currencyAccount.Trie.Set(KeyConverters.ToStateKey(address), new Integer(rawValue));
+        var trie = currencyAccount.Trie.Set(KeyConverters.ToStateKey(address), rawValue);
         return currencyAccount with { Trie = trie };
     }
 
     private static CurrencyAccount WriteRawTotalSupply(CurrencyAccount currencyAccount, BigInteger rawValue)
     {
         var key = KeyConverters.ToStateKey(CurrencyAccount.TotalSupplyAddress);
-        var value = new Integer(rawValue);
+        var value = rawValue;
         var trie = currencyAccount.Trie.Set(key, value);
         return currencyAccount with { Trie = trie };
     }

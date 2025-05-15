@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Store.Trie.Nodes;
 using Libplanet.Types;
 
@@ -7,25 +6,11 @@ namespace Libplanet.Store.Trie;
 
 public partial record class Trie
 {
-    /// <summary>
-    /// Checks whether given <paramref name="proof"/> is a valid proof
-    /// for given <paramref name="key"/> and <paramref name="value"/> against
-    /// given <paramref name="stateRootHash"/>.
-    /// </summary>
-    /// <param name="stateRootHash">A known <see cref="ITrie.Hash"/> of a <see cref="ITrie"/>
-    /// to check <paramref name="proof"/> against.</param>
-    /// <param name="proof">An <see cref="IReadOnlyList{T}"/> of <see cref="INode"/>s
-    /// that acts as a proof of existence for <paramref name="value"/>
-    /// at <paramref name="key"/>.</param>
-    /// <param name="key">The path in <see cref="KeyBytes"/> to validate.</param>
-    /// <param name="value">The <see cref="IValue"/> to search.</param>
-    /// <returns><see langword="true"/> if <paramref name="proof"/> is valid,
-    /// <see langword="false"/> otherwise.</returns>
     public static bool ValidateProof(
         HashDigest<SHA256> stateRootHash,
         IReadOnlyList<INode> proof,
         KeyBytes key,
-        IValue value)
+        object value)
     {
         HashDigest<SHA256> targetHash = stateRootHash;
         PathCursor cursor = PathCursor.Create(key);
@@ -89,26 +74,7 @@ public partial record class Trie
         return false;
     }
 
-    /// <summary>
-    /// Generates a proof of existence for <paramref name="value"/> at <paramref name="key"/>.
-    /// </summary>
-    /// <param name="key">The path in <see cref="KeyBytes"/> to search.</param>
-    /// <param name="value">The <see cref="IValue"/> to search.</param>
-    /// <returns>An <see cref="IReadOnlyList{T}"/> of <see cref="INode"/>s
-    /// that can prove <paramref name="key"/> and <paramref name="value"/> pair exists or not
-    /// given an <see cref="ITrie"/>'s <see cref="ITrie.Hash"/>.
-    /// </returns>
-    /// <exception cref="InvalidOperationException">Thrown when either
-    /// <see cref="IsCommitted"/> is <see langword="false"/> or
-    /// <see cref="Node"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException">Thrown when the given <paramref name="key"/>
-    /// and <paramref name="value"/> pair is invalid, i.e. not a key value pair
-    /// found in this <see cref="ITrie"/>.</exception>
-    /// <remarks>
-    /// In order to generate a valid proof, both a valid <paramref name="key"/> and
-    /// a valid <paramref name="value"/> must be known beforehand.
-    /// </remarks>
-    public IReadOnlyList<INode> GenerateProof(KeyBytes key, IValue value)
+    public IReadOnlyList<INode> GenerateProof(KeyBytes key, object value)
     {
         if (!IsCommitted)
         {

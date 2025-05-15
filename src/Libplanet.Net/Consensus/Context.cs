@@ -19,7 +19,6 @@ public partial class Context : IDisposable
     private readonly ContextOption _contextOption;
 
     private readonly BlockChain _blockChain;
-    private readonly Codec _codec;
     private readonly ImmutableSortedSet<Validator> _validatorSet;
     private readonly Channel<ConsensusMsg> _messageRequests;
     private readonly Channel<System.Action> _mutationRequests;
@@ -103,7 +102,6 @@ public partial class Context : IDisposable
         _decision = null;
         _committedRound = -1;
         _blockChain = blockChain;
-        _codec = new Codec();
         _messageRequests = Channel.CreateUnbounded<ConsensusMsg>();
         _mutationRequests = Channel.CreateUnbounded<System.Action>();
         _heightVoteSet = new HeightVoteSet(height, validators);

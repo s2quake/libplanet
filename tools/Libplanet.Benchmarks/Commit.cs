@@ -15,7 +15,7 @@ namespace Libplanet.Benchmarks
         private PrivateKey[] _privateKeys;
         private BlockHash _blockHash;
         private BlockCommit _blockCommit;
-        private Bencodex.Types.IValue _encodedBlockCommit;
+        private byte[] _encodedBlockCommit;
 
         [Params(4, 10, 25, 50, MaxValidatorSize)]
         // ReSharper disable once MemberCanBePrivate.Global
@@ -41,13 +41,13 @@ namespace Libplanet.Benchmarks
                 BlockHash = _blockHash,
                 Votes = [.. _votes.Take(ValidatorSize)],
             };
-            _encodedBlockCommit = ModelSerializer.Serialize(_blockCommit);
+            _encodedBlockCommit = ModelSerializer.SerializeToBytes(_blockCommit);
         }
 
         [Benchmark]
         public void DecodeBlockCommit()
         {
-            _blockCommit = ModelSerializer.Deserialize<BlockCommit>(_encodedBlockCommit);
+            _blockCommit = ModelSerializer.DeserializeFromBytes<BlockCommit>(_encodedBlockCommit);
         }
 
         private void SetupKeys()

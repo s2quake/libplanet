@@ -60,14 +60,14 @@ public class AccountDiffTest
         diff = AccountDiff.Create(targetTrie, sourceTrie);
         Assert.Equal(2, diff.StateDiffs.Count);
         Assert.Equal(
-            (Serialize("Two"), Serialize("Two_")),
+            (SerializeToBytes("Two"), SerializeToBytes("Two_")),
             diff.StateDiffs[addr2]);
-        Assert.Equal((null, Serialize("Three")), diff.StateDiffs[addr3]);
+        Assert.Equal((null, SerializeToBytes("Three")), diff.StateDiffs[addr3]);
 
         diff = AccountDiff.Create(sourceTrie, targetTrie);
         Assert.Single(diff.StateDiffs);                 // Note addr3 is not tracked
         Assert.Equal(
-            (Serialize("Two_"), Serialize("Two")),
+            (SerializeToBytes("Two_"), SerializeToBytes("Two")),
             diff.StateDiffs[addr2]);
     }
 

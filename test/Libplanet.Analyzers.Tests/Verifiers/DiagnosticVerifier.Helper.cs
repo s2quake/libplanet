@@ -1,6 +1,5 @@
 using System.IO;
 using System.Reflection;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Types.Crypto;
 using Microsoft.CodeAnalysis;
@@ -172,8 +171,7 @@ namespace Libplanet.Analyzers.Tests.Verifiers
                 typeof(Enumerable),
                 typeof(Compilation),
                 typeof(Address),
-                typeof(IAction),
-                typeof(IValue));
+                typeof(IAction));
             foreach (Assembly assembly in assemblies)
             {
                 if (assembly.IsDynamic)

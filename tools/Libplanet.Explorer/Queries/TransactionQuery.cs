@@ -13,7 +13,6 @@ namespace Libplanet.Explorer.Queries
 {
     public class TransactionQuery : ObjectGraphType
     {
-        private static readonly Codec _codec = new Codec();
         private readonly IBlockChainContext _context;
 
         // FIXME should be refactored to reduce LoC of constructor.

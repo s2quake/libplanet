@@ -6,8 +6,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using Bencodex.Json;
-using Bencodex.Types;
 
 namespace Libplanet.Types;
 
@@ -19,13 +17,11 @@ public static class ByteUtility
         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
     ];
 
-    private static readonly BencodexJsonConverter BencodexJsonConverter = new();
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true,
         Converters =
         {
-            BencodexJsonConverter,
         },
     };
 
@@ -164,13 +160,13 @@ public static class ByteUtility
         return result < target;
     }
 
-    public static byte[] CreateMessage(IValue value)
-    {
-        using var ms = new MemoryStream();
-        using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true });
-        BencodexJsonConverter.Write(writer, value, SerializerOptions);
-        ms.Position = 0;
-        using var sr = new StreamReader(ms);
-        return Encoding.UTF8.GetBytes(sr.ReadToEnd());
-    }
+    // public static byte[] CreateMessage(IValue value)
+    // {
+    //     using var ms = new MemoryStream();
+    //     using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true });
+    //     BencodexJsonConverter.Write(writer, value, SerializerOptions);
+    //     ms.Position = 0;
+    //     using var sr = new StreamReader(ms);
+    //     return Encoding.UTF8.GetBytes(sr.ReadToEnd());
+    // }
 }

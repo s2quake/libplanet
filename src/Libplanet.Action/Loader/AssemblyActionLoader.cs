@@ -1,11 +1,10 @@
 using System.Reflection;
-using Bencodex.Types;
 
 namespace Libplanet.Action.Loader;
 
 public sealed class AssemblyActionLoader : IActionLoader
 {
-    private readonly Dictionary<IValue, Type> _types = [];
+    private readonly Dictionary<byte[], Type> _types = [];
 
     public AssemblyActionLoader(Assembly assembly)
     {
@@ -18,32 +17,33 @@ public sealed class AssemblyActionLoader : IActionLoader
         // _types = query.ToDictionary((item) => item.TypeIdentifier, item => item.type);
     }
 
-    public IReadOnlyDictionary<IValue, Type> Types => _types;
+    public IReadOnlyDictionary<byte[], Type> Types => _types;
 
-    public IAction LoadAction(IValue value)
+    public IAction LoadAction(byte[] value)
     {
-        try
-        {
-            IAction action;
-            if (value is Dictionary pv &&
-                pv.TryGetValue((Text)"type_id", out var rawTypeId) &&
-                rawTypeId is IValue typeId &&
-                Types.TryGetValue(typeId, out var actionType))
-            {
-                action = (IAction)Activator.CreateInstance(actionType)!;
-                // action.LoadPlainValue(pv);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Failed to instantiate an action from {value}");
-            }
+        throw new NotImplementedException();
+        // try
+        // {
+        //     IAction action;
+        //     if (value is Dictionary pv &&
+        //         pv.TryGetValue((Text)"type_id", out var rawTypeId) &&
+        //         rawTypeId is byte[] typeId &&
+        //         Types.TryGetValue(typeId, out var actionType))
+        //     {
+        //         action = (IAction)Activator.CreateInstance(actionType)!;
+        //         // action.LoadPlainValue(pv);
+        //     }
+        //     else
+        //     {
+        //         throw new InvalidOperationException(
+        //             $"Failed to instantiate an action from {value}");
+        //     }
 
-            return action;
-        }
-        catch (Exception e)
-        {
-            throw new InvalidOperationException($"Failed to instantiate an action from {value}", e);
-        }
+        //     return action;
+        // }
+        // catch (Exception e)
+        // {
+        //     throw new InvalidOperationException($"Failed to instantiate an action from {value}", e);
+        // }
     }
 }

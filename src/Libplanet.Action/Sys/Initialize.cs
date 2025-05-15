@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
@@ -9,8 +8,8 @@ namespace Libplanet.Action.Sys;
 [Model(Version = 1)]
 public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 {
-    public ImmutableDictionary<Address, IValue> States { get; init; }
-        = ImmutableDictionary<Address, IValue>.Empty;
+    public ImmutableDictionary<Address, object> States { get; init; }
+        = ImmutableDictionary<Address, object>.Empty;
 
     [Property(0)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];

@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
@@ -11,7 +10,7 @@ namespace Libplanet.Tests.Blockchain.Renderers;
 
 public class AnonymousActionRendererTest
 {
-    private static readonly IValue _action = ModelSerializer.Serialize(new DumbAction());
+    private static readonly byte[] _action = ModelSerializer.SerializeToBytes(new DumbAction());
 
     private static readonly World _world = World.Create();
 
@@ -35,7 +34,7 @@ public class AnonymousActionRendererTest
     [Fact]
     public void ActionRenderer()
     {
-        (IValue, CommittedActionContext, HashDigest<SHA256>)? record = null;
+        (byte[], CommittedActionContext, HashDigest<SHA256>)? record = null;
         // var renderer = new AnonymousActionRenderer
         // {
         //     ActionRenderer = (action, context, nextState) =>
@@ -57,7 +56,7 @@ public class AnonymousActionRendererTest
     [Fact]
     public void ActionErrorRenderer()
     {
-        (IValue, CommittedActionContext, Exception)? record = null;
+        (byte[], CommittedActionContext, Exception)? record = null;
         // var renderer = new AnonymousActionRenderer
         // {
         //     ActionErrorRenderer = (action, context, exception) =>

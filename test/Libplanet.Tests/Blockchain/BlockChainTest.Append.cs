@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Sys;
@@ -147,8 +146,8 @@ public partial class BlockChainTest
         //     .ToArray();
 
         Assert.Equal(
-            (Integer)2,
-            (Integer)_blockChain
+            2,
+            _blockChain
                 .GetNextWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(minerAddress));
@@ -259,10 +258,10 @@ public partial class BlockChainTest
             (new Address[] { addresses[0], pk.Address }).ToImmutableHashSet(),
             accountDiff1.StateDiffs.Select(kv => kv.Key).ToImmutableHashSet());
         Assert.Equal(
-            new Text("foo"),
+            "foo",
             outputAccount1.GetValue(pk.Address));
         Assert.Equal(
-            new Text("foo,bar"),
+            "foo,bar",
             outputAccount1.GetValue(addresses[0]));
         Assert.Equal(
             DumbAction.DumbCurrency * 0,
@@ -323,7 +322,7 @@ public partial class BlockChainTest
         _blockChain.Append(block1, commit1);
         var world1 = _blockChain.GetNextWorld();
         Assert.Equal(
-            (Text)"foo",
+            "foo",
             world1.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address1));
         var block2 = _blockChain.ProposeBlock(
             proposer,
@@ -333,7 +332,7 @@ public partial class BlockChainTest
         _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
         var world2 = _blockChain.GetNextWorld();
         Assert.Equal(
-            (Text)"bar",
+            "bar",
             world2.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address2));
     }
 
@@ -635,7 +634,7 @@ public partial class BlockChainTest
                     new Initialize
                     {
                         Validators = TestUtils.Validators,
-                        States = ImmutableDictionary.Create<Address, IValue>(),
+                        States = ImmutableDictionary.Create<Address, object>(),
                     },
                 }.ToBytecodes(),
                 timestamp: DateTimeOffset.UtcNow),

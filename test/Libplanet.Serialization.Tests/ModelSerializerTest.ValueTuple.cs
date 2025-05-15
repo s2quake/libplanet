@@ -1,5 +1,4 @@
 #pragma warning disable SA1414 // Tuple types in signatures should have element names
-using Bencodex.Types;
 using static Libplanet.Tests.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
@@ -15,8 +14,8 @@ public sealed partial class ModelSerializerTest
     {
         var random = new Random(seed);
         var expectedObject = new RecordClassWithValueTuple(random);
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<RecordClassWithValueTuple>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<RecordClassWithValueTuple>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 

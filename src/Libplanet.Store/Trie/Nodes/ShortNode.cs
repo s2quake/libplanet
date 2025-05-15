@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using Bencodex.Types;
 using Libplanet.Serialization;
 
 namespace Libplanet.Store.Trie.Nodes;

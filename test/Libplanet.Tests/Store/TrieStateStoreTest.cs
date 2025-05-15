@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
@@ -44,11 +43,11 @@ public class TrieStateStoreTest
         KeyBytes barKey = (KeyBytes)"bar";
         KeyBytes bazKey = (KeyBytes)"baz";
         KeyBytes quxKey = (KeyBytes)"qux";
-        var values = ImmutableDictionary<KeyBytes, IValue>.Empty
-            .Add(fooKey, (Binary)GetRandomBytes(32))
-            .Add(barKey, (Text)ByteUtility.Hex(GetRandomBytes(32)))
-            .Add(bazKey, (Bencodex.Types.Boolean)false)
-            .Add(quxKey, Bencodex.Types.Dictionary.Empty);
+        var values = ImmutableDictionary<KeyBytes, object>.Empty
+            .Add(fooKey, GetRandomBytes(32))
+            .Add(barKey, ByteUtility.Hex(GetRandomBytes(32)))
+            .Add(bazKey, false)
+            .Add(quxKey, null);
         ITrie trie = stateStore.Commit(
             values.Aggregate(
                 stateStore.GetStateRoot(default),
@@ -70,11 +69,12 @@ public class TrieStateStoreTest
         var targetStateKeyValueStore = new MemoryTable();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
-        List<(KeyBytes, IValue)> kvs = Enumerable.Range(0, 1_000)
+        List<(KeyBytes, byte[])> kvs = Enumerable.Range(0, 1_000)
             .Select(_ =>
             (
                 new KeyBytes(GetRandomBytes(random.Next(1, 20))),
-                (IValue)new Binary(GetRandomBytes(20))))
+                GetRandomBytes(20)
+            ))
             .ToList();
 
         ITrie trie = stateStore.GetStateRoot(default);
@@ -116,7 +116,7 @@ public class TrieStateStoreTest
         var targetStateKeyValueStore = new MemoryTable();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
-        Dictionary<Address, List<(KeyBytes, IValue)>> data = Enumerable
+        Dictionary<Address, List<(KeyBytes, byte[])>> data = Enumerable
             .Range(0, 20)
             .Select(_ => new Address([.. GetRandomBytes(Address.Size)]))
             .ToDictionary(
@@ -126,7 +126,7 @@ public class TrieStateStoreTest
                     .Select(__ =>
                     (
                         new KeyBytes(GetRandomBytes(random.Next(20))),
-                        (IValue)new Binary(GetRandomBytes(20))))
+                        GetRandomBytes(20)))
                     .ToList());
 
         ITrie worldTrie = stateStore.GetStateRoot(default);
@@ -143,7 +143,7 @@ public class TrieStateStoreTest
             trie = stateStore.Commit(trie);
             worldTrie = worldTrie.Set(
                 new KeyBytes(elem.Key.Bytes),
-                ModelSerializer.Serialize(trie.Hash));
+                ModelSerializer.SerializeToBytes(trie.Hash));
             accountHashes.Add(trie.Hash);
         }
 

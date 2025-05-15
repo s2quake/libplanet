@@ -1,6 +1,5 @@
 using System.Diagnostics.Contracts;
 using System.Text.Json.Serialization;
-using Bencodex.Types;
 using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
@@ -19,8 +18,8 @@ namespace Libplanet.Consensus;
 public class ProposalClaim : IEquatable<ProposalClaim>
 {
     // FIXME: This should be private.  Left as internal for testing reasons.
-    internal static readonly Binary SignatureKey = new Binary(new byte[] { 0x53 }); // 'S'
-    private static readonly Codec _codec = new Codec();
+    // internal static readonly Binary SignatureKey = new Binary(new byte[] { 0x53 }); // 'S'
+    // private static readonly Codec _codec = new Codec();
 
     private readonly ProposalClaimMetadata _metadata;
 

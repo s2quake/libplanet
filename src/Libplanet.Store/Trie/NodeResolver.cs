@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Bencodex.Types;
 using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;

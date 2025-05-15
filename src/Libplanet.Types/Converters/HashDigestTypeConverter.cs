@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
-using Bencodex.Types;
 
 namespace Libplanet.Types.Converters;
 
@@ -17,8 +16,7 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         => sourceType switch
         {
             Type type1 when type1 == typeof(string) => true,
-            Type type2 when type2 == typeof(IValue) => true,
-            Type type3 when type3 == typeof(Binary) => true,
+            Type type2 when type2 == typeof(byte[]) => true,
             _ => base.CanConvertFrom(context, sourceType),
         };
 
@@ -26,7 +24,7 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         => value switch
         {
             string @string => ConvertFromString(@string, type),
-            Binary binary => ConvertFromBinary(binary, type),
+            byte[] binary => ConvertFromBinary(binary, type),
             _ => base.ConvertFrom(context, culture, value),
         };
 
@@ -34,8 +32,7 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         => destinationType switch
         {
             Type type1 when type1 == typeof(string) => true,
-            Type type2 when type2 == typeof(IValue) => true,
-            Type type3 when type3 == typeof(Binary) => true,
+            Type type2 when type2 == typeof(byte[]) => true,
             _ => base.CanConvertTo(context, destinationType),
         };
 
@@ -44,8 +41,7 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         => destinationType switch
         {
             Type type1 when type1 == typeof(string) => value?.ToString(),
-            Type type2 when type2 == typeof(IValue) => ConvertToBinary(value),
-            Type type3 when type3 == typeof(Binary) => ConvertToBinary(value),
+            Type type2 when type2 == typeof(byte[]) => ConvertToBinary(value),
             _ => base.ConvertTo(context, culture, value, destinationType),
         };
 
@@ -62,7 +58,7 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         }
     }
 
-    private static object ConvertFromBinary(Binary binary, Type type)
+    private static object ConvertFromBinary(byte[] binary, Type type)
     {
         var bytes = binary.ToImmutableArray();
         return Activator.CreateInstance(type, [bytes])!;
@@ -72,13 +68,13 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
     {
         if (value is null)
         {
-            return Null.Value;
+            return new byte[] { 0 };
         }
 
         var bytesProperty = GetBytesProperty(value.GetType());
         if (bytesProperty.GetValue(value) is ImmutableArray<byte> bytes)
         {
-            return new Binary(bytes);
+            return bytes.ToArray();
         }
 
         throw new UnreachableException(

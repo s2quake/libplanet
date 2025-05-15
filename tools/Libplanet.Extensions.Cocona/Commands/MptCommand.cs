@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Bencodex.Types;
 using global::Cocona;
 using global::Cocona.Help;
 using Libplanet.Extensions.Cocona.Configuration;
@@ -71,24 +70,25 @@ public class MptCommand
         var otherTrie =
             otherStateStore.GetStateRoot(HashDigest<SHA256>.Parse(otherStateRootHashHex));
 
-        var codec = new Codec();
-        HashDigest<SHA256> originRootHash = trie.Hash;
-        HashDigest<SHA256> otherRootHash = otherTrie.Hash;
+        throw new NotImplementedException();
+        // var codec = new Codec();
+        // HashDigest<SHA256> originRootHash = trie.Hash;
+        // HashDigest<SHA256> otherRootHash = otherTrie.Hash;
 
-        string originRootHashHex = ByteUtility.Hex(originRootHash.Bytes);
-        string otherRootHashHex = ByteUtility.Hex(otherRootHash.Bytes);
-        foreach (var (key, targetValue, sourceValue) in trie.Diff(otherTrie))
-        {
-            var data = new DiffData(ByteUtility.Hex(key.Bytes), new Dictionary<string, string>
-            {
-                [otherRootHashHex] = targetValue is null
-                    ? "null"
-                    : ByteUtility.Hex(codec.Encode(targetValue)),
-                [originRootHashHex] = ByteUtility.Hex(codec.Encode(sourceValue)),
-            });
+        // string originRootHashHex = ByteUtility.Hex(originRootHash.Bytes);
+        // string otherRootHashHex = ByteUtility.Hex(otherRootHash.Bytes);
+        // foreach (var (key, targetValue, sourceValue) in trie.Diff(otherTrie))
+        // {
+        //     var data = new DiffData(ByteUtility.Hex(key.Bytes), new Dictionary<string, string>
+        //     {
+        //         [otherRootHashHex] = targetValue is null
+        //             ? "null"
+        //             : ByteUtility.Hex(codec.Encode(targetValue)),
+        //         [originRootHashHex] = ByteUtility.Hex(codec.Encode(sourceValue)),
+        //     });
 
-            Console.WriteLine(JsonSerializer.Serialize(data));
-        }
+        //     Console.WriteLine(JsonSerializer.Serialize(data));
+        // }
     }
 
     [Command(Description = "Export all states of the state root hash as JSON.")]
@@ -108,15 +108,16 @@ public class MptCommand
 
         TrieStateStore stateStore = new TrieStateStore(LoadKVStoreFromURI(kvStoreUri));
         var trie = stateStore.GetStateRoot(HashDigest<SHA256>.Parse(stateRootHashHex));
-        var codec = new Codec();
+        throw new NotImplementedException();
+        // var codec = new Codec();
 
-        // This assumes the original key was encoded from a sensible string.
-        ImmutableDictionary<string, byte[]> decoratedStates = trie
-            .ToImmutableDictionary(
-                pair => Encoding.UTF8.GetString(pair.Key.ToByteArray()),
-                pair => codec.Encode(pair.Value));
+        // // This assumes the original key was encoded from a sensible string.
+        // ImmutableDictionary<string, byte[]> decoratedStates = trie
+        //     .ToImmutableDictionary(
+        //         pair => Encoding.UTF8.GetString(pair.Key.ToByteArray()),
+        //         pair => codec.Encode(pair.Value));
 
-        Console.WriteLine(JsonSerializer.Serialize(decoratedStates));
+        // Console.WriteLine(JsonSerializer.Serialize(decoratedStates));
     }
 
     // FIXME: Now, it works like `set` not `add`. It allows override.
@@ -219,18 +220,19 @@ public class MptCommand
         ITable keyValueStore = LoadKVStoreFromURI(kvStoreUri);
         var trie = Trie.Create(HashDigest<SHA256>.Parse(stateRootHashHex), keyValueStore);
         KeyBytes stateKeyBytes = (KeyBytes)stateKey;
-        IReadOnlyList<IValue?> values = trie.GetMany([stateKeyBytes]);
-        if (values.Count > 0 && values[0] is { } value)
-        {
-            var codec = new Codec();
-            Console.WriteLine(ByteUtility.Hex(codec.Encode(value)));
-        }
-        else
-        {
-            Console.Error.WriteLine(
-                $"The state corresponded to {stateKey} at the state root hash " +
-                $"\"{stateRootHashHex}\" in the KV store \"{kvStoreUri}\" seems not existed.");
-        }
+        throw new NotImplementedException();
+        // IReadOnlyList<IValue?> values = trie.GetMany([stateKeyBytes]);
+        // if (values.Count > 0 && values[0] is { } value)
+        // {
+        //     var codec = new Codec();
+        //     Console.WriteLine(ByteUtility.Hex(codec.Encode(value)));
+        // }
+        // else
+        // {
+        //     Console.Error.WriteLine(
+        //         $"The state corresponded to {stateKey} at the state root hash " +
+        //         $"\"{stateRootHashHex}\" in the KV store \"{kvStoreUri}\" seems not existed.");
+        // }
     }
 
     [PrimaryCommand]

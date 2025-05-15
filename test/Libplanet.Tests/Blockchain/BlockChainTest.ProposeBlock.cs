@@ -1,4 +1,3 @@
-using Bencodex.Types;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
@@ -277,36 +276,36 @@ public partial class BlockChainTest
         Assert.Contains(txs[3].Id, txIds);
 
         Assert.Equal(
-            new Integer(1),
+            1,
             _blockChain
                 .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrA));
         Assert.Equal(
-            new Text("1b"),
+            "1b",
             _blockChain
                 .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrB));
         Assert.Equal(
-            new Text("2a"),
+            "2a",
             _blockChain
                 .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrC));
-        Assert.IsType<Text>(
+        Assert.IsType<string>(
             _blockChain
                 .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrD));
         Assert.Equal(
             new HashSet<string> { "2b", "5a" },
-            ((string)(Text)_blockChain
+            ((string)_blockChain
                 .GetNextWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrD)).Split(new[] { ',' }).ToHashSet());
         Assert.Equal(
-            new Text("5b"),
+            "5b",
             _blockChain
                 .GetNextWorld()
                 .GetAccount(LegacyAccount)
@@ -467,8 +466,8 @@ public partial class BlockChainTest
 
         Assert.Equal(0, blockChain.GetNextTxNonce(address1));
         Assert.Equal(1, blockChain.GetNextTxNonce(address2));
-        Assert.Equal((Text)"foo,foo", state1);
-        Assert.Equal((Text)"baz", state2);
+        Assert.Equal("foo,foo", state1);
+        Assert.Equal("baz", state2);
 
         blockChain.MakeTransaction(privateKey1, new[] { DumbAction.Create((address1, "bar")) });
         block = blockChain.ProposeBlock(
@@ -488,8 +487,8 @@ public partial class BlockChainTest
 
         Assert.Equal(1, blockChain.GetNextTxNonce(address1));
         Assert.Equal(1, blockChain.GetNextTxNonce(address2));
-        Assert.Equal((Text)"foo,foo,bar,foo", state1);
-        Assert.Equal((Text)"baz", state2);
+        Assert.Equal("foo,foo,bar,foo", state1);
+        Assert.Equal("baz", state2);
     }
 
     [Fact]
