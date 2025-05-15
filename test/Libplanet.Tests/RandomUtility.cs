@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Org.BouncyCastle.Tls;
 
 namespace Libplanet.Tests;
 
@@ -313,6 +314,34 @@ public static partial class RandomUtility
         }
 
         return System.Collections.Immutable.ImmutableList.Create(items);
+    }
+
+    public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator)
+         where TKey : notnull
+    {
+        var length = Length();
+        var items = new KeyValuePair<TKey, TValue>[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = new(keyGenerator(), valueGenerator());
+        }
+
+        return System.Collections.Immutable.ImmutableSortedDictionary.CreateRange(items);
+    }
+
+    public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
+         where TKey : notnull
+    {
+        var length = Length(random);
+        var items = new KeyValuePair<TKey, TValue>[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = new(keyGenerator(random), valueGenerator(random));
+        }
+
+        return System.Collections.Immutable.ImmutableSortedDictionary.CreateRange(items);
     }
 
     public static T? RandomOrDefault<T>(this IEnumerable<T> enumerable) => RandomOrDefault(enumerable, item => true);

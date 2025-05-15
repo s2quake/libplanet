@@ -1,3 +1,4 @@
+#pragma warning disable SA1414 // Tuple types in signatures should have element names
 using Bencodex.Types;
 using static Libplanet.Tests.RandomUtility;
 

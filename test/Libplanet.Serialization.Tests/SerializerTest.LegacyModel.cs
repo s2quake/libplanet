@@ -2,11 +2,11 @@ namespace Libplanet.Serialization.Tests;
 
 public sealed partial class SerializerTest
 {
-    [Fact]
-    public void CanSupport_LegacyModelType_FailTest()
-    {
-        Assert.False(ModelSerializer.CanSupportType(typeof(Version1_ModelRecord)));
-    }
+    // [Fact]
+    // public void CanSupport_LegacyModelType_FailTest()
+    // {
+    //     Assert.False(ModelSerializer.CanSupportType(typeof(Version1_ModelRecord)));
+    // }
 
     [Fact]
     public void LegacyModel_SerializeAndDeserialize_Test()

@@ -18,8 +18,10 @@ public static class ModelSerializer
     [
         new ArrayModelDescriptor(),
         new ModelDescriptor(),
+        new KeyValuePairModelDescriptor(),
         new ImmutableArrayModelDescriptor(),
         new ImmutableSortedSetModelDescriptor(),
+        new ImmutableSortedDictionaryModelDescriptor(),
         new TupleModelDescriptor(),
     ];
 
@@ -55,51 +57,51 @@ public static class ModelSerializer
         return false;
     }
 
-    public static bool CanSupportType(Type type)
-    {
-        if (IsNullableType(type))
-        {
-            return CanSupportType(type.GetGenericArguments()[0]);
-        }
+    // public static bool CanSupportType(Type type)
+    // {
+    //     if (IsNullableType(type))
+    //     {
+    //         return CanSupportType(type.GetGenericArguments()[0]);
+    //     }
 
-        if (IsValueTupleType(type) || IsTupleType(type))
-        {
-            var genericArguments = type.GetGenericArguments();
-            foreach (var genericArgument in genericArguments)
-            {
-                if (!CanSupportType(genericArgument))
-                {
-                    return false;
-                }
-            }
+    //     if (IsValueTupleType(type) || IsTupleType(type))
+    //     {
+    //         var genericArguments = type.GetGenericArguments();
+    //         foreach (var genericArgument in genericArguments)
+    //         {
+    //             if (!CanSupportType(genericArgument))
+    //             {
+    //                 return false;
+    //             }
+    //         }
 
-            return true;
-        }
+    //         return true;
+    //     }
 
-        if (IsStandardType(type))
-        {
-            return true;
-        }
+    //     if (IsStandardType(type))
+    //     {
+    //         return true;
+    //     }
 
-        if (type.IsDefined(typeof(ModelAttribute)))
-        {
-            return true;
-        }
+    //     if (type.IsDefined(typeof(ModelAttribute)))
+    //     {
+    //         return true;
+    //     }
 
-        if (IsSupportedArrayType(type, out var elementType))
-        {
-            return CanSupportType(elementType);
-        }
+    //     if (IsSupportedArrayType(type, out var elementType))
+    //     {
+    //         return CanSupportType(elementType);
+    //     }
 
-        if (TypeDescriptor.GetConverter(type) is TypeConverter converter
-            && converter.CanConvertTo(typeof(IValue))
-            && converter.CanConvertFrom(typeof(IValue)))
-        {
-            return true;
-        }
+    //     if (TypeDescriptor.GetConverter(type) is TypeConverter converter
+    //         && converter.CanConvertTo(typeof(IValue))
+    //         && converter.CanConvertFrom(typeof(IValue)))
+    //     {
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     public static IValue Serialize(object? obj) => Serialize(obj, ModelOptions.Default);
 
