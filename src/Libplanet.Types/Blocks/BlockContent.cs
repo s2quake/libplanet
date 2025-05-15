@@ -20,9 +20,9 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
 
     public HashDigest<SHA256> EvidenceHash => DeriveEvidenceHash(Evidences);
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-    public bool Equals(BlockContent? other) => ModelUtility.Equals(this, other);
+    public bool Equals(BlockContent? other) => ModelResolver.Equals(this, other);
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

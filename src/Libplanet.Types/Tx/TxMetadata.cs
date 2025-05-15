@@ -31,7 +31,7 @@ public sealed record class TxMetadata : IEquatable<TxMetadata>
         Timestamp = metadata.Timestamp,
     };
 
-    public bool Equals(TxMetadata? other) => ModelUtility.Equals(this, other);
+    public bool Equals(TxMetadata? other) => ModelResolver.Equals(this, other);
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }

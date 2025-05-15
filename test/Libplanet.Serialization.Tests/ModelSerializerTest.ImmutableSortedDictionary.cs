@@ -4,7 +4,7 @@ using static Libplanet.Tests.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class SerializerTest
+public sealed partial class ModelSerializerTest
 {
     [Theory]
     [InlineData(0)]
@@ -37,8 +37,8 @@ public sealed partial class SerializerTest
         public ImmutableSortedDictionary<int, string> Value1 { get; init; }
             = System.Collections.Immutable.ImmutableSortedDictionary<int, string>.Empty;
 
-        public bool Equals(RecordClassWithImmutableSortedDictionary? other) => ModelUtility.Equals(this, other);
+        public bool Equals(RecordClassWithImmutableSortedDictionary? other) => ModelResolver.Equals(this, other);
 
-        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+        public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 }

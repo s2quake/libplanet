@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class SerializerTest
+public sealed partial class ModelSerializerTest
 {
     public static IEnumerable<object[]> PrimitiveValues =>
     [

@@ -39,9 +39,9 @@ public sealed record class Block : IEquatable<Block>
 
     public ImmutableSortedSet<EvidenceBase> Evidences => Content.Evidences;
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     public override string ToString() => BlockHash.ToString();
 
-    public bool Equals(Block? other) => ModelUtility.Equals(this, other);
+    public bool Equals(Block? other) => ModelResolver.Equals(this, other);
 }

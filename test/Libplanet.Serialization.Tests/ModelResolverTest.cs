@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization.Tests;
 
-public sealed class ModelUtilityTest
+public sealed class ModelResolverTest
 {
     [Fact]
     public void GetHashCode_Test()
@@ -42,8 +42,8 @@ public sealed class ModelUtilityTest
             ],
         };
 
-        var hash1 = ModelUtility.GetHashCode(model1);
-        var hash2 = ModelUtility.GetHashCode(model2);
+        var hash1 = ModelResolver.GetHashCode(model1);
+        var hash2 = ModelResolver.GetHashCode(model2);
 
         Assert.Equal(hash1, hash2);
         Assert.True(model1.Equals(model2));
@@ -67,8 +67,8 @@ public sealed class ModelUtilityTest
         [Property(4)]
         public ImmutableArray<int[]> ImmutableValues2 { get; set; } = [];
 
-        public bool Equals(Model? other) => ModelUtility.Equals(this, other);
+        public bool Equals(Model? other) => ModelResolver.Equals(this, other);
 
-        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+        public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 }

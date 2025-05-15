@@ -15,9 +15,9 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
     [Property(0)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-    public bool Equals(Initialize? other) => ModelUtility.Equals(this, other);
+    public bool Equals(Initialize? other) => ModelResolver.Equals(this, other);
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {

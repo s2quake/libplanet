@@ -1,43 +1,161 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Libplanet.Serialization.Descriptors;
 using static Libplanet.Serialization.ArrayUtility;
 
 namespace Libplanet.Serialization;
 
-public sealed class ModelResolver : IModelResolver
+public static class ModelResolver
 {
-    public static readonly ModelResolver Default = new();
-
+    private static readonly object _lock = new();
     private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _declaredPropertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _propertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
+    private static readonly ConcurrentDictionary<Type, ModelDescriptor> _descriptorByType = [];
+    private static readonly ModelDescriptor[] _descriptors =
+    [
+        new ArrayModelDescriptor(),
+        new ObjectModelDescriptor(),
+        new KeyValuePairModelDescriptor(),
+        new ImmutableArrayModelDescriptor(),
+        new ImmutableSortedSetModelDescriptor(),
+        new ImmutableSortedDictionaryModelDescriptor(),
+        new TupleModelDescriptor(),
+    ];
 
-    Type IModelResolver.GetType(Type type, int version) => GetType(type, version);
-
-    string IModelResolver.GetTypeName(Type type) => TypeUtility.GetTypeName(type);
-
-    int IModelResolver.GetVersion(Type type)
+    public static Type GetType(Type type, int version)
     {
-        if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute)))
+        try
         {
-            return GetTypes(type).IndexOf(type) + 1;
+            return version is 0 ? type : GetTypes(type)[version - 1];
         }
-
-        return 0;
+        catch (Exception e)
+        {
+            throw new ModelSerializationException(
+                $"Failed to get type for {type} with version {version}", e);
+        }
     }
 
-    ImmutableArray<PropertyInfo> IModelResolver.GetProperties(Type type)
+    public static string GetTypeName(Type type)
     {
-        if (!type.IsDefined(typeof(ModelAttribute)) && !type.IsDefined(typeof(LegacyModelAttribute)))
+        try
         {
-            throw new ArgumentException(
-                $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
+            return TypeUtility.GetTypeName(type);
+        }
+        catch (Exception e)
+        {
+            throw new ModelSerializationException($"Failed to get type name for {type}", e);
+        }
+    }
+
+    public static int GetVersion(Type type)
+    {
+        try
+        {
+            if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute)))
+            {
+                return GetTypes(type).IndexOf(type) + 1;
+            }
+
+            return 0;
+        }
+        catch (Exception e)
+        {
+            throw new ModelSerializationException($"Failed to get version for {type}", e);
+        }
+    }
+
+    public static ModelDescriptor GetDescriptor(Type type)
+    {
+        if (FindDescriptor(type) is { } descriptor)
+        {
+            return descriptor;
         }
 
-        return _propertiesByType.GetOrAdd(type, CreateProperties);
+        throw new NotSupportedException($"Type {type} is not supported.");
+    }
+
+    public static bool TryGetDescriptor(Type type, [MaybeNullWhen(false)] out ModelDescriptor descriptor)
+    {
+        if (FindDescriptor(type) is { } foundDescriptor)
+        {
+            descriptor = foundDescriptor;
+            return true;
+        }
+
+        descriptor = null;
+        return descriptor is not null;
+    }
+
+    public static ImmutableArray<PropertyInfo> GetProperties(Type type)
+    {
+        try
+        {
+            if (!type.IsDefined(typeof(ModelAttribute)) && !type.IsDefined(typeof(LegacyModelAttribute)))
+            {
+                throw new ArgumentException(
+                    $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
+            }
+
+            return _propertiesByType.GetOrAdd(type, CreateProperties);
+        }
+        catch (Exception e)
+        {
+            throw new ModelSerializationException($"Failed to get properties for {type}", e);
+        }
+    }
+
+    public static bool Equals<T>(T left, T? right) => Equals(left, right, typeof(T));
+
+    public static bool Equals(object? obj1, object? obj2, Type type)
+    {
+        if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+        {
+            return Equals(obj1, obj2, underlyingType);
+        }
+
+        if (ReferenceEquals(obj1, obj2))
+        {
+            return true;
+        }
+
+        if (obj1 is null || obj2 is null)
+        {
+            return obj1 == obj2;
+        }
+
+        if (obj1.GetType() != obj2.GetType())
+        {
+            return false;
+        }
+
+        if (FindDescriptor(type) is { } descriptor)
+        {
+            return descriptor.Equals(obj1, obj2, type);
+        }
+
+        return object.Equals(obj1, obj2);
+    }
+
+    public static int GetHashCode<T>(T obj) => GetHashCode(obj, typeof(T));
+
+    public static int GetHashCode(object? obj, Type type)
+    {
+        if (obj is null)
+        {
+            return 0;
+        }
+
+        if (FindDescriptor(type) is { } descriptor)
+        {
+            return descriptor.GetHashCode(obj, type);
+        }
+
+        return obj.GetHashCode();
     }
 
     private static ImmutableArray<PropertyInfo> CreateProperties(Type type)
@@ -82,8 +200,7 @@ public sealed class ModelResolver : IModelResolver
         return builder.ToImmutable();
     }
 
-    private static ImmutableArray<Type> GetTypes(Type type)
-        => _typesByType.GetOrAdd(type, CreateTypes);
+    private static ImmutableArray<Type> GetTypes(Type type) => _typesByType.GetOrAdd(type, CreateTypes);
 
     private static void ValidatorProperty(Type type, PropertyInfo propertyInfo)
     {
@@ -156,8 +273,6 @@ public sealed class ModelResolver : IModelResolver
             }
         }
     }
-
-    private static Type GetType(Type type, int version) => version is 0 ? type : GetTypes(type)[version - 1];
 
     private static ImmutableArray<Type> CreateTypes(Type type)
     {
@@ -237,5 +352,25 @@ public sealed class ModelResolver : IModelResolver
         builder.Add(type);
 
         return builder.ToImmutable();
+    }
+
+    private static ModelDescriptor? FindDescriptor(Type type)
+    {
+        if (_descriptorByType.TryGetValue(type, out var descriptor))
+        {
+            return descriptor;
+        }
+
+        lock (_lock)
+        {
+            descriptor = _descriptors.FirstOrDefault(descriptor => descriptor.CanSerialize(type));
+            if (descriptor is not null)
+            {
+                _descriptorByType.TryAdd(type, descriptor);
+                return descriptor;
+            }
+        }
+
+        return null;
     }
 }

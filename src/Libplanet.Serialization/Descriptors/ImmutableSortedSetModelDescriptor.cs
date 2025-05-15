@@ -4,13 +4,11 @@ using System.Reflection;
 
 namespace Libplanet.Serialization.Descriptors;
 
-internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptorBase
+internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsImmutableSortedSet(type);
 
-    public override bool CanDeserialize(Type type) => IsImmutableSortedSet(type);
-
-    public override IEnumerable<Type> GetTypes(Type type, int length, ModelOptions options)
+    public override IEnumerable<Type> GetTypes(Type type, int length)
     {
         var elementType = GetElementType(type);
         for (var i = 0; i < length; i++)
@@ -19,7 +17,7 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptorBase
         }
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type, ModelOptions options)
+    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
     {
         if (obj is IList items)
         {
@@ -31,7 +29,7 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptorBase
         }
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values, ModelOptions options)
+    public override object CreateInstance(Type type, IEnumerable<object?> values)
     {
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);
@@ -47,6 +45,42 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptorBase
 
         var methodArgs = new object?[] { listInstance };
         return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
+    }
+
+    public override bool Equals(object obj1, object obj2, Type type)
+    {
+        var items1 = (IList)obj1;
+        var items2 = (IList)obj2;
+        if (items1.Count != items2.Count)
+        {
+            return false;
+        }
+
+        var elementType = GetElementType(type);
+        for (var i = 0; i < items1.Count; i++)
+        {
+            var item1 = items1[i];
+            var item2 = items2[i];
+            if (!ModelResolver.Equals(item1, item2, elementType))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override int GetHashCode(object obj, Type type)
+    {
+        var items = (IList)obj;
+        var elementType = GetElementType(type);
+        HashCode hash = default;
+        foreach (var item in items)
+        {
+            hash.Add(ModelResolver.GetHashCode(item, elementType));
+        }
+
+        return hash.ToHashCode();
     }
 
     private static bool IsImmutableSortedSet(Type type)

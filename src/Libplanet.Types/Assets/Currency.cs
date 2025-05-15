@@ -91,9 +91,9 @@ public readonly record struct Currency : IEquatable<Currency>
 
     public override string ToString() => $"{Ticker} ({Hash})";
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-    public bool Equals(Currency other) => ModelUtility.Equals(this, other);
+    public bool Equals(Currency other) => ModelResolver.Equals(this, other);
 
     private static SHA1 GetSHA1()
     {

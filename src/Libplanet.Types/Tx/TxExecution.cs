@@ -26,7 +26,7 @@ public sealed record class TxExecution : IEquatable<TxExecution>
     [Property(4)]
     public ImmutableArray<string> ExceptionNames { get; init; } = [];
 
-    public bool Equals(TxExecution? other) => ModelUtility.Equals(this, other);
+    public bool Equals(TxExecution? other) => ModelResolver.Equals(this, other);
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }

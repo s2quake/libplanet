@@ -1,14 +1,14 @@
-﻿using System.Reflection;
+﻿// using System.Reflection;
 
-namespace Libplanet.Serialization;
+// namespace Libplanet.Serialization;
 
-public interface IModelResolver
-{
-    Type GetType(Type type, int version);
+// public interface IModelResolver
+// {
+//     Type GetType(Type type, int version);
 
-    string GetTypeName(Type type);
+//     string GetTypeName(Type type);
 
-    int GetVersion(Type type);
+//     int GetVersion(Type type);
 
-    ImmutableArray<PropertyInfo> GetProperties(Type type);
-}
+//     ImmutableArray<PropertyInfo> GetProperties(Type type);
+// }

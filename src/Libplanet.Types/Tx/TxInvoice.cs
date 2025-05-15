@@ -30,9 +30,9 @@ public sealed record class TxInvoice : IEquatable<TxInvoice>, IValidatableObject
     [NonNegative]
     public long GasLimit { get; init; }
 
-    public bool Equals(TxInvoice? other) => ModelUtility.Equals(this, other);
+    public bool Equals(TxInvoice? other) => ModelResolver.Equals(this, other);
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     public UnsignedTx Combine(TxSigningMetadata signingMetadata)
         => new() { Invoice = this, SigningMetadata = signingMetadata };

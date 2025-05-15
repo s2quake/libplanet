@@ -2,14 +2,14 @@ using static Libplanet.Tests.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class SerializerTest
+public sealed partial class ModelSerializerTest
 {
     [Fact]
-    public void ObjectRecordStruct_SerializeAndDeserialize_Test()
+    public void ObjectRecordClass_SerializeAndDeserialize_Test()
     {
-        var expectedObject = new ObjectRecordStruct();
+        var expectedObject = new ObjectRecordClass();
         var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ObjectRecordStruct>(serialized)!;
+        var actualObject = ModelSerializer.Deserialize<ObjectRecordClass>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -17,21 +17,21 @@ public sealed partial class SerializerTest
     [InlineData(0)]
     [InlineData(1074183504)]
     [MemberData(nameof(RandomSeeds))]
-    public void ObjectRecordStruct_SerializeAndDeserialize_Seed_Test(int seed)
+    public void ObjectRecordClass_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedObject = new ObjectRecordStruct(random);
+        var expectedObject = new ObjectRecordClass(random);
         var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ObjectRecordStruct>(serialized)!;
+        var actualObject = ModelSerializer.Deserialize<ObjectRecordClass>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
     [Fact]
-    public void ArrayRecordStruct_SerializeAndDeserialize_Test()
+    public void ArrayRecordClass_SerializeAndDeserialize_Test()
     {
-        var expectedObject = new ArrayRecordStruct();
+        var expectedObject = new ArrayRecordClass();
         var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ArrayRecordStruct>(serialized)!;
+        var actualObject = ModelSerializer.Deserialize<ArrayRecordClass>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -39,21 +39,21 @@ public sealed partial class SerializerTest
     [InlineData(0)]
     [InlineData(1074183504)]
     [MemberData(nameof(RandomSeeds))]
-    public void ArrayRecordStruct_SerializeAndDeserialize_Seed_Test(int seed)
+    public void ArrayRecordClass_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedObject = new ArrayRecordStruct(random);
+        var expectedObject = new ArrayRecordClass(random);
         var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ArrayRecordStruct>(serialized)!;
+        var actualObject = ModelSerializer.Deserialize<ArrayRecordClass>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
     [Fact]
-    public void MixedRecordStruct_SerializeAndDeserialize_Test()
+    public void MixedRecordClass_SerializeAndDeserialize_Test()
     {
-        var expectedObject = new MixedRecordStruct();
+        var expectedObject = new MixedRecordClass();
         var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<MixedRecordStruct>(serialized)!;
+        var actualObject = ModelSerializer.Deserialize<MixedRecordClass>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -61,23 +61,23 @@ public sealed partial class SerializerTest
     [InlineData(0)]
     [InlineData(1074183504)]
     [MemberData(nameof(RandomSeeds))]
-    public void MixedRecordStruct_SerializeAndDeserialize_Seed_Test(int seed)
+    public void MixedRecordClass_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedObject = new MixedRecordStruct(random);
+        var expectedObject = new MixedRecordClass(random);
         var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<MixedRecordStruct>(serialized)!;
+        var actualObject = ModelSerializer.Deserialize<MixedRecordClass>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
     [Model(Version = 1)]
-    public readonly record struct ObjectRecordStruct : IEquatable<ObjectRecordStruct>
+    public sealed record class ObjectRecordClass : IEquatable<ObjectRecordClass>
     {
-        public ObjectRecordStruct()
+        public ObjectRecordClass()
         {
         }
 
-        public ObjectRecordStruct(Random random)
+        public ObjectRecordClass(Random random)
         {
             Int = Int32(random);
             Long = Int64(random);
@@ -117,19 +117,19 @@ public sealed partial class SerializerTest
         [Property(8)]
         public byte Byte { get; init; }
 
-        public bool Equals(ObjectRecordStruct other) => ModelUtility.Equals(this, other);
+        public bool Equals(ObjectRecordClass? other) => ModelResolver.Equals(this, other);
 
-        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+        public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 
     [Model(Version = 1)]
-    public readonly record struct ArrayRecordStruct : IEquatable<ArrayRecordStruct>
+    public sealed record class ArrayRecordClass : IEquatable<ArrayRecordClass>
     {
-        public ArrayRecordStruct()
+        public ArrayRecordClass()
         {
         }
 
-        public ArrayRecordStruct(Random random)
+        public ArrayRecordClass(Random random)
         {
             Ints = Array(random, Int32);
             Longs = Array(random, Int64);
@@ -165,33 +165,33 @@ public sealed partial class SerializerTest
         [Property(7)]
         public TimeSpan[] TimeSpans { get; init; } = [];
 
-        public bool Equals(ArrayRecordStruct other) => ModelUtility.Equals(this, other);
+        public bool Equals(ArrayRecordClass? other) => ModelResolver.Equals(this, other);
 
-        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+        public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 
     [Model(Version = 1)]
-    public readonly record struct MixedRecordStruct : IEquatable<MixedRecordStruct>
+    public sealed record class MixedRecordClass : IEquatable<MixedRecordClass>
     {
-        public MixedRecordStruct()
+        public MixedRecordClass()
         {
-            Object = new ObjectRecordStruct();
+            Object = new ObjectRecordClass();
         }
 
-        public MixedRecordStruct(Random random)
+        public MixedRecordClass(Random random)
         {
-            Object = new ObjectRecordStruct(random);
-            Objects = Array(random, random => new ObjectRecordStruct(random));
+            Object = new ObjectRecordClass(random);
+            Objects = Array(random, random => new ObjectRecordClass(random));
         }
 
         [Property(0)]
-        public ObjectRecordStruct Object { get; init; }
+        public ObjectRecordClass Object { get; init; }
 
         [Property(1)]
-        public ObjectRecordStruct[] Objects { get; init; } = [];
+        public ObjectRecordClass[] Objects { get; init; } = [];
 
-        public bool Equals(MixedRecordStruct other) => ModelUtility.Equals(this, other);
+        public bool Equals(MixedRecordClass? other) => ModelResolver.Equals(this, other);
 
-        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+        public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 }

@@ -2,13 +2,11 @@
 
 namespace Libplanet.Serialization.Descriptors;
 
-internal sealed class KeyValuePairModelDescriptor : ModelDescriptorBase
+internal sealed class KeyValuePairModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsKeyValuePair(type);
 
-    public override bool CanDeserialize(Type type) => IsKeyValuePair(type);
-
-    public override IEnumerable<Type> GetTypes(Type type, int length, ModelOptions options)
+    public override IEnumerable<Type> GetTypes(Type type, int length)
     {
         var genericArguments = type.GetGenericArguments();
         if (genericArguments.Length != length)
@@ -24,7 +22,7 @@ internal sealed class KeyValuePairModelDescriptor : ModelDescriptorBase
         }
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type, ModelOptions options)
+    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
     {
         var genericArguments = type.GetGenericArguments();
         if (type.GetProperty(nameof(KeyValuePair<string, string>.Key)) is not { } keyProperty)
@@ -42,8 +40,37 @@ internal sealed class KeyValuePairModelDescriptor : ModelDescriptorBase
         yield return (genericArguments[1], valueProperty.GetValue(obj));
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values, ModelOptions options)
+    public override object CreateInstance(Type type, IEnumerable<object?> values)
         => TypeUtility.CreateInstance(type, args: [.. values]);
+
+    public override bool Equals(object obj1, object obj2, Type type)
+    {
+        var propertyInfos = type.GetProperties();
+        foreach (var propertyInfo in propertyInfos)
+        {
+            var value1 = propertyInfo.GetValue(obj1);
+            var value2 = propertyInfo.GetValue(obj2);
+            if (!ModelResolver.Equals(value1, value2, propertyInfo.PropertyType))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override int GetHashCode(object obj, Type type)
+    {
+        var propertyInfos = type.GetProperties();
+        HashCode hash = default;
+        foreach (var propertyInfo in propertyInfos)
+        {
+            var value = propertyInfo.GetValue(obj);
+            hash.Add(ModelResolver.GetHashCode(value, propertyInfo.PropertyType));
+        }
+
+        return hash.ToHashCode();
+    }
 
     private static bool IsKeyValuePair(Type type)
     {

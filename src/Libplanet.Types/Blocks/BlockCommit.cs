@@ -29,9 +29,9 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
 
-    public bool Equals(BlockCommit? other) => ModelUtility.Equals(this, other);
+    public bool Equals(BlockCommit? other) => ModelResolver.Equals(this, other);
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
 

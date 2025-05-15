@@ -1385,9 +1385,9 @@ public abstract class StoreTest
         [Property(1)]
         public ImmutableArray<byte> Md5Digest { get; set; }
 
-        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+        public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-        public bool Equals(AtomicityTestAction? other) => ModelUtility.Equals(this, other);
+        public bool Equals(AtomicityTestAction? other) => ModelResolver.Equals(this, other);
 
         protected override void OnExecute(IWorldContext world, IActionContext context)
         {

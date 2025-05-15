@@ -62,6 +62,9 @@ dotnet_diagnostic.SA1602.severity = none
 # SA1602: Enumeration items should be documented
 dotnet_diagnostic.SA1602.severity = none
 
+# S1694: An abstract class should have both abstract and concrete methods
+dotnet_diagnostic.S1694.severity = none
+
 [*.csproj]
 quote_type = double
 

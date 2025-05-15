@@ -47,9 +47,9 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>, IHasKey<BlockH
         BlockHash = block.BlockHash,
     };
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-    public bool Equals(BlockDigest? other) => ModelUtility.Equals(this, other);
+    public bool Equals(BlockDigest? other) => ModelResolver.Equals(this, other);
 
     public Block ToBlock(Func<TxId, Transaction> txGetter, Func<EvidenceId, EvidenceBase> evGetter) => new()
     {

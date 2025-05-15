@@ -2,13 +2,11 @@
 
 namespace Libplanet.Serialization.Descriptors;
 
-internal sealed class TupleModelDescriptor : ModelDescriptorBase
+internal sealed class TupleModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsTuple(type) || IsValueTupleType(type);
 
-    public override bool CanDeserialize(Type type) => IsTuple(type) || IsValueTupleType(type);
-
-    public override IEnumerable<Type> GetTypes(Type type, int length, ModelOptions options)
+    public override IEnumerable<Type> GetTypes(Type type, int length)
     {
         var genericArguments = type.GetGenericArguments();
         if (genericArguments.Length != length)
@@ -24,7 +22,7 @@ internal sealed class TupleModelDescriptor : ModelDescriptorBase
         }
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type, ModelOptions options)
+    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
     {
         var genericArguments = type.GetGenericArguments();
         if (obj is not ITuple tuple)
@@ -48,8 +46,49 @@ internal sealed class TupleModelDescriptor : ModelDescriptorBase
         }
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values, ModelOptions options)
+    public override object CreateInstance(Type type, IEnumerable<object?> values)
         => TypeUtility.CreateInstance(type, args: [.. values]);
+
+    public override bool Equals(object obj1, object obj2, Type type)
+    {
+        var genericArguments = type.GetGenericArguments();
+        if (obj1 is not ITuple tuple1 || obj2 is not ITuple tuple2)
+        {
+            return false;
+        }
+
+        if (genericArguments.Length != tuple1.Length || genericArguments.Length != tuple2.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < genericArguments.Length; i++)
+        {
+            var item1 = tuple1[i];
+            var item2 = tuple2[i];
+            if (!ModelResolver.Equals(item1, item2, genericArguments[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override int GetHashCode(object obj, Type type)
+    {
+        var tuple = (ITuple)obj;
+        var genericArguments = type.GetGenericArguments();
+        HashCode hash = default;
+        for (var i = 0; i < genericArguments.Length; i++)
+        {
+            var item = tuple[i];
+            var itemType = genericArguments[i];
+            hash.Add(ModelResolver.GetHashCode(item, itemType));
+        }
+
+        return hash.ToHashCode();
+    }
 
     private static bool IsTuple(Type type)
     {

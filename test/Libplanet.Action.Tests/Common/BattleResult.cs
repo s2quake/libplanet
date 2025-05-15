@@ -11,7 +11,7 @@ public sealed record class BattleResult : IEquatable<BattleResult>
     [Property(1)]
     public ImmutableSortedSet<string> Targets { get; init; } = [];
 
-    public bool Equals(BattleResult? other) => ModelUtility.Equals(this, other);
+    public bool Equals(BattleResult? other) => ModelResolver.Equals(this, other);
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }
