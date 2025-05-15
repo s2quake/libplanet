@@ -4,13 +4,11 @@ using System.Reflection;
 
 namespace Libplanet.Serialization.Descriptors;
 
-internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptorBase
+internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsImmutableSortedDictionary(type);
 
-    public override bool CanDeserialize(Type type) => IsImmutableSortedDictionary(type);
-
-    public override IEnumerable<Type> GetTypes(Type type, int length, ModelOptions options)
+    public override IEnumerable<Type> GetTypes(Type type, int length)
     {
         var elementType = GetElementType(type);
         for (var i = 0; i < length; i++)
@@ -19,7 +17,7 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
         }
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type, ModelOptions options)
+    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
     {
         if (obj is IEnumerable items)
         {
@@ -31,7 +29,7 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
         }
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values, ModelOptions options)
+    public override object CreateInstance(Type type, IEnumerable<object?> values)
     {
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);
@@ -47,6 +45,43 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
 
         var methodArgs = new object?[] { listInstance };
         return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
+    }
+
+    public override bool Equals(object obj1, object obj2, Type type)
+    {
+        var items1 = (ICollection)obj1;
+        var items2 = (ICollection)obj2;
+
+        if (items1.Count != items2.Count)
+        {
+            return false;
+        }
+
+        var elementType = GetElementType(type);
+        var enumerator1 = items1.GetEnumerator();
+        var enumerator2 = items2.GetEnumerator();
+        while (enumerator1.MoveNext() && enumerator2.MoveNext())
+        {
+            if (!ModelResolver.Equals(enumerator1.Current, enumerator2.Current, elementType))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override int GetHashCode(object obj, Type type)
+    {
+        var items = (IEnumerable)obj;
+        var elementType = GetElementType(type);
+        HashCode hash = default;
+        foreach (var item in items)
+        {
+            hash.Add(ModelResolver.GetHashCode(item, elementType));
+        }
+
+        return hash.ToHashCode();
     }
 
     private static bool IsImmutableSortedDictionary(Type type)

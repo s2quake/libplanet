@@ -5,7 +5,7 @@ using Bencodex.Types;
 
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class SerializerTest
+public sealed partial class ModelSerializerTest
 {
     [Fact]
     public void HasTypeConverter_Test()

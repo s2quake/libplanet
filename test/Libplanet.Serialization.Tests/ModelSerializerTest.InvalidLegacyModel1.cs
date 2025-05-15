@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class SerializerTest
+public sealed partial class ModelSerializerTest
 {
     [Theory]
     [InlineData(typeof(InvalidModelRecord1))]

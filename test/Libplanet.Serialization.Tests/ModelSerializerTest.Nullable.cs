@@ -2,7 +2,7 @@ using static Libplanet.Tests.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class SerializerTest
+public sealed partial class ModelSerializerTest
 {
     [Theory]
     [InlineData(0)]
@@ -45,8 +45,8 @@ public sealed partial class SerializerTest
         [Property(3)]
         public ImmutableArray<int?>? Value4 { get; init; } = [];
 
-        public bool Equals(RecordClassWithNullableProperty? other) => ModelUtility.Equals(this, other);
+        public bool Equals(RecordClassWithNullableProperty? other) => ModelResolver.Equals(this, other);
 
-        public override int GetHashCode() => ModelUtility.GetHashCode(this);
+        public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 }

@@ -30,9 +30,9 @@ public sealed record class Vote : IEquatable<Vote>, IValidatableObject
 
     public VoteFlag Flag => Metadata.Flag;
 
-    public bool Equals(Vote? other) => ModelUtility.Equals(this, other);
+    public bool Equals(Vote? other) => ModelResolver.Equals(this, other);
 
-    public override int GetHashCode() => ModelUtility.GetHashCode(this);
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
