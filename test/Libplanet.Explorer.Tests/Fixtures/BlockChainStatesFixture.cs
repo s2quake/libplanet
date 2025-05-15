@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Bencodex.Types;
 using Libplanet.Blockchain;
 using Libplanet.Types;
 using Libplanet.Types.Assets;
@@ -22,7 +21,7 @@ public static class BlockChainStatesFixture
     public static readonly FungibleAssetValue AdditionalSupply =
         FungibleAssetValue.Create(Currency, 10000);
 
-    public static readonly IValue Value = new Text("Foo");
+    public static readonly object Value = "Foo";
 
     public static readonly Validator Validator =
         Validator.Create(

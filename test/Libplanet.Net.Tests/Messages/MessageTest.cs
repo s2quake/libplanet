@@ -1,6 +1,7 @@
 using System.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -19,7 +20,7 @@ namespace Libplanet.Net.Tests.Messages
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
             var apv = new AppProtocolVersion(
                 1,
-                new Bencodex.Types.Integer(0),
+                ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             var dateTimeOffset = DateTimeOffset.UtcNow;
@@ -39,7 +40,7 @@ namespace Libplanet.Net.Tests.Messages
             var privateKey = new PrivateKey();
             var apv = new AppProtocolVersion(
                 1,
-                new Bencodex.Types.Integer(0),
+                ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
@@ -60,7 +61,7 @@ namespace Libplanet.Net.Tests.Messages
             var timestamp = DateTimeOffset.UtcNow;
             var apv = new AppProtocolVersion(
                 1,
-                new Bencodex.Types.Integer(0),
+                ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             var ping = new PingMsg();
@@ -92,7 +93,7 @@ namespace Libplanet.Net.Tests.Messages
             var privateKey = new PrivateKey();
             var apv = new AppProtocolVersion(
                 1,
-                new Bencodex.Types.Integer(0),
+                ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             Assert.Throws<ArgumentException>(
@@ -106,7 +107,7 @@ namespace Libplanet.Net.Tests.Messages
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("1.2.3.4", 1234));
             var apv = new AppProtocolVersion(
                 1,
-                new Bencodex.Types.Integer(0),
+                ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);

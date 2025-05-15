@@ -1,5 +1,4 @@
 using System.IO;
-using Bencodex.Types;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Store;
@@ -29,12 +28,12 @@ public class MptCommandTest : IDisposable
         var stateStoreB = new TrieStateStore(new DefaultTable(_pathB));
         _trieA = stateStoreA.Commit(
             stateStoreA.GetStateRoot(default)
-                .Set((KeyBytes)"deleted", Null.Value)
-                .Set((KeyBytes)"common", (Text)"before"));
+                .Set((KeyBytes)"deleted", null)
+                .Set((KeyBytes)"common", "before"));
         _trieB = stateStoreB.Commit(
             stateStoreB.GetStateRoot(default)
-                .Set((KeyBytes)"created", Null.Value)
-                .Set((KeyBytes)"common", (Text)"after"));
+                .Set((KeyBytes)"created", null)
+                .Set((KeyBytes)"common", "after"));
     }
 
     [Fact]

@@ -11,8 +11,6 @@ namespace Libplanet.Explorer.Tests.Queries;
 
 public partial class RawStateQueryTest
 {
-    private static readonly Codec _codec = new Codec();
-
     [Fact]
     public async Task StateValue()
     {
@@ -38,7 +36,7 @@ public partial class RawStateQueryTest
         IDictionary<string, object> value =
             Assert.IsAssignableFrom<IDictionary<string, object>>(trie["value"]);
         Assert.Equal(
-            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Value)),
             Assert.IsAssignableFrom<string>(value["hex"]));
 
         result = await ExecuteQueryAsync<RawStateQuery>($@"

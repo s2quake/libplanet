@@ -1,5 +1,4 @@
-// using Bencodex.Types;
-// using Libplanet.Store.Trie;
+// // using Libplanet.Store.Trie;
 // using Libplanet.Store.Trie.Nodes;
 
 // namespace Libplanet.Tests.Store.Trie.Nodes;
@@ -16,8 +15,8 @@
 //         };
 
 //         var expected =
-//             new List(Enumerable.Repeat<IValue>(Null.Value, 16).ToImmutableArray()
-//                 .Add(new List(Null.Value, Dictionary.Empty)));
+//             new List(Enumerable.Repeat<IValue>(null, 16).ToImmutableArray()
+//                 .Add(new List(null, Dictionary.Empty)));
 //         var encoded = fullNode.ToBencodex();
 //         Assert.IsType<List>(encoded);
 //         Assert.Equal(expected.Count, ((List)encoded).Count);

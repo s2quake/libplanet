@@ -1,6 +1,5 @@
 // using System.Security.Cryptography;
-// using Bencodex.Types;
-// using Libplanet.Store.Trie.Nodes;
+// // using Libplanet.Store.Trie.Nodes;
 // using Libplanet.Types;
 
 // namespace Libplanet.Tests.Store.Trie.Nodes

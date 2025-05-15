@@ -368,7 +368,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 var typeId = TypeUtility.GetTypeName(action.GetType());
 
                 // if (action is not Dictionary actionDict
-                //     || !actionDict.TryGetValue((Text)"type_id", out var typeId))
+                //     || !actionDict.TryGetValue("type_id", out var typeId))
                 // {
                 //     continue;
                 // }

@@ -195,7 +195,7 @@ public readonly struct AppProtocolVersion : IEquatable<AppProtocolVersion>
         throw new NotImplementedException();
         // var list = new List(
         //     new Integer(version),
-        //     extra is null ? Null.Value : extra);
+        //     extra is null ? null : extra);
         // return ByteUtility.CreateMessage(list);
     }
 }

@@ -62,26 +62,26 @@
 //         var stateStore = new TrieStateStore(keyValueStore);
 //         var trie = Libplanet.Store.Trie.Trie.Create([
 //             ([0xbe, 0xef], Dictionary.Empty),
-//             ([0x01], Null.Value),
-//             ([0x02], Null.Value),
-//             ([0x03], Null.Value),
-//             ([0x04], Null.Value)]);
+//             ([0x01], null),
+//             ([0x02], null),
+//             ([0x03], null),
+//             ([0x04], null)]);
 
 //         var states = trie.ToDictionary();
 //         Assert.Equal(5, states.Count);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x01])]);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x02])]);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x03])]);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x04])]);
+//         Assert.Equal(null, states[new KeyBytes([0x01])]);
+//         Assert.Equal(null, states[new KeyBytes([0x02])]);
+//         Assert.Equal(null, states[new KeyBytes([0x03])]);
+//         Assert.Equal(null, states[new KeyBytes([0x04])]);
 //         Assert.Equal(Dictionary.Empty, states[new KeyBytes([0xbe, 0xef])]);
 
 //         trie = stateStore.Commit(trie);
 //         states = trie.ToDictionary();
 //         Assert.Equal(5, states.Count);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x01])]);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x02])]);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x03])]);
-//         Assert.Equal(Null.Value, states[new KeyBytes([0x04])]);
+//         Assert.Equal(null, states[new KeyBytes([0x01])]);
+//         Assert.Equal(null, states[new KeyBytes([0x02])]);
+//         Assert.Equal(null, states[new KeyBytes([0x03])]);
+//         Assert.Equal(null, states[new KeyBytes([0x04])]);
 //         Assert.Equal(Dictionary.Empty, states[new KeyBytes([0xbe, 0xef])]);
 //     }
 
@@ -90,7 +90,7 @@
 //     {
 //         var stateStore = new TrieStateStore();
 //         var trie = Libplanet.Store.Trie.Trie.Create(
-//             ([0xbe, 0xef], Dictionary.Empty.Add(GetRandomBytes(32), Null.Value)));
+//             ([0xbe, 0xef], Dictionary.Empty.Add(GetRandomBytes(32), null)));
 //         // There are (ShortNode, ValueNode)
 //         Assert.Equal(2, trie.IterateNodes().Count());
 
@@ -143,12 +143,12 @@
 //         Assert.Throws<KeyNotFoundException>(() => trie[[0xaa, 0xbb]]);
 //         Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
 
-//         trie = trie.Set([0xbe, 0xef], Null.Value);
+//         trie = trie.Set([0xbe, 0xef], null);
 //         trie = commit ? stateStore.Commit(trie) : trie;
 //         AssertBytesEqual(
 //             Parse("16fc25f43edd0c2d2cb6e3cc3827576e57f4b9e04f8dc3a062c7fe59041f77bd"),
 //             trie.Hash);
-//         AssertBencodexEqual(Null.Value, trie[[0xbe, 0xef]]);
+//         AssertBencodexEqual(null, trie[[0xbe, 0xef]]);
 //         Assert.Null(trie[[0x11, 0x22]]);
 //         Assert.Null(trie[[0xaa, 0xbb]]);
 //         Assert.Null(trie[[0x12, 0x34]]);
@@ -253,7 +253,7 @@
 //             .Add(
 //                 "dct",
 //                 Dictionary.Empty
-//                     .Add("abcd", Null.Value)
+//                     .Add("abcd", null)
 //                     .Add("efgh", false)
 //                     .Add("ijkl", true)
 //                     .Add("mnop", new Binary("hello world", Encoding.ASCII))

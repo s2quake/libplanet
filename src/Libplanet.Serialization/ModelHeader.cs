@@ -1,8 +1,7 @@
 ﻿// using System.Diagnostics.CodeAnalysis;
 // using System.IO;
 // using System.Text;
-// using Bencodex.Types;
-// using Libplanet.Serialization.Extensions;
+// // using Libplanet.Serialization.Extensions;
 
 // namespace Libplanet.Serialization;
 
@@ -54,7 +53,7 @@
 
 //         return new ModelHeader
 //         {
-//             TypeName = ((Text)list[0]).Value,
+//             TypeName = (list[0]).Value,
 //             Version = (int)((Integer)list[1]).Value,
 //         };
 //     }

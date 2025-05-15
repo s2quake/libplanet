@@ -1,19 +1,18 @@
-// using Bencodex.Types;
-
+//
 // namespace Libplanet.Serialization.Tests;
 
 // public sealed partial class SerializerTest
 // {
 //     public static IEnumerable<object[]> BencodexValues =>
 //     [
-//         [Null.Value],
+//         [null],
 //         [new Bencodex.Types.Boolean(true)],
 //         [new Integer(0)],
 //         [new Text("Hello, World!")],
-//         [new List(Null.Value, new Integer(0), new Text("Hello, World!"))],
+//         [new List(null, new Integer(0), new Text("Hello, World!"))],
 //         [new Dictionary(
 //             [
-//                 new KeyValuePair<IKey, IValue>(new Text("Null"), Null.Value),
+//                 new KeyValuePair<IKey, IValue>(new Text("Null"), null),
 //                 new KeyValuePair<IKey, IValue>(new Text("Integer"), new Integer(0)),
 //                 new KeyValuePair<IKey, IValue>(new Text("Text"), new Text("Hello, World!")),
 //             ])],
@@ -23,7 +22,7 @@
 //     [InlineData(typeof(Null))]
 //     [InlineData(typeof(Bencodex.Types.Boolean))]
 //     [InlineData(typeof(Integer))]
-//     [InlineData(typeof(Text))]
+//     [InlineData(typeof)]
 //     [InlineData(typeof(List))]
 //     [InlineData(typeof(Dictionary))]
 //     public void CanSupport_IValueType_Test(Type type)

@@ -97,6 +97,22 @@ public static class ModelSerializer
         throw new ModelSerializationException($"Failed to deserialize {typeof(T)}.");
     }
 
+    public static object DeserializeFromBytes(ImmutableArray<byte> bytes)
+    {
+        using var stream = new MemoryStream([.. bytes]);
+        return Deserialize(stream)
+            ?? throw new ModelSerializationException(
+                $"Failed to deserialize from bytes.");
+    }
+
+    public static object DeserializeFromBytes(ReadOnlySpan<byte> bytes)
+    {
+        using var stream = new MemoryStream(bytes.ToArray());
+        return Deserialize(stream)
+            ?? throw new ModelSerializationException(
+                $"Failed to deserialize from bytes.");
+    }
+
     public static T DeserializeFromBytes<T>(ImmutableArray<byte> bytes)
     {
         using var stream = new MemoryStream([.. bytes]);

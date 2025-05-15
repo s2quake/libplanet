@@ -1,8 +1,7 @@
 ﻿// using System.ComponentModel;
 // using System.Diagnostics.CodeAnalysis;
 // using System.Globalization;
-// using Bencodex.Types;
-
+//
 // namespace Libplanet.Serialization.Converters;
 
 // internal abstract class InternalTypeConverterBase<TType, TValueType> : TypeConverter
@@ -52,7 +51,7 @@
 //         {
 //             if (value is null)
 //             {
-//                 return Null.Value;
+//                 return null;
 //             }
 
 //             if (value is TType typeValue)

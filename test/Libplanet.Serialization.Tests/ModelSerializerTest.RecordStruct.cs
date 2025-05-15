@@ -8,8 +8,8 @@ public sealed partial class ModelSerializerTest
     public void ObjectRecordStruct_SerializeAndDeserialize_Test()
     {
         var expectedObject = new ObjectRecordStruct();
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ObjectRecordStruct>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<ObjectRecordStruct>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -21,8 +21,8 @@ public sealed partial class ModelSerializerTest
     {
         var random = new Random(seed);
         var expectedObject = new ObjectRecordStruct(random);
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ObjectRecordStruct>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<ObjectRecordStruct>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -30,8 +30,8 @@ public sealed partial class ModelSerializerTest
     public void ArrayRecordStruct_SerializeAndDeserialize_Test()
     {
         var expectedObject = new ArrayRecordStruct();
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ArrayRecordStruct>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<ArrayRecordStruct>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -43,8 +43,8 @@ public sealed partial class ModelSerializerTest
     {
         var random = new Random(seed);
         var expectedObject = new ArrayRecordStruct(random);
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<ArrayRecordStruct>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<ArrayRecordStruct>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -52,8 +52,8 @@ public sealed partial class ModelSerializerTest
     public void MixedRecordStruct_SerializeAndDeserialize_Test()
     {
         var expectedObject = new MixedRecordStruct();
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<MixedRecordStruct>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<MixedRecordStruct>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 
@@ -65,8 +65,8 @@ public sealed partial class ModelSerializerTest
     {
         var random = new Random(seed);
         var expectedObject = new MixedRecordStruct(random);
-        var serialized = ModelSerializer.Serialize(expectedObject);
-        var actualObject = ModelSerializer.Deserialize<MixedRecordStruct>(serialized)!;
+        var serialized = ModelSerializer.SerializeToBytes(expectedObject);
+        var actualObject = ModelSerializer.DeserializeFromBytes<MixedRecordStruct>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
 

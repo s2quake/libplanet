@@ -14,7 +14,7 @@ public sealed partial class ModelSerializerTest
     public void InvalidLegacyModel_SerializeAndDeserialize_ThrowTest(Type type)
     {
         var obj = Activator.CreateInstance(type);
-        Assert.Throws<ModelSerializationException>(() => ModelSerializer.Serialize(obj));
+        Assert.Throws<ModelSerializationException>(() => ModelSerializer.SerializeToBytes(obj));
     }
 
     // Last version cannot have Type property

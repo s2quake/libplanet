@@ -12,8 +12,6 @@ namespace Libplanet.Explorer.Tests.Queries;
 
 public partial class StateQueryTest
 {
-    private static readonly Codec _codec = new Codec();
-
     [Fact]
     public async Task World()
     {
@@ -72,14 +70,14 @@ public partial class StateQueryTest
         IDictionary<string, object> state =
             Assert.IsAssignableFrom<IDictionary<string, object>>(account["state"]);
         Assert.Equal(
-            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Value)),
             Assert.IsAssignableFrom<string>(state["hex"]));
 
         object[] states =
             Assert.IsAssignableFrom<object[]>(account["states"]);
         Assert.Equal(2, states.Length);
         Assert.Equal(
-            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Value)),
             Assert.IsAssignableFrom<string>(
                 Assert.IsAssignableFrom<IDictionary<string, object>>(states[0])["hex"]));
         Assert.Null(states[1]);
@@ -210,14 +208,14 @@ public partial class StateQueryTest
         IDictionary<string, object> state =
             Assert.IsAssignableFrom<IDictionary<string, object>>(account["state"]);
         Assert.Equal(
-            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Value)),
             Assert.IsAssignableFrom<string>(state["hex"]));
 
         object[] states =
             Assert.IsAssignableFrom<object[]>(account["states"]);
         Assert.Equal(2, states.Length);
         Assert.Equal(
-            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Value)),
             Assert.IsAssignableFrom<string>(
                 Assert.IsAssignableFrom<IDictionary<string, object>>(states[0])["hex"]));
         Assert.Null(states[1]);
@@ -258,14 +256,14 @@ public partial class StateQueryTest
         IDictionary<string, object> state =
             Assert.IsAssignableFrom<IDictionary<string, object>>(account["state"]);
         Assert.Equal(
-            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Value)),
             Assert.IsAssignableFrom<string>(state["hex"]));
 
         object[] states =
             Assert.IsAssignableFrom<object[]>(account["states"]);
         Assert.Equal(2, states.Length);
         Assert.Equal(
-            ByteUtility.Hex(_codec.Encode(Fixture.Value)),
+            ByteUtility.Hex(ModelSerializer.SerializeToBytes(Fixture.Value)),
             Assert.IsAssignableFrom<string>(
                 Assert.IsAssignableFrom<IDictionary<string, object>>(states[0])["hex"]));
         Assert.Null(states[1]);

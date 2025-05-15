@@ -39,8 +39,8 @@ public sealed partial class ModelSerializerTest
     [MemberData(nameof(PrimitiveValues))]
     public void PrimitiveValue_SerializeAndDeserialize_Test(object expectedValue)
     {
-        var serialized = ModelSerializer.Serialize(expectedValue);
-        var actualValue = ModelSerializer.Deserialize(serialized);
+        var serialized = ModelSerializer.SerializeToBytes(expectedValue);
+        var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
     }
 
@@ -48,8 +48,8 @@ public sealed partial class ModelSerializerTest
     [MemberData(nameof(PrimitiveDefaultValues))]
     public void PrimitiveDefaultValue_SerializeAndDeserialize_Test(object expectedValue)
     {
-        var serialized = ModelSerializer.Serialize(expectedValue);
-        var actualValue = ModelSerializer.Deserialize(serialized);
+        var serialized = ModelSerializer.SerializeToBytes(expectedValue);
+        var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.True(Equals(expectedValue, actualValue));
     }
 }

@@ -91,7 +91,7 @@ public sealed record class FullNode
 
     // public IValue ToBencodex()
     // {
-    //     var items = Enumerable.Repeat<IValue>(Null.Value, MaximumIndex + 1).ToArray();
+    //     var items = Enumerable.Repeat<IValue>(null, MaximumIndex + 1).ToArray();
     //     foreach (var (key, value) in Children)
     //     {
     //         if (value is not null)

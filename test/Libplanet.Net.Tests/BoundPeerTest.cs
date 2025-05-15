@@ -1,4 +1,5 @@
 using System.Net;
+using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net.Tests
@@ -10,7 +11,7 @@ namespace Libplanet.Net.Tests
         {
             var expected = new BoundPeer(
                 new PrivateKey().PublicKey, new DnsEndPoint("0.0.0.0", 1234));
-            var deserialized = new BoundPeer(expected.Bencoded);
+            var deserialized = ModelSerializer.Clone(expected);
             Assert.Equal(expected, deserialized);
         }
 

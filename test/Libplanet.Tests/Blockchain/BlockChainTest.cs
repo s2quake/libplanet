@@ -332,7 +332,7 @@ public partial class BlockChainTest : IDisposable
         //     ActionRenderer = (a, __, nextState) =>
         //     {
         //         if (!(a is Dictionary dictionary &&
-        //               dictionary.TryGetValue((Text)"type_id", out IValue typeId) &&
+        //               dictionary.TryGetValue("type_id", out IValue typeId) &&
         //               typeId.Equals((Integer)2)))
         //         {
         //             throw new ThrowException.SomeException("thrown by renderer");

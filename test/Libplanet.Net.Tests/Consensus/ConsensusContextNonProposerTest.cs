@@ -33,7 +33,6 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async void NewHeightWithLastCommit()
         {
-            var codec = new Codec();
             var tipChanged = new AsyncAutoResetEvent();
             ConsensusProposalMsg? proposal = null;
             var heightTwoProposalSent = new AsyncAutoResetEvent();
@@ -108,7 +107,6 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async void HandleMessageFromHigherHeight()
         {
-            var codec = new Codec();
             ConsensusProposalMsg? proposal = null;
             var heightTwoStepChangedToPreVote = new AsyncAutoResetEvent();
             var heightTwoStepChangedToPreCommit = new AsyncAutoResetEvent();
@@ -248,7 +246,6 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async void UseLastCommitCacheIfHeightContextIsEmpty()
         {
-            var codec = new Codec();
             var heightTwoProposalSent = new AsyncAutoResetEvent();
             Block? proposedBlock = null;
 

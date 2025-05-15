@@ -79,7 +79,7 @@ public partial class BlockChainTest
         //         .GetAccount(ReservedAddresses.LegacyAccount)
         //         .GetValue));
         // Assert.Equal(
-        //     new IValue[] { (Text)"foo", null, null, null, (Integer)1 },
+        //     new IValue[] { "foo", null, null, null, (Integer)1 },
         //     addresses.Select(_blockChain
         //         .GetWorld(renders[0].NextState)
         //         .GetAccount(ReservedAddresses.LegacyAccount)
@@ -96,7 +96,7 @@ public partial class BlockChainTest
         //         .GetAccount(ReservedAddresses.LegacyAccount)
         //         .GetValue));
         // Assert.Equal(
-        //     new IValue[] { (Text)"foo", (Text)"bar", null, null, (Integer)1 },
+        //     new IValue[] { "foo", "bar", null, null, (Integer)1 },
         //     addresses.Select(
         //         _blockChain.GetWorld(renders[1].NextState)
         //             .GetAccount(ReservedAddresses.LegacyAccount).GetValue));
@@ -110,7 +110,7 @@ public partial class BlockChainTest
         //         _blockChain.GetWorld(renders[2].Context.PreviousState)
         //             .GetAccount(ReservedAddresses.LegacyAccount).GetValue));
         // Assert.Equal(
-        //     new IValue[] { (Text)"foo", (Text)"bar", (Text)"baz", null, (Integer)1 },
+        //     new IValue[] { "foo", "bar", "baz", null, (Integer)1 },
         //     addresses.Select(
         //         _blockChain
         //             .GetWorld(renders[2].NextState)
@@ -132,7 +132,7 @@ public partial class BlockChainTest
         // Assert.Equal(
         //     new IValue[]
         //     {
-        //         (Text)"foo", (Text)"bar", (Text)"baz", (Text)"qux", (Integer)1,
+        //         "foo", "bar", "baz", "qux", (Integer)1,
         //     },
         //     addresses.Select(
         //         _blockChain

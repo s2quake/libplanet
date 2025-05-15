@@ -26,7 +26,7 @@ public sealed class AssemblyActionLoader : IActionLoader
         // {
         //     IAction action;
         //     if (value is Dictionary pv &&
-        //         pv.TryGetValue((Text)"type_id", out var rawTypeId) &&
+        //         pv.TryGetValue("type_id", out var rawTypeId) &&
         //         rawTypeId is byte[] typeId &&
         //         Types.TryGetValue(typeId, out var actionType))
         //     {

@@ -1,6 +1,5 @@
 ﻿// using System.Globalization;
-// using Bencodex.Types;
-// using Libplanet.Serialization;
+// // using Libplanet.Serialization;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Crypto;
 // using Libplanet.Types.Tx;
@@ -64,7 +63,7 @@
 
 //     public static BigInteger ToBigInteger(List list, int index) => ((Integer)list[index]).Value;
 
-//     public static string GetString(List list, int index) => (Text)list[index];
+//     public static string GetString(List list, int index) => list[index];
 
 //     public static bool ToBoolean(List list, int index) => (Bencodex.Types.Boolean)list[index];
 
