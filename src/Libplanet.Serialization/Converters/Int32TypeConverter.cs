@@ -1,8 +1,8 @@
-﻿// namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.Converters;
 
-// internal sealed class Int32TypeConverter : InternalTypeConverterBase<int, Bencodex.Types.Integer>
-// {
-//     protected override int ConvertFromValue(Bencodex.Types.Integer value) => checked((int)value.Value);
+internal sealed class Int32TypeConverter : InternalTypeConverterBase<int>
+{
+    protected override int ConvertFromValue(byte[] value) => BitConverter.ToInt32(value, 0);
 
-//     protected override Bencodex.Types.Integer ConvertToValue(int value) => new(value);
-// }
+    protected override byte[] ConvertToValue(int value) => BitConverter.GetBytes(value);
+}

@@ -1,9 +1,10 @@
-﻿// namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.Converters;
 
-// internal sealed class DateTimeOffsetTypeConverter : InternalTypeConverterBase<DateTimeOffset, Bencodex.Types.Integer>
-// {
-//     protected override DateTimeOffset ConvertFromValue(Bencodex.Types.Integer value)
-//         => new(checked((long)value.Value), TimeSpan.Zero);
+internal sealed class DateTimeOffsetTypeConverter : InternalTypeConverterBase<DateTimeOffset>
+{
+    protected override DateTimeOffset ConvertFromValue(byte[] value)
+        => new(BitConverter.ToInt64(value, 0), TimeSpan.Zero);
 
-//     protected override Bencodex.Types.Integer ConvertToValue(DateTimeOffset value) => new(value.UtcTicks);
-// }
+    protected override byte[] ConvertToValue(DateTimeOffset value)
+        => BitConverter.GetBytes(value.UtcTicks);
+}

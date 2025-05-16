@@ -1,9 +1,9 @@
-﻿// namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.Converters;
 
-// internal sealed class TimeSpanTypeConverter : InternalTypeConverterBase<TimeSpan, Bencodex.Types.Integer>
-// {
-//     protected override TimeSpan ConvertFromValue(Bencodex.Types.Integer value)
-//         => new(checked((long)value.Value));
+internal sealed class TimeSpanTypeConverter : InternalTypeConverterBase<TimeSpan>
+{
+    protected override TimeSpan ConvertFromValue(byte[] value)
+        => new(BitConverter.ToInt64(value, 0));
 
-//     protected override Bencodex.Types.Integer ConvertToValue(TimeSpan value) => new(value.Ticks);
-// }
+    protected override byte[] ConvertToValue(TimeSpan value) => BitConverter.GetBytes(value.Ticks);
+}

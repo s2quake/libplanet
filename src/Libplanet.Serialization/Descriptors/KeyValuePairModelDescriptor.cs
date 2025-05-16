@@ -6,42 +6,37 @@ internal sealed class KeyValuePairModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsKeyValuePair(type);
 
-    public override IEnumerable<Type> GetTypes(Type type, int length)
+    public override Type[] GetTypes(Type type, out bool isArray)
     {
+        isArray = false;
         var genericArguments = type.GetGenericArguments();
-        if (genericArguments.Length != length)
+        if (genericArguments.Length != 2)
         {
             throw new ModelSerializationException(
                 $"The number of generic arguments {genericArguments.Length} does not match " +
-                $"the number of tuple items {length}");
+                $"the number of tuple items 2");
         }
 
-        for (var i = 0; i < genericArguments.Length; i++)
-        {
-            yield return genericArguments[i];
-        }
+        return [genericArguments[0], genericArguments[1]];
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
+    public override object?[] GetValues(object obj, Type type)
     {
-        var genericArguments = type.GetGenericArguments();
         if (type.GetProperty(nameof(KeyValuePair<string, string>.Key)) is not { } keyProperty)
         {
             throw new UnreachableException("Key property not found");
         }
-
-        yield return (genericArguments[0], keyProperty.GetValue(obj));
 
         if (type.GetProperty(nameof(KeyValuePair<string, string>.Value)) is not { } valueProperty)
         {
             throw new UnreachableException("Value property not found");
         }
 
-        yield return (genericArguments[1], valueProperty.GetValue(obj));
+        return [keyProperty.GetValue(obj), valueProperty.GetValue(obj)];
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values)
-        => TypeUtility.CreateInstance(type, args: [.. values]);
+    public override object CreateInstance(Type type, object?[] values)
+        => TypeUtility.CreateInstance(type, args: [values[0], values[1]]);
 
     public override bool Equals(object obj1, object obj2, Type type)
     {

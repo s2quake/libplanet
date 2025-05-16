@@ -6,23 +6,20 @@ internal sealed class TupleModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsTuple(type) || IsValueTupleType(type);
 
-    public override IEnumerable<Type> GetTypes(Type type, int length)
+    public override Type[] GetTypes(Type type, out bool isArray)
     {
+        isArray = false;
         var genericArguments = type.GetGenericArguments();
-        if (genericArguments.Length != length)
+        if (genericArguments.Length == 0)
         {
             throw new ModelSerializationException(
-                $"The number of generic arguments {genericArguments.Length} does not match " +
-                $"the number of tuple items {length}");
+                $"The type {type} does not have any generic arguments");
         }
 
-        for (var i = 0; i < genericArguments.Length; i++)
-        {
-            yield return genericArguments[i];
-        }
+        return genericArguments;
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
+    public override object?[] GetValues(object obj, Type type)
     {
         var genericArguments = type.GetGenericArguments();
         if (obj is not ITuple tuple)
@@ -38,16 +35,17 @@ internal sealed class TupleModelDescriptor : ModelDescriptor
                 $"the number of tuple items {tuple.Length}");
         }
 
+        var values = new object?[genericArguments.Length];
         for (var i = 0; i < genericArguments.Length; i++)
         {
-            var item = tuple[i];
-            var itemType = genericArguments[i];
-            yield return (itemType, item);
+            values[i] = tuple[i];
         }
+
+        return values;
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values)
-        => TypeUtility.CreateInstance(type, args: [.. values]);
+    public override object CreateInstance(Type type, object?[] values)
+        => TypeUtility.CreateInstance(type, args: values);
 
     public override bool Equals(object obj1, object obj2, Type type)
     {

@@ -1,8 +1,10 @@
-﻿// namespace Libplanet.Serialization.Converters;
+﻿using System.Text;
 
-// internal sealed class StringTypeConverter : InternalTypeConverterBase<string, Bencodex.Types.Text>
-// {
-//     protected override string ConvertFromValue(Bencodex.Types.Text value) => value.Value;
+namespace Libplanet.Serialization.Converters;
 
-//     protected override Bencodex.Types.Text ConvertToValue(string value) => new(value);
-// }
+internal sealed class StringTypeConverter : InternalTypeConverterBase<string>
+{
+    protected override string ConvertFromValue(byte[] value) => Encoding.UTF8.GetString(value);
+
+    protected override byte[] ConvertToValue(string value) => Encoding.UTF8.GetBytes(value);
+}
