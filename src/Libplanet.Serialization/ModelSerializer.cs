@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-// using Libplanet.Serialization.Converters;
+using Libplanet.Serialization.Converters;
 using Libplanet.Serialization.Extensions;
 using static Libplanet.Serialization.ModelResolver;
 
@@ -9,19 +9,30 @@ namespace Libplanet.Serialization;
 
 public static class ModelSerializer
 {
+    private enum DataType : byte
+    {
+        Null,
+
+        Enum,
+
+        Converter,
+
+        Descriptor,
+
+        Value,
+    }
+
     static ModelSerializer()
     {
-        // AddTypeConverter(typeof(BigInteger), typeof(BigIntegerTypeConverter));
-        // AddTypeConverter(typeof(bool), typeof(BooleanTypeConverter));
-        // AddTypeConverter(typeof(byte[]), typeof(ByteArrayTypeConverter));
-        // AddTypeConverter(typeof(byte), typeof(ByteTypeConverter));
-        // AddTypeConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetTypeConverter));
-        // AddTypeConverter(typeof(Guid), typeof(GuidTypeConverter));
-        // AddTypeConverter(typeof(ImmutableArray<byte>), typeof(ImmutableByteArrayTypeConverter));
-        // AddTypeConverter(typeof(int), typeof(Int32TypeConverter));
-        // AddTypeConverter(typeof(long), typeof(Int64TypeConverter));
-        // AddTypeConverter(typeof(string), typeof(StringTypeConverter));
-        // AddTypeConverter(typeof(TimeSpan), typeof(TimeSpanTypeConverter));
+        AddTypeConverter(typeof(BigInteger), typeof(BigIntegerTypeConverter));
+        AddTypeConverter(typeof(bool), typeof(BooleanTypeConverter));
+        AddTypeConverter(typeof(byte), typeof(ByteTypeConverter));
+        AddTypeConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetTypeConverter));
+        AddTypeConverter(typeof(Guid), typeof(GuidTypeConverter));
+        AddTypeConverter(typeof(int), typeof(Int32TypeConverter));
+        AddTypeConverter(typeof(long), typeof(Int64TypeConverter));
+        AddTypeConverter(typeof(string), typeof(StringTypeConverter));
+        AddTypeConverter(typeof(TimeSpan), typeof(TimeSpanTypeConverter));
 
         static void AddTypeConverter(Type type, Type converterType)
         {
@@ -141,8 +152,8 @@ public static class ModelSerializer
     {
         var data = new ModelData
         {
-            TypeName = ModelResolver.GetTypeName(type),
-            Version = ModelResolver.GetVersion(type),
+            TypeName = GetTypeName(type),
+            Version = GetVersion(type),
         };
 
         data.Write(stream);
@@ -156,11 +167,11 @@ public static class ModelSerializer
         {
             if (obj is null)
             {
-                stream.WriteByte(0);
+                stream.WriteByte((byte)DataType.Null);
             }
             else
             {
-                stream.WriteByte(1);
+                stream.WriteByte((byte)DataType.Value);
                 SerializeRawValue(stream, obj, nullableType);
             }
         }
@@ -168,10 +179,11 @@ public static class ModelSerializer
         {
             if (obj is null)
             {
-                stream.WriteNull();
+                stream.WriteByte((byte)DataType.Null);
             }
             else if (type.IsEnum)
             {
+                stream.WriteByte((byte)DataType.Enum);
                 stream.WriteEnum(obj, type);
             }
             else if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(byte[])))
@@ -181,34 +193,41 @@ public static class ModelSerializer
                     throw new ModelSerializationException($"Failed to convert {obj} to {type}");
                 }
 
+                stream.WriteByte((byte)DataType.Converter);
+                stream.WriteInt32(bytes.Length);
                 stream.Write(bytes, 0, bytes.Length);
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {
-                var length = 0;
-                var items = descriptor.GetValues(obj, type);
-                var position = stream.Position;
-                stream.WriteInt32(0);
+                var itemTypes = descriptor.GetTypes(type, out var isArray);
+                var values = descriptor.GetValues(obj, type);
+                var length = values.Length;
+                stream.WriteByte((byte)DataType.Descriptor);
+                stream.WriteInt32(length);
 
-                foreach (var item in items)
+                if (isArray && itemTypes.Length != 1)
                 {
-                    var actualType = GetActualType(item.Type, item.Value);
-                    if (item.Type != actualType)
+                    throw new ModelSerializationException(
+                        $"The number of types ({itemTypes.Length}) does not match the number of items " +
+                        $"({values.Length})");
+                }
+
+                for (var i = 0; i < values.Length; i++)
+                {
+                    var itemType = isArray ? itemTypes[0] : itemTypes[i];
+                    var value = values[i];
+                    var actualType = GetActualType(itemType, value);
+                    if (itemType != actualType)
                     {
-                        Serialize(stream, item.Value);
+                        Serialize(stream, value);
                     }
                     else
                     {
-                        SerializeRawValue(stream, item.Value, item.Type);
+                        SerializeRawValue(stream, value, itemType);
                     }
-
-                    length++;
                 }
 
-                var endPosition = stream.Position;
-                stream.Position = position;
-                stream.WriteInt32(length);
-                stream.Position = endPosition;
+                System.Diagnostics.Trace.WriteLine($"{type} {stream.Position}");
             }
             else
             {
@@ -221,11 +240,12 @@ public static class ModelSerializer
     {
         if (Nullable.GetUnderlyingType(type) is { } nullableType)
         {
-            if (stream.ReadByte() == 0)
+            var dataType = (DataType)stream.ReadByte();
+            if (dataType == DataType.Null)
             {
                 return null;
             }
-            else if (stream.ReadByte() == 1)
+            else if (dataType == DataType.Value)
             {
                 return DeserializeRawValue(stream, nullableType);
             }
@@ -236,28 +256,73 @@ public static class ModelSerializer
         }
         else
         {
-            if (stream.PeekByte() == 0)
+            var dataType = (DataType)stream.ReadByte();
+            if (dataType == DataType.Null)
             {
-                stream.ReadByte();
                 return null;
             }
             else if (type.IsEnum)
             {
+                if (dataType != DataType.Enum)
+                {
+                    throw new ModelSerializationException(
+                        $"Invalid stream for enum type {type}");
+                }
+
                 return stream.ReadEnum(type);
             }
             else if (TypeDescriptor.GetConverter(type) is TypeConverter converter
                 && converter.CanConvertFrom(typeof(byte[])))
             {
-                return converter.ConvertFrom(stream);
+                if (dataType != DataType.Converter)
+                {
+                    throw new ModelSerializationException(
+                        $"Invalid stream for converter type {type}");
+                }
+
+                var length = stream.ReadInt32();
+                Span<byte> buffer = stackalloc byte[length];
+                if (stream.Read(buffer) != length)
+                {
+                    throw new ModelSerializationException(
+                        $"Failed to read {length} bytes from stream");
+                }
+
+                return converter.ConvertFrom(buffer.ToArray());
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {
-                var length = stream.ReadInt32();
-                var values = descriptor.GetTypes(type, length).Select((itemType, i) =>
+                if (dataType != DataType.Descriptor)
                 {
-                    return ModelData.IsData(stream)
+                    throw new ModelSerializationException(
+                        $"Invalid stream for descriptor type {type}");
+                }
+
+                var length = stream.ReadInt32();
+                var itemTypes = descriptor.GetTypes(type, out var isArray);
+                if (isArray && itemTypes.Length != 1)
+                {
+                    throw new ModelSerializationException(
+                        $"The number of types ({itemTypes.Length}) does not match the number of items " +
+                        $"({length})");
+                }
+
+                if (!isArray && length != itemTypes.Length)
+                {
+                    throw new ModelSerializationException(
+                        $"The number of items ({length}) does not match the number of types " +
+                        $"({itemTypes.Length})");
+                }
+
+                var values = new object?[length];
+                for (var i = 0; i < length; i++)
+                {
+                    var itemType = isArray ? itemTypes[0] : itemTypes[i];
+                    values[i] = ModelData.IsData(stream)
                         ? Deserialize(stream) : DeserializeRawValue(stream, itemType);
-                });
+                }
+
+                System.Diagnostics.Trace.WriteLine($"{type} {stream.Position}");
 
                 return descriptor.CreateInstance(type, values);
             }
@@ -267,10 +332,6 @@ public static class ModelSerializer
                               $"{stream.GetType()} to {type}";
                 throw new ModelSerializationException(message);
             }
-
-            throw new ModelSerializationException(
-                $"Unsupported type {type}. Cannot convert value of type " +
-                $"{stream.GetType()} to {type}");
         }
     }
 

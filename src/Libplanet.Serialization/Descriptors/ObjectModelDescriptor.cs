@@ -7,23 +7,54 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
     public override bool CanSerialize(Type type)
         => type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute));
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values)
+    public override Type[] GetTypes(Type type, out bool isArray)
     {
-        var obj = TypeUtility.CreateInstance(type);
-        var i = 0;
-        var enumerator = values.GetEnumerator();
+        isArray = false;
         var propertyInfos = ModelResolver.GetProperties(type);
-        while (enumerator.MoveNext())
+        var types = new Type[propertyInfos.Length];
+        for (var i = 0; i < propertyInfos.Length; i++)
         {
-            var propertyInfo = type.GetProperties()[i];
-            propertyInfo.SetValue(obj, enumerator.Current);
-            i++;
+            types[i] = propertyInfos[i].PropertyType;
         }
 
-        if (i != propertyInfos.Length)
+        return types;
+    }
+
+    public override object?[] GetValues(object obj, Type type)
+    {
+        if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute
+            && !legacyModelAttribute.AllowSerialization)
+        {
+            throw new ModelSerializationException("LegacyModelAttribute is not supported");
+        }
+
+        var propertyInfos = ModelResolver.GetProperties(type);
+        var values = new object?[propertyInfos.Length];
+        for (var i = 0; i < propertyInfos.Length; i++)
+        {
+            var propertyInfo = propertyInfos[i];
+            var value = propertyInfo.GetValue(obj);
+            values[i] = value;
+        }
+
+        return values;
+    }
+
+    public override object CreateInstance(Type type, object?[] values)
+    {
+        var obj = TypeUtility.CreateInstance(type);
+        var propertyInfos = ModelResolver.GetProperties(type);
+        if (propertyInfos.Length != values.Length)
         {
             throw new ModelSerializationException(
-                $"The number of values ({i}) does not match the number of properties ({propertyInfos.Length})");
+                $"The number of properties ({propertyInfos.Length}) does not match the number of values ({values.Length})");
+        }
+
+        for (var i = 0; i < propertyInfos.Length; i++)
+        {
+            var propertyInfo = propertyInfos[i];
+            var value = values[i];
+            propertyInfo.SetValue(obj, value);
         }
 
         if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute)
@@ -41,35 +72,6 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
         }
 
         return obj;
-    }
-
-    public override IEnumerable<Type> GetTypes(Type type, int length)
-    {
-        if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute)))
-        {
-            var propertyInfos = ModelResolver.GetProperties(type);
-            foreach (var propertyInfo in propertyInfos)
-            {
-                yield return propertyInfo.PropertyType;
-            }
-        }
-    }
-
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
-    {
-        if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute
-            && !legacyModelAttribute.AllowSerialization)
-        {
-            throw new ModelSerializationException("LegacyModelAttribute is not supported");
-        }
-
-        var propertyInfos = ModelResolver.GetProperties(type);
-        foreach (var propertyInfo in propertyInfos)
-        {
-            var item = propertyInfo.GetValue(obj);
-            var itemType = propertyInfo.PropertyType;
-            yield return (itemType, item);
-        }
     }
 
     public override bool Equals(object obj1, object obj2, Type type)

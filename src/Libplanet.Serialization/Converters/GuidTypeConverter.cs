@@ -1,8 +1,8 @@
-﻿// namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.Converters;
 
-// internal sealed class GuidTypeConverter : InternalTypeConverterBase<Guid, Bencodex.Types.Binary>
-// {
-//     protected override Guid ConvertFromValue(Bencodex.Types.Binary value) => new([.. value]);
+internal sealed class GuidTypeConverter : InternalTypeConverterBase<Guid>
+{
+    protected override Guid ConvertFromValue(byte[] value) => new(value);
 
-//     protected override Bencodex.Types.Binary ConvertToValue(Guid value) => new(value.ToByteArray());
-// }
+    protected override byte[] ConvertToValue(Guid value) => value.ToByteArray();
+}

@@ -8,32 +8,35 @@ internal sealed class ImmutableArrayModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsImmutableArray(type);
 
-    public override IEnumerable<Type> GetTypes(Type type, int length)
+    public override Type[] GetTypes(Type type,out bool isArray)
     {
-        var elementType = GetElementType(type);
-        for (var i = 0; i < length; i++)
-        {
-            yield return elementType;
-        }
+        isArray = true;
+        return [GetElementType(type)];
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
+    public override object?[] GetValues(object obj, Type type)
     {
         if (obj is IList items)
         {
-            var elementType = GetElementType(type);
+            var values = new object?[items.Count];
             for (var i = 0; i < items.Count; i++)
             {
-                yield return (elementType, items[i]);
+                values[i] = items[i];
             }
+
+            return values;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Cannot get values from {obj.GetType()}");
         }
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values)
+    public override object CreateInstance(Type type, object?[] values)
     {
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);
-        var listInstance = (IList)TypeUtility.CreateInstance(listType, args: [values.Count()])!;
+        var listInstance = (IList)TypeUtility.CreateInstance(listType, args: [values.Length])!;
         var methodName = nameof(ImmutableArray.CreateRange);
         var methodInfo = GetCreateRangeMethod(
             typeof(ImmutableArray), methodName, typeof(IEnumerable<>));

@@ -8,32 +8,37 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsImmutableSortedDictionary(type);
 
-    public override IEnumerable<Type> GetTypes(Type type, int length)
+    public override Type[] GetTypes(Type type,out bool isArray)
     {
-        var elementType = GetElementType(type);
-        for (var i = 0; i < length; i++)
-        {
-            yield return elementType;
-        }
+        isArray = true;
+        return [GetElementType(type)];
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
+    public override object?[] GetValues(object obj, Type type)
     {
-        if (obj is IEnumerable items)
+        if (obj is ICollection items)
         {
-            var elementType = GetElementType(type);
-            foreach (var item in items)
+            var values = new object?[items.Count];
+            var i = 0;
+            var enumerator = items.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                yield return (elementType, item);
+                values[i++] = enumerator.Current;
             }
+
+            return values;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Cannot get values from {obj.GetType()}");
         }
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values)
+    public override object CreateInstance(Type type, object?[] values)
     {
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);
-        var listInstance = (IList)TypeUtility.CreateInstance(listType, args: [values.Count()])!;
+        var listInstance = (IList)TypeUtility.CreateInstance(listType, args: [values.Length])!;
         var methodName = nameof(ImmutableSortedDictionary.CreateRange);
         var methodInfo = GetCreateRangeMethod(
             typeof(ImmutableSortedDictionary), methodName, typeof(IEnumerable<>));

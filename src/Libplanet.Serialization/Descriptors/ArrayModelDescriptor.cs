@@ -7,35 +7,36 @@ internal sealed class ArrayModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsArray(type);
 
-    public override IEnumerable<Type> GetTypes(Type type, int length)
+    public override Type[] GetTypes(Type type, out bool isArray)
     {
-        var elementType = type.GetElementType()!;
-        for (var i = 0; i < length; i++)
-        {
-            yield return elementType;
-        }
+        isArray = true;
+        return [type.GetElementType()!];
     }
 
-    public override IEnumerable<(Type Type, object? Value)> GetValues(object obj, Type type)
+    public override object?[] GetValues(object obj, Type type)
     {
         if (obj is IList items)
         {
-            var elementType = items.GetType().GetElementType()!;
+            var values = new object?[items.Count];
             for (var i = 0; i < items.Count; i++)
             {
-                yield return (elementType, items[i]);
+                values[i] = items[i];
             }
+
+            return values;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Cannot get values from {obj.GetType()}");
         }
     }
 
-    public override object CreateInstance(Type type, IEnumerable<object?> values)
+    public override object CreateInstance(Type type, object?[] values)
     {
-        var array = Array.CreateInstance(type.GetElementType()!, values.Count());
-        var i = 0;
-        var enumerator = values.GetEnumerator();
-        while (enumerator.MoveNext())
+        var array = Array.CreateInstance(type.GetElementType()!, values.Length);
+        for (var i = 0; i < values.Length; i++)
         {
-            array.SetValue(enumerator.Current, i++);
+            array.SetValue(values[i], i);
         }
 
         return array;

@@ -1,8 +1,8 @@
-﻿// namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.Converters;
 
-// internal sealed class BooleanTypeConverter : InternalTypeConverterBase<bool, Bencodex.Types.Boolean>
-// {
-//     protected override bool ConvertFromValue(Bencodex.Types.Boolean value) => value.Value;
+internal sealed class BooleanTypeConverter : InternalTypeConverterBase<bool>
+{
+    protected override bool ConvertFromValue(byte[] value) => BitConverter.ToBoolean(value, 0);
 
-//     protected override Bencodex.Types.Boolean ConvertToValue(bool value) => new(value);
-// }
+    protected override byte[] ConvertToValue(bool value) => BitConverter.GetBytes(value);
+}
