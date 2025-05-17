@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
@@ -245,6 +246,6 @@ public class MerkleTrieProofTest
 
     private HashNode ToHashNode(INode node) => new()
     {
-        Hash = HashDigest<SHA256>.Create(node.Serialize()),
+        Hash = HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(node)),
     };
 }

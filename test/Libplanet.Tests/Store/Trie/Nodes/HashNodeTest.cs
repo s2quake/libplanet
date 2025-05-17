@@ -1,21 +1,23 @@
-// using System.Security.Cryptography;
-// // using Libplanet.Store.Trie.Nodes;
-// using Libplanet.Types;
+using System.Security.Cryptography;
+using Libplanet.Serialization;
+using Libplanet.Store.Trie.Nodes;
+using Libplanet.Types;
 
-// namespace Libplanet.Tests.Store.Trie.Nodes
-// {
-//     public class HashNodeTest
-//     {
-//         [Fact]
-//         public void ToBencodex()
-//         {
-//             var buf = new byte[128];
-//             var random = new Random();
-//             random.NextBytes(buf);
-//             var hashDigest = HashDigest<SHA256>.Create(buf);
+namespace Libplanet.Tests.Store.Trie.Nodes;
 
-//             var valueNode = new HashNode { Hash = hashDigest };
-//             Assert.Equal((Binary)hashDigest.Bytes.ToArray(), valueNode.ToBencodex());
-//         }
-//     }
-// }
+public class HashNodeTest
+{
+    [Fact]
+    public void ToBencodex()
+    {
+        var buf = new byte[128];
+        var random = new Random();
+        random.NextBytes(buf);
+        var hashDigest = HashDigest<SHA256>.Create(buf);
+
+        var expectedNode = new HashNode { Hash = hashDigest };
+        var actualNode = ModelSerializer.Clone(expectedNode);
+        Assert.Equal(expectedNode.Hash, actualNode.Hash);
+        Assert.Equal(expectedNode, actualNode);
+    }
+}

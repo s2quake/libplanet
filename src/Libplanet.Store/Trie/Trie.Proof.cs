@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie.Nodes;
 using Libplanet.Types;
 
@@ -153,7 +154,7 @@ public partial record class Trie
         bool first)
     {
         // IValue bencoded = proofNode.ToBencodex();
-        byte[] bytes = proofNode.Serialize();
+        byte[] bytes = ModelSerializer.SerializeToBytes(proofNode);
 
         // Only the first node in the proof is allowed to be have an encoding
         // length less than SHA256's size.

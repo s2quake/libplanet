@@ -14,6 +14,4 @@ internal sealed record class NullNode : INode
     IEnumerable<INode> INode.Children => [];
 
     public HashDigest<SHA256> Hash => default;
-
-    public byte[] Serialize() => [0];
 }
