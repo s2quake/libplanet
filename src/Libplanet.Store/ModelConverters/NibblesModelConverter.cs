@@ -2,7 +2,6 @@ using System.IO;
 using Libplanet.Serialization;
 using Libplanet.Serialization.Extensions;
 using Libplanet.Store.Trie;
-using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store.ModelConverters;
 

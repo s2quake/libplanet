@@ -8,7 +8,7 @@ internal sealed class ImmutableArrayModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type) => IsImmutableArray(type);
 
-    public override Type[] GetTypes(Type type,out bool isArray)
+    public override Type[] GetTypes(Type type, out bool isArray)
     {
         isArray = true;
         return [GetElementType(type)];
