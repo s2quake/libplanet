@@ -63,7 +63,7 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
                 return false;
             }
 
-            return signer.Equals(new PublicKey([.. serializedKey]).Address);
+            return signer.Equals(new PublicKey(serializedKey.ToImmutableArray()).Address);
         }
     }
 

@@ -4,13 +4,16 @@ using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Threading;
+using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
+using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types;
 
 [TypeConverter(typeof(HashDigestTypeConverter))]
 [JsonConverter(typeof(HashDigestJsonConverter))]
+[ModelConverter(typeof(HashDigestModelConverter))]
 public readonly record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
     : IEquatable<HashDigest<T>>, IFormattable
     where T : HashAlgorithm

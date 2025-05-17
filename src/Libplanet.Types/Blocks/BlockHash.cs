@@ -1,13 +1,16 @@
 using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
+using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
+using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types.Blocks;
 
 [JsonConverter(typeof(BlockHashJsonConverter))]
 [TypeConverter(typeof(BlockHashTypeConverter))]
+[ModelConverter(typeof(BlockHashModelConverter))]
 public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
     : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IFormattable
 {

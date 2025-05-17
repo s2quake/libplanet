@@ -85,7 +85,7 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
 
     public byte[] Decrypt(byte[] ciphertext)
     {
-        var publicKey = new PublicKey([.. ciphertext.Take(33)]);
+        var publicKey = new PublicKey(ciphertext.Take(33).ToImmutableArray());
         var aes = ExchangeKey(publicKey);
         return aes.Decrypt(ciphertext, 33);
     }
