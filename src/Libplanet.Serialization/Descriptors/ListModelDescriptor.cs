@@ -1,12 +1,11 @@
 ﻿using System.Collections;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Libplanet.Serialization.Descriptors;
 
-internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
+internal sealed class ListModelDescriptor : ModelDescriptor
 {
-    public override bool CanSerialize(Type type) => IsImmutableSortedSet(type);
+    public override bool CanSerialize(Type type) => IsList(type);
 
     public override Type[] GetTypes(Type type, out bool isArray)
     {
@@ -37,34 +36,32 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);
         var listInstance = (IList)TypeUtility.CreateInstance(listType, args: [values.Length])!;
-        var methodName = nameof(ImmutableSortedSet.CreateRange);
-        var methodInfo = GetCreateRangeMethod(
-            typeof(ImmutableSortedSet), methodName, typeof(IEnumerable<>));
-        var genericMethodInfo = methodInfo.MakeGenericMethod(elementType);
         foreach (var value in values)
         {
             listInstance.Add(value);
         }
 
-        var methodArgs = new object?[] { listInstance };
-        return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
+        return listInstance;
     }
 
     public override bool Equals(object obj1, object obj2, Type type)
     {
-        var items1 = (IList)obj1;
-        var items2 = (IList)obj2;
-        if (items1.Count != items2.Count)
+        var list1 = (IList)obj1;
+        var list2 = (IList)obj2;
+        if (list1.GetType() != list2.GetType())
+        {
+            return false;
+        }
+
+        if (list1.Count != list2.Count)
         {
             return false;
         }
 
         var elementType = GetElementType(type);
-        for (var i = 0; i < items1.Count; i++)
+        for (var i = 0; i < list1.Count; i++)
         {
-            var item1 = items1[i];
-            var item2 = items2[i];
-            if (!ModelResolver.Equals(item1, item2, elementType))
+            if (!ModelResolver.Equals(list1[i], list2[i], elementType))
             {
                 return false;
             }
@@ -86,12 +83,12 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
         return hash.ToHashCode();
     }
 
-    private static bool IsImmutableSortedSet(Type type)
+    private static bool IsList(Type type)
     {
         if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(ImmutableSortedSet<>))
+            if (genericTypeDefinition == typeof(List<>))
             {
                 return true;
             }
@@ -105,33 +102,12 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
         if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(ImmutableSortedSet<>))
+            if (genericTypeDefinition == typeof(List<>))
             {
                 return type.GetGenericArguments()[0];
             }
         }
 
-        throw new UnreachableException("The type is not an ImmutableSortedSet.");
-    }
-
-    private static MethodInfo GetCreateRangeMethod(Type type, string methodName, Type parameterType)
-    {
-        var parameterName = parameterType.Name;
-        var bindingFlags = BindingFlags.Public | BindingFlags.Static;
-        var methodInfos = type.GetMethods(bindingFlags);
-
-        for (var i = 0; i < methodInfos.Length; i++)
-        {
-            var methodInfo = methodInfos[i];
-            var parameters = methodInfo.GetParameters();
-            if (methodInfo.Name == methodName &&
-                parameters.Length == 1 &&
-                parameters[0].ParameterType.Name == parameterName)
-            {
-                return methodInfo;
-            }
-        }
-
-        throw new NotSupportedException("The method is not found.");
+        throw new UnreachableException("The type is not an ImmutableArray.");
     }
 }
