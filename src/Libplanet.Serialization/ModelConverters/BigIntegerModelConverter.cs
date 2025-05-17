@@ -1,8 +1,26 @@
-﻿namespace Libplanet.Serialization.ModelConverters;
+﻿using System.IO;
+using Libplanet.Serialization.Extensions;
 
-internal sealed class BigIntegerTypeConverter : InternalModelConverterBase<BigInteger>
+namespace Libplanet.Serialization.ModelConverters;
+
+internal sealed class BigIntegerModelConverter : ModelConverterBase<BigInteger>
 {
-    protected override BigInteger ConvertFromValue(byte[] value) => new(value);
+    protected override BigInteger Deserialize(Stream stream)
+    {
+        var length = stream.ReadInt32();
+        Span<byte> bytes = stackalloc byte[length];
+        if (stream.Read(bytes) != length)
+        {
+            throw new EndOfStreamException("Failed to read the expected number of bytes.");
+        }
 
-    protected override byte[] ConvertToValue(BigInteger value) => value.ToByteArray();
+        return new BigInteger(bytes.ToArray());
+    }
+
+    protected override void Serialize(BigInteger obj, Stream stream)
+    {
+        var bytes = obj.ToByteArray();
+        stream.WriteInt32(bytes.Length);
+        stream.Write(bytes, 0, bytes.Length);
+    }
 }

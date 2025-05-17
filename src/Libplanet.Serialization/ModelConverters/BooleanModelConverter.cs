@@ -1,8 +1,20 @@
-﻿namespace Libplanet.Serialization.ModelConverters;
+﻿using System.IO;
 
-internal sealed class BooleanTypeConverter : InternalModelConverterBase<bool>
+namespace Libplanet.Serialization.ModelConverters;
+
+internal sealed class BooleanModelConverter : ModelConverterBase<bool>
 {
-    protected override bool ConvertFromValue(byte[] value) => BitConverter.ToBoolean(value, 0);
+    protected override bool Deserialize(Stream stream)
+    {
+        var value = stream.ReadByte();
+        return value switch
+        {
+            -1 => throw new EndOfStreamException("Failed to read a byte from the stream."),
+            0 => false,
+            1 => true,
+            _ => throw new InvalidDataException($"Invalid boolean value: {value}. Expected 0 or 1."),
+        };
+    }
 
-    protected override byte[] ConvertToValue(bool value) => BitConverter.GetBytes(value);
+    protected override void Serialize(bool obj, Stream stream) => stream.WriteByte(obj ? (byte)1 : (byte)0);
 }
