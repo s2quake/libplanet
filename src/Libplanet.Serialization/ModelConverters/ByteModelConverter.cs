@@ -1,6 +1,6 @@
-﻿namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class ByteTypeConverter : InternalTypeConverterBase<byte>
+internal sealed class ByteTypeConverter : InternalModelConverterBase<byte>
 {
     protected override byte ConvertFromValue(byte[] value) => value[0];
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -15,6 +16,7 @@ public static class ModelResolver
     private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _propertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
     private static readonly ConcurrentDictionary<Type, ModelDescriptor> _descriptorByType = [];
+    private static readonly ConcurrentDictionary<Type, IModelConverter> _converterByType = [];
     private static readonly ModelDescriptor[] _descriptors =
     [
         new ArrayModelDescriptor(),
@@ -106,6 +108,20 @@ public static class ModelResolver
         {
             throw new ModelSerializationException($"Failed to get properties for {type}", e);
         }
+    }
+
+    public static IModelConverter GetConverter(Type type) => _converterByType.GetOrAdd(type, CreateConverter);
+
+    public static bool TryGetConverter(Type type, [MaybeNullWhen(false)] out IModelConverter converter)
+    {
+        if (type.IsDefined(typeof(ModelConverterAttribute)))
+        {
+            converter = GetConverter(type);
+            return true;
+        }
+
+        converter = null;
+        return converter is not null;
     }
 
     public static bool Equals<T>(T left, T? right) => Equals(left, right, typeof(T));
@@ -365,5 +381,35 @@ public static class ModelResolver
         }
 
         return null;
+    }
+
+    private static IModelConverter CreateConverter(Type type)
+    {
+        if (type.GetCustomAttribute<ModelConverterAttribute>() is not { } attribute)
+        {
+            throw new ArgumentException(
+                $"Type {type} does not have a ModelConverterAttribute", nameof(type));
+        }
+
+        var converterType = attribute.ConverterType;
+        var constructorWithType = converterType.GetConstructor([typeof(Type)]);
+        if (constructorWithType is not null)
+        {
+            if (constructorWithType.Invoke([type]) is not IModelConverter converter)
+            {
+                throw new UnreachableException($"Cannot create converter for {type} using {converterType}");
+            }
+
+            return converter;
+        }
+        else
+        {
+            if (Activator.CreateInstance(converterType) is not IModelConverter converter)
+            {
+                throw new UnreachableException($"Cannot create converter for {type} using {converterType}");
+            }
+
+            return converter;
+        }
     }
 }

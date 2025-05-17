@@ -1,6 +1,6 @@
-﻿namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class BooleanTypeConverter : InternalTypeConverterBase<bool>
+internal sealed class BooleanTypeConverter : InternalModelConverterBase<bool>
 {
     protected override bool ConvertFromValue(byte[] value) => BitConverter.ToBoolean(value, 0);
 

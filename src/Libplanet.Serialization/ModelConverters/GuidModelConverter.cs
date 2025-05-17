@@ -1,6 +1,6 @@
-﻿namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class GuidTypeConverter : InternalTypeConverterBase<Guid>
+internal sealed class GuidTypeConverter : InternalModelConverterBase<Guid>
 {
     protected override Guid ConvertFromValue(byte[] value) => new(value);
 
