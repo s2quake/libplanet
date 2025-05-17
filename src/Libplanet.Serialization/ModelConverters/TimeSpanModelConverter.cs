@@ -1,9 +1,24 @@
-﻿namespace Libplanet.Serialization.ModelConverters;
+﻿using System.IO;
 
-internal sealed class TimeSpanTypeConverter : InternalModelConverterBase<TimeSpan>
+namespace Libplanet.Serialization.ModelConverters;
+
+internal sealed class TimeSpanModelConverter : ModelConverterBase<TimeSpan>
 {
-    protected override TimeSpan ConvertFromValue(byte[] value)
-        => new(BitConverter.ToInt64(value, 0));
+    protected override TimeSpan Deserialize(Stream stream)
+    {
+        var length = sizeof(long);
+        Span<byte> bytes = stackalloc byte[length];
+        if (stream.Read(bytes) != length)
+        {
+            throw new EndOfStreamException("Failed to read the expected number of bytes.");
+        }
 
-    protected override byte[] ConvertToValue(TimeSpan value) => BitConverter.GetBytes(value.Ticks);
+        return new TimeSpan(BitConverter.ToInt64(bytes));
+    }
+
+    protected override void Serialize(TimeSpan obj, Stream stream)
+    {
+        var bytes = BitConverter.GetBytes(obj.Ticks);
+        stream.Write(bytes, 0, bytes.Length);
+    }
 }

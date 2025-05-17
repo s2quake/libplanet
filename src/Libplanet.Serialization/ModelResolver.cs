@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -114,7 +115,7 @@ public static class ModelResolver
 
     public static bool TryGetConverter(Type type, [MaybeNullWhen(false)] out IModelConverter converter)
     {
-        if (type.IsDefined(typeof(ModelConverterAttribute)))
+        if (TypeDescriptor.GetAttributes(type)[typeof(ModelConverterAttribute)] is not null)
         {
             converter = GetConverter(type);
             return true;
@@ -385,7 +386,8 @@ public static class ModelResolver
 
     private static IModelConverter CreateConverter(Type type)
     {
-        if (type.GetCustomAttribute<ModelConverterAttribute>() is not { } attribute)
+        var attributes = TypeDescriptor.GetAttributes(type);
+        if (attributes[typeof(ModelConverterAttribute)] is not ModelConverterAttribute attribute)
         {
             throw new ArgumentException(
                 $"Type {type} does not have a ModelConverterAttribute", nameof(type));

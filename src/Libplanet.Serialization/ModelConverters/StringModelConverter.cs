@@ -1,10 +1,27 @@
-﻿using System.Text;
+﻿using System.IO;
+using System.Text;
+using Libplanet.Serialization.Extensions;
 
 namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class StringTypeConverter : InternalModelConverterBase<string>
+internal sealed class StringModelConverter : ModelConverterBase<string>
 {
-    protected override string ConvertFromValue(byte[] value) => Encoding.UTF8.GetString(value);
+    protected override string Deserialize(Stream stream)
+    {
+        var length = stream.ReadInt32();
+        Span<byte> bytes = stackalloc byte[length];
+        if (stream.Read(bytes) != length)
+        {
+            throw new EndOfStreamException("Failed to read the expected number of bytes.");
+        }
 
-    protected override byte[] ConvertToValue(string value) => Encoding.UTF8.GetBytes(value);
+        return Encoding.UTF8.GetString(bytes);
+    }
+
+    protected override void Serialize(string obj, Stream stream)
+    {
+        var bytes = Encoding.UTF8.GetBytes(obj);
+        stream.WriteInt32(bytes.Length);
+        stream.Write(bytes, 0, bytes.Length);
+    }
 }

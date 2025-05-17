@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using Libplanet.Serialization.Converters;
 using Libplanet.Serialization.Extensions;
+using Libplanet.Serialization.ModelConverters;
 using static Libplanet.Serialization.ModelResolver;
 
 namespace Libplanet.Serialization;
@@ -24,17 +24,17 @@ public static class ModelSerializer
 
     static ModelSerializer()
     {
-        AddTypeConverter(typeof(BigInteger), typeof(BigIntegerTypeConverter));
-        AddTypeConverter(typeof(bool), typeof(BooleanTypeConverter));
-        AddTypeConverter(typeof(byte), typeof(ByteTypeConverter));
-        AddTypeConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetTypeConverter));
-        AddTypeConverter(typeof(Guid), typeof(GuidTypeConverter));
-        AddTypeConverter(typeof(int), typeof(Int32TypeConverter));
-        AddTypeConverter(typeof(long), typeof(Int64TypeConverter));
-        AddTypeConverter(typeof(string), typeof(StringTypeConverter));
-        AddTypeConverter(typeof(TimeSpan), typeof(TimeSpanTypeConverter));
+        AddModelConverter(typeof(BigInteger), typeof(BigIntegerModelConverter));
+        AddModelConverter(typeof(bool), typeof(BooleanModelConverter));
+        AddModelConverter(typeof(byte), typeof(ByteModelConverter));
+        AddModelConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetModelConverter));
+        AddModelConverter(typeof(Guid), typeof(GuidModelConverter));
+        AddModelConverter(typeof(int), typeof(Int32ModelConverter));
+        AddModelConverter(typeof(long), typeof(Int64ModelConverter));
+        AddModelConverter(typeof(string), typeof(StringModelConverter));
+        AddModelConverter(typeof(TimeSpan), typeof(TimeSpanModelConverter));
 
-        static void AddTypeConverter(Type type, Type converterType)
+        static void AddModelConverter(Type type, Type converterType)
         {
             TypeDescriptor.AddAttributes(type, new ModelConverterAttribute(converterType));
         }
@@ -190,6 +190,7 @@ public static class ModelSerializer
             {
                 stream.WriteByte((byte)DataType.Converter);
                 converter.Serialize(obj, stream);
+                System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {
@@ -221,7 +222,7 @@ public static class ModelSerializer
                     }
                 }
 
-                System.Diagnostics.Trace.WriteLine($"{type} {stream.Position}");
+                System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
             }
             else
             {
@@ -273,7 +274,9 @@ public static class ModelSerializer
                         $"Invalid stream for converter type {type}");
                 }
 
-                return converter.Deserialize(stream);
+                var value = converter.Deserialize(stream);
+                System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
+                return value;
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {
@@ -307,7 +310,7 @@ public static class ModelSerializer
                         ? Deserialize(stream) : DeserializeRawValue(stream, itemType);
                 }
 
-                System.Diagnostics.Trace.WriteLine($"{type} {stream.Position}");
+                System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
 
                 return descriptor.CreateInstance(type, values);
             }

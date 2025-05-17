@@ -1,79 +1,67 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO;
 
 namespace Libplanet.Serialization.Tests;
 
 public sealed partial class ModelSerializerTest
 {
     [Fact]
-    public void HasTypeConverter_Test()
+    public void HasModelConverter_Test()
     {
-        var obj1 = new HasTypeConverter();
+        var obj1 = new HasModelConverter();
         var serialized = ModelSerializer.SerializeToBytes(obj1);
-        var obj2 = ModelSerializer.DeserializeFromBytes<HasTypeConverter>(serialized);
+        var obj2 = ModelSerializer.DeserializeFromBytes<HasModelConverter>(serialized);
         Assert.Equal(obj1, obj2);
     }
 
     [Fact]
-    public void NotHasTypeConverter_ThrowTest()
+    public void NotHasModelConverter_ThrowTest()
     {
-        var obj1 = new NotHasTypeConverter();
+        var obj1 = new NotHasModelConverter();
         Assert.Throws<ModelSerializationException>(() => ModelSerializer.SerializeToBytes(obj1));
     }
 
-    [TypeConverter(typeof(HasTypeConverterTypeConverter))]
-    public sealed record class HasTypeConverter
+    [ModelConverter(typeof(HasModelConverterModelConverter))]
+    public sealed record class HasModelConverter
     {
         public int Value { get; init; } = 123;
     }
 
-    public sealed record class NotHasTypeConverter
+    public sealed record class NotHasModelConverter
     {
         public int Value { get; init; } = 123;
     }
 
-    private sealed class HasTypeConverterTypeConverter : TypeConverter
+    private sealed class HasModelConverterModelConverter : ModelConverterBase
     {
-        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        protected override object Deserialize(Stream stream)
         {
-            if (typeof(byte[]).IsAssignableFrom(sourceType))
+            var length = sizeof(int);
+            Span<byte> bytes = stackalloc byte[length];
+            if (stream.Read(bytes) != length)
             {
-                return true;
+                throw new EndOfStreamException("Failed to read the expected number of bytes.");
             }
 
-            return base.CanConvertFrom(context, sourceType);
+            return new HasModelConverter
+            {
+                Value = BitConverter.ToInt32(bytes),
+            };
         }
 
-        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        protected override void Serialize(object obj, Stream stream)
         {
-            if (value is byte[] integer)
+            if (obj is HasModelConverter instance)
             {
-                return new HasTypeConverter { Value = BitConverter.ToInt32(integer, 0) };
+                stream.Write(BitConverter.GetBytes(instance.Value));
             }
-
-            return base.ConvertFrom(context, culture, value);
-        }
-
-        public override bool CanConvertTo(ITypeDescriptorContext? context, [NotNullWhen(true)] Type? destinationType)
-        {
-            if (destinationType == typeof(byte[]))
+            else
             {
-                return true;
+                throw new UnreachableException("The object is not of type HasModelConverter.");
             }
-
-            return base.CanConvertTo(context, destinationType);
-        }
-
-        public override object? ConvertTo(
-            ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
-        {
-            if (destinationType == typeof(byte[]) && value is HasTypeConverter hasTypeConverter)
-            {
-                return BitConverter.GetBytes(hasTypeConverter.Value);
-            }
-
-            return base.ConvertTo(context, culture, value, destinationType);
         }
     }
 }
