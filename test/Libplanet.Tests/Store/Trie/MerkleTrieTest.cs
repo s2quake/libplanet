@@ -55,79 +55,82 @@ public class MerkleTrieTest
         Assert.Throws<KeyNotFoundException>(() => trie[new KeyBytes([0x01])]);
     }
 
-    // [Fact]
-    // public void ToDictionary()
-    // {
-    //     var keyValueStore = new MemoryTable();
-    //     var stateStore = new TrieStateStore(keyValueStore);
-    //     var trie = Libplanet.Store.Trie.Trie.Create([
-    //         ([0xbe, 0xef], Dictionary.Empty),
-    //         ([0x01], null),
-    //         ([0x02], null),
-    //         ([0x03], null),
-    //         ([0x04], null)]);
+    [Fact]
+    public void ToDictionary()
+    {
+        var keyValueStore = new MemoryTable();
+        var stateStore = new TrieStateStore(keyValueStore);
+        var trie = Libplanet.Store.Trie.Trie.Create(
+            ([0xbe, 0xef], ImmutableSortedDictionary<string, string>.Empty),
+            ([0x01], "1"),
+            ([0x02], "2"),
+            ([0x03], "3"),
+            ([0x04], "4")
+        );
 
-    //     var states = trie.ToDictionary();
-    //     Assert.Equal(5, states.Count);
-    //     Assert.Equal(null, states[new KeyBytes([0x01])]);
-    //     Assert.Equal(null, states[new KeyBytes([0x02])]);
-    //     Assert.Equal(null, states[new KeyBytes([0x03])]);
-    //     Assert.Equal(null, states[new KeyBytes([0x04])]);
-    //     Assert.Equal(Dictionary.Empty, states[new KeyBytes([0xbe, 0xef])]);
+        var states = trie.ToDictionary();
+        Assert.Equal(5, states.Count);
+        Assert.Equal("1", states[new KeyBytes([0x01])]);
+        Assert.Equal("2", states[new KeyBytes([0x02])]);
+        Assert.Equal("3", states[new KeyBytes([0x03])]);
+        Assert.Equal("4", states[new KeyBytes([0x04])]);
+        Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, states[new KeyBytes([0xbe, 0xef])]);
 
-    //     trie = stateStore.Commit(trie);
-    //     states = trie.ToDictionary();
-    //     Assert.Equal(5, states.Count);
-    //     Assert.Equal(null, states[new KeyBytes([0x01])]);
-    //     Assert.Equal(null, states[new KeyBytes([0x02])]);
-    //     Assert.Equal(null, states[new KeyBytes([0x03])]);
-    //     Assert.Equal(null, states[new KeyBytes([0x04])]);
-    //     Assert.Equal(Dictionary.Empty, states[new KeyBytes([0xbe, 0xef])]);
-    // }
+        trie = stateStore.Commit(trie);
+        states = trie.ToDictionary();
+        Assert.Equal(5, states.Count);
+        Assert.Equal("1", states[new KeyBytes([0x01])]);
+        Assert.Equal("2", states[new KeyBytes([0x02])]);
+        Assert.Equal("3", states[new KeyBytes([0x03])]);
+        Assert.Equal("4", states[new KeyBytes([0x04])]);
+        Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, states[new KeyBytes([0xbe, 0xef])]);
+    }
 
-    // [Fact]
-    // public void IterateNodes()
-    // {
-    //     var stateStore = new TrieStateStore();
-    //     var trie = Libplanet.Store.Trie.Trie.Create(
-    //         ([0xbe, 0xef], Dictionary.Empty.Add(GetRandomBytes(32), null)));
-    //     // There are (ShortNode, ValueNode)
-    //     Assert.Equal(2, trie.IterateNodes().Count());
+    [Fact]
+    public void IterateNodes()
+    {
+        var stateStore = new TrieStateStore();
+        var trie = Libplanet.Store.Trie.Trie.Create(
+            ([0xbe, 0xef], ImmutableSortedDictionary<string, string>.Empty.Add("a", "b")));
 
-    //     trie = stateStore.Commit(trie);
-    //     // There are (HashNode, ShortNode, HashNode, ValueNode)
-    //     Assert.Equal(4, trie.IterateNodes().Count());
-    // }
+        // There are (ShortNode, ValueNode)
+        Assert.Equal(2, trie.IterateNodes().Count());
 
-    // [Theory]
-    // [InlineData(true, "_")]
-    // [InlineData(false, "_")]
-    // [InlineData(true, "_1ab3_639e")]
-    // [InlineData(false, "_1ab3_639e")]
-    // public void IterateSubTrie(bool commit, string extraKey)
-    // {
-    //     var stateStore = new TrieStateStore();
-    //     string[] keys =
-    //     [
-    //         "1b418c98",
-    //         "__3b8a",
-    //         "___",
-    //     ];
-    //     var keyValues = keys
-    //         .Select(key => ((KeyBytes)key, (IValue)new Text(key)))
-    //         .ToArray();
-    //     var trie = Libplanet.Store.Trie.Trie.Create(keyValues);
-    //     var prefixKey = (KeyBytes)"_";
+        trie = stateStore.Commit(trie);
 
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     Assert.False(trie.TryGetNode(prefixKey, out _));
-    //     Assert.False(trie.TryGetNode(prefixKey, out _));
+        // There are (HashNode, ShortNode, HashNode, ValueNode)
+        Assert.Equal(4, trie.IterateNodes().Count());
+    }
 
-    //     trie = trie.Set(extraKey, new Text(extraKey));
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     Assert.Equal(3, trie.GetNode(prefixKey).SelfAndDescendants().OfType<ValueNode>().Count());
-    //     Assert.Equal(3, trie.GetNode(prefixKey).KeyValues().Count());
-    // }
+    [Theory]
+    [InlineData(true, "_")]
+    [InlineData(false, "_")]
+    [InlineData(true, "_1ab3_639e")]
+    [InlineData(false, "_1ab3_639e")]
+    public void IterateSubTrie(bool commit, string extraKey)
+    {
+        var stateStore = new TrieStateStore();
+        string[] keys =
+        [
+            "1b418c98",
+            "__3b8a",
+            "___",
+        ];
+        var keyValues = keys
+            .Select(key => ((KeyBytes)key, (object)key))
+            .ToArray();
+        var trie = Libplanet.Store.Trie.Trie.Create(keyValues);
+        var prefixKey = (KeyBytes)"_";
+
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.False(trie.TryGetNode(prefixKey, out _));
+        Assert.False(trie.TryGetNode(prefixKey, out _));
+
+        trie = trie.Set(extraKey, extraKey);
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(3, trie.GetNode(prefixKey).SelfAndDescendants().OfType<ValueNode>().Count());
+        Assert.Equal(3, trie.GetNode(prefixKey).KeyValues().Count());
+    }
 
     // [Theory]
     // [InlineData(true)]

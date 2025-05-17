@@ -94,7 +94,7 @@ public partial class TrieStateStore
         //     return valueNode;
         // }
 
-        return Write(valueNode.Value, writeBatch);
+        return Write(valueNode, writeBatch);
     }
 
     private static HashNode Write(object value, WriteBatch writeBatch)

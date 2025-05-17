@@ -1,13 +1,13 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
+using Libplanet.Store.ModelConverters;
 using Libplanet.Types;
 
 namespace Libplanet.Store.Trie.Nodes;
 
-[Model(Version = 1)]
+[ModelConverter(typeof(HashNodeModelConverter))]
 internal sealed record class HashNode : INode
 {
-    [Property(0)]
     public required HashDigest<SHA256> Hash { get; init; }
 
     public ITable? Table { get; init; }
@@ -16,10 +16,11 @@ internal sealed record class HashNode : INode
     {
         get
         {
-            foreach (var item in Expand().Children)
-            {
-                yield return item;
-            }
+            yield return Expand();
+            // foreach (var item in Expand().Children)
+            // {
+            //     yield return item;
+            // }
         }
     }
 
@@ -52,6 +53,15 @@ internal sealed record class HashNode : INode
             }
         }
 
-        return ModelSerializer.DeserializeFromBytes<INode>(intermediateValue);
+        var context = new ModelContext
+        {
+            Items =
+            {
+                [typeof(ITable)] = table,
+            },
+        };
+
+        var node = ModelSerializer.DeserializeFromBytes<INode>(intermediateValue, context);
+        return node;
     }
 }
