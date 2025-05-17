@@ -36,7 +36,7 @@ public static class ModelSerializer
 
         static void AddTypeConverter(Type type, Type converterType)
         {
-            TypeDescriptor.AddAttributes(type, new TypeConverterAttribute(converterType));
+            TypeDescriptor.AddAttributes(type, new ModelConverterAttribute(converterType));
         }
     }
 
@@ -186,16 +186,10 @@ public static class ModelSerializer
                 stream.WriteByte((byte)DataType.Enum);
                 stream.WriteEnum(obj, type);
             }
-            else if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.CanConvertTo(typeof(byte[])))
+            else if (TryGetConverter(type, out var converter))
             {
-                if (converter.ConvertTo(obj, typeof(byte[])) is not byte[] bytes)
-                {
-                    throw new ModelSerializationException($"Failed to convert {obj} to {type}");
-                }
-
                 stream.WriteByte((byte)DataType.Converter);
-                stream.WriteInt32(bytes.Length);
-                stream.Write(bytes, 0, bytes.Length);
+                converter.Serialize(obj, stream);
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {
@@ -271,8 +265,7 @@ public static class ModelSerializer
 
                 return stream.ReadEnum(type);
             }
-            else if (TypeDescriptor.GetConverter(type) is TypeConverter converter
-                && converter.CanConvertFrom(typeof(byte[])))
+            else if (TryGetConverter(type, out var converter))
             {
                 if (dataType != DataType.Converter)
                 {
@@ -280,15 +273,7 @@ public static class ModelSerializer
                         $"Invalid stream for converter type {type}");
                 }
 
-                var length = stream.ReadInt32();
-                Span<byte> buffer = stackalloc byte[length];
-                if (stream.Read(buffer) != length)
-                {
-                    throw new ModelSerializationException(
-                        $"Failed to read {length} bytes from stream");
-                }
-
-                return converter.ConvertFrom(buffer.ToArray());
+                return converter.Deserialize(stream);
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {

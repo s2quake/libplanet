@@ -1,6 +1,6 @@
-﻿namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class TimeSpanTypeConverter : InternalTypeConverterBase<TimeSpan>
+internal sealed class TimeSpanTypeConverter : InternalModelConverterBase<TimeSpan>
 {
     protected override TimeSpan ConvertFromValue(byte[] value)
         => new(BitConverter.ToInt64(value, 0));

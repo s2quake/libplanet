@@ -1,6 +1,6 @@
-﻿namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class BigIntegerTypeConverter : InternalTypeConverterBase<BigInteger>
+internal sealed class BigIntegerTypeConverter : InternalModelConverterBase<BigInteger>
 {
     protected override BigInteger ConvertFromValue(byte[] value) => new(value);
 

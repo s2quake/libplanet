@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace Libplanet.Serialization.Converters;
+namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class StringTypeConverter : InternalTypeConverterBase<string>
+internal sealed class StringTypeConverter : InternalModelConverterBase<string>
 {
     protected override string ConvertFromValue(byte[] value) => Encoding.UTF8.GetString(value);
 

@@ -1,6 +1,6 @@
-﻿namespace Libplanet.Serialization.Converters;
+﻿namespace Libplanet.Serialization.ModelConverters;
 
-internal sealed class DateTimeOffsetTypeConverter : InternalTypeConverterBase<DateTimeOffset>
+internal sealed class DateTimeOffsetTypeConverter : InternalModelConverterBase<DateTimeOffset>
 {
     protected override DateTimeOffset ConvertFromValue(byte[] value)
         => new(BitConverter.ToInt64(value, 0), TimeSpan.Zero);
