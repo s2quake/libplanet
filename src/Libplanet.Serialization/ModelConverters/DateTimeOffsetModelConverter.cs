@@ -4,7 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class DateTimeOffsetModelConverter : ModelConverterBase<DateTimeOffset>
 {
-    protected override DateTimeOffset Deserialize(Stream stream)
+    protected override DateTimeOffset Deserialize(Stream stream, ModelContext context)
     {
         var length = sizeof(long);
         Span<byte> bytes = stackalloc byte[length];
@@ -16,7 +16,7 @@ internal sealed class DateTimeOffsetModelConverter : ModelConverterBase<DateTime
         return new DateTimeOffset(BitConverter.ToInt64(bytes), TimeSpan.Zero);
     }
 
-    protected override void Serialize(DateTimeOffset obj, Stream stream)
+    protected override void Serialize(DateTimeOffset obj, Stream stream, ModelContext context)
     {
         var bytes = BitConverter.GetBytes(obj.UtcTicks);
         stream.Write(bytes, 0, bytes.Length);

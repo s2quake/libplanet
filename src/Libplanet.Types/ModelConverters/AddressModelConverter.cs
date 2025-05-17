@@ -6,7 +6,7 @@ namespace Libplanet.Types.ModelConverters;
 
 internal sealed class AddressModelConverter : ModelConverterBase<Address>
 {
-    protected override Address Deserialize(Stream stream)
+    protected override Address Deserialize(Stream stream, ModelContext context)
     {
         var length = Address.Size;
         Span<byte> bytes = stackalloc byte[length];
@@ -18,7 +18,7 @@ internal sealed class AddressModelConverter : ModelConverterBase<Address>
         return new Address(bytes.ToArray());
     }
 
-    protected override void Serialize(Address obj, Stream stream)
+    protected override void Serialize(Address obj, Stream stream, ModelContext context)
     {
         stream.Write(obj.Bytes.AsSpan());
     }

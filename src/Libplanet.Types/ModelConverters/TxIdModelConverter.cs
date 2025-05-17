@@ -6,7 +6,7 @@ namespace Libplanet.Types.ModelConverters;
 
 internal sealed class TxIdModelConverter : ModelConverterBase<TxId>
 {
-    protected override TxId Deserialize(Stream stream)
+    protected override TxId Deserialize(Stream stream, ModelContext context)
     {
         var length = TxId.Size;
         Span<byte> bytes = stackalloc byte[length];
@@ -18,5 +18,6 @@ internal sealed class TxIdModelConverter : ModelConverterBase<TxId>
         return new TxId(bytes.ToArray());
     }
 
-    protected override void Serialize(TxId obj, Stream stream) => stream.Write(obj.Bytes.AsSpan());
+    protected override void Serialize(TxId obj, Stream stream, ModelContext context)
+        => stream.Write(obj.Bytes.AsSpan());
 }

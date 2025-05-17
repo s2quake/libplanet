@@ -6,7 +6,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class StringModelConverter : ModelConverterBase<string>
 {
-    protected override string Deserialize(Stream stream)
+    protected override string Deserialize(Stream stream, ModelContext context)
     {
         var length = stream.ReadInt32();
         Span<byte> bytes = stackalloc byte[length];
@@ -18,7 +18,7 @@ internal sealed class StringModelConverter : ModelConverterBase<string>
         return Encoding.UTF8.GetString(bytes);
     }
 
-    protected override void Serialize(string obj, Stream stream)
+    protected override void Serialize(string obj, Stream stream, ModelContext context)
     {
         var bytes = Encoding.UTF8.GetBytes(obj);
         stream.WriteInt32(bytes.Length);

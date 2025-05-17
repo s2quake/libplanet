@@ -4,7 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class BooleanModelConverter : ModelConverterBase<bool>
 {
-    protected override bool Deserialize(Stream stream)
+    protected override bool Deserialize(Stream stream, ModelContext context)
     {
         var value = stream.ReadByte();
         return value switch
@@ -16,5 +16,6 @@ internal sealed class BooleanModelConverter : ModelConverterBase<bool>
         };
     }
 
-    protected override void Serialize(bool obj, Stream stream) => stream.WriteByte(obj ? (byte)1 : (byte)0);
+    protected override void Serialize(bool obj, Stream stream, ModelContext context)
+        => stream.WriteByte(obj ? (byte)1 : (byte)0);
 }

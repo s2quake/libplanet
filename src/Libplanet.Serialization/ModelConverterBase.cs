@@ -6,25 +6,28 @@ namespace Libplanet.Serialization;
 
 public abstract class ModelConverterBase : IModelConverter
 {
-    object IModelConverter.Deserialize(Stream stream) => Deserialize(stream);
+    object IModelConverter.Deserialize(Stream stream, ModelContext context)
+        => Deserialize(stream, context);
 
-    void IModelConverter.Serialize(object obj, Stream stream) => Serialize(obj, stream);
+    void IModelConverter.Serialize(object obj, Stream stream, ModelContext context)
+        => Serialize(obj, stream, context);
 
-    protected abstract object Deserialize(Stream stream);
+    protected abstract object Deserialize(Stream stream, ModelContext context);
 
-    protected abstract void Serialize(object obj, Stream stream);
+    protected abstract void Serialize(object obj, Stream stream, ModelContext context);
 }
 
 public abstract class ModelConverterBase<T> : IModelConverter
     where T : notnull
 {
-    object IModelConverter.Deserialize(Stream stream) => Deserialize(stream);
+    object IModelConverter.Deserialize(Stream stream, ModelContext context)
+        => Deserialize(stream, context);
 
-    void IModelConverter.Serialize(object obj, Stream stream)
+    void IModelConverter.Serialize(object obj, Stream stream, ModelContext context)
     {
         if (obj is T t)
         {
-            Serialize(t, stream);
+            Serialize(t, stream, context);
         }
         else
         {
@@ -32,7 +35,7 @@ public abstract class ModelConverterBase<T> : IModelConverter
         }
     }
 
-    protected abstract T Deserialize(Stream stream);
+    protected abstract T Deserialize(Stream stream, ModelContext context);
 
-    protected abstract void Serialize(T obj, Stream stream);
+    protected abstract void Serialize(T obj, Stream stream, ModelContext context);
 }

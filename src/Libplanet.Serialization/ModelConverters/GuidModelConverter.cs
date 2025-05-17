@@ -4,7 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class GuidModelConverter : ModelConverterBase<Guid>
 {
-    protected override Guid Deserialize(Stream stream)
+    protected override Guid Deserialize(Stream stream, ModelContext context)
     {
         var length = 16;
         var bytes = new byte[length];
@@ -16,7 +16,7 @@ internal sealed class GuidModelConverter : ModelConverterBase<Guid>
         return new Guid(bytes);
     }
 
-    protected override void Serialize(Guid obj, Stream stream)
+    protected override void Serialize(Guid obj, Stream stream, ModelContext context)
     {
         var bytes = obj.ToByteArray();
         stream.Write(bytes, 0, bytes.Length);

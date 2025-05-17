@@ -12,7 +12,7 @@ internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase
     private static readonly ConcurrentDictionary<Type, PropertyInfo> _bytesPropertyByType = [];
     private static readonly ConcurrentDictionary<Type, int> _sizeByType = [];
 
-    protected override object Deserialize(Stream stream)
+    protected override object Deserialize(Stream stream, ModelContext context)
     {
         var length = GetSize(type);
         Span<byte> bytes = stackalloc byte[length];
@@ -30,7 +30,7 @@ internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase
         return obj;
     }
 
-    protected override void Serialize(object obj, Stream stream)
+    protected override void Serialize(object obj, Stream stream, ModelContext context)
     {
         var bytesProperty = GetBytesProperty(type);
         if (bytesProperty.GetValue(obj) is ImmutableArray<byte> bytes)
