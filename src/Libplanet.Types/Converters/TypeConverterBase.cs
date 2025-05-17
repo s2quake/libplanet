@@ -1,5 +1,4 @@
-﻿#pragma warning disable S1066 // Collapsible "if" statements should be merged
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
@@ -14,11 +13,6 @@ public abstract class TypeConverterBase<TType> : TypeConverter
             return true;
         }
 
-        if (sourceType == typeof(byte[]))
-        {
-            return true;
-        }
-
         return base.CanConvertFrom(context, sourceType);
     }
 
@@ -27,11 +21,6 @@ public abstract class TypeConverterBase<TType> : TypeConverter
         if (value is string @string)
         {
             return ConvertFromString(@string);
-        }
-
-        if (value is byte[] typeValue)
-        {
-            return ConvertFromValue(typeValue);
         }
 
         return base.ConvertFrom(context, culture, value);
@@ -44,44 +33,19 @@ public abstract class TypeConverterBase<TType> : TypeConverter
             return true;
         }
 
-        if (destinationType == typeof(byte[]))
-        {
-            return true;
-        }
-
         return base.CanConvertTo(context, destinationType);
     }
 
     public override object? ConvertTo(
         ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
-        if (destinationType == typeof(string))
+        if (destinationType == typeof(string) && value is TType typeValue)
         {
-            if (value is TType typeValue)
-            {
-                return ConvertToString(typeValue);
-            }
-        }
-
-        if (destinationType == typeof(byte[]))
-        {
-            if (value is null)
-            {
-                return new byte[] { 0 };
-            }
-
-            if (value is TType typeValue)
-            {
-                return ConvertToValue(typeValue);
-            }
+            return ConvertToString(typeValue);
         }
 
         return base.ConvertTo(context, culture, value, destinationType);
     }
-
-    protected abstract TType ConvertFromValue(byte[] value);
-
-    protected abstract byte[] ConvertToValue(TType value);
 
     protected abstract new TType ConvertFromString(string value);
 

@@ -1,13 +1,16 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
+using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types.Crypto;
 
 [TypeConverter(typeof(AddressTypeConverter))]
 [JsonConverter(typeof(AddressJsonConverter))]
+[ModelConverter(typeof(AddressModelConverter))]
 public readonly record struct Address(in ImmutableArray<byte> Bytes)
     : IEquatable<Address>, IComparable<Address>, IComparable, IFormattable
 {

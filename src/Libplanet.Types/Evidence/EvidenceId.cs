@@ -1,12 +1,15 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
+using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types.Evidence;
 
 [JsonConverter(typeof(EvidenceIdJsonConverter))]
 [TypeConverter(typeof(EvidenceIdTypeConverter))]
+[ModelConverter(typeof(EvidenceIdModelConverter))]
 public readonly record struct EvidenceId(in ImmutableArray<byte> Bytes)
     : IEquatable<EvidenceId>, IComparable<EvidenceId>, IComparable
 {

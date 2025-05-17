@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -10,13 +9,11 @@ namespace Libplanet.Types.Converters;
 internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
 {
     private static readonly ConcurrentDictionary<Type, MethodInfo> _parseMethodByType = [];
-    private static readonly ConcurrentDictionary<Type, PropertyInfo> _bytesPropertyByType = [];
 
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
         => sourceType switch
         {
             Type type1 when type1 == typeof(string) => true,
-            Type type2 when type2 == typeof(byte[]) => true,
             _ => base.CanConvertFrom(context, sourceType),
         };
 
@@ -24,7 +21,6 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         => value switch
         {
             string @string => ConvertFromString(@string, type),
-            byte[] binary => ConvertFromBinary(binary, type),
             _ => base.ConvertFrom(context, culture, value),
         };
 
@@ -32,7 +28,6 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         => destinationType switch
         {
             Type type1 when type1 == typeof(string) => true,
-            Type type2 when type2 == typeof(byte[]) => true,
             _ => base.CanConvertTo(context, destinationType),
         };
 
@@ -41,7 +36,6 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         => destinationType switch
         {
             Type type1 when type1 == typeof(string) => value?.ToString(),
-            Type type2 when type2 == typeof(byte[]) => ConvertToBinary(value),
             _ => base.ConvertTo(context, culture, value, destinationType),
         };
 
@@ -58,29 +52,6 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
         }
     }
 
-    private static object ConvertFromBinary(byte[] binary, Type type)
-    {
-        var bytes = binary.ToImmutableArray();
-        return Activator.CreateInstance(type, [bytes])!;
-    }
-
-    private static object ConvertToBinary(object? value)
-    {
-        if (value is null)
-        {
-            return new byte[] { 0 };
-        }
-
-        var bytesProperty = GetBytesProperty(value.GetType());
-        if (bytesProperty.GetValue(value) is ImmutableArray<byte> bytes)
-        {
-            return bytes.ToArray();
-        }
-
-        throw new UnreachableException(
-            $"Failed to get {nameof(HashDigest<SHA1>.Bytes)} property value");
-    }
-
     private static MethodInfo GetParseMethod(Type type)
         => _parseMethodByType.GetOrAdd(type, GetMethodInfo);
 
@@ -92,18 +63,5 @@ internal sealed class HashDigestTypeConverter(Type type) : TypeConverter
             ?? throw new MissingMethodException(
                 $"Failed to look up the {nameof(HashDigest<SHA1>.Parse)} method");
         return method;
-    }
-
-    private static PropertyInfo GetBytesProperty(Type type)
-        => _bytesPropertyByType.GetOrAdd(type, GetPropertyInfo);
-
-    private static PropertyInfo GetPropertyInfo(Type type)
-    {
-        var propertyName = nameof(HashDigest<SHA1>.Bytes);
-        var bindingFlags = BindingFlags.Public | BindingFlags.Instance;
-        var property = type.GetProperty(propertyName, bindingFlags)
-            ?? throw new MissingMethodException(
-                $"Failed to look up the {nameof(HashDigest<SHA1>.Bytes)} property");
-        return property;
     }
 }

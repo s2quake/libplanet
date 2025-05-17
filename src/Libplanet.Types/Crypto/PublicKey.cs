@@ -1,20 +1,28 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
+using Libplanet.Types.ModelConverters;
 using Secp256k1Net;
 
 namespace Libplanet.Types.Crypto;
 
 [TypeConverter(typeof(PublicKeyTypeConverter))]
 [JsonConverter(typeof(PublicKeyJsonConverter))]
+[ModelConverter(typeof(PublicKeyModelConverter))]
 public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
 {
     private readonly ImmutableArray<byte> _bytes;
 
     public PublicKey(ImmutableArray<byte> bytes)
         : this(bytes, verify: true)
+    {
+    }
+
+    public PublicKey(ReadOnlySpan<byte> bytes)
+        : this([.. bytes], verify: true)
     {
     }
 

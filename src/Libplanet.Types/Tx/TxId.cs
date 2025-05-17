@@ -1,12 +1,15 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
+using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types.Tx;
 
 [JsonConverter(typeof(TxIdJsonConverter))]
 [TypeConverter(typeof(TxIdTypeConverter))]
+[ModelConverter(typeof(TxIdModelConverter))]
 public readonly record struct TxId(in ImmutableArray<byte> Bytes)
     : IEquatable<TxId>, IComparable<TxId>, IComparable
 {
