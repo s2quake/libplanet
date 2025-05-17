@@ -44,7 +44,7 @@ internal sealed record class HashNode : INode
             var keyBytes = new KeyBytes(Hash.Bytes);
             if (table.TryGetValue(keyBytes, out var valueBytes))
             {
-                // intermediateValue = _codec.Decode(valueBytes);
+                intermediateValue = valueBytes;
                 HashNodeCache.AddOrUpdate(Hash, valueBytes);
             }
             else
@@ -53,15 +53,6 @@ internal sealed record class HashNode : INode
             }
         }
 
-        throw new NotImplementedException();
-        // return NodeDecoder.Decode(
-        //     intermediateValue, NodeDecoder.HashEmbeddedNodeTypes, table)
-        //         ?? throw new UnreachableException(
-        //             $"Failed to decode the hash node with hash {Hash}.");
-    }
-
-    public byte[] Serialize()
-    {
-        throw new NotImplementedException();
+        return ModelSerializer.DeserializeFromBytes<INode>(intermediateValue);
     }
 }

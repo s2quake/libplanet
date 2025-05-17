@@ -21,7 +21,7 @@ public partial class TrieStateStore
 
         if (newNode is not HashNode)
         {
-            var serialized = newNode.Serialize();
+            var serialized = ModelSerializer.SerializeToBytes(newNode);
             var hashDigest = HashDigest<SHA256>.Create(serialized);
 
             writeBatch.Add(new KeyBytes(hashDigest.Bytes), serialized);
@@ -67,7 +67,7 @@ public partial class TrieStateStore
         //     return fullNode;
         // }
 
-        return Write(fullNode.Serialize(), writeBatch);
+        return Write(fullNode, writeBatch);
     }
 
     private static INode CommitShortNode(
@@ -82,7 +82,7 @@ public partial class TrieStateStore
         //     return shortNode;
         // }
 
-        return Write(shortNode.Serialize(), writeBatch);
+        return Write(shortNode, writeBatch);
     }
 
     private static INode CommitValueNode(ValueNode valueNode, WriteBatch writeBatch)

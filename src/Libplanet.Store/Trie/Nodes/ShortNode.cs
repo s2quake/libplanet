@@ -23,14 +23,14 @@ internal sealed record class ShortNode : INode, IValidatableObject
         }
     }
 
-    public byte[] Serialize()
-    {
-        using var stream = new MemoryStream();
-        using var writer = new BinaryWriter(stream);
-        writer.Write([.. Key.ByteArray]);
-        writer.Write(Value.Serialize());
-        return stream.ToArray();
-    }
+    // public byte[] Serialize()
+    // {
+    //     using var stream = new MemoryStream();
+    //     using var writer = new BinaryWriter(stream);
+    //     writer.Write([.. Key.ByteArray]);
+    //     writer.Write(Value.Serialize());
+    //     return stream.ToArray();
+    // }
 
     // public IValue ToBencodex() => new List(new Binary(Key.ByteArray), Value.ToBencodex());
 

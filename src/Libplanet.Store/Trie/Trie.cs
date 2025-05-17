@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
+using Libplanet.Serialization;
 using Libplanet.Store.Trie.Nodes;
 using Libplanet.Types;
 
@@ -17,7 +19,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     {
         HashNode hashNode => hashNode.Hash,
         NullNode _ => default,
-        _ => Node.Hash,
+        _ => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(Node)),
     };
 
     public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;

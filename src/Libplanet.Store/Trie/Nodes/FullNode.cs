@@ -72,22 +72,14 @@ public sealed record class FullNode
 
     public FullNode SetValue(INode? value) => this with { Value = value };
 
-    public bool Equals(FullNode? other)
-    {
-        if (other is not null)
-        {
-            return Children.SequenceEqual(other.Children) && Equals(Value, other.Value);
-        }
+    public bool Equals(FullNode? other) => ModelResolver.Equals(this, other);
 
-        return false;
-    }
+    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-    public override int GetHashCode() => Children.GetHashCode();
-
-    public byte[] Serialize()
-    {
-        throw new NotImplementedException();
-    }
+    // public byte[] Serialize()
+    // {
+    //     throw new NotImplementedException();
+    // }
 
     // public IValue ToBencodex()
     // {

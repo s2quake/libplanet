@@ -11,6 +11,4 @@ internal sealed record class ValueNode : INode
     public required object Value { get; init; }
 
     public override int GetHashCode() => Value.GetHashCode();
-
-    public byte[] Serialize() => ModelSerializer.SerializeToBytes(this);
 }
