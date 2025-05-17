@@ -23,8 +23,11 @@ public static class ModelResolver
         new ArrayModelDescriptor(),
         new ObjectModelDescriptor(),
         new KeyValuePairModelDescriptor(),
+        new ListModelDescriptor(),
+        new DictionaryModelDescriptor(),
         new ImmutableArrayModelDescriptor(),
         new ImmutableSortedSetModelDescriptor(),
+        new ImmutableDictionaryModelDescriptor(),
         new ImmutableSortedDictionaryModelDescriptor(),
         new TupleModelDescriptor(),
     ];

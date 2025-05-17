@@ -4,9 +4,9 @@ using System.Reflection;
 
 namespace Libplanet.Serialization.Descriptors;
 
-internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
+internal sealed class ImmutableDictionaryModelDescriptor : ModelDescriptor
 {
-    public override bool CanSerialize(Type type) => IsImmutableSortedSet(type);
+    public override bool CanSerialize(Type type) => IsImmutableDictionary(type);
 
     public override Type[] GetTypes(Type type, out bool isArray)
     {
@@ -16,12 +16,14 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
 
     public override object?[] GetValues(object obj, Type type)
     {
-        if (obj is IList items)
+        if (obj is ICollection items)
         {
             var values = new object?[items.Count];
-            for (var i = 0; i < items.Count; i++)
+            var i = 0;
+            var enumerator = items.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                values[i] = items[i];
+                values[i++] = enumerator.Current;
             }
 
             return values;
@@ -37,10 +39,10 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);
         var listInstance = (IList)TypeUtility.CreateInstance(listType, args: [values.Length])!;
-        var methodName = nameof(ImmutableSortedSet.CreateRange);
+        var methodName = nameof(ImmutableDictionary.CreateRange);
         var methodInfo = GetCreateRangeMethod(
-            typeof(ImmutableSortedSet), methodName, typeof(IEnumerable<>));
-        var genericMethodInfo = methodInfo.MakeGenericMethod(elementType);
+            typeof(ImmutableDictionary), methodName, typeof(IEnumerable<>));
+        var genericMethodInfo = methodInfo.MakeGenericMethod(elementType.GetGenericArguments());
         foreach (var value in values)
         {
             listInstance.Add(value);
@@ -52,19 +54,20 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
 
     public override bool Equals(object obj1, object obj2, Type type)
     {
-        var items1 = (IList)obj1;
-        var items2 = (IList)obj2;
+        var items1 = (ICollection)obj1;
+        var items2 = (ICollection)obj2;
+
         if (items1.Count != items2.Count)
         {
             return false;
         }
 
         var elementType = GetElementType(type);
-        for (var i = 0; i < items1.Count; i++)
+        var enumerator1 = items1.GetEnumerator();
+        var enumerator2 = items2.GetEnumerator();
+        while (enumerator1.MoveNext() && enumerator2.MoveNext())
         {
-            var item1 = items1[i];
-            var item2 = items2[i];
-            if (!ModelResolver.Equals(item1, item2, elementType))
+            if (!ModelResolver.Equals(enumerator1.Current, enumerator2.Current, elementType))
             {
                 return false;
             }
@@ -75,7 +78,7 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
 
     public override int GetHashCode(object obj, Type type)
     {
-        var items = (IList)obj;
+        var items = (IEnumerable)obj;
         var elementType = GetElementType(type);
         HashCode hash = default;
         foreach (var item in items)
@@ -86,12 +89,12 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
         return hash.ToHashCode();
     }
 
-    private static bool IsImmutableSortedSet(Type type)
+    private static bool IsImmutableDictionary(Type type)
     {
         if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(ImmutableSortedSet<>))
+            if (genericTypeDefinition == typeof(ImmutableDictionary<,>))
             {
                 return true;
             }
@@ -105,13 +108,13 @@ internal sealed class ImmutableSortedSetModelDescriptor : ModelDescriptor
         if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(ImmutableSortedSet<>))
+            if (genericTypeDefinition == typeof(ImmutableDictionary<,>))
             {
-                return type.GetGenericArguments()[0];
+                return typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments());
             }
         }
 
-        throw new UnreachableException("The type is not an ImmutableSortedSet.");
+        throw new UnreachableException("The type is not an ImmutableDictionary.");
     }
 
     private static MethodInfo GetCreateRangeMethod(Type type, string methodName, Type parameterType)

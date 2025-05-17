@@ -268,6 +268,34 @@ public static partial class RandomUtility
         return [.. items];
     }
 
+    public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator)
+         where TKey : notnull
+    {
+        var length = Length();
+        var items = new KeyValuePair<TKey, TValue>[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = new(keyGenerator(), valueGenerator());
+        }
+
+        return new Dictionary<TKey, TValue>(items);
+    }
+
+    public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
+         where TKey : notnull
+    {
+        var length = Length(random);
+        var items = new KeyValuePair<TKey, TValue>[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = new(keyGenerator(random), valueGenerator(random));
+        }
+
+        return new Dictionary<TKey, TValue>(items);
+    }
+
     public static ImmutableArray<T> ImmutableArray<T>(Func<T> generator)
     {
         var length = Length();
@@ -314,6 +342,34 @@ public static partial class RandomUtility
         }
 
         return System.Collections.Immutable.ImmutableList.Create(items);
+    }
+
+    public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator)
+         where TKey : notnull
+    {
+        var length = Length();
+        var items = new KeyValuePair<TKey, TValue>[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = new(keyGenerator(), valueGenerator());
+        }
+
+        return System.Collections.Immutable.ImmutableDictionary.CreateRange(items);
+    }
+
+    public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
+         where TKey : notnull
+    {
+        var length = Length(random);
+        var items = new KeyValuePair<TKey, TValue>[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = new(keyGenerator(random), valueGenerator(random));
+        }
+
+        return System.Collections.Immutable.ImmutableDictionary.CreateRange(items);
     }
 
     public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(

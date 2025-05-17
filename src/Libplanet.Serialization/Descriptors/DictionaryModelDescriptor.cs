@@ -1,12 +1,11 @@
 ﻿using System.Collections;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Libplanet.Serialization.Descriptors;
 
-internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
+internal sealed class DictionaryModelDescriptor : ModelDescriptor
 {
-    public override bool CanSerialize(Type type) => IsImmutableSortedDictionary(type);
+    public override bool CanSerialize(Type type) => IsDictionary(type);
 
     public override Type[] GetTypes(Type type, out bool isArray)
     {
@@ -39,17 +38,12 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);
         var listInstance = (IList)TypeUtility.CreateInstance(listType, args: [values.Length])!;
-        var methodName = nameof(ImmutableSortedDictionary.CreateRange);
-        var methodInfo = GetCreateRangeMethod(
-            typeof(ImmutableSortedDictionary), methodName, typeof(IEnumerable<>));
-        var genericMethodInfo = methodInfo.MakeGenericMethod(elementType.GetGenericArguments());
         foreach (var value in values)
         {
             listInstance.Add(value);
         }
 
-        var methodArgs = new object?[] { listInstance };
-        return genericMethodInfo.Invoke(null, parameters: methodArgs)!;
+        return TypeUtility.CreateInstance(type, args: [listInstance]);
     }
 
     public override bool Equals(object obj1, object obj2, Type type)
@@ -89,12 +83,12 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
         return hash.ToHashCode();
     }
 
-    private static bool IsImmutableSortedDictionary(Type type)
+    private static bool IsDictionary(Type type)
     {
         if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(ImmutableSortedDictionary<,>))
+            if (genericTypeDefinition == typeof(Dictionary<,>))
             {
                 return true;
             }
@@ -108,33 +102,12 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
         if (type.IsGenericType)
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
-            if (genericTypeDefinition == typeof(ImmutableSortedDictionary<,>))
+            if (genericTypeDefinition == typeof(Dictionary<,>))
             {
                 return typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments());
             }
         }
 
-        throw new UnreachableException("The type is not an ImmutableSortedDictionary.");
-    }
-
-    private static MethodInfo GetCreateRangeMethod(Type type, string methodName, Type parameterType)
-    {
-        var parameterName = parameterType.Name;
-        var bindingFlags = BindingFlags.Public | BindingFlags.Static;
-        var methodInfos = type.GetMethods(bindingFlags);
-
-        for (var i = 0; i < methodInfos.Length; i++)
-        {
-            var methodInfo = methodInfos[i];
-            var parameters = methodInfo.GetParameters();
-            if (methodInfo.Name == methodName &&
-                parameters.Length == 1 &&
-                parameters[0].ParameterType.Name == parameterName)
-            {
-                return methodInfo;
-            }
-        }
-
-        throw new NotSupportedException("The method is not found.");
+        throw new UnreachableException("The type is not an ImmutableDictionary.");
     }
 }
