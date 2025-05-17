@@ -4,7 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class ByteModelConverter : ModelConverterBase<byte>
 {
-    protected override byte Deserialize(Stream stream)
+    protected override byte Deserialize(Stream stream, ModelContext context)
     {
         var value = stream.ReadByte();
         return value switch
@@ -14,5 +14,6 @@ internal sealed class ByteModelConverter : ModelConverterBase<byte>
         };
     }
 
-    protected override void Serialize(byte obj, Stream stream) => stream.WriteByte(obj);
+    protected override void Serialize(byte obj, Stream stream, ModelContext context)
+        => stream.WriteByte(obj);
 }

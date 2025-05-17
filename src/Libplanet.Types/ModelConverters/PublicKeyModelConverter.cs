@@ -7,7 +7,7 @@ namespace Libplanet.Types.ModelConverters;
 
 internal sealed class PublicKeyModelConverter : ModelConverterBase<PublicKey>
 {
-    protected override PublicKey Deserialize(Stream stream)
+    protected override PublicKey Deserialize(Stream stream, ModelContext context)
     {
         var length = stream.ReadInt32();
         Span<byte> bytes = stackalloc byte[length];
@@ -19,5 +19,6 @@ internal sealed class PublicKeyModelConverter : ModelConverterBase<PublicKey>
         return new PublicKey(bytes);
     }
 
-    protected override void Serialize(PublicKey obj, Stream stream) => stream.Write(obj.Bytes.AsSpan());
+    protected override void Serialize(PublicKey obj, Stream stream, ModelContext context)
+        => stream.Write(obj.Bytes.AsSpan());
 }

@@ -8,7 +8,7 @@ namespace Libplanet.Store.ModelConverters;
 
 internal sealed class NibblesModelConverter : ModelConverterBase<Nibbles>
 {
-    protected override Nibbles Deserialize(Stream stream)
+    protected override Nibbles Deserialize(Stream stream, ModelContext context)
     {
         var length = stream.ReadInt32();
         Span<byte> bytes = stackalloc byte[length];
@@ -20,7 +20,7 @@ internal sealed class NibblesModelConverter : ModelConverterBase<Nibbles>
         return new Nibbles([.. bytes]);
     }
 
-    protected override void Serialize(Nibbles obj, Stream stream)
+    protected override void Serialize(Nibbles obj, Stream stream, ModelContext context)
     {
         stream.WriteInt32(obj.Length);
         stream.Write(obj.ByteArray.AsSpan());

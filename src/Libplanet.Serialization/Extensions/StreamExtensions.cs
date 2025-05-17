@@ -38,11 +38,6 @@ public static class StreamExtensions
         }
     }
 
-    public static void WriteNull(this Stream @this)
-    {
-        @this.WriteByte(0);
-    }
-
     public static string ReadString(this Stream @this)
     {
         var length = ReadInt32(@this);

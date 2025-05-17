@@ -7,7 +7,7 @@ namespace Libplanet.Types.ModelConverters;
 
 internal sealed class ActionBytecodeModelConverter : ModelConverterBase<ActionBytecode>
 {
-    protected override ActionBytecode Deserialize(Stream stream)
+    protected override ActionBytecode Deserialize(Stream stream, ModelContext context)
     {
         var length = stream.ReadInt32();
         Span<byte> bytes = stackalloc byte[length];
@@ -19,7 +19,7 @@ internal sealed class ActionBytecodeModelConverter : ModelConverterBase<ActionBy
         return new ActionBytecode(bytes);
     }
 
-    protected override void Serialize(ActionBytecode obj, Stream stream)
+    protected override void Serialize(ActionBytecode obj, Stream stream, ModelContext context)
     {
         var span = obj.Bytes.AsSpan();
         stream.WriteInt32(span.Length);

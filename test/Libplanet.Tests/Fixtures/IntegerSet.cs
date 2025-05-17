@@ -102,7 +102,7 @@ public sealed class IntegerSet
             .SelectMany(t => t.Actions)
             .Aggregate(prevPair, (prev, act) =>
             {
-                var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes);
+                var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes.AsSpan());
                 BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
                 var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty
                     .Add(rawStateKey, nextState);
@@ -118,7 +118,7 @@ public sealed class IntegerSet
                 ImmutableArray.Create(stagedStates),
                 (delta, act) =>
                 {
-                    var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes);
+                    var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes.AsSpan());
                     BigInteger nextState =
                         a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
                     var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty

@@ -4,7 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class TimeSpanModelConverter : ModelConverterBase<TimeSpan>
 {
-    protected override TimeSpan Deserialize(Stream stream)
+    protected override TimeSpan Deserialize(Stream stream, ModelContext context)
     {
         var length = sizeof(long);
         Span<byte> bytes = stackalloc byte[length];
@@ -16,7 +16,7 @@ internal sealed class TimeSpanModelConverter : ModelConverterBase<TimeSpan>
         return new TimeSpan(BitConverter.ToInt64(bytes));
     }
 
-    protected override void Serialize(TimeSpan obj, Stream stream)
+    protected override void Serialize(TimeSpan obj, Stream stream, ModelContext context)
     {
         var bytes = BitConverter.GetBytes(obj.Ticks);
         stream.Write(bytes, 0, bytes.Length);

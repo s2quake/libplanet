@@ -37,7 +37,7 @@ public sealed partial class ModelSerializerTest
 
     private sealed class HasModelConverterModelConverter : ModelConverterBase
     {
-        protected override object Deserialize(Stream stream)
+        protected override object Deserialize(Stream stream, ModelContext context)
         {
             var length = sizeof(int);
             Span<byte> bytes = stackalloc byte[length];
@@ -52,7 +52,7 @@ public sealed partial class ModelSerializerTest
             };
         }
 
-        protected override void Serialize(object obj, Stream stream)
+        protected override void Serialize(object obj, Stream stream, ModelContext context)
         {
             if (obj is HasModelConverter instance)
             {
