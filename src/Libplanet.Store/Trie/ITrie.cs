@@ -43,14 +43,17 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, object>>
             value = t;
             return true;
         }
-
         value = default;
         return false;
     }
 
     bool ContainsKey(in KeyBytes key);
 
-    T GetValue<T>(in KeyBytes key, T fallback) => TryGetValue(key, out object? value) && value is T t ? t : fallback;
+    T? GetValueOrDefault<T>(in KeyBytes key)
+        => TryGetValue(key, out object? value) && value is T t ? t : default;
+
+    T GetValueOrDefault<T>(in KeyBytes key, T defaultValue)
+        => TryGetValue(key, out object? value) && value is T t ? t : defaultValue;
 
     IEnumerable<(KeyBytes Path, object? TargetValue, object SourceValue)> Diff(ITrie other);
 }

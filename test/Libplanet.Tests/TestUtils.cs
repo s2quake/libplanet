@@ -245,39 +245,39 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         public static void AssertBytesEqual(KeyBytes? expected, KeyBytes? actual) =>
             AssertBytesEqual(expected?.ToByteArray() ?? [], actual?.ToByteArray() ?? []);
 
-        public static void AssertBencodexEqual(object expected, object actual)
-        {
-            // bool equal = (expected is null && actual is null) ||
-            //     (expected is Null && actual is Null) ||
-            //     (expected is Bencodex.Types.Boolean && actual is Bencodex.Types.Boolean &&
-            //         expected.Equals(actual)) ||
-            //     (expected is Integer && actual is Integer && expected.Equals(actual)) ||
-            //     (expected is Binary && actual is Binary && expected.Equals(actual)) ||
-            //     (expected is Text && actual is Text && expected.Equals(actual)) ||
-            //     (expected is List && actual is List && expected.Equals(actual)) ||
-            //     (expected is Dictionary && actual is Dictionary && expected.Equals(actual));
-            // if (equal)
-            // {
-            //     return;
-            // }
+        // public static void AssertBencodexEqual(object expected, object actual)
+        // {
+        //     // bool equal = (expected is null && actual is null) ||
+        //     //     (expected is Null && actual is Null) ||
+        //     //     (expected is Bencodex.Types.Boolean && actual is Bencodex.Types.Boolean &&
+        //     //         expected.Equals(actual)) ||
+        //     //     (expected is Integer && actual is Integer && expected.Equals(actual)) ||
+        //     //     (expected is Binary && actual is Binary && expected.Equals(actual)) ||
+        //     //     (expected is Text && actual is Text && expected.Equals(actual)) ||
+        //     //     (expected is List && actual is List && expected.Equals(actual)) ||
+        //     //     (expected is Dictionary && actual is Dictionary && expected.Equals(actual));
+        //     // if (equal)
+        //     // {
+        //     //     return;
+        //     // }
 
-            string expectedInspection = expected?.ToString() ?? "(null)";
-            string actualInspection = actual?.ToString() ?? "(null)";
-            DiffPaneModel diffModel = InlineDiffBuilder.Diff(expectedInspection, actualInspection);
-            var prefixes = new Dictionary<ChangeType, string>
-            {
-                [ChangeType.Deleted] = "-",
-                [ChangeType.Inserted] = "+",
-                [ChangeType.Unchanged] = " ",
-            };
+        //     string expectedInspection = expected?.ToString() ?? "(null)";
+        //     string actualInspection = actual?.ToString() ?? "(null)";
+        //     DiffPaneModel diffModel = InlineDiffBuilder.Diff(expectedInspection, actualInspection);
+        //     var prefixes = new Dictionary<ChangeType, string>
+        //     {
+        //         [ChangeType.Deleted] = "-",
+        //         [ChangeType.Inserted] = "+",
+        //         [ChangeType.Unchanged] = " ",
+        //     };
 
-            string diff = string.Join(
-                Environment.NewLine,
-                diffModel.Lines.Select(line =>
-                    (prefixes.TryGetValue(line.Type, out string prefix) ? prefix : " ") + line.Text));
-            throw new XunitException(
-                "Two Bencodex values are not equal.\n--- Expected\n+++ Actual\n\n" + diff);
-        }
+        //     string diff = string.Join(
+        //         Environment.NewLine,
+        //         diffModel.Lines.Select(line =>
+        //             (prefixes.TryGetValue(line.Type, out string prefix) ? prefix : " ") + line.Text));
+        //     throw new XunitException(
+        //         "Two Bencodex values are not equal.\n--- Expected\n+++ Actual\n\n" + diff);
+        // }
 
         public static void AssertSorted<T>(IEnumerable<T> expected)
             where T : IComparable<T>

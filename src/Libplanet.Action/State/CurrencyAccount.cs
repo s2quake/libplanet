@@ -160,8 +160,8 @@ public sealed record class CurrencyAccount(ITrie Trie, Address Signer, Currency 
     };
 
     private BigInteger GetRawBalance(Address address)
-        => Trie.GetValue(KeyConverters.ToStateKey(address), BigInteger.Zero);
+        => Trie.GetValueOrDefault(KeyConverters.ToStateKey(address), BigInteger.Zero);
 
     private BigInteger GetRawTotalSupply()
-        => Trie.GetValue(KeyConverters.ToStateKey(TotalSupplyAddress), BigInteger.Zero);
+        => Trie.GetValueOrDefault(KeyConverters.ToStateKey(TotalSupplyAddress), BigInteger.Zero);
 }

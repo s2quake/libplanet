@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Libplanet.Serialization;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Store.Trie.Nodes;
@@ -65,8 +66,7 @@ public class MerkleTrieTest
             ([0x01], "1"),
             ([0x02], "2"),
             ([0x03], "3"),
-            ([0x04], "4")
-        );
+            ([0x04], "4"));
 
         var states = trie.ToDictionary();
         Assert.Equal(5, states.Count);
@@ -132,150 +132,136 @@ public class MerkleTrieTest
         Assert.Equal(3, trie.GetNode(prefixKey).KeyValues().Count());
     }
 
-    // [Theory]
-    // [InlineData(true)]
-    // [InlineData(false)]
-    // public void Set(bool commit)
-    // {
-    //     var stateStore = new TrieStateStore();
-    //     var trie = Libplanet.Store.Trie.Trie.Create(
-    //         ((KeyBytes)"_", Dictionary.Empty));
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Set(bool commit)
+    {
+        var stateStore = new TrieStateStore();
+        var trie = Libplanet.Store.Trie.Trie.Create(
+            ((KeyBytes)"_", ImmutableSortedDictionary<string, string>.Empty));
 
-    //     Assert.Throws<KeyNotFoundException>(() => trie[[0xbe, 0xef]]);
-    //     Assert.Throws<KeyNotFoundException>(() => trie[[0x11, 0x22]]);
-    //     Assert.Throws<KeyNotFoundException>(() => trie[[0xaa, 0xbb]]);
-    //     Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0xbe, 0xef]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x11, 0x22]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0xaa, 0xbb]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
 
-    //     trie = trie.Set([0xbe, 0xef], null);
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse("16fc25f43edd0c2d2cb6e3cc3827576e57f4b9e04f8dc3a062c7fe59041f77bd"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(null, trie[[0xbe, 0xef]]);
-    //     Assert.Null(trie[[0x11, 0x22]]);
-    //     Assert.Null(trie[[0xaa, 0xbb]]);
-    //     Assert.Null(trie[[0x12, 0x34]]);
+        trie = trie.Set([0xbe, 0xef], "null");
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(
+            Parse("3b6414adc582fcc2d44c0f85be521aad6a98b88d5b685006eb4b37ca314df23d"),
+            trie.Hash);
+        Assert.Equal("null", trie[[0xbe, 0xef]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x11, 0x22]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0xaa, 0xbb]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
 
-    //     trie = trie.Set([0xbe, 0xef], new Bencodex.Types.Boolean(true));
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse("4458796f4092b5ebfc1ffb3989e72edee228501e438080a12dea45591dc66d58"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(
-    //         new Bencodex.Types.Boolean(true),
-    //         trie[[0xbe, 0xef]]);
-    //     Assert.Null(trie[[0x11, 0x22]]);
-    //     Assert.Null(trie[[0xaa, 0xbb]]);
-    //     Assert.Null(trie[[0x12, 0x34]]);
+        trie = trie.Set([0xbe, 0xef], true);
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(
+            Parse("5af9a61e8f0d48e4f76b920ae0a279008dfce6abb1c99fa8dfbd23b723949ed4"),
+            trie.Hash);
+        Assert.True(trie[[0xbe, 0xef]] is true);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x11, 0x22]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0xaa, 0xbb]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
 
-    //     trie = trie.Set([0x11, 0x22], List.Empty);
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse("ab1359a2497453110a9c658dd3db45f282404fe68d8c8aca30856f395572284c"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(
-    //         new Bencodex.Types.Boolean(true),
-    //         trie[[0xbe, 0xef]]);
-    //     AssertBencodexEqual(List.Empty, trie[[0x11, 0x22]]);
-    //     Assert.Null(trie[[0xaa, 0xbb]]);
-    //     Assert.Null(trie[[0x12, 0x34]]);
+        trie = trie.Set([0x11, 0x22], new List<string>());
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(
+            Parse("129d5b1ce5ff32577ac015678388984a0ffbd1beb5a38dac9880ceed9de50731"),
+            trie.Hash);
+        Assert.True(trie[[0xbe, 0xef]] is true);
+        Assert.Equal<string>([], (List<string>)trie[[0x11, 0x22]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0xaa, 0xbb]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
 
-    //     trie = trie.Set([0xaa, 0xbb], new Text("hello world"));
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse("abb5759141f7af1c40f1b0993ba60073cf4227900617be9641373e5a097eaa3c"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(
-    //         new Bencodex.Types.Boolean(true),
-    //         trie[[0xbe, 0xef]]);
-    //     AssertBencodexEqual(List.Empty, trie[[0x11, 0x22]]);
-    //     AssertBencodexEqual(
-    //         new Text("hello world"),
-    //         trie[[0xaa, 0xbb]]);
-    //     Assert.Null(trie[[0x12, 0x34]]);
+        trie = trie.Set([0xaa, 0xbb], "hello world");
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(
+            Parse("7f3e9047e58bfa31edcf4bf3053de808565f0673063fa80c3442b791635a33b3"),
+            trie.Hash);
+        Assert.True(trie[[0xbe, 0xef]] is true);
+        Assert.Equal<string>([], (List<string>)trie[[0x11, 0x22]]);
+        Assert.Equal("hello world", trie[[0xaa, 0xbb]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
 
-    //     // Once node encoding length exceeds certain length,
-    //     // uncommitted and committed hash diverge
-    //     var longText = new Text(string.Join("\n", Range(0, 1000).Select(i => $"long str {i}")));
-    //     trie = trie.Set([0xaa, 0xbb], longText);
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse(commit
-    //             ? "56e5a39a726acba1f7631a6520ae92e20bb93ca3992a7b7d3542c6daee68e56d"
-    //             : "ad9fb53a8f643bd308d7afea57a5d1796d6031b1df95bdd415fa69b44177d155"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(
-    //         new Bencodex.Types.Boolean(true),
-    //         trie[[0xbe, 0xef]]);
-    //     AssertBencodexEqual(List.Empty, trie[[0x11, 0x22]]);
-    //     AssertBencodexEqual(longText, trie[[0xaa, 0xbb]]);
-    //     Assert.Null(trie[[0x12, 0x34]]);
+        // Once node encoding length exceeds certain length,
+        // uncommitted and committed hash diverge
+        var longText = string.Join("\n", Range(0, 1000).Select(i => $"long str {i}"));
+        trie = trie.Set([0xaa, 0xbb], longText);
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(
+            Parse(commit
+                ? "56e5a39a726acba1f7631a6520ae92e20bb93ca3992a7b7d3542c6daee68e56d"
+                : "200481e87f2cc1c0729beb4526de7c54e065e0892e58667e0cbd530b85c4e728"),
+            trie.Hash);
+        Assert.True(trie[[0xbe, 0xef]] is true);
+        Assert.Equal<string>([], (List<string>)trie[[0x11, 0x22]]);
+        Assert.Equal(longText, trie[[0xaa, 0xbb]]);
+        Assert.Throws<KeyNotFoundException>(() => trie[[0x12, 0x34]]);
 
-    //     trie = trie.Set([0x12, 0x34], Dictionary.Empty);
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse(commit
-    //             ? "88d6375097fd03e6c30a129eb0030d938caeaa796643971ca938fbd27ff5e057"
-    //             : "77d13e9d97033400ad31fcb0441819285b9165f6ea6ae599d85e7d7e24428feb"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(
-    //         new Bencodex.Types.Boolean(true),
-    //         trie[[0xbe, 0xef]]);
-    //     AssertBencodexEqual(List.Empty, trie[[0x11, 0x22]]);
-    //     AssertBencodexEqual(longText, trie[[0xaa, 0xbb]]);
-    //     AssertBencodexEqual(Dictionary.Empty, trie[[0x12, 0x34]]);
+        trie = trie.Set([0x12, 0x34], ImmutableSortedDictionary<string, string>.Empty);
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(
+            Parse(commit
+                ? "88d6375097fd03e6c30a129eb0030d938caeaa796643971ca938fbd27ff5e057"
+                : "18532d2ee8484a65b102668715c97decf1a3218b23bfb11933748018179cb5cf"),
+            trie.Hash);
+        Assert.True(trie[[0xbe, 0xef]] is true);
+        Assert.Equal<string>([], (List<string>)trie[[0x11, 0x22]]);
+        Assert.Equal(longText, trie[[0xaa, 0xbb]]);
+        Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie[[0x12, 0x34]]);
 
-    //     List complexList = List.Empty
-    //         .Add("Hello world")
-    //         .Add(Dictionary.Empty
-    //             .Add("foo", 1)
-    //             .Add("bar", 2)
-    //             .Add(
-    //                 "lst",
-    //                 new List(Range(0, 1000).Select(i => new Text($"long str {i}")))))
-    //         .Add(new List(Range(0, 1000).Select(i => new Text($"long str {i}"))));
-    //     trie = trie.Set([0x11, 0x22], complexList);
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse(commit
-    //             ? "f29820df65c1d1a66b69a59b9fe3e21911bbd2d97a9f298853c529804bf84a26"
-    //             : "586ba0ba5dfe07433b01fbf7611f95832bde07b8dc5669540ef8866f465bbb85"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(
-    //         new Bencodex.Types.Boolean(true),
-    //         trie[[0xbe, 0xef]]);
-    //     AssertBencodexEqual(complexList, trie[[0x11, 0x22]]);
-    //     AssertBencodexEqual(longText, trie[[0xaa, 0xbb]]);
-    //     AssertBencodexEqual(Dictionary.Empty, trie[[0x12, 0x34]]);
+        var complexList = ImmutableList<object>.Empty
+            .Add("Hello world")
+            .Add(ImmutableSortedDictionary<string, object>.Empty
+                .Add("foo", 1)
+                .Add("bar", 2)
+                .Add(
+                    "lst",
+                    new List<string>(Range(0, 1000).Select(i => $"long str {i}"))))
+            .Add(new List<string>(Range(0, 1000).Select(i => $"long str {i}")));
+        trie = trie.Set([0x11, 0x22], complexList);
+        trie = commit ? stateStore.Commit(trie) : trie;
+        Assert.Equal(
+            Parse(commit
+                ? "f29820df65c1d1a66b69a59b9fe3e21911bbd2d97a9f298853c529804bf84a26"
+                : "408037f213067c016c09466e75edcb80b2ad5de738be376ee80a364b4cab575a"),
+            trie.Hash);
+        Assert.True(trie[[0xbe, 0xef]] is true);
+        Assert.True(ModelResolver.Equals(complexList, (ImmutableList<object>)trie[[0x11, 0x22]]));
+        Assert.Equal(longText, trie[[0xaa, 0xbb]]);
+        Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie[[0x12, 0x34]]);
 
-    //     Dictionary complexDict = Dictionary.Empty
-    //         .Add("foo", 123)
-    //         .Add("bar", 456)
-    //         .Add("lst", new List(Range(0, 1000).Select(i => new Text($"long str {i}"))))
-    //         .Add("cls", complexList)
-    //         .Add(
-    //             "dct",
-    //             Dictionary.Empty
-    //                 .Add("abcd", null)
-    //                 .Add("efgh", false)
-    //                 .Add("ijkl", true)
-    //                 .Add("mnop", new Binary("hello world", Encoding.ASCII))
-    //                 .Add("qrst", complexList)
-    //                 .Add("uvwx", Dictionary.Empty));
-    //     trie = trie.Set([0x12, 0x34], complexDict);
-    //     trie = commit ? stateStore.Commit(trie) : trie;
-    //     AssertBytesEqual(
-    //         Parse(commit
-    //             ? "1dabec2c0fea02af0182e9fee6c7ce7ad1a9d9bcfaa2cd80c2971bbce5272655"
-    //             : "4783d18dfc8a2d4d98f722a935e45bd7fc1d0197fb4d33e62f734bfde968af39"),
-    //         trie.Hash);
-    //     AssertBencodexEqual(
-    //         new Bencodex.Types.Boolean(true),
-    //         trie[[0xbe, 0xef]]);
-    //     AssertBencodexEqual(complexList, trie[[0x11, 0x22]]);
-    //     AssertBencodexEqual(longText, trie[[0xaa, 0xbb]]);
-    //     AssertBencodexEqual(complexDict, trie[[0x12, 0x34]]);
-    // }
+        // Dictionary complexDict = Dictionary.Empty
+        //     .Add("foo", 123)
+        //     .Add("bar", 456)
+        //     .Add("lst", new List(Range(0, 1000).Select(i => new Text($"long str {i}"))))
+        //     .Add("cls", complexList)
+        //     .Add(
+        //         "dct",
+        //         Dictionary.Empty
+        //             .Add("abcd", null)
+        //             .Add("efgh", false)
+        //             .Add("ijkl", true)
+        //             .Add("mnop", new Binary("hello world", Encoding.ASCII))
+        //             .Add("qrst", complexList)
+        //             .Add("uvwx", Dictionary.Empty));
+        // trie = trie.Set([0x12, 0x34], complexDict);
+        // trie = commit ? stateStore.Commit(trie) : trie;
+        // AssertBytesEqual(
+        //     Parse(commit
+        //         ? "1dabec2c0fea02af0182e9fee6c7ce7ad1a9d9bcfaa2cd80c2971bbce5272655"
+        //         : "4783d18dfc8a2d4d98f722a935e45bd7fc1d0197fb4d33e62f734bfde968af39"),
+        //     trie.Hash);
+        // Assert.Equal(
+        //     new Bencodex.Types.Boolean(true),
+        //     trie[[0xbe, 0xef]]);
+        // Assert.Equal(complexList, trie[[0x11, 0x22]]);
+        // Assert.Equal(longText, trie[[0xaa, 0xbb]]);
+        // Assert.Equal(complexDict, trie[[0x12, 0x34]]);
+    }
 
     // [Fact]
     // public void GetNode()
