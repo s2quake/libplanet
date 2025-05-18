@@ -10,7 +10,7 @@ namespace Libplanet.Types.Consensus;
 public sealed record class VoteMetadata : IValidatableObject
 {
     [Property(0)]
-    public required PublicKey ValidatorPublicKey { get; init; }
+    public required Address Validator { get; init; }
 
     [Property(1)]
     [NonNegative]
@@ -35,7 +35,7 @@ public sealed record class VoteMetadata : IValidatableObject
 
     public bool Verify(ImmutableArray<byte> signature)
     {
-        return ValidatorPublicKey.Verify([.. ModelSerializer.SerializeToBytes(this)], signature);
+        return PublicKey.Verify(Validator, [.. ModelSerializer.SerializeToBytes(this)], signature);
     }
 
     public Vote Sign(PrivateKey signer)

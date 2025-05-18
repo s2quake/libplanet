@@ -24,10 +24,10 @@ public sealed record class DuplicateVoteEvidence : EvidenceBase, IEquatable<Dupl
         Vote voteRef, Vote voteDup, ImmutableSortedSet<Validator> validators) => new()
         {
             Height = voteRef.Height,
-            TargetAddress = voteRef.ValidatorPublicKey.Address,
+            TargetAddress = voteRef.Validator,
             VoteRef = voteRef,
             VoteDup = voteDup,
-            ValidatorPower = validators.GetValidator(voteRef.ValidatorPublicKey).Power,
+            ValidatorPower = validators.GetValidator(voteRef.Validator).Power,
             TotalPower = validators.GetTotalPower(),
             Timestamp = voteDup.Timestamp,
         };
@@ -53,10 +53,10 @@ public sealed record class DuplicateVoteEvidence : EvidenceBase, IEquatable<Dupl
         if (validationContext.Items.TryGetValue(typeof(EvidenceContext), out var value)
             && value is EvidenceContext evidenceContext)
         {
-            if (!evidenceContext.Validators.Contains(VoteRef.ValidatorPublicKey))
+            if (!evidenceContext.Validators.Contains(VoteRef.Validator))
             {
                 yield return new ValidationResult(
-                    $"Validator {VoteRef.ValidatorPublicKey} is not registered");
+                    $"Validator {VoteRef.Validator} is not registered");
             }
         }
         else
@@ -86,12 +86,12 @@ public sealed record class DuplicateVoteEvidence : EvidenceBase, IEquatable<Dupl
                 $"voteRef {VoteRef.Round}, voteDup {VoteDup.Round}");
         }
 
-        if (VoteRef.ValidatorPublicKey != VoteDup.ValidatorPublicKey)
+        if (VoteRef.Validator != VoteDup.Validator)
         {
             yield return new ValidationResult(
                 $"Validator public key of votes are different: " +
-                $"voteRef {VoteRef.ValidatorPublicKey}, " +
-                $"voteDup {VoteDup.ValidatorPublicKey}");
+                $"voteRef {VoteRef.Validator}, " +
+                $"voteDup {VoteDup.Validator}");
         }
 
         if (VoteRef.Flag != VoteDup.Flag)

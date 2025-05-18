@@ -118,7 +118,7 @@ namespace Libplanet.Net.Tests
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = privateKey.PublicKey,
+                Validator = privateKey.PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = flag,
             };

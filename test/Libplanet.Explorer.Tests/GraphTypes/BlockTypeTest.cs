@@ -29,7 +29,7 @@ public class BlockTypeTest
                 Round = 0,
                 BlockHash = lastBlockHash,
                 Timestamp = DateTimeOffset.Now,
-                ValidatorPublicKey = privateKey.PublicKey,
+                Validator = privateKey.PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(privateKey));
@@ -129,7 +129,7 @@ public class BlockTypeTest
                             "timestamp",
                             new DateTimeOffsetGraphType().Serialize(lastVotes[0].Timestamp)
                         },
-                        { "validatorPublicKey", lastVotes[0].ValidatorPublicKey.ToString() },
+                        { "validatorPublicKey", lastVotes[0].Validator.ToString() },
                         { "validatorPower", lastVotes[0].ValidatorPower.ToString() },
                         { "flag", lastVotes[0].Flag.ToString() },
                         { "signature", ByteUtility.Hex(lastVotes[0].Signature) },

@@ -24,7 +24,7 @@ public sealed record class Vote : IEquatable<Vote>, IValidatableObject
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public PublicKey ValidatorPublicKey => Metadata.ValidatorPublicKey;
+    public Address Validator => Metadata.Validator;
 
     public BigInteger ValidatorPower => Metadata.ValidatorPower;
 

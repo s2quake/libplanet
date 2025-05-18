@@ -69,7 +69,7 @@ namespace Libplanet.Net.Tests
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.Now,
-                ValidatorPublicKey = privateKey.PublicKey,
+                Validator = privateKey.PublicKey,
                 ValidatorPower = power,
                 Flag = flag,
             }.Sign(privateKey);
@@ -146,7 +146,7 @@ namespace Libplanet.Net.Tests
                             Round = consensusContext.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = privateKey.PublicKey,
+                            Validator = privateKey.PublicKey,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey)));
@@ -176,7 +176,7 @@ namespace Libplanet.Net.Tests
                             Round = context.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = privateKey.PublicKey,
+                            Validator = privateKey.PublicKey,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey)));
@@ -206,7 +206,7 @@ namespace Libplanet.Net.Tests
                             Round = context.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = privateKey.PublicKey,
+                            Validator = privateKey.PublicKey,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
                         }.Sign(privateKey)));
@@ -236,7 +236,7 @@ namespace Libplanet.Net.Tests
                             Round = consensusContext.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = privateKey.PublicKey,
+                            Validator = privateKey.PublicKey,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
                         }.Sign(privateKey)));

@@ -116,9 +116,9 @@ namespace Libplanet.Net.Consensus
                         vote);
                 }
 
-                PublicKey validatorKey = vote.ValidatorPublicKey;
+                var validatorKey = vote.Validator;
 
-                if (validatorKey is null)
+                if (validatorKey == default)
                 {
                     throw new InvalidVoteException("ValidatorKey of the vote cannot be null", vote);
                 }

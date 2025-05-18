@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Crypto;
@@ -9,24 +8,21 @@ namespace Libplanet.Types.Consensus;
 public sealed record class Validator : IComparable<Validator>, IComparable
 {
     [Property(0)]
-    public required PublicKey PublicKey { get; init; }
+    public required Address Address { get; init; }
 
     [Property(1)]
     [Positive]
     public BigInteger Power { get; init; } = BigInteger.One;
 
-    [JsonIgnore]
-    public Address OperatorAddress => PublicKey.Address;
+    public static Validator Create(Address address) => Create(address, BigInteger.One);
 
-    public static Validator Create(PublicKey publicKey) => Create(publicKey, BigInteger.One);
-
-    public static Validator Create(PublicKey publicKey, BigInteger power) => new()
+    public static Validator Create(Address address, BigInteger power) => new()
     {
-        PublicKey = publicKey,
+        Address = address,
         Power = power,
     };
 
-    public override string ToString() => $"{PublicKey}:{Power}";
+    public override string ToString() => $"{Address}:{Power}";
 
     public int CompareTo(object? obj) => obj switch
     {
@@ -45,7 +41,7 @@ public sealed record class Validator : IComparable<Validator>, IComparable
         var result = Power.CompareTo(other.Power);
         if (result == 0)
         {
-            result = OperatorAddress.CompareTo(other.OperatorAddress);
+            result = Address.CompareTo(other.Address);
         }
 
         return result;

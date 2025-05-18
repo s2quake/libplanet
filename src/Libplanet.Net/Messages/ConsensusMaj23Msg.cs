@@ -13,7 +13,7 @@ public class ConsensusMaj23Msg : ConsensusMsg
     /// </summary>
     /// <param name="maj23">A <see cref="Maj23"/> of given height and round.</param>
     public ConsensusMaj23Msg(Maj23 maj23)
-        : base(maj23.ValidatorPublicKey, maj23.Height, maj23.Round)
+        : base(maj23.Validator, maj23.Height, maj23.Round)
     {
         Maj23 = maj23;
     }

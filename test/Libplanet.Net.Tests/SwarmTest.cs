@@ -463,7 +463,7 @@ namespace Libplanet.Net.Tests
                 {
                     if (eventArgs.Message is ConsensusProposalMsg proposalMsg &&
                         proposalMsg.Round == 1 &&
-                        proposalMsg.ValidatorPublicKey.Equals(TestUtils.PrivateKeys[2].PublicKey))
+                        proposalMsg.Validator.Equals(TestUtils.PrivateKeys[2].PublicKey))
                     {
                         roundOneProposed.Set();
                     }

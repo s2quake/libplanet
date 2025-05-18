@@ -9,7 +9,7 @@ public class ConsensusVoteSetBitsMsg : ConsensusMsg
 {
     public ConsensusVoteSetBitsMsg(VoteSetBits voteSetBits)
         : base(
-            voteSetBits.ValidatorPublicKey,
+            voteSetBits.Validator,
             voteSetBits.Height,
             voteSetBits.Round)
     {

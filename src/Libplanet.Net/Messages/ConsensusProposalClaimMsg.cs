@@ -7,7 +7,7 @@ namespace Libplanet.Net.Messages;
 public class ConsensusProposalClaimMsg : ConsensusMsg
 {
     public ConsensusProposalClaimMsg(ProposalClaim proposalClaim)
-        : base(proposalClaim.ValidatorPublicKey, proposalClaim.Height, proposalClaim.Round)
+        : base(proposalClaim.Validator, proposalClaim.Height, proposalClaim.Round)
     {
         ProposalClaim = proposalClaim;
     }

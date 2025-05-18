@@ -205,14 +205,16 @@ public partial class Context : IDisposable
                 nameof(flag)),
         };
 
-        return new VoteSetBitsMetadata(
-            Height,
-            round,
-            blockHash,
-            DateTimeOffset.UtcNow,
-            _privateKey.PublicKey,
-            flag,
-            voteBits).Sign(_privateKey);
+        return new VoteSetBitsMetadata
+        {
+            Height = Height,
+            Round = round,
+            BlockHash = blockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = _privateKey.Address,
+            Flag = flag,
+            VoteBits = [.. voteBits],
+        }.Sign(_privateKey);
     }
 
     /// <summary>
@@ -478,8 +480,8 @@ public partial class Context : IDisposable
             Round = round,
             BlockHash = hash,
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = _privateKey.PublicKey,
-            ValidatorPower = _validatorSet.GetValidator(_privateKey.PublicKey).Power,
+            Validator = _privateKey.Address,
+            ValidatorPower = _validatorSet.GetValidator(_privateKey.Address).Power,
             Flag = flag,
         }.Sign(_privateKey);
     }
@@ -506,13 +508,15 @@ public partial class Context : IDisposable
                 $"to create a valid signed maj23.");
         }
 
-        return new Maj23Metadata(
-            Height,
-            round,
-            hash,
-            DateTimeOffset.UtcNow,
-            _privateKey.PublicKey,
-            flag).Sign(_privateKey);
+        return new Maj23Metadata
+        {
+            Height = Height,
+            Round = round,
+            BlockHash = hash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = _privateKey.Address,
+            Flag = flag,
+        }.Sign(_privateKey);
     }
 
     /// <summary>

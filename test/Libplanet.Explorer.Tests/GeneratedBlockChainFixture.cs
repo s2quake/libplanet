@@ -181,7 +181,7 @@ public class GeneratedBlockChainFixture
                         Round = 0,
                         BlockHash = block.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
-                        ValidatorPublicKey = pk.PublicKey,
+                        Validator = pk.PublicKey,
                         ValidatorPower = BigInteger.One,
                         Flag = VoteFlag.PreCommit,
                     }.Sign(pk))

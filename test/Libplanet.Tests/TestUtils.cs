@@ -363,7 +363,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Round = round,
                 BlockHash = blockHash,
                 Timestamp = deterministicTimestamp ? DateTimeOffset.UnixEpoch : DateTimeOffset.UtcNow,
-                ValidatorPublicKey = key.PublicKey,
+                Validator = key.PublicKey,
                 ValidatorPower = useValidatorPower ? Validators.GetValidator(key.PublicKey).Power : 0,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key)).ToImmutableArray();

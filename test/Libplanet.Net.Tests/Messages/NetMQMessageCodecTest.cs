@@ -139,7 +139,7 @@ namespace Libplanet.Net.Tests.Messages
                                 Round = 0,
                                 BlockHash = genesis.BlockHash,
                                 Timestamp = DateTimeOffset.UtcNow,
-                                ValidatorPublicKey = privateKey.PublicKey,
+                                Validator = privateKey.PublicKey,
                                 ValidatorPower = BigInteger.One,
                                 Flag = VoteFlag.PreVote,
                             }.Sign(privateKey));
@@ -151,7 +151,7 @@ namespace Libplanet.Net.Tests.Messages
                             Round = 0,
                             BlockHash = genesis.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = privateKey.PublicKey,
+                            Validator = privateKey.PublicKey,
                             ValidatorPower = BigInteger.One,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey));

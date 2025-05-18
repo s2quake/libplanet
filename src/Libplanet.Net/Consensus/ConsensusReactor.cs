@@ -158,7 +158,7 @@ namespace Libplanet.Net.Consensus
                     try
                     {
                         var sender = _gossip.Peers.First(
-                            peer => peer.PublicKey.Equals(voteSetBits.ValidatorPublicKey));
+                            peer => peer.PublicKey.Equals(voteSetBits.Validator));
                         foreach (var msg in messages)
                         {
                             _gossip.PublishMessage(msg, new[] { sender });
@@ -184,7 +184,7 @@ namespace Libplanet.Net.Consensus
                         }
 
                         var sender = _gossip.Peers.First(
-                            peer => peer.PublicKey.Equals(maj23Msg.ValidatorPublicKey));
+                            peer => peer.PublicKey.Equals(maj23Msg.Validator));
                         _gossip.PublishMessage(
                             new ConsensusVoteSetBitsMsg(voteSetBits),
                             new[] { sender });
@@ -208,7 +208,7 @@ namespace Libplanet.Net.Consensus
                         {
                             var reply = new ConsensusProposalMsg(proposalNotNull);
                             var sender = _gossip.Peers.First(
-                                peer => peer.PublicKey.Equals(proposalClaimMsg.ValidatorPublicKey));
+                                peer => peer.PublicKey.Equals(proposalClaimMsg.Validator));
 
                             _gossip.PublishMessage(reply, new[] { sender });
                         }

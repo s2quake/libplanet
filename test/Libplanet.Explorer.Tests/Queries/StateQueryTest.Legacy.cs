@@ -164,7 +164,7 @@ public partial class StateQueryTest
         object[] validators = Assert.IsAssignableFrom<object[]>(resultDict["validators"]);
         IDictionary<string, object> validatorDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(validators[0]);
-        Assert.Equal(Fixture.Validator.PublicKey.ToString("c", null), validatorDict["publicKey"]);
+        Assert.Equal(Fixture.Validator.Address.ToString("c", null), validatorDict["publicKey"]);
         Assert.Equal(Fixture.Validator.Power, validatorDict["power"]);
     }
 
@@ -339,7 +339,7 @@ public partial class StateQueryTest
         object[] validators = Assert.IsAssignableFrom<object[]>(resultDict["validators"]);
         IDictionary<string, object> validatorDict =
             Assert.IsAssignableFrom<IDictionary<string, object>>(validators[0]);
-        Assert.Equal(Fixture.Validator.PublicKey.ToString("c", null), validatorDict["publicKey"]);
+        Assert.Equal(Fixture.Validator.Address.ToString("c", null), validatorDict["publicKey"]);
         Assert.Equal(Fixture.Validator.Power, validatorDict["power"]);
     }
 }

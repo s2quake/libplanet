@@ -20,7 +20,7 @@
 //                 Round = 2,
 //                 BlockHash = hash,
 //                 Timestamp = DateTimeOffset.UtcNow,
-//                 ValidatorPublicKey = new PrivateKey().PublicKey,
+//                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
 //                 Flag = VoteFlag.Null,
 //             };
@@ -30,7 +30,7 @@
 //                 Round = 2,
 //                 BlockHash = hash,
 //                 Timestamp = DateTimeOffset.UtcNow,
-//                 ValidatorPublicKey = new PrivateKey().PublicKey,
+//                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
 //                 Flag = VoteFlag.Unknown,
 //             };
@@ -42,7 +42,7 @@
 //                 Round = 2,
 //                 BlockHash = default,
 //                 Timestamp = DateTimeOffset.UtcNow,
-//                 ValidatorPublicKey = new PrivateKey().PublicKey,
+//                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
 //                 Flag = VoteFlag.Null,
 //             });
@@ -52,7 +52,7 @@
 //                 Round = 2,
 //                 BlockHash = default,
 //                 Timestamp = DateTimeOffset.UtcNow,
-//                 ValidatorPublicKey = new PrivateKey().PublicKey,
+//                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
 //                 Flag = VoteFlag.Unknown,
 //             });
@@ -69,7 +69,7 @@
 //                 Round = 2,
 //                 BlockHash = hash,
 //                 Timestamp = DateTimeOffset.UtcNow,
-//                 ValidatorPublicKey = key.PublicKey,
+//                 Validator = key.PublicKey,
 //                 ValidatorPower = BigInteger.One,
 //                 Flag = VoteFlag.PreCommit,
 //             };
@@ -83,7 +83,7 @@
 //                 Round = 2,
 //                 BlockHash = hash,
 //                 Timestamp = DateTimeOffset.UtcNow,
-//                 ValidatorPublicKey = key.PublicKey,
+//                 Validator = key.PublicKey,
 //                 Flag = VoteFlag.PreCommit,
 //             };
 //             decoded = ModelSerializer.Deserialize<VoteMetadata>(

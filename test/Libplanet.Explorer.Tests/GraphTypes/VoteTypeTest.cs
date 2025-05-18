@@ -25,7 +25,7 @@ public class VoteTypeTest
             Round = 0,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.Now,
-            ValidatorPublicKey =privateKey.PublicKey,
+            Validator =privateKey.PublicKey,
             ValidatorPower = 123,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -55,7 +55,7 @@ public class VoteTypeTest
         Assert.Equal(vote.BlockHash.ToString(), resultData["blockHash"]);
         Assert.Equal(
             new DateTimeOffsetGraphType().Serialize(vote.Timestamp), resultData["timestamp"]);
-        Assert.Equal(vote.ValidatorPublicKey.ToString(), resultData["validatorPublicKey"]);
+        Assert.Equal(vote.Validator.ToString(), resultData["validatorPublicKey"]);
         Assert.Equal(vote.ValidatorPower.ToString(), resultData["validatorPower"]);
         Assert.Equal(vote.Flag.ToString(), resultData["flag"]);
         Assert.Equal(ByteUtility.Hex(vote.Signature), resultData["signature"]);
