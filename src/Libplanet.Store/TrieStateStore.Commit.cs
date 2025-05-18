@@ -43,13 +43,11 @@ public partial class TrieStateStore
         _ => throw new NotSupportedException("Not supported node came."),
     };
 
-    private static INode CommitFullNode(FullNode fullNode, WriteBatch writeBatch)
+    private static INode CommitFullNode(FullNode node, WriteBatch writeBatch)
     {
-        var virtualValue = fullNode.Value is null
-            ? null
-            : Commit(fullNode.Value, writeBatch);
+        var virtualValue = node.Value is null ? null : Commit(node.Value, writeBatch);
         var builder = ImmutableSortedDictionary.CreateBuilder<byte, INode>();
-        foreach (var (index, child) in fullNode.Children)
+        foreach (var (index, child) in node.Children)
         {
             if (child is not null)
             {
@@ -58,55 +56,50 @@ public partial class TrieStateStore
         }
 
         var virtualChildren = builder.ToImmutable();
+        var newNode = new FullNode { Children = virtualChildren, Value = virtualValue };
+        var bytes = ModelSerializer.SerializeToBytes(newNode);
+        if (bytes.Length <= HashDigest<SHA256>.Size)
+        {
+            return newNode;
+        }
 
-        fullNode = new FullNode { Children = virtualChildren, Value = virtualValue };
-        // IValue encoded = fullNode.ToBencodex();
-
-        // if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
-        // {
-        //     return fullNode;
-        // }
-
-        return Write(fullNode, writeBatch);
+        return Write(bytes, writeBatch);
     }
 
-    private static INode CommitShortNode(
-        ShortNode shortNode, WriteBatch writeBatch)
+    private static INode CommitShortNode(ShortNode node, WriteBatch writeBatch)
     {
-        // FIXME: Assumes value is not null.
-        var committedValueNode = Commit(shortNode.Value, writeBatch);
-        shortNode = new ShortNode { Key = shortNode.Key, Value = committedValueNode };
-        // IValue encoded = shortNode.ToBencodex();
-        // if (encoded.EncodingLength <= HashDigest<SHA256>.Size)
-        // {
-        //     return shortNode;
-        // }
+        var committedValueNode = Commit(node.Value, writeBatch);
+        var newNode = new ShortNode { Key = node.Key, Value = committedValueNode };
+        var bytes = ModelSerializer.SerializeToBytes(newNode);
+        if (bytes.Length <= HashDigest<SHA256>.Size)
+        {
+            return newNode;
+        }
 
-        return Write(shortNode, writeBatch);
+        return Write(bytes, writeBatch);
     }
 
-    private static INode CommitValueNode(ValueNode valueNode, WriteBatch writeBatch)
+    private static INode CommitValueNode(ValueNode node, WriteBatch writeBatch)
     {
-        // IValue encoded = valueNode.ToBencodex();
-        // var nodeSize = encoded.EncodingLength;
-        // if (nodeSize <= HashDigest<SHA256>.Size)
-        // {
-        //     return valueNode;
-        // }
+        var bytes = ModelSerializer.SerializeToBytes(node);
+        if (bytes.Length <= HashDigest<SHA256>.Size)
+        {
+            return node;
+        }
 
-        return Write(valueNode, writeBatch);
+        return Write(bytes, writeBatch);
     }
 
-    private static HashNode Write(object value, WriteBatch writeBatch)
+    private static HashNode Write(byte[] bytes, WriteBatch writeBatch)
     {
-        var serialized = ModelSerializer.SerializeToBytes(value);
-        var nodeHash = HashDigest<SHA256>.Create(serialized);
-        HashNodeCache.AddOrUpdate(nodeHash, serialized);
-        writeBatch.Add(new KeyBytes(nodeHash.Bytes), serialized);
-        return writeBatch.Create(nodeHash);
+        var hash = HashDigest<SHA256>.Create(bytes);
+        var key = new KeyBytes(hash.Bytes);
+        HashNodeCache.AddOrUpdate(hash, bytes);
+        writeBatch.Add(key, bytes);
+        return writeBatch.Create(hash);
     }
 
-    private class WriteBatch
+    private sealed class WriteBatch
     {
         private readonly ITable _store;
         private readonly int _batchSize;
@@ -118,8 +111,6 @@ public partial class TrieStateStore
             _batchSize = batchSize;
             _batch = new Dictionary<KeyBytes, byte[]>(_batchSize);
         }
-
-        public bool ContainsKey(KeyBytes key) => _batch.ContainsKey(key);
 
         public void Add(KeyBytes key, byte[] value)
         {
