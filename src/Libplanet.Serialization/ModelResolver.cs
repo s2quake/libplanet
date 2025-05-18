@@ -153,9 +153,10 @@ public static class ModelResolver
             return false;
         }
 
-        if (FindDescriptor(type) is { } descriptor)
+        var objType = obj1.GetType() != type ? obj1.GetType() : type;
+        if (FindDescriptor(objType) is { } descriptor)
         {
-            return descriptor.Equals(obj1, obj2, type);
+            return descriptor.Equals(obj1, obj2, objType);
         }
 
         return object.Equals(obj1, obj2);
