@@ -10,5 +10,5 @@ public interface IActionProvider
 
     PolicyActions PolicyActions { get; }
 
-    IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys);
+    IAction[] GetGenesisActions(Address genesisAddress, Address[] validators);
 }

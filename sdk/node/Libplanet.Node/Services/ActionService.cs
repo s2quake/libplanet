@@ -16,9 +16,9 @@ internal sealed class ActionService(IOptions<ActionOptions> options)
 
     public IActionProvider ActionProvider { get; } = GetActionProvider(options.Value);
 
-    public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
+    public IAction[] GetGenesisActions(Address genesisAddress, Address[] validators)
     {
-        return ActionProvider.GetGenesisActions(genesisAddress, validatorKeys);
+        return ActionProvider.GetGenesisActions(genesisAddress, validators);
     }
 
     private static IActionProvider GetActionProvider(ActionOptions options)

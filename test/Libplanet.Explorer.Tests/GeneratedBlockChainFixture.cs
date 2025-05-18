@@ -73,7 +73,7 @@ public class GeneratedBlockChainFixture
                         {
                             new Initialize
                             {
-                                Validators = [Validator.Create(pk.PublicKey, 1)],
+                                Validators = [Validator.Create(pk.Address, 1)],
                                 States = ImmutableDictionary.Create<Address, object>()
                             },
                         }.ToBytecodes()))
@@ -181,7 +181,7 @@ public class GeneratedBlockChainFixture
                         Round = 0,
                         BlockHash = block.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Validator = pk.PublicKey,
+                        Validator = pk.Address,
                         ValidatorPower = BigInteger.One,
                         Flag = VoteFlag.PreCommit,
                     }.Sign(pk))

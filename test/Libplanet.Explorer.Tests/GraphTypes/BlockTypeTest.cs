@@ -29,7 +29,7 @@ public class BlockTypeTest
                 Round = 0,
                 BlockHash = lastBlockHash,
                 Timestamp = DateTimeOffset.Now,
-                Validator = privateKey.PublicKey,
+                Validator = privateKey.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(privateKey));

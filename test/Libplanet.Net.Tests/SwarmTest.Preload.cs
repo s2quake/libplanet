@@ -251,7 +251,7 @@ namespace Libplanet.Net.Tests
                         Round = 0,
                         BlockHash = specialBlock.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Validator = TestUtils.PrivateKeys[0].PublicKey,
+                        Validator = TestUtils.PrivateKeys[0].Address,
                         ValidatorPower = TestUtils.Validators[0].Power,
                         Flag = VoteFlag.PreCommit,
                     }.Sign(TestUtils.PrivateKeys[0])

@@ -124,13 +124,15 @@ namespace Libplanet.Net.Tests.Messages
                         new[] { new MessageId(TestUtils.GetRandomBytes(MessageId.Size)) });
                 case MessageContent.MessageType.ConsensusProposal:
                     return new ConsensusProposalMsg(
-                        new ProposalMetadata(
-                            0,
-                            0,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            ModelSerializer.SerializeToBytes(genesis),
-                            -1).Sign(privateKey));
+                        new ProposalMetadata
+                        {
+                            Height = 0,
+                            Round = 0,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            Validator = privateKey.Address,
+                            MarshaledBlock = ModelSerializer.SerializeToBytes(genesis),
+                            ValidRound = -1,
+                        }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusVote:
                     return new ConsensusPreVoteMsg(
                             new VoteMetadata
@@ -139,7 +141,7 @@ namespace Libplanet.Net.Tests.Messages
                                 Round = 0,
                                 BlockHash = genesis.BlockHash,
                                 Timestamp = DateTimeOffset.UtcNow,
-                                Validator = privateKey.PublicKey,
+                                Validator = privateKey.Address,
                                 ValidatorPower = BigInteger.One,
                                 Flag = VoteFlag.PreVote,
                             }.Sign(privateKey));
@@ -151,37 +153,43 @@ namespace Libplanet.Net.Tests.Messages
                             Round = 0,
                             BlockHash = genesis.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.PublicKey,
+                            Validator = privateKey.Address,
                             ValidatorPower = BigInteger.One,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusMaj23Msg:
                     return new ConsensusMaj23Msg(
-                        new Maj23Metadata(
-                            0,
-                            0,
-                            genesis.BlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            VoteFlag.PreVote).Sign(privateKey));
+                        new Maj23Metadata
+                        {
+                            Height = 0,
+                            Round = 0,
+                            BlockHash = genesis.BlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            Validator = privateKey.Address,
+                            Flag = VoteFlag.PreVote,
+                        }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusVoteSetBitsMsg:
                     return new ConsensusVoteSetBitsMsg(
-                        new VoteSetBitsMetadata(
-                            0,
-                            0,
-                            genesis.BlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey,
-                            VoteFlag.PreVote,
-                            new[] { true, true, false, false }).Sign(privateKey));
+                        new VoteSetBitsMetadata
+                        {
+                            Height = 0,
+                            Round = 0,
+                            BlockHash = genesis.BlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            Validator = privateKey.Address,
+                            Flag = VoteFlag.PreVote,
+                            VoteBits = [true, true, false, false],
+                        }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusProposalClaimMsg:
                     return new ConsensusProposalClaimMsg(
-                        new ProposalClaimMetadata(
-                            0,
-                            0,
-                            genesis.BlockHash,
-                            DateTimeOffset.UtcNow,
-                            privateKey.PublicKey).Sign(privateKey));
+                        new ProposalClaimMetadata
+                        {
+                            Height = 0,
+                            Round = 0,
+                            BlockHash = genesis.BlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            Validator = privateKey.Address,
+                        }.Sign(privateKey));
                 default:
                     throw new Exception($"Cannot create a message of invalid type {type}");
             }

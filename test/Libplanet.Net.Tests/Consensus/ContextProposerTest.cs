@@ -373,7 +373,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
 
             Assert.Equal(
-                TestUtils.PrivateKeys[2].PublicKey,
+                TestUtils.PrivateKeys[2].Address,
                 TestUtils.Validators.GetProposer(2, 0).Address);
 
             context.Start();

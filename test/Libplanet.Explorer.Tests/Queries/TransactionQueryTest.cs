@@ -63,7 +63,7 @@ public class TransactionQueryTest
         var foo = Currency.Create("FOO", 2);
         var action = new Initialize
         {
-            Validators = [Validator.Create(new PrivateKey().PublicKey, 1)],
+            Validators = [Validator.Create(new PrivateKey().Address, 1)],
             States = new Dictionary<Address, object>
             {
                 [default] = "initial value"

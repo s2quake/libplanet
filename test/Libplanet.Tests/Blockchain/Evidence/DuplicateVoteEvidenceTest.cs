@@ -13,10 +13,10 @@ public class DuplicateVoteEvidenceTest
     {
         // Given
         var privateKey = new PrivateKey();
-        var validatorPublicKey = privateKey.PublicKey;
+        var validatorAddress = privateKey.Address;
         var validators = ImmutableSortedSet.Create(
         [
-            Validator.Create(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorAddress, BigInteger.One),
         ]);
 
         var voteRef = new VoteMetadata
@@ -25,7 +25,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -35,7 +35,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -51,10 +51,10 @@ public class DuplicateVoteEvidenceTest
     {
         // Given
         var privateKey = new PrivateKey();
-        var validatorPublicKey = privateKey.PublicKey;
+        var validatorAddress = privateKey.Address;
         var validatorList = new List<Validator>
         {
-            Validator.Create(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorAddress, BigInteger.One),
         };
 
         var voteRef = new VoteMetadata
@@ -63,7 +63,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -73,7 +73,7 @@ public class DuplicateVoteEvidenceTest
             Round = 3,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -93,8 +93,8 @@ public class DuplicateVoteEvidenceTest
             new PrivateKey(),
             new PrivateKey(),
         };
-        var validatorPublicKeys = privateKeys.Select(item => item.PublicKey).ToArray();
-        var validators = validatorPublicKeys.Select(item => Validator.Create(item, BigInteger.One))
+        var validatorAddresses = privateKeys.Select(item => item.Address).ToArray();
+        var validators = validatorAddresses.Select(item => Validator.Create(item, BigInteger.One))
             .ToImmutableSortedSet();
 
         var voteRef = new VoteMetadata
@@ -103,7 +103,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKeys[0],
+            Validator = validatorAddresses[0],
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKeys[0]);
@@ -113,7 +113,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKeys[1],
+            Validator = validatorAddresses[1],
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKeys[1]);
@@ -129,10 +129,10 @@ public class DuplicateVoteEvidenceTest
     {
         // Given
         var privateKey = new PrivateKey();
-        var validatorPublicKey = privateKey.PublicKey;
+        var validatorAddress = privateKey.Address;
         var validators = ImmutableSortedSet.Create(
         [
-            Validator.Create(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorAddress, BigInteger.One),
         ]);
 
         var voteRef = new VoteMetadata
@@ -141,7 +141,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -151,7 +151,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreVote,
         }.Sign(privateKey);
@@ -167,11 +167,11 @@ public class DuplicateVoteEvidenceTest
     {
         // Given
         var privateKey = new PrivateKey();
-        var validatorPublicKey = privateKey.PublicKey;
+        var validatorAddress = privateKey.Address;
         var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
         var validatorList = new List<Validator>
         {
-            Validator.Create(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorAddress, BigInteger.One),
         };
 
         var voteRef = new VoteMetadata
@@ -180,7 +180,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -190,7 +190,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -206,10 +206,10 @@ public class DuplicateVoteEvidenceTest
     {
         // Given
         var privateKey = new PrivateKey();
-        var validatorPublicKey = privateKey.PublicKey;
+        var validatorAddress = privateKey.Address;
         var validators = ImmutableSortedSet.Create(
         [
-            Validator.Create(validatorPublicKey, BigInteger.One),
+            Validator.Create(validatorAddress, BigInteger.One),
         ]);
 
         var voteRef = new VoteMetadata
@@ -218,7 +218,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -228,7 +228,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = validatorPublicKey,
+            Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
