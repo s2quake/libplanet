@@ -5,7 +5,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class BigIntegerModelConverter : ModelConverterBase<BigInteger>
 {
-    protected override BigInteger Deserialize(Stream stream, ModelContext context)
+    protected override BigInteger Deserialize(Stream stream, ModelOptions options)
     {
         var length = stream.ReadInt32();
         Span<byte> bytes = stackalloc byte[length];
@@ -17,7 +17,7 @@ internal sealed class BigIntegerModelConverter : ModelConverterBase<BigInteger>
         return new BigInteger(bytes.ToArray());
     }
 
-    protected override void Serialize(BigInteger obj, Stream stream, ModelContext context)
+    protected override void Serialize(BigInteger obj, Stream stream, ModelOptions options)
     {
         var bytes = obj.ToByteArray();
         stream.WriteInt32(bytes.Length);

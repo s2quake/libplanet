@@ -4,7 +4,7 @@ namespace Libplanet.Serialization;
 
 public interface IModelConverter
 {
-    void Serialize(object obj, Stream stream, ModelContext context);
+    void Serialize(object obj, Stream stream, ModelOptions options);
 
-    object Deserialize(Stream stream, ModelContext context);
+    object Deserialize(Stream stream, ModelOptions options);
 }

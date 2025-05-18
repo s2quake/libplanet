@@ -53,12 +53,10 @@ internal sealed record class HashNode : INode
             }
         }
 
-        var context = new ModelContext
+        var context = new ModelOptions
         {
-            Items =
-            {
-                [typeof(ITable)] = table,
-            },
+            Items = ImmutableDictionary<object, object?>.Empty.Add(
+                typeof(ITable), table),
         };
 
         var node = ModelSerializer.DeserializeFromBytes<INode>(intermediateValue, context);

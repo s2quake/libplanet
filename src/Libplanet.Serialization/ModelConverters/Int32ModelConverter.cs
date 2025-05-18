@@ -4,7 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class Int32ModelConverter : ModelConverterBase<int>
 {
-    protected override int Deserialize(Stream stream, ModelContext context)
+    protected override int Deserialize(Stream stream, ModelOptions options)
     {
         var length = sizeof(int);
         Span<byte> bytes = stackalloc byte[length];
@@ -16,7 +16,7 @@ internal sealed class Int32ModelConverter : ModelConverterBase<int>
         return BitConverter.ToInt32(bytes);
     }
 
-    protected override void Serialize(int obj, Stream stream, ModelContext context)
+    protected override void Serialize(int obj, Stream stream, ModelOptions options)
     {
         var bytes = BitConverter.GetBytes(obj);
         stream.Write(bytes, 0, bytes.Length);
