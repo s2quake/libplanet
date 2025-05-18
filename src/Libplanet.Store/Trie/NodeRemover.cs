@@ -53,6 +53,11 @@ internal static class NodeRemover
             {
                 if (Remove(child, cursor.Next(1)) is { } node)
                 {
+                    if (node is NullNode)
+                    {
+                        return fullNode.RemoveChild(nextNibble);
+                    }
+
                     return fullNode.SetChild(nextNibble, node);
                 }
 
