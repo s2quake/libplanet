@@ -381,7 +381,7 @@ namespace Libplanet.Tests.Blockchain
                 Round = 0,
                 BlockHash = block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = validators[index].PublicKey,
+                Validator = validators[index].Address,
                 ValidatorPower = validatorPowers[index],
                 Flag = VoteFlag.PreCommit,
             }.Sign(validators[index])).ToImmutableArray();
@@ -431,8 +431,8 @@ namespace Libplanet.Tests.Blockchain
                 Round = 0,
                 BlockHash = block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = key.PublicKey,
-                ValidatorPower = TestUtils.Validators.GetValidator(key.PublicKey).Power,
+                Validator = key.Address,
+                ValidatorPower = TestUtils.Validators.GetValidator(key.Address).Power,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key)).ToImmutableArray();
             var blockCommit = new BlockCommit
@@ -477,8 +477,8 @@ namespace Libplanet.Tests.Blockchain
                         Round = 0,
                         BlockHash = _fx.GenesisBlock.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Validator = x.PublicKey,
-                        ValidatorPower = TestUtils.Validators.GetValidator(x.PublicKey).Power,
+                        Validator = x.Address,
+                        ValidatorPower = TestUtils.Validators.GetValidator(x.Address).Power,
                         Flag = VoteFlag.PreCommit,
                     }.Sign(x))],
                 }));
@@ -560,7 +560,7 @@ namespace Libplanet.Tests.Blockchain
                                 Round = 0,
                                 BlockHash = validNextBlock.BlockHash,
                                 Timestamp = DateTimeOffset.UtcNow,
-                                Validator = x.PublicKey,
+                                Validator = x.Address,
                                 ValidatorPower = BigInteger.One,
                                 Flag = VoteFlag.PreCommit,
                             }.Sign(x))],
@@ -592,10 +592,10 @@ namespace Libplanet.Tests.Blockchain
             var privateKey2 = new PrivateKey();
             var privateKey3 = new PrivateKey();
             var privateKey4 = new PrivateKey();
-            var validator1 = Validator.Create(privateKey1.PublicKey, 10);
-            var validator2 = Validator.Create(privateKey2.PublicKey, 1);
-            var validator3 = Validator.Create(privateKey3.PublicKey, 1);
-            var validator4 = Validator.Create(privateKey4.PublicKey, 1);
+            var validator1 = Validator.Create(privateKey1.Address, 10);
+            var validator2 = Validator.Create(privateKey2.Address, 1);
+            var validator3 = Validator.Create(privateKey3.Address, 1);
+            var validator4 = Validator.Create(privateKey4.Address, 1);
             var validatorSet = ImmutableSortedSet.Create(
                 [validator1, validator2, validator3, validator4]);
             BlockChain blockChain = TestUtils.MakeBlockChain(
@@ -619,7 +619,7 @@ namespace Libplanet.Tests.Blockchain
                     Round = 0,
                     BlockHash = validNextBlock.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = key.PublicKey,
+                    Validator = key.Address,
                     ValidatorPower = power,
                     Flag = flag,
                 };
@@ -638,7 +638,7 @@ namespace Libplanet.Tests.Blockchain
                     GenerateVote(privateKey2, validator2.Power, flag2),
                     GenerateVote(privateKey3, validator3.Power, flag3),
                     GenerateVote(privateKey4, validator4.Power, flag4),
-                }.OrderBy(vote => vote.Validator.Address).ToImmutableArray();
+                }.OrderBy(vote => vote.Validator).ToImmutableArray();
             }
 
             var fullBlockCommit = new BlockCommit

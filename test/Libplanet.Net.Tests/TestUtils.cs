@@ -69,7 +69,7 @@ namespace Libplanet.Net.Tests
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.Now,
-                Validator = privateKey.PublicKey,
+                Validator = privateKey.Address,
                 ValidatorPower = power,
                 Flag = flag,
             }.Sign(privateKey);
@@ -108,13 +108,15 @@ namespace Libplanet.Net.Tests
             int validRound = -1)
         {
             return new ConsensusProposalMsg(
-                new ProposalMetadata(
-                    height,
-                    round,
-                    DateTimeOffset.UtcNow,
-                    privateKey.PublicKey,
-                    ModelSerializer.SerializeToBytes(block),
-                    validRound).Sign(privateKey));
+                new ProposalMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = privateKey.Address,
+                    MarshaledBlock = ModelSerializer.SerializeToBytes(block),
+                    ValidRound = validRound,
+                }.Sign(privateKey));
         }
 
         public static BlockCommit CreateBlockCommit(Block block) =>
@@ -146,7 +148,7 @@ namespace Libplanet.Net.Tests
                             Round = consensusContext.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.PublicKey,
+                            Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey)));
@@ -176,7 +178,7 @@ namespace Libplanet.Net.Tests
                             Round = context.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.PublicKey,
+                            Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey)));
@@ -206,7 +208,7 @@ namespace Libplanet.Net.Tests
                             Round = context.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.PublicKey,
+                            Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
                         }.Sign(privateKey)));
@@ -236,7 +238,7 @@ namespace Libplanet.Net.Tests
                             Round = consensusContext.Round,
                             BlockHash = roundBlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.PublicKey,
+                            Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
                         }.Sign(privateKey)));

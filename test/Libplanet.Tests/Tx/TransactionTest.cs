@@ -57,7 +57,7 @@ public class TransactionTest
             new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
         var action = new Initialize
         {
-            Validators = [Validator.Create(privateKey.PublicKey, 1)],
+            Validators = [Validator.Create(privateKey.Address, 1)],
             States = new Dictionary<Address, object>
             {
                 [default] = "initial value",

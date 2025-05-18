@@ -14,17 +14,11 @@ public sealed class ActionProvider : IActionProvider
 
     public PolicyActions PolicyActions { get; } = new PolicyActions();
 
-    public IAction[] GetGenesisActions(Address genesisAddress, PublicKey[] validatorKeys)
-    {
-        var validators = validatorKeys
-            .Select(item => Validator.Create(item, new BigInteger(1000)))
-            .ToImmutableSortedSet();
-        return
-        [
-            new Initialize
-            {
-                Validators = validators,
-            },
-        ];
-    }
+    public IAction[] GetGenesisActions(Address genesisAddress, Address[] validators) =>
+    [
+        new Initialize
+        {
+            Validators = [.. validators.Select(item => Validator.Create(item, new BigInteger(1000)))],
+        },
+    ];
 }

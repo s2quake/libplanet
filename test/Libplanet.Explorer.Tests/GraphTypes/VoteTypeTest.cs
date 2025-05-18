@@ -25,7 +25,7 @@ public class VoteTypeTest
             Round = 0,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.Now,
-            Validator =privateKey.PublicKey,
+            Validator = privateKey.Address,
             ValidatorPower = 123,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);

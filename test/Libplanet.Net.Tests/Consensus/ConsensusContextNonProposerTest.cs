@@ -192,7 +192,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Round = 0,
                             BlockHash = proposal!.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.PublicKey,
+                            Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
                         }.Sign(privateKey)));
@@ -217,7 +217,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Round = 0,
                             BlockHash = proposal!.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.PublicKey,
+                            Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey)));

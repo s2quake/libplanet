@@ -88,10 +88,10 @@ internal sealed class BlockChainService(
         if (genesisOptions.GenesisKey != string.Empty)
         {
             var genesisKey = PrivateKey.Parse(genesisOptions.GenesisKey);
-            var validatorKeys = genesisOptions.Validators.Select(PublicKey.Parse).ToArray();
+            var validatorAddresses = genesisOptions.Validators.Select(Address.Parse).ToArray();
             var actions = actionService.GetGenesisActions(
                 genesisAddress: genesisKey.Address,
-                validatorKeys: validatorKeys);
+                validators: validatorAddresses);
             return CreateGenesisBlock(genesisKey, actions);
         }
 
