@@ -8,7 +8,7 @@ namespace Libplanet.Store.ModelConverters;
 
 internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
 {
-    protected override HashNode Deserialize(Stream stream, ModelContext context)
+    protected override HashNode Deserialize(Stream stream, ModelOptions options)
     {
         var length = HashDigest<SHA256>.Size;
         Span<byte> bytes = stackalloc byte[length];
@@ -18,7 +18,7 @@ internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
         }
 
         var hash = new HashDigest<SHA256>(bytes);
-        var table = context.Items.TryGetValue(typeof(ITable), out var value) ? value as ITable : null;
+        var table = options.Items.TryGetValue(typeof(ITable), out var value) ? value as ITable : null;
         return new HashNode
         {
             Hash = hash,
@@ -26,7 +26,7 @@ internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
         };
     }
 
-    protected override void Serialize(HashNode obj, Stream stream, ModelContext context)
+    protected override void Serialize(HashNode obj, Stream stream, ModelOptions options)
     {
         stream.Write(obj.Hash.Bytes.AsSpan());
     }

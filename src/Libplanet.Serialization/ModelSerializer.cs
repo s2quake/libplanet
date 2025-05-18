@@ -9,19 +9,6 @@ namespace Libplanet.Serialization;
 
 public static class ModelSerializer
 {
-    private enum DataType : byte
-    {
-        Null,
-
-        Enum,
-
-        Converter,
-
-        Descriptor,
-
-        Value,
-    }
-
     static ModelSerializer()
     {
         AddModelConverter(typeof(BigInteger), typeof(BigIntegerModelConverter));
@@ -38,6 +25,19 @@ public static class ModelSerializer
         {
             TypeDescriptor.AddAttributes(type, new ModelConverterAttribute(converterType));
         }
+    }
+
+    private enum DataType : byte
+    {
+        Null,
+
+        Enum,
+
+        Converter,
+
+        Descriptor,
+
+        Value,
     }
 
     public static bool TryGetType(Stream stream, [MaybeNullWhen(false)] out Type type)
@@ -59,7 +59,7 @@ public static class ModelSerializer
         }
     }
 
-    public static void Serialize(Stream stream, object? obj, ModelContext context)
+    public static void Serialize(Stream stream, object? obj, ModelOptions options)
     {
         if (obj is null)
         {
@@ -67,36 +67,36 @@ public static class ModelSerializer
         }
         else
         {
-            Serialize(stream, obj, obj.GetType(), context);
+            Serialize(stream, obj, obj.GetType(), options);
         }
     }
 
     public static byte[] SerializeToBytes(object? obj)
-        => SerializeToBytes(obj, ModelContext.Empty);
+        => SerializeToBytes(obj, ModelOptions.Empty);
 
-    public static byte[] SerializeToBytes(object? obj, ModelContext context)
+    public static byte[] SerializeToBytes(object? obj, ModelOptions options)
     {
         using var stream = new MemoryStream();
-        Serialize(stream, obj, context);
+        Serialize(stream, obj, options);
         return stream.ToArray();
     }
 
-    public static object? Deserialize(Stream stream, ModelContext context)
+    public static object? Deserialize(Stream stream, ModelOptions options)
     {
         var data = ModelData.GetData(stream);
         var headerType = Type.GetType(data.TypeName)
             ?? throw new ModelSerializationException($"Given type name {data.TypeName} is not found");
 
         var modelType = ModelResolver.GetType(headerType, data.Version);
-        var obj = DeserializeRawValue(stream, modelType, context)
+        var obj = DeserializeRawValue(stream, modelType, options)
             ?? throw new ModelSerializationException($"Failed to deserialize {modelType}.");
 
         return obj;
     }
 
-    public static T Deserialize<T>(Stream stream, ModelContext context)
+    public static T Deserialize<T>(Stream stream, ModelOptions options)
     {
-        if (Deserialize(stream, context) is T obj)
+        if (Deserialize(stream, options) is T obj)
         {
             return obj;
         }
@@ -105,49 +105,49 @@ public static class ModelSerializer
     }
 
     public static object DeserializeFromBytes(ImmutableArray<byte> bytes)
-        => DeserializeFromBytes(bytes, ModelContext.Empty);
+        => DeserializeFromBytes(bytes, ModelOptions.Empty);
 
-    public static object DeserializeFromBytes(ImmutableArray<byte> bytes, ModelContext context)
+    public static object DeserializeFromBytes(ImmutableArray<byte> bytes, ModelOptions options)
     {
         using var stream = new MemoryStream([.. bytes]);
-        return Deserialize(stream, context)
+        return Deserialize(stream, options)
             ?? throw new ModelSerializationException(
                 $"Failed to deserialize from bytes.");
     }
 
     public static object DeserializeFromBytes(ReadOnlySpan<byte> bytes)
-        => DeserializeFromBytes(bytes, ModelContext.Empty);
+        => DeserializeFromBytes(bytes, ModelOptions.Empty);
 
-    public static object DeserializeFromBytes(ReadOnlySpan<byte> bytes, ModelContext context)
+    public static object DeserializeFromBytes(ReadOnlySpan<byte> bytes, ModelOptions options)
     {
         using var stream = new MemoryStream(bytes.ToArray());
-        return Deserialize(stream, context)
+        return Deserialize(stream, options)
             ?? throw new ModelSerializationException(
                 $"Failed to deserialize from bytes.");
     }
 
     public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes)
-        => DeserializeFromBytes<T>(bytes, ModelContext.Empty);
+        => DeserializeFromBytes<T>(bytes, ModelOptions.Empty);
 
-    public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes, ModelContext context)
+    public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes, ModelOptions options)
     {
         using var stream = new MemoryStream(bytes.ToArray());
-        return Deserialize<T>(stream, context)
+        return Deserialize<T>(stream, options)
             ?? throw new ModelSerializationException(
                 $"Failed to deserialize {typeof(T)} from bytes.");
     }
 
-    public static T Clone<T>(T obj) => Clone<T>(obj, ModelContext.Empty);
+    public static T Clone<T>(T obj) => Clone<T>(obj, ModelOptions.Empty);
 
-    public static T Clone<T>(T obj, ModelContext context)
+    public static T Clone<T>(T obj, ModelOptions options)
     {
         using var stream = new MemoryStream();
-        Serialize(stream, obj, context);
+        Serialize(stream, obj, options);
         stream.Position = 0;
-        return Deserialize<T>(stream, context);
+        return Deserialize<T>(stream, options);
     }
 
-    private static void Serialize(Stream stream, object obj, Type type, ModelContext context)
+    private static void Serialize(Stream stream, object obj, Type type, ModelOptions options)
     {
         var data = new ModelData
         {
@@ -157,10 +157,10 @@ public static class ModelSerializer
 
         data.Write(stream);
 
-        SerializeRawValue(stream, obj, type, context);
+        SerializeRawValue(stream, obj, type, options);
     }
 
-    private static void SerializeRawValue(Stream stream, object? obj, Type type, ModelContext context)
+    private static void SerializeRawValue(Stream stream, object? obj, Type type, ModelOptions options)
     {
         if (Nullable.GetUnderlyingType(type) is { } nullableType)
         {
@@ -171,7 +171,7 @@ public static class ModelSerializer
             else
             {
                 stream.WriteByte((byte)DataType.Value);
-                SerializeRawValue(stream, obj, nullableType, context);
+                SerializeRawValue(stream, obj, nullableType, options);
             }
         }
         else
@@ -188,7 +188,7 @@ public static class ModelSerializer
             else if (TryGetConverter(type, out var converter))
             {
                 stream.WriteByte((byte)DataType.Converter);
-                converter.Serialize(obj, stream, context);
+                converter.Serialize(obj, stream, options);
                 System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
             }
             else if (TryGetDescriptor(type, out var descriptor))
@@ -213,11 +213,11 @@ public static class ModelSerializer
                     var actualType = GetActualType(itemType, value);
                     if (itemType != actualType)
                     {
-                        Serialize(stream, value, context);
+                        Serialize(stream, value, options);
                     }
                     else
                     {
-                        SerializeRawValue(stream, value, itemType, context);
+                        SerializeRawValue(stream, value, itemType, options);
                     }
                 }
 
@@ -230,7 +230,7 @@ public static class ModelSerializer
         }
     }
 
-    private static object? DeserializeRawValue(Stream stream, Type type, ModelContext context)
+    private static object? DeserializeRawValue(Stream stream, Type type, ModelOptions options)
     {
         if (Nullable.GetUnderlyingType(type) is { } nullableType)
         {
@@ -241,7 +241,7 @@ public static class ModelSerializer
             }
             else if (dataType == DataType.Value)
             {
-                return DeserializeRawValue(stream, nullableType, context);
+                return DeserializeRawValue(stream, nullableType, options);
             }
             else
             {
@@ -273,7 +273,7 @@ public static class ModelSerializer
                         $"Invalid stream for converter type {type}");
                 }
 
-                var value = converter.Deserialize(stream, context);
+                var value = converter.Deserialize(stream, options);
                 System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
                 return value;
             }
@@ -306,11 +306,10 @@ public static class ModelSerializer
                 {
                     var itemType = isArray ? itemTypes[0] : itemTypes[i];
                     values[i] = ModelData.IsData(stream)
-                        ? Deserialize(stream, context) : DeserializeRawValue(stream, itemType, context);
+                        ? Deserialize(stream, options) : DeserializeRawValue(stream, itemType, options);
                 }
 
                 System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
-
                 return descriptor.CreateInstance(type, values);
             }
             else
@@ -320,23 +319,6 @@ public static class ModelSerializer
                 throw new ModelSerializationException(message);
             }
         }
-    }
-
-    private static object CreateInstance(Type type, params object?[] args)
-    {
-        try
-        {
-            if (Activator.CreateInstance(type, args: args) is { } obj)
-            {
-                return obj;
-            }
-        }
-        catch (Exception e)
-        {
-            throw new ModelCreationException(type, e);
-        }
-
-        throw new ModelCreationException(type);
     }
 
     private static Type GetActualType(Type type, object? value)
