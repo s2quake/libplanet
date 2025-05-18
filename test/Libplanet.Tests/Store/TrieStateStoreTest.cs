@@ -55,10 +55,10 @@ public class TrieStateStoreTest
         HashDigest<SHA256> hash = trie.Hash;
         ITrie found = stateStore.GetStateRoot(hash);
         Assert.True(found.IsCommitted);
-        AssertBencodexEqual(values[fooKey], found.GetMany(new[] { KeyFoo })[0]);
-        AssertBencodexEqual(values[barKey], found.GetMany(new[] { KeyBar })[0]);
-        AssertBencodexEqual(values[bazKey], found.GetMany(new[] { KeyBaz })[0]);
-        AssertBencodexEqual(values[quxKey], found.GetMany(new[] { KeyQux })[0]);
+        Assert.Equal(values[fooKey], found.GetMany(new[] { KeyFoo })[0]);
+        Assert.Equal(values[barKey], found.GetMany(new[] { KeyBar })[0]);
+        Assert.Equal(values[bazKey], found.GetMany(new[] { KeyBaz })[0]);
+        Assert.Equal(values[quxKey], found.GetMany(new[] { KeyQux })[0]);
         Assert.Null(found.GetMany(new[] { KeyQuux })[0]);
     }
 

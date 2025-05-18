@@ -26,6 +26,7 @@ public static class ModelResolver
         new ListModelDescriptor(),
         new DictionaryModelDescriptor(),
         new ImmutableArrayModelDescriptor(),
+        new ImmutableListModelDescriptor(),
         new ImmutableSortedSetModelDescriptor(),
         new ImmutableDictionaryModelDescriptor(),
         new ImmutableSortedDictionaryModelDescriptor(),
