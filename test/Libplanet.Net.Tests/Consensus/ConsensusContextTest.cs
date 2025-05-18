@@ -249,14 +249,14 @@ namespace Libplanet.Net.Tests.Consensus
             var blockCommit = consensusContext.CurrentContext.GetBlockCommit();
             Assert.NotNull(blockCommit);
             Assert.NotEqual(votes[0], blockCommit!.Votes.First(x =>
-                x.ValidatorPublicKey.Equals(TestUtils.PrivateKeys[0].PublicKey)));
+                x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
 
             var actualVotesWithoutInvalid =
                 HashSetExtensions.ToHashSet(blockCommit.Votes.Where(x =>
-                    !x.ValidatorPublicKey.Equals(TestUtils.PrivateKeys[0].PublicKey)));
+                    !x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
 
             var expectedVotes = HashSetExtensions.ToHashSet(votes.Where(x =>
-                !x.ValidatorPublicKey.Equals(TestUtils.PrivateKeys[0].PublicKey)));
+                !x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
 
             Assert.Equal(expectedVotes, actualVotesWithoutInvalid);
         }
@@ -287,7 +287,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = proposer.PublicKey,
+                Validator = proposer.PublicKey,
                 ValidatorPower = proposerPower,
                 Flag = VoteFlag.PreVote,
             }.Sign(proposer);
@@ -297,7 +297,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = TestUtils.PrivateKeys[2].PublicKey,
+                Validator = TestUtils.PrivateKeys[2].PublicKey,
                 ValidatorPower = TestUtils.Validators[2].Power,
                 Flag = VoteFlag.PreVote,
             }.Sign(TestUtils.PrivateKeys[2]);
@@ -307,7 +307,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = TestUtils.PrivateKeys[3].PublicKey,
+                Validator = TestUtils.PrivateKeys[3].PublicKey,
                 ValidatorPower = TestUtils.Validators[3].Power,
                 Flag = VoteFlag.PreVote,
             }.Sign(TestUtils.PrivateKeys[3]);
@@ -378,7 +378,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = proposer.PublicKey,
+                Validator = proposer.PublicKey,
                 ValidatorPower = proposerPower,
                 Flag = VoteFlag.PreVote,
             }.Sign(proposer);
@@ -388,7 +388,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = TestUtils.PrivateKeys[2].PublicKey,
+                Validator = TestUtils.PrivateKeys[2].PublicKey,
                 ValidatorPower = TestUtils.Validators[2].Power,
                 Flag = VoteFlag.PreVote,
             }.Sign(TestUtils.PrivateKeys[2]);
@@ -416,8 +416,8 @@ namespace Libplanet.Net.Tests.Consensus
                 consensusContext.HandleVoteSetBits(voteSetBits).ToArray();
             Assert.True(votes.All(vote => vote is ConsensusPreVoteMsg));
             Assert.Equal(2, votes.Length);
-            Assert.Equal(TestUtils.PrivateKeys[0].PublicKey, votes[0].ValidatorPublicKey);
-            Assert.Equal(TestUtils.PrivateKeys[1].PublicKey, votes[1].ValidatorPublicKey);
+            Assert.Equal(TestUtils.PrivateKeys[0].PublicKey, votes[0].Validator);
+            Assert.Equal(TestUtils.PrivateKeys[1].PublicKey, votes[1].Validator);
         }
 
         [Fact(Timeout = Timeout)]

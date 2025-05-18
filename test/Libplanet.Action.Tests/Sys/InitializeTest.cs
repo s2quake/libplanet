@@ -11,7 +11,7 @@ public class InitializeTest
 {
     private static readonly ImmutableSortedSet<Validator> _validators = ImmutableSortedSet.Create(
     [
-        Validator.Create(new PrivateKey().PublicKey, BigInteger.One),
+        Validator.Create(new PrivateKey().Address, BigInteger.One),
     ]);
 
     private static readonly ImmutableDictionary<Address, object>
@@ -80,7 +80,7 @@ public class InitializeTest
             [
                 new VoteMetadata
                 {
-                    ValidatorPublicKey = key.PublicKey,
+                    Validator = key.Address,
                     Height = 0,
                     Round = 0,
                     BlockHash = hash,

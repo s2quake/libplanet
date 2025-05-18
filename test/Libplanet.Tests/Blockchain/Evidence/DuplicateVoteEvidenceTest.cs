@@ -25,7 +25,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -35,7 +35,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -63,7 +63,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -73,7 +73,7 @@ public class DuplicateVoteEvidenceTest
             Round = 3,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -103,7 +103,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKeys[0],
+            Validator = validatorPublicKeys[0],
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKeys[0]);
@@ -113,7 +113,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKeys[1],
+            Validator = validatorPublicKeys[1],
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKeys[1]);
@@ -141,7 +141,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -151,7 +151,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreVote,
         }.Sign(privateKey);
@@ -180,7 +180,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -190,7 +190,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -218,7 +218,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -228,7 +228,7 @@ public class DuplicateVoteEvidenceTest
             Round = 2,
             BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validatorPublicKey,
+            Validator = validatorPublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);

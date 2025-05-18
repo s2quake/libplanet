@@ -1052,7 +1052,7 @@ public abstract class StoreTest
             Round = round,
             BlockHash = hash,
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = validator.PublicKey,
+            Validator = validator.Address,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(validator)).ToImmutableArray();
@@ -1082,7 +1082,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = fx.Proposer.PublicKey,
+                Validator = fx.Proposer.Address,
                 ValidatorPower = fx.ProposerPower,
                 Flag = VoteFlag.PreCommit,
             }.Sign(fx.Proposer));
@@ -1093,7 +1093,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block2.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = fx.Proposer.PublicKey,
+                Validator = fx.Proposer.Address,
                 ValidatorPower = fx.ProposerPower,
                 Flag = VoteFlag.PreCommit,
             }.Sign(fx.Proposer));
@@ -1138,7 +1138,7 @@ public abstract class StoreTest
                 {
                     BlockHash = Fx.GenesisBlock.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    ValidatorPublicKey = validatorPrivateKey.PublicKey,
+                    Validator = validatorPrivateKey.Address,
                     ValidatorPower = BigInteger.One,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(validatorPrivateKey)
@@ -1165,7 +1165,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer))
@@ -1175,7 +1175,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block2.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer));
@@ -1186,7 +1186,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block2.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer))
@@ -1196,7 +1196,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block3.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer));
@@ -1226,7 +1226,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = Fx.Block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer))
@@ -1236,7 +1236,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = Fx.Block2.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer));
@@ -1267,7 +1267,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer))
@@ -1277,7 +1277,7 @@ public abstract class StoreTest
                 Round = 0,
                 BlockHash = fx.Block2.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = signer.PublicKey,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(signer));

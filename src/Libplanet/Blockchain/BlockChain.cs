@@ -767,7 +767,7 @@ public partial class BlockChain
         throw new ArgumentException("Cannot find a validator set for the given index.");
 
         static Validator CreateValidator(Vote vote)
-            => Validator.Create(vote.ValidatorPublicKey, vote.ValidatorPower);
+            => Validator.Create(vote.Validator, vote.ValidatorPower);
     }
 
     private HashDigest<SHA256>? GetNextStateRootHash(Block block)

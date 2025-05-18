@@ -1287,7 +1287,7 @@ public partial class BlockChainTest : IDisposable
         var validator = blockChain
             .GetNextWorld()
             .GetValidatorSet()[0];
-        Assert.Equal(validatorPrivKey.PublicKey, validator.PublicKey);
+        Assert.Equal(validatorPrivKey.PublicKey, validator.Address);
         Assert.Equal(BigInteger.One, validator.Power);
 
         var states = addresses
@@ -1461,11 +1461,11 @@ public partial class BlockChainTest : IDisposable
                     Round = 0,
                     BlockHash = newBlock.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    ValidatorPublicKey = pk.PublicKey,
+                    Validator = pk.PublicKey,
                     ValidatorPower = TestUtils.Validators.GetValidator(pk.PublicKey).Power,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(pk))
-            .OrderBy(vote => vote.ValidatorPublicKey.Address)],
+            .OrderBy(vote => vote.Validator.Address)],
         };
         blockChain.Append(newBlock, newBlockCommit);
 
@@ -1493,11 +1493,11 @@ public partial class BlockChainTest : IDisposable
                         Round = 0,
                         BlockHash = nextBlock.BlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
-                        ValidatorPublicKey = newValidators[index].PublicKey,
+                        Validator = newValidators[index].PublicKey,
                         ValidatorPower = newValidatorPowers[index],
                         Flag = VoteFlag.PreCommit,
                     }.Sign(newValidators[index]))
-                .OrderBy(vote => vote.ValidatorPublicKey.Address)],
+                .OrderBy(vote => vote.Validator.Address)],
         };
         blockChain.Append(nextBlock, nextBlockCommit);
 
@@ -1529,7 +1529,7 @@ public partial class BlockChainTest : IDisposable
                                 Round = 0,
                                 BlockHash = invalidCommitBlock.BlockHash,
                                 Timestamp = DateTimeOffset.UtcNow,
-                                ValidatorPublicKey = newValidators[index].PublicKey,
+                                Validator = newValidators[index].PublicKey,
                                 ValidatorPower = newValidatorPowers[index],
                                 Flag = VoteFlag.PreCommit,
                             }.Sign(newValidators[index]))],

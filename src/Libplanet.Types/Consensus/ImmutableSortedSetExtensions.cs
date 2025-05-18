@@ -20,15 +20,15 @@ public static class ImmutableSortedSetExtensions
     }
 
     public static Validator GetValidator(
-        this ImmutableSortedSet<Validator> @this, PublicKey publicKey)
+        this ImmutableSortedSet<Validator> @this, Address address)
     {
-        return @this.First(item => item.PublicKey == publicKey);
+        return @this.First(item => item.Address == address);
     }
 
     public static bool Contains(
-        this ImmutableSortedSet<Validator> @this, PublicKey publicKey)
+        this ImmutableSortedSet<Validator> @this, Address address)
     {
-        return @this.Any(item => item.PublicKey == publicKey);
+        return @this.Any(item => item.Address == address);
     }
 
     public static BigInteger GetTotalPower(this ImmutableSortedSet<Validator> @this)
@@ -41,32 +41,32 @@ public static class ImmutableSortedSetExtensions
         => GetTotalPower(@this) * 2 / 3;
 
     public static BigInteger GetValidatorsPower(
-        this ImmutableSortedSet<Validator> @this, IEnumerable<PublicKey> publicKeys)
+        this ImmutableSortedSet<Validator> @this, IEnumerable<Address> addresss)
     {
-        return publicKeys.Select(item => GetValidator(@this, item)).Aggregate(
+        return addresss.Select(item => GetValidator(@this, item)).Aggregate(
             BigInteger.Zero, (total, next) => total + next.Power);
     }
 
     public static void ValidateBlockCommitValidators(
         this ImmutableSortedSet<Validator> @this, BlockCommit blockCommit)
     {
-        if (!@this.Select(validator => validator.PublicKey)
+        if (!@this.Select(validator => validator.Address)
                 .SequenceEqual(
-                    blockCommit.Votes.Select(vote => vote.ValidatorPublicKey).ToList()))
+                    blockCommit.Votes.Select(vote => vote.Validator).ToList()))
         {
             throw new InvalidOperationException(
                 $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
                 $"has different validator set with chain state's validator set: \n" +
                 $"in states | \n " +
                 @this.Aggregate(
-                    string.Empty, (s, v) => s + v.PublicKey + ", \n") +
+                    string.Empty, (s, v) => s + v.Address + ", \n") +
                 $"in blockCommit | \n " +
                 blockCommit.Votes.Aggregate(
-                    string.Empty, (s, v) => s + v.ValidatorPublicKey + ", \n"));
+                    string.Empty, (s, v) => s + v.Validator + ", \n"));
         }
 
         if (!blockCommit.Votes.All(
-            v => v.ValidatorPower == GetValidator(@this, v.ValidatorPublicKey).Power))
+            v => v.ValidatorPower == GetValidator(@this, v.Validator).Power))
         {
             throw new InvalidOperationException(
                 $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
@@ -90,8 +90,8 @@ public static class ImmutableSortedSetExtensions
         //         "must have null power.");
         // }
 
-        if (!@this.Select(validator => validator.PublicKey).SequenceEqual(
-            blockCommit.Votes.Select(vote => vote.ValidatorPublicKey).ToList()))
+        if (!@this.Select(validator => validator.Address).SequenceEqual(
+            blockCommit.Votes.Select(vote => vote.Validator).ToList()))
         {
             throw new InvalidOperationException(
                 $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
@@ -101,7 +101,7 @@ public static class ImmutableSortedSetExtensions
                     string.Empty, (s, key) => s + key + ", \n") +
                 $"in blockCommit | \n " +
                 blockCommit.Votes.Aggregate(
-                    string.Empty, (s, key) => s + key.ValidatorPublicKey + ", \n"));
+                    string.Empty, (s, key) => s + key.Validator + ", \n"));
         }
     }
 }

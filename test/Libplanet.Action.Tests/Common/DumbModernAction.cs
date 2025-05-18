@@ -57,7 +57,7 @@ public sealed record class DumbModernAction : ActionBase
             ? $"({t.From?.ToString() ?? N}, {t.To?.ToString() ?? N}, {t.Amount})"
             : N;
         string validators = Validators is { } vs && vs.Any()
-            ? string.Join(",", vs.Select(v => v.OperatorAddress))
+            ? string.Join(",", vs.Select(v => v.Address))
             : E;
         return $"{nameof(DumbModernAction)} {{ " +
             $"{nameof(Append)} = {append}, " +

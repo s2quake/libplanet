@@ -9,7 +9,7 @@
 //     public class ValidatorSetTest
 //     {
 //         [Fact]
-//         public void DuplicateValidatorPublicKeyNotAllowed()
+//         public void DuplicateValidatorNotAllowed()
 //         {
 //             List<PublicKey> publicKeys = Enumerable
 //                 .Range(0, 5).Select(_ => new PrivateKey().PublicKey).ToList();

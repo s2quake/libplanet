@@ -25,7 +25,7 @@ public class BlockCommitTypeTest
             Round = 0,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.Now,
-            ValidatorPublicKey = privateKey.PublicKey,
+            Validator = privateKey.PublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(privateKey);
@@ -72,7 +72,7 @@ public class BlockCommitTypeTest
                 { "round", vote.Round },
                 { "blockHash", vote.BlockHash.ToString() },
                 { "timestamp", new DateTimeOffsetGraphType().Serialize(vote.Timestamp) },
-                { "validatorPublicKey", vote.ValidatorPublicKey.ToString() },
+                { "validatorPublicKey", vote.Validator.ToString() },
                 { "flag", vote.Flag.ToString() },
                 { "signature", ByteUtility.Hex(vote.Signature) },
             }

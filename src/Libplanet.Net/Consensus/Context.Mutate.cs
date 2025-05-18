@@ -31,7 +31,7 @@ namespace Libplanet.Net.Consensus
 
             Proposal = null;
             Step = ConsensusStep.Propose;
-            if (_validatorSet.GetProposer(Height, Round).PublicKey == _privateKey.PublicKey)
+            if (_validatorSet.GetProposer(Height, Round).Address == _privateKey.Address)
             {
                 _logger.Information(
                     "Starting round {NewRound} and is a proposer.",
@@ -39,13 +39,15 @@ namespace Libplanet.Net.Consensus
                     ToString());
                 if ((_validValue ?? GetValue()) is Block proposalValue)
                 {
-                    Proposal proposal = new ProposalMetadata(
-                        Height,
-                        Round,
-                        DateTimeOffset.UtcNow,
-                        _privateKey.PublicKey,
-                        ModelSerializer.SerializeToBytes(proposalValue),
-                        _validRound).Sign(_privateKey);
+                    var proposal = new ProposalMetadata
+                    {
+                        Height = Height,
+                        Round = Round,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        Validator = _privateKey.Address,
+                        MarshaledBlock = ModelSerializer.SerializeToBytes(proposalValue),
+                        ValidRound = _validRound,
+                    }.Sign(_privateKey);
 
                     PublishMessage(new ConsensusProposalMsg(proposal));
                 }
@@ -91,10 +93,10 @@ namespace Libplanet.Net.Consensus
                         message);
                 }
 
-                if (!_validatorSet.Contains(message.ValidatorPublicKey))
+                if (!_validatorSet.Contains(message.Validator))
                 {
                     throw new InvalidConsensusMessageException(
-                        $"Given message's validator {message.ValidatorPublicKey} is invalid",
+                        $"Given message's validator {message.Validator} is invalid",
                         message);
                 }
 
@@ -108,22 +110,22 @@ namespace Libplanet.Net.Consensus
                     switch (voteMsg)
                     {
                         case ConsensusPreVoteMsg preVote:
-                        {
-                            _heightVoteSet.AddVote(preVote.PreVote);
-                            var args = (preVote.Round, VoteFlag.PreVote,
-                                _heightVoteSet.PreVotes(preVote.Round).GetAllVotes());
-                            VoteSetModified?.Invoke(this, args);
-                            break;
-                        }
+                            {
+                                _heightVoteSet.AddVote(preVote.PreVote);
+                                var args = (preVote.Round, VoteFlag.PreVote,
+                                    _heightVoteSet.PreVotes(preVote.Round).GetAllVotes());
+                                VoteSetModified?.Invoke(this, args);
+                                break;
+                            }
 
                         case ConsensusPreCommitMsg preCommit:
-                        {
-                            _heightVoteSet.AddVote(preCommit.PreCommit);
-                            var args = (preCommit.Round, VoteFlag.PreCommit,
-                                _heightVoteSet.PreCommits(preCommit.Round).GetAllVotes());
-                            VoteSetModified?.Invoke(this, args);
-                            break;
-                        }
+                            {
+                                _heightVoteSet.AddVote(preCommit.PreCommit);
+                                var args = (preCommit.Round, VoteFlag.PreCommit,
+                                    _heightVoteSet.PreCommits(preCommit.Round).GetAllVotes());
+                                VoteSetModified?.Invoke(this, args);
+                                break;
+                            }
                     }
 
                     _logger.Debug(
@@ -134,7 +136,7 @@ namespace Libplanet.Net.Consensus
                         voteMsg,
                         voteMsg.Height,
                         voteMsg.Round,
-                        voteMsg.ValidatorPublicKey.Address,
+                        voteMsg.Validator,
                         voteMsg.BlockHash,
                         ToString());
                     return true;
@@ -177,10 +179,10 @@ namespace Libplanet.Net.Consensus
         private void AddProposal(Proposal proposal)
         {
             if (!_validatorSet.GetProposer(Height, Round)
-                    .PublicKey.Equals(proposal.ValidatorPublicKey))
+                    .Address.Equals(proposal.Validator))
             {
                 throw new InvalidProposalException(
-                    $"Given proposal's proposer {proposal.ValidatorPublicKey} is not the " +
+                    $"Given proposal's proposer {proposal.Validator} is not the " +
                     $"proposer for the current height {Height} and round {Round}",
                     proposal);
             }
@@ -344,12 +346,14 @@ namespace Libplanet.Net.Consensus
                     Proposal = null;
                     PublishMessage(
                         new ConsensusProposalClaimMsg(
-                            new ProposalClaimMetadata(
-                                Height,
-                                Round,
-                                hash3,
-                                DateTimeOffset.UtcNow,
-                                _privateKey.PublicKey).Sign(_privateKey)));
+                            new ProposalClaimMetadata
+                            {
+                                Height = Height,
+                                Round = Round,
+                                BlockHash = hash3,
+                                Timestamp = DateTimeOffset.UtcNow,
+                                Validator = _privateKey.Address,
+                            }.Sign(_privateKey)));
                 }
             }
 

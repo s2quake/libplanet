@@ -13,7 +13,7 @@ public class ValidatorType : ObjectGraphType<Validator>
         Field<NonNullGraphType<PublicKeyType>>(
             "publicKey",
             "The public key of the validator.",
-            resolve: ctx => ctx.Source.PublicKey);
+            resolve: ctx => ctx.Source.Address);
         Field<NonNullGraphType<BigIntGraphType>>(
             "power",
             "Gets the voting power of the validator.",

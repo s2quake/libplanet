@@ -109,7 +109,7 @@ public partial class BlockChain
         BigInteger commitPower = blockCommit.Votes.Aggregate(
             BigInteger.Zero,
             (power, vote) => power + (vote.Flag == VoteFlag.PreCommit
-                ? validators.GetValidator(vote.ValidatorPublicKey).Power
+                ? validators.GetValidator(vote.Validator).Power
                 : BigInteger.Zero));
         if (validators.GetTwoThirdsPower() >= commitPower)
         {

@@ -394,7 +394,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);
@@ -404,7 +404,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);
@@ -440,7 +440,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);
@@ -450,7 +450,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);
@@ -477,7 +477,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);
@@ -487,7 +487,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);
@@ -517,7 +517,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);
@@ -527,7 +527,7 @@ public partial class BlockChainTest
     //         Round = 2,
     //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
-    //         ValidatorPublicKey = key.PublicKey,
+    //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
     //         Flag = VoteFlag.PreCommit,
     //     }.Sign(key);

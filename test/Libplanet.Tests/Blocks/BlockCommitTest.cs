@@ -21,7 +21,7 @@ public sealed class BlockCommitTest
                     Round = 0,
                     BlockHash = randomHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    ValidatorPublicKey = key.PublicKey,
+                    Validator = key.PublicKey,
                     ValidatorPower = index == 0 ? BigInteger.Zero : BigInteger.One,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(key))
@@ -52,7 +52,7 @@ public sealed class BlockCommitTest
                 Round = 0,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = key.PublicKey,
+                Validator = key.PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
@@ -122,7 +122,7 @@ public sealed class BlockCommitTest
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = key.PublicKey,
+                Validator = key.PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
@@ -145,7 +145,7 @@ public sealed class BlockCommitTest
                 Round = round + 1,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = key.PublicKey,
+                Validator = key.PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
@@ -177,7 +177,7 @@ public sealed class BlockCommitTest
                 Round = round,
                 BlockHash = badHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = key.PublicKey,
+                Validator = key.PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
@@ -207,7 +207,7 @@ public sealed class BlockCommitTest
                     Round = round,
                     BlockHash = hash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    ValidatorPublicKey = key.PublicKey,
+                    Validator = key.PublicKey,
                     ValidatorPower = BigInteger.One,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(key))
@@ -220,7 +220,7 @@ public sealed class BlockCommitTest
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = keys[0].PublicKey,
+                Validator = keys[0].PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.Null,
             }.Sign(null))
@@ -240,7 +240,7 @@ public sealed class BlockCommitTest
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = keys[0].PublicKey,
+                Validator = keys[0].PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.Unknown,
             }.Sign(null))
@@ -260,7 +260,7 @@ public sealed class BlockCommitTest
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = keys[0].PublicKey,
+                Validator = keys[0].PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreVote,
             }.Sign(keys[0]))
@@ -280,7 +280,7 @@ public sealed class BlockCommitTest
                 Round = round,
                 BlockHash = hash,
                 Timestamp = DateTimeOffset.UtcNow,
-                ValidatorPublicKey = keys[0].PublicKey,
+                Validator = keys[0].PublicKey,
                 ValidatorPower = BigInteger.One,
                 Flag = VoteFlag.PreCommit,
             }.Sign(keys[0]))

@@ -15,9 +15,9 @@ namespace Libplanet.Net.Consensus
         private readonly VoteFlag _voteType;
         private readonly ImmutableSortedSet<Validator> _validatorSet;
         private readonly object _lock;
-        private readonly Dictionary<PublicKey, Vote> _votes; // Primary votes to share
+        private readonly Dictionary<Address, Vote> _votes; // Primary votes to share
         private readonly Dictionary<BlockHash, BlockVotes> _votesByBlock;
-        private readonly Dictionary<PublicKey, BlockHash> _peerMaj23s;
+        private readonly Dictionary<Address, BlockHash> _peerMaj23s;
         private BlockHash? _maj23; // First 2/3 majority seen
 
         public VoteSet(
@@ -36,15 +36,15 @@ namespace Libplanet.Net.Consensus
             _voteType = voteType;
             _validatorSet = validatorSet;
             _lock = new object();
-            _votes = new Dictionary<PublicKey, Vote>();
+            _votes = new Dictionary<Address, Vote>();
             _votesByBlock = new Dictionary<BlockHash, BlockVotes>();
-            _peerMaj23s = new Dictionary<PublicKey, BlockHash>();
+            _peerMaj23s = new Dictionary<Address, BlockHash>();
         }
 
         public ImmutableSortedSet<Validator> Validators => _validatorSet;
 
         public BigInteger Sum => _validatorSet.GetValidatorsPower(
-            _votes.Values.Select(vote => vote.ValidatorPublicKey).ToList());
+            _votes.Values.Select(vote => vote.Validator).ToList());
 
         /// <summary>
         /// Count of the canonical <see cref="Vote"/>s.
@@ -65,10 +65,10 @@ namespace Libplanet.Net.Consensus
         /// <returns> <see langword="true"/> when a vote with given params exits,
         /// else <see langword="false"/>.
         /// </returns>
-        public bool Contains(PublicKey publicKey, BlockHash blockHash)
+        public bool Contains(Address publicKey, BlockHash blockHash)
         {
             return _votes.Values.Any(
-                vote => vote.ValidatorPublicKey.Equals(publicKey)
+                vote => vote.Validator.Equals(publicKey)
                 && vote.BlockHash.Equals(blockHash));
         }
 
@@ -80,7 +80,7 @@ namespace Libplanet.Net.Consensus
         /// <param name="blockHash">A <see cref="BlockHash"/> of the <see cref="Vote"/>.</param>
         /// <returns>A <see cref="Vote"/> signed by <paramref name="publicKey"/> and of hash
         /// <paramref name="blockHash"/> if exists. Else, <see langword="null"/>.</returns>
-        public Vote? GetVote(PublicKey publicKey, BlockHash blockHash)
+        public Vote? GetVote(Address publicKey, BlockHash blockHash)
         {
             Vote vote;
             try
@@ -148,7 +148,7 @@ namespace Libplanet.Net.Consensus
             // TODO: implement ability to remove peers too
             lock (_lock)
             {
-                PublicKey publicKey = maj23.ValidatorPublicKey;
+                var publicKey = maj23.Validator;
                 BlockHash blockHash = maj23.BlockHash;
 
                 // Make sure peer hasn't already told us something.
@@ -191,7 +191,7 @@ namespace Libplanet.Net.Consensus
             lock (_lock)
             {
                 return _validatorSet.Select(validator =>
-                     _votes.ContainsKey(validator.PublicKey)).ToArray();
+                     _votes.ContainsKey(validator.Address)).ToArray();
             }
         }
 
@@ -202,7 +202,7 @@ namespace Libplanet.Net.Consensus
                 if (_votesByBlock.ContainsKey(blockHash))
                 {
                     return _validatorSet.Select(validator =>
-                        _votesByBlock[blockHash].Votes.ContainsKey(validator.PublicKey)).ToArray();
+                        _votesByBlock[blockHash].Votes.ContainsKey(validator.Address)).ToArray();
                 }
 
                 return _validatorSet.Select(_ => false).ToArray();
@@ -216,7 +216,7 @@ namespace Libplanet.Net.Consensus
         /// A copy of the list of <see cref="Vote"/>s stored by the <see cref="VoteSet"/>.
         /// </returns>
         public List<Vote> List()
-            => _votes.Values.OrderBy(vote => vote.ValidatorPublicKey.Address).ToList();
+            => _votes.Values.OrderBy(vote => vote.Validator).ToList();
 
         /// <summary>
         /// Returns a copy of the list of <see cref="Vote"/>s stored by the <see cref="VoteSet"/>.
@@ -249,7 +249,7 @@ namespace Libplanet.Net.Consensus
         /// <returns>A <see cref="Vote"/> signed by given <paramref name="publicKey"/>.</returns>
         /// <exception cref="KeyNotFoundException">Thrown when there's no <see cref="Vote"/>
         /// signed by given <paramref name="publicKey"/>.</exception>
-        public Vote GetByPublicKey(PublicKey publicKey)
+        public Vote GetByPublicKey(Address publicKey)
         {
             lock (_lock)
             {
@@ -383,7 +383,7 @@ namespace Libplanet.Net.Consensus
                     vote);
             }
 
-            PublicKey validatorKey = vote.ValidatorPublicKey;
+            var validatorKey = vote.Validator;
             BlockHash blockHash = vote.BlockHash;
 
             Vote? conflicting = null;
@@ -478,7 +478,7 @@ namespace Libplanet.Net.Consensus
             {
                 BlockHash = blockHash;
                 PeerMaj23 = false;
-                Votes = new Dictionary<PublicKey, Vote>();
+                Votes = new Dictionary<Address, Vote>();
                 Sum = BigInteger.Zero;
             }
 
@@ -486,25 +486,25 @@ namespace Libplanet.Net.Consensus
 
             public bool PeerMaj23 { get; set; }
 
-            public Dictionary<PublicKey, Vote> Votes { get; set; }
+            public Dictionary<Address, Vote> Votes { get; set; }
 
             public BigInteger Sum { get; set; }
 
             public void AddVerifiedVote(Vote vote, BigInteger power)
             {
-                if (Votes.ContainsKey(vote.ValidatorPublicKey))
+                if (Votes.ContainsKey(vote.Validator))
                 {
                     return;
                 }
 
-                Votes[vote.ValidatorPublicKey] = vote;
+                Votes[vote.Validator] = vote;
                 Sum += power;
             }
 
             public List<Vote> MappedList(
                 int height, int round, ImmutableSortedSet<Validator> validatorSet)
                 =>
-                validatorSet.Select(item => item.PublicKey).Select(
+                validatorSet.Select(item => item.Address).Select(
                     key => Votes.ContainsKey(key)
                         ? Votes[key]
                         : new VoteMetadata
@@ -513,7 +513,7 @@ namespace Libplanet.Net.Consensus
                             Round = round,
                             BlockHash = BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = key,
+                            Validator = key,
                             ValidatorPower = validatorSet.GetValidator(key).Power,
                             Flag = VoteFlag.Null,
                         }.Sign(null!))

@@ -48,7 +48,7 @@ namespace Libplanet.Tests.Blocks
                             Round = 0,
                             BlockHash = Next.BlockHash,
                             Timestamp = Next.Timestamp,
-                            ValidatorPublicKey = Miner.PublicKey,
+                            Validator = Miner.PublicKey,
                             ValidatorPower = TestUtils.Validators.GetValidator(Miner.PublicKey).Power,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(Miner),

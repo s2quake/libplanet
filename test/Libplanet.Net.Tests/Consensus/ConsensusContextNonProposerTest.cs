@@ -66,7 +66,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Round = 0,
                     BlockHash = block1.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    ValidatorPublicKey = TestUtils.Validators[i].PublicKey,
+                    Validator = TestUtils.Validators[i].Address,
                     ValidatorPower = TestUtils.Validators[i].Power,
                     Flag = VoteFlag.PreVote,
                 }.Sign(TestUtils.PrivateKeys[i]);
@@ -83,7 +83,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Round = 0,
                     BlockHash = block1.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    ValidatorPublicKey = TestUtils.Validators[i].PublicKey,
+                    Validator = TestUtils.Validators[i].Address,
                     ValidatorPower = TestUtils.Validators[i].Power,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(TestUtils.PrivateKeys[i]);
@@ -192,7 +192,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Round = 0,
                             BlockHash = proposal!.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = privateKey.PublicKey,
+                            Validator = privateKey.PublicKey,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
                         }.Sign(privateKey)));
@@ -217,7 +217,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Round = 0,
                             BlockHash = proposal!.BlockHash,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidatorPublicKey = privateKey.PublicKey,
+                            Validator = privateKey.PublicKey,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
                         }.Sign(privateKey)));

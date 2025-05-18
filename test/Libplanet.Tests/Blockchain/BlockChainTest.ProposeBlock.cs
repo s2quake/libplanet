@@ -539,7 +539,7 @@ public partial class BlockChainTest
             Round = 0,
             BlockHash = _blockChain.Tip.BlockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            ValidatorPublicKey = key.PublicKey,
+            Validator = key.PublicKey,
             ValidatorPower = BigInteger.One,
             Flag = VoteFlag.PreCommit,
         }.Sign(key)).ToImmutableArray();

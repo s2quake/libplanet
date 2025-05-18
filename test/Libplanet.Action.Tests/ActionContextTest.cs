@@ -28,7 +28,7 @@ public class ActionContextTest
                 {
                     BlockHash = hash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    ValidatorPublicKey = key.PublicKey,
+                    Validator = key.Address,
                     ValidatorPower = BigInteger.One,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(key),

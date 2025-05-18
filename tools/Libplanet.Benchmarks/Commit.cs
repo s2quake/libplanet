@@ -69,7 +69,7 @@ namespace Libplanet.Benchmarks
                         Round = 0,
                         BlockHash = _blockHash,
                         Timestamp = DateTimeOffset.UtcNow,
-                        ValidatorPublicKey = _privateKeys[x].PublicKey,
+                        Validator = _privateKeys[x].PublicKey,
                         ValidatorPower = BigInteger.One,
                         Flag = VoteFlag.PreCommit,
                     }.Sign(_privateKeys[x]))];
