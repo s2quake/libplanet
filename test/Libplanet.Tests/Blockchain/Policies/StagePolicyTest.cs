@@ -108,19 +108,19 @@ public abstract class StagePolicyTest
     public void Ignore()
     {
         // Ignore prevents staging.
-        Assert.False(StagePolicy.Ignores(_txs[0].Id));
+        Assert.Contains(_txs[0].Id, StagePolicy.Keys);
         StagePolicy.Ignore(_txs[0].Id);
-        Assert.True(StagePolicy.Ignores(_txs[0].Id));
+        Assert.DoesNotContain(_txs[0].Id, StagePolicy.Keys);
         Assert.False(StagePolicy.Stage(_txs[0]));
-        Assert.Null(StagePolicy.Get(_txs[0].Id));
+        Assert.Throws<KeyNotFoundException>(() => StagePolicy[_txs[0].Id]);
 
         // Ignore unstages.
-        Assert.False(StagePolicy.Ignores(_txs[1].Id));
+        Assert.Contains(_txs[1].Id, StagePolicy.Keys);
         Assert.True(StagePolicy.Stage(_txs[1]));
-        Assert.Equal(_txs[1], StagePolicy.Get(_txs[1].Id));
+        Assert.Equal(_txs[1], StagePolicy[_txs[1].Id]);
         StagePolicy.Ignore(_txs[1].Id);
-        Assert.True(StagePolicy.Ignores(_txs[1].Id));
-        Assert.Null(StagePolicy.Get(_txs[1].Id));
+        Assert.DoesNotContain(_txs[1].Id, StagePolicy.Keys);
+        Assert.Throws<KeyNotFoundException>(() => StagePolicy[_txs[1].Id]);
     }
 
     [Fact]
@@ -129,23 +129,23 @@ public abstract class StagePolicyTest
         // By default, nothing is ignored.
         foreach (Transaction tx in _txs)
         {
-            Assert.False(StagePolicy.Ignores(tx.Id));
+            Assert.DoesNotContain(tx.Id, StagePolicy.Keys);
         }
 
         // Staging has no effect on ignores.
         Assert.True(StagePolicy.Stage(_txs[0]));
-        Assert.False(StagePolicy.Ignores(_txs[0].Id));
+        Assert.Contains(_txs[0].Id, StagePolicy.Keys);
 
         // Unstaging has no effect on ignores.
         Assert.True(StagePolicy.Unstage(_txs[0].Id));
-        Assert.False(StagePolicy.Ignores(_txs[0].Id));
+        Assert.DoesNotContain(_txs[0].Id, StagePolicy.Keys);
 
         // Only Ignore() ignores regardless of staged state.
         StagePolicy.Stage(_txs[1]);
         StagePolicy.Ignore(_txs[1].Id);
         StagePolicy.Ignore(_txs[2].Id);
-        Assert.True(StagePolicy.Ignores(_txs[1].Id));
-        Assert.True(StagePolicy.Ignores(_txs[2].Id));
+        Assert.DoesNotContain(_txs[1].Id, StagePolicy.Keys);
+        Assert.DoesNotContain(_txs[2].Id, StagePolicy.Keys);
     }
 
     [Fact]
@@ -153,23 +153,23 @@ public abstract class StagePolicyTest
     {
         foreach (Transaction tx in _txs)
         {
-            Assert.Null(StagePolicy.Get(tx.Id));
+            Assert.Throws<KeyNotFoundException>(() => StagePolicy[tx.Id]);
         }
 
         StagePolicy.Stage(_txs[0]);
-        Assert.Equal(_txs[0], StagePolicy.Get(_txs[0].Id));
+        Assert.Equal(_txs[0], StagePolicy[_txs[0].Id]);
 
         foreach (Transaction tx in _txs.Skip(1))
         {
-            Assert.Null(StagePolicy.Get(tx.Id));
+            Assert.Null(StagePolicy[tx.Id]);
         }
 
         StagePolicy.Unstage(_txs[0].Id);
-        Assert.Null(StagePolicy.Get(_txs[0].Id));
+        Assert.Null(StagePolicy[_txs[0].Id]);
 
         foreach (Transaction tx in _txs.Skip(1))
         {
-            Assert.Null(StagePolicy.Get(tx.Id));
+            Assert.Null(StagePolicy[tx.Id]);
         }
     }
 }

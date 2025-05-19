@@ -731,6 +731,6 @@ public partial class BlockChainTest
 
         // txWithInvalidAction is marked ignored and removed
         Assert.Equal(txs.Length - 1, _blockChain.ListStagedTransactions().Count);
-        Assert.True(_blockChain.StagedTransactions.Ignores(txWithInvalidAction.Id));
+        Assert.DoesNotContain(txWithInvalidAction.Id, _blockChain.StagedTransactions.Keys);
     }
 }

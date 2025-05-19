@@ -1,7 +1,4 @@
-using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
@@ -12,15 +9,6 @@ namespace Libplanet.Types.Tx;
 [Model(Version = 1)]
 public sealed record class UnsignedTx
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        WriteIndented = true,
-        Converters =
-        {
-            // new BencodexJsonConverter(),
-        },
-    };
-
     [Property(0)]
     public required TxInvoice Invoice { get; init; }
 
@@ -31,7 +19,7 @@ public sealed record class UnsignedTx
 
     public DateTimeOffset Timestamp => Invoice.Timestamp;
 
-    public BlockHash? GenesisHash => Invoice.GenesisHash;
+    public BlockHash GenesisHash => Invoice.GenesisHash;
 
     public ImmutableArray<ActionBytecode> Actions => Invoice.Actions;
 
@@ -58,32 +46,25 @@ public sealed record class UnsignedTx
                 paramName: nameof(privateKey));
         }
 
-        byte[] sig = privateKey.Sign(CreateMessage());
+        var options = new ModelOptions
+        {
+            IsValidationEnabled = false,
+        };
+        var bytes = ModelSerializer.SerializeToBytes(this, options);
+        byte[] sig = privateKey.Sign(bytes);
         ImmutableArray<byte> movedImmutableArray =
             Unsafe.As<byte[], ImmutableArray<byte>>(ref sig);
         return movedImmutableArray;
     }
 
-    public bool VerifySignature(ImmutableArray<byte> signature) =>
-        PublicKey.Verify(Signer, [.. CreateMessage()], signature);
+    public bool VerifySignature(ImmutableArray<byte> signature)
+    {
+        var bytes = ModelSerializer.SerializeToBytes(this);
+        return PublicKey.Verify(Signer, [.. bytes], signature);
+    }
 
     public Transaction Sign(PrivateKey privateKey) => Transaction.Create(this, privateKey);
 
     public Transaction Verify(ImmutableArray<byte> signature)
         => new() { UnsignedTx = this, Signature = signature };
-
-    public byte[] CreateMessage()
-    {
-        throw new NotImplementedException(
-            "The BencodexJsonConverter is not implemented yet.");
-        var dict = ModelSerializer.SerializeToBytes(this);
-        using var ms = new MemoryStream();
-        using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true });
-        // new BencodexJsonConverter().Write(writer, dict, SerializerOptions);
-
-        ms.Position = 0;
-        using var sr = new StreamReader(ms);
-        var json = sr.ReadToEnd();
-        return Encoding.UTF8.GetBytes(json);
-    }
 }

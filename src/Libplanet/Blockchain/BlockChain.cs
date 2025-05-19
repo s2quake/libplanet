@@ -49,7 +49,7 @@ public partial class BlockChain
 
         Id = id;
         Options = options;
-        StagedTransactions = new StagedTransactionCollection(options.Store, id);
+        StagedTransactions = new StagedTransactionCollection(options.Store);
         Store = options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
         _chain = Store.Chains.GetOrAdd(id);

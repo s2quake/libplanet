@@ -43,7 +43,7 @@ public class TransactionQueryTest
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtility.Hex(tx.UnsignedTx.CreateMessage())}"",
+                unsignedTransaction: ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(tx.UnsignedTx))}"",
                 signature: ""{ByteUtility.Hex(tx.Signature)}""
             )
          }}

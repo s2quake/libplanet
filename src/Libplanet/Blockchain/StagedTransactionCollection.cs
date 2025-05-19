@@ -1,70 +1,74 @@
 using System.Collections;
-using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using Libplanet.Store;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Blockchain;
 
-public sealed class StagedTransactionCollection(Libplanet.Store.Repository store, Guid blockChainId, TimeSpan lifetime)
-    : IEnumerable<StagedTransaction>
+public sealed class StagedTransactionCollection(Repository repository, TimeSpan lifetime)
+    : IReadOnlyDictionary<TxId, Transaction>
 {
-    private readonly ConcurrentDictionary<TxId, StagedTransaction> _staged = new();
+    private readonly PendingTransactionStore _store = repository.PendingTransactions;
 
-    public StagedTransactionCollection(Libplanet.Store.Repository store, Guid blockChainId)
-        : this(store, blockChainId, TimeSpan.FromSeconds(10 * 60))
+    public StagedTransactionCollection(Repository repository)
+        : this(repository, TimeSpan.FromSeconds(10 * 60))
     {
     }
 
     public TimeSpan Lifetime => lifetime;
 
-    public bool Stage(Transaction transaction) => _staged.TryAdd(transaction.Id, new StagedTransaction
-    {
-        Transaction = transaction,
-        Lifetime = DateTimeOffset.UtcNow + lifetime,
-    });
+    public IEnumerable<TxId> Keys => _store.Keys;
 
-    public bool Unstage(TxId txId) => _staged.TryRemove(txId, out _);
+    public IEnumerable<Transaction> Values => _store.Values;
 
-    public bool Ignore(TxId txId)
+    public int Count => _store.Count;
+
+    public Transaction this[TxId txId] => _store[txId];
+
+    public bool Stage(Transaction transaction)
     {
-        if (_staged.TryGetValue(txId, out var item) && !item.IsIgnored)
+        if (transaction.Timestamp + lifetime < DateTimeOffset.UtcNow)
         {
-            _staged.TryUpdate(txId, item with { IsIgnored = true }, item);
-            return true;
+            return false;
         }
 
-        return false;
+        return _store.TryAdd(transaction);
     }
 
-    public bool Ignores(TxId txId) => _staged.TryGetValue(txId, out var item) && item.IsIgnored;
+    public bool Unstage(TxId txId) => _store.Remove(txId);
 
-    public Transaction Get(TxId txId, bool filtered = true)
-    {
-        if (_staged.TryGetValue(txId, out var item))
-        {
-            if (!filtered || item.IsEnabled(store, blockChainId))
-            {
-                return item.Transaction;
-            }
+    internal bool Ignore(TxId txId) => _store.Remove(txId);
 
-            throw new InvalidOperationException($"Transaction {txId} is ignored or expired.");
-        }
+    // public bool Ignores(TxId txId) => _staged.TryGetValue(txId, out var item) && item.IsIgnored;
 
-        throw new InvalidOperationException($"Transaction {txId} not found in the stage.");
-    }
+    // public Transaction Get(TxId txId, bool filtered = true)
+    // {
+    //     if (_staged.TryGetValue(txId, out var item))
+    //     {
+    //         if (!filtered || item.IsEnabled(repository, blockChainId))
+    //         {
+    //             return item.Transaction;
+    //         }
+
+    //         throw new InvalidOperationException($"Transaction {txId} is ignored or expired.");
+    //     }
+
+    //     throw new InvalidOperationException($"Transaction {txId} not found in the stage.");
+    // }
 
     public ImmutableArray<Transaction> Iterate(bool filtered = true)
     {
-        var query = from item in _staged.Values
-                    where !filtered || item.IsEnabled(store, blockChainId)
-                    select item.Transaction;
+        var query = from item in _store.Values
+                    where !filtered || !IsExpired(item, lifetime)
+                    select item;
 
         return [.. query];
     }
 
     public long GetNextTxNonce(Address address)
     {
-        var nonce = store.Chains.GetOrAdd(blockChainId).Nonces[address];
+        var nonce = repository.GetNonce(address);
         var txs = Iterate(filtered: true)
             .Where(tx => tx.Signer.Equals(address))
             .OrderBy(tx => tx.Nonce);
@@ -84,7 +88,29 @@ public sealed class StagedTransactionCollection(Libplanet.Store.Repository store
         return nonce;
     }
 
-    IEnumerator<StagedTransaction> IEnumerable<StagedTransaction>.GetEnumerator() => _staged.Values.GetEnumerator();
+    private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
+    {
+        return transaction.Timestamp + lifetime < DateTimeOffset.UtcNow;
+    }
 
-    IEnumerator IEnumerable.GetEnumerator() => _staged.Values.GetEnumerator();
+    public bool ContainsKey(TxId txId) => _store.ContainsKey(txId);
+
+    public bool TryGetValue(TxId txId, [MaybeNullWhen(false)] out Transaction value)
+        => _store.TryGetValue(txId, out value);
+
+    IEnumerator<KeyValuePair<TxId, Transaction>> IEnumerable<KeyValuePair<TxId, Transaction>>.GetEnumerator()
+    {
+        foreach (var kvp in _store)
+        {
+            yield return kvp;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        foreach (var kvp in _store)
+        {
+            yield return kvp;
+        }
+    }
 }

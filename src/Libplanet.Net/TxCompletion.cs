@@ -195,8 +195,8 @@ namespace Libplanet.Net
         {
             return new HashSet<TxId>(ids
                 .Where(txId =>
-                    !_blockChain.StagedTransactions.Ignores(txId)
-                        && _blockChain.StagedTransactions.Get(txId, filtered: false) is null
+                    _blockChain.StagedTransactions.ContainsKey(txId)
+                        && _blockChain.StagedTransactions[txId] is null
                         && _blockChain.Store.PendingTransactions[txId] is null));
         }
 

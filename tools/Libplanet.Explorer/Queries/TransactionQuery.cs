@@ -140,7 +140,7 @@ namespace Libplanet.Explorer.Queries
                         Invoice = invoice,
                         SigningMetadata = signingMetadata,
                     };
-                    return unsignedTx.CreateMessage();
+                    return ModelSerializer.SerializeToBytes(unsignedTx);
                 });
 
             Field<NonNullGraphType<LongGraphType>>(
