@@ -472,7 +472,7 @@ namespace Libplanet.Net.Tests
                 await roundOneProposed.WaitAsync();
 
                 await AssertThatEventually(() => swarms[0].BlockChain.Tip.Height == 1, int.MaxValue);
-                Assert.Equal(1, swarms[0].BlockChain.GetBlockCommit(1).Round);
+                Assert.Equal(1, swarms[0].BlockChain.BlockCommits[1].Round);
             }
             finally
             {

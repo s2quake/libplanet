@@ -277,7 +277,7 @@ public partial class Swarm
                 {
                     byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
                     payloads.Add(blockPayload);
-                    byte[] commitPayload = BlockChain.GetBlockCommit(block.BlockHash) is { } commit
+                    byte[] commitPayload = BlockChain.BlockCommits[block.BlockHash] is { } commit
                         ? ModelSerializer.SerializeToBytes(commit)
                         : Array.Empty<byte>();
                     payloads.Add(commitPayload);

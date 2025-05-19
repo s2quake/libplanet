@@ -38,7 +38,7 @@ public partial class BlockChainTest
         // Assert.Empty(_renderer.BlockRecords);
         var block1 = _blockChain.ProposeBlock(keys[4]);
         _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
-        Assert.NotNull(_blockChain.GetBlockCommit(block1.BlockHash));
+        Assert.NotNull(_blockChain.BlockCommits[block1.BlockHash]);
         Block block2 = _blockChain.ProposeBlock(keys[4]);
         foreach (var tx in txs)
         {

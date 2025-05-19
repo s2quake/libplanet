@@ -43,7 +43,7 @@ public partial class ConsensusContext : IDisposable
         _contextOption = contextOption;
         _currentContext = CreateContext(
             _blockChain.Tip.Height + 1,
-            _blockChain.GetBlockCommit(_blockChain.Tip.Height));
+            _blockChain.BlockCommits[_blockChain.Tip.Height]);
         AttachEventHandlers(_currentContext);
         _pendingMessages = new HashSet<ConsensusMsg>();
 
@@ -132,7 +132,7 @@ public partial class ConsensusContext : IDisposable
             }
 
             if (lastCommit == default &&
-                _blockChain.GetBlockCommit(height - 1) is { } storedCommit)
+                _blockChain.BlockCommits[height - 1] is { } storedCommit)
             {
                 lastCommit = storedCommit;
                 _logger.Debug(

@@ -82,7 +82,7 @@ public partial class BlockChain
             }
         }
 
-        if (block.Height != 0 && blockCommit == null)
+        if (block.Height != 0 && blockCommit == default)
         {
             throw new InvalidOperationException(
                 $"Block #{block.BlockHash} BlockCommit is required except for the genesis block.");

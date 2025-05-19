@@ -53,7 +53,7 @@ namespace Libplanet.Net.Tests
 
             Assert.Equal(numBlocks, chainA.Tip.Height);
             Assert.NotEqual(chainA.Tip, chainB.Tip);
-            Assert.NotNull(chainA.GetBlockCommit(chainA.Tip.BlockHash));
+            Assert.NotNull(chainA.BlockCommits[chainA.Tip.BlockHash]);
 
             try
             {
@@ -68,8 +68,8 @@ namespace Libplanet.Net.Tests
 
                 Assert.Equal(chainA.Tip, chainB.Tip);
                 Assert.Equal(
-                    chainA.GetBlockCommit(chainA.Tip.BlockHash),
-                    chainB.GetBlockCommit(chainB.Tip.BlockHash));
+                    chainA.BlockCommits[chainA.Tip.BlockHash],
+                    chainB.BlockCommits[chainB.Tip.BlockHash]);
             }
             finally
             {
