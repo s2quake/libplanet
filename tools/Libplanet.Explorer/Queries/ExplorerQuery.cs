@@ -147,7 +147,7 @@ namespace Libplanet.Explorer.Queries
 
         internal static Transaction GetTransaction(TxId id) => Chain.Transactions[id];
 
-        internal static EvidenceBase GetEvidence(EvidenceId id) => Chain.CommittedEvidences[id];
+        internal static EvidenceBase GetEvidence(EvidenceId id) => Chain.Evidences[id];
 
         private static Block? GetNextBlock(Block block, bool desc)
         {

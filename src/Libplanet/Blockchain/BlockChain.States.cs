@@ -7,24 +7,12 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    /// <summary>
-    /// Gets the current world state in the <see cref="BlockChain"/>.
-    /// </summary>
-    /// <returns>The current world state.</returns>
-    public World GetWorldState() => GetWorld(Tip.BlockHash);
+    public World GetWorld() => GetWorld(Tip.BlockHash);
 
-    /// <inheritdoc cref="IBlockChainStates.GetWorld(BlockHash)" />
-    public World GetWorld(BlockHash offset)
-        => _blockChainStates.GetWorld(offset);
+    public World GetWorld(BlockHash blockHash) => _blockChainStates.GetWorld(blockHash);
 
-    /// <inheritdoc cref="IBlockChainStates.GetWorld(HashDigest{SHA256})" />
-    public World GetWorld(HashDigest<SHA256> stateRootHash)
-        => _blockChainStates.GetWorld(stateRootHash);
+    public World GetWorld(HashDigest<SHA256> stateRootHash) => _blockChainStates.GetWorld(stateRootHash);
 
-    /// <summary>
-    /// Gets the next world state in the <see cref="BlockChain"/>.
-    /// </summary>
-    /// <returns>The next world state.  If it does not exist, returns null.</returns>
     public World GetNextWorld()
     {
         if (GetNextStateRootHash() is { } nsrh)

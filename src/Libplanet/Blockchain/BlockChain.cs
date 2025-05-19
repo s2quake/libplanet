@@ -11,6 +11,7 @@ using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
+using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 using Serilog;
 
@@ -50,6 +51,9 @@ public partial class BlockChain
         Id = id;
         Options = options;
         StagedTransactions = new StagedTransactionCollection(options.Store);
+        Transactions = new TransactionCollection(options.Store);
+        PendingEvidences = new PendingEvidenceCollection(options.Store);
+        Evidences = new EvidenceCollection(options.Store);
         Store = options.Store;
         StateStore = new TrieStateStore(options.KeyValueStore);
         _chain = Store.Chains.GetOrAdd(id);
@@ -112,7 +116,11 @@ public partial class BlockChain
 
     public StagedTransactionCollection StagedTransactions { get; }
 
-    public IReadOnlyDictionary<TxId, Transaction> Transactions => Store.PendingTransactions;
+    public TransactionCollection Transactions { get; }
+
+    public EvidenceCollection Evidences { get; }
+
+    public PendingEvidenceCollection PendingEvidences { get; }
 
     public Block Tip => Blocks[^1];
 
@@ -238,6 +246,9 @@ public partial class BlockChain
     }
 
     public BlockCommit GetBlockCommit(BlockHash blockHash) => Store.BlockCommits[blockHash];
+
+    public bool IsEvidenceExpired(EvidenceBase evidence)
+        => evidence.Height + Options.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
     internal void Append(
         Block block,
@@ -661,45 +672,6 @@ public partial class BlockChain
             seat.RemoveFirst();
             return first;
         }).ToImmutableList();
-    }
-
-    internal IEnumerable<Block> IterateBlocks(int offset = 0, int? limit = null)
-    {
-        _rwlock.EnterUpgradeableReadLock();
-
-        try
-        {
-            foreach (BlockHash hash in IterateBlockHashes(offset, limit))
-            {
-                yield return Blocks[hash];
-            }
-        }
-        finally
-        {
-            _rwlock.ExitUpgradeableReadLock();
-        }
-    }
-
-    internal IEnumerable<BlockHash> IterateBlockHashes(int offset = 0, int? limit = null)
-    {
-        _rwlock.EnterUpgradeableReadLock();
-
-        try
-        {
-            IEnumerable<BlockHash> indices = Store.Chains.GetOrAdd(Id).BlockHashes.IterateHeights(offset, limit);
-
-            // NOTE: The reason why this does not simply return indices, but iterates over
-            // indices and yields hashes step by step instead, is that we need to ensure
-            // the read lock held until the whole iteration completes.
-            foreach (BlockHash hash in indices)
-            {
-                yield return hash;
-            }
-        }
-        finally
-        {
-            _rwlock.ExitUpgradeableReadLock();
-        }
     }
 
     internal void CleanupBlockCommitStore(long limit)

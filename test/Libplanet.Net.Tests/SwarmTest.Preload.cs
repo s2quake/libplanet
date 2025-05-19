@@ -703,7 +703,7 @@ namespace Libplanet.Net.Tests
                 cancellationToken: CancellationToken.None);
 
             IEnumerable<BlockHash> expectedBlocks = minerChain
-                .IterateBlocks()
+                .Blocks.Values
                 .Where(b => b.Height >= receiverChain.Tip.Height)
                 .Take(FindNextHashesChunkSize)
                 .Select(b => b.BlockHash);

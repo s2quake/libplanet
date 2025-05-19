@@ -215,7 +215,7 @@ public sealed class WorldTest
         chain.Append(block3, TestUtils.CreateBlockCommit(block3));
         Assert.Equal(
             DumbAction.DumbCurrency * 5,
-            chain.GetWorldState().GetBalance(_addr[0], DumbAction.DumbCurrency));
+            chain.GetWorld().GetBalance(_addr[0], DumbAction.DumbCurrency));
     }
 
     [Fact]
