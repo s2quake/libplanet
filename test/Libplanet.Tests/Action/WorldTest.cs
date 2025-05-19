@@ -182,7 +182,7 @@ public sealed class WorldTest
             [tx],
             proposer: privateKey.PublicKey,
             protocolVersion: ProtocolVersion,
-            lastCommit: chain.GetBlockCommit(chain.Tip.Height));
+            lastCommit: chain.BlockCommits[chain.Tip.Height]);
         Block block2 = chain.EvaluateAndSign(block2PreEval, privateKey);
         chain.Append(block2, TestUtils.CreateBlockCommit(block2));
         Assert.Equal(
@@ -210,7 +210,7 @@ public sealed class WorldTest
             [tx],
             proposer: _keys[1].PublicKey,
             protocolVersion: ProtocolVersion,
-            lastCommit: chain.GetBlockCommit(chain.Tip.Height));
+            lastCommit: chain.BlockCommits[chain.Tip.Height]);
         Block block3 = chain.EvaluateAndSign(block3PreEval, _keys[1]);
         chain.Append(block3, TestUtils.CreateBlockCommit(block3));
         Assert.Equal(

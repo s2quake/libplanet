@@ -294,8 +294,8 @@ namespace Libplanet.Net.Tests
 
                 Assert.Equal(chainC.Tip, chainA.Tip);
                 Assert.Equal(
-                    chainC.GetBlockCommit(chainC.Tip.BlockHash),
-                    chainA.GetBlockCommit(chainA.Tip.BlockHash));
+                    chainC.BlockCommits[chainC.Tip.BlockHash],
+                    chainA.BlockCommits[chainA.Tip.BlockHash]);
             }
             finally
             {

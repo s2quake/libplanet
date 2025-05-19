@@ -46,7 +46,7 @@ public partial class BlockChain
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
             PreviousHash = previousHash,
-            LastCommit = GetBlockCommit(height - 1),
+            LastCommit = BlockCommits[height - 1],
         };
         var blockContent = new BlockContent
         {

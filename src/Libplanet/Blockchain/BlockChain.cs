@@ -59,6 +59,7 @@ public partial class BlockChain
         _chain = Store.Chains.GetOrAdd(id);
         Store.ChainId = id;
         Blocks = new BlockCollection(options.Store, id);
+        BlockCommits = new BlockCommitCollection(options.Store, id);
 
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
@@ -134,6 +135,8 @@ public partial class BlockChain
     internal ActionEvaluator ActionEvaluator { get; }
 
     public BlockCollection Blocks { get; }
+
+    public BlockCommitCollection BlockCommits { get; }
 
     public TxExecutionStore TxExecutions => Store.TxExecutions;
 
@@ -227,22 +230,6 @@ public partial class BlockChain
             _rwlock.ExitReadLock();
         }
     }
-
-    public BlockCommit GetBlockCommit(int index)
-    {
-        Block block = Blocks[index];
-
-        // if (block.ProtocolVersion < BlockHeader.PBFTProtocolVersion)
-        // {
-        //     return null;
-        // }
-
-        return index == Tip.Height
-            ? Store.Chains[Id].BlockCommit
-            : Blocks[index + 1].LastCommit;
-    }
-
-    public BlockCommit GetBlockCommit(BlockHash blockHash) => Store.BlockCommits[blockHash];
 
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
@@ -692,20 +679,16 @@ public partial class BlockChain
 
     internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(Blocks[blockHash]);
 
-    internal ImmutableSortedSet<Validator> GetValidatorSet(int index)
+    internal ImmutableSortedSet<Validator> GetValidatorSet(int height)
     {
-        if (index == 0)
+        if (height == 0)
         {
             IWorldContext worldContext = new WorldStateContext(GetNextWorld());
             return (ImmutableSortedSet<Validator>)worldContext[ReservedAddresses.ValidatorSetAddress][ReservedAddresses.ValidatorSetAddress]; ;
         }
 
-        if (GetBlockCommit(index) is { } commit)
-        {
-            return [.. commit.Votes.Select(CreateValidator)];
-        }
-
-        throw new ArgumentException("Cannot find a validator set for the given index.");
+        var blockCommit = BlockCommits[height];
+        return [.. blockCommit.Votes.Select(CreateValidator)];
 
         static Validator CreateValidator(Vote vote)
             => Validator.Create(vote.Validator, vote.ValidatorPower);

@@ -442,15 +442,15 @@ public partial class BlockChainTest : IDisposable
     {
         // Note: Getting BlockCommit from PoW block test is not present.
         // Requesting blockCommit of genesis block returns null.
-        Assert.Null(_blockChain.GetBlockCommit(0));
-        Assert.Null(_blockChain.GetBlockCommit(_blockChain.Genesis.BlockHash));
+        Assert.Null(_blockChain.BlockCommits[0]);
+        Assert.Null(_blockChain.BlockCommits[_blockChain.Genesis.BlockHash]);
 
         // BlockCommit is put to store when block is appended.
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
         BlockCommit blockCommit1 = CreateBlockCommit(block1);
         _blockChain.Append(block1, blockCommit1);
-        Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.Height));
-        Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.BlockHash));
+        Assert.Equal(blockCommit1, _blockChain.BlockCommits[block1.Height]);
+        Assert.Equal(blockCommit1, _blockChain.BlockCommits[block1.BlockHash]);
 
         // BlockCommit is retrieved from lastCommit.
         Block block2 = _blockChain.ProposeBlock(new PrivateKey());
@@ -458,9 +458,9 @@ public partial class BlockChainTest : IDisposable
         _blockChain.Append(block2, blockCommit2);
 
         // These are different due to timestamps on votes.
-        Assert.NotEqual(blockCommit1, _blockChain.GetBlockCommit(block1.Height));
-        Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.Height));
-        Assert.Equal(block2.LastCommit, _blockChain.GetBlockCommit(block1.BlockHash));
+        Assert.NotEqual(blockCommit1, _blockChain.BlockCommits[block1.Height]);
+        Assert.Equal(block2.LastCommit, _blockChain.BlockCommits[block1.Height]);
+        Assert.Equal(block2.LastCommit, _blockChain.BlockCommits[block1.BlockHash]);
     }
 
     [Fact]
