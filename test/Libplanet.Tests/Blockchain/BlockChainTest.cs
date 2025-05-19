@@ -1373,7 +1373,7 @@ public partial class BlockChainTest : IDisposable
     private void ValidateNextBlockCommitOnValidatorSetChange()
     {
         var storeFixture = new MemoryStoreFixture();
-        var policy = new BlockChainOptions();
+        var options = new BlockChainOptions();
 
         var addresses = ImmutableList<Address>.Empty
             .Add(storeFixture.Address1)
@@ -1408,12 +1408,12 @@ public partial class BlockChainTest : IDisposable
             .ToImmutableList();
 
         var actionEvaluator = new ActionEvaluator(
-            new TrieStateStore(policy.KeyValueStore),
-            policy.PolicyActions);
+            options.Repository.StateStore,
+            options.PolicyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
             proposer: privateKey,
             transactions: [.. txs]);
-        BlockChain blockChain = BlockChain.Create(genesis, policy);
+        BlockChain blockChain = BlockChain.Create(genesis, options);
 
         blockChain.MakeTransaction(
             new PrivateKey(),

@@ -33,16 +33,16 @@ public partial class BlockChain
     private HashDigest<SHA256>? _nextStateRootHash;
 
     public BlockChain(Block genesisBlock, BlockChainOptions options)
-        : this(genesisBlock, options.Store.ChainId, options)
+        : this(genesisBlock, options.Repository.ChainId, options)
     {
     }
 
     private BlockChain(Block genesisBlock, Guid id, BlockChainOptions options)
     {
-        if (options.Store.ChainId is { } canonId && canonId != Guid.Empty)
+        if (options.Repository.ChainId is { } canonId && canonId != Guid.Empty)
         {
             throw new ArgumentException(
-                $"Given {nameof(options.Store)} already has its canonical chain id set: {canonId}",
+                $"Given {nameof(options.Repository)} already has its canonical chain id set: {canonId}",
                 nameof(options));
         }
 
@@ -50,16 +50,16 @@ public partial class BlockChain
 
         Id = id;
         Options = options;
-        StagedTransactions = new StagedTransactionCollection(options.Store);
-        Transactions = new TransactionCollection(options.Store);
-        PendingEvidences = new PendingEvidenceCollection(options.Store);
-        Evidences = new EvidenceCollection(options.Store);
-        Store = options.Store;
-        StateStore = new TrieStateStore(options.KeyValueStore);
+        StagedTransactions = new StagedTransactionCollection(options.Repository);
+        Transactions = new TransactionCollection(options.Repository);
+        PendingEvidences = new PendingEvidenceCollection(options.Repository);
+        Evidences = new EvidenceCollection(options.Repository);
+        Store = options.Repository;
+        StateStore = options.Repository.StateStore;
         _chain = Store.Chains.GetOrAdd(id);
         Store.ChainId = id;
-        Blocks = new BlockCollection(options.Store, id);
-        BlockCommits = new BlockCommitCollection(options.Store, id);
+        Blocks = new BlockCollection(options.Repository, id);
+        BlockCommits = new BlockCommitCollection(options.Repository, id);
 
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
@@ -70,7 +70,7 @@ public partial class BlockChain
             _chain.Nonces.Increase(pair.Key, pair.Value);
         }
 
-        _blockChainStates = new BlockChainStates(options.Store, StateStore);
+        _blockChainStates = new BlockChainStates(options.Repository, StateStore);
 
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         _txLock = new object();

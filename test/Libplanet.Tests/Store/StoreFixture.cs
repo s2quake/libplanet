@@ -85,17 +85,14 @@ public abstract class StoreFixture : IDisposable
             0x9c, 0xee,
         ]);
 
-        var stateStore = new TrieStateStore(options.KeyValueStore);
         var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
         Options = options;
-        // Options.Store.Chains.AddNew(StoreChainId);
-        // Options.Store.ChainId = StoreChainId;
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(
             proposer: Proposer.PublicKey,
             validators: TestUtils.Validators);
-        var actionEvaluator = new ActionEvaluator(stateStore, Options.PolicyActions);
+        var actionEvaluator = new ActionEvaluator(options.Repository.StateStore, Options.PolicyActions);
         GenesisBlock = preEval.Sign(
             Proposer,
             default);
@@ -187,7 +184,7 @@ public abstract class StoreFixture : IDisposable
 
     public Transaction Transaction3 { get; }
 
-    public Libplanet.Store.Repository Store => Options.Store;
+    public Libplanet.Store.Repository Store => Options.Repository;
 
     public IDictionary<KeyBytes, byte[]> StateHashKeyValueStore { get; set; }
 

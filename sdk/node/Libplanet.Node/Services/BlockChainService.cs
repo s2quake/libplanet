@@ -23,18 +23,16 @@ internal sealed class BlockChainService(
     private readonly BlockChain _blockChain = CreateBlockChain(
         actionService: actionService,
         genesisOptions: genesisOptions.Value,
-        store: storeService.Store,
-        stateStore: storeService.StateStore);
+        store: storeService.Repository);
 
     public BlockChain BlockChain => _blockChain;
 
     private static BlockChain CreateBlockChain(
         IActionService actionService,
         GenesisOptions genesisOptions,
-        Libplanet.Store.Repository store,
-        TrieStateStore stateStore)
+        Repository store)
     {
-        var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, stateStore);
+        var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, store.StateStore);
         var options = new BlockChainOptions
         {
             PolicyActions = actionService.PolicyActions,

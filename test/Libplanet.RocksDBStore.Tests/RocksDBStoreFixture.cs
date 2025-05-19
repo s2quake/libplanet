@@ -24,7 +24,7 @@ public class RocksDBStoreFixture : StoreFixture
     {
         var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"rocksdb_test_{Guid.NewGuid()}");
         var store = new Libplanet.Store.Repository(new RocksDatabase(path));
-        return options with { Store = store };
+        return options with { Repository = store };
     }
 
     public TrieStateStore LoadTrieStateStore(string path)

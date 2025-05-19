@@ -7,14 +7,6 @@ namespace Libplanet.Store;
 public sealed class Repository : IDisposable
 {
     private readonly IDatabase _database;
-    private readonly TxExecutionStore _txExecutions;
-    private readonly BlockDigestStore _blockDigests;
-    private readonly BlockCommitStore _blockCommits;
-    private readonly PendingTransactionStore _pendingTransactions;
-    private readonly CommittedTransactionStore _committedTransactions;
-    private readonly PendingEvidenceStore _pendingEvidences;
-    private readonly CommittedEvidenceStore _committedEvidences;
-    private readonly ChainStore _chains;
     private readonly MetadataStore _metadata;
     private Chain? _chain;
 
@@ -28,36 +20,37 @@ public sealed class Repository : IDisposable
     public Repository(IDatabase database)
     {
         _database = database;
-        _blockDigests = new BlockDigestStore(_database);
-        _txExecutions = new TxExecutionStore(_database);
-        _blockCommits = new BlockCommitStore(_database);
-        _pendingTransactions = new PendingTransactionStore(_database);
-        _committedTransactions = new CommittedTransactionStore(_database);
-        _pendingEvidences = new PendingEvidenceStore(_database);
-        _committedEvidences = new CommittedEvidenceStore(_database);
-        _chains = new ChainStore(_database);
+        BlockDigests = new BlockDigestStore(_database);
+        TxExecutions = new TxExecutionStore(_database);
+        BlockCommits = new BlockCommitStore(_database);
+        PendingTransactions = new PendingTransactionStore(_database);
+        CommittedTransactions = new CommittedTransactionStore(_database);
+        PendingEvidences = new PendingEvidenceStore(_database);
+        CommittedEvidences = new CommittedEvidenceStore(_database);
+        Chains = new ChainStore(_database);
         _metadata = new MetadataStore(_database);
+        StateStore = new TrieStateStore(_database);
         if (_metadata.TryGetValue("chainId", out var chainId))
         {
-            _chain = _chains[Guid.Parse(chainId)];
+            _chain = Chains[Guid.Parse(chainId)];
         }
     }
 
-    public PendingEvidenceStore PendingEvidences => _pendingEvidences;
+    public PendingEvidenceStore PendingEvidences { get; }
 
-    public CommittedEvidenceStore CommittedEvidences => _committedEvidences;
+    public CommittedEvidenceStore CommittedEvidences { get; }
 
-    public PendingTransactionStore PendingTransactions => _pendingTransactions;
+    public PendingTransactionStore PendingTransactions { get; }
 
-    public CommittedTransactionStore CommittedTransactions => _committedTransactions;
+    public CommittedTransactionStore CommittedTransactions { get; }
 
-    public BlockCommitStore BlockCommits => _blockCommits;
+    public BlockCommitStore BlockCommits { get; }
 
-    public BlockDigestStore BlockDigests => _blockDigests;
+    public BlockDigestStore BlockDigests { get; }
 
-    public TxExecutionStore TxExecutions => _txExecutions;
+    public TxExecutionStore TxExecutions { get; }
 
-    public ChainStore Chains => _chains;
+    public ChainStore Chains { get; }
 
     public Guid ChainId
     {
@@ -71,7 +64,7 @@ public sealed class Repository : IDisposable
             }
             else
             {
-                _chain = _chains[value];
+                _chain = Chains[value];
                 _metadata["chainId"] = value.ToString();
             }
         }
@@ -80,34 +73,36 @@ public sealed class Repository : IDisposable
     public Chain Chain => _chain ?? throw new InvalidOperationException(
         "ChainId is not set. Please set ChainId before accessing the Chain property.");
 
+    public TrieStateStore StateStore { get; }
+
     public void AddBlock(Block block)
     {
-        _blockDigests.Add(block);
-        _pendingTransactions.AddRange(block.Transactions);
-        _pendingEvidences.RemoveRange(block.Evidences);
-        _committedEvidences.AddRange(block.Evidences);
+        BlockDigests.Add(block);
+        PendingTransactions.AddRange(block.Transactions);
+        PendingEvidences.RemoveRange(block.Evidences);
+        CommittedEvidences.AddRange(block.Evidences);
     }
 
     public Block GetBlock(BlockHash blockHash)
     {
-        var blockDigest = _blockDigests[blockHash];
-        return blockDigest.ToBlock(item => _pendingTransactions[item], item => _committedEvidences[item]);
+        var blockDigest = BlockDigests[blockHash];
+        return blockDigest.ToBlock(item => PendingTransactions[item], item => CommittedEvidences[item]);
     }
 
     public Block GetBlock(int height) => GetBlock(ChainId, height);
 
     public Block GetBlock(Guid chainId, int height)
     {
-        var chain = _chains[chainId];
+        var chain = Chains[chainId];
         var blockHash = chain.BlockHashes[height];
         return GetBlock(blockHash);
     }
 
     public bool TryGetBlock(BlockHash blockHash, [MaybeNullWhen(false)] out Block block)
     {
-        if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
+        if (BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            block = blockDigest.ToBlock(item => _pendingTransactions[item], item => _committedEvidences[item]);
+            block = blockDigest.ToBlock(item => PendingTransactions[item], item => CommittedEvidences[item]);
             return true;
         }
 
@@ -120,7 +115,7 @@ public sealed class Repository : IDisposable
 
     public bool TryGetBlock(Guid chainId, int height, [MaybeNullWhen(false)] out Block block)
     {
-        var chain = _chains[chainId];
+        var chain = Chains[chainId];
         if (chain.BlockHashes.TryGetValue(height, out var blockHash))
         {
             return TryGetBlock(blockHash, out block);
@@ -132,9 +127,9 @@ public sealed class Repository : IDisposable
 
     public Block? GetBlockOrDefault(BlockHash blockHash)
     {
-        if (_blockDigests.TryGetValue(blockHash, out var blockDigest))
+        if (BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            return blockDigest.ToBlock(item => _pendingTransactions[item], item => _committedEvidences[item]);
+            return blockDigest.ToBlock(item => PendingTransactions[item], item => CommittedEvidences[item]);
         }
 
         return null;
@@ -144,7 +139,7 @@ public sealed class Repository : IDisposable
 
     public Block? GetBlockOrDefault(Guid chainId, int height)
     {
-        var chain = _chains[chainId];
+        var chain = Chains[chainId];
         if (chain.BlockHashes.TryGetValue(height, out var blockHash))
         {
             return GetBlockOrDefault(blockHash);
@@ -157,7 +152,7 @@ public sealed class Repository : IDisposable
 
     public long GetNonce(Guid chainId, Address address)
     {
-        var chain = _chains[chainId];
+        var chain = Chains[chainId];
         if (chain.Nonces.TryGetValue(address, out var nonce))
         {
             return nonce;

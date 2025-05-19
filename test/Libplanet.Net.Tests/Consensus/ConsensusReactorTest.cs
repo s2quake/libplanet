@@ -50,7 +50,7 @@ namespace Libplanet.Net.Tests.Consensus
                         new DnsEndPoint("127.0.0.1", 6000 + i)));
                 var options = TestUtils.Options with
                 {
-                    Store = new Libplanet.Store.Repository(new MemoryDatabase()),
+                    Repository = new Libplanet.Store.Repository(new MemoryDatabase()),
                 };
                 blockChains[i] = BlockChain.Create(fx.GenesisBlock, TestUtils.Options);
             }

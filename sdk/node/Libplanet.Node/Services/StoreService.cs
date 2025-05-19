@@ -7,27 +7,13 @@ namespace Libplanet.Node.Services;
 
 internal sealed class StoreService(IOptions<StoreOptions> storeOptions) : IStoreService
 {
-    private TrieStateStore? _stateStore;
+    public Repository Repository { get; } = CreateStore(storeOptions.Value);
 
-    public Libplanet.Store.Repository Store { get; } = CreateStore(storeOptions.Value);
-
-    public ITable KeyValueStore { get; } = CreateKeyValueStore(storeOptions.Value);
-
-    public TrieStateStore StateStore => _stateStore ??= new TrieStateStore(KeyValueStore);
-
-    private static Libplanet.Store.Repository CreateStore(StoreOptions storeOptions)
+    private static Repository CreateStore(StoreOptions storeOptions)
         => storeOptions.Type switch
         {
-            StoreType.RocksDB => new Store.Repository(new RocksDatabase(storeOptions.StoreName)),
-            StoreType.InMemory => new Libplanet.Store.Repository(new MemoryDatabase()),
-            _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
-        };
-
-    private static ITable CreateKeyValueStore(StoreOptions storeOptions)
-        => storeOptions.Type switch
-        {
-            StoreType.RocksDB => new RocksDBKeyValueStore(storeOptions.StateStoreName),
-            StoreType.InMemory => new MemoryTable(),
+            StoreType.RocksDB => new Repository(new RocksDatabase(storeOptions.StoreName)),
+            StoreType.InMemory => new Repository(new MemoryDatabase()),
             _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
         };
 }

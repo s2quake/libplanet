@@ -653,18 +653,18 @@ public partial class BlockChainTest
     [Fact]
     public void DoesNotMigrateStateWithoutAction()
     {
-        var policy = new BlockChainOptions
+        var options = new BlockChainOptions
         {
             BlockOptions = new BlockOptions
             {
                 MaxTransactionsBytes = 50 * 1024,
             },
         };
-        var fx = GetStoreFixture(policy);
+        var fx = GetStoreFixture(options);
         // var renderer = new ValidatingActionRenderer();
         var actionEvaluator = new ActionEvaluator(
-            stateStore: new TrieStateStore(policy.KeyValueStore),
-            policy.PolicyActions);
+            stateStore: options.Repository.StateStore,
+            options.PolicyActions);
 
         var txs = new[]
         {
@@ -702,7 +702,7 @@ public partial class BlockChainTest
         fx.Proposer,
         actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputState);
     var blockChain = BlockChain.Create(
-        options: policy,
+        options: options,
         genesisBlock: genesis);
     var emptyBlock = blockChain.ProposeBlock(fx.Proposer);
     blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));

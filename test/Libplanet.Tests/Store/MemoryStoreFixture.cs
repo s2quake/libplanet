@@ -14,7 +14,7 @@ public sealed class MemoryStoreFixture(BlockChainOptions options)
     private static BlockChainOptions CreateOptions(BlockChainOptions options)
     {
         var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        return options with { Store = store };
+        return options with { Repository = store };
     }
 
     protected override void Dispose(bool disposing)

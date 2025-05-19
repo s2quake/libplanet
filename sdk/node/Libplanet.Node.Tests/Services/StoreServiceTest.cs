@@ -17,8 +17,7 @@ public class StoreServiceTest
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
         var storeService = serviceProvider.GetRequiredService<IStoreService>();
 
-        Assert.IsType<Store.Repository>(storeService.Store);
-        Assert.IsType<RocksDBStore.RocksDBKeyValueStore>(storeService.KeyValueStore);
+        Assert.IsType<Repository>(storeService.Repository);
     }
 
     [Fact]
@@ -31,7 +30,6 @@ public class StoreServiceTest
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
         var storeService = serviceProvider.GetRequiredService<IStoreService>();
 
-        Assert.IsType<Store.Repository>(storeService.Store);
-        Assert.IsType<MemoryTable>(storeService.KeyValueStore);
+        Assert.IsType<Repository>(storeService.Repository);
     }
 }

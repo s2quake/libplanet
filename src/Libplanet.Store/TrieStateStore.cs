@@ -1,19 +1,20 @@
-using System.Diagnostics;
 using System.Security.Cryptography;
-using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
-using Serilog;
 
 namespace Libplanet.Store;
 
 public partial class TrieStateStore(ITable table)
 {
-    private readonly ILogger _logger = Log.ForContext<TrieStateStore>();
     private readonly ITable _table = table;
 
     public TrieStateStore()
-        : this(new MemoryTable())
+        : this(new MemoryDatabase())
+    {
+    }
+
+    public TrieStateStore(IDatabase database)
+        : this(database.GetOrAdd("trie_state_store"))
     {
     }
 
@@ -21,10 +22,7 @@ public partial class TrieStateStore(ITable table)
         IImmutableSet<HashDigest<SHA256>> stateRootHashes, TrieStateStore targetStateStore)
     {
         var targetKeyValueStore = targetStateStore._table;
-        var stopwatch = new Stopwatch();
-        long count = 0;
-        _logger.Verbose("Started {MethodName}()", nameof(CopyStates));
-        stopwatch.Start();
+        var count = 0L;
 
         foreach (HashDigest<SHA256> stateRootHash in stateRootHashes)
         {
@@ -71,14 +69,6 @@ public partial class TrieStateStore(ITable table)
                 }
             }
         }
-
-        stopwatch.Stop();
-        _logger.Debug(
-            "Finished copying all states with {Count} key value pairs " +
-            "in {ElapsedMilliseconds} ms",
-            count,
-            stopwatch.ElapsedMilliseconds);
-        _logger.Verbose("Finished {MethodName}()", nameof(CopyStates));
     }
 
     public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash)
