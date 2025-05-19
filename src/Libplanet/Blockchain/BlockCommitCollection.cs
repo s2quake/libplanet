@@ -7,17 +7,13 @@ namespace Libplanet.Blockchain;
 
 public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, BlockCommit>
 {
-    private readonly Repository _repository;
-    private readonly Chain _chain;
     private readonly BlockCommitStore _blockCommits;
     private readonly BlockHashStore _blockHashes;
 
     internal BlockCommitCollection(Repository repository, Guid chainId)
     {
-        _repository = repository;
-        _chain = repository.Chains[chainId];
-        _blockCommits = _repository.BlockCommits;
-        _blockHashes = _chain.BlockHashes;
+        _blockCommits = repository.BlockCommits;
+        _blockHashes = repository.Chains[chainId].BlockHashes;
     }
 
     public IEnumerable<BlockHash> Keys

@@ -630,25 +630,6 @@ public partial class BlockChain
         return null;
     }
 
-    // internal ImmutableList<Transaction> ListStagedTransactions()
-    // {
-    //     var unorderedTxs = StagedTransactions.Iterate();
-    //     Transaction[] txs = unorderedTxs.ToArray();
-
-    //     Dictionary<Address, LinkedList<Transaction>> seats = txs
-    //         .GroupBy(tx => tx.Signer)
-    //         .Select(g => (g.Key, new LinkedList<Transaction>(g.OrderBy(tx => tx.Nonce))))
-    //         .ToDictionary(pair => pair.Key, pair => pair.Item2);
-
-    //     return txs.Select(tx =>
-    //     {
-    //         LinkedList<Transaction> seat = seats[tx.Signer];
-    //         Transaction first = seat.First.Value;
-    //         seat.RemoveFirst();
-    //         return first;
-    //     }).ToImmutableList();
-    // }
-
     internal void CleanupBlockCommitStore(long limit)
     {
         // FIXME: This still isn't enough to prevent the canonical chain
@@ -674,8 +655,7 @@ public partial class BlockChain
 
     internal HashDigest<SHA256>? GetNextStateRootHash() => _nextStateRootHash;
 
-    internal HashDigest<SHA256>? GetNextStateRootHash(int index) =>
-        GetNextStateRootHash(Blocks[index]);
+    internal HashDigest<SHA256>? GetNextStateRootHash(int index) => GetNextStateRootHash(Blocks[index]);
 
     internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(Blocks[blockHash]);
 

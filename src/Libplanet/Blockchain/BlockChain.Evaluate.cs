@@ -11,44 +11,22 @@ namespace Libplanet.Blockchain;
 public partial class BlockChain
 {
     public HashDigest<SHA256> DetermineNextBlockStateRootHash(
-        Block block, out IReadOnlyList<CommittedActionEvaluation> evaluations)
+        Block block, out CommittedActionEvaluation[] evaluations)
     {
-        _rwlock.EnterWriteLock();
-        try
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            evaluations = EvaluateBlock(block);
+        evaluations = EvaluateBlock(block);
 
-            _logger.Debug(
-                "Took {DurationMs} ms to evaluate block #{BlockHeight} " +
-                "hash {Hash} with {Count} action evaluations",
-                stopwatch.ElapsedMilliseconds,
-                block.Height,
-                block.BlockHash,
-                evaluations.Count);
-
-            if (evaluations.Count > 0)
-            {
-                return evaluations[^1].OutputState;
-            }
-            else
-            {
-                return Store.GetStateRootHash(block.BlockHash) is { } stateRootHash
-                    ? stateRootHash
-                    : StateStore.GetStateRoot(default).Hash;
-            }
-        }
-        finally
+        if (evaluations.Length > 0)
         {
-            _rwlock.ExitWriteLock();
+            return evaluations[^1].OutputState;
         }
+
+        return Store.GetStateRootHash(block.BlockHash) is { } stateRootHash
+            ? stateRootHash
+            : StateStore.GetStateRoot(default).Hash;
     }
 
-    public IReadOnlyList<CommittedActionEvaluation> EvaluateBlock(Block block) =>
-            ActionEvaluator.Evaluate(
-                (RawBlock)block,
-                Store.GetStateRootHash(block.BlockHash));
+    public CommittedActionEvaluation[] EvaluateBlock(Block block)
+        => ActionEvaluator.Evaluate((RawBlock)block, Store.GetStateRootHash(block.BlockHash));
 
     internal Block EvaluateAndSign(RawBlock rawBlock, PrivateKey privateKey)
     {
