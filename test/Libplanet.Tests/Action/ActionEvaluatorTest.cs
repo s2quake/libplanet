@@ -79,14 +79,16 @@ public partial class ActionEvaluatorTest
         var txAddress = signer.Address;
         var txs = new[]
         {
-            Transaction.Create(
-                nonce: 0,
-                privateKey: signer,
-                genesisHash: default,
-                actions: new IAction[]
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = signer.Address,
+                GenesisHash = default,
+                Actions = new IAction[]
                 {
                     new ContextRecordingAction { Address = txAddress, Value = "Foo" },
-                }.ToBytecodes()),
+                }.ToBytecodes(),
+            }.Sign(signer),
         };
         var evs = Array.Empty<EvidenceBase>();
         var stateStore = new TrieStateStore();
@@ -139,11 +141,13 @@ public partial class ActionEvaluatorTest
 
         var chain = TestUtils.MakeBlockChain(options: new BlockChainOptions());
         var action = new ContextRecordingAction { Address = address, Value = value };
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.BlockHash,
-            actions: new[] { action }.ToBytecodes());
+        var tx = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = privateKey.Address,
+            GenesisHash = chain.Genesis.BlockHash,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(privateKey);
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();
@@ -299,7 +303,8 @@ public partial class ActionEvaluatorTest
     //         store: store,
     //         stateStore: stateStore,
     //         actionLoader: new SingleActionLoader<ThrowException>());
-    //     var tx = Transaction.Create(
+    //     var tx = new TransactionMetadata
+// {
     //         nonce: 0,
     //         privateKey: privateKey,
     //         genesisHash: chain.Genesis.Hash,
@@ -343,7 +348,8 @@ public partial class ActionEvaluatorTest
     //             actionLoader: new SingleActionLoader<ThrowException>());
     //     var genesis = chain.Genesis;
     //     // Evaluation is run with rehearsal true to get updated addresses on tx creation.
-    //     var tx = Transaction.Create(
+    //     var tx = new TransactionMetadata
+// {
     //         nonce: 0,
     //         privateKey: privateKey,
     //         genesisHash: genesis.Hash,
@@ -411,61 +417,34 @@ public partial class ActionEvaluatorTest
 
         var block1Txs = ImmutableSortedSet.Create(
         [
-            Transaction.Create(
-                unsignedTx: new UnsignedTx
+            new TransactionMetadata
+            {
+                Signer = _txFx.PrivateKey1.Address,
+                GenesisHash = genesisBlock.BlockHash,
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
+                Actions = new IAction[]
                 {
-                    Invoice = new TxInvoice
-                    {
-                        GenesisHash = genesisBlock.BlockHash,
-                        UpdatedAddresses = [addresses[0], addresses[1]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-                        Actions = new IAction[]
-                        {
-                            MakeAction(addresses[0], 'A', addresses[1]),
-                            MakeAction(addresses[1], 'B', addresses[2]),
-                        }.ToBytecodes(),
-                    },
-                    SigningMetadata = new TxSigningMetadata
-                    {
-                        Signer = _txFx.PrivateKey1.Address,
-                    },
-                },
-                privateKey: _txFx.PrivateKey1),
-            Transaction.Create(
-                unsignedTx: new UnsignedTx
+                    MakeAction(addresses[0], 'A', addresses[1]),
+                    MakeAction(addresses[1], 'B', addresses[2]),
+                }.ToBytecodes(),
+            }.Sign(_txFx.PrivateKey1),
+            new TransactionMetadata
+            {
+                Signer = _txFx.PrivateKey2.Address,
+                GenesisHash = genesisBlock.BlockHash,
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
+                Actions = new IAction[]
                 {
-                    Invoice = new TxInvoice
-                    {
-                        GenesisHash = genesisBlock.BlockHash,
-                        UpdatedAddresses = [],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
-                        Actions = new IAction[]
-                        {
-                            MakeAction(addresses[2], 'C', addresses[3]),
-                        }.ToBytecodes(),
-                    },
-                    SigningMetadata = new TxSigningMetadata
-                    {
-                        Signer = _txFx.PrivateKey2.Address,
-                    },
-                },
-                privateKey: _txFx.PrivateKey2),
-            Transaction.Create(
-                unsignedTx: new UnsignedTx
-                {
-                    Invoice = new TxInvoice
-                    {
-                        GenesisHash = genesisBlock.BlockHash,
-                        UpdatedAddresses = [],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
-                        Actions = [],
-                    },
-                    SigningMetadata = new TxSigningMetadata
-                    {
-                        Signer = _txFx.PrivateKey3.Address,
-                    },
-                },
-                privateKey: _txFx.PrivateKey3),
+                    MakeAction(addresses[2], 'C', addresses[3]),
+                }.ToBytecodes(),
+            }.Sign(_txFx.PrivateKey2),
+            new TransactionMetadata
+            {
+                Signer = _txFx.PrivateKey3.Address,
+                GenesisHash = genesisBlock.BlockHash,
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
+                Actions = [],
+            }.Sign(_txFx.PrivateKey3),
         ]);
         foreach ((var tx, var i) in block1Txs.Zip(
             Enumerable.Range(0, block1Txs.Count), (x, y) => (x, y)))
@@ -557,63 +536,36 @@ public partial class ActionEvaluatorTest
             // Note that these timestamps in themselves does not have any meanings but are
             // only arbitrary.  These purpose to make their evaluation order in a block
             // equal to the order we (the test) intend:
-            Transaction.Create(
-                unsignedTx: new UnsignedTx
+            new TransactionMetadata
+            {
+                Signer = _txFx.PrivateKey1.Address,
+                GenesisHash = genesisBlock.BlockHash,
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
+                Actions = new IAction[]
                 {
-                    Invoice = new TxInvoice
-                    {
-                        GenesisHash = genesisBlock.BlockHash,
-                        UpdatedAddresses = [addresses[0]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
-                        Actions = new IAction[]
-                        {
-                            MakeAction(addresses[0], 'D'),
-                        }.ToBytecodes(),
-                    },
-                    SigningMetadata = new TxSigningMetadata
-                    {
-                        Signer = _txFx.PrivateKey1.Address,
-                    },
-                },
-                privateKey: _txFx.PrivateKey1),
-            Transaction.Create(
-                unsignedTx: new UnsignedTx
+                    MakeAction(addresses[0], 'D'),
+                }.ToBytecodes(),
+            }.Sign(_txFx.PrivateKey1),
+            new TransactionMetadata
+            {
+                Signer = _txFx.PrivateKey2.Address,
+                GenesisHash = genesisBlock.BlockHash,
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
+                Actions = new[]
                 {
-                    Invoice = new TxInvoice
-                    {
-                        GenesisHash = genesisBlock.BlockHash,
-                        UpdatedAddresses = [addresses[3]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-                        Actions = new[]
-                        {
-                            MakeAction(addresses[3], 'E'),
-                        }.ToBytecodes(),
-                    },
-                    SigningMetadata = new TxSigningMetadata
-                    {
-                        Signer = _txFx.PrivateKey2.Address,
-                    },
-                },
-                privateKey: _txFx.PrivateKey2),
-            Transaction.Create(
-                unsignedTx: new UnsignedTx
+                    MakeAction(addresses[3], 'E'),
+                }.ToBytecodes(),
+            }.Sign(_txFx.PrivateKey2),
+            new TransactionMetadata
+            {
+                Signer = _txFx.PrivateKey3.Address,
+                GenesisHash = genesisBlock.BlockHash,
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
+                Actions = new[]
                 {
-                    Invoice = new TxInvoice
-                    {
-                        GenesisHash = genesisBlock.BlockHash,
-                        UpdatedAddresses = [addresses[4]],
-                        Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
-                        Actions = new[]
-                        {
-                            DumbAction.Create((addresses[4], "F"), transfer: (addresses[0], addresses[4], 8)),
-                        }.ToBytecodes(),
-                    },
-                    SigningMetadata = new TxSigningMetadata
-                    {
-                        Signer = _txFx.PrivateKey3.Address,
-                    },
-                },
-                privateKey: _txFx.PrivateKey3),
+                    DumbAction.Create((addresses[4], "F"), transfer: (addresses[0], addresses[4], 8)),
+                }.ToBytecodes(),
+            }.Sign(_txFx.PrivateKey3),
         ]);
         foreach ((var tx, var i) in block2Txs.Zip(
             Enumerable.Range(0, block2Txs.Count), (x, y) => (x, y)))
@@ -711,7 +663,13 @@ public partial class ActionEvaluatorTest
                 transfer: (addresses[1], addresses[0], 10)),
             DumbAction.Create((addresses[2], "R")),
         ];
-        var tx = Transaction.Create(0, _txFx.PrivateKey1, default, actions.ToBytecodes());
+        var tx = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = _txFx.PrivateKey1.Address,
+            GenesisHash = default,
+            Actions = actions.ToBytecodes(),
+        }.Sign(_txFx.PrivateKey1);
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
         var block = RawBlock.Create(
@@ -803,14 +761,11 @@ public partial class ActionEvaluatorTest
     public void EvaluateTxResultThrowingException()
     {
         var action = new ThrowException { ThrowOnExecution = true };
-        var tx = Transaction.Create(
-            0,
-            _txFx.PrivateKey1,
-            default,
-            new[] { action }.ToBytecodes(),
-            null,
-            0L,
-            DateTimeOffset.UtcNow);
+        var tx = new TransactionMetadata
+        {
+            Signer = _txFx.PrivateKey1.Address,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(_txFx.PrivateKey1);
         var txs = ImmutableSortedSet.Create(tx);
         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
         var stateStore = new TrieStateStore();
@@ -1153,16 +1108,17 @@ public partial class ActionEvaluatorTest
         var chain = TestUtils.MakeBlockChain(
             options: new BlockChainOptions(),
             actions: [freeGasAction]);
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.BlockHash,
-            maxGasPrice: FungibleAssetValue.Create(foo, 1),
-            gasLimit: 3,
-            actions: new[]
+        var tx = new TransactionMetadata
+        {
+            Signer = privateKey.Address,
+            GenesisHash = chain.Genesis.BlockHash,
+            MaxGasPrice = FungibleAssetValue.Create(foo, 1),
+            GasLimit = 3,
+            Actions = new[]
             {
                 payGasAction,
-            }.ToBytecodes());
+            }.ToBytecodes(),
+        }.Sign(privateKey);
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();
@@ -1206,13 +1162,14 @@ public partial class ActionEvaluatorTest
             {
                 freeGasAction,
             });
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: privateKey,
-            genesisHash: chain.Genesis.BlockHash,
-            actions: new[] { payGasAction }.ToBytecodes(),
-            maxGasPrice: FungibleAssetValue.Create(foo, 1),
-            gasLimit: 5);
+        var tx = new TransactionMetadata
+        {
+            Signer = privateKey.Address,
+            GenesisHash = chain.Genesis.BlockHash,
+            Actions = new[] { payGasAction }.ToBytecodes(),
+            MaxGasPrice = FungibleAssetValue.Create(foo, 1),
+            GasLimit = 5,
+        }.Sign(privateKey);
 
         chain.StageTransaction(tx);
         var miner = new PrivateKey();

@@ -46,7 +46,8 @@
 //                 Memo = string.Empty,
 //             };
 
-//             var tx = Transaction.Create(
+//             var tx = new TransactionMetadata
+// {
 //                 nonce: 0,
 //                 privateKey: privateKey,
 //                 genesisHash: chain.Genesis.Hash,
@@ -153,7 +154,8 @@
 //                 CancelTrace = true,
 //             };
 
-//             var tx = Transaction.Create(
+//             var tx = new TransactionMetadata
+// {
 //                 nonce: 0,
 //                 privateKey: privateKey,
 //                 genesisHash: chain.Genesis.Hash,
@@ -196,7 +198,8 @@
 //                 Memo = string.Empty,
 //             };
 
-//             var tx = Transaction.Create(
+//             var tx = new TransactionMetadata
+// {
 //                 nonce: 0,
 //                 privateKey: privateKey,
 //                 genesisHash: chain.Genesis.Hash,

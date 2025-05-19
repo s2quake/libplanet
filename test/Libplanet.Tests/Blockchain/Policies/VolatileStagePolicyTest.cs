@@ -9,12 +9,14 @@ public class VolatileStagePolicyTest : StagePolicyTest
     public void Lifetime()
     {
         TimeSpan timeBuffer = TimeSpan.FromSeconds(1);
-        Transaction tx = Transaction.Create(
-            0,
-            _key,
-            _fx.GenesisBlock.BlockHash,
-            [],
-            timestamp: DateTimeOffset.UtcNow - StagePolicy.Lifetime + timeBuffer);
+        Transaction tx = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = _key.Address,
+            GenesisHash = _fx.GenesisBlock.BlockHash,
+            Actions = [],
+            Timestamp = DateTimeOffset.UtcNow - StagePolicy.Lifetime + timeBuffer,
+        }.Sign(_key);
         Assert.True(StagePolicy.Stage(tx));
         Assert.Equal(tx, StagePolicy[tx.Id]);
         Assert.Contains(tx, StagePolicy.Iterate());
@@ -30,7 +32,8 @@ public class VolatileStagePolicyTest : StagePolicyTest
     // public void MaxLifetime()
     // {
     //     var stagePolicy = new VolatileStagePolicy(TimeSpan.MaxValue);
-    //     Transaction tx = Transaction.Create(
+    //     Transaction tx = new TransactionMetadata
+// {
     //         0,
     //         _key,
     //         _fx.GenesisBlock.BlockHash,
@@ -42,18 +45,22 @@ public class VolatileStagePolicyTest : StagePolicyTest
     public void StageUnstage()
     {
         TimeSpan timeBuffer = TimeSpan.FromSeconds(1);
-        Transaction validTx = Transaction.Create(
-            0,
-            _key,
-            _fx.GenesisBlock.BlockHash,
-            [],
-            timestamp: DateTimeOffset.UtcNow - StagePolicy.Lifetime + timeBuffer);
-        Transaction staleTx = Transaction.Create(
-            0,
-            _key,
-            _fx.GenesisBlock.BlockHash,
-            [],
-            timestamp: DateTimeOffset.UtcNow - StagePolicy.Lifetime - timeBuffer);
+        Transaction validTx = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = _key.Address,
+            GenesisHash = _fx.GenesisBlock.BlockHash,
+            Actions = [],
+            Timestamp = DateTimeOffset.UtcNow - StagePolicy.Lifetime + timeBuffer,
+        }.Sign(_key);
+        Transaction staleTx = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = _key.Address,
+            GenesisHash = _fx.GenesisBlock.BlockHash,
+            Actions = [],
+            Timestamp = DateTimeOffset.UtcNow - StagePolicy.Lifetime - timeBuffer,
+        }.Sign(_key);
 
         Assert.False(StagePolicy.Stage(staleTx));
         Assert.True(StagePolicy.Stage(validTx));

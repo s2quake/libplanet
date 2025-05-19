@@ -388,11 +388,12 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposer.Address));
             validators ??= Validators;
             txs = txs.Add(
-                Transaction.Create(
-                    nonce++,
-                    GenesisProposer,
-                    default,
-                    actions: new[]
+                new TransactionMetadata
+                {
+                    Nonce = nonce++,
+                    Signer = GenesisProposer.Address,
+                    GenesisHash = default,
+                    Actions = new[]
                     {
                         new Initialize
                         {
@@ -400,7 +401,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                             States = ImmutableDictionary.Create<Address, object>(),
                         },
                     }.ToBytecodes(),
-                    timestamp: DateTimeOffset.MinValue));
+                    Timestamp = DateTimeOffset.MinValue,
+                }.Sign(GenesisProposer));
 
             var metadata = new BlockHeader
             {
@@ -536,17 +538,19 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
             var txs = new[]
             {
-                Transaction.Create(
-                    0,
-                    privateKey,
-                    default,
-                    actions.ToBytecodes(),
-                    timestamp: timestamp ?? DateTimeOffset.MinValue),
+                new TransactionMetadata
+                {
+                    Nonce = 0,
+                    Signer = privateKey.Address,
+                    GenesisHash = default,
+                    Actions = actions.ToBytecodes(),
+                    Timestamp = timestamp ?? DateTimeOffset.MinValue,
+                }.Sign(privateKey),
             }.ToImmutableSortedSet();
 
-            var actionEvaluator = new ActionEvaluator(
-                stateStore: new TrieStateStore(options.KeyValueStore),
-                options.PolicyActions);
+        var actionEvaluator = new ActionEvaluator(
+            stateStore: new TrieStateStore(options.KeyValueStore),
+            options.PolicyActions);
 
             if (genesisBlock is null)
             {
@@ -556,8 +560,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     validatorSet,
                     timestamp,
                     protocolVersion);
-                var evaluatedSrh = actionEvaluator.Evaluate(preEval, default)[^1].OutputState;
-                genesisBlock = preEval.Sign(privateKey, default);
+        var evaluatedSrh = actionEvaluator.Evaluate(preEval, default)[^1].OutputState;
+        genesisBlock = preEval.Sign(privateKey, default);
             }
 
             // ValidatingActionRenderer validator = null;
@@ -568,106 +572,106 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             return (chain, actionEvaluator);
         }
 
-        public static async Task AssertThatEventually(
-            Expression<Func<bool>> condition,
-            TimeSpan timeout,
-            TimeSpan delay,
-            ITestOutputHelper output = null,
-            string conditionLabel = null)
-        {
-            Func<bool> conditionFunc = condition.Compile();
-            DateTimeOffset started = DateTimeOffset.UtcNow;
-            DateTimeOffset until = started + timeout;
-            while (!conditionFunc() && DateTimeOffset.UtcNow <= until)
-            {
-                output?.WriteLine(
-                    "[{0}/{1}] Waiting for {2}...",
-                    DateTimeOffset.UtcNow - started,
-                    timeout,
-                    conditionLabel is string c1
-                        ? c1
-                        : $"satisfying the condition ({condition.Body})");
-                await Task.Delay(delay);
-            }
+public static async Task AssertThatEventually(
+    Expression<Func<bool>> condition,
+    TimeSpan timeout,
+    TimeSpan delay,
+    ITestOutputHelper output = null,
+    string conditionLabel = null)
+{
+    Func<bool> conditionFunc = condition.Compile();
+    DateTimeOffset started = DateTimeOffset.UtcNow;
+    DateTimeOffset until = started + timeout;
+    while (!conditionFunc() && DateTimeOffset.UtcNow <= until)
+    {
+        output?.WriteLine(
+            "[{0}/{1}] Waiting for {2}...",
+            DateTimeOffset.UtcNow - started,
+            timeout,
+            conditionLabel is string c1
+                ? c1
+                : $"satisfying the condition ({condition.Body})");
+        await Task.Delay(delay);
+    }
 
-            Assert.True(
-                conditionFunc(),
-                $"Waited {timeout} but the condition (" +
-                    (conditionLabel is string l ? l : condition.Body.ToString()) +
-                    ") has never been satisfied.");
+    Assert.True(
+        conditionFunc(),
+        $"Waited {timeout} but the condition (" +
+            (conditionLabel is string l ? l : condition.Body.ToString()) +
+            ") has never been satisfied.");
 
-            output?.WriteLine(
-                "[{0}/{1}] Done {2}...",
-                DateTimeOffset.UtcNow - started,
-                timeout,
-                conditionLabel is string c2 ? c2 : $"satisfying the condition ({condition.Body})");
-        }
+    output?.WriteLine(
+        "[{0}/{1}] Done {2}...",
+        DateTimeOffset.UtcNow - started,
+        timeout,
+        conditionLabel is string c2 ? c2 : $"satisfying the condition ({condition.Body})");
+}
 
-        public static Task AssertThatEventually(
-            Expression<Func<bool>> condition,
-            int timeoutMilliseconds,
-            int delayMilliseconds = 100,
-            ITestOutputHelper output = null,
-            string conditionLabel = null) =>
-            AssertThatEventually(
-                condition,
-                TimeSpan.FromMilliseconds(timeoutMilliseconds),
-                TimeSpan.FromMilliseconds(delayMilliseconds),
-                output,
-                conditionLabel);
+public static Task AssertThatEventually(
+    Expression<Func<bool>> condition,
+    int timeoutMilliseconds,
+    int delayMilliseconds = 100,
+    ITestOutputHelper output = null,
+    string conditionLabel = null) =>
+    AssertThatEventually(
+        condition,
+        TimeSpan.FromMilliseconds(timeoutMilliseconds),
+        TimeSpan.FromMilliseconds(delayMilliseconds),
+        output,
+        conditionLabel);
 
-        public static void AssertJsonSerializable<T>(
-            T obj,
-            string expectedJson,
-            bool testDeserializable = true)
-            where T : IEquatable<T>
-        {
-            Skip.IfNot(
-                Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
-                "System.Text.Json 6.0.0+ does not work well with Unity/Mono.");
+public static void AssertJsonSerializable<T>(
+    T obj,
+    string expectedJson,
+    bool testDeserializable = true)
+    where T : IEquatable<T>
+{
+    Skip.IfNot(
+        Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
+        "System.Text.Json 6.0.0+ does not work well with Unity/Mono.");
 
-            var buffer = new MemoryStream();
-            JsonSerializer.Serialize(buffer, obj);
-            buffer.Seek(0L, SeekOrigin.Begin);
-            var options = new JsonSerializerOptions
-            {
-                AllowTrailingCommas = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-            JsonNode actual = JsonSerializer.SerializeToNode(obj, options);
-            JsonNode expected = JsonNode.Parse(expectedJson, null, new JsonDocumentOptions
-            {
-                AllowTrailingCommas = true,
-                CommentHandling = JsonCommentHandling.Skip,
-            });
-            JsonAssert.Equal(expected, actual, true);
-            if (testDeserializable)
-            {
-                var deserialized = JsonSerializer.Deserialize<T>(expectedJson, options);
-                Assert.Equal(obj, deserialized);
-            }
-        }
+    var buffer = new MemoryStream();
+    JsonSerializer.Serialize(buffer, obj);
+    buffer.Seek(0L, SeekOrigin.Begin);
+    var options = new JsonSerializerOptions
+    {
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+    JsonNode actual = JsonSerializer.SerializeToNode(obj, options);
+    JsonNode expected = JsonNode.Parse(expectedJson, null, new JsonDocumentOptions
+    {
+        AllowTrailingCommas = true,
+        CommentHandling = JsonCommentHandling.Skip,
+    });
+    JsonAssert.Equal(expected, actual, true);
+    if (testDeserializable)
+    {
+        var deserialized = JsonSerializer.Deserialize<T>(expectedJson, options);
+        Assert.Equal(obj, deserialized);
+    }
+}
 
-        public static bool IsDumbAction(byte[] action)
-        {
-            throw new NotImplementedException();
-            // return action is Dictionary dictionary &&
-            //     dictionary.TryGetValue(new Text("type_id"), out var typeId) &&
-            //     typeId.Equals(new Text(nameof(DumbAction)));
-        }
+public static bool IsDumbAction(byte[] action)
+{
+    throw new NotImplementedException();
+    // return action is Dictionary dictionary &&
+    //     dictionary.TryGetValue(new Text("type_id"), out var typeId) &&
+    //     typeId.Equals(new Text(nameof(DumbAction)));
+}
 
-        public static bool IsMinerReward(byte[] action)
-        {
-            throw new NotImplementedException();
-            // return action is Dictionary dictionary &&
-            //        dictionary.TryGetValue("reward", out IValue rewards) &&
-            //        rewards is Integer;
-        }
+public static bool IsMinerReward(byte[] action)
+{
+    throw new NotImplementedException();
+    // return action is Dictionary dictionary &&
+    //        dictionary.TryGetValue("reward", out IValue rewards) &&
+    //        rewards is Integer;
+}
 
-        public static DumbAction ToDumbAction(byte[] plainValue)
-        {
-            return ModelSerializer.DeserializeFromBytes<DumbAction>(plainValue);
-        }
+public static DumbAction ToDumbAction(byte[] plainValue)
+{
+    return ModelSerializer.DeserializeFromBytes<DumbAction>(plainValue);
+}
     }
 }

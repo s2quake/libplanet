@@ -342,13 +342,13 @@ public sealed class StoreCommandTest : IDisposable
 
     private Transaction DummyTransaction()
     {
-        return Transaction.Create(
-            0,
-            new PrivateKey(),
-            _genesisBlock.BlockHash,
-            new[] { new Utils.DummyAction() }.ToBytecodes(),
-            null,
-            0L,
-            DateTimeOffset.UtcNow);
+        var privateKey = new PrivateKey();
+        return new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = privateKey.Address,
+            GenesisHash = _genesisBlock.BlockHash,
+            Actions = new[] { new Utils.DummyAction() }.ToBytecodes(),
+        }.Sign(privateKey);
     }
 }

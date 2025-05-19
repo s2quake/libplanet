@@ -168,17 +168,18 @@ public partial class BlockChain
         long gasLimit = 0L,
         DateTimeOffset? timestamp = null)
     {
-        timestamp = timestamp ?? DateTimeOffset.UtcNow;
         lock (_txLock)
         {
-            Transaction tx = Transaction.Create(
-                GetNextTxNonce(privateKey.Address),
-                privateKey,
-                Genesis.BlockHash,
-                actions.ToBytecodes(),
-                maxGasPrice,
-                gasLimit,
-                timestamp);
+            var tx = new TransactionMetadata
+            {
+                Nonce = GetNextTxNonce(privateKey.Address),
+                Signer = privateKey.Address,
+                GenesisHash = Genesis.BlockHash,
+                Actions = actions.ToBytecodes(),
+                MaxGasPrice = maxGasPrice,
+                GasLimit = gasLimit,
+                Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+            }.Sign(privateKey);
             StageTransaction(tx);
             return tx;
         }

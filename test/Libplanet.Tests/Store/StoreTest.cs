@@ -745,14 +745,14 @@ public abstract class StoreTest
                 ArbitraryBytes = [.. arbitraryBytes],
                 Md5Digest = [.. digest],
             };
-            return Transaction.Create(
-                txNonce,
-                key,
-                default,
-                new[] { action }.ToBytecodes(),
-                null,
-                0L,
-                DateTimeOffset.UtcNow);
+            return new TransactionMetadata
+            {
+                Nonce = txNonce,
+                Signer = key.Address,
+                GenesisHash = default,
+                Actions = new[] { action }.ToBytecodes(),
+                Timestamp = DateTimeOffset.UtcNow,
+            }.Sign(key);
         }
 
         const int taskCount = 5;

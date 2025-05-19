@@ -20,11 +20,13 @@ public abstract class StagePolicyTest
         _chain = BlockChain.Create(_fx.GenesisBlock, _policy);
         _key = new PrivateKey();
         _txs = Enumerable.Range(0, 5).Select(i =>
-            Transaction.Create(
-                i,
-                _key,
-                _fx.GenesisBlock.BlockHash,
-                []))
+            new TransactionMetadata
+            {
+                Nonce = i,
+                Signer = _key.Address,
+                GenesisHash = _fx.GenesisBlock.BlockHash,
+                Actions = [],
+            }.Sign(_key))
         .ToArray();
     }
 
@@ -40,11 +42,13 @@ public abstract class StagePolicyTest
             Assert.Equal(setOne.OrderBy(tx => tx.Id), setTwo.OrderBy(tx => tx.Id));
         }
 
-        var duplicateNonceTx = Transaction.Create(
-            2,
-            _key,
-            _fx.GenesisBlock.BlockHash,
-            []);
+        var duplicateNonceTx = new TransactionMetadata
+        {
+            Nonce = 2,
+            Signer = _key.Address,
+            GenesisHash = _fx.GenesisBlock.BlockHash,
+            Actions = [],
+        }.Sign(_key);
 
         Assert.Empty(StagePolicy.Iterate());
 

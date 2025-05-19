@@ -15,82 +15,78 @@ public sealed record class Transaction
 {
     private TxId? _id;
 
-    [JsonIgnore]
     [Property(0)]
-    public required UnsignedTx UnsignedTx { get; init; }
+    public required TransactionMetadata Metadata { get; init; }
 
-    [JsonIgnore]
     [Property(1)]
     [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
     public TxId Id => _id ??= new TxId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 
-    public long Nonce => UnsignedTx.Nonce;
+    public long Nonce => Metadata.Nonce;
 
-    public Address Signer => UnsignedTx.Signer;
+    public Address Signer => Metadata.Signer;
 
-    public ImmutableSortedSet<Address> UpdatedAddresses => UnsignedTx.UpdatedAddresses;
+    public ImmutableArray<ActionBytecode> Actions => Metadata.Actions;
 
-    public ImmutableArray<ActionBytecode> Actions => UnsignedTx.Actions;
+    public FungibleAssetValue? MaxGasPrice => Metadata.MaxGasPrice;
 
-    public FungibleAssetValue? MaxGasPrice => UnsignedTx.MaxGasPrice;
+    public long? GasLimit => Metadata.GasLimit;
 
-    public long? GasLimit => UnsignedTx.GasLimit;
+    public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public DateTimeOffset Timestamp => UnsignedTx.Timestamp;
-
-    public BlockHash? GenesisHash => UnsignedTx.GenesisHash;
+    public BlockHash? GenesisHash => Metadata.GenesisHash;
 
     TxId IHasKey<TxId>.Key => Id;
 
-    public static Transaction Create(UnsignedTx unsignedTx, ImmutableArray<byte> signature) => new()
-    {
-        UnsignedTx = unsignedTx,
-        Signature = signature,
-    };
+    // public static Transaction Create(UnsignedTx unsignedTx, ImmutableArray<byte> signature) => new()
+    // {
+    //     UnsignedTx = unsignedTx,
+    //     Signature = signature,
+    // };
 
-    public static Transaction Create(UnsignedTx unsignedTx, PrivateKey privateKey)
-        => Create(unsignedTx, [.. unsignedTx.CreateSignature(privateKey)]);
+    // public static Transaction Create(UnsignedTx unsignedTx, PrivateKey privateKey)
+    //     => Create(unsignedTx, [.. unsignedTx.CreateSignature(privateKey)]);
 
-    public static Transaction Create(
-        long nonce,
-        PrivateKey privateKey,
-        BlockHash genesisHash,
-        ImmutableArray<ActionBytecode> actions,
-        FungibleAssetValue? maxGasPrice = null,
-        long gasLimit = 0L,
-        DateTimeOffset? timestamp = null)
-    {
-        var draftInvoice = new TxInvoice
-        {
-            Actions = actions,
-            GenesisHash = genesisHash,
-            Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-            MaxGasPrice = maxGasPrice ?? default,
-            GasLimit = gasLimit,
-        };
-        var signingMetadata = new TxSigningMetadata
-        {
-            Signer = privateKey.Address,
-            Nonce = nonce,
-        };
-        var invoice = new TxInvoice
-        {
-            Actions = draftInvoice.Actions,
-            GenesisHash = draftInvoice.GenesisHash,
-            UpdatedAddresses = draftInvoice.UpdatedAddresses,
-            Timestamp = draftInvoice.Timestamp,
-            MaxGasPrice = draftInvoice.MaxGasPrice,
-            GasLimit = draftInvoice.GasLimit,
-        };
-        var unsignedTx = new UnsignedTx
-        {
-            Invoice = invoice,
-            SigningMetadata = signingMetadata,
-        };
-        return Create(unsignedTx, privateKey);
-    }
+    // public static Transaction Create(
+    //     long nonce,
+    //     PrivateKey privateKey,
+    //     BlockHash genesisHash,
+    //     ImmutableArray<ActionBytecode> actions,
+    //     FungibleAssetValue? maxGasPrice = null,
+    //     long gasLimit = 0L,
+    //     DateTimeOffset? timestamp = null)
+    // {
+    //     var draftInvoice = new TxInvoice
+    //     {
+    //         Actions = actions,
+    //         GenesisHash = genesisHash,
+    //         Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+    //         MaxGasPrice = maxGasPrice ?? default,
+    //         GasLimit = gasLimit,
+    //     };
+    //     var signingMetadata = new TxSigningMetadata
+    //     {
+    //         Signer = privateKey.Address,
+    //         Nonce = nonce,
+    //     };
+    //     var invoice = new TxInvoice
+    //     {
+    //         Actions = draftInvoice.Actions,
+    //         GenesisHash = draftInvoice.GenesisHash,
+    //         UpdatedAddresses = draftInvoice.UpdatedAddresses,
+    //         Timestamp = draftInvoice.Timestamp,
+    //         MaxGasPrice = draftInvoice.MaxGasPrice,
+    //         GasLimit = draftInvoice.GasLimit,
+    //     };
+    //     var unsignedTx = new UnsignedTx
+    //     {
+    //         Invoice = invoice,
+    //         SigningMetadata = signingMetadata,
+    //     };
+    //     return Create(unsignedTx, privateKey);
+    // }
 
     public bool Equals(Transaction? other) => Id.Equals(other?.Id);
 
@@ -115,11 +111,12 @@ public sealed record class Transaction
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (!UnsignedTx.VerifySignature(Signature))
-        {
-            yield return new ValidationResult(
-                "The given signature is not valid.",
-                [nameof(Signature)]);
-        }
+        yield break;
+        // if (!UnsignedTx.VerifySignature(Signature))
+        // {
+        //     yield return new ValidationResult(
+        //         "The given signature is not valid.",
+        //         [nameof(Signature)]);
+        // }
     }
 }

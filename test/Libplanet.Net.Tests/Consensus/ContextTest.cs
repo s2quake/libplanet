@@ -373,11 +373,12 @@ namespace Libplanet.Net.Tests.Consensus
             };
 
             var action = new DelayAction(100);
-            var tx = Transaction.Create(
-                nonce: 0,
-                privateKey: TestUtils.PrivateKeys[1],
-                genesisHash: blockChain.Genesis.BlockHash,
-                actions: new[] { action }.ToBytecodes());
+            var tx = new TransactionMetadata
+            {
+                Signer = TestUtils.PrivateKeys[1].Address,
+                GenesisHash = blockChain.Genesis.BlockHash,
+                Actions = new[] { action }.ToBytecodes(),
+            }.Sign(TestUtils.PrivateKeys[1]);
             blockChain.StageTransaction(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
@@ -674,11 +675,12 @@ namespace Libplanet.Net.Tests.Consensus
             };
 
             var action = new DelayAction(actionDelay);
-            var tx = Transaction.Create(
-                nonce: 0,
-                privateKey: TestUtils.PrivateKeys[1],
-                genesisHash: blockChain.Genesis.BlockHash,
-                actions: new[] { action }.ToBytecodes());
+            var tx = new TransactionMetadata
+            {
+                Signer = TestUtils.PrivateKeys[1].Address,
+                GenesisHash = blockChain.Genesis.BlockHash,
+                Actions = new[] { action }.ToBytecodes(),
+            }.Sign(TestUtils.PrivateKeys[1]);
             blockChain.StageTransaction(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 

@@ -144,11 +144,12 @@ public sealed class WorldTest
 
         // Mint
         var action = DumbAction.Create(null, (null, _addr[1], 20));
-        var tx = Transaction.Create(
-            nonce: 0,
-            privateKey: _keys[0],
-            genesisHash: chain.Genesis.BlockHash,
-            actions: new[] { action }.ToBytecodes());
+        var tx = new TransactionMetadata
+        {
+            Signer = _keys[0].Address,
+            GenesisHash = chain.Genesis.BlockHash,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(_keys[0]);
         var rawBlock1 = TestUtils.ProposeNext(
             previousBlock: chain.Tip,
             transactions: [tx],
@@ -169,11 +170,13 @@ public sealed class WorldTest
 
         // Transfer
         action = DumbAction.Create(null, (_addr[1], _addr[0], 5));
-        tx = Transaction.Create(
-            1,
-            _keys[0],
-            chain.Genesis.BlockHash,
-            new[] { action }.ToBytecodes());
+        tx = new TransactionMetadata
+        {
+            Nonce = 1,
+            Signer = _keys[0].Address,
+            GenesisHash = chain.Genesis.BlockHash,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(_keys[0]);
         var block2PreEval = TestUtils.ProposeNext(
             chain.Tip,
             [tx],
@@ -195,11 +198,13 @@ public sealed class WorldTest
 
         // Transfer bugged
         action = DumbAction.Create((_addr[0], "a"), (_addr[0], _addr[0], 1));
-        tx = Transaction.Create(
-            chain.GetNextTxNonce(_addr[0]),
-            _keys[0],
-            chain.Genesis.BlockHash,
-            new[] { action }.ToBytecodes());
+        tx = new TransactionMetadata
+        {
+            Nonce = chain.GetNextTxNonce(_addr[0]),
+            Signer = _keys[0].Address,
+            GenesisHash = chain.Genesis.BlockHash,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(_keys[0]);
         var block3PreEval = TestUtils.ProposeNext(
             chain.Tip,
             [tx],

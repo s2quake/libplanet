@@ -159,11 +159,11 @@ public partial class BlockChainTest : IDisposable
             policy.PolicyActions);
         var nonce = 0;
         var txs = TestUtils.Validators
-            .Select(validator => Transaction.Create(
-                nonce++,
-                GenesisProposer,
-                default,
-                actions: new IAction[]
+            .Select(validator => new TransactionMetadata
+                {
+                    Nonce = nonce++,
+                    Signer = GenesisProposer.Address,
+                    Actions = new IAction[]
                     {
                         new Initialize
                         {
@@ -171,7 +171,7 @@ public partial class BlockChainTest : IDisposable
                             States = ImmutableDictionary.Create<Address, object>(),
                         },
                     }.ToBytecodes(),
-                timestamp: DateTimeOffset.UtcNow))
+                }.Sign(GenesisProposer))
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
         var genesis = BlockChain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
@@ -199,11 +199,13 @@ public partial class BlockChainTest : IDisposable
                 TargetAddress = _fx.Address1,
             },
         ];
-        var tx1 = Transaction.Create(
-            0,
-            new PrivateKey(),
-            genesisBlock.BlockHash,
-            actions1.ToBytecodes());
+        var tx1Key = new PrivateKey();
+        var tx1 = new TransactionMetadata
+        {
+            Signer = tx1Key.Address,
+            GenesisHash = genesisBlock.BlockHash,
+            Actions = actions1.ToBytecodes(),
+        }.Sign(tx1Key);
 
         chain.StageTransaction(tx1);
         Block block1 = chain.ProposeBlock(new PrivateKey());
@@ -227,11 +229,13 @@ public partial class BlockChainTest : IDisposable
                 TargetAddress = _fx.Address1,
             },
         ];
-        var tx2 = Transaction.Create(
-            0,
-            new PrivateKey(),
-            genesisBlock.BlockHash,
-            actions2.ToBytecodes());
+        var tx2Key = new PrivateKey();
+        var tx2 = new TransactionMetadata
+        {
+            Signer = tx2Key.Address,
+            GenesisHash = genesisBlock.BlockHash,
+            Actions = actions2.ToBytecodes(),
+        }.Sign(tx2Key);
 
         chain.StageTransaction(tx2);
         Block block2 = chain.ProposeBlock(
@@ -245,11 +249,12 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Contains("bow", result.UsedWeapons);
 
-        var tx3 = Transaction.Create(
-            0,
-            new PrivateKey(),
-            genesisBlock.BlockHash,
-            new[]
+        var tx3Key = new PrivateKey();
+        var tx3 = new TransactionMetadata
+        {
+            Signer = tx3Key.Address,
+            GenesisHash = genesisBlock.BlockHash,
+            Actions = new[]
             {
                 new Attack
                 {
@@ -257,7 +262,8 @@ public partial class BlockChainTest : IDisposable
                     Target = "orc",
                     TargetAddress = _fx.Address1,
                 },
-            }.ToBytecodes());
+            }.ToBytecodes(),
+        }.Sign(tx3Key);
         Block block3 = chain.ProposeBlock(
             new PrivateKey(), CreateBlockCommit(chain.Tip));
         chain.StageTransaction(tx3);
@@ -514,15 +520,16 @@ public partial class BlockChainTest : IDisposable
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);
+        var txKey = new PrivateKey();
         Block genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(
                 GenesisProposer.PublicKey,
                 [
-                    Transaction.Create(
-                        0,
-                        new PrivateKey(),
-                        default,
-                        []),
+                    new TransactionMetadata
+                    {
+                        Signer = txKey.Address,
+                        Actions = [],
+                    }.Sign(txKey),
                 ]),
             GenesisProposer);
         var chain = BlockChain.Create(genesisWithTx, policy);
@@ -552,7 +559,12 @@ public partial class BlockChainTest : IDisposable
             ];
             Transaction[] txs =
             [
-                Transaction.Create(0, privateKey, chain.Genesis.BlockHash, actions.ToBytecodes()),
+                new TransactionMetadata
+                {
+                    Signer = privateKey.Address,
+                    GenesisHash = chain.Genesis.BlockHash,
+                    Actions = actions.ToBytecodes(),
+                }.Sign(privateKey),
             ];
             b = chain.ProposeBlock(
                 _fx.Proposer,
@@ -1092,11 +1104,13 @@ public partial class BlockChainTest : IDisposable
             for (int j = 0; j < accountsCount; ++j)
             {
                 int index = (i * accountsCount) + j;
-                Transaction tx = Transaction.Create(
-                    store.GetNonce(chain.Id, signer),
-                    privateKey,
-                    chain.Genesis.BlockHash,
-                    new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes());
+                Transaction tx = new TransactionMetadata
+                {
+                    Nonce = store.GetNonce(chain.Id, signer),
+                    Signer = privateKey.Address,
+                    GenesisHash = chain.Genesis.BlockHash,
+                    Actions = new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes(),
+                }.Sign(privateKey);
                 b = chain.EvaluateAndSign(
                     ProposeNext(
                         b,
@@ -1251,31 +1265,24 @@ public partial class BlockChainTest : IDisposable
                 .ToArray();
 
         var systemTxs = systemActions
-            .Select((systemAction, i) => Transaction.Create(
-                nonce: i,
-                privateKey: privateKey,
-                genesisHash: default,
-                actions: new[] { systemAction }.ToBytecodes()))
+            .Select((systemAction, i) => new TransactionMetadata
+            {
+                Nonce = i,
+                Signer = privateKey.Address,
+                GenesisHash = default,
+                Actions = new[] { systemAction }.ToBytecodes(),
+            }.Sign(privateKey))
             .ToArray();
         var customTxs = new[]
         {
-            Transaction.Create(
-                unsignedTx: new UnsignedTx
-                {
-                    Invoice = new TxInvoice
-                    {
-                        UpdatedAddresses = [.. addresses],
+            new TransactionMetadata
+            {
+                        Nonce = systemTxs.Length,
+                        Signer = privateKey.Address,
                         Timestamp = DateTimeOffset.UtcNow,
                         Actions = customActions.ToBytecodes(),
                         MaxGasPrice = default,
-                    },
-                    SigningMetadata = new TxSigningMetadata
-                    {
-                        Signer = privateKey.Address,
-                        Nonce = systemTxs.Length,
-                    },
-                },
-                privateKey: privateKey),
+            }.Sign(privateKey),
         };
         var txs = systemTxs.Concat(customTxs).ToImmutableList();
         var genesisBlock = BlockChain.ProposeGenesisBlock(
@@ -1363,11 +1370,12 @@ public partial class BlockChainTest : IDisposable
         var policy = new BlockChainOptions();
         Libplanet.Store.Repository store = new Libplanet.Store.Repository(new MemoryDatabase());
         var stateStore = new TrieStateStore();
-        var genesisTx = Transaction.Create(
-            0,
-            new PrivateKey(),
-            default,
-            actions: []);
+        var genesisTxKey = new PrivateKey();
+        var genesisTx = new TransactionMetadata
+        {
+            Signer = genesisTxKey.Address,
+            Actions = [],
+        }.Sign(genesisTxKey);
         var actionEvaluator = new ActionEvaluator(
             stateStore,
             policy.PolicyActions);
@@ -1377,11 +1385,12 @@ public partial class BlockChainTest : IDisposable
 
         var chain = BlockChain.Create(genesisWithTx, policy);
 
-        var blockTx = Transaction.Create(
-            0,
-            new PrivateKey(),
-            default,
-            Array.Empty<DumbAction>().ToBytecodes());
+        var bockTxKey = new PrivateKey();
+        var blockTx = new TransactionMetadata
+        {
+            Signer = bockTxKey.Address,
+            Actions = Array.Empty<DumbAction>().ToBytecodes(),
+        }.Sign(bockTxKey);
         var nextStateRootHash = chain.GetNextStateRootHash(genesisWithTx.BlockHash);
         var block = ProposeNextBlock(
             previousBlock: chain.Genesis,
@@ -1423,11 +1432,13 @@ public partial class BlockChainTest : IDisposable
         };
         var privateKey = new PrivateKey();
         var txs = systemActions
-            .Select((systemAction, i) => Transaction.Create(
-                nonce: i,
-                privateKey: privateKey,
-                genesisHash: default,
-                actions: new IAction[] { systemAction }.ToBytecodes()))
+            .Select((systemAction, i) => new TransactionMetadata
+            {
+                Nonce = i,
+                Signer = privateKey.Address,
+                GenesisHash = default,
+                Actions = new IAction[] { systemAction }.ToBytecodes(),
+            }.Sign(privateKey))
             .ToImmutableList();
 
         var actionEvaluator = new ActionEvaluator(

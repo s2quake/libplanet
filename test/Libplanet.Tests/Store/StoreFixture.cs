@@ -202,17 +202,16 @@ public abstract class StoreFixture : IDisposable
         DateTimeOffset? timestamp = null)
     {
         privateKey ??= new PrivateKey();
-        timestamp ??= DateTimeOffset.UtcNow;
         actions ??= [];
 
-        return Transaction.Create(
-            nonce,
-            privateKey,
-            GenesisBlock.BlockHash,
-            actions.ToBytecodes(),
-            null,
-            0L,
-            timestamp);
+        return new TransactionMetadata
+        {
+            Nonce = nonce,
+            Signer = privateKey.Address,
+            GenesisHash = GenesisBlock.BlockHash,
+            Actions = actions.ToBytecodes(),
+            Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+        }.Sign(privateKey);
     }
 
     public void Dispose()

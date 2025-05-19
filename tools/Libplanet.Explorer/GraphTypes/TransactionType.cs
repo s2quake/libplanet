@@ -27,10 +27,6 @@ namespace Libplanet.Explorer.GraphTypes
                 name: "Signer",
                 description: "An address of the account who signed this transaction.",
                 resolve: x => x.Source.Signer);
-            Field<NonNullGraphType<ListGraphType<NonNullGraphType<AddressType>>>>(
-                name: "UpdatedAddresses",
-                description: "Addresses whose states were affected by Actions.",
-                resolve: x => x.Source.UpdatedAddresses);
             Field<NonNullGraphType<ByteStringType>>(
                 name: "Signature",
                 description: "A digital signature of the content of this transaction.",

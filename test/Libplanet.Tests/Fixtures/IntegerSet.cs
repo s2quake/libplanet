@@ -46,19 +46,11 @@ public sealed class IntegerSet
             .Select(pair => new { pair.State, pair.Key })
             .Select(pair => new { Action = Arithmetic.Add(pair.State), pair.Key })
             .Select(pair =>
-                Transaction.Create(
-                    unsignedTx: new UnsignedTx
-                    {
-                        Invoice = new TxInvoice
-                        {
-                            Actions = new IAction[] { pair.Action }.ToBytecodes(),
-                        },
-                        SigningMetadata = new TxSigningMetadata
-                        {
-                            Signer = pair.Key.Address,
-                        },
-                    },
-                    privateKey: pair.Key))
+                new TransactionMetadata
+                {
+                    Signer = pair.Key.Address,
+                    Actions = new IAction[] { pair.Action }.ToBytecodes(),
+                }.Sign(pair.Key))
             .OrderBy(tx => tx.Id)
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
@@ -91,7 +83,13 @@ public sealed class IntegerSet
         var signer = signerKey.Address;
         KeyBytes rawStateKey = KeyConverters.ToStateKey(signer);
         long nonce = Chain.GetNextTxNonce(signer);
-        Transaction tx = Transaction.Create(nonce, signerKey, Genesis.BlockHash, actions.ToBytecodes());
+        Transaction tx = new TransactionMetadata
+        {
+            Nonce = nonce,
+            Signer = signerKey.Address,
+            GenesisHash = Genesis.BlockHash,
+            Actions = actions.ToBytecodes(),
+        }.Sign(signerKey);
         BigInteger prevState = Chain.GetNextWorld().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
         ITrie prevTrie = GetTrie(Chain.Tip.BlockHash);

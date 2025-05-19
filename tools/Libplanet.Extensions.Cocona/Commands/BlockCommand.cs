@@ -131,19 +131,21 @@ public class BlockCommand
             // FIXME: Remove this pragma after fixing the following issue:
             // https://github.com/dotnet/platform-compat/blob/master/docs/PC002.md
  #pragma warning disable PC002
-            .Append(Transaction.Create(
- #pragma warning restore PC002
-                0,
-                key,
-                default,
-                new IAction[]
+            .Append(new TransactionMetadata
                 {
-                    new Initialize
+    #pragma warning restore PC002
+                    Nonce = 0,
+                    Signer = key.Address,
+                    GenesisHash = default,
+                    Actions = new IAction[]
                     {
-                        Validators = validatorSet,
-                        States = emptyState.ToImmutableDictionary(),
-                    },
-                }.ToBytecodes()))
+                        new Initialize
+                        {
+                            Validators = validatorSet,
+                            States = emptyState.ToImmutableDictionary(),
+                        },
+                    }.ToBytecodes(),
+                }.Sign(key))
             .ToImmutableList();
 
         var policyActions = blockPolicyParams.GetPolicyActions();

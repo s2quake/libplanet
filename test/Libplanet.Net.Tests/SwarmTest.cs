@@ -601,11 +601,14 @@ namespace Libplanet.Net.Tests
                 await CreateSwarm(keyB, genesis: genesis);
             BlockChain chainB = swarmB.BlockChain;
 
-            Transaction tx = Transaction.Create(
-                0,
-                new PrivateKey(),
-                chainB.Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes());
+            var txKey = new PrivateKey();
+            Transaction tx = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = txKey.Address,
+                GenesisHash = chainB.Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+            }.Sign(txKey);
             chainB.StageTransaction(tx);
             Block block = chainB.ProposeBlock(keyB);
             chainB.Append(block, TestUtils.CreateBlockCommit(block));

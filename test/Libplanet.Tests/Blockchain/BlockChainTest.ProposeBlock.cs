@@ -109,25 +109,24 @@ public partial class BlockChainTest
     [Fact]
     public void CanProposeInvalidGenesisBlock()
     {
-        using (var fx = new MemoryStoreFixture())
-        {
-            var policy = new BlockChainOptions();
-            var genesis = BlockChain.ProposeGenesisBlock(
-                new PrivateKey(),
-                null,
-                (new[]
+        using var fx = new MemoryStoreFixture();
+        var policy = new BlockChainOptions();
+        var genesisKey = new PrivateKey();
+        var genesis = BlockChain.ProposeGenesisBlock(
+            genesisKey,
+            null,
+            [
+                new TransactionMetadata
                 {
-                    Transaction.Create(
-                        5,  // Invalid nonce,
-                        new PrivateKey(),
-                        default,
-                        actions: new[]
-                        {
-                            DumbAction.Create((new PrivateKey().Address, "foo")),
-                        }.ToBytecodes()),
-                }).ToImmutableSortedSet());
-            Assert.Throws<InvalidOperationException>(() => BlockChain.Create(genesis, policy));
-        }
+                    Nonce = 5,  // Invalid nonce,
+                    Signer = genesisKey.Address,
+                    Actions = new[]
+                    {
+                        DumbAction.Create((new PrivateKey().Address, "foo")),
+                    }.ToBytecodes(),
+                }.Sign(genesisKey),
+            ]);
+        Assert.Throws<InvalidOperationException>(() => BlockChain.Create(genesis, policy));
     }
 
     [Fact]
@@ -137,17 +136,20 @@ public partial class BlockChainTest
         {
             var policy = new BlockChainOptions();
             var blockChain = BlockChain.Create(fx.GenesisBlock, policy);
-            var txs = (new[]
+            var txKey = new PrivateKey();
+            var txs = new[]
             {
-                Transaction.Create(
-                    5,  // Invalid nonce
-                    new PrivateKey(),
-                    _blockChain.Genesis.BlockHash,
-                    new[]
+                new TransactionMetadata
+                {
+                    Nonce = 5,  // Invalid nonce
+                    Signer = txKey.Address,
+                    GenesisHash = _blockChain.Genesis.BlockHash,
+                    Actions = new[]
                     {
                         DumbAction.Create((new PrivateKey().Address, "foo")),
-                    }.ToBytecodes()),
-            }).ToImmutableList();
+                    }.ToBytecodes(),
+                }.Sign(txKey),
+            }.ToImmutableList();
 
             var block = blockChain.ProposeBlock(
                 new PrivateKey(), BlockCommit.Empty, [.. txs], []);
@@ -173,64 +175,76 @@ public partial class BlockChainTest
 
         var txs = new[]
         {
-            Transaction.Create(
-                0,
-                keys[0],
-                _blockChain.Genesis.BlockHash,
-                new[]
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = keys[0].Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = new[]
                 {
                     DumbAction.Create((addrA, "1a")),
                     DumbAction.Create((addrB, "1b")),
-                }.ToBytecodes()),
-            Transaction.Create(
-                1,
-                keys[0],
-                _blockChain.Genesis.BlockHash,
-                new[]
+                }.ToBytecodes(),
+            }.Sign(keys[0]),
+            new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = keys[0].Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = new[]
                 {
                     DumbAction.Create((addrC, "2a")),
                     DumbAction.Create((addrD, "2b")),
-                }.ToBytecodes()),
+                }.ToBytecodes(),
+            }.Sign(keys[0]),
 
             // pending txs1
-            Transaction.Create(
-                1,
-                keys[1],
-                _blockChain.Genesis.BlockHash,
-                new[]
+            new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = keys[1].Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = new[]
                 {
                     DumbAction.Create((addrE, "3a")),
                     DumbAction.Create((addrA, "3b")),
-                }.ToBytecodes()),
-            Transaction.Create(
-                2,
-                keys[1],
-                _blockChain.Genesis.BlockHash,
-                new[]
+                }.ToBytecodes(),
+            }.Sign(keys[1]),
+            new TransactionMetadata
+            {
+                Nonce = 2,
+                Signer = keys[1].Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = new[]
                 {
                     DumbAction.Create((addrB, "4a")),
                     DumbAction.Create((addrC, "4b")),
-                }.ToBytecodes()),
+                }.ToBytecodes(),
+            }.Sign(keys[1]),
 
             // pending txs2
-            Transaction.Create(
-                0,
-                keys[2],
-                _blockChain.Genesis.BlockHash,
-                new[]
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = keys[2].Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = new[]
                 {
                     DumbAction.Create((addrD, "5a")),
                     DumbAction.Create((addrE, "5b")),
-                }.ToBytecodes()),
-            Transaction.Create(
-                2,
-                keys[2],
-                _blockChain.Genesis.BlockHash,
-                new[]
+                }.ToBytecodes(),
+            }.Sign(keys[2]),
+            new TransactionMetadata
+            {
+                Nonce = 2,
+                Signer = keys[2].Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = new[]
                 {
                     DumbAction.Create((addrA, "6a")),
                     DumbAction.Create((addrB, "6b")),
-                }.ToBytecodes()),
+                }.ToBytecodes(),
+            }.Sign(keys[2]),
         };
 
         StageTransactions(txs);
@@ -366,21 +380,27 @@ public partial class BlockChainTest
         var key = new PrivateKey();
         var txs = new[]
         {
-            Transaction.Create(
-                2,
-                key,
-                _blockChain.Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes()),
-            Transaction.Create(
-                1,
-                key,
-                _blockChain.Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes()),
-            Transaction.Create(
-                0,
-                key,
-                _blockChain.Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes()),
+            new TransactionMetadata
+            {
+                Nonce = 2,
+                Signer = key.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+            }.Sign(key),
+            new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = key.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+            }.Sign(key),
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = key.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+            }.Sign(key),
         };
         StageTransactions(txs);
         Block block = _blockChain.ProposeBlock(new PrivateKey());
@@ -392,14 +412,15 @@ public partial class BlockChainTest
     {
         var key = new PrivateKey();
         StageTransactions(
-            new[]
-            {
-                Transaction.Create(
-                    0,
-                    key,
-                    _blockChain.Genesis.BlockHash,
-                    actions: []),
-            });
+            [
+                new TransactionMetadata
+                {
+                    Nonce = 0,
+                    Signer = key.Address,
+                    GenesisHash = _blockChain.Genesis.BlockHash,
+                    Actions = [],
+                }.Sign(key),
+            ]);
         Block block1 = _blockChain.ProposeBlock(new PrivateKey());
         _blockChain.Append(block1, CreateBlockCommit(block1));
 
@@ -407,11 +428,13 @@ public partial class BlockChainTest
         StageTransactions(
             new[]
             {
-                Transaction.Create(
-                    0,
-                    key,
-                    _blockChain.Genesis.BlockHash,
-                    actions: []),
+                new TransactionMetadata
+                {
+                    Nonce = 0,
+                    Signer = key.Address,
+                    GenesisHash = _blockChain.Genesis.BlockHash,
+                    Actions = [],
+                }.Sign(key),
             });
         Block block2 = _blockChain.ProposeBlock(
             new PrivateKey(),
@@ -670,49 +693,51 @@ public partial class BlockChainTest
     {
         var keyA = new PrivateKey();
         var keyB = new PrivateKey();
-        var unsignedInvalidTx = new UnsignedTx
+        var txWithInvalidAction = new TransactionMetadata
         {
-            Invoice = new TxInvoice
-            {
-                GenesisHash = _blockChain.Genesis.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Actions = [new ActionBytecode([0x11])], // Invalid action
-            },
-            SigningMetadata = new TxSigningMetadata
-            {
-                Signer = keyB.Address,
-                Nonce = 1,
-            },
-        };
-        var txWithInvalidAction = new Transaction
+            Nonce = 1,
+            Signer = keyB.Address,
+            GenesisHash = _blockChain.Genesis.BlockHash,
+            Actions = [new ActionBytecode([0x11])], // Invalid action
+            Timestamp = DateTimeOffset.UtcNow,
+        }.Sign(keyB);
+        Transaction txWithInvalidNonce = new TransactionMetadata
         {
-            UnsignedTx = unsignedInvalidTx,
-            Signature = unsignedInvalidTx.CreateSignature(keyB),
-        };
-        Transaction txWithInvalidNonce = Transaction.Create(
-            2, keyB, _blockChain.Genesis.BlockHash, []);
+            Nonce = 2,
+            Signer = keyB.Address,
+            GenesisHash = _blockChain.Genesis.BlockHash,
+            Actions = [],
+        }.Sign(keyB);
         var txs = new[]
         {
-            Transaction.Create(
-                0,
-                keyA,
-                _blockChain.Genesis.BlockHash,
-                []),
-            Transaction.Create(
-                1,
-                keyA,
-                _blockChain.Genesis.BlockHash,
-                []),
-            Transaction.Create(
-                2,
-                keyA,
-                _blockChain.Genesis.BlockHash,
-                []),
-            Transaction.Create(
-                0,
-                keyB,
-                _blockChain.Genesis.BlockHash,
-                []),
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = keyA.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = [],
+            }.Sign(keyA),
+            new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = keyA.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = [],
+            }.Sign(keyA),
+            new TransactionMetadata
+            {
+                Nonce = 2,
+                Signer = keyA.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = [],
+            }.Sign(keyA),
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = keyB.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = [],
+            }.Sign(keyB),
             txWithInvalidAction,
             txWithInvalidNonce,
         };

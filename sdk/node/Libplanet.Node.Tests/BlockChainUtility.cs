@@ -54,10 +54,12 @@ internal static class BlockChainUtility
         var genesisBlock = blockChain.Genesis;
         var nonce = blockChain.GetNextTxNonce(privateKey.Address);
         var values = actions.ToBytecodes();
-        return Transaction.Create(
-            nonce: nonce,
-            privateKey: privateKey,
-            genesisHash: genesisBlock.BlockHash,
-            actions: values);
+        return new TransactionMetadata
+        {
+            Nonce = nonce,
+            Signer = privateKey.Address,
+            GenesisHash = genesisBlock.BlockHash,
+            Actions = values,
+        }.Sign(privateKey);
     }
 }
