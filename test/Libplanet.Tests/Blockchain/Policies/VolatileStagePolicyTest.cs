@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Threading.Tasks;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Tests.Blockchain.Policies;
@@ -6,26 +7,26 @@ namespace Libplanet.Tests.Blockchain.Policies;
 public class VolatileStagePolicyTest : StagePolicyTest
 {
     [Fact]
-    public void Lifetime()
+    public async Task Lifetime()
     {
-        TimeSpan timeBuffer = TimeSpan.FromSeconds(1);
-        Transaction tx = new TransactionMetadata
+        var timeBuffer = TimeSpan.FromSeconds(1);
+        var tx = new TransactionMetadata
         {
             Nonce = 0,
             Signer = _key.Address,
             GenesisHash = _fx.GenesisBlock.BlockHash,
             Actions = [],
-            Timestamp = DateTimeOffset.UtcNow - StagePolicy.Lifetime + timeBuffer,
+            Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime + timeBuffer,
         }.Sign(_key);
-        Assert.True(StagePolicy.Stage(tx));
-        Assert.Equal(tx, StagePolicy[tx.Id]);
-        Assert.Contains(tx, StagePolicy.Iterate());
+        Assert.True(StageTransactions.Add(tx));
+        Assert.Equal(tx, StageTransactions[tx.Id]);
+        Assert.Contains(tx, StageTransactions.Iterate());
 
         // On some targets TimeSpan * int does not exist.
-        Thread.Sleep(timeBuffer);
-        Thread.Sleep(timeBuffer);
-        Assert.Null(StagePolicy[tx.Id]);
-        Assert.DoesNotContain(tx, StagePolicy.Iterate());
+        await Task.Delay(timeBuffer);
+        await Task.Delay(timeBuffer);
+        Assert.Null(StageTransactions[tx.Id]);
+        Assert.DoesNotContain(tx, StageTransactions.Iterate());
     }
 
     // [Fact]
@@ -33,7 +34,7 @@ public class VolatileStagePolicyTest : StagePolicyTest
     // {
     //     var stagePolicy = new VolatileStagePolicy(TimeSpan.MaxValue);
     //     Transaction tx = new TransactionMetadata
-// {
+    // {
     //         0,
     //         _key,
     //         _fx.GenesisBlock.BlockHash,
@@ -51,7 +52,7 @@ public class VolatileStagePolicyTest : StagePolicyTest
             Signer = _key.Address,
             GenesisHash = _fx.GenesisBlock.BlockHash,
             Actions = [],
-            Timestamp = DateTimeOffset.UtcNow - StagePolicy.Lifetime + timeBuffer,
+            Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime + timeBuffer,
         }.Sign(_key);
         Transaction staleTx = new TransactionMetadata
         {
@@ -59,13 +60,13 @@ public class VolatileStagePolicyTest : StagePolicyTest
             Signer = _key.Address,
             GenesisHash = _fx.GenesisBlock.BlockHash,
             Actions = [],
-            Timestamp = DateTimeOffset.UtcNow - StagePolicy.Lifetime - timeBuffer,
+            Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime - timeBuffer,
         }.Sign(_key);
 
-        Assert.False(StagePolicy.Stage(staleTx));
-        Assert.True(StagePolicy.Stage(validTx));
-        Assert.False(StagePolicy.Stage(validTx));
-        Assert.True(StagePolicy.Unstage(validTx.Id));
-        Assert.False(StagePolicy.Unstage(validTx.Id));
+        Assert.False(StageTransactions.Add(staleTx));
+        Assert.True(StageTransactions.Add(validTx));
+        Assert.False(StageTransactions.Add(validTx));
+        Assert.True(StageTransactions.Remove(validTx.Id));
+        Assert.False(StageTransactions.Remove(validTx.Id));
     }
 }

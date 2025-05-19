@@ -148,9 +148,9 @@ public class TransactionQueryTest
         await AssertNextNonce(3, key1.Address);
         Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
         await AssertNextNonce(4, key1.Address);
-        Source.BlockChain.GetStagedTransactionIds()
+        Source.BlockChain.StagedTransactions.Keys
             .Select(item => Source.BlockChain.Transactions[item])
-            .Select(Source.BlockChain.UnstageTransaction)
+            .Select(item => Source.BlockChain.StagedTransactions.Remove(item.Id))
             .ToImmutableList();
         await AssertNextNonce(2, key1.Address);
     }

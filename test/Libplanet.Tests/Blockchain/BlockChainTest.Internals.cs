@@ -49,18 +49,18 @@ public partial class BlockChainTest
         // E. Reused nonces (4 txs: 0, 1, 1, 2)
         _blockChain.MakeTransaction(a, new DumbAction[0]);
         DateTimeOffset currentTime = DateTimeOffset.UtcNow;
-        _blockChain.StageTransaction(MkTx(b, 1, currentTime + TimeSpan.FromHours(1)));
-        _blockChain.StageTransaction(MkTx(c, 0, DateTimeOffset.UtcNow + TimeSpan.FromHours(1)));
-        _blockChain.StageTransaction(MkTx(d, 0, DateTimeOffset.UtcNow));
-        _blockChain.StageTransaction(MkTx(e, 0, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(b, 1, currentTime + TimeSpan.FromHours(1)));
+        _blockChain.StagedTransactions.Add(MkTx(c, 0, DateTimeOffset.UtcNow + TimeSpan.FromHours(1)));
+        _blockChain.StagedTransactions.Add(MkTx(d, 0, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(e, 0, DateTimeOffset.UtcNow));
         _blockChain.MakeTransaction(a, new DumbAction[0]);
-        _blockChain.StageTransaction(MkTx(b, 0, currentTime));
-        _blockChain.StageTransaction(MkTx(c, 1, DateTimeOffset.UtcNow));
-        _blockChain.StageTransaction(MkTx(d, 1, DateTimeOffset.UtcNow));
-        _blockChain.StageTransaction(MkTx(e, 1, DateTimeOffset.UtcNow));
-        _blockChain.StageTransaction(MkTx(d, 3, DateTimeOffset.UtcNow));
-        _blockChain.StageTransaction(MkTx(e, 1, DateTimeOffset.UtcNow));
-        _blockChain.StageTransaction(MkTx(e, 2, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(b, 0, currentTime));
+        _blockChain.StagedTransactions.Add(MkTx(c, 1, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(d, 1, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(d, 3, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
+        _blockChain.StagedTransactions.Add(MkTx(e, 2, DateTimeOffset.UtcNow));
         _blockChain.MakeTransaction(a, new DumbAction[0]);
 
         ImmutableList<Transaction> stagedTransactions =

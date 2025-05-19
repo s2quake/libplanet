@@ -379,7 +379,7 @@ namespace Libplanet.Net.Tests.Consensus
                 GenesisHash = blockChain.Genesis.BlockHash,
                 Actions = new[] { action }.ToBytecodes(),
             }.Sign(TestUtils.PrivateKeys[1]);
-            blockChain.StageTransaction(tx);
+            blockChain.StagedTransactions.Add(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
             context.Start();
@@ -681,7 +681,7 @@ namespace Libplanet.Net.Tests.Consensus
                 GenesisHash = blockChain.Genesis.BlockHash,
                 Actions = new[] { action }.ToBytecodes(),
             }.Sign(TestUtils.PrivateKeys[1]);
-            blockChain.StageTransaction(tx);
+            blockChain.StagedTransactions.Add(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
             consensusContext.Start();

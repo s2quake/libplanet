@@ -56,7 +56,7 @@ public class TransactionQueryGeneratedTest
             GenesisHash = Fx.Chain.Genesis.BlockHash,
             Actions = new[] { new SimpleAction1() }.ToBytecodes(),
         }.Sign(pk);
-        Fx.Chain.StageTransaction(stagingTx);
+        Fx.Chain.StagedTransactions.Add(stagingTx);
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);
         Assert.Equal("SUCCESS", queryResult.TxStatus);

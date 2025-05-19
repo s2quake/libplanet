@@ -207,7 +207,7 @@ public partial class BlockChainTest : IDisposable
             Actions = actions1.ToBytecodes(),
         }.Sign(tx1Key);
 
-        chain.StageTransaction(tx1);
+        chain.StagedTransactions.Add(tx1);
         Block block1 = chain.ProposeBlock(new PrivateKey());
         chain.Append(block1, CreateBlockCommit(block1));
         var result = (BattleResult)chain
@@ -237,7 +237,7 @@ public partial class BlockChainTest : IDisposable
             Actions = actions2.ToBytecodes(),
         }.Sign(tx2Key);
 
-        chain.StageTransaction(tx2);
+        chain.StagedTransactions.Add(tx2);
         Block block2 = chain.ProposeBlock(
             new PrivateKey(), CreateBlockCommit(chain.Tip));
         chain.Append(block2, CreateBlockCommit(block2));
@@ -266,7 +266,7 @@ public partial class BlockChainTest : IDisposable
         }.Sign(tx3Key);
         Block block3 = chain.ProposeBlock(
             new PrivateKey(), CreateBlockCommit(chain.Tip));
-        chain.StageTransaction(tx3);
+        chain.StagedTransactions.Add(tx3);
         chain.Append(block3, CreateBlockCommit(block3));
         result = (BattleResult)chain
             .GetNextWorld()
@@ -978,7 +978,7 @@ public partial class BlockChainTest : IDisposable
 
         await Task.WhenAll(tasks);
 
-        var txIds = _blockChain.GetStagedTransactionIds();
+        var txIds = _blockChain.StagedTransactions.Keys;
 
         var nonces = txIds
             .Select(id => _stagePolicy.GetValueOrDefault(id, _blockChain.Transactions[id]))
@@ -1346,7 +1346,7 @@ public partial class BlockChainTest : IDisposable
         StageTransactions(txsB);
 
         // Stage only txs having higher or equal with nonce than expected nonce.
-        Assert.Single(_blockChain.GetStagedTransactionIds());
+        Assert.Single(_blockChain.StagedTransactions.Keys);
         Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: true));
         Assert.Equal(4, _blockChain.StagedTransactions.Iterate(filtered: false).Count());
     }

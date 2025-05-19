@@ -494,17 +494,17 @@ public partial class BlockChainTest
         PrivateKey privateKey = new PrivateKey();
         (Address[] addresses, Transaction[] txs) =
             MakeFixturesForAppendTests(privateKey, epoch: DateTimeOffset.UtcNow);
-        Assert.Empty(_blockChain.GetStagedTransactionIds());
+        Assert.Empty(_blockChain.StagedTransactions.Keys);
 
         // Mining with empty staged.
         Block block1 = _blockChain.ProposeBlock(
             privateKey,
             TestUtils.CreateBlockCommit(_blockChain.Tip));
         _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
-        Assert.Empty(_blockChain.GetStagedTransactionIds());
+        Assert.Empty(_blockChain.StagedTransactions.Keys);
 
         StageTransactions(txs);
-        Assert.Equal(2, _blockChain.GetStagedTransactionIds().Count);
+        Assert.Equal(2, _blockChain.StagedTransactions.Keys.Count());
 
         // Tx with nonce 0 is mined.
         Block block2 = _blockChain.ProposeBlock(
@@ -513,7 +513,7 @@ public partial class BlockChainTest
             [txs[0]],
             []);
         _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
-        Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);
+        Assert.Equal(1, _blockChain.StagedTransactions.Keys.Count());
 
         // Two txs with nonce 1 are staged.
         var actions = new[] { DumbAction.Create((addresses[0], "foobar")) };
@@ -522,7 +522,7 @@ public partial class BlockChainTest
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 1),
         };
         StageTransactions(txs2);
-        Assert.Equal(2, _blockChain.GetStagedTransactionIds().Count);
+        Assert.Equal(2, _blockChain.StagedTransactions.Keys.Count());
 
         // Unmined tx is left intact in the stage.
         Block block3 = _blockChain.ProposeBlock(
@@ -531,7 +531,7 @@ public partial class BlockChainTest
             [txs[1]],
             []);
         _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
-        Assert.Empty(_blockChain.GetStagedTransactionIds());
+        Assert.Empty(_blockChain.StagedTransactions.Keys);
         Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
         Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: false));
     }
@@ -585,8 +585,8 @@ public partial class BlockChainTest
                 GenesisHash = genesis,
                 Actions = [],
             }.Sign(signerA);
-        _blockChain.StageTransaction(txA0);
-        _blockChain.StageTransaction(txA1);
+        _blockChain.StagedTransactions.Add(txA0);
+        _blockChain.StagedTransactions.Add(txA1);
         Block block = _blockChain.ProposeBlock(signerA);
 
         Transaction
@@ -646,20 +646,20 @@ public partial class BlockChainTest
                 GenesisHash = genesis,
                 Actions = [],
             }.Sign(signerB);
-        _blockChain.StageTransaction(txA2);
-        _blockChain.StageTransaction(txA0_);
-        _blockChain.StageTransaction(txA1_);
-        _blockChain.StageTransaction(txB0);
-        _blockChain.StageTransaction(txB1);
-        _blockChain.StageTransaction(txB2);
-        _blockChain.StageTransaction(txB0_);
-        _blockChain.StageTransaction(txB1_);
+        _blockChain.StagedTransactions.Add(txA2);
+        _blockChain.StagedTransactions.Add(txA0_);
+        _blockChain.StagedTransactions.Add(txA1_);
+        _blockChain.StagedTransactions.Add(txB0);
+        _blockChain.StagedTransactions.Add(txB1);
+        _blockChain.StagedTransactions.Add(txB2);
+        _blockChain.StagedTransactions.Add(txB0_);
+        _blockChain.StagedTransactions.Add(txB1_);
         AssertTxIdSetEqual(
             new Transaction[]
             {
                 txA0, txA1, txA2, txA0_, txA1_, txB0, txB1, txB2, txB0_, txB1_,
             }.Select(tx => tx.Id).ToImmutableHashSet(),
-            _blockChain.GetStagedTransactionIds());
+            _blockChain.StagedTransactions.Keys);
 
         _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
         AssertTxIdSetEqual(
@@ -667,7 +667,7 @@ public partial class BlockChainTest
             {
                 txA2, txB0, txB1, txB2, txB0_, txB1_,
             }.Select(tx => tx.Id).ToImmutableHashSet(),
-            _blockChain.GetStagedTransactionIds());
+            _blockChain.StagedTransactions.Keys);
         AssertTxIdSetEqual(
             new Transaction[]
             {

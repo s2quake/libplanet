@@ -83,7 +83,7 @@ public partial class BlockChainTest
                 manyActions,
                 nonce: nonce,
                 privateKey: signer);
-            _blockChain.StageTransaction(heavyTx);
+            _blockChain.StagedTransactions.Add(heavyTx);
         }
 
         Block block4 = _blockChain.ProposeBlock(
@@ -285,7 +285,7 @@ public partial class BlockChainTest
         Assert.DoesNotContain(txs[3], block.Transactions);
         Assert.Contains(txs[4], block.Transactions);
         Assert.DoesNotContain(txs[5], block.Transactions);
-        IImmutableSet<TxId> txIds = _blockChain.GetStagedTransactionIds();
+        var txIds = _blockChain.StagedTransactions.Keys.ToImmutableSortedSet();
         Assert.Contains(txs[2].Id, txIds);
         Assert.Contains(txs[3].Id, txIds);
 
@@ -370,7 +370,7 @@ public partial class BlockChainTest
             Assert.Contains(validTx, txs);
             Assert.DoesNotContain(invalidTx, txs);
 
-            Assert.Empty(blockChain.GetStagedTransactionIds());
+            Assert.Empty(blockChain.StagedTransactions.Keys);
         }
     }
 
