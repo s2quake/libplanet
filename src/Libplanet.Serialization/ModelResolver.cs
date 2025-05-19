@@ -179,6 +179,14 @@ public static class ModelResolver
         return obj.GetHashCode();
     }
 
+    public static void Validate(object obj, ModelOptions options)
+    {
+        Validator.ValidateObject(
+            instance: obj,
+            validationContext: new ValidationContext(obj, options, options.Items),
+            validateAllProperties: true);
+    }
+
     private static ImmutableArray<PropertyInfo> CreateProperties(Type type)
     {
         var builder = ImmutableArray.CreateBuilder<PropertyInfo>();

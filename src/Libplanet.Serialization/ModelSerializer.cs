@@ -194,7 +194,7 @@ public static class ModelSerializer
             else if (TryGetDescriptor(type, out var descriptor))
             {
                 var itemTypes = descriptor.GetTypes(type, out var isArray);
-                var values = descriptor.GetValues(obj, type);
+                var values = descriptor.Serialize(obj, type, options);
                 var length = values.Length;
                 stream.WriteByte((byte)DataType.Descriptor);
                 stream.WriteInt32(length);
@@ -310,7 +310,7 @@ public static class ModelSerializer
                 }
 
                 System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
-                return descriptor.CreateInstance(type, values);
+                return descriptor.Deserialize(type, values, options);
             }
             else
             {

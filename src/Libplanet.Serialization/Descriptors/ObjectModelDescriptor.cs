@@ -20,10 +20,15 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
         return types;
     }
 
-    public override object?[] GetValues(object obj, Type type)
+    public override object?[] Serialize(object obj, Type type, ModelOptions options)
     {
+        if (options.IsValidationEnabled)
+        {
+            ModelResolver.Validate(obj, options);
+        }
+
         if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute
-            && !legacyModelAttribute.AllowSerialization)
+                && !legacyModelAttribute.AllowSerialization)
         {
             throw new ModelSerializationException("LegacyModelAttribute is not supported");
         }
@@ -40,7 +45,7 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
         return values;
     }
 
-    public override object CreateInstance(Type type, object?[] values)
+    public override object Deserialize(Type type, object?[] values, ModelOptions options)
     {
         var obj = TypeUtility.CreateInstance(type);
         var propertyInfos = ModelResolver.GetProperties(type);
@@ -69,6 +74,11 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
                 obj = TypeUtility.CreateInstance(type, args: args);
                 version++;
             }
+        }
+
+        if (options.IsValidationEnabled)
+        {
+            ModelResolver.Validate(obj, options);
         }
 
         return obj;
