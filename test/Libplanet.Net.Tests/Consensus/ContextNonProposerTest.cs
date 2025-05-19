@@ -305,11 +305,17 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
-                MaxTransactionsBytes = 50 * 1024,
-                TransactionValidation = IsSignerValid,
+                BlockOptions = new BlockOptions
+                {
+                    MaxTransactionsBytes = 50 * 1024,
+                },
+                TransactionOptions = new TransactionOptions
+                {
+                    Validator = new RelayValidator<Transaction>(IsSignerValid),
+                },
             };
 
-            static void IsSignerValid(BlockChain chain, Transaction tx)
+            static void IsSignerValid(Transaction tx)
             {
                 var validAddress = TestUtils.PrivateKeys[1].Address;
                 if (!tx.Signer.Equals(validAddress))
@@ -382,7 +388,10 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
-                MaxTransactionsBytes = 50 * 1024,
+                BlockOptions = new BlockOptions
+                {
+                    MaxTransactionsBytes = 50 * 1024,
+                },
             };
 
             var (blockChain, context) = TestUtils.CreateDummyContext(

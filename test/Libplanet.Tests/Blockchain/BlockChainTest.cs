@@ -42,7 +42,10 @@ public partial class BlockChainTest : IDisposable
             {
                 EndBlockActions = [new MinerReward(1)],
             },
-            MaxTransactionsBytes = 50 * 1024,
+            BlockOptions = new BlockOptions
+            {
+                MaxTransactionsBytes = 50 * 1024,
+            },
         };
 
         _fx = GetStoreFixture(_policy);
@@ -506,13 +509,13 @@ public partial class BlockChainTest : IDisposable
         bool invoked = false;
         var policy = new BlockChainOptions
         {
-            BlockValidation = (_, _) =>
+            BlockOptions = new BlockOptions
             {
-                invoked = true;
+                Validator = new RelayValidator<Block>(obj => invoked = true),
             },
-            TransactionValidation = (_, _) =>
+            TransactionOptions = new TransactionOptions
             {
-                invoked = true;
+                Validator = new RelayValidator<Transaction>(obj => invoked = true),
             },
         };
         Libplanet.Store.Repository store = new Libplanet.Store.Repository(new MemoryDatabase());

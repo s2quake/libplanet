@@ -104,10 +104,10 @@ public partial class BlockChain
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
         int height, IComparer<Transaction>? txPriority = null)
         => GatherTransactionsToPropose(
-            Options.MaxTransactionsBytes,
-            Options.MaxTransactionsPerBlock,
-            Options.MaxTransactionsPerSignerPerBlock,
-            Options.MinTransactionsPerBlock,
+            Options.BlockOptions.MaxTransactionsBytes,
+            Options.BlockOptions.MaxTransactionsPerBlock,
+            Options.BlockOptions.MaxTransactionsPerSignerPerBlock,
+            Options.BlockOptions.MinTransactionsPerBlock,
             txPriority);
 
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
@@ -149,7 +149,7 @@ public partial class BlockChain
             // returns already ordered transactions by its nonce.
             if (!storedNonces.ContainsKey(tx.Signer))
             {
-                storedNonces[tx.Signer] = Nonces[tx.Signer];
+                storedNonces[tx.Signer] = _chain.Nonces[tx.Signer];
                 nextNonces[tx.Signer] = storedNonces[tx.Signer];
                 toProposeCounts[tx.Signer] = 0;
             }
@@ -171,7 +171,7 @@ public partial class BlockChain
             {
                 try
                 {
-                    Options.ValidateTransaction(this, tx);
+                    Options.TransactionOptions.Validator.Validate(tx);
                 }
                 catch
                 {

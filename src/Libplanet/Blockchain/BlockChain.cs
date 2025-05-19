@@ -59,7 +59,6 @@ public partial class BlockChain
         _chain = Store.Chains.GetOrAdd(id);
         Store.ChainId = id;
         Blocks = new BlockCollection(options.Store, id);
-        Nonces = _chain.Nonces;
 
         var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
@@ -67,7 +66,7 @@ public partial class BlockChain
 
         foreach (KeyValuePair<Address, long> pair in nonceDeltas)
         {
-            Nonces.Increase(pair.Key, pair.Value);
+            _chain.Nonces.Increase(pair.Key, pair.Value);
         }
 
         _blockChainStates = new BlockChainStates(options.Store, StateStore);
@@ -135,8 +134,6 @@ public partial class BlockChain
     internal ActionEvaluator ActionEvaluator { get; }
 
     public BlockCollection Blocks { get; }
-
-    public NonceStore Nonces { get; }
 
     public TxExecutionStore TxExecutions => Store.TxExecutions;
 
@@ -248,7 +245,7 @@ public partial class BlockChain
     public BlockCommit GetBlockCommit(BlockHash blockHash) => Store.BlockCommits[blockHash];
 
     public bool IsEvidenceExpired(EvidenceBase evidence)
-        => evidence.Height + Options.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
+        => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
     internal void Append(
         Block block,
@@ -290,7 +287,7 @@ public partial class BlockChain
                 block.Transactions
                     .Select(tx => tx.Signer)
                     .Distinct()
-                    .ToDictionary(signer => signer, signer => Nonces[signer]),
+                    .ToDictionary(signer => signer, signer => _chain.Nonces[signer]),
                 block);
 
             if (validate)
@@ -300,14 +297,14 @@ public partial class BlockChain
 
             if (validate)
             {
-                Options.BlockValidation?.Invoke(this, block);
+                Options.BlockOptions.Validator.Validate(block);
             }
 
             foreach (Transaction tx in block.Transactions)
             {
                 if (validate)
                 {
-                    Options.ValidateTransaction(this, tx);
+                    Options.TransactionOptions.Validator.Validate(tx);
                 }
             }
 
@@ -338,7 +335,7 @@ public partial class BlockChain
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
-                    Nonces.Increase(pair.Key, pair.Value);
+                    _chain.Nonces.Increase(pair.Key, pair.Value);
                 }
 
                 // foreach (var tx in block.Transactions)
@@ -469,11 +466,11 @@ public partial class BlockChain
                     .ToDictionary(signer => signer, _chain.GetNonce),
                 block);
 
-            Options.BlockValidation(this, block);
+            Options.BlockOptions.Validator.Validate(block);
 
             foreach (Transaction tx in block.Transactions)
             {
-                Options.ValidateTransaction(this, tx);
+                Options.TransactionOptions.Validator.Validate(tx);
             }
 
             _rwlock.EnterWriteLock();
@@ -511,7 +508,7 @@ public partial class BlockChain
 
                 foreach (KeyValuePair<Address, long> pair in nonceDeltas)
                 {
-                    Nonces.Increase(pair.Key, pair.Value);
+                    _chain.Nonces.Increase(pair.Key, pair.Value);
                 }
 
                 // foreach (var tx in block.Transactions)

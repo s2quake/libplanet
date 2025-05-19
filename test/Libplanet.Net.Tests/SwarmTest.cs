@@ -882,7 +882,7 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            void IsSignerValid(BlockChain chain, Transaction tx)
+            void IsSignerValid(Transaction tx)
             {
                 var validAddress = validKey.Address;
                 if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
@@ -893,7 +893,10 @@ namespace Libplanet.Net.Tests
 
             var policy = new BlockChainOptions
             {
-                TransactionValidation = IsSignerValid,
+                TransactionOptions = new TransactionOptions
+                {
+                    Validator = new RelayValidator<Transaction>(IsSignerValid),
+                },
             };
             var fx1 = new MemoryStoreFixture();
             var fx2 = new MemoryStoreFixture();
@@ -946,7 +949,7 @@ namespace Libplanet.Net.Tests
         {
             var validKey = new PrivateKey();
 
-            void IsSignerValid(BlockChain chain, Transaction tx)
+            void IsSignerValid(Transaction tx)
             {
                 var validAddress = validKey.Address;
                 if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
@@ -957,7 +960,10 @@ namespace Libplanet.Net.Tests
 
             var policy = new BlockChainOptions
             {
-                TransactionValidation = IsSignerValid,
+                TransactionOptions = new TransactionOptions
+                {
+                    Validator = new RelayValidator<Transaction>(IsSignerValid),
+                },
             };
             var fx1 = new MemoryStoreFixture();
             var fx2 = new MemoryStoreFixture();

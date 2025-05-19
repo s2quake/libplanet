@@ -59,8 +59,11 @@ public class GeneratedBlockChainFixture
         var policy = new BlockChainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(1),
-            MaxTransactionsPerBlock = int.MaxValue,
-            MaxTransactionsBytes = long.MaxValue,
+            BlockOptions = new BlockOptions
+            {
+                MaxTransactionsPerBlock = int.MaxValue,
+                MaxTransactionsBytes = long.MaxValue,
+            },
         };
         Block genesisBlock = BlockChain.ProposeGenesisBlock(
             proposer: new PrivateKey(),

@@ -62,7 +62,10 @@ public partial class ActionEvaluatorTest
                     new UpdateValueAction { Address = _endTxValueAddress, Increment = 1 },
                 ],
             },
-            MaxTransactionsBytes = 50 * 1024,
+            BlockOptions = new BlockOptions
+            {
+                MaxTransactionsBytes = 50 * 1024,
+            },
         };
         _storeFx = new MemoryStoreFixture(_options);
         _txFx = new TxFixture(default);

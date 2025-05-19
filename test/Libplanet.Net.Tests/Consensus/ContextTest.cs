@@ -330,7 +330,10 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
-                MaxTransactionsBytes = 50 * 1024,
+                BlockOptions = new BlockOptions
+                {
+                    MaxTransactionsBytes = 50 * 1024,
+                },
             };
             var fx = new MemoryStoreFixture(options);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(options);

@@ -63,7 +63,7 @@ namespace Libplanet.Tests.Blockchain.Policies
         {
             var validKey = new PrivateKey();
 
-            void IsSignerValid(BlockChain chain, Transaction tx)
+            void IsSignerValid(Transaction tx)
             {
                 var validAddress = validKey.Address;
                 if (!tx.Signer.Equals(validAddress))
@@ -74,17 +74,20 @@ namespace Libplanet.Tests.Blockchain.Policies
 
             var policy = new BlockChainOptions
             {
-                TransactionValidation = IsSignerValid,
+                TransactionOptions = new TransactionOptions
+                {
+                    Validator = new RelayValidator<Transaction>(IsSignerValid),
+                },
             };
 
             // Valid Transaction
             var validTx = _chain.MakeTransaction(validKey, new DumbAction[] { });
-            policy.ValidateTransaction(_chain, validTx);
+            policy.TransactionOptions.Validate(validTx);
 
             // Invalid Transaction
             var invalidKey = new PrivateKey();
             var invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
-            policy.ValidateTransaction(_chain, invalidTx);
+            policy.TransactionOptions.Validate(invalidTx);
         }
 
         [Fact]
@@ -93,7 +96,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             var validKey = new PrivateKey();
             var invalidKey = new PrivateKey();
 
-            void IsSignerValid(BlockChain chain, Transaction tx)
+            void IsSignerValid(Transaction tx)
             {
                 var validAddress = validKey.Address;
                 if (!tx.Signer.Equals(validAddress))
@@ -103,7 +106,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             }
 
             //Invalid Transaction with inner-exception
-            void IsSignerValidWithInnerException(BlockChain chain, Transaction tx)
+            void IsSignerValidWithInnerException(Transaction tx)
             {
                 var validAddress = validKey.Address;
                 if (!tx.Signer.Equals(validAddress))
@@ -117,16 +120,22 @@ namespace Libplanet.Tests.Blockchain.Policies
             // Invalid Transaction without Inner-exception
             var policy = new BlockChainOptions
             {
-                TransactionValidation = IsSignerValid,
+                TransactionOptions = new TransactionOptions
+                {
+                    Validator = new RelayValidator<Transaction>(IsSignerValid),
+                },
             };
 
             var invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
-            policy.ValidateTransaction(_chain, invalidTx);
+            policy.TransactionOptions.Validate(invalidTx);
 
             // Invalid Transaction with Inner-exception.
             policy = new BlockChainOptions
             {
-                TransactionValidation = IsSignerValidWithInnerException,
+                TransactionOptions = new TransactionOptions
+                {
+                    Validator = new RelayValidator<Transaction>(IsSignerValidWithInnerException),
+                },
             };
 
             invalidTx = _chain.MakeTransaction(invalidKey, new DumbAction[] { });
@@ -145,7 +154,10 @@ namespace Libplanet.Tests.Blockchain.Policies
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
-                MinTransactionsPerBlock = policyLimit,
+                BlockOptions = new BlockOptions
+                {
+                    MinTransactionsPerBlock = policyLimit,
+                },
             };
             var privateKey = new PrivateKey();
             var chain = TestUtils.MakeBlockChain(policy);
@@ -169,7 +181,10 @@ namespace Libplanet.Tests.Blockchain.Policies
             var stateStore = new TrieStateStore();
             var policy = new BlockChainOptions
             {
-                MaxTransactionsPerBlock = policyLimit,
+                BlockOptions = new BlockOptions
+                {
+                    MaxTransactionsPerBlock = policyLimit,
+                },
             };
             var privateKey = new PrivateKey();
             var chain = TestUtils.MakeBlockChain(policy);
@@ -195,7 +210,10 @@ namespace Libplanet.Tests.Blockchain.Policies
             var stateStore = new TrieStateStore();
             var policy = new BlockChainOptions
             {
-                MaxTransactionsPerSignerPerBlock = policyLimit,
+                BlockOptions = new BlockOptions
+                {
+                    MaxTransactionsPerSignerPerBlock = policyLimit,
+                },
             };
             var privateKeys = Enumerable.Range(0, keyCount).Select(_ => new PrivateKey()).ToList();
             var minerKey = privateKeys.First();

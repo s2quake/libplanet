@@ -19,7 +19,7 @@ public partial class BlockChainTest
     [Fact]
     public void ProposeBlock()
     {
-        var maxTransactionsBytes = _blockChain.Options.MaxTransactionsBytes;
+        var maxTransactionsBytes = _blockChain.Options.BlockOptions.MaxTransactionsBytes;
         Assert.Equal(1, _blockChain.Blocks.Count);
         Assert.Equal(
             $"{GenesisProposer.Address}",
@@ -341,7 +341,7 @@ public partial class BlockChainTest
         var validKey = new PrivateKey();
         var invalidKey = new PrivateKey();
 
-        void IsSignerValid(BlockChain chain, Transaction tx)
+        void IsSignerValid(Transaction tx)
         {
             var validAddress = validKey.Address;
             if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.Proposer.Address))
@@ -352,7 +352,10 @@ public partial class BlockChainTest
 
         var policy = new BlockChainOptions
         {
-            TransactionValidation = IsSignerValid,
+            TransactionOptions = new TransactionOptions
+            {
+                Validator = new RelayValidator<Transaction>(IsSignerValid),
+            },
         };
         using (var fx = new MemoryStoreFixture())
         {
