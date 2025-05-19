@@ -15,7 +15,7 @@ public partial class BlockChain
     internal static Dictionary<Address, long> ValidateGenesisNonces(Block block)
     {
         var nonceDeltas = new Dictionary<Address, long>();
-        foreach (Transaction tx in block.Transactions.OrderBy(tx => tx.Nonce))
+        foreach (var tx in block.Transactions.OrderBy(tx => tx.Nonce))
         {
             nonceDeltas.TryGetValue(tx.Signer, out var nonceDelta);
             long expectedNonce = nonceDelta;
@@ -32,40 +32,6 @@ public partial class BlockChain
 
         return nonceDeltas;
     }
-
-    // internal static void ValidateGenesis(Block block)
-    // {
-    //     if (block.Height != 0)
-    //     {
-    //         throw new ArgumentException(
-    //             $"Given {nameof(block)} must have index 0 but has index {block.Height}",
-    //             nameof(block));
-    //     }
-
-    //     int actualProtocolVersion = block.Version;
-    //     const int currentProtocolVersion = BlockHeader.CurrentProtocolVersion;
-    //     if (block.Version > BlockHeader.CurrentProtocolVersion)
-    //     {
-    //         throw new InvalidOperationException(
-    //             $"The protocol version ({actualProtocolVersion}) of the block " +
-    //             $"#{block.Height} {block.BlockHash} is not supported by this node." +
-    //             $"The highest supported protocol version is {currentProtocolVersion}.");
-    //     }
-
-    //     if (block.PreviousHash != default)
-    //     {
-    //         throw new InvalidOperationException(
-    //             "A genesis block should not have previous hash, " +
-    //             $"but its value is {block.PreviousHash}.");
-    //     }
-
-    //     if (block.LastCommit != BlockCommit.Empty)
-    //     {
-    //         throw new InvalidOperationException(
-    //             "A genesis block should not have last commit, " +
-    //             $"but its value is {block.LastCommit}.");
-    //     }
-    // }
 
     internal void ValidateBlockCommit(Block block, BlockCommit blockCommit)
     {
@@ -161,11 +127,11 @@ public partial class BlockChain
                 nameof(block));
         }
 
-        var index = Blocks.Count;
-        if (block.Height != index)
+        var height = Blocks.Count;
+        if (block.Height != height)
         {
             throw new InvalidOperationException(
-                $"The expected index of block {block.BlockHash} is #{index}, " +
+                $"The expected index of block {block.BlockHash} is #{height}, " +
                 $"but its index is #{block.Height}.");
         }
 
@@ -176,7 +142,7 @@ public partial class BlockChain
         // Ideally, whether this is called during instantiation should be made more explicit.
         if (actualProtocolVersion > currentProtocolVersion)
         {
-            string message =
+            var message =
                 $"The protocol version ({actualProtocolVersion}) of the block " +
                 $"#{block.Height} {block.BlockHash} is not supported by this node." +
                 $"The highest supported protocol version is {currentProtocolVersion}.";
@@ -185,22 +151,22 @@ public partial class BlockChain
         }
         else if (actualProtocolVersion < Tip.Version)
         {
-            string message =
+            var message =
                 "The protocol version is disallowed to be downgraded from the topmost block " +
                 $"in the chain ({actualProtocolVersion} < {Tip.Version}).";
             throw new InvalidOperationException(message);
         }
 
-        Block lastBlock = Blocks[index - 1];
+        Block lastBlock = Blocks[height - 1];
         BlockHash? prevHash = lastBlock?.BlockHash;
         DateTimeOffset? prevTimestamp = lastBlock?.Timestamp;
 
         if (!block.PreviousHash.Equals(prevHash))
         {
             throw new InvalidOperationException(
-                $"The block #{index} {block.BlockHash} is not continuous from the " +
-                $"block #{index - 1}; while previous block's hash is " +
-                $"{prevHash}, the block #{index} {block.BlockHash}'s pointer to " +
+                $"The block #{height} {block.BlockHash} is not continuous from the " +
+                $"block #{height - 1}; while previous block's hash is " +
+                $"{prevHash}, the block #{height} {block.BlockHash}'s pointer to " +
                 "the previous hash refers to " +
                 (block.PreviousHash.ToString() ?? "nothing") + ".");
         }
@@ -208,9 +174,9 @@ public partial class BlockChain
         if (block.Timestamp < prevTimestamp)
         {
             throw new InvalidOperationException(
-                $"The block #{index} {block.BlockHash}'s timestamp " +
+                $"The block #{height} {block.BlockHash}'s timestamp " +
                 $"({block.Timestamp}) is earlier than " +
-                $"the block #{index - 1}'s ({prevTimestamp}).");
+                $"the block #{height - 1}'s ({prevTimestamp}).");
         }
 
         if (block.Height <= 1)
@@ -241,12 +207,12 @@ public partial class BlockChain
             }
         }
 
-        foreach (var ev in block.Evidences)
+        foreach (var evidence in block.Evidences)
         {
-            var stateRootHash = GetNextStateRootHash(ev.Height);
+            var stateRootHash = GetNextStateRootHash(evidence.Height);
             var worldState = GetWorld(stateRootHash ?? default);
             var validators = worldState.GetValidatorSet();
-            ValidationUtility.Validate(ev, items: new Dictionary<object, object?>
+            ValidationUtility.Validate(evidence, items: new Dictionary<object, object?>
             {
                 [typeof(EvidenceContext)] = new EvidenceContext(validators),
             });

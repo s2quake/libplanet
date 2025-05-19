@@ -37,6 +37,6 @@ public static class StoreExtensions
         // }
     }
 
-    public static HashDigest<SHA256> GetStateRootHash(this Libplanet.Store.Repository store, BlockHash blockHash)
+    public static HashDigest<SHA256> GetStateRootHash(this Repository store, BlockHash blockHash)
         => store.BlockDigests[blockHash].StateRootHash;
 }
