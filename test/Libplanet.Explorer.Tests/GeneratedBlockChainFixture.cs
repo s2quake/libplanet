@@ -20,10 +20,12 @@ public class GeneratedBlockChainFixture
     public int MaxTxCount { get; }
 
     public ImmutableDictionary<Address, ImmutableArray<Block>>
-        MinedBlocks { get; private set; }
+        MinedBlocks
+    { get; private set; }
 
     public ImmutableDictionary<Address, ImmutableArray<Transaction>>
-        SignedTxs { get; private set; }
+        SignedTxs
+    { get; private set; }
 
     private System.Random Random { get; }
 
@@ -65,18 +67,20 @@ public class GeneratedBlockChainFixture
             transactions: PrivateKeys
                 .OrderBy(pk => pk.Address.ToString("raw", null))
                 .Select(
-                    (pk, i) => Transaction.Create(
-                        nonce: i,
-                        privateKey: privateKey,
-                        genesisHash: default,
-                        actions: new []
+                    (pk, i) => new TransactionMetadata
+                    {
+                        Nonce = i,
+                        Signer = privateKey.Address,
+                        GenesisHash = default,
+                        Actions = new[]
                         {
                             new Initialize
                             {
                                 Validators = [Validator.Create(pk.Address, 1)],
-                                States = ImmutableDictionary.Create<Address, object>()
+                                States = ImmutableDictionary.Create<Address, object>(),
                             },
-                        }.ToBytecodes()))
+                        }.ToBytecodes(),
+                    }.Sign(privateKey))
                 .ToImmutableSortedSet());
         Chain = BlockChain.Create(genesisBlock, policy);
         MinedBlocks = MinedBlocks.SetItem(
@@ -95,11 +99,13 @@ public class GeneratedBlockChainFixture
                 var pk = PrivateKeys[Random.Next(PrivateKeys.Length)];
                 AddBlock(actionsForTransactions
                     .Select(actions =>
-                        Transaction.Create(
-                            nonce: Chain.GetNextTxNonce(pk.Address),
-                            privateKey: pk,
-                            genesisHash: Chain.Genesis.BlockHash,
-                            actions: actions.ToBytecodes()))
+                        new TransactionMetadata
+                        {
+                            Nonce = Chain.GetNextTxNonce(pk.Address),
+                            Signer = pk.Address,
+                            GenesisHash = Chain.Genesis.BlockHash,
+                            Actions = actions.ToBytecodes(),
+                        }.Sign(pk))
                     .ToImmutableArray());
             }
         }
@@ -128,15 +134,17 @@ public class GeneratedBlockChainFixture
 
     private Transaction GetRandomTransaction(PrivateKey pk, long nonce)
     {
-        return Transaction.Create(
-            nonce: nonce,
-            privateKey: pk,
-            genesisHash: Chain.Genesis.BlockHash,
-            actions: Random.Next() % 2 == 0
+        return new TransactionMetadata
+        {
+            Nonce = nonce,
+            Signer = pk.Address,
+            GenesisHash = Chain.Genesis.BlockHash,
+            Actions = Random.Next() % 2 == 0
                 ? GetRandomActions().ToBytecodes()
                 : ImmutableHashSet<SimpleAction>.Empty.ToBytecodes(),
-            maxGasPrice: null,
-            gasLimit: 0L);
+            MaxGasPrice = null,
+            GasLimit = 0L,
+        }.Sign(pk);
     }
 
     private ImmutableArray<SimpleAction> GetRandomActions()

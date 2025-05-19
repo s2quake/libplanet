@@ -338,24 +338,24 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 ref duplicateAccountNonceOrdinalMemos);
 
             writeBatch.Put(txIdToContainedBlockHashKey, blockHash);
-            foreach (var address in tx.UpdatedAddresses.Select(address => address.Bytes))
-            {
-                if (stoppingToken.IsCancellationRequested)
-                {
-                    writeBatch.Dispose();
-                    throw new OperationCanceledException(stoppingToken);
-                }
+            // foreach (var address in tx.UpdatedAddresses.Select(address => address.Bytes))
+            // {
+            //     if (stoppingToken.IsCancellationRequested)
+            //     {
+            //         writeBatch.Dispose();
+            //         throw new OperationCanceledException(stoppingToken);
+            //     }
 
-                PutOrPutDuplicateOrdinal(
-                    ref writeBatch,
-                    InvolvedAddressToTxIdPrefix
-                        .Concat(address)
-                        .Concat(LongToBigEndianByteArray(tx.Timestamp.UtcTicks))
-                        .ToArray(),
-                    txId,
-                    ref encounteredInvolvedAddressToTxIdKeys,
-                    ref duplicateInvolvedTxTimestampOrdinalMemos);
-            }
+            //     PutOrPutDuplicateOrdinal(
+            //         ref writeBatch,
+            //         InvolvedAddressToTxIdPrefix
+            //             .Concat(address)
+            //             .Concat(LongToBigEndianByteArray(tx.Timestamp.UtcTicks))
+            //             .ToArray(),
+            //         txId,
+            //         ref encounteredInvolvedAddressToTxIdKeys,
+            //         ref duplicateInvolvedTxTimestampOrdinalMemos);
+            // }
 
             foreach (var action in tx.Actions)
             {

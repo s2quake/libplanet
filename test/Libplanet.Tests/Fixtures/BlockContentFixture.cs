@@ -39,7 +39,8 @@
 //             TimeSpan kst = TimeSpan.FromHours(9);
 //             GenesisKey = PrivateKey.Parse(
 //                 "9bf4664ba09a89faeb684b94e69ffde01d26ae14b556204d3f6ab58f61f78418");
-//             Transaction genTx = Transaction.Create(
+//             Transaction genTx = new TransactionMetadata
+// {
 //                 0,
 //                 GenesisKey,
 //                 null,

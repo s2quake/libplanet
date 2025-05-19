@@ -21,11 +21,13 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         public async Task Query()
         {
             var privateKey = new PrivateKey();
-            var transaction = Transaction.Create(
-                0,
-                privateKey,
-                new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-                new[] { new NullAction() }.ToBytecodes());
+            var transaction = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = privateKey.Address,
+                GenesisHash = new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                Actions = new[] { new NullAction() }.ToBytecodes(),
+            }.Sign(privateKey);
             var query =
                 @"{
                     id

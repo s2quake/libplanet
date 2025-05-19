@@ -53,12 +53,14 @@ public class TxFixture
         var recipient = new Address(PrivateKey1.PublicKey);
         var timestamp = new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
 
-        Tx = Transaction.Create(
-            0,
-            PrivateKey1,
-            genesisHash,
-            [],
-            timestamp: timestamp);
+        Tx = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = PrivateKey1.Address,
+            GenesisHash = genesisHash,
+            Actions = [],
+            Timestamp = timestamp,
+        }.Sign(PrivateKey1);
         IAction[] actions =
         [
             new Attack
@@ -72,22 +74,13 @@ public class TxFixture
                 ZoneId = 10,
             },
         ];
-        TxWithActions = Transaction.Create(
-            unsignedTx: new UnsignedTx
-            {
-                Invoice = new TxInvoice
-                {
-                    GenesisHash = genesisHash,
-                    UpdatedAddresses = [Address.Parse("c2a86014073d662a4a9bfcf9cb54263dfa4f5cbc")],
-                    Timestamp = timestamp,
-                    Actions = actions.ToBytecodes(),
-                },
-                SigningMetadata = new TxSigningMetadata
-                {
-                    Signer = PrivateKey1.Address,
-                }
-            },
-            privateKey: PrivateKey1);
+        TxWithActions = new TransactionMetadata
+        {
+            GenesisHash = genesisHash,
+            Timestamp = timestamp,
+            Signer = PrivateKey1.Address,
+            Actions = actions.ToBytecodes(),
+        }.Sign(PrivateKey1);
     }
 
     public PrivateKey PrivateKey1 { get; }

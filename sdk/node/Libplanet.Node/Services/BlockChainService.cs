@@ -102,12 +102,14 @@ internal sealed class BlockChainService(
         PrivateKey genesisKey, IAction[] actions)
     {
         var nonce = 0L;
-        var transaction = Transaction.Create(
-            nonce: nonce,
-            privateKey: genesisKey,
-            genesisHash: default,
-            actions: actions.ToBytecodes(),
-            timestamp: DateTimeOffset.MinValue);
+        var transaction = new TransactionMetadata
+        {
+            Nonce = nonce,
+            Signer = genesisKey.Address,
+            GenesisHash = default,
+            Actions = actions.ToBytecodes(),
+            Timestamp = DateTimeOffset.MinValue,
+        }.Sign(genesisKey);
         return BlockChain.ProposeGenesisBlock(
             proposer: genesisKey,
             transactions: [transaction],

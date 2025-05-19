@@ -23,21 +23,28 @@ namespace Libplanet.Tests.Blockchain
         [Fact]
         public void StageTransactionWithDifferentGenesis()
         {
-            Transaction tx1 = Transaction.Create(
-                0,
-                new PrivateKey(),
-                _blockChain.Genesis.BlockHash,
-                []);
-            Transaction tx2 = Transaction.Create(
-                0,
-                new PrivateKey(),
-                default,
-                []);
-            Transaction tx3 = Transaction.Create(
-                0,
-                new PrivateKey(),
-                default,
-                []);
+            var tx1Key = new PrivateKey();
+            var tx1 = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = tx1Key.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = [],
+            }.Sign(tx1Key);
+            var tx2Key = new PrivateKey();
+            var tx2 = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = tx2Key.Address,
+                Actions = [],
+            }.Sign(tx2Key);
+            var tx3Key = new PrivateKey();
+            var tx3 = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = tx3Key.Address,
+                Actions = [],
+            }.Sign(tx3Key);
 
             Assert.True(_blockChain.StageTransaction(tx1));
             Assert.Equal(1, _blockChain.GetStagedTransactionIds().Count);

@@ -49,11 +49,13 @@ public class TransactionQueryGeneratedTest
         var successBlock = Fx.Chain.Blocks[failBlock.PreviousHash]!;
         var successTx = successBlock.Transactions[0];
         var pk = Fx.PrivateKeys[0];
-        var stagingTx = Transaction.Create(
-            Fx.Chain.GetNextTxNonce(pk.Address),
-            pk,
-            Fx.Chain.Genesis.BlockHash,
-            new[] { new SimpleAction1() }.ToBytecodes());
+        var stagingTx = new TransactionMetadata
+        {
+            Nonce = Fx.Chain.GetNextTxNonce(pk.Address),
+            Signer = pk.Address,
+            GenesisHash = Fx.Chain.Genesis.BlockHash,
+            Actions = new[] { new SimpleAction1() }.ToBytecodes(),
+        }.Sign(pk);
         Fx.Chain.StageTransaction(stagingTx);
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);

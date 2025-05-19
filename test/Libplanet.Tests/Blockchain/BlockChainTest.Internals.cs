@@ -22,14 +22,14 @@ public partial class BlockChainTest
             "This test causes timeout");
 
         Transaction MkTx(PrivateKey key, long nonce, DateTimeOffset? ts = null) =>
-            Transaction.Create(
-                nonce,
-                key,
-                _blockChain.Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes(),
-                null,
-                0L,
-                ts ?? DateTimeOffset.UtcNow);
+            new TransactionMetadata
+            {
+                Nonce = nonce,
+                Signer = key.Address,
+                GenesisHash = _blockChain.Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+                Timestamp = ts ?? DateTimeOffset.UtcNow,
+            }.Sign(key);
 
         PrivateKey a = new PrivateKey();
         PrivateKey b = new PrivateKey();

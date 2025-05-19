@@ -34,16 +34,19 @@ public class TransactionQueryTest
     [Fact]
     public async Task BindSignatureWithCustomActions()
     {
-        var tx = Transaction.Create(
-            0L,
-            new PrivateKey(),
-            Source.BlockChain.Genesis.BlockHash,
-            Array.Empty<NullAction>().ToBytecodes());
+        var privateKey = new PrivateKey();
+        var tx = new TransactionMetadata
+        {
+            Nonce = 0L,
+            Signer = privateKey.Address,
+            GenesisHash = Source.BlockChain.Genesis.BlockHash,
+            Actions = Array.Empty<NullAction>().ToBytecodes(),
+        }.Sign(privateKey);
         // tx.UnsignedTx.MarshalUnsignedTx();
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(tx.UnsignedTx))}"",
+                metadata: ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(tx.Metadata))}"",
                 signature: ""{ByteUtility.Hex(tx.Signature)}""
             )
          }}
@@ -69,15 +72,18 @@ public class TransactionQueryTest
                 [default] = "initial value"
             }.ToImmutableDictionary(),
         };
-        var tx = Transaction.Create(
-            0L,
-            new PrivateKey(),
-            Source.BlockChain.Genesis.BlockHash,
-            new IAction[] { action }.ToBytecodes());
+        var txKey = new PrivateKey();
+        var tx = new TransactionMetadata
+        {
+            Nonce = 0L,
+            Signer = txKey.Address,
+            GenesisHash = Source.BlockChain.Genesis.BlockHash,
+            Actions = new IAction[] { action }.ToBytecodes(),
+        }.Sign(txKey);
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
-                unsignedTransaction: ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(tx.UnsignedTx))}"",
+                metadata: ""{ByteUtility.Hex(ModelSerializer.SerializeToBytes(tx.Metadata))}"",
                 signature: ""{ByteUtility.Hex(tx.Signature)}""
             )
          }}

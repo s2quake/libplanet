@@ -32,7 +32,13 @@ public class Store
             var blockTxs = new List<Transaction>();
             for (int j = 0; j < i % 5; j++)
             {
-                blockTxs.Add(Transaction.Create(nonce++, key, genesis.BlockHash, []));
+                blockTxs.Add(new TransactionMetadata
+                {
+                    Nonce = nonce++,
+                    Signer = key.Address,
+                    GenesisHash = genesis.BlockHash,
+                    Actions = [],
+                }.Sign(key));
             }
             block = TestUtils.ProposeNextBlock(
                 block, TestUtils.GenesisProposer, [.. blockTxs]);

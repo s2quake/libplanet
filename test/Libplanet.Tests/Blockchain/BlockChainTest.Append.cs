@@ -311,8 +311,20 @@ public partial class BlockChainTest
         var proposer = new PrivateKey();
         var action1 = DumbModernAction.Create((address1, "foo"));
         var action2 = DumbModernAction.Create((address2, "bar"));
-        var tx1 = Transaction.Create(0, proposer, genesis.BlockHash, new[] { action1 }.ToBytecodes());
-        var tx2 = Transaction.Create(1, proposer, genesis.BlockHash, new[] { action2 }.ToBytecodes());
+        var tx1 = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = proposer.Address,
+            GenesisHash = genesis.BlockHash,
+            Actions = new[] { action1 }.ToBytecodes(),
+        }.Sign(proposer);
+        var tx2 = new TransactionMetadata
+        {
+            Nonce = 1,
+            Signer = proposer.Address,
+            GenesisHash = genesis.BlockHash,
+            Actions = new[] { action2 }.ToBytecodes(),
+        }.Sign(proposer);
         var block1 = _blockChain.ProposeBlock(
             proposer,
             TestUtils.CreateBlockCommit(_blockChain.Tip),
@@ -559,21 +571,81 @@ public partial class BlockChainTest
         var signerB = new PrivateKey();
         BlockHash genesis = _blockChain.Genesis.BlockHash;
         Transaction
-            txA0 = Transaction.Create(0, signerA, genesis, actions: []),
-            txA1 = Transaction.Create(1, signerA, genesis, actions: []);
+            txA0 = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = signerA.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerA),
+            txA1 = new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = signerA.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerA);
         _blockChain.StageTransaction(txA0);
         _blockChain.StageTransaction(txA1);
         Block block = _blockChain.ProposeBlock(signerA);
 
         Transaction
-            txA2 = Transaction.Create(2, signerA, genesis, actions: []),
-            txA0_ = Transaction.Create(0, signerA, genesis, actions: []),
-            txA1_ = Transaction.Create(1, signerA, genesis, actions: []),
-            txB0 = Transaction.Create(1, signerB, genesis, actions: []),
-            txB1 = Transaction.Create(1, signerB, genesis, actions: []),
-            txB2 = Transaction.Create(2, signerB, genesis, actions: []),
-            txB0_ = Transaction.Create(1, signerB, genesis, actions: []),
-            txB1_ = Transaction.Create(1, signerB, genesis, actions: []);
+            txA2 = new TransactionMetadata
+            {
+                Nonce = 2,
+                Signer = signerA.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerA),
+            txA0_ = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = signerA.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerA),
+            txA1_ = new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = signerA.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerA),
+            txB0 = new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = signerB.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerB),
+            txB1 = new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = signerB.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerB),
+            txB2 = new TransactionMetadata
+            {
+                Nonce = 2,
+                Signer = signerB.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerB),
+            txB0_ = new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = signerB.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerB),
+            txB1_ = new TransactionMetadata
+            {
+                Nonce = 1,
+                Signer = signerB.Address,
+                GenesisHash = genesis,
+                Actions = [],
+            }.Sign(signerB);
         _blockChain.StageTransaction(txA2);
         _blockChain.StageTransaction(txA0_);
         _blockChain.StageTransaction(txA1_);
@@ -625,11 +697,11 @@ public partial class BlockChainTest
 
         var txs = new[]
         {
-            Transaction.Create(
-                0,
-                fx.Proposer,
-                default,
-                actions: new[]
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = fx.Proposer.Address,
+                Actions = new[]
                 {
                     new Initialize
                     {
@@ -637,34 +709,34 @@ public partial class BlockChainTest
                         States = ImmutableDictionary.Create<Address, object>(),
                     },
                 }.ToBytecodes(),
-                timestamp: DateTimeOffset.UtcNow),
+            }.Sign(fx.Proposer),
         };
-        var evs = Array.Empty<EvidenceBase>();
-        RawBlock preEvalGenesis = RawBlock.Create(
-            new BlockHeader
-            {
-                Height = 0,
-                Timestamp = DateTimeOffset.UtcNow,
-                Proposer = fx.Proposer.Address,
-                PreviousHash = default,
-            },
-            new BlockContent
-            {
-                Transactions = [.. txs],
-                Evidences = [.. evs],
-            });
-        var genesis = preEvalGenesis.Sign(
-            fx.Proposer,
-            actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputState);
-        var blockChain = BlockChain.Create(
-            options: policy,
-            genesisBlock: genesis);
-        var emptyBlock = blockChain.ProposeBlock(
-            fx.Proposer,
-            TestUtils.CreateBlockCommit(blockChain.Tip),
-            [],
-            []);
-        blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
+    var evs = Array.Empty<EvidenceBase>();
+    RawBlock preEvalGenesis = RawBlock.Create(
+        new BlockHeader
+        {
+            Height = 0,
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = fx.Proposer.Address,
+            PreviousHash = default,
+        },
+        new BlockContent
+        {
+            Transactions = [.. txs],
+            Evidences = [.. evs],
+        });
+    var genesis = preEvalGenesis.Sign(
+        fx.Proposer,
+        actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputState);
+    var blockChain = BlockChain.Create(
+        options: policy,
+        genesisBlock: genesis);
+    var emptyBlock = blockChain.ProposeBlock(
+        fx.Proposer,
+        TestUtils.CreateBlockCommit(blockChain.Tip),
+        [],
+        []);
+    blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
         Assert.Equal<byte>(
             blockChain.GetWorld(genesis.StateRootHash).Trie.Hash.Bytes,
             blockChain.GetNextWorldState(emptyBlock.BlockHash).Trie.Hash.Bytes);
@@ -696,7 +768,13 @@ public partial class BlockChainTest
         // Append block before state root hash postpone
         var proposer = new PrivateKey();
         var action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "foo"));
-        var tx = Transaction.Create(0, proposer, genesis.BlockHash, new[] { action }.ToBytecodes());
+        var tx = new TransactionMetadata
+        {
+            Nonce = 0,
+            Signer = proposer.Address,
+            GenesisHash = genesis.BlockHash,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(proposer);
         var preBlockBeforeBump = TestUtils.ProposeNext(
             genesis,
             [tx],
@@ -712,7 +790,13 @@ public partial class BlockChainTest
 
         // Append block after state root hash postpone - previous block is not bumped
         action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "bar"));
-        tx = Transaction.Create(1, proposer, genesis.BlockHash, new[] { action }.ToBytecodes());
+        tx = new TransactionMetadata
+        {
+            Nonce = 1,
+            Signer = proposer.Address,
+            GenesisHash = genesis.BlockHash,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(proposer);
         var blockAfterBump1 = blockChain.ProposeBlock(
             proposer,
             commitBeforeBump,
@@ -727,7 +811,13 @@ public partial class BlockChainTest
 
         // Append block after state root hash postpone - previous block is bumped
         action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "baz"));
-        tx = Transaction.Create(2, proposer, genesis.BlockHash, new[] { action }.ToBytecodes());
+        tx = new TransactionMetadata
+        {
+            Nonce = 2,
+            Signer = proposer.Address,
+            GenesisHash = genesis.BlockHash,
+            Actions = new[] { action }.ToBytecodes(),
+        }.Sign(proposer);
         var blockAfterBump2 = blockChain.ProposeBlock(
             proposer,
             commitAfterBump1,

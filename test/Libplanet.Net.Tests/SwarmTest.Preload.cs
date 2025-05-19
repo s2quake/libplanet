@@ -402,7 +402,8 @@ namespace Libplanet.Net.Tests
         //         var action = new ThrowException { ThrowOnExecution = true };
 
         //         var chainId = receiverChain.Id;
-        //         Transaction tx = Transaction.Create(
+        //         Transaction tx = new TransactionMetadata
+// {
         //             0,
         //             new PrivateKey(),
         //             minerSwarm.BlockChain.Genesis.Hash,

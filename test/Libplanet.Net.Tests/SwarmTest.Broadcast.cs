@@ -282,11 +282,14 @@ namespace Libplanet.Net.Tests
             BlockChain chainB = swarmB.BlockChain;
             BlockChain chainC = swarmC.BlockChain;
 
-            Transaction tx = Transaction.Create(
-                0,
-                new PrivateKey(),
-                chainA.Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes());
+            var txKey = new PrivateKey();
+            Transaction tx = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = txKey.Address,
+                GenesisHash = chainA.Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+            }.Sign(txKey);
 
             chainA.StageTransaction(tx);
             Block block = chainA.ProposeBlock(minerA);
@@ -390,11 +393,14 @@ namespace Libplanet.Net.Tests
             BlockChain chainB = swarmB.BlockChain;
             BlockChain chainC = swarmC.BlockChain;
 
-            Transaction tx = Transaction.Create(
-                0,
-                new PrivateKey(),
-                chainA.Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes());
+            var txKey = new PrivateKey();
+            Transaction tx = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = txKey.Address,
+                GenesisHash = chainA.Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+            }.Sign(txKey);
 
             chainA.StageTransaction(tx);
 
@@ -445,11 +451,14 @@ namespace Libplanet.Net.Tests
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
             }
 
-            Transaction tx = Transaction.Create(
-                0,
-                new PrivateKey(),
-                blockChains[size - 1].Genesis.BlockHash,
-                Array.Empty<DumbAction>().ToBytecodes());
+            var txKey = new PrivateKey();
+            Transaction tx = new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = txKey.Address,
+                GenesisHash = blockChains[size - 1].Genesis.BlockHash,
+                Actions = Array.Empty<DumbAction>().ToBytecodes(),
+            }.Sign(txKey);
 
             blockChains[size - 1].StageTransaction(tx);
 
@@ -923,11 +932,13 @@ namespace Libplanet.Net.Tests
                 privateKey,
                 new[] { DumbAction.Create((address, "quz")) });
 
-            var tx4 = Transaction.Create(
-                4,
-                privateKey,
-                swarm1.BlockChain.Genesis.BlockHash,
-                new[] { DumbAction.Create((address, "qux")) }.ToBytecodes());
+            var tx4 = new TransactionMetadata
+            {
+                Nonce = 4,
+                Signer = privateKey.Address,
+                GenesisHash = swarm1.BlockChain.Genesis.BlockHash,
+                Actions = new[] { DumbAction.Create((address, "qux")) }.ToBytecodes(),
+            }.Sign(privateKey);
 
             try
             {

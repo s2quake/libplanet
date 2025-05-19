@@ -59,7 +59,8 @@
 //             DateTimeOffset timestamp = DateTimeOffset.UtcNow;
 //             var signers = Enumerable.Range(0, signerCount).Select(_ => new PrivateKey());
 //             ImmutableArray<Transaction> txs = signers.Select(signer =>
-//                 Transaction.Create(
+//                 new TransactionMetadata
+// {
 //                     0,
 //                     signer,
 //                     null,

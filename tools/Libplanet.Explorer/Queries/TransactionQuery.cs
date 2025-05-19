@@ -129,18 +129,14 @@ namespace Libplanet.Explorer.Queries
                     Address signer = publicKey.Address;
                     long nonce = context.GetArgument<long?>("nonce") ??
                         chain.GetNextTxNonce(signer);
-                    var signingMetadata = TxSigningMetadata.Create(publicKey, nonce);
-                    var invoice = new TxInvoice
+                    var metadata = new TransactionMetadata
                     {
+                        Nonce = nonce,
+                        Signer = publicKey.Address,
                         GenesisHash = chain.Genesis.BlockHash,
                         Actions = [new ActionBytecode([.. plainBytes])],
                     };
-                    var unsignedTx = new UnsignedTx
-                    {
-                        Invoice = invoice,
-                        SigningMetadata = signingMetadata,
-                    };
-                    return ModelSerializer.SerializeToBytes(unsignedTx);
+                    return ModelSerializer.SerializeToBytes(metadata);
                 });
 
             Field<NonNullGraphType<LongGraphType>>(
@@ -178,9 +174,14 @@ namespace Libplanet.Explorer.Queries
                 {
                     ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
                         context.GetArgument<string>("signature"));
-                    var unsignedTx = ModelSerializer.DeserializeFromBytes<UnsignedTx>(ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")));
-                    var signedTransaction = unsignedTx.Verify(signature);
-                    return ByteUtility.Hex(ModelSerializer.SerializeToBytes(signedTransaction));
+                    var unsignedTx = ModelSerializer.DeserializeFromBytes<TransactionMetadata>(ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")));
+                    // var signedTransaction = unsignedTx.Verify(signature);
+                    var tx = new Transaction
+                    {
+                        Metadata = unsignedTx,
+                        Signature = signature,
+                    };
+                    return ByteUtility.Hex(ModelSerializer.SerializeToBytes(tx));
                 });
 
             Field<NonNullGraphType<TxResultType>>(
