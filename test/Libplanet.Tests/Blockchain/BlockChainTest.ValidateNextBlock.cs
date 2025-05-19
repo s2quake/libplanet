@@ -14,17 +14,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlock()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
                     },
-                    new BlockContent
-                    {
-                    }),
+                },
                 _fx.Proposer);
             _blockChain.Append(validNextBlock, TestUtils.CreateBlockCommit(validNextBlock));
             Assert.Equal(_blockChain.Tip, validNextBlock);
@@ -35,8 +34,9 @@ namespace Libplanet.Tests.Blockchain
         {
             var protocolVersion = _blockChain.Tip.Version;
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Version = protocolVersion,
                         Height = 1,
@@ -44,31 +44,29 @@ namespace Libplanet.Tests.Blockchain
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
                     },
-                    new BlockContent
-                    {
-                    }),
+                },
                 _fx.Proposer);
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
             Assert.Throws<ApplicationException>(() => _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 2,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.BlockHash,
                     },
-                    new BlockContent
-                    {
-                    }),
+                },
                 _fx.Proposer));
 
             Assert.Throws<InvalidOperationException>(() =>
             {
                 Block block3 = _blockChain.EvaluateAndSign(
-                    RawBlock.Create(
-                        new BlockHeader
+                    new RawBlock
+                    {
+                        Header = new BlockHeader
                         {
                             Version = BlockHeader.CurrentProtocolVersion + 1,
                             Height = 2,
@@ -76,9 +74,7 @@ namespace Libplanet.Tests.Blockchain
                             Proposer = _fx.Proposer.Address,
                             PreviousHash = block1.BlockHash,
                         },
-                        new BlockContent
-                        {
-                        }),
+                    },
                     _fx.Proposer);
                 _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
             });
@@ -91,14 +87,16 @@ namespace Libplanet.Tests.Blockchain
 
             Block prev = _blockChain.Tip;
             Block blockWithAlreadyUsedIndex = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = prev.Height,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = prev.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(
                 () => _blockChain.Append(
@@ -106,15 +104,17 @@ namespace Libplanet.Tests.Blockchain
                     TestUtils.CreateBlockCommit(blockWithAlreadyUsedIndex)));
 
             Block blockWithIndexAfterNonexistentIndex = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = prev.Height + 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = prev.BlockHash,
                         LastCommit = TestUtils.CreateBlockCommit(prev.BlockHash, prev.Height + 1, 0),
-                    }),
+                    },
+                },
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(
                 () => _blockChain.Append(
@@ -128,8 +128,9 @@ namespace Libplanet.Tests.Blockchain
             _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
 
             Block invalidPreviousHashBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
@@ -139,7 +140,8 @@ namespace Libplanet.Tests.Blockchain
                         // ReSharper disable once PossibleInvalidOperationException
                         LastCommit = TestUtils.CreateBlockCommit(
                             _validNext.PreviousHash, 1, 0),
-                    }),
+                    },
+                },
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
                     _blockChain.Append(
@@ -153,15 +155,17 @@ namespace Libplanet.Tests.Blockchain
             _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
 
             Block invalidPreviousTimestamp = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 2,
                         Timestamp = _validNext.Timestamp.AddSeconds(-1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _validNext.BlockHash,
                         LastCommit = TestUtils.CreateBlockCommit(_validNext),
-                    }),
+                    },
+                },
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
                     _blockChain.Append(
@@ -196,15 +200,17 @@ namespace Libplanet.Tests.Blockchain
             var chain2 = BlockChain.Create(genesisBlock, options2);
 
             Block block1 = chain1.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Version = BlockHeader.CurrentProtocolVersion,
                         Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                         Proposer = TestUtils.GenesisProposer.Address,
                         PreviousHash = genesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 TestUtils.GenesisProposer);
 
             Assert.Throws<InvalidOperationException>(() =>
@@ -233,15 +239,17 @@ namespace Libplanet.Tests.Blockchain
             var chain1 = BlockChain.Create(genesisBlock, options1);
 
             Block block1 = chain1.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Version = beforePostponeBPV,
                         Height = 1,
                         Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                         Proposer = TestUtils.GenesisProposer.Address,
                         PreviousHash = genesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 TestUtils.GenesisProposer);
 
             var policyWithBlockAction = new BlockChainOptions
@@ -284,14 +292,16 @@ namespace Libplanet.Tests.Blockchain
                 actionEvaluator.Evaluate(rawGenesis, default)[^1].OutputState);
             var chain = BlockChain.Create(genesisBlock, options);
 
-            RawBlock preBlock1 = RawBlock.Create(
-                new BlockHeader
+            RawBlock preBlock1 = new RawBlock
+            {
+                Header = new BlockHeader
                 {
                     Height = 1,
                     Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                     Proposer = TestUtils.GenesisProposer.Address,
                     PreviousHash = genesisBlock.BlockHash,
-                });
+                },
+            };
             Block block1 = chain.EvaluateAndSign(
                 preBlock1,
                 TestUtils.GenesisProposer);
@@ -311,14 +321,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitNullAtIndexOne()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             _blockChain.Append(validNextBlock, TestUtils.CreateBlockCommit(validNextBlock));
             Assert.Equal(_blockChain.Tip, validNextBlock);
@@ -328,28 +340,32 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitUpperIndexOne()
         {
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
             var blockCommit = TestUtils.CreateBlockCommit(block1);
             Block block2 = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.BlockHash,
                         LastCommit = blockCommit,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
             Assert.Equal(_blockChain.Tip, block2);
@@ -359,14 +375,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitFailsUnexpectedValidator()
         {
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
@@ -394,15 +412,17 @@ namespace Libplanet.Tests.Blockchain
             };
 
             Block block2 = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.BlockHash,
                         LastCommit = blockCommit,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
@@ -412,14 +432,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateNextBlockLastCommitFailsDropExpectedValidator()
         {
             Block block1 = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
@@ -443,15 +465,17 @@ namespace Libplanet.Tests.Blockchain
                 Votes = votes,
             };
             Block block2 = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 2,
                         Timestamp = DateTimeOffset.UtcNow,
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = block1.BlockHash,
                         LastCommit = blockCommit,
-                    }),
+                    },
+                },
                 _fx.Proposer);
             Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
@@ -488,14 +512,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsDifferentBlockHash()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
 
             Assert.Throws<InvalidOperationException>(() =>
@@ -511,14 +537,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsDifferentHeight()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
 
             Assert.Throws<InvalidOperationException>(() =>
@@ -534,14 +562,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsDifferentValidatorSet()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
 
             Assert.Throws<InvalidOperationException>(() =>
@@ -571,14 +601,16 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitFailsNullBlockCommit()
         {
             Block validNextBlock = _blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = _fx.GenesisBlock.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
 
             Assert.Throws<InvalidOperationException>(() =>
@@ -601,14 +633,16 @@ namespace Libplanet.Tests.Blockchain
             BlockChain blockChain = TestUtils.MakeBlockChain(
                 validatorSet: validatorSet);
             Block validNextBlock = blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Height = 1,
                         Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
                         Proposer = _fx.Proposer.Address,
                         PreviousHash = blockChain.Genesis.BlockHash,
-                    }),
+                    },
+                },
                 _fx.Proposer);
 
             Vote GenerateVote(PrivateKey key, BigInteger power, VoteFlag flag)
@@ -709,15 +743,17 @@ namespace Libplanet.Tests.Blockchain
             var newChain = new BlockChain(_blockChain.Genesis, policyWithBlockAction);
 
             Block newValidNext = newChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Version = BlockHeader.CurrentProtocolVersion,
                         Height = newChain.Tip.Height + 1,
                         Timestamp = newChain.Tip.Timestamp.AddSeconds(1),
                         Proposer = TestUtils.GenesisProposer.Address,
                         PreviousHash = newChain.Tip.BlockHash,
-                    }),
+                    },
+                },
                 TestUtils.GenesisProposer);
 
             Assert.NotEqual(_validNext, newValidNext);

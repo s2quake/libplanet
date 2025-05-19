@@ -97,31 +97,31 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void ProposeBlockEmpty()
         {
-            _block = _blockChain.ProposeBlock(_privateKey, _lastCommit);
+            _block = _blockChain.ProposeBlock(_privateKey);
         }
 
         [Benchmark]
         public void ProposeBlockOneTransactionNoAction()
         {
-            _block = _blockChain.ProposeBlock(_privateKey, _lastCommit);
+            _block = _blockChain.ProposeBlock(_privateKey);
         }
 
         [Benchmark]
         public void ProposeBlockTenTransactionsNoAction()
         {
-            _block = _blockChain.ProposeBlock(_privateKey, _lastCommit);
+            _block = _blockChain.ProposeBlock(_privateKey);
         }
 
         [Benchmark]
         public void ProposeBlockOneTransactionWithActions()
         {
-            _block = _blockChain.ProposeBlock(_privateKey, _lastCommit);
+            _block = _blockChain.ProposeBlock(_privateKey);
         }
 
         [Benchmark]
         public void ProposeBlockTenTransactionsWithActions()
         {
-            _block = _blockChain.ProposeBlock(_privateKey, _lastCommit);
+            _block = _blockChain.ProposeBlock(_privateKey);
         }
     }
 }

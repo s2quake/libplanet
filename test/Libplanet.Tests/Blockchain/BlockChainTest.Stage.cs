@@ -98,7 +98,7 @@ public partial class BlockChainTest
         Assert.Equal(
             txIds.OrderBy(id => id),
             _blockChain.StagedTransactions.Keys.OrderBy(id => id));
-        block = _blockChain.ProposeBlock(key, TestUtils.CreateBlockCommit(_blockChain.Tip));
+        block = _blockChain.ProposeBlock(key);
         _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
         // tx_0_1 and tx_1_x should be still staged, just filtered
         Assert.Empty(_blockChain.StagedTransactions.Keys);

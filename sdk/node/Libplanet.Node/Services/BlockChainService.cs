@@ -115,8 +115,8 @@ internal sealed class BlockChainService(
         }.Sign(genesisKey);
         return BlockChain.ProposeGenesisBlock(
             proposer: genesisKey,
-            transactions: [transaction],
-            timestamp: DateTimeOffset.MinValue);
+            stateRootHash: default,
+            transactions: [transaction]);
     }
 
     private static Block LoadGenesisBlock(string genesisBlockPath)
@@ -156,7 +156,8 @@ internal sealed class BlockChainService(
         {
             return BlockChain.ProposeGenesisBlock(
                 proposer: genesisKey,
-                timestamp: DateTimeOffset.MinValue);
+                stateRootHash: default,
+                transactions: []);
         }
 
         var nullTrie = stateStore.GetStateRoot(default);
@@ -192,6 +193,6 @@ internal sealed class BlockChainService(
         return BlockChain.ProposeGenesisBlock(
             proposer: genesisKey,
             stateRootHash: worldTrie.Hash,
-            timestamp: DateTimeOffset.MinValue);
+            transactions: []);
     }
 }

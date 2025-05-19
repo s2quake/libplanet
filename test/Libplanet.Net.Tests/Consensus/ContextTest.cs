@@ -515,12 +515,8 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 privateKey: privateKeys[0],
                 validatorSet: validatorSet);
-            var blockA = blockChain.ProposeBlock(
-                proposer,
-                lastCommit: blockChain.GetBlockCommit(blockChain.Tip.BlockHash));
-            var blockB = blockChain.ProposeBlock(
-                proposer,
-                lastCommit: blockChain.GetBlockCommit(blockChain.Tip.BlockHash));
+            var blockA = blockChain.ProposeBlock(proposer);
+            var blockB = blockChain.ProposeBlock(proposer);
             context.StateChanged += (sender, state) =>
             {
                 if (state.Step != prevStep)

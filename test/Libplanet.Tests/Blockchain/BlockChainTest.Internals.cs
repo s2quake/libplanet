@@ -63,8 +63,8 @@ public partial class BlockChainTest
         _blockChain.StagedTransactions.Add(MkTx(e, 2, DateTimeOffset.UtcNow));
         _blockChain.MakeTransaction(a, new DumbAction[0]);
 
-        ImmutableList<Transaction> stagedTransactions =
-            _blockChain.ListStagedTransactions();
+        var stagedTransactions =
+            _blockChain.StagedTransactions.Collect();
 
         // List is ordered by nonce.
         foreach (var signer in signers)
@@ -78,7 +78,7 @@ public partial class BlockChainTest
         // A is prioritized over B, C, D, E:
         IComparer<Transaction> priority = Comparer<Transaction>.Create(
             (tx1, tx2) => tx1.Signer.Equals(a.Address) ? -1 : 1);
-        stagedTransactions = _blockChain.ListStagedTransactions(priority);
+        stagedTransactions = _blockChain.StagedTransactions.Collect();
 
         foreach (var tx in stagedTransactions.Take(3))
         {

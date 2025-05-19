@@ -247,11 +247,7 @@ public partial class BlockChain
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
-    internal void Append(
-        Block block,
-        BlockCommit blockCommit,
-        bool render,
-        bool validate = true)
+    internal void Append(Block block, BlockCommit blockCommit, bool render, bool validate = true)
     {
         if (Blocks.Count is 0)
         {
@@ -647,29 +643,24 @@ public partial class BlockChain
         return null;
     }
 
-    internal ImmutableList<Transaction> ListStagedTransactions(IComparer<Transaction>? txPriority = null)
-    {
-        var unorderedTxs = StagedTransactions.Iterate();
-        if (txPriority is { } comparer)
-        {
-            unorderedTxs = unorderedTxs.OrderBy(tx => tx, comparer).ToImmutableArray();
-        }
+    // internal ImmutableList<Transaction> ListStagedTransactions()
+    // {
+    //     var unorderedTxs = StagedTransactions.Iterate();
+    //     Transaction[] txs = unorderedTxs.ToArray();
 
-        Transaction[] txs = unorderedTxs.ToArray();
+    //     Dictionary<Address, LinkedList<Transaction>> seats = txs
+    //         .GroupBy(tx => tx.Signer)
+    //         .Select(g => (g.Key, new LinkedList<Transaction>(g.OrderBy(tx => tx.Nonce))))
+    //         .ToDictionary(pair => pair.Key, pair => pair.Item2);
 
-        Dictionary<Address, LinkedList<Transaction>> seats = txs
-            .GroupBy(tx => tx.Signer)
-            .Select(g => (g.Key, new LinkedList<Transaction>(g.OrderBy(tx => tx.Nonce))))
-            .ToDictionary(pair => pair.Key, pair => pair.Item2);
-
-        return txs.Select(tx =>
-        {
-            LinkedList<Transaction> seat = seats[tx.Signer];
-            Transaction first = seat.First.Value;
-            seat.RemoveFirst();
-            return first;
-        }).ToImmutableList();
-    }
+    //     return txs.Select(tx =>
+    //     {
+    //         LinkedList<Transaction> seat = seats[tx.Signer];
+    //         Transaction first = seat.First.Value;
+    //         seat.RemoveFirst();
+    //         return first;
+    //     }).ToImmutableList();
+    // }
 
     internal void CleanupBlockCommitStore(long limit)
     {

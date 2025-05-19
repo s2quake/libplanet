@@ -36,15 +36,10 @@ public partial class BlockChainTest
         Assert.Equal(1, _blockChain.Blocks.Count);
         // Assert.Empty(_renderer.ActionRecords);
         // Assert.Empty(_renderer.BlockRecords);
-        var block1 = _blockChain.ProposeBlock(
-            keys[4], TestUtils.CreateBlockCommit(_blockChain.Tip));
+        var block1 = _blockChain.ProposeBlock(keys[4]);
         _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
         Assert.NotNull(_blockChain.GetBlockCommit(block1.BlockHash));
-        Block block2 = _blockChain.ProposeBlock(
-            keys[4],
-            lastCommit: TestUtils.CreateBlockCommit(block1),
-            [.. txs],
-            evidences: []);
+        Block block2 = _blockChain.ProposeBlock(keys[4]);
         foreach (var tx in txs)
         {
             Assert.Empty(_fx.Store.TxExecutions[tx.Id]);
@@ -236,11 +231,7 @@ public partial class BlockChainTest
             },
             nonce: 2,
             privateKey: pk);
-        Block block3 = _blockChain.ProposeBlock(
-            keys[4],
-            TestUtils.CreateBlockCommit(_blockChain.Tip),
-            [tx1Transfer, tx2Error, tx3Transfer],
-            []);
+        Block block3 = _blockChain.ProposeBlock(keys[4]);
         _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
         var txExecution1 = _fx.Store.TxExecutions[tx1Transfer.Id, block3.BlockHash];
         _logger.Verbose(nameof(txExecution1) + " = {@TxExecution}", txExecution1);
@@ -325,22 +316,14 @@ public partial class BlockChainTest
             GenesisHash = genesis.BlockHash,
             Actions = new[] { action2 }.ToBytecodes(),
         }.Sign(proposer);
-        var block1 = _blockChain.ProposeBlock(
-            proposer,
-            TestUtils.CreateBlockCommit(_blockChain.Tip),
-            [tx1],
-            []);
+        var block1 = _blockChain.ProposeBlock(proposer);
         var commit1 = TestUtils.CreateBlockCommit(block1);
         _blockChain.Append(block1, commit1);
         var world1 = _blockChain.GetNextWorld();
         Assert.Equal(
             "foo",
             world1.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address1));
-        var block2 = _blockChain.ProposeBlock(
-            proposer,
-            commit1,
-            [tx2],
-            []);
+        var block2 = _blockChain.ProposeBlock(proposer);
         _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
         var world2 = _blockChain.GetNextWorld();
         Assert.Equal(
@@ -373,11 +356,7 @@ public partial class BlockChainTest
         }
 
         var proposer = new PrivateKey();
-        var block = _blockChain.ProposeBlock(
-            proposer,
-            TestUtils.CreateBlockCommit(_blockChain.Tip),
-            [.. heavyTxs],
-            []);
+        var block = _blockChain.ProposeBlock(proposer);
         long maxBytes = _blockChain.Options.BlockOptions.MaxTransactionsBytes;
         Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
@@ -402,11 +381,7 @@ public partial class BlockChainTest
         Assert.True(manyTxs.Count > maxTxs);
 
         var proposer = new PrivateKey();
-        Block block = _blockChain.ProposeBlock(
-            proposer,
-            TestUtils.CreateBlockCommit(_blockChain.Tip),
-            [.. manyTxs],
-            []);
+        Block block = _blockChain.ProposeBlock(proposer);
         Assert.Equal(manyTxs.Count, block.Transactions.Count);
 
         var e = Assert.Throws<InvalidOperationException>(() =>
@@ -474,18 +449,10 @@ public partial class BlockChainTest
 
             var proposer = new PrivateKey();
 
-            Block block1 = blockChain.ProposeBlock(
-                proposer,
-                TestUtils.CreateBlockCommit(blockChain.Tip),
-                [validTx],
-                []);
+            Block block1 = blockChain.ProposeBlock(proposer);
             blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
-            Block block2 = blockChain.ProposeBlock(
-                proposer,
-                TestUtils.CreateBlockCommit(blockChain.Tip),
-                [invalidTx],
-                []);
+            Block block2 = blockChain.ProposeBlock(proposer);
             Assert.Throws<InvalidOperationException>(() => blockChain.Append(
                 block2, TestUtils.CreateBlockCommit(block2)));
         }
@@ -500,9 +467,7 @@ public partial class BlockChainTest
         Assert.Empty(_blockChain.StagedTransactions.Keys);
 
         // Mining with empty staged.
-        Block block1 = _blockChain.ProposeBlock(
-            privateKey,
-            TestUtils.CreateBlockCommit(_blockChain.Tip));
+        Block block1 = _blockChain.ProposeBlock(privateKey);
         _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
         Assert.Empty(_blockChain.StagedTransactions.Keys);
 
@@ -510,11 +475,7 @@ public partial class BlockChainTest
         Assert.Equal(2, _blockChain.StagedTransactions.Keys.Count());
 
         // Tx with nonce 0 is mined.
-        Block block2 = _blockChain.ProposeBlock(
-            privateKey,
-            TestUtils.CreateBlockCommit(_blockChain.Tip),
-            [txs[0]],
-            []);
+        Block block2 = _blockChain.ProposeBlock(privateKey);
         _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
         Assert.Equal(1, _blockChain.StagedTransactions.Keys.Count());
 
@@ -528,11 +489,7 @@ public partial class BlockChainTest
         Assert.Equal(2, _blockChain.StagedTransactions.Keys.Count());
 
         // Unmined tx is left intact in the stage.
-        Block block3 = _blockChain.ProposeBlock(
-            privateKey,
-            TestUtils.CreateBlockCommit(_blockChain.Tip),
-            [txs[1]],
-            []);
+        Block block3 = _blockChain.ProposeBlock(privateKey);
         _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
         Assert.Empty(_blockChain.StagedTransactions.Keys);
         Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
@@ -726,30 +683,28 @@ public partial class BlockChainTest
             }.Sign(fx.Proposer),
         };
     var evs = Array.Empty<EvidenceBase>();
-    RawBlock preEvalGenesis = RawBlock.Create(
-        new BlockHeader
+    RawBlock preEvalGenesis = new RawBlock
+    {
+        Header = new BlockHeader
         {
             Height = 0,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = fx.Proposer.Address,
             PreviousHash = default,
         },
-        new BlockContent
+        Content = new BlockContent
         {
             Transactions = [.. txs],
             Evidences = [.. evs],
-        });
+        },
+    };
     var genesis = preEvalGenesis.Sign(
         fx.Proposer,
         actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputState);
     var blockChain = BlockChain.Create(
         options: policy,
         genesisBlock: genesis);
-    var emptyBlock = blockChain.ProposeBlock(
-        fx.Proposer,
-        TestUtils.CreateBlockCommit(blockChain.Tip),
-        [],
-        []);
+    var emptyBlock = blockChain.ProposeBlock(fx.Proposer);
     blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
         Assert.Equal<byte>(
             blockChain.GetWorld(genesis.StateRootHash).Trie.Hash.Bytes,
@@ -811,11 +766,7 @@ public partial class BlockChainTest
             GenesisHash = genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(proposer);
-        var blockAfterBump1 = blockChain.ProposeBlock(
-            proposer,
-            commitBeforeBump,
-            [tx],
-            evidences: []);
+        var blockAfterBump1 = blockChain.ProposeBlock(proposer);
         Assert.Equal(
             BlockHeader.CurrentProtocolVersion,
             blockAfterBump1.Version);
@@ -832,11 +783,7 @@ public partial class BlockChainTest
             GenesisHash = genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(proposer);
-        var blockAfterBump2 = blockChain.ProposeBlock(
-            proposer,
-            commitAfterBump1,
-            [tx],
-            evidences: []);
+        var blockAfterBump2 = blockChain.ProposeBlock(proposer);
         Assert.Equal(
             BlockHeader.CurrentProtocolVersion,
             blockAfterBump2.Version);
