@@ -8,5 +8,5 @@ internal sealed class TransactionService(IBlockChainService blockChainService)
     private readonly BlockChain _blockChain = blockChainService.BlockChain;
 
     public void StageTransaction(Transaction transaction) =>
-        _blockChain.StageTransaction(transaction);
+        _blockChain.StagedTransactions.Add(transaction);
 }

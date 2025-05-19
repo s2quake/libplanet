@@ -41,7 +41,7 @@ internal static class BlockChainUtility
         BlockChain blockChain, PrivateKey privateKey, IAction[] actions)
     {
         var transaction = CreateTransaction(blockChain, privateKey, actions);
-        blockChain.StageTransaction(transaction);
+        blockChain.StagedTransactions.Add(transaction);
     }
 
     public static Transaction CreateTransaction(

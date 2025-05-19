@@ -17,21 +17,21 @@ public sealed record class TransactionMetadata : IEquatable<TransactionMetadata>
     [NotDefault]
     public required Address Signer { get; init; }
 
+    [Property(2)]
+    public BlockHash GenesisHash { get; init; }
+
     [Property(3)]
-    public required ImmutableArray<ActionBytecode> Actions { get; init; }
+    public ImmutableArray<ActionBytecode> Actions { get; init; } = [];
 
     [Property(4)]
-    public FungibleAssetValue? MaxGasPrice { get; init; }
-
-    [Property(5)]
-    [NonNegative]
-    public long GasLimit { get; init; }
-
-    [Property(6)]
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
-    [Property(7)]
-    public BlockHash GenesisHash { get; init; }
+    [Property(5)]
+    public FungibleAssetValue? MaxGasPrice { get; init; }
+
+    [Property(6)]
+    [NonNegative]
+    public long GasLimit { get; init; }
 
     public bool Equals(TransactionMetadata? other) => ModelResolver.Equals(this, other);
 

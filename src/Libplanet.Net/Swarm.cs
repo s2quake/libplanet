@@ -1270,7 +1270,7 @@ namespace Libplanet.Net
                         () =>
                         {
                             List<TxId> txIds = BlockChain
-                                .GetStagedTransactionIds()
+                                .StagedTransactions.Keys
                                 .ToList();
 
                             if (txIds.Any())

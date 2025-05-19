@@ -220,7 +220,7 @@ namespace Libplanet.Explorer.Queries
                     }
                     else
                     {
-                        return blockChain.GetStagedTransactionIds().Contains(txId)
+                        return blockChain.StagedTransactions.Keys.Contains(txId)
                             ? new TxResult
                             {
                                 TxStatus = TxStatus.STAGING,

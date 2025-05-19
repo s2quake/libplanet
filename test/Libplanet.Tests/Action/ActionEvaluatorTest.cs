@@ -149,7 +149,7 @@ public partial class ActionEvaluatorTest
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(privateKey);
 
-        chain.StageTransaction(tx);
+        chain.StagedTransactions.Add(tx);
         var miner = new PrivateKey();
         var block = chain.ProposeBlock(miner);
         chain.Append(block, CreateBlockCommit(block));
@@ -1120,7 +1120,7 @@ public partial class ActionEvaluatorTest
             }.ToBytecodes(),
         }.Sign(privateKey);
 
-        chain.StageTransaction(tx);
+        chain.StagedTransactions.Add(tx);
         var miner = new PrivateKey();
         Block block = chain.ProposeBlock(miner);
 
@@ -1171,7 +1171,7 @@ public partial class ActionEvaluatorTest
             GasLimit = 5,
         }.Sign(privateKey);
 
-        chain.StageTransaction(tx);
+        chain.StagedTransactions.Add(tx);
         var miner = new PrivateKey();
         Block block = chain.ProposeBlock(miner);
 

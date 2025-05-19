@@ -136,7 +136,7 @@ namespace Libplanet.Net
                 {
                     try
                     {
-                        if (_blockChain.StageTransaction(tx))
+                        if (_blockChain.StagedTransactions.Add(tx))
                         {
                             stagedTxs.Add(tx);
                         }

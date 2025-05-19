@@ -609,7 +609,7 @@ namespace Libplanet.Net.Tests
                 GenesisHash = chainB.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(txKey);
-            chainB.StageTransaction(tx);
+            chainB.StagedTransactions.Add(tx);
             Block block = chainB.ProposeBlock(keyB);
             chainB.Append(block, TestUtils.CreateBlockCommit(block));
 
@@ -928,8 +928,8 @@ namespace Libplanet.Net.Tests
                 Assert.Throws<KeyNotFoundException>(
                     () => swarmB.BlockChain.Transactions[invalidTx.Id]);
 
-                Assert.Contains(validTx.Id, swarmB.BlockChain.GetStagedTransactionIds());
-                Assert.DoesNotContain(invalidTx.Id, swarmB.BlockChain.GetStagedTransactionIds());
+                Assert.Contains(validTx.Id, swarmB.BlockChain.StagedTransactions.Keys);
+                Assert.DoesNotContain(invalidTx.Id, swarmB.BlockChain.StagedTransactions.Keys);
             }
             finally
             {
@@ -986,7 +986,7 @@ namespace Libplanet.Net.Tests
                 await swarmB.TxReceived.WaitAsync();
 
                 Assert.Throws<KeyNotFoundException>(() => swarmB.BlockChain.Transactions[tx.Id]);
-                Assert.DoesNotContain(tx.Id, swarmB.BlockChain.GetStagedTransactionIds());
+                Assert.DoesNotContain(tx.Id, swarmB.BlockChain.StagedTransactions.Keys);
             }
             finally
             {

@@ -144,21 +144,6 @@ public partial class BlockChain
         Append(block, blockCommit, render: true, validate: validate);
     }
 
-    public bool StageTransaction(Transaction transaction)
-    {
-        if (!transaction.GenesisHash.Equals(Genesis.BlockHash))
-        {
-            var msg = "GenesisHash of the transaction is not compatible " +
-                      "with the BlockChain.Genesis.Hash.";
-            throw new InvalidOperationException(
-                msg);
-        }
-
-        return StagedTransactions.Stage(transaction);
-    }
-
-    public bool UnstageTransaction(Transaction transaction) => StagedTransactions.Unstage(transaction.Id);
-
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 
     public Transaction MakeTransaction(
@@ -180,14 +165,9 @@ public partial class BlockChain
                 GasLimit = gasLimit,
                 Timestamp = timestamp ?? DateTimeOffset.UtcNow,
             }.Sign(privateKey);
-            StageTransaction(tx);
+            StagedTransactions.Add(tx);
             return tx;
         }
-    }
-
-    public IImmutableSet<TxId> GetStagedTransactionIds()
-    {
-        return StagedTransactions.Iterate().Select(tx => tx.Id).ToImmutableHashSet();
     }
 
     public IReadOnlyList<BlockHash> FindNextHashes(BlockLocator locator, int count = 500)
@@ -392,7 +372,7 @@ public partial class BlockChain
                     block.BlockHash);
                 foreach (Transaction tx in block.Transactions)
                 {
-                    UnstageTransaction(tx);
+                    StagedTransactions.Remove(tx.Id);
                 }
 
                 _logger.Information(
@@ -572,7 +552,7 @@ public partial class BlockChain
                     block.BlockHash);
                 foreach (Transaction tx in block.Transactions)
                 {
-                    UnstageTransaction(tx);
+                    StagedTransactions.Remove(tx.Id);
                 }
 
                 _logger.Information(

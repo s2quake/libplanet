@@ -110,7 +110,7 @@ public sealed class IntegerSet
                         (trie, pair) => trie.Set(pair.Key, ModelSerializer.SerializeToBytes(pair.Value)))).Hash;
                 return (nextState, nextRootHash);
             });
-        Chain.StageTransaction(tx);
+        Chain.StagedTransactions.Add(tx);
         ImmutableArray<(BigInteger, HashDigest<SHA256>)> expectedDelta = tx.Actions
             .Aggregate(
                 ImmutableArray.Create(stagedStates),

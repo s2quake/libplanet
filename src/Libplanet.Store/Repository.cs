@@ -20,6 +20,11 @@ public sealed class Repository : IDisposable
 
     private bool _disposed;
 
+    public Repository()
+        : this(new MemoryDatabase())
+    {
+    }
+
     public Repository(IDatabase database)
     {
         _database = database;
