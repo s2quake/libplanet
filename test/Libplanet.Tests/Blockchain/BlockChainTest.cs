@@ -969,8 +969,7 @@ public partial class BlockChainTest : IDisposable
         var txIds = _blockChain.GetStagedTransactionIds();
 
         var nonces = txIds
-            .Select(id => _stagePolicy.Get(id)
-                ?? _blockChain.Transactions[id])
+            .Select(id => _stagePolicy.GetValueOrDefault(id, _blockChain.Transactions[id]))
             .Select(tx => tx.Nonce)
             .OrderBy(nonce => nonce)
             .ToArray();

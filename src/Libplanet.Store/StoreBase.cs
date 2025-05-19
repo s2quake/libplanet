@@ -134,6 +134,29 @@ public abstract class StoreBase<TKey, TValue>
         return true;
     }
 
+    public bool TryAdd<T>(T value)
+        where T : TValue, IHasKey<TKey>
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+        var key = value.Key;
+        if (_cache.TryGet(key, out _))
+        {
+            return false;
+        }
+
+        if (_dictionary.ContainsKey(GetKeyBytes(key)))
+        {
+            return false;
+        }
+
+        OnAdd(key, value);
+        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _cache.AddOrUpdate(key, value);
+        OnAddComplete(key, value);
+        return true;
+    }
+
     public void Add(TKey key, TValue value)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);

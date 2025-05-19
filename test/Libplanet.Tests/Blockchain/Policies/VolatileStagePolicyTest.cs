@@ -16,13 +16,13 @@ public class VolatileStagePolicyTest : StagePolicyTest
             [],
             timestamp: DateTimeOffset.UtcNow - StagePolicy.Lifetime + timeBuffer);
         Assert.True(StagePolicy.Stage(tx));
-        Assert.Equal(tx, StagePolicy.Get(tx.Id));
+        Assert.Equal(tx, StagePolicy[tx.Id]);
         Assert.Contains(tx, StagePolicy.Iterate());
 
         // On some targets TimeSpan * int does not exist.
         Thread.Sleep(timeBuffer);
         Thread.Sleep(timeBuffer);
-        Assert.Null(StagePolicy.Get(tx.Id));
+        Assert.Null(StagePolicy[tx.Id]);
         Assert.DoesNotContain(tx, StagePolicy.Iterate());
     }
 
