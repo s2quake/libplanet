@@ -90,7 +90,7 @@ public class TransactionQueryGeneratedTest
     [Fact]
     public virtual async Task Transactions()
     {
-        var allBlocks = Fx.Chain.IterateBlocks().ToImmutableArray();
+        var allBlocks = Fx.Chain.Blocks.Values.ToImmutableArray();
         await AssertTransactionsQueryPermutation(allBlocks, null, null);
         foreach (var signer in Fx.PrivateKeys.Select(pk => pk.Address))
         {

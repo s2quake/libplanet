@@ -101,33 +101,6 @@ public partial class BlockChain
         return rawBlock.Sign(proposer, stateRootHash);
     }
 
-    /// <summary>
-    /// Gathers <see cref="Transaction"/>s for proposing a <see cref="Block"/> for
-    /// index <pararef name="index"/>.  Gathered <see cref="Transaction"/>s are
-    /// guaranteed to satisfied the following <see cref="Transaction"/> related
-    /// policies:
-    /// <list type="bullet">
-    ///     <item><description>
-    ///         <see cref="BlockChainOptions.MaxTransactionsBytes"/>
-    ///     </description></item>
-    ///     <item><description>
-    ///         <see cref="BlockChainOptions.MaxTransactionsPerBlock"/>
-    ///     </description></item>
-    ///     <item><description>
-    ///         <see cref="BlockChainOptions.MaxTransactionsPerSignerPerBlock"/>
-    ///     </description></item>
-    ///     <item><description>
-    ///         <see cref="BlockChainOptions.MinTransactionsPerBlock"/>
-    ///     </description></item>
-    /// </list>
-    /// </summary>
-    /// <param name="height">The index of the <see cref="Block"/> to propose.</param>
-    /// <param name="txPriority">An optional comparer for give certain transactions to
-    /// priority to belong to the block.  No certain priority by default.</param>
-    /// <returns>An <see cref="ImmutableList"/> of <see cref="Transaction"/>s
-    /// to propose.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when not all policies
-    /// can be satisfied.</exception>
     internal ImmutableArray<Transaction> GatherTransactionsToPropose(
         int height, IComparer<Transaction>? txPriority = null)
         => GatherTransactionsToPropose(
