@@ -95,8 +95,9 @@ public partial class ActionEvaluatorTest
         };
         var evs = Array.Empty<EvidenceBase>();
         var stateStore = new TrieStateStore();
-        var noStateRootBlock = RawBlock.Create(
-            new BlockHeader
+        var noStateRootBlock = new RawBlock
+        {
+            Header = new BlockHeader
             {
                 Version = BlockHeader.CurrentProtocolVersion,
                 Height = 0,
@@ -104,11 +105,12 @@ public partial class ActionEvaluatorTest
                 Proposer = GenesisProposer.Address,
                 PreviousHash = default,
             },
-            new BlockContent
+            Content = new BlockContent
             {
                 Transactions = [.. txs],
                 Evidences = [.. evs],
-            });
+            },
+        };
         var actionEvaluator = new ActionEvaluator(stateStore);
         Block stateRootBlock = noStateRootBlock.Sign(
             GenesisProposer,
@@ -213,11 +215,7 @@ public partial class ActionEvaluatorTest
             chain.GetNextWorld().GetValue(LegacyAccount, _endTxValueAddress));
 
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: [.. txs],
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidences: []);
+        var block = chain.ProposeBlock(proposer: GenesisProposer);
         var evaluations = actionEvaluator.Evaluate(
             (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.BlockHash)).ToArray();
 
@@ -274,11 +272,7 @@ public partial class ActionEvaluatorTest
         var (chain, actionEvaluator) = TestUtils.MakeBlockChainAndActionEvaluator(options: policyWithExceptions);
 
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        var block = chain.ProposeBlock(
-            GenesisProposer,
-            CreateBlockCommit(chain.Tip),
-            [.. txs],
-            []);
+        var block = chain.ProposeBlock(GenesisProposer);
         var evaluations = actionEvaluator.Evaluate(
             (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.BlockHash)).ToArray();
 
@@ -675,18 +669,20 @@ public partial class ActionEvaluatorTest
         }.Sign(_txFx.PrivateKey1);
         var txs = new Transaction[] { tx };
         var evs = Array.Empty<EvidenceBase>();
-        var block = RawBlock.Create(
-            new BlockHeader
+        var block = new RawBlock
+        {
+            Header = new BlockHeader
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = keys[0].Address,
             },
-            new BlockContent
+            Content = new BlockContent
             {
                 Transactions = [.. txs],
                 Evidences = [.. evs],
-            });
+            },
+        };
         TrieStateStore stateStore = new TrieStateStore();
         World world = World.Create(stateStore)
             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
@@ -773,8 +769,9 @@ public partial class ActionEvaluatorTest
         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
         var stateStore = new TrieStateStore();
         var actionEvaluator = new ActionEvaluator(stateStore);
-        var block = RawBlock.Create(
-            new BlockHeader
+        var block = new RawBlock
+        {
+            Header = new BlockHeader
             {
                 Height = 123,
                 Timestamp = DateTimeOffset.UtcNow,
@@ -782,11 +779,12 @@ public partial class ActionEvaluatorTest
                 PreviousHash = hash,
                 LastCommit = CreateBlockCommit(hash, 122, 0),
             },
-            new BlockContent
+            Content = new BlockContent
             {
                 Transactions = txs,
                 Evidences = [],
-            });
+            },
+        };
         var world = stateStore.GetWorld(default);
         var nextWorld = actionEvaluator.EvaluateTx(block, tx, world)[^1].OutputWorld;
 
@@ -916,11 +914,7 @@ public partial class ActionEvaluatorTest
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: [.. txs],
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidences: []);
+        var block = chain.ProposeBlock(proposer: GenesisProposer);
 
         World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateBeginBlockActions(
@@ -958,11 +952,7 @@ public partial class ActionEvaluatorTest
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            GenesisProposer,
-            CreateBlockCommit(chain.Tip),
-            [.. txs],
-            []);
+        var block = chain.ProposeBlock(GenesisProposer);
 
         World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateEndBlockActions(
@@ -1001,11 +991,7 @@ public partial class ActionEvaluatorTest
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: [.. txs],
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidences: []);
+        var block = chain.ProposeBlock(proposer: GenesisProposer);
 
         World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateBeginTxActions(
@@ -1047,11 +1033,7 @@ public partial class ActionEvaluatorTest
             privateKey: GenesisProposer);
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var genesis = chain.Genesis;
-        var block = chain.ProposeBlock(
-            proposer: GenesisProposer,
-            transactions: [.. txs],
-            lastCommit: CreateBlockCommit(chain.Tip),
-            evidences: []);
+        var block = chain.ProposeBlock(proposer: GenesisProposer);
 
         World previousState = chain.GetWorld(stateRootHash: default);
         var evaluations = actionEvaluator.EvaluateEndTxActions(

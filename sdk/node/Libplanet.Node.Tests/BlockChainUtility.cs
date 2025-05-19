@@ -15,9 +15,7 @@ internal static class BlockChainUtility
     {
         var tip = blockChain.Tip;
         var height = tip.Height + 1;
-        var block = blockChain.ProposeBlock(
-            proposer: privateKey,
-            lastCommit: blockChain.GetBlockCommit(tip.BlockHash));
+        var block = blockChain.ProposeBlock(proposer: privateKey);
         blockChain.Append(
             block,
             blockChain.GetBlockCommit(tip.BlockHash),

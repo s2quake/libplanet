@@ -348,7 +348,7 @@ namespace Libplanet.Net.Tests.Consensus
             var block1 = blockChain.ProposeBlock(new PrivateKey());
             var block1Commit = TestUtils.CreateBlockCommit(block1);
             blockChain.Append(block1, block1Commit);
-            var block2 = blockChain.ProposeBlock(new PrivateKey(), block1Commit);
+            var block2 = blockChain.ProposeBlock(new PrivateKey());
             var block2Commit = TestUtils.CreateBlockCommit(block2);
             blockChain.Append(block2, block2Commit);
 

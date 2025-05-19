@@ -53,15 +53,17 @@ public partial class BlockChainTest : IDisposable
         _stagePolicy = _blockChain.StagedTransactions;
 
         _validNext = _blockChain.EvaluateAndSign(
-            RawBlock.Create(
-                new BlockHeader
+            new RawBlock
+            {
+                Header = new BlockHeader
                 {
                     Version = BlockHeader.CurrentProtocolVersion,
                     Height = 1,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
                     Proposer = _fx.Proposer.Address,
                     PreviousHash = _fx.GenesisBlock.BlockHash,
-                }),
+                },
+            },
             _fx.Proposer);
     }
 
@@ -77,7 +79,7 @@ public partial class BlockChainTest : IDisposable
         var key = new PrivateKey();
         Block block1 = chain1.ProposeBlock(key);
         chain1.Append(block1, CreateBlockCommit(block1));
-        Block block2 = chain1.ProposeBlock(key, CreateBlockCommit(chain1.Tip));
+        Block block2 = chain1.ProposeBlock(key);
         chain1.Append(block2, CreateBlockCommit(block2));
         Assert.Equal(chain1.Id, _fx.Store.ChainId);
         Assert.Equal(chain1.Id, _fx.Store.ChainId);
@@ -135,15 +137,13 @@ public partial class BlockChainTest : IDisposable
         _blockChain.Append(b1, CreateBlockCommit(b1));
         Assert.Equal(new[] { genesis.BlockHash, b1.BlockHash }, _blockChain.Blocks.Keys);
 
-        Block b2 = _blockChain.ProposeBlock(
-            key, CreateBlockCommit(_blockChain.Tip));
+        Block b2 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b2, CreateBlockCommit(b2));
         Assert.Equal(
             new[] { genesis.BlockHash, b1.BlockHash, b2.BlockHash },
             _blockChain.Blocks.Keys);
 
-        Block b3 = _blockChain.ProposeBlock(
-            key, CreateBlockCommit(_blockChain.Tip));
+        Block b3 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b3, CreateBlockCommit(b3));
         Assert.Equal(
             new[] { genesis.BlockHash, b1.BlockHash, b2.BlockHash, b3.BlockHash },
@@ -241,8 +241,7 @@ public partial class BlockChainTest : IDisposable
         }.Sign(tx2Key);
 
         chain.StagedTransactions.Add(tx2);
-        Block block2 = chain.ProposeBlock(
-            new PrivateKey(), CreateBlockCommit(chain.Tip));
+        Block block2 = chain.ProposeBlock(new PrivateKey());
         chain.Append(block2, CreateBlockCommit(block2));
 
         result = (BattleResult)chain
@@ -267,8 +266,7 @@ public partial class BlockChainTest : IDisposable
                 },
             }.ToBytecodes(),
         }.Sign(tx3Key);
-        Block block3 = chain.ProposeBlock(
-            new PrivateKey(), CreateBlockCommit(chain.Tip));
+        Block block3 = chain.ProposeBlock(new PrivateKey());
         chain.StagedTransactions.Add(tx3);
         chain.Append(block3, CreateBlockCommit(block3));
         result = (BattleResult)chain
@@ -375,11 +373,9 @@ public partial class BlockChainTest : IDisposable
         var block0 = _blockChain.Genesis;
         var block1 = _blockChain.ProposeBlock(key);
         _blockChain.Append(block1, CreateBlockCommit(block1));
-        var block2 = _blockChain.ProposeBlock(
-            key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        var block2 = _blockChain.ProposeBlock(key);
         _blockChain.Append(block2, CreateBlockCommit(block2));
-        var block3 = _blockChain.ProposeBlock(
-            key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        var block3 = _blockChain.ProposeBlock(key);
         _blockChain.Append(block3, CreateBlockCommit(block3));
 
         hashes = _blockChain.FindNextHashes(new BlockLocator(block0.BlockHash));
@@ -405,18 +401,10 @@ public partial class BlockChainTest : IDisposable
             _fx.MakeTransaction(actions, privateKey: privateKey),
         ];
 
-        Block b1 = _blockChain.ProposeBlock(
-            _fx.Proposer,
-            CreateBlockCommit(_blockChain.Tip),
-            txsA.ToImmutableSortedSet(),
-            []);
+        Block b1 = _blockChain.ProposeBlock(_fx.Proposer);
         _blockChain.Append(b1, TestUtils.CreateBlockCommit(b1));
 
-        Block b2 = _blockChain.ProposeBlock(
-            _fx.Proposer,
-            CreateBlockCommit(_blockChain.Tip),
-            txsA.ToImmutableSortedSet(),
-            []);
+        Block b2 = _blockChain.ProposeBlock(_fx.Proposer);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b2, CreateBlockCommit(b2)));
 
@@ -427,11 +415,7 @@ public partial class BlockChainTest : IDisposable
                 nonce: 1,
                 privateKey: privateKey),
         ];
-        b2 = _blockChain.ProposeBlock(
-            _fx.Proposer,
-            CreateBlockCommit(_blockChain.Tip),
-            txsB.ToImmutableSortedSet(),
-            []);
+        b2 = _blockChain.ProposeBlock(_fx.Proposer);
         _blockChain.Append(b2, CreateBlockCommit(b2));
     }
 
@@ -442,9 +426,7 @@ public partial class BlockChainTest : IDisposable
         List<Block> blocks = new List<Block>();
         foreach (var i in Enumerable.Range(0, 10))
         {
-            var block = _blockChain.ProposeBlock(
-                key,
-                lastCommit: CreateBlockCommit(_blockChain.Tip));
+            var block = _blockChain.ProposeBlock(key);
             _blockChain.Append(block, CreateBlockCommit(block));
             blocks.Add(block);
         }
@@ -471,9 +453,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(blockCommit1, _blockChain.GetBlockCommit(block1.BlockHash));
 
         // BlockCommit is retrieved from lastCommit.
-        Block block2 = _blockChain.ProposeBlock(
-            new PrivateKey(),
-            lastCommit: CreateBlockCommit(_blockChain.Tip));
+        Block block2 = _blockChain.ProposeBlock(new PrivateKey());
         BlockCommit blockCommit2 = CreateBlockCommit(block2);
         _blockChain.Append(block2, blockCommit2);
 
@@ -569,11 +549,7 @@ public partial class BlockChainTest : IDisposable
                     Actions = actions.ToBytecodes(),
                 }.Sign(privateKey),
             ];
-            b = chain.ProposeBlock(
-                _fx.Proposer,
-                CreateBlockCommit(chain.Tip),
-                txs.ToImmutableSortedSet(),
-                []);
+            b = chain.ProposeBlock(_fx.Proposer);
             chain.Append(b, CreateBlockCommit(b));
         }
 
@@ -607,7 +583,7 @@ public partial class BlockChainTest : IDisposable
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
         {
-            b = chain.ProposeBlock(_fx.Proposer, CreateBlockCommit(chain.Tip));
+            b = chain.ProposeBlock(_fx.Proposer);
             chain.Append(b, CreateBlockCommit(b));
         }
 
@@ -655,8 +631,7 @@ public partial class BlockChainTest : IDisposable
             chain.MakeTransaction(key, new[] { DumbAction.Create((address, "1")) });
         }
 
-        Block block1 = chain.ProposeBlock(
-            privateKeys[0], lastCommit: CreateBlockCommit(chain.Tip));
+        Block block1 = chain.ProposeBlock(privateKeys[0]);
 
         chain.Append(block1, CreateBlockCommit(block1));
 
@@ -678,8 +653,7 @@ public partial class BlockChainTest : IDisposable
         }
 
         chain.MakeTransaction(privateKeys[0], new[] { DumbAction.Create((addresses[0], "2")) });
-        Block block2 = chain.ProposeBlock(
-            privateKeys[0], lastCommit: CreateBlockCommit(chain.Tip));
+        Block block2 = chain.ProposeBlock(privateKeys[0]);
         chain.Append(block2, CreateBlockCommit(block2));
         Assert.Equal(
             "1,2",
@@ -702,14 +676,11 @@ public partial class BlockChainTest : IDisposable
         var key = new PrivateKey();
         Block b1 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b1, CreateBlockCommit(b1));
-        Block b2 = _blockChain.ProposeBlock(
-            key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        Block b2 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b2, CreateBlockCommit(b2));
-        Block b3 = _blockChain.ProposeBlock(
-            key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        Block b3 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b3, CreateBlockCommit(b3));
-        Block b4 = _blockChain.ProposeBlock(
-            key, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        Block b4 = _blockChain.ProposeBlock(key);
         _blockChain.Append(b4, CreateBlockCommit(b4));
 
         Assert.Equal(b1.PreviousHash, _blockChain.Genesis.BlockHash);
@@ -726,8 +697,7 @@ public partial class BlockChainTest : IDisposable
             var fork = BlockChain.Create(forkFx.GenesisBlock, _blockChain.Options);
             fork.Append(b1, CreateBlockCommit(b1));
             fork.Append(b2, CreateBlockCommit(b2));
-            Block b5 = fork.ProposeBlock(
-                key, lastCommit: CreateBlockCommit(fork.Tip));
+            Block b5 = fork.ProposeBlock(key);
             fork.Append(b5, CreateBlockCommit(b5));
 
             // Testing emptyChain
@@ -762,11 +732,7 @@ public partial class BlockChainTest : IDisposable
             _fx.MakeTransaction(actions, privateKey: privateKey, nonce: 0),
         ];
 
-        Block b1 = _blockChain.ProposeBlock(
-            _fx.Proposer,
-            CreateBlockCommit(_blockChain.Tip),
-            txsA.ToImmutableSortedSet(),
-            []);
+        Block b1 = _blockChain.ProposeBlock(_fx.Proposer);
         _blockChain.Append(b1, CreateBlockCommit(b1));
 
         Assert.Equal(1, _blockChain.GetNextTxNonce(address));
@@ -1002,14 +968,11 @@ public partial class BlockChainTest : IDisposable
         var miner2 = new PrivateKey();
         var rewardRecordAddress = MinerReward.RewardRecordAddress;
 
-        Block block1 = _blockChain.ProposeBlock(
-            miner1, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        Block block1 = _blockChain.ProposeBlock(miner1);
         _blockChain.Append(block1, CreateBlockCommit(block1));
-        Block block2 = _blockChain.ProposeBlock(
-            miner1, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        Block block2 = _blockChain.ProposeBlock(miner1);
         _blockChain.Append(block2, CreateBlockCommit(block2));
-        Block block3 = _blockChain.ProposeBlock(
-            miner2, lastCommit: CreateBlockCommit(_blockChain.Tip));
+        Block block3 = _blockChain.ProposeBlock(miner2);
         _blockChain.Append(block3, CreateBlockCommit(block3));
 
         var miner1state = (int)_blockChain
@@ -1318,8 +1281,8 @@ public partial class BlockChainTest : IDisposable
         Libplanet.Store.Repository store = new Libplanet.Store.Repository(new MemoryDatabase());
         var stateStore = new TrieStateStore();
 
-        var genesisBlockA = BlockChain.ProposeGenesisBlock(new PrivateKey());
-        var genesisBlockB = BlockChain.ProposeGenesisBlock(new PrivateKey());
+        var genesisBlockA = BlockChain.ProposeGenesisBlock(new PrivateKey(), []);
+        var genesisBlockB = BlockChain.ProposeGenesisBlock(new PrivateKey(), []);
 
         var blockChain = BlockChain.Create(genesisBlockA, policy);
 
@@ -1491,8 +1454,7 @@ public partial class BlockChainTest : IDisposable
                     Validator = Validator.Create(new PrivateKey().Address),
                 },
             });
-        var nextBlock = blockChain.ProposeBlock(
-            new PrivateKey(), lastCommit: newBlockCommit);
+        var nextBlock = blockChain.ProposeBlock(new PrivateKey());
         var nextBlockCommit = new BlockCommit
         {
             Height = nextBlock.Height,
@@ -1523,8 +1485,7 @@ public partial class BlockChainTest : IDisposable
                     Validator = Validator.Create(new PrivateKey().Address),
                 },
             });
-        var invalidCommitBlock = blockChain.ProposeBlock(
-            new PrivateKey(), lastCommit: nextBlockCommit);
+        var invalidCommitBlock = blockChain.ProposeBlock(new PrivateKey());
 
         Assert.Throws<InvalidOperationException>(
             () => blockChain.Append(

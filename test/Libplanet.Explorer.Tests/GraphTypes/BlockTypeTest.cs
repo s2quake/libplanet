@@ -40,15 +40,17 @@ public class BlockTypeTest
             BlockHash = lastBlockHash,
             Votes = lastVotes,
         };
-        var preEval = RawBlock.Create(
-            new BlockHeader
+        var preEval = new RawBlock
+        {
+            Header = new BlockHeader
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = privateKey.Address,
                 PreviousHash = lastBlockHash,
                 LastCommit = lastBlockCommit,
-            });
+            },
+        };
         var stateRootHash =
             new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
         // var signature = RawBlock.MakeSignature(privateKey, stateRootHash);

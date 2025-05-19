@@ -170,8 +170,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             var key = new PrivateKey();
             var differentBlock = blockChain.EvaluateAndSign(
-                RawBlock.Create(
-                    new BlockHeader
+                new RawBlock
+                {
+                    Header = new BlockHeader
                     {
                         Version = BlockHeader.CurrentProtocolVersion,
                         Height = blockChain.Tip.Height + 1,
@@ -179,9 +180,7 @@ namespace Libplanet.Net.Tests.Consensus
                         Proposer = key.Address,
                         PreviousHash = blockChain.Tip.BlockHash,
                     },
-                    new BlockContent
-                    {
-                    }),
+                },
                 key);
 
             context.Start();

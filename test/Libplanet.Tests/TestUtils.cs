@@ -418,7 +418,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Transactions = [.. txs],
                 Evidences = [],
             };
-            return RawBlock.Create(metadata, content);
+            return new RawBlock { Header = metadata, Content = content };
         }
 
         public static Block ProposeGenesisBlock(
@@ -472,7 +472,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 Transactions = txs,
                 Evidences = evs,
             };
-            var preEval = RawBlock.Create(metadata, content);
+            var preEval = new RawBlock { Header = metadata, Content = content };
             preEval.Header.Timestamp.ValidateTimestamp();
             return preEval;
         }

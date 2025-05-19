@@ -50,8 +50,7 @@ namespace Libplanet.Net.Tests
                                 new[] { DumbAction.Create((address, $"Item{i}.{j}")) });
                         }
 
-                        Block block = chain.ProposeBlock(
-                            miner, CreateBlockCommit(chain.Tip));
+                        Block block = chain.ProposeBlock(miner);
                         Log.Logger.Information("  #{0,2} {1}", block.Height, block.BlockHash);
                         chain.Append(block, CreateBlockCommit(block));
                     }

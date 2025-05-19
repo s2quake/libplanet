@@ -80,7 +80,7 @@ public class ConsensusContextTest
         var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);
         blockChain.Append(block, blockCommit);
-        block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2], blockCommit);
+        block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2]);
         blockChain.Append(block, TestUtils.CreateBlockCommit(block));
         Assert.Equal(2, blockChain.Tip.Height);
 

@@ -50,7 +50,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockCommit = TestUtils.CreateBlockCommit(block);
             consensusContext.Start();
             blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
             await consensusProposalMsgAt3Task;
@@ -96,15 +96,15 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(0, consensusContext.Round);
 
             blockCommit = blockChain.GetBlockCommit(blockChain.Tip.BlockHash);
-            block = blockChain.ProposeBlock(privateKeys[0], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[0]);
             blockCommit = TestUtils.CreateBlockCommit(block);
             blockChain.Append(block, blockCommit);
 
-            block = blockChain.ProposeBlock(privateKeys[1], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[1]);
             blockCommit = TestUtils.CreateBlockCommit(block);
             blockChain.Append(block, blockCommit);
 
-            block = blockChain.ProposeBlock(privateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[2]);
             blockCommit = TestUtils.CreateBlockCommit(block);
             blockChain.Append(block, blockCommit);
 
@@ -133,7 +133,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockCommit = TestUtils.CreateBlockCommit(block);
             consensusContext.Start();
             blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
             await consensusProposalMsgAt3Task;
@@ -194,7 +194,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockCommit = TestUtils.CreateBlockCommit(block);
             consensusContext.Start();
             blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
             await consensusProposalMsgAt3Task;
@@ -255,7 +255,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockCommit = TestUtils.CreateBlockCommit(block);
             consensusContext.Start();
             blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
             await consensusProposalMsgAt3Task;
@@ -316,7 +316,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockCommit = TestUtils.CreateBlockCommit(block);
             consensusContext.Start();
             blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
             await consensusProposalMsgAt3Task;
@@ -377,7 +377,7 @@ namespace Libplanet.Net.Tests.Consensus
             var blockCommit = TestUtils.CreateBlockCommit(block);
             consensusContext.Start();
             blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2], blockCommit);
+            block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
             await consensusProposalMsgAt3Task;

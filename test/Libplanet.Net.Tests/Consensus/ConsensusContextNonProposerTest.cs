@@ -227,9 +227,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var blockHeightTwo = ModelSerializer.DeserializeFromBytes<Block>(
                 proposal.Proposal.MarshaledBlock);
-            var blockHeightThree = blockChain.ProposeBlock(
-                TestUtils.PrivateKeys[3],
-                TestUtils.CreateBlockCommit(blockHeightTwo));
+            var blockHeightThree = blockChain.ProposeBlock(TestUtils.PrivateKeys[3]);
 
             // Message from higher height
             consensusContext.HandleMessage(

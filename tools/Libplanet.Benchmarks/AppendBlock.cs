@@ -102,7 +102,7 @@ namespace Libplanet.Benchmarks
         private void PrepareAppend()
         {
             _lastCommit = TestUtils.CreateBlockCommit(_blockChain.Tip);
-            _block = _blockChain.ProposeBlock(_privateKey, _lastCommit);
+            _block = _blockChain.ProposeBlock(_privateKey);
             _commit = TestUtils.CreateBlockCommit(_block);
         }
     }

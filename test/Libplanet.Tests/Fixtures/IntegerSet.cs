@@ -94,7 +94,7 @@ public sealed class IntegerSet
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
         ITrie prevTrie = GetTrie(Chain.Tip.BlockHash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);
-        (BigInteger, HashDigest<SHA256>) stagedStates = Chain.ListStagedTransactions()
+        (BigInteger, HashDigest<SHA256>) stagedStates = Chain.StagedTransactions.Collect()
             .Where(t => t.Signer.Equals(signer))
             .OrderBy(t => t.Nonce)
             .SelectMany(t => t.Actions)
@@ -137,7 +137,7 @@ public sealed class IntegerSet
     public TxWithContext Sign(int signerIndex, params Arithmetic[] actions)
         => Sign(PrivateKeys[signerIndex], actions);
 
-    public Block Propose() => Chain.ProposeBlock(Proposer, TestUtils.CreateBlockCommit(Chain.Tip));
+    public Block Propose() => Chain.ProposeBlock(Proposer);
 
     public void Append(Block block) => Chain.Append(block, TestUtils.CreateBlockCommit(block));
 

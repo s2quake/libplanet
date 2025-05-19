@@ -497,7 +497,7 @@ namespace Libplanet.Net.Tests
 
             Block block1 = chainA.ProposeBlock(keyA);
             chainA.Append(block1, TestUtils.CreateBlockCommit(block1));
-            Block block2 = chainA.ProposeBlock(keyA, CreateBlockCommit(block1));
+            Block block2 = chainA.ProposeBlock(keyA);
             chainA.Append(block2, TestUtils.CreateBlockCommit(block2));
 
             try
@@ -544,11 +544,9 @@ namespace Libplanet.Net.Tests
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
 
-            Block block1 = chainA.ProposeBlock(
-                keyA, CreateBlockCommit(chainA.Tip));
+            Block block1 = chainA.ProposeBlock(keyA);
             chainA.Append(block1, TestUtils.CreateBlockCommit(block1));
-            Block block2 = chainA.ProposeBlock(
-                keyA, CreateBlockCommit(chainA.Tip));
+            Block block2 = chainA.ProposeBlock(keyA);
             chainA.Append(block2, TestUtils.CreateBlockCommit(block2));
 
             try
@@ -848,19 +846,16 @@ namespace Libplanet.Net.Tests
             var item = "foo";
 
             miner1.BlockChain.MakeTransaction(privKey, new[] { DumbAction.Create((addr, item)) });
-            Block block1 = miner1.BlockChain.ProposeBlock(
-                key1, CreateBlockCommit(miner1.BlockChain.Tip));
+            Block block1 = miner1.BlockChain.ProposeBlock(key1);
             miner1.BlockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
             var miner1TipHash = miner1.BlockChain.Tip.BlockHash;
 
             miner2.BlockChain.MakeTransaction(privKey, new[] { DumbAction.Create((addr, item)) });
-            Block block2 = miner2.BlockChain.ProposeBlock(
-                key2, CreateBlockCommit(miner2.BlockChain.Tip));
+            Block block2 = miner2.BlockChain.ProposeBlock(key2);
             miner2.BlockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
 
             miner2.BlockChain.MakeTransaction(privKey, new[] { DumbAction.Create((addr, item)) });
-            var latest = miner2.BlockChain.ProposeBlock(
-                key2, CreateBlockCommit(miner2.BlockChain.Tip));
+            var latest = miner2.BlockChain.ProposeBlock(key2);
             miner2.BlockChain.Append(latest, TestUtils.CreateBlockCommit(latest));
 
             await StartAsync(miner1);
@@ -1242,8 +1237,7 @@ namespace Libplanet.Net.Tests
 
             for (int i = 0; i < 6; i++)
             {
-                Block block = chain.ProposeBlock(
-                    GenesisProposer, TestUtils.CreateBlockCommit(chain.Tip));
+                Block block = chain.ProposeBlock(GenesisProposer);
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
@@ -1282,8 +1276,7 @@ namespace Libplanet.Net.Tests
 
             for (int i = 0; i < 6; i++)
             {
-                Block block = chain.ProposeBlock(
-                    GenesisProposer, TestUtils.CreateBlockCommit(chain.Tip));
+                Block block = chain.ProposeBlock(GenesisProposer);
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
@@ -1323,8 +1316,7 @@ namespace Libplanet.Net.Tests
 
             for (int i = 0; i < 6; i++)
             {
-                Block block = chain.ProposeBlock(
-                    GenesisProposer, CreateBlockCommit(chain.Tip));
+                Block block = chain.ProposeBlock(GenesisProposer);
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 

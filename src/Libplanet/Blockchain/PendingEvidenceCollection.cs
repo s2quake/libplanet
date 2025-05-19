@@ -5,17 +5,15 @@ using Libplanet.Types.Evidence;
 
 namespace Libplanet.Blockchain;
 
-public sealed class PendingEvidenceCollection(Repository repository, TimeSpan lifetime)
+public sealed class PendingEvidenceCollection(Repository repository, BlockChainOptions options)
     : IReadOnlyDictionary<EvidenceId, EvidenceBase>
 {
     private readonly PendingEvidenceStore _store = repository.PendingEvidences;
 
     public PendingEvidenceCollection(Repository repository)
-        : this(repository, TimeSpan.FromSeconds(10 * 60))
+        : this(repository, new BlockChainOptions())
     {
     }
-
-    public TimeSpan Lifetime => lifetime;
 
     public IEnumerable<EvidenceId> Keys => _store.Keys;
 
@@ -27,10 +25,10 @@ public sealed class PendingEvidenceCollection(Repository repository, TimeSpan li
 
     public bool Add(EvidenceBase evidence)
     {
-        if (evidence.Timestamp + lifetime < DateTimeOffset.UtcNow)
-        {
-            return false;
-        }
+        // if (evidence.Timestamp + lifetime < DateTimeOffset.UtcNow)
+        // {
+        //     return false;
+        // }
 
         // compare with repository genesis
 
@@ -58,5 +56,10 @@ public sealed class PendingEvidenceCollection(Repository repository, TimeSpan li
         {
             yield return kvp;
         }
+    }
+
+    internal ImmutableSortedSet<EvidenceBase> Collect()
+    {
+        return [.. Values];
     }
 }

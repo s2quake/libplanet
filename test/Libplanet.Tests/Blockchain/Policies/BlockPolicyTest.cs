@@ -163,7 +163,7 @@ namespace Libplanet.Tests.Blockchain.Policies
             var chain = TestUtils.MakeBlockChain(policy);
 
             _ = chain.MakeTransaction(privateKey, new DumbAction[] { });
-            Assert.Single(chain.ListStagedTransactions());
+            Assert.Single(chain.StagedTransactions.Collect());
 
             // Tests if MineBlock() method will throw an exception if less than the minimum
             // transactions are present
@@ -193,7 +193,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                     .Range(0, generatedTxCount)
                     .Select(_ => chain.MakeTransaction(privateKey, new DumbAction[] { }))
                     .ToList();
-            Assert.Equal(generatedTxCount, chain.ListStagedTransactions().Count);
+            Assert.Equal(generatedTxCount, chain.StagedTransactions.Collect().Count);
 
             var block = chain.ProposeBlock(privateKey);
             Assert.Equal(policyLimit, block.Transactions.Count);
@@ -224,7 +224,7 @@ namespace Libplanet.Tests.Blockchain.Policies
                     .Range(0, generatedTxCount)
                     .Select(_ => chain.MakeTransaction(key, new DumbAction[] { }))
                     .ToList());
-            Assert.Equal(generatedTxCount * keyCount, chain.ListStagedTransactions().Count);
+            Assert.Equal(generatedTxCount * keyCount, chain.StagedTransactions.Collect().Count);
 
             var block = chain.ProposeBlock(minerKey);
             Assert.Equal(policyLimit * keyCount, block.Transactions.Count);

@@ -10,8 +10,15 @@ public sealed class StagedTransactionCollectionTest
     [Fact]
     public void AddTransaction()
     {
+        var options = new BlockChainOptions
+        {
+            TransactionOptions = new TransactionOptions
+            {
+                LifeTime = TimeSpan.FromSeconds(1),
+            },
+        };
         var repository = new Repository();
-        var transactions = new StagedTransactionCollection(repository, TimeSpan.FromSeconds(1));
+        var transactions = new StagedTransactionCollection(repository, options);
         var privateKey = new PrivateKey();
         var tx = new TransactionMetadata
         {
@@ -24,8 +31,15 @@ public sealed class StagedTransactionCollectionTest
     [Fact]
     public void AddTransactionWithExpiredNonce()
     {
+        var options = new BlockChainOptions
+        {
+            TransactionOptions = new TransactionOptions
+            {
+                LifeTime = TimeSpan.FromSeconds(1),
+            },
+        };
         var repository = new Repository();
-        var transactions = new StagedTransactionCollection(repository, TimeSpan.FromSeconds(1));
+        var transactions = new StagedTransactionCollection(repository, options);
         var privateKey = new PrivateKey();
         var tx = new TransactionMetadata
         {

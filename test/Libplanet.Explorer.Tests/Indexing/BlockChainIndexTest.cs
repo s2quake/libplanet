@@ -35,12 +35,8 @@ public abstract class BlockChainIndexTest
         await index.SynchronizeAsync(ChainFx.Chain.Store, CancellationToken.None);
 
         var chain = ChainFx.Chain;
-        var block1 = chain.ProposeBlock(
-            ChainFx.PrivateKeys[0],
-            chain.GetBlockCommit(chain.Tip.BlockHash));
-        var block2 = chain.ProposeBlock(
-            ChainFx.PrivateKeys[0],
-            chain.GetBlockCommit(chain.Tip.BlockHash));
+        var block1 = chain.ProposeBlock(ChainFx.PrivateKeys[0]);
+        var block2 = chain.ProposeBlock(ChainFx.PrivateKeys[0]);
         await index.IndexAsync(
             ModelSerializer.Clone<BlockDigest>((BlockDigest)block1),
             block1.Transactions,
