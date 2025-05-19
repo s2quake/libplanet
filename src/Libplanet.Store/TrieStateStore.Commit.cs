@@ -25,7 +25,7 @@ public partial class TrieStateStore
             var hashDigest = HashDigest<SHA256>.Create(serialized);
 
             writeBatch.Add(new KeyBytes(hashDigest.Bytes), serialized);
-            newNode = new HashNode { Hash = hashDigest, Table = table };
+            newNode = new HashNode { Hash = hashDigest, Table = _table };
         }
 
         writeBatch.Flush();

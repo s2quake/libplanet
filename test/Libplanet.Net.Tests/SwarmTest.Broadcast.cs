@@ -440,7 +440,7 @@ namespace Libplanet.Net.Tests
             {
                 var options = new BlockChainOptions
                 {
-                    Store = fxs[i].Store,
+                    Repository = fxs[i].Store,
                 };
                 fxs[i] = new MemoryStoreFixture();
                 blockChains[i] = BlockChain.Create(fxs[i].GenesisBlock, options);

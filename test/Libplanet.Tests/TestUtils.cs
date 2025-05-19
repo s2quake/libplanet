@@ -549,7 +549,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             }.ToImmutableSortedSet();
 
         var actionEvaluator = new ActionEvaluator(
-            stateStore: new TrieStateStore(options.KeyValueStore),
+            stateStore: options.Repository.StateStore,
             options.PolicyActions);
 
             if (genesisBlock is null)

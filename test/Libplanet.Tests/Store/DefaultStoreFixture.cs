@@ -27,7 +27,7 @@ public sealed class DefaultStoreFixture(BlockChainOptions options, bool memory =
         //     TxCacheSize = 2,
         // };
         var store = new Libplanet.Store.Repository(new DefaultDatabase(path));
-        return options with { Store = store };
+        return options with { Repository = store };
     }
 
     // public TrieStateStore LoadTrieStateStore(string path)

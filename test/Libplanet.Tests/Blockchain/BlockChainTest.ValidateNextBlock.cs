@@ -228,7 +228,7 @@ namespace Libplanet.Tests.Blockchain
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
             var actionEvaluator = new ActionEvaluator(
-                new TrieStateStore(options1.KeyValueStore),
+                options1.Repository.StateStore,
                 options1.PolicyActions);
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
@@ -282,7 +282,7 @@ namespace Libplanet.Tests.Blockchain
                 BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
             };
             var actionEvaluator = new ActionEvaluator(
-                new TrieStateStore(options.KeyValueStore),
+                options.Repository.StateStore,
                 options.PolicyActions);
             var rawGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
