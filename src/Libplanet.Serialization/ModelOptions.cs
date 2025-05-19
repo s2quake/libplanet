@@ -17,5 +17,7 @@ public sealed record class ModelOptions : IServiceProvider
 
     public ImmutableDictionary<object, object?> Items { get; init; } = ImmutableDictionary<object, object?>.Empty;
 
+    public bool IsValidationEnabled { get; init; }
+
     public object? GetService(Type serviceType) => _serviceProvider?.GetService(serviceType);
 }

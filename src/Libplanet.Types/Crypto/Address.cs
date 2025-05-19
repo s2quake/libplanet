@@ -45,6 +45,18 @@ public readonly record struct Address(in ImmutableArray<byte> Bytes)
         }
     }
 
+    public bool Verify(ImmutableArray<byte> message, ImmutableArray<byte> signature)
+    {
+        try
+        {
+            return CryptoConfig.CryptoBackend.Verify([.. message], [.. signature], this);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     public bool Equals(Address other) => Bytes.SequenceEqual(other.Bytes);
 
     public override int GetHashCode() => ByteUtility.CalculateHashCode(ToByteArray());

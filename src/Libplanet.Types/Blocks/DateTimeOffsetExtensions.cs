@@ -5,10 +5,8 @@ public static class DateTimeOffsetExtensions
     private static readonly TimeSpan TimestampThreshold = TimeSpan.FromSeconds(15);
 
     public static void ValidateTimestamp(this DateTimeOffset @this)
-        => ValidateTimestamp(@this, DateTimeOffset.UtcNow);
-
-    public static void ValidateTimestamp(this DateTimeOffset @this, DateTimeOffset currentTime)
     {
+        var currentTime = DateTimeOffset.UtcNow;
         if (currentTime + TimestampThreshold < @this)
         {
             var message = $"The block #0's timestamp " +

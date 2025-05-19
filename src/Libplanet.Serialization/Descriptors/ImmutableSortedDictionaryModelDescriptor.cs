@@ -14,7 +14,7 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
         return [GetElementType(type)];
     }
 
-    public override object?[] GetValues(object obj, Type type)
+    public override object?[] Serialize(object obj, Type type, ModelOptions options)
     {
         if (obj is ICollection items)
         {
@@ -34,7 +34,7 @@ internal sealed class ImmutableSortedDictionaryModelDescriptor : ModelDescriptor
         }
     }
 
-    public override object CreateInstance(Type type, object?[] values)
+    public override object Deserialize(Type type, object?[] values, ModelOptions options)
     {
         var elementType = GetElementType(type);
         var listType = typeof(List<>).MakeGenericType(elementType);

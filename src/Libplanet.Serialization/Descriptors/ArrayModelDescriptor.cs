@@ -13,7 +13,7 @@ internal sealed class ArrayModelDescriptor : ModelDescriptor
         return [type.GetElementType()!];
     }
 
-    public override object?[] GetValues(object obj, Type type)
+    public override object?[] Serialize(object obj, Type type, ModelOptions options)
     {
         if (obj is IList items)
         {
@@ -31,7 +31,7 @@ internal sealed class ArrayModelDescriptor : ModelDescriptor
         }
     }
 
-    public override object CreateInstance(Type type, object?[] values)
+    public override object Deserialize(Type type, object?[] values, ModelOptions options)
     {
         var array = Array.CreateInstance(type.GetElementType()!, values.Length);
         for (var i = 0; i < values.Length; i++)

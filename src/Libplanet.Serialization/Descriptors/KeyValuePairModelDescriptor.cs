@@ -20,7 +20,7 @@ internal sealed class KeyValuePairModelDescriptor : ModelDescriptor
         return [genericArguments[0], genericArguments[1]];
     }
 
-    public override object?[] GetValues(object obj, Type type)
+    public override object?[] Serialize(object obj, Type type, ModelOptions options)
     {
         if (type.GetProperty(nameof(KeyValuePair<string, string>.Key)) is not { } keyProperty)
         {
@@ -35,7 +35,7 @@ internal sealed class KeyValuePairModelDescriptor : ModelDescriptor
         return [keyProperty.GetValue(obj), valueProperty.GetValue(obj)];
     }
 
-    public override object CreateInstance(Type type, object?[] values)
+    public override object Deserialize(Type type, object?[] values, ModelOptions options)
         => TypeUtility.CreateInstance(type, args: [values[0], values[1]]);
 
     public override bool Equals(object obj1, object obj2, Type type)

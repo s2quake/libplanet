@@ -19,7 +19,7 @@ internal sealed class TupleModelDescriptor : ModelDescriptor
         return genericArguments;
     }
 
-    public override object?[] GetValues(object obj, Type type)
+    public override object?[] Serialize(object obj, Type type, ModelOptions options)
     {
         var genericArguments = type.GetGenericArguments();
         if (obj is not ITuple tuple)
@@ -44,7 +44,7 @@ internal sealed class TupleModelDescriptor : ModelDescriptor
         return values;
     }
 
-    public override object CreateInstance(Type type, object?[] values)
+    public override object Deserialize(Type type, object?[] values, ModelOptions options)
         => TypeUtility.CreateInstance(type, args: values);
 
     public override bool Equals(object obj1, object obj2, Type type)

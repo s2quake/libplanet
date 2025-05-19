@@ -1,24 +1,39 @@
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Consensus;
 
-public sealed record class ProposalClaimMetadata : IEquatable<ProposalClaimMetadata>
+[Model(Version = 1)]
+public sealed record class ProposalClaimMetadata
 {
+    [Property(0)]
+    [NonNegative]
     public int Height { get; init; }
 
+    [Property(1)]
+    [NonNegative]
     public int Round { get; init; }
 
+    [Property(2)]
+    [NotDefault]
     public BlockHash BlockHash { get; init; }
 
+    [Property(3)]
     public DateTimeOffset Timestamp { get; init; }
 
+    [Property(4)]
+    [NotDefault]
     public Address Validator { get; init; }
 
     public ProposalClaim Sign(PrivateKey signer)
     {
-        var bytes = ModelSerializer.SerializeToBytes(this);
+        var options = new ModelOptions
+        {
+            IsValidationEnabled = false,
+        };
+        var bytes = ModelSerializer.SerializeToBytes(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
         return new ProposalClaim { Metadata = this, Signature = signature };
     }
