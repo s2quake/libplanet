@@ -39,10 +39,13 @@ internal sealed class BlockChainService(
         {
             PolicyActions = actionService.PolicyActions,
             BlockInterval = TimeSpan.FromSeconds(8),
-            MaxTransactionsBytes = long.MaxValue,
-            MinTransactionsPerBlock = 0,
-            MaxTransactionsPerBlock = int.MaxValue,
-            MaxTransactionsPerSignerPerBlock = int.MaxValue,
+            BlockOptions = new BlockOptions
+            {
+                MaxTransactionsBytes = long.MaxValue,
+                MinTransactionsPerBlock = 0,
+                MaxTransactionsPerBlock = int.MaxValue,
+                MaxTransactionsPerSignerPerBlock = int.MaxValue,
+            },
         };
 
         if (store.ChainId == Guid.Empty)

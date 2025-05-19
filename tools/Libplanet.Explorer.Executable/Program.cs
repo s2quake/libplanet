@@ -316,8 +316,11 @@ If omitted (default) explorer only the local blockchain store.")]
             {
                 PolicyActions = PolicyActions.Empty,
                 BlockInterval = TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
-                MaxTransactionsBytes = options.MaxTransactionsBytes,
-                MaxTransactionsPerBlock = options.MaxTransactionsPerBlock,
+                BlockOptions = new BlockOptions
+                {
+                    MaxTransactionsBytes = options.MaxTransactionsBytes,
+                    MaxTransactionsPerBlock = options.MaxTransactionsPerBlock,
+                },
             };
         }
 

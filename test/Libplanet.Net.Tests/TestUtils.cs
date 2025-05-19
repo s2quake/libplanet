@@ -46,7 +46,10 @@ namespace Libplanet.Net.Tests
             {
                 EndBlockActions = [new MinerReward(1)],
             },
-            MaxTransactionsBytes = 50 * 1024,
+            BlockOptions = new BlockOptions
+            {
+                MaxTransactionsBytes = 50 * 1024,
+            },
         };
 
         public static AppProtocolVersion AppProtocolVersion = AppProtocolVersion.FromToken(

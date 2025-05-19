@@ -419,14 +419,14 @@ public partial class Context : IDisposable
                         .Distinct()
                         .ToDictionary(
                             signer => signer,
-                            signer => _blockChain.Nonces[signer]),
+                            signer => _blockChain.GetNextTxNonce(signer)),
                     block);
 
-                _blockChain.Options.BlockValidation(_blockChain, block);
+                _blockChain.Options.BlockOptions.Validate(block);
 
                 foreach (var tx in block.Transactions)
                 {
-                    _blockChain.Options.ValidateTransaction(_blockChain, tx);
+                    _blockChain.Options.TransactionOptions.Validate(tx);
                 }
 
                 _blockChain.ValidateBlockStateRootHash(block);

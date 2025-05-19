@@ -127,7 +127,7 @@ namespace Libplanet.Net
                 {
                     try
                     {
-                        _blockChain.PendingEvidences.Add(ev.Id, ev);
+                        _blockChain.PendingEvidences.Add(ev);
                         pendingEvidence.Add(ev);
                     }
                     catch (Exception e)

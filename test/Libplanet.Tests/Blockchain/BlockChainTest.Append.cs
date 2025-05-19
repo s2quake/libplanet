@@ -378,7 +378,7 @@ public partial class BlockChainTest
             TestUtils.CreateBlockCommit(_blockChain.Tip),
             [.. heavyTxs],
             []);
-        long maxBytes = _blockChain.Options.MaxTransactionsBytes;
+        long maxBytes = _blockChain.Options.BlockOptions.MaxTransactionsBytes;
         Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
         var e = Assert.Throws<InvalidOperationException>(() =>
@@ -389,7 +389,7 @@ public partial class BlockChainTest
     public void AppendFailDueToInvalidTxCount()
     {
         int nonce = 0;
-        int maxTxs = _blockChain.Options.MaxTransactionsPerBlock;
+        int maxTxs = _blockChain.Options.BlockOptions.MaxTransactionsPerBlock;
         var manyTxs = new List<Transaction>();
         for (int i = 0; i <= maxTxs; i++)
         {
@@ -449,7 +449,7 @@ public partial class BlockChainTest
         var validKey = new PrivateKey();
         var invalidKey = new PrivateKey();
 
-        void IsSignerValid(BlockChain chain, Transaction tx)
+        void IsSignerValid(Transaction tx)
         {
             var validAddress = validKey.Address;
             if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.Proposer.Address))
@@ -460,7 +460,10 @@ public partial class BlockChainTest
 
         var policy = new BlockChainOptions
         {
-            TransactionValidation = IsSignerValid,
+            TransactionOptions = new TransactionOptions
+            {
+                Validator = new RelayValidator<Transaction>(IsSignerValid),
+            },
         };
         using (var fx = new MemoryStoreFixture(policy))
         {
@@ -541,13 +544,21 @@ public partial class BlockChainTest
     {
         var options = new BlockChainOptions
         {
-            BlockValidation = (_, _) =>
+            BlockOptions = new BlockOptions
             {
-                throw new InvalidOperationException(string.Empty);
+                Validator = new RelayValidator<Block>(
+                    block =>
+                    {
+                        throw new InvalidOperationException(string.Empty);
+                    }),
             },
-            TransactionValidation = (_, _) =>
+            TransactionOptions = new TransactionOptions
             {
-                throw new InvalidOperationException(string.Empty);
+                Validator = new RelayValidator<Transaction>(
+                    transaction =>
+                    {
+                        throw new InvalidOperationException(string.Empty);
+                    }),
             },
         }
                 ;
@@ -687,7 +698,10 @@ public partial class BlockChainTest
     {
         var policy = new BlockChainOptions
         {
-            MaxTransactionsBytes = 50 * 1024,
+            BlockOptions = new BlockOptions
+            {
+                MaxTransactionsBytes = 50 * 1024,
+            },
         };
         var fx = GetStoreFixture(policy);
         // var renderer = new ValidatingActionRenderer();
