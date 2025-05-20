@@ -73,16 +73,17 @@ public partial class BlockChain
         //         message: msg);
         // }
 
-        _nextStateRootHash = DetermineNextBlockStateRootHash(Tip, out var actionEvaluations);
-        var txExecutions = MakeTxExecutions(Tip, actionEvaluations);
-        _repository.TxExecutions.AddRange(txExecutions);
+        var evaluation = DetermineNextBlockStateRootHash(Tip);
+        _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
+        // var txExecutions = MakeTxExecutions(Tip, actionEvaluations);
+        // _repository.TxExecutions.AddRange(txExecutions);
     }
 
     internal event EventHandler<(Block OldTip, Block NewTip)> TipChanged;
 
     public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
 
-    public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.ActionEvaluation;
+    public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.ActionEvaluated;
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
 
@@ -215,11 +216,11 @@ public partial class BlockChain
 
             TipChanged?.Invoke(this, (prevTip, block));
             _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-            _nextStateRootHash = DetermineNextBlockStateRootHash(block, out var actionEvaluations);
+            // _nextStateRootHash = DetermineNextBlockStateRootHash(block, out var actionEvaluations);
             _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
 
-            var txExecutions = MakeTxExecutions(block, actionEvaluations);
-            _repository.TxExecutions.AddRange(txExecutions);
+            // var txExecutions = MakeTxExecutions(block, actionEvaluations);
+            // _repository.TxExecutions.AddRange(txExecutions);
         }
         finally
         {

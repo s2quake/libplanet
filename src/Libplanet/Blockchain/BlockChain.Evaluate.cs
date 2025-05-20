@@ -10,19 +10,19 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    public HashDigest<SHA256> DetermineNextBlockStateRootHash(Block block, out ActionEvaluation[] evaluations)
+    public BlockEvaluation DetermineNextBlockStateRootHash(Block block)
     {
-        evaluations = EvaluateBlock(block);
+        return EvaluateBlock(block);
 
-        if (evaluations.Length > 0)
-        {
-            return evaluations[^1].OutputWorld.Trie.Hash;
-        }
+        // if (evaluations.Length > 0)
+        // {
+        //     return evaluations[^1].OutputWorld.Trie.Hash;
+        // }
 
-        return block.StateRootHash;
+        // return block.StateRootHash;
     }
 
-    public ActionEvaluation[] EvaluateBlock(Block block)
+    public BlockEvaluation EvaluateBlock(Block block)
         => _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
 
     internal Block EvaluateAndSign(RawBlock rawBlock, PrivateKey privateKey)
@@ -43,27 +43,27 @@ public partial class BlockChain
         }
     }
 
-    internal HashDigest<SHA256> DetermineBlockPrecededStateRootHash(
-        RawBlock rawBlock, out ActionEvaluation[] evaluations)
-    {
-        // _rwlock.EnterWriteLock();
-        try
-        {
-            evaluations = EvaluateBlockPrecededStateRootHash(rawBlock);
+    // internal HashDigest<SHA256> DetermineBlockPrecededStateRootHash(
+    //     RawBlock rawBlock, out ActionEvaluation[] evaluations)
+    // {
+    //     // _rwlock.EnterWriteLock();
+    //     try
+    //     {
+    //         evaluations = EvaluateBlockPrecededStateRootHash(rawBlock);
 
-            if (evaluations.Length > 0)
-            {
-                return evaluations[^1].OutputWorld.Trie.Hash;
-            }
+    //         if (evaluations.Length > 0)
+    //         {
+    //             return evaluations[^1].OutputWorld.Trie.Hash;
+    //         }
 
-            return _repository.BlockDigests[rawBlock.Header.PreviousHash].StateRootHash;
-        }
-        finally
-        {
-            // _rwlock.ExitWriteLock();
-        }
-    }
+    //         return _repository.BlockDigests[rawBlock.Header.PreviousHash].StateRootHash;
+    //     }
+    //     finally
+    //     {
+    //         // _rwlock.ExitWriteLock();
+    //     }
+    // }
 
-    internal ActionEvaluation[] EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
-        => _actionEvaluator.Evaluate(rawBlock, _repository.BlockDigests[rawBlock.Header.PreviousHash].StateRootHash);
+    // internal ActionEvaluation[] EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
+    //     => _actionEvaluator.Evaluate(rawBlock, _repository.BlockDigests[rawBlock.Header.PreviousHash].StateRootHash);
 }

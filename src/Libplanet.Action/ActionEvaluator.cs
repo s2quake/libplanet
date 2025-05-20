@@ -13,15 +13,18 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
 {
     private readonly Subject<ActionEvaluation> _evaluation = new();
     private readonly Subject<TxEvaluation> _txEvaluation = new();
+    private readonly Subject<BlockEvaluation> _blockEvaluation = new();
 
     public ActionEvaluator(TrieStateStore stateStore)
         : this(stateStore, PolicyActions.Empty)
     {
     }
 
-    public IObservable<ActionEvaluation> ActionEvaluation => _evaluation;
+    public IObservable<ActionEvaluation> ActionEvaluated => _evaluation;
 
-    public IObservable<TxEvaluation> TxEvaluation => _txEvaluation;
+    public IObservable<TxEvaluation> TxEvaluated => _txEvaluation;
+
+    public IObservable<BlockEvaluation> Evaluated => _blockEvaluation;
 
     public static int GenerateRandomSeed(ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)
     {
@@ -42,30 +45,29 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
         }
     }
 
-    public ActionEvaluation[] Evaluate(RawBlock rawBlock, HashDigest<SHA256> baseStateRootHash)
+    public BlockEvaluation Evaluate(RawBlock rawBlock, HashDigest<SHA256> baseStateRootHash)
     {
         var world = stateStore.GetWorld(baseStateRootHash);
-        int capacity = GetCapacity(rawBlock);
-        var evaluationsList = new List<ActionEvaluation>(capacity);
-        if (policyActions.BeginBlockActions.Length > 0)
+        var inputWorld = world;
+        var beginEvaluations = EvaluateActions(rawBlock, null, policyActions.BeginBlockActions, ref world);
+        var txEvaluations = EvaluateTxs(rawBlock, ref world);
+        var endEvaluations = EvaluateActions(rawBlock, null, policyActions.EndBlockActions, ref world);
+
+        var blockEvaluation = new BlockEvaluation
         {
-            EvaluateBeginBlockActions(rawBlock, world);
-            world = evaluationsList[^1].OutputWorld;
-        }
-
-        evaluationsList.AddRange([.. EvaluateBlock(rawBlock, world)]);
-
-        if (policyActions.EndBlockActions.Length > 0)
-        {
-            world = evaluationsList.Count > 0 ? evaluationsList[^1].OutputWorld : world;
-            evaluationsList.AddRange(EvaluateEndBlockActions(rawBlock, world));
-        }
-
-        return [.. evaluationsList];
+            Block = rawBlock,
+            InputWorld = inputWorld,
+            OutputWorld = world,
+            BeginActions = beginEvaluations,
+            Evaluations = txEvaluations,
+            EndActions = endEvaluations,
+        };
+        _blockEvaluation.OnNext(blockEvaluation);
+        return blockEvaluation;
     }
 
-    internal ActionEvaluation[] EvaluateActions(
-        RawBlock rawBlock, Transaction? tx, World world, ImmutableArray<IAction> actions)
+    private ImmutableArray<ActionEvaluation> EvaluateActions(
+        RawBlock rawBlock, Transaction? tx, ImmutableArray<IAction> actions, ref World world)
     {
         var signature = tx?.Signature ?? [];
         var randomSeed = GenerateRandomSeed(rawBlock.Hash.Bytes.AsSpan(), signature);
@@ -95,10 +97,10 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
             }
         }
 
-        return evaluations;
+        return [.. evaluations];
     }
 
-    internal ActionEvaluation EvaluateAction(IAction action, World world, ActionContext actionContext)
+    private ActionEvaluation EvaluateAction(IAction action, World world, ActionContext actionContext)
     {
         if (!world.Trie.IsCommitted)
         {
@@ -146,71 +148,46 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
         return evaluation;
     }
 
-    internal ActionEvaluation[] EvaluateBlock(RawBlock rawBlock, World world)
+    private ImmutableArray<TxEvaluation> EvaluateTxs(RawBlock rawBlock, ref World world)
     {
         var txs = rawBlock.Content.Transactions;
         var capacity = GetCapacity(rawBlock);
-        var evaluationList = new List<ActionEvaluation>(capacity);
+        var evaluationList = new List<TxEvaluation>(capacity);
 
         foreach (var tx in txs)
         {
-            var evaluations = EvaluateTx(rawBlock, tx, world);
-            foreach (var evaluation in evaluations)
-            {
-                evaluationList.Add(evaluation);
-                world = evaluation.OutputWorld;
-            }
+            evaluationList.Add(EvaluateTx(rawBlock, tx, ref world));
         }
 
         return [.. evaluationList];
     }
 
-    internal ActionEvaluation[] EvaluateTx(RawBlock rawBlock, Transaction tx, World world)
+    private TxEvaluation EvaluateTx(RawBlock rawBlock, Transaction tx, ref World world)
     {
         GasTracer.Initialize(tx.GasLimit ?? long.MaxValue);
-        var evaluationList = new List<ActionEvaluation>();
-        if (policyActions.BeginTxActions.Length > 0)
-        {
-            GasTracer.IsTxAction = true;
-            evaluationList.AddRange(EvaluateBeginTxActions(rawBlock, tx, world));
-            world = evaluationList[^1].OutputWorld;
-            GasTracer.IsTxAction = false;
-        }
-
+        var inputWorld = world;
+        GasTracer.IsTxAction = true;
+        var beginEvaluations = EvaluateActions(rawBlock, tx, policyActions.BeginTxActions, ref world);
+        GasTracer.IsTxAction = false;
         var actions = tx.Actions.Select(item => item.ToAction<IAction>()).ToImmutableArray();
-        evaluationList.AddRange(EvaluateActions(rawBlock, tx, world, actions));
-
-        if (policyActions.EndTxActions.Length > 0)
-        {
-            GasTracer.IsTxAction = true;
-            world = evaluationList.Count > 0 ? evaluationList[^1].OutputWorld : world;
-            evaluationList.AddRange(EvaluateEndTxActions(rawBlock, tx, world));
-            GasTracer.IsTxAction = false;
-        }
+        var evaluations = EvaluateActions(rawBlock, tx, actions, ref world);
+        GasTracer.IsTxAction = true;
+        var endEvaluations = EvaluateActions(rawBlock, tx, policyActions.EndTxActions, ref world);
+        GasTracer.IsTxAction = false;
 
         GasTracer.Release();
+        var txEvaluation = new TxEvaluation
+        {
+            Transaction = tx,
+            InputWorld = inputWorld,
+            OutputWorld = world,
+            BeginEvaluations = beginEvaluations,
+            Evaluations = evaluations,
+            EndEvaluations = endEvaluations,
+        };
 
-        return [.. evaluationList];
-    }
-
-    internal World EvaluateBeginBlockActions(RawBlock rawBlock, World world)
-    {
-        return EvaluateActions(rawBlock, null, world, policyActions.BeginBlockActions);
-    }
-
-    internal ActionEvaluation[] EvaluateEndBlockActions(RawBlock rawBlock, World world)
-    {
-        return EvaluateActions(rawBlock, null, world, policyActions.EndBlockActions);
-    }
-
-    internal ActionEvaluation[] EvaluateBeginTxActions(RawBlock rawBlock, Transaction tx, World world)
-    {
-        return EvaluateActions(rawBlock, tx, world, policyActions.BeginTxActions);
-    }
-
-    internal ActionEvaluation[] EvaluateEndTxActions(RawBlock rawBlock, Transaction tx, World world)
-    {
-        return EvaluateActions(rawBlock, tx, world, policyActions.EndTxActions);
+        _txEvaluation.OnNext(txEvaluation);
+        return txEvaluation;
     }
 
     private int GetCapacity(RawBlock rawBlock)
