@@ -213,19 +213,6 @@ public partial class BlockChain
         return result;
     }
 
-    // public BlockLocator GetBlockLocator()
-    // {
-    //     _rwlock.EnterReadLock();
-    //     try
-    //     {
-    //         return new BlockLocator(Tip.BlockHash);
-    //     }
-    //     finally
-    //     {
-    //         _rwlock.ExitReadLock();
-    //     }
-    // }
-
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
@@ -411,7 +398,7 @@ public partial class BlockChain
         Block block,
         BlockCommit blockCommit,
         bool render,
-        IReadOnlyList<CommittedActionEvaluation> actionEvaluations = null)
+        CommittedActionEvaluation[]? actionEvaluations = null)
     {
         if (Blocks.Count == 0)
         {
@@ -513,7 +500,7 @@ public partial class BlockChain
 
                 // Store.AppendIndex(Id, block.BlockHash);
                 _nextStateRootHash = block.StateRootHash;
-                IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations);
+                IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations ?? []);
                 Store.TxExecutions.AddRange(txExecutions);
 
                 foreach (var evidence in Store.PendingEvidences.ToArray())
