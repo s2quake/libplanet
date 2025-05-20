@@ -239,6 +239,20 @@ public abstract class StoreBase<TKey, TValue>
         OnClearComplete();
     }
 
+    public void Clear(Func<TValue, bool> validator)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+
+        foreach (var (key, value) in this.ToArray())
+        {
+            if (!validator(value))
+            {
+                RemoveInternal(key);
+            }
+        }
+    }
+
     public void Dispose()
     {
         Dispose(disposing: true);

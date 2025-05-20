@@ -18,7 +18,7 @@ public partial class BlockChain
         };
         var blockContent = new BlockContent
         {
-            Transactions = transactions ?? [],
+            Transactions = transactions,
             Evidences = [],
         };
         var rawBlock = new RawBlock
@@ -34,7 +34,7 @@ public partial class BlockChain
         var height = Blocks.Count;
         var transactions = StagedTransactions.Collect();
         var evidences = PendingEvidences.Collect();
-        var previousHash = _chain.BlockHashes[height - 1];
+        var previousHash = _repository.Chain.BlockHashes[height - 1];
         var stateRootHash = GetNextStateRootHash(previousHash) ??
             throw new InvalidOperationException(
                 $"Cannot propose a block as the next state root hash " +

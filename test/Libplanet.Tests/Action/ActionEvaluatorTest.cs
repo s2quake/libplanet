@@ -144,8 +144,11 @@ public partial class ActionEvaluatorTest
         var address = privateKey.Address;
         var value = "Foo";
 
-        var chain = TestUtils.MakeBlockChain(options: new BlockChainOptions());
+        var repository = new Repository();
+        var options = new BlockChainOptions();
+        var chain = TestUtils.MakeBlockChain(options: options);
         var action = new ContextRecordingAction { Address = address, Value = value };
+        var actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         var tx = new TransactionMetadata
         {
             Nonce = 0,
@@ -159,8 +162,8 @@ public partial class ActionEvaluatorTest
         var block = chain.ProposeBlock(miner);
         chain.Append(block, CreateBlockCommit(block));
 
-        var evaluations = chain.ActionEvaluator.Evaluate(
-            (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
+        var evaluations = actionEvaluator.Evaluate(
+            (RawBlock)chain.Tip, chain.Blocks[chain.Tip.PreviousHash].StateRootHash);
 
         Assert.Single(evaluations);
         Assert.Null(evaluations.Single().Exception);
@@ -217,7 +220,7 @@ public partial class ActionEvaluatorTest
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(proposer: GenesisProposer);
         var evaluations = actionEvaluator.Evaluate(
-            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.BlockHash)).ToArray();
+            (RawBlock)block, chain.Tip.StateRootHash).ToArray();
 
         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
         Assert.Equal(
@@ -274,7 +277,7 @@ public partial class ActionEvaluatorTest
         (_, Transaction[] txs) = MakeFixturesForAppendTests();
         var block = chain.ProposeBlock(GenesisProposer);
         var evaluations = actionEvaluator.Evaluate(
-            (RawBlock)block, chain.Store.GetStateRootHash(chain.Tip.BlockHash)).ToArray();
+            (RawBlock)block, chain.Tip.StateRootHash).ToArray();
 
         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
         Assert.Equal(
@@ -1086,11 +1089,12 @@ public partial class ActionEvaluatorTest
             Memo = "CHARGE",
         };
 
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var stateStore = new TrieStateStore();
+        var repository = new Repository();
+        var options = new BlockChainOptions();
         var chain = TestUtils.MakeBlockChain(
-            options: new BlockChainOptions(),
+            options: options,
             actions: [freeGasAction]);
+        var actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         var tx = new TransactionMetadata
         {
             Signer = privateKey.Address,
@@ -1107,7 +1111,7 @@ public partial class ActionEvaluatorTest
         var miner = new PrivateKey();
         Block block = chain.ProposeBlock(miner);
 
-        var evaluations = chain.ActionEvaluator.Evaluate(
+        var evaluations = actionEvaluator.Evaluate(
             (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
         Assert.Single(evaluations);
@@ -1137,14 +1141,15 @@ public partial class ActionEvaluatorTest
             Memo = "CHARGE",
         };
 
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var stateStore = new TrieStateStore();
+        var repository = new Repository();
+        var options = new BlockChainOptions();
         var chain = TestUtils.MakeBlockChain(
-            options: new BlockChainOptions(),
+            options: options,
             actions: new[]
             {
                 freeGasAction,
             });
+        var actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         var tx = new TransactionMetadata
         {
             Signer = privateKey.Address,
@@ -1158,7 +1163,7 @@ public partial class ActionEvaluatorTest
         var miner = new PrivateKey();
         Block block = chain.ProposeBlock(miner);
 
-        var evaluations = chain.ActionEvaluator.Evaluate(
+        var evaluations = actionEvaluator.Evaluate(
             (RawBlock)block,
             chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 

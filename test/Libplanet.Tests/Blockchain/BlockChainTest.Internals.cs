@@ -166,7 +166,7 @@ public partial class BlockChainTest
         }
 
         var getTxExecution = new Func<BlockHash, TxId, TxExecution>(
-            (blockHash, txId) => _blockChain.TxExecutions[txId, blockHash]);
+            (blockHash, txId) => _blockChain.TxExecutions[txId]);
 
         Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId1));
         Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId2));

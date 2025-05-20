@@ -10,8 +10,7 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    public HashDigest<SHA256> DetermineNextBlockStateRootHash(
-        Block block, out ActionEvaluation[] evaluations)
+    public HashDigest<SHA256> DetermineNextBlockStateRootHash(Block block, out ActionEvaluation[] evaluations)
     {
         evaluations = EvaluateBlock(block);
 
@@ -20,13 +19,11 @@ public partial class BlockChain
             return evaluations[^1].OutputWorld.Trie.Hash;
         }
 
-        return Store.GetStateRootHash(block.BlockHash) is { } stateRootHash
-            ? stateRootHash
-            : StateStore.GetStateRoot(default).Hash;
+        return block.StateRootHash;
     }
 
     public ActionEvaluation[] EvaluateBlock(Block block)
-        => ActionEvaluator.Evaluate((RawBlock)block, Store.GetStateRootHash(block.BlockHash));
+        => _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
 
     internal Block EvaluateAndSign(RawBlock rawBlock, PrivateKey privateKey)
     {
@@ -49,7 +46,7 @@ public partial class BlockChain
     internal HashDigest<SHA256> DetermineBlockPrecededStateRootHash(
         RawBlock rawBlock, out ActionEvaluation[] evaluations)
     {
-        _rwlock.EnterWriteLock();
+        // _rwlock.EnterWriteLock();
         try
         {
             evaluations = EvaluateBlockPrecededStateRootHash(rawBlock);
@@ -58,19 +55,15 @@ public partial class BlockChain
             {
                 return evaluations[^1].OutputWorld.Trie.Hash;
             }
-            else
-            {
-                return Store.GetStateRootHash(rawBlock.Header.PreviousHash) is { } prevStateRootHash
-                    ? prevStateRootHash
-                    : StateStore.GetStateRoot(default).Hash;
-            }
+
+            return _repository.BlockDigests[rawBlock.Header.PreviousHash].StateRootHash;
         }
         finally
         {
-            _rwlock.ExitWriteLock();
+            // _rwlock.ExitWriteLock();
         }
     }
 
     internal ActionEvaluation[] EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
-        => ActionEvaluator.Evaluate(rawBlock, Store.GetStateRootHash(rawBlock.Header.PreviousHash));
+        => _actionEvaluator.Evaluate(rawBlock, _repository.BlockDigests[rawBlock.Header.PreviousHash].StateRootHash);
 }

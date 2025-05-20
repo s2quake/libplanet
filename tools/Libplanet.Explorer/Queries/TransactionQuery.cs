@@ -201,7 +201,7 @@ namespace Libplanet.Explorer.Queries
 
                     if (GetBlockContainingTx(_context, txId) is { } block)
                     {
-                        return _context.BlockChain.TxExecutions[txId, block.BlockHash] is { } execution
+                        return _context.BlockChain.TxExecutions[txId] is { } execution
                             ? new TxResult
                             {
                                 TxStatus = execution.Fail ? TxStatus.FAILURE : TxStatus.SUCCESS,
@@ -256,14 +256,14 @@ namespace Libplanet.Explorer.Queries
             }
 
             // If not found in index, search Libplanet.Store.Store directly.
-            var blockHashCandidates = context.Store.TxExecutions[txId].Select(item => item.BlockHash);
-            foreach (var blockHashCandidate in blockHashCandidates)
-            {
-                if (context.BlockChain.Blocks.ContainsKey(blockHashCandidate))
-                {
-                    return context.BlockChain.Blocks[blockHashCandidate];
-                }
-            }
+            // var blockHashCandidates = context.Store.TxExecutions[txId].Select(item => item.BlockHash);
+            // foreach (var blockHashCandidate in blockHashCandidates)
+            // {
+            //     if (context.BlockChain.Blocks.ContainsKey(blockHashCandidate))
+            //     {
+            //         return context.BlockChain.Blocks[blockHashCandidate];
+            //     }
+            // }
 
             return null;
         }

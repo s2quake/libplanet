@@ -116,7 +116,7 @@ public partial class BlockChainTest
                     }.ToBytecodes(),
                 }.Sign(genesisKey),
             ]);
-        Assert.Throws<InvalidOperationException>(() => BlockChain.Create(genesis, policy));
+        Assert.Throws<InvalidOperationException>(() => new BlockChain(genesis, policy));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public partial class BlockChainTest
         using (var fx = new MemoryStoreFixture())
         {
             var policy = new BlockChainOptions();
-            var blockChain = BlockChain.Create(fx.GenesisBlock, policy);
+            var blockChain = new BlockChain(fx.GenesisBlock, policy);
             var txKey = new PrivateKey();
             var txs = new[]
             {
@@ -261,7 +261,7 @@ public partial class BlockChainTest
 
         foreach (Transaction tx in txs)
         {
-            Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
+            // Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
         }
 
         Block block = _blockChain.ProposeBlock(keyA);
@@ -316,11 +316,11 @@ public partial class BlockChainTest
 
         foreach (Transaction tx in new[] { txs[0], txs[1], txs[4] })
         {
-            TxExecution txx = _blockChain.TxExecutions[tx.Id, block.BlockHash];
+            TxExecution txx = _blockChain.TxExecutions[tx.Id];
             Assert.False(txx.Fail);
             Assert.Equal(block.BlockHash, txx.BlockHash);
             Assert.Equal(tx.Id, txx.TxId);
-            Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
+            // Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
         }
     }
 
@@ -347,7 +347,7 @@ public partial class BlockChainTest
             },
         };
         using var fx = new MemoryStoreFixture();
-        var blockChain = BlockChain.Create(fx.GenesisBlock, options);
+        var blockChain = new BlockChain(fx.GenesisBlock, options);
 
         var validTx = new TransactionBuilder
         {

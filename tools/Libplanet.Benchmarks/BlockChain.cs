@@ -22,7 +22,7 @@ namespace Libplanet.Benchmarks
         // public void SetupChain()
         // {
         //     _fx = new DefaultStoreFixture();
-        //     _blockChain = Libplanet.Blockchain.BlockChain.Create(
+        //     _blockChain = Libplanet.Blockchain.new BlockChain(
         //         BlockChainOptions.Empty,
         //         _fx.Store,
         //         _fx.StateStore,

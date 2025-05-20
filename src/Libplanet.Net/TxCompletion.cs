@@ -194,8 +194,7 @@ namespace Libplanet.Net
             return new HashSet<TxId>(ids
                 .Where(txId =>
                     _blockChain.StagedTransactions.ContainsKey(txId)
-                        && _blockChain.StagedTransactions[txId] is null
-                        && _blockChain.Store.PendingTransactions[txId] is null));
+                        && _blockChain.StagedTransactions[txId] is null));
         }
 
         private class TxFetchJob

@@ -13,4 +13,22 @@ public sealed record class ActionEvaluation
     public required World OutputWorld { get; init; }
 
     public Exception? Exception { get; init; }
+
+    public string ExceptionMessage
+    {
+        get
+        {
+            if (Exception is null)
+            {
+                return string.Empty;
+            }
+
+            if (Exception.InnerException is { } innerException)
+            {
+                return innerException.Message;
+            }
+
+            return Exception.Message;
+        }
+    }
 }

@@ -1,11 +1,13 @@
 using Libplanet.Action;
 using Libplanet.Action.Sys;
 using Libplanet.Blockchain;
+using Libplanet.Store;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace Libplanet.Explorer.Tests;
 
@@ -14,6 +16,8 @@ public class GeneratedBlockChainFixture
     public static Currency TestCurrency => Currency.Create("TEST", 0);
 
     public BlockChain Chain { get; }
+
+    public Repository Repository { get; }
 
     public ImmutableArray<PrivateKey> PrivateKeys { get; }
 
@@ -56,7 +60,7 @@ public class GeneratedBlockChainFixture
                 key => ImmutableArray<Transaction>.Empty);
 
         var privateKey = new PrivateKey();
-        var policy = new BlockChainOptions
+        var options = new BlockChainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(1),
             BlockOptions = new BlockOptions
@@ -85,7 +89,8 @@ public class GeneratedBlockChainFixture
                         }.ToBytecodes(),
                     }.Sign(privateKey))
                 .ToImmutableSortedSet());
-        Chain = BlockChain.Create(genesisBlock, policy);
+        Repository = new Repository();
+        Chain = new BlockChain(Repository, options);
         MinedBlocks = MinedBlocks.SetItem(
             Chain.Genesis.Proposer,
             ImmutableArray<Block>.Empty.Add(Chain.Genesis));
@@ -170,7 +175,7 @@ public class GeneratedBlockChainFixture
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = proposer.Address,
                     PreviousHash = Chain.Tip.BlockHash,
-                    LastCommit = Chain.Store.Chains[Chain.Store.ChainId].BlockCommit,
+                    LastCommit = Chain.BlockCommits[^1],
                 },
                 Content = new BlockContent
                 {

@@ -17,11 +17,11 @@ public partial class BlockChain
     {
         if (GetNextStateRootHash() is { } nsrh)
         {
-            var trie = StateStore.GetStateRoot(nsrh);
+            var trie = _repository.StateStore.GetStateRoot(nsrh);
             return trie.IsCommitted
-                ? new World { Trie = trie, StateStore = StateStore }
+                ? new World { Trie = trie, StateStore = _repository.StateStore }
                 : throw new InvalidOperationException(
-                    $"Could not find state root {nsrh} in {nameof(StateStore)} for " +
+                    $"Could not find state root {nsrh} in {nameof(_repository.StateStore)} for " +
                     $"the current tip.");
         }
         else

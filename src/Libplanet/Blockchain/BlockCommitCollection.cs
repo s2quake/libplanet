@@ -10,10 +10,10 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
     private readonly BlockCommitStore _blockCommits;
     private readonly BlockHashStore _blockHashes;
 
-    internal BlockCommitCollection(Repository repository, Guid chainId)
+    internal BlockCommitCollection(Repository repository)
     {
         _blockCommits = repository.BlockCommits;
-        _blockHashes = repository.Chains[chainId].BlockHashes;
+        _blockHashes = repository.Chain.BlockHashes;
     }
 
     public IEnumerable<BlockHash> Keys

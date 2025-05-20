@@ -163,7 +163,7 @@ namespace Libplanet.Net.Tests.Consensus
             Block block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
 
-            blockChain.Store.BlockCommits.Add(TestUtils.CreateBlockCommit(blockChain.Blocks[1]));
+            // blockChain._repository.BlockCommits.Add(TestUtils.CreateBlockCommit(blockChain.Blocks[1]));
             await proposalSent.WaitAsync();
 
             Assert.Equal(2, consensusContext.Height);

@@ -110,14 +110,6 @@ public partial class BlockChain
         return nonceDeltas;
     }
 
-    internal void ValidateBlockLoadActions(Block block)
-    {
-        foreach (var tx in block.Transactions)
-        {
-            _ = tx.Actions.Select(item => item.ToAction<IAction>());
-        }
-    }
-
     internal void ValidateBlock(Block block)
     {
         if (block.Height <= 0)

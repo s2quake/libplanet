@@ -1,4 +1,5 @@
 using Libplanet.Store.Trie;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store;
@@ -7,6 +8,14 @@ public sealed class NonceStore(Guid chainId, IDatabase database)
     : StoreBase<Address, long>(database.GetOrAdd(GetKey(chainId)))
 {
     public long Increase(Address key, long delta = 1L) => this[key] = this.GetValueOrDefault(key) + delta;
+
+    public void Increase(Block block)
+    {
+        foreach (var transaction in block.Transactions.OrderBy(item => item.Nonce))
+        {
+            Increase(transaction.Signer, 1L);
+        }
+    }
 
     public void MergeFrom(NonceStore source)
     {

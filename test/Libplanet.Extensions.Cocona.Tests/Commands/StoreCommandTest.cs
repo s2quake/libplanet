@@ -83,7 +83,7 @@ public sealed class StoreCommandTest : IDisposable
         var guid = Guid.NewGuid();
         foreach (var storeFixture in _storeFixtures)
         {
-            var store = storeFixture.Store;
+            var store = storeFixture.Repository;
             var chain = store.Chains.GetOrAdd(guid);
             store.ChainId = guid;
             store.BlockDigests.Add(_genesisBlock);
@@ -330,7 +330,7 @@ public sealed class StoreCommandTest : IDisposable
     {
         foreach (var storeFixture in _storeFixtures)
         {
-            storeFixture.Store?.Dispose();
+            storeFixture.Repository?.Dispose();
         }
 
         Console.SetOut(_originalOut);

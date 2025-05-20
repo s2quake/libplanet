@@ -15,7 +15,7 @@ public abstract class StoreFixture : IDisposable
 {
     private bool disposedValue;
 
-    protected StoreFixture(BlockChainOptions options)
+    protected StoreFixture(Repository repository, BlockChainOptions options)
     {
         Address1 = new Address(
         [
@@ -87,12 +87,13 @@ public abstract class StoreFixture : IDisposable
 
         var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
         Options = options;
+        Repository = repository;
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(
             proposer: Proposer.PublicKey,
             validators: TestUtils.Validators);
-        var actionEvaluator = new ActionEvaluator(options.Repository.StateStore, Options.PolicyActions);
+        var actionEvaluator = new ActionEvaluator(repository.StateStore, Options.PolicyActions);
         GenesisBlock = preEval.Sign(
             Proposer,
             default);
@@ -184,7 +185,7 @@ public abstract class StoreFixture : IDisposable
 
     public Transaction Transaction3 { get; }
 
-    public Libplanet.Store.Repository Store => Options.Repository;
+    public Repository Repository { get; }
 
     public IDictionary<KeyBytes, byte[]> StateHashKeyValueStore { get; set; }
 

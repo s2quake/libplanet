@@ -73,8 +73,8 @@ public class StoreCommand
         string strTxId)
     {
         Libplanet.Store.Repository store = Utils.LoadStoreFromUri(home);
-        var blockHashes = store.TxExecutions[new TxId(ByteUtility.ParseHex(strTxId))].Select(item => item.BlockHash);
-        Console.WriteLine(Utils.SerializeHumanReadable(blockHashes));
+        // var blockHashes = store.TxExecutions[new TxId(ByteUtility.ParseHex(strTxId))].Select(item => item.BlockHash);
+        // Console.WriteLine(Utils.SerializeHumanReadable(blockHashes));
         store?.Dispose();
     }
 
@@ -88,10 +88,10 @@ public class StoreCommand
         // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
         var store = new Libplanet.Store.Repository(new MemoryDatabase());
         var txId = TxId.Parse(strTxId);
-        if (!store.TxExecutions.TryGetValue(txId, out var txExecutions) || txExecutions.Length == 0)
-        {
-            throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");
-        }
+        // if (!store.TxExecutions.TryGetValue(txId, out var txExecutions) || txExecutions.Length == 0)
+        // {
+        //     throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");
+        // }
 
         var blocks = IterateBlocks(store, txId).ToImmutableList();
 
@@ -183,10 +183,11 @@ public class StoreCommand
 
     private static IEnumerable<Block> IterateBlocks(Libplanet.Store.Repository store, TxId txId)
     {
-        foreach (var txExecution in store.TxExecutions[txId])
-        {
-            yield return GetBlock(store, txExecution.BlockHash);
-        }
+        yield break;
+        // foreach (var txExecution in store.TxExecutions[txId])
+        // {
+        //     yield return GetBlock(store, txExecution.BlockHash);
+        // }
     }
 
     private static Transaction GetTransaction(Libplanet.Store.Repository store, TxId txId)

@@ -58,7 +58,7 @@
 //                 AssertPreEvaluationBlocksEqual(preEvalGenesis, genesis);
 //                 _output.WriteLine("#1: {0}", genesis);
 
-//                 var blockChain = BlockChain.Create(
+//                 var blockChain = new BlockChain(
 //                     policy,
 //                     stagePolicy,
 //                     fx.Store,
@@ -134,7 +134,7 @@
 //                     preEvalGenesis.Sign(_contents.GenesisKey, genesisStateRootHash);
 //                 _output.WriteLine("#1: {0}", genesis);
 
-//                 var blockChain = BlockChain.Create(
+//                 var blockChain = new BlockChain(
 //                     policy,
 //                     stagePolicy,
 //                     fx.Store,

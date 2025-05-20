@@ -37,6 +37,6 @@ public static class StoreExtensions
         // }
     }
 
-    public static HashDigest<SHA256> GetStateRootHash(this Repository store, BlockHash blockHash)
-        => store.BlockDigests[blockHash].StateRootHash;
+    // public static HashDigest<SHA256> GetStateRootHash(this Repository store, BlockHash blockHash)
+    //     => store.BlockDigests[blockHash].StateRootHash;
 }
