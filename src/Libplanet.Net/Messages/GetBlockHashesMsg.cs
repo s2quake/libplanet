@@ -1,32 +1,32 @@
-using Libplanet.Blockchain;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Net.Messages
+namespace Libplanet.Net.Messages;
+
+internal class GetBlockHashesMsg : MessageContent
 {
-    internal class GetBlockHashesMsg : MessageContent
+    public GetBlockHashesMsg(BlockHash locator)
     {
-        public GetBlockHashesMsg(BlockLocator locator)
+        Locator = locator;
+    }
+
+    public GetBlockHashesMsg(byte[][] dataFrames)
+    {
+        Locator = new BlockHash(dataFrames[0]);
+    }
+
+    public BlockHash Locator { get; }
+
+    public override MessageType Type => MessageType.GetBlockHashes;
+
+    public override IEnumerable<byte[]> DataFrames
+    {
+        get
         {
-            Locator = locator;
-        }
-
-        public GetBlockHashesMsg(byte[][] dataFrames)
-        {
-            Locator = new BlockLocator(new BlockHash(dataFrames[0]));
-        }
-
-        public BlockLocator Locator { get; }
-
-        public override MessageType Type => MessageType.GetBlockHashes;
-
-        public override IEnumerable<byte[]> DataFrames
-        {
-            get
+            var frames = new List<byte[]>
             {
-                var frames = new List<byte[]>();
-                frames.Add(Locator.Hash.Bytes.ToArray());
-                return frames;
-            }
+                Locator.Bytes.ToArray(),
+            };
+            return frames;
         }
     }
 }

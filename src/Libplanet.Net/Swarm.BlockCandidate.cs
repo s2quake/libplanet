@@ -218,12 +218,12 @@ namespace Libplanet.Net
             int logSessionId,
             CancellationToken cancellationToken)
         {
-            BlockLocator locator = blockChain.GetBlockLocator();
+            var tipBlockHash = blockChain.Tip.BlockHash;
             Block tip = blockChain.Tip;
 
             List<BlockHash> hashes = await GetBlockHashes(
                 peer: peer,
-                locator: locator,
+                blockHash: tipBlockHash,
                 cancellationToken: cancellationToken);
 
             if (!hashes.Any())
