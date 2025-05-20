@@ -29,7 +29,23 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
 
     public Transaction this[TxId txId] => _store[txId];
 
-    public bool Add(Transaction transaction)
+    public void Add(Transaction transaction)
+    {
+        if (transaction.Timestamp + options.TransactionOptions.LifeTime < DateTimeOffset.UtcNow)
+        {
+            throw new ArgumentException("Transaction is expired.", nameof(transaction));
+        }
+
+        // compare with repository genesis
+
+        if (!_store.TryAdd(transaction))
+        {
+            throw new ArgumentException(
+                $"Transaction {transaction.Id} already exists in the store.", nameof(transaction));
+        }
+    }
+
+    public bool TryAdd(Transaction transaction)
     {
         if (transaction.Timestamp + options.TransactionOptions.LifeTime < DateTimeOffset.UtcNow)
         {
@@ -39,6 +55,23 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         // compare with repository genesis
 
         return _store.TryAdd(transaction);
+    }
+
+    public Transaction Add(TransactionSubmission submission)
+    {
+        var tx = new TransactionMetadata
+        {
+            Nonce = GetNextTxNonce(submission.Signer.Address),
+            Signer = submission.Signer.Address,
+            GenesisHash = repository.GenesisBlockHash,
+            Actions = submission.Actions.ToBytecodes(),
+            Timestamp = submission.Timestamp,
+            MaxGasPrice = submission.MaxGasPrice,
+            GasLimit = submission.GasLimit,
+        }.Sign(submission.Signer);
+
+        Add(tx);
+        return tx;
     }
 
     public bool Remove(TxId txId) => _store.Remove(txId);

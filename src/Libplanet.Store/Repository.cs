@@ -73,6 +73,8 @@ public sealed class Repository : IDisposable
     public Chain Chain => _chain ?? throw new InvalidOperationException(
         "ChainId is not set. Please set ChainId before accessing the Chain property.");
 
+    public BlockHash GenesisBlockHash => Chain.BlockHashes[Chain.GenesisHeight];
+
     public TrieStateStore StateStore { get; }
 
     public void AddBlock(Block block)

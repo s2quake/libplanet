@@ -71,15 +71,27 @@ namespace Libplanet.Net.Tests
                 (address1, "foo"),
                 transfer: (null, address2, 10));
 
-            minerChain.MakeTransaction(key, new[] { action });
+            minerChain.StagedTransactions.Add(submission: new()
+            {
+                Signer = key,
+                Actions = [action],
+            });
             var block = minerChain.ProposeBlock(minerKey);
             minerChain.Append(block, TestUtils.CreateBlockCommit(block));
 
-            minerChain.MakeTransaction(key, new[] { DumbAction.Create((address1, "bar")) });
+            minerChain.StagedTransactions.Add(submission: new()
+            {
+                Signer = key,
+                Actions = [DumbAction.Create((address1, "bar"))],
+            });
             block = minerChain.ProposeBlock(minerKey);
             minerChain.Append(block, TestUtils.CreateBlockCommit(block));
 
-            minerChain.MakeTransaction(key, new[] { DumbAction.Create((address1, "baz")) });
+            minerChain.StagedTransactions.Add(submission: new()
+            {
+                Signer = key,
+                Actions = [DumbAction.Create((address1, "baz"))],
+            });
             block = minerChain.ProposeBlock(minerKey);
             minerChain.Append(block, TestUtils.CreateBlockCommit(block));
 
@@ -335,8 +347,11 @@ namespace Libplanet.Net.Tests
             const int iteration = 3;
             for (var i = 0; i < iteration; i++)
             {
-                sender.BlockChain.MakeTransaction(
-                    privKey, new[] { DumbAction.Create((addr, item)) });
+                sender.BlockChain.StagedTransactions.Add(submission: new()
+                {
+                    Signer = privKey,
+                    Actions = [DumbAction.Create((addr, item))],
+                });
                 Block block = sender.BlockChain.ProposeBlock(senderKey);
                 sender.BlockChain.Append(block, TestUtils.CreateBlockCommit(block));
             }
@@ -394,7 +409,7 @@ namespace Libplanet.Net.Tests
 
         //         var chainId = receiverChain.Id;
         //         Transaction tx = new TransactionMetadata
-// {
+        // {
         //             0,
         //             new PrivateKey(),
         //             minerSwarm.BlockChain.Genesis.Hash,
@@ -824,12 +839,11 @@ namespace Libplanet.Net.Tests
             List<Transaction> transactions = new List<Transaction>();
             for (int i = 0; i < 10; i++)
             {
-                var transaction = seedChain.MakeTransaction(
-                    new PrivateKey(),
-                    new[]
-                    {
-                        DumbAction.Create((default, $"Item{i}")),
-                    });
+                var transaction = seedChain.StagedTransactions.Add(submission: new()
+                {
+                    Signer = new PrivateKey(),
+                    Actions = [DumbAction.Create((default, $"Item{i}")),],
+                });
                 Block block = seedChain.ProposeBlock(seedKey);
                 seedChain.Append(block, TestUtils.CreateBlockCommit(block));
                 transactions.Add(transaction);

@@ -20,7 +20,6 @@ namespace Libplanet.Blockchain;
 public partial class BlockChain
 {
     internal readonly ReaderWriterLockSlim _rwlock;
-    private readonly object _txLock;
     private readonly ILogger _logger;
     private readonly Subject<RenderBlockInfo> _renderBlock = new();
     private readonly Subject<RenderActionInfo> _renderAction = new();
@@ -70,10 +69,9 @@ public partial class BlockChain
             _chain.Nonces.Increase(pair.Key, pair.Value);
         }
 
-        _blockChainStates = new BlockChainStates(options.Repository, StateStore);
+        _blockChainStates = new BlockChainStates(options.Repository);
 
         _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-        _txLock = new object();
 
         _logger = Log
             .ForContext<BlockChain>()
@@ -154,29 +152,26 @@ public partial class BlockChain
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 
-    public Transaction MakeTransaction(
-        PrivateKey privateKey,
-        IEnumerable<IAction> actions,
-        FungibleAssetValue? maxGasPrice = null,
-        long gasLimit = 0L,
-        DateTimeOffset? timestamp = null)
-    {
-        lock (_txLock)
-        {
-            var tx = new TransactionMetadata
-            {
-                Nonce = GetNextTxNonce(privateKey.Address),
-                Signer = privateKey.Address,
-                GenesisHash = Genesis.BlockHash,
-                Actions = actions.ToBytecodes(),
-                MaxGasPrice = maxGasPrice,
-                GasLimit = gasLimit,
-                Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-            }.Sign(privateKey);
-            StagedTransactions.Add(tx);
-            return tx;
-        }
-    }
+    // public Transaction MakeTransaction(
+    //     PrivateKey privateKey,
+    //     IEnumerable<IAction> actions,
+    //     FungibleAssetValue? maxGasPrice = null,
+    //     long gasLimit = 0L,
+    //     DateTimeOffset? timestamp = null)
+    // {
+    //     var tx = new TransactionMetadata
+    //     {
+    //         Nonce = GetNextTxNonce(privateKey.Address),
+    //         Signer = privateKey.Address,
+    //         GenesisHash = Genesis.BlockHash,
+    //         Actions = actions.ToBytecodes(),
+    //         MaxGasPrice = maxGasPrice,
+    //         GasLimit = gasLimit,
+    //         Timestamp = timestamp ?? DateTimeOffset.UtcNow,
+    //     }.Sign(privateKey);
+    //     StagedTransactions.Add(tx);
+    //     return tx;
+    // }
 
     public IReadOnlyList<BlockHash> FindNextHashes(BlockLocator locator, int count = 500)
     {

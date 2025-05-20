@@ -333,9 +333,11 @@ namespace Libplanet.Net.Tests
             var txCount = 10;
 
             var txs = Enumerable.Range(0, txCount).Select(_ =>
-                    chainA.MakeTransaction(
-                        new PrivateKey(),
-                        new[] { DumbAction.Create((address, "foo")) }))
+                    chainA.StagedTransactions.Add(new TransactionSubmission
+                    {
+                        Signer = new PrivateKey(),
+                        Actions = [DumbAction.Create((address, "foo"))],
+                    }))
                 .ToArray();
 
             try
@@ -526,12 +528,14 @@ namespace Libplanet.Net.Tests
 
             try
             {
-                var tx1 = swarmA.BlockChain.MakeTransaction(
-                    privateKey: privateKey,
-                    actions: new DumbAction[] { });
-                var tx2 = swarmA.BlockChain.MakeTransaction(
-                    privateKey: privateKey,
-                    actions: new DumbAction[] { });
+                var tx1 = swarmA.BlockChain.StagedTransactions.Add(submission: new()
+                {
+                    Signer = privateKey,
+                });
+                var tx2 = swarmA.BlockChain.StagedTransactions.Add(submission: new()
+                {
+                    Signer = privateKey,
+                });
                 Assert.Equal(0, tx1.Nonce);
                 Assert.Equal(1, tx2.Nonce);
 
@@ -563,12 +567,14 @@ namespace Libplanet.Net.Tests
                 Block block = chainB.ProposeBlock(keyB);
                 chainB.Append(block, TestUtils.CreateBlockCommit(block));
 
-                var tx3 = chainA.MakeTransaction(
-                    privateKey: privateKey,
-                    actions: new DumbAction[] { });
-                var tx4 = chainA.MakeTransaction(
-                    privateKey: privateKey,
-                    actions: new DumbAction[] { });
+                var tx3 = chainA.StagedTransactions.Add(submission: new()
+                {
+                    Signer = privateKey,
+                });
+                var tx4 = chainA.StagedTransactions.Add(submission: new()
+                {
+                    Signer = privateKey,
+                });
                 Assert.Equal(1, tx3.Nonce);
                 Assert.Equal(2, tx4.Nonce);
 
@@ -903,17 +909,23 @@ namespace Libplanet.Net.Tests
             var swarm1 = await CreateSwarm();
             var swarm2 = await CreateSwarm();
 
-            var tx1 = swarm2.BlockChain.MakeTransaction(
-                privateKey,
-                new[] { DumbAction.Create((address, "foo")) });
+            var tx1 = swarm2.BlockChain.StagedTransactions.Add(submission: new()
+            {
+                Signer = privateKey,
+                Actions = [DumbAction.Create((address, "foo"))],
+            });
 
-            var tx2 = swarm2.BlockChain.MakeTransaction(
-                privateKey,
-                new[] { DumbAction.Create((address, "bar")) });
+            var tx2 = swarm2.BlockChain.StagedTransactions.Add(submission: new()
+            {
+                Signer = privateKey,
+                Actions = [DumbAction.Create((address, "bar"))],
+            });
 
-            var tx3 = swarm2.BlockChain.MakeTransaction(
-                privateKey,
-                new[] { DumbAction.Create((address, "quz")) });
+            var tx3 = swarm2.BlockChain.StagedTransactions.Add(submission: new()
+            {
+                Signer = privateKey,
+                Actions = [DumbAction.Create((address, "quz"))],
+            });
 
             var tx4 = new TransactionMetadata
             {

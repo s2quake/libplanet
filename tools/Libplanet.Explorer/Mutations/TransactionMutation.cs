@@ -33,7 +33,7 @@ namespace Libplanet.Explorer.Mutations
                     BlockChain chain = _context.BlockChain;
                     byte[] payload = ByteUtility.ParseHex(context.GetArgument<string>("payload"));
                     Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(payload);
-                    if (!chain.StagedTransactions.Add(tx))
+                    if (!chain.StagedTransactions.TryAdd(tx))
                     {
                         throw new ExecutionError(
                             "Failed to stage given tx; it may be already expired or ignored.");

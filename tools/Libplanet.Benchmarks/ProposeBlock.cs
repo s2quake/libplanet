@@ -1,9 +1,11 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Action.Tests.Common;
+using Libplanet.Blockchain;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
+using Libplanet.Types.Tx;
 
 namespace Libplanet.Benchmarks
 {
@@ -46,7 +48,12 @@ namespace Libplanet.Benchmarks
         public void MakeOneTransactionNoAction()
         {
             PreparePropose();
-            _blockChain.MakeTransaction(_privateKey, new DumbAction[] { });
+            var tx = new TransactionBuilder
+            {
+                Signer = _privateKey,
+                Blockchain = _blockChain,
+            }.Create();
+            _blockChain.StagedTransactions.Add(tx);
         }
 
         [IterationSetup(Target = nameof(ProposeBlockTenTransactionsNoAction))]
@@ -54,7 +61,12 @@ namespace Libplanet.Benchmarks
         {
             for (var i = 0; i < 10; i++)
             {
-                _blockChain.MakeTransaction(new PrivateKey(), new DumbAction[] { });
+                var tx = new TransactionBuilder
+                {
+                    Signer = new PrivateKey(),
+                    Blockchain = _blockChain,
+                }.Create();
+                _blockChain.StagedTransactions.Add(tx);
             }
             PreparePropose();
         }
@@ -71,7 +83,13 @@ namespace Libplanet.Benchmarks
                 DumbAction.Create((address, "baz")),
                 DumbAction.Create((address, "qux")),
             };
-            _blockChain.MakeTransaction(privateKey, actions);
+            var tx = new TransactionBuilder
+            {
+                Signer = privateKey,
+                Blockchain = _blockChain,
+                Actions = actions,
+            }.Create();
+            _blockChain.StagedTransactions.Add(tx);
             PreparePropose();
         }
 
@@ -89,7 +107,13 @@ namespace Libplanet.Benchmarks
                     DumbAction.Create((address, "baz")),
                     DumbAction.Create((address, "qux")),
                 };
-                _blockChain.MakeTransaction(privateKey, actions);
+                var tx = new TransactionBuilder
+                {
+                    Signer = privateKey,
+                    Blockchain = _blockChain,
+                    Actions = actions,
+                }.Create();
+                _blockChain.StagedTransactions.Add(tx);
             }
             PreparePropose();
         }

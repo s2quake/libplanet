@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
+using Libplanet.Blockchain;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
@@ -47,13 +48,21 @@ public partial class BlockChainTest
         // C. Smaller nonces have later timestamps (2 txs: 0 (later), 1)
         // D. Some nonce numbers are missed out (3 txs: 0, 1, 3)
         // E. Reused nonces (4 txs: 0, 1, 1, 2)
-        _blockChain.MakeTransaction(a, new DumbAction[0]);
+        _blockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = _blockChain,
+            Signer = a,
+        }.Create());
         DateTimeOffset currentTime = DateTimeOffset.UtcNow;
         _blockChain.StagedTransactions.Add(MkTx(b, 1, currentTime + TimeSpan.FromHours(1)));
         _blockChain.StagedTransactions.Add(MkTx(c, 0, DateTimeOffset.UtcNow + TimeSpan.FromHours(1)));
         _blockChain.StagedTransactions.Add(MkTx(d, 0, DateTimeOffset.UtcNow));
         _blockChain.StagedTransactions.Add(MkTx(e, 0, DateTimeOffset.UtcNow));
-        _blockChain.MakeTransaction(a, new DumbAction[0]);
+        _blockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = _blockChain,
+            Signer = a,
+        }.Create());
         _blockChain.StagedTransactions.Add(MkTx(b, 0, currentTime));
         _blockChain.StagedTransactions.Add(MkTx(c, 1, DateTimeOffset.UtcNow));
         _blockChain.StagedTransactions.Add(MkTx(d, 1, DateTimeOffset.UtcNow));
@@ -61,7 +70,11 @@ public partial class BlockChainTest
         _blockChain.StagedTransactions.Add(MkTx(d, 3, DateTimeOffset.UtcNow));
         _blockChain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
         _blockChain.StagedTransactions.Add(MkTx(e, 2, DateTimeOffset.UtcNow));
-        _blockChain.MakeTransaction(a, new DumbAction[0]);
+        _blockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = _blockChain,
+            Signer = a,
+        }.Create());
 
         var stagedTransactions =
             _blockChain.StagedTransactions.Collect();

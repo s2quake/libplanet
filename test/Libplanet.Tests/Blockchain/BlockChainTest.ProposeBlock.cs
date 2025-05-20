@@ -339,31 +339,39 @@ public partial class BlockChainTest
             }
         }
 
-        var policy = new BlockChainOptions
+        var options = new BlockChainOptions
         {
             TransactionOptions = new TransactionOptions
             {
                 Validator = new RelayValidator<Transaction>(IsSignerValid),
             },
         };
-        using (var fx = new MemoryStoreFixture())
+        using var fx = new MemoryStoreFixture();
+        var blockChain = BlockChain.Create(fx.GenesisBlock, options);
+
+        var validTx = new TransactionBuilder
         {
-            var blockChain = BlockChain.Create(fx.GenesisBlock, policy);
+            Blockchain = _blockChain,
+            Signer = validKey,
+        }.Create();
+        _blockChain.StagedTransactions.Add(validTx);
+        var invalidTx = new TransactionBuilder
+        {
+            Signer = invalidKey,
+            Blockchain = _blockChain,
+        }.Create();
+        _blockChain.StagedTransactions.Add(invalidTx);
 
-            var validTx = blockChain.MakeTransaction(validKey, new DumbAction[] { });
-            var invalidTx = blockChain.MakeTransaction(invalidKey, new DumbAction[] { });
+        var proposer = new PrivateKey();
+        var block = blockChain.ProposeBlock(proposer);
+        blockChain.Append(block, CreateBlockCommit(block));
 
-            var proposer = new PrivateKey();
-            var block = blockChain.ProposeBlock(proposer);
-            blockChain.Append(block, CreateBlockCommit(block));
+        var txs = block.Transactions.ToHashSet();
 
-            var txs = block.Transactions.ToHashSet();
+        Assert.Contains(validTx, txs);
+        Assert.DoesNotContain(invalidTx, txs);
 
-            Assert.Contains(validTx, txs);
-            Assert.DoesNotContain(invalidTx, txs);
-
-            Assert.Empty(blockChain.StagedTransactions.Keys);
-        }
+        Assert.Empty(blockChain.StagedTransactions.Keys);
     }
 
     [Fact]
@@ -457,7 +465,13 @@ public partial class BlockChainTest
 
         var blockChain = new BlockChain(_fx.GenesisBlock, policy);
 
-        blockChain.MakeTransaction(privateKey2, new[] { DumbAction.Create((address2, "baz")) });
+        var tx = new TransactionBuilder
+        {
+            Blockchain = blockChain,
+            Signer = privateKey2,
+            Actions = [DumbAction.Create((address2, "baz"))],
+        }.Create();
+        blockChain.StagedTransactions.Add(tx);
         var block = blockChain.ProposeBlock(privateKey1);
         blockChain.Append(block, CreateBlockCommit(block));
 
@@ -475,7 +489,11 @@ public partial class BlockChainTest
         Assert.Equal("foo,foo", state1);
         Assert.Equal("baz", state2);
 
-        blockChain.MakeTransaction(privateKey1, new[] { DumbAction.Create((address1, "bar")) });
+        blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey1,
+            Actions = [DumbAction.Create((address1, "bar"))],
+        });
         block = blockChain.ProposeBlock(privateKey1);
         blockChain.Append(block, CreateBlockCommit(block));
 
