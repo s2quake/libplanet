@@ -4,21 +4,21 @@ using Libplanet.Store;
 namespace Libplanet.Tests.Store;
 
 public sealed class DefaultStoreFixture(BlockChainOptions options, bool memory = true)
-    : StoreFixture(CreateOptions(options, memory))
+    : StoreFixture(CreateRepository(memory), options)
 {
     public DefaultStoreFixture(bool memory = true)
         : this(new BlockChainOptions(), memory)
     {
     }
 
-    private static BlockChainOptions CreateOptions(BlockChainOptions options, bool memory)
+    private static Repository CreateRepository(bool memory)
     {
-        var path = string.Empty;
-        if (!memory)
+        if (memory)
         {
-            path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"defaultstore_test_{Guid.NewGuid()}");
+            return new Repository(new MemoryDatabase());
         }
 
+        var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"defaultstore_test_{Guid.NewGuid()}");
         // Scheme = "default+file://";
         // var storeOptions = new DefaultStoreOptions
         // {
@@ -26,8 +26,7 @@ public sealed class DefaultStoreFixture(BlockChainOptions options, bool memory =
         //     BlockCacheSize = 2,
         //     TxCacheSize = 2,
         // };
-        var store = new Libplanet.Store.Repository(new DefaultDatabase(path));
-        return options with { Repository = store };
+        return new Repository(new DefaultDatabase(path));
     }
 
     // public TrieStateStore LoadTrieStateStore(string path)

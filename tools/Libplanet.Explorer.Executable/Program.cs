@@ -18,6 +18,7 @@ using Libplanet.RocksDBStore;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -175,10 +176,13 @@ If omitted (default) explorer only the local blockchain store.")]
 
                 BlockChainOptions policy = LoadBlockPolicy(options);
 
-                var blockChain =
-                    new BlockChain(
-                        genesisBlock: await options.GetGenesisBlockAsync(policy),
-                        options: policy);
+                var blockChain = new BlockChain(options: policy)
+                {
+                    Blocks =
+                    {
+                        { await options.GetGenesisBlockAsync(policy), BlockCommit.Empty },
+                    }
+                };
                 Startup.PreloadedSingleton = false;
                 Startup.BlockChainSingleton = blockChain;
                 Startup.StoreSingleton = store;

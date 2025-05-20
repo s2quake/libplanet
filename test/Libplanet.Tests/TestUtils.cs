@@ -548,9 +548,10 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 }.Sign(privateKey),
             }.ToImmutableSortedSet();
 
-        var actionEvaluator = new ActionEvaluator(
-            stateStore: options.Repository.StateStore,
-            options.PolicyActions);
+            var repository = new Repository();
+            var actionEvaluator = new ActionEvaluator(
+                stateStore: repository.StateStore,
+                options.PolicyActions);
 
             if (genesisBlock is null)
             {
@@ -565,9 +566,13 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             }
 
             // ValidatingActionRenderer validator = null;
-#pragma warning disable S1121
-            var chain = new BlockChain(genesisBlock, options);
-#pragma warning restore S1121
+            var chain = new BlockChain(repository, options)
+            {
+                Blocks =
+                {
+                    { genesisBlock, BlockCommit.Empty },
+                },
+            };
 
             return (chain, actionEvaluator);
         }
