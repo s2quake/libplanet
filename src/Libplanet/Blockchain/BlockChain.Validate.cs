@@ -243,7 +243,7 @@ public partial class BlockChain
     }
 
     internal void ValidateBlockPrecededStateRootHash(
-        Block block, out CommittedActionEvaluation[] evaluations)
+        Block block, out ActionEvaluation[] evaluations)
     {
         var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
         if (!rootHash.Equals(block.StateRootHash))

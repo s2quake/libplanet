@@ -123,11 +123,11 @@ public partial class ActionEvaluatorTest
         {
             var actionEvaluations = actionEvaluator.Evaluate(noStateRootBlock, default);
             generatedRandomNumbers.Add(
-                (int)World.Create(actionEvaluations[0].OutputState, stateStore)
+                (int)World.Create(actionEvaluations[0].OutputWorld.Trie.Hash, stateStore)
                         .GetValue(LegacyAccount, ContextRecordingAction.RandomRecordAddress));
             actionEvaluations = actionEvaluator.Evaluate((RawBlock)stateRootBlock, default);
             generatedRandomNumbers.Add(
-                (int)World.Create(actionEvaluations[0].OutputState, stateStore)
+                (int)World.Create(actionEvaluations[0].OutputWorld.Trie.Hash, stateStore)
                         .GetValue(LegacyAccount, ContextRecordingAction.RandomRecordAddress));
         }
 
@@ -692,7 +692,7 @@ public partial class ActionEvaluatorTest
         var actionEvaluator = new ActionEvaluator(stateStore);
         var previousState = stateStore.GetWorld(initTrie.Hash);
         var evaluations = actionEvaluator.EvaluateTx(
-            block: block,
+            rawBlock: block,
             tx: tx,
             world: previousState).ToImmutableArray();
 
@@ -750,7 +750,7 @@ public partial class ActionEvaluatorTest
 
         previousState = stateStore.GetWorld(initTrie.Hash);
         World delta = actionEvaluator.EvaluateTx(
-            block: block,
+            rawBlock: block,
             tx: tx,
             world: previousState)[^1].OutputWorld;
         Assert.Empty(evaluations[3].OutputWorld.Trie.Diff(delta.Trie));
@@ -807,7 +807,7 @@ public partial class ActionEvaluatorTest
         Block blockA = fx.Propose();
         fx.Append(blockA);
         ActionEvaluation[] evalsA = actionEvaluator.EvaluateActions(
-            block: (RawBlock)blockA,
+            rawBlock: (RawBlock)blockA,
             tx: txA,
             world: fx.StateStore.GetWorld(blockA.StateRootHash),
             actions: txA.Actions);
@@ -858,7 +858,7 @@ public partial class ActionEvaluatorTest
         Block blockB = fx.Propose();
         fx.Append(blockB);
         ActionEvaluation[] evalsB = actionEvaluator.EvaluateActions(
-            block: (RawBlock)blockB,
+            rawBlock: (RawBlock)blockB,
             tx: txB,
             world: fx.StateStore.GetWorld(blockB.StateRootHash),
             actions: txB.Actions);
@@ -966,7 +966,6 @@ public partial class ActionEvaluatorTest
         Assert.Equal(
             (BigInteger)1,
             evaluations[0].OutputWorld.GetValue(LegacyAccount, _endBlockValueAddress));
-        Assert.Equal(genesis.Transactions, evaluations[0].InputContext.Txs);
 
         previousState = evaluations[0].OutputWorld;
         evaluations = actionEvaluator.EvaluateEndBlockActions(
@@ -1064,7 +1063,6 @@ public partial class ActionEvaluatorTest
             (BigInteger)2,
             evaluations[0].OutputWorld.GetValue(LegacyAccount, _endTxValueAddress));
         Assert.Equal(txs[1].Signer, evaluations[0].InputContext.Signer);
-        Assert.Equal(block.Transactions, evaluations[0].InputContext.Txs);
     }
 
     [Fact]
@@ -1208,7 +1206,7 @@ public partial class ActionEvaluatorTest
         var block = fx.Propose();
         var rawBlock = (RawBlock)block;
         var evaluations = actionEvaluator.EvaluateActions(
-            block: rawBlock,
+            rawBlock: rawBlock,
             tx: tx,
             world: fx.StateStore.GetWorld(block.StateRootHash),
             actions: tx.Actions);
