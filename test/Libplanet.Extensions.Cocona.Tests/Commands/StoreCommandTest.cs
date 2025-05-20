@@ -104,7 +104,7 @@ public sealed class StoreCommandTest : IDisposable
             store.BlockDigests.Add(_block4);
             chain.BlockHashes.Add(_block4);
 
-            storeFixture.Store?.Dispose();
+            storeFixture.Repository?.Dispose();
         }
     }
 

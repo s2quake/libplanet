@@ -1128,9 +1128,10 @@ public partial class BlockChainTest : IDisposable
 
         void BuildIndex(Guid id, Block block)
         {
+            var chain = repository.Chains[id];
             foreach (Transaction tx in block.Transactions)
             {
-                repository.Nonces.Increase(tx.Signer);
+                chain.Nonces.Increase(tx.Signer);
             }
 
             // store.AppendIndex(id, block.BlockHash);
