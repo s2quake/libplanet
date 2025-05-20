@@ -45,9 +45,11 @@ namespace Libplanet.Net.Tests
                     {
                         for (int j = 0; j < 5; j++)
                         {
-                            chain.MakeTransaction(
-                                signer,
-                                new[] { DumbAction.Create((address, $"Item{i}.{j}")) });
+                            chain.StagedTransactions.Add(submission: new()
+                            {
+                                Signer = signer,
+                                Actions = [DumbAction.Create((address, $"Item{i}.{j}"))],
+                            });
                         }
 
                         Block block = chain.ProposeBlock(miner);

@@ -153,20 +153,19 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void ProcessActions()
     {
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var stateStore = new TrieStateStore();
-        var blockChainStates = new BlockChainStates(store, stateStore);
+        var repository = new Repository();
+        var blockChainStates = new BlockChainStates(repository);
         var policy = new BlockChainOptions();
         var actionEvaluator = new ActionEvaluator(
-            stateStore,
+            repository.StateStore,
             policy.PolicyActions);
         var nonce = 0;
         var txs = TestUtils.Validators
             .Select(validator => new TransactionMetadata
-                {
-                    Nonce = nonce++,
-                    Signer = GenesisProposer.Address,
-                    Actions = new IAction[]
+            {
+                Nonce = nonce++,
+                Signer = GenesisProposer.Address,
+                Actions = new IAction[]
                     {
                         new Initialize
                         {
@@ -174,7 +173,7 @@ public partial class BlockChainTest : IDisposable
                             States = ImmutableDictionary.Create<Address, object>(),
                         },
                     }.ToBytecodes(),
-                }.Sign(GenesisProposer))
+            }.Sign(GenesisProposer))
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
         var genesis = BlockChain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
@@ -278,15 +277,17 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void ActionRenderersHaveDistinctContexts()
     {
-        var policy = new BlockChainOptions();
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var stateStore = new TrieStateStore();
+        var options = new BlockChainOptions();
         var generatedRandomValueLogs = new List<int>();
-        BlockChain blockChain = MakeBlockChain(policy);
+        BlockChain blockChain = MakeBlockChain(options);
         var privateKey = new PrivateKey();
         var action = DumbAction.Create((default, string.Empty));
         var actions = new[] { action };
-        blockChain.MakeTransaction(privateKey, actions);
+        blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = actions,
+        });
         Block block = blockChain.ProposeBlock(new PrivateKey());
 
         generatedRandomValueLogs.Clear();
@@ -299,15 +300,17 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void RenderActionsAfterBlockIsRendered()
     {
-        var policy = new BlockChainOptions();
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var stateStore = new TrieStateStore();
-        BlockChain blockChain = MakeBlockChain(policy);
+        var options = new BlockChainOptions();
+        var blockChain = MakeBlockChain(options);
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));
         var actions = new[] { action };
-        blockChain.MakeTransaction(privateKey, actions);
+        blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = actions,
+        });
         Block prevBlock = blockChain.Tip;
         Block block = blockChain.ProposeBlock(new PrivateKey());
         blockChain.Append(block, CreateBlockCommit(block));
@@ -352,7 +355,11 @@ public partial class BlockChainTest : IDisposable
 
         var action = DumbAction.Create((default, string.Empty));
         var actions = new[] { action };
-        blockChain.MakeTransaction(privateKey, actions);
+        blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = actions,
+        });
         Block block = blockChain.ProposeBlock(new PrivateKey());
 
         ThrowException.SomeException e = Assert.Throws<ThrowException.SomeException>(
@@ -628,7 +635,11 @@ public partial class BlockChainTest : IDisposable
         var privateKeysAndAddresses10 = privateKeys.Zip(addresses, (k, a) => (k, a));
         foreach (var (key, address) in privateKeysAndAddresses10)
         {
-            chain.MakeTransaction(key, new[] { DumbAction.Create((address, "1")) });
+            chain.StagedTransactions.Add(submission: new()
+            {
+                Signer = key,
+                Actions = [DumbAction.Create((address, "1"))],
+            });
         }
 
         Block block1 = chain.ProposeBlock(privateKeys[0]);
@@ -652,7 +663,11 @@ public partial class BlockChainTest : IDisposable
                     .GetValue(address));
         }
 
-        chain.MakeTransaction(privateKeys[0], new[] { DumbAction.Create((addresses[0], "2")) });
+        chain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKeys[0],
+            Actions = new[] { DumbAction.Create((addresses[0], "2")) },
+        });
         Block block2 = chain.ProposeBlock(privateKeys[0]);
         chain.Append(block2, CreateBlockCommit(block2));
         Assert.Equal(
@@ -811,10 +826,18 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(2, _blockChain.GetNextTxNonce(address));
 
-        _blockChain.MakeTransaction(privateKey, actions);
+        _blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = actions,
+        });
         Assert.Equal(3, _blockChain.GetNextTxNonce(address));
 
-        _blockChain.MakeTransaction(privateKey, actions);
+        _blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = actions,
+        });
         Assert.Equal(4, _blockChain.GetNextTxNonce(address));
     }
 
@@ -886,8 +909,16 @@ public partial class BlockChainTest : IDisposable
             }.ToImmutableDictionary(),
         };
 
-        _blockChain.MakeTransaction(privateKey, actions: new IAction[] { action });
-        _blockChain.MakeTransaction(privateKey, actions: new IAction[] { action });
+        _blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = [action],
+        });
+        _blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = [action],
+        });
 
         List<Transaction> txs = _stagePolicy
             .Iterate()
@@ -914,8 +945,16 @@ public partial class BlockChainTest : IDisposable
         Address address = privateKey.Address;
         var actions = new[] { DumbAction.Create((address, "foo")) };
 
-        _blockChain.MakeTransaction(privateKey, actions);
-        _blockChain.MakeTransaction(privateKey, actions);
+        _blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = actions,
+        });
+        _blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = privateKey,
+            Actions = actions,
+        });
 
         List<Transaction> txs = _stagePolicy
             .Iterate()
@@ -943,7 +982,11 @@ public partial class BlockChainTest : IDisposable
         var actions = new[] { DumbAction.Create((address, "foo")) };
 
         var tasks = Enumerable.Range(0, 10)
-            .Select(_ => Task.Run(() => _blockChain.MakeTransaction(privateKey, actions)));
+            .Select(_ => Task.Run(() => _blockChain.StagedTransactions.Add(submission: new()
+            {
+                Signer = privateKey,
+                Actions = actions,
+            })));
 
         await Task.WhenAll(tasks);
 
@@ -1415,15 +1458,17 @@ public partial class BlockChainTest : IDisposable
             transactions: [.. txs]);
         BlockChain blockChain = BlockChain.Create(genesis, options);
 
-        blockChain.MakeTransaction(
-            new PrivateKey(),
-            new[]
-            {
+        blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = new PrivateKey(),
+            Actions =
+            [
                 new SetValidator
                 {
                     Validator = Validator.Create(newValidatorPrivateKey.Address),
                 },
-            });
+            ],
+        });
         var newBlock = blockChain.ProposeBlock(new PrivateKey());
         var newBlockCommit = new BlockCommit
         {
@@ -1445,15 +1490,17 @@ public partial class BlockChainTest : IDisposable
         };
         blockChain.Append(newBlock, newBlockCommit);
 
-        blockChain.MakeTransaction(
-            new PrivateKey(),
-            new[]
-            {
+        blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = new PrivateKey(),
+            Actions =
+            [
                 new SetValidator
                 {
                     Validator = Validator.Create(new PrivateKey().Address),
                 },
-            });
+            ],
+        });
         var nextBlock = blockChain.ProposeBlock(new PrivateKey());
         var nextBlockCommit = new BlockCommit
         {
@@ -1476,15 +1523,17 @@ public partial class BlockChainTest : IDisposable
         };
         blockChain.Append(nextBlock, nextBlockCommit);
 
-        blockChain.MakeTransaction(
-            new PrivateKey(),
-            new[]
+        blockChain.StagedTransactions.Add(submission: new()
+        {
+            Signer = new PrivateKey(),
+            Actions = new[]
             {
                 new SetValidator
                 {
                     Validator = Validator.Create(new PrivateKey().Address),
                 },
-            });
+            },
+        });
         var invalidCommitBlock = blockChain.ProposeBlock(new PrivateKey());
 
         Assert.Throws<InvalidOperationException>(

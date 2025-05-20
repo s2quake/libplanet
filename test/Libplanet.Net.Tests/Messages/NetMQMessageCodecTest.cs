@@ -74,7 +74,10 @@ namespace Libplanet.Net.Tests.Messages
             var boundPeer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("127.0.0.1", 1000));
             BlockChain chain = MakeBlockChain();
             Block genesis = chain.Genesis;
-            var transaction = chain.MakeTransaction(privateKey, new DumbAction[] { });
+            var transaction = chain.StagedTransactions.Add(new TransactionSubmission
+            {
+                Signer = privateKey,
+            });
             switch (type)
             {
                 case MessageContent.MessageType.Ping:

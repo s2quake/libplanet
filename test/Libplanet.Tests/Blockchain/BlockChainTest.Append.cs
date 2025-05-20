@@ -444,8 +444,14 @@ public partial class BlockChainTest
         {
             var blockChain = BlockChain.Create(fx.GenesisBlock, policy);
 
-            var validTx = blockChain.MakeTransaction(validKey, Array.Empty<DumbAction>());
-            var invalidTx = blockChain.MakeTransaction(invalidKey, Array.Empty<DumbAction>());
+            var validTx = blockChain.StagedTransactions.Add(new TransactionSubmission
+            {
+                Signer = validKey,
+            });
+            var invalidTx = blockChain.StagedTransactions.Add(new TransactionSubmission
+            {
+                Signer = invalidKey,
+            });
 
             var proposer = new PrivateKey();
 

@@ -123,9 +123,18 @@ public class TransactionQueryTest
         await AssertNextNonce(0, key1.Address);
 
         // staged txs increase next nonce
-        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
+
+        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = Source.BlockChain,
+            Signer = key1,
+        }.Create());
         await AssertNextNonce(1, key1.Address);
-        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
+        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = Source.BlockChain,
+            Signer = key1,
+        }.Create());
         await AssertNextNonce(2, key1.Address);
         var block = Source.BlockChain.ProposeBlock(new PrivateKey());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
@@ -135,16 +144,28 @@ public class TransactionQueryTest
         await AssertNextNonce(0, key2.Address);
 
         // staging txs of key2 does not increase nonce of key1
-        Source.BlockChain.MakeTransaction(key2, [new NullAction()]);
+        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = Source.BlockChain,
+            Signer = key2,
+        }.Create());
         block = Source.BlockChain.ProposeBlock(new PrivateKey());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
         await AssertNextNonce(1, key2.Address);
         await AssertNextNonce(2, key1.Address);
 
         // unstaging txs decrease nonce
-        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
+        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = Source.BlockChain,
+            Signer = key1,
+        }.Create());
         await AssertNextNonce(3, key1.Address);
-        Source.BlockChain.MakeTransaction(key1, [new NullAction()]);
+        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        {
+            Blockchain = Source.BlockChain,
+            Signer = key1,
+        }.Create());
         await AssertNextNonce(4, key1.Address);
         Source.BlockChain.StagedTransactions.Keys
             .Select(item => Source.BlockChain.Transactions[item])

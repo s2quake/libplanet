@@ -136,10 +136,8 @@ namespace Libplanet.Net
                 {
                     try
                     {
-                        if (_blockChain.StagedTransactions.Add(tx))
-                        {
-                            stagedTxs.Add(tx);
-                        }
+                        _blockChain.StagedTransactions.Add(tx);
+                        stagedTxs.Add(tx);
                     }
                     catch (InvalidOperationException ite)
                     {

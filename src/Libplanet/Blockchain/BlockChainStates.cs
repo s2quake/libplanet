@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Security.Cryptography;
 using Libplanet.Action.State;
 using Libplanet.Store;
@@ -8,42 +7,27 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain;
 
-public sealed class BlockChainStates(Libplanet.Store.Repository store, TrieStateStore stateStore)
+public sealed class BlockChainStates(Repository repository)
 {
-    private readonly ActivitySource _activitySource = new("Libplanet.Blockchain.BlockChainStates");
+    private readonly TrieStateStore _stateStore = repository.StateStore;
 
-    public World GetWorld(BlockHash blockHash)
+    public World GetWorld(BlockHash blockHash) => new()
     {
-        using Activity? a = _activitySource
-            .StartActivity(ActivityKind.Internal)?
-            .AddTag("BlockHash", blockHash.ToString());
-        return World.Create(GetTrie(blockHash), stateStore);
-    }
+        Trie = GetTrie(blockHash),
+        StateStore = _stateStore,
+    };
 
-    public World GetWorld(HashDigest<SHA256> stateRootHash) => World.Create(GetTrie(stateRootHash), stateStore);
-
-    private ITrie GetTrie(BlockHash blockHash)
+    public World GetWorld(HashDigest<SHA256> stateRootHash) => new()
     {
-        using Activity? a = _activitySource
-            .StartActivity(ActivityKind.Internal)?
-            .AddTag("BlockHash", blockHash.ToString());
-        if (store.GetStateRootHash(blockHash) is { } stateRootHash)
-        {
-            a?.SetStatus(ActivityStatusCode.Ok);
-            return GetTrie(stateRootHash);
-        }
-        else
-        {
-            a?.SetStatus(ActivityStatusCode.Error);
-            throw new ArgumentException(
-                $"Could not find block hash {blockHash} in {nameof(Libplanet.Store.Repository)}.",
-                nameof(blockHash));
-        }
-    }
+        Trie = GetTrie(stateRootHash),
+        StateStore = _stateStore,
+    };
+
+    private ITrie GetTrie(BlockHash blockHash) => GetTrie(repository.GetStateRootHash(blockHash));
 
     private ITrie GetTrie(HashDigest<SHA256> stateRootHash)
     {
-        ITrie trie = stateStore.GetStateRoot(stateRootHash);
+        var trie = _stateStore.GetStateRoot(stateRootHash);
         if (!trie.IsCommitted)
         {
             throw new ArgumentException(
