@@ -234,16 +234,16 @@ public partial class BlockChain
         }
     }
 
-    internal void ValidateBlockPrecededStateRootHash(
-        Block block, out ActionEvaluation[] evaluations)
-    {
-        var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
-        if (!rootHash.Equals(block.StateRootHash))
-        {
-            var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
-                $"is {block.StateRootHash}, but the execution result is {rootHash}.";
-            throw new InvalidOperationException(
-                message);
-        }
-    }
+    // internal void ValidateBlockPrecededStateRootHash(
+    //     Block block, out ActionEvaluation[] evaluations)
+    // {
+    //     var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
+    //     if (!rootHash.Equals(block.StateRootHash))
+    //     {
+    //         var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
+    //             $"is {block.StateRootHash}, but the execution result is {rootHash}.";
+    //         throw new InvalidOperationException(
+    //             message);
+    //     }
+    // }
 }

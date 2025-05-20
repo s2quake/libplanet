@@ -1,5 +1,5 @@
-using System.Transactions;
 using Libplanet.Action.State;
+using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 
@@ -11,5 +11,9 @@ public sealed record class TxEvaluation
 
     public required World OutputWorld { get; init; }
 
-    public ActionEvaluation[] Evaluations { get; init; } = [];
+    public ImmutableArray<ActionEvaluation> BeginEvaluations { get; init; } = [];
+
+    public ImmutableArray<ActionEvaluation> Evaluations { get; init; } = [];
+
+    public ImmutableArray<ActionEvaluation> EndEvaluations { get; init; } = [];
 }
