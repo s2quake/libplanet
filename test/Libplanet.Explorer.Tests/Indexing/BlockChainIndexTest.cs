@@ -32,7 +32,7 @@ public abstract class BlockChainIndexTest
     public async Task Synchronize()
     {
         var index = Fx.CreateEphemeralIndexInstance();
-        await index.SynchronizeAsync(ChainFx.Chain.Store, CancellationToken.None);
+        await index.SynchronizeAsync(store: null!, CancellationToken.None);
 
         var chain = ChainFx.Chain;
         var block1 = chain.ProposeBlock(ChainFx.PrivateKeys[0]);

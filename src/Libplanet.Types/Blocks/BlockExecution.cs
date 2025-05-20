@@ -4,7 +4,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockExecution : IEquatable<BlockExecution>
+public sealed record class BlockExecution : IEquatable<BlockExecution>, IHasKey<BlockHash>
 {
     [Property(0)]
     public BlockHash BlockHash { get; init; }
@@ -14,4 +14,6 @@ public sealed record class BlockExecution : IEquatable<BlockExecution>
 
     [Property(3)]
     public HashDigest<SHA256> OutputState { get; init; }
+
+    BlockHash IHasKey<BlockHash>.Key => BlockHash;
 }

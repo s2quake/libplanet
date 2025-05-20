@@ -46,12 +46,12 @@ internal sealed class BlockChainService(
             },
         };
 
-        if (store.ChainId == Guid.Empty)
-        {
-            return BlockChain.Create(genesisBlock, options);
-        }
+        // if (store.ChainId == Guid.Empty)
+        // {
+        //     return new BlockChain(genesisBlock, options);
+        // }
 
-        return new BlockChain(genesisBlock, options);
+        return new BlockChain(new Repository(), options);
     }
 
     private static Block CreateGenesisBlock(

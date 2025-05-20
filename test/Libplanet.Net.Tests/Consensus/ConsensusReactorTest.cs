@@ -52,7 +52,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     Repository = new Libplanet.Store.Repository(new MemoryDatabase()),
                 };
-                blockChains[i] = BlockChain.Create(fx.GenesisBlock, TestUtils.Options);
+                blockChains[i] = new BlockChain(fx.GenesisBlock, TestUtils.Options);
             }
 
             for (var i = 0; i < 4; i++)

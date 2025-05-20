@@ -566,7 +566,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
             // ValidatingActionRenderer validator = null;
 #pragma warning disable S1121
-            var chain = BlockChain.Create(genesisBlock, options);
+            var chain = new BlockChain(genesisBlock, options);
 #pragma warning restore S1121
 
             return (chain, actionEvaluator);

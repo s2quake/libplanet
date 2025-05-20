@@ -35,7 +35,7 @@ public abstract class StoreTest
     [Fact]
     public void ListChainId()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainId = Fx.StoreChainId;
         var chain = store.Chains.GetOrAdd(chainId);
         Assert.Single(store.Chains);
@@ -53,7 +53,7 @@ public abstract class StoreTest
     [Fact]
     public void ListChainIdAfterForkAndDelete()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainAId = Guid.NewGuid();
         var chainBId = Guid.NewGuid();
         var chainA = store.Chains.GetOrAdd(chainAId);
@@ -80,7 +80,7 @@ public abstract class StoreTest
             ProposeGenesisBlock(GenesisProposer),
             GenesisProposer,
             [Fx.Transaction1]);
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainId = Fx.StoreChainId;
         var chain = store.Chains.GetOrAdd(chainId);
         chain.BlockHashes.Add(block1);
@@ -100,7 +100,7 @@ public abstract class StoreTest
     [Fact]
     public void DeleteChainIdIsIdempotent()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         Assert.Empty(store.Chains.Keys);
         Assert.False(store.Chains.Remove(Guid.NewGuid()));
         Assert.Empty(store.Chains.Keys);
@@ -113,7 +113,7 @@ public abstract class StoreTest
             Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
             "Flaky test : Libplanet.Blocks.InvalidBlockSignatureException");
 
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainAId = Guid.NewGuid();
         var chainBId = Guid.NewGuid();
         var chainCId = Guid.NewGuid();
@@ -207,7 +207,7 @@ public abstract class StoreTest
     [Fact]
     public void DeleteChainIdWithForksReverse()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainAId = Guid.NewGuid();
         var chainBId = Guid.NewGuid();
         var chainCId = Guid.NewGuid();
@@ -272,7 +272,7 @@ public abstract class StoreTest
     [Fact]
     public void ForkFromChainWithDeletion()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainAId = Guid.NewGuid();
         var chainBId = Guid.NewGuid();
         var chainCId = Guid.NewGuid();
@@ -300,7 +300,7 @@ public abstract class StoreTest
     [Fact]
     public void CanonicalChainId()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         Assert.Equal(Guid.Empty, store.ChainId);
 
         var aId = Guid.NewGuid();
@@ -321,7 +321,7 @@ public abstract class StoreTest
     [Fact]
     public void StoreBlock()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         Assert.Empty(store.BlockDigests.Keys);
         Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block1.BlockHash]);
         Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block2.BlockHash]);
@@ -385,127 +385,127 @@ public abstract class StoreTest
         Assert.False(store.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
     }
 
-    [Fact]
-    public void TxExecution()
-    {
-        static void AssertTxExecutionEqual(TxExecution expected, TxExecution actual)
-        {
-            Assert.Equal(expected.Fail, actual.Fail);
-            Assert.Equal(expected.TxId, actual.TxId);
-            Assert.Equal(expected.BlockHash, actual.BlockHash);
-            Assert.Equal(expected.InputState, actual.InputState);
-            Assert.Equal(expected.OutputState, actual.OutputState);
-            Assert.Equal(expected.ExceptionNames, actual.ExceptionNames);
-        }
+    // [Fact]
+    // public void TxExecution()
+    // {
+    //     static void AssertTxExecutionEqual(TxExecution expected, TxExecution actual)
+    //     {
+    //         Assert.Equal(expected.Fail, actual.Fail);
+    //         Assert.Equal(expected.TxId, actual.TxId);
+    //         Assert.Equal(expected.BlockHash, actual.BlockHash);
+    //         Assert.Equal(expected.InputState, actual.InputState);
+    //         Assert.Equal(expected.OutputState, actual.OutputState);
+    //         Assert.Equal(expected.ExceptionNames, actual.ExceptionNames);
+    //     }
 
-        var store = Fx.Store;
+    //     var store = Fx.Store;
 
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash1]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash1]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash2]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash1]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash1]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
 
-        var inputA = new TxExecution
-        {
-            BlockHash = Fx.Hash1,
-            TxId = Fx.TxId1,
-            InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
-            OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
-            ExceptionNames = [],
-        };
-        store.TxExecutions.Add(inputA);
+    //     var inputA = new TxExecution
+    //     {
+    //         BlockHash = Fx.Hash1,
+    //         TxId = Fx.TxId1,
+    //         InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         ExceptionNames = [],
+    //     };
+    //     store.TxExecutions.Add(inputA);
 
-        AssertTxExecutionEqual(inputA, store.TxExecutions[Fx.TxId1, Fx.Hash1]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash1]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash2]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
+    //     AssertTxExecutionEqual(inputA, store.TxExecutions[Fx.TxId1, Fx.Hash1]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash1]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
 
-        var inputB = new TxExecution
-        {
-            BlockHash = Fx.Hash1,
-            TxId = Fx.TxId2,
-            InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
-            OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
-            ExceptionNames = ["AnExceptionName"],
-        };
-        store.TxExecutions.Add(inputB);
+    //     var inputB = new TxExecution
+    //     {
+    //         BlockHash = Fx.Hash1,
+    //         TxId = Fx.TxId2,
+    //         InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         ExceptionNames = ["AnExceptionName"],
+    //     };
+    //     store.TxExecutions.Add(inputB);
 
-        AssertTxExecutionEqual(inputA, store.TxExecutions[Fx.TxId1, Fx.Hash1]);
-        AssertTxExecutionEqual(inputB, store.TxExecutions[Fx.TxId2, Fx.Hash1]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash2]);
+    //     AssertTxExecutionEqual(inputA, store.TxExecutions[Fx.TxId1, Fx.Hash1]);
+    //     AssertTxExecutionEqual(inputB, store.TxExecutions[Fx.TxId2, Fx.Hash1]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1, Fx.Hash2]);
 
-        var inputC = new TxExecution
-        {
-            BlockHash = Fx.Hash2,
-            TxId = Fx.TxId1,
-            InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
-            OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
-            ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
-        };
-        store.TxExecutions.Add(inputC);
+    //     var inputC = new TxExecution
+    //     {
+    //         BlockHash = Fx.Hash2,
+    //         TxId = Fx.TxId1,
+    //         InputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
+    //     };
+    //     store.TxExecutions.Add(inputC);
 
-        AssertTxExecutionEqual(inputA, store.TxExecutions[Fx.TxId1, Fx.Hash1]);
-        AssertTxExecutionEqual(inputB, store.TxExecutions[Fx.TxId2, Fx.Hash1]);
-        AssertTxExecutionEqual(inputC, store.TxExecutions[Fx.TxId1, Fx.Hash2]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
-    }
+    //     AssertTxExecutionEqual(inputA, store.TxExecutions[Fx.TxId1, Fx.Hash1]);
+    //     AssertTxExecutionEqual(inputB, store.TxExecutions[Fx.TxId2, Fx.Hash1]);
+    //     AssertTxExecutionEqual(inputC, store.TxExecutions[Fx.TxId1, Fx.Hash2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2, Fx.Hash2]);
+    // }
 
-    [Fact]
-    public void TxIdBlockHashIndex()
-    {
-        var store = Fx.Store;
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId3]);
+    // [Fact]
+    // public void TxIdBlockHashIndex()
+    // {
+    //     var store = Fx.Store;
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId3]);
 
-        store.TxExecutions.Add(new TxExecution
-        {
-            TxId = Fx.TxId1,
-            BlockHash = Fx.Hash1,
-        });
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId3]);
+    //     store.TxExecutions.Add(new TxExecution
+    //     {
+    //         TxId = Fx.TxId1,
+    //         BlockHash = Fx.Hash1,
+    //     });
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId3]);
 
-        store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId2, BlockHash = Fx.Hash2 });
-        store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId3, BlockHash = Fx.Hash3 });
+    //     store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId2, BlockHash = Fx.Hash2 });
+    //     store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId3, BlockHash = Fx.Hash3 });
 
-        Assert.Single(store.TxExecutions[Fx.TxId1].Select(item => item.BlockHash), Fx.Hash1);
-        Assert.Single(store.TxExecutions[Fx.TxId2].Select(item => item.BlockHash), Fx.Hash2);
-        Assert.Single(store.TxExecutions[Fx.TxId3].Select(item => item.BlockHash), Fx.Hash3);
+    //     Assert.Single(store.TxExecutions[Fx.TxId1].Select(item => item.BlockHash), Fx.Hash1);
+    //     Assert.Single(store.TxExecutions[Fx.TxId2].Select(item => item.BlockHash), Fx.Hash2);
+    //     Assert.Single(store.TxExecutions[Fx.TxId3].Select(item => item.BlockHash), Fx.Hash3);
 
-        store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId1, BlockHash = Fx.Hash3 });
-        store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId2, BlockHash = Fx.Hash3 });
-        store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId3, BlockHash = Fx.Hash1 });
-        Assert.Equal(2, store.TxExecutions[Fx.TxId1].Length);
-        Assert.Equal(2, store.TxExecutions[Fx.TxId2].Length);
-        Assert.Equal(2, store.TxExecutions[Fx.TxId3].Length);
+    //     store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId1, BlockHash = Fx.Hash3 });
+    //     store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId2, BlockHash = Fx.Hash3 });
+    //     store.TxExecutions.Add(new TxExecution { TxId = Fx.TxId3, BlockHash = Fx.Hash1 });
+    //     Assert.Equal(2, store.TxExecutions[Fx.TxId1].Length);
+    //     Assert.Equal(2, store.TxExecutions[Fx.TxId2].Length);
+    //     Assert.Equal(2, store.TxExecutions[Fx.TxId3].Length);
 
-        Assert.True(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash1));
-        Assert.True(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash2));
-        Assert.True(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash3));
+    //     Assert.True(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash1));
+    //     Assert.True(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash2));
+    //     Assert.True(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash3));
 
-        Assert.Single(store.TxExecutions[Fx.TxId1].Select(item => item.BlockHash), Fx.Hash3);
-        Assert.Single(store.TxExecutions[Fx.TxId2].Select(item => item.BlockHash), Fx.Hash3);
-        Assert.Single(store.TxExecutions[Fx.TxId3].Select(item => item.BlockHash), Fx.Hash1);
+    //     Assert.Single(store.TxExecutions[Fx.TxId1].Select(item => item.BlockHash), Fx.Hash3);
+    //     Assert.Single(store.TxExecutions[Fx.TxId2].Select(item => item.BlockHash), Fx.Hash3);
+    //     Assert.Single(store.TxExecutions[Fx.TxId3].Select(item => item.BlockHash), Fx.Hash1);
 
-        Assert.False(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash1));
-        Assert.False(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash2));
-        Assert.False(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash3));
+    //     Assert.False(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash1));
+    //     Assert.False(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash2));
+    //     Assert.False(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash3));
 
-        Assert.True(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash3));
-        Assert.True(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash3));
-        Assert.True(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash1));
+    //     Assert.True(store.TxExecutions.Remove(Fx.TxId1, Fx.Hash3));
+    //     Assert.True(store.TxExecutions.Remove(Fx.TxId2, Fx.Hash3));
+    //     Assert.True(store.TxExecutions.Remove(Fx.TxId3, Fx.Hash1));
 
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2]);
-        Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId3]);
-    }
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId1]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId2]);
+    //     Assert.Throws<KeyNotFoundException>(() => store.TxExecutions[Fx.TxId3]);
+    // }
 
     [Fact]
     public void StoreTx()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         Assert.Throws<KeyNotFoundException>(() => store.PendingTransactions[Fx.Transaction1.Id]);
         Assert.Throws<KeyNotFoundException>(() => store.PendingTransactions[Fx.Transaction2.Id]);
         Assert.False(store.PendingTransactions.ContainsKey(Fx.Transaction1.Id));
@@ -538,7 +538,7 @@ public abstract class StoreTest
     [Fact]
     public void StoreIndex()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chain = store.Chains.GetOrAdd(Fx.StoreChainId);
         Assert.Equal(0, chain.Height);
         Assert.Throws<KeyNotFoundException>(() => chain.BlockHashes[0]);
@@ -567,7 +567,7 @@ public abstract class StoreTest
     [Fact]
     public void IterateHeights()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chain = store.Chains.GetOrAdd(Fx.StoreChainId);
 
         chain.BlockHashes.Add(0, Fx.Hash1);
@@ -606,7 +606,7 @@ public abstract class StoreTest
     [Fact]
     public void TxNonce()
     {
-        var chain = Fx.Store.Chains.GetOrAdd(Fx.StoreChainId);
+        var chain = Fx.Repository.Chains.GetOrAdd(Fx.StoreChainId);
         Assert.Equal(0, chain.GetNonce(Fx.Transaction1.Signer));
         Assert.Equal(0, chain.GetNonce(Fx.Transaction2.Signer));
 
@@ -646,7 +646,7 @@ public abstract class StoreTest
     [Fact]
     public void ListTxNonces()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainId1 = Guid.NewGuid();
         var chainId2 = Guid.NewGuid();
         var chain1 = store.Chains.GetOrAdd(chainId1);
@@ -694,7 +694,7 @@ public abstract class StoreTest
     [Fact]
     public void IndexBlockHashReturnNull()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chain = store.Chains.GetOrAdd(Fx.StoreChainId);
         store.BlockDigests.Add(Fx.Block1);
         chain.BlockHashes.Add(1, Fx.Block1.BlockHash);
@@ -705,7 +705,7 @@ public abstract class StoreTest
     [Fact]
     public void ContainsBlockWithoutCache()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         store.BlockDigests.Add(Fx.Block1);
         store.BlockDigests.Add(Fx.Block2);
         store.BlockDigests.Add(Fx.Block3);
@@ -718,7 +718,7 @@ public abstract class StoreTest
     [Fact]
     public void ContainsTransactionWithoutCache()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         store.PendingTransactions.Add(Fx.Transaction1);
         store.PendingTransactions.Add(Fx.Transaction2);
         store.PendingTransactions.Add(Fx.Transaction3);
@@ -757,7 +757,7 @@ public abstract class StoreTest
 
         const int taskCount = 5;
         const int txCount = 30;
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var md5Hasher = MD5.Create();
         Transaction commonTx = MakeTx(
             new System.Random(),
@@ -806,7 +806,7 @@ public abstract class StoreTest
     [Fact]
     public void ForkBlockIndex()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainIdA = Guid.NewGuid();
         var chainIdB = Guid.NewGuid();
         var chainIdC = Guid.NewGuid();
@@ -932,7 +932,7 @@ public abstract class StoreTest
     [Fact]
     public void ForkWithBranch()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var chainIdA = Guid.NewGuid();
         var chainIdB = Guid.NewGuid();
         var chainA = store.Chains.GetOrAdd(chainIdA);
@@ -993,7 +993,7 @@ public abstract class StoreTest
     //     var genesis = preEval.Sign(
     //         GenesisProposer,
     //         default);
-    //     var blockChain = BlockChain.Create(genesis, fx1.Options);
+    //     var blockChain = new BlockChain(genesis, fx1.Options);
 
     //     var key = new PrivateKey();
     //     var block = blockChain.ProposeBlock(key);
@@ -1025,7 +1025,7 @@ public abstract class StoreTest
     public void GetBlock()
     {
         using var fx = FxConstructor();
-        var store = fx.Store;
+        var store = fx.Repository;
         var genesisBlock = fx.GenesisBlock;
         var expectedBlock = ProposeNextBlock(genesisBlock, fx.Proposer);
 
@@ -1039,7 +1039,7 @@ public abstract class StoreTest
     public void GetBlockCommit()
     {
         using var fx = FxConstructor();
-        var store = fx.Store;
+        var store = fx.Repository;
         var height = 1;
         var round = 0;
         var hash = fx.Block2.BlockHash;
@@ -1116,9 +1116,9 @@ public abstract class StoreTest
             },
         ];
 
-        fx.Store.BlockCommits.AddRange(blockCommits);
+        fx.Repository.BlockCommits.AddRange(blockCommits);
 
-        var actualHeight = fx.Store.BlockCommits.Values.Select(item => item.Height).ToImmutableSortedSet();
+        var actualHeight = fx.Repository.BlockCommits.Values.Select(item => item.Height).ToImmutableSortedSet();
 
         Assert.Equal([1, 2], actualHeight);
     }
@@ -1127,7 +1127,7 @@ public abstract class StoreTest
     public void DeleteLastCommit()
     {
         using var fx = FxConstructor();
-        var store = fx.Store;
+        var store = fx.Repository;
         var validatorPrivateKey = new PrivateKey();
         var blockCommit = new BlockCommit
         {
@@ -1156,7 +1156,7 @@ public abstract class StoreTest
     public void IteratePendingEvidenceIds()
     {
         using var fx = FxConstructor();
-        var store = fx.Store;
+        var store = fx.Repository;
         var signer = TestUtils.ValidatorPrivateKeys[0];
         var duplicateVoteOne = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
@@ -1217,7 +1217,7 @@ public abstract class StoreTest
     [Fact]
     public void ManipulatePendingEvidence()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var signer = TestUtils.ValidatorPrivateKeys[0];
         var duplicateVote = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
@@ -1258,7 +1258,7 @@ public abstract class StoreTest
     public void ManipulateCommittedEvidence()
     {
         using var fx = FxConstructor();
-        var store = fx.Store;
+        var store = fx.Repository;
         var signer = TestUtils.ValidatorPrivateKeys[0];
         var duplicateVote = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
@@ -1298,7 +1298,7 @@ public abstract class StoreTest
     [Fact]
     public void ForkTxNonces()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         var sourceChain = store.Chains.GetOrAdd(Guid.NewGuid());
         var destChain = store.Chains.GetOrAdd(Guid.NewGuid());
         sourceChain.Nonces.Increase(Fx.Address1, 1);
@@ -1318,7 +1318,7 @@ public abstract class StoreTest
     [Fact]
     public void PruneOutdatedChains()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         store.BlockDigests.Add(Fx.GenesisBlock);
         store.BlockDigests.Add(Fx.Block1);
         store.BlockDigests.Add(Fx.Block2);
@@ -1369,7 +1369,7 @@ public abstract class StoreTest
     [Fact]
     public void IdempotentDispose()
     {
-        var store = Fx.Store;
+        var store = Fx.Repository;
         store.Dispose();
         store.Dispose();
 

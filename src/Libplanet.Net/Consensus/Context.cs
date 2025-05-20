@@ -362,7 +362,7 @@ public partial class Context : IDisposable
         try
         {
             var block = _blockChain.ProposeBlock(_privateKey);
-            _blockChain.Blocks.Add(block);
+            _blockChain.Blocks.AddCache(block);
             return block;
         }
         catch (Exception e)
@@ -401,7 +401,7 @@ public partial class Context : IDisposable
         {
             // Need to get txs from store, lock?
             // TODO: Remove ChainId, enhancing lock management.
-            _blockChain._rwlock.EnterUpgradeableReadLock();
+            // _blockChain._rwlock.EnterUpgradeableReadLock();
 
             if (block.Height != Height)
             {
@@ -443,7 +443,7 @@ public partial class Context : IDisposable
             }
             finally
             {
-                _blockChain._rwlock.ExitUpgradeableReadLock();
+                // _blockChain._rwlock.ExitUpgradeableReadLock();
             }
 
             _blockValidationCache.AddReplace(block.BlockHash, true);

@@ -56,7 +56,7 @@ public class Store
     public void InitializeFixture()
     {
         _fx = new MemoryStoreFixture();
-        _store = _fx.Store;
+        _store = _fx.Repository;
     }
 
     [IterationCleanup]

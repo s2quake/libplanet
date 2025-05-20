@@ -23,7 +23,7 @@ public sealed class BlockChainStates(Repository repository)
         StateStore = _stateStore,
     };
 
-    private ITrie GetTrie(BlockHash blockHash) => GetTrie(repository.GetStateRootHash(blockHash));
+    private ITrie GetTrie(BlockHash blockHash) => GetTrie(repository.BlockDigests[blockHash].StateRootHash);
 
     private ITrie GetTrie(HashDigest<SHA256> stateRootHash)
     {

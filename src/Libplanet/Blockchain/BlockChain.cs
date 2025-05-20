@@ -1,115 +1,79 @@
-using System.Diagnostics;
-using System.Globalization;
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
-using System.Threading;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Store;
 using Libplanet.Types;
-using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
-using Serilog;
 
 namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    internal readonly ReaderWriterLockSlim _rwlock;
-    private readonly ILogger _logger;
     private readonly Subject<RenderBlockInfo> _renderBlock = new();
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly BlockChainStates _blockChainStates;
-    private readonly Chain _chain;
-
-    private Block _genesisBlock;
+    private readonly Repository _repository;
+    private readonly ActionEvaluator _actionEvaluator;
 
     private HashDigest<SHA256>? _nextStateRootHash;
 
-    public BlockChain(Block genesisBlock, BlockChainOptions options)
-        : this(genesisBlock, options.Repository.ChainId, options)
+    public BlockChain(BlockChainOptions options)
+        : this(new Repository(), options)
     {
     }
 
-    private BlockChain(Block genesisBlock, Guid id, BlockChainOptions options)
+    public BlockChain(Repository repository, BlockChainOptions options)
     {
-        if (options.Repository.ChainId is { } canonId && canonId != Guid.Empty)
-        {
-            throw new ArgumentException(
-                $"Given {nameof(options.Repository)} already has its canonical chain id set: {canonId}",
-                nameof(options));
-        }
+        // genesisBlock.ValidateAsGenesis();
 
-        genesisBlock.ValidateAsGenesis();
-
-        Id = id;
         Options = options;
-        StagedTransactions = new StagedTransactionCollection(options.Repository);
-        Transactions = new TransactionCollection(options.Repository);
-        PendingEvidences = new PendingEvidenceCollection(options.Repository);
-        Evidences = new EvidenceCollection(options.Repository);
-        Store = options.Repository;
-        StateStore = options.Repository.StateStore;
-        _chain = Store.Chains.GetOrAdd(id);
-        Store.ChainId = id;
-        Blocks = new BlockCollection(options.Repository, id);
-        BlockCommits = new BlockCommitCollection(options.Repository, id);
+        _repository = repository;
+        _blockChainStates = new BlockChainStates(repository);
+        _actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
+        StagedTransactions = new StagedTransactionCollection(repository);
+        Transactions = new TransactionCollection(repository);
+        PendingEvidences = new PendingEvidenceCollection(repository);
+        Evidences = new EvidenceCollection(repository);
+        Blocks = new BlockCollection(repository);
+        BlockCommits = new BlockCommitCollection(repository);
 
-        var nonceDeltas = ValidateGenesisNonces(genesisBlock);
+        // var nonceDeltas = ValidateGenesisNonces(genesisBlock);
 
-        Blocks.Add(genesisBlock);
+        // Blocks.AddCache(genesisBlock);
 
-        foreach (KeyValuePair<Address, long> pair in nonceDeltas)
-        {
-            _chain.Nonces.Increase(pair.Key, pair.Value);
-        }
+        // foreach (KeyValuePair<Address, long> pair in nonceDeltas)
+        // {
+        //     _chain.Nonces.Increase(pair.Key, pair.Value);
+        // }
 
-        _blockChainStates = new BlockChainStates(options.Repository);
+        // if (!Genesis.Equals(genesisBlock))
+        // {
+        //     string msg =
+        //         $"The genesis block that the given {nameof(Libplanet.Store.Repository)} contains does not match " +
+        //         "to the genesis block that the network expects.  You might pass the wrong " +
+        //         "store which is incompatible with this chain.  Or your network might " +
+        //         "restarted the chain with a new genesis block so that it is incompatible " +
+        //         "with your existing chain in the local store.";
+        //     throw new InvalidOperationException(
+        //         message: msg);
+        // }
 
-        _rwlock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-
-        _logger = Log
-            .ForContext<BlockChain>()
-            .ForContext("Source", nameof(BlockChain))
-            .ForContext("ChainId", Id);
-        ActionEvaluator = new ActionEvaluator(StateStore, options.PolicyActions);
-
-        if (!Genesis.Equals(genesisBlock))
-        {
-            string msg =
-                $"The genesis block that the given {nameof(Libplanet.Store.Repository)} contains does not match " +
-                "to the genesis block that the network expects.  You might pass the wrong " +
-                "store which is incompatible with this chain.  Or your network might " +
-                "restarted the chain with a new genesis block so that it is incompatible " +
-                "with your existing chain in the local store.";
-            throw new InvalidOperationException(
-                message: msg);
-        }
-
-        _nextStateRootHash =
-            DetermineNextBlockStateRootHash(Tip, out var actionEvaluations);
-        IEnumerable<TxExecution> txExecutions = MakeTxExecutions(Tip, actionEvaluations);
-        Store.TxExecutions.AddRange(txExecutions);
-    }
-
-    ~BlockChain()
-    {
-        _rwlock?.Dispose();
+        _nextStateRootHash = DetermineNextBlockStateRootHash(Tip, out var actionEvaluations);
+        var txExecutions = MakeTxExecutions(Tip, actionEvaluations);
+        _repository.TxExecutions.AddRange(txExecutions);
     }
 
     internal event EventHandler<(Block OldTip, Block NewTip)> TipChanged;
 
     public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
 
-    public IObservable<ActionEvaluation> RenderAction => ActionEvaluator.Evaluation;
+    public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.Evaluation;
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
-
-    public BlockChainOptions Options { get; }
 
     public StagedTransactionCollection StagedTransactions { get; }
 
@@ -121,69 +85,32 @@ public partial class BlockChain
 
     public Block Tip => Blocks[^1];
 
-    public Block Genesis => _genesisBlock ??= Blocks[0];
+    public Block Genesis => Blocks[0];
 
-    public Guid Id { get; private set; }
-
-    internal Store.Repository Store { get; }
-
-    internal TrieStateStore StateStore { get; }
-
-    internal ActionEvaluator ActionEvaluator { get; }
+    public BlockChainOptions Options { get; }
 
     public BlockCollection Blocks { get; }
 
     public BlockCommitCollection BlockCommits { get; }
 
-    public TxExecutionStore TxExecutions => Store.TxExecutions;
-
-    internal bool IsCanonical => Store.ChainId is Guid guid && Id == guid;
-
-    public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
-    {
-        return new BlockChain(genesisBlock, Guid.NewGuid(), options);
-    }
+    public TxExecutionStore TxExecutions => _repository.TxExecutions;
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 
-    // public Transaction MakeTransaction(
-    //     PrivateKey privateKey,
-    //     IEnumerable<IAction> actions,
-    //     FungibleAssetValue? maxGasPrice = null,
-    //     long gasLimit = 0L,
-    //     DateTimeOffset? timestamp = null)
-    // {
-    //     var tx = new TransactionMetadata
-    //     {
-    //         Nonce = GetNextTxNonce(privateKey.Address),
-    //         Signer = privateKey.Address,
-    //         GenesisHash = Genesis.BlockHash,
-    //         Actions = actions.ToBytecodes(),
-    //         MaxGasPrice = maxGasPrice,
-    //         GasLimit = gasLimit,
-    //         Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-    //     }.Sign(privateKey);
-    //     StagedTransactions.Add(tx);
-    //     return tx;
-    // }
-
     public IReadOnlyList<BlockHash> FindNextHashes(BlockHash locator, int count = 500)
     {
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
-
         if (!(FindBranchpoint(locator) is { } branchpoint))
         {
-            return Array.Empty<BlockHash>();
+            return [];
         }
 
         if (!Blocks.TryGetValue(branchpoint, out var block))
         {
-            return Array.Empty<BlockHash>();
+            return [];
         }
 
         var result = new List<BlockHash>();
-        foreach (BlockHash hash in Store.Chains.GetOrAdd(Id).BlockHashes.IterateHeights(block.Height, count))
+        foreach (BlockHash hash in _repository.Chain.BlockHashes.IterateHeights(block.Height, count))
         {
             if (count == 0)
             {
@@ -193,16 +120,6 @@ public partial class BlockChain
             result.Add(hash);
             count--;
         }
-
-        _logger
-            .ForContext("Tag", "Metric")
-            .ForContext("Subtag", "FindHashesDuration")
-            .Information(
-                "Found {HashCount} hashes from storage with {ChainIdCount} chain ids " +
-                "in {DurationMs} ms",
-                result.Count,
-                Store.Chains.Keys.Count,
-                stopwatch.ElapsedMilliseconds);
 
         return result;
     }
@@ -214,25 +131,23 @@ public partial class BlockChain
     {
         if (Blocks.Count is 0)
         {
-            throw new ArgumentException(
-                "Cannot append a block to an empty chain.");
+            throw new InvalidCastException(
+                $"Cannot append block #{block.Height} {block.BlockHash} to an empty chain.");
         }
-        else if (block.Height is 0)
+
+        if (block.Height is 0)
         {
             throw new ArgumentException(
                 $"Cannot append genesis block #{block.Height} {block.BlockHash} to a chain.",
                 nameof(block));
         }
 
-        _logger.Information(
-            "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.BlockHash);
-
         if (validate)
         {
             block.Header.Timestamp.ValidateTimestamp();
         }
 
-        _rwlock.EnterUpgradeableReadLock();
+        // _rwlock.EnterUpgradeableReadLock();
         Block prevTip = Tip;
         try
         {
@@ -242,24 +157,19 @@ public partial class BlockChain
                 ValidateBlockCommit(block, blockCommit);
             }
 
-            var nonceDeltas = ValidateBlockNonces(
-                block.Transactions
-                    .Select(tx => tx.Signer)
-                    .Distinct()
-                    .ToDictionary(signer => signer, signer => _chain.Nonces[signer]),
-                block);
-
-            if (validate)
-            {
-                ValidateBlockLoadActions(block);
-            }
+            // var nonceDeltas = ValidateBlockNonces(
+            //     block.Transactions
+            //         .Select(tx => tx.Signer)
+            //         .Distinct()
+            //         .ToDictionary(signer => signer, signer => _chain.Nonces[signer]),
+            //     block);
 
             if (validate)
             {
                 Options.BlockOptions.Validator.Validate(block);
             }
 
-            foreach (Transaction tx in block.Transactions)
+            foreach (var tx in block.Transactions)
             {
                 if (validate)
                 {
@@ -267,7 +177,6 @@ public partial class BlockChain
                 }
             }
 
-            _rwlock.EnterWriteLock();
             try
             {
                 if (validate)
@@ -275,107 +184,32 @@ public partial class BlockChain
                     ValidateBlockStateRootHash(block);
                 }
 
-                // FIXME: Using evaluateActions as a proxy flag for preloading status.
-                const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
-                _logger
-                    .ForContext("Tag", "Metric")
-                    .ForContext("Subtag", "BlockAppendTimestamp")
-                    .Information(
-                        "Block #{BlockHeight} {BlockHash} with " +
-                        "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
-                        block.Height,
-                        block.BlockHash,
-                        block.Timestamp.ToString(
-                            TimestampFormat, CultureInfo.InvariantCulture),
-                        DateTimeOffset.UtcNow.ToString(
-                            TimestampFormat, CultureInfo.InvariantCulture));
+                Blocks.AddCache(block);
 
-                Blocks[block.BlockHash] = block;
-
-                foreach (KeyValuePair<Address, long> pair in nonceDeltas)
-                {
-                    _chain.Nonces.Increase(pair.Key, pair.Value);
-                }
-
-                // foreach (var tx in block.Transactions)
-                // {
-                //     Store.BlockHashByTxId.Add(tx.Id, block.BlockHash);
-                // }
-
-                if (block.Height != 0 && blockCommit is { })
-                {
-                    _chain.BlockCommit = blockCommit;
-                }
-
-                foreach (var ev in block.Evidences)
-                {
-                    Store.PendingEvidences.Remove(ev.Id);
-                    Store.CommittedEvidences.Add(ev.Id, ev);
-                }
-
-                // Store.AppendIndex(Id, block.BlockHash);
+                _repository.AddBlock(block);
+                _repository.Chain.BlockHashes.Add(block);
+                _repository.Chain.Nonces.Increase(block);
+                _repository.Chain.BlockCommit = blockCommit;
+                _repository.PendingEvidences.RemoveRange(block.Evidences);
+                _repository.CommittedEvidences.AddRange(block.Evidences);
+                _repository.PendingEvidences.Clear(IsEvidenceExpired);
+                _repository.PendingTransactions.RemoveRange(block.Transactions);
                 _nextStateRootHash = null;
-
-                foreach (var ev in Store.PendingEvidences.ToArray())
-                {
-                    if (IsEvidenceExpired(ev.Value))
-                    {
-                        Store.PendingEvidences.Remove(ev.Key);
-                        // Store.DeletePendingEvidence(ev.Id);
-                    }
-                }
             }
             finally
             {
-                _rwlock.ExitWriteLock();
-            }
-
-            if (IsCanonical)
-            {
-                _logger.Information(
-                    "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
-                    block.Transactions.Count(),
-                    block.Height,
-                    block.BlockHash);
-                foreach (Transaction tx in block.Transactions)
-                {
-                    StagedTransactions.Remove(tx.Id);
-                }
-
-                _logger.Information(
-                    "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
-                    block.Transactions.Count(),
-                    block.Height,
-                    block.BlockHash);
-            }
-            else
-            {
-                _logger.Information(
-                    "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
-                    "for non-canonical chain {ChainID}",
-                    block.Height,
-                    block.BlockHash,
-                    Id);
             }
 
             TipChanged?.Invoke(this, (prevTip, block));
-            _logger.Information(
-                "Appended the block #{BlockHeight} {BlockHash}",
-                block.Height,
-                block.BlockHash);
-
             _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-            HashDigest<SHA256> nextStateRootHash =
-                DetermineNextBlockStateRootHash(block, out var actionEvaluations);
-            _nextStateRootHash = nextStateRootHash;
+            _nextStateRootHash = DetermineNextBlockStateRootHash(block, out var actionEvaluations);
             _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
 
-            IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations);
-            Store.TxExecutions.AddRange(txExecutions);
+            var txExecutions = MakeTxExecutions(block, actionEvaluations);
+            _repository.TxExecutions.AddRange(txExecutions);
         }
         finally
         {
-            _rwlock.ExitUpgradeableReadLock();
         }
     }
 
@@ -389,28 +223,27 @@ public partial class BlockChain
         return null;
     }
 
-    internal void CleanupBlockCommitStore(long limit)
-    {
-        // FIXME: This still isn't enough to prevent the canonical chain
-        // removing cached block commits that are needed by other non-canonical chains.
-        if (!IsCanonical)
-        {
-            throw new InvalidOperationException(
-                $"Cannot perform {nameof(CleanupBlockCommitStore)}() from a " +
-                "non canonical chain.");
-        }
+    // internal void CleanupBlockCommitStore(long limit)
+    // {
+    //     // FIXME: This still isn't enough to prevent the canonical chain
+    //     // removing cached block commits that are needed by other non-canonical chains.
+    //     if (!IsCanonical)
+    //     {
+    //         throw new InvalidOperationException(
+    //             $"Cannot perform {nameof(CleanupBlockCommitStore)}() from a " +
+    //             "non canonical chain.");
+    //     }
 
-        List<BlockHash> hashes = Store.BlockCommits.Keys.ToList();
+    //     List<BlockHash> hashes = _repository.BlockCommits.Keys.ToList();
 
-        _logger.Debug("Removing old BlockCommits with heights lower than {Limit}...", limit);
-        foreach (var hash in hashes)
-        {
-            if (Store.BlockCommits.TryGetValue(hash, out var commit) && commit.Height < limit)
-            {
-                Store.BlockCommits.Remove(hash);
-            }
-        }
-    }
+    //     foreach (var hash in hashes)
+    //     {
+    //         if (_repository.BlockCommits.TryGetValue(hash, out var commit) && commit.Height < limit)
+    //         {
+    //             _repository.BlockCommits.Remove(hash);
+    //         }
+    //     }
+    // }
 
     internal HashDigest<SHA256>? GetNextStateRootHash() => _nextStateRootHash;
 

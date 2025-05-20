@@ -73,7 +73,7 @@ public class RocksDBStoreTest : StoreTest, IDisposable
     //         {
     //             Store = store,
     //         };
-    //         _ = BlockChain.Create(Fx.GenesisBlock, options);
+    //         _ = new BlockChain(Fx.GenesisBlock, options);
     //         store.Dispose();
 
     //         store = new Store.Store(new RocksDatabase(path));

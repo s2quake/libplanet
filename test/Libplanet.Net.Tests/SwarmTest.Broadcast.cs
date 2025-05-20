@@ -440,12 +440,9 @@ namespace Libplanet.Net.Tests
 
             for (int i = 0; i < size; i++)
             {
-                var options = new BlockChainOptions
-                {
-                    Repository = fxs[i].Store,
-                };
+                var options = new BlockChainOptions();
                 fxs[i] = new MemoryStoreFixture();
-                blockChains[i] = BlockChain.Create(fxs[i].GenesisBlock, options);
+                blockChains[i] = new BlockChain(fxs[i].Repository, options);
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
             }
 

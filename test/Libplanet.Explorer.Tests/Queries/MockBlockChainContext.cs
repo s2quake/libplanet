@@ -20,7 +20,7 @@ public class MockBlockChainContext : IBlockChainContext
     public MockBlockChainContext(BlockChain chain)
     {
         BlockChain = chain;
-        Store = BlockChain.Store;
+        // Store = BlockChain._repository;
     }
 
     public MockBlockChainContext(Libplanet.Store.Repository store)

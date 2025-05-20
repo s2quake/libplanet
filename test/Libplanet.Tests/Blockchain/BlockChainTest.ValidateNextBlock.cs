@@ -184,7 +184,7 @@ namespace Libplanet.Tests.Blockchain
                 TestUtils.ProposeGenesis(TestUtils.GenesisProposer.PublicKey),
                 TestUtils.GenesisProposer);
 
-            var chain1 = BlockChain.Create(genesisBlock, options);
+            var chain1 = new BlockChain(genesisBlock, options);
             var endBlockActions = new IAction[]
             {
                 new SetStatesAtBlock(default, "foo", default, 0),
@@ -197,7 +197,7 @@ namespace Libplanet.Tests.Blockchain
                 },
                 BlockInterval = options.BlockInterval,
             };
-            var chain2 = BlockChain.Create(genesisBlock, options2);
+            var chain2 = new BlockChain(genesisBlock, options2);
 
             Block block1 = chain1.EvaluateAndSign(
                 new RawBlock
@@ -236,7 +236,7 @@ namespace Libplanet.Tests.Blockchain
             var genesisBlock = preGenesis.Sign(
                 TestUtils.GenesisProposer,
                 actionEvaluator.Evaluate(preGenesis, default)[^1].OutputWorld.Trie.Hash);
-            var chain1 = BlockChain.Create(genesisBlock, options1);
+            var chain1 = new BlockChain(genesisBlock, options1);
 
             Block block1 = chain1.EvaluateAndSign(
                 new RawBlock
@@ -290,7 +290,7 @@ namespace Libplanet.Tests.Blockchain
             var genesisBlock = rawGenesis.Sign(
                 TestUtils.GenesisProposer,
                 actionEvaluator.Evaluate(rawGenesis, default)[^1].OutputWorld.Trie.Hash);
-            var chain = BlockChain.Create(genesisBlock, options);
+            var chain = new BlockChain(genesisBlock, options);
 
             RawBlock preBlock1 = new RawBlock
             {

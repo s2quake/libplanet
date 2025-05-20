@@ -6,16 +6,13 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
-public sealed record class TxExecution : IEquatable<TxExecution>
+public sealed record class TxExecution : IEquatable<TxExecution>, IHasKey<TxId>
 {
     [Property(0)]
-    public BlockHash BlockHash { get; init; }
-
-    [Property(1)]
     public TxId TxId { get; init; }
 
-    [JsonIgnore]
-    public bool Fail => ExceptionNames.Length > 0;
+    [Property(1)]
+    public BlockHash BlockHash { get; init; }
 
     [Property(2)]
     public HashDigest<SHA256> InputState { get; init; }
@@ -25,6 +22,11 @@ public sealed record class TxExecution : IEquatable<TxExecution>
 
     [Property(4)]
     public ImmutableArray<string> ExceptionNames { get; init; } = [];
+
+    [JsonIgnore]
+    public bool Fail => ExceptionNames.Length > 0;
+
+    TxId IHasKey<TxId>.Key => TxId;
 
     public bool Equals(TxExecution? other) => ModelResolver.Equals(this, other);
 

@@ -30,7 +30,6 @@ namespace Libplanet.Net
         private readonly AsyncLock _runningMutex;
 
         private readonly ILogger _logger;
-        private readonly Libplanet.Store.Repository _store;
         private readonly ConsensusReactor _consensusReactor;
 
         private CancellationTokenSource _workerCancellationTokenSource;
@@ -63,7 +62,6 @@ namespace Libplanet.Net
             ConsensusReactorOption? consensusOption = null)
         {
             BlockChain = blockChain ?? throw new ArgumentNullException(nameof(blockChain));
-            _store = BlockChain.Store;
             _privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
             LastSeenTimestamps =
                 new ConcurrentDictionary<BoundPeer, DateTimeOffset>();

@@ -17,10 +17,10 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     private readonly ICache<int, Block> _cacheByHeight;
 
-    internal BlockCollection(Repository repository, Guid chainId, int cacheSize = 4096)
+    internal BlockCollection(Repository repository, int cacheSize = 4096)
     {
         _repository = repository;
-        _chain = repository.Chains[chainId];
+        _chain = repository.Chain;
         _blockDigests = _repository.BlockDigests;
         _blockHashes = _chain.BlockHashes;
         _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
@@ -105,16 +105,16 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
             return block;
         }
 
-        set
-        {
-            if (value.BlockHash != blockHash)
-            {
-                throw new ArgumentException(
-                    $"The block hash of the value ({value.BlockHash}) does not match the key ({blockHash}).");
-            }
+        // set
+        // {
+        //     if (value.BlockHash != blockHash)
+        //     {
+        //         throw new ArgumentException(
+        //             $"The block hash of the value ({value.BlockHash}) does not match the key ({blockHash}).");
+        //     }
 
-            Add(value);
-        }
+        //     Add(value);
+        // }
     }
 
     public IEnumerable<BlockHash> IterateIndexes(int offset = 0, int? limit = null)
@@ -140,10 +140,10 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         return false;
     }
 
-    public void Add(Block block)
+    internal void AddCache(Block block)
     {
-        _repository.AddBlock(block);
-        _chain.BlockHashes.Add(block);
+        // _repository.AddBlock(block);
+        // _chain.BlockHashes.Add(block);
 
         _cacheByHash.AddOrUpdate(block.BlockHash, block);
         _cacheByHeight.AddOrUpdate(block.Height, block);
@@ -183,11 +183,16 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         return false;
     }
 
-    public void Clear()
+    public void Add(Block block, BlockCommit blockCommit)
     {
-        _cacheByHash.Clear();
-        _blockDigests.Clear();
+
     }
+
+    // public void Clear()
+    // {
+    //     _cacheByHash.Clear();
+    //     _blockDigests.Clear();
+    // }
 
     public IEnumerator<KeyValuePair<BlockHash, Block>> GetEnumerator()
     {
