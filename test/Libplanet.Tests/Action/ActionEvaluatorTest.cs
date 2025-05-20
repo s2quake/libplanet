@@ -810,7 +810,7 @@ public partial class ActionEvaluatorTest
             rawBlock: (RawBlock)blockA,
             tx: txA,
             world: fx.StateStore.GetWorld(blockA.StateRootHash),
-            actions: txA.Actions);
+            actions: [.. txA.Actions.Select(item => item.ToAction<IAction>())]);
 
         Assert.Equal(evalsA.Length, deltaA.Count - 1);
         Assert.Equal(
@@ -861,7 +861,7 @@ public partial class ActionEvaluatorTest
             rawBlock: (RawBlock)blockB,
             tx: txB,
             world: fx.StateStore.GetWorld(blockB.StateRootHash),
-            actions: txB.Actions);
+            actions: [.. txB.Actions.Select(item => item.ToAction<IAction>())]);
 
         Assert.Equal(evalsB.Length, deltaB.Count - 1);
         Assert.Equal(
@@ -1209,7 +1209,7 @@ public partial class ActionEvaluatorTest
             rawBlock: rawBlock,
             tx: tx,
             world: fx.StateStore.GetWorld(block.StateRootHash),
-            actions: tx.Actions);
+            actions: [.. tx.Actions.Select(item => item.ToAction<IAction>())]);
 
         byte[] preEvaluationHashBytes = rawBlock.Hash.Bytes.ToArray();
         var randomSeeds = Enumerable

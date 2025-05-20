@@ -342,7 +342,7 @@ namespace Libplanet.Net
                         Options.MaximumPollPeers,
                         _cancellationToken),
                     () => ConsumeBlockCandidates(
-                        TimeSpan.FromMilliseconds(10), true, _cancellationToken),
+                        TimeSpan.FromMilliseconds(10), _cancellationToken),
                     () => RefreshTableAsync(
                         Options.RefreshPeriod,
                         Options.RefreshLifespan,
@@ -626,7 +626,6 @@ namespace Libplanet.Net
                     cancellationToken);
 
                 await ConsumeBlockCandidates(
-                    render: false,
                     cancellationToken: cancellationToken);
             }
 

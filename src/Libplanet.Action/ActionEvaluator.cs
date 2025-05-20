@@ -1,3 +1,4 @@
+using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using Libplanet.Action.State;
 using Libplanet.Store;
@@ -10,10 +11,14 @@ namespace Libplanet.Action;
 
 public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions policyActions)
 {
+    private readonly Subject<ActionEvaluation> _evaluation = new();
+
     public ActionEvaluator(TrieStateStore stateStore)
         : this(stateStore, PolicyActions.Empty)
     {
     }
+
+    public IObservable<ActionEvaluation> Evaluation => _evaluation;
 
     public static int GenerateRandomSeed(ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)
     {
@@ -56,17 +61,17 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
         return [.. evaluationsList];
     }
 
-    internal ActionEvaluation[] EvaluateActions(
-        RawBlock rawBlock, Transaction? tx, World world, ImmutableArray<ActionBytecode> actions)
-    {
-        var builder = ImmutableArray.CreateBuilder<IAction>(actions.Length);
-        for (var i = 0; i < actions.Length; i++)
-        {
-            builder.Add(actions[i].ToAction<IAction>());
-        }
+    // internal ActionEvaluation[] EvaluateActions(
+    //     RawBlock rawBlock, Transaction? tx, World world, ImmutableArray<ActionBytecode> actions)
+    // {
+    //     var builder = ImmutableArray.CreateBuilder<IAction>(actions.Length);
+    //     for (var i = 0; i < actions.Length; i++)
+    //     {
+    //         builder.Add(actions[i].ToAction<IAction>());
+    //     }
 
-        return EvaluateActions(rawBlock, tx, world, builder.ToImmutable());
-    }
+    //     return EvaluateActions(rawBlock, tx, world, builder.ToImmutable());
+    // }
 
     internal ActionEvaluation[] EvaluateActions(
         RawBlock rawBlock, Transaction? tx, World world, ImmutableArray<IAction> actions)
@@ -137,7 +142,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
                 $"Failed to record {nameof(Account)}'s {nameof(ITrie)}.");
         }
 
-        return new ActionEvaluation
+        var evaluation = new ActionEvaluation
         {
             Action = action,
             InputContext = actionContext,
@@ -145,6 +150,9 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
             OutputWorld = world,
             Exception = exception,
         };
+
+        _evaluation.OnNext(evaluation);
+        return evaluation;
     }
 
     internal ActionEvaluation[] EvaluateBlock(RawBlock rawBlock, World world)
