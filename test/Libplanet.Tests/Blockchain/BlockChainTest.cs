@@ -374,7 +374,7 @@ public partial class BlockChainTest : IDisposable
         var key = new PrivateKey();
         IReadOnlyList<BlockHash> hashes;
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(_blockChain.Genesis.BlockHash));
+        hashes = _blockChain.FindNextHashes(_blockChain.Genesis.BlockHash);
         Assert.Single(hashes);
         Assert.Equal(_blockChain.Genesis.BlockHash, hashes.First());
         var block0 = _blockChain.Genesis;
@@ -385,13 +385,13 @@ public partial class BlockChainTest : IDisposable
         var block3 = _blockChain.ProposeBlock(key);
         _blockChain.Append(block3, CreateBlockCommit(block3));
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(block0.BlockHash));
+        hashes = _blockChain.FindNextHashes(block0.BlockHash);
         Assert.Equal(new[] { block0.BlockHash, block1.BlockHash, block2.BlockHash, block3.BlockHash }, hashes);
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(block1.BlockHash));
+        hashes = _blockChain.FindNextHashes(block1.BlockHash);
         Assert.Equal(new[] { block1.BlockHash, block2.BlockHash, block3.BlockHash }, hashes);
 
-        hashes = _blockChain.FindNextHashes(new BlockLocator(block0.BlockHash), count: 2);
+        hashes = _blockChain.FindNextHashes(block0.BlockHash, count: 2);
         Assert.Equal(new[] { block0.BlockHash, block1.BlockHash }, hashes);
     }
 
@@ -438,8 +438,8 @@ public partial class BlockChainTest : IDisposable
             blocks.Add(block);
         }
 
-        BlockLocator actual = _blockChain.GetBlockLocator();
-        BlockLocator expected = new BlockLocator(blocks[9].BlockHash);
+        var actual = _blockChain.Tip.BlockHash;
+        var expected = blocks[9].BlockHash;
 
         Assert.Equal(expected, actual);
     }
@@ -700,10 +700,10 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(b1.PreviousHash, _blockChain.Genesis.BlockHash);
 
-        var emptyLocator = new BlockLocator(_blockChain.Genesis.BlockHash);
-        var invalidLocator = new BlockLocator(
-            new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)));
-        var locator = new BlockLocator(b4.BlockHash);
+        var emptyLocator = _blockChain.Genesis.BlockHash;
+        var invalidLocator = 
+            new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var locator = b4.BlockHash;
 
         using (var emptyFx = new MemoryStoreFixture(_policy))
         using (var forkFx = new MemoryStoreFixture(_policy))

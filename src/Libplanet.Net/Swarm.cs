@@ -717,17 +717,17 @@ namespace Libplanet.Net
         // FIXME: This would be better if it's merged with GetDemandBlockHashes
         internal async Task<List<BlockHash>> GetBlockHashes(
             BoundPeer peer,
-            BlockLocator locator,
+            BlockHash blockHash,
             CancellationToken cancellationToken = default)
         {
-            var request = new GetBlockHashesMsg(locator);
+            var request = new GetBlockHashesMsg(blockHash);
 
             const string sendMsg =
                 "Sending a {MessageType} message with locator [{LocatorHead}]";
             _logger.Debug(
                 sendMsg,
                 nameof(GetBlockHashesMsg),
-                locator.Hash);
+                blockHash);
 
             Message parsedMessage;
             try
@@ -750,7 +750,7 @@ namespace Libplanet.Net
             {
                 if (blockHashes.Hashes.Any())
                 {
-                    if (locator.Hash.Equals(blockHashes.Hashes.First()))
+                    if (blockHash.Equals(blockHashes.Hashes.First()))
                     {
                         List<BlockHash> hashes = blockHashes.Hashes.ToList();
                         _logger.Debug(
@@ -764,7 +764,7 @@ namespace Libplanet.Net
                             "Received a " + nameof(BlockHashesMsg) + " but its " +
                             "first hash {ActualBlockHash} does not match " +
                             "the locator hash {ExpectedBlockHash}";
-                        _logger.Debug(msg, blockHashes.Hashes.First(), locator.Hash);
+                        _logger.Debug(msg, blockHashes.Hashes.First(), blockHash);
                         return new List<BlockHash>();
                     }
                 }
@@ -1057,7 +1057,7 @@ namespace Libplanet.Net
             BlockExcerpt excerpt,
             CancellationToken cancellationToken = default)
         {
-            BlockLocator locator = blockChain.GetBlockLocator();
+            var blockHash = blockChain.Tip.BlockHash;
             long peerIndex = excerpt.Height;
             var downloaded = new List<BlockHash>();
 
@@ -1068,20 +1068,20 @@ namespace Libplanet.Net
                     "locator [{LocatorHead}]",
                     peer,
                     peerIndex,
-                    locator.Hash);
+                    blockHash);
 
                 List<BlockHash> blockHashes = await GetBlockHashes(
                     peer: peer,
-                    locator: locator,
+                    blockHash: blockHash,
                     cancellationToken: cancellationToken);
 
-                foreach (var blockHash in blockHashes)
+                foreach (var item in blockHashes)
                 {
                     _logger.Verbose(
                         "Received a block hash from {Peer}: {BlockHash}",
                         peer,
-                        blockHash);
-                    downloaded.Add(blockHash);
+                        item);
+                    downloaded.Add(item);
                 }
 
                 return downloaded;

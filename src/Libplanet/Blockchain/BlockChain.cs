@@ -173,7 +173,7 @@ public partial class BlockChain
     //     return tx;
     // }
 
-    public IReadOnlyList<BlockHash> FindNextHashes(BlockLocator locator, int count = 500)
+    public IReadOnlyList<BlockHash> FindNextHashes(BlockHash locator, int count = 500)
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -213,18 +213,18 @@ public partial class BlockChain
         return result;
     }
 
-    public BlockLocator GetBlockLocator()
-    {
-        _rwlock.EnterReadLock();
-        try
-        {
-            return new BlockLocator(Tip.BlockHash);
-        }
-        finally
-        {
-            _rwlock.ExitReadLock();
-        }
-    }
+    // public BlockLocator GetBlockLocator()
+    // {
+    //     _rwlock.EnterReadLock();
+    //     try
+    //     {
+    //         return new BlockLocator(Tip.BlockHash);
+    //     }
+    //     finally
+    //     {
+    //         _rwlock.ExitReadLock();
+    //     }
+    // }
 
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
@@ -608,20 +608,13 @@ public partial class BlockChain
         }
     }
 
-    internal BlockHash? FindBranchpoint(BlockLocator locator)
+    internal BlockHash? FindBranchpoint(BlockHash blockHash)
     {
-        if (Blocks.ContainsKey(locator.Hash))
+        if (Blocks.ContainsKey(blockHash))
         {
-            _logger.Debug(
-                "Found a branchpoint with locator [{LocatorHead}]: {Hash}",
-                locator.Hash,
-                locator.Hash);
-            return locator.Hash;
+            return blockHash;
         }
 
-        _logger.Debug(
-            "Failed to find a branchpoint locator [{LocatorHead}]",
-            locator.Hash);
         return null;
     }
 

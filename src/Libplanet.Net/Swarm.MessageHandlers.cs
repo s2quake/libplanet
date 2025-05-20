@@ -45,7 +45,7 @@ public partial class Swarm
                 _logger.Debug(
                     "Received a {MessageType} message locator [{LocatorHead}]",
                     nameof(GetBlockHashesMsg),
-                    getBlockHashes.Locator.Hash);
+                    getBlockHashes.Locator);
                 IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
                     getBlockHashes.Locator,
                     FindNextHashesChunkSize);
@@ -53,7 +53,7 @@ public partial class Swarm
                     "Found {HashCount} hashes after the branchpoint " +
                     "with locator [{LocatorHead}]",
                     hashes.Count,
-                    getBlockHashes.Locator.Hash);
+                    getBlockHashes.Locator);
                 var reply = new BlockHashesMsg(hashes);
 
                 return Transport.ReplyMessageAsync(reply, message.Identity, default);
