@@ -22,7 +22,6 @@ public partial class BlockChain
     internal readonly ReaderWriterLockSlim _rwlock;
     private readonly ILogger _logger;
     private readonly Subject<RenderBlockInfo> _renderBlock = new();
-    private readonly Subject<RenderActionInfo> _renderAction = new();
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly BlockChainStates _blockChainStates;
     private readonly Chain _chain;
@@ -106,7 +105,7 @@ public partial class BlockChain
 
     public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
 
-    public IObservable<RenderActionInfo> RenderAction => _renderAction;
+    public IObservable<ActionEvaluation> RenderAction => ActionEvaluator.Evaluation;
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
 
@@ -143,11 +142,6 @@ public partial class BlockChain
     public static BlockChain Create(Block genesisBlock, BlockChainOptions options)
     {
         return new BlockChain(genesisBlock, Guid.NewGuid(), options);
-    }
-
-    public void Append(Block block, BlockCommit blockCommit, bool validate = true)
-    {
-        Append(block, blockCommit, render: true, validate: validate);
     }
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
@@ -216,7 +210,7 @@ public partial class BlockChain
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
-    internal void Append(Block block, BlockCommit blockCommit, bool render, bool validate = true)
+    public void Append(Block block, BlockCommit blockCommit, bool validate = true)
     {
         if (Blocks.Count is 0)
         {
@@ -370,224 +364,14 @@ public partial class BlockChain
                 block.Height,
                 block.BlockHash);
 
+            _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
             HashDigest<SHA256> nextStateRootHash =
                 DetermineNextBlockStateRootHash(block, out var actionEvaluations);
             _nextStateRootHash = nextStateRootHash;
+            _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
 
             IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations);
             Store.TxExecutions.AddRange(txExecutions);
-
-            if (render)
-            {
-                _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-                foreach (var evaluation in actionEvaluations)
-                {
-                    _renderAction.OnNext(RenderActionInfo.Create(evaluation));
-                }
-
-                _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-            }
-        }
-        finally
-        {
-            _rwlock.ExitUpgradeableReadLock();
-        }
-    }
-
-    internal void AppendStateRootHashPreceded(
-        Block block,
-        BlockCommit blockCommit,
-        bool render,
-        ActionEvaluation[]? actionEvaluations = null)
-    {
-        if (Blocks.Count == 0)
-        {
-            throw new ArgumentException(
-                "Cannot append a block to an empty chain.");
-        }
-        else if (block.Height == 0)
-        {
-            throw new ArgumentException(
-                $"Cannot append genesis block #{block.Height} {block.BlockHash} to a chain.",
-                nameof(block));
-        }
-
-        _logger.Information(
-            "Trying to append block #{BlockHeight} {BlockHash}...", block.Height, block.BlockHash);
-
-        block.Header.Timestamp.ValidateTimestamp();
-
-        _rwlock.EnterUpgradeableReadLock();
-        Block prevTip = Tip;
-        try
-        {
-            ValidateBlock(block);
-            ValidateBlockCommit(block, blockCommit);
-
-            var nonceDeltas = ValidateBlockNonces(
-                block.Transactions
-                    .Select(tx => tx.Signer)
-                    .Distinct()
-                    .ToDictionary(signer => signer, _chain.GetNonce),
-                block);
-
-            Options.BlockOptions.Validator.Validate(block);
-
-            foreach (Transaction tx in block.Transactions)
-            {
-                Options.TransactionOptions.Validator.Validate(tx);
-            }
-
-            _rwlock.EnterWriteLock();
-            try
-            {
-                if (actionEvaluations is null)
-                {
-                    _logger.Information(
-                        "Executing actions in block #{BlockHeight} {BlockHash}...",
-                        block.Height,
-                        block.BlockHash);
-                    ValidateBlockPrecededStateRootHash(block, out actionEvaluations);
-                    _logger.Information(
-                        "Executed actions in block #{BlockHeight} {BlockHash}",
-                        block.Height,
-                        block.BlockHash);
-                }
-
-                // FIXME: Using evaluateActions as a proxy flag for preloading status.
-                const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffZ";
-                _logger
-                    .ForContext("Tag", "Metric")
-                    .ForContext("Subtag", "BlockAppendTimestamp")
-                    .Information(
-                        "Block #{BlockHeight} {BlockHash} with " +
-                        "timestamp {BlockTimestamp} appended at {AppendTimestamp}",
-                        block.Height,
-                        block.BlockHash,
-                        block.Timestamp.ToString(
-                            TimestampFormat, CultureInfo.InvariantCulture),
-                        DateTimeOffset.UtcNow.ToString(
-                            TimestampFormat, CultureInfo.InvariantCulture));
-
-                Blocks[block.BlockHash] = block;
-
-                foreach (KeyValuePair<Address, long> pair in nonceDeltas)
-                {
-                    _chain.Nonces.Increase(pair.Key, pair.Value);
-                }
-
-                // foreach (var tx in block.Transactions)
-                // {
-                //     Store.BlockHashByTxId.Add(tx.Id, block.BlockHash);
-                // }
-
-                if (block.Height != 0 && blockCommit is { })
-                {
-                    _chain.BlockCommit = blockCommit;
-                }
-
-                foreach (var evidence in block.Evidences)
-                {
-                    Store.PendingEvidences.Remove(evidence.Id);
-                    // if (Store.GetPendingEvidence(evidence.Id) != null)
-                    // {
-                    //     Store.DeletePendingEvidence(evidence.Id);
-                    // }
-
-                    // Store.PutCommittedEvidence(evidence);
-                    Store.CommittedEvidences.Add(evidence.Id, evidence);
-                }
-
-                // Store.AppendIndex(Id, block.BlockHash);
-                _nextStateRootHash = block.StateRootHash;
-                IEnumerable<TxExecution> txExecutions = MakeTxExecutions(block, actionEvaluations ?? []);
-                Store.TxExecutions.AddRange(txExecutions);
-
-                foreach (var evidence in Store.PendingEvidences.ToArray())
-                {
-                    if (IsEvidenceExpired(evidence.Value))
-                    {
-                        Store.PendingEvidences.Remove(evidence.Key);
-                    }
-                }
-            }
-            finally
-            {
-                _rwlock.ExitWriteLock();
-            }
-
-            if (IsCanonical)
-            {
-                _logger.Information(
-                    "Unstaging {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
-                    block.Transactions.Count(),
-                    block.Height,
-                    block.BlockHash);
-                foreach (Transaction tx in block.Transactions)
-                {
-                    StagedTransactions.Remove(tx.Id);
-                }
-
-                _logger.Information(
-                    "Unstaged {TxCount} transactions from block #{BlockHeight} {BlockHash}...",
-                    block.Transactions.Count(),
-                    block.Height,
-                    block.BlockHash);
-            }
-            else
-            {
-                _logger.Information(
-                    "Skipping unstaging transactions from block #{BlockHeight} {BlockHash} " +
-                    "for non-canonical chain {ChainID}",
-                    block.Height,
-                    block.BlockHash,
-                    Id);
-            }
-
-            TipChanged?.Invoke(this, (prevTip, block));
-            _logger.Information(
-                "Appended the block #{BlockHeight} {BlockHash}",
-                block.Height,
-                block.BlockHash);
-
-            if (render)
-            {
-                // _logger.Information(
-                //     "Invoking {RendererCount} renderers and " +
-                //     "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
-                //     Renderers.Count,
-                //     ActionRenderers.Count,
-                //     block.Height,
-                //     block.BlockHash);
-                // foreach (IRenderer renderer in Renderers)
-                // {
-                //     renderer.RenderBlock(oldTip: prevTip ?? Genesis, newTip: block);
-                // }
-
-                // if (ActionRenderers.Any())
-                // {
-                //     RenderActions(evaluations: actionEvaluations, block: block);
-                //     foreach (IActionRenderer renderer in ActionRenderers)
-                //     {
-                //         renderer.RenderBlockEnd(oldTip: prevTip ?? Genesis, newTip: block);
-                //     }
-                // }
-
-                // _logger.Information(
-                //     "Invoked {RendererCount} renderers and " +
-                //     "{ActionRendererCount} action renderers for #{BlockHeight} {BlockHash}",
-                //     Renderers.Count,
-                //     ActionRenderers.Count,
-                //     block.Height,
-                //     block.BlockHash);
-                _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-                foreach (var evaluation in actionEvaluations)
-                {
-                    _renderAction.OnNext(RenderActionInfo.Create(evaluation));
-                }
-
-                _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-            }
         }
         finally
         {

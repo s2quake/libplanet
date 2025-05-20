@@ -12,7 +12,6 @@ namespace Libplanet.Net
 
         private async Task ConsumeBlockCandidates(
             TimeSpan? checkInterval = null,
-            bool render = true,
             CancellationToken cancellationToken = default)
         {
             while (!cancellationToken.IsCancellationRequested)
@@ -33,7 +32,6 @@ namespace Libplanet.Net
                             tip.Item1.BlockHash);
                         _ = BlockCandidateProcess(
                             branch,
-                            render,
                             cancellationToken);
                         BlockAppended.Set();
                     }
@@ -54,7 +52,6 @@ namespace Libplanet.Net
 
         private bool BlockCandidateProcess(
             Branch candidate,
-            bool render,
             CancellationToken cancellationToken)
         {
             try
@@ -68,7 +65,6 @@ namespace Libplanet.Net
                 AppendBranch(
                     blockChain: BlockChain,
                     candidate: candidate,
-                    render: render,
                     cancellationToken: cancellationToken);
                 ProcessFillBlocksFinished.Set();
                 _logger.Debug(
@@ -92,7 +88,6 @@ namespace Libplanet.Net
         private void AppendBranch(
             BlockChain blockChain,
             Branch candidate,
-            bool render,
             CancellationToken cancellationToken = default)
         {
             Block oldTip = blockChain.Tip;
@@ -113,7 +108,7 @@ namespace Libplanet.Net
                 foreach (var (block, commit) in blocks)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    blockChain.Append(block, commit, render: render);
+                    blockChain.Append(block, commit);
 
                     verifiedBlockCount++;
                 }
