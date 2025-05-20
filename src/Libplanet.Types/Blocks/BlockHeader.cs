@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 
@@ -26,6 +25,4 @@ public sealed record class BlockHeader
 
     [Property(5)]
     public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
-
-    public HashDigest<SHA256> Hash => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
 }

@@ -12,13 +12,16 @@ namespace Libplanet.Action;
 public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions policyActions)
 {
     private readonly Subject<ActionEvaluation> _evaluation = new();
+    private readonly Subject<TxEvaluation> _txEvaluation = new();
 
     public ActionEvaluator(TrieStateStore stateStore)
         : this(stateStore, PolicyActions.Empty)
     {
     }
 
-    public IObservable<ActionEvaluation> Evaluation => _evaluation;
+    public IObservable<ActionEvaluation> ActionEvaluation => _evaluation;
+
+    public IObservable<TxEvaluation> TxEvaluation => _txEvaluation;
 
     public static int GenerateRandomSeed(ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)
     {
@@ -46,7 +49,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
         var evaluationsList = new List<ActionEvaluation>(capacity);
         if (policyActions.BeginBlockActions.Length > 0)
         {
-            evaluationsList.AddRange(EvaluateBeginBlockActions(rawBlock, world));
+            EvaluateBeginBlockActions(rawBlock, world);
             world = evaluationsList[^1].OutputWorld;
         }
 
@@ -60,18 +63,6 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
 
         return [.. evaluationsList];
     }
-
-    // internal ActionEvaluation[] EvaluateActions(
-    //     RawBlock rawBlock, Transaction? tx, World world, ImmutableArray<ActionBytecode> actions)
-    // {
-    //     var builder = ImmutableArray.CreateBuilder<IAction>(actions.Length);
-    //     for (var i = 0; i < actions.Length; i++)
-    //     {
-    //         builder.Add(actions[i].ToAction<IAction>());
-    //     }
-
-    //     return EvaluateActions(rawBlock, tx, world, builder.ToImmutable());
-    // }
 
     internal ActionEvaluation[] EvaluateActions(
         RawBlock rawBlock, Transaction? tx, World world, ImmutableArray<IAction> actions)
@@ -202,7 +193,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
         return [.. evaluationList];
     }
 
-    internal ActionEvaluation[] EvaluateBeginBlockActions(RawBlock rawBlock, World world)
+    internal World EvaluateBeginBlockActions(RawBlock rawBlock, World world)
     {
         return EvaluateActions(rawBlock, null, world, policyActions.BeginBlockActions);
     }
