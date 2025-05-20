@@ -4,17 +4,11 @@ using Libplanet.Store;
 namespace Libplanet.Tests.Store;
 
 public sealed class MemoryStoreFixture(BlockChainOptions options)
-    : StoreFixture(CreateOptions(options))
+    : StoreFixture(new Repository(new MemoryDatabase()), options)
 {
     public MemoryStoreFixture()
         : this(new BlockChainOptions())
     {
-    }
-
-    private static BlockChainOptions CreateOptions(BlockChainOptions options)
-    {
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        return options with { Repository = store };
     }
 
     protected override void Dispose(bool disposing)

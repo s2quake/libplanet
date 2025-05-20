@@ -21,8 +21,18 @@ public partial class BlockChain
 
     private HashDigest<SHA256>? _nextStateRootHash;
 
+    public BlockChain()
+        : this(new Repository(), BlockChainOptions.Empty)
+    {
+    }
+
     public BlockChain(BlockChainOptions options)
         : this(new Repository(), options)
+    {
+    }
+
+    public BlockChain(Repository repository)
+        : this(repository, BlockChainOptions.Empty)
     {
     }
 
@@ -34,6 +44,7 @@ public partial class BlockChain
         _repository = repository;
         _blockChainStates = new BlockChainStates(repository);
         _actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
+        Id = _repository.ChainId;
         StagedTransactions = new StagedTransactionCollection(repository);
         Transactions = new TransactionCollection(repository);
         PendingEvidences = new PendingEvidenceCollection(repository);
@@ -94,6 +105,8 @@ public partial class BlockChain
     public BlockCommitCollection BlockCommits { get; }
 
     public TxExecutionStore TxExecutions => _repository.TxExecutions;
+
+    public Guid Id { get; }
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 

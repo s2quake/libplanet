@@ -6,6 +6,7 @@ using Libplanet.Blockchain;
 using Libplanet.Net.Consensus;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
+using Libplanet.Types.Blocks;
 using NetMQ;
 using Serilog;
 using Xunit.Abstractions;
@@ -50,9 +51,14 @@ namespace Libplanet.Net.Tests.Consensus
                         new DnsEndPoint("127.0.0.1", 6000 + i)));
                 var options = TestUtils.Options with
                 {
-                    Repository = new Libplanet.Store.Repository(new MemoryDatabase()),
                 };
-                blockChains[i] = new BlockChain(fx.GenesisBlock, TestUtils.Options);
+                blockChains[i] = new BlockChain(TestUtils.Options)
+                {
+                    Blocks =
+                    {
+                        { fx.GenesisBlock, BlockCommit.Empty }
+                    }
+                };
             }
 
             for (var i = 0; i < 4; i++)

@@ -7,7 +7,7 @@ namespace Libplanet.RocksDBStore.Tests;
 public class RocksDBStoreFixture : StoreFixture
 {
     public RocksDBStoreFixture(BlockChainOptions? options = null)
-        : base(CreateOptions(options ?? new BlockChainOptions()))
+        : base(CreateOptions(), options ?? new BlockChainOptions())
     {
         // Path = System.IO.Path.Combine(
         //     System.IO.Path.GetTempPath(),
@@ -20,11 +20,10 @@ public class RocksDBStoreFixture : StoreFixture
         // StateStore = LoadTrieStateStore(Path);
     }
 
-    private static BlockChainOptions CreateOptions(BlockChainOptions options)
+    private static Repository CreateOptions()
     {
         var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"rocksdb_test_{Guid.NewGuid()}");
-        var store = new Libplanet.Store.Repository(new RocksDatabase(path));
-        return options with { Repository = store };
+        return new Repository(new RocksDatabase(path));
     }
 
     public TrieStateStore LoadTrieStateStore(string path)

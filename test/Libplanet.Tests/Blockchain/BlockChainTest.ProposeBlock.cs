@@ -3,11 +3,13 @@ using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
+using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
+using Validation;
 using static Libplanet.Action.State.ReservedAddresses;
 using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
@@ -101,7 +103,8 @@ public partial class BlockChainTest
     public void CanProposeInvalidGenesisBlock()
     {
         using var fx = new MemoryStoreFixture();
-        var policy = new BlockChainOptions();
+        var options = fx.Options;
+        var repository = fx.Repository;
         var genesisKey = new PrivateKey();
         var genesis = BlockChain.ProposeGenesisBlock(
             genesisKey,
@@ -116,19 +119,31 @@ public partial class BlockChainTest
                     }.ToBytecodes(),
                 }.Sign(genesisKey),
             ]);
-        Assert.Throws<InvalidOperationException>(() => new BlockChain(genesis, policy));
+        Assert.Throws<InvalidOperationException>(() => new BlockChain(repository, options)
+        {
+            Blocks =
+            {
+                { genesis, BlockCommit.Empty}
+            }
+        });
     }
 
     [Fact]
     public void CanProposeInvalidBlock()
     {
-        using (var fx = new MemoryStoreFixture())
+        using var fx = new MemoryStoreFixture();
+        var options = fx.Options;
+        var repository = fx.Repository;
+        var blockChain = new BlockChain(repository, options)
         {
-            var policy = new BlockChainOptions();
-            var blockChain = new BlockChain(fx.GenesisBlock, policy);
-            var txKey = new PrivateKey();
-            var txs = new[]
+            Blocks =
             {
+                { fx.GenesisBlock, BlockCommit.Empty }
+            }
+        };
+        var txKey = new PrivateKey();
+        var txs = new[]
+        {
                 new TransactionMetadata
                 {
                     Nonce = 5,  // Invalid nonce
@@ -141,10 +156,9 @@ public partial class BlockChainTest
                 }.Sign(txKey),
             }.ToImmutableList();
 
-            var block = blockChain.ProposeBlock(new PrivateKey());
-            Assert.Throws<InvalidOperationException>(
-                () => blockChain.Append(block, CreateBlockCommit(block)));
-        }
+        var block = blockChain.ProposeBlock(new PrivateKey());
+        Assert.Throws<InvalidOperationException>(
+            () => blockChain.Append(block, CreateBlockCommit(block)));
     }
 
     [Fact]
@@ -339,6 +353,7 @@ public partial class BlockChainTest
             }
         }
 
+        using var fx = new MemoryStoreFixture();
         var options = new BlockChainOptions
         {
             TransactionOptions = new TransactionOptions
@@ -346,8 +361,14 @@ public partial class BlockChainTest
                 Validator = new RelayValidator<Transaction>(IsSignerValid),
             },
         };
-        using var fx = new MemoryStoreFixture();
-        var blockChain = new BlockChain(fx.GenesisBlock, options);
+        var repository = new Repository();
+        var blockChain = new BlockChain(repository, options)
+        {
+            Blocks =
+            {
+                { fx.GenesisBlock, BlockCommit.Empty }
+            }
+        };
 
         var validTx = new TransactionBuilder
         {
@@ -454,7 +475,7 @@ public partial class BlockChainTest
         var privateKey2 = new PrivateKey();
         var address2 = privateKey2.Address;
 
-        var policy = new BlockChainOptions
+        var options = new BlockChainOptions
         {
             PolicyActions = new PolicyActions
             {
@@ -462,8 +483,15 @@ public partial class BlockChainTest
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
             },
         };
+        var repository = new Repository();
 
-        var blockChain = new BlockChain(_fx.GenesisBlock, policy);
+        var blockChain = new BlockChain(repository, options)
+        {
+            Blocks =
+            {
+                { _fx.GenesisBlock, BlockCommit.Empty }
+            }
+        };
 
         var tx = new TransactionBuilder
         {

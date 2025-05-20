@@ -3,6 +3,7 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 using Xunit.Abstractions;
@@ -25,7 +26,13 @@ public class BlockPolicyTest : IDisposable
         {
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
-        _chain = new BlockChain(_fx.GenesisBlock, _policy);
+        _chain = new BlockChain(_policy)
+        {
+            Blocks =
+            {
+                { _fx.GenesisBlock, BlockCommit.Empty}
+            }
+        };
     }
 
     public void Dispose()

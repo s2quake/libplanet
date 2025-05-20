@@ -69,7 +69,13 @@ public sealed class IntegerSet
                 DateTimeOffset.UtcNow,
                 BlockHeader.CurrentProtocolVersion),
             Proposer);
-        Chain = new BlockChain(Genesis, policy);
+        Chain = new BlockChain(policy)
+        {
+            Blocks =
+            {
+                { Genesis, BlockCommit.Empty },
+            }
+        };
     }
 
     public int Count => Addresses.Count;

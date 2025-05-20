@@ -1107,16 +1107,16 @@ public partial class BlockChainTest : IDisposable
         List<int> presentIndices = new List<int>() { 4, 7 };
         List<Block> presentBlocks = new List<Block>();
 
-        var blockPolicy = new BlockChainOptions();
+        var options = new BlockChainOptions();
         // store = new StoreTracker(store);
         Guid chainId = Guid.NewGuid();
         var actionEvaluator = new ActionEvaluator(
             stateStore: repository.StateStore,
-            blockPolicy.PolicyActions);
+            options.PolicyActions);
         Block genesisBlock = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey),
             GenesisProposer);
-        var chain = new BlockChain(repository, blockPolicy)
+        var chain = new BlockChain(repository, options)
         {
             Blocks =
             {
@@ -1181,13 +1181,19 @@ public partial class BlockChainTest : IDisposable
         }
 
         TrieStateStore incompleteStateStore = new TrieStateStore();
-        ((TrieStateStore)stateStore).CopyStates(
+        repository.StateStore.CopyStates(
             ImmutableHashSet<HashDigest<SHA256>>.Empty
                 .Add(presentBlocks[0].StateRootHash)
                 .Add(presentBlocks[1].StateRootHash),
             (TrieStateStore)incompleteStateStore);
 
-        chain = new BlockChain(genesisBlock, blockPolicy);
+        chain = new BlockChain(repository, options)
+        {
+            Blocks =
+            {
+                { genesisBlock, BlockCommit.Empty }
+            },
+        };
 
         return (signer, addresses, chain);
     }
@@ -1333,7 +1339,13 @@ public partial class BlockChainTest : IDisposable
         var genesisBlock = BlockChain.ProposeGenesisBlock(
             proposer: privateKey,
             transactions: [.. txs]);
-        var blockChain = new BlockChain(genesisBlock, storeFixture.Options);
+        var blockChain = new BlockChain(storeFixture.Repository, storeFixture.Options)
+        {
+            Blocks =
+            {
+                { genesisBlock, BlockCommit.Empty }
+            },
+        };
 
         var validator = blockChain
             .GetNextWorld()
@@ -1468,8 +1480,8 @@ public partial class BlockChainTest : IDisposable
     private void ValidateNextBlockCommitOnValidatorSetChange()
     {
         var storeFixture = new MemoryStoreFixture();
-        var options = new BlockChainOptions();
-
+        var options = storeFixture.Options;
+        var repository = storeFixture.Repository;
         var addresses = ImmutableList<Address>.Empty
             .Add(storeFixture.Address1)
             .Add(storeFixture.Address2)

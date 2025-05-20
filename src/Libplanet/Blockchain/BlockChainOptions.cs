@@ -4,6 +4,8 @@ namespace Libplanet.Blockchain;
 
 public sealed record class BlockChainOptions
 {
+    public static BlockChainOptions Empty { get; } = new();
+
     public PolicyActions PolicyActions { get; init; } = PolicyActions.Empty;
 
     public TimeSpan BlockInterval { get; init; } = TimeSpan.FromSeconds(5);
