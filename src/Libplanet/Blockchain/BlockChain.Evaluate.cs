@@ -47,24 +47,14 @@ public partial class BlockChain
     }
 
     internal HashDigest<SHA256> DetermineBlockPrecededStateRootHash(
-        RawBlock rawBlock, out IReadOnlyList<CommittedActionEvaluation> evaluations)
+        RawBlock rawBlock, out CommittedActionEvaluation[] evaluations)
     {
         _rwlock.EnterWriteLock();
         try
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             evaluations = EvaluateBlockPrecededStateRootHash(rawBlock);
 
-            _logger.Debug(
-                "Took {DurationMs} ms to evaluate block #{BlockHeight} " +
-                "pre-evaluation hash {RawHash} with {Count} action evaluations",
-                stopwatch.ElapsedMilliseconds,
-                rawBlock.Header.Height,
-                rawBlock.Hash,
-                evaluations.Count);
-
-            if (evaluations.Count > 0)
+            if (evaluations.Length > 0)
             {
                 return evaluations[^1].OutputState;
             }
@@ -81,6 +71,6 @@ public partial class BlockChain
         }
     }
 
-    internal IReadOnlyList<CommittedActionEvaluation> EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
+    internal CommittedActionEvaluation[] EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
         => ActionEvaluator.Evaluate(rawBlock, Store.GetStateRootHash(rawBlock.Header.PreviousHash));
 }
