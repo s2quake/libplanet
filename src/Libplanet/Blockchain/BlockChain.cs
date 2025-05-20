@@ -82,7 +82,7 @@ public partial class BlockChain
 
     public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
 
-    public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.Evaluation;
+    public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.ActionEvaluation;
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
 
