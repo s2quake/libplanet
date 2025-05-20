@@ -560,7 +560,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     validatorSet,
                     timestamp,
                     protocolVersion);
-        var evaluatedSrh = actionEvaluator.Evaluate(preEval, default)[^1].OutputState;
+        var evaluatedSrh = actionEvaluator.Evaluate(preEval, default)[^1].OutputWorld.Trie.Hash;
         genesisBlock = preEval.Sign(privateKey, default);
             }
 

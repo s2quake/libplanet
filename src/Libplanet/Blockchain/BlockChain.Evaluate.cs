@@ -11,13 +11,13 @@ namespace Libplanet.Blockchain;
 public partial class BlockChain
 {
     public HashDigest<SHA256> DetermineNextBlockStateRootHash(
-        Block block, out CommittedActionEvaluation[] evaluations)
+        Block block, out ActionEvaluation[] evaluations)
     {
         evaluations = EvaluateBlock(block);
 
         if (evaluations.Length > 0)
         {
-            return evaluations[^1].OutputState;
+            return evaluations[^1].OutputWorld.Trie.Hash;
         }
 
         return Store.GetStateRootHash(block.BlockHash) is { } stateRootHash
@@ -25,7 +25,7 @@ public partial class BlockChain
             : StateStore.GetStateRoot(default).Hash;
     }
 
-    public CommittedActionEvaluation[] EvaluateBlock(Block block)
+    public ActionEvaluation[] EvaluateBlock(Block block)
         => ActionEvaluator.Evaluate((RawBlock)block, Store.GetStateRootHash(block.BlockHash));
 
     internal Block EvaluateAndSign(RawBlock rawBlock, PrivateKey privateKey)
@@ -47,7 +47,7 @@ public partial class BlockChain
     }
 
     internal HashDigest<SHA256> DetermineBlockPrecededStateRootHash(
-        RawBlock rawBlock, out CommittedActionEvaluation[] evaluations)
+        RawBlock rawBlock, out ActionEvaluation[] evaluations)
     {
         _rwlock.EnterWriteLock();
         try
@@ -56,7 +56,7 @@ public partial class BlockChain
 
             if (evaluations.Length > 0)
             {
-                return evaluations[^1].OutputState;
+                return evaluations[^1].OutputWorld.Trie.Hash;
             }
             else
             {
@@ -71,6 +71,6 @@ public partial class BlockChain
         }
     }
 
-    internal CommittedActionEvaluation[] EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
+    internal ActionEvaluation[] EvaluateBlockPrecededStateRootHash(RawBlock rawBlock)
         => ActionEvaluator.Evaluate(rawBlock, Store.GetStateRootHash(rawBlock.Header.PreviousHash));
 }

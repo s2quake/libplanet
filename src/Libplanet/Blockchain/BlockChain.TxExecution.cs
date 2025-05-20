@@ -7,15 +7,15 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    internal IEnumerable<TxExecution> MakeTxExecutions(Block block, CommittedActionEvaluation[] evaluations)
+    internal IEnumerable<TxExecution> MakeTxExecutions(Block block, ActionEvaluation[] evaluations)
     {
-        var groupedEvals = new List<(TxId, List<CommittedActionEvaluation>)>();
+        var groupedEvals = new List<(TxId, List<ActionEvaluation>)>();
         foreach (var evaluation in evaluations)
         {
             if (groupedEvals.Count == 0)
             {
                 groupedEvals.Add(
-                    (evaluation.InputContext.TxId, new List<CommittedActionEvaluation>() { evaluation }));
+                    (evaluation.InputContext.TxId, new List<ActionEvaluation>() { evaluation }));
             }
             else
             {
@@ -28,7 +28,7 @@ public partial class BlockChain
                     groupedEvals.Add(
                         (
                             evaluation.InputContext.TxId,
-                            new List<CommittedActionEvaluation>() { evaluation }));
+                            new List<ActionEvaluation>() { evaluation }));
                 }
             }
         }
@@ -48,8 +48,8 @@ public partial class BlockChain
             {
                 BlockHash = block.BlockHash,
                 TxId = group.Item1,
-                InputState = group.Item2[0].InputContext.PreviousState,
-                OutputState = group.Item2[^1].OutputState,
+                InputState = group.Item2[0].InputWorld.Trie.Hash,
+                OutputState = group.Item2[^1].OutputWorld.Trie.Hash,
                 ExceptionNames = [.. exceptions.Select(item => item.Message)],
             };
 

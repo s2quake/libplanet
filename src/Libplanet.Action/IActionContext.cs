@@ -24,9 +24,5 @@ public interface IActionContext
 
     FungibleAssetValue MaxGasPrice { get; }
 
-    ImmutableSortedSet<Transaction> Txs { get; }
-
-    ImmutableSortedSet<EvidenceBase> Evidence { get; }
-
     IRandom GetRandom();
 }
