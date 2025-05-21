@@ -96,9 +96,10 @@ public abstract class StoreBase<TKey, TValue>
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
-        foreach (var key in keys.ToArray())
+        var items = keys.Where(ContainsKeyInternal).ToArray();
+        foreach (var item in items)
         {
-            RemoveInternal(key);
+            RemoveInternal(item);
         }
     }
 
@@ -107,9 +108,10 @@ public abstract class StoreBase<TKey, TValue>
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
-        foreach (var value in values)
+        var items = values.Where(item => ContainsKeyInternal(item.Key)).ToArray();
+        foreach (var item in items)
         {
-            RemoveInternal(value.Key);
+            RemoveInternal(item.Key);
         }
     }
 
@@ -350,6 +352,16 @@ public abstract class StoreBase<TKey, TValue>
         {
             IsDisposed = true;
         }
+    }
+
+    private bool ContainsKeyInternal(TKey key)
+    {
+        if (_cache.TryGet(key, out _))
+        {
+            return true;
+        }
+
+        return _dictionary.ContainsKey(GetKeyBytes(key));
     }
 
     private bool RemoveInternal(TKey key)

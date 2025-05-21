@@ -46,7 +46,6 @@ public partial class BlockChain
         Options = options;
         _repository = repository;
         _chain = repository.Chain;
-        // _blockChainStates = new BlockChainStates(repository);
         _actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         Id = _repository.ChainId;
         StagedTransactions = new StagedTransactionCollection(repository);

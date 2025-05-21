@@ -20,13 +20,13 @@ public class VolatileStagePolicyTest : StagePolicyTest
         }.Sign(_key);
         Assert.True(StageTransactions.TryAdd(tx));
         Assert.Equal(tx, StageTransactions[tx.Id]);
-        Assert.Contains(tx, StageTransactions.Iterate());
+        Assert.Contains(tx, StageTransactions.Values);
 
         // On some targets TimeSpan * int does not exist.
         await Task.Delay(timeBuffer);
         await Task.Delay(timeBuffer);
         Assert.Null(StageTransactions[tx.Id]);
-        Assert.DoesNotContain(tx, StageTransactions.Iterate());
+        Assert.DoesNotContain(tx, StageTransactions.Values);
     }
 
     // [Fact]

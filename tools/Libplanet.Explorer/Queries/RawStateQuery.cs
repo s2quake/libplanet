@@ -7,7 +7,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Explorer.Queries;
 
-public class RawStateQuery : ObjectGraphType<BlockChainStates>
+public class RawStateQuery : ObjectGraphType<BlockChain>
 {
     public RawStateQuery()
     {

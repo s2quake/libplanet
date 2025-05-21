@@ -103,24 +103,20 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void Validators()
     {
-        var validatorSet = _blockChain
-            .GetWorld()
-            .GetValidatorSet();
-        _logger.Debug(
-            "GenesisBlock is {Hash}, Transactions: {Txs}",
-            _blockChain.Genesis,
-            _blockChain.Genesis.Transactions);
-        Assert.Equal(TestUtils.Validators.Count, validatorSet.Count);
+        var validatorSet = _blockChain.GetWorld().GetValidatorSet();
+        Assert.Equal(TestUtils.Validators, validatorSet);
     }
 
     [Fact]
     public void CanFindBlockByIndex()
     {
+        var proposer = new PrivateKey();
         var genesis = _blockChain.Genesis;
         Assert.Equal(genesis, _blockChain.Blocks[0]);
 
-        Block block = _blockChain.ProposeBlock(new PrivateKey());
-        _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
+        var block = _blockChain.ProposeBlock(proposer);
+        var blockCommit = CreateBlockCommit(block);
+        _blockChain.Append(block, blockCommit);
         Assert.Equal(block, _blockChain.Blocks[1]);
     }
 
@@ -205,8 +201,9 @@ public partial class BlockChainTest : IDisposable
         }.Sign(tx1Key);
 
         chain.StagedTransactions.Add(tx1);
-        Block block1 = chain.ProposeBlock(new PrivateKey());
-        chain.Append(block1, CreateBlockCommit(block1));
+        var block1 = chain.ProposeBlock(new PrivateKey());
+        var blockCommit1 = CreateBlockCommit(block1);
+        chain.Append(block1, blockCommit1);
         var result = (BattleResult)chain
             .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
@@ -442,25 +439,20 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void GetBlockCommit()
     {
-        // Note: Getting BlockCommit from PoW block test is not present.
-        // Requesting blockCommit of genesis block returns null.
-        Assert.Null(_blockChain.BlockCommits[0]);
-        Assert.Null(_blockChain.BlockCommits[_blockChain.Genesis.BlockHash]);
+        Assert.Equal(BlockCommit.Empty, _blockChain.BlockCommits[0]);
+        Assert.Equal(BlockCommit.Empty, _blockChain.BlockCommits[_blockChain.Genesis.BlockHash]);
 
-        // BlockCommit is put to store when block is appended.
-        Block block1 = _blockChain.ProposeBlock(new PrivateKey());
-        BlockCommit blockCommit1 = CreateBlockCommit(block1);
+        var block1 = _blockChain.ProposeBlock(new PrivateKey());
+        var blockCommit1 = CreateBlockCommit(block1);
         _blockChain.Append(block1, blockCommit1);
         Assert.Equal(blockCommit1, _blockChain.BlockCommits[block1.Height]);
         Assert.Equal(blockCommit1, _blockChain.BlockCommits[block1.BlockHash]);
 
-        // BlockCommit is retrieved from lastCommit.
-        Block block2 = _blockChain.ProposeBlock(new PrivateKey());
-        BlockCommit blockCommit2 = CreateBlockCommit(block2);
+        var block2 = _blockChain.ProposeBlock(new PrivateKey());
+        var blockCommit2 = CreateBlockCommit(block2);
         _blockChain.Append(block2, blockCommit2);
 
-        // These are different due to timestamps on votes.
-        Assert.NotEqual(blockCommit1, _blockChain.BlockCommits[block1.Height]);
+        Assert.Equal(blockCommit1, _blockChain.BlockCommits[block1.Height]);
         Assert.Equal(block2.PreviousCommit, _blockChain.BlockCommits[block1.Height]);
         Assert.Equal(block2.PreviousCommit, _blockChain.BlockCommits[block1.BlockHash]);
     }
@@ -781,7 +773,7 @@ public partial class BlockChainTest : IDisposable
         ];
         StageTransactions(txsE);
 
-        foreach (var tx in _blockChain.StagedTransactions.Iterate())
+        foreach (var tx in _blockChain.StagedTransactions.Values)
         {
             _logger.Fatal(
                 "{Id}; {Signer}; {Nonce}; {Timestamp}",
@@ -914,7 +906,7 @@ public partial class BlockChainTest : IDisposable
         });
 
         List<Transaction> txs = _stagePolicy
-            .Iterate()
+            .Values
             .OrderBy(tx => tx.Nonce)
             .ToList();
 
@@ -950,7 +942,7 @@ public partial class BlockChainTest : IDisposable
         });
 
         List<Transaction> txs = _stagePolicy
-            .Iterate()
+            .Values
             .OrderBy(tx => tx.Nonce)
             .ToList();
 
@@ -1231,8 +1223,8 @@ public partial class BlockChainTest : IDisposable
 
         // Stage only txs having higher or equal with nonce than expected nonce.
         Assert.Single(_blockChain.StagedTransactions.Keys);
-        Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: true));
-        Assert.Equal(4, _blockChain.StagedTransactions.Iterate(filtered: false).Count());
+        // Assert.Single(_blockChain.StagedTransactions.Iterate(filtered: true));
+        Assert.Equal(4, _blockChain.StagedTransactions.Count);
     }
 
     [Fact]

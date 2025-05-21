@@ -126,7 +126,7 @@ namespace Libplanet.Net
                             }
                             catch
                             {
-                                _blockChain.StagedTransactions.Ignore(tx.Id);
+                                _blockChain.StagedTransactions.Remove(tx.Id);
                                 return false;
                             }
                         }));

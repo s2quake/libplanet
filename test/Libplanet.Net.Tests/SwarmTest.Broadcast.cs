@@ -586,7 +586,7 @@ namespace Libplanet.Net.Tests
                 Assert.DoesNotContain(tx3.Id, chainB.StagedTransactions.Keys);
                 Assert.Contains(
                     tx3.Id,
-                    chainB.StagedTransactions.Iterate(filtered: false).Select(tx => tx.Id));
+                    chainB.StagedTransactions.Keys);
                 Assert.Contains(tx4.Id, chainB.StagedTransactions.Keys);
 
                 await swarmC.TxReceived.WaitAsync();
@@ -594,7 +594,7 @@ namespace Libplanet.Net.Tests
                 Assert.DoesNotContain(tx3.Id, chainC.StagedTransactions.Keys);
                 Assert.DoesNotContain(
                     tx3.Id,
-                    chainC.StagedTransactions.Iterate(filtered: false).Select(tx => tx.Id));
+                    chainC.StagedTransactions.Keys);
                 Assert.Contains(tx4.Id, chainC.StagedTransactions.Keys);
             }
             finally

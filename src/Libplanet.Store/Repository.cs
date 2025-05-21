@@ -95,14 +95,14 @@ public sealed class Repository : IDisposable
         _metadata["chainId"] = _chain.Id.ToString();
         Append(genesisBlock, BlockCommit.Empty);
         _chain.Append(genesisBlock, BlockCommit.Empty);
-        return _chain;        
+        return _chain;
     }
 
     public void Append(Block block, BlockCommit blockCommit)
     {
         BlockDigests.Add(block);
         BlockCommits.Add(block.BlockHash, blockCommit);
-        PendingTransactions.AddRange(block.Transactions);
+        PendingTransactions.RemoveRange(block.Transactions);
         CommittedTransactions.AddRange(block.Transactions);
         PendingEvidences.RemoveRange(block.Evidences);
         CommittedEvidences.AddRange(block.Evidences);
@@ -111,7 +111,7 @@ public sealed class Repository : IDisposable
     public Block GetBlock(BlockHash blockHash)
     {
         var blockDigest = BlockDigests[blockHash];
-        return blockDigest.ToBlock(item => PendingTransactions[item], item => CommittedEvidences[item]);
+        return blockDigest.ToBlock(item => CommittedTransactions[item], item => CommittedEvidences[item]);
     }
 
     public Block GetBlock(Guid chainId, int height)

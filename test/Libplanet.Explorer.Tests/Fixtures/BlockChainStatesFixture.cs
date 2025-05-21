@@ -32,7 +32,7 @@ public static class BlockChainStatesFixture
     public static readonly ImmutableSortedSet<Validator> Validators =
         ImmutableSortedSet.Create([Validator]);
 
-    public static (BlockChainStates, BlockHash, HashDigest<SHA256>)
+    public static (BlockChain, BlockHash, HashDigest<SHA256>)
         CreateMockBlockChainStates()
     {
         throw new NotImplementedException("Mocking BlockChainStates is not implemented yet.");
