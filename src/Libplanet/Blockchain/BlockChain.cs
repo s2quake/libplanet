@@ -17,12 +17,9 @@ public partial class BlockChain
     private readonly Subject<RenderBlockInfo> _renderBlock = new();
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly Subject<TipChangedEvent> _tipChangedSubject = new();
-    private readonly BlockChainStates _blockChainStates;
     private readonly Repository _repository;
     private readonly Chain _chain;
     private readonly ActionEvaluator _actionEvaluator;
-
-    private HashDigest<SHA256> _nextStateRootHash;
 
     public BlockChain()
         : this(new Repository(), BlockChainOptions.Empty)
@@ -49,7 +46,7 @@ public partial class BlockChain
         Options = options;
         _repository = repository;
         _chain = repository.Chain;
-        _blockChainStates = new BlockChainStates(repository);
+        // _blockChainStates = new BlockChainStates(repository);
         _actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         Id = _repository.ChainId;
         StagedTransactions = new StagedTransactionCollection(repository);
@@ -60,9 +57,10 @@ public partial class BlockChain
         BlockCommits = new BlockCommitCollection(repository);
 
         var block = _repository.GetBlock(_chain.BlockHash);
-        var evaluation = _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
-        _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
+        var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
+        _chain.StateRootHash = evaluation.OutputWorld.Trie.Hash;
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
+        _repository.StateRootHashStore.Add(block.BlockHash, _chain.StateRootHash);
     }
 
     public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
@@ -84,6 +82,10 @@ public partial class BlockChain
     public Block Tip => Blocks[^1];
 
     public Block Genesis => Blocks[0];
+
+    public HashDigest<SHA256> TipStateRootHash => _chain.StateRootHash;
+
+    public BlockCommit TipCommit => _chain.BlockCommit;
 
     public BlockChainOptions Options { get; }
 
@@ -112,32 +114,33 @@ public partial class BlockChain
         block.Validate(this);
         blockCommit.Validate(block);
 
-        ValidateBlockStateRootHash(block);
+        // ValidateBlockStateRootHash(block);
 
         _repository.Append(block, blockCommit);
         _chain.Append(block, blockCommit);
+        // _chain.StateRootHash = block.StateRootHash;
         Blocks.AddCache(block);
-        _nextStateRootHash = default;
 
         _tipChangedSubject.OnNext(new(oldTip, block));
         _renderBlock.OnNext(new RenderBlockInfo(oldTip, block));
-        var evaluation = _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
+        var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
         _renderBlockEnd.OnNext(new RenderBlockInfo(oldTip, block));
-        _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
+        _chain.StateRootHash = evaluation.OutputWorld.Trie.Hash;
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
+        _repository.StateRootHashStore.Add(block.BlockHash, _chain.StateRootHash);
     }
 
-    internal HashDigest<SHA256> GetNextStateRootHash() => _nextStateRootHash;
+    public HashDigest<SHA256> GetStateRootHash(int height)
+        => _repository.StateRootHashStore[_chain.BlockHashes[height]];
 
-    internal HashDigest<SHA256> GetNextStateRootHash(int height) => GetNextStateRootHash(Blocks[height]);
-
-    internal HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(Blocks[blockHash]);
+    public HashDigest<SHA256> GetStateRootHash(BlockHash blockHash)
+        => _repository.StateRootHashStore[blockHash];
 
     internal ImmutableSortedSet<Validator> GetValidatorSet(int height)
     {
         if (height == 0)
         {
-            IWorldContext worldContext = new WorldStateContext(GetNextWorld());
+            IWorldContext worldContext = new WorldStateContext(GetWorld());
             return (ImmutableSortedSet<Validator>)worldContext[ReservedAddresses.ValidatorSetAddress][ReservedAddresses.ValidatorSetAddress]; ;
         }
 
@@ -152,17 +155,5 @@ public partial class BlockChain
     {
         repository.AddNewChain(genesisBlock);
         return repository;
-    }
-
-    private HashDigest<SHA256> GetNextStateRootHash(Block block)
-    {
-        if (block.Height < Tip.Height)
-        {
-            return Blocks[block.Height + 1].StateRootHash;
-        }
-        else
-        {
-            return GetNextStateRootHash();
-        }
     }
 }

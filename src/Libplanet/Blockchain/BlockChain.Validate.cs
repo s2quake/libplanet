@@ -59,26 +59,4 @@ public partial class BlockChain
 
         return nonceDeltas;
     }
-
-    
-
-    internal void ValidateBlockStateRootHash(Block block)
-    {
-        // NOTE: Since previous hash validation is on block validation,
-        // assume block is genesis if previous hash is null.
-        if (!(block.PreviousHash is BlockHash previousHash))
-        {
-            return;
-        }
-
-        HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash);
-
-        if (!stateRootHash.Equals(block.StateRootHash))
-        {
-            var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
-                $"is {block.StateRootHash}, but the execution result is {stateRootHash}.";
-            throw new InvalidOperationException(
-                message);
-        }
-    }
 }

@@ -25,7 +25,7 @@ public partial class BlockChainTest
         Assert.Equal(1, _blockChain.Blocks.Count);
         Assert.Equal(
             $"{GenesisProposer.Address}",
-            (string)_blockChain.GetNextWorld().GetValue(LegacyAccount, default));
+            (string)_blockChain.GetWorld().GetValue(LegacyAccount, default));
 
         var proposerA = new PrivateKey();
         Block block = _blockChain.ProposeBlock(proposerA);
@@ -36,7 +36,7 @@ public partial class BlockChainTest
             ModelSerializer.SerializeToBytes(block).Length <= maxTransactionsBytes);
         Assert.Equal(
             $"{GenesisProposer.Address},{proposerA.Address}",
-            (string)_blockChain.GetNextWorld().GetValue(LegacyAccount, default));
+            (string)_blockChain.GetWorld().GetValue(LegacyAccount, default));
 
         var proposerB = new PrivateKey();
         Block anotherBlock = _blockChain.ProposeBlock(proposerB);
@@ -49,7 +49,7 @@ public partial class BlockChainTest
         var expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
+            (string)_blockChain.GetWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
 
         Block block3 = _blockChain.ProposeBlock(new PrivateKey());
         Assert.False(_blockChain.Blocks.ContainsKey(block3.BlockHash));
@@ -59,7 +59,7 @@ public partial class BlockChainTest
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
+            (string)_blockChain.GetWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
 
         // Tests if ProposeBlock() method automatically fits the number of transactions
         // according to the right size.
@@ -96,7 +96,7 @@ public partial class BlockChainTest
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetNextWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
+            (string)_blockChain.GetWorld().GetAccount(LegacyAccount).GetValue(default(Address)));
     }
 
     [Fact]
@@ -242,23 +242,23 @@ public partial class BlockChainTest
         StageTransactions(txs);
 
         Assert.Null(_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(addrA));
         Assert.Null(_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(addrB));
         Assert.Null(_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(addrC));
         Assert.Null(_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(addrD));
         Assert.Null(_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(addrE));
 
@@ -284,36 +284,36 @@ public partial class BlockChainTest
         Assert.Equal(
             1,
             _blockChain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrA));
         Assert.Equal(
             "1b",
             _blockChain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrB));
         Assert.Equal(
             "2a",
             _blockChain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrC));
         Assert.IsType<string>(
             _blockChain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrD));
         Assert.Equal(
             new HashSet<string> { "2b", "5a" },
             ((string)_blockChain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrD)).Split(new[] { ',' }).ToHashSet());
         Assert.Equal(
             "5b",
             _blockChain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(LegacyAccount)
                 .GetValue(addrE));
 
@@ -480,11 +480,11 @@ public partial class BlockChainTest
         blockChain.Append(block, CreateBlockCommit(block));
 
         var state1 = blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(address1);
         var state2 = blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(address2);
 
@@ -502,11 +502,11 @@ public partial class BlockChainTest
         blockChain.Append(block, CreateBlockCommit(block));
 
         state1 = blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(address1);
         state2 = blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(LegacyAccount)
             .GetValue(address2);
 
@@ -575,8 +575,8 @@ public partial class BlockChainTest
         };
         Block block = _blockChain.ProposeBlock(new PrivateKey());
 
-        Assert.NotNull(block.LastCommit);
-        Assert.Equal(block.LastCommit, blockCommit);
+        Assert.NotNull(block.PreviousCommit);
+        Assert.Equal(block.PreviousCommit, blockCommit);
     }
 
     [Fact]

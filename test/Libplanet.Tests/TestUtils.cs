@@ -378,7 +378,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
     }
 
     public static RawBlock ProposeGenesis(
-        PublicKey proposer,
+        PrivateKey proposer,
+        HashDigest<SHA256> previousStateRootHash,
         ImmutableSortedSet<Transaction>? transactions = null,
         ImmutableSortedSet<Validator>? validators = null,
         DateTimeOffset? timestamp = null,
@@ -392,7 +393,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             {
                 Nonce = nonce++,
                 Signer = GenesisProposer.Address,
-                GenesisHash = default,
                 Actions = new[]
                 {
                     new Initialize
@@ -407,11 +407,10 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         var metadata = new BlockHeader
         {
             Version = protocolVersion,
-            Height = 0,
             Timestamp = timestamp ??
                     new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
-            Proposer = (proposer ?? GenesisProposer.PublicKey).Address,
-            PreviousHash = default,
+            Proposer = proposer.Address,
+            PreviousStateRootHash = previousStateRootHash,
         };
         var content = new BlockContent
         {
@@ -422,37 +421,30 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
     }
 
     public static Block ProposeGenesisBlock(
-        PrivateKey miner,
+        PrivateKey proposer,
+        HashDigest<SHA256> previousStateRootHash,
         ImmutableSortedSet<Transaction>? transactions = null,
         DateTimeOffset? timestamp = null,
-        int protocolVersion = BlockHeader.CurrentProtocolVersion,
-        HashDigest<SHA256> stateRootHash = default)
+        int protocolVersion = BlockHeader.CurrentProtocolVersion)
     {
-        RawBlock preEval = ProposeGenesis(
-            miner.PublicKey,
-            transactions,
-            null,
-            timestamp,
+        var rawBlock = ProposeGenesis(
+            proposer: proposer,
+            previousStateRootHash: previousStateRootHash,
+            transactions: transactions,
+            validators: null,
+            timestamp: timestamp,
             protocolVersion);
-        return preEval.Sign(miner, stateRootHash);
-    }
-
-    public static Block ProposeGenesisBlock(
-        RawBlock preEval,
-        PrivateKey privateKey)
-    {
-        return preEval.Sign(
-            privateKey,
-            default);
+        return rawBlock.Sign(proposer);
     }
 
     public static RawBlock ProposeNext(
         Block previousBlock,
+        HashDigest<SHA256> previousStateRootHash,
         ImmutableSortedSet<Transaction>? transactions = null,
         PublicKey? proposer = null,
         TimeSpan? blockInterval = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion,
-        BlockCommit? lastCommit = null,
+        BlockCommit? previousCommit = null,
         ImmutableSortedSet<EvidenceBase>? evidence = null)
     {
         var txs = transactions ?? [];
@@ -465,7 +457,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     blockInterval ?? TimeSpan.FromSeconds(15)),
             Proposer = proposer?.Address ?? previousBlock.Proposer,
             PreviousHash = previousBlock.BlockHash,
-            LastCommit = lastCommit ?? BlockCommit.Empty,
+            PreviousCommit = previousCommit ?? BlockCommit.Empty,
+            PreviousStateRootHash = previousStateRootHash,
         };
         var content = new BlockContent
         {
@@ -483,7 +476,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         ImmutableSortedSet<Transaction>? txs = null,
         TimeSpan? blockInterval = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion,
-        HashDigest<SHA256> stateRootHash = default,
+        HashDigest<SHA256> previousStateRootHash = default,
         BlockCommit? lastCommit = null,
         ImmutableSortedSet<EvidenceBase>? evidence = null)
     {
@@ -499,7 +492,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             protocolVersion,
             lastCommit,
             evidence);
-        return preEval.Sign(proposer, stateRootHash);
+        return preEval.Sign(proposer, previousStateRootHash);
     }
 
     public static BlockChain MakeBlockChain(

@@ -21,18 +21,16 @@ public sealed record class RawBlock
         Content = block.Content,
     };
 
-    public Block Sign(PrivateKey privateKey, HashDigest<SHA256> stateRootHash) => new()
+    public Block Sign(PrivateKey privateKey) => new()
     {
         Header = Header,
         Content = Content,
-        StateRootHash = stateRootHash,
-        Signature = MakeSignature(privateKey, stateRootHash),
+        Signature = CreateSignature(privateKey),
     };
 
-    private static ImmutableArray<byte> MakeSignature(PrivateKey privateKey, HashDigest<SHA256> stateRootHash)
+    private ImmutableArray<byte> CreateSignature(PrivateKey privateKey)
     {
-        var msg = ModelSerializer.SerializeToBytes(stateRootHash);
-        var sig = privateKey.Sign(msg);
-        return ImmutableArray.Create(sig);
+        var message = ModelSerializer.SerializeToBytes(this);
+        return [.. privateKey.Sign(message)];
     }
 }

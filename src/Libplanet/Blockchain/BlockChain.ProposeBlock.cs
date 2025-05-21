@@ -9,12 +9,13 @@ namespace Libplanet.Blockchain;
 public partial class BlockChain
 {
     public static Block ProposeGenesisBlock(
-        PrivateKey proposer, ImmutableSortedSet<Transaction> transactions, HashDigest<SHA256> stateRootHash = default)
+        PrivateKey proposer, ImmutableSortedSet<Transaction> transactions, HashDigest<SHA256> previousStateRootHash = default)
     {
         var blockHeader = new BlockHeader
         {
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
+            PreviousStateRootHash = previousStateRootHash,
         };
         var blockContent = new BlockContent
         {
@@ -26,7 +27,7 @@ public partial class BlockChain
             Header = blockHeader,
             Content = blockContent,
         };
-        return rawBlock.Sign(proposer, stateRootHash);
+        return rawBlock.Sign(proposer);
     }
 
     public Block ProposeBlock(PrivateKey proposer)
@@ -36,14 +37,14 @@ public partial class BlockChain
         var transactions = StagedTransactions.Collect();
         var evidences = PendingEvidences.Collect();
         var previousHash = tip.BlockHash;
-        var stateRootHash = GetNextStateRootHash(previousHash);
         var blockHeader = new BlockHeader
         {
             Height = height,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
             PreviousHash = previousHash,
-            LastCommit = BlockCommits[tip.BlockHash],
+            PreviousCommit = BlockCommits[previousHash],
+            PreviousStateRootHash = GetStateRootHash(previousHash),
         };
         var blockContent = new BlockContent
         {
@@ -55,6 +56,6 @@ public partial class BlockChain
             Header = blockHeader,
             Content = blockContent,
         };
-        return rawBlock.Sign(proposer, stateRootHash);
+        return rawBlock.Sign(proposer);
     }
 }

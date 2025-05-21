@@ -113,7 +113,7 @@ internal sealed class BlockChainService(
         }.Sign(genesisKey);
         return BlockChain.ProposeGenesisBlock(
             proposer: genesisKey,
-            stateRootHash: default,
+            previousStateRootHash: default,
             transactions: [transaction]);
     }
 
@@ -154,7 +154,7 @@ internal sealed class BlockChainService(
         {
             return BlockChain.ProposeGenesisBlock(
                 proposer: genesisKey,
-                stateRootHash: default,
+                previousStateRootHash: default,
                 transactions: []);
         }
 
@@ -190,7 +190,7 @@ internal sealed class BlockChainService(
         worldTrie = stateStore.Commit(worldTrie);
         return BlockChain.ProposeGenesisBlock(
             proposer: genesisKey,
-            stateRootHash: worldTrie.Hash,
+            previousStateRootHash: worldTrie.Hash,
             transactions: []);
     }
 }

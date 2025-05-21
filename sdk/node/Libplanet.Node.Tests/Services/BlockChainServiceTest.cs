@@ -65,7 +65,7 @@ public class BlockChainServiceTest
             var serviceProvider = services.BuildServiceProvider();
             var blockChainService = serviceProvider.GetRequiredService<IBlockChainService>();
             var blockChain = blockChainService.BlockChain;
-            var world = blockChain.GetNextWorld()!;
+            var world = blockChain.GetWorld()!;
             Assert.Equal("A", world.GetAccount(accountA).GetValue(addressA));
             Assert.Equal(123, world.GetAccount(accountA).GetValue(addressB));
             Assert.Equal("B", world.GetAccount(accountB).GetValue(addressA));

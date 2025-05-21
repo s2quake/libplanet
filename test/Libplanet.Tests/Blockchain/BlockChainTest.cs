@@ -105,7 +105,7 @@ public partial class BlockChainTest : IDisposable
     public void Validators()
     {
         var validatorSet = _blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetValidatorSet();
         _logger.Debug(
             "GenesisBlock is {Hash}, Transactions: {Txs}",
@@ -209,7 +209,7 @@ public partial class BlockChainTest : IDisposable
         Block block1 = chain.ProposeBlock(new PrivateKey());
         chain.Append(block1, CreateBlockCommit(block1));
         var result = (BattleResult)chain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(_fx.Address1);
 
@@ -240,7 +240,7 @@ public partial class BlockChainTest : IDisposable
         chain.Append(block2, CreateBlockCommit(block2));
 
         result = (BattleResult)chain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(_fx.Address1);
 
@@ -265,7 +265,7 @@ public partial class BlockChainTest : IDisposable
         chain.StagedTransactions.Add(tx3);
         chain.Append(block3, CreateBlockCommit(block3));
         result = (BattleResult)chain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(_fx.Address1);
     }
@@ -462,8 +462,8 @@ public partial class BlockChainTest : IDisposable
 
         // These are different due to timestamps on votes.
         Assert.NotEqual(blockCommit1, _blockChain.BlockCommits[block1.Height]);
-        Assert.Equal(block2.LastCommit, _blockChain.BlockCommits[block1.Height]);
-        Assert.Equal(block2.LastCommit, _blockChain.BlockCommits[block1.BlockHash]);
+        Assert.Equal(block2.PreviousCommit, _blockChain.BlockCommits[block1.Height]);
+        Assert.Equal(block2.PreviousCommit, _blockChain.BlockCommits[block1.BlockHash]);
     }
 
     // [Fact]
@@ -564,7 +564,7 @@ public partial class BlockChainTest : IDisposable
         Assert.All(
             targetAddresses.Select(
                 targetAddress => chain
-                    .GetNextWorld()
+                    .GetWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(targetAddress)),
             Assert.NotNull);
@@ -591,7 +591,7 @@ public partial class BlockChainTest : IDisposable
         // tracker.ClearLogs();
         Address nonexistent = new PrivateKey().Address;
         var result = chain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(nonexistent);
         Assert.Null(result);
@@ -615,14 +615,14 @@ public partial class BlockChainTest : IDisposable
         Assert.All(
             addresses.Select(
                 address => chain
-                    .GetNextWorld()
+                    .GetWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
             Assert.Null);
         foreach (var address in addresses)
         {
             Assert.Null(chain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(address));
         }
@@ -644,7 +644,7 @@ public partial class BlockChainTest : IDisposable
         Assert.All(
             addresses.Select(
                 address => chain
-                    .GetNextWorld()
+                    .GetWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
             v => Assert.Equal("1", v));
@@ -653,7 +653,7 @@ public partial class BlockChainTest : IDisposable
             Assert.Equal(
                 "1",
                 chain
-                    .GetNextWorld()
+                    .GetWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address));
         }
@@ -668,13 +668,13 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(
             "1,2",
             chain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(addresses[0]));
         Assert.All(
             addresses.Skip(1).Select(
                 address => chain
-                    .GetNextWorld()
+                    .GetWorld()
                     .GetAccount(ReservedAddresses.LegacyAccount)
                     .GetValue(address)),
             v => Assert.Equal("1", v));
@@ -854,7 +854,7 @@ public partial class BlockChainTest : IDisposable
                     txs,
                     blockInterval: TimeSpan.FromSeconds(10),
                     proposer: _fx.Proposer.PublicKey,
-                    lastCommit: CreateBlockCommit(block)),
+                    previousCommit: CreateBlockCommit(block)),
                 _fx.Proposer);
 
         var txsA = ImmutableSortedSet.Create(
@@ -1015,15 +1015,15 @@ public partial class BlockChainTest : IDisposable
         _blockChain.Append(block3, CreateBlockCommit(block3));
 
         var miner1state = (int)_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(miner1.Address);
         var miner2state = (int)_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(miner2.Address);
         var rewardState = (string)_blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetAccount(ReservedAddresses.LegacyAccount)
             .GetValue(rewardRecordAddress);
 
@@ -1179,14 +1179,14 @@ public partial class BlockChainTest : IDisposable
         var blockChain = new BlockChain(storeFixture.Repository, storeFixture.Options);
 
         var validator = blockChain
-            .GetNextWorld()
+            .GetWorld()
             .GetValidatorSet()[0];
         Assert.Equal(validatorPrivKey.Address, validator.Address);
         Assert.Equal(BigInteger.One, validator.Power);
 
         var states = addresses
             .Select(address => blockChain
-                .GetNextWorld()
+                .GetWorld()
                 .GetAccount(ReservedAddresses.LegacyAccount)
                 .GetValue(address))
             .ToArray();
@@ -1246,10 +1246,10 @@ public partial class BlockChainTest : IDisposable
         //     {
         //         // ReSharper disable AccessToModifiedClosure
         //         // The following method calls should not throw any exceptions:
-        //         x?.GetNextWorld()
+        //         x?.GetWorld()
         //             .GetAccount(ReservedAddresses.LegacyAccount)
         //             .GetValue(default);
-        //         x?.GetNextWorld()
+        //         x?.GetWorld()
         //             .GetAccount(ReservedAddresses.LegacyAccount)
         //             .GetValue(default);
         //         // ReSharper restore AccessToModifiedClosure
@@ -1275,12 +1275,12 @@ public partial class BlockChainTest : IDisposable
             Signer = bockTxKey.Address,
             Actions = Array.Empty<DumbAction>().ToBytecodes(),
         }.Sign(bockTxKey);
-        var nextStateRootHash = chain.GetNextStateRootHash(genesisWithTx.BlockHash);
+        var nextStateRootHash = chain.GetStateRootHash(genesisWithTx.BlockHash);
         var block = ProposeNextBlock(
             previousBlock: chain.Genesis,
             proposer: GenesisProposer,
             txs: [blockTx],
-            stateRootHash: (HashDigest<SHA256>)nextStateRootHash);
+            previousStateRootHash: (HashDigest<SHA256>)nextStateRootHash);
 
         var e = Assert.Throws<InvalidOperationException>(
             () => chain.Append(block, CreateBlockCommit(block)));
@@ -1433,13 +1433,13 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(
             blockChain
-                .GetNextWorldState(0)
+                .GetWorldState(0)
                 .GetValidatorSet(),
             [.. ValidatorPrivateKeys.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
 
         Assert.Equal(
             blockChain
-                .GetNextWorldState(1)
+                .GetWorldState(1)
                 .GetValidatorSet(),
             [.. newValidators.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
     }

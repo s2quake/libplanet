@@ -9,24 +9,22 @@ public partial class BlockChain
 {
     public World GetWorld() => GetWorld(Tip.BlockHash);
 
-    public World GetWorld(BlockHash blockHash) => _blockChainStates.GetWorld(blockHash);
-
-    public World GetWorld(HashDigest<SHA256> stateRootHash) => _blockChainStates.GetWorld(stateRootHash);
-
-    public World GetNextWorld()
+    public World GetWorld(BlockHash blockHash)
     {
-        if (GetNextStateRootHash() is { } nsrh)
+        var stateRootHash = _repository.StateRootHashStore[blockHash];
+        return new World
         {
-            var trie = _repository.StateStore.GetStateRoot(nsrh);
-            return trie.IsCommitted
-                ? new World { Trie = trie, StateStore = _repository.StateStore }
-                : throw new InvalidOperationException(
-                    $"Could not find state root {nsrh} in {nameof(_repository.StateStore)} for " +
-                    $"the current tip.");
-        }
-        else
+            Trie = _repository.StateStore.GetStateRoot(stateRootHash),
+            StateStore = _repository.StateStore,
+        };
+    }
+
+    public World GetWorld(HashDigest<SHA256> stateRootHash)
+    {
+        return new World
         {
-            return null!;
-        }
+            Trie = _repository.StateStore.GetStateRoot(stateRootHash),
+            StateStore = _repository.StateStore,
+        };
     }
 }
