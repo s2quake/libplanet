@@ -164,7 +164,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
 
     private TxEvaluation EvaluateTx(RawBlock rawBlock, Transaction tx, ref World world)
     {
-        GasTracer.Initialize(tx.GasLimit ?? long.MaxValue);
+        GasTracer.Initialize(tx.GasLimit is 0 ? long.MaxValue : tx.GasLimit);
         var inputWorld = world;
         GasTracer.IsTxAction = true;
         var beginEvaluations = EvaluateActions(rawBlock, tx, policyActions.BeginTxActions, ref world);

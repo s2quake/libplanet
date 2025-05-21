@@ -189,7 +189,9 @@ public static class ModelSerializer
             {
                 stream.WriteByte((byte)DataType.Converter);
                 converter.Serialize(obj, stream, options);
+#if _POSITION
                 System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
+#endif
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {
@@ -221,7 +223,9 @@ public static class ModelSerializer
                     }
                 }
 
+#if _POSITION
                 System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
+#endif
             }
             else
             {
@@ -274,7 +278,9 @@ public static class ModelSerializer
                 }
 
                 var value = converter.Deserialize(stream, options);
+#if _POSITION
                 System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
+#endif
                 return value;
             }
             else if (TryGetDescriptor(type, out var descriptor))
@@ -309,7 +315,9 @@ public static class ModelSerializer
                         ? Deserialize(stream, options) : DeserializeRawValue(stream, itemType, options);
                 }
 
+#if _POSITION
                 System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
+#endif
                 return descriptor.Deserialize(type, values, options);
             }
             else

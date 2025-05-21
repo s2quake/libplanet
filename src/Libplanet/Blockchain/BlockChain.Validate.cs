@@ -199,10 +199,17 @@ public partial class BlockChain
             }
         }
 
+        Options.BlockOptions.Validator.Validate(block);
+
+        foreach (var tx in block.Transactions)
+        {
+            Options.TransactionOptions.Validator.Validate(tx);
+        }
+
         foreach (var evidence in block.Evidences)
         {
             var stateRootHash = GetNextStateRootHash(evidence.Height);
-            var worldState = GetWorld(stateRootHash ?? default);
+            var worldState = GetWorld(stateRootHash);
             var validators = worldState.GetValidatorSet();
             ValidationUtility.Validate(evidence, items: new Dictionary<object, object?>
             {
@@ -220,10 +227,7 @@ public partial class BlockChain
             return;
         }
 
-        HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash) ??
-            throw new InvalidOperationException(
-                $"Cannot validate a block' state root hash as the next " +
-                $"state root hash for block {previousHash} is missing.");
+        HashDigest<SHA256> stateRootHash = GetNextStateRootHash(previousHash);
 
         if (!stateRootHash.Equals(block.StateRootHash))
         {
@@ -233,17 +237,4 @@ public partial class BlockChain
                 message);
         }
     }
-
-    // internal void ValidateBlockPrecededStateRootHash(
-    //     Block block, out ActionEvaluation[] evaluations)
-    // {
-    //     var rootHash = DetermineBlockPrecededStateRootHash((RawBlock)block, out evaluations);
-    //     if (!rootHash.Equals(block.StateRootHash))
-    //     {
-    //         var message = $"Block #{block.Height} {block.BlockHash}'s state root hash " +
-    //             $"is {block.StateRootHash}, but the execution result is {rootHash}.";
-    //         throw new InvalidOperationException(
-    //             message);
-    //     }
-    // }
 }

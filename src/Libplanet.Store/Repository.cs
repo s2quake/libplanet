@@ -44,10 +44,7 @@ public sealed class Repository : IDisposable
     public Repository(Block genesisBlock, IDatabase database)
         : this(database)
     {
-        _chain = Chains.AddNew(Guid.NewGuid());
-        _metadata["chainId"] = _chain.Id.ToString();
-        Append(genesisBlock, BlockCommit.Empty);
-        _chain.Append(genesisBlock, BlockCommit.Empty);
+        AddNewChain(genesisBlock);
     }
 
     public PendingEvidenceStore PendingEvidences { get; }
@@ -91,11 +88,11 @@ public sealed class Repository : IDisposable
 
     public Chain AddNewChain(Block genesisBlock)
     {
-        var chain = Chains.AddNew(Guid.NewGuid());
-        _metadata["chainId"] = chain.Id.ToString();
+        _chain = Chains.AddNew(Guid.NewGuid());
+        _metadata["chainId"] = _chain.Id.ToString();
         Append(genesisBlock, BlockCommit.Empty);
-        chain.Append(genesisBlock, BlockCommit.Empty);
-        return chain;        
+        _chain.Append(genesisBlock, BlockCommit.Empty);
+        return _chain;        
     }
 
     public void Append(Block block, BlockCommit blockCommit)

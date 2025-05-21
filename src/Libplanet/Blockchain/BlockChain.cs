@@ -16,12 +16,13 @@ public partial class BlockChain
 {
     private readonly Subject<RenderBlockInfo> _renderBlock = new();
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
+    private readonly Subject<TipChangedEvent> _tipChangedSubject = new();
     private readonly BlockChainStates _blockChainStates;
     private readonly Repository _repository;
     private readonly Chain _chain;
     private readonly ActionEvaluator _actionEvaluator;
 
-    private HashDigest<SHA256>? _nextStateRootHash;
+    private HashDigest<SHA256> _nextStateRootHash;
 
     public BlockChain()
         : this(new Repository(), BlockChainOptions.Empty)
@@ -58,41 +59,19 @@ public partial class BlockChain
         Blocks = new BlockCollection(repository);
         BlockCommits = new BlockCommitCollection(repository);
 
-        // var nonceDeltas = ValidateGenesisNonces(genesisBlock);
-
-        // Blocks.AddCache(genesisBlock);
-
-        // foreach (KeyValuePair<Address, long> pair in nonceDeltas)
-        // {
-        //     _chain.Nonces.Increase(pair.Key, pair.Value);
-        // }
-
-        // if (!Genesis.Equals(genesisBlock))
-        // {
-        //     string msg =
-        //         $"The genesis block that the given {nameof(Libplanet.Store.Repository)} contains does not match " +
-        //         "to the genesis block that the network expects.  You might pass the wrong " +
-        //         "store which is incompatible with this chain.  Or your network might " +
-        //         "restarted the chain with a new genesis block so that it is incompatible " +
-        //         "with your existing chain in the local store.";
-        //     throw new InvalidOperationException(
-        //         message: msg);
-        // }
-
         var block = _repository.GetBlock(_chain.BlockHash);
         var evaluation = _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
         _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
-        // var txExecutions = MakeTxExecutions(Tip, actionEvaluations);
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
     }
-
-    internal event EventHandler<(Block OldTip, Block NewTip)> TipChanged;
 
     public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
 
     public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.ActionEvaluated;
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
+
+    public IObservable<TipChangedEvent> TipChanged => _tipChangedSubject;
 
     public StagedTransactionCollection StagedTransactions { get; }
 
@@ -148,7 +127,7 @@ public partial class BlockChain
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
-    public void Append(Block block, BlockCommit blockCommit, bool validate = true)
+    public void Append(Block block, BlockCommit blockCommit)
     {
         if (Blocks.Count is 0)
         {
@@ -163,65 +142,28 @@ public partial class BlockChain
                 nameof(block));
         }
 
-        if (validate)
-        {
-            block.Header.Timestamp.ValidateTimestamp();
-        }
+        block.Header.Timestamp.ValidateTimestamp();
 
-        // _rwlock.EnterUpgradeableReadLock();
-        Block prevTip = Tip;
+        var oldTip = Tip;
         try
         {
-            if (validate)
-            {
-                ValidateBlock(block);
-                ValidateBlockCommit(block, blockCommit);
-            }
+            ValidateBlock(block);
+            ValidateBlockCommit(block, blockCommit);
+            
 
-            // var nonceDeltas = ValidateBlockNonces(
-            //     block.Transactions
-            //         .Select(tx => tx.Signer)
-            //         .Distinct()
-            //         .ToDictionary(signer => signer, signer => _chain.Nonces[signer]),
-            //     block);
+            ValidateBlockStateRootHash(block);
+            Blocks.AddCache(block);
 
-            if (validate)
-            {
-                Options.BlockOptions.Validator.Validate(block);
-            }
+            _repository.Append(block, blockCommit);
+            _chain.Append(block, blockCommit);
+            _nextStateRootHash = default;
 
-            foreach (var tx in block.Transactions)
-            {
-                if (validate)
-                {
-                    Options.TransactionOptions.Validator.Validate(tx);
-                }
-            }
-
-            try
-            {
-                if (validate)
-                {
-                    ValidateBlockStateRootHash(block);
-                }
-
-                Blocks.AddCache(block);
-
-                _repository.Append(block, blockCommit);
-                _repository.Chain.Append(block, blockCommit);
-                _nextStateRootHash = null;
-            }
-            finally
-            {
-            }
-
-            TipChanged?.Invoke(this, (prevTip, block));
-            _renderBlock.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-            // _nextStateRootHash = DetermineNextBlockStateRootHash(block, out var actionEvaluations);
-            _renderBlockEnd.OnNext(new RenderBlockInfo(prevTip ?? Genesis, block));
-
-            // var txExecutions = MakeTxExecutions(block, actionEvaluations);
-            // _repository.TxExecutions.AddRange(txExecutions);
+            _tipChangedSubject.OnNext(new(oldTip, block));
+            _renderBlock.OnNext(new RenderBlockInfo(oldTip, block));
+            var evaluation = _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
+            _renderBlockEnd.OnNext(new RenderBlockInfo(oldTip, block));
+            _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
+            _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
         }
         finally
         {
@@ -260,11 +202,11 @@ public partial class BlockChain
     //     }
     // }
 
-    internal HashDigest<SHA256>? GetNextStateRootHash() => _nextStateRootHash;
+    internal HashDigest<SHA256> GetNextStateRootHash() => _nextStateRootHash;
 
-    internal HashDigest<SHA256>? GetNextStateRootHash(int index) => GetNextStateRootHash(Blocks[index]);
+    internal HashDigest<SHA256> GetNextStateRootHash(int height) => GetNextStateRootHash(Blocks[height]);
 
-    internal HashDigest<SHA256>? GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(Blocks[blockHash]);
+    internal HashDigest<SHA256> GetNextStateRootHash(BlockHash blockHash) => GetNextStateRootHash(Blocks[blockHash]);
 
     internal ImmutableSortedSet<Validator> GetValidatorSet(int height)
     {
@@ -287,7 +229,7 @@ public partial class BlockChain
         return repository;
     }
 
-    private HashDigest<SHA256>? GetNextStateRootHash(Block block)
+    private HashDigest<SHA256> GetNextStateRootHash(Block block)
     {
         if (block.Height < Tip.Height)
         {

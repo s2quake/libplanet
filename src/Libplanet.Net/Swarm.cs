@@ -34,6 +34,7 @@ namespace Libplanet.Net
 
         private CancellationTokenSource _workerCancellationTokenSource;
         private CancellationToken _cancellationToken;
+        private IDisposable? _tipChangedSubscription;
 
         private bool _disposed;
 
@@ -232,7 +233,8 @@ namespace Libplanet.Net
             CancellationToken cancellationToken = default)
         {
             _logger.Debug("Stopping watching " + nameof(BlockChain) + " for tip changes...");
-            BlockChain.TipChanged -= OnBlockChainTipChanged;
+            _tipChangedSubscription?.Dispose();
+            _tipChangedSubscription = null;
 
             _logger.Debug($"Stopping {nameof(Swarm)}...");
             using (await _runningMutex.LockAsync())
@@ -326,7 +328,7 @@ namespace Libplanet.Net
                 _logger.Debug("Peer information : {Peer}", AsPeer);
 
                 _logger.Debug("Watching the " + nameof(BlockChain) + " for tip changes...");
-                BlockChain.TipChanged += OnBlockChainTipChanged;
+                _tipChangedSubscription = BlockChain.TipChanged.Subscribe(OnBlockChainTipChanged);
 
                 var tasks = new List<Func<Task>>
                 {

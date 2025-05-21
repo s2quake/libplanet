@@ -18,8 +18,7 @@ internal static class BlockChainUtility
         var block = blockChain.ProposeBlock(proposer: privateKey);
         blockChain.Append(
             block,
-            blockChain.BlockCommits[tip.BlockHash],
-            validate: false);
+            blockChain.BlockCommits[tip.BlockHash]);
 
         while (blockChain.Tip.Height < height)
         {

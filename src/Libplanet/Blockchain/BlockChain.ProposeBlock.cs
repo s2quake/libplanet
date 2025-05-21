@@ -31,22 +31,19 @@ public partial class BlockChain
 
     public Block ProposeBlock(PrivateKey proposer)
     {
-        var height = Blocks.Count;
+        var tip = Tip;
+        var height = tip.Height + 1;
         var transactions = StagedTransactions.Collect();
         var evidences = PendingEvidences.Collect();
-        var previousHash = _repository.Chain.BlockHashes[height - 1];
-        var stateRootHash = GetNextStateRootHash(previousHash) ??
-            throw new InvalidOperationException(
-                $"Cannot propose a block as the next state root hash " +
-                $"for block {previousHash} is missing.");
-
+        var previousHash = tip.BlockHash;
+        var stateRootHash = GetNextStateRootHash(previousHash);
         var blockHeader = new BlockHeader
         {
             Height = height,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
             PreviousHash = previousHash,
-            LastCommit = BlockCommits[height - 1],
+            LastCommit = BlockCommits[tip.BlockHash],
         };
         var blockContent = new BlockContent
         {

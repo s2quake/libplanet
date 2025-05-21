@@ -23,6 +23,7 @@ public partial class ConsensusContext : IDisposable
     private readonly ILogger _logger;
     private readonly HashSet<ConsensusMsg> _pendingMessages;
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
+    private readonly IDisposable _tipChangedSubscription;
 
     private Context _currentContext;
     private CancellationTokenSource? _newHeightCts;
@@ -53,7 +54,7 @@ public partial class ConsensusContext : IDisposable
             .ForContext<ConsensusContext>()
             .ForContext("Source", nameof(ConsensusContext));
 
-        _blockChain.TipChanged += OnTipChanged;
+        _tipChangedSubscription = _blockChain.TipChanged.Subscribe(OnTipChanged);
         _contextLock = new object();
     }
 
@@ -101,7 +102,7 @@ public partial class ConsensusContext : IDisposable
             _currentContext.Dispose();
         }
 
-        _blockChain.TipChanged -= OnTipChanged;
+        _tipChangedSubscription.Dispose();
     }
 
     public void NewHeight(int height)
@@ -293,7 +294,7 @@ public partial class ConsensusContext : IDisposable
         }
     }
 
-    private void OnTipChanged(object? sender, (Block _, Block NewTip) e)
+    private void OnTipChanged(TipChangedEvent e)
     {
         // TODO: Should set delay by using GST.
         _newHeightCts?.Cancel();
@@ -305,7 +306,7 @@ public partial class ConsensusContext : IDisposable
                 await Task.Delay(_newHeightDelay, _newHeightCts.Token);
 
                 // Delay further until evaluation is ready.
-                while (_blockChain.GetNextStateRootHash(e.NewTip.Height) is null)
+                while (_blockChain.GetNextStateRootHash(e.NewTip.Height) == default)
                 {
                     // FIXME: Maybe interval should be adjustable?
                     await Task.Delay(100, _newHeightCts.Token);
@@ -341,9 +342,7 @@ public partial class ConsensusContext : IDisposable
 
     private Context CreateContext(int height, BlockCommit lastCommit)
     {
-        var nextStateRootHash = _blockChain.GetNextStateRootHash(height - 1) ??
-            throw new NullReferenceException(
-                $"Could not find the next state root hash for index {height - 1}");
+        var nextStateRootHash = _blockChain.GetNextStateRootHash(height - 1);
         ImmutableSortedSet<Validator> validatorSet = _blockChain
             .GetWorld(nextStateRootHash)
             .GetValidatorSet();

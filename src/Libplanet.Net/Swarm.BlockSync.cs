@@ -195,7 +195,7 @@ namespace Libplanet.Net
             }
         }
 
-        private void OnBlockChainTipChanged(object sender, (Block OldTip, Block NewTip) e)
+        private void OnBlockChainTipChanged(TipChangedEvent e)
         {
             if (Running)
             {

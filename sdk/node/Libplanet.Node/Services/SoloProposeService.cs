@@ -58,8 +58,7 @@ internal sealed class SoloProposeService : BackgroundService
         var block = _blockChain.ProposeBlock(_privateKey);
         _blockChain.Append(
             block,
-            _blockChain.BlockCommits[tip.BlockHash],
-            validate: false);
+            _blockChain.BlockCommits[tip.BlockHash]);
 
         _logger.LogInformation(
             "Proposed block: {Height}: {Hash}",

@@ -367,13 +367,13 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            blockChain.TipChanged += (_, eventArgs) =>
+            using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
             {
                 if (eventArgs.NewTip.Height == 1L)
                 {
                     blockHeightOneAppended.Set();
                 }
-            };
+            });
 
             var action = new DelayAction(100);
             var tx = new TransactionMetadata
@@ -657,13 +657,13 @@ namespace Libplanet.Net.Tests.Consensus
             Context context = consensusContext.CurrentContext;
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 
-            blockChain.TipChanged += (_, eventArgs) =>
+            using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
             {
                 if (eventArgs.NewTip.Height == 1L)
                 {
                     onTipChanged.Set();
                 }
-            };
+            });
 
             consensusContext.StateChanged += (_, eventArgs) =>
             {
