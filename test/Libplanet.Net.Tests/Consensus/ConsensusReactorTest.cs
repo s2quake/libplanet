@@ -52,13 +52,8 @@ namespace Libplanet.Net.Tests.Consensus
                 var options = TestUtils.Options with
                 {
                 };
-                blockChains[i] = new BlockChain(TestUtils.Options)
-                {
-                    Blocks =
-                    {
-                        { fx.GenesisBlock, BlockCommit.Empty }
-                    }
-                };
+                var repository = new Repository(fx.GenesisBlock);
+                blockChains[i] = new BlockChain(repository, TestUtils.Options);
             }
 
             for (var i = 0; i < 4; i++)

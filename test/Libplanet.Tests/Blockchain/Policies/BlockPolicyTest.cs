@@ -26,13 +26,8 @@ public class BlockPolicyTest : IDisposable
         {
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
-        _chain = new BlockChain(_policy)
-        {
-            Blocks =
-            {
-                { _fx.GenesisBlock, BlockCommit.Empty}
-            }
-        };
+        var repository = new Repository(_fx.GenesisBlock);
+        _chain = new BlockChain(repository, _policy);
     }
 
     public void Dispose()

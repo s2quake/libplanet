@@ -183,14 +183,9 @@ namespace Libplanet.Tests.Blockchain
             var genesisBlock = TestUtils.ProposeGenesisBlock(
                 TestUtils.ProposeGenesis(TestUtils.GenesisProposer.PublicKey),
                 TestUtils.GenesisProposer);
+            var repository = new Repository(genesisBlock);
 
-            var chain1 = new BlockChain(options)
-            {
-                Blocks =
-                {
-                    { genesisBlock, BlockCommit.Empty }
-                }
-            };
+            var chain1 = new BlockChain(options);
             var endBlockActions = new IAction[]
             {
                 new SetStatesAtBlock(default, "foo", default, 0),
@@ -203,13 +198,8 @@ namespace Libplanet.Tests.Blockchain
                 },
                 BlockInterval = options.BlockInterval,
             };
-            var chain2 = new BlockChain(options2)
-            {
-                Blocks =
-                {
-                    { genesisBlock, BlockCommit.Empty }
-                }
-            };
+            var repository2 = new Repository(genesisBlock);
+            var chain2 = new BlockChain(repository2, options2);
 
             Block block1 = chain1.EvaluateAndSign(
                 new RawBlock
@@ -246,16 +236,12 @@ namespace Libplanet.Tests.Blockchain
             var preGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
+            var preExecution = actionEvaluator.Evaluate(preGenesis, default);
             var genesisBlock = preGenesis.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(preGenesis, default)[^1].OutputWorld.Trie.Hash);
-            var chain1 = new BlockChain(repository, options1)
-            {
-                Blocks =
-                {
-                    { genesisBlock, BlockCommit.Empty }
-                }
-            };
+                preExecution.OutputWorld.Trie.Hash);
+            repository.AddNewChain(genesisBlock);
+            var chain1 = new BlockChain(repository, options1);
 
             Block block1 = chain1.EvaluateAndSign(
                 new RawBlock
@@ -280,13 +266,8 @@ namespace Libplanet.Tests.Blockchain
                 },
                 BlockInterval = options1.BlockInterval,
             };
-            var chain2 = new BlockChain(options2)
-            {
-                Blocks =
-                {
-                    { genesisBlock, BlockCommit.Empty }
-                }
-            };
+            var repository2 = new Repository(genesisBlock);
+            var chain2 = new BlockChain(options2);
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -313,16 +294,12 @@ namespace Libplanet.Tests.Blockchain
             var rawGenesis = TestUtils.ProposeGenesis(
                 proposer: TestUtils.GenesisProposer.PublicKey,
                 protocolVersion: beforePostponeBPV);
+            var rawEvaluation = actionEvaluator.Evaluate(rawGenesis, default);
             var genesisBlock = rawGenesis.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(rawGenesis, default)[^1].OutputWorld.Trie.Hash);
-            var chain = new BlockChain(repository, options)
-            {
-                Blocks =
-                {
-                    { genesisBlock, BlockCommit.Empty }
-                }
-            };
+                rawEvaluation.OutputWorld.Trie.Hash);
+            repository.AddNewChain(genesisBlock);
+            var chain = new BlockChain(repository, options);
 
             RawBlock preBlock1 = new RawBlock
             {
@@ -341,7 +318,7 @@ namespace Libplanet.Tests.Blockchain
 
             Block block2 = preBlock1.Sign(
                 TestUtils.GenesisProposer,
-                actionEvaluator.Evaluate(preBlock1, genesisBlock.StateRootHash)[^1].OutputWorld.Trie.Hash);
+                actionEvaluator.Evaluate(preBlock1, genesisBlock.StateRootHash).OutputWorld.Trie.Hash);
 
             Assert.Throws<InvalidOperationException>(() =>
                 chain.Append(block2, TestUtils.CreateBlockCommit(block2)));
@@ -753,13 +730,8 @@ namespace Libplanet.Tests.Blockchain
         [Fact]
         public void ValidateNextBlockOnChainRestart()
         {
-            var newChain = new BlockChain(_blockChain.Options)
-            {
-                Blocks =
-                {
-                    { _blockChain.Genesis, BlockCommit.Empty }
-                }
-            };
+            var repository = new Repository(_blockChain.Genesis);
+            var newChain = new BlockChain(repository, _blockChain.Options);
             newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
             Assert.Equal(newChain.Tip, _validNext);
         }
@@ -778,13 +750,8 @@ namespace Libplanet.Tests.Blockchain
                 },
             };
 
-            var newChain = new BlockChain(policyWithBlockAction)
-            {
-                Blocks =
-                {
-                    { _blockChain.Genesis, BlockCommit.Empty }
-                }
-            };
+            var repository = new Repository(_blockChain.Genesis);
+            var newChain = new BlockChain(repository, policyWithBlockAction);
 
             Block newValidNext = newChain.EvaluateAndSign(
                 new RawBlock

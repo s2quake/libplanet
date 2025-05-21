@@ -153,12 +153,6 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void ProcessActions()
     {
-        var repository = new Repository();
-        var blockChainStates = new BlockChainStates(repository);
-        var options = new BlockChainOptions();
-        var actionEvaluator = new ActionEvaluator(
-            repository.StateStore,
-            options.PolicyActions);
         var nonce = 0;
         var txs = TestUtils.Validators
             .Select(validator => new TransactionMetadata
@@ -177,7 +171,8 @@ public partial class BlockChainTest : IDisposable
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
         var genesis = BlockChain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
-        repository.AddBlock(genesis);
+        var repository = new Repository(genesis);
+        var options = new BlockChainOptions();
         var chain = new BlockChain(repository, options);
         Block genesisBlock = chain.Genesis;
 
@@ -520,7 +515,7 @@ public partial class BlockChainTest : IDisposable
                     }.Sign(txKey),
                 ]),
             GenesisProposer);
-        repository.AddBlock(genesisWithTx);
+        repository.AddNewChain(genesisWithTx);
         var chain = new BlockChain(repository, options);
         Assert.False(invoked);
     }
@@ -531,15 +526,8 @@ public partial class BlockChainTest : IDisposable
     public void GetStateOnlyDrillsDownUntilRequestedAddressesAreFound()
     {
         var options = new BlockChainOptions();
-        var repository = new Repository();
-        // var tracker = new StoreTracker(_fx.Store);
-        var chain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { _fx.GenesisBlock, default }
-            },
-        };
+        var repository = new Repository(_fx.GenesisBlock);
+        var chain = new BlockChain(repository, options);
 
         Block b = chain.Genesis;
         Address[] addresses = new Address[30];
@@ -591,14 +579,8 @@ public partial class BlockChainTest : IDisposable
     public void GetStateReturnsEarlyForNonexistentAccount()
     {
         var options = new BlockChainOptions();
-        var repository = new Repository();
-        var chain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { _fx.GenesisBlock, BlockCommit.Empty }
-            },
-        };
+        var repository = new Repository(_fx.GenesisBlock);
+        var chain = new BlockChain(repository, options);
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
         {
@@ -627,14 +609,8 @@ public partial class BlockChainTest : IDisposable
         var privateKeys = Enumerable.Range(1, 10).Select(_ => new PrivateKey()).ToList();
         var addresses = privateKeys.Select(key => key.Address).ToList();
         var options = new BlockChainOptions();
-        var repository = new Repository();
-        var chain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { _fx.GenesisBlock, BlockCommit.Empty }
-            },
-        };
+        var repository = new Repository(_fx.GenesisBlock);
+        var chain = new BlockChain(repository, options);
 
         Assert.All(
             addresses.Select(
@@ -727,24 +703,14 @@ public partial class BlockChainTest : IDisposable
         using var emptyFx = new MemoryStoreFixture(_options);
         using var forkFx = new MemoryStoreFixture(_options);
 
-        var emptyChain = new BlockChain(_blockChain.Options)
-        {
-            Blocks =
-            {
-                { emptyFx.GenesisBlock, BlockCommit.Empty }
-            },
-        };
-        var fork = new BlockChain(_blockChain.Options)
-        {
-            Blocks =
-            {
-                { forkFx.GenesisBlock, BlockCommit.Empty }
-            },
-        };
-        fork.Append(b1, CreateBlockCommit(b1));
-        fork.Append(b2, CreateBlockCommit(b2));
-        Block b5 = fork.ProposeBlock(key);
-        fork.Append(b5, CreateBlockCommit(b5));
+        var emptyRepository = new Repository(emptyFx.GenesisBlock);
+        var emptyChain = new BlockChain(_blockChain.Options);
+        var forkRepository = new Repository(forkFx.GenesisBlock);
+        var forkChain = new BlockChain(_blockChain.Options);
+        forkChain.Append(b1, CreateBlockCommit(b1));
+        forkChain.Append(b2, CreateBlockCommit(b2));
+        Block b5 = forkChain.ProposeBlock(key);
+        forkChain.Append(b5, CreateBlockCommit(b5));
 
         // Testing emptyChain
         Assert.Equal(_blockChain.Genesis.BlockHash, emptyChain.FindBranchpoint(emptyLocator));
@@ -757,9 +723,9 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(b4.BlockHash, _blockChain.FindBranchpoint(locator));
 
         // Testing fork
-        Assert.Equal(_blockChain.Genesis.BlockHash, fork.FindBranchpoint(emptyLocator));
-        Assert.Null(fork.FindBranchpoint(invalidLocator));
-        Assert.Null(fork.FindBranchpoint(locator));
+        Assert.Equal(_blockChain.Genesis.BlockHash, forkChain.FindBranchpoint(emptyLocator));
+        Assert.Null(forkChain.FindBranchpoint(invalidLocator));
+        Assert.Null(forkChain.FindBranchpoint(locator));
     }
 
     [Fact]
@@ -1069,135 +1035,6 @@ public partial class BlockChainTest : IDisposable
             rewardState);
     }
 
-    /// Builds a fixture that has incomplete states for blocks other
-    /// than the tip, to test <c>GetState()</c> method's
-    /// <c>completeStates: true</c> option.
-    ///
-    /// <para>The fixture this makes has total 5 addresses (i.e., accounts;
-    /// these go to the second item of the returned triple) and 11 blocks
-    /// (these go to the third item of the returned triple). Every block
-    /// contains a transaction with an action that mutates one account
-    /// state except for the genesis block.  All transactions in the fixture
-    /// are signed by one private key (its address goes to the first item
-    /// of the returned triple).  The most important thing is that
-    /// overall blocks in the fixture look like:</para>
-    ///
-    /// <code>
-    ///  Index   UpdatedAddresses   States in Store
-    /// ------- ------------------ -----------------
-    ///      0                      Absent
-    ///      1   addresses[0]       Absent
-    ///      2   addresses[1]       Absent
-    ///      3   addresses[2]       Absent
-    ///      4   addresses[3]       Present
-    ///      5   addresses[4]       Absent
-    ///      6   addresses[0]       Absent
-    ///      7   addresses[1]       Present
-    ///      8   addresses[2]       Absent
-    ///      9   addresses[3]       Absent
-    ///     10   addresses[4]       Absent
-    /// </code>
-    /// </summary>
-    /// <param name="store">store.</param>
-    /// <param name="stateStore">State Store.</param>
-    /// <returns>Tuple of addresses and chain.</returns>
-    internal static (Address, Address[] Addresses, BlockChain Chain)
-        MakeIncompleteBlockStates(Repository repository)
-    {
-        List<int> presentIndices = new List<int>() { 4, 7 };
-        List<Block> presentBlocks = new List<Block>();
-
-        var options = new BlockChainOptions();
-        // store = new StoreTracker(store);
-        Guid chainId = Guid.NewGuid();
-        var actionEvaluator = new ActionEvaluator(
-            stateStore: repository.StateStore,
-            options.PolicyActions);
-        Block genesisBlock = ProposeGenesisBlock(
-            ProposeGenesis(GenesisProposer.PublicKey),
-            GenesisProposer);
-        var chain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { genesisBlock, BlockCommit.Empty }
-            },
-        };
-        var privateKey = new PrivateKey();
-        Address signer = privateKey.Address;
-
-        void BuildIndex(Guid id, Block block)
-        {
-            var chain = repository.Chains[id];
-            foreach (Transaction tx in block.Transactions)
-            {
-                chain.Nonces.Increase(tx.Signer);
-            }
-
-            // store.AppendIndex(id, block.BlockHash);
-        }
-
-        // Build a store with incomplete states
-        Block b = chain.Genesis;
-        World previousState = repository.StateStore.GetWorld(default);
-        const int accountsCount = 5;
-        Address[] addresses = Enumerable.Repeat<object?>(null, accountsCount)
-            .Select(_ => new PrivateKey().Address)
-            .ToArray();
-        for (int i = 0; i < 2; ++i)
-        {
-            for (int j = 0; j < accountsCount; ++j)
-            {
-                int index = (i * accountsCount) + j;
-                Transaction tx = new TransactionMetadata
-                {
-                    Nonce = repository.GetNonce(chain.Id, signer),
-                    Signer = privateKey.Address,
-                    GenesisHash = chain.Genesis.BlockHash,
-                    Actions = new[] { DumbAction.Create((addresses[j], index.ToString())) }.ToBytecodes(),
-                }.Sign(privateKey);
-                b = chain.EvaluateAndSign(
-                    ProposeNext(
-                        b,
-                        [tx],
-                        blockInterval: TimeSpan.FromSeconds(10),
-                        proposer: GenesisProposer.PublicKey,
-                        lastCommit: CreateBlockCommit(b)),
-                    GenesisProposer);
-
-                var evals = actionEvaluator.EvaluateBlock((RawBlock)b, previousState);
-                var dirty = evals[^1].OutputWorld.Trie
-                    .Diff(evals.First().InputWorld.Trie)
-                    .ToList();
-                Assert.NotEmpty(dirty);
-                chain.Blocks.AddCache(b);
-                BuildIndex(chain.Id, b);
-                Assert.Equal(b, chain.Blocks[b.BlockHash]);
-                if (presentIndices.Contains((int)b.Height))
-                {
-                    presentBlocks.Add(b);
-                }
-            }
-        }
-
-        TrieStateStore incompleteStateStore = new TrieStateStore();
-        repository.StateStore.CopyStates(
-            ImmutableHashSet<HashDigest<SHA256>>.Empty
-                .Add(presentBlocks[0].StateRootHash)
-                .Add(presentBlocks[1].StateRootHash),
-            (TrieStateStore)incompleteStateStore);
-
-        chain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { genesisBlock, BlockCommit.Empty }
-            },
-        };
-
-        return (signer, addresses, chain);
-    }
-
     /// Configures the store fixture that every test in this class depends on.
     /// Subclasses should override this.
     /// </summary>
@@ -1339,13 +1176,8 @@ public partial class BlockChainTest : IDisposable
         var genesisBlock = BlockChain.ProposeGenesisBlock(
             proposer: privateKey,
             transactions: [.. txs]);
-        var blockChain = new BlockChain(storeFixture.Repository, storeFixture.Options)
-        {
-            Blocks =
-            {
-                { genesisBlock, BlockCommit.Empty }
-            },
-        };
+        storeFixture.Repository.AddNewChain(genesisBlock);
+        var blockChain = new BlockChain(storeFixture.Repository, storeFixture.Options);
 
         var validator = blockChain
             .GetNextWorld()
@@ -1369,28 +1201,16 @@ public partial class BlockChainTest : IDisposable
     private void ConstructWithUnexpectedGenesisBlock()
     {
         var options = new BlockChainOptions();
-        var repository = new Repository();
 
         var genesisBlockA = BlockChain.ProposeGenesisBlock(new PrivateKey(), []);
         var genesisBlockB = BlockChain.ProposeGenesisBlock(new PrivateKey(), []);
-
-        var blockChain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { genesisBlockA, BlockCommit.Empty }
-            },
-        };
+        var repositoryA = new Repository(genesisBlockA);
+        var repositoryB = new Repository(genesisBlockB);
+        var blockChain = new BlockChain(repositoryA, options);
 
         Assert.Throws<InvalidOperationException>(() =>
         {
-            _ = new BlockChain(repository, options)
-            {
-                Blocks =
-                {
-                    { genesisBlockB, BlockCommit.Empty }
-                },
-            };
+            _ = new BlockChain(repositoryB, options);
         });
     }
 
@@ -1443,20 +1263,12 @@ public partial class BlockChainTest : IDisposable
             Signer = genesisTxKey.Address,
             Actions = [],
         }.Sign(genesisTxKey);
-        var actionEvaluator = new ActionEvaluator(
-            repository.StateStore,
-            options.PolicyActions);
         var genesisWithTx = ProposeGenesisBlock(
             ProposeGenesis(GenesisProposer.PublicKey, [genesisTx]),
             privateKey: GenesisProposer);
 
-        var chain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { genesisWithTx, BlockCommit.Empty }
-            },
-        };
+        repository.AddNewChain(genesisWithTx);
+        var chain = new BlockChain(repository, options);
 
         var bockTxKey = new PrivateKey();
         var blockTx = new TransactionMetadata
@@ -1514,19 +1326,11 @@ public partial class BlockChainTest : IDisposable
             }.Sign(privateKey))
             .ToImmutableList();
 
-        var actionEvaluator = new ActionEvaluator(
-            repository.StateStore,
-            options.PolicyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(
             proposer: privateKey,
             transactions: [.. txs]);
-        var blockChain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { genesis, BlockCommit.Empty }
-            },
-        };
+        repository.AddNewChain(genesis);
+        var blockChain = new BlockChain(repository, options);
 
         blockChain.StagedTransactions.Add(submission: new()
         {

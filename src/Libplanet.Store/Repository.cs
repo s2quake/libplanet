@@ -36,6 +36,20 @@ public sealed class Repository : IDisposable
         }
     }
 
+    public Repository(Block genesisBlock)
+        : this(genesisBlock, new MemoryDatabase())
+    {
+    }
+
+    public Repository(Block genesisBlock, IDatabase database)
+        : this(database)
+    {
+        _chain = Chains.AddNew(Guid.NewGuid());
+        _metadata["chainId"] = _chain.Id.ToString();
+        Append(genesisBlock, BlockCommit.Empty);
+        _chain.Append(genesisBlock, BlockCommit.Empty);
+    }
+
     public PendingEvidenceStore PendingEvidences { get; }
 
     public CommittedEvidenceStore CommittedEvidences { get; }
@@ -73,14 +87,23 @@ public sealed class Repository : IDisposable
     public Chain Chain => _chain ?? throw new InvalidOperationException(
         "ChainId is not set. Please set ChainId before accessing the Chain property.");
 
-    public BlockHash GenesisBlockHash => Chain.BlockHashes[Chain.GenesisHeight];
-
     public TrieStateStore StateStore { get; }
 
-    public void AddBlock(Block block)
+    public Chain AddNewChain(Block genesisBlock)
+    {
+        var chain = Chains.AddNew(Guid.NewGuid());
+        _metadata["chainId"] = chain.Id.ToString();
+        Append(genesisBlock, BlockCommit.Empty);
+        chain.Append(genesisBlock, BlockCommit.Empty);
+        return chain;        
+    }
+
+    public void Append(Block block, BlockCommit blockCommit)
     {
         BlockDigests.Add(block);
+        BlockCommits.Add(blockCommit);
         PendingTransactions.AddRange(block.Transactions);
+        CommittedTransactions.AddRange(block.Transactions);
         PendingEvidences.RemoveRange(block.Evidences);
         CommittedEvidences.AddRange(block.Evidences);
     }
@@ -90,8 +113,6 @@ public sealed class Repository : IDisposable
         var blockDigest = BlockDigests[blockHash];
         return blockDigest.ToBlock(item => PendingTransactions[item], item => CommittedEvidences[item]);
     }
-
-    public Block GetBlock(int height) => GetBlock(ChainId, height);
 
     public Block GetBlock(Guid chainId, int height)
     {
@@ -111,9 +132,6 @@ public sealed class Repository : IDisposable
         block = null;
         return false;
     }
-
-    public bool TryGetBlock(int height, [MaybeNullWhen(false)] out Block block)
-        => TryGetBlock(ChainId, height, out block);
 
     public bool TryGetBlock(Guid chainId, int height, [MaybeNullWhen(false)] out Block block)
     {
@@ -137,8 +155,6 @@ public sealed class Repository : IDisposable
         return null;
     }
 
-    public Block? GetBlockOrDefault(int height) => GetBlockOrDefault(ChainId, height);
-
     public Block? GetBlockOrDefault(Guid chainId, int height)
     {
         var chain = Chains[chainId];
@@ -149,8 +165,6 @@ public sealed class Repository : IDisposable
 
         return null;
     }
-
-    public long GetNonce(Address address) => GetNonce(ChainId, address);
 
     public long GetNonce(Guid chainId, Address address)
     {

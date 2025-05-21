@@ -119,13 +119,8 @@ public partial class BlockChainTest
                     }.ToBytecodes(),
                 }.Sign(genesisKey),
             ]);
-        Assert.Throws<InvalidOperationException>(() => new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { genesis, BlockCommit.Empty}
-            }
-        });
+        repository.AddNewChain(genesis);
+        Assert.Throws<InvalidOperationException>(() => new BlockChain(repository, options));
     }
 
     [Fact]
@@ -133,14 +128,8 @@ public partial class BlockChainTest
     {
         using var fx = new MemoryStoreFixture();
         var options = fx.Options;
-        var repository = fx.Repository;
-        var blockChain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { fx.GenesisBlock, BlockCommit.Empty }
-            }
-        };
+        var repository = new Repository(fx.GenesisBlock);
+        var blockChain = new BlockChain(repository, options);
         var txKey = new PrivateKey();
         var txs = new[]
         {
@@ -361,14 +350,8 @@ public partial class BlockChainTest
                 Validator = new RelayValidator<Transaction>(IsSignerValid),
             },
         };
-        var repository = new Repository();
-        var blockChain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { fx.GenesisBlock, BlockCommit.Empty }
-            }
-        };
+        var repository = new Repository(fx.GenesisBlock);
+        var blockChain = new BlockChain(repository, options);
 
         var validTx = new TransactionBuilder
         {
@@ -483,15 +466,8 @@ public partial class BlockChainTest
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
             },
         };
-        var repository = new Repository();
-
-        var blockChain = new BlockChain(repository, options)
-        {
-            Blocks =
-            {
-                { _fx.GenesisBlock, BlockCommit.Empty }
-            }
-        };
+        var repository = new Repository(_fx.GenesisBlock);
+        var blockChain = new BlockChain(repository, options);
 
         var tx = new TransactionBuilder
         {

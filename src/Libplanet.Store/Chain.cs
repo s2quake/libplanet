@@ -4,15 +4,25 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store;
 
-public sealed class Chain(Guid chainId, IDatabase database) : IDisposable, IHasKey<Guid>
+public sealed class Chain : IDisposable, IHasKey<Guid>
 {
     private bool _disposed;
 
-    public BlockHashStore BlockHashes { get; } = new BlockHashStore(chainId, database);
+    public Chain(Guid chainId, IDatabase database)
+    {
+        Id = chainId;
+        Metadata = new MetadataStore(chainId, database);
+        BlockHashes = new BlockHashStore(this, database);
+        Nonces = new NonceStore(this, database);
+    }
 
-    public NonceStore Nonces { get; } = new NonceStore(chainId, database);
+    public BlockHashStore BlockHashes { get; }
 
-    public Guid Id { get; } = chainId;
+    public NonceStore Nonces { get; }
+
+    public MetadataStore Metadata { get; }
+
+    public Guid Id { get; }
 
     public BlockCommit BlockCommit { get; set; } = BlockCommit.Empty;
 
@@ -22,9 +32,20 @@ public sealed class Chain(Guid chainId, IDatabase database) : IDisposable, IHasK
         set => BlockHashes.GenesisHeight = value;
     }
 
+    public BlockHash GenesisBlockHash => BlockHashes[GenesisHeight];
+
+    public BlockHash BlockHash => BlockHashes[Height];
+
     public int Height => BlockHashes.Height;
 
     Guid IHasKey<Guid>.Key => Id;
+
+    public void Append(Block block, BlockCommit blockCommit)
+    {
+        BlockHashes.Add(block);
+        BlockCommit = blockCommit;
+        Nonces.Increase(block);
+    }
 
     public long GetNonce(Address address) => Nonces.GetValueOrDefault(address);
 

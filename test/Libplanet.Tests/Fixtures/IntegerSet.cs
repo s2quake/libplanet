@@ -22,9 +22,7 @@ public sealed class IntegerSet
     public readonly PrivateKey Proposer;
     public readonly Block Genesis;
     public readonly BlockChain Chain;
-    public readonly Libplanet.Store.Repository Store;
-    public readonly ITable KVStore;
-    public readonly TrieStateStore StateStore;
+    public readonly Repository Repository;
 
     public IntegerSet(int[] initialStates)
         : this([.. initialStates.Select(s => new BigInteger(s))], null)
@@ -55,12 +53,6 @@ public sealed class IntegerSet
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
         policy ??= new BlockChainOptions();
-        Store = new Libplanet.Store.Repository(new MemoryDatabase());
-        KVStore = new MemoryTable();
-        StateStore = new TrieStateStore(KVStore);
-        var actionEvaluator = new ActionEvaluator(
-            StateStore,
-            policy.PolicyActions);
         Genesis = TestUtils.ProposeGenesisBlock(
             TestUtils.ProposeGenesis(
                 Proposer.PublicKey,
@@ -69,13 +61,8 @@ public sealed class IntegerSet
                 DateTimeOffset.UtcNow,
                 BlockHeader.CurrentProtocolVersion),
             Proposer);
-        Chain = new BlockChain(policy)
-        {
-            Blocks =
-            {
-                { Genesis, BlockCommit.Empty },
-            }
-        };
+        Repository = new Repository(Genesis, new MemoryDatabase());
+        Chain = new BlockChain(policy);
     }
 
     public int Count => Addresses.Count;
@@ -110,7 +97,7 @@ public sealed class IntegerSet
                 BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
                 var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty
                     .Add(rawStateKey, nextState);
-                HashDigest<SHA256> nextRootHash = StateStore.Commit(
+                HashDigest<SHA256> nextRootHash = Repository.StateStore.Commit(
                     updatedRawStates.Aggregate(
                         prevTrie,
                         (trie, pair) => trie.Set(pair.Key, ModelSerializer.SerializeToBytes(pair.Value)))).Hash;
@@ -127,7 +114,7 @@ public sealed class IntegerSet
                         a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
                     var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty
                         .Add(rawStateKey, nextState);
-                    HashDigest<SHA256> nextRootHash = StateStore.Commit(
+                    HashDigest<SHA256> nextRootHash = Repository.StateStore.Commit(
                         updatedRawStates.Aggregate(
                             prevTrie,
                             (trie, pair) => trie.Set(pair.Key, ModelSerializer.SerializeToBytes(pair.Value)))).Hash;
@@ -151,10 +138,10 @@ public sealed class IntegerSet
     {
         if (blockHash != default)
         {
-            return StateStore.GetStateRoot(Chain.Blocks[blockHash].StateRootHash);
+            return Repository.StateStore.GetStateRoot(Chain.Blocks[blockHash].StateRootHash);
         }
 
-        return StateStore.GetStateRoot(default);
+        return Repository.StateStore.GetStateRoot(default);
     }
 
     public struct TxWithContext
