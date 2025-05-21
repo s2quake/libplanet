@@ -306,7 +306,7 @@ public partial class ConsensusContext : IDisposable
                 await Task.Delay(_newHeightDelay, _newHeightCts.Token);
 
                 // Delay further until evaluation is ready.
-                while (_blockChain.GetNextStateRootHash(e.NewTip.Height) == default)
+                while (_blockChain.GetStateRootHash(e.NewTip.Height) == default)
                 {
                     // FIXME: Maybe interval should be adjustable?
                     await Task.Delay(100, _newHeightCts.Token);
@@ -342,7 +342,7 @@ public partial class ConsensusContext : IDisposable
 
     private Context CreateContext(int height, BlockCommit lastCommit)
     {
-        var nextStateRootHash = _blockChain.GetNextStateRootHash(height - 1);
+        var nextStateRootHash = _blockChain.GetStateRootHash(height - 1);
         ImmutableSortedSet<Validator> validatorSet = _blockChain
             .GetWorld(nextStateRootHash)
             .GetValidatorSet();

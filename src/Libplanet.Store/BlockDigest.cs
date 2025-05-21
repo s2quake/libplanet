@@ -18,15 +18,12 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>, IHasKey<BlockH
     public required BlockHeader Header { get; init; }
 
     [Property(2)]
-    public required HashDigest<SHA256> StateRootHash { get; init; }
-
-    [Property(3)]
     public required ImmutableArray<byte> Signature { get; init; }
 
-    [Property(4)]
+    [Property(3)]
     public required ImmutableSortedSet<TxId> TxIds { get; init; } = [];
 
-    [Property(5)]
+    [Property(4)]
     public required ImmutableSortedSet<EvidenceId> EvidenceIds { get; init; } = [];
 
     public int Height => Header.Height;
@@ -40,7 +37,6 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>, IHasKey<BlockH
     public static explicit operator BlockDigest(Block block) => new()
     {
         Header = block.Header,
-        StateRootHash = block.StateRootHash,
         Signature = block.Signature,
         TxIds = [.. block.Content.Transactions.Select(tx => tx.Id)],
         EvidenceIds = [.. block.Content.Evidences.Select(ev => ev.Id)],
@@ -54,7 +50,6 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>, IHasKey<BlockH
     public Block ToBlock(Func<TxId, Transaction> txGetter, Func<EvidenceId, EvidenceBase> evGetter) => new()
     {
         Header = Header,
-        StateRootHash = StateRootHash,
         Signature = Signature,
         Content = new BlockContent
         {

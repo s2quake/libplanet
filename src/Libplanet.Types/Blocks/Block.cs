@@ -16,9 +16,6 @@ public sealed partial record class Block : IEquatable<Block>
     public required BlockContent Content { get; init; }
 
     [Property(2)]
-    public required HashDigest<SHA256> StateRootHash { get; init; }
-
-    [Property(3)]
     public required ImmutableArray<byte> Signature { get; init; }
 
     public BlockHash BlockHash => BlockHash.Create(ModelSerializer.SerializeToBytes(this));
@@ -33,7 +30,9 @@ public sealed partial record class Block : IEquatable<Block>
 
     public BlockHash PreviousHash => Header.PreviousHash;
 
-    public BlockCommit LastCommit => Header.LastCommit;
+    public BlockCommit PreviousCommit => Header.PreviousCommit;
+
+    public HashDigest<SHA256> PreviousStateRootHash => Header.PreviousStateRootHash;
 
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 

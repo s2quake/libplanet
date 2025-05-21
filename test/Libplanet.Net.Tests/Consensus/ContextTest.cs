@@ -121,8 +121,8 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.NotNull(proposal);
             Block proposed = ModelSerializer.DeserializeFromBytes<Block>(
                 proposal!.Proposal.MarshaledBlock);
-            Assert.NotNull(proposed.LastCommit);
-            Assert.Equal(lastCommit, proposed.LastCommit);
+            Assert.NotNull(proposed.PreviousCommit);
+            Assert.Equal(lastCommit, proposed.PreviousCommit);
         }
 
         [Fact(Timeout = Timeout)]

@@ -38,11 +38,11 @@ public static class BlockExtensions
                 $"but its value is {@this.PreviousHash}.");
         }
 
-        if (@this.LastCommit != BlockCommit.Empty)
+        if (@this.PreviousCommit != BlockCommit.Empty)
         {
             throw new InvalidOperationException(
                 "A genesis block should not have last commit, " +
-                $"but its value is {@this.LastCommit}.");
+                $"but its value is {@this.PreviousCommit}.");
         }
     }
 }

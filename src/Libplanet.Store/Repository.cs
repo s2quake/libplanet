@@ -23,6 +23,7 @@ public sealed class Repository : IDisposable
         BlockDigests = new BlockDigestStore(_database);
         TxExecutions = new TxExecutionStore(_database);
         BlockCommits = new BlockCommitStore(_database);
+        StateRootHashStore = new StateRootHashStore(_database);
         PendingTransactions = new PendingTransactionStore(_database);
         CommittedTransactions = new CommittedTransactionStore(_database);
         PendingEvidences = new PendingEvidenceStore(_database);
@@ -58,6 +59,8 @@ public sealed class Repository : IDisposable
     public BlockCommitStore BlockCommits { get; }
 
     public BlockDigestStore BlockDigests { get; }
+
+    public StateRootHashStore StateRootHashStore{ get; }
 
     public TxExecutionStore TxExecutions { get; }
 

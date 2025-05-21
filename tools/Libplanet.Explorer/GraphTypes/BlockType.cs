@@ -54,7 +54,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<BlockCommitType>(
             name: "LastCommit",
             description: "The LastCommit of the block.",
-            resolve: ctx => ctx.Source.LastCommit);
+            resolve: ctx => ctx.Source.PreviousCommit);
         Field<NonNullGraphType<LongGraphType>>(
             name: "Difficulty",
             description: "The mining difficulty that the block's nonce has to satisfy.",

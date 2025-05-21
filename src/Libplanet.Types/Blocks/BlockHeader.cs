@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 
@@ -24,5 +25,8 @@ public sealed record class BlockHeader
     public BlockHash PreviousHash { get; init; }
 
     [Property(5)]
-    public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
+    public BlockCommit PreviousCommit { get; init; } = BlockCommit.Empty;
+
+    [Property(6)]
+    public HashDigest<SHA256> PreviousStateRootHash { get; init; }
 }

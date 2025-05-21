@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
@@ -25,6 +26,8 @@ public sealed class Chain : IDisposable, IHasKey<Guid>
     public Guid Id { get; }
 
     public BlockCommit BlockCommit { get; set; } = BlockCommit.Empty;
+
+    public HashDigest<SHA256> StateRootHash { get; set; }
 
     public int GenesisHeight
     {

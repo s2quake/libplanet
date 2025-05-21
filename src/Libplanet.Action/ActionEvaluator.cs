@@ -45,9 +45,9 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
         }
     }
 
-    public BlockEvaluation Evaluate(RawBlock rawBlock, HashDigest<SHA256> baseStateRootHash)
+    public BlockEvaluation Evaluate(RawBlock rawBlock)
     {
-        var world = stateStore.GetWorld(baseStateRootHash);
+        var world = stateStore.GetWorld(rawBlock.Header.PreviousStateRootHash);
         var inputWorld = world;
         var beginEvaluations = EvaluateActions(rawBlock, null, policyActions.BeginBlockActions, ref world);
         var txEvaluations = EvaluateTxs(rawBlock, ref world);
@@ -83,7 +83,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
                 Proposer = rawBlock.Header.Proposer,
                 BlockHeight = rawBlock.Header.Height,
                 BlockProtocolVersion = rawBlock.Header.Version,
-                LastCommit = rawBlock.Header.LastCommit,
+                LastCommit = rawBlock.Header.PreviousCommit,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,
             };

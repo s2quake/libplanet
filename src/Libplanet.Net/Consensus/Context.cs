@@ -429,7 +429,7 @@ public partial class Context : IDisposable
                     _blockChain.Options.TransactionOptions.Validate(tx);
                 }
 
-                _blockChain.ValidateBlockStateRootHash(block);
+                // _blockChain.ValidateBlockStateRootHash(block);
             }
             catch (Exception e) when (
                 e is InvalidOperationException)

@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
                 proposal!.Proposal.MarshaledBlock);
-            ImmutableArray<Vote> votes = proposedBlock.LastCommit.Votes is { } vs
+            ImmutableArray<Vote> votes = proposedBlock.PreviousCommit.Votes is { } vs
                 ? vs
                 : throw new NullReferenceException();
             Assert.Equal(VoteFlag.PreCommit, votes[0].Flag);
@@ -272,7 +272,7 @@ namespace Libplanet.Net.Tests.Consensus
             await heightTwoProposalSent.WaitAsync();
             Assert.NotNull(proposedBlock);
             Assert.Equal(2, proposedBlock!.Height);
-            Assert.Equal(createdLastCommit, proposedBlock!.LastCommit);
+            Assert.Equal(createdLastCommit, proposedBlock!.PreviousCommit);
         }
 
         // Retry: This calculates delta time.

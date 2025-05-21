@@ -152,6 +152,7 @@ public sealed class WorldTest
         }.Sign(_keys[0]);
         var rawBlock1 = TestUtils.ProposeNext(
             previousBlock: chain.Tip,
+            previousStateRootHash: chain.TipStateRootHash,
             transactions: [tx],
             proposer: privateKey.PublicKey,
             protocolVersion: ProtocolVersion);
@@ -160,12 +161,12 @@ public sealed class WorldTest
         Assert.Equal(
             DumbAction.DumbCurrency * 0,
             chain
-                .GetNextWorld()
+                .GetWorld()
                 .GetBalance(_addr[0], DumbAction.DumbCurrency));
         Assert.Equal(
             DumbAction.DumbCurrency * 20,
             chain
-                .GetNextWorld()
+                .GetWorld()
                 .GetBalance(_addr[1], DumbAction.DumbCurrency));
 
         // Transfer
@@ -178,22 +179,23 @@ public sealed class WorldTest
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_keys[0]);
         var block2PreEval = TestUtils.ProposeNext(
-            chain.Tip,
-            [tx],
+            previousBlock: chain.Tip,
+            previousStateRootHash: chain.TipStateRootHash,
+            transactions: [tx],
             proposer: privateKey.PublicKey,
             protocolVersion: ProtocolVersion,
-            lastCommit: chain.BlockCommits[chain.Tip.Height]);
+            previousCommit: chain.BlockCommits[chain.Tip.Height]);
         Block block2 = chain.EvaluateAndSign(block2PreEval, privateKey);
         chain.Append(block2, TestUtils.CreateBlockCommit(block2));
         Assert.Equal(
             DumbAction.DumbCurrency * 5,
             chain
-                .GetNextWorld()
+                .GetWorld()
                 .GetBalance(_addr[0], DumbAction.DumbCurrency));
         Assert.Equal(
             DumbAction.DumbCurrency * 15,
             chain
-                .GetNextWorld()
+                .GetWorld()
                 .GetBalance(_addr[1], DumbAction.DumbCurrency));
 
         // Transfer bugged
@@ -206,11 +208,12 @@ public sealed class WorldTest
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_keys[0]);
         var block3PreEval = TestUtils.ProposeNext(
-            chain.Tip,
-            [tx],
+            previousBlock: chain.Tip,
+            previousStateRootHash: chain.TipStateRootHash,
+            transactions: [tx],
             proposer: _keys[1].PublicKey,
             protocolVersion: ProtocolVersion,
-            lastCommit: chain.BlockCommits[chain.Tip.Height]);
+            previousCommit: chain.BlockCommits[chain.Tip.Height]);
         Block block3 = chain.EvaluateAndSign(block3PreEval, _keys[1]);
         chain.Append(block3, TestUtils.CreateBlockCommit(block3));
         Assert.Equal(

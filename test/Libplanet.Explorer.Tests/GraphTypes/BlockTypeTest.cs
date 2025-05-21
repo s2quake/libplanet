@@ -48,7 +48,7 @@ public class BlockTypeTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = privateKey.Address,
                 PreviousHash = lastBlockHash,
-                LastCommit = lastBlockCommit,
+                PreviousCommit = lastBlockCommit,
             },
         };
         var stateRootHash =
@@ -56,7 +56,7 @@ public class BlockTypeTest
         // var signature = RawBlock.MakeSignature(privateKey, stateRootHash);
         // var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
         // var block = new Block { Header = new BlockHeader(), Content = new BlockContent() };
-        var block = preEval.Sign(privateKey, stateRootHash);
+        var block = preEval.Sign(privateKey);
 
         // FIXME We need to test for `previousBlock` field too.
         var query =
@@ -110,7 +110,7 @@ public class BlockTypeTest
             new DateTimeOffsetGraphType().Serialize(block.Timestamp),
             resultData["timestamp"]);
         Assert.Equal(
-            ByteUtility.Hex(block.StateRootHash.Bytes.ToArray()),
+            ByteUtility.Hex(block.PreviousStateRootHash.Bytes.ToArray()),
             resultData["stateRootHash"]);
 
         var expectedLastCommit = new Dictionary<string, object>()
