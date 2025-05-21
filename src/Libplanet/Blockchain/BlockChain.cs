@@ -2,6 +2,7 @@ using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using Libplanet.Action;
 using Libplanet.Action.State;
+using Libplanet.Blockchain.Extensions;
 using Libplanet.Store;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
@@ -17,6 +18,7 @@ public partial class BlockChain
     private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
     private readonly BlockChainStates _blockChainStates;
     private readonly Repository _repository;
+    private readonly Chain _chain;
     private readonly ActionEvaluator _actionEvaluator;
 
     private HashDigest<SHA256>? _nextStateRootHash;
@@ -36,12 +38,16 @@ public partial class BlockChain
     {
     }
 
+    public BlockChain(Block genesisBlock, Repository repository, BlockChainOptions options)
+        : this(CreateChain(genesisBlock, repository), options)
+    {
+    }
+
     public BlockChain(Repository repository, BlockChainOptions options)
     {
-        // genesisBlock.ValidateAsGenesis();
-
         Options = options;
         _repository = repository;
+        _chain = repository.Chain;
         _blockChainStates = new BlockChainStates(repository);
         _actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         Id = _repository.ChainId;
@@ -73,10 +79,11 @@ public partial class BlockChain
         //         message: msg);
         // }
 
-        var evaluation = DetermineNextBlockStateRootHash(Tip);
+        var block = _repository.GetBlock(_chain.BlockHash);
+        var evaluation = _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
         _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
         // var txExecutions = MakeTxExecutions(Tip, actionEvaluations);
-        // _repository.TxExecutions.AddRange(txExecutions);
+        _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
     }
 
     internal event EventHandler<(Block OldTip, Block NewTip)> TipChanged;
@@ -200,14 +207,8 @@ public partial class BlockChain
 
                 Blocks.AddCache(block);
 
-                _repository.AddBlock(block);
-                _repository.Chain.BlockHashes.Add(block);
-                _repository.Chain.Nonces.Increase(block);
-                _repository.Chain.BlockCommit = blockCommit;
-                _repository.PendingEvidences.RemoveRange(block.Evidences);
-                _repository.CommittedEvidences.AddRange(block.Evidences);
-                _repository.PendingEvidences.Clear(IsEvidenceExpired);
-                _repository.PendingTransactions.RemoveRange(block.Transactions);
+                _repository.Append(block, blockCommit);
+                _repository.Chain.Append(block, blockCommit);
                 _nextStateRootHash = null;
             }
             finally
@@ -278,6 +279,12 @@ public partial class BlockChain
 
         static Validator CreateValidator(Vote vote)
             => Validator.Create(vote.Validator, vote.ValidatorPower);
+    }
+
+    private static Repository CreateChain(Block genesisBlock, Repository repository)
+    {
+        repository.AddNewChain(genesisBlock);
+        return repository;
     }
 
     private HashDigest<SHA256>? GetNextStateRootHash(Block block)

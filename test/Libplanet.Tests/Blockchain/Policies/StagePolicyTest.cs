@@ -1,4 +1,5 @@
 using Libplanet.Blockchain;
+using Libplanet.Store;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
@@ -18,13 +19,8 @@ public abstract class StagePolicyTest
     {
         _policy = new BlockChainOptions();
         _fx = new MemoryStoreFixture();
-        _blockChain = new BlockChain(_policy)
-        {
-            Blocks =
-            {
-                { _fx.GenesisBlock, BlockCommit.Empty }
-            }
-        };
+        var repository = new Repository(_fx.GenesisBlock);
+        _blockChain = new BlockChain(repository, _policy);
         _key = new PrivateKey();
         _txs = Enumerable.Range(0, 5).Select(i =>
             new TransactionMetadata

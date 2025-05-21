@@ -566,13 +566,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             }
 
             // ValidatingActionRenderer validator = null;
-            var chain = new BlockChain(repository, options)
-            {
-                Blocks =
-                {
-                    { genesisBlock, BlockCommit.Empty },
-                },
-            };
+            var chain = new BlockChain(genesisBlock, repository, options);
 
             return (chain, actionEvaluator);
         }

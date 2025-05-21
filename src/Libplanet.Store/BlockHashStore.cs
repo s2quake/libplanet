@@ -3,28 +3,22 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockHashStore(Guid chainId, IDatabase database)
-    : StoreBase<int, BlockHash>(database.GetOrAdd(GetKey(chainId)))
+public sealed class BlockHashStore(Chain chain, IDatabase database)
+    : StoreBase<int, BlockHash>(database.GetOrAdd(GetKey(chain.Id)))
 {
-    private int _genesisHeight;
+    private readonly MetadataStore _metadata = chain.Metadata;
 
     public int GenesisHeight
     {
-        get => _genesisHeight;
-        set
-        {
-            if (Count > 0)
-            {
-                throw new InvalidOperationException("Cannot set GenesisHeight after adding blocks.");
-            }
-
-            ArgumentOutOfRangeException.ThrowIfNegative(value);
-
-            _genesisHeight = value;
-        }
+        get => int.Parse(_metadata.GetValueOrDefault("genesisHeight", "0"));
+        set => _metadata["genesisHeight"] = value.ToString();
     }
 
-    public int Height { get; private set; }
+    public int Height
+    {
+        get => int.Parse(_metadata.GetValueOrDefault("height", "0"));
+        set => _metadata["height"] = value.ToString();
+    }
 
     public BlockHash this[Index index]
     {
@@ -83,7 +77,7 @@ public sealed class BlockHashStore(Guid chainId, IDatabase database)
     {
         if (disposing)
         {
-            database.Remove(GetKey(chainId));
+            database.Remove(GetKey(chain.Id));
         }
 
         base.Dispose(disposing);

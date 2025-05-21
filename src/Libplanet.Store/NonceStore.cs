@@ -4,8 +4,8 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Store;
 
-public sealed class NonceStore(Guid chainId, IDatabase database)
-    : StoreBase<Address, long>(database.GetOrAdd(GetKey(chainId)))
+public sealed class NonceStore(Chain chain, IDatabase database)
+    : StoreBase<Address, long>(database.GetOrAdd(GetKey(chain.Id)))
 {
     public long Increase(Address key, long delta = 1L) => this[key] = this.GetValueOrDefault(key) + delta;
 
@@ -46,7 +46,7 @@ public sealed class NonceStore(Guid chainId, IDatabase database)
     {
         if (disposing)
         {
-            database.Remove(GetKey(chainId));
+            database.Remove(GetKey(chain.Id));
         }
 
         base.Dispose(disposing);

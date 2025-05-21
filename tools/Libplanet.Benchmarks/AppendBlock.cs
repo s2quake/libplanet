@@ -1,5 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Action.Tests.Common;
+using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
@@ -18,13 +19,8 @@ namespace Libplanet.Benchmarks
         public AppendBlock()
         {
             var fx = new MemoryStoreFixture();
-            _blockChain = new Blockchain.BlockChain(fx.Options)
-            {
-                Blocks =
-                {
-                    { fx.GenesisBlock, BlockCommit.Empty }
-                }
-            };
+            var repository = new Repository(fx.GenesisBlock);
+            _blockChain = new Blockchain.BlockChain(repository, fx.Options);
             _privateKey = new PrivateKey();
         }
 

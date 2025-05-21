@@ -183,11 +183,6 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         return false;
     }
 
-    public void Add(Block block, BlockCommit blockCommit)
-    {
-
-    }
-
     // public void Clear()
     // {
     //     _cacheByHash.Clear();

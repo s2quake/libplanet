@@ -13,6 +13,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
     : IReadOnlyDictionary<TxId, Transaction>
 {
     private readonly PendingTransactionStore _store = repository.PendingTransactions;
+    private readonly Chain _chain = repository.Chain;
 
     public StagedTransactionCollection(Repository repository)
         : this(repository, new BlockChainOptions())
@@ -63,7 +64,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         {
             Nonce = GetNextTxNonce(submission.Signer.Address),
             Signer = submission.Signer.Address,
-            GenesisHash = repository.GenesisBlockHash,
+            GenesisHash = _chain.GenesisBlockHash,
             Actions = submission.Actions.ToBytecodes(),
             Timestamp = submission.Timestamp,
             MaxGasPrice = submission.MaxGasPrice,
@@ -200,7 +201,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
 
     public long GetNextTxNonce(Address address)
     {
-        var nonce = repository.GetNonce(address);
+        var nonce = _chain.GetNonce(address);
         var txs = Iterate(filtered: true)
             .Where(tx => tx.Signer.Equals(address))
             .OrderBy(tx => tx.Nonce);
