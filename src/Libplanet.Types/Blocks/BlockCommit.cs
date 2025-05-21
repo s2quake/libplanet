@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -7,7 +6,7 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableObject, IHasKey<BlockHash>
+public sealed partial record class BlockCommit : IEquatable<BlockCommit>, IHasKey<BlockHash>
 {
     public static BlockCommit Empty { get; } = new();
 
@@ -34,26 +33,4 @@ public sealed record class BlockCommit : IEquatable<BlockCommit>, IValidatableOb
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
-
-    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-    {
-        var height = Height;
-        var round = Round;
-        var blockHash = BlockHash;
-
-        if (Votes.Any(vote =>
-            vote.Height != height ||
-            vote.Round != round ||
-            !blockHash.Equals(vote.BlockHash) ||
-            (vote.Flag != VoteFlag.Null && vote.Flag != VoteFlag.PreCommit) ||
-            (vote.Flag == VoteFlag.PreCommit && !ValidationUtility.TryValidate(vote))))
-        {
-            yield return new ValidationResult(
-                $"Every vote must have the same height as {Height}, the same round " +
-                $"as {Round}, the same hash as {BlockHash}, and must have flag value of " +
-                $"either {VoteFlag.Null} or {VoteFlag.PreCommit}, " +
-                $"and must be signed if the vote's flag is {VoteFlag.PreCommit}.",
-                [nameof(Votes)]);
-        }
-    }
 }

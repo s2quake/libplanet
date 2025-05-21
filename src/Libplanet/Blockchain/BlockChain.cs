@@ -135,39 +135,23 @@ public partial class BlockChain
                 $"Cannot append block #{block.Height} {block.BlockHash} to an empty chain.");
         }
 
-        if (block.Height is 0)
-        {
-            throw new ArgumentException(
-                $"Cannot append genesis block #{block.Height} {block.BlockHash} to a chain.",
-                nameof(block));
-        }
-
-        block.Header.Timestamp.ValidateTimestamp();
-
         var oldTip = Tip;
-        try
-        {
-            ValidateBlock(block);
-            ValidateBlockCommit(block, blockCommit);
-            
+        block.Validate(this);
+        blockCommit.Validate(block);
 
-            ValidateBlockStateRootHash(block);
-            Blocks.AddCache(block);
+        ValidateBlockStateRootHash(block);
 
-            _repository.Append(block, blockCommit);
-            _chain.Append(block, blockCommit);
-            _nextStateRootHash = default;
+        _repository.Append(block, blockCommit);
+        _chain.Append(block, blockCommit);
+        Blocks.AddCache(block);
+        _nextStateRootHash = default;
 
-            _tipChangedSubject.OnNext(new(oldTip, block));
-            _renderBlock.OnNext(new RenderBlockInfo(oldTip, block));
-            var evaluation = _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
-            _renderBlockEnd.OnNext(new RenderBlockInfo(oldTip, block));
-            _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
-            _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
-        }
-        finally
-        {
-        }
+        _tipChangedSubject.OnNext(new(oldTip, block));
+        _renderBlock.OnNext(new RenderBlockInfo(oldTip, block));
+        var evaluation = _actionEvaluator.Evaluate((RawBlock)block, block.StateRootHash);
+        _renderBlockEnd.OnNext(new RenderBlockInfo(oldTip, block));
+        _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
+        _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
     }
 
     internal BlockHash? FindBranchpoint(BlockHash blockHash)
@@ -179,28 +163,6 @@ public partial class BlockChain
 
         return null;
     }
-
-    // internal void CleanupBlockCommitStore(long limit)
-    // {
-    //     // FIXME: This still isn't enough to prevent the canonical chain
-    //     // removing cached block commits that are needed by other non-canonical chains.
-    //     if (!IsCanonical)
-    //     {
-    //         throw new InvalidOperationException(
-    //             $"Cannot perform {nameof(CleanupBlockCommitStore)}() from a " +
-    //             "non canonical chain.");
-    //     }
-
-    //     List<BlockHash> hashes = _repository.BlockCommits.Keys.ToList();
-
-    //     foreach (var hash in hashes)
-    //     {
-    //         if (_repository.BlockCommits.TryGetValue(hash, out var commit) && commit.Height < limit)
-    //         {
-    //             _repository.BlockCommits.Remove(hash);
-    //         }
-    //     }
-    // }
 
     internal HashDigest<SHA256> GetNextStateRootHash() => _nextStateRootHash;
 

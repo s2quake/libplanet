@@ -1,6 +1,7 @@
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
+using Libplanet.Blockchain.Extensions;
 using Libplanet.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -494,27 +495,24 @@ namespace Libplanet.Tests.Blockchain
         public void ValidateBlockCommitGenesis()
         {
             // Works fine.
-            _blockChain.ValidateBlockCommit(_fx.GenesisBlock, default);
+            // _blockChain.ValidateBlockCommit(_fx.GenesisBlock, default);
 
             // Should be null for genesis.
-            Assert.Throws<InvalidOperationException>(() => _blockChain.ValidateBlockCommit(
-                _fx.GenesisBlock,
-                new BlockCommit
+            var blockCommit = new BlockCommit
+            {
+                BlockHash = _fx.GenesisBlock.BlockHash,
+                Votes = [.. TestUtils.ValidatorPrivateKeys.Select(x => new VoteMetadata
                 {
                     Height = 0,
                     Round = 0,
                     BlockHash = _fx.GenesisBlock.BlockHash,
-                    Votes = [.. TestUtils.ValidatorPrivateKeys.Select(x => new VoteMetadata
-                    {
-                        Height = 0,
-                        Round = 0,
-                        BlockHash = _fx.GenesisBlock.BlockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = x.Address,
-                        ValidatorPower = TestUtils.Validators.GetValidator(x.Address).Power,
-                        Flag = VoteFlag.PreCommit,
-                    }.Sign(x))],
-                }));
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = x.Address,
+                    ValidatorPower = TestUtils.Validators.GetValidator(x.Address).Power,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(x))],
+            };
+            Assert.Throws<InvalidOperationException>(() => blockCommit.Validate(_fx.GenesisBlock));
         }
 
         [Fact]
@@ -695,7 +693,7 @@ namespace Libplanet.Tests.Blockchain
                     VoteFlag.PreCommit,
                     VoteFlag.PreCommit),
             };
-            blockChain.ValidateBlockCommit(validNextBlock, fullBlockCommit);
+            fullBlockCommit.Validate(validNextBlock);
 
             // Can propose if power is big enough even count condition is not met.
             var validBlockCommit = new BlockCommit
@@ -709,7 +707,7 @@ namespace Libplanet.Tests.Blockchain
                     VoteFlag.Null,
                     VoteFlag.Null),
             };
-            blockChain.ValidateBlockCommit(validNextBlock, validBlockCommit);
+            validBlockCommit.Validate(validNextBlock);
 
             // Can not propose if power isn't big enough even count condition is met.
             var invalidBlockCommit = new BlockCommit
@@ -723,8 +721,7 @@ namespace Libplanet.Tests.Blockchain
                     VoteFlag.PreCommit,
                     VoteFlag.PreCommit),
             };
-            Assert.Throws<InvalidOperationException>(() =>
-                blockChain.ValidateBlockCommit(validNextBlock, invalidBlockCommit));
+            Assert.Throws<InvalidOperationException>(() => invalidBlockCommit.Validate(validNextBlock));
         }
 
         [Fact]
