@@ -1,4 +1,3 @@
-
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
@@ -16,7 +15,7 @@ public static class ImmutableSortedSetExtensions
                 nameof(@this));
         }
 
-        return @this[(int)((height + round) % @this.Count)];
+        return @this[(height + round) % @this.Count];
     }
 
     public static Validator GetValidator(
@@ -83,13 +82,6 @@ public static class ImmutableSortedSetExtensions
     public static void ValidateLegacyBlockCommitValidators(
         this ImmutableSortedSet<Validator> @this, BlockCommit blockCommit)
     {
-        // if (blockCommit.Votes.Any(v => v.ValidatorPower is not null))
-        // {
-        //     throw new InvalidBlockCommitException(
-        //         "All votes in the block commit before block protocol version 10 " +
-        //         "must have null power.");
-        // }
-
         if (!@this.Select(validator => validator.Address).SequenceEqual(
             blockCommit.Votes.Select(vote => vote.Validator).ToList()))
         {
