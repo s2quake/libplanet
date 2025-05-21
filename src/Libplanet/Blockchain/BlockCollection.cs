@@ -100,21 +100,10 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
             }
 
             var blockDigest = _blockDigests[blockHash];
-            var block = blockDigest.ToBlock(item => _repository.PendingTransactions[item], item => _repository.CommittedEvidences[item]);
+            var block = blockDigest.ToBlock(item => _repository.CommittedTransactions[item], item => _repository.CommittedEvidences[item]);
             _cacheByHash.AddOrUpdate(blockHash, block);
             return block;
         }
-
-        // set
-        // {
-        //     if (value.BlockHash != blockHash)
-        //     {
-        //         throw new ArgumentException(
-        //             $"The block hash of the value ({value.BlockHash}) does not match the key ({blockHash}).");
-        //     }
-
-        //     Add(value);
-        // }
     }
 
     public IEnumerable<Block> this[Range range]

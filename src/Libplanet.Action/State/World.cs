@@ -40,7 +40,7 @@ public sealed record class World
             return account;
         }
 
-        if (Trie.TryGetValue(name, out var value) && value is byte[] binary)
+        if (Trie.TryGetValue(name, out var value) && value is ImmutableArray<byte> binary)
         {
             return new Account(StateStore.GetStateRoot(new HashDigest<SHA256>(binary)));
         }

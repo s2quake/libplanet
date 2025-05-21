@@ -53,31 +53,31 @@ public abstract class StagePolicyTest
             Actions = [],
         }.Sign(_key);
 
-        Assert.Empty(StageTransactions.Iterate());
+        Assert.Empty(StageTransactions);
 
         Assert.True(StageTransactions.TryAdd(_txs[0]));
-        AssertTxSetEqual(_txs.Take(1), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Take(1), StageTransactions.Values);
 
         Assert.True(StageTransactions.TryAdd(_txs[1]));
-        AssertTxSetEqual(_txs.Take(2), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Take(2), StageTransactions.Values);
 
         // If already staged, no exception is thrown.
         Assert.False(StageTransactions.TryAdd(_txs[0]));
-        AssertTxSetEqual(_txs.Take(2), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Take(2), StageTransactions.Values);
 
         // Duplicate nonces can be staged.
         Assert.True(StageTransactions.TryAdd(_txs[2]));
-        AssertTxSetEqual(_txs.Take(3), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Take(3), StageTransactions.Values);
         Assert.True(StageTransactions.TryAdd(duplicateNonceTx));
-        AssertTxSetEqual(_txs.Take(3).Append(duplicateNonceTx), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Take(3).Append(duplicateNonceTx), StageTransactions.Values);
 
         // If a transaction had been unstaged, it can be staged again.
         Assert.True(StageTransactions.Remove(_txs[2].Id));
-        AssertTxSetEqual(_txs.Take(2).Append(duplicateNonceTx), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Take(2).Append(duplicateNonceTx), StageTransactions.Values);
         Assert.True(StageTransactions.TryAdd(_txs[2]));
         AssertTxSetEqual(
             _txs.Take(2).Append(duplicateNonceTx).Append(_txs[2]),
-            StageTransactions.Iterate());
+            StageTransactions.Values);
     }
 
     [Fact]
@@ -95,20 +95,20 @@ public abstract class StagePolicyTest
             StageTransactions.Add(tx);
         }
 
-        AssertTxSetEqual(_txs, StageTransactions.Iterate());
+        AssertTxSetEqual(_txs, StageTransactions.Values);
 
         Assert.True(StageTransactions.Remove(_txs[0].Id));
-        AssertTxSetEqual(_txs.Skip(1), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Skip(1), StageTransactions.Values);
 
         // If already unstaged, no exception is thrown.
         Assert.False(StageTransactions.Remove(_txs[0].Id));
-        AssertTxSetEqual(_txs.Skip(1), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Skip(1), StageTransactions.Values);
 
         Assert.True(StageTransactions.Remove(_txs[^1].Id));
-        AssertTxSetEqual(_txs.Skip(1).SkipLast(1), StageTransactions.Iterate());
+        AssertTxSetEqual(_txs.Skip(1).SkipLast(1), StageTransactions.Values);
 
         Assert.True(StageTransactions.Remove(_txs[2].Id));
-        AssertTxSetEqual(new[] { _txs[1], _txs[3] }, StageTransactions.Iterate());
+        AssertTxSetEqual(new[] { _txs[1], _txs[3] }, StageTransactions.Values);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public abstract class StagePolicyTest
     {
         // Ignore prevents staging.
         Assert.Contains(_txs[0].Id, StageTransactions.Keys);
-        StageTransactions.Ignore(_txs[0].Id);
+        StageTransactions.Remove(_txs[0].Id);
         Assert.DoesNotContain(_txs[0].Id, StageTransactions.Keys);
         Assert.False(StageTransactions.TryAdd(_txs[0]));
         Assert.Throws<KeyNotFoundException>(() => StageTransactions[_txs[0].Id]);
@@ -125,7 +125,7 @@ public abstract class StagePolicyTest
         Assert.Contains(_txs[1].Id, StageTransactions.Keys);
         Assert.True(StageTransactions.TryAdd(_txs[1]));
         Assert.Equal(_txs[1], StageTransactions[_txs[1].Id]);
-        StageTransactions.Ignore(_txs[1].Id);
+        StageTransactions.Remove(_txs[1].Id);
         Assert.DoesNotContain(_txs[1].Id, StageTransactions.Keys);
         Assert.Throws<KeyNotFoundException>(() => StageTransactions[_txs[1].Id]);
     }
@@ -149,8 +149,8 @@ public abstract class StagePolicyTest
 
         // Only Ignore() ignores regardless of staged state.
         StageTransactions.Add(_txs[1]);
-        StageTransactions.Ignore(_txs[1].Id);
-        StageTransactions.Ignore(_txs[2].Id);
+        StageTransactions.Remove(_txs[1].Id);
+        StageTransactions.Remove(_txs[2].Id);
         Assert.DoesNotContain(_txs[1].Id, StageTransactions.Keys);
         Assert.DoesNotContain(_txs[2].Id, StageTransactions.Keys);
     }

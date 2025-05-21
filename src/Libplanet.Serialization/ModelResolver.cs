@@ -215,13 +215,14 @@ public static class ModelResolver
         foreach (var (propertyInfo, propertyAttribute) in items)
         {
             var index = propertyAttribute.Index;
+            var propertyType = propertyInfo.PropertyType;
             if (index != builder.Count)
             {
                 throw new NotSupportedException(
                     $"Property {propertyInfo.Name} has an invalid index {index}");
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
+            if (typeof(IEnumerable).IsAssignableFrom(propertyType) && propertyType != typeof(string))
             {
                 hasArrayProperty = true;
             }
