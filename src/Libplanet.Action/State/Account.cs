@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Libplanet.Serialization;
 using Libplanet.Store.Trie;
 
 namespace Libplanet.Action.State;
@@ -11,43 +10,19 @@ public sealed record class Account(ITrie Trie)
     {
     }
 
-    public object GetValue(KeyBytes key)
-    {
-        var value = Trie[key];
-        return value;
-        // return ModelSerializer.Deserialize(value)
-        //     ?? throw new InvalidOperationException("Failed to deserialize state.");
-    }
+    public object GetValue(KeyBytes key) => Trie[key];
 
-    public Account SetValue(KeyBytes key, object value)
-    {
-        var k = key;
-        // var v = ModelSerializer.Serialize(value);
-        var trie = Trie.Set(key, value);
-        return new(trie);
-    }
+    public Account SetValue(KeyBytes key, object value) => new(Trie.Set(key, value));
 
     public object? GetValueOrDefault(KeyBytes key) => TryGetValue(key, out object? state) ? state : null;
 
-    public T GetValueOrFallback<T>(KeyBytes key, T fallback)
-        => GetValueOrDefault(key) is T state ? state : fallback;
+    public T GetValueOrFallback<T>(KeyBytes key, T fallback) => GetValueOrDefault(key) is T state ? state : fallback;
 
     public bool ContainsKey(KeyBytes key) => Trie.TryGetValue(key, out _);
 
     public Account RemoveValue(KeyBytes key) => new(Trie.Remove(key));
 
-    public bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out object value)
-    {
-        if (Trie.TryGetValue(key, out value))
-        {
-            // value = ModelSerializer.Deserialize(v)
-            //     ?? throw new InvalidOperationException("Failed to deserialize state.");
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
+    public bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out object value) => Trie.TryGetValue(key, out value);
 
     public bool TryGetValue<T>(KeyBytes key, [MaybeNullWhen(false)] out T value)
     {

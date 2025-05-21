@@ -1,10 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Serialization.DataAnnotations;
-using Libplanet.Types.Assets;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Tx;
 

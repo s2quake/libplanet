@@ -49,13 +49,9 @@ public sealed partial record class Transaction
         _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(Transaction)}.", nameof(obj)),
     };
 
-    public int CompareTo(Transaction? other)
+    public int CompareTo(Transaction? other) => other switch
     {
-        if (other is null)
-        {
-            return 1;
-        }
-
-        return Id.CompareTo(other.Id);
-    }
+        null => 1,
+        _ => Id.CompareTo(other.Id)
+    };
 }
