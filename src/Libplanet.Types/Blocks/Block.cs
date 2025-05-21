@@ -7,7 +7,7 @@ using Libplanet.Types.Tx;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class Block : IEquatable<Block>
+public sealed partial record class Block : IEquatable<Block>
 {
     [Property(0)]
     public required BlockHeader Header { get; init; }

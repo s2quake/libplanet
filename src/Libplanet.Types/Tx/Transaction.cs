@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -9,8 +8,8 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Tx;
 
 [Model(Version = 1)]
-public sealed record class Transaction
-    : IEquatable<Transaction>, IComparable<Transaction>, IComparable, IValidatableObject, IHasKey<TxId>
+public sealed partial record class Transaction
+    : IEquatable<Transaction>, IComparable<Transaction>, IComparable, IHasKey<TxId>
 {
     private TxId? _id;
 
@@ -58,14 +57,5 @@ public sealed record class Transaction
         }
 
         return Id.CompareTo(other.Id);
-    }
-
-    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-    {
-        var message = ModelSerializer.SerializeToBytes(Metadata);
-        if (!Signer.Verify([.. message], Signature))
-        {
-            yield return new ValidationResult("Transaction signature is invalid.", [nameof(Signature)]);
-        }
     }
 }

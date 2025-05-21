@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Channels;
 using Caching;
 using Libplanet.Blockchain;
+using Libplanet.Blockchain.Extensions;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
@@ -411,7 +412,7 @@ public partial class Context : IDisposable
 
             try
             {
-                _blockChain.ValidateBlock(block);
+                block.Validate(_blockChain);
                 _blockChain.ValidateBlockNonces(
                     block.Transactions
                         .Select(tx => tx.Signer)
