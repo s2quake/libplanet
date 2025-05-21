@@ -39,7 +39,7 @@ public class BlockType : ObjectGraphType<Block>
             name: "StateRootHash",
             description: "The hash of the resulting states after evaluating transactions " +
                          "and a block action (if exists)",
-            resolve: ctx => ctx.Source.StateRootHash.Bytes.ToArray());
+            resolve: ctx => ctx.Source.PreviousStateRootHash.Bytes.ToArray());
         Field<ByteStringType>(
             name: "Signature",
             description: "The digital signature of the whole block content (except for hash, " +

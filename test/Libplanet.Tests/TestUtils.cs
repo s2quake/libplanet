@@ -379,7 +379,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
     public static RawBlock ProposeGenesis(
         PrivateKey proposer,
-        HashDigest<SHA256> previousStateRootHash,
+        HashDigest<SHA256> previousStateRootHash = default,
         ImmutableSortedSet<Transaction>? transactions = null,
         ImmutableSortedSet<Validator>? validators = null,
         DateTimeOffset? timestamp = null,
@@ -422,7 +422,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
     public static Block ProposeGenesisBlock(
         PrivateKey proposer,
-        HashDigest<SHA256> previousStateRootHash,
+        HashDigest<SHA256> previousStateRootHash = default,
         ImmutableSortedSet<Transaction>? transactions = null,
         DateTimeOffset? timestamp = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
@@ -441,7 +441,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         Block previousBlock,
         HashDigest<SHA256> previousStateRootHash,
         ImmutableSortedSet<Transaction>? transactions = null,
-        PublicKey? proposer = null,
+        PrivateKey? proposer = null,
         TimeSpan? blockInterval = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion,
         BlockCommit? previousCommit = null,
@@ -486,13 +486,14 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         RawBlock preEval = ProposeNext(
             previousBlock,
-            txs,
-            proposer.PublicKey,
-            blockInterval,
-            protocolVersion,
-            lastCommit,
-            evidence);
-        return preEval.Sign(proposer, previousStateRootHash);
+            previousStateRootHash: previousStateRootHash,
+            transactions: txs,
+            proposer: proposer,
+            blockInterval :blockInterval,
+            protocolVersion: protocolVersion,
+            previousCommit: lastCommit,
+            evidence: evidence);
+        return preEval.Sign(proposer);
     }
 
     public static BlockChain MakeBlockChain(
@@ -549,13 +550,13 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         if (genesisBlock is null)
         {
             var preEval = ProposeGenesis(
-                privateKey.PublicKey,
-                txs,
-                validatorSet,
-                timestamp,
-                protocolVersion);
-            var evaluation = actionEvaluator.Evaluate(preEval, default);
-            genesisBlock = preEval.Sign(privateKey, default);
+                proposer: privateKey,
+                transactions: txs,
+                validators: validatorSet,
+                timestamp: timestamp,
+                protocolVersion: protocolVersion);
+            var evaluation = actionEvaluator.Evaluate(preEval);
+            genesisBlock = preEval.Sign(privateKey);
         }
 
         var chain = new BlockChain(genesisBlock, repository, options);

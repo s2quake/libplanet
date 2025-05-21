@@ -9,6 +9,8 @@ public partial class BlockChain
 {
     public World GetWorld() => GetWorld(Tip.BlockHash);
 
+    public World GetWorld(int height) => GetWorld(Blocks[height].BlockHash);
+
     public World GetWorld(BlockHash blockHash)
     {
         var stateRootHash = _repository.StateRootHashStore[blockHash];

@@ -53,14 +53,11 @@ public sealed class IntegerSet
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
         policy ??= new BlockChainOptions();
-        Genesis = TestUtils.ProposeGenesisBlock(
-            TestUtils.ProposeGenesis(
-                Proposer.PublicKey,
-                Txs,
-                null,
-                DateTimeOffset.UtcNow,
-                BlockHeader.CurrentProtocolVersion),
-            Proposer);
+        Genesis = TestUtils.ProposeGenesis(
+                Proposer,
+                transactions: Txs,
+                timestamp: DateTimeOffset.UtcNow,
+                protocolVersion: BlockHeader.CurrentProtocolVersion).Sign(Proposer);
         Repository = new Repository(Genesis, new MemoryDatabase());
         Chain = new BlockChain(policy);
     }
@@ -83,8 +80,8 @@ public sealed class IntegerSet
             GenesisHash = Genesis.BlockHash,
             Actions = actions.ToBytecodes(),
         }.Sign(signerKey);
-        BigInteger prevState = Chain.GetNextWorld().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
-        HashDigest<SHA256> prevStateRootHash = Chain.Tip.StateRootHash;
+        BigInteger prevState = Chain.GetWorld().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
+        HashDigest<SHA256> prevStateRootHash = Chain.Tip.PreviousStateRootHash;
         ITrie prevTrie = GetTrie(Chain.Tip.BlockHash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);
         (BigInteger, HashDigest<SHA256>) stagedStates = Chain.StagedTransactions.Collect()
@@ -138,7 +135,7 @@ public sealed class IntegerSet
     {
         if (blockHash != default)
         {
-            return Repository.StateStore.GetStateRoot(Chain.Blocks[blockHash].StateRootHash);
+            return Repository.StateStore.GetStateRoot(Chain.Blocks[blockHash].PreviousStateRootHash);
         }
 
         return Repository.StateStore.GetStateRoot(default);

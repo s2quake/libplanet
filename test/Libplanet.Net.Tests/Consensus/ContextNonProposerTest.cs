@@ -165,18 +165,16 @@ namespace Libplanet.Net.Tests.Consensus
                 privateKey: TestUtils.PrivateKeys[0]);
 
             var key = new PrivateKey();
-            var invalidBlock = blockChain.EvaluateAndSign(
-                new RawBlock
+            var invalidBlock = new RawBlock
+            {
+                Header = new BlockHeader
                 {
-                    Header = new BlockHeader
-                    {
-                        Height = blockChain.Tip.Height + 1,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Proposer = key.Address,
-                        PreviousHash = blockChain.Tip.BlockHash,
-                    },
+                    Height = blockChain.Tip.Height + 1,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Proposer = key.Address,
+                    PreviousHash = blockChain.Tip.BlockHash,
                 },
-                key);
+            }.Sign(key);
 
             context.StateChanged += (_, eventArgs) =>
             {
@@ -263,19 +261,17 @@ namespace Libplanet.Net.Tests.Consensus
             // 2. Index should be increased monotonically.
             // 3. Timestamp should be increased monotonically.
             // 4. PreviousHash should be matched with Tip hash.
-            var invalidBlock = blockChain.EvaluateAndSign(
-                new RawBlock
+            var invalidBlock = new RawBlock
+            {
+                Header = new BlockHeader
                 {
-                    Header = new BlockHeader
-                    {
-                        Version = BlockHeader.CurrentProtocolVersion,
-                        Height = blockChain.Tip.Height + 2,
-                        Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
-                        Proposer = TestUtils.PrivateKeys[1].Address,
-                        PreviousHash = blockChain.Tip.BlockHash,
-                    },
+                    Version = BlockHeader.CurrentProtocolVersion,
+                    Height = blockChain.Tip.Height + 2,
+                    Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
+                    Proposer = TestUtils.PrivateKeys[1].Address,
+                    PreviousHash = blockChain.Tip.BlockHash,
                 },
-                TestUtils.PrivateKeys[1]);
+            }.Sign(TestUtils.PrivateKeys[1]);
 
             context.Start();
             context.ProduceMessage(
@@ -353,13 +349,12 @@ namespace Libplanet.Net.Tests.Consensus
                 Signer = invalidKey,
             });
 
-            Block invalidBlock = diffPolicyBlockChain.EvaluateAndSign(
-                Libplanet.Tests.TestUtils.ProposeNext(
-                    blockChain.Genesis,
-                    [invalidTx],
-                    proposer: TestUtils.PrivateKeys[1].PublicKey,
-                    blockInterval: TimeSpan.FromSeconds(10)),
-                TestUtils.PrivateKeys[1]);
+            Block invalidBlock = Libplanet.Tests.TestUtils.ProposeNext(
+                blockChain.Genesis,
+                previousStateRootHash: default,
+                transactions: [invalidTx],
+                proposer: TestUtils.PrivateKeys[1],
+                blockInterval: TimeSpan.FromSeconds(10)).Sign(TestUtils.PrivateKeys[1]);
 
             context.Start();
             context.ProduceMessage(
@@ -454,6 +449,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = TestUtils.PrivateKeys[1].Address,
                 PreviousHash = blockChain.Genesis.BlockHash,
+                PreviousStateRootHash = HashDigest<SHA256>.Create(TestUtils.GetRandomBytes(1024)),
             };
             var preEval = new RawBlock
             {
@@ -464,9 +460,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Evidences = [.. evs],
                 },
             };
-            var invalidBlock = preEval.Sign(
-                TestUtils.PrivateKeys[1],
-                HashDigest<SHA256>.Create(TestUtils.GetRandomBytes(1024)));
+            var invalidBlock = preEval.Sign(TestUtils.PrivateKeys[1]);
 
             context.Start();
             context.ProduceMessage(

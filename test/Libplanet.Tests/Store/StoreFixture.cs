@@ -91,12 +91,10 @@ public abstract class StoreFixture : IDisposable
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         var preEval = TestUtils.ProposeGenesis(
-            proposer: Proposer.PublicKey,
+            proposer: Proposer,
             validators: TestUtils.Validators);
         var actionEvaluator = new ActionEvaluator(repository.StateStore, Options.PolicyActions);
-        GenesisBlock = preEval.Sign(
-            Proposer,
-            default);
+        GenesisBlock = preEval.Sign(Proposer);
         var evaluation = actionEvaluator.Evaluate((RawBlock)GenesisBlock);
         var genesisNextSrh = evaluation.OutputWorld.Trie.Hash;
         stateRootHashes[GenesisBlock.BlockHash] = genesisNextSrh;
@@ -105,28 +103,28 @@ public abstract class StoreFixture : IDisposable
             proposer: Proposer,
             previousStateRootHash: genesisNextSrh,
             lastCommit: null);
-        stateRootHashes[Block1.BlockHash] = Block1.StateRootHash;
+        stateRootHashes[Block1.BlockHash] = Block1.PreviousStateRootHash;
         Block2 = TestUtils.ProposeNextBlock(
             Block1,
             proposer: Proposer,
             previousStateRootHash: genesisNextSrh,
             lastCommit: TestUtils.CreateBlockCommit(Block1));
-        stateRootHashes[Block2.BlockHash] = Block2.StateRootHash;
+        stateRootHashes[Block2.BlockHash] = Block2.PreviousStateRootHash;
         Block3 = TestUtils.ProposeNextBlock(
             Block2,
             proposer: Proposer,
             previousStateRootHash: genesisNextSrh,
             lastCommit: TestUtils.CreateBlockCommit(Block2));
-        stateRootHashes[Block3.BlockHash] = Block3.StateRootHash;
+        stateRootHashes[Block3.BlockHash] = Block3.PreviousStateRootHash;
         Block3Alt = TestUtils.ProposeNextBlock(
             Block2, proposer: Proposer, previousStateRootHash: genesisNextSrh);
-        stateRootHashes[Block3Alt.BlockHash] = Block3Alt.StateRootHash;
+        stateRootHashes[Block3Alt.BlockHash] = Block3Alt.PreviousStateRootHash;
         Block4 = TestUtils.ProposeNextBlock(
             Block3, proposer: Proposer, previousStateRootHash: genesisNextSrh);
-        stateRootHashes[Block4.BlockHash] = Block4.StateRootHash;
+        stateRootHashes[Block4.BlockHash] = Block4.PreviousStateRootHash;
         Block5 = TestUtils.ProposeNextBlock(
             Block4, proposer: Proposer, previousStateRootHash: genesisNextSrh);
-        stateRootHashes[Block5.BlockHash] = Block5.StateRootHash;
+        stateRootHashes[Block5.BlockHash] = Block5.PreviousStateRootHash;
 
         Transaction1 = MakeTransaction();
         Transaction2 = MakeTransaction();

@@ -169,19 +169,17 @@ namespace Libplanet.Net.Tests.Consensus
             };
 
             var key = new PrivateKey();
-            var differentBlock = blockChain.EvaluateAndSign(
-                new RawBlock
+            var differentBlock = new RawBlock
+            {
+                Header = new BlockHeader
                 {
-                    Header = new BlockHeader
-                    {
-                        Version = BlockHeader.CurrentProtocolVersion,
-                        Height = blockChain.Tip.Height + 1,
-                        Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
-                        Proposer = key.Address,
-                        PreviousHash = blockChain.Tip.BlockHash,
-                    },
+                    Version = BlockHeader.CurrentProtocolVersion,
+                    Height = blockChain.Tip.Height + 1,
+                    Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
+                    Proposer = key.Address,
+                    PreviousHash = blockChain.Tip.BlockHash,
                 },
-                key);
+            }.Sign(key);
 
             context.Start();
             await proposalSent.WaitAsync();
