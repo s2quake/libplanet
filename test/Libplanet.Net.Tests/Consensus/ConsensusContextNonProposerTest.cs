@@ -40,7 +40,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TimeSpan.FromSeconds(1),
                 TestUtils.Options,
                 TestUtils.PrivateKeys[2]);
-            blockChain.TipChanged += (_, __) => tipChanged.Set();
+            using var _ = blockChain.TipChanged.Subscribe(e => tipChanged.Set());
             consensusContext.MessagePublished += (_, eventArgs) =>
             {
                 if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMsg proposalMsg)

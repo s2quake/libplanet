@@ -69,13 +69,13 @@ public class ConsensusContextTest
                 proposalMessageSent.Set();
             }
         };
-        blockChain.TipChanged += (_, eventArgs) =>
+        using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
         {
             if (eventArgs.NewTip.Height == 3L)
             {
                 onTipChangedToThree.Set();
             }
-        };
+        });
 
         var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);

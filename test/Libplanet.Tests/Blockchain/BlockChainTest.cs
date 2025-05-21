@@ -49,7 +49,7 @@ public partial class BlockChainTest : IDisposable
         };
 
         _fx = GetStoreFixture(_options);
-        _blockChain = new BlockChain(_fx.Repository, _options);
+        _blockChain = new BlockChain(_fx.GenesisBlock, _fx.Repository, _options);
         _stagePolicy = _blockChain.StagedTransactions;
 
         _validNext = _blockChain.EvaluateAndSign(
@@ -1040,8 +1040,7 @@ public partial class BlockChainTest : IDisposable
     /// </summary>
     /// <param name="policyActions">The policy block actions to use.</param>
     /// <returns>The store fixture that every test in this class depends on.</returns>
-    protected virtual StoreFixture GetStoreFixture(
-        BlockChainOptions? options = null)
+    protected virtual StoreFixture GetStoreFixture(BlockChainOptions? options = null)
         => new MemoryStoreFixture(options ?? new());
 
     private (Address[], Transaction[]) MakeFixturesForAppendTests(

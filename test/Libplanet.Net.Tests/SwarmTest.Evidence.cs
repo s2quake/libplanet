@@ -143,14 +143,14 @@ namespace Libplanet.Net.Tests
             {
                 var manualResetEvent = new ManualResetEvent(false);
                 var cancellationTokenSource = new CancellationTokenSource(Timeout);
-                blockChain.TipChanged += BlockChain_TipChanged;
+                var subscription = blockChain.TipChanged.Subscribe(BlockChain_TipChanged);
                 try
                 {
                     await Task.Run(WaitAction, cancellationTokenSource.Token);
                 }
                 finally
                 {
-                    blockChain.TipChanged -= BlockChain_TipChanged;
+                    subscription.Dispose();
                 }
 
                 void WaitAction()
@@ -158,7 +158,7 @@ namespace Libplanet.Net.Tests
                     manualResetEvent.WaitOne(Timeout);
                 }
 
-                void BlockChain_TipChanged(object? sender, (Block OldTip, Block NewTip) e)
+                void BlockChain_TipChanged(TipChangedEvent e)
                 {
                     if (e.NewTip.Height >= index)
                     {

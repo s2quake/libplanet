@@ -722,9 +722,9 @@ namespace Libplanet.Net.Tests
             };
 
             Block block1 = blockChain.ProposeBlock(GenesisProposer);
-            blockChain.Append(block1, TestUtils.CreateBlockCommit(block1), true);
+            blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
             Block block2 = blockChain.ProposeBlock(GenesisProposer);
-            blockChain.Append(block2, TestUtils.CreateBlockCommit(block2), true);
+            blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
 
             try
             {

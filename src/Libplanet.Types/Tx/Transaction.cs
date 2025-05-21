@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Assets;
@@ -32,61 +31,13 @@ public sealed record class Transaction
 
     public FungibleAssetValue? MaxGasPrice => Metadata.MaxGasPrice;
 
-    public long? GasLimit => Metadata.GasLimit;
+    public long GasLimit => Metadata.GasLimit;
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public BlockHash? GenesisHash => Metadata.GenesisHash;
+    public BlockHash GenesisHash => Metadata.GenesisHash;
 
     TxId IHasKey<TxId>.Key => Id;
-
-    // public static Transaction Create(UnsignedTx unsignedTx, ImmutableArray<byte> signature) => new()
-    // {
-    //     UnsignedTx = unsignedTx,
-    //     Signature = signature,
-    // };
-
-    // public static Transaction Create(UnsignedTx unsignedTx, PrivateKey privateKey)
-    //     => Create(unsignedTx, [.. unsignedTx.CreateSignature(privateKey)]);
-
-    // public static Transaction Create(
-    //     long nonce,
-    //     PrivateKey privateKey,
-    //     BlockHash genesisHash,
-    //     ImmutableArray<ActionBytecode> actions,
-    //     FungibleAssetValue? maxGasPrice = null,
-    //     long gasLimit = 0L,
-    //     DateTimeOffset? timestamp = null)
-    // {
-    //     var draftInvoice = new TxInvoice
-    //     {
-    //         Actions = actions,
-    //         GenesisHash = genesisHash,
-    //         Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-    //         MaxGasPrice = maxGasPrice ?? default,
-    //         GasLimit = gasLimit,
-    //     };
-    //     var signingMetadata = new TxSigningMetadata
-    //     {
-    //         Signer = privateKey.Address,
-    //         Nonce = nonce,
-    //     };
-    //     var invoice = new TxInvoice
-    //     {
-    //         Actions = draftInvoice.Actions,
-    //         GenesisHash = draftInvoice.GenesisHash,
-    //         UpdatedAddresses = draftInvoice.UpdatedAddresses,
-    //         Timestamp = draftInvoice.Timestamp,
-    //         MaxGasPrice = draftInvoice.MaxGasPrice,
-    //         GasLimit = draftInvoice.GasLimit,
-    //     };
-    //     var unsignedTx = new UnsignedTx
-    //     {
-    //         Invoice = invoice,
-    //         SigningMetadata = signingMetadata,
-    //     };
-    //     return Create(unsignedTx, privateKey);
-    // }
 
     public bool Equals(Transaction? other) => Id.Equals(other?.Id);
 
@@ -111,12 +62,10 @@ public sealed record class Transaction
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        yield break;
-        // if (!UnsignedTx.VerifySignature(Signature))
-        // {
-        //     yield return new ValidationResult(
-        //         "The given signature is not valid.",
-        //         [nameof(Signature)]);
-        // }
+        var message = ModelSerializer.SerializeToBytes(Metadata);
+        if (!Signer.Verify([.. message], Signature))
+        {
+            yield return new ValidationResult("Transaction signature is invalid.", [nameof(Signature)]);
+        }
     }
 }
