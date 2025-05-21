@@ -22,7 +22,7 @@ public partial class BlockChainTest
     public void ProposeBlock()
     {
         var maxTransactionsBytes = _blockChain.Options.BlockOptions.MaxTransactionsBytes;
-        Assert.Equal(1, _blockChain.Blocks.Count);
+        Assert.Single(_blockChain.Blocks);
         Assert.Equal(
             $"{GenesisProposer.Address}",
             (string)_blockChain.GetWorld().GetValue(LegacyAccount, default));

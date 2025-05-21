@@ -29,6 +29,18 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
 
     public Transaction this[TxId txId] => _store[txId];
 
+    public bool TryAdd(Transaction transaction)
+    {
+        if (transaction.Timestamp + options.TransactionOptions.LifeTime < DateTimeOffset.UtcNow)
+        {
+            return false;
+        }
+
+        // compare with repository genesis
+
+        return _store.TryAdd(transaction);
+    }
+
     public void Add(Transaction transaction)
     {
         if (transaction.Timestamp + options.TransactionOptions.LifeTime < DateTimeOffset.UtcNow)
@@ -43,18 +55,6 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
             throw new ArgumentException(
                 $"Transaction {transaction.Id} already exists in the store.", nameof(transaction));
         }
-    }
-
-    public bool TryAdd(Transaction transaction)
-    {
-        if (transaction.Timestamp + options.TransactionOptions.LifeTime < DateTimeOffset.UtcNow)
-        {
-            return false;
-        }
-
-        // compare with repository genesis
-
-        return _store.TryAdd(transaction);
     }
 
     public Transaction Add(TransactionSubmission submission)
@@ -75,6 +75,8 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
     }
 
     public bool Remove(TxId txId) => _store.Remove(txId);
+
+    public bool Remove(Transaction transaction) => _store.Remove(transaction.Id);
 
     public ImmutableSortedSet<Transaction> Collect()
     {

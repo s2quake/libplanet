@@ -150,9 +150,6 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     internal void AddCache(Block block)
     {
-        // _repository.AddBlock(block);
-        // _chain.BlockHashes.Add(block);
-
         _cacheByHash.AddOrUpdate(block.BlockHash, block);
         _cacheByHeight.AddOrUpdate(block.Height, block);
     }
@@ -190,12 +187,6 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
         return false;
     }
-
-    // public void Clear()
-    // {
-    //     _cacheByHash.Clear();
-    //     _blockDigests.Clear();
-    // }
 
     public IEnumerator<KeyValuePair<BlockHash, Block>> GetEnumerator()
     {
