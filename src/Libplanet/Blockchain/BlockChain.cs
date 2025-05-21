@@ -97,33 +97,6 @@ public partial class BlockChain
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 
-    public IReadOnlyList<BlockHash> FindNextHashes(BlockHash locator, int count = 500)
-    {
-        if (!(FindBranchpoint(locator) is { } branchpoint))
-        {
-            return [];
-        }
-
-        if (!Blocks.TryGetValue(branchpoint, out var block))
-        {
-            return [];
-        }
-
-        var result = new List<BlockHash>();
-        foreach (BlockHash hash in _repository.Chain.BlockHashes.IterateHeights(block.Height, count))
-        {
-            if (count == 0)
-            {
-                break;
-            }
-
-            result.Add(hash);
-            count--;
-        }
-
-        return result;
-    }
-
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
@@ -152,16 +125,6 @@ public partial class BlockChain
         _renderBlockEnd.OnNext(new RenderBlockInfo(oldTip, block));
         _nextStateRootHash = evaluation.OutputWorld.Trie.Hash;
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
-    }
-
-    internal BlockHash? FindBranchpoint(BlockHash blockHash)
-    {
-        if (Blocks.ContainsKey(blockHash))
-        {
-            return blockHash;
-        }
-
-        return null;
     }
 
     internal HashDigest<SHA256> GetNextStateRootHash() => _nextStateRootHash;

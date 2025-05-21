@@ -1,10 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
 
 namespace Libplanet.Types.Blocks;
 
-[Model(Version = 1)]
 public sealed partial record class BlockCommit : IValidatableObject
 {
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)

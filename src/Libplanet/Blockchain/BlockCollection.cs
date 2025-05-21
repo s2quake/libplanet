@@ -117,6 +117,25 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         // }
     }
 
+    public IEnumerable<Block> this[Range range]
+    {
+        get
+        {
+            var start = range.Start.IsFromEnd ? Count - range.Start.Value : range.Start.Value;
+            var end = range.End.IsFromEnd ? Count - range.End.Value : range.End.Value;
+
+            if (start < 0 || end > Count || start > end)
+            {
+                throw new ArgumentOutOfRangeException(nameof(range));
+            }
+
+            for (var i = start; i < end; i++)
+            {
+                yield return this[i];
+            }
+        }
+    }
+
     public IEnumerable<BlockHash> IterateIndexes(int offset = 0, int? limit = null)
     {
         return _blockHashes.IterateHeights(offset, limit);
