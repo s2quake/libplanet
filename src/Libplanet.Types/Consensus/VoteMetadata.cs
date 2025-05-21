@@ -35,7 +35,8 @@ public sealed record class VoteMetadata : IValidatableObject
 
     public bool Verify(ImmutableArray<byte> signature)
     {
-        return PublicKey.Verify(Validator, [.. ModelSerializer.SerializeToBytes(this)], signature);
+        var message = ModelSerializer.SerializeToBytes(this);
+        return Validator.Verify([.. message], signature);
     }
 
     public Vote Sign(PrivateKey signer)

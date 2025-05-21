@@ -35,6 +35,24 @@ public sealed class BlockHashStore(Chain chain, IDatabase database)
         }
     }
 
+    public IEnumerable<BlockHash> this[Range range]
+    {
+        get
+        {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            var start = range.Start.IsFromEnd ? Height - range.Start.Value : range.Start.Value;
+            var end = range.End.IsFromEnd ? Height - range.End.Value : range.End.Value;
+
+            for (var i = start; i < end; i++)
+            {
+                if (TryGetValue(i, out var blockHash))
+                {
+                    yield return blockHash;
+                }
+            }
+        }
+    }
+
     public void Add(Block block) => Add(block.Height, block.BlockHash);
 
     public IEnumerable<BlockHash> Skip(int height)
