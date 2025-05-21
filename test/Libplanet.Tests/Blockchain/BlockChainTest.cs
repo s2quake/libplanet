@@ -12,6 +12,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
+using Org.BouncyCastle.Crypto.Prng;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
@@ -52,19 +53,17 @@ public partial class BlockChainTest : IDisposable
         _blockChain = new BlockChain(_fx.GenesisBlock, _fx.Repository, _options);
         _stagePolicy = _blockChain.StagedTransactions;
 
-        _validNext = _blockChain.EvaluateAndSign(
-            new RawBlock
+        _validNext = new RawBlock
+        {
+            Header = new BlockHeader
             {
-                Header = new BlockHeader
-                {
-                    Version = BlockHeader.CurrentProtocolVersion,
-                    Height = 1,
-                    Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
-                    Proposer = _fx.Proposer.Address,
-                    PreviousHash = _fx.GenesisBlock.BlockHash,
-                },
+                Version = BlockHeader.CurrentProtocolVersion,
+                Height = 1,
+                Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
+                Proposer = _fx.Proposer.Address,
+                PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-            _fx.Proposer);
+        }.Sign(_fx.Proposer);
     }
 
     public void Dispose()
@@ -502,19 +501,18 @@ public partial class BlockChainTest : IDisposable
             },
         };
         var repository = new Repository();
-        var actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         var txKey = new PrivateKey();
-        Block genesisWithTx = ProposeGenesisBlock(
-            ProposeGenesis(
-                GenesisProposer.PublicKey,
-                [
-                    new TransactionMetadata
-                    {
-                        Signer = txKey.Address,
-                        Actions = [],
-                    }.Sign(txKey),
-                ]),
-            GenesisProposer);
+        var genesisRawBlock = ProposeGenesis(
+            proposer: GenesisProposer,
+            transactions:
+            [
+                new TransactionMetadata
+                {
+                    Signer = txKey.Address,
+                    Actions = [],
+                }.Sign(txKey),
+            ]);
+        Block genesisWithTx = genesisRawBlock.Sign(GenesisProposer);
         repository.AddNewChain(genesisWithTx);
         var chain = new BlockChain(repository, options);
         Assert.False(invoked);
@@ -845,17 +843,16 @@ public partial class BlockChainTest : IDisposable
 
         var genesis = _blockChain.Genesis;
 
-        Block ProposeNext(
-            Block block,
-            ImmutableSortedSet<Transaction> txs) =>
-            _blockChain.EvaluateAndSign(
-                TestUtils.ProposeNext(
-                    block,
-                    txs,
-                    blockInterval: TimeSpan.FromSeconds(10),
-                    proposer: _fx.Proposer.PublicKey,
-                    previousCommit: CreateBlockCommit(block)),
-                _fx.Proposer);
+        Block ProposeNext(Block block, ImmutableSortedSet<Transaction> txs)
+        {
+            return TestUtils.ProposeNext(
+                block,
+                _blockChain.GetStateRootHash(block.BlockHash),
+                transactions: txs,
+                blockInterval: TimeSpan.FromSeconds(10),
+                proposer: _fx.Proposer,
+                previousCommit: CreateBlockCommit(block)).Sign(_fx.Proposer);
+        }
 
         var txsA = ImmutableSortedSet.Create(
         [
@@ -1262,9 +1259,7 @@ public partial class BlockChainTest : IDisposable
             Signer = genesisTxKey.Address,
             Actions = [],
         }.Sign(genesisTxKey);
-        var genesisWithTx = ProposeGenesisBlock(
-            ProposeGenesis(GenesisProposer.PublicKey, [genesisTx]),
-            privateKey: GenesisProposer);
+        var genesisWithTx = ProposeGenesis(GenesisProposer, transactions: [genesisTx]).Sign(GenesisProposer);
 
         repository.AddNewChain(genesisWithTx);
         var chain = new BlockChain(repository, options);
@@ -1433,13 +1428,13 @@ public partial class BlockChainTest : IDisposable
 
         Assert.Equal(
             blockChain
-                .GetWorldState(0)
+                .GetWorld(0)
                 .GetValidatorSet(),
             [.. ValidatorPrivateKeys.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
 
         Assert.Equal(
             blockChain
-                .GetWorldState(1)
+                .GetWorld(1)
                 .GetValidatorSet(),
             [.. newValidators.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
     }

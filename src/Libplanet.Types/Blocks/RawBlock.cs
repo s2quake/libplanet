@@ -30,6 +30,12 @@ public sealed record class RawBlock
 
     private ImmutableArray<byte> CreateSignature(PrivateKey privateKey)
     {
+        if (Header.Proposer != privateKey.Address)
+        {
+            throw new ArgumentException(
+                $"The given {nameof(privateKey)} does not match the block proposer.", nameof(privateKey));
+        }
+
         var message = ModelSerializer.SerializeToBytes(this);
         return [.. privateKey.Sign(message)];
     }

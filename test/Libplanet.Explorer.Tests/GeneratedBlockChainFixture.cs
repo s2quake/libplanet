@@ -166,24 +166,22 @@ public class GeneratedBlockChainFixture
     private void AddBlock(ImmutableArray<Transaction> transactions)
     {
         var proposer = PrivateKeys[Random.Next(PrivateKeys.Length)];
-        var block = Chain.EvaluateAndSign(
-            new RawBlock
+        var block = new RawBlock
+        {
+            Header = new BlockHeader
             {
-                Header = new BlockHeader
-                {
-                    Height = Chain.Tip.Height + 1,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Proposer = proposer.Address,
-                    PreviousHash = Chain.Tip.BlockHash,
-                    PreviousCommit = Chain.BlockCommits[^1],
-                },
-                Content = new BlockContent
-                {
-                    Transactions = [.. transactions],
-                    Evidences = [],
-                },
+                Height = Chain.Tip.Height + 1,
+                Timestamp = DateTimeOffset.UtcNow,
+                Proposer = proposer.Address,
+                PreviousHash = Chain.Tip.BlockHash,
+                PreviousCommit = Chain.BlockCommits[^1],
             },
-            proposer);
+            Content = new BlockContent
+            {
+                Transactions = [.. transactions],
+                Evidences = [],
+            },
+        }.Sign(proposer);
         Chain.Append(
             block,
             new BlockCommit
