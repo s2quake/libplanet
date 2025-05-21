@@ -11,9 +11,9 @@ public sealed record class BlockEvaluation
 
     public required World OutputWorld { get; init; }
 
-    public ImmutableArray<ActionEvaluation> BeginActions { get; init; } = [];
+    public ImmutableArray<ActionEvaluation> BeginEvaluations { get; init; } = [];
 
     public ImmutableArray<TxEvaluation> Evaluations { get; init; } = [];
 
-    public ImmutableArray<ActionEvaluation> EndActions { get; init; } = [];
+    public ImmutableArray<ActionEvaluation> EndEvaluations { get; init; } = [];
 }

@@ -21,43 +21,46 @@ public partial class Swarm
                 return Task.CompletedTask;
 
             case GetChainStatusMsg getChainStatus:
-            {
-                _logger.Debug(
-                    "Received a {MessageType} message",
-                    nameof(GetChainStatusMsg));
+                {
+                    _logger.Debug(
+                        "Received a {MessageType} message",
+                        nameof(GetChainStatusMsg));
 
-                // This is based on the assumption that genesis block always exists.
-                Block tip = BlockChain.Tip;
-                var chainStatus = new ChainStatusMsg(
-                    tip.Version,
-                    BlockChain.Genesis.BlockHash,
-                    tip.Height,
-                    tip.BlockHash);
+                    // This is based on the assumption that genesis block always exists.
+                    Block tip = BlockChain.Tip;
+                    var chainStatus = new ChainStatusMsg(
+                        tip.Version,
+                        BlockChain.Genesis.BlockHash,
+                        tip.Height,
+                        tip.BlockHash);
 
-                return Transport.ReplyMessageAsync(
-                    chainStatus,
-                    message.Identity,
-                    default);
-            }
+                    return Transport.ReplyMessageAsync(
+                        chainStatus,
+                        message.Identity,
+                        default);
+                }
 
             case GetBlockHashesMsg getBlockHashes:
-            {
-                _logger.Debug(
-                    "Received a {MessageType} message locator [{LocatorHead}]",
-                    nameof(GetBlockHashesMsg),
-                    getBlockHashes.Locator);
-                IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
-                    getBlockHashes.Locator,
-                    FindNextHashesChunkSize);
-                _logger.Debug(
-                    "Found {HashCount} hashes after the branchpoint " +
-                    "with locator [{LocatorHead}]",
-                    hashes.Count,
-                    getBlockHashes.Locator);
-                var reply = new BlockHashesMsg(hashes);
+                {
+                    _logger.Debug(
+                        "Received a {MessageType} message locator [{LocatorHead}]",
+                        nameof(GetBlockHashesMsg),
+                        getBlockHashes.Locator);
+                    var height = BlockChain.Blocks[getBlockHashes.Locator].Height;
+                    var hashes = BlockChain.Blocks[height..].Select(item => item.BlockHash).ToArray();
 
-                return Transport.ReplyMessageAsync(reply, message.Identity, default);
-            }
+                    // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
+                    //     getBlockHashes.Locator,
+                    //     FindNextHashesChunkSize);
+                    _logger.Debug(
+                        "Found {HashCount} hashes after the branchpoint " +
+                        "with locator [{LocatorHead}]",
+                        hashes.Length,
+                        getBlockHashes.Locator);
+                    var reply = new BlockHashesMsg(hashes);
+
+                    return Transport.ReplyMessageAsync(reply, message.Identity, default);
+                }
 
             case GetBlocksMsg getBlocksMsg:
                 return TransferBlocksAsync(message);

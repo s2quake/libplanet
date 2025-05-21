@@ -6,7 +6,7 @@ public sealed partial record class Block : IValidatableObject
 {
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        throw new NotImplementedException();
+        yield break;
     }
 
     // internal void ValidateBlock(Block block)

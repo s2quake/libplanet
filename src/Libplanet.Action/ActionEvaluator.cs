@@ -58,9 +58,9 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
             Block = rawBlock,
             InputWorld = inputWorld,
             OutputWorld = world,
-            BeginActions = beginEvaluations,
+            BeginEvaluations = beginEvaluations,
             Evaluations = txEvaluations,
-            EndActions = endEvaluations,
+            EndEvaluations = endEvaluations,
         };
         _blockEvaluation.OnNext(blockEvaluation);
         return blockEvaluation;

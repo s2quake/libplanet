@@ -98,7 +98,7 @@ public sealed class Repository : IDisposable
     public void Append(Block block, BlockCommit blockCommit)
     {
         BlockDigests.Add(block);
-        BlockCommits.Add(blockCommit);
+        BlockCommits.Add(block.BlockHash, blockCommit);
         PendingTransactions.AddRange(block.Transactions);
         CommittedTransactions.AddRange(block.Transactions);
         PendingEvidences.RemoveRange(block.Evidences);
