@@ -13,7 +13,7 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
     internal BlockCommitCollection(Repository repository)
     {
         _blockCommits = repository.BlockCommits;
-        _blockHashes = repository.Chain.BlockHashes;
+        _blockHashes = repository.BlockHashes;
     }
 
     public IEnumerable<BlockHash> Keys

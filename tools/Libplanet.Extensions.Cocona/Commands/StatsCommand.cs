@@ -24,13 +24,13 @@ public class StatsCommand
             "Maximum number of results to return; " +
             "no limit by default")]
         long? limit = null) => Summary(
-            store: Utils.LoadStoreFromUri(path),
+            repository: Utils.LoadStoreFromUri(path),
             header: header,
             offset: offset,
             limit: limit);
 
     internal void Summary(
-        Libplanet.Store.Repository store,
+        Repository repository,
         bool header,
         long offset,
         long? limit)
@@ -40,8 +40,7 @@ public class StatsCommand
             throw new ArgumentException($"limit must be at least 1: {limit}");
         }
 
-        Guid chainId = store.ChainId;
-        long chainLength = store.Chains[chainId].GenesisHeight;
+        long chainLength = repository.GenesisHeight;
 
         if (offset >= chainLength || (offset < 0 && chainLength + offset < 0))
         {
@@ -49,7 +48,7 @@ public class StatsCommand
                 $"invalid offset value {offset} for found chain length {chainLength}");
         }
 
-        var chain = store.Chains[chainId];
+        var chain = repository;
         IEnumerable<BlockHash> hashes = chain.BlockHashes.IterateHeights(
             height: offset >= 0
                 ? (int)offset
@@ -63,7 +62,7 @@ public class StatsCommand
 
         foreach (var hash in hashes)
         {
-            BlockDigest blockDigest = store.BlockDigests[hash];
+            BlockDigest blockDigest = repository.BlockDigests[hash];
             BlockHeader blockHeader = blockDigest.Header;
 
             Console.WriteLine(

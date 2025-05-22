@@ -13,38 +13,6 @@ public class StoreCommand
         "The URI denotes the type and path of concrete class for " + nameof(Libplanet.Store.Repository) + "."
         + "<store-type>://<store-path> (e.g., rocksdb+file:///path/to/store)";
 
-    [Command(Description = "List all chain IDs.")]
-    public void ChainIds(
-        [Argument("STORE", Description = StoreArgumentDescription)]
-        string storeUri,
-        [Option("hash", Description = "Show the hash of the chain tip.")]
-        bool showHash)
-    {
-        Libplanet.Store.Repository store = Utils.LoadStoreFromUri(storeUri);
-        Guid? canon = store.ChainId;
-        var headerWithoutHash = ("Chain ID", "Height", "Canon?");
-        var headerWithHash = ("Chain ID", "Height", "Canon?", "Hash");
-        var chainIds = store.Chains.Keys.Select(id =>
-        {
-            var chain = store.Chains[id];
-            var height = chain.GenesisHeight - 1;
-            return (
-                id.ToString(),
-                height.ToString(CultureInfo.InvariantCulture),
-                id == canon ? "*" : string.Empty,
-                store.BlockDigests[chain.BlockHashes[height]].BlockHash.ToString());
-        });
-        if (showHash)
-        {
-            Utils.PrintTable(headerWithHash, chainIds);
-        }
-        else
-        {
-            Utils.PrintTable(
-                headerWithoutHash, chainIds.Select(i => (i.Item1, i.Item2, i.Item3)));
-        }
-    }
-
     [Command(Description = "Build an index for transaction id and block hash.")]
     public void BuildIndexTxBlock(
         [Argument("STORE", Description = StoreArgumentDescription)]
@@ -106,10 +74,9 @@ public class StoreCommand
         int blockHeight)
     {
         // using Libplanet.Store.Store store = Utils.LoadStoreFromUri(home);
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var chain = store.Chains[store.ChainId];
-        var blockHash = GetBlockHash(store, blockHeight);
-        var block = GetBlock(store, blockHash);
+        var repository = new Repository(new MemoryDatabase());
+        var blockHash = GetBlockHash(repository, blockHeight);
+        var block = GetBlock(repository, blockHash);
         Console.WriteLine(Utils.SerializeHumanReadable(block));
     }
 
@@ -165,17 +132,12 @@ public class StoreCommand
 
     private static BlockHash GetBlockHash(Libplanet.Store.Repository store, int blockHeight)
     {
-        if (store.ChainId == Guid.Empty)
-        {
-            throw Utils.Error("Cannot find the main branch of the blockchain.");
-        }
-
-        var chain = store.Chain;
+        var chain = store;
         if (!chain.BlockHashes.TryGetValue(blockHeight, out var blockHash))
         {
             throw Utils.Error(
                 $"Cannot find the block with the height {blockHeight}" +
-                $" within the blockchain {store.ChainId}.");
+                $" within the blockchain {store}.");
         }
 
         return blockHash;

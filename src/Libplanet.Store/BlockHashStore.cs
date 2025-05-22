@@ -3,21 +3,23 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;
 
-public sealed class BlockHashStore(Chain chain, IDatabase database)
-    : StoreBase<int, BlockHash>(database.GetOrAdd(GetKey(chain.Id)))
+public sealed class BlockHashStore(IDatabase database)
+    : StoreBase<int, BlockHash>(database.GetOrAdd("block_hash"))
 {
-    private readonly MetadataStore _metadata = chain.Metadata;
+    // private readonly MetadataStore _metadata = chain.Metadata;
 
     public int GenesisHeight
     {
-        get => int.Parse(_metadata.GetValueOrDefault("genesisHeight", "0"));
-        set => _metadata["genesisHeight"] = value.ToString();
+        // get => int.Parse(_metadata.GetValueOrDefault("genesisHeight", "0"));
+        // set => _metadata["genesisHeight"] = value.ToString();
+        get;internal set;
     }
 
     public int Height
     {
-        get => int.Parse(_metadata.GetValueOrDefault("height", "0"));
-        set => _metadata["height"] = value.ToString();
+        // get => int.Parse(_metadata.GetValueOrDefault("height", "0"));
+        // set => _metadata["height"] = value.ToString();
+        get;internal set;
     }
 
     public BlockHash this[Index index]
@@ -130,15 +132,15 @@ public sealed class BlockHashStore(Chain chain, IDatabase database)
         Height = Math.Max(Height, key);
     }
 
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            database.Remove(GetKey(chain.Id));
-        }
+    // protected override void Dispose(bool disposing)
+    // {
+    //     if (disposing)
+    //     {
+    //         database.Remove(GetKey(chain.Id));
+    //     }
 
-        base.Dispose(disposing);
-    }
+    //     base.Dispose(disposing);
+    // }
 
     protected override byte[] GetBytes(BlockHash value) => [.. value.Bytes];
 

@@ -28,9 +28,7 @@ public sealed class StatsCommandTest : IDisposable
         foreach (var storeFixture in _storeFixtures)
         {
             var store = storeFixture.Repository;
-            var guid = Guid.NewGuid();
-            var chain = store.Chains.GetOrAdd(guid);
-            store.ChainId = guid;
+            var chain = store;
             store.BlockDigests.Add(storeFixture.Block1);
             chain.BlockHashes.Add(storeFixture.Block1);
             store.PendingTransactions.Add(storeFixture.Transaction1);
@@ -49,7 +47,7 @@ public sealed class StatsCommandTest : IDisposable
         foreach (var storeFixture in _storeFixtures)
         {
             _command.Summary(
-                store: storeFixture.Repository,
+                repository: storeFixture.Repository,
                 header: true,
                 offset: 0,
                 limit: 1);
@@ -68,13 +66,13 @@ public sealed class StatsCommandTest : IDisposable
                     limit: 1));
             Assert.Throws<ArgumentException>(() =>
                 _command.Summary(
-                    store: storeFixture.Repository,
+                    repository: storeFixture.Repository,
                     header: true,
                     offset: badOffset,
                     limit: 1));
             Assert.Throws<ArgumentException>(() =>
                 _command.Summary(
-                    store: storeFixture.Repository,
+                    repository: storeFixture.Repository,
                     header: true,
                     offset: 0,
                     limit: badLimit));

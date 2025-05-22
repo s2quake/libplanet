@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
@@ -8,7 +10,10 @@ public sealed class Repository : IDisposable
 {
     private readonly IDatabase _database;
     private readonly MetadataStore _metadata;
-    private Chain? _chain;
+    private int _genesisHeight;
+    private int _height;
+    private HashDigest<SHA256> _stateRootHash;
+    private BlockCommit _blockCommit = BlockCommit.Empty;
 
     private bool _disposed;
 
@@ -20,6 +25,7 @@ public sealed class Repository : IDisposable
     public Repository(IDatabase database)
     {
         _database = database;
+        _metadata = new MetadataStore(_database);
         BlockDigests = new BlockDigestStore(_database);
         BlockCommits = new BlockCommitStore(_database);
         StateRootHashStore = new StateRootHashStore(_database);
@@ -29,19 +35,48 @@ public sealed class Repository : IDisposable
         CommittedEvidences = new CommittedEvidenceStore(_database);
         TxExecutions = new TxExecutionStore(_database);
         BlockExecutions = new BlockExecutionStore(_database);
-        Chains = new ChainStore(_database);
-        _metadata = new MetadataStore(_database);
-        StateStore = new TrieStateStore(_database);
-        if (_metadata.TryGetValue("chainId", out var chainId))
+        BlockHashes = new BlockHashStore(database)
         {
-            _chain = Chains[Guid.Parse(chainId)];
+            GenesisHeight = GenesisHeight,
+            Height = Height,
+        };
+        Nonces = new NonceStore(database);
+        // Chains = new ChainStore(_database);
+        StateStore = new TrieStateStore(_database);
+        if (_metadata.TryGetValue("genesisHeight", out var genesisHeight))
+        {
+            _genesisHeight = int.Parse(genesisHeight);
+        }
+
+        if (_metadata.TryGetValue("height", out var height))
+        {
+            _height = int.Parse(height);
+        }
+
+        _stateRootHash = _metadata.TryGetValue("stateRootHash", out var s1) ? HashDigest<SHA256>.Parse(s1) : default;
+
+        if (_metadata.TryGetValue("id", out var id))
+        {
+            Id = Guid.Parse(id);
         }
         else
         {
-            _chain = Chains.AddNew(Guid.NewGuid());
-            _metadata["chainId"] = _chain.Id.ToString();
+            Id = Guid.NewGuid();
+            _metadata["id"] = Id.ToString();
         }
+
+        // if (_metadata.TryGetValue("chainId", out var chainId))
+        // {
+        //     _chain = Chains[Guid.Parse(chainId)];
+        // }
+        // else
+        // {
+        //     _chain = Chains.AddNew(Guid.NewGuid());
+        //     _metadata["chainId"] = _chain.Id.ToString();
+        // }
     }
+
+    public Guid Id { get; }
 
     // public Repository(Block genesisBlock)
     //     : this(genesisBlock, new MemoryDatabase())
@@ -72,28 +107,71 @@ public sealed class Repository : IDisposable
 
     public BlockExecutionStore BlockExecutions { get; }
 
-    public ChainStore Chains { get; }
 
-    public Guid ChainId
+    public BlockHashStore BlockHashes { get; }
+
+    public NonceStore Nonces { get; }
+
+    // public ChainStore Chains { get; }
+
+    public int GenesisHeight
     {
-        get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
+        get => _genesisHeight;
         set
         {
-            if (value == Guid.Empty)
-            {
-                _chain = null;
-                _metadata.Remove("chainId");
-            }
-            else
-            {
-                _chain = Chains[value];
-                _metadata["chainId"] = value.ToString();
-            }
+            _genesisHeight = value;
+            _metadata["genesisHeight"] = _genesisHeight.ToString();
         }
     }
 
-    public Chain Chain => _chain ?? throw new InvalidOperationException(
-        "ChainId is not set. Please set ChainId before accessing the Chain property.");
+    public int Height
+    {
+        get => _height;
+        set
+        {
+            _height = value;
+            _metadata["height"] = _height.ToString();
+        }
+    }
+
+    public HashDigest<SHA256> StateRootHash
+    {
+        get => _stateRootHash;
+        set
+        {
+            _stateRootHash = value;
+            _metadata["stateRootHash"] = _stateRootHash.ToString();
+        }
+    }
+
+    public BlockHash GenesisBlockHash => BlockHashes[_genesisHeight];
+
+    public BlockHash BlockHash => BlockHashes[_height];
+
+    public BlockCommit BlockCommit => BlockCommits[BlockHash];
+
+    // public HashDigest<SHA256> StateRootHash { get; set; }
+
+    // public Guid ChainId
+    // {
+    //     get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
+    //     set
+    //     {
+    //         if (value == Guid.Empty)
+    //         {
+    //             _chain = null;
+    //             _metadata.Remove("chainId");
+    //         }
+    //         else
+    //         {
+    //             _chain = Chains[value];
+    //             _metadata["chainId"] = value.ToString();
+    //         }
+    //     }
+    // }
+
+    // public Chain Chain => _chain ?? throw new InvalidOperationException(
+    //     "ChainId is not set. Please set ChainId before accessing the Chain property.");
 
     public TrieStateStore StateStore { get; }
 
@@ -110,6 +188,8 @@ public sealed class Repository : IDisposable
     {
         BlockDigests.Add(block);
         BlockCommits.Add(block.BlockHash, blockCommit);
+        BlockHashes.Add(block);
+        Nonces.Increase(block);
         PendingTransactions.RemoveRange(block.Transactions);
         CommittedTransactions.AddRange(block.Transactions);
         PendingEvidences.RemoveRange(block.Evidences);
@@ -122,10 +202,9 @@ public sealed class Repository : IDisposable
         return blockDigest.ToBlock(item => CommittedTransactions[item], item => CommittedEvidences[item]);
     }
 
-    public Block GetBlock(Guid chainId, int height)
+    public Block GetBlock(int height)
     {
-        var chain = Chains[chainId];
-        var blockHash = chain.BlockHashes[height];
+        var blockHash = BlockHashes[height];
         return GetBlock(blockHash);
     }
 
@@ -141,10 +220,9 @@ public sealed class Repository : IDisposable
         return false;
     }
 
-    public bool TryGetBlock(Guid chainId, int height, [MaybeNullWhen(false)] out Block block)
+    public bool TryGetBlock(int height, [MaybeNullWhen(false)] out Block block)
     {
-        var chain = Chains[chainId];
-        if (chain.BlockHashes.TryGetValue(height, out var blockHash))
+        if (BlockHashes.TryGetValue(height, out var blockHash))
         {
             return TryGetBlock(blockHash, out block);
         }
@@ -163,10 +241,9 @@ public sealed class Repository : IDisposable
         return null;
     }
 
-    public Block? GetBlockOrDefault(Guid chainId, int height)
+    public Block? GetBlockOrDefault(int height)
     {
-        var chain = Chains[chainId];
-        if (chain.BlockHashes.TryGetValue(height, out var blockHash))
+        if (BlockHashes.TryGetValue(height, out var blockHash))
         {
             return GetBlockOrDefault(blockHash);
         }
@@ -174,10 +251,9 @@ public sealed class Repository : IDisposable
         return null;
     }
 
-    public long GetNonce(Guid chainId, Address address)
+    public long GetNonce(Address address)
     {
-        var chain = Chains[chainId];
-        if (chain.Nonces.TryGetValue(address, out var nonce))
+        if (Nonces.TryGetValue(address, out var nonce))
         {
             return nonce;
         }

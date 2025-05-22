@@ -10,7 +10,6 @@ namespace Libplanet.Blockchain;
 public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 {
     private readonly Repository _repository;
-    private readonly Chain _chain;
     private readonly BlockDigestStore _blockDigests;
     private readonly BlockHashStore _blockHashes;
     private readonly ICache<BlockHash, Block> _cacheByHash;
@@ -20,9 +19,8 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
     internal BlockCollection(Repository repository, int cacheSize = 4096)
     {
         _repository = repository;
-        _chain = repository.Chain;
         _blockDigests = _repository.BlockDigests;
-        _blockHashes = _chain.BlockHashes;
+        _blockHashes = _repository.BlockHashes;
         _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
             .WithCapacity(cacheSize)
             .Build();
