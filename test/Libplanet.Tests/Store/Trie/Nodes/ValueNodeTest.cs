@@ -1,4 +1,4 @@
-// // using Libplanet.Store.Trie.Nodes;
+// // using Libplanet.Store.DataStructures.Nodes;
 // using Libplanet.Types;
 
 // namespace Libplanet.Tests.Store.Trie.Nodes

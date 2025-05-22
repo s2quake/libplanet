@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Libplanet.Types;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 public interface ITrie : IEnumerable<KeyValuePair<string, object>>
 {

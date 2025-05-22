@@ -1,5 +1,5 @@
 // using Libplanet.Action.State;
-// using Libplanet.Store.Trie;
+// using Libplanet.Store.DataStructures;
 // using Libplanet.Types.Assets;
 // using Libplanet.Types.Crypto;
 // using static Libplanet.Types.ByteUtility;

@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 public sealed class CacheableKeyValueStore(IDictionary<string, byte[]> keyValueStore, int cacheSize = 100)
     : TableBase, IDisposable

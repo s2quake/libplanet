@@ -1,6 +1,6 @@
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
-public static class TrieExtensions
+public static class ITrieExtensions
 {
     public static IReadOnlyList<object?> GetMany(this ITrie @this, IEnumerable<string> keys)
     {

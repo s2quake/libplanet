@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore;

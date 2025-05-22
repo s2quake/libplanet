@@ -4,10 +4,10 @@ using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 using Libplanet.Serialization;
-using Libplanet.Store.Trie.Nodes;
+using Libplanet.Store.DataStructures.Nodes;
 using Libplanet.Types;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 public sealed partial record class Trie(INode Node) : ITrie
 {

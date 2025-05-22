@@ -1,7 +1,7 @@
 using Libplanet.Serialization;
 using Libplanet.Store.ModelConverters;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 [ModelConverter(typeof(NibblesModelConverter))]
 public readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable

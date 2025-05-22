@@ -1,6 +1,6 @@
 // using System.Runtime.CompilerServices;
 // using System.Text;
-// using Libplanet.Store.Trie;
+// using Libplanet.Store.DataStructures;
 // using Libplanet.Types.Assets;
 // using Libplanet.Types.Crypto;
 

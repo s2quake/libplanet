@@ -3,7 +3,7 @@ using System.Text;
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 using Libplanet.Types;
 using Libplanet.Types.Assets;
 

@@ -4,7 +4,7 @@
 // using Libplanet.Blockchain.Policies;
 // using Libplanet.Types.Crypto;
 // using Libplanet.Store;
-// using Libplanet.Store.Trie;
+// using Libplanet.Store.DataStructures;
 // using Libplanet.Types.Assets;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Tx;

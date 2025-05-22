@@ -3,7 +3,7 @@ using System.IO;
 using Zio;
 using Zio.FileSystems;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 public sealed class DefaultTable(string path) : TableBase, IDisposable
 {

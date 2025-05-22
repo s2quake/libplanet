@@ -1,7 +1,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Store.Trie.Nodes;
+using Libplanet.Store.DataStructures.Nodes;
 using Libplanet.Types;
 
 namespace Libplanet.Store.ModelConverters;

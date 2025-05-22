@@ -1,4 +1,4 @@
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 public class InvalidTrieNodeException : Exception
 {

@@ -1,4 +1,4 @@
-namespace Libplanet.Store.Trie.Nodes;
+namespace Libplanet.Store.DataStructures.Nodes;
 
 internal sealed record class NullNode : INode
 {

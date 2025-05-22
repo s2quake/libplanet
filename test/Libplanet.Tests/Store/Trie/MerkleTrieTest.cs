@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Libplanet.Serialization;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
-using Libplanet.Store.Trie.Nodes;
+using Libplanet.Store.DataStructures;
+using Libplanet.Store.DataStructures.Nodes;
 using Libplanet.Types;
 using static System.Linq.Enumerable;
 
@@ -14,7 +14,7 @@ public class MerkleTrieTest
     [Fact]
     public void Base_Test()
     {
-        var trie = new Libplanet.Store.Trie.Trie();
+        var trie = new Libplanet.Store.DataStructures.Trie();
         Assert.Equal(default, trie.Hash);
         Assert.IsType<NullNode>(trie.Node);
     }
@@ -24,7 +24,7 @@ public class MerkleTrieTest
     {
         var store = new MemoryTable();
         var hashDigest = RandomUtility.NextHashDigest<SHA256>();
-        var trie = new Libplanet.Store.Trie.Trie(new HashNode { Hash = hashDigest, Table = store });
+        var trie = new Libplanet.Store.DataStructures.Trie(new HashNode { Hash = hashDigest, Table = store });
         Assert.Equal(hashDigest, trie.Hash);
     }
 
@@ -34,7 +34,7 @@ public class MerkleTrieTest
         var store = new MemoryTable();
         var hashDigest = RandomUtility.NextHashDigest<SHA256>();
         var node = new HashNode { Hash = hashDigest, Table = store };
-        var trie = new Libplanet.Store.Trie.Trie(node);
+        var trie = new Libplanet.Store.DataStructures.Trie(node);
         Assert.Equal(hashDigest, trie.Hash);
     }
 
@@ -43,7 +43,7 @@ public class MerkleTrieTest
     {
         var store = new MemoryTable();
         var keyValue = ("01", ImmutableSortedDictionary<string, string>.Empty);
-        var trie = Libplanet.Store.Trie.Trie.Create(keyValue);
+        var trie = Libplanet.Store.DataStructures.Trie.Create(keyValue);
         Assert.Single(trie.ToDictionary());
         Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie["01"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0"]);
@@ -59,7 +59,7 @@ public class MerkleTrieTest
     {
         var keyValueStore = new MemoryTable();
         var stateStore = new TrieStateStore(keyValueStore);
-        var trie = new Libplanet.Store.Trie.Trie()
+        var trie = new Libplanet.Store.DataStructures.Trie()
             .Set("00", ImmutableSortedDictionary<string, string>.Empty)
             .Set("1", "1")
             .Set("2", "2")
@@ -88,8 +88,8 @@ public class MerkleTrieTest
     public void IterateNodes()
     {
         var stateStore = new TrieStateStore();
-        var trie = Libplanet.Store.Trie.Trie.Create(
-            ("ab", ImmutableSortedDictionary<string, string>.Empty.Add("a", "b")));
+        var trie = Libplanet.Store.DataStructures.Trie.Create(
+            ((string Key, object Value))("ab", ImmutableSortedDictionary<string, string>.Empty.Add("a", "b")));
 
         // There are (ShortNode, ValueNode)
         Assert.Equal(2, trie.IterateNodes().Count());
@@ -117,7 +117,7 @@ public class MerkleTrieTest
         var keyValues = keys
             .Select(key => (key, (object)key))
             .ToArray();
-        var trie = Libplanet.Store.Trie.Trie.Create(keyValues);
+        var trie = Libplanet.Store.DataStructures.Trie.Create(keyValues);
         var prefixKey = "_";
 
         trie = commit ? stateStore.Commit(trie) : trie;
@@ -136,8 +136,8 @@ public class MerkleTrieTest
     public void Set(bool commit)
     {
         var stateStore = new TrieStateStore();
-        var trie = Libplanet.Store.Trie.Trie.Create(
-            ("_", ImmutableSortedDictionary<string, string>.Empty));
+        var trie = Libplanet.Store.DataStructures.Trie.Create(
+            ((string Key, object Value))("_", ImmutableSortedDictionary<string, string>.Empty));
 
         Assert.Throws<KeyNotFoundException>(() => trie["0xbe, 0xef"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0x11, 0x22"]);
@@ -269,7 +269,7 @@ public class MerkleTrieTest
             ("0x00, 0x00", "0000"),
             ("0x00, 0x10", "00000000000000000000000000000000_0010"),
         };
-        var trie1 = Libplanet.Store.Trie.Trie.Create(keyValues);
+        var trie1 = Libplanet.Store.DataStructures.Trie.Create(keyValues);
 
         // Assert.IsType<ShortNode>(trie1.GetNode(Nibbles.Parse(string.Empty)));
         // Assert.IsType<FullNode>(trie1.GetNode(Nibbles.Parse("00")));
@@ -293,7 +293,7 @@ public class MerkleTrieTest
     public void ResolveToValueAtTheEndOfShortNode()
     {
         var stateStore = new TrieStateStore();
-        var trie = Libplanet.Store.Trie.Trie.Create(
+        var trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: "0x00", Value: "00"));
 
         trie = stateStore.Commit(trie);
@@ -307,7 +307,7 @@ public class MerkleTrieTest
         var stateStore = new TrieStateStore();
         var value00 = "00";
         var value0000 = "0000";
-        var trie = Libplanet.Store.Trie.Trie.Create(
+        var trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: "0x00", Value: value00),
             (Key: "0x00, 0x00", Value: value0000));
 
@@ -325,7 +325,7 @@ public class MerkleTrieTest
         var value00 = "00";
         var value0000 = "0000";
         var value0010 = "0010";
-        var trie = Libplanet.Store.Trie.Trie.Create(
+        var trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: "0x00", Value: value00),
             (Key: "0x00, 0x00", Value: value0000),
             (Key: "0x00, 0x10", Value: value0010));
@@ -347,19 +347,19 @@ public class MerkleTrieTest
         var key0000 = "0x00, 0x00";
         var value0000 = "0000";
 
-        var trie = new Libplanet.Store.Trie.Trie()
+        var trie = new Libplanet.Store.DataStructures.Trie()
             .Set(key00, value00);
         trie = stateStore.Commit(trie);
         Assert.Equal(default, trie.Remove(key00).Hash);
 
-        trie = Libplanet.Store.Trie.Trie.Create(
+        trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
         int expectedNodeCount = trie.IterateNodes().Count();
         int expectedValueCount = trie.ToDictionary().Count;
         HashDigest<SHA256> expectedHash = trie.Hash;
 
-        trie = Libplanet.Store.Trie.Trie.Create(
+        trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key00, Value: value00),
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
@@ -370,14 +370,14 @@ public class MerkleTrieTest
         Assert.Equal(expectedValueCount, trie.ToDictionary().Count);
         Assert.Equal(expectedHash, trie.Hash);
 
-        trie = Libplanet.Store.Trie.Trie.Create(
+        trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key00, Value: value00));
         trie = stateStore.Commit(trie);
         expectedNodeCount = trie.IterateNodes().Count();
         expectedValueCount = trie.ToDictionary().Count;
         expectedHash = trie.Hash;
 
-        trie = Libplanet.Store.Trie.Trie.Create(
+        trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key00, Value: value00),
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
@@ -388,7 +388,7 @@ public class MerkleTrieTest
         Assert.Equal(expectedValueCount, trie.ToDictionary().Count);
         // Assert.Equal(expectedHash, trie.Hash);
 
-        trie = Libplanet.Store.Trie.Trie.Create(
+        trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key00, Value: value00),
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
@@ -403,8 +403,8 @@ public class MerkleTrieTest
         // Add randomized kvs and remove kvs in order.
         // The way the test is set up, identical kv pairs shouldn't matter.
         Random random = new Random();
-        List<(string Key, string Value)> kvs = Enumerable
-            .Range(0, 100)
+        List<(string Key, string Value)> kvs =
+            Range(0, 100)
             .Select(_ => RandomUtility.Word())
             .Select(item => (item, item))
             .ToList();
@@ -413,7 +413,7 @@ public class MerkleTrieTest
         for (var i = 0; i < kvs.Count; i++)
         {
             var kv = kvs[i];
-            trie = i == 0 ? Libplanet.Store.Trie.Trie.Create(kv) : trie.Set(kv.Key, kv.Value);
+            trie = i == 0 ? Libplanet.Store.DataStructures.Trie.Create(kv) : trie.Set(kv.Key, kv.Value);
             trie = stateStore.Commit(trie);
             expected.Push(
                 (trie.Hash, trie.IterateNodes().Count(), trie.Count()));
@@ -444,7 +444,7 @@ public class MerkleTrieTest
         var key0011 = "0x00, 0x11";
         var value0011 = "0011";
         var key000000 = "0x00, 0x00, 0x00";
-        var trie = Libplanet.Store.Trie.Trie.Create(
+        var trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key0000, Value: value0000),
             (Key: key0011, Value: value0011));
         trie = stateStore.Commit(trie);
