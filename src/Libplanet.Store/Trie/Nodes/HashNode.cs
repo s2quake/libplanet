@@ -17,10 +17,6 @@ internal sealed record class HashNode : INode
         get
         {
             yield return Expand();
-            // foreach (var item in Expand().Children)
-            // {
-            //     yield return item;
-            // }
         }
     }
 

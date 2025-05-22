@@ -76,45 +76,6 @@ public sealed record class FullNode
 
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-    // public byte[] Serialize()
-    // {
-    //     throw new NotImplementedException();
-    // }
-
-    // public IValue ToBencodex()
-    // {
-    //     var items = Enumerable.Repeat<IValue>(null, MaximumIndex + 1).ToArray();
-    //     foreach (var (key, value) in Children)
-    //     {
-    //         if (value is not null)
-    //         {
-    //             items[key] = value.ToBencodex();
-    //         }
-    //     }
-
-    //     if (Value is not null)
-    //     {
-    //         items[MaximumIndex] = Value.ToBencodex();
-    //     }
-
-    //     return new List(items);
-    // }
-
-    // private static ImmutableDictionary<byte, INode> ValidateChildren(
-    //     ImmutableDictionary<byte, INode> children)
-    // {
-    //     foreach (var key in children.Keys)
-    //     {
-    //         if (key > MaximumIndex)
-    //         {
-    //             var message = "The key of FullNode's children should be less than 0x10.";
-    //             throw new ArgumentException(message, nameof(children));
-    //         }
-    //     }
-
-    //     return children;
-    // }
-
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
         foreach (var (key, value) in Children)

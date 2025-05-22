@@ -47,67 +47,6 @@ public sealed class BlockHashStore(IDatabase database)
 
     public void Add(Block block) => Add(block.Height, block.BlockHash);
 
-    // public IEnumerable<BlockHash> Skip(int height)
-    // {
-    //     if (IsDisposed)
-    //     {
-    //         yield break;
-    //     }
-
-    //     var begin = height + GenesisHeight;
-    //     for (var i = begin; i < Count; i++)
-    //     {
-    //         if (TryGetValue(i, out var blockHash))
-    //         {
-    //             yield return blockHash;
-    //         }
-    //     }
-    // }
-
-    // public IEnumerable<BlockHash> Take(int height)
-    // {
-    //     if (IsDisposed)
-    //     {
-    //         yield break;
-    //     }
-
-    //     var begin = GenesisHeight;
-    //     var end = checked(height + GenesisHeight);
-    //     for (var i = begin; i < end; i++)
-    //     {
-    //         if (TryGetValue(i, out var blockHash))
-    //         {
-    //             yield return blockHash;
-    //         }
-    //         else
-    //         {
-    //             break;
-    //         }
-    //     }
-    // }
-
-    // public IEnumerable<BlockHash> IterateHeights(int height = 0, int? limit = null)
-    // {
-    //     if (IsDisposed)
-    //     {
-    //         yield break;
-    //     }
-
-    //     var begin = height + GenesisHeight;
-    //     var end = checked(limit is { } l ? begin + l : int.MaxValue);
-    //     for (var i = begin; i < end; i++)
-    //     {
-    //         if (TryGetValue(i, out var blockHash))
-    //         {
-    //             yield return blockHash;
-    //         }
-    //         else
-    //         {
-    //             break;
-    //         }
-    //     }
-    // }
-
     internal static string GetKey(Guid chainId) => $"{chainId}_block_hash";
 
     protected override void OnAddComplete(int key, BlockHash item)
@@ -121,16 +60,6 @@ public sealed class BlockHashStore(IDatabase database)
         base.OnSetComplete(key, item);
         Height = Math.Max(Height, key);
     }
-
-    // protected override void Dispose(bool disposing)
-    // {
-    //     if (disposing)
-    //     {
-    //         database.Remove(GetKey(chain.Id));
-    //     }
-
-    //     base.Dispose(disposing);
-    // }
 
     protected override byte[] GetBytes(BlockHash value) => [.. value.Bytes];
 
