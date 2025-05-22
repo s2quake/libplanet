@@ -18,9 +18,9 @@ public interface ITrie : IEnumerable<KeyValuePair<string, object>>
 
     ITrie Remove(string key);
 
-    // INode GetNode(string key);
+    INode GetNode(string key);
 
-    // bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node);
+    bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node);
 
     bool TryGetValue(string key, [MaybeNullWhen(false)] out object value);
 

@@ -59,7 +59,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     public ITrie Set(string key, object value)
     {
         var node = Node;
-        var cursor = PathCursor.Create(new KeyBytes(Encoding.UTF8.GetBytes(key)));
+        var cursor = PathCursor.Create(key);
         var valueNode = new ValueNode { Value = value };
         var newNode = NodeInserter.Insert(node, cursor, valueNode);
         return new Trie(newNode) { IsCommitted = IsCommitted };
@@ -72,15 +72,34 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new InvalidOperationException("Cannot remove from an empty trie.");
         }
 
-        var cursor = PathCursor.Create(new KeyBytes(Encoding.UTF8.GetBytes(key)));
+        var cursor = PathCursor.Create(key);
         return new Trie(NodeRemover.Remove(Node, cursor));
     }
 
-    // public INode GetNode(string key)
-    // {
-    //     var nibbles = Nibbles.FromKeyBytes(new KeyBytes(Encoding.UTF8.GetBytes(key)));
-    //     return GetNode(nibbles);
-    // }
+    public INode GetNode(string key)
+    {
+        var nibbles = Nibbles.FromKeyBytes(new KeyBytes(Encoding.UTF8.GetBytes(key)));
+        var node = NodeResolver.ResolveToNode(Node, new PathCursor(nibbles));
+        if (node is NullNode)
+        {
+            throw new KeyNotFoundException($"Key {key} not found in the trie.");
+        }
+
+        return node;
+    }
+
+    public bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node)
+    {
+        var nibbles = Nibbles.FromKeyBytes(new KeyBytes(Encoding.UTF8.GetBytes(key)));
+        node = NodeResolver.ResolveToNode(Node, new PathCursor(nibbles));
+        if (node is not NullNode)
+        {
+            return true;
+        }
+
+        node = null;
+        return false;
+    }
 
     // public bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node)
     //     => TryGetNode(Nibbles.FromKeyBytes(new KeyBytes(Encoding.UTF8.GetBytes(key))), out node);
