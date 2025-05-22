@@ -93,7 +93,7 @@ public partial class BlockChainTest : IDisposable
     public void BaseTest_WithGenesis()
     {
         var proposer = new PrivateKey();
-        var genesisBlock = ProposeGenesisBlock(proposer);
+        var genesisBlock = BlockChain.ProposeGenesisBlock(proposer, transactions: []);
         var blockChain = new BlockChain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockChain.Id);
         Assert.Single(blockChain.Blocks);

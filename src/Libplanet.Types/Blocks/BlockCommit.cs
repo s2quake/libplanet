@@ -26,9 +26,9 @@ public sealed partial record class BlockCommit : IEquatable<BlockCommit>, IHasKe
     [NotEmpty]
     public ImmutableArray<Vote> Votes { get; init; } = [];
 
-    [Property(4)]
-    [NotDefault]
-    public ImmutableArray<byte> Signature { get; init; }
+    // [Property(4)]
+    // [NotDefault]
+    // public ImmutableArray<byte> Signature { get; init; }
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
 
