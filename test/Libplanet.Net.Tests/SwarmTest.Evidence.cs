@@ -158,7 +158,7 @@ namespace Libplanet.Net.Tests
                     manualResetEvent.WaitOne(Timeout);
                 }
 
-                void BlockChain_TipChanged(TipChangedEvent e)
+                void BlockChain_TipChanged(TipChangedInfo e)
                 {
                     if (e.NewTip.Height >= index)
                     {

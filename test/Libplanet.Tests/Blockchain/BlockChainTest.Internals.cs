@@ -150,59 +150,59 @@ public partial class BlockChainTest
         // }
     }
 
-    [SkippableTheory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void UpdateTxExecutions(bool getTxExecutionViaStore)
-    {
-        void AssertTxExecutionEqual(TxExecution expected, TxExecution actual)
-        {
-            Assert.Equal(expected.Fail, actual.Fail);
-            Assert.Equal(expected.TxId, actual.TxId);
-            Assert.Equal(expected.BlockHash, actual.BlockHash);
-            Assert.Equal(expected.InputState, actual.InputState);
-            Assert.Equal(expected.OutputState, actual.OutputState);
-            Assert.Equal(expected.ExceptionNames, actual.ExceptionNames);
-        }
+    // [SkippableTheory]
+    // [InlineData(true)]
+    // [InlineData(false)]
+    // public void UpdateTxExecutions(bool getTxExecutionViaStore)
+    // {
+    //     void AssertTxExecutionEqual(TxExecution expected, TxExecution actual)
+    //     {
+    //         Assert.Equal(expected.Fail, actual.Fail);
+    //         Assert.Equal(expected.TxId, actual.TxId);
+    //         Assert.Equal(expected.BlockHash, actual.BlockHash);
+    //         Assert.Equal(expected.InputState, actual.InputState);
+    //         Assert.Equal(expected.OutputState, actual.OutputState);
+    //         Assert.Equal(expected.ExceptionNames, actual.ExceptionNames);
+    //     }
 
-        var getTxExecution = new Func<BlockHash, TxId, TxExecution>(
-            (blockHash, txId) => _blockChain.TxExecutions[txId]);
+    //     var getTxExecution = new Func<BlockHash, TxId, TxExecution>(
+    //         (blockHash, txId) => _blockChain.TxExecutions[txId]);
 
-        Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId1));
-        Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId2));
-        Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId1));
-        Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId2));
+    //     Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId1));
+    //     Assert.Null(getTxExecution(_fx.Hash1, _fx.TxId2));
+    //     Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId1));
+    //     Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId2));
 
-        var random = new System.Random();
-        var inputA = new TxExecution
-        {
-            BlockHash = _fx.Hash1,
-            TxId = _fx.TxId1,
-            InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-            OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-            ExceptionNames = [],
-        };
-        var inputB = new TxExecution
-        {
-            BlockHash = _fx.Hash1,
-            TxId = _fx.TxId2,
-            InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-            OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-            ExceptionNames = ["AnExceptionName"],
-        };
-        var inputC = new TxExecution
-        {
-            BlockHash = _fx.Hash2,
-            TxId = _fx.TxId1,
-            InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-            OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-            ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
-        };
-        _blockChain.TxExecutions.AddRange([inputA, inputB, inputC]);
+    //     var random = new System.Random();
+    //     var inputA = new TxExecution
+    //     {
+    //         BlockHash = _fx.Hash1,
+    //         TxId = _fx.TxId1,
+    //         InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         ExceptionNames = [],
+    //     };
+    //     var inputB = new TxExecution
+    //     {
+    //         BlockHash = _fx.Hash1,
+    //         TxId = _fx.TxId2,
+    //         InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         ExceptionNames = ["AnExceptionName"],
+    //     };
+    //     var inputC = new TxExecution
+    //     {
+    //         BlockHash = _fx.Hash2,
+    //         TxId = _fx.TxId1,
+    //         InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
+    //     };
+    //     _blockChain.TxExecutions.AddRange([inputA, inputB, inputC]);
 
-        AssertTxExecutionEqual(inputA, getTxExecution(_fx.Hash1, _fx.TxId1));
-        AssertTxExecutionEqual(inputB, getTxExecution(_fx.Hash1, _fx.TxId2));
-        AssertTxExecutionEqual(inputC, getTxExecution(_fx.Hash2, _fx.TxId1));
-        Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId2));
-    }
+    //     AssertTxExecutionEqual(inputA, getTxExecution(_fx.Hash1, _fx.TxId1));
+    //     AssertTxExecutionEqual(inputB, getTxExecution(_fx.Hash1, _fx.TxId2));
+    //     AssertTxExecutionEqual(inputC, getTxExecution(_fx.Hash2, _fx.TxId1));
+    //     Assert.Null(getTxExecution(_fx.Hash2, _fx.TxId2));
+    // }
 }

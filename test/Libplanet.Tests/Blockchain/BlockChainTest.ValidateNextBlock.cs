@@ -22,7 +22,7 @@ public partial class BlockChainTest
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                 Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockChain.TipStateRootHash,
+                PreviousStateRootHash = _blockChain.StateRootHash,
             },
         }.Sign(_fx.Proposer);
         var blockCommit = TestUtils.CreateBlockCommit(block);
@@ -44,7 +44,7 @@ public partial class BlockChainTest
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                 Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockChain.TipStateRootHash,
+                PreviousStateRootHash = _blockChain.StateRootHash,
             },
         }.Sign(_fx.Proposer);
         var blockCommit1 = TestUtils.CreateBlockCommit(block1);
@@ -535,7 +535,7 @@ public partial class BlockChainTest
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                 Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockChain.TipStateRootHash,
+                PreviousStateRootHash = _blockChain.StateRootHash,
             },
         }.Sign(_fx.Proposer);
 

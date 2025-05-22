@@ -71,6 +71,68 @@ public partial class BlockChainTest : IDisposable
         _fx.Dispose();
     }
 
+    [Fact]
+    public void BaseTest()
+    {
+        var blockChain = new BlockChain();
+        Assert.NotEqual(Guid.Empty, blockChain.Id);
+        Assert.Empty(blockChain.Blocks);
+        Assert.Empty(blockChain.BlockCommits);
+        Assert.Empty(blockChain.StagedTransactions);
+        Assert.Empty(blockChain.Transactions);
+        Assert.Empty(blockChain.PendingEvidences);
+        Assert.Empty(blockChain.Evidences);
+        Assert.Empty(blockChain.TxExecutions);
+        Assert.Throws<InvalidOperationException>(() => blockChain.StateRootHash);
+        Assert.Throws<InvalidOperationException>(() => blockChain.BlockCommit);
+        Assert.Throws<InvalidOperationException>(() => blockChain.Genesis);
+        Assert.Throws<InvalidOperationException>(() => blockChain.Tip);
+    }
+
+    [Fact]
+    public void BaseTest_WithGenesis()
+    {
+        var proposer = new PrivateKey();
+        var genesisBlock = ProposeGenesisBlock(proposer);
+        var blockChain = new BlockChain(genesisBlock);
+        Assert.NotEqual(Guid.Empty, blockChain.Id);
+        Assert.Single(blockChain.Blocks);
+        Assert.Single(blockChain.BlockCommits);
+        Assert.Empty(blockChain.StagedTransactions);
+        Assert.Empty(blockChain.Transactions);
+        Assert.Empty(blockChain.PendingEvidences);
+        Assert.Empty(blockChain.Evidences);
+        Assert.Empty(blockChain.TxExecutions);
+        Assert.Equal(default, blockChain.StateRootHash);
+        Assert.Equal(BlockCommit.Empty, blockChain.BlockCommit);
+        Assert.Equal(genesisBlock, blockChain.Genesis);
+        Assert.Equal(genesisBlock, blockChain.Tip);
+    }
+
+    [Fact]
+    public void BaseTest_WithGenesis_WithTransaction()
+    {
+        var proposer = new PrivateKey();
+        var action = new Initialize
+        {
+            Validators = [new Validator { Address = proposer.Address }],
+        };
+        var genesisBlock = BlockChain.ProposeGenesisBlock(proposer, [action]);
+        var blockChain = new BlockChain(genesisBlock);
+        Assert.NotEqual(Guid.Empty, blockChain.Id);
+        Assert.Single(blockChain.Blocks);
+        Assert.Single(blockChain.BlockCommits);
+        Assert.Empty(blockChain.StagedTransactions);
+        Assert.Single(blockChain.Transactions);
+        Assert.Empty(blockChain.PendingEvidences);
+        Assert.Empty(blockChain.Evidences);
+        Assert.Single(blockChain.TxExecutions);
+        Assert.NotEqual(default, blockChain.StateRootHash);
+        Assert.Equal(BlockCommit.Empty, blockChain.BlockCommit);
+        Assert.Equal(genesisBlock, blockChain.Genesis);
+        Assert.Equal(genesisBlock, blockChain.Tip);
+    }
+
     // [Fact]
     // public void CanonicalId()
     // {
@@ -271,22 +333,26 @@ public partial class BlockChainTest : IDisposable
     {
         var options = new BlockChainOptions();
         var generatedRandomValueLogs = new List<int>();
-        BlockChain blockChain = MakeBlockChain(options);
+        var blockChain = MakeBlockChain(options);
         var privateKey = new PrivateKey();
-        var action = DumbAction.Create((default, string.Empty));
-        var actions = new[] { action };
         blockChain.StagedTransactions.Add(submission: new()
         {
             Signer = privateKey,
-            Actions = actions,
+            Actions = [DumbAction.Create((default, string.Empty))],
         });
-        Block block = blockChain.ProposeBlock(new PrivateKey());
+        var block = blockChain.ProposeBlock(new PrivateKey());
+        var blockCommit = CreateBlockCommit(block);
 
         generatedRandomValueLogs.Clear();
         Assert.Empty(generatedRandomValueLogs);
-        blockChain.Append(block, CreateBlockCommit(block));
+        using var subscription1 = blockChain.RenderAction.Subscribe(ActionEvaluated);
+        using var subscription2 = blockChain.RenderAction.Subscribe(ActionEvaluated);
+        blockChain.Append(block, blockCommit);
         Assert.Equal(2, generatedRandomValueLogs.Count);
         Assert.Equal(generatedRandomValueLogs[0], generatedRandomValueLogs[1]);
+
+        void ActionEvaluated(ActionEvaluation evaluation)
+            => generatedRandomValueLogs.Add(evaluation.InputContext.GetRandom().Next());
     }
 
     [Fact]
@@ -1087,50 +1153,41 @@ public partial class BlockChainTest : IDisposable
     }
 
     [Fact]
-    private void TipChanged()
+    public void TipChanged()
     {
-        var genesis = _blockChain.Genesis;
-
-        // _renderer.ResetRecords();
-
-        // Assert.Empty(_renderer.BlockRecords);
-        Block block = _blockChain.ProposeBlock(new PrivateKey());
+        var genesisBlock = _blockChain.Genesis;
+        TipChangedInfo? tipChangedInfo = null;
+        var block = _blockChain.ProposeBlock(new PrivateKey());
+        var blockCommit = CreateBlockCommit(block);
+        using var subscription = _blockChain.TipChanged.Subscribe(i => tipChangedInfo = i);
         _blockChain.Append(block, CreateBlockCommit(block));
-        // IReadOnlyList<RenderRecord.BlockEvent> records = _renderer.BlockRecords;
-        // Assert.Equal(2, records.Count);
-        // foreach (RenderRecord.BlockEvent record in records)
-        // {
-        //     Assert.Equal(genesis, record.OldTip);
-        //     Assert.Equal(block, record.NewTip);
-        //     Assert.Equal(1, record.NewTip.Height);
-        // }
-
-        // _renderer.ResetRecords();
-        Assert.Throws<InvalidOperationException>(
-            () => _blockChain.Append(block, CreateBlockCommit(block)));
-        // Assert.Empty(_renderer.BlockRecords);
+        Assert.NotNull(tipChangedInfo);
+        Assert.Equal(genesisBlock, tipChangedInfo.OldTip);
+        Assert.Equal(block, tipChangedInfo.NewTip);
+        Assert.Equal(1, tipChangedInfo.NewTip.Height);
+        Assert.Throws<InvalidOperationException>(() => _blockChain.Append(block, blockCommit));
     }
 
     [Fact]
-    private void CreateWithGenesisBlock()
+    public void CreateWithGenesisBlock()
     {
-        var storeFixture = new MemoryStoreFixture(new());
-        var addresses = ImmutableList<Address>.Empty
-            .Add(storeFixture.Address1)
-            .Add(storeFixture.Address2)
-            .Add(storeFixture.Address3);
+        using var fx = new MemoryStoreFixture(new());
+        var addresses = ImmutableArray.Create([
+            fx.Address1,
+            fx.Address2,
+            fx.Address3,
+        ]);
 
-        var validatorPrivKey = new PrivateKey();
-
-        var privateKey = new PrivateKey();
-        var systemActions = new IAction[]
+        var validatorKey = new PrivateKey();
+        var proposerKey = new PrivateKey();
+        var actions = new IAction[]
         {
             new Initialize
             {
                 States = ImmutableDictionary.Create<Address, object>(),
                 Validators = ImmutableSortedSet.Create(
                 [
-                    Validator.Create(validatorPrivKey.Address, BigInteger.One),
+                    Validator.Create(validatorKey.Address, BigInteger.One),
                 ]),
             },
         };
@@ -1140,37 +1197,36 @@ public partial class BlockChainTest : IDisposable
                 .Select((address, index) => DumbAction.Create((address, index.ToString())))
                 .ToArray();
 
-        var systemTxs = systemActions
+        var systemTxs = actions
             .Select((systemAction, i) => new TransactionMetadata
             {
                 Nonce = i,
-                Signer = privateKey.Address,
+                Signer = proposerKey.Address,
                 GenesisHash = default,
                 Actions = new[] { systemAction }.ToBytecodes(),
-            }.Sign(privateKey))
+            }.Sign(proposerKey))
             .ToArray();
         var customTxs = new[]
         {
             new TransactionMetadata
             {
-                        Nonce = systemTxs.Length,
-                        Signer = privateKey.Address,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Actions = customActions.ToBytecodes(),
-                        MaxGasPrice = default,
-            }.Sign(privateKey),
+                Nonce = systemTxs.Length,
+                Signer = proposerKey.Address,
+                Timestamp = DateTimeOffset.UtcNow,
+                Actions = customActions.ToBytecodes(),
+                MaxGasPrice = default,
+            }.Sign(proposerKey),
         };
-        var txs = systemTxs.Concat(customTxs).ToImmutableList();
         var genesisBlock = BlockChain.ProposeGenesisBlock(
-            proposer: privateKey,
-            transactions: [.. txs]);
-        storeFixture.Repository.AddNewChain(genesisBlock);
-        var blockChain = new BlockChain(storeFixture.Repository, storeFixture.Options);
+            proposer: proposerKey,
+            transactions: [.. systemTxs.Concat(customTxs)]);
+        fx.Repository.AddNewChain(genesisBlock);
+        var blockChain = new BlockChain(fx.Repository, fx.Options);
 
         var validator = blockChain
             .GetWorld()
             .GetValidatorSet()[0];
-        Assert.Equal(validatorPrivKey.Address, validator.Address);
+        Assert.Equal(validatorKey.Address, validator.Address);
         Assert.Equal(BigInteger.One, validator.Power);
 
         var states = addresses
@@ -1186,20 +1242,11 @@ public partial class BlockChainTest : IDisposable
     }
 
     [Fact]
-    private void ConstructWithUnexpectedGenesisBlock()
+    public void ConstructWithUnexpectedGenesisBlock()
     {
         var options = new BlockChainOptions();
-
-        var genesisBlockA = BlockChain.ProposeGenesisBlock(new PrivateKey(), []);
-        var genesisBlockB = BlockChain.ProposeGenesisBlock(new PrivateKey(), []);
-        var repositoryA = new Repository(genesisBlockA);
-        var repositoryB = new Repository(genesisBlockB);
-        var blockChain = new BlockChain(repositoryA, options);
-
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            _ = new BlockChain(repositoryB, options);
-        });
+        var repository = new Repository();
+        Assert.Throws<InvalidOperationException>(() => new BlockChain(repository, options));
     }
 
     [Fact]

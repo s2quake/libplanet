@@ -294,7 +294,7 @@ public partial class ConsensusContext : IDisposable
         }
     }
 
-    private void OnTipChanged(TipChangedEvent e)
+    private void OnTipChanged(TipChangedInfo e)
     {
         // TODO: Should set delay by using GST.
         _newHeightCts?.Cancel();
