@@ -18,7 +18,6 @@ public partial class BlockChain
     private readonly Subject<RenderBlockInfo> _blockEvaluated = new();
     private readonly Subject<TipChangedInfo> _tipChangedSubject = new();
     private readonly Repository _repository;
-    private readonly Chain _chain;
     private readonly ActionEvaluator _actionEvaluator;
 
     public BlockChain()
@@ -46,17 +45,17 @@ public partial class BlockChain
     {
         var evaluation = Evaluate(genesisBlock);
         _repository.Append(genesisBlock, BlockCommit.Empty);
-        _chain.Append(genesisBlock, BlockCommit.Empty);
-        _chain.StateRootHash = evaluation.OutputWorld.Trie.Hash;
+        // _chain.Append(genesisBlock, BlockCommit.Empty);
+        _repository.StateRootHash = evaluation.OutputWorld.Trie.Hash;
     }
 
     public BlockChain(Repository repository, BlockChainOptions options)
     {
         _repository = repository;
-        _chain = repository.Chain;
+        // _chain = repository.Chain;
         _actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
         Options = options;
-        Id = _repository.ChainId;
+        Id = _repository.Id;
         Blocks = new BlockCollection(repository);
         BlockCommits = new BlockCommitCollection(repository);
         StagedTransactions = new StagedTransactionCollection(repository);
@@ -97,10 +96,10 @@ public partial class BlockChain
         ? Blocks[0] : throw new InvalidOperationException("The chain is empty.");
 
     public HashDigest<SHA256> StateRootHash => Blocks.Count is not 0
-        ? _chain.StateRootHash : throw new InvalidOperationException("The chain is empty.");
+        ? _repository.StateRootHash : throw new InvalidOperationException("The chain is empty.");
 
     public BlockCommit BlockCommit => Blocks.Count is not 0
-        ? _chain.BlockCommit : throw new InvalidOperationException("The chain is empty.");
+        ? _repository.BlockCommit : throw new InvalidOperationException("The chain is empty.");
 
     public BlockChainOptions Options { get; }
 
@@ -115,7 +114,7 @@ public partial class BlockChain
         var blockHash = block.BlockHash;
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(blockHash));
         _repository.BlockExecutions.Add(blockHash, evaluation.GetBlockExecution(blockHash));
-        _repository.StateRootHashStore.Add(blockHash, _chain.StateRootHash);
+        _repository.StateRootHashStore.Add(blockHash, _repository.StateRootHash);
 
         return evaluation;
     }
@@ -147,20 +146,20 @@ public partial class BlockChain
         // ValidateBlockStateRootHash(block);
 
         _repository.Append(block, blockCommit);
-        _chain.Append(block, blockCommit);
+        // _chain.Append(block, blockCommit);
         Blocks.AddCache(block);
 
         _tipChangedSubject.OnNext(new(oldTip, block));
         _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));
         var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
         _blockEvaluated.OnNext(new RenderBlockInfo(oldTip, block));
-        _chain.StateRootHash = evaluation.OutputWorld.Trie.Hash;
+        _repository.StateRootHash = evaluation.OutputWorld.Trie.Hash;
+        _repository.StateRootHashStore.Add(block.BlockHash, _repository.StateRootHash);
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
-        _repository.StateRootHashStore.Add(block.BlockHash, _chain.StateRootHash);
     }
 
     public HashDigest<SHA256> GetStateRootHash(int height)
-        => _repository.StateRootHashStore[_chain.BlockHashes[height]];
+        => _repository.StateRootHashStore[_repository.BlockHashes[height]];
 
     public HashDigest<SHA256> GetStateRootHash(BlockHash blockHash)
         => _repository.StateRootHashStore[blockHash];

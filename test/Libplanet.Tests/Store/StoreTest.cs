@@ -33,292 +33,6 @@ public abstract class StoreTest
         .ForContext(this.GetType());
 
     [Fact]
-    public void ListChainId()
-    {
-        var store = Fx.Repository;
-        var chainId = Fx.StoreChainId;
-        var chain = store.Chains.GetOrAdd(chainId);
-        Assert.Single(store.Chains);
-
-        store.BlockDigests.Add(Fx.Block1);
-        chain.BlockHashes.Add(Fx.Block1);
-        Assert.Equal([chainId], [.. store.Chains.Keys]);
-
-        var arbitraryGuid = Guid.NewGuid();
-        var arbitraryChain = store.Chains.GetOrAdd(arbitraryGuid);
-        arbitraryChain.BlockHashes.Add(Fx.Block1);
-        Assert.Equal([chainId, arbitraryGuid], store.Chains.Keys.ToImmutableSortedSet());
-    }
-
-    [Fact]
-    public void ListChainIdAfterForkAndDelete()
-    {
-        var store = Fx.Repository;
-        var chainAId = Guid.NewGuid();
-        var chainBId = Guid.NewGuid();
-        var chainA = store.Chains.GetOrAdd(chainAId);
-        var chainB = store.Chains.GetOrAdd(chainBId);
-
-        store.BlockDigests.Add(Fx.GenesisBlock);
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-
-        chainA.BlockHashes.Add(Fx.GenesisBlock);
-        chainA.BlockHashes.Add(Fx.Block1);
-        chainB.ForkFrom(chainA, Fx.Block1.BlockHash);
-        chainB.BlockHashes.Add(Fx.Block2);
-
-        store.Chains.Remove(chainAId);
-
-        Assert.Equal([chainBId], store.Chains.Keys);
-    }
-
-    [Fact]
-    public void DeleteChainId()
-    {
-        var block1 = ProposeNextBlock(
-            ProposeGenesisBlock(GenesisProposer),
-            GenesisProposer,
-            [Fx.Transaction1]);
-        var store = Fx.Repository;
-        var chainId = Fx.StoreChainId;
-        var chain = store.Chains.GetOrAdd(chainId);
-        chain.BlockHashes.Add(block1);
-
-        var arbitraryChainId = Guid.NewGuid();
-        var arbitraryChain = store.Chains.GetOrAdd(arbitraryChainId);
-        arbitraryChain.BlockHashes.Add(block1);
-        chain.Nonces.Increase(Fx.Transaction1.Signer);
-
-        store.Chains.Remove(chainId);
-        chain.Dispose();
-
-        Assert.Equal([arbitraryChainId], store.Chains.Keys);
-        Assert.Throws<ObjectDisposedException>(() => chain.Nonces[Fx.Transaction1.Signer]);
-    }
-
-    [Fact]
-    public void DeleteChainIdIsIdempotent()
-    {
-        var store = Fx.Repository;
-        Assert.Empty(store.Chains.Keys);
-        Assert.False(store.Chains.Remove(Guid.NewGuid()));
-        Assert.Empty(store.Chains.Keys);
-    }
-
-    [Fact]
-    public void DeleteChainIdWithForks()
-    {
-        Skip.IfNot(
-            Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
-            "Flaky test : Libplanet.Blocks.InvalidBlockSignatureException");
-
-        var store = Fx.Repository;
-        var chainAId = Guid.NewGuid();
-        var chainBId = Guid.NewGuid();
-        var chainCId = Guid.NewGuid();
-        var chainA = store.Chains.GetOrAdd(chainAId);
-        var chainB = store.Chains.GetOrAdd(chainBId);
-        var chainC = store.Chains.GetOrAdd(chainCId);
-
-        store.BlockDigests.Add(Fx.GenesisBlock);
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-        store.BlockDigests.Add(Fx.Block3);
-
-        chainA.BlockHashes.Add(Fx.GenesisBlock);
-        chainB.BlockHashes.Add(Fx.GenesisBlock);
-        chainC.BlockHashes.Add(Fx.GenesisBlock);
-
-        chainA.BlockHashes.Add(Fx.Block1);
-        chainB.ForkFrom(chainA, Fx.Block1.BlockHash);
-        chainB.BlockHashes.Add(Fx.Block2);
-        chainC.ForkFrom(chainB, Fx.Block2.BlockHash);
-        chainC.BlockHashes.Add(Fx.Block3);
-
-        store.Chains.Remove(chainAId);
-        chainA.Dispose();
-
-        Assert.Empty(chainA.BlockHashes.IterateHeights());
-        Assert.Throws<ObjectDisposedException>(() => chainA.BlockHashes[0]);
-        Assert.Throws<ObjectDisposedException>(() => chainA.BlockHashes[1]);
-
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights());
-        Assert.Equal(Fx.GenesisBlock.BlockHash, chainB.BlockHashes[0]);
-        Assert.Equal(Fx.Block1.BlockHash, chainB.BlockHashes[1]);
-        Assert.Equal(Fx.Block2.BlockHash, chainB.BlockHashes[2]);
-
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-                Fx.Block3.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights());
-        Assert.Equal(Fx.GenesisBlock.BlockHash, chainC.BlockHashes[0]);
-        Assert.Equal(Fx.Block1.BlockHash, chainC.BlockHashes[1]);
-        Assert.Equal(Fx.Block2.BlockHash, chainC.BlockHashes[2]);
-        Assert.Equal(Fx.Block3.BlockHash, chainC.BlockHashes[3]);
-
-        store.Chains.Remove(chainBId);
-        chainB.Dispose();
-
-        Assert.Empty(chainA.BlockHashes.IterateHeights());
-        Assert.Throws<ObjectDisposedException>(() => chainA.BlockHashes[0]);
-        Assert.Throws<ObjectDisposedException>(() => chainA.BlockHashes[1]);
-
-        Assert.Empty(chainB.BlockHashes.IterateHeights());
-        Assert.Throws<ObjectDisposedException>(() => chainB.BlockHashes[0]);
-        Assert.Throws<ObjectDisposedException>(() => chainB.BlockHashes[1]);
-        Assert.Throws<ObjectDisposedException>(() => chainB.BlockHashes[2]);
-
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-                Fx.Block3.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights());
-        Assert.Equal(Fx.GenesisBlock.BlockHash, chainC.BlockHashes[0]);
-        Assert.Equal(Fx.Block1.BlockHash, chainC.BlockHashes[1]);
-        Assert.Equal(Fx.Block2.BlockHash, chainC.BlockHashes[2]);
-        Assert.Equal(Fx.Block3.BlockHash, chainC.BlockHashes[3]);
-
-        store.Chains.Remove(chainCId);
-        chainC.Dispose();
-
-        Assert.Empty(chainA.BlockHashes.IterateHeights());
-        Assert.Empty(chainB.BlockHashes.IterateHeights());
-        Assert.Empty(chainC.BlockHashes.IterateHeights());
-        Assert.Throws<ObjectDisposedException>(() => chainC.BlockHashes[0]);
-        Assert.Throws<ObjectDisposedException>(() => chainC.BlockHashes[1]);
-        Assert.Throws<ObjectDisposedException>(() => chainC.BlockHashes[2]);
-        Assert.Throws<ObjectDisposedException>(() => chainC.BlockHashes[3]);
-    }
-
-    [Fact]
-    public void DeleteChainIdWithForksReverse()
-    {
-        var store = Fx.Repository;
-        var chainAId = Guid.NewGuid();
-        var chainBId = Guid.NewGuid();
-        var chainCId = Guid.NewGuid();
-        var chainA = store.Chains.GetOrAdd(chainAId);
-        var chainB = store.Chains.GetOrAdd(chainBId);
-        var chainC = store.Chains.GetOrAdd(chainCId);
-
-        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
-        // actual block...
-        store.BlockDigests.Add(Fx.GenesisBlock);
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-        store.BlockDigests.Add(Fx.Block3);
-
-        chainA.BlockHashes.Add(Fx.GenesisBlock);
-        chainB.BlockHashes.Add(Fx.GenesisBlock);
-        chainC.BlockHashes.Add(Fx.GenesisBlock);
-
-        chainA.BlockHashes.Add(Fx.Block1);
-        chainB.ForkFrom(chainA, Fx.Block1.BlockHash);
-        chainB.BlockHashes.Add(Fx.Block2);
-        chainC.ForkFrom(chainB, Fx.Block2.BlockHash);
-        chainC.BlockHashes.Add(Fx.Block3);
-
-        store.Chains.Remove(chainCId);
-        chainC.Dispose();
-
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-            ],
-            chainA.BlockHashes.IterateHeights());
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights());
-        Assert.Empty(chainC.BlockHashes.IterateHeights());
-
-        store.Chains.Remove(chainBId);
-        chainB.Dispose();
-
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-            ],
-            chainA.BlockHashes.IterateHeights());
-        Assert.Empty(chainB.BlockHashes.IterateHeights());
-        Assert.Empty(chainC.BlockHashes.IterateHeights());
-
-        store.Chains.Remove(chainAId);
-        chainA.Dispose();
-        Assert.Empty(chainA.BlockHashes.IterateHeights());
-        Assert.Empty(chainB.BlockHashes.IterateHeights());
-        Assert.Empty(chainC.BlockHashes.IterateHeights());
-    }
-
-    [Fact]
-    public void ForkFromChainWithDeletion()
-    {
-        var store = Fx.Repository;
-        var chainAId = Guid.NewGuid();
-        var chainBId = Guid.NewGuid();
-        var chainCId = Guid.NewGuid();
-        var chainA = store.Chains.GetOrAdd(chainAId);
-        var chainB = store.Chains.GetOrAdd(chainBId);
-        var chainC = store.Chains.GetOrAdd(chainCId);
-
-        store.BlockDigests.Add(Fx.GenesisBlock);
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-        store.BlockDigests.Add(Fx.Block3);
-
-        chainA.BlockHashes.Add(Fx.GenesisBlock);
-        chainA.BlockHashes.Add(Fx.Block1);
-        chainB.ForkFrom(chainA, Fx.Block1.BlockHash);
-        store.Chains.Remove(chainAId);
-        chainA.Dispose();
-
-        chainC.ForkFrom(chainB, Fx.Block1.BlockHash);
-        Assert.Equal(
-            Fx.Block1.BlockHash,
-            chainC.BlockHashes[Fx.Block1.Height]);
-    }
-
-    [Fact]
-    public void CanonicalChainId()
-    {
-        var store = Fx.Repository;
-        Assert.Equal(Guid.Empty, store.ChainId);
-
-        var aId = Guid.NewGuid();
-        Assert.Throws<KeyNotFoundException>(() => store.ChainId = aId);
-        var a = store.Chains.GetOrAdd(aId);
-        store.ChainId = aId;
-        Assert.Equal(aId, store.ChainId);
-        Assert.Equal(a, store.Chain);
-
-        var bId = Guid.NewGuid();
-        Assert.Throws<KeyNotFoundException>(() => store.ChainId = bId);
-        var b = store.Chains.GetOrAdd(bId);
-        store.ChainId = bId;
-        Assert.Equal(bId, store.ChainId);
-        Assert.Equal(b, store.Chain);
-    }
-
-    [Fact]
     public void StoreBlock()
     {
         var store = Fx.Repository;
@@ -538,79 +252,77 @@ public abstract class StoreTest
     [Fact]
     public void StoreIndex()
     {
-        var store = Fx.Repository;
-        var chain = store.Chains.GetOrAdd(Fx.StoreChainId);
-        Assert.Equal(0, chain.Height);
-        Assert.Throws<KeyNotFoundException>(() => chain.BlockHashes[0]);
-        Assert.Throws<KeyNotFoundException>(() => chain.BlockHashes[^1]);
+        var repository = Fx.Repository;
+        Assert.Equal(0, repository.Height);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[0]);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[^1]);
 
-        chain.GenesisHeight = Fx.Block1.Height;
-        chain.BlockHashes.Add(Fx.Block1);
-        Assert.Equal(1, chain.Height);
+        repository.GenesisHeight = Fx.Block1.Height;
+        repository.BlockHashes.Add(Fx.Block1);
+        Assert.Equal(1, repository.Height);
         Assert.Equal(
             [Fx.Block1.BlockHash],
-            chain.BlockHashes.IterateHeights());
-        Assert.Equal(Fx.Block1.BlockHash, chain.BlockHashes[1]);
-        Assert.Equal(Fx.Block1.BlockHash, chain.BlockHashes[^1]);
+            repository.BlockHashes.IterateHeights());
+        Assert.Equal(Fx.Block1.BlockHash, repository.BlockHashes[1]);
+        Assert.Equal(Fx.Block1.BlockHash, repository.BlockHashes[^1]);
 
-        chain.BlockHashes.Add(Fx.Block2);
-        Assert.Equal(2, chain.Height);
+        repository.BlockHashes.Add(Fx.Block2);
+        Assert.Equal(2, repository.Height);
         Assert.Equal(
             [Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-            chain.BlockHashes.IterateHeights());
-        Assert.Equal(Fx.Block1.BlockHash, chain.BlockHashes[1]);
-        Assert.Equal(Fx.Block2.BlockHash, chain.BlockHashes[2]);
-        Assert.Equal(Fx.Block2.BlockHash, chain.BlockHashes[^1]);
-        Assert.Equal(Fx.Block1.BlockHash, chain.BlockHashes[^2]);
+            repository.BlockHashes.IterateHeights());
+        Assert.Equal(Fx.Block1.BlockHash, repository.BlockHashes[1]);
+        Assert.Equal(Fx.Block2.BlockHash, repository.BlockHashes[2]);
+        Assert.Equal(Fx.Block2.BlockHash, repository.BlockHashes[^1]);
+        Assert.Equal(Fx.Block1.BlockHash, repository.BlockHashes[^2]);
     }
 
     [Fact]
     public void IterateHeights()
     {
-        var store = Fx.Repository;
-        var chain = store.Chains.GetOrAdd(Fx.StoreChainId);
+        var repository = Fx.Repository;
 
-        chain.BlockHashes.Add(0, Fx.Hash1);
-        chain.BlockHashes.Add(1, Fx.Hash2);
-        chain.BlockHashes.Add(2, Fx.Hash3);
+        repository.BlockHashes.Add(0, Fx.Hash1);
+        repository.BlockHashes.Add(1, Fx.Hash2);
+        repository.BlockHashes.Add(2, Fx.Hash3);
 
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2, Fx.Hash3],
-            chain.BlockHashes.IterateHeights());
+            repository.BlockHashes.IterateHeights());
         Assert.Equal(
             [Fx.Hash2, Fx.Hash3],
-            chain.BlockHashes.IterateHeights(1));
+            repository.BlockHashes.IterateHeights(1));
         Assert.Equal(
             [Fx.Hash3],
-            chain.BlockHashes.IterateHeights(2));
-        Assert.Equal([], chain.BlockHashes.IterateHeights(3));
-        Assert.Equal([], chain.BlockHashes.IterateHeights(4));
-        Assert.Equal([], chain.BlockHashes.IterateHeights(limit: 0));
+            repository.BlockHashes.IterateHeights(2));
+        Assert.Equal([], repository.BlockHashes.IterateHeights(3));
+        Assert.Equal([], repository.BlockHashes.IterateHeights(4));
+        Assert.Equal([], repository.BlockHashes.IterateHeights(limit: 0));
         Assert.Equal(
             [Fx.Hash1],
-            chain.BlockHashes.IterateHeights(limit: 1));
+            repository.BlockHashes.IterateHeights(limit: 1));
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2],
-            chain.BlockHashes.IterateHeights(limit: 2));
+            repository.BlockHashes.IterateHeights(limit: 2));
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2, Fx.Hash3],
-            chain.BlockHashes.IterateHeights(limit: 3));
+            repository.BlockHashes.IterateHeights(limit: 3));
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2, Fx.Hash3],
-            chain.BlockHashes.IterateHeights(limit: 4));
+            repository.BlockHashes.IterateHeights(limit: 4));
         Assert.Equal(
             [Fx.Hash2],
-            chain.BlockHashes.IterateHeights(1, 1));
+            repository.BlockHashes.IterateHeights(1, 1));
     }
 
     [Fact]
     public void TxNonce()
     {
-        var chain = Fx.Repository.Chains.GetOrAdd(Fx.StoreChainId);
+        var chain = Fx.Repository;
         Assert.Equal(0, chain.GetNonce(Fx.Transaction1.Signer));
         Assert.Equal(0, chain.GetNonce(Fx.Transaction2.Signer));
 
-        chain.IncreaseNonce(Fx.Transaction1.Signer);
+        chain.Nonces.Increase(Fx.Transaction1.Signer);
         Assert.Equal(1, chain.GetNonce(Fx.Transaction1.Signer));
         Assert.Equal(0, chain.GetNonce(Fx.Transaction2.Signer));
         Assert.Equal(
@@ -620,7 +332,7 @@ public abstract class StoreTest
             }.ToImmutableSortedDictionary(),
             chain.Nonces.ToImmutableSortedDictionary());
 
-        chain.IncreaseNonce(Fx.Transaction2.Signer, 5);
+        chain.Nonces.Increase(Fx.Transaction2.Signer, 5);
         Assert.Equal(1, chain.GetNonce(Fx.Transaction1.Signer));
         Assert.Equal(5, chain.GetNonce(Fx.Transaction2.Signer));
         Assert.Equal(
@@ -631,7 +343,7 @@ public abstract class StoreTest
             }.ToImmutableSortedDictionary(),
             chain.Nonces.ToImmutableSortedDictionary());
 
-        chain.IncreaseNonce(Fx.Transaction1.Signer, 2);
+        chain.Nonces.Increase(Fx.Transaction1.Signer, 2);
         Assert.Equal(3, chain.GetNonce(Fx.Transaction1.Signer));
         Assert.Equal(5, chain.GetNonce(Fx.Transaction2.Signer));
         Assert.Equal(
@@ -644,62 +356,13 @@ public abstract class StoreTest
     }
 
     [Fact]
-    public void ListTxNonces()
-    {
-        var store = Fx.Repository;
-        var chainId1 = Guid.NewGuid();
-        var chainId2 = Guid.NewGuid();
-        var chain1 = store.Chains.GetOrAdd(chainId1);
-        var chain2 = store.Chains.GetOrAdd(chainId2);
-
-        var address1 = Fx.Address1;
-        var address2 = Fx.Address2;
-
-        Assert.Empty(chain1.Nonces);
-        Assert.Empty(chain2.Nonces);
-
-        chain1.IncreaseNonce(address1);
-        Assert.Equal(
-            new Dictionary<Address, long>
-            {
-                [address1] = 1,
-            }.ToImmutableSortedDictionary(),
-            chain1.Nonces.ToImmutableSortedDictionary());
-
-        chain2.IncreaseNonce(address2);
-        Assert.Equal(
-            new Dictionary<Address, long>
-            {
-                [address2] = 1,
-            }.ToImmutableSortedDictionary(),
-            chain2.Nonces.ToImmutableSortedDictionary());
-
-        chain1.IncreaseNonce(address1);
-        chain1.IncreaseNonce(address2);
-        Assert.Equal(
-            ImmutableSortedDictionary<Address, long>.Empty
-                .Add(address1, 2)
-                .Add(address2, 1),
-            chain1.Nonces.ToImmutableSortedDictionary());
-
-        chain2.IncreaseNonce(address1);
-        chain2.IncreaseNonce(address2);
-        Assert.Equal(
-            ImmutableSortedDictionary<Address, long>.Empty
-                .Add(address1, 1)
-                .Add(address2, 2),
-            chain2.Nonces.ToImmutableSortedDictionary());
-    }
-
-    [Fact]
     public void IndexBlockHashReturnNull()
     {
-        var store = Fx.Repository;
-        var chain = store.Chains.GetOrAdd(Fx.StoreChainId);
-        store.BlockDigests.Add(Fx.Block1);
-        chain.BlockHashes.Add(1, Fx.Block1.BlockHash);
-        Assert.Equal(1, chain.Height);
-        Assert.Throws<KeyNotFoundException>(() => chain.BlockHashes[2]);
+        var repository = Fx.Repository;
+        repository.BlockDigests.Add(Fx.Block1);
+        repository.BlockHashes.Add(1, Fx.Block1.BlockHash);
+        Assert.Equal(1, repository.Height);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[2]);
     }
 
     [Fact]
@@ -801,185 +464,6 @@ public abstract class StoreTest
 
             throw;
         }
-    }
-
-    [Fact]
-    public void ForkBlockIndex()
-    {
-        var store = Fx.Repository;
-        var chainIdA = Guid.NewGuid();
-        var chainIdB = Guid.NewGuid();
-        var chainIdC = Guid.NewGuid();
-        var chainA = store.Chains.GetOrAdd(chainIdA);
-        var chainB = store.Chains.GetOrAdd(chainIdB);
-        var chainC = store.Chains.GetOrAdd(chainIdC);
-
-        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
-        // actual block...
-        store.BlockDigests.Add(Fx.GenesisBlock);
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-        store.BlockDigests.Add(Fx.Block3);
-
-        chainA.BlockHashes.Add(Fx.GenesisBlock);
-        chainB.BlockHashes.Add(Fx.GenesisBlock);
-        chainC.BlockHashes.Add(Fx.GenesisBlock);
-
-        chainA.BlockHashes.Add(Fx.Block1);
-        chainB.ForkFrom(chainA, Fx.Block1.BlockHash);
-        chainB.BlockHashes.Add(Fx.Block2);
-        chainB.BlockHashes.Add(Fx.Block3);
-
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-            ],
-            chainA.BlockHashes.IterateHeights());
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-                Fx.Block3.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights());
-
-        chainC.ForkFrom(chainB, Fx.Block3.BlockHash);
-        chainC.BlockHashes.Add(Fx.Block4);
-        chainC.BlockHashes.Add(Fx.Block5);
-
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-            ],
-            chainA.BlockHashes.IterateHeights());
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-                Fx.Block3.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights());
-        Assert.Equal(
-            [
-                Fx.GenesisBlock.BlockHash,
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-                Fx.Block3.BlockHash,
-                Fx.Block4.BlockHash,
-                Fx.Block5.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights());
-
-        Assert.Equal(
-            [
-                Fx.Block1.BlockHash,
-                Fx.Block2.BlockHash,
-                Fx.Block3.BlockHash,
-                Fx.Block4.BlockHash,
-                Fx.Block5.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights(height: 1));
-
-        Assert.Equal(
-            [
-                Fx.Block2.BlockHash,
-                Fx.Block3.BlockHash,
-                Fx.Block4.BlockHash,
-                Fx.Block5.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights(height: 2));
-
-        Assert.Equal(
-            [
-                Fx.Block3.BlockHash,
-                Fx.Block4.BlockHash,
-                Fx.Block5.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights(height: 3));
-
-        Assert.Equal(
-            [
-                Fx.Block4.BlockHash,
-                Fx.Block5.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights(height: 4));
-
-        Assert.Equal(
-            [
-                Fx.Block5.BlockHash,
-            ],
-            chainC.BlockHashes.IterateHeights(height: 5));
-
-        Assert.Equal(
-            [],
-            chainC.BlockHashes.IterateHeights(height: 6));
-
-        Assert.Equal(Fx.Block1.BlockHash, chainA.BlockHashes[1]);
-        Assert.Equal(Fx.Block1.BlockHash, chainB.BlockHashes[1]);
-        Assert.Equal(Fx.Block1.BlockHash, chainC.BlockHashes[1]);
-        Assert.Equal(Fx.Block2.BlockHash, chainB.BlockHashes[2]);
-        Assert.Equal(Fx.Block2.BlockHash, chainC.BlockHashes[2]);
-        Assert.Equal(Fx.Block3.BlockHash, chainB.BlockHashes[3]);
-        Assert.Equal(Fx.Block3.BlockHash, chainC.BlockHashes[3]);
-        Assert.Equal(Fx.Block4.BlockHash, chainC.BlockHashes[4]);
-        Assert.Equal(Fx.Block5.BlockHash, chainC.BlockHashes[5]);
-    }
-
-    [Fact]
-    public void ForkWithBranch()
-    {
-        var store = Fx.Repository;
-        var chainIdA = Guid.NewGuid();
-        var chainIdB = Guid.NewGuid();
-        var chainA = store.Chains.GetOrAdd(chainIdA);
-        var chainB = store.Chains.GetOrAdd(chainIdB);
-
-        // We need `Block<T>`s because `Libplanet.Store.Store` can't retrieve index(long) by block hash without
-        // actual block...
-        var anotherBlock3 = ProposeNextBlock(
-            Fx.Block2,
-            Fx.Proposer,
-            lastCommit: CreateBlockCommit(Fx.Block2.BlockHash, 2, 0));
-        store.BlockDigests.Add(Fx.GenesisBlock);
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-        store.BlockDigests.Add(Fx.Block3);
-        store.BlockDigests.Add(anotherBlock3);
-
-        chainA.BlockHashes.Add(Fx.GenesisBlock);
-        chainA.BlockHashes.Add(Fx.Block1);
-        chainA.BlockHashes.Add(Fx.Block2);
-        chainA.BlockHashes.Add(Fx.Block3);
-
-        chainB.ForkFrom(chainA, Fx.Block2.BlockHash);
-        chainB.BlockHashes.Add(anotherBlock3);
-
-        Assert.Equal(
-            [
-                Fx.Block2.BlockHash,
-                anotherBlock3.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights(2, 2));
-        Assert.Equal(
-            [
-                Fx.Block2.BlockHash,
-                anotherBlock3.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights(2));
-        Assert.Equal(
-            [
-                anotherBlock3.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights(3, 1));
-        Assert.Equal(
-            [
-                anotherBlock3.BlockHash,
-            ],
-            chainB.BlockHashes.IterateHeights(3));
     }
 
     // [Fact]
@@ -1293,77 +777,6 @@ public abstract class StoreTest
 
         store.CommittedEvidences.Remove(evidence);
         Assert.DoesNotContain(evidence.Id, store.CommittedEvidences.Keys);
-    }
-
-    [Fact]
-    public void ForkTxNonces()
-    {
-        var store = Fx.Repository;
-        var sourceChain = store.Chains.GetOrAdd(Guid.NewGuid());
-        var destChain = store.Chains.GetOrAdd(Guid.NewGuid());
-        sourceChain.Nonces.Increase(Fx.Address1, 1);
-        sourceChain.Nonces.Increase(Fx.Address2, 2);
-        sourceChain.Nonces.Increase(Fx.Address3, 3);
-
-        destChain.Nonces.MergeFrom(sourceChain.Nonces);
-        Assert.Equal(1, destChain.Nonces[Fx.Address1]);
-        Assert.Equal(2, destChain.Nonces[Fx.Address2]);
-        Assert.Equal(3, destChain.Nonces[Fx.Address3]);
-
-        sourceChain.Nonces.Increase(Fx.Address1, 1);
-        Assert.Equal(2, sourceChain.Nonces[Fx.Address1]);
-        Assert.Equal(1, destChain.Nonces[Fx.Address1]);
-    }
-
-    [Fact]
-    public void PruneOutdatedChains()
-    {
-        var store = Fx.Repository;
-        store.BlockDigests.Add(Fx.GenesisBlock);
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-        store.BlockDigests.Add(Fx.Block3);
-
-        var chain1 = store.Chains.GetOrAdd(Guid.NewGuid());
-        chain1.BlockHashes.Add(Fx.GenesisBlock);
-        chain1.BlockHashes.Add(Fx.Block1);
-        chain1.BlockHashes.Add(Fx.Block2);
-        Assert.Single(store.Chains.Keys);
-        Assert.Equal(
-            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-            chain1.BlockHashes.IterateHeights(0, null));
-
-        var chain2 = store.Chains.GetOrAdd(Guid.NewGuid());
-        chain2.ForkFrom(chain1, Fx.Block1.BlockHash);
-        chain2.BlockHashes.Add(Fx.Block2);
-        chain2.BlockHashes.Add(Fx.Block3);
-        Assert.Equal(2, store.Chains.Keys.Count);
-        Assert.Equal(
-            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash, Fx.Block3.BlockHash],
-            chain2.BlockHashes.IterateHeights(0, null));
-
-        var chain3 = store.Chains.GetOrAdd(Guid.NewGuid());
-        chain3.ForkFrom(chain2, Fx.Block2.BlockHash);
-        Assert.Equal(3, store.Chains.Keys.Count);
-        Assert.Equal(
-            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-            chain3.BlockHashes.IterateHeights(0, null));
-
-        var outdatedChains = store.Chains.Values
-            .Where(x => x.Id != chain3.Id)
-            .ToImmutableArray();
-        store.ChainId = chain3.Id;
-        store.Chains.RemoveRange(outdatedChains);
-        foreach (var chain in outdatedChains)
-        {
-            chain.Dispose();
-        }
-
-        Assert.Single(store.Chains.Keys);
-        Assert.Equal(
-            [Fx.GenesisBlock.BlockHash, Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-            chain3.BlockHashes.IterateHeights(0, null));
-        Assert.Equal(3, chain3.BlockHashes.Count);
     }
 
     [Fact]

@@ -13,7 +13,6 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
     : IReadOnlyDictionary<TxId, Transaction>
 {
     private readonly PendingTransactionStore _store = repository.PendingTransactions;
-    private readonly Chain _chain = repository.Chain;
     private readonly ConcurrentDictionary<Address, ImmutableSortedSet<long>> _noncesByAddress = new();
 
     public StagedTransactionCollection(Repository repository)
@@ -83,7 +82,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         {
             Nonce = GetNextTxNonce(submission.Signer.Address),
             Signer = submission.Signer.Address,
-            GenesisHash = _chain.GenesisBlockHash,
+            GenesisHash = repository.GenesisBlockHash,
             Actions = submission.Actions.ToBytecodes(),
             Timestamp = submission.Timestamp,
             MaxGasPrice = submission.MaxGasPrice,
@@ -151,7 +150,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
     }
 
     public long GetNextTxNonce(Address address)
-        => _noncesByAddress.TryGetValue(address, out var nonces) ? nonces.Max + 1 : _chain.GetNonce(address);
+        => _noncesByAddress.TryGetValue(address, out var nonces) ? nonces.Max + 1 : repository.GetNonce(address);
 
     private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
     {

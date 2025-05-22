@@ -45,7 +45,7 @@ public sealed class StagedTransactionCollectionTest
         {
             Signer = privateKey.Address,
         }.Sign(privateKey);
-        repository.Chain.Nonces.Increase(privateKey.Address, 100);
+        repository.Nonces.Increase(privateKey.Address, 100);
         Assert.False(transactions.TryAdd(tx));
     }
 }

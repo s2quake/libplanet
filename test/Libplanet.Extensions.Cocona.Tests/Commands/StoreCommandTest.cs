@@ -84,8 +84,7 @@ public sealed class StoreCommandTest : IDisposable
         foreach (var storeFixture in _storeFixtures)
         {
             var store = storeFixture.Repository;
-            var chain = store.Chains.GetOrAdd(guid);
-            store.ChainId = guid;
+            var chain = store;
             store.BlockDigests.Add(_genesisBlock);
             chain.BlockHashes.Add(_genesisBlock);
 
