@@ -58,8 +58,8 @@ public sealed class IntegerSet
                 transactions: Txs,
                 timestamp: DateTimeOffset.UtcNow,
                 protocolVersion: BlockHeader.CurrentProtocolVersion).Sign(Proposer);
-        Repository = new Repository(Genesis, new MemoryDatabase());
-        Chain = new BlockChain(policy);
+        Repository = new Repository(new MemoryDatabase());
+        Chain = new BlockChain(Genesis, Repository, policy);
     }
 
     public int Count => Addresses.Count;

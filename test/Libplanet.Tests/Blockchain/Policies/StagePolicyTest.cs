@@ -19,8 +19,8 @@ public abstract class StagePolicyTest
     {
         _policy = new BlockChainOptions();
         _fx = new MemoryStoreFixture();
-        var repository = new Repository(_fx.GenesisBlock);
-        _blockChain = new BlockChain(repository, _policy);
+        var repository = new Repository();
+        _blockChain = new BlockChain(_fx.GenesisBlock, repository, _policy);
         _key = new PrivateKey();
         _txs = Enumerable.Range(0, 5).Select(i =>
             new TransactionMetadata

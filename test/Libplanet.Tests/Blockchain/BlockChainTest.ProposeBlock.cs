@@ -118,8 +118,7 @@ public partial class BlockChainTest
                     }.ToBytecodes(),
                 }.Sign(genesisKey),
             ]);
-        repository.AddNewChain(genesis);
-        Assert.Throws<InvalidOperationException>(() => new BlockChain(repository, options));
+        Assert.Throws<InvalidOperationException>(() => new BlockChain(genesis, repository, options));
     }
 
     [Fact]
@@ -127,8 +126,8 @@ public partial class BlockChainTest
     {
         using var fx = new MemoryStoreFixture();
         var options = fx.Options;
-        var repository = new Repository(fx.GenesisBlock);
-        var blockChain = new BlockChain(repository, options);
+        var repository = new Repository();
+        var blockChain = new BlockChain(fx.GenesisBlock, repository, options);
         var txKey = new PrivateKey();
         var tx = new TransactionMetadata
         {
@@ -347,8 +346,8 @@ public partial class BlockChainTest
                 Validator = new RelayValidator<Transaction>(IsSignerValid),
             },
         };
-        var repository = new Repository(fx.GenesisBlock);
-        var blockChain = new BlockChain(repository, options);
+        var repository = new Repository();
+        var blockChain = new BlockChain(fx.GenesisBlock, repository, options);
 
         var validTx = new TransactionBuilder
         {
@@ -463,8 +462,8 @@ public partial class BlockChainTest
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
             },
         };
-        var repository = new Repository(_fx.GenesisBlock);
-        var blockChain = new BlockChain(repository, options);
+        var repository = new Repository();
+        var blockChain = new BlockChain(_fx.GenesisBlock, repository, options);
 
         var tx = new TransactionBuilder
         {
