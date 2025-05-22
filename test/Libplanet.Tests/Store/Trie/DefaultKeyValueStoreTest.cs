@@ -1,21 +1,20 @@
-using Libplanet.Store.DataStructures;
+using Libplanet.Store;
 
-namespace Libplanet.Tests.Store.Trie
+namespace Libplanet.Tests.Store.Trie;
+
+public class DefaultKeyValueStoreTest : KeyValueStoreTest, IDisposable
 {
-    public class DefaultKeyValueStoreTest : KeyValueStoreTest, IDisposable
+    private readonly DefaultTable _defaultKeyValueStore;
+
+    public DefaultKeyValueStoreTest()
     {
-        private readonly DefaultTable _defaultKeyValueStore;
+        // Memory mode.
+        KeyValueStore = _defaultKeyValueStore = new DefaultTable(null);
+        InitializePreStoredData();
+    }
 
-        public DefaultKeyValueStoreTest()
-        {
-            // Memory mode.
-            KeyValueStore = _defaultKeyValueStore = new DefaultTable(null);
-            InitializePreStoredData();
-        }
-
-        public void Dispose()
-        {
-            _defaultKeyValueStore.Dispose();
-        }
+    public void Dispose()
+    {
+        _defaultKeyValueStore.Dispose();
     }
 }

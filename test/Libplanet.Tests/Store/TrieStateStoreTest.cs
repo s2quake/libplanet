@@ -55,11 +55,11 @@ public class TrieStateStoreTest
         HashDigest<SHA256> hash = trie.Hash;
         ITrie found = stateStore.GetStateRoot(hash);
         Assert.True(found.IsCommitted);
-        Assert.Equal(values[fooKey], found.GetMany(new[] { KeyFoo })[0]);
-        Assert.Equal(values[barKey], found.GetMany(new[] { KeyBar })[0]);
-        Assert.Equal(values[bazKey], found.GetMany(new[] { KeyBaz })[0]);
-        Assert.Equal(values[quxKey], found.GetMany(new[] { KeyQux })[0]);
-        Assert.Null(found.GetMany(new[] { KeyQuux })[0]);
+        Assert.Equal(values[fooKey], found[KeyFoo]);
+        Assert.Equal(values[barKey], found[KeyBar]);
+        Assert.Equal(values[bazKey], found[KeyBaz]);
+        Assert.Equal(values[quxKey], found[KeyQux]);
+        Assert.Null(found[KeyQuux]);
     }
 
     [Fact]
@@ -102,8 +102,8 @@ public class TrieStateStoreTest
         //        https://github.com/planetarium/libplanet/issues/1653
         Assert.Equal(prevStatesCount, targetStateKeyValueStore.Keys.Count());
         Assert.Equal(
-            trie.IterateNodes().Count(),
-            targetStateStore.GetStateRoot(trie.Hash).IterateNodes().Count());
+            trie.Node.Traverse().Count(),
+            targetStateStore.GetStateRoot(trie.Hash).Node.Traverse().Count());
         Assert.Equal(
             trie.ToDictionary().Count,
             targetStateStore.GetStateRoot(trie.Hash).ToDictionary().Count);
@@ -166,14 +166,14 @@ public class TrieStateStoreTest
         //        https://github.com/planetarium/libplanet/issues/1653
         Assert.Equal(prevStatesCount, targetStateKeyValueStore.Keys.Count());
         Assert.Equal(
-            worldTrie.IterateNodes().Count(),
-            targetStateStore.GetStateRoot(worldTrie.Hash).IterateNodes().Count());
+            worldTrie.Node.Traverse().Count(),
+            targetStateStore.GetStateRoot(worldTrie.Hash).Node.Traverse().Count());
         Assert.Equal(
             worldTrie.ToDictionary().Count,
             targetStateStore.GetStateRoot(worldTrie.Hash).ToDictionary().Count);
         Assert.Equal(
-            stateStore.GetStateRoot(accountHashes.First()).IterateNodes().Count(),
-            targetStateStore.GetStateRoot(accountHashes.First()).IterateNodes().Count());
+            stateStore.GetStateRoot(accountHashes.First()).Node.Traverse().Count(),
+            targetStateStore.GetStateRoot(accountHashes.First()).Node.Traverse().Count());
         Assert.Equal(
             stateStore.GetStateRoot(accountHashes.First()).ToDictionary().Count,
             targetStateStore.GetStateRoot(accountHashes.First()).ToDictionary().Count);

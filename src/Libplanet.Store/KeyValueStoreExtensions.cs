@@ -1,4 +1,4 @@
-namespace Libplanet.Store.DataStructures;
+namespace Libplanet.Store;
 
 public static class KeyValueStoreExtensions
 {

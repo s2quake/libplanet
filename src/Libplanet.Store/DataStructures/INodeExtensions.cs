@@ -3,9 +3,9 @@ using Libplanet.Store.DataStructures.Nodes;
 
 namespace Libplanet.Store.DataStructures;
 
-public static class NodeExtensions
+public static class INodeExtensions
 {
-    public static IEnumerable<INode> SelfAndDescendants(this INode @this)
+    public static IEnumerable<INode> Traverse(this INode @this)
     {
         yield return @this;
 
@@ -19,7 +19,7 @@ public static class NodeExtensions
     {
         foreach (var child in @this.Children)
         {
-            foreach (var descendant in child.SelfAndDescendants())
+            foreach (var descendant in child.Traverse())
             {
                 yield return descendant;
             }

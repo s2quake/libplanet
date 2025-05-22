@@ -92,12 +92,12 @@ public class MerkleTrieTest
             ((string Key, object Value))("ab", ImmutableSortedDictionary<string, string>.Empty.Add("a", "b")));
 
         // There are (ShortNode, ValueNode)
-        Assert.Equal(2, trie.IterateNodes().Count());
+        Assert.Equal(2, trie.Node.Traverse().Count());
 
         trie = stateStore.Commit(trie);
 
         // There are (HashNode, ShortNode, HashNode, ValueNode)
-        Assert.Equal(4, trie.IterateNodes().Count());
+        Assert.Equal(4, trie.Node.Traverse().Count());
     }
 
     [Theory]
@@ -126,7 +126,7 @@ public class MerkleTrieTest
 
         trie = trie.Set(extraKey, extraKey);
         trie = commit ? stateStore.Commit(trie) : trie;
-        Assert.Equal(3, trie.GetNode(prefixKey).SelfAndDescendants().OfType<ValueNode>().Count());
+        Assert.Equal(3, trie.GetNode(prefixKey).Traverse().OfType<ValueNode>().Count());
         Assert.Equal(3, trie.GetNode(prefixKey).KeyValues().Count());
     }
 
@@ -355,7 +355,7 @@ public class MerkleTrieTest
         trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
-        int expectedNodeCount = trie.IterateNodes().Count();
+        int expectedNodeCount = trie.Node.Traverse().Count();
         int expectedValueCount = trie.ToDictionary().Count;
         HashDigest<SHA256> expectedHash = trie.Hash;
 
@@ -366,14 +366,14 @@ public class MerkleTrieTest
         trie = trie.Remove(key00);
         trie = stateStore.Commit(trie);
         Assert.Equal(value0000, trie["0x00, 0x00"]);
-        Assert.Equal(expectedNodeCount, trie.IterateNodes().Count());
+        Assert.Equal(expectedNodeCount, trie.Node.Traverse().Count());
         Assert.Equal(expectedValueCount, trie.ToDictionary().Count);
         Assert.Equal(expectedHash, trie.Hash);
 
         trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: key00, Value: value00));
         trie = stateStore.Commit(trie);
-        expectedNodeCount = trie.IterateNodes().Count();
+        expectedNodeCount = trie.Node.Traverse().Count();
         expectedValueCount = trie.ToDictionary().Count;
         expectedHash = trie.Hash;
 
@@ -416,7 +416,7 @@ public class MerkleTrieTest
             trie = i == 0 ? Libplanet.Store.DataStructures.Trie.Create(kv) : trie.Set(kv.Key, kv.Value);
             trie = stateStore.Commit(trie);
             expected.Push(
-                (trie.Hash, trie.IterateNodes().Count(), trie.Count()));
+                (trie.Hash, trie.Node.Traverse().Count(), trie.Count()));
         }
 
         for (var i = kvs.Count - 1; i >= 0; i--)
@@ -424,7 +424,7 @@ public class MerkleTrieTest
             var (key, value) = kvs[i];
             var tuple = expected.Pop();
             Assert.Equal(tuple.Item3, trie.Count());
-            Assert.Equal(tuple.Item2, trie.IterateNodes().Count());
+            Assert.Equal(tuple.Item2, trie.Node.Traverse().Count());
             Assert.Equal(tuple.Item1, trie.Hash);
             trie = trie.Remove(key);
             trie = trie is not null ? stateStore.Commit(trie) : null;
@@ -448,14 +448,14 @@ public class MerkleTrieTest
             (Key: key0000, Value: value0000),
             (Key: key0011, Value: value0011));
         trie = stateStore.Commit(trie);
-        int expectedNodeCount = trie.IterateNodes().Count();
+        int expectedNodeCount = trie.Node.Traverse().Count();
         int expectedValueCount = trie.ToDictionary().Count;
         HashDigest<SHA256> expectedHash = trie.Hash;
 
         trie = trie.Remove(key00);
         trie = trie.Remove(key000000);
         trie = stateStore.Commit(trie);
-        Assert.Equal(expectedNodeCount, trie.IterateNodes().Count());
+        Assert.Equal(expectedNodeCount, trie.Node.Traverse().Count());
         Assert.Equal(expectedValueCount, trie.Count());
         Assert.Equal(expectedHash, trie.Hash);
     }

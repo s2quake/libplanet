@@ -1,4 +1,4 @@
-using Libplanet.Store.DataStructures;
+using Libplanet.Store;
 
 namespace Libplanet.Tests.Store.Trie;
 

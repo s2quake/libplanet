@@ -4,7 +4,7 @@ using Libplanet.Store.ModelConverters;
 namespace Libplanet.Store.DataStructures;
 
 [ModelConverter(typeof(NibblesModelConverter))]
-public readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
+internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
 {
     public static readonly Nibbles Empty = default;
 

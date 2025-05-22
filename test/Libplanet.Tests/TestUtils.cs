@@ -237,11 +237,11 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
     public static void AssertBytesEqual(Address? expected, Address? actual) =>
         AssertBytesEqual(expected?.ToByteArray() ?? [], actual?.ToByteArray() ?? []);
 
-    public static void AssertBytesEqual(KeyBytes expected, KeyBytes actual) =>
-        AssertBytesEqual(expected.ToByteArray(), actual.ToByteArray());
+    // public static void AssertBytesEqual(KeyBytes expected, KeyBytes actual) =>
+    //     AssertBytesEqual(expected.ToByteArray(), actual.ToByteArray());
 
-    public static void AssertBytesEqual(KeyBytes? expected, KeyBytes? actual) =>
-        AssertBytesEqual(expected?.ToByteArray() ?? [], actual?.ToByteArray() ?? []);
+    // public static void AssertBytesEqual(KeyBytes? expected, KeyBytes? actual) =>
+    //     AssertBytesEqual(expected?.ToByteArray() ?? [], actual?.ToByteArray() ?? []);
 
     // public static void AssertBencodexEqual(object expected, object actual)
     // {
