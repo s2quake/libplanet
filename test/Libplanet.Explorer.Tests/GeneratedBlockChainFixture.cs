@@ -7,7 +7,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
-using Microsoft.AspNetCore.Rewrite;
 
 namespace Libplanet.Explorer.Tests;
 

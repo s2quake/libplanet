@@ -1,5 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;

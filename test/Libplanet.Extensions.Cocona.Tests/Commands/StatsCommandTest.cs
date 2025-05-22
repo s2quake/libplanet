@@ -1,7 +1,6 @@
 using System.IO;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.RocksDBStore.Tests;
-using Libplanet.Store;
 using Libplanet.Tests.Store;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;

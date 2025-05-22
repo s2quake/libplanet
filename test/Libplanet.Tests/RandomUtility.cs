@@ -1,7 +1,6 @@
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Org.BouncyCastle.Tls;
 
 namespace Libplanet.Tests;
 

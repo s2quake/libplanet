@@ -12,7 +12,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
-using Org.BouncyCastle.Crypto.Prng;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;

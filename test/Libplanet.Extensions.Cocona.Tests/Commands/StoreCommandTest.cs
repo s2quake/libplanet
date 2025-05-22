@@ -3,7 +3,6 @@ using global::Cocona;
 using Libplanet.Action;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.RocksDBStore.Tests;
-using Libplanet.Store;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;

@@ -1,7 +1,6 @@
 using Libplanet.Consensus;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
 
 namespace Libplanet.Net.Messages;
 

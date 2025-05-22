@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Libplanet.Action.State;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Crypto;
 using static Libplanet.Action.State.KeyConverters;
 

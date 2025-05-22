@@ -1,7 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Blocks;
 

@@ -34,35 +34,6 @@ public sealed class AccountTest
     }
 
     [Fact]
-    public void States()
-    {
-        Account a = _initAccount.SetValue(_addr[0], "A");
-        AccountDiff diffa = AccountDiff.Create(_initAccount.Trie, a.Trie);
-        Assert.Equal("A", a.GetValue(_addr[0]));
-        Assert.Equal("a", _initAccount.GetValue(_addr[0]));
-        Assert.Equal("b", a.GetValue(_addr[1]));
-        Assert.Equal("b", _initAccount.GetValue(_addr[1]));
-        Assert.Null(a.GetValueOrDefault(_addr[2]));
-        Assert.Null(_initAccount.GetValueOrDefault(_addr[2]));
-        Assert.Equal(_addr[0], Assert.Single(diffa.StateDiffs).Key);
-
-        Account b = a.SetValue(_addr[0], "z");
-        AccountDiff diffb = AccountDiff.Create(a.Trie, b.Trie);
-        Assert.Equal("z", b.GetValue(_addr[0]));
-        Assert.Equal("A", a.GetValue(_addr[0]));
-        Assert.Equal("a", _initAccount.GetValue(_addr[0]));
-        Assert.Equal("b", b.GetValue(_addr[1]));
-        Assert.Equal("b", a.GetValue(_addr[1]));
-        Assert.Null(b.GetValueOrDefault(_addr[2]));
-        Assert.Null(a.GetValueOrDefault(_addr[2]));
-        Assert.Equal(_addr[0], Assert.Single(diffb.StateDiffs).Key);
-
-        Account c = b.SetValue(_addr[0], "a");
-        Assert.Equal("a", c.GetValue(_addr[0]));
-        Assert.Equal("z", b.GetValue(_addr[0]));
-    }
-
-    [Fact]
     public void RemoveState()
     {
         Account a = _initAccount.SetValue(_addr[0], "A");

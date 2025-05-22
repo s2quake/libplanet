@@ -1,10 +1,4 @@
-using System.IO;
-using Libplanet.Blockchain;
-using Libplanet.Store;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Extensions;
-using Libplanet.Types.Tx;
-using RocksDbSharp;
 using Xunit.Abstractions;
 
 namespace Libplanet.RocksDBStore.Tests;

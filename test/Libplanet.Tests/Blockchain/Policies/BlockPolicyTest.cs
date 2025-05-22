@@ -3,7 +3,6 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 using Xunit.Abstractions;

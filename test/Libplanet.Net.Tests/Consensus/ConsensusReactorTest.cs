@@ -6,7 +6,6 @@ using Libplanet.Blockchain;
 using Libplanet.Net.Consensus;
 using Libplanet.Store;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Blocks;
 using NetMQ;
 using Serilog;
 using Xunit.Abstractions;

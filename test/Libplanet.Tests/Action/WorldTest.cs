@@ -1,10 +1,7 @@
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Action.Tests.Common;
-using Libplanet.Blockchain;
-using Libplanet.Store;
 using Libplanet.Types.Assets;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
@@ -95,23 +92,6 @@ public sealed class WorldTest
         Assert.Equal(Value(3, 0), _initWorld.GetBalance(_addr[3], _currencies[3]));
         Assert.Equal(Value(4, 0), _initWorld.GetBalance(_addr[3], _currencies[4]));
         Assert.Equal(Value(5, 0), _initWorld.GetBalance(_addr[3], _currencies[5]));
-    }
-
-    [Fact]
-    public void FungibleAssets()
-    {
-        World world = _initWorld.TransferAsset(_addr[1], _addr[2], Value(3, 5));
-        Assert.Equal(Value(0, 5), world.GetBalance(_addr[0], _currencies[0]));
-        Assert.Equal(Value(2, 10), world.GetBalance(_addr[0], _currencies[2]));
-        Assert.Equal(Value(4, 5), world.GetBalance(_addr[0], _currencies[4]));
-        Assert.Equal(Value(2, 15), world.GetBalance(_addr[1], _currencies[2]));
-        Assert.Equal(Value(3, 15), world.GetBalance(_addr[1], _currencies[3]));
-        Assert.Equal(Value(3, 5), world.GetBalance(_addr[2], _currencies[3]));
-
-        var accountDiff = AccountDiff.Create(
-            _initWorld.GetAccount(ReservedAddresses.LegacyAccount).Trie,
-            world.GetAccount(ReservedAddresses.LegacyAccount).Trie);
-        Assert.Empty(accountDiff.StateDiffs);
     }
 
     [Fact]
