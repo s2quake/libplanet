@@ -87,6 +87,8 @@ public sealed class Repository : IDisposable
 
     public NonceStore Nonces { get; }
 
+    public TrieStateStore StateStore { get; }
+
     public int GenesisHeight
     {
         get => _genesisHeight;
@@ -177,8 +179,6 @@ public sealed class Repository : IDisposable
     }
 
     public BlockCommit BlockCommit => BlockCommits[BlockHash];
-
-    public TrieStateStore StateStore { get; }
 
     public void Append(Block block, BlockCommit blockCommit)
     {

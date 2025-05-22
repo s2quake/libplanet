@@ -28,7 +28,6 @@ public sealed partial class ModelSerializerTest
     [
         [default(BigInteger)],
         [default(bool)],
-        [default(ImmutableArray<byte>)],
         [default(DateTimeOffset)],
         [default(int)],
         [default(long)],

@@ -74,10 +74,6 @@ public static class NodeExtensions
         else if (node is HashNode hashNode)
         {
             var expandedNode = hashNode.Expand();
-            if (expandedNode is ValueNode)
-            {
-                int qwer = 0;
-            }
             foreach (var item in GetKeyValues(expandedNode, nibbles))
             {
                 yield return item;

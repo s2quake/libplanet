@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using Libplanet.Types;
-
 namespace Libplanet.Store.Trie.Nodes;
 
 internal sealed record class NullNode : INode
@@ -12,6 +9,4 @@ internal sealed record class NullNode : INode
     public static NullNode Value { get; } = new();
 
     IEnumerable<INode> INode.Children => [];
-
-    public HashDigest<SHA256> Hash => default;
 }

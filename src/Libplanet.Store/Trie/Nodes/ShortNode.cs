@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.IO;
 using Libplanet.Serialization;
 
 namespace Libplanet.Store.Trie.Nodes;
@@ -22,45 +21,6 @@ internal sealed record class ShortNode : INode, IValidatableObject
             return (Key.GetHashCode() * 397) ^ Value.GetHashCode();
         }
     }
-
-    // public byte[] Serialize()
-    // {
-    //     using var stream = new MemoryStream();
-    //     using var writer = new BinaryWriter(stream);
-    //     writer.Write([.. Key.ByteArray]);
-    //     writer.Write(Value.Serialize());
-    //     return stream.ToArray();
-    // }
-
-    // public IValue ToBencodex() => new List(new Binary(Key.ByteArray), Value.ToBencodex());
-
-    // private static Nibbles ValidateKey(in Nibbles key)
-    // {
-    //     if (key.Length == 0)
-    //     {
-    //         throw new ArgumentException($"Given {nameof(key)} cannot be empty.", nameof(key));
-    //     }
-
-    //     return key;
-    // }
-
-    // private static INode ValidateValue(INode value)
-    // {
-    //     if (value is ShortNode)
-    //     {
-    //         var message = $"Given {nameof(value)} cannot be a {nameof(ShortNode)}.";
-    //         throw new ArgumentException(message, nameof(value));
-    //     }
-
-    //     if (value is HashNode hashNode && hashNode.Table is null)
-    //     {
-    //         var message = $"Given {nameof(value)} cannot be a {nameof(HashNode)} " +
-    //             $"without a {nameof(IDictionary<KeyBytes, byte[]>)}.";
-    //         throw new ArgumentException(message, nameof(value));
-    //     }
-
-    //     return value;
-    // }
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

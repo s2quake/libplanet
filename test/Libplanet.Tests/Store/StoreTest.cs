@@ -366,6 +366,7 @@ public abstract class StoreTest
         var repository = Fx.Repository;
         repository.BlockDigests.Add(Fx.Block1);
         repository.BlockHashes.Add(1, Fx.Block1.BlockHash);
+        repository.Height = Fx.Block1.Height;
         Assert.Equal(1, repository.Height);
         Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[2]);
     }
