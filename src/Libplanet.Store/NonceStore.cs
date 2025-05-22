@@ -34,9 +34,5 @@ public sealed class NonceStore(IDatabase database)
 
     protected override byte[] GetBytes(long value) => BitConverter.GetBytes(value);
 
-    protected override Address GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);
-
-    protected override KeyBytes GetKeyBytes(Address key) => new(key.Bytes);
-
     protected override long GetValue(byte[] bytes) => BitConverter.ToInt64(bytes, 0);
 }

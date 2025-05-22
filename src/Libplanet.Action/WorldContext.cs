@@ -1,5 +1,4 @@
 ﻿using Libplanet.Action.State;
-using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
@@ -7,12 +6,12 @@ namespace Libplanet.Action;
 
 internal sealed class WorldContext(World world) : IDisposable, IWorldContext
 {
-    private readonly Dictionary<KeyBytes, AccountContext> _accountByName = [];
+    private readonly Dictionary<string, AccountContext> _accountByName = [];
     private readonly HashSet<AccountContext> _dirtyAccounts = [];
     private World _world = world;
     private bool _disposed;
 
-    public AccountContext this[KeyBytes name]
+    public AccountContext this[string name]
     {
         get
         {
@@ -29,7 +28,7 @@ internal sealed class WorldContext(World world) : IDisposable, IWorldContext
         }
     }
 
-    IAccountContext IWorldContext.this[KeyBytes name] => this[name];
+    IAccountContext IWorldContext.this[string name] => this[name];
 
     public World Flush()
     {

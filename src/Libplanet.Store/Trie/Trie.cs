@@ -2,6 +2,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
+using System.Text;
 using Libplanet.Serialization;
 using Libplanet.Store.Trie.Nodes;
 using Libplanet.Types;
@@ -24,8 +25,8 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;
 
-    public object this[in KeyBytes key]
-        => NodeResolver.ResolveToValue(Node, PathCursor.Create(key))
+    public object this[string key]
+        => NodeResolver.ResolveToValue(Node, PathCursor.Create(new KeyBytes(Encoding.UTF8.GetBytes(key))))
               ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
     public static Trie Create(HashDigest<SHA256> hashDigest, ITable table)
@@ -34,17 +35,14 @@ public sealed partial record class Trie(INode Node) : ITrie
         return new Trie(node) { IsCommitted = true };
     }
 
-    public static ITrie Create(params (ImmutableArray<byte> Key, object Value)[] keyValues)
-        => Create(keyValues.Select(kv => (new KeyBytes(kv.Key), kv.Value)).ToArray());
-
-    public static ITrie Create(params (KeyBytes Key, object Value)[] keyValues)
+    public static ITrie Create(params (string Key, object Value)[] keyValues)
     {
         if (keyValues.Length == 0)
         {
             throw new ArgumentException("Key values cannot be empty.", nameof(keyValues));
         }
 
-        var nibble = Nibbles.FromKeyBytes(keyValues[0].Key);
+        var nibble = Nibbles.FromKeyBytes(new KeyBytes(Encoding.UTF8.GetBytes(keyValues[0].Key)));
         var valueNode = new ValueNode { Value = keyValues[0].Value };
         var shortNode = new ShortNode { Key = nibble, Value = valueNode };
 
@@ -58,61 +56,38 @@ public sealed partial record class Trie(INode Node) : ITrie
         return trie;
     }
 
-    public ITrie Set(in KeyBytes key, object value)
+    public ITrie Set(string key, object value)
     {
         var node = Node;
-        var cursor = PathCursor.Create(key);
+        var cursor = PathCursor.Create(new KeyBytes(Encoding.UTF8.GetBytes(key)));
         var valueNode = new ValueNode { Value = value };
         var newNode = NodeInserter.Insert(node, cursor, valueNode);
         return new Trie(newNode) { IsCommitted = IsCommitted };
     }
 
-    public ITrie Remove(in KeyBytes key)
+    public ITrie Remove(string key)
     {
         if (Node is NullNode)
         {
             throw new InvalidOperationException("Cannot remove from an empty trie.");
         }
 
-        var cursor = PathCursor.Create(key);
+        var cursor = PathCursor.Create(new KeyBytes(Encoding.UTF8.GetBytes(key)));
         return new Trie(NodeRemover.Remove(Node, cursor));
     }
 
-    public INode GetNode(in Nibbles key)
+    // public INode GetNode(string key)
+    // {
+    //     var nibbles = Nibbles.FromKeyBytes(new KeyBytes(Encoding.UTF8.GetBytes(key)));
+    //     return GetNode(nibbles);
+    // }
+
+    // public bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node)
+    //     => TryGetNode(Nibbles.FromKeyBytes(new KeyBytes(Encoding.UTF8.GetBytes(key))), out node);
+
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value)
     {
-        var node = NodeResolver.ResolveToNode(Node, new PathCursor(key));
-        if (node is NullNode)
-        {
-            throw new KeyNotFoundException($"Key {key} not found in the trie.");
-        }
-
-        return node;
-    }
-
-    public INode GetNode(in KeyBytes key)
-    {
-        var nibbles = Nibbles.FromKeyBytes(key);
-        return GetNode(nibbles);
-    }
-
-    public bool TryGetNode(in KeyBytes key, [MaybeNullWhen(false)] out INode node)
-        => TryGetNode(Nibbles.FromKeyBytes(key), out node);
-
-    public bool TryGetNode(in Nibbles key, [MaybeNullWhen(false)] out INode node)
-    {
-        node = NodeResolver.ResolveToNode(Node, new PathCursor(key));
-        if (node is not NullNode)
-        {
-            return true;
-        }
-
-        node = null;
-        return false;
-    }
-
-    public bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out object value)
-    {
-        if (NodeResolver.ResolveToValue(Node, PathCursor.Create(key)) is { } v)
+        if (NodeResolver.ResolveToValue(Node, PathCursor.Create(new KeyBytes(Encoding.UTF8.GetBytes(key)))) is { } v)
         {
             value = v;
             return true;
@@ -122,7 +97,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         return false;
     }
 
-    public bool ContainsKey(in KeyBytes key)
+    public bool ContainsKey(string key)
     {
         try
         {
@@ -134,7 +109,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         }
     }
 
-    public IEnumerator<KeyValuePair<KeyBytes, object>> GetEnumerator()
+    public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
     {
         if (Node is { } node)
         {

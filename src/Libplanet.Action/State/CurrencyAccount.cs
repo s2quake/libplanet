@@ -151,17 +151,17 @@ public sealed record class CurrencyAccount(ITrie Trie, Address Signer, Currency 
 
     private CurrencyAccount WriteRawBalance(Address address, BigInteger rawValue) => this with
     {
-        Trie = Trie.Set(KeyConverters.ToStateKey(address), rawValue),
+        Trie = Trie.Set(address.ToString(), rawValue),
     };
 
     private CurrencyAccount WriteRawTotalSupply(BigInteger rawValue) => this with
     {
-        Trie = Trie.Set(KeyConverters.ToStateKey(TotalSupplyAddress), rawValue),
+        Trie = Trie.Set(TotalSupplyAddress.ToString(), rawValue),
     };
 
     private BigInteger GetRawBalance(Address address)
-        => Trie.GetValueOrDefault(KeyConverters.ToStateKey(address), BigInteger.Zero);
+        => Trie.GetValueOrDefault(address.ToString(), BigInteger.Zero);
 
     private BigInteger GetRawTotalSupply()
-        => Trie.GetValueOrDefault(KeyConverters.ToStateKey(TotalSupplyAddress), BigInteger.Zero);
+        => Trie.GetValueOrDefault(TotalSupplyAddress.ToString(), BigInteger.Zero);
 }

@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Store.Trie;
 
-public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, object>>
+public interface ITrie : IEnumerable<KeyValuePair<string, object>>
 {
     INode Node { get; }
 
@@ -12,23 +12,19 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, object>>
 
     bool IsCommitted { get; }
 
-    object this[in KeyBytes key] { get; }
+    object this[string key] { get; }
 
-    ITrie Set(in KeyBytes key, object value);
+    ITrie Set(string key, object value);
 
-    ITrie Remove(in KeyBytes key);
+    ITrie Remove(string key);
 
-    INode GetNode(in Nibbles key);
+    // INode GetNode(string key);
 
-    INode GetNode(in KeyBytes key);
+    // bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node);
 
-    bool TryGetNode(in Nibbles key, [MaybeNullWhen(false)] out INode node);
+    bool TryGetValue(string key, [MaybeNullWhen(false)] out object value);
 
-    bool TryGetNode(in KeyBytes key, [MaybeNullWhen(false)] out INode node);
-
-    bool TryGetValue(in KeyBytes key, [MaybeNullWhen(false)] out object value);
-
-    bool TryGetValue<T>(in KeyBytes key, [MaybeNullWhen(false)] out T value)
+    bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value)
     {
         if (TryGetValue(key, out object? v) && v is T t)
         {
@@ -39,11 +35,11 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, object>>
         return false;
     }
 
-    bool ContainsKey(in KeyBytes key);
+    bool ContainsKey(string key);
 
-    T? GetValueOrDefault<T>(in KeyBytes key)
+    T? GetValueOrDefault<T>(string key)
         => TryGetValue(key, out object? value) && value is T t ? t : default;
 
-    T GetValueOrDefault<T>(in KeyBytes key, T defaultValue)
+    T GetValueOrDefault<T>(string key, T defaultValue)
         => TryGetValue(key, out object? value) && value is T t ? t : defaultValue;
 }

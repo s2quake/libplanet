@@ -1,7 +1,5 @@
-using Libplanet.Store.Trie;
-
 namespace Libplanet.Store;
 
-public interface ITable : IDictionary<KeyBytes, byte[]>
+public interface ITable : IDictionary<string, byte[]>
 {
 }

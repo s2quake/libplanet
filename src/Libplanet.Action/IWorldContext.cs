@@ -1,12 +1,11 @@
-﻿using Libplanet.Store.Trie;
-using Libplanet.Types.Assets;
+﻿using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Action;
 
 public partial interface IWorldContext
 {
-    IAccountContext this[KeyBytes name] { get; }
+    IAccountContext this[string name] { get; }
 
     FungibleAssetValue GetBalance(Address address, Currency currency);
 

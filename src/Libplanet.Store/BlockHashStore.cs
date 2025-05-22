@@ -63,9 +63,5 @@ public sealed class BlockHashStore(IDatabase database)
 
     protected override byte[] GetBytes(BlockHash value) => [.. value.Bytes];
 
-    protected override int GetKey(KeyBytes keyBytes) => BitConverter.ToInt32([.. keyBytes.Bytes]);
-
-    protected override KeyBytes GetKeyBytes(int key) => new(BitConverter.GetBytes(key));
-
     protected override BlockHash GetValue(byte[] bytes) => new(bytes);
 }

@@ -1,36 +1,21 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action;
 
 public partial interface IAccountContext
 {
-    object this[string key]
-    {
-        get => this[ToStateKey(key)];
-        set => this[ToStateKey(key)] = value;
-    }
-
     object this[Address key]
     {
-        get => this[ToStateKey(key)];
-        set => this[ToStateKey(key)] = value;
+        get => this[key.ToString()];
+        set => this[key.ToString()] = value;
     }
 
-    bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value) => TryGetValue(ToStateKey(key), out value);
+    bool TryGetValue<T>(Address key, [MaybeNullWhen(false)] out T value) => TryGetValue(key.ToString(), out value);
 
-    bool TryGetValue<T>(Address key, [MaybeNullWhen(false)] out T value) => TryGetValue(ToStateKey(key), out value);
+    T GetValue<T>(Address key, T fallback) => GetValue(key.ToString(), fallback);
 
-    T GetValue<T>(string key, T fallback) => GetValue(ToStateKey(key), fallback);
+    bool Contains(Address key) => Contains(key.ToString());
 
-    T GetValue<T>(Address key, T fallback) => GetValue(ToStateKey(key), fallback);
-
-    bool Contains(string key) => Contains(ToStateKey(key));
-
-    bool Contains(Address key) => Contains(ToStateKey(key));
-
-    bool Remove(string key) => Remove(ToStateKey(key));
-
-    bool Remove(Address key) => Remove(ToStateKey(key));
+    bool Remove(Address key) => Remove(key.ToString());
 }

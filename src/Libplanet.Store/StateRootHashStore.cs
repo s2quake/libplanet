@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Libplanet.Store.Trie;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
@@ -9,10 +8,6 @@ public sealed class StateRootHashStore(IDatabase database)
     : StoreBase<BlockHash, HashDigest<SHA256>>(database.GetOrAdd("state_root_hash"))
 {
     protected override byte[] GetBytes(HashDigest<SHA256> value) => [.. value.Bytes];
-
-    protected override BlockHash GetKey(KeyBytes keyBytes) => new(keyBytes.Bytes);
-
-    protected override KeyBytes GetKeyBytes(BlockHash key) => new(key.Bytes);
 
     protected override HashDigest<SHA256> GetValue(byte[] bytes) => new(bytes);
 }
