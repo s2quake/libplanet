@@ -1,7 +1,7 @@
 using System.Text;
-using Libplanet.Store.Trie.Nodes;
+using Libplanet.Store.DataStructures.Nodes;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 public static class NodeExtensions
 {

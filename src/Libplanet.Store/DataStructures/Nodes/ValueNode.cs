@@ -1,6 +1,6 @@
 using Libplanet.Serialization;
 
-namespace Libplanet.Store.Trie.Nodes;
+namespace Libplanet.Store.DataStructures.Nodes;
 
 [Model(Version = 1)]
 internal sealed record class ValueNode : INode

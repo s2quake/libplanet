@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 internal readonly record struct PathCursor
 {

@@ -1,6 +1,6 @@
 // using System.Security.Cryptography;
-// // using Libplanet.Store.Trie;
-// using Libplanet.Store.Trie.Nodes;
+// // using Libplanet.Store.DataStructures;
+// using Libplanet.Store.DataStructures.Nodes;
 // using Libplanet.Types;
 
 // namespace Libplanet.Tests.Store.Trie.Nodes;

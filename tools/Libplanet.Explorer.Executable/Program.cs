@@ -16,7 +16,7 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.RocksDBStore;
 using Libplanet.Store;
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
 using Microsoft.AspNetCore;

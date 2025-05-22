@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Store.Trie;
-using Libplanet.Store.Trie.Nodes;
+using Libplanet.Store.DataStructures;
+using Libplanet.Store.DataStructures.Nodes;
 using Libplanet.Types;
 
 namespace Libplanet.Store;
@@ -30,7 +30,7 @@ public partial class TrieStateStore
 
         writeBatch.Flush();
 
-        return new Trie.Trie(newNode);
+        return new Trie(newNode);
     }
 
     private static INode Commit(INode node, WriteBatch writeBatch) => node switch

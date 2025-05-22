@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Libplanet.Types;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 public readonly record struct KeyBytes(in ImmutableArray<byte> Bytes)
     : IEquatable<KeyBytes>, IFormattable

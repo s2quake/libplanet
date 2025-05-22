@@ -1,4 +1,4 @@
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 

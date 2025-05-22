@@ -1,4 +1,4 @@
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 
 namespace Libplanet.Store;
 

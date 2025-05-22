@@ -1,5 +1,5 @@
 // // using Libplanet.Store;
-// using Libplanet.Store.Trie;
+// using Libplanet.Store.DataStructures;
 // using Libplanet.Types.Crypto;
 
 // namespace Libplanet.Tests.Store.Trie;
@@ -16,7 +16,7 @@
 //     public void GetAndSet(int addressCount)
 //     {
 //         var keyValueStore = new MemoryTable();
-//         ITrie trie = Libplanet.Store.Trie.Trie.Create(hashDigest: default, keyValueStore);
+//         ITrie trie = Libplanet.Store.DataStructures.Trie.Create(hashDigest: default, keyValueStore);
 
 //         var addresses = Enumerable
 //             .Range(0, addressCount)

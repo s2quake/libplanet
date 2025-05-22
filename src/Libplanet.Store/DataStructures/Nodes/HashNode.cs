@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 using Libplanet.Store.ModelConverters;
 using Libplanet.Types;
 
-namespace Libplanet.Store.Trie.Nodes;
+namespace Libplanet.Store.DataStructures.Nodes;
 
 [ModelConverter(typeof(HashNodeModelConverter))]
 internal sealed record class HashNode : INode

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
 
-namespace Libplanet.Store.Trie.Nodes;
+namespace Libplanet.Store.DataStructures.Nodes;
 
 [Model(Version = 1)]
 public sealed record class FullNode

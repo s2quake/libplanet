@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using Libplanet.Store.Trie.Nodes;
+using Libplanet.Store.DataStructures.Nodes;
 
-namespace Libplanet.Store.Trie;
+namespace Libplanet.Store.DataStructures;
 
 internal static class NodeRemover
 {

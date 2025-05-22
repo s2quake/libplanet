@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 using Libplanet.Types;
 
 namespace Libplanet.Store;
@@ -26,7 +26,7 @@ public partial class TrieStateStore(ITable table)
 
         foreach (HashDigest<SHA256> stateRootHash in stateRootHashes)
         {
-            var stateTrie = (Trie.Trie)GetStateRoot(stateRootHash);
+            var stateTrie = (Trie)GetStateRoot(stateRootHash);
             if (!stateTrie.IsCommitted)
             {
                 throw new ArgumentException(
@@ -51,8 +51,8 @@ public partial class TrieStateStore(ITable table)
                         // var accountStateRootHash
                         //     = ModelSerializer.DeserializeFromBytes<HashDigest<SHA256>>(hash);
                         var accountStateRootHash = (HashDigest<SHA256>)hash;
-                        Trie.Trie accountStateTrie =
-                            (Trie.Trie)GetStateRoot(accountStateRootHash);
+                        Trie accountStateTrie =
+                            (Trie)GetStateRoot(accountStateRootHash);
                         if (!accountStateTrie.IsCommitted)
                         {
                             throw new ArgumentException(
@@ -72,5 +72,5 @@ public partial class TrieStateStore(ITable table)
     }
 
     public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash)
-        => stateRootHash == default ? new Trie.Trie() : Trie.Trie.Create(stateRootHash, _table);
+        => stateRootHash == default ? new Trie() : Trie.Create(stateRootHash, _table);
 }

@@ -1,6 +1,6 @@
 using GraphQL.Language.AST;
 using GraphQL.Types;
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes

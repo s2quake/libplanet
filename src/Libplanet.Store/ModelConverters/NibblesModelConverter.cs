@@ -1,7 +1,7 @@
 using System.IO;
 using Libplanet.Serialization;
 using Libplanet.Serialization.Extensions;
-using Libplanet.Store.Trie;
+using Libplanet.Store.DataStructures;
 
 namespace Libplanet.Store.ModelConverters;
 
