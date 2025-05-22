@@ -59,12 +59,12 @@ public class MerkleTrieTest
     {
         var keyValueStore = new MemoryTable();
         var stateStore = new TrieStateStore(keyValueStore);
-        var trie = Libplanet.Store.Trie.Trie.Create(
-            ("00", ImmutableSortedDictionary<string, string>.Empty),
-            ("1", "1"),
-            ("2", "2"),
-            ("3", "3"),
-            ("4", "4"));
+        var trie = new Libplanet.Store.Trie.Trie()
+            .Set("00", ImmutableSortedDictionary<string, string>.Empty)
+            .Set("1", "1")
+            .Set("2", "2")
+            .Set("3", "3")
+            .Set("4", "4");
 
         var states = trie.ToDictionary();
         Assert.Equal(5, states.Count);
@@ -347,8 +347,8 @@ public class MerkleTrieTest
         var key0000 = "0x00, 0x00";
         var value0000 = "0000";
 
-        var trie = Libplanet.Store.Trie.Trie.Create(
-            (Key: key00, Value: value00));
+        var trie = new Libplanet.Store.Trie.Trie()
+            .Set(key00, value00);
         trie = stateStore.Commit(trie);
         Assert.Equal(default, trie.Remove(key00).Hash);
 

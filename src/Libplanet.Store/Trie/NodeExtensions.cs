@@ -28,8 +28,7 @@ public static class NodeExtensions
 
     public static IEnumerable<KeyValuePair<string, object>> KeyValues(this INode @this)
     {
-        var nibbles = @this is ShortNode shortNode ? shortNode.Key : Nibbles.Empty;
-        foreach (var item in GetKeyValues(@this, nibbles))
+        foreach (var item in GetKeyValues(@this, Nibbles.Empty))
         {
             yield return item;
         }
