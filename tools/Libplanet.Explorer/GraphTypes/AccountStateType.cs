@@ -10,8 +10,8 @@ namespace Libplanet.Explorer.GraphTypes
 {
     public class AccountStateType : ObjectGraphType<Account>
     {
-        internal static readonly KeyBytes ValidatorSetKey =
-            new KeyBytes([_underScore, _underScore, _underScore]);
+        internal static readonly string ValidatorSetKey = "___";
+            // new KeyBytes([_underScore, _underScore, _underScore]);
 
         private const byte _underScore = 95;  // '_'
 
@@ -141,45 +141,47 @@ namespace Libplanet.Explorer.GraphTypes
                 resolve: context => context.Source.Trie[ValidatorSetKey]);
         }
 
-        internal static KeyBytes ToFungibleAssetKey(Address address, HashDigest<SHA1> currencyHash)
+        internal static string ToFungibleAssetKey(Address address, HashDigest<SHA1> currencyHash)
         {
-            var addressBytes = address.Bytes;
-            var currencyBytes = currencyHash.Bytes;
-            byte[] buffer = new byte[(addressBytes.Length * 2) + (currencyBytes.Length * 2) + 2];
+            return $"{address}_{currencyHash}";
+            // var addressBytes = address.Bytes;
+            // var currencyBytes = currencyHash.Bytes;
+            // byte[] buffer = new byte[(addressBytes.Length * 2) + (currencyBytes.Length * 2) + 2];
 
-            buffer[0] = _underScore;
-            for (int i = 0; i < addressBytes.Length; i++)
-            {
-                buffer[1 + (i * 2)] = _conversionTable[addressBytes[i] >> 4];
-                buffer[1 + (i * 2) + 1] = _conversionTable[addressBytes[i] & 0xf];
-            }
+            // buffer[0] = _underScore;
+            // for (int i = 0; i < addressBytes.Length; i++)
+            // {
+            //     buffer[1 + (i * 2)] = _conversionTable[addressBytes[i] >> 4];
+            //     buffer[1 + (i * 2) + 1] = _conversionTable[addressBytes[i] & 0xf];
+            // }
 
-            var offset = addressBytes.Length * 2;
-            buffer[offset + 1] = _underScore;
-            for (int i = 0; i < currencyBytes.Length; i++)
-            {
-                buffer[offset + 2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
-                buffer[offset + 2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
-            }
+            // var offset = addressBytes.Length * 2;
+            // buffer[offset + 1] = _underScore;
+            // for (int i = 0; i < currencyBytes.Length; i++)
+            // {
+            //     buffer[offset + 2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
+            //     buffer[offset + 2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
+            // }
 
-            return new KeyBytes(buffer);
+            // return new KeyBytes(buffer);
         }
 
-        internal static KeyBytes ToTotalSupplyKey(HashDigest<SHA1> currencyHash)
+        internal static string ToTotalSupplyKey(HashDigest<SHA1> currencyHash)
         {
-            var currencyBytes = currencyHash.Bytes;
-            byte[] buffer = new byte[(currencyBytes.Length * 2) + 2];
+            return $"{currencyHash}";
+            // var currencyBytes = currencyHash.Bytes;
+            // byte[] buffer = new byte[(currencyBytes.Length * 2) + 2];
 
-            buffer[0] = _underScore;
-            buffer[1] = _underScore;
+            // buffer[0] = _underScore;
+            // buffer[1] = _underScore;
 
-            for (int i = 0; i < currencyBytes.Length; i++)
-            {
-                buffer[2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
-                buffer[2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
-            }
+            // for (int i = 0; i < currencyBytes.Length; i++)
+            // {
+            //     buffer[2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
+            //     buffer[2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
+            // }
 
-            return new KeyBytes(buffer);
+            // return new KeyBytes(buffer);
         }
     }
 }

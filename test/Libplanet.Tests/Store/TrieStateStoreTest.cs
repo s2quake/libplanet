@@ -17,15 +17,15 @@ public class TrieStateStoreTest
         _stateKeyValueStore = new DefaultTable();
     }
 
-    public static KeyBytes KeyFoo { get; } = (KeyBytes)"foo";
+    public static string KeyFoo { get; } = "foo";
 
-    public static KeyBytes KeyBar { get; } = (KeyBytes)"bar";
+    public static string KeyBar { get; } = "bar";
 
-    public static KeyBytes KeyBaz { get; } = (KeyBytes)"baz";
+    public static string KeyBaz { get; } = "baz";
 
-    public static KeyBytes KeyQux { get; } = (KeyBytes)"qux";
+    public static string KeyQux { get; } = "qux";
 
-    public static KeyBytes KeyQuux { get; } = (KeyBytes)"quux";
+    public static string KeyQuux { get; } = "quux";
 
     [Fact]
     public void GetStateRoot()
@@ -39,11 +39,11 @@ public class TrieStateStoreTest
         Assert.False(emptyTrie.ContainsKey(KeyQux));
         Assert.False(emptyTrie.ContainsKey(KeyQuux));
 
-        KeyBytes fooKey = (KeyBytes)"foo";
-        KeyBytes barKey = (KeyBytes)"bar";
-        KeyBytes bazKey = (KeyBytes)"baz";
-        KeyBytes quxKey = (KeyBytes)"qux";
-        var values = ImmutableDictionary<KeyBytes, object>.Empty
+        string fooKey = "foo";
+        string barKey = "bar";
+        string bazKey = "baz";
+        string quxKey = "qux";
+        var values = ImmutableDictionary<string, object>.Empty
             .Add(fooKey, GetRandomBytes(32))
             .Add(barKey, ByteUtility.Hex(GetRandomBytes(32)))
             .Add(bazKey, false)
@@ -69,10 +69,10 @@ public class TrieStateStoreTest
         var targetStateKeyValueStore = new MemoryTable();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
-        List<(KeyBytes, byte[])> kvs = Enumerable.Range(0, 1_000)
+        List<(string, byte[])> kvs = Enumerable.Range(0, 1_000)
             .Select(_ =>
             (
-                new KeyBytes(GetRandomBytes(random.Next(1, 20))),
+                RandomUtility.Word(),
                 GetRandomBytes(20)
             ))
             .ToList();
@@ -86,9 +86,9 @@ public class TrieStateStoreTest
         trie = stateStore.Commit(trie);
         int prevStatesCount = _stateKeyValueStore.Keys.Count();
 
-        // NOTE: Avoid possible collision of KeyBytes, just in case.
-        _stateKeyValueStore[new KeyBytes(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
-        _stateKeyValueStore[new KeyBytes(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
+        // NOTE: Avoid possible collision of string, just in case.
+        _stateKeyValueStore[RandomUtility.Word()] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[RandomUtility.Word()] = ByteUtility.ParseHex("00");
 
         Assert.Equal(prevStatesCount + 2, _stateKeyValueStore.Keys.Count());
         Assert.Empty(targetStateKeyValueStore.Keys);
@@ -116,7 +116,7 @@ public class TrieStateStoreTest
         var targetStateKeyValueStore = new MemoryTable();
         var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
         Random random = new();
-        Dictionary<Address, List<(KeyBytes, byte[])>> data = Enumerable
+        Dictionary<Address, List<(string, byte[])>> data = Enumerable
             .Range(0, 20)
             .Select(_ => new Address([.. GetRandomBytes(Address.Size)]))
             .ToDictionary(
@@ -125,7 +125,7 @@ public class TrieStateStoreTest
                     .Range(0, 100)
                     .Select(__ =>
                     (
-                        new KeyBytes(GetRandomBytes(random.Next(20))),
+                        RandomUtility.Word(),
                         GetRandomBytes(20)))
                     .ToList());
 
@@ -142,7 +142,7 @@ public class TrieStateStoreTest
 
             trie = stateStore.Commit(trie);
             worldTrie = worldTrie.Set(
-                new KeyBytes(elem.Key.Bytes),
+                elem.Key.ToString(),
                 ModelSerializer.SerializeToBytes(trie.Hash));
             accountHashes.Add(trie.Hash);
         }
@@ -150,9 +150,9 @@ public class TrieStateStoreTest
         worldTrie = stateStore.Commit(worldTrie);
         int prevStatesCount = _stateKeyValueStore.Keys.Count();
 
-        // NOTE: Avoid possible collision of KeyBytes, just in case.
-        _stateKeyValueStore[new KeyBytes(GetRandomBytes(30))] = ByteUtility.ParseHex("00");
-        _stateKeyValueStore[new KeyBytes(GetRandomBytes(40))] = ByteUtility.ParseHex("00");
+        // NOTE: Avoid possible collision of string, just in case.
+        _stateKeyValueStore[RandomUtility.Word()] = ByteUtility.ParseHex("00");
+        _stateKeyValueStore[RandomUtility.Word()] = ByteUtility.ParseHex("00");
 
         Assert.Equal(prevStatesCount + 2, _stateKeyValueStore.Keys.Count());
         Assert.Empty(targetStateKeyValueStore.Keys);

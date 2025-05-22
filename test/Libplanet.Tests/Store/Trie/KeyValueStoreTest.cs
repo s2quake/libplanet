@@ -1,154 +1,146 @@
 using Libplanet.Store.Trie;
 
-namespace Libplanet.Tests.Store.Trie
+namespace Libplanet.Tests.Store.Trie;
+
+public abstract class KeyValueStoreTest
 {
-    public abstract class KeyValueStoreTest
+    private const int PreStoredDataCount = 10;
+
+    private const int PreStoredDataKeySize = 16;
+
+    private const int PreStoredDataValueSize = 32;
+
+    protected IDictionary<string, byte[]> KeyValueStore { get; set; }
+
+    protected Random Random { get; } = new Random();
+
+    private string[] PreStoredDataKeys { get; set; }
+
+    private byte[][] PreStoredDataValues { get; set; }
+
+    [Fact]
+    public void Get()
     {
-        private const int PreStoredDataCount = 10;
-
-        private const int PreStoredDataKeySize = 16;
-
-        private const int PreStoredDataValueSize = 32;
-
-        protected IDictionary<KeyBytes, byte[]> KeyValueStore { get; set; }
-
-        protected Random Random { get; } = new Random();
-
-        private KeyBytes[] PreStoredDataKeys { get; set; }
-
-        private byte[][] PreStoredDataValues { get; set; }
-
-        [Fact]
-        public void Get()
+        foreach (var (key, expectedValue) in PreStoredDataKeys.Zip(
+            PreStoredDataValues, ValueTuple.Create))
         {
-            foreach (var (key, expectedValue) in PreStoredDataKeys.Zip(
-                PreStoredDataValues, ValueTuple.Create))
-            {
-                var actual = KeyValueStore[key];
-                Assert.Equal(expectedValue, actual);
-            }
-
-            var randomKey = NewRandomKey();
-            Assert.Throws<KeyNotFoundException>(() => KeyValueStore[randomKey]);
+            var actual = KeyValueStore[key];
+            Assert.Equal(expectedValue, actual);
         }
 
-        [Fact]
-        public void Set()
-        {
-            var key = new KeyBytes(Random.NextBytes(PreStoredDataKeySize));
-            byte[] value = Random.NextBytes(PreStoredDataValueSize);
-            KeyValueStore[key] = value;
+        var randomKey = NewRandomKey();
+        Assert.Throws<KeyNotFoundException>(() => KeyValueStore[randomKey]);
+    }
 
-            Assert.Equal(value, KeyValueStore[key]);
+    [Fact]
+    public void Set()
+    {
+        var key = RandomUtility.Word();
+        byte[] value = Random.NextBytes(PreStoredDataValueSize);
+        KeyValueStore[key] = value;
+
+        Assert.Equal(value, KeyValueStore[key]);
+    }
+
+    [Fact]
+    public void SetMany()
+    {
+        var values = new Dictionary<string, byte[]>();
+        foreach (int i in Enumerable.Range(0, 10))
+        {
+            values[RandomUtility.Word()] =
+                Random.NextBytes(PreStoredDataValueSize);
         }
 
-        [Fact]
-        public void SetMany()
+        KeyValueStore.SetMany(values);
+
+        foreach (KeyValuePair<string, byte[]> kv in values)
         {
-            var values = new Dictionary<KeyBytes, byte[]>();
-            foreach (int i in Enumerable.Range(0, 10))
-            {
-                values[new KeyBytes(Random.NextBytes(PreStoredDataKeySize))] =
-                    Random.NextBytes(PreStoredDataValueSize);
-            }
+            Assert.Equal(kv.Value, KeyValueStore[kv.Key]);
+        }
+    }
 
-            KeyValueStore.SetMany(values);
+    // This test will cover DefaultKeyValueStore.Set
+    [Fact]
+    public void Overwrite()
+    {
+        foreach (var (key, expectedValue) in PreStoredDataKeys.Zip(
+            PreStoredDataValues, ValueTuple.Create))
+        {
+            var randomValue = Random.NextBytes(PreStoredDataValueSize);
+            var actual = KeyValueStore[key];
+            Assert.Equal(expectedValue, actual);
 
-            foreach (KeyValuePair<KeyBytes, byte[]> kv in values)
-            {
-                Assert.Equal(kv.Value, KeyValueStore[kv.Key]);
-            }
+            KeyValueStore[key] = randomValue;
+            actual = KeyValueStore[key];
+            Assert.Equal(randomValue, actual);
+            Assert.NotEqual(expectedValue, actual);
+        }
+    }
+
+    [Fact]
+    public virtual void Delete()
+    {
+        foreach (string key in PreStoredDataKeys)
+        {
+            KeyValueStore.Remove(key);
+            Assert.False(KeyValueStore.ContainsKey(key));
         }
 
-        // This test will cover DefaultKeyValueStore.Set
-        [Fact]
-        public void Overwrite()
-        {
-            foreach (var (key, expectedValue) in PreStoredDataKeys.Zip(
-                PreStoredDataValues, ValueTuple.Create))
-            {
-                var randomValue = Random.NextBytes(PreStoredDataValueSize);
-                var actual = KeyValueStore[key];
-                Assert.Equal(expectedValue, actual);
+        string nonExistent = NewRandomKey();
+        KeyValueStore.Remove(nonExistent);
+        Assert.False(KeyValueStore.ContainsKey(nonExistent));
+    }
 
-                KeyValueStore[key] = randomValue;
-                actual = KeyValueStore[key];
-                Assert.Equal(randomValue, actual);
-                Assert.NotEqual(expectedValue, actual);
-            }
+    [Fact]
+    public virtual void DeleteMany()
+    {
+        string[] nonExistentKeys = Enumerable.Range(0, 10)
+            .Select(_ => NewRandomKey())
+            .ToArray();
+        string[] keys = PreStoredDataKeys
+            .Concat(PreStoredDataKeys.Take(PreStoredDataCount / 2))
+            .Concat(nonExistentKeys)
+            .ToArray();
+        KeyValueStore.RemoveMany(keys);
+        Assert.All(keys, k => Assert.False(KeyValueStore.ContainsKey(k)));
+    }
+
+    [Fact]
+    public void Exists()
+    {
+        foreach (var (key, _) in PreStoredDataKeys.Zip(PreStoredDataValues, ValueTuple.Create))
+        {
+            Assert.True(KeyValueStore.ContainsKey(key));
         }
 
-        [Fact]
-        public virtual void Delete()
+        var randomKey = NewRandomKey();
+        Assert.False(KeyValueStore.ContainsKey(randomKey));
+    }
+
+    [Fact]
+    public void ListKeys()
+    {
+        ImmutableHashSet<string> keys = KeyValueStore.Keys.ToImmutableHashSet();
+        Assert.Equal(PreStoredDataCount, keys.Count);
+        Assert.True(PreStoredDataKeys.ToImmutableHashSet().SetEquals(keys));
+    }
+
+    public string NewRandomKey()
+    {
+        return RandomUtility.Word(item => !KeyValueStore.ContainsKey(item));
+    }
+
+    protected void InitializePreStoredData()
+    {
+        PreStoredDataKeys = new string[PreStoredDataCount];
+        PreStoredDataValues = new byte[PreStoredDataCount][];
+
+        for (int i = 0; i < PreStoredDataCount; ++i)
         {
-            foreach (KeyBytes key in PreStoredDataKeys)
-            {
-                KeyValueStore.Remove(key);
-                Assert.False(KeyValueStore.ContainsKey(key));
-            }
-
-            KeyBytes nonExistent = NewRandomKey();
-            KeyValueStore.Remove(nonExistent);
-            Assert.False(KeyValueStore.ContainsKey(nonExistent));
-        }
-
-        [Fact]
-        public virtual void DeleteMany()
-        {
-            KeyBytes[] nonExistentKeys = Enumerable.Range(0, 10)
-                .Select(_ => NewRandomKey())
-                .ToArray();
-            KeyBytes[] keys = PreStoredDataKeys
-                .Concat(PreStoredDataKeys.Take(PreStoredDataCount / 2))
-                .Concat(nonExistentKeys)
-                .ToArray();
-            KeyValueStore.RemoveMany(keys);
-            Assert.All(keys, k => Assert.False(KeyValueStore.ContainsKey(k)));
-        }
-
-        [Fact]
-        public void Exists()
-        {
-            foreach (var (key, _) in PreStoredDataKeys.Zip(PreStoredDataValues, ValueTuple.Create))
-            {
-                Assert.True(KeyValueStore.ContainsKey(key));
-            }
-
-            var randomKey = NewRandomKey();
-            Assert.False(KeyValueStore.ContainsKey(randomKey));
-        }
-
-        [Fact]
-        public void ListKeys()
-        {
-            ImmutableHashSet<KeyBytes> keys = KeyValueStore.Keys.ToImmutableHashSet();
-            Assert.Equal(PreStoredDataCount, keys.Count);
-            Assert.True(PreStoredDataKeys.ToImmutableHashSet().SetEquals(keys));
-        }
-
-        public KeyBytes NewRandomKey()
-        {
-            KeyBytes randomKey;
-            do
-            {
-                randomKey = new KeyBytes(Random.NextBytes(PreStoredDataKeySize));
-            }
-            while (KeyValueStore.ContainsKey(randomKey));
-
-            return randomKey;
-        }
-
-        protected void InitializePreStoredData()
-        {
-            PreStoredDataKeys = new KeyBytes[PreStoredDataCount];
-            PreStoredDataValues = new byte[PreStoredDataCount][];
-
-            for (int i = 0; i < PreStoredDataCount; ++i)
-            {
-                PreStoredDataKeys[i] = new KeyBytes(Random.NextBytes(PreStoredDataKeySize));
-                PreStoredDataValues[i] = Random.NextBytes(PreStoredDataValueSize);
-                KeyValueStore[PreStoredDataKeys[i]] = PreStoredDataValues[i];
-            }
+            PreStoredDataKeys[i] = RandomUtility.Word();
+            PreStoredDataValues[i] = Random.NextBytes(PreStoredDataValueSize);
+            KeyValueStore[PreStoredDataKeys[i]] = PreStoredDataValues[i];
         }
     }
 }

@@ -1,104 +1,104 @@
-using System.Runtime.CompilerServices;
-using System.Text;
-using Libplanet.Store.Trie;
-using Libplanet.Types.Assets;
-using Libplanet.Types.Crypto;
+// using System.Runtime.CompilerServices;
+// using System.Text;
+// using Libplanet.Store.Trie;
+// using Libplanet.Types.Assets;
+// using Libplanet.Types.Crypto;
 
-namespace Libplanet.Action.State;
+// namespace Libplanet.Action.State;
 
-public static class KeyConverters
-{
-    public static readonly KeyBytes ValidatorSetKey = new([_underScore, _underScore, _underScore]);
+// public static class KeyConverters
+// {
+//     public static readonly KeyBytes ValidatorSetKey = new([_underScore, _underScore, _underScore]);
 
-    private const byte _underScore = 95; // '_'
+//     private const byte _underScore = 95; // '_'
 
-    private static readonly byte[] _conversionTable =
-    [
-        48,  // '0'
-        49,  // '1'
-        50,  // '2'
-        51,  // '3'
-        52,  // '4'
-        53,  // '5'
-        54,  // '6'
-        55,  // '7'
-        56,  // '8'
-        57,  // '9'
-        97,  // 'a'
-        98,  // 'b'
-        99,  // 'c'
-        100, // 'd'
-        101, // 'e'
-        102, // 'f'
-    ];
+//     private static readonly byte[] _conversionTable =
+//     [
+//         48,  // '0'
+//         49,  // '1'
+//         50,  // '2'
+//         51,  // '3'
+//         52,  // '4'
+//         53,  // '5'
+//         54,  // '6'
+//         55,  // '7'
+//         56,  // '8'
+//         57,  // '9'
+//         97,  // 'a'
+//         98,  // 'b'
+//         99,  // 'c'
+//         100, // 'd'
+//         101, // 'e'
+//         102, // 'f'
+//     ];
 
-    // $"{ByteUtil.Hex(address.ByteArray)}"
-    public static KeyBytes ToStateKey(Address address)
-    {
-        var addressBytes = address.Bytes;
-        var buffer = new byte[addressBytes.Length * 2];
-        for (int i = 0; i < addressBytes.Length; i++)
-        {
-            buffer[i * 2] = _conversionTable[addressBytes[i] >> 4];
-            buffer[(i * 2) + 1] = _conversionTable[addressBytes[i] & 0xf];
-        }
+//     // $"{ByteUtil.Hex(address.ByteArray)}"
+//     public static KeyBytes ToStateKey(Address address)
+//     {
+//         var addressBytes = address.Bytes;
+//         var buffer = new byte[addressBytes.Length * 2];
+//         for (int i = 0; i < addressBytes.Length; i++)
+//         {
+//             buffer[i * 2] = _conversionTable[addressBytes[i] >> 4];
+//             buffer[(i * 2) + 1] = _conversionTable[addressBytes[i] & 0xf];
+//         }
 
-        return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
-    }
+//         return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
+//     }
 
-    public static KeyBytes ToStateKey(string name)
-    {
-        if (name == string.Empty)
-        {
-            return KeyBytes.Empty;
-        }
+//     public static KeyBytes ToStateKey(string name)
+//     {
+//         if (name == string.Empty)
+//         {
+//             return KeyBytes.Empty;
+//         }
 
-        return new KeyBytes(Encoding.UTF8.GetBytes(name));
-    }
+//         return new KeyBytes(Encoding.UTF8.GetBytes(name));
+//     }
 
-    // $"_{ByteUtil.Hex(address.ByteArray)}_{ByteUtil.Hex(currency.Hash.ByteArray)}"
-    public static KeyBytes ToFungibleAssetKey(Address address, Currency currency)
-    {
-        var addressBytes = address.Bytes;
-        var currencyBytes = currency.Hash.Bytes;
-        byte[] buffer = new byte[(addressBytes.Length * 2) + (currencyBytes.Length * 2) + 2];
+//     // $"_{ByteUtil.Hex(address.ByteArray)}_{ByteUtil.Hex(currency.Hash.ByteArray)}"
+//     public static KeyBytes ToFungibleAssetKey(Address address, Currency currency)
+//     {
+//         var addressBytes = address.Bytes;
+//         var currencyBytes = currency.Hash.Bytes;
+//         byte[] buffer = new byte[(addressBytes.Length * 2) + (currencyBytes.Length * 2) + 2];
 
-        buffer[0] = _underScore;
-        for (int i = 0; i < addressBytes.Length; i++)
-        {
-            buffer[1 + (i * 2)] = _conversionTable[addressBytes[i] >> 4];
-            buffer[1 + (i * 2) + 1] = _conversionTable[addressBytes[i] & 0xf];
-        }
+//         buffer[0] = _underScore;
+//         for (int i = 0; i < addressBytes.Length; i++)
+//         {
+//             buffer[1 + (i * 2)] = _conversionTable[addressBytes[i] >> 4];
+//             buffer[1 + (i * 2) + 1] = _conversionTable[addressBytes[i] & 0xf];
+//         }
 
-        var offset = addressBytes.Length * 2;
-        buffer[offset + 1] = _underScore;
-        for (int i = 0; i < currencyBytes.Length; i++)
-        {
-            buffer[offset + 2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
-            buffer[offset + 2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
-        }
+//         var offset = addressBytes.Length * 2;
+//         buffer[offset + 1] = _underScore;
+//         for (int i = 0; i < currencyBytes.Length; i++)
+//         {
+//             buffer[offset + 2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
+//             buffer[offset + 2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
+//         }
 
-        return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
-    }
+//         return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
+//     }
 
-    public static KeyBytes ToFungibleAssetKey((Address Address, Currency Currency) pair)
-    => ToFungibleAssetKey(pair.Address, pair.Currency);
+//     public static KeyBytes ToFungibleAssetKey((Address Address, Currency Currency) pair)
+//     => ToFungibleAssetKey(pair.Address, pair.Currency);
 
-    // $"__{ByteUtil.Hex(currency.Hash.ByteArray)}"
-    public static KeyBytes ToTotalSupplyKey(Currency currency)
-    {
-        var currencyBytes = currency.Hash.Bytes;
-        byte[] buffer = new byte[(currencyBytes.Length * 2) + 2];
+//     // $"__{ByteUtil.Hex(currency.Hash.ByteArray)}"
+//     public static KeyBytes ToTotalSupplyKey(Currency currency)
+//     {
+//         var currencyBytes = currency.Hash.Bytes;
+//         byte[] buffer = new byte[(currencyBytes.Length * 2) + 2];
 
-        buffer[0] = _underScore;
-        buffer[1] = _underScore;
+//         buffer[0] = _underScore;
+//         buffer[1] = _underScore;
 
-        for (int i = 0; i < currencyBytes.Length; i++)
-        {
-            buffer[2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
-            buffer[2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
-        }
+//         for (int i = 0; i < currencyBytes.Length; i++)
+//         {
+//             buffer[2 + (i * 2)] = _conversionTable[currencyBytes[i] >> 4];
+//             buffer[2 + (i * 2) + 1] = _conversionTable[currencyBytes[i] & 0xf];
+//         }
 
-        return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
-    }
-}
+//         return new KeyBytes(Unsafe.As<byte[], ImmutableArray<byte>>(ref buffer));
+//     }
+// }

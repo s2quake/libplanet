@@ -24,13 +24,13 @@ public static class WorldExtensions
     private static CurrencyAccount WriteRawBalance(
         CurrencyAccount currencyAccount, Address address, BigInteger rawValue)
     {
-        var trie = currencyAccount.Trie.Set(KeyConverters.ToStateKey(address), rawValue);
+        var trie = currencyAccount.Trie.Set(address.ToString(), rawValue);
         return currencyAccount with { Trie = trie };
     }
 
     private static CurrencyAccount WriteRawTotalSupply(CurrencyAccount currencyAccount, BigInteger rawValue)
     {
-        var key = KeyConverters.ToStateKey(CurrencyAccount.TotalSupplyAddress);
+        var key = CurrencyAccount.TotalSupplyAddress.ToString();
         var value = rawValue;
         var trie = currencyAccount.Trie.Set(key, value);
         return currencyAccount with { Trie = trie };
