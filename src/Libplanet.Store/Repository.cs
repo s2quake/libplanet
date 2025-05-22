@@ -10,10 +10,9 @@ public sealed class Repository : IDisposable
 {
     private readonly IDatabase _database;
     private readonly MetadataStore _metadata;
-    private int _genesisHeight;
-    private int _height;
+    private int _genesisHeight = -1;
+    private int _height = -1;
     private HashDigest<SHA256> _stateRootHash;
-    private BlockCommit _blockCommit = BlockCommit.Empty;
 
     private bool _disposed;
 
@@ -35,13 +34,8 @@ public sealed class Repository : IDisposable
         CommittedEvidences = new CommittedEvidenceStore(_database);
         TxExecutions = new TxExecutionStore(_database);
         BlockExecutions = new BlockExecutionStore(_database);
-        BlockHashes = new BlockHashStore(database)
-        {
-            GenesisHeight = GenesisHeight,
-            Height = Height,
-        };
+        BlockHashes = new BlockHashStore(database);
         Nonces = new NonceStore(database);
-        // Chains = new ChainStore(_database);
         StateStore = new TrieStateStore(_database);
         if (_metadata.TryGetValue("genesisHeight", out var genesisHeight))
         {
@@ -65,29 +59,11 @@ public sealed class Repository : IDisposable
             _metadata["id"] = Id.ToString();
         }
 
-        // if (_metadata.TryGetValue("chainId", out var chainId))
-        // {
-        //     _chain = Chains[Guid.Parse(chainId)];
-        // }
-        // else
-        // {
-        //     _chain = Chains.AddNew(Guid.NewGuid());
-        //     _metadata["chainId"] = _chain.Id.ToString();
-        // }
+        BlockHashes.GenesisHeight = _genesisHeight;
+        BlockHashes.Height = _height;
     }
 
     public Guid Id { get; }
-
-    // public Repository(Block genesisBlock)
-    //     : this(genesisBlock, new MemoryDatabase())
-    // {
-    // }
-
-    // public Repository(Block genesisBlock, IDatabase database)
-    //     : this(database)
-    // {
-    //     AddNewChain(genesisBlock);
-    // }
 
     public PendingEvidenceStore PendingEvidences { get; }
 
@@ -107,20 +83,30 @@ public sealed class Repository : IDisposable
 
     public BlockExecutionStore BlockExecutions { get; }
 
-
     public BlockHashStore BlockHashes { get; }
 
     public NonceStore Nonces { get; }
-
-    // public ChainStore Chains { get; }
 
     public int GenesisHeight
     {
         get => _genesisHeight;
         set
         {
+            if (value < -1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Genesis height cannot be less than -1.");
+            }
+
             _genesisHeight = value;
-            _metadata["genesisHeight"] = _genesisHeight.ToString();
+            BlockHashes.GenesisHeight = value;
+            if (value != -1)
+            {
+                _metadata["genesisHeight"] = _genesisHeight.ToString();
+            }
+            else
+            {
+                _metadata.Remove("genesisHeight");
+            }
         }
     }
 
@@ -129,8 +115,21 @@ public sealed class Repository : IDisposable
         get => _height;
         set
         {
+            if (value < -1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Height cannot be less than -1.");
+            }
+
             _height = value;
-            _metadata["height"] = _height.ToString();
+            BlockHashes.Height = value;
+            if (value != -1)
+            {
+                _metadata["height"] = _height.ToString();
+            }
+            else
+            {
+                _metadata.Remove("height");
+            }
         }
     }
 
@@ -140,49 +139,46 @@ public sealed class Repository : IDisposable
         set
         {
             _stateRootHash = value;
-            _metadata["stateRootHash"] = _stateRootHash.ToString();
+            if (value != default)
+            {
+                _metadata["stateRootHash"] = _stateRootHash.ToString();
+            }
+            else
+            {
+                _metadata.Remove("stateRootHash");
+            }
         }
     }
 
-    public BlockHash GenesisBlockHash => BlockHashes[_genesisHeight];
+    public BlockHash GenesisBlockHash
+    {
+        get
+        {
+            if (_genesisHeight == -1)
+            {
+                throw new InvalidOperationException("Genesis block hash is not set.");
+            }
 
-    public BlockHash BlockHash => BlockHashes[_height];
+            return BlockHashes[_genesisHeight];
+        }
+    }
+
+    public BlockHash BlockHash
+    {
+        get
+        {
+            if (_height == -1)
+            {
+                throw new InvalidOperationException("Block hash is not set.");
+            }
+
+            return BlockHashes[_height];
+        }
+    }
 
     public BlockCommit BlockCommit => BlockCommits[BlockHash];
 
-    // public HashDigest<SHA256> StateRootHash { get; set; }
-
-    // public Guid ChainId
-    // {
-    //     get => _metadata.TryGetValue("chainId", out var chainId) ? Guid.Parse(chainId) : Guid.Empty;
-    //     set
-    //     {
-    //         if (value == Guid.Empty)
-    //         {
-    //             _chain = null;
-    //             _metadata.Remove("chainId");
-    //         }
-    //         else
-    //         {
-    //             _chain = Chains[value];
-    //             _metadata["chainId"] = value.ToString();
-    //         }
-    //     }
-    // }
-
-    // public Chain Chain => _chain ?? throw new InvalidOperationException(
-    //     "ChainId is not set. Please set ChainId before accessing the Chain property.");
-
     public TrieStateStore StateStore { get; }
-
-    // public Chain AddNewChain(Block genesisBlock)
-    // {
-    //     _chain = Chains.AddNew(Guid.NewGuid());
-    //     _metadata["chainId"] = _chain.Id.ToString();
-    //     Append(genesisBlock, BlockCommit.Empty);
-    //     _chain.Append(genesisBlock, BlockCommit.Empty);
-    //     return _chain;
-    // }
 
     public void Append(Block block, BlockCommit blockCommit)
     {

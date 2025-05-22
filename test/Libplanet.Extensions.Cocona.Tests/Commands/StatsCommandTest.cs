@@ -41,8 +41,8 @@ public sealed class StatsCommandTest : IDisposable
     {
         string badPathFormat = "rocksdb+foo+bar://" + "/bar";
         string badPathScheme = "foo://" + "/bar";
-        long badOffset = long.MaxValue;
-        long badLimit = 0;
+        int badOffset = int.MaxValue;
+        int badLimit = 0;
 
         foreach (var storeFixture in _storeFixtures)
         {

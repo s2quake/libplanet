@@ -17,10 +17,10 @@ public interface IBlockChainIndex
     /// <see cref="Block"/>.
     /// </summary>
     /// <exception cref="IndexOutOfRangeException">Thrown if the index is empty.</exception>
-    (long Index, BlockHash Hash) Tip { get; }
+    (int Index, BlockHash Hash) Tip { get; }
 
     /// <inheritdoc cref="IndexToBlockHash"/>
-    BlockHash this[long index] => IndexToBlockHash(index);
+    BlockHash this[int index] => IndexToBlockHash(index);
 
     /// <inheritdoc cref="GetBlockHashesByRange"/>
     IEnumerable<BlockHash> this[Range indexRange] =>
@@ -33,7 +33,7 @@ public interface IBlockChainIndex
     /// <returns>A <see cref="ValueTuple{Long,BlockHash}"/> that contains the height and the
     /// <see cref="BlockHash"/> of the most recently indexed <see cref="Block"/>.</returns>
     /// <exception cref="IndexOutOfRangeException">Thrown if the index is empty.</exception>
-    Task<(long Index, BlockHash Hash)> GetTipAsync();
+    Task<(int Index, BlockHash Hash)> GetTipAsync();
 
     /// <summary>
     /// Get the indexed height of the <see cref="Block"/> with the given <paramref name="hash"/>.
@@ -46,7 +46,7 @@ public interface IBlockChainIndex
     int BlockHashToIndex(BlockHash hash);
 
     /// <inheritdoc cref="BlockHashToIndex"/>
-    Task<long> BlockHashToIndexAsync(BlockHash hash);
+    Task<int> BlockHashToIndexAsync(BlockHash hash);
 
     /// <summary>
     /// Gets the indexed <see cref="BlockHash"/> of the <see cref="Block"/> at
@@ -57,10 +57,10 @@ public interface IBlockChainIndex
     /// <paramref name="index"/> height.</returns>
     /// <exception cref="IndexOutOfRangeException">Thrown if the index does not contain the
     /// <see cref="Block"/> at the given <paramref name="index"/>.</exception>
-    BlockHash IndexToBlockHash(long index);
+    BlockHash IndexToBlockHash(int index);
 
     /// <inheritdoc cref="IndexToBlockHash"/>
-    Task<BlockHash> IndexToBlockHashAsync(long index);
+    Task<BlockHash> IndexToBlockHashAsync(int index);
 
     /// <summary>
     /// Get the height and the <see cref="BlockHash"/> of the indexed <see cref="Block"/>s in the
@@ -74,11 +74,11 @@ public interface IBlockChainIndex
     /// in the given <paramref name="indexRange"/>.</returns>
     /// <exception cref="IndexOutOfRangeException">Thrown if the given range exceeds the block
     /// count.</exception>
-    IEnumerable<(long Index, BlockHash Hash)> GetBlockHashesByRange(
+    IEnumerable<(int Index, BlockHash Hash)> GetBlockHashesByRange(
         Range indexRange, bool desc = false, Address? producer = null);
 
     /// <inheritdoc cref="GetBlockHashesByRange"/>
-    IAsyncEnumerable<(long Index, BlockHash Hash)> GetBlockHashesByRangeAsync(
+    IAsyncEnumerable<(int Index, BlockHash Hash)> GetBlockHashesByRangeAsync(
         Range indexRange, bool desc = false, Address? producer = null);
 
     /// <summary>
@@ -93,11 +93,11 @@ public interface IBlockChainIndex
     /// <returns>The height and the <see cref="BlockHash"/> of the indexed <see cref="Block"/>s
     /// starting at <paramref name="fromHeight"/> and at most <paramref name="maxCount"/>.
     /// </returns>
-    IEnumerable<(long Index, BlockHash Hash)> GetBlockHashesFromIndex(
+    IEnumerable<(int Index, BlockHash Hash)> GetBlockHashesFromIndex(
         int? fromHeight = null, int? maxCount = null, bool desc = false, Address? producer = null);
 
     /// <inheritdoc cref="GetBlockHashesFromIndex"/>
-    IAsyncEnumerable<(long Index, BlockHash Hash)> GetBlockHashesFromIndexAsync(
+    IAsyncEnumerable<(int Index, BlockHash Hash)> GetBlockHashesFromIndexAsync(
         int? fromHeight = null, int? maxCount = null, bool desc = false, Address? producer = null);
 
     /// <summary>

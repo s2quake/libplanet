@@ -54,22 +54,6 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     public int Count => _blockHashes.Count;
 
-    public Block this[int height]
-    {
-        get
-        {
-            if (_cacheByHeight.TryGet(height, out var cached))
-            {
-                return cached;
-            }
-
-            var blockHash = _blockHashes[height];
-            var block = this[blockHash];
-            _cacheByHeight.AddOrUpdate(height, block);
-            return block;
-        }
-    }
-
     public Block this[Index index]
     {
         get
@@ -108,24 +92,11 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
     {
         get
         {
-            var start = range.Start.IsFromEnd ? Count - range.Start.Value : range.Start.Value;
-            var end = range.End.IsFromEnd ? Count - range.End.Value : range.End.Value;
-
-            if (start < 0 || end > Count || start > end)
+            foreach (var item in _blockHashes[range])
             {
-                throw new ArgumentOutOfRangeException(nameof(range));
-            }
-
-            for (var i = start; i < end; i++)
-            {
-                yield return this[i];
+                yield return this[item];
             }
         }
-    }
-
-    public IEnumerable<BlockHash> IterateIndexes(int offset = 0, int? limit = null)
-    {
-        return _blockHashes.IterateHeights(offset, limit);
     }
 
     public bool ContainsKey(BlockHash blockHash) => _blockDigests.ContainsKey(blockHash);
