@@ -71,7 +71,7 @@ public sealed class IntegerSet
     public TxWithContext Sign(PrivateKey signerKey, params Arithmetic[] actions)
     {
         var signer = signerKey.Address;
-        KeyBytes rawStateKey = KeyConverters.ToStateKey(signer);
+        string rawStateKey = signer.ToString();
         long nonce = Chain.GetNextTxNonce(signer);
         Transaction tx = new TransactionMetadata
         {
@@ -92,7 +92,7 @@ public sealed class IntegerSet
             {
                 var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes.AsSpan());
                 BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
-                var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty
+                var updatedRawStates = ImmutableDictionary<string, BigInteger>.Empty
                     .Add(rawStateKey, nextState);
                 HashDigest<SHA256> nextRootHash = Repository.StateStore.Commit(
                     updatedRawStates.Aggregate(
@@ -109,7 +109,7 @@ public sealed class IntegerSet
                     var a = ModelSerializer.DeserializeFromBytes<Arithmetic>(act.Bytes.AsSpan());
                     BigInteger nextState =
                         a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
-                    var updatedRawStates = ImmutableDictionary<KeyBytes, BigInteger>.Empty
+                    var updatedRawStates = ImmutableDictionary<string, BigInteger>.Empty
                         .Add(rawStateKey, nextState);
                     HashDigest<SHA256> nextRootHash = Repository.StateStore.Commit(
                         updatedRawStates.Aggregate(

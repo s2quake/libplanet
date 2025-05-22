@@ -2,7 +2,6 @@ using Libplanet.Store.Trie;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.KeyConverters;
 using static Libplanet.Action.State.ReservedAddresses;
 
 namespace Libplanet.Action.State;
@@ -16,8 +15,8 @@ public static class WorldExtensions
     // public static World SetAccount(this World @this, string name, Account account)
     //     => @this.SetAccount(ToStateKey(name), account);
 
-    // public static World SetAccount(this World @this, Address name, Account account)
-    //     => @this.SetAccount(ToStateKey(name), account);
+    public static World SetAccount(this World @this, Address name, Account account)
+        => @this.SetAccount(name.ToString(), account);
 
     public static FungibleAssetValue GetBalance(this World @this, Address address, Currency currency)
         => @this.GetCurrencyAccount(currency).GetBalance(address);
@@ -62,8 +61,8 @@ public static class WorldExtensions
     public static object? GetValueOrDefault(this World @this, string name, string key)
         => @this.GetAccount(name).GetValueOrDefault(key);
 
-    // public static object? GetValueOrDefault(this World @this, Address name, Address key)
-    //     => @this.GetAccount(name).GetValueOrDefault(key);
+    public static object? GetValueOrDefault(this World @this, Address name, Address key)
+        => @this.GetAccount(name).GetValueOrDefault(key);
 
     // public static object? GetValueOrDefault(this World @this, KeyBytes name, KeyBytes key)
     //     => @this.GetAccount(name).GetValueOrDefault(key);
@@ -71,8 +70,8 @@ public static class WorldExtensions
     public static T GetValueOrFallback<T>(this World @this, string name, string key, T fallback)
         => @this.GetAccount(name).GetValueOrFallback(key, fallback);
 
-    // public static T GetValueOrFallback<T>(this World @this, Address name, Address key, T fallback)
-    //     => @this.GetAccount(name).GetValueOrFallback(key, fallback);
+    public static T GetValueOrFallback<T>(this World @this, Address name, Address key, T fallback)
+        => @this.GetAccount(name).GetValueOrFallback(key, fallback);
 
     // public static T GetValueOrFallback<T>(this World @this, KeyBytes name, KeyBytes key, T fallback)
     //     => @this.GetAccount(name).GetValueOrFallback(key, fallback);
@@ -80,8 +79,8 @@ public static class WorldExtensions
     public static object GetValue(this World @this, string name, string key)
         => @this.GetAccount(name).GetValue(key);
 
-    // public static object GetValue(this World @this, Address name, Address key)
-    //     => @this.GetAccount(name).GetValue(key);
+    public static object GetValue(this World @this, Address name, Address key)
+        => @this.GetAccount(name).GetValue(key);
 
     // public static object GetValue(this World @this, KeyBytes name, KeyBytes key)
     //     => @this.GetAccount(name).GetValue(key);
@@ -89,8 +88,8 @@ public static class WorldExtensions
     public static World SetValue(this World @this, string name, string key, object value)
         => @this.SetAccount(name, @this.GetAccount(name).SetValue(key, value));
 
-    // public static World SetValue(this World @this, Address name, Address key, object value)
-    //     => @this.SetAccount(name, @this.GetAccount(name).SetValue(key, value));
+    public static World SetValue(this World @this, Address name, Address key, object value)
+        => @this.SetAccount(name, @this.GetAccount(name).SetValue(key, value));
 
     // public static World SetValue(this World @this, KeyBytes name, KeyBytes key, object value)
     //     => @this.SetAccount(name, @this.GetAccount(name).SetValue(key, value));

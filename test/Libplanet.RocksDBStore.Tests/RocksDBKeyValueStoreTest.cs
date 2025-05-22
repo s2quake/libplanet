@@ -33,7 +33,7 @@ namespace Libplanet.RocksDBStore.Tests
             var primaryRocksDb = new RocksDBKeyValueStore(basePath);
             var readonlyRocksDb = new RocksDBKeyValueStore(basePath, RocksDBInstanceType.ReadOnly);
 
-            var key = (KeyBytes)"new";
+            var key = "new";
             var value = new byte[] { 1, 2, 3 };
             primaryRocksDb[key] = value;
             Assert.Equal(value, primaryRocksDb[key]);
@@ -52,7 +52,7 @@ namespace Libplanet.RocksDBStore.Tests
                 basePath,
                 RocksDBInstanceType.Secondary);
 
-            var key = (KeyBytes)"new";
+            var key = "new";
             var value = new byte[] { 1, 2, 3 };
             primaryRocksDb[key] = value;
             Assert.Equal(value, primaryRocksDb[key]);

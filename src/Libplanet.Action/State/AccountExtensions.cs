@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.KeyConverters;
 
 namespace Libplanet.Action.State;
 
@@ -16,7 +15,7 @@ public static class AccountExtensions
 
     // public static object? GetValueOrDefault(this Account @this, string key) => @this.GetValueOrDefault(ToStateKey(key));
 
-    // public static object? GetValueOrDefault(this Account @this, Address key) => @this.GetValueOrDefault(ToStateKey(key));
+    public static object? GetValueOrDefault(this Account @this, Address key) => @this.GetValueOrDefault(key.ToString());
 
     // public static T GetValueOrFallback<T>(this Account @this, string key, T fallback)
     //     => @this.GetValueOrFallback(ToStateKey(key), fallback);
