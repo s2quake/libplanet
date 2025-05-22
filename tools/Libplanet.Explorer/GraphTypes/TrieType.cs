@@ -14,7 +14,7 @@ namespace Libplanet.Explorer.GraphTypes
                 name: "value",
                 description: "Gets the value stored at given key.",
                 arguments: new QueryArguments(
-                    new QueryArgument<NonNullGraphType<KeyBytesType>>
+                    new QueryArgument<NonNullGraphType<StringGraphType>>
                     {
                         Name = "key",
                         Description = "The key to search.",
@@ -26,7 +26,7 @@ namespace Libplanet.Explorer.GraphTypes
                 description: "Gets the values stored at given multiple keys.",
                 arguments: new QueryArguments(
                     new QueryArgument<
-                        NonNullGraphType<ListGraphType<NonNullGraphType<KeyBytesType>>>>
+                        NonNullGraphType<ListGraphType<NonNullGraphType<StringGraphType>>>>
                     {
                         Name = "keys",
                         Description = "The list of keys to search.",

@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Store.DataStructures;
 
-public readonly record struct KeyBytes(in ImmutableArray<byte> Bytes)
+internal readonly record struct KeyBytes(in ImmutableArray<byte> Bytes)
     : IEquatable<KeyBytes>, IFormattable
 {
     public static readonly KeyBytes Empty = default;

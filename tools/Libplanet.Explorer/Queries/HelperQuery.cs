@@ -38,17 +38,17 @@ namespace Libplanet.Explorer.Queries
                     }),
                 resolve: context => ByteUtility.ParseHex(context.GetArgument<string>("hex")));
 
-            Field<NonNullGraphType<KeyBytesType>>(
-                name: "keyHex",
-                description: "Converts string to key hex representation",
-                arguments: new QueryArguments(
-                    new QueryArgument<NonNullGraphType<StringGraphType>>
-                    {
-                        Name = "value",
-                        Description = "The string value to convert to key hex.",
-                    }),
-                resolve: context =>
-                    new KeyBytes(Encoding.ASCII.GetBytes(context.GetArgument<string>("value"))));
+            // Field<NonNullGraphType<KeyBytesType>>(
+            //     name: "keyHex",
+            //     description: "Converts string to key hex representation",
+            //     arguments: new QueryArguments(
+            //         new QueryArgument<NonNullGraphType<StringGraphType>>
+            //         {
+            //             Name = "value",
+            //             Description = "The string value to convert to key hex.",
+            //         }),
+            //     resolve: context =>
+            //         new KeyBytes(Encoding.ASCII.GetBytes(context.GetArgument<string>("value"))));
         }
     }
 }
