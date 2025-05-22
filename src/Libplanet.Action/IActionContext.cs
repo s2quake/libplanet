@@ -1,7 +1,6 @@
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Evidence;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;

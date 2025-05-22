@@ -6,8 +6,6 @@ using System.Text.Json;
 using System.Text.Json.JsonDiffPatch.Xunit;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using DiffPlex.DiffBuilder;
-using DiffPlex.DiffBuilder.Model;
 using Libplanet.Action;
 using Libplanet.Action.Sys;
 using Libplanet.Action.Tests.Common;

@@ -14,17 +14,9 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, object>>
 
     object this[in KeyBytes key] { get; }
 
-    object this[in ImmutableArray<byte> key] => this[new KeyBytes(key)];
-
     ITrie Set(in KeyBytes key, object value);
 
-    ITrie Set(in ImmutableArray<byte> key, object value) => Set(new KeyBytes(key), value);
-
-    ITrie Set(string key, object value) => Set((KeyBytes)key, value);
-
     ITrie Remove(in KeyBytes key);
-
-    ITrie Remove(in ImmutableArray<byte> key) => Remove(new KeyBytes(key));
 
     INode GetNode(in Nibbles key);
 
@@ -54,6 +46,4 @@ public interface ITrie : IEnumerable<KeyValuePair<KeyBytes, object>>
 
     T GetValueOrDefault<T>(in KeyBytes key, T defaultValue)
         => TryGetValue(key, out object? value) && value is T t ? t : defaultValue;
-
-    IEnumerable<(KeyBytes Path, object? TargetValue, object SourceValue)> Diff(ITrie other);
 }

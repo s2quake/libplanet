@@ -6,7 +6,6 @@ using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
 
 namespace Libplanet.Benchmarks
 {

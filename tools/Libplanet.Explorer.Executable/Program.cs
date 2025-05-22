@@ -18,7 +18,6 @@ using Libplanet.RocksDBStore;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
 using Libplanet.Types;
-using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;

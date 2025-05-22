@@ -1,4 +1,3 @@
-using Libplanet.Action.State;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 using static Libplanet.Action.State.ReservedAddresses;

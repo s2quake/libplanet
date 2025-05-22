@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using global::Cocona;
 using Libplanet.Action;
 using Libplanet.Serialization;
-using Libplanet.Store;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Extensions.Cocona;

@@ -1,5 +1,4 @@
 using Libplanet.Action;
-using Libplanet.Action.State;
 using Libplanet.Serialization;
 using static Libplanet.Action.State.ReservedAddresses;
 
