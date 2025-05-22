@@ -52,6 +52,6 @@ public sealed partial record class Transaction
     public int CompareTo(Transaction? other) => other switch
     {
         null => 1,
-        _ => Id.CompareTo(other.Id)
+        _ => Nonce == other.Nonce ? Id.CompareTo(other.Id) : Nonce.CompareTo(other.Nonce),
     };
 }

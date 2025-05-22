@@ -41,7 +41,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
                 return BitConverter.ToInt32(rawHashBytes) ^ BitConverter.ToInt32(SHA1.HashData([.. signature]), 0);
             }
 
-            return BitConverter.ToInt32(rawHashBytes) ^ 0;
+            return BitConverter.ToInt32(rawHashBytes);
         }
     }
 

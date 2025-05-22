@@ -14,8 +14,10 @@ public sealed record class Validator : IComparable<Validator>, IComparable
     [Positive]
     public BigInteger Power { get; init; } = BigInteger.One;
 
+    [Obsolete("Use the constructor instead.")]
     public static Validator Create(Address address) => Create(address, BigInteger.One);
 
+    [Obsolete("Use the constructor instead.")]
     public static Validator Create(Address address, BigInteger power) => new()
     {
         Address = address,

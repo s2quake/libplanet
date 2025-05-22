@@ -35,6 +35,11 @@ public sealed class Repository : IDisposable
         {
             _chain = Chains[Guid.Parse(chainId)];
         }
+        else
+        {
+            _chain = Chains.AddNew(Guid.NewGuid());
+            _metadata["chainId"] = _chain.Id.ToString();
+        }
     }
 
     public Repository(Block genesisBlock)

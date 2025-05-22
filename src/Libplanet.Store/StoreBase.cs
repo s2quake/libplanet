@@ -441,7 +441,20 @@ public abstract class StoreBase<TKey, TValue>
         public bool Contains(TValue item) => throw new NotSupportedException("Contains is not supported.");
 
         public void CopyTo(TValue[] array, int arrayIndex)
-            => throw new NotSupportedException("CopyTo is not supported.");
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+            if (Count > array.Length + arrayIndex)
+            {
+                var message = "The number of elements in the source ValueCollection is greater than the " +
+                              "available space from arrayIndex to the end of the destination array.";
+                throw new ArgumentException(message, nameof(array));
+            }
+
+            foreach (var key in owner.EnumerateKeys())
+            {
+                array[arrayIndex++] = owner[key];
+            }
+        }
 
         public IEnumerator<TValue> GetEnumerator()
         {

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Action;
@@ -13,6 +14,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
 {
     private readonly PendingTransactionStore _store = repository.PendingTransactions;
     private readonly Chain _chain = repository.Chain;
+    private readonly ConcurrentDictionary<Address, long> _nonceByAddress = new();
 
     public StagedTransactionCollection(Repository repository)
         : this(repository, new BlockChainOptions())
@@ -38,7 +40,13 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
 
         // compare with repository genesis
 
-        return _store.TryAdd(transaction);
+        if (_store.TryAdd(transaction))
+        {
+            UpdateNonce(transaction);
+            return true;
+        }
+
+        return false;
     }
 
     public void Add(Transaction transaction)
@@ -55,6 +63,8 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
             throw new ArgumentException(
                 $"Transaction {transaction.Id} already exists in the store.", nameof(transaction));
         }
+
+        UpdateNonce(transaction);
     }
 
     public Transaction Add(TransactionSubmission submission)
@@ -74,7 +84,17 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         return tx;
     }
 
-    public bool Remove(TxId txId) => _store.Remove(txId);
+    public bool Remove(TxId txId)
+    {
+        if (_store.TryGetValue(txId, out var transaction))
+        {
+            _store.Remove(txId);
+            UpdateNonce(transaction);
+            return true;
+        }
+
+        return false;
+    }
 
     public bool Remove(Transaction transaction) => _store.Remove(transaction.Id);
 
@@ -103,27 +123,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         return [.. itemList];
     }
 
-    public long GetNextTxNonce(Address address)
-    {
-        var nonce = _chain.GetNonce(address);
-        var txs = Values
-            .Where(tx => tx.Signer.Equals(address))
-            .OrderBy(tx => tx.Nonce);
-
-        foreach (var tx in txs)
-        {
-            if (nonce < tx.Nonce)
-            {
-                break;
-            }
-            else if (nonce == tx.Nonce)
-            {
-                nonce++;
-            }
-        }
-
-        return nonce;
-    }
+    public long GetNextTxNonce(Address address) => _nonceByAddress.GetOrAdd(address, _chain.GetNonce) + 1;
 
     private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
     {
@@ -149,5 +149,12 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         {
             yield return kvp;
         }
+    }
+
+    private void UpdateNonce(Transaction transaction)
+    {
+        var address = transaction.Signer;
+        var nonce = transaction.Nonce;
+        _nonceByAddress.TryUpdate(address, nonce, nonce);
     }
 }

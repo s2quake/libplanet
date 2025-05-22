@@ -9,7 +9,6 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
-using Validation;
 using static Libplanet.Action.State.ReservedAddresses;
 using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
@@ -107,11 +106,11 @@ public partial class BlockChainTest
         var repository = fx.Repository;
         var genesisKey = new PrivateKey();
         var genesis = BlockChain.ProposeGenesisBlock(
-            genesisKey,
-            [
+            proposer: genesisKey,
+            transactions: [
                 new TransactionMetadata
                 {
-                    Nonce = 5,  // Invalid nonce,
+                    Nonce = 5, // Invalid nonce,
                     Signer = genesisKey.Address,
                     Actions = new[]
                     {
@@ -131,23 +130,21 @@ public partial class BlockChainTest
         var repository = new Repository(fx.GenesisBlock);
         var blockChain = new BlockChain(repository, options);
         var txKey = new PrivateKey();
-        var txs = new[]
+        var tx = new TransactionMetadata
         {
-                new TransactionMetadata
-                {
-                    Nonce = 5,  // Invalid nonce
-                    Signer = txKey.Address,
-                    GenesisHash = _blockChain.Genesis.BlockHash,
-                    Actions = new[]
-                    {
-                        DumbAction.Create((new PrivateKey().Address, "foo")),
-                    }.ToBytecodes(),
-                }.Sign(txKey),
-            }.ToImmutableList();
+            Nonce = 5,  // Invalid nonce
+            Signer = txKey.Address,
+            GenesisHash = _blockChain.Genesis.BlockHash,
+            Actions = new[]
+            {
+                DumbAction.Create((new PrivateKey().Address, "foo")),
+            }.ToBytecodes(),
+        }.Sign(txKey);
 
+        blockChain.StagedTransactions.Add(tx);
         var block = blockChain.ProposeBlock(new PrivateKey());
-        Assert.Throws<InvalidOperationException>(
-            () => blockChain.Append(block, CreateBlockCommit(block)));
+        var blockCommit = CreateBlockCommit(block);
+        Assert.Throws<InvalidOperationException>(() => blockCommit);
     }
 
     [Fact]

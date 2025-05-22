@@ -150,7 +150,7 @@ public sealed class WorldTest
         }.Sign(_keys[0]);
         var rawBlock1 = TestUtils.ProposeNext(
             previousBlock: blockChain.Tip,
-            previousStateRootHash: blockChain.TipStateRootHash,
+            previousStateRootHash: blockChain.StateRootHash,
             transactions: [tx],
             proposer: proposer,
             protocolVersion: ProtocolVersion);
@@ -179,7 +179,7 @@ public sealed class WorldTest
         }.Sign(_keys[0]);
         var rawBlock2 = TestUtils.ProposeNext(
             previousBlock: blockChain.Tip,
-            previousStateRootHash: blockChain.TipStateRootHash,
+            previousStateRootHash: blockChain.StateRootHash,
             transactions: [tx],
             proposer: proposer,
             protocolVersion: ProtocolVersion,
@@ -209,7 +209,7 @@ public sealed class WorldTest
         }.Sign(_keys[0]);
         var rawBlock3 = TestUtils.ProposeNext(
             previousBlock: blockChain.Tip,
-            previousStateRootHash: blockChain.TipStateRootHash,
+            previousStateRootHash: blockChain.StateRootHash,
             transactions: [tx],
             proposer: _keys[1],
             protocolVersion: ProtocolVersion,
