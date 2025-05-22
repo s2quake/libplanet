@@ -6,32 +6,34 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Action.State;
 
-public sealed record class World
+public sealed record class World(ITrie Trie, StateStore Statestore)
 {
-    public required ITrie Trie { get; init; }
+    public World(StateStore stateStore)
+        : this(stateStore.GetStateRoot(default), stateStore)
+    {
+    }
 
-    public required TrieStateStore StateStore { get; init; }
+    public World()
+        : this(new StateStore())
+    {
+    }
+
+    public World(StateStore stateStore, HashDigest<SHA256> stateRootHash)
+        : this(stateStore.GetStateRoot(stateRootHash), stateStore)
+    {
+    }
+
+    public HashDigest<SHA256> Hash => Trie.Hash;
 
     public Address Signer { get; init; }
 
     public ImmutableDictionary<string, Account> Delta { get; private init; }
         = ImmutableDictionary<string, Account>.Empty;
 
-    public static World Create() => Create(new TrieStateStore());
+    internal ITrie Trie { get; } = Trie;
 
-    public static World Create(TrieStateStore stateStore) => Create(stateStore.GetStateRoot(default), stateStore);
+    internal StateStore StateStore { get; init; } = Statestore;
 
-    public static World Create(ITrie trie, TrieStateStore stateStore) => new()
-    {
-        Trie = trie,
-        StateStore = stateStore,
-    };
-
-    public static World Create(HashDigest<SHA256> stateRootHash, TrieStateStore stateStore) => new()
-    {
-        Trie = stateStore.GetStateRoot(stateRootHash),
-        StateStore = stateStore,
-    };
 
     public Account GetAccount(string name)
     {

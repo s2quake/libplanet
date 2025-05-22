@@ -61,8 +61,8 @@ public class MptCommand
         kvStoreUri = ConvertKVStoreUri(kvStoreUri, toolConfiguration);
         otherKvStoreUri = ConvertKVStoreUri(otherKvStoreUri, toolConfiguration);
 
-        TrieStateStore stateStore = new TrieStateStore(LoadKVStoreFromURI(kvStoreUri));
-        TrieStateStore otherStateStore = new TrieStateStore(LoadKVStoreFromURI(otherKvStoreUri));
+        StateStore stateStore = new StateStore(LoadKVStoreFromURI(kvStoreUri));
+        StateStore otherStateStore = new StateStore(LoadKVStoreFromURI(otherKvStoreUri));
         var trie =
             stateStore.GetStateRoot(HashDigest<SHA256>.Parse(stateRootHashHex));
         var otherTrie =
@@ -104,7 +104,7 @@ public class MptCommand
         ToolConfiguration toolConfiguration = configurationService.Load();
         kvStoreUri = ConvertKVStoreUri(kvStoreUri, toolConfiguration);
 
-        TrieStateStore stateStore = new TrieStateStore(LoadKVStoreFromURI(kvStoreUri));
+        StateStore stateStore = new StateStore(LoadKVStoreFromURI(kvStoreUri));
         var trie = stateStore.GetStateRoot(HashDigest<SHA256>.Parse(stateRootHashHex));
         throw new NotImplementedException();
         // var codec = new Codec();

@@ -14,8 +14,8 @@ public static class BlockEvaluationExtensions
         {
             TxId = evaluation.Transaction.Id,
             BlockHash = blockHash,
-            InputState = evaluation.InputWorld.Trie.Hash,
-            OutputState = evaluation.OutputWorld.Trie.Hash,
+            InputState = evaluation.InputWorld.Hash,
+            OutputState = evaluation.OutputWorld.Hash,
             ExceptionNames = [.. GetActionEvaluations(evaluation).Select(GetExceptionName)],
         };
 
@@ -31,7 +31,7 @@ public static class BlockEvaluationExtensions
     public static BlockExecution GetBlockExecution(this BlockEvaluation @this, BlockHash blockHash) => new()
     {
         BlockHash = blockHash,
-        InputState = @this.InputWorld.Trie.Hash,
-        OutputState = @this.OutputWorld.Trie.Hash,
+        InputState = @this.InputWorld.Hash,
+        OutputState = @this.OutputWorld.Hash,
     };
 }

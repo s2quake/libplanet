@@ -36,7 +36,7 @@ public sealed class Repository : IDisposable
         BlockExecutions = new BlockExecutionStore(_database);
         BlockHashes = new BlockHashStore(database);
         Nonces = new NonceStore(database);
-        StateStore = new TrieStateStore(_database);
+        StateStore = new StateStore(_database);
         if (_metadata.TryGetValue("genesisHeight", out var genesisHeight))
         {
             _genesisHeight = int.Parse(genesisHeight);
@@ -87,7 +87,7 @@ public sealed class Repository : IDisposable
 
     public NonceStore Nonces { get; }
 
-    public TrieStateStore StateStore { get; }
+    public StateStore StateStore { get; }
 
     public int GenesisHeight
     {

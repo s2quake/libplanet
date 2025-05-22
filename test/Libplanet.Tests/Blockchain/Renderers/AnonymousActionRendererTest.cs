@@ -12,7 +12,7 @@
 // {
 //     private static readonly byte[] _action = ModelSerializer.SerializeToBytes(new DumbAction());
 
-//     private static readonly World _world = World.Create();
+//     private static readonly World _world = new World();
 
 //     private static readonly CommittedActionContext _actionContext =
 //         CommittedActionContext.Create(

@@ -46,7 +46,7 @@ public partial class BlockChain
         var evaluation = Evaluate(genesisBlock);
         _repository.Append(genesisBlock, BlockCommit.Empty);
         // _chain.Append(genesisBlock, BlockCommit.Empty);
-        _repository.StateRootHash = evaluation.OutputWorld.Trie.Hash;
+        _repository.StateRootHash = evaluation.OutputWorld.Hash;
     }
 
     public BlockChain(Repository repository, BlockChainOptions options)
@@ -153,7 +153,7 @@ public partial class BlockChain
         _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));
         var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
         _blockEvaluated.OnNext(new RenderBlockInfo(oldTip, block));
-        _repository.StateRootHash = evaluation.OutputWorld.Trie.Hash;
+        _repository.StateRootHash = evaluation.OutputWorld.Hash;
         _repository.StateRootHashStore.Add(block.BlockHash, _repository.StateRootHash);
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
     }

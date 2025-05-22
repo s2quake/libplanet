@@ -8,13 +8,13 @@ using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;
 
-public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions policyActions)
+public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyActions)
 {
     private readonly Subject<ActionEvaluation> _evaluation = new();
     private readonly Subject<TxEvaluation> _txEvaluation = new();
     private readonly Subject<BlockEvaluation> _blockEvaluation = new();
 
-    public ActionEvaluator(TrieStateStore stateStore)
+    public ActionEvaluator(StateStore stateStore)
         : this(stateStore, PolicyActions.Empty)
     {
     }
@@ -46,7 +46,7 @@ public sealed class ActionEvaluator(TrieStateStore stateStore, PolicyActions pol
 
     public BlockEvaluation Evaluate(RawBlock rawBlock)
     {
-        var world = stateStore.GetWorld(rawBlock.Header.PreviousStateRootHash);
+        var world = new World(stateStore, rawBlock.Header.PreviousStateRootHash);
         var inputWorld = world;
         var beginEvaluations = EvaluateActions(rawBlock, null, policyActions.BeginBlockActions, ref world);
         var txEvaluations = EvaluateTxs(rawBlock, ref world);
