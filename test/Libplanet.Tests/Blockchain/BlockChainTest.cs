@@ -228,9 +228,9 @@ public partial class BlockChainTest : IDisposable
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
         var genesis = BlockChain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
-        var repository = new Repository(genesis);
+        var repository = new Repository();
         var options = new BlockChainOptions();
-        var chain = new BlockChain(repository, options);
+        var chain = new BlockChain(genesis, repository, options);
         Block genesisBlock = chain.Genesis;
 
         IAction[] actions1 =
@@ -571,8 +571,7 @@ public partial class BlockChainTest : IDisposable
                 }.Sign(txKey),
             ]);
         Block genesisWithTx = genesisRawBlock.Sign(GenesisProposer);
-        repository.AddNewChain(genesisWithTx);
-        var chain = new BlockChain(repository, options);
+        var chain = new BlockChain(genesisWithTx, repository, options);
         Assert.False(invoked);
     }
 
@@ -582,8 +581,8 @@ public partial class BlockChainTest : IDisposable
     public void GetStateOnlyDrillsDownUntilRequestedAddressesAreFound()
     {
         var options = new BlockChainOptions();
-        var repository = new Repository(_fx.GenesisBlock);
-        var chain = new BlockChain(repository, options);
+        var repository = new Repository();
+        var chain = new BlockChain(_fx.GenesisBlock, repository, options);
 
         Block b = chain.Genesis;
         Address[] addresses = new Address[30];
@@ -635,8 +634,8 @@ public partial class BlockChainTest : IDisposable
     public void GetStateReturnsEarlyForNonexistentAccount()
     {
         var options = new BlockChainOptions();
-        var repository = new Repository(_fx.GenesisBlock);
-        var chain = new BlockChain(repository, options);
+        var repository = new Repository();
+        var chain = new BlockChain(_fx.GenesisBlock, repository, options);
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
         {
@@ -665,8 +664,8 @@ public partial class BlockChainTest : IDisposable
         var privateKeys = Enumerable.Range(1, 10).Select(_ => new PrivateKey()).ToList();
         var addresses = privateKeys.Select(key => key.Address).ToList();
         var options = new BlockChainOptions();
-        var repository = new Repository(_fx.GenesisBlock);
-        var chain = new BlockChain(repository, options);
+        var repository = new Repository();
+        var chain = new BlockChain(_fx.GenesisBlock, repository, options);
 
         Assert.All(
             addresses.Select(
@@ -759,10 +758,10 @@ public partial class BlockChainTest : IDisposable
         using var emptyFx = new MemoryStoreFixture(_options);
         using var forkFx = new MemoryStoreFixture(_options);
 
-        var emptyRepository = new Repository(emptyFx.GenesisBlock);
-        var emptyChain = new BlockChain(_blockChain.Options);
-        var forkRepository = new Repository(forkFx.GenesisBlock);
-        var forkChain = new BlockChain(_blockChain.Options);
+        var emptyRepository = new Repository();
+        var emptyChain = new BlockChain(emptyFx.GenesisBlock, emptyRepository, _blockChain.Options);
+        var forkRepository = new Repository();
+        var forkChain = new BlockChain(forkFx.GenesisBlock, forkRepository, _blockChain.Options);
         forkChain.Append(b1, CreateBlockCommit(b1));
         forkChain.Append(b2, CreateBlockCommit(b2));
         Block b5 = forkChain.ProposeBlock(key);
@@ -1220,8 +1219,7 @@ public partial class BlockChainTest : IDisposable
         var genesisBlock = BlockChain.ProposeGenesisBlock(
             proposer: proposerKey,
             transactions: [.. systemTxs.Concat(customTxs)]);
-        fx.Repository.AddNewChain(genesisBlock);
-        var blockChain = new BlockChain(fx.Repository, fx.Options);
+        var blockChain = new BlockChain(genesisBlock, fx.Repository, fx.Options);
 
         var validator = blockChain
             .GetWorld()
@@ -1300,8 +1298,7 @@ public partial class BlockChainTest : IDisposable
         }.Sign(genesisTxKey);
         var genesisWithTx = ProposeGenesis(GenesisProposer, transactions: [genesisTx]).Sign(GenesisProposer);
 
-        repository.AddNewChain(genesisWithTx);
-        var chain = new BlockChain(repository, options);
+        var chain = new BlockChain(genesisWithTx, repository, options);
 
         var bockTxKey = new PrivateKey();
         var blockTx = new TransactionMetadata
@@ -1362,8 +1359,7 @@ public partial class BlockChainTest : IDisposable
         Block genesis = BlockChain.ProposeGenesisBlock(
             proposer: privateKey,
             transactions: [.. txs]);
-        repository.AddNewChain(genesis);
-        var blockChain = new BlockChain(repository, options);
+        var blockChain = new BlockChain(genesis, repository, options);
 
         blockChain.StagedTransactions.Add(submission: new()
         {

@@ -172,9 +172,9 @@ public partial class BlockChainTest
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var genesisBlock = TestUtils.ProposeGenesis(TestUtils.GenesisProposer).Sign(TestUtils.GenesisProposer);
-        var repository = new Repository(genesisBlock);
+        var repository = new Repository();
 
-        var chain1 = new BlockChain(options);
+        var chain1 = new BlockChain(genesisBlock, repository, options);
         var endBlockActions = new IAction[]
         {
             new SetStatesAtBlock(default, "foo", default, 0),
@@ -187,8 +187,8 @@ public partial class BlockChainTest
             },
             BlockInterval = options.BlockInterval,
         };
-        var repository2 = new Repository(genesisBlock);
-        var chain2 = new BlockChain(repository2, options2);
+        var repository2 = new Repository();
+        var chain2 = new BlockChain(genesisBlock, repository2, options2);
 
         Block block1 = new RawBlock
         {
@@ -225,8 +225,7 @@ public partial class BlockChainTest
             protocolVersion: beforePostponeBPV);
         var preExecution = actionEvaluator.Evaluate(preGenesis);
         var genesisBlock = preGenesis.Sign(TestUtils.GenesisProposer);
-        repository.AddNewChain(genesisBlock);
-        var chain1 = new BlockChain(repository, options1);
+        var chain1 = new BlockChain(genesisBlock, repository, options1);
 
         Block block1 = new RawBlock
         {
@@ -249,8 +248,8 @@ public partial class BlockChainTest
             },
             BlockInterval = options1.BlockInterval,
         };
-        var repository2 = new Repository(genesisBlock);
-        var chain2 = new BlockChain(options2);
+        var repository2 = new Repository();
+        var chain2 = new BlockChain(genesisBlock, repository2, options2);
 
         Assert.Throws<InvalidOperationException>(() =>
             chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -279,8 +278,7 @@ public partial class BlockChainTest
             protocolVersion: beforePostponeBPV);
         var rawEvaluation = actionEvaluator.Evaluate(rawGenesis);
         var genesisBlock = rawGenesis.Sign(TestUtils.GenesisProposer);
-        repository.AddNewChain(genesisBlock);
-        var chain = new BlockChain(repository, options);
+        var chain = new BlockChain(genesisBlock, repository, options);
 
         RawBlock preBlock1 = new RawBlock
         {
@@ -681,8 +679,8 @@ public partial class BlockChainTest
     [Fact]
     public void ValidateNextBlockOnChainRestart()
     {
-        var repository = new Repository(_blockChain.Genesis);
-        var newChain = new BlockChain(repository, _blockChain.Options);
+        var repository = new Repository();
+        var newChain = new BlockChain(_blockChain.Genesis, repository, _blockChain.Options);
         newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
         Assert.Equal(newChain.Tip, _validNext);
     }
@@ -701,8 +699,8 @@ public partial class BlockChainTest
             },
         };
 
-        var repository = new Repository(_blockChain.Genesis);
-        var newChain = new BlockChain(repository, policyWithBlockAction);
+        var repository = new Repository();
+        var newChain = new BlockChain(_blockChain.Genesis, repository, policyWithBlockAction);
 
         Block newValidNext = new RawBlock
         {

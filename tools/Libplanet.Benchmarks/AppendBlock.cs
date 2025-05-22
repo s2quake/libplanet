@@ -19,8 +19,8 @@ namespace Libplanet.Benchmarks
         public AppendBlock()
         {
             var fx = new MemoryStoreFixture();
-            var repository = new Repository(fx.GenesisBlock);
-            _blockChain = new Blockchain.BlockChain(repository, fx.Options);
+            var repository = new Repository();
+            _blockChain = new Blockchain.BlockChain(fx.GenesisBlock, repository, fx.Options);
             _privateKey = new PrivateKey();
         }
 

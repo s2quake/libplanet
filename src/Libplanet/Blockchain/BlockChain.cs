@@ -171,9 +171,9 @@ public partial class BlockChain
             => Validator.Create(vote.Validator, vote.ValidatorPower);
     }
 
-    private static Repository CreateChain(Block genesisBlock, Repository repository)
-    {
-        repository.AddNewChain(genesisBlock);
-        return repository;
-    }
+    // private static Repository CreateChain(Block genesisBlock, Repository repository)
+    // {
+    //     repository.AddNewChain(genesisBlock);
+    //     return repository;
+    // }
 }
