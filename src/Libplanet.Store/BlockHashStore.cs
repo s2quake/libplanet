@@ -1,4 +1,3 @@
-using Libplanet.Store.DataStructures;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Store;

@@ -11,7 +11,7 @@ public class NibblesTest
         var nibbleBytes = new byte[] { 2, 4, 13, 8, 3 };
         var nibbles = new Nibbles([.. nibbleBytes]);
         Assert.Equal(5, nibbles.Length);
-        Assert.Equal(nibbleBytes, nibbles.ByteArray);
+        Assert.Equal(nibbleBytes, nibbles.Bytes);
         Assert.Equal("24d83", $"{nibbles}");
         Assert.Equal("24d83", $"{nibbles:h}");
         Assert.Equal("24D83", $"{nibbles:H}");
@@ -24,7 +24,7 @@ public class NibblesTest
     public void Parse_Test(string hex, byte[] expected)
     {
         var nibbles = Nibbles.Parse(hex);
-        Assert.Equal(expected, nibbles.ByteArray);
+        Assert.Equal(expected, nibbles.Bytes);
         Assert.Equal(hex.ToLowerInvariant(), nibbles.ToString());
     }
 

@@ -21,9 +21,9 @@ public class PathCursorTest
     [InlineData("cfed4460")]
     public void Create_Test(string hex)
     {
-        var keyBytes = hex == string.Empty ? KeyBytes.Empty : KeyBytes.Parse(hex);
-        var nibbles = Nibbles.FromKeyBytes(keyBytes);
-        var cursor = PathCursor.Create(keyBytes);
+        // var keyBytes = hex == string.Empty ? KeyBytes.Empty : KeyBytes.Parse(hex);
+        var nibbles = Nibbles.Create(hex);
+        var cursor = PathCursor.Create(hex);
         Assert.Equal(nibbles, cursor.Nibbles);
         Assert.Equal(hex.Length, cursor.Length);
         Assert.Equal(0, cursor.Position);
@@ -34,7 +34,7 @@ public class PathCursorTest
     [InlineData("cfed4460", 9)]
     public void Next_ThrowTest(string hex, int offset)
     {
-        var cursor = PathCursor.Create(KeyBytes.Parse(hex));
+        var cursor = PathCursor.Create(hex);
         Assert.Throws<ArgumentOutOfRangeException>(() => { cursor = cursor.Next(offset); });
         Assert.Equal(0, cursor.Position);
         Assert.Equal(cursor.Length - cursor.Position, cursor.Length - cursor.Position);
@@ -52,7 +52,7 @@ public class PathCursorTest
         byte expectedCurrent,
         string expectedNextNibbles)
     {
-        var cursor = PathCursor.Create(KeyBytes.Parse(hex));
+        var cursor = PathCursor.Create(hex);
         var next = cursor.Next(offset);
         Assert.Equal(cursor.Nibbles, next.Nibbles);
         Assert.Equal(cursor.Length, next.Length);
@@ -67,12 +67,12 @@ public class PathCursorTest
     [Fact]
     public void Next()
     {
-        var cursor = PathCursor.Create(KeyBytes.Parse("cfed4460"));
+        var cursor = PathCursor.Create("cfed4460");
         Assert.Equal(0, cursor.Position);
         Assert.Equal(8, cursor.Length - cursor.Position);
         Assert.Equal((byte)0xc, cursor.Current);
         Assert.Equal<byte>(
-            Nibbles.Parse("cfed4460").ByteArray, cursor.NextNibbles.ByteArray);
+            Nibbles.Parse("cfed4460").Bytes, cursor.NextNibbles.Bytes);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => { cursor = cursor.Next(-1); });
         Assert.Equal(0, cursor.Position);
@@ -87,12 +87,12 @@ public class PathCursorTest
         Assert.Equal(8, cursor.Length - cursor.Position);
         Assert.Equal((byte)0xc, cursor.Current);
         Assert.Equal<byte>(
-            Nibbles.Parse("cfed4460").ByteArray, cursor.NextNibbles.ByteArray);
+            Nibbles.Parse("cfed4460").Bytes, cursor.NextNibbles.Bytes);
         Assert.Equal(1, next.Position);
         Assert.Equal((byte)0xf, next.Current);
         Assert.Equal(7, next.Length - next.Position);
         Assert.Equal<byte>(
-            Nibbles.Parse("fed4460").ByteArray, next.NextNibbles.ByteArray);
+            Nibbles.Parse("fed4460").Bytes, next.NextNibbles.Bytes);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => { next = next.Next(-1); });
         Assert.Equal(1, next.Position);
@@ -107,16 +107,16 @@ public class PathCursorTest
         Assert.Equal(8, cursor.Length - cursor.Position);
         Assert.Equal((byte)0xc, cursor.Current);
         Assert.Equal<byte>(
-            Nibbles.Parse("cfed4460").ByteArray, cursor.NextNibbles.ByteArray);
+            Nibbles.Parse("cfed4460").Bytes, cursor.NextNibbles.Bytes);
         Assert.Equal(1, next.Position);
         Assert.Equal(7, next.Length - next.Position);
         Assert.Equal((byte)0xf, next.Current);
         Assert.Equal<byte>(
-            Nibbles.Parse("fed4460").ByteArray, next.NextNibbles.ByteArray);
+            Nibbles.Parse("fed4460").Bytes, next.NextNibbles.Bytes);
         Assert.Equal(6, next2.Position);
         Assert.Equal(2, next2.Length - next2.Position);
         Assert.Equal((byte)0x6, next2.Current);
         Assert.Equal<byte>(
-            Nibbles.Parse("60").ByteArray, next2.NextNibbles.ByteArray);
+            Nibbles.Parse("60").Bytes, next2.NextNibbles.Bytes);
     }
 }

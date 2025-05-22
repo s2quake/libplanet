@@ -1,5 +1,4 @@
 using System.IO;
-using Libplanet.Store.DataStructures;
 
 namespace Libplanet.Store;
 

@@ -1,4 +1,3 @@
-using System.Text;
 using Libplanet.Store.DataStructures.Nodes;
 
 namespace Libplanet.Store.DataStructures;
@@ -67,9 +66,9 @@ public static class INodeExtensions
         }
         else if (node is ValueNode valueNode)
         {
-            var key = nibbles.ToKeyBytes();
+            var key = nibbles.ToKey();
             var value = valueNode.Value;
-            yield return new(Encoding.UTF8.GetString([.. key.Bytes]), value);
+            yield return new(key, value);
         }
         else if (node is HashNode hashNode)
         {
