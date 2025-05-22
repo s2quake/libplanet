@@ -34,7 +34,6 @@ public sealed record class World(ITrie Trie, StateStore Statestore)
 
     internal StateStore StateStore { get; init; } = Statestore;
 
-
     public Account GetAccount(string name)
     {
         if (Delta.TryGetValue(name, out var account))
@@ -54,4 +53,18 @@ public sealed record class World(ITrie Trie, StateStore Statestore)
     {
         Delta = Delta.SetItem(name, account),
     };
+
+    internal World Commit()
+    {
+        var trie = Trie;
+        foreach (var (name, account) in Delta)
+        {
+            var accountTrie = StateStore.Commit(account.Trie);
+            var key = name;
+            var value = accountTrie.Hash.Bytes;
+            trie = trie.Set(key, value);
+        }
+
+        return new World(StateStore.Commit(trie), StateStore);
+    }
 }
