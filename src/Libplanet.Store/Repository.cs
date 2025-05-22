@@ -21,13 +21,14 @@ public sealed class Repository : IDisposable
     {
         _database = database;
         BlockDigests = new BlockDigestStore(_database);
-        TxExecutions = new TxExecutionStore(_database);
         BlockCommits = new BlockCommitStore(_database);
         StateRootHashStore = new StateRootHashStore(_database);
         PendingTransactions = new PendingTransactionStore(_database);
         CommittedTransactions = new CommittedTransactionStore(_database);
         PendingEvidences = new PendingEvidenceStore(_database);
         CommittedEvidences = new CommittedEvidenceStore(_database);
+        TxExecutions = new TxExecutionStore(_database);
+        BlockExecutions = new BlockExecutionStore(_database);
         Chains = new ChainStore(_database);
         _metadata = new MetadataStore(_database);
         StateStore = new TrieStateStore(_database);
@@ -65,9 +66,11 @@ public sealed class Repository : IDisposable
 
     public BlockDigestStore BlockDigests { get; }
 
-    public StateRootHashStore StateRootHashStore{ get; }
+    public StateRootHashStore StateRootHashStore { get; }
 
     public TxExecutionStore TxExecutions { get; }
+
+    public BlockExecutionStore BlockExecutions { get; }
 
     public ChainStore Chains { get; }
 

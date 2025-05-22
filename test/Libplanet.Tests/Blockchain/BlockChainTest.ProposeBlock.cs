@@ -235,7 +235,7 @@ public partial class BlockChainTest
             }.Sign(keys[2]),
         };
 
-        StageTransactions(txs);
+        _blockChain.StagedTransactions.AddRange(txs);
 
         Assert.Null(_blockChain
             .GetWorld()
@@ -402,7 +402,7 @@ public partial class BlockChainTest
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(key),
         };
-        StageTransactions(txs);
+        _blockChain.StagedTransactions.AddRange(txs);
         Block block = _blockChain.ProposeBlock(new PrivateKey());
         Assert.Equal(txs.Length, block.Transactions.Count());
     }
@@ -411,7 +411,7 @@ public partial class BlockChainTest
     public void ProposeBlockWithLowerNonces()
     {
         var key = new PrivateKey();
-        StageTransactions(
+        _blockChain.StagedTransactions.AddRange(
             [
                 new TransactionMetadata
                 {
@@ -425,7 +425,7 @@ public partial class BlockChainTest
         _blockChain.Append(block1, CreateBlockCommit(block1));
 
         // Trying to propose with lower nonce (0) than expected.
-        StageTransactions(
+        _blockChain.StagedTransactions.AddRange(
             new[]
             {
                 new TransactionMetadata
@@ -535,7 +535,7 @@ public partial class BlockChainTest
         var random = new Random();
         Transaction[] txs =
             txsA.Concat(txsB).Concat(txsC).Shuffle(random).ToArray();
-        StageTransactions(txs);
+        _blockChain.StagedTransactions.AddRange(txs);
         Assert.Equal(txs.Length, _blockChain.StagedTransactions.Collect().Count);
 
         IComparer<Transaction> txPriority =
@@ -584,7 +584,7 @@ public partial class BlockChainTest
             .Select(nonce => _fx.MakeTransaction(
                 nonce: nonce, privateKey: privateKey, timestamp: DateTimeOffset.Now))
             .ToArray();
-        StageTransactions(txsA);
+        _blockChain.StagedTransactions.AddRange(txsA);
         Block b1 = _blockChain.ProposeBlock(new PrivateKey());
         _blockChain.Append(b1, CreateBlockCommit(b1));
         Assert.Equal(txsA, b1.Transactions);
@@ -593,7 +593,7 @@ public partial class BlockChainTest
             .Select(nonce => _fx.MakeTransaction(
                 nonce: nonce, privateKey: privateKey, timestamp: DateTimeOffset.Now))
             .ToArray();
-        StageTransactions(txsB);
+        _blockChain.StagedTransactions.AddRange(txsB);
 
         // Propose only txs having higher or equal with nonce than expected nonce.
         Block b2 = _blockChain.ProposeBlock(new PrivateKey());
@@ -611,7 +611,7 @@ public partial class BlockChainTest
                 privateKey: privateKey,
                 timestamp: DateTimeOffset.Now))
             .ToArray();
-        StageTransactions(txs);
+        _blockChain.StagedTransactions.AddRange(txs);
         Block b = _blockChain.ProposeBlock(privateKey);
         _blockChain.Append(b, CreateBlockCommit(b));
 
@@ -650,7 +650,7 @@ public partial class BlockChainTest
     //     Transaction[] txs =
     //         txsA.Concat(txsB).Concat(txsC).Shuffle(random).ToArray();
     //     Assert.Empty(_blockChain.StagedTransactions.Collect(_blockChain.Options.BlockOptions));
-    //     StageTransactions(txs);
+    //     _blockChain.StagedTransactions.AddRange(txs);
 
     //     // Test if minTransactions and minTransactionsPerSigner work:
     //     var gathered = _blockChain.GatherTransactionsToPropose(1024 * 1024, 5, 3, 0);
@@ -733,7 +733,7 @@ public partial class BlockChainTest
         };
 
         // Invalid txs can be staged.
-        StageTransactions(txs);
+        _blockChain.StagedTransactions.AddRange(txs);
         Assert.Equal(txs.Length, _blockChain.StagedTransactions.Collect().Count);
 
         var block = _blockChain.ProposeBlock(new PrivateKey());

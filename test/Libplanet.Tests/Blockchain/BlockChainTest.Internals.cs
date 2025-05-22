@@ -76,8 +76,7 @@ public partial class BlockChainTest
             Signer = a,
         }.Create());
 
-        var stagedTransactions =
-            _blockChain.StagedTransactions.Collect();
+        var stagedTransactions = _blockChain.StagedTransactions.Collect();
 
         // List is ordered by nonce.
         foreach (var signer in signers)

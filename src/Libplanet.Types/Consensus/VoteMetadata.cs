@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Blocks;
@@ -13,24 +14,27 @@ public sealed record class VoteMetadata : IValidatableObject
     public required Address Validator { get; init; }
 
     [Property(1)]
-    [NonNegative]
-    public int Height { get; init; }
+    public HashDigest<SHA256> StateRootHash { get; init; }
 
     [Property(2)]
     [NonNegative]
-    public int Round { get; init; }
+    public int Height { get; init; }
 
     [Property(3)]
-    public BlockHash BlockHash { get; init; }
+    [NonNegative]
+    public int Round { get; init; }
 
     [Property(4)]
-    public DateTimeOffset Timestamp { get; init; }
+    public BlockHash BlockHash { get; init; }
 
     [Property(5)]
+    public DateTimeOffset Timestamp { get; init; }
+
+    [Property(6)]
     [Positive]
     public BigInteger ValidatorPower { get; init; }
 
-    [Property(6)]
+    [Property(7)]
     public VoteFlag Flag { get; init; }
 
     public bool Verify(ImmutableArray<byte> signature)

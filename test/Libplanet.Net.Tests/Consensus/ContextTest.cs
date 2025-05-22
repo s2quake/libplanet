@@ -540,8 +540,8 @@ namespace Libplanet.Net.Tests.Consensus
                 Height = 1,
                 Round = 0,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = proposer.Address,
-                MarshaledBlock = ModelSerializer.SerializeToBytes(blockA),
+                Proposer = proposer.Address,
+                // MarshaledBlock = ModelSerializer.SerializeToBytes(blockA),
                 ValidRound = -1,
             }.Sign(proposer);
             var preVoteA2 = new ConsensusPreVoteMsg(
@@ -560,8 +560,8 @@ namespace Libplanet.Net.Tests.Consensus
                 Height = 1,
                 Round = 0,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = proposer.Address,
-                MarshaledBlock = ModelSerializer.SerializeToBytes(blockB),
+                Proposer = proposer.Address,
+                // MarshaledBlock = ModelSerializer.SerializeToBytes(blockB),
                 ValidRound = -1,
             }.Sign(proposer);
             var proposalAMsg = new ConsensusProposalMsg(proposalA);

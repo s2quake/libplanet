@@ -16,7 +16,7 @@ public partial class BlockChainTest
         };
         Assert.Empty(_blockChain.StagedTransactions);
 
-        StageTransactions(txs);
+        _blockChain.StagedTransactions.AddRange(txs);
         Assert.Equal(txs, _blockChain.StagedTransactions.Values.ToHashSet());
     }
 
@@ -112,7 +112,7 @@ public partial class BlockChainTest
         Transaction[] txs = { _fx.Transaction1, _fx.Transaction2 };
         Assert.Empty(_blockChain.StagedTransactions.Keys);
 
-        StageTransactions(txs);
+        _blockChain.StagedTransactions.AddRange(txs);
 
         HashSet<TxId> txIds = txs.Select(tx => tx.Id).ToHashSet();
         HashSet<TxId> stagedTxIds = _blockChain.StagedTransactions.Keys.ToHashSet();
@@ -123,13 +123,5 @@ public partial class BlockChainTest
         Assert.True(_blockChain.StagedTransactions.Remove(_fx.Transaction2.Id));
 
         Assert.Empty(_blockChain.StagedTransactions.Keys);
-    }
-
-    private void StageTransactions(IEnumerable<Transaction> txs)
-    {
-        foreach (Transaction tx in txs)
-        {
-            _blockChain.StagedTransactions.Add(tx);
-        }
     }
 }

@@ -5,8 +5,16 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Consensus;
 
+[Model(Version = 1)]
 public sealed record class Proposal : IEquatable<Proposal>
 {
+    [Property(0)]
+    public required ProposalMetadata Metadata { get; init; }
+
+    [Property(1)]
+    [NotDefault]
+    public required ImmutableArray<byte> Signature { get; init; }
+
     public int Height => Metadata.Height;
 
     public int Round => Metadata.Round;
@@ -15,20 +23,16 @@ public sealed record class Proposal : IEquatable<Proposal>
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public Address Validator => Metadata.Validator;
+    public Address Validator => Metadata.Proposer;
 
-    public byte[] MarshaledBlock => Metadata.MarshaledBlock;
+    // public byte[] MarshaledBlock => Metadata.MarshaledBlock;
+    public byte[] MarshaledBlock => throw new NotImplementedException();
 
     public int ValidRound => Metadata.ValidRound;
-
-    public required ProposalMetadata Metadata { get; init; }
-
-    [NotDefault]
-    public required ImmutableArray<byte> Signature { get; init; }
 
     public bool Verify()
     {
         var bytes = ModelSerializer.SerializeToBytes(Metadata).ToImmutableArray();
-        return PublicKey.Verify(Metadata.Validator, bytes, Signature);
+        return PublicKey.Verify(Metadata.Proposer, bytes, Signature);
     }
 }

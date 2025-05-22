@@ -147,7 +147,7 @@ public partial class Context : IDisposable
             if (value is { } p)
             {
                 _proposal = p;
-                _proposalBlock = ModelSerializer.DeserializeFromBytes<Block>(p.MarshaledBlock);
+                // _proposalBlock = ModelSerializer.DeserializeFromBytes<Block>(p.MarshaledBlock);
             }
             else
             {
@@ -353,29 +353,9 @@ public partial class Context : IDisposable
             (round * _contextOption.ProposeTimeoutDelta));
     }
 
-    /// <summary>
-    /// Creates a new <see cref="Block"/> to propose.
-    /// </summary>
-    /// <returns>A new <see cref="Block"/> if successfully proposed,
-    /// otherwise <see langword="null"/>.</returns>
-    private Block? GetValue()
+    private Block GetValue()
     {
-        try
-        {
-            var block = _blockChain.ProposeBlock(_privateKey);
-            _blockChain.Blocks.AddCache(block);
-            return block;
-        }
-        catch (Exception e)
-        {
-            _logger.Error(
-                e,
-                "Could not propose a block for height {Height} and round {Round}",
-                Height,
-                Round);
-            ExceptionOccurred?.Invoke(this, e);
-            return null;
-        }
+        return _blockChain.ProposeBlock(_privateKey);
     }
 
     /// <summary>

@@ -132,8 +132,8 @@ namespace Libplanet.Net.Tests.Messages
                             Height = 0,
                             Round = 0,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = privateKey.Address,
-                            MarshaledBlock = ModelSerializer.SerializeToBytes(genesis),
+                            Proposer = privateKey.Address,
+                            // MarshaledBlock = ModelSerializer.SerializeToBytes(genesis),
                             ValidRound = -1,
                         }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusVote:

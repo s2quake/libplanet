@@ -279,8 +279,8 @@ public class ConsensusContextTest
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = proposer.Address,
-            MarshaledBlock = ModelSerializer.SerializeToBytes(block),
+            Proposer = proposer.Address,
+            // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
             ValidRound = -1,
         }.Sign(proposer);
         var preVote1 = new VoteMetadata
@@ -372,8 +372,8 @@ public class ConsensusContextTest
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = proposer.Address,
-            MarshaledBlock = ModelSerializer.SerializeToBytes(block),
+            Proposer = proposer.Address,
+            // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
             ValidRound = -1,
         }.Sign(proposer);
         var preVote1 = new VoteMetadata
@@ -450,8 +450,8 @@ public class ConsensusContextTest
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = proposer.Address,
-            MarshaledBlock = ModelSerializer.SerializeToBytes(block),
+            Proposer = proposer.Address,
+            // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
             ValidRound = -1,
         }.Sign(proposer);
         consensusContext.HandleMessage(new ConsensusProposalMsg(proposal));

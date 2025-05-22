@@ -27,4 +27,11 @@ public static class BlockEvaluationExtensions
 
         static Exception? GetActualException(Exception? exception) => exception?.InnerException ?? exception;
     }
+
+    public static BlockExecution GetBlockExecution(this BlockEvaluation @this, BlockHash blockHash) => new()
+    {
+        BlockHash = blockHash,
+        InputState = @this.InputWorld.Trie.Hash,
+        OutputState = @this.OutputWorld.Trie.Hash,
+    };
 }

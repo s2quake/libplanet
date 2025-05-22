@@ -14,8 +14,8 @@ namespace Libplanet.Blockchain;
 
 public partial class BlockChain
 {
-    private readonly Subject<RenderBlockInfo> _renderBlock = new();
-    private readonly Subject<RenderBlockInfo> _renderBlockEnd = new();
+    private readonly Subject<RenderBlockInfo> _blockEvaluating = new();
+    private readonly Subject<RenderBlockInfo> _blockEvaluated = new();
     private readonly Subject<TipChangedInfo> _tipChangedSubject = new();
     private readonly Repository _repository;
     private readonly Chain _chain;
@@ -44,12 +44,10 @@ public partial class BlockChain
     public BlockChain(Block genesisBlock, Repository repository, BlockChainOptions options)
         : this(repository, options)
     {
-        var evaluation = _actionEvaluator.Evaluate((RawBlock)genesisBlock);
+        var evaluation = Evaluate(genesisBlock);
         _repository.Append(genesisBlock, BlockCommit.Empty);
         _chain.Append(genesisBlock, BlockCommit.Empty);
         _chain.StateRootHash = evaluation.OutputWorld.Trie.Hash;
-        _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(genesisBlock.BlockHash));
-        _repository.StateRootHashStore.Add(genesisBlock.BlockHash, _chain.StateRootHash);
     }
 
     public BlockChain(Repository repository, BlockChainOptions options)
@@ -68,11 +66,11 @@ public partial class BlockChain
         TxExecutions = new TxExecutionCollection(repository);
     }
 
-    public IObservable<RenderBlockInfo> RenderBlock => _renderBlock;
+    public IObservable<RenderBlockInfo> RenderBlock => _blockEvaluating;
 
     public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.ActionEvaluated;
 
-    public IObservable<RenderBlockInfo> RenderBlockEnd => _renderBlockEnd;
+    public IObservable<RenderBlockInfo> RenderBlockEnd => _blockEvaluated;
 
     public IObservable<TipChangedInfo> TipChanged => _tipChangedSubject;
 
@@ -90,7 +88,7 @@ public partial class BlockChain
 
     public PendingEvidenceCollection PendingEvidences { get; }
 
-    public TxExecutionCollection TxExecutions{ get; }
+    public TxExecutionCollection TxExecutions { get; }
 
     public Block Tip => Blocks.Count is not 0
         ? Blocks[^1] : throw new InvalidOperationException("The chain is empty.");
@@ -110,6 +108,17 @@ public partial class BlockChain
 
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
+
+    public BlockEvaluation Evaluate(Block block)
+    {
+        var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
+        var blockHash = block.BlockHash;
+        _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(blockHash));
+        _repository.BlockExecutions.Add(blockHash, evaluation.GetBlockExecution(blockHash));
+        _repository.StateRootHashStore.Add(blockHash, _chain.StateRootHash);
+
+        return evaluation;
+    }
 
     public void Append(Block block, BlockCommit blockCommit)
     {
@@ -142,9 +151,9 @@ public partial class BlockChain
         Blocks.AddCache(block);
 
         _tipChangedSubject.OnNext(new(oldTip, block));
-        _renderBlock.OnNext(new RenderBlockInfo(oldTip, block));
+        _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));
         var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
-        _renderBlockEnd.OnNext(new RenderBlockInfo(oldTip, block));
+        _blockEvaluated.OnNext(new RenderBlockInfo(oldTip, block));
         _chain.StateRootHash = evaluation.OutputWorld.Trie.Hash;
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
         _repository.StateRootHashStore.Add(block.BlockHash, _chain.StateRootHash);
