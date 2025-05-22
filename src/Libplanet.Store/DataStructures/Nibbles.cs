@@ -1,3 +1,4 @@
+using System.Text;
 using Libplanet.Serialization;
 using Libplanet.Store.ModelConverters;
 
@@ -18,11 +19,11 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
 
     internal Nibbles(in ImmutableArray<byte> bytes) => _bytes = bytes;
 
-    public ImmutableArray<byte> ByteArray => _bytes.IsDefault ? [] : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? [] : _bytes;
 
-    public int Length => ByteArray.Length;
+    public int Length => Bytes.Length;
 
-    public byte this[int index] => ByteArray[index];
+    public byte this[int index] => Bytes[index];
 
     public static Nibbles Parse(string hex)
     {
@@ -35,24 +36,25 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
         return new Nibbles(builder.ToImmutable());
     }
 
-    public static Nibbles FromKeyBytes(in KeyBytes keyBytes)
+    public static Nibbles Create(string key)
     {
-        var capacity = keyBytes.Bytes.Length * 2;
+        var keyBytes = Encoding.UTF8.GetBytes(key);
+        var capacity = keyBytes.Length * 2;
         var builder = ImmutableArray.CreateBuilder<byte>(capacity);
-        for (var i = 0; i < keyBytes.Bytes.Length; i++)
+        for (var i = 0; i < keyBytes.Length; i++)
         {
-            builder.Add((byte)(keyBytes.Bytes[i] >> 4));
-            builder.Add((byte)(keyBytes.Bytes[i] & 0x0f));
+            builder.Add((byte)(keyBytes[i] >> 4));
+            builder.Add((byte)(keyBytes[i] & 0x0f));
         }
 
         return new Nibbles(builder.ToImmutable());
     }
 
-    public Nibbles Append(byte @byte) => new(ByteArray.Add(@byte));
+    public Nibbles Append(byte @byte) => new(Bytes.Add(@byte));
 
-    public Nibbles Append(in Nibbles nibbles) => new(ByteArray.AddRange(nibbles.ByteArray));
+    public Nibbles Append(in Nibbles nibbles) => new(Bytes.AddRange(nibbles.Bytes));
 
-    public Nibbles AppendMany(in ImmutableArray<byte> bytes) => new(ByteArray.AddRange(bytes));
+    public Nibbles AppendMany(in ImmutableArray<byte> bytes) => new(Bytes.AddRange(bytes));
 
     public Nibbles Take(int count)
     {
@@ -78,12 +80,12 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
 
         for (var i = 0; i < minLength; i++)
         {
-            if (ByteArray[i] != nibbles.ByteArray[i])
+            if (Bytes[i] != nibbles.Bytes[i])
             {
                 break;
             }
 
-            builder.Add(ByteArray[i]);
+            builder.Add(Bytes[i]);
         }
 
         return new Nibbles(builder.ToImmutable());
@@ -106,24 +108,22 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
         return new Nibbles([.. _bytes.Skip(count)]);
     }
 
-    public KeyBytes ToKeyBytes()
+    public string ToKey()
     {
         var length = Length;
         if (length % 2 != 0)
         {
-            throw new InvalidOperationException(
-                $"The length must be even in order to convert " +
-                $"to a {nameof(KeyBytes)}: {length}");
+            throw new InvalidOperationException("");
         }
 
         var capacity = length / 2;
-        var builder = ImmutableArray.CreateBuilder<byte>(capacity);
+        Span<byte> bytes = stackalloc byte[capacity];
         for (var i = 0; i < length; i += 2)
         {
-            builder.Add((byte)(_bytes[i] << 4 | _bytes[i + 1]));
+            bytes[i / 2] = (byte)(_bytes[i] << 4 | _bytes[i + 1]);
         }
 
-        return new KeyBytes(builder.ToImmutable());
+        return Encoding.UTF8.GetString(bytes);
     }
 
     public bool StartsWith(in Nibbles nibbles)
@@ -135,7 +135,7 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
 
         for (var i = 0; i < nibbles.Length; i++)
         {
-            if (ByteArray[i] != nibbles.ByteArray[i])
+            if (Bytes[i] != nibbles.Bytes[i])
             {
                 return false;
             }
@@ -144,14 +144,14 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
         return true;
     }
 
-    public bool Equals(Nibbles other) => ByteArray.SequenceEqual(other.ByteArray);
+    public bool Equals(Nibbles other) => Bytes.SequenceEqual(other.Bytes);
 
     public override int GetHashCode()
     {
         var code = 0;
         unchecked
         {
-            var bytes = ByteArray;
+            var bytes = Bytes;
             foreach (byte @byte in bytes)
             {
                 code = (code * 397) ^ @byte.GetHashCode();
@@ -164,7 +164,7 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
     public override string ToString()
     {
         var chars = new char[Length];
-        var bytes = ByteArray;
+        var bytes = Bytes;
         for (var i = 0; i < Length; i++)
         {
             chars[i] = _hexCharLookup[bytes[i]];

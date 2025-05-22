@@ -216,7 +216,7 @@ public class MptCommand
         ToolConfiguration toolConfiguration = configurationService.Load();
         kvStoreUri = ConvertKVStoreUri(kvStoreUri, toolConfiguration);
         ITable keyValueStore = LoadKVStoreFromURI(kvStoreUri);
-        var trie = Trie.Create(HashDigest<SHA256>.Parse(stateRootHashHex), keyValueStore);
+        // var trie = Trie.Create(HashDigest<SHA256>.Parse(stateRootHashHex), keyValueStore);
         // KeyBytes stateKeyBytes = (KeyBytes)stateKey;
         throw new NotImplementedException();
         // IReadOnlyList<IValue?> values = trie.GetMany([stateKeyBytes]);

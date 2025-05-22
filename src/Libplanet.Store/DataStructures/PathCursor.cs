@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Libplanet.Store.DataStructures;
 
 internal readonly record struct PathCursor
@@ -33,9 +31,7 @@ internal readonly record struct PathCursor
 
     public int Position { get; }
 
-    public static PathCursor Create(in KeyBytes keyBytes) => new(Nibbles.FromKeyBytes(keyBytes));
-
-    public static PathCursor Create(string s) => Create(new KeyBytes(Encoding.UTF8.GetBytes(s)));
+    public static PathCursor Create(string key) => new(Nibbles.Create(key));
 
     public PathCursor Next(int offset) => offset < 0
         ? throw new ArgumentOutOfRangeException(nameof(offset))

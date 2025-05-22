@@ -22,6 +22,6 @@ internal sealed class NibblesModelConverter : ModelConverterBase<Nibbles>
     protected override void Serialize(Nibbles obj, Stream stream, ModelOptions options)
     {
         stream.WriteInt32(obj.Length);
-        stream.Write(obj.ByteArray.AsSpan());
+        stream.Write(obj.Bytes.AsSpan());
     }
 }

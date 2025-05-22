@@ -39,7 +39,7 @@ internal sealed record class ShortNode : INode, IValidatableObject
         {
             yield return new ValidationResult(
                 $"Given {nameof(Value)} cannot be a {nameof(HashNode)} " +
-                $"without a {nameof(IDictionary<KeyBytes, byte[]>)}.",
+                $"without a {nameof(IDictionary<string, byte[]>)}.",
                 [nameof(Value)]);
         }
     }
