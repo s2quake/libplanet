@@ -14,8 +14,8 @@ public sealed record class World
 
     public Address Signer { get; init; }
 
-    public ImmutableDictionary<KeyBytes, Account> Delta { get; private init; }
-        = ImmutableDictionary<KeyBytes, Account>.Empty;
+    public ImmutableDictionary<string, Account> Delta { get; private init; }
+        = ImmutableDictionary<string, Account>.Empty;
 
     public static World Create() => Create(new TrieStateStore());
 
@@ -33,7 +33,7 @@ public sealed record class World
         StateStore = stateStore,
     };
 
-    public Account GetAccount(KeyBytes name)
+    public Account GetAccount(string name)
     {
         if (Delta.TryGetValue(name, out var account))
         {
@@ -48,7 +48,7 @@ public sealed record class World
         return new Account(StateStore.GetStateRoot(default));
     }
 
-    public World SetAccount(KeyBytes name, Account account) => this with
+    public World SetAccount(string name, Account account) => this with
     {
         Delta = Delta.SetItem(name, account),
     };

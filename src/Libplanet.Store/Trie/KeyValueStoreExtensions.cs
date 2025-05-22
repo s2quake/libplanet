@@ -3,7 +3,7 @@ namespace Libplanet.Store.Trie;
 public static class KeyValueStoreExtensions
 {
     public static void SetMany(
-        this IDictionary<KeyBytes, byte[]> @this, IEnumerable<KeyValuePair<KeyBytes, byte[]>> values)
+        this IDictionary<string, byte[]> @this, IEnumerable<KeyValuePair<string, byte[]>> values)
     {
         foreach (var (key, value) in values)
         {
@@ -11,6 +11,6 @@ public static class KeyValueStoreExtensions
         }
     }
 
-    public static int RemoveMany(this IDictionary<KeyBytes, byte[]> @this, IEnumerable<KeyBytes> keys)
+    public static int RemoveMany(this IDictionary<string, byte[]> @this, IEnumerable<string> keys)
         => keys.Count(@this.Remove);
 }

@@ -15,36 +15,36 @@ public abstract class TableBase : ITable
         _values = new ValueCollection(this);
     }
 
-    public ICollection<KeyBytes> Keys => _keys;
+    public ICollection<string> Keys => _keys;
 
-    ICollection<byte[]> IDictionary<KeyBytes, byte[]>.Values => _values;
+    ICollection<byte[]> IDictionary<string, byte[]>.Values => _values;
 
     public abstract int Count { get; }
 
     public bool IsReadOnly => false;
 
-    public abstract byte[] this[KeyBytes key] { get; set; }
+    public abstract byte[] this[string key] { get; set; }
 
-    public abstract bool Remove(KeyBytes key);
+    public abstract bool Remove(string key);
 
-    public abstract void Add(KeyBytes key, byte[] value);
+    public abstract void Add(string key, byte[] value);
 
-    public abstract bool ContainsKey(KeyBytes key);
+    public abstract bool ContainsKey(string key);
 
-    public abstract bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value);
+    public abstract bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value);
 
     public abstract void Clear();
 
-    void ICollection<KeyValuePair<KeyBytes, byte[]>>.Add(KeyValuePair<KeyBytes, byte[]> item)
+    void ICollection<KeyValuePair<string, byte[]>>.Add(KeyValuePair<string, byte[]> item)
         => Add(item.Key, item.Value);
 
-    bool ICollection<KeyValuePair<KeyBytes, byte[]>>.Contains(KeyValuePair<KeyBytes, byte[]> item)
+    bool ICollection<KeyValuePair<string, byte[]>>.Contains(KeyValuePair<string, byte[]> item)
         => TryGetValue(item.Key, out var value) && CompareValue(value, item.Value);
 
-    void ICollection<KeyValuePair<KeyBytes, byte[]>>.CopyTo(KeyValuePair<KeyBytes, byte[]>[] array, int arrayIndex)
+    void ICollection<KeyValuePair<string, byte[]>>.CopyTo(KeyValuePair<string, byte[]>[] array, int arrayIndex)
         => throw new NotSupportedException("CopyTo is not supported.");
 
-    bool ICollection<KeyValuePair<KeyBytes, byte[]>>.Remove(KeyValuePair<KeyBytes, byte[]> item)
+    bool ICollection<KeyValuePair<string, byte[]>>.Remove(KeyValuePair<string, byte[]> item)
     {
         if (TryGetValue(item.Key, out var value) && CompareValue(value, item.Value))
         {
@@ -54,11 +54,11 @@ public abstract class TableBase : ITable
         return false;
     }
 
-    IEnumerator<KeyValuePair<KeyBytes, byte[]>> IEnumerable<KeyValuePair<KeyBytes, byte[]>>.GetEnumerator()
+    IEnumerator<KeyValuePair<string, byte[]>> IEnumerable<KeyValuePair<string, byte[]>>.GetEnumerator()
     {
         foreach (var key in Keys)
         {
-            yield return new KeyValuePair<KeyBytes, byte[]>(key, this[key]);
+            yield return new KeyValuePair<string, byte[]>(key, this[key]);
         }
     }
 
@@ -66,30 +66,30 @@ public abstract class TableBase : ITable
     {
         foreach (var key in Keys)
         {
-            yield return new KeyValuePair<KeyBytes, byte[]>(key, this[key]);
+            yield return new KeyValuePair<string, byte[]>(key, this[key]);
         }
     }
 
-    protected abstract IEnumerable<KeyBytes> EnumerateKeys();
+    protected abstract IEnumerable<string> EnumerateKeys();
 
     protected virtual bool CompareValue(byte[] value1, byte[] value2) => value1.SequenceEqual(value2);
 
-    private sealed class KeyCollection(TableBase owner) : ICollection<KeyBytes>
+    private sealed class KeyCollection(TableBase owner) : ICollection<string>
     {
         public int Count => owner.Count;
 
         public bool IsReadOnly => true;
 
-        public void Add(KeyBytes item) => throw new NotSupportedException("Add is not supported.");
+        public void Add(string item) => throw new NotSupportedException("Add is not supported.");
 
         public void Clear() => throw new NotSupportedException("Clear is not supported.");
 
-        public bool Contains(KeyBytes item) => owner.ContainsKey(item);
+        public bool Contains(string item) => owner.ContainsKey(item);
 
-        public void CopyTo(KeyBytes[] array, int arrayIndex)
+        public void CopyTo(string[] array, int arrayIndex)
             => throw new NotSupportedException("CopyTo is not supported.");
 
-        public IEnumerator<KeyBytes> GetEnumerator()
+        public IEnumerator<string> GetEnumerator()
         {
             foreach (var key in owner.EnumerateKeys())
             {
@@ -97,7 +97,7 @@ public abstract class TableBase : ITable
             }
         }
 
-        public bool Remove(KeyBytes item) => throw new NotSupportedException("Remove is not supported.");
+        public bool Remove(string item) => throw new NotSupportedException("Remove is not supported.");
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

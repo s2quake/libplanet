@@ -4,16 +4,16 @@ using Libplanet.Store.Trie;
 
 namespace Libplanet.Action;
 
-internal sealed class AccountContext(Account account, KeyBytes name, Action<AccountContext> setter)
+internal sealed class AccountContext(Account account, string name, Action<AccountContext> setter)
     : IAccountContext
 {
     private Account _account = account;
 
-    public KeyBytes Name { get; } = name;
+    public string Name { get; } = name;
 
     public Account Account => _account;
 
-    public object this[KeyBytes key]
+    public object this[string key]
     {
         get => _account.GetValue(key);
 
@@ -32,14 +32,14 @@ internal sealed class AccountContext(Account account, KeyBytes name, Action<Acco
         }
     }
 
-    public bool TryGetValue<T>(KeyBytes key, [MaybeNullWhen(false)] out T value)
+    public bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value)
         => _account.TryGetValue(key, out value);
 
-    public T GetValue<T>(KeyBytes key, T fallback) => TryGetValue<T>(key, out var value) ? value : fallback;
+    public T GetValue<T>(string key, T fallback) => TryGetValue<T>(key, out var value) ? value : fallback;
 
-    public bool Contains(KeyBytes key) => _account.GetValueOrDefault(key) is not null;
+    public bool Contains(string key) => _account.GetValueOrDefault(key) is not null;
 
-    public bool Remove(KeyBytes key)
+    public bool Remove(string key)
     {
         if (_account.GetValueOrDefault(key) is not null)
         {

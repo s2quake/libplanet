@@ -6,7 +6,7 @@ public static class ITableExtensions
 {
     public static void AddRange(
         this ITable @this,
-        IEnumerable<KeyValuePair<KeyBytes, byte[]>> keyValuePairs)
+        IEnumerable<KeyValuePair<string, byte[]>> keyValuePairs)
     {
         foreach (var kvp in keyValuePairs)
         {
@@ -14,7 +14,7 @@ public static class ITableExtensions
         }
     }
 
-    public static void RemoveRange(this ITable @this, IEnumerable<KeyBytes> keys)
+    public static void RemoveRange(this ITable @this, IEnumerable<string> keys)
     {
         foreach (var key in keys)
         {

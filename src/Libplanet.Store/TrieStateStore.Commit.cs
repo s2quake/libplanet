@@ -24,7 +24,7 @@ public partial class TrieStateStore
             var serialized = ModelSerializer.SerializeToBytes(newNode);
             var hashDigest = HashDigest<SHA256>.Create(serialized);
 
-            writeBatch.Add(new KeyBytes(hashDigest.Bytes), serialized);
+            writeBatch.Add(hashDigest.ToString(), serialized);
             newNode = new HashNode { Hash = hashDigest, Table = _table };
         }
 
@@ -93,7 +93,7 @@ public partial class TrieStateStore
     private static HashNode Write(byte[] bytes, WriteBatch writeBatch)
     {
         var hash = HashDigest<SHA256>.Create(bytes);
-        var key = new KeyBytes(hash.Bytes);
+        var key = hash.ToString();
         HashNodeCache.AddOrUpdate(hash, bytes);
         writeBatch.Add(key, bytes);
         return writeBatch.Create(hash);
@@ -103,16 +103,16 @@ public partial class TrieStateStore
     {
         private readonly ITable _store;
         private readonly int _batchSize;
-        private readonly Dictionary<KeyBytes, byte[]> _batch;
+        private readonly Dictionary<string, byte[]> _batch;
 
         public WriteBatch(ITable store, int batchSize)
         {
             _store = store;
             _batchSize = batchSize;
-            _batch = new Dictionary<KeyBytes, byte[]>(_batchSize);
+            _batch = new Dictionary<string, byte[]>(_batchSize);
         }
 
-        public void Add(KeyBytes key, byte[] value)
+        public void Add(string key, byte[] value)
         {
             _batch[key] = value;
 

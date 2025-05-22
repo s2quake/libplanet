@@ -1,9 +1,9 @@
 using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
-using Libplanet.Store.Trie;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 
@@ -15,13 +15,14 @@ public abstract class StoreBase<TKey, TValue>
     where TValue : notnull
 {
     private readonly ICache<TKey, TValue> _cache;
-    private readonly IDictionary<KeyBytes, byte[]> _dictionary;
+    private readonly IDictionary<string, byte[]> _dictionary;
     private readonly ReaderWriterLockSlim _lock = new();
+    private readonly TypeConverter _keyConverter = TypeDescriptor.GetConverter(typeof(TKey));
 
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected StoreBase(IDictionary<KeyBytes, byte[]> dictionary, int cacheSize = 100)
+    protected StoreBase(IDictionary<string, byte[]> dictionary, int cacheSize = 100)
     {
         _cache = new ConcurrentLruBuilder<TKey, TValue>()
             .WithCapacity(cacheSize)
@@ -306,9 +307,25 @@ public abstract class StoreBase<TKey, TValue>
 
     protected virtual bool CompareValue(TValue value1, TValue value2) => value1.Equals(value2);
 
-    protected abstract KeyBytes GetKeyBytes(TKey key);
+    protected string GetKeyBytes(TKey key)
+    {
+        if (_keyConverter.ConvertToInvariantString(key) is not string s)
+        {
+            throw new InvalidOperationException($"Cannot convert {key} to string.");
+        }
 
-    protected abstract TKey GetKey(KeyBytes keyBytes);
+        return s;
+    }
+
+    protected TKey GetKey(string s)
+    {
+        if (_keyConverter.ConvertFromInvariantString(s) is not TKey key)
+        {
+            throw new InvalidOperationException($"Cannot convert {s} to {typeof(TKey)}.");
+        }
+
+        return key;
+    }
 
     protected abstract byte[] GetBytes(TValue value);
 

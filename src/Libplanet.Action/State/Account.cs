@@ -10,21 +10,21 @@ public sealed record class Account(ITrie Trie)
     {
     }
 
-    public object GetValue(KeyBytes key) => Trie[key];
+    public object GetValue(string key) => Trie[key];
 
-    public Account SetValue(KeyBytes key, object value) => new(Trie.Set(key, value));
+    public Account SetValue(string key, object value) => new(Trie.Set(key, value));
 
-    public object? GetValueOrDefault(KeyBytes key) => TryGetValue(key, out object? state) ? state : null;
+    public object? GetValueOrDefault(string key) => TryGetValue(key, out object? state) ? state : null;
 
-    public T GetValueOrFallback<T>(KeyBytes key, T fallback) => GetValueOrDefault(key) is T state ? state : fallback;
+    public T GetValueOrFallback<T>(string key, T fallback) => GetValueOrDefault(key) is T state ? state : fallback;
 
-    public bool ContainsKey(KeyBytes key) => Trie.TryGetValue(key, out _);
+    public bool ContainsKey(string key) => Trie.TryGetValue(key, out _);
 
-    public Account RemoveValue(KeyBytes key) => new(Trie.Remove(key));
+    public Account RemoveValue(string key) => new(Trie.Remove(key));
 
-    public bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out object value) => Trie.TryGetValue(key, out value);
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value) => Trie.TryGetValue(key, out value);
 
-    public bool TryGetValue<T>(KeyBytes key, [MaybeNullWhen(false)] out T value)
+    public bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value)
     {
         if (TryGetValue(key, out var state) && state is T obj)
         {

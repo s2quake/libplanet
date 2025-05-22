@@ -1,17 +1,16 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Libplanet.Store.Trie;
 
 namespace Libplanet.Action;
 
 public partial interface IAccountContext
 {
-    object this[KeyBytes key] { get; set; }
+    object this[string key] { get; set; }
 
-    bool TryGetValue<T>(KeyBytes key, [MaybeNullWhen(false)] out T value);
+    bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value);
 
-    T GetValue<T>(KeyBytes key, T fallback);
+    T GetValue<T>(string key, T fallback);
 
-    bool Contains(KeyBytes key);
+    bool Contains(string key);
 
-    bool Remove(KeyBytes key);
+    bool Remove(string key);
 }

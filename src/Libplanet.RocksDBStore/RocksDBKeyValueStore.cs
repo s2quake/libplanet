@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Text;
 using System.Threading;
 using Libplanet.Store;
 using Libplanet.Store.Trie;
@@ -51,13 +52,13 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
         }
     }
 
-    public override byte[] this[KeyBytes key]
+    public override byte[] this[string key]
     {
-        get => _rocksDb.Get(key.AsSpan()) ?? throw new KeyNotFoundException($"No such key: ${key}.");
+        get => _rocksDb.Get(Encoding.UTF8.GetBytes(key)) ?? throw new KeyNotFoundException($"No such key: ${key}.");
         set
         {
-            var exists = _rocksDb.Get(key.AsSpan()) is { };
-            _rocksDb.Put(key.AsSpan(), value);
+            var exists = _rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { };
+            _rocksDb.Put(Encoding.UTF8.GetBytes(key), value);
             if (!exists && _count is not null)
             {
                 _count++;
@@ -65,11 +66,11 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
         }
     }
 
-    public override bool Remove(KeyBytes key)
+    public override bool Remove(string key)
     {
-        if (_rocksDb.Get(key.AsSpan()) is { })
+        if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { })
         {
-            _rocksDb.Remove(key.AsSpan());
+            _rocksDb.Remove(Encoding.UTF8.GetBytes(key));
             if (_count is not null)
             {
                 _count--;
@@ -92,30 +93,30 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
         }
     }
 
-    public override bool ContainsKey(KeyBytes key) => _rocksDb.Get(key.AsSpan()) is { };
+    public override bool ContainsKey(string key) => _rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { };
 
     public void TryCatchUpWithPrimary()
     {
         _rocksDb.TryCatchUpWithPrimary();
     }
 
-    public override void Add(KeyBytes key, byte[] value)
+    public override void Add(string key, byte[] value)
     {
-        if (_rocksDb.Get(key.AsSpan()) is { })
+        if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { })
         {
             throw new ArgumentException($"Key {key} already exists", nameof(key));
         }
 
-        _rocksDb.Put(key.AsSpan(), value);
+        _rocksDb.Put(Encoding.UTF8.GetBytes(key), value);
         if (_count is not null)
         {
             _count++;
         }
     }
 
-    public override bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value)
+    public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
     {
-        if (_rocksDb.Get(key.AsSpan()) is { } bytes)
+        if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { } bytes)
         {
             value = bytes;
             return true;
@@ -138,12 +139,12 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
         _count = null;
     }
 
-    protected override IEnumerable<KeyBytes> EnumerateKeys()
+    protected override IEnumerable<string> EnumerateKeys()
     {
         using var it = _rocksDb.NewIterator();
         for (it.SeekToFirst(); it.Valid(); it.Next())
         {
-            yield return new KeyBytes(it.Key());
+            yield return Encoding.UTF8.GetString(it.Key());
         }
     }
 

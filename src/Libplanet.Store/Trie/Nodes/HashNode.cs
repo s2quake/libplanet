@@ -37,8 +37,9 @@ internal sealed record class HashNode : INode
         }
         else
         {
-            var keyBytes = new KeyBytes(Hash.Bytes);
-            if (table.TryGetValue(keyBytes, out var valueBytes))
+            // var keyBytes = new KeyBytes(Hash.Bytes);
+            var key = Hash.ToString();
+            if (table.TryGetValue(key, out var valueBytes))
             {
                 intermediateValue = valueBytes;
                 HashNodeCache.AddOrUpdate(Hash, valueBytes);

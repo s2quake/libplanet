@@ -1,3 +1,4 @@
+using System.Text;
 using Libplanet.Store.Trie.Nodes;
 
 namespace Libplanet.Store.Trie;
@@ -25,7 +26,7 @@ public static class NodeExtensions
         }
     }
 
-    public static IEnumerable<KeyValuePair<KeyBytes, object>> KeyValues(this INode @this)
+    public static IEnumerable<KeyValuePair<string, object>> KeyValues(this INode @this)
     {
         var nibbles = @this is ShortNode shortNode ? shortNode.Key : Nibbles.Empty;
         foreach (var item in GetKeyValues(@this, nibbles))
@@ -34,7 +35,7 @@ public static class NodeExtensions
         }
     }
 
-    private static IEnumerable<KeyValuePair<KeyBytes, object>> GetKeyValues(INode node, Nibbles nibbles)
+    private static IEnumerable<KeyValuePair<string, object>> GetKeyValues(INode node, Nibbles nibbles)
     {
         if (node is FullNode fullNode)
         {
@@ -69,7 +70,7 @@ public static class NodeExtensions
         {
             var key = nibbles.ToKeyBytes();
             var value = valueNode.Value;
-            yield return new(key, value);
+            yield return new(Encoding.UTF8.GetString([.. key.Bytes]), value);
         }
         else if (node is HashNode hashNode)
         {

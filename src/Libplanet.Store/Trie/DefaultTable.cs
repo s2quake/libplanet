@@ -20,7 +20,7 @@ public sealed class DefaultTable(string path) : TableBase, IDisposable
 
     public override int Count => _count ??= _fs.EnumerateFiles(UPath.Root).Count();
 
-    public override byte[] this[KeyBytes key]
+    public override byte[] this[string key]
     {
         get
         {
@@ -47,7 +47,7 @@ public sealed class DefaultTable(string path) : TableBase, IDisposable
         }
     }
 
-    public override bool Remove(KeyBytes key)
+    public override bool Remove(string key)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         var dataPath = DataPath(key);
@@ -80,7 +80,7 @@ public sealed class DefaultTable(string path) : TableBase, IDisposable
         }
     }
 
-    public override void Add(KeyBytes key, byte[] value)
+    public override void Add(string key, byte[] value)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         var dataPath = DataPath(key);
@@ -96,13 +96,13 @@ public sealed class DefaultTable(string path) : TableBase, IDisposable
         }
     }
 
-    public override bool ContainsKey(KeyBytes key)
+    public override bool ContainsKey(string key)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         return _fs.FileExists(DataPath(key));
     }
 
-    public override bool TryGetValue(KeyBytes key, [MaybeNullWhen(false)] out byte[] value)
+    public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         var dataPath = DataPath(key);
@@ -127,12 +127,12 @@ public sealed class DefaultTable(string path) : TableBase, IDisposable
         _count = 0;
     }
 
-    protected override IEnumerable<KeyBytes> EnumerateKeys()
+    protected override IEnumerable<string> EnumerateKeys()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         foreach (var item in _fs.EnumerateFiles(UPath.Root))
         {
-            yield return KeyBytes.Parse(item.GetName());
+            yield return item.GetName();
         }
     }
 
@@ -152,5 +152,5 @@ public sealed class DefaultTable(string path) : TableBase, IDisposable
         return new SubFileSystem(pfs, pfs.ConvertPathFromInternal(path), owned: true);
     }
 
-    private static UPath DataPath(in KeyBytes key) => UPath.Root / $"{key:h}";
+    private static UPath DataPath(in string key) => UPath.Root / $"{key:h}";
 }
