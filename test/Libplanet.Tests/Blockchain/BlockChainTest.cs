@@ -392,7 +392,7 @@ public partial class BlockChainTest : IDisposable
     {
         var policy = new BlockChainOptions();
         var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
 
         // IActionRenderer renderer = new AnonymousActionRenderer
         // {

@@ -14,19 +14,11 @@ public partial class BlockChain
     public World GetWorld(BlockHash blockHash)
     {
         var stateRootHash = _repository.StateRootHashStore[blockHash];
-        return new World
-        {
-            Trie = _repository.StateStore.GetStateRoot(stateRootHash),
-            StateStore = _repository.StateStore,
-        };
+        return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
     }
 
     public World GetWorld(HashDigest<SHA256> stateRootHash)
     {
-        return new World
-        {
-            Trie = _repository.StateStore.GetStateRoot(stateRootHash),
-            StateStore = _repository.StateStore,
-        };
+        return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
     }
 }

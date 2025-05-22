@@ -6,7 +6,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Store;
 
-public partial class TrieStateStore
+public partial class StateStore
 {
     public ITrie Commit(ITrie trie)
     {

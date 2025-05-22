@@ -30,7 +30,7 @@ public class TrieStateStoreTest
     [Fact]
     public void GetStateRoot()
     {
-        var stateStore = new TrieStateStore(_stateKeyValueStore);
+        var stateStore = new StateStore(_stateKeyValueStore);
         var emptyTrie = stateStore.GetStateRoot(default);
         Assert.True(emptyTrie.IsCommitted);
         Assert.False(emptyTrie.ContainsKey(KeyFoo));
@@ -65,9 +65,9 @@ public class TrieStateStoreTest
     [Fact]
     public void CopyStates()
     {
-        var stateStore = new TrieStateStore(_stateKeyValueStore);
+        var stateStore = new StateStore(_stateKeyValueStore);
         var targetStateKeyValueStore = new MemoryTable();
-        var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
+        var targetStateStore = new StateStore(targetStateKeyValueStore);
         Random random = new();
         List<(string, byte[])> kvs = Enumerable.Range(0, 1_000)
             .Select(_ =>
@@ -112,9 +112,9 @@ public class TrieStateStoreTest
     [Fact]
     public void CopyWorldStates()
     {
-        var stateStore = new TrieStateStore(_stateKeyValueStore);
+        var stateStore = new StateStore(_stateKeyValueStore);
         var targetStateKeyValueStore = new MemoryTable();
-        var targetStateStore = new TrieStateStore(targetStateKeyValueStore);
+        var targetStateStore = new StateStore(targetStateKeyValueStore);
         Random random = new();
         Dictionary<Address, List<(string, byte[])>> data = Enumerable
             .Range(0, 20)
@@ -184,6 +184,6 @@ public class TrieStateStoreTest
     public void IdempotentDispose()
 #pragma warning restore S2699 // Tests should include assertions
     {
-        _ = new TrieStateStore(_stateKeyValueStore);
+        _ = new StateStore(_stateKeyValueStore);
     }
 }

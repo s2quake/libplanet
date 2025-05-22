@@ -4,22 +4,22 @@ using Libplanet.Types;
 
 namespace Libplanet.Store;
 
-public partial class TrieStateStore(ITable table)
+public partial class StateStore(ITable table)
 {
     private readonly ITable _table = table;
 
-    public TrieStateStore()
+    public StateStore()
         : this(new MemoryDatabase())
     {
     }
 
-    public TrieStateStore(IDatabase database)
+    public StateStore(IDatabase database)
         : this(database.GetOrAdd("trie_state_store"))
     {
     }
 
     public void CopyStates(
-        IImmutableSet<HashDigest<SHA256>> stateRootHashes, TrieStateStore targetStateStore)
+        IImmutableSet<HashDigest<SHA256>> stateRootHashes, StateStore targetStateStore)
     {
         var targetKeyValueStore = targetStateStore._table;
         var count = 0L;

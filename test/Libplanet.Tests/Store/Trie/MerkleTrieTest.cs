@@ -48,7 +48,7 @@ public class MerkleTrieTest
         Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie["01"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0"]);
 
-        trie = new TrieStateStore(store).Commit(trie);
+        trie = new StateStore(store).Commit(trie);
         Assert.Single(trie.ToDictionary());
         Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie["01"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0"]);
@@ -58,7 +58,7 @@ public class MerkleTrieTest
     public void ToDictionary()
     {
         var keyValueStore = new MemoryTable();
-        var stateStore = new TrieStateStore(keyValueStore);
+        var stateStore = new StateStore(keyValueStore);
         var trie = new Libplanet.Store.DataStructures.Trie()
             .Set("00", ImmutableSortedDictionary<string, string>.Empty)
             .Set("1", "1")
@@ -87,7 +87,7 @@ public class MerkleTrieTest
     [Fact]
     public void IterateNodes()
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var trie = Libplanet.Store.DataStructures.Trie.Create(
             ((string Key, object Value))("ab", ImmutableSortedDictionary<string, string>.Empty.Add("a", "b")));
 
@@ -107,7 +107,7 @@ public class MerkleTrieTest
     [InlineData(false, "_1ab3_639e")]
     public void IterateSubTrie(bool commit, string extraKey)
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         string[] keys =
         [
             "1b418c98",
@@ -135,7 +135,7 @@ public class MerkleTrieTest
     [InlineData(false)]
     public void Set(bool commit)
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var trie = Libplanet.Store.DataStructures.Trie.Create(
             ((string Key, object Value))("_", ImmutableSortedDictionary<string, string>.Empty));
 
@@ -262,7 +262,7 @@ public class MerkleTrieTest
     [Fact]
     public void GetNode()
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var keyValues = new (string, object)[]
         {
             ("0x00", "00"),
@@ -292,7 +292,7 @@ public class MerkleTrieTest
     [Fact]
     public void ResolveToValueAtTheEndOfShortNode()
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var trie = Libplanet.Store.DataStructures.Trie.Create(
             (Key: "0x00", Value: "00"));
 
@@ -304,7 +304,7 @@ public class MerkleTrieTest
     [Fact]
     public void SetValueToExtendedKey()
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var value00 = "00";
         var value0000 = "0000";
         var trie = Libplanet.Store.DataStructures.Trie.Create(
@@ -321,7 +321,7 @@ public class MerkleTrieTest
     [Fact]
     public void SetValueToFullNode()
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var value00 = "00";
         var value0000 = "0000";
         var value0010 = "0010";
@@ -341,7 +341,7 @@ public class MerkleTrieTest
     [Fact]
     public void RemoveValue()
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var key00 = "0x00";
         var value00 = "00";
         var key0000 = "0x00, 0x00";
@@ -437,7 +437,7 @@ public class MerkleTrieTest
     [Fact]
     public void RemoveValueNoOp()
     {
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var key00 = "0x00";
         var key0000 = "0x00, 0x00";
         var value0000 = "0000";

@@ -202,7 +202,7 @@ public class BlockPolicyTest : IDisposable
         const int policyLimit = 5;
 
         var store = new Libplanet.Store.Repository(new MemoryDatabase());
-        var stateStore = new TrieStateStore();
+        var stateStore = new StateStore();
         var policy = new BlockChainOptions
         {
             BlockOptions = new BlockOptions

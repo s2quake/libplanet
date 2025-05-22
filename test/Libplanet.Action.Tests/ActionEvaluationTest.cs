@@ -46,7 +46,7 @@ public class ActionEvaluationTest
                 }.Sign(key),
             ],
         };
-        var world = World.Create();
+        var world = new World();
         world = world.SetValue(LegacyAccount, address, "item");
         var evaluation = new ActionEvaluation
         {
@@ -61,7 +61,7 @@ public class ActionEvaluationTest
                 LastCommit = lastCommit,
                 RandomSeed = 123,
             },
-            InputWorld = World.Create(),
+            InputWorld = new World(),
             OutputWorld = world,
         };
         var action = (DumbAction)evaluation.Action;

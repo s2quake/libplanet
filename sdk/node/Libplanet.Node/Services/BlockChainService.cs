@@ -56,7 +56,7 @@ internal sealed class BlockChainService(
     private static Block CreateGenesisBlock(
         GenesisOptions genesisOptions,
         IActionService actionService,
-        TrieStateStore stateStore)
+        StateStore stateStore)
     {
         if (genesisOptions.GenesisBlockPath != string.Empty)
         {
@@ -145,7 +145,7 @@ internal sealed class BlockChainService(
     private static Block CreateGenesisBlockFromConfiguration(
         PrivateKey genesisKey,
         byte[] config,
-        TrieStateStore stateStore)
+        StateStore stateStore)
     {
         Dictionary<string, Dictionary<string, object>>? data =
             JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(config);
@@ -158,11 +158,7 @@ internal sealed class BlockChainService(
         }
 
         var nullTrie = stateStore.GetStateRoot(default);
-        World world = new World
-        {
-            Trie = nullTrie,
-            StateStore = stateStore,
-        };
+        World world = new World(nullTrie, stateStore);
 
         foreach (var accountKv in data)
         {
@@ -177,19 +173,20 @@ internal sealed class BlockChainService(
             world = world.SetAccount(key, account);
         }
 
-        var worldTrie = world.Trie;
-        foreach (var (name, account) in world.Delta)
-        {
-            var accountTrie = stateStore.Commit(account.Trie);
-            worldTrie = worldTrie.Set(
-                name,
-                accountTrie.Hash.Bytes);
-        }
+        throw new NotImplementedException();
+        // var worldTrie = world.Trie;
+        // foreach (var (name, account) in world.Delta)
+        // {
+        //     var accountTrie = stateStore.Commit(account.Trie);
+        //     worldTrie = worldTrie.Set(
+        //         name,
+        //         accountTrie.Hash.Bytes);
+        // }
 
-        worldTrie = stateStore.Commit(worldTrie);
-        return BlockChain.ProposeGenesisBlock(
-            proposer: genesisKey,
-            previousStateRootHash: worldTrie.Hash,
-            transactions: []);
+        // worldTrie = stateStore.Commit(worldTrie);
+        // return BlockChain.ProposeGenesisBlock(
+        //     proposer: genesisKey,
+        //     previousStateRootHash: worldTrie.Hash,
+        //     transactions: []);
     }
 }

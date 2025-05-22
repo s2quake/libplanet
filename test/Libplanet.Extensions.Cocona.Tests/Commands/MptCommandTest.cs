@@ -24,8 +24,8 @@ public class MptCommandTest : IDisposable
         _pathB = NewTempPath();
         using var stateKeyValueStoreA = new DefaultTable(_pathA);
         using var stateKeyValueStoreB = new DefaultTable(_pathB);
-        var stateStoreA = new TrieStateStore(new DefaultTable(_pathA));
-        var stateStoreB = new TrieStateStore(new DefaultTable(_pathB));
+        var stateStoreA = new StateStore(new DefaultTable(_pathA));
+        var stateStoreB = new StateStore(new DefaultTable(_pathB));
         _trieA = stateStoreA.Commit(
             stateStoreA.GetStateRoot(default)
                 .Set("deleted", null)

@@ -38,7 +38,7 @@ public sealed class WorldTest
             Currencies.CurrencyF,
         ];
 
-        World initMockWorldState = World.Create() with { Signer = _addr[0] };
+        World initMockWorldState = new World() with { Signer = _addr[0] };
         _initWorld = initMockWorldState
             .SetBalance(_addr[0], _currencies[0], 5)
             .SetBalance(_addr[0], _currencies[2], 10)

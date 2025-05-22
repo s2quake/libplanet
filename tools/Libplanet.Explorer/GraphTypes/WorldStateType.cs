@@ -17,7 +17,7 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<HashDigestType<SHA256>>>(
                 name: "stateRootHash",
                 description: "The state root hash of the world state.",
-                resolve: context => context.Source.Trie.Hash);
+                resolve: context => context.Source.Hash);
 
             Field<NonNullGraphType<AccountStateType>>(
                 name: "account",

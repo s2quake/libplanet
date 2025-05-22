@@ -12,7 +12,7 @@ public class TrieStateStoreCommitTest
     public void CommitEmptyDoesNotWrite()
     {
         var keyValueStore = new MemoryTable();
-        TrieStateStore stateStore = new TrieStateStore();
+        StateStore stateStore = new StateStore();
         ITrie emptyTrie = stateStore.GetStateRoot(default);
         HashDigest<SHA256> emptyRootHash = emptyTrie.Hash;
 
@@ -32,7 +32,7 @@ public class TrieStateStoreCommitTest
     public void Commit()
     {
         var keyValueStore = new MemoryTable();
-        TrieStateStore stateStore = new TrieStateStore(keyValueStore);
+        StateStore stateStore = new StateStore(keyValueStore);
         ITrie trie = stateStore.GetStateRoot(default);
 
         trie = trie.Set("2c73", "2c73");
@@ -61,7 +61,7 @@ public class TrieStateStoreCommitTest
     public void CommittedNonEmptyTrieRootIsHashNode()
     {
         var keyValueStore = new MemoryTable();
-        TrieStateStore stateStore = new TrieStateStore(keyValueStore);
+        StateStore stateStore = new StateStore(keyValueStore);
         ITrie trie = stateStore.GetStateRoot(default);
         trie = trie.Set(string.Empty, 1);
         trie = stateStore.Commit(trie);

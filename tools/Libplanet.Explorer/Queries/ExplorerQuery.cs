@@ -22,7 +22,7 @@ namespace Libplanet.Explorer.Queries
             Field<StateQuery>("stateQuery", resolve: context => chainContext.BlockChain);
             Field<NonNullGraphType<NodeStateType>>("nodeState", resolve: context => chainContext);
             Field<HelperQuery>("helperQuery", resolve: context => new { });
-            Field<RawStateQuery>("rawStateQuery", resolve: context => chainContext.BlockChain);
+            // Field<RawStateQuery>("rawStateQuery", resolve: context => chainContext.BlockChain);
 
             Name = "ExplorerQuery";
         }
