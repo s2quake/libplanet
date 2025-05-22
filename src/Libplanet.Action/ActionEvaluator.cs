@@ -126,7 +126,7 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
             exception = e;
         }
 
-        world = stateStore.CommitWorld(world);
+        world = world.Commit();
 
         if (!world.Trie.IsCommitted)
         {
