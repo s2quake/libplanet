@@ -19,11 +19,11 @@ public class StatsCommand
         [Option('o', Description =
             "Starting index offset; " +
             "supports negative indexing")]
-        long offset = 0,
+        int offset = 0,
         [Option('l', Description =
             "Maximum number of results to return; " +
             "no limit by default")]
-        long? limit = null) => Summary(
+        int? limit = null) => Summary(
             repository: Utils.LoadStoreFromUri(path),
             header: header,
             offset: offset,
@@ -32,8 +32,8 @@ public class StatsCommand
     internal void Summary(
         Repository repository,
         bool header,
-        long offset,
-        long? limit)
+        int offset,
+        int? limit)
     {
         if (limit is { } && limit < 1)
         {
@@ -49,11 +49,9 @@ public class StatsCommand
         }
 
         var chain = repository;
-        IEnumerable<BlockHash> hashes = chain.BlockHashes.IterateHeights(
-            height: offset >= 0
-                ? (int)offset
-                : (int)(chainLength + offset),
-            limit: (int?)limit);
+        var end = limit is { } l ? new Index(offset + l) : new Index(0, true);
+        var range = new Range(new Index(offset, false), end);
+        IEnumerable<BlockHash> hashes = chain.BlockHashes[range];
 
         if (header)
         {

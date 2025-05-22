@@ -104,9 +104,9 @@ public abstract class BlockChainIndexTest
             Assert.Equal(inChain.BlockHash, await Fx.Index.IndexToBlockHashAsync(i));
         }
 
-        Assert.Throws<IndexOutOfRangeException>(() => Fx.Index.IndexToBlockHash(long.MaxValue));
+        Assert.Throws<IndexOutOfRangeException>(() => Fx.Index.IndexToBlockHash(int.MaxValue));
         await Assert.ThrowsAsync<IndexOutOfRangeException>(
-            async () => await Fx.Index.IndexToBlockHashAsync(long.MaxValue));
+            async () => await Fx.Index.IndexToBlockHashAsync(int.MaxValue));
 
         Assert.Equal(
             await Fx.Index.IndexToBlockHashAsync(Fx.Index.Tip.Index),

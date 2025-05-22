@@ -147,7 +147,7 @@ public partial class BlockChain
 
         _repository.Append(block, blockCommit);
         // _chain.Append(block, blockCommit);
-        Blocks.AddCache(block);
+        // Blocks.AddCache(block);
 
         _tipChangedSubject.OnNext(new(oldTip, block));
         _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));

@@ -64,7 +64,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 $"The hash {hash} does not exist in the index.");
 
     /// <inheritdoc />
-    public override async Task<long> BlockHashToIndexAsync(BlockHash hash) =>
+    public override async Task<int> BlockHashToIndexAsync(BlockHash hash) =>
         await Task.Run(() => BlockHashToIndex(hash)).ConfigureAwait(false);
 
     /// <inheritdoc />
@@ -124,7 +124,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 : (BlockHash?)null)
         .ConfigureAwait(false);
 
-    public override BlockHash IndexToBlockHash(long index)
+    public override BlockHash IndexToBlockHash(int index)
     {
         return _db.Get(
                 IndexToBlockHashPrefix.Concat(
@@ -136,10 +136,10 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                 $"The block #{index} does not exist in the index.");
     }
 
-    public override async Task<BlockHash> IndexToBlockHashAsync(long index)
+    public override async Task<BlockHash> IndexToBlockHashAsync(int index)
         => await Task.Run(() => IndexToBlockHash(index)).ConfigureAwait(false);
 
-    public override IEnumerable<(long Index, BlockHash Hash)>
+    public override IEnumerable<(int Index, BlockHash Hash)>
         GetBlockHashesFromIndex(int? fromHeight, int? maxCount, bool desc, Address? producer)
     {
         if (producer is { } minerVal)
@@ -151,15 +151,15 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
                     ProducerToBlockIndexPrefix.Concat(minerVal.Bytes).ToArray())
                 .Select(
                     kv => (
-                        BigEndianByteArrayToLong(kv.Value[..8]),
+                        BigEndianByteArrayToInt(kv.Value[..8]),
                         new BlockHash(kv.Value[8..40])));
         }
 
         return IteratePrefix(fromHeight, maxCount, desc, IndexToBlockHashPrefix)
-            .Select(kv => (BigEndianByteArrayToLong(kv.Key), new BlockHash(kv.Value)));
+            .Select(kv => (BigEndianByteArrayToInt(kv.Key), new BlockHash(kv.Value)));
     }
 
-    public override async IAsyncEnumerable<(long Index, BlockHash Hash)>
+    public override async IAsyncEnumerable<(int Index, BlockHash Hash)>
         GetBlockHashesFromIndexAsync(int? fromHeight, int? maxCount, bool desc, Address? producer)
     {
         using var enumerator =
@@ -171,7 +171,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
         }
     }
 
-    protected override (long Index, BlockHash Hash)? GetTipImpl()
+    protected override (int Index, BlockHash Hash)? GetTipImpl()
     {
         using var iter =
             GetBlockHashesFromIndex(0, 1, true, null)
@@ -181,7 +181,7 @@ public class RocksDbBlockChainIndex : BlockChainIndexBase
             : null;
     }
 
-    protected override async Task<(long Index, BlockHash Hash)?> GetTipAsyncImpl()
+    protected override async Task<(int Index, BlockHash Hash)?> GetTipAsyncImpl()
         => await Task.Run(GetTipImpl).ConfigureAwait(false);
 
     /// <inheritdoc />

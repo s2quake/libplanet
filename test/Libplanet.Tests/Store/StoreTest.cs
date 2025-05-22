@@ -253,24 +253,29 @@ public abstract class StoreTest
     public void StoreIndex()
     {
         var repository = Fx.Repository;
-        Assert.Equal(0, repository.Height);
         Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[0]);
         Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[^1]);
 
-        repository.GenesisHeight = Fx.Block1.Height;
+        repository.Append(Fx.GenesisBlock, BlockCommit.Empty);
+        repository.GenesisHeight = Fx.GenesisBlock.Height;
+        repository.Height = Fx.GenesisBlock.Height;
+        Assert.Equal(0, repository.Height);
+
         repository.BlockHashes.Add(Fx.Block1);
+        repository.Height = Fx.Block1.Height;
         Assert.Equal(1, repository.Height);
         Assert.Equal(
             [Fx.Block1.BlockHash],
-            repository.BlockHashes.IterateHeights());
+            repository.BlockHashes[1..]);
         Assert.Equal(Fx.Block1.BlockHash, repository.BlockHashes[1]);
         Assert.Equal(Fx.Block1.BlockHash, repository.BlockHashes[^1]);
 
         repository.BlockHashes.Add(Fx.Block2);
+        repository.Height = Fx.Block2.Height;
         Assert.Equal(2, repository.Height);
         Assert.Equal(
             [Fx.Block1.BlockHash, Fx.Block2.BlockHash],
-            repository.BlockHashes.IterateHeights());
+            repository.BlockHashes[1..]);
         Assert.Equal(Fx.Block1.BlockHash, repository.BlockHashes[1]);
         Assert.Equal(Fx.Block2.BlockHash, repository.BlockHashes[2]);
         Assert.Equal(Fx.Block2.BlockHash, repository.BlockHashes[^1]);
@@ -288,31 +293,31 @@ public abstract class StoreTest
 
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2, Fx.Hash3],
-            repository.BlockHashes.IterateHeights());
+            repository.BlockHashes[..]);
         Assert.Equal(
             [Fx.Hash2, Fx.Hash3],
-            repository.BlockHashes.IterateHeights(1));
+            repository.BlockHashes[1..]);
         Assert.Equal(
             [Fx.Hash3],
-            repository.BlockHashes.IterateHeights(2));
-        Assert.Equal([], repository.BlockHashes.IterateHeights(3));
-        Assert.Equal([], repository.BlockHashes.IterateHeights(4));
-        Assert.Equal([], repository.BlockHashes.IterateHeights(limit: 0));
+            repository.BlockHashes[2..]);
+        Assert.Equal([], repository.BlockHashes[3..4]);
+        Assert.Equal([], repository.BlockHashes[4..5]);
+        Assert.Equal([], repository.BlockHashes[0..0]);
         Assert.Equal(
             [Fx.Hash1],
-            repository.BlockHashes.IterateHeights(limit: 1));
+            repository.BlockHashes[0..1]);
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2],
-            repository.BlockHashes.IterateHeights(limit: 2));
+            repository.BlockHashes[0..2]);
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2, Fx.Hash3],
-            repository.BlockHashes.IterateHeights(limit: 3));
+            repository.BlockHashes[0..3]);
         Assert.Equal(
             [Fx.Hash1, Fx.Hash2, Fx.Hash3],
-            repository.BlockHashes.IterateHeights(limit: 4));
+            repository.BlockHashes[0..^0]);
         Assert.Equal(
             [Fx.Hash2],
-            repository.BlockHashes.IterateHeights(1, 1));
+            repository.BlockHashes[1..2]);
     }
 
     [Fact]

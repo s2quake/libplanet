@@ -18,7 +18,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     private ILogger? _defaultLogger;
 
     /// <inheritdoc />
-    public (long Index, BlockHash Hash) Tip
+    public (int Index, BlockHash Hash) Tip
         => GetTipImpl() ?? throw new IndexOutOfRangeException("The index is empty.");
 
     protected ILogger Logger
@@ -35,7 +35,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     /// <inheritdoc />
-    public async Task<(long Index, BlockHash Hash)> GetTipAsync() =>
+    public async Task<(int Index, BlockHash Hash)> GetTipAsync() =>
         await GetTipAsyncImpl().ConfigureAwait(false)
         ?? throw new IndexOutOfRangeException("The index is empty.");
 
@@ -43,16 +43,16 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     public abstract int BlockHashToIndex(BlockHash hash);
 
     /// <inheritdoc />
-    public abstract Task<long> BlockHashToIndexAsync(BlockHash hash);
+    public abstract Task<int> BlockHashToIndexAsync(BlockHash hash);
 
     /// <inheritdoc />
-    public abstract BlockHash IndexToBlockHash(long index);
+    public abstract BlockHash IndexToBlockHash(int index);
 
     /// <inheritdoc />
-    public abstract Task<BlockHash> IndexToBlockHashAsync(long index);
+    public abstract Task<BlockHash> IndexToBlockHashAsync(int index);
 
     /// <inheritdoc />
-    public IEnumerable<(long Index, BlockHash Hash)>
+    public IEnumerable<(int Index, BlockHash Hash)>
         GetBlockHashesByRange(Range indexRange, bool desc, Address? producer)
     {
         var (fromHeight, maxCount) =
@@ -61,7 +61,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<(long Index, BlockHash Hash)>
+    public async IAsyncEnumerable<(int Index, BlockHash Hash)>
         GetBlockHashesByRangeAsync(Range indexRange, bool desc, Address? producer)
     {
         var (fromHeight, maxCount) =
@@ -75,11 +75,11 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     /// <inheritdoc />
-    public abstract IEnumerable<(long Index, BlockHash Hash)>
+    public abstract IEnumerable<(int Index, BlockHash Hash)>
         GetBlockHashesFromIndex(int? fromHeight, int? maxCount, bool desc, Address? producer);
 
     /// <inheritdoc />
-    public abstract IAsyncEnumerable<(long Index, BlockHash Hash)>
+    public abstract IAsyncEnumerable<(int Index, BlockHash Hash)>
         GetBlockHashesFromIndexAsync(int? fromHeight, int? maxCount, bool desc, Address? producer);
 
     /// <inheritdoc />
@@ -141,9 +141,9 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
             .ConfigureAwait(false);
     }
 
-    protected abstract (long Index, BlockHash Hash)? GetTipImpl();
+    protected abstract (int Index, BlockHash Hash)? GetTipImpl();
 
-    protected abstract Task<(long Index, BlockHash Hash)?> GetTipAsyncImpl();
+    protected abstract Task<(int Index, BlockHash Hash)?> GetTipAsyncImpl();
 
     protected abstract Task IndexAsyncImpl(
         BlockDigest blockDigest,
@@ -185,8 +185,8 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         Libplanet.Store.Repository store,
         (
             Guid ChainId,
-            long IndexTipIndex,
-            long ChainTipIndex,
+            int IndexTipIndex,
+            int ChainTipIndex,
             BlockHash? IndexTipHash) syncMetadata)
     {
         var chainId = syncMetadata.ChainId;
@@ -198,7 +198,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
             var chain = store;
             var indexHash = await IndexToBlockHashAsync(0).ConfigureAwait(false);
             using var chainIndexEnumerator =
-                chain.BlockHashes.IterateHeights(limit: 1).GetEnumerator();
+                chain.BlockHashes[0..1].GetEnumerator();
             if (!chainIndexEnumerator.MoveNext())
             {
                 throw new InvalidOperationException(
@@ -217,7 +217,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
             var chain = store;
             var commonLatestIndex = Math.Min(indexTipIndex, chainTipIndex);
             using var chainIndexEnumerator =
-                chain.BlockHashes.IterateHeights((int)commonLatestIndex, limit: 1).GetEnumerator();
+                chain.BlockHashes[commonLatestIndex..(commonLatestIndex + 1)].GetEnumerator();
             BlockHash? chainTipHash = chainIndexEnumerator.MoveNext()
                 ? chainIndexEnumerator.Current
                 : null;
@@ -243,8 +243,8 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         Libplanet.Store.Repository store,
         (
             Guid ChainId,
-            long IndexTipIndex,
-            long ChainTipIndex,
+            int IndexTipIndex,
+            int ChainTipIndex,
             BlockHash? IndexTipHash) syncMetadata,
         bool log,
         CancellationToken stoppingToken)
@@ -282,7 +282,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
         var chain = store;
         using var indexEnumerator =
-            chain.BlockHashes.IterateHeights((int)indexTipIndex + 1).GetEnumerator();
+            chain.BlockHashes[(indexTipIndex + 1)..].GetEnumerator();
         var addBlockContext = GetIndexingContext();
         while (indexEnumerator.MoveNext() && indexTipIndex + processedBlockCount < chainTipIndex)
         {
@@ -370,8 +370,8 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
 
     private async Task<(
         Guid ChainId,
-        long IndexTipIndex,
-        long ChainTipIndex,
+        int IndexTipIndex,
+        int ChainTipIndex,
         BlockHash? IndexTipHash)>
         GetSyncMetadata(Libplanet.Store.Repository store)
     {

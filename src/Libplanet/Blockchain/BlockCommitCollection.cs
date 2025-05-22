@@ -41,31 +41,19 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
 
     public int Count => _blockHashes.Count;
 
-    public BlockCommit this[int height] => this[_blockHashes[height]];
-
-    public BlockCommit this[Index index]
-    {
-        get
-        {
-            if (index.IsFromEnd)
-            {
-                return this[Count - index.Value];
-            }
-
-            if (index.Value < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
-            return this[index.Value];
-        }
-    }
+    public BlockCommit this[Index index] => this[_blockHashes[index]];
 
     public BlockCommit this[BlockHash blockHash] => _blockCommits[blockHash];
 
-    public IEnumerable<BlockHash> IterateIndexes(int offset = 0, int? limit = null)
+    public IEnumerable<BlockCommit> this[Range range]
     {
-        return _blockHashes.IterateHeights(offset, limit);
+        get
+        {
+            foreach (var blockHash in _blockHashes[range])
+            {
+                yield return this[blockHash];
+            }
+        }
     }
 
     public bool ContainsKey(BlockHash blockHash) => _blockCommits.ContainsKey(blockHash);

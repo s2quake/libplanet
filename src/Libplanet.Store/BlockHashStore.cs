@@ -6,21 +6,9 @@ namespace Libplanet.Store;
 public sealed class BlockHashStore(IDatabase database)
     : StoreBase<int, BlockHash>(database.GetOrAdd("block_hash"))
 {
-    // private readonly MetadataStore _metadata = chain.Metadata;
+    public int GenesisHeight { get; internal set; }
 
-    public int GenesisHeight
-    {
-        // get => int.Parse(_metadata.GetValueOrDefault("genesisHeight", "0"));
-        // set => _metadata["genesisHeight"] = value.ToString();
-        get;internal set;
-    }
-
-    public int Height
-    {
-        // get => int.Parse(_metadata.GetValueOrDefault("height", "0"));
-        // set => _metadata["height"] = value.ToString();
-        get;internal set;
-    }
+    public int Height { get; internal set; }
 
     public BlockHash this[Index index]
     {
@@ -42,8 +30,10 @@ public sealed class BlockHashStore(IDatabase database)
         get
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
-            var start = range.Start.IsFromEnd ? Height - range.Start.Value : range.Start.Value;
-            var end = range.End.IsFromEnd ? Height - range.End.Value : range.End.Value;
+
+            var (offset, length) = range.GetOffsetAndLength(Height + 1);
+            var start = offset;
+            var end = offset + length;
 
             for (var i = start; i < end; i++)
             {
@@ -57,66 +47,66 @@ public sealed class BlockHashStore(IDatabase database)
 
     public void Add(Block block) => Add(block.Height, block.BlockHash);
 
-    public IEnumerable<BlockHash> Skip(int height)
-    {
-        if (IsDisposed)
-        {
-            yield break;
-        }
+    // public IEnumerable<BlockHash> Skip(int height)
+    // {
+    //     if (IsDisposed)
+    //     {
+    //         yield break;
+    //     }
 
-        var begin = height + GenesisHeight;
-        for (var i = begin; i < Count; i++)
-        {
-            if (TryGetValue(i, out var blockHash))
-            {
-                yield return blockHash;
-            }
-        }
-    }
+    //     var begin = height + GenesisHeight;
+    //     for (var i = begin; i < Count; i++)
+    //     {
+    //         if (TryGetValue(i, out var blockHash))
+    //         {
+    //             yield return blockHash;
+    //         }
+    //     }
+    // }
 
-    public IEnumerable<BlockHash> Take(int height)
-    {
-        if (IsDisposed)
-        {
-            yield break;
-        }
+    // public IEnumerable<BlockHash> Take(int height)
+    // {
+    //     if (IsDisposed)
+    //     {
+    //         yield break;
+    //     }
 
-        var begin = GenesisHeight;
-        var end = checked(height + GenesisHeight);
-        for (var i = begin; i < end; i++)
-        {
-            if (TryGetValue(i, out var blockHash))
-            {
-                yield return blockHash;
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
+    //     var begin = GenesisHeight;
+    //     var end = checked(height + GenesisHeight);
+    //     for (var i = begin; i < end; i++)
+    //     {
+    //         if (TryGetValue(i, out var blockHash))
+    //         {
+    //             yield return blockHash;
+    //         }
+    //         else
+    //         {
+    //             break;
+    //         }
+    //     }
+    // }
 
-    public IEnumerable<BlockHash> IterateHeights(int height = 0, int? limit = null)
-    {
-        if (IsDisposed)
-        {
-            yield break;
-        }
+    // public IEnumerable<BlockHash> IterateHeights(int height = 0, int? limit = null)
+    // {
+    //     if (IsDisposed)
+    //     {
+    //         yield break;
+    //     }
 
-        var begin = height + GenesisHeight;
-        var end = checked(limit is { } l ? begin + l : int.MaxValue);
-        for (var i = begin; i < end; i++)
-        {
-            if (TryGetValue(i, out var blockHash))
-            {
-                yield return blockHash;
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
+    //     var begin = height + GenesisHeight;
+    //     var end = checked(limit is { } l ? begin + l : int.MaxValue);
+    //     for (var i = begin; i < end; i++)
+    //     {
+    //         if (TryGetValue(i, out var blockHash))
+    //         {
+    //             yield return blockHash;
+    //         }
+    //         else
+    //         {
+    //             break;
+    //         }
+    //     }
+    // }
 
     internal static string GetKey(Guid chainId) => $"{chainId}_block_hash";
 
