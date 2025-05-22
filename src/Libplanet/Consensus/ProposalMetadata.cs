@@ -1,27 +1,39 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Consensus;
 
+[Model(Version = 1)]
 public sealed record class ProposalMetadata : IValidatableObject
 {
+    [Property(0)]
+    public BlockHash BlockHash { get; init; }
+
+    [Property(1)]
+    public HashDigest<SHA256> StateRootHash { get; init; }
+
+    [Property(0)]
     [NonNegative]
     public int Height { get; init; }
 
+    [Property(1)]
     [NonNegative]
     public int Round { get; init; }
 
-    public BlockHash BlockHash { get; init; }
-
+    [Property(3)]
     public DateTimeOffset Timestamp { get; init; }
 
-    public Address Validator { get; init; }
+    [Property(4)]
+    public Address Proposer { get; init; }
 
-    public byte[] MarshaledBlock { get; init; } = [];
+    // public byte[] MarshaledBlock { get; init; } = [];
 
+    [Property(6)]
     public int ValidRound { get; init; }
 
     public Proposal Sign(PrivateKey signer)

@@ -44,8 +44,8 @@ namespace Libplanet.Net.Consensus
                         Height = Height,
                         Round = Round,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Validator = _privateKey.Address,
-                        MarshaledBlock = ModelSerializer.SerializeToBytes(proposalValue),
+                        Proposer = _privateKey.Address,
+                        // MarshaledBlock = ModelSerializer.SerializeToBytes(proposalValue),
                         ValidRound = _validRound,
                     }.Sign(_privateKey);
 

@@ -116,8 +116,8 @@ namespace Libplanet.Net.Tests
                     Height = height,
                     Round = round,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = privateKey.Address,
-                    MarshaledBlock = ModelSerializer.SerializeToBytes(block),
+                    Proposer = privateKey.Address,
+                    // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
                     ValidRound = validRound,
                 }.Sign(privateKey));
         }

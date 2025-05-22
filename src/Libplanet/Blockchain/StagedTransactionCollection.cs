@@ -14,11 +14,21 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
 {
     private readonly PendingTransactionStore _store = repository.PendingTransactions;
     private readonly Chain _chain = repository.Chain;
-    private readonly ConcurrentDictionary<Address, long> _nonceByAddress = new();
+    private readonly ConcurrentDictionary<Address, ImmutableSortedSet<long>> _noncesByAddress = new();
 
     public StagedTransactionCollection(Repository repository)
         : this(repository, new BlockChainOptions())
     {
+        foreach (var transaction in _store.Values)
+        {
+            var address = transaction.Signer;
+            var newNonce = transaction.Nonce;
+            _noncesByAddress.AddOrUpdate(
+                address,
+                address => [newNonce],
+                (_, existingNonces) => existingNonces.Add(newNonce)
+            );
+        }
     }
 
     public TimeSpan Lifetime { get; } = options.TransactionOptions.LifeTime;
@@ -42,7 +52,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
 
         if (_store.TryAdd(transaction))
         {
-            UpdateNonce(transaction);
+            AddNonce(transaction);
             return true;
         }
 
@@ -64,7 +74,7 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
                 $"Transaction {transaction.Id} already exists in the store.", nameof(transaction));
         }
 
-        UpdateNonce(transaction);
+        AddNonce(transaction);
     }
 
     public Transaction Add(TransactionSubmission submission)
@@ -84,19 +94,36 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         return tx;
     }
 
+    public void AddRange(IEnumerable<Transaction> transactions)
+    {
+        foreach (var transaction in transactions)
+        {
+            Add(transaction);
+        }
+    }
+
     public bool Remove(TxId txId)
     {
         if (_store.TryGetValue(txId, out var transaction))
         {
             _store.Remove(txId);
-            UpdateNonce(transaction);
+            RemoveNonce(transaction);
             return true;
         }
 
         return false;
     }
 
-    public bool Remove(Transaction transaction) => _store.Remove(transaction.Id);
+    public bool Remove(Transaction transaction)
+    {
+        if (_store.Remove(transaction.Id))
+        {
+            RemoveNonce(transaction);
+            return true;
+        }
+
+        return false;
+    }
 
     public ImmutableSortedSet<Transaction> Collect()
     {
@@ -123,7 +150,8 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         return [.. itemList];
     }
 
-    public long GetNextTxNonce(Address address) => _nonceByAddress.GetOrAdd(address, _chain.GetNonce) + 1;
+    public long GetNextTxNonce(Address address)
+        => _noncesByAddress.TryGetValue(address, out var nonces) ? nonces.Max + 1 : _chain.GetNonce(address);
 
     private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
     {
@@ -151,10 +179,25 @@ public sealed class StagedTransactionCollection(Repository repository, BlockChai
         }
     }
 
-    private void UpdateNonce(Transaction transaction)
+    private void AddNonce(Transaction transaction)
     {
         var address = transaction.Signer;
         var nonce = transaction.Nonce;
-        _nonceByAddress.TryUpdate(address, nonce, nonce);
+        _noncesByAddress.AddOrUpdate(
+            address,
+            _ => [nonce],
+            (_, existingNonces) => existingNonces.Add(nonce)
+        );
+    }
+
+    private void RemoveNonce(Transaction transaction)
+    {
+        var address = transaction.Signer;
+        var nonce = transaction.Nonce;
+        _noncesByAddress.AddOrUpdate(
+            address,
+            _ => [],
+            (_, existingNonces) => existingNonces.Remove(nonce)
+        );
     }
 }
