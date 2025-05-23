@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Microsoft.CodeAnalysis;

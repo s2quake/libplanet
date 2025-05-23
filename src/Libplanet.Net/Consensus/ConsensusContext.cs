@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;

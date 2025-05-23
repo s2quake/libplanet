@@ -80,7 +80,7 @@ As mentioned above, games using Libplanet can manage their state from each clien
 
 ```
 
-- Because the way of transitioning the State through an Action depends on each game, Libplanet does not directly provide implementation of the Action and only provides the interface @"Libplanet.Action.IAction".
+- Because the way of transitioning the State through an Action depends on each game, Libplanet does not directly provide implementation of the Action and only provides the interface @"Libplanet.State.IAction".
 - The State is expressed in key-value pairs, and you can set appropriate values for each game.
 - The State is readable at any point, but transitioning it is only possible through an Action.
 - Libplanet does not directly share the transitioned State, but only shares the Action that will transition the State. Also, because State transitioned by an Action occurs on all nodes in the network, the Action must be written deterministically to return the same result from all nodes.
@@ -207,11 +207,11 @@ Although this method works, there are still some problems because reflecting the
 Libplanet provides a rendering mechanism called
 @"Libplanet.Blockchain.Renderers.IRenderer`1" and its subtype
 @"Libplanet.Blockchain.Renderers.IActionRenderer`1" to solve this problem.
-@"Libplanet.Blockchain.Renderers.IActionRenderer`1.RenderAction(Libplanet.Action.IAction,Libplanet.Action.IActionContext,Libplanet.Action.IAccountStateDelta)"
+@"Libplanet.Blockchain.Renderers.IActionRenderer`1.RenderAction(Libplanet.State.IAction,Libplanet.State.IActionContext,Libplanet.State.IAccountStateDelta)"
 is called after a @"Libplanet.Blocks.Block`1" with the corresponding
-@"Libplanet.Action.IAction"s is confirmed and the state is transitioned.
+@"Libplanet.State.IAction"s is confirmed and the state is transitioned.
 The following code has been re-implemented using
-@"Libplanet.Blockchain.Renderers.IActionRenderer`1.RenderAction(Libplanet.Action.IAction,Libplanet.Action.IActionContext,Libplanet.Action.IAccountStateDelta)".
+@"Libplanet.Blockchain.Renderers.IActionRenderer`1.RenderAction(Libplanet.State.IAction,Libplanet.State.IActionContext,Libplanet.State.IAccountStateDelta)".
 
 ```csharp
 public class WinRenderer : IActionRenderer<Win>

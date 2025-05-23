@@ -1,6 +1,6 @@
-// using Libplanet.Action;
-// using Libplanet.Action;
-// using Libplanet.Action.Tests.Common;
+// using Libplanet.State;
+// using Libplanet.State;
+// using Libplanet.State.Tests.Common;
 // using Libplanet.Blockchain;
 // using Libplanet.Serialization;
 // using Libplanet.Data;
@@ -14,8 +14,8 @@
 // using Libplanet.Types.Transactions;
 // using Serilog;
 // using Xunit.Abstractions;
-// using static Libplanet.Action.KeyConverters;
-// using static Libplanet.Action.ReservedAddresses;
+// using static Libplanet.State.KeyConverters;
+// using static Libplanet.State.ReservedAddresses;
 // using static Libplanet.Tests.TestUtils;
 
 // namespace Libplanet.Tests.Action;

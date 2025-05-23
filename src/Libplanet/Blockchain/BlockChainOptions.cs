@@ -1,4 +1,4 @@
-using Libplanet.Action;
+using Libplanet.State;
 
 namespace Libplanet.Blockchain;
 

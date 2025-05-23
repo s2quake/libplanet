@@ -1,5 +1,5 @@
-using Libplanet.Action;
-using Libplanet.Action.Tests.Common;
+using Libplanet.State;
+using Libplanet.State.Tests.Common;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;

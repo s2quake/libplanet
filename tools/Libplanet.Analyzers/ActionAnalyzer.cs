@@ -1,4 +1,4 @@
-using Libplanet.Action;
+using Libplanet.State;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;

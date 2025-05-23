@@ -105,11 +105,11 @@ determined.  From this perspective, a transaction represents a unit of
 dependency, rather than a unit of throughput.
 
 At a code level, another difference between @"Libplanet.Tx.Transaction`1" and
-@"Libplanet.Action.IAction" is that @"Libplanet.Tx.Transaction`1" is not
-extensible whereas @"Libplanet.Action.IAction" is.  By design, an extension
-point for game engineers is @"Libplanet.Action.IAction".  To sum up,
+@"Libplanet.State.IAction" is that @"Libplanet.Tx.Transaction`1" is not
+extensible whereas @"Libplanet.State.IAction" is.  By design, an extension
+point for game engineers is @"Libplanet.State.IAction".  To sum up,
 @"Libplanet.Tx.Transaction`1" purposes to control synchronization on
-the network and @"Libplanet.Action.IAction" purposes to implement the actual
+the network and @"Libplanet.State.IAction" purposes to implement the actual
 game logic.
 
 [consensus]: https://en.wikipedia.org/wiki/Consensus_(computer_science)

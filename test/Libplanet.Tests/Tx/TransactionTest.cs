@@ -1,6 +1,6 @@
-using Libplanet.Action;
-using Libplanet.Action.Builtin;
-using Libplanet.Action.Tests.Common;
+using Libplanet.State;
+using Libplanet.State.Builtin;
+using Libplanet.State.Tests.Common;
 using Libplanet.Types;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;

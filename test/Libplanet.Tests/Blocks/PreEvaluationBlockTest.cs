@@ -1,8 +1,8 @@
 // using System.Security.Cryptography;
-// using Libplanet.Action;
-// using Libplanet.Action.Loader;
-// using Libplanet.Action;
-// using Libplanet.Action.Tests.Common;
+// using Libplanet.State;
+// using Libplanet.State.Loader;
+// using Libplanet.State;
+// using Libplanet.State.Tests.Common;
 // using Libplanet.Blockchain;
 // using Libplanet.Blockchain.Policies;
 // using Libplanet.Types;

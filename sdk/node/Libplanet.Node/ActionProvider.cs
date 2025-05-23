@@ -1,5 +1,5 @@
-using Libplanet.Action;
-using Libplanet.Action.Builtin;
+using Libplanet.State;
+using Libplanet.State.Builtin;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 

@@ -1,5 +1,5 @@
-using Libplanet.Action;
-using Libplanet.Action.Tests.Common;
+using Libplanet.State;
+using Libplanet.State.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Data;
@@ -8,7 +8,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
-using static Libplanet.Action.SystemAddresses;
+using static Libplanet.State.SystemAddresses;
 using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
 

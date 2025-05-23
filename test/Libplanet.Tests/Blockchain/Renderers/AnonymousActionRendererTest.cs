@@ -1,7 +1,7 @@
 // using System.Security.Cryptography;
-// using Libplanet.Action;
-// using Libplanet.Action;
-// using Libplanet.Action.Tests.Common;
+// using Libplanet.State;
+// using Libplanet.State;
+// using Libplanet.State.Tests.Common;
 // using Libplanet.Serialization;
 // using Libplanet.Types;
 // using Libplanet.Types.Blocks;

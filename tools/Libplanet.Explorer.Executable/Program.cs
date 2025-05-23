@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Cocona;
 using GraphQL.Server;
 using GraphQL.Utilities;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain;
 using Libplanet.Explorer.Executable.Exceptions;
 using Libplanet.Explorer.Indexing;

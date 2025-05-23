@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using global::Cocona;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
 

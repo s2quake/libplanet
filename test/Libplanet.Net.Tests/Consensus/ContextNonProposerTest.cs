@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Libplanet.Action;
-using Libplanet.Action.Tests.Common;
+using Libplanet.State;
+using Libplanet.State.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;

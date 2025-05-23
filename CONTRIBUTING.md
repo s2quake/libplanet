@@ -112,9 +112,9 @@ on GitHub consists of several projects.  There are two types of projects:
     This is distributed as a distinct NuGet package:
     *[Libplanet.Data][NuGet package]*.
 
- -  *Libplanet.Action*: The action evaluation layer for *Libplanet*.
+ -  *Libplanet.State*: The action evaluation layer for *Libplanet*.
     This is distributed as a distinct NuGet package:
-    *[Libplanet.Action][NuGet package]*.
+    *[Libplanet.State][NuGet package]*.
 
  -  *Libplanet.Net*: The peer-to-peer networking layer built on top of
     *Libplanet*.  This is distributed as a distinct NuGet package:
@@ -182,7 +182,7 @@ on GitHub consists of several projects.  There are two types of projects:
  -  *Libplanet.Tests*: Unit tests for the *Libplanet* project.  See the *Tests*
     section below.
 
- -  *Libplanet.Action.Tests*: Unit tests for the *Libplanet.Action* project.
+ -  *Libplanet.State.Tests*: Unit tests for the *Libplanet.State* project.
 
  -  *Libplanet.Net.Tests*: Unit tests for the *Libplanet.Net* project.
 

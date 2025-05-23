@@ -1,6 +1,6 @@
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
@@ -8,7 +8,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
-using static Libplanet.Action.SystemAddresses;
+using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.Blockchain;
 

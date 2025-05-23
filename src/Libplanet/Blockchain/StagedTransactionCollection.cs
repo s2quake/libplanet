@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Data;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;

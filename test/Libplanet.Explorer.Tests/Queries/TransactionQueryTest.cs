@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
-using Libplanet.Action;
-using Libplanet.Action.Builtin;
+using Libplanet.State;
+using Libplanet.State.Builtin;
 using Libplanet.Blockchain;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;

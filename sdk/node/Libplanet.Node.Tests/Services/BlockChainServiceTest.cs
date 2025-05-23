@@ -1,4 +1,4 @@
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Node.Extensions;
 using Libplanet.Node.Services;
 using Libplanet.Serialization;

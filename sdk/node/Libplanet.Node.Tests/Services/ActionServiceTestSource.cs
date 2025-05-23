@@ -3,10 +3,10 @@
 using System.Collections.Immutable;
 using System.Numerics;
 using System.Linq;
-using Libplanet.Action;
-using Libplanet.Action.Loader;
-using Libplanet.Action;
-using Libplanet.Action.Sys;
+using Libplanet.State;
+using Libplanet.State.Loader;
+using Libplanet.State;
+using Libplanet.State.Sys;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Consensus;
 using Libplanet.Node.Services;

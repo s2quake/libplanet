@@ -1,5 +1,5 @@
-using Libplanet.Action;
-using Libplanet.Action.Tests.Common;
+using Libplanet.State;
+using Libplanet.State.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Data;
 using Libplanet.Tests.Store;

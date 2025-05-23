@@ -6,7 +6,7 @@
   href: articles/design.md
 - name: API Reference
   href: api/
-  homepage: api/Libplanet.Action.yml
+  homepage: api/Libplanet.State.yml
 - name: Analyzer
   href: ../Libplanet.Analyzers/
   homepage: ../Libplanet.Analyzers/README.md
