@@ -104,7 +104,7 @@ public class SeedTest
     public async Task MessageReceived_TestAsync()
     {
         // Given
-        var apv = AppProtocolVersion.Sign(new(), 0);
+        var apv = Protocol.Sign(new(), 0);
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
         var remoteBoundPeer = new BoundPeer(remotePrivateKey.PublicKey, remoteEndPoint);
@@ -136,11 +136,11 @@ public class SeedTest
             async () =>
             {
                 await transport.SendMessageAsync(
-                    seedBoundPeer, new PingMsg(), TimeSpan.FromSeconds(10), default);
+                    seedBoundPeer, new PingMessage(), TimeSpan.FromSeconds(10), default);
             });
 
         // Then
-        Assert.IsType<PingMsg>(args.Arguments.Message.Content);
+        Assert.IsType<PingMessage>(args.Arguments.Message.Content);
         var peer = seed.Peers.Single();
         Assert.Equal(remoteBoundPeer, peer.BoundPeer);
         Assert.True(now <= peer.LastUpdated);
@@ -152,7 +152,7 @@ public class SeedTest
     public async Task GetNeighborsMsg_TestAsync()
     {
         // Given
-        var apv = AppProtocolVersion.Sign(new(), 0);
+        var apv = Protocol.Sign(new(), 0);
         var length = Random.Shared.Next(3, 10);
         var remotePrivateKeys = new RandomPrivateKey[length];
         var remoteEndPoints = new RandomEndPoint[length];
@@ -191,7 +191,7 @@ public class SeedTest
         await Parallel.ForEachAsync(transports, async (transport, _) =>
         {
             await transport.SendMessageAsync(
-                seedBoundPeer, new PingMsg(), Timeout, default);
+                seedBoundPeer, new PingMessage(), Timeout, default);
         });
 
         // When
@@ -201,8 +201,8 @@ public class SeedTest
 
         // Then
         Assert.Equal(length, seed.Peers.Count);
-        Assert.IsType<NeighborsMsg>(replyMessage.Content);
-        var neighborsMsg = (NeighborsMsg)replyMessage.Content;
+        Assert.IsType<NeighborsMessage>(replyMessage.Content);
+        var neighborsMsg = (NeighborsMessage)replyMessage.Content;
         Assert.Equal(length, neighborsMsg.Found.Count);
     }
 }

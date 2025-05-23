@@ -16,19 +16,19 @@ public partial class Swarm
     {
         switch (message.Content)
         {
-            case PingMsg _:
+            case PingMessage _:
             case FindNeighborsMsg _:
                 return Task.CompletedTask;
 
-            case GetChainStatusMsg getChainStatus:
+            case GetChainStatusMessage getChainStatus:
                 {
                     _logger.Debug(
                         "Received a {MessageType} message",
-                        nameof(GetChainStatusMsg));
+                        nameof(GetChainStatusMessage));
 
                     // This is based on the assumption that genesis block always exists.
                     Block tip = BlockChain.Tip;
-                    var chainStatus = new ChainStatusMsg(
+                    var chainStatus = new ChainStatusMessage(
                         tip.Version,
                         BlockChain.Genesis.BlockHash,
                         tip.Height,
@@ -57,44 +57,44 @@ public partial class Swarm
                         "with locator [{LocatorHead}]",
                         hashes.Length,
                         getBlockHashes.Locator);
-                    var reply = new BlockHashesMsg(hashes);
+                    var reply = new BlockHashesMessage(hashes);
 
                     return Transport.ReplyMessageAsync(reply, message.Identity, default);
                 }
 
-            case GetBlocksMsg getBlocksMsg:
+            case GetBlocksMessage getBlocksMsg:
                 return TransferBlocksAsync(message);
 
-            case GetTxsMsg getTxs:
+            case GetTransactionMessage getTxs:
                 return TransferTxsAsync(message);
 
-            case GetEvidenceMsg getTxs:
+            case GetEvidenceMessage getTxs:
                 return TransferEvidenceAsync(message);
 
             case TxIdsMsg txIds:
                 ProcessTxIds(message);
                 return Transport.ReplyMessageAsync(
-                    new PongMsg(),
+                    new PongMessage(),
                     message.Identity,
                     default);
 
             case EvidenceIdsMsg evidenceIds:
                 ProcessEvidenceIds(message);
                 return Transport.ReplyMessageAsync(
-                    new PongMsg(),
+                    new PongMessage(),
                     message.Identity,
                     default);
 
-            case BlockHashesMsg _:
+            case BlockHashesMessage _:
                 _logger.Error(
                     "{MessageType} messages are only for IBD",
-                    nameof(BlockHashesMsg));
+                    nameof(BlockHashesMessage));
                 return Task.CompletedTask;
 
-            case BlockHeaderMsg blockHeader:
+            case BlockHeaderMessage blockHeader:
                 ProcessBlockHeader(message);
                 return Transport.ReplyMessageAsync(
-                    new PongMsg(),
+                    new PongMessage(),
                     message.Identity,
                     default);
 
@@ -107,13 +107,13 @@ public partial class Swarm
 
     private void ProcessBlockHeader(Message message)
     {
-        var blockHeaderMsg = (BlockHeaderMsg)message.Content;
+        var blockHeaderMsg = (BlockHeaderMessage)message.Content;
         if (!blockHeaderMsg.GenesisHash.Equals(BlockChain.Genesis.BlockHash))
         {
             _logger.Debug(
                 "{MessageType} message was sent from a peer {Peer} with " +
                 "a different genesis block {Hash}",
-                nameof(BlockHeaderMsg),
+                nameof(BlockHeaderMessage),
                 message.Remote,
                 blockHeaderMsg.GenesisHash);
             return;
@@ -197,7 +197,7 @@ public partial class Swarm
 
         try
         {
-            var getTxsMsg = (GetTxsMsg)message.Content;
+            var getTxsMsg = (GetTransactionMessage)message.Content;
             foreach (TxId txid in getTxsMsg.TxIds)
             {
                 try
@@ -209,7 +209,7 @@ public partial class Swarm
                         continue;
                     }
 
-                    MessageContent response = new TxMsg(ModelSerializer.SerializeToBytes(tx));
+                    MessageContent response = new TransactionMessage(ModelSerializer.SerializeToBytes(tx));
                     await Transport.ReplyMessageAsync(response, message.Identity, default);
                 }
                 catch (KeyNotFoundException)
@@ -256,13 +256,13 @@ public partial class Swarm
 
         try
         {
-            var blocksMsg = (GetBlocksMsg)message.Content;
+            var blocksMsg = (GetBlocksMessage)message.Content;
             string reqId = !(message.Identity is null) && message.Identity.Length == 16
                 ? new Guid(message.Identity).ToString()
                 : "unknown";
             _logger.Verbose(
                 "Preparing a {MessageType} message to reply to {Identity}...",
-                nameof(Messages.BlocksMsg),
+                nameof(Messages.BlocksMessage),
                 reqId);
 
             var payloads = new List<byte[]>();
@@ -289,7 +289,7 @@ public partial class Swarm
 
                 if (payloads.Count / 2 == blocksMsg.ChunkSize)
                 {
-                    var response = new BlocksMsg(payloads);
+                    var response = new BlocksMessage(payloads);
                     _logger.Verbose(
                         "Enqueuing a blocks reply (...{Count}/{Total})...",
                         count,
@@ -301,7 +301,7 @@ public partial class Swarm
 
             if (payloads.Any())
             {
-                var response = new BlocksMsg(payloads);
+                var response = new BlocksMessage(payloads);
                 _logger.Verbose(
                     "Enqueuing a blocks reply (...{Count}/{Total}) to {Identity}...",
                     count,
@@ -312,7 +312,7 @@ public partial class Swarm
 
             if (count == 0)
             {
-                var response = new BlocksMsg(payloads);
+                var response = new BlocksMessage(payloads);
                 _logger.Verbose(
                     "Enqueuing a blocks reply (...{Index}/{Total}) to {Identity}...",
                     count,

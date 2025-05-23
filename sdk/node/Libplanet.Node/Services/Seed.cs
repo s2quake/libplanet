@@ -100,7 +100,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
     private async Task<NetMQTransport> CreateTransport()
     {
         var privateKey = PrivateKey.Parse(seedOptions.PrivateKey);
-        var appProtocolVersion = AppProtocolVersion.FromToken(seedOptions.AppProtocolVersion);
+        var appProtocolVersion = Protocol.FromToken(seedOptions.AppProtocolVersion);
         var appProtocolVersionOptions = new AppProtocolVersionOptions
         {
             AppProtocolVersion = appProtocolVersion,
@@ -149,7 +149,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                 var alivePeers = peers.Where(item => item.IsAlive)
                                       .Select(item => item.BoundPeer)
                                       .ToArray();
-                var neighborsMsg = new NeighborsMsg(alivePeers);
+                var neighborsMsg = new NeighborsMessage(alivePeers);
                 await transport.ReplyMessageAsync(
                     neighborsMsg,
                     messageIdentity,
@@ -157,7 +157,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                 break;
 
             default:
-                var pongMsg = new PongMsg();
+                var pongMsg = new PongMessage();
                 await transport.ReplyMessageAsync(
                     content: pongMsg,
                     identity: messageIdentity,

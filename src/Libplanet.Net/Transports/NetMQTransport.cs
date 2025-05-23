@@ -125,7 +125,7 @@ namespace Libplanet.Net.Transports
 
         public bool Running => _routerPoller?.IsRunning ?? false;
 
-        public AppProtocolVersion AppProtocolVersion =>
+        public Protocol AppProtocolVersion =>
         _appProtocolVersionOptions.AppProtocolVersion;
 
         public IImmutableSet<PublicKey> TrustedAppProtocolVersionSigners =>

@@ -2,71 +2,67 @@ using Libplanet.Net.Consensus;
 using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
 
-namespace Libplanet.Net.Messages
+namespace Libplanet.Net.Messages;
+
+public sealed record class ConsensusPreCommitMsg : ConsensusVoteMessage
 {
+
     /// <summary>
-    /// A message class for <see cref="ConsensusStep.PreCommit"/>.
+    /// Initializes a new instance of the <see cref="ConsensusPreCommitMsg"/> class.
     /// </summary>
-    public class ConsensusPreCommitMsg : ConsensusVoteMsg
+    /// <param name="vote">The <see cref="Vote"/> for <see cref="ConsensusStep.PreCommit"/>
+    /// to attach.
+    /// </param>
+    /// <exception cref="ArgumentException">Thrown when given <paramref name="vote"/>'s
+    /// <see cref="Vote.Flag"/> is not <see cref="VoteFlag.PreCommit"/>.</exception>
+    public ConsensusPreCommitMsg(Vote vote)
+        : base(vote.Validator, vote.Height, vote.Round, vote.BlockHash, vote.Flag)
     {
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConsensusPreCommitMsg"/> class.
-        /// </summary>
-        /// <param name="vote">The <see cref="Vote"/> for <see cref="ConsensusStep.PreCommit"/>
-        /// to attach.
-        /// </param>
-        /// <exception cref="ArgumentException">Thrown when given <paramref name="vote"/>'s
-        /// <see cref="Vote.Flag"/> is not <see cref="VoteFlag.PreCommit"/>.</exception>
-        public ConsensusPreCommitMsg(Vote vote)
-            : base(vote.Validator, vote.Height, vote.Round, vote.BlockHash, vote.Flag)
+        if (vote.Flag != VoteFlag.PreCommit)
         {
-            if (vote.Flag != VoteFlag.PreCommit)
-            {
-                throw new ArgumentException(
-                    $"Given {nameof(vote)}'s flag must be {VoteFlag.PreCommit}.", nameof(vote));
-            }
-
-            PreCommit = vote;
+            throw new ArgumentException(
+                $"Given {nameof(vote)}'s flag must be {VoteFlag.PreCommit}.", nameof(vote));
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConsensusPreCommitMsg"/> class
-        /// with marshalled message.
-        /// </summary>
-        /// <param name="dataframes">A marshalled message.</param>
-        public ConsensusPreCommitMsg(byte[][] dataframes)
-            : this(ModelSerializer.DeserializeFromBytes<Vote>(dataframes[0]))
-        {
-        }
+        PreCommit = vote;
+    }
 
-        /// <summary>
-        /// A <see cref="Vote"/> for <see cref="ConsensusStep.PreCommit"/>.  This will always
-        /// have its <see cref="Vote.Flag"/> set to <see cref="VoteFlag.PreCommit"/>.
-        /// </summary>
-        public Vote PreCommit { get; }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ConsensusPreCommitMsg"/> class
+    /// with marshalled message.
+    /// </summary>
+    /// <param name="dataframes">A marshalled message.</param>
+    public ConsensusPreCommitMsg(byte[][] dataframes)
+        : this(ModelSerializer.DeserializeFromBytes<Vote>(dataframes[0]))
+    {
+    }
 
-        /// <inheritdoc cref="MessageContent.DataFrames"/>
-        public override IEnumerable<byte[]> DataFrames =>
-            new List<byte[]> { ModelSerializer.SerializeToBytes(PreCommit) };
+    /// <summary>
+    /// A <see cref="Vote"/> for <see cref="ConsensusStep.PreCommit"/>.  This will always
+    /// have its <see cref="Vote.Flag"/> set to <see cref="VoteFlag.PreCommit"/>.
+    /// </summary>
+    public Vote PreCommit { get; }
 
-        /// <inheritdoc cref="MessageContent.MessageType"/>
-        public override MessageType Type => MessageType.ConsensusCommit;
+    /// <inheritdoc cref="MessageContent.DataFrames"/>
+    public override IEnumerable<byte[]> DataFrames =>
+        new List<byte[]> { ModelSerializer.SerializeToBytes(PreCommit) };
 
-        public override bool Equals(ConsensusMsg? other)
-        {
-            return other is ConsensusPreCommitMsg message &&
-                PreCommit.Equals(message.PreCommit);
-        }
+    /// <inheritdoc cref="MessageContent.MessageType"/>
+    public override MessageType Type => MessageType.ConsensusCommit;
 
-        public override bool Equals(object? obj)
-        {
-            return obj is ConsensusMsg other && Equals(other);
-        }
+    public override bool Equals(ConsensusMessage? other)
+    {
+        return other is ConsensusPreCommitMsg message &&
+            PreCommit.Equals(message.PreCommit);
+    }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Type, PreCommit);
-        }
+    public override bool Equals(object? obj)
+    {
+        return obj is ConsensusMessage other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Type, PreCommit);
     }
 }

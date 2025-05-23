@@ -41,15 +41,15 @@ public class PeerTest
     [Fact]
     public async Task PingAsync_TestAsync()
     {
-        var pongMsg = new PongMsg();
-        var apv = AppProtocolVersion.Sign(new(), 0);
+        var pongMsg = new PongMessage();
+        var apv = Protocol.Sign(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new Message(pongMsg, apv, messageBoundPeer, DateTimeOffset.Now, []);
         var transportMock = new Mock<ITransport>();
 
         transportMock.Setup(item => item.SendMessageAsync(
             It.IsAny<BoundPeer>(),
-            It.IsAny<PingMsg>(),
+            It.IsAny<PingMessage>(),
             It.IsAny<TimeSpan>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(message);
@@ -67,8 +67,8 @@ public class PeerTest
     [Fact]
     public async Task PingAsync_Cancel_TestAsync()
     {
-        var pongMsg = new PongMsg();
-        var apv = AppProtocolVersion.Sign(new(), 0);
+        var pongMsg = new PongMessage();
+        var apv = Protocol.Sign(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new Message(pongMsg, apv, messageBoundPeer, DateTimeOffset.Now, []);
         var transportMock = new Mock<ITransport>();
@@ -86,7 +86,7 @@ public class PeerTest
         transportMock
             .Setup(item => item.SendMessageAsync(
                 It.IsAny<BoundPeer>(),
-                It.IsAny<PingMsg>(),
+                It.IsAny<PingMessage>(),
                 It.IsAny<TimeSpan>(),
                 It.IsAny<CancellationToken>()))
             .Returns(SendMessageAsync);

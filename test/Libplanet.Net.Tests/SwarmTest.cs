@@ -571,12 +571,12 @@ namespace Libplanet.Net.Tests
                     2,
                     false,
                     default)).ToArray();
-                var blockMessage = (BlocksMsg)responses[0].Content;
+                var blockMessage = (BlocksMessage)responses[0].Content;
 
                 Assert.Equal(2, responses.Length);
                 Assert.Equal(4, blockMessage.Payloads.Count);
 
-                blockMessage = (BlocksMsg)responses[1].Content;
+                blockMessage = (BlocksMessage)responses[1].Content;
 
                 Assert.Equal(2, blockMessage.Payloads.Count);
             }
@@ -640,7 +640,7 @@ namespace Libplanet.Net.Tests
             var policy = new BlockchainOptions();
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
-            var apv = AppProtocolVersion.Sign(key, 1);
+            var apv = Protocol.Sign(key, 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
             var hostOptions = new HostOptions(
                 IPAddress.Loopback.ToString(), new IceServer[] { });
@@ -1554,7 +1554,7 @@ namespace Libplanet.Net.Tests
                 _ = transport.StartAsync();
                 await transport.WaitForRunningAsync();
                 var tasks = new List<Task>();
-                var content = new GetTxsMsg(new[] { fx.TxId1 });
+                var content = new GetTransactionMessage(new[] { fx.TxId1 });
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(

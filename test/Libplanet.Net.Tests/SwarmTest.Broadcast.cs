@@ -939,7 +939,7 @@ namespace Libplanet.Net.Tests
                 await swarm1.AddPeersAsync(new[] { swarm2.AsPeer }, null);
 
                 var transport = swarm1.Transport;
-                var msg = new GetTxsMsg(new[] { tx1.Id, tx2.Id, tx3.Id, tx4.Id });
+                var msg = new GetTransactionMessage(new[] { tx1.Id, tx2.Id, tx3.Id, tx4.Id });
                 var replies = (await transport.SendMessageAsync(
                     swarm2.AsPeer,
                     msg,
@@ -953,7 +953,7 @@ namespace Libplanet.Net.Tests
                     new[] { tx1, tx2, tx3 }.ToHashSet(),
                     replies.Select(
                         m => ModelSerializer.DeserializeFromBytes<Transaction>(
-                            ((TxMsg)m.Content).Payload)).ToHashSet());
+                            ((TransactionMessage)m.Content).Payload)).ToHashSet());
             }
             finally
             {
@@ -982,9 +982,9 @@ namespace Libplanet.Net.Tests
                 _logger.Debug("Received message: {Content}", message);
                 switch (message.Content)
                 {
-                    case PingMsg ping:
+                    case PingMessage ping:
                         await mockTransport.ReplyMessageAsync(
-                            new PongMsg(),
+                            new PongMessage(),
                             message.Identity,
                             default);
                         break;
@@ -1013,7 +1013,7 @@ namespace Libplanet.Net.Tests
                 await mockTransport.WaitForRunningAsync();
 
                 // Send block header for block 1.
-                var blockHeaderMsg1 = new BlockHeaderMsg(
+                var blockHeaderMsg1 = new BlockHeaderMessage(
                     receiver.BlockChain.Genesis.BlockHash,
                     block1);
                 await mockTransport.SendMessageAsync(
@@ -1036,7 +1036,7 @@ namespace Libplanet.Net.Tests
                 await Task.Delay(1000);
 
                 // Send block header for block 2, make sure it does not spawn new task.
-                var blockHeaderMsg2 = new BlockHeaderMsg(
+                var blockHeaderMsg2 = new BlockHeaderMessage(
                     receiver.BlockChain.Genesis.BlockHash,
                     block2);
                 await mockTransport.SendMessageAsync(

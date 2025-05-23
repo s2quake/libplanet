@@ -20,13 +20,13 @@ namespace Libplanet.Net.Consensus
         /// class.
         /// </summary>
         /// <param name="consensusTransport">An <see cref="ITransport"/> for sending the
-        /// <see cref="ConsensusMsg"/>s to validators.</param>
+        /// <see cref="ConsensusMessage"/>s to validators.</param>
         /// <param name="validatorPeers">A list of validator's <see cref="BoundPeer"/>,
         /// including itself.
         /// </param>
         /// <param name="seedPeers">A list of seed's <see cref="BoundPeer"/>.</param>
         /// <param name="processMessage">Action to be called when receiving a new
-        /// <see cref="ConsensusMsg"/>.</param>
+        /// <see cref="ConsensusMessage"/>.</param>
         public GossipConsensusMessageCommunicator(
             ITransport consensusTransport,
             ImmutableArray<BoundPeer> validatorPeers,
@@ -57,7 +57,7 @@ namespace Libplanet.Net.Consensus
         /// </summary>
         internal Gossip Gossip { get; }
 
-        public void PublishMessage(ConsensusMsg message)
+        public void PublishMessage(ConsensusMessage message)
         => Gossip.PublishMessage(message);
 
         public void OnStartHeight(int height)
@@ -81,7 +81,7 @@ namespace Libplanet.Net.Consensus
         /// <param name="message"><see cref="Message"/> to validate.</param>
         private void ValidateMessageToReceive(Message message)
         {
-            if (message.Content is ConsensusVoteMsg voteMsg)
+            if (message.Content is ConsensusVoteMessage voteMsg)
             {
                 FilterDifferentHeightVote(voteMsg);
                 FilterHigherRoundVoteSpam(voteMsg, message.Remote);
@@ -96,7 +96,7 @@ namespace Libplanet.Net.Consensus
         /// <param name="content"><see cref="MessageContent"/> to validate.</param>
         private void ValidateMessageToSend(MessageContent content)
         {
-            if (content is ConsensusVoteMsg voteMsg)
+            if (content is ConsensusVoteMessage voteMsg)
             {
                 if (voteMsg.Height != _height)
                 {
@@ -113,10 +113,10 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// Filter logic for different height <see cref="ConsensusVoteMsg"/>s.
+        /// Filter logic for different height <see cref="ConsensusVoteMessage"/>s.
         /// </summary>
-        /// <param name="voteMsg"><see cref="ConsensusVoteMsg"/> to filter.</param>
-        private void FilterDifferentHeightVote(ConsensusVoteMsg voteMsg)
+        /// <param name="voteMsg"><see cref="ConsensusVoteMessage"/> to filter.</param>
+        private void FilterDifferentHeightVote(ConsensusVoteMessage voteMsg)
         {
             if (voteMsg.Height != _height)
             {
@@ -127,12 +127,12 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// Spam filter logic for higher round <see cref="ConsensusVoteMsg"/>s.
+        /// Spam filter logic for higher round <see cref="ConsensusVoteMessage"/>s.
         /// </summary>
-        /// <param name="voteMsg"><see cref="ConsensusVoteMsg"/> to filter.</param>
+        /// <param name="voteMsg"><see cref="ConsensusVoteMessage"/> to filter.</param>
         /// <param name="peer"><see cref="BoundPeer"/> who sent <paramref name="voteMsg"/>.
         /// </param>
-        private void FilterHigherRoundVoteSpam(ConsensusVoteMsg voteMsg, BoundPeer peer)
+        private void FilterHigherRoundVoteSpam(ConsensusVoteMessage voteMsg, BoundPeer peer)
         {
             if (voteMsg.Height == _height &&
                 voteMsg.Round > _round)

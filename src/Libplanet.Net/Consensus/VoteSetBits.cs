@@ -3,7 +3,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Consensus;
+namespace Libplanet.Net.Consensus;
 
 public sealed record class VoteSetBits : IEquatable<VoteSetBits>
 {

@@ -1,4 +1,4 @@
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
@@ -8,7 +8,7 @@ namespace Libplanet.Net.Messages
     /// <summary>
     /// A message class for <see cref="ConsensusStep.Propose"/>.
     /// </summary>
-    public class ConsensusProposalMsg : ConsensusMsg
+    public class ConsensusProposalMsg : ConsensusMessage
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsensusProposalMsg"/> class.
@@ -49,7 +49,7 @@ namespace Libplanet.Net.Messages
         /// <inheritdoc cref="MessageContent.MessageType"/>
         public override MessageType Type => MessageType.ConsensusProposal;
 
-        public override bool Equals(ConsensusMsg? other)
+        public override bool Equals(ConsensusMessage? other)
         {
             return other is ConsensusProposalMsg message &&
                    message.Proposal.Equals(Proposal);
@@ -57,7 +57,7 @@ namespace Libplanet.Net.Messages
 
         public override bool Equals(object? obj)
         {
-            return obj is ConsensusMsg other && Equals(other);
+            return obj is ConsensusMessage other && Equals(other);
         }
 
         public override int GetHashCode()

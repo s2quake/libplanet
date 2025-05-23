@@ -13,9 +13,9 @@ namespace Libplanet.Net.Tests
         {
             var signer = new PrivateKey();
             AppProtocolVersionOptions v2 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = AppProtocolVersion.Sign(signer, 2) };
+                { AppProtocolVersion = Protocol.Sign(signer, 2) };
             AppProtocolVersionOptions v3 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = AppProtocolVersion.Sign(signer, 3) };
+                { AppProtocolVersion = Protocol.Sign(signer, 3) };
             var a = await CreateSwarm(appProtocolVersionOptions: v2);
             var b = await CreateSwarm(appProtocolVersionOptions: v3);
             var c = await CreateSwarm(appProtocolVersionOptions: v2);
@@ -57,13 +57,13 @@ namespace Libplanet.Net.Tests
             var signer = new PrivateKey();
             AppProtocolVersionOptions v1 = new AppProtocolVersionOptions()
             {
-                AppProtocolVersion = AppProtocolVersion.Sign(signer, 1),
+                AppProtocolVersion = Protocol.Sign(signer, 1),
                 TrustedAppProtocolVersionSigners =
                     new HashSet<PublicKey>() { signer.PublicKey }.ToImmutableHashSet(),
                 DifferentAppProtocolVersionEncountered = (_, ver, __) => { isCalled = true; },
             };
             AppProtocolVersionOptions v2 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = AppProtocolVersion.Sign(signer, 2) };
+                { AppProtocolVersion = Protocol.Sign(signer, 2) };
             var a = await CreateSwarm(appProtocolVersionOptions: v1);
             var b = await CreateSwarm(appProtocolVersionOptions: v2);
 
@@ -89,22 +89,22 @@ namespace Libplanet.Net.Tests
         public async Task IgnoreUntrustedAppProtocolVersion()
         {
             var signer = new PrivateKey();
-            AppProtocolVersion older = AppProtocolVersion.Sign(signer, 2);
-            AppProtocolVersion newer = AppProtocolVersion.Sign(signer, 3);
+            Protocol older = Protocol.Sign(signer, 2);
+            Protocol newer = Protocol.Sign(signer, 3);
 
             var untrustedSigner = new PrivateKey();
-            AppProtocolVersion untrustedOlder = AppProtocolVersion.Sign(untrustedSigner, 2);
-            AppProtocolVersion untrustedNewer = AppProtocolVersion.Sign(untrustedSigner, 3);
+            Protocol untrustedOlder = Protocol.Sign(untrustedSigner, 2);
+            Protocol untrustedNewer = Protocol.Sign(untrustedSigner, 3);
 
             _output.WriteLine("Trusted version signer: {0}", signer.Address);
             _output.WriteLine("Untrusted version signer: {0}", untrustedSigner.Address);
 
-            var logs = new ConcurrentDictionary<BoundPeer, AppProtocolVersion>();
+            var logs = new ConcurrentDictionary<BoundPeer, Protocol>();
 
             void DifferentAppProtocolVersionEncountered(
                 BoundPeer peer,
-                AppProtocolVersion peerVersion,
-                AppProtocolVersion localVersion)
+                Protocol peerVersion,
+                Protocol localVersion)
             {
                 logs[peer] = peerVersion;
             }
@@ -170,7 +170,7 @@ namespace Libplanet.Net.Tests
                 Assert.Equal(new[] { d.AsPeer }, b.Peers.ToArray());
 
                 _output.WriteLine("Logged encountered peers:");
-                foreach (KeyValuePair<BoundPeer, AppProtocolVersion> kv in logs)
+                foreach (KeyValuePair<BoundPeer, Protocol> kv in logs)
                 {
                     _output.WriteLine(
                         "{0}; {1}; {2} -> {3}",

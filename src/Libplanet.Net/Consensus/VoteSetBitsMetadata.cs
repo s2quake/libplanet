@@ -1,12 +1,13 @@
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Consensus;
+namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class ProposalClaimMetadata
+public sealed record class VoteSetBitsMetadata
 {
     [Property(0)]
     [NonNegative]
@@ -27,7 +28,13 @@ public sealed record class ProposalClaimMetadata
     [NotDefault]
     public Address Validator { get; init; }
 
-    public ProposalClaim Sign(PrivateKey signer)
+    [Property(5)]
+    [DisallowedEnumValues(VoteFlag.Null, VoteFlag.Unknown)]
+    public VoteFlag Flag { get; init; }
+
+    public ImmutableArray<bool> VoteBits { get; init; }
+
+    public VoteSetBits Sign(PrivateKey signer)
     {
         var options = new ModelOptions
         {
@@ -35,6 +42,6 @@ public sealed record class ProposalClaimMetadata
         };
         var bytes = ModelSerializer.SerializeToBytes(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
-        return new ProposalClaim { Metadata = this, Signature = signature };
+        return new VoteSetBits { Metadata = this, Signature = signature };
     }
 }

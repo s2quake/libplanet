@@ -17,9 +17,9 @@ public partial class Context
     internal event EventHandler<int>? RoundStarted;
 
     /// <summary>
-    /// An event that is invoked when a <see cref="ConsensusMsg"/> needs to be published.
+    /// An event that is invoked when a <see cref="ConsensusMessage"/> needs to be published.
     /// </summary>
-    internal event EventHandler<ConsensusMsg>? MessageToPublish;
+    internal event EventHandler<ConsensusMessage>? MessageToPublish;
 
     /// <summary>
     /// An event that is invoked when an <see cref="Exception"/> is thrown.
@@ -40,15 +40,15 @@ public partial class Context
     internal event EventHandler<ContextState>? StateChanged;
 
     /// <summary>
-    /// An event that is invoked when a queued <see cref="ConsensusMsg"/> is consumed.
+    /// An event that is invoked when a queued <see cref="ConsensusMessage"/> is consumed.
     /// </summary>
     /// <remarks>
-    /// This only indicates that a <see cref="ConsensusMsg"/> has been dequeued from
+    /// This only indicates that a <see cref="ConsensusMessage"/> has been dequeued from
     /// internal queue.  This only creates an <see cref="System.Action"/> to be consumed
     /// by a <see cref="MutationConsumerTask"/> and may or may not result in a state change
     /// further down the line.
     /// </remarks>
-    internal event EventHandler<ConsensusMsg>? MessageConsumed;
+    internal event EventHandler<ConsensusMessage>? MessageConsumed;
 
     /// <summary>
     /// An event that is invoked when a queued <see cref="System.Action"/> is consumed.

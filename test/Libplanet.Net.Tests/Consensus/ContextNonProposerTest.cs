@@ -251,7 +251,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreVoteMsg vote && vote.PreVote.BlockHash.Equals(default))
+                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
                     nilPreVoteSent.Set();
                 }
@@ -334,7 +334,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreVoteMsg vote && vote.PreVote.BlockHash.Equals(default))
+                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
                     nilPreVoteSent.Set();
                 }
@@ -406,7 +406,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreVoteMsg vote && vote.PreVote.BlockHash.Equals(default))
+                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
                     nilPreVoteSent.Set();
                 }
@@ -565,7 +565,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreVoteMsg)
+                if (message is ConsensusPreVoteMessage)
                 {
                     preVoteSent.Set();
                 }

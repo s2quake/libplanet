@@ -17,7 +17,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
     public enum MessageFrame
     {
         /// <summary>
-        /// Frame containing <see cref="AppProtocolVersion"/>.
+        /// Frame containing <see cref="Protocol"/>.
         /// </summary>
         Version = 0,
 
@@ -99,7 +99,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
         var versionToken = remains[(int)MessageFrame.Version].ConvertToString();
 
-        AppProtocolVersion version = AppProtocolVersion.FromToken(versionToken);
+        Protocol version = Protocol.FromToken(versionToken);
         var remote = ModelSerializer.DeserializeFromBytes<BoundPeer>(remains[(int)MessageFrame.Peer].ToByteArray());
 
         var type =
@@ -146,9 +146,9 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         switch (type)
         {
             case MessageContent.MessageType.Ping:
-                return new PingMsg();
+                return new PingMessage();
             case MessageContent.MessageType.Pong:
-                return new PongMsg();
+                return new PongMessage();
             case MessageContent.MessageType.GetBlockHashes:
                 return new GetBlockHashesMsg(dataframes);
             case MessageContent.MessageType.TxIds:
@@ -158,27 +158,27 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
             case MessageContent.MessageType.GetBlocks:
                 return new GetBlocksMsg(dataframes);
             case MessageContent.MessageType.GetTxs:
-                return new GetTxsMsg(dataframes);
+                return new GetTransactionMessage(dataframes);
             case MessageContent.MessageType.GetEvidence:
-                return new GetEvidenceMsg(dataframes);
+                return new GetEvidenceMessage(dataframes);
             case MessageContent.MessageType.Blocks:
-                return new BlocksMsg(dataframes);
+                return new BlocksMessage(dataframes);
             case MessageContent.MessageType.Tx:
-                return new TxMsg(dataframes);
+                return new TransactionMessage(dataframes);
             case MessageContent.MessageType.Evidence:
                 return new EvidenceMsg(dataframes);
             case MessageContent.MessageType.FindNeighbors:
                 return new FindNeighborsMsg(dataframes);
             case MessageContent.MessageType.Neighbors:
-                return new NeighborsMsg(dataframes);
+                return new NeighborsMessage(dataframes);
             case MessageContent.MessageType.BlockHeaderMessage:
-                return new BlockHeaderMsg(dataframes);
+                return new BlockHeaderMessage(dataframes);
             case MessageContent.MessageType.BlockHashes:
-                return new BlockHashesMsg(dataframes);
+                return new BlockHashesMessage(dataframes);
             case MessageContent.MessageType.GetChainStatus:
-                return new GetChainStatusMsg();
+                return new GetChainStatusMessage();
             case MessageContent.MessageType.ChainStatus:
-                return new ChainStatusMsg(dataframes);
+                return new ChainStatusMessage(dataframes);
             case MessageContent.MessageType.DifferentVersion:
                 return new DifferentVersionMsg();
             case MessageContent.MessageType.HaveMessage:

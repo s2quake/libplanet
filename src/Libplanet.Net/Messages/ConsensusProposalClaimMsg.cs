@@ -1,9 +1,9 @@
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
-public class ConsensusProposalClaimMsg : ConsensusMsg
+public class ConsensusProposalClaimMsg : ConsensusMessage
 {
     public ConsensusProposalClaimMsg(ProposalClaim proposalClaim)
         : base(proposalClaim.Validator, proposalClaim.Height, proposalClaim.Round)
@@ -28,20 +28,20 @@ public class ConsensusProposalClaimMsg : ConsensusMsg
     /// <inheritdoc cref="MessageContent.MessageType"/>
     public override MessageType Type => MessageType.ConsensusProposalClaimMsg;
 
-    /// <inheritdoc cref="ConsensusMsg.Equals(ConsensusMsg?)"/>
-    public override bool Equals(ConsensusMsg? other)
+    /// <inheritdoc cref="ConsensusMessage.Equals(ConsensusMessage?)"/>
+    public override bool Equals(ConsensusMessage? other)
     {
         return other is ConsensusProposalClaimMsg message &&
                message.ProposalClaim.Equals(ProposalClaim);
     }
 
-    /// <inheritdoc cref="ConsensusMsg.Equals(object?)"/>
+    /// <inheritdoc cref="ConsensusMessage.Equals(object?)"/>
     public override bool Equals(object? obj)
     {
-        return obj is ConsensusMsg other && Equals(other);
+        return obj is ConsensusMessage other && Equals(other);
     }
 
-    /// <inheritdoc cref="ConsensusMsg.GetHashCode"/>
+    /// <inheritdoc cref="ConsensusMessage.GetHashCode"/>
     public override int GetHashCode()
     {
         return HashCode.Combine(Type, ProposalClaim);

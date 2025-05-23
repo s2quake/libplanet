@@ -23,8 +23,8 @@ namespace Libplanet.Net.Transports
         /// is signed by a trusted signer.</param>
         public DifferentAppProtocolVersionException(
             string message,
-            AppProtocolVersion expectedAppProtocolVersion,
-            AppProtocolVersion actualAppProtocolVersion,
+            Protocol expectedAppProtocolVersion,
+            Protocol actualAppProtocolVersion,
             bool trusted)
             : base(message)
         {
@@ -36,13 +36,13 @@ namespace Libplanet.Net.Transports
         /// <summary>
         /// The protocol version of the current <see cref="Swarm"/>.
         /// </summary>
-        public AppProtocolVersion ExpectedApv { get; }
+        public Protocol ExpectedApv { get; }
 
         /// <summary>
         /// The protocol version of the <see cref="BoundPeer"/> that the
         /// <see cref="Swarm" /> is trying to connect to.
         /// </summary>
-        public AppProtocolVersion ActualApv { get; }
+        public Protocol ActualApv { get; }
 
         /// <summary>
         /// Whether <see cref="ActualApv"/> is signed by a trusted signer.

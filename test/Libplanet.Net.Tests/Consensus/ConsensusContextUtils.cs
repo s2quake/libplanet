@@ -62,7 +62,7 @@ namespace Libplanet.Net.Tests.Consensus
             ConsensusContext consensusContext,
             int height,
             CancellationToken cancellationToken)
-            where T : ConsensusMsg
+            where T : ConsensusMessage
         {
             T? consensusMessage = null;
             var asyncAutoResetEvent = new AsyncAutoResetEvent();
@@ -78,7 +78,7 @@ namespace Libplanet.Net.Tests.Consensus
             }
 
             void ConsensusContext_MessagePublished(
-                object? sender, (int Height, ConsensusMsg Message) e)
+                object? sender, (int Height, ConsensusMessage Message) e)
             {
                 if (e.Message is T { } message && e.Height == height)
                 {

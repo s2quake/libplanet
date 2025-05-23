@@ -54,7 +54,7 @@ namespace Libplanet.Net.Transports
         bool Running { get; }
 
         /// <inheritdoc cref="AppProtocolVersionOptions.AppProtocolVersion"/>
-        AppProtocolVersion AppProtocolVersion { get; }
+        Protocol AppProtocolVersion { get; }
 
         /// <inheritdoc cref="AppProtocolVersionOptions.TrustedAppProtocolVersionSigners"/>
         public IImmutableSet<PublicKey> TrustedAppProtocolVersionSigners { get; }

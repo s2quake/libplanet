@@ -1,10 +1,12 @@
 using System.Security.Cryptography;
-using Destructurama.Attributed;
+using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
-public abstract class MessageContent
+public abstract record class MessageContent
 {
+    private MessageId? _id;
+
     public enum MessageType : byte
     {
         Ping = 0x01,
@@ -60,24 +62,10 @@ public abstract class MessageContent
         Evidence = 0x58,
     }
 
+    [Property(0, ReadOnly = true)]
     public abstract MessageType Type { get; }
 
-    public abstract IEnumerable<byte[]> DataFrames { get; }
+    // public abstract IEnumerable<byte[]> DataFrames { get; }
 
-    [NotLogged]
-    public MessageId Id
-    {
-        get
-        {
-            var bytes = new List<byte>();
-            bytes.AddRange(BitConverter.GetBytes((int)Type));
-            foreach (byte[] ba in DataFrames)
-            {
-                bytes.AddRange(ba);
-            }
-
-            var digest = SHA256.HashData([.. bytes]);
-            return new MessageId(digest);
-        }
-    }
+    public MessageId Id => _id ??= new MessageId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 }

@@ -6,7 +6,7 @@ using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Consensus;
+namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
 public sealed record class ProposalMetadata : IValidatableObject

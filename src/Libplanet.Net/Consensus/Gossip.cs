@@ -330,7 +330,7 @@ namespace Libplanet.Net.Consensus
 
             switch (msg.Content)
             {
-                case PingMsg _:
+                case PingMessage _:
                 case FindNeighborsMsg _:
                     // Ignore protocol related messages, Kadmelia Protocol will handle it.
                     break;
@@ -587,7 +587,7 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// Replies a <see cref="PongMsg"/> of received <paramref name="message"/>.
+        /// Replies a <see cref="PongMessage"/> of received <paramref name="message"/>.
         /// </summary>
         /// <param name="message">A message to replies.</param>
         /// <param name="ctx">A cancellation token used to propagate notification
@@ -595,7 +595,7 @@ namespace Libplanet.Net.Consensus
         /// <returns>An awaitable task without value.</returns>
         private async Task ReplyMessagePongAsync(Message message, CancellationToken ctx)
         {
-            await _transport.ReplyMessageAsync(new PongMsg(), message.Identity, ctx);
+            await _transport.ReplyMessageAsync(new PongMessage(), message.Identity, ctx);
         }
     }
 }

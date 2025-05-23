@@ -1,8 +1,8 @@
 namespace Libplanet.Net.Messages
 {
     /// <summary>
-    /// A reply to any messages with different <see cref="AppProtocolVersion"/>.
-    /// Contains the expected and actual <see cref="AppProtocolVersion"/>
+    /// A reply to any messages with different <see cref="Protocol"/>.
+    /// Contains the expected and actual <see cref="Protocol"/>
     /// value of the message.
     /// </summary>
     public class DifferentVersionMsg : MessageContent

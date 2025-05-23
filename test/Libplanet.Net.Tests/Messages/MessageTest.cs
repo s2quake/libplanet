@@ -18,14 +18,14 @@ namespace Libplanet.Net.Tests.Messages
         {
             var privateKey = new PrivateKey();
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
-            var apv = new AppProtocolVersion(
+            var apv = new Protocol(
                 1,
                 ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             var dateTimeOffset = DateTimeOffset.UtcNow;
             Block genesis = ProposeGenesisBlock(GenesisProposer);
-            var messageContent = new BlockHeaderMsg(genesis.BlockHash, genesis);
+            var messageContent = new BlockHeaderMessage(genesis.BlockHash, genesis);
             var codec = new NetMQMessageCodec();
             NetMQMessage raw = codec.Encode(
                 new Message(messageContent, apv, peer, dateTimeOffset, null), privateKey);
@@ -36,9 +36,9 @@ namespace Libplanet.Net.Tests.Messages
         [Fact]
         public void InvalidCredential()
         {
-            var ping = new PingMsg();
+            var ping = new PingMessage();
             var privateKey = new PrivateKey();
-            var apv = new AppProtocolVersion(
+            var apv = new Protocol(
                 1,
                 ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
@@ -59,12 +59,12 @@ namespace Libplanet.Net.Tests.Messages
             var privateKey = new PrivateKey();
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
             var timestamp = DateTimeOffset.UtcNow;
-            var apv = new AppProtocolVersion(
+            var apv = new Protocol(
                 1,
                 ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
-            var ping = new PingMsg();
+            var ping = new PingMessage();
             var codec = new NetMQMessageCodec();
             var netMqMessage = codec.Encode(
                 new Message(ping, apv, peer, timestamp, null), privateKey).ToArray();
@@ -89,9 +89,9 @@ namespace Libplanet.Net.Tests.Messages
         public void InvalidArguments()
         {
             var codec = new NetMQMessageCodec();
-            var message = new PingMsg();
+            var message = new PingMessage();
             var privateKey = new PrivateKey();
-            var apv = new AppProtocolVersion(
+            var apv = new Protocol(
                 1,
                 ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
@@ -105,14 +105,14 @@ namespace Libplanet.Net.Tests.Messages
         {
             var privateKey = new PrivateKey();
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("1.2.3.4", 1234));
-            var apv = new AppProtocolVersion(
+            var apv = new Protocol(
                 1,
                 ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
                 default);
             var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);
             Block genesis = ProposeGenesisBlock(GenesisProposer);
-            var message = new BlockHeaderMsg(genesis.BlockHash, genesis);
+            var message = new BlockHeaderMessage(genesis.BlockHash, genesis);
             Assert.Equal(
                 new MessageId(ByteUtility.ParseHex(
                     "e1acbdc4d0cc1eb156cec60d0bf6d40fae3a90192e95719b12e6ee944c71b742")),

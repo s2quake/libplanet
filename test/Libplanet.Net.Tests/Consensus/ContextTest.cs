@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
 using Libplanet;
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
@@ -483,7 +483,7 @@ namespace Libplanet.Net.Tests.Consensus
         /// <para>
         /// So this test make one single candidate which is validator A in scenario above,
         /// to check the validator A can replace its proposal from block X to block Y when
-        /// receiving <see cref="ConsensusMaj23Msg"/> message from peer C or D.
+        /// receiving <see cref="ConsensusMaj23Message"/> message from peer C or D.
         /// </para>
         /// </summary>
         [Fact(Timeout = Timeout)]

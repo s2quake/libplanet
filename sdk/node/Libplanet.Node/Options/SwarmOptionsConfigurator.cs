@@ -31,7 +31,7 @@ internal sealed class SwarmOptionsConfigurator(
         {
             var privateKey = PrivateKey.Parse(options.PrivateKey);
             var version = 0;
-            options.AppProtocolVersion = AppProtocolVersion.Sign(privateKey, version).Token;
+            options.AppProtocolVersion = Protocol.Sign(privateKey, version).Token;
             logger.LogWarning(
                 "SwarmOptions.AppProtocolVersion is not set. A new version is " +
                 "generated: {AppProtocolVersion}",

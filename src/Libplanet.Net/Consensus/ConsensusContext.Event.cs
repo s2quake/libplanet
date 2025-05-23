@@ -5,9 +5,9 @@ namespace Libplanet.Net.Consensus
     public partial class ConsensusContext
     {
         /// <summary>
-        /// An event that is invoked when a <see cref="ConsensusMsg"/> is published.
+        /// An event that is invoked when a <see cref="ConsensusMessage"/> is published.
         /// </summary>
-        internal event EventHandler<(int Height, ConsensusMsg Message)>? MessagePublished;
+        internal event EventHandler<(int Height, ConsensusMessage Message)>? MessagePublished;
 
         /// <inheritdoc cref="Context.ExceptionOccurred"/>
         internal event EventHandler<(int Height, Exception)>? ExceptionOccurred;
@@ -19,7 +19,7 @@ namespace Libplanet.Net.Consensus
         internal event EventHandler<Context.ContextState>? StateChanged;
 
         /// <inheritdoc cref="Context.MessageConsumed"/>
-        internal event EventHandler<(int Height, ConsensusMsg Message)>? MessageConsumed;
+        internal event EventHandler<(int Height, ConsensusMessage Message)>? MessageConsumed;
 
         /// <inheritdoc cref="Context.MutationConsumed"/>
         internal event EventHandler<(int Height, System.Action)>? MutationConsumed;

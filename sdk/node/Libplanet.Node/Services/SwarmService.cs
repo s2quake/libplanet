@@ -79,7 +79,7 @@ internal sealed class SwarmService(
 
         var nodeOptions = _options;
         var privateKey = PrivateKey.Parse(nodeOptions.PrivateKey);
-        var appProtocolVersion = AppProtocolVersion.FromToken(nodeOptions.AppProtocolVersion);
+        var appProtocolVersion = Protocol.FromToken(nodeOptions.AppProtocolVersion);
         var trustedAppProtocolVersionSigners = nodeOptions.TrustedAppProtocolVersionSigners
             .Select(PublicKey.Parse).ToArray();
         var swarmEndPoint = (DnsEndPoint)EndPointUtility.Parse(nodeOptions.EndPoint);
@@ -182,7 +182,7 @@ internal sealed class SwarmService(
     private static async Task<NetMQTransport> CreateTransport(
         PrivateKey privateKey,
         DnsEndPoint endPoint,
-        AppProtocolVersion appProtocolVersion,
+        Protocol appProtocolVersion,
         PublicKey[] trustedAppProtocolVersionSigners)
     {
         var appProtocolVersionOptions = new Net.Options.AppProtocolVersionOptions
@@ -215,7 +215,7 @@ internal sealed class SwarmService(
 
     private static async Task<NetMQTransport> CreateConsensusTransportAsync(
         PrivateKey privateKey,
-        AppProtocolVersion appProtocolVersion,
+        Protocol appProtocolVersion,
         PublicKey[] trustedAppProtocolVersionSigners,
         ValidatorOptions options,
         CancellationToken cancellationToken)

@@ -9,7 +9,7 @@ namespace Libplanet.Net.Tests.Consensus
         public void Put()
         {
             var cache = new MessageCache();
-            var msg = new PingMsg();
+            var msg = new PingMessage();
             cache.Put(msg);
             Assert.Throws<ArgumentException>("message", () => cache.Put(msg));
         }

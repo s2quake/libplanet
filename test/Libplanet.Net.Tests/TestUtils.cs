@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
 using Libplanet;
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
@@ -49,7 +49,7 @@ namespace Libplanet.Net.Tests
             },
         };
 
-        public static AppProtocolVersion AppProtocolVersion = AppProtocolVersion.FromToken(
+        public static Protocol AppProtocolVersion = Protocol.FromToken(
             "1/54684Ac4ee5B933e72144C4968BEa26056880d71/MEQCICGonYW" +
             ".X8y4JpPIyccPYWGrsCXWA95sBfextucz3lOyAiBUoY5t8aYNPT0lwYwC0MSkK3HT7T" +
             ".lGJJW13dJi+06nw==");
@@ -258,7 +258,7 @@ namespace Libplanet.Net.Tests
 
             privateKey ??= PrivateKeys[1];
 
-            void BroadcastMessage(ConsensusMsg message) =>
+            void BroadcastMessage(ConsensusMessage message) =>
                 Task.Run(() =>
                 {
                     // ReSharper disable once AccessToModifiedClosure
@@ -366,14 +366,14 @@ namespace Libplanet.Net.Tests
 
         public class DummyConsensusMessageHandler : IConsensusMessageCommunicator
         {
-            private readonly Action<ConsensusMsg> _publishMessage;
+            private readonly Action<ConsensusMessage> _publishMessage;
 
-            public DummyConsensusMessageHandler(Action<ConsensusMsg> publishMessage)
+            public DummyConsensusMessageHandler(Action<ConsensusMessage> publishMessage)
             {
                 _publishMessage = publishMessage;
             }
 
-            public void PublishMessage(ConsensusMsg message)
+            public void PublishMessage(ConsensusMessage message)
                 => _publishMessage(message);
 
             public void OnStartHeight(int height)

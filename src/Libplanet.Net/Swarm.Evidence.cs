@@ -27,7 +27,7 @@ namespace Libplanet.Net
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var evidenceIdsAsArray = evidenceIds as EvidenceId[] ?? evidenceIds.ToArray();
-            var request = new GetEvidenceMsg(evidenceIdsAsArray);
+            var request = new GetEvidenceMessage(evidenceIdsAsArray);
             int evidenceCount = evidenceIdsAsArray.Count();
 
             _logger.Debug("Required evidence count: {Count}", evidenceCount);
@@ -68,7 +68,7 @@ namespace Libplanet.Net
                 {
                     string errorMessage =
                         $"Expected {nameof(Transaction)} messages as response of " +
-                        $"the {nameof(GetEvidenceMsg)} message, but got a " +
+                        $"the {nameof(GetEvidenceMessage)} message, but got a " +
                         $"{message.GetType().Name} " +
                         $"message instead: {message}";
                     throw new InvalidMessageContentException(errorMessage, message.Content);
@@ -142,7 +142,7 @@ namespace Libplanet.Net
 
             try
             {
-                var getEvidenceMsg = (GetEvidenceMsg)message.Content;
+                var getEvidenceMsg = (GetEvidenceMessage)message.Content;
                 foreach (EvidenceId txid in getEvidenceMsg.EvidenceIds)
                 {
                     try

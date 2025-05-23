@@ -285,7 +285,7 @@ namespace Libplanet.Net.Tests.Consensus
                 _ = gossip.StartAsync(default);
                 await seed.WaitForRunningAsync();
                 await gossip.WaitForRunningAsync();
-                gossip.AddMessage(new PingMsg());
+                gossip.AddMessage(new PingMessage());
 
                 // Wait heartbeat interval * 2.
                 await Task.Delay(2 * 1000);
@@ -328,8 +328,8 @@ namespace Libplanet.Net.Tests.Consensus
                 await receiver.WaitForRunningAsync();
                 await sender1.WaitForRunningAsync();
                 await sender2.WaitForRunningAsync();
-                var msg1 = new PingMsg();
-                var msg2 = new PongMsg();
+                var msg1 = new PingMessage();
+                var msg2 = new PongMessage();
                 await sender1.SendMessageAsync(
                     receiver.AsPeer,
                     new HaveMessage(new[] { msg1.Id, msg2.Id }),

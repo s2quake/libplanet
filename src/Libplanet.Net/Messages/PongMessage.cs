@@ -1,0 +1,11 @@
+using Libplanet.Serialization;
+
+namespace Libplanet.Net.Messages;
+
+[Model(Version = 1)]
+public sealed record class PongMessage : MessageContent
+{
+    public override MessageType Type => MessageType.Pong;
+
+    // public override IEnumerable<byte[]> DataFrames => new byte[][] { };
+}

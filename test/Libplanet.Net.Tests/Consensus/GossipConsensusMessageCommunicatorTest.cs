@@ -55,7 +55,7 @@ namespace Libplanet.Net.Tests.Consensus
             var communicator2 = CreateGossipConesnsusMessageCommunicator(
                 content =>
                 {
-                    if (content is ConsensusPreVoteMsg preVote)
+                    if (content is ConsensusPreVoteMessage preVote)
                     {
                         nPreVoteReceived++;
                         receivedPreVotes.Set();
@@ -131,7 +131,7 @@ namespace Libplanet.Net.Tests.Consensus
             var communicator1 = CreateGossipConesnsusMessageCommunicator(
                 content =>
                 {
-                    if (content is ConsensusPreVoteMsg preVote)
+                    if (content is ConsensusPreVoteMessage preVote)
                     {
                         if (preVote.Round > 2)
                         {

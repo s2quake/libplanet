@@ -1,10 +1,10 @@
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Net.Messages;
 
-public class ConsensusVoteSetBitsMsg : ConsensusMsg
+public class ConsensusVoteSetBitsMsg : ConsensusMessage
 {
     public ConsensusVoteSetBitsMsg(VoteSetBits voteSetBits)
         : base(
@@ -30,7 +30,7 @@ public class ConsensusVoteSetBitsMsg : ConsensusMsg
 
     public override MessageType Type => MessageType.ConsensusVoteSetBitsMsg;
 
-    public override bool Equals(ConsensusMsg? other)
+    public override bool Equals(ConsensusMessage? other)
     {
         return other is ConsensusVoteSetBitsMsg message &&
                message.VoteSetBits.Equals(VoteSetBits);

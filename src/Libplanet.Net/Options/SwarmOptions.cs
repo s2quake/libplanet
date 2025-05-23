@@ -51,7 +51,7 @@ namespace Libplanet.Net.Options
         public int MinimumBroadcastTarget { get; set; } = 10;
 
         /// <summary>
-        /// Determines how often <see cref="Swarm"/> broadcasts <see cref="BlockHeaderMsg"/>
+        /// Determines how often <see cref="Swarm"/> broadcasts <see cref="BlockHeaderMessage"/>
         /// to its peers.
         /// </summary>
         /// <remarks>
