@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using global::Cocona;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain;
 
 namespace Libplanet.Extensions.Cocona;

@@ -1,6 +1,6 @@
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Serialization;
-using static Libplanet.Action.SystemAddresses;
+using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.Tests.Fixtures;
 

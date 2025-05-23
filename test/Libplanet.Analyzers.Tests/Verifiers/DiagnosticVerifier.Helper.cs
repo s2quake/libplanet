@@ -1,6 +1,6 @@
 using System.IO;
 using System.Reflection;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Types.Crypto;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;

@@ -1,5 +1,5 @@
 using GraphQL.Types;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain;
 using Libplanet.Types.Transactions;
 

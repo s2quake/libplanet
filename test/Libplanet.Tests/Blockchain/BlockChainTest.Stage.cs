@@ -1,4 +1,4 @@
-using Libplanet.Action.Tests.Common;
+using Libplanet.State.Tests.Common;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
 

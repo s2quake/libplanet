@@ -22,8 +22,8 @@ namespace Libplanet.Analyzers.Tests
         {
             var test = @"
                 using System;
-                                using Libplanet.Action;
-                using Libplanet.Action;
+                                using Libplanet.State;
+                using Libplanet.State;
                 namespace SampleGame {
                     public class SampleAction : IAction {
                         public SampleAction() {}
@@ -113,8 +113,8 @@ namespace Libplanet.Analyzers.Tests
                 using System.Linq;
                 using System.Security.Cryptography;
                                 using Libplanet;
-                using Libplanet.Action;
-                using Libplanet.Action;
+                using Libplanet.State;
+                using Libplanet.State;
                 namespace SampleGame {
                     public class SampleAction : IAction {
                         public SampleAction() {}

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types.Blocks;

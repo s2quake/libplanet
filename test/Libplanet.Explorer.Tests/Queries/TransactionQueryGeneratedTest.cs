@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Explorer.Queries;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
@@ -68,7 +68,7 @@ public class TransactionQueryGeneratedTest
         Assert.Equal(failBlock.Height, queryResult.BlockHeight);
         Assert.Equal(failBlock.BlockHash.ToString(), queryResult.BlockHash);
         Assert.Equal(
-            new string?[] { null, "Libplanet.Action.CurrencyPermissionException", null },
+            new string?[] { null, "Libplanet.State.CurrencyPermissionException", null },
             queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(emptyTx.Id);
         Assert.Equal("INCLUDED", queryResult.TxStatus);

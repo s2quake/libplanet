@@ -1,4 +1,4 @@
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Node.Services;

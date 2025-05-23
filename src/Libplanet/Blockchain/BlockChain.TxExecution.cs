@@ -1,4 +1,4 @@
-// using Libplanet.Action;
+// using Libplanet.State;
 // using Libplanet.Data.Structures;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Transactions;

@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Data;
@@ -8,7 +8,7 @@ using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
-using static Libplanet.Action.SystemAddresses;
+using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.Tests.Fixtures;
 

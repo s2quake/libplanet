@@ -1,5 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using Libplanet.Action.Tests.Common;
+using Libplanet.State.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Data;
 using Libplanet.Tests;

@@ -39,9 +39,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Explorer.Cocona.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Data", "src\Libplanet.Data\Libplanet.Data.csproj", "{2BC01C4C-288B-4768-BAD0-9BC441D82505}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Action", "src\Libplanet.Action\Libplanet.Action.csproj", "{DDD598B2-005F-4CB2-B26B-A40CC0F9DE8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.State", "src\Libplanet.State\Libplanet.State.csproj", "{DDD598B2-005F-4CB2-B26B-A40CC0F9DE8E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Action.Tests", "test\Libplanet.Action.Tests\Libplanet.Action.Tests.csproj", "{5B2BF317-7315-431F-A854-488CD541F42E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.State.Tests", "test\Libplanet.State.Tests\Libplanet.State.Tests.csproj", "{5B2BF317-7315-431F-A854-488CD541F42E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Types", "src\Libplanet.Types\Libplanet.Types.csproj", "{C7EFF544-391C-488F-A747-2663AFEED250}"
 EndProject

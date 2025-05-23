@@ -1,4 +1,4 @@
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Node.Actions;
 using Libplanet.Node.Options;
 using Libplanet.Types.Crypto;

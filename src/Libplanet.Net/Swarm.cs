@@ -3,7 +3,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain;
 #if NETSTANDARD2_0
 using Libplanet.Types;

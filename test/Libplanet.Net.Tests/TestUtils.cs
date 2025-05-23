@@ -1,7 +1,7 @@
 using System.Net;
 using System.Threading.Tasks;
-using Libplanet.Action;
-using Libplanet.Action.Tests.Common;
+using Libplanet.State;
+using Libplanet.State.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Consensus;
 using Libplanet.Net.Consensus;

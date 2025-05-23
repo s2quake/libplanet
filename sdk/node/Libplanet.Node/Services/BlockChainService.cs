@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
-using Libplanet.Action;
+using Libplanet.State;
 using Libplanet.Blockchain;
 using Libplanet.Node.Options;
 using Libplanet.Serialization;

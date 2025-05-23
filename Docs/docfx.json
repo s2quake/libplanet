@@ -5,7 +5,7 @@
         {
           "files": [
             "src/Libplanet/Libplanet.csproj",
-            "src/Libplanet.Action/Libplanet.Action.csproj",
+            "src/Libplanet.State/Libplanet.State.csproj",
             "src/Libplanet.Types/Libplanet.Types.csproj",
             "tools/Libplanet.Explorer.Cocona/Libplanet.Explorer.Cocona.csproj",
             "tools/Libplanet.Extensions.Cocona/Libplanet.Extensions.Cocona.csproj",
