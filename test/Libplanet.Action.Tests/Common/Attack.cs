@@ -1,4 +1,4 @@
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 
@@ -18,8 +18,8 @@ public sealed record class Attack : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        var battleResult = world.GetValue<BattleResult>(ReservedAddresses.LegacyAccount, TargetAddress, new());
-        world[ReservedAddresses.LegacyAccount, TargetAddress] = battleResult with
+        var battleResult = world.GetValue<BattleResult>(SystemAddresses.SystemAccount, TargetAddress, new());
+        world[SystemAddresses.SystemAccount, TargetAddress] = battleResult with
         {
             UsedWeapons = battleResult.UsedWeapons.Add(Weapon),
             Targets = battleResult.Targets.Add(Target),

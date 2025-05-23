@@ -1,7 +1,7 @@
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Action.State;
+namespace Libplanet.Action;
 
 public sealed class InsufficientBalanceException(string message, Address address, FungibleAssetValue balance)
     : Exception(message)

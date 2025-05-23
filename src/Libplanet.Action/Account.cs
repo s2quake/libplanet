@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data.Structures;
 
-namespace Libplanet.Action.State;
+namespace Libplanet.Action;
 
 public sealed record class Account(ITrie Trie)
 {

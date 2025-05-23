@@ -1,4 +1,4 @@
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Types.Tx;
 
 namespace Libplanet.Action;

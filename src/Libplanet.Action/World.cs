@@ -4,7 +4,7 @@ using Libplanet.Data.Structures;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Action.State;
+namespace Libplanet.Action;
 
 public sealed record class World(ITrie Trie, StateStore Statestore)
 {

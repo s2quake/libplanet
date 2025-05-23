@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Libplanet.Action;
-using Libplanet.Action.State;
-using Libplanet.Action.Sys;
+using Libplanet.Action;
+using Libplanet.Action.Builtin;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Data;
@@ -220,7 +220,6 @@ public partial class BlockChainTest : IDisposable
                         new Initialize
                         {
                             Validators = TestUtils.Validators,
-                            States = ImmutableDictionary.Create<Address, object>(),
                         },
                     }.ToBytecodes(),
             }.Sign(GenesisProposer))
@@ -267,7 +266,7 @@ public partial class BlockChainTest : IDisposable
         chain.Append(block1, blockCommit1);
         var result = (BattleResult)chain
             .GetWorld()
-            .GetAccount(ReservedAddresses.LegacyAccount)
+            .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(_fx.Address1);
 
         Assert.Contains("sword", result.UsedWeapons);
@@ -298,7 +297,7 @@ public partial class BlockChainTest : IDisposable
 
         result = (BattleResult)chain
             .GetWorld()
-            .GetAccount(ReservedAddresses.LegacyAccount)
+            .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(_fx.Address1);
 
         Assert.Contains("bow", result.UsedWeapons);
@@ -323,7 +322,7 @@ public partial class BlockChainTest : IDisposable
         chain.Append(block3, CreateBlockCommit(block3));
         result = (BattleResult)chain
             .GetWorld()
-            .GetAccount(ReservedAddresses.LegacyAccount)
+            .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(_fx.Address1);
     }
 
@@ -619,7 +618,7 @@ public partial class BlockChainTest : IDisposable
             targetAddresses.Select(
                 targetAddress => chain
                     .GetWorld()
-                    .GetAccount(ReservedAddresses.LegacyAccount)
+                    .GetAccount(SystemAddresses.SystemAccount)
                     .GetValue(targetAddress)),
             Assert.NotNull);
 
@@ -646,7 +645,7 @@ public partial class BlockChainTest : IDisposable
         Address nonexistent = new PrivateKey().Address;
         var result = chain
             .GetWorld()
-            .GetAccount(ReservedAddresses.LegacyAccount)
+            .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(nonexistent);
         Assert.Null(result);
         // var callCount = tracker.Logs.Where(
@@ -670,14 +669,14 @@ public partial class BlockChainTest : IDisposable
             addresses.Select(
                 address => chain
                     .GetWorld()
-                    .GetAccount(ReservedAddresses.LegacyAccount)
+                    .GetAccount(SystemAddresses.SystemAccount)
                     .GetValue(address)),
             Assert.Null);
         foreach (var address in addresses)
         {
             Assert.Null(chain
                 .GetWorld()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(address));
         }
 
@@ -699,7 +698,7 @@ public partial class BlockChainTest : IDisposable
             addresses.Select(
                 address => chain
                     .GetWorld()
-                    .GetAccount(ReservedAddresses.LegacyAccount)
+                    .GetAccount(SystemAddresses.SystemAccount)
                     .GetValue(address)),
             v => Assert.Equal("1", v));
         foreach (var address in addresses)
@@ -708,7 +707,7 @@ public partial class BlockChainTest : IDisposable
                 "1",
                 chain
                     .GetWorld()
-                    .GetAccount(ReservedAddresses.LegacyAccount)
+                    .GetAccount(SystemAddresses.SystemAccount)
                     .GetValue(address));
         }
 
@@ -723,13 +722,13 @@ public partial class BlockChainTest : IDisposable
             "1,2",
             chain
                 .GetWorld()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(addresses[0]));
         Assert.All(
             addresses.Skip(1).Select(
                 address => chain
                     .GetWorld()
-                    .GetAccount(ReservedAddresses.LegacyAccount)
+                    .GetAccount(SystemAddresses.SystemAccount)
                     .GetValue(address)),
             v => Assert.Equal("1", v));
     }
@@ -953,10 +952,6 @@ public partial class BlockChainTest : IDisposable
         var action = new Initialize
         {
             Validators = [new Validator { Address = new PrivateKey().Address }],
-            States = new Dictionary<Address, object>
-            {
-                [default] = "initial value",
-            }.ToImmutableDictionary(),
         };
 
         _blockChain.StagedTransactions.Add(submission: new()
@@ -1070,15 +1065,15 @@ public partial class BlockChainTest : IDisposable
 
         var miner1state = (int)_blockChain
             .GetWorld()
-            .GetAccount(ReservedAddresses.LegacyAccount)
+            .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(miner1.Address);
         var miner2state = (int)_blockChain
             .GetWorld()
-            .GetAccount(ReservedAddresses.LegacyAccount)
+            .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(miner2.Address);
         var rewardState = (string)_blockChain
             .GetWorld()
-            .GetAccount(ReservedAddresses.LegacyAccount)
+            .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(rewardRecordAddress);
 
         Assert.Equal(2, miner1state);
@@ -1183,11 +1178,10 @@ public partial class BlockChainTest : IDisposable
         {
             new Initialize
             {
-                States = ImmutableDictionary.Create<Address, object>(),
-                Validators = ImmutableSortedSet.Create(
+                Validators =
                 [
-                    Validator.Create(validatorKey.Address, BigInteger.One),
-                ]),
+                    new Validator { Address = validatorKey.Address },
+                ],
             },
         };
 
@@ -1230,7 +1224,7 @@ public partial class BlockChainTest : IDisposable
         var states = addresses
             .Select(address => blockChain
                 .GetWorld()
-                .GetAccount(ReservedAddresses.LegacyAccount)
+                .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(address))
             .ToArray();
         for (var i = 0; i < states.Length; ++i)
@@ -1342,7 +1336,6 @@ public partial class BlockChainTest : IDisposable
             new Initialize
             {
                 Validators = initialValidatorSet,
-                States = ImmutableDictionary.Create<Address, object>(),
             },
         };
         var privateKey = new PrivateKey();

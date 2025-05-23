@@ -1,7 +1,7 @@
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 using Serilog;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests.Common;
 
@@ -31,7 +31,7 @@ public sealed record class DelayAction : ActionBase
             MilliSecond);
         Thread.Sleep(MilliSecond);
         var ended = DateTimeOffset.UtcNow;
-        world[LegacyAccount, TrivialUpdatedAddress] = MilliSecond;
+        world[SystemAccount, TrivialUpdatedAddress] = MilliSecond;
         Log.Debug(
             "{MethodName} Total Executed Time: {Elapsed}. Delay target: {MilliSecond}",
             nameof(DelayAction),

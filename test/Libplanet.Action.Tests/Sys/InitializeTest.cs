@@ -1,9 +1,9 @@
-using Libplanet.Action.State;
-using Libplanet.Action.Sys;
+using Libplanet.Action;
+using Libplanet.Action.Builtin;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests.Sys;
 
@@ -14,12 +14,15 @@ public class InitializeTest
         Validator.Create(new PrivateKey().Address, BigInteger.One),
     ]);
 
-    private static readonly ImmutableDictionary<Address, object>
-        _states =
-        new Dictionary<Address, object>
+    private static readonly ImmutableArray<State> _states =
+    [
+        new State
         {
-            [default] = "initial value",
-        }.ToImmutableDictionary();
+            Name = $"{SystemAccount}",
+            Values = ImmutableSortedDictionary<string, object>.Empty
+                .Add("a", "initial value")
+        },
+    ];
 
     [Fact]
     public void Constructor()
@@ -60,7 +63,7 @@ public class InitializeTest
         Assert.Equal(_validators, nextWorld.GetValidatorSet());
         Assert.Equal(
             _states[default],
-            nextWorld.GetValueOrDefault(LegacyAccount, default));
+            nextWorld.GetValueOrDefault(SystemAccount, default));
     }
 
     [Fact]

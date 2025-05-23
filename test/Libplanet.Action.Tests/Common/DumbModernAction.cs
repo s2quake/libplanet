@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests.Common;
 
@@ -99,7 +99,7 @@ public sealed record class DumbModernAction : ActionBase
 
         if (Validators is { } validators)
         {
-            world[ValidatorSetAddress, ValidatorSetAddress] = validators;
+            world[ValidatorSet, ValidatorSet] = validators;
         }
     }
 }

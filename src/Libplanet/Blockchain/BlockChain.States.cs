@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 

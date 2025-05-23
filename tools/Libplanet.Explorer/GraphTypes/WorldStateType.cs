@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Action;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Data;
@@ -9,7 +9,7 @@ using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Tests.Fixtures;
 
@@ -80,7 +80,7 @@ public sealed class IntegerSet
             GenesisHash = Genesis.BlockHash,
             Actions = actions.ToBytecodes(),
         }.Sign(signerKey);
-        BigInteger prevState = Chain.GetWorld().GetValueOrFallback(LegacyAccount, signer, BigInteger.Zero);
+        BigInteger prevState = Chain.GetWorld().GetValueOrFallback(SystemAccount, signer, BigInteger.Zero);
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.PreviousStateRootHash;
         ITrie prevTrie = GetTrie(Chain.Tip.BlockHash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);

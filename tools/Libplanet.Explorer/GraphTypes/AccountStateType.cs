@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Data.Structures;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;

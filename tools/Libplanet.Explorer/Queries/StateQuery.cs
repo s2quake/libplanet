@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
@@ -102,7 +102,7 @@ public class StateQuery : ObjectGraphType<BlockChain>
             {
                 var world = context.Source.GetWorld((BlockHash)offsetBlockHash);
                 return addresses.Select(address =>
-                    world.GetAccount(ReservedAddresses.LegacyAccount)
+                    world.GetAccount(SystemAddresses.SystemAccount)
                         .GetValue(address))
                 .ToArray();
             }
@@ -111,7 +111,7 @@ public class StateQuery : ObjectGraphType<BlockChain>
             {
                 var world = context.Source.GetWorld(offsetStateRootHash ?? default);
                 return addresses.Select(address =>
-                    world.GetAccount(ReservedAddresses.LegacyAccount)
+                    world.GetAccount(SystemAddresses.SystemAccount)
                         .GetValue(address))
                 .ToArray();
             }

@@ -1,9 +1,9 @@
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
-namespace Libplanet.Action.State;
+namespace Libplanet.Action;
 
 public static class WorldExtensions
 {
@@ -41,15 +41,15 @@ public static class WorldExtensions
 
     public static ImmutableSortedSet<Validator> GetValidatorSet(this World @this)
     {
-        var account = @this.GetAccount(ValidatorSetAddress.ToString());
-        return (ImmutableSortedSet<Validator>)account.GetValue(ValidatorSetAddress);
+        var account = @this.GetAccount(ValidatorSet.ToString());
+        return (ImmutableSortedSet<Validator>)account.GetValue(ValidatorSet);
     }
 
     public static World SetValidatorSet(this World @this, ImmutableSortedSet<Validator> validators)
     {
-        var account = @this.GetAccount(ValidatorSetAddress.ToString());
-        account = account.SetValue(ValidatorSetAddress, validators);
-        return @this.SetAccount(ValidatorSetAddress.ToString(), account);
+        var account = @this.GetAccount(ValidatorSet.ToString());
+        account = account.SetValue(ValidatorSet, validators);
+        return @this.SetAccount(ValidatorSet.ToString(), account);
     }
 
     public static object? GetValueOrDefault(this World @this, string name, string key)

@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
 using Libplanet.Action;
-using Libplanet.Action.Sys;
+using Libplanet.Action.Builtin;
 using Libplanet.Blockchain;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;
@@ -66,11 +66,7 @@ public class TransactionQueryTest
         var foo = Currency.Create("FOO", 2);
         var action = new Initialize
         {
-            Validators = [Validator.Create(new PrivateKey().Address, 1)],
-            States = new Dictionary<Address, object>
-            {
-                [default] = "initial value"
-            }.ToImmutableDictionary(),
+            Validators = [new Validator { Address = new PrivateKey().Address }],
         };
         var txKey = new PrivateKey();
         var tx = new TransactionMetadata

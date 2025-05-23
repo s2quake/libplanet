@@ -1,7 +1,7 @@
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using Libplanet.Action;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Blockchain.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
@@ -169,7 +169,7 @@ public partial class BlockChain
         if (height == 0)
         {
             IWorldContext worldContext = new WorldStateContext(GetWorld());
-            return (ImmutableSortedSet<Validator>)worldContext[ReservedAddresses.ValidatorSetAddress][ReservedAddresses.ValidatorSetAddress]; ;
+            return (ImmutableSortedSet<Validator>)worldContext[SystemAddresses.ValidatorSet][SystemAddresses.ValidatorSet]; ;
         }
 
         var blockCommit = BlockCommits[height];

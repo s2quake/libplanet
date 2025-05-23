@@ -7,7 +7,7 @@ using System.Text.Json.JsonDiffPatch.Xunit;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Libplanet.Action;
-using Libplanet.Action.Sys;
+using Libplanet.Action.Builtin;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
@@ -396,7 +396,6 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                     new Initialize
                     {
                         Validators = validators ?? [],
-                        States = ImmutableDictionary.Create<Address, object>(),
                     },
                 }.ToBytecodes(),
                 Timestamp = DateTimeOffset.MinValue,

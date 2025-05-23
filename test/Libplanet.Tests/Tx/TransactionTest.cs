@@ -1,5 +1,5 @@
 using Libplanet.Action;
-using Libplanet.Action.Sys;
+using Libplanet.Action.Builtin;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Types;
 using Libplanet.Types.Consensus;
@@ -58,10 +58,6 @@ public class TransactionTest
         var action = new Initialize
         {
             Validators = [Validator.Create(privateKey.Address, 1)],
-            States = new Dictionary<Address, object>
-            {
-                [default] = "initial value",
-            }.ToImmutableDictionary(),
         };
         var tx = new TransactionMetadata
         {

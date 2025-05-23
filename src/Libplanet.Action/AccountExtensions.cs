@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Action.State;
+namespace Libplanet.Action;
 
 public static class AccountExtensions
 {
