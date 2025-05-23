@@ -7,7 +7,6 @@
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="1.*" />
     <PackageReference Include="System.Text.Json" Version="6.0.*" />
-    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
     <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
     <PackageReference Include="Secp256k1.Native" Version="0.1.24-alpha" />
     <PackageReference Include="Nethereum.Util" Version="4.29.0" />
