@@ -1,5 +1,4 @@
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Node.Options;
 using Libplanet.Node.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +16,6 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
         var serviceProvider = TestUtility.CreateServiceProvider();
         var actionService = serviceProvider.GetRequiredService<IActionService>();
 
-        Assert.IsType<AggregateTypedActionLoader>(actionService.ActionLoader);
         Assert.IsType<PolicyActions>(actionService.PolicyActions);
     }
 
@@ -48,7 +46,6 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
         var actionService = serviceProvider.GetRequiredService<IActionService>();
 
-        Assert.Equal(actionLoaderType, actionService.ActionLoader.GetType().FullName);
         Assert.Equal(
             expected: policyActionRegistryType,
             actual: actionService.PolicyActions.GetType().FullName);
