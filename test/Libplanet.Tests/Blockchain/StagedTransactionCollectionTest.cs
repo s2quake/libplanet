@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Data;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
@@ -10,7 +10,7 @@ public sealed class StagedTransactionCollectionTest
     [Fact]
     public void AddTransaction()
     {
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
@@ -31,7 +31,7 @@ public sealed class StagedTransactionCollectionTest
     [Fact]
     public void AddTransactionWithExpiredNonce()
     {
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {

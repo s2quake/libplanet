@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
@@ -23,7 +23,7 @@ namespace Libplanet.Net.Tests.Transports
         [Fact(Timeout = 60 * 1000)]
         public async Task QueryAppProtocolVersion()
         {
-            var policy = new BlockChainOptions();
+            var policy = new BlockchainOptions();
             var fx = new MemoryStoreFixture(policy);
             var blockchain = MakeBlockChain(policy);
             var swarmKey = new PrivateKey();

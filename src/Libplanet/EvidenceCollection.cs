@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data;
 using Libplanet.Types.Evidence;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed class EvidenceCollection(Repository repository)
     : IReadOnlyDictionary<EvidenceId, EvidenceBase>

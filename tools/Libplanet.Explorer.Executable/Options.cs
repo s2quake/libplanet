@@ -1,6 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net;
 using Libplanet.Serialization;
 using Libplanet.Types;
@@ -102,7 +102,7 @@ namespace Libplanet.Explorer.Executable
 
         public string GenesisBlockPath { get; set; }
 
-        internal async Task<Block> GetGenesisBlockAsync(BlockChainOptions policy)
+        internal async Task<Block> GetGenesisBlockAsync(BlockchainOptions policy)
         {
 #if NETSTATNDARD2_1_OR_GREATER
             var uri = new Uri(GenesisBlockPath);

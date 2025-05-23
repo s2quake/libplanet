@@ -3,7 +3,7 @@ using GraphQL;
 using GraphQL.Execution;
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;
 using Libplanet.Types;
@@ -17,14 +17,14 @@ namespace Libplanet.Explorer.Tests.Queries;
 
 public class TransactionQueryTest
 {
-    protected readonly BlockChain Chain;
+    protected readonly Blockchain Chain;
     protected MockBlockChainContext Source;
     protected TransactionQuery QueryGraph;
 
     public TransactionQueryTest()
     {
         Chain = Libplanet.Tests.TestUtils.MakeBlockChain(
-            new BlockChainOptions(),
+            new BlockchainOptions(),
             privateKey: new PrivateKey(),
             timestamp: DateTimeOffset.UtcNow);
         Source = new MockBlockChainContext(Chain);

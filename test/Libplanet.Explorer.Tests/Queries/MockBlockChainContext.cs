@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Net;
@@ -9,7 +9,7 @@ public class MockBlockChainContext : IBlockChainContext
 {
     public bool Preloaded => true;
 
-    public BlockChain BlockChain { get; }
+    public Blockchain BlockChain { get; }
 
     public Libplanet.Data.Repository Store { get; }
 
@@ -17,7 +17,7 @@ public class MockBlockChainContext : IBlockChainContext
 
     public IBlockChainIndex Index { get; protected init; }
 
-    public MockBlockChainContext(BlockChain chain)
+    public MockBlockChainContext(Blockchain chain)
     {
         BlockChain = chain;
         // Store = BlockChain._repository;

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Node.Options;
 using Libplanet.Serialization;
 using Libplanet.Data;
@@ -18,20 +18,20 @@ internal sealed class BlockChainService(
     IActionService actionService,
     PolicyService policyService) : IBlockChainService
 {
-    private readonly BlockChain _blockChain = CreateBlockChain(
+    private readonly Blockchain _blockChain = CreateBlockChain(
         actionService: actionService,
         genesisOptions: genesisOptions.Value,
         store: storeService.Repository);
 
-    public BlockChain BlockChain => _blockChain;
+    public Blockchain BlockChain => _blockChain;
 
-    private static BlockChain CreateBlockChain(
+    private static Blockchain CreateBlockChain(
         IActionService actionService,
         GenesisOptions genesisOptions,
         Repository store)
     {
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, store.StateStore);
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             PolicyActions = actionService.PolicyActions,
             BlockInterval = TimeSpan.FromSeconds(8),
@@ -49,7 +49,7 @@ internal sealed class BlockChainService(
         //     return new BlockChain(genesisBlock, options);
         // }
 
-        return new BlockChain(new Repository(), options);
+        return new Blockchain(new Repository(), options);
     }
 
     private static Block CreateGenesisBlock(
@@ -109,7 +109,7 @@ internal sealed class BlockChainService(
             Actions = actions.ToBytecodes(),
             Timestamp = DateTimeOffset.MinValue,
         }.Sign(genesisKey);
-        return BlockChain.ProposeGenesisBlock(
+        return Blockchain.ProposeGenesisBlock(
             proposer: genesisKey,
             previousStateRootHash: default,
             transactions: [transaction]);
@@ -150,7 +150,7 @@ internal sealed class BlockChainService(
             JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(config);
         if (data == null || data.Count == 0)
         {
-            return BlockChain.ProposeGenesisBlock(
+            return Blockchain.ProposeGenesisBlock(
                 proposer: genesisKey,
                 previousStateRootHash: default,
                 transactions: []);

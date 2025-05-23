@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types;
 using Serilog;
 
@@ -22,7 +22,7 @@ namespace Libplanet.Net
         public bool Any() => _blockDemands.Any();
 
         public void Add(
-            BlockChain blockChain,
+            Blockchain blockChain,
             Func<BlockExcerpt, bool> predicate,
             BlockDemand demand)
         {
@@ -51,7 +51,7 @@ namespace Libplanet.Net
         }
 
         public void Cleanup(
-            BlockChain blockChain,
+            Blockchain blockChain,
             Func<BlockExcerpt, bool> predicate)
         {
             foreach (var demand in _blockDemands.Values)
@@ -66,7 +66,7 @@ namespace Libplanet.Net
         }
 
         private bool IsDemandNeeded(
-            BlockChain blockChain,
+            Blockchain blockChain,
             Func<BlockExcerpt, bool> predicate,
             BlockDemand demand)
         {

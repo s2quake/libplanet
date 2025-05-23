@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Blocks;
 using Nito.AsyncEx;
 

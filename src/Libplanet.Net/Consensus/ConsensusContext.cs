@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
@@ -17,7 +17,7 @@ public partial class ConsensusContext : IDisposable
     private readonly object _contextLock;
     private readonly ContextOption _contextOption;
     private readonly IConsensusMessageCommunicator _consensusMessageCommunicator;
-    private readonly BlockChain _blockChain;
+    private readonly Blockchain _blockChain;
     private readonly PrivateKey _privateKey;
     private readonly TimeSpan _newHeightDelay;
     private readonly ILogger _logger;
@@ -30,7 +30,7 @@ public partial class ConsensusContext : IDisposable
 
     public ConsensusContext(
         IConsensusMessageCommunicator consensusMessageCommunicator,
-        BlockChain blockChain,
+        Blockchain blockChain,
         PrivateKey privateKey,
         TimeSpan newHeightDelay,
         ContextOption contextOption)
@@ -382,7 +382,7 @@ public partial class ConsensusContext : IDisposable
                 _logger.Error(
                     exception: e,
                     messageTemplate: "Unexpected exception occurred during {FName}()",
-                    propertyValue: nameof(BlockChain.PendingEvidences));
+                    propertyValue: nameof(Blockchain.PendingEvidences));
             }
         }
     }

@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
@@ -32,7 +32,7 @@ public static class BlockChainStatesFixture
     public static readonly ImmutableSortedSet<Validator> Validators =
         ImmutableSortedSet.Create([Validator]);
 
-    public static (BlockChain, BlockHash, HashDigest<SHA256>)
+    public static (Blockchain, BlockHash, HashDigest<SHA256>)
         CreateMockBlockChainStates()
     {
         throw new NotImplementedException("Mocking BlockChainStates is not implemented yet.");

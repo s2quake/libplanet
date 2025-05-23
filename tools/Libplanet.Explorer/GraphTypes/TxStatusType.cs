@@ -1,6 +1,6 @@
 using GraphQL.Types;
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Transactions;
 
 namespace Libplanet.Explorer.GraphTypes
@@ -38,7 +38,7 @@ namespace Libplanet.Explorer.GraphTypes
         FAILURE,
 
         /// <summary>
-        /// The <see cref="Transaction"/> is found in the <see cref="BlockChain"/> but its
+        /// The <see cref="Transaction"/> is found in the <see cref="Blockchain"/> but its
         /// execution result cannot be determined.  This can happen due to one of
         /// the two following reasons:
         /// <list type="bullet">

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Transactions;
 using Nito.AsyncEx;
 using Serilog;
@@ -14,7 +14,7 @@ namespace Libplanet.Net
         where TPeer : notnull
     {
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly BlockChain _blockChain;
+        private readonly Blockchain _blockChain;
         private readonly TxFetcher _txFetcher;
         private readonly TxBroadcaster _txBroadcaster;
         private readonly ILogger _logger;
@@ -23,7 +23,7 @@ namespace Libplanet.Net
         private bool _disposed;
 
         public TxCompletion(
-            BlockChain blockChain,
+            Blockchain blockChain,
             TxFetcher txFetcher,
             TxBroadcaster txBroadcaster)
         {

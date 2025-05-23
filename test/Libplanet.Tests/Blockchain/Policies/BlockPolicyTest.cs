@@ -1,6 +1,6 @@
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Crypto;
@@ -14,19 +14,19 @@ public class BlockPolicyTest : IDisposable
     private readonly ITestOutputHelper _output;
 
     private readonly StoreFixture _fx;
-    private readonly BlockChain _chain;
-    private readonly BlockChainOptions _policy;
+    private readonly Libplanet.Blockchain _chain;
+    private readonly BlockchainOptions _policy;
 
     public BlockPolicyTest(ITestOutputHelper output)
     {
         _fx = new MemoryStoreFixture();
         _output = output;
-        _policy = new BlockChainOptions
+        _policy = new BlockchainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var repository = new Repository();
-        _chain = new BlockChain(_fx.GenesisBlock, repository, _policy);
+        _chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, _policy);
     }
 
     public void Dispose()
@@ -38,13 +38,13 @@ public class BlockPolicyTest : IDisposable
     public void Constructors()
     {
         var tenSec = new TimeSpan(0, 0, 10);
-        var a = new BlockChainOptions
+        var a = new BlockchainOptions
         {
             BlockInterval = tenSec,
         };
         Assert.Equal(tenSec, a.BlockInterval);
 
-        var b = new BlockChainOptions
+        var b = new BlockchainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(65000),
         };
@@ -52,7 +52,7 @@ public class BlockPolicyTest : IDisposable
             new TimeSpan(0, 1, 5),
             b.BlockInterval);
 
-        var c = new BlockChainOptions();
+        var c = new BlockchainOptions();
         Assert.Equal(
             new TimeSpan(0, 0, 5),
             c.BlockInterval);
@@ -72,7 +72,7 @@ public class BlockPolicyTest : IDisposable
             }
         }
 
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
@@ -129,7 +129,7 @@ public class BlockPolicyTest : IDisposable
         }
 
         // Invalid Transaction without Inner-exception
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
@@ -146,7 +146,7 @@ public class BlockPolicyTest : IDisposable
         options.TransactionOptions.Validate(invalidTx);
 
         // Invalid Transaction with Inner-exception.
-        options = new BlockChainOptions
+        options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
@@ -167,7 +167,7 @@ public class BlockPolicyTest : IDisposable
     {
         const int policyLimit = 2;
 
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -203,7 +203,7 @@ public class BlockPolicyTest : IDisposable
 
         var store = new Libplanet.Data.Repository(new MemoryDatabase());
         var stateStore = new StateStore();
-        var policy = new BlockChainOptions
+        var policy = new BlockchainOptions
         {
             BlockOptions = new BlockOptions
             {
@@ -239,7 +239,7 @@ public class BlockPolicyTest : IDisposable
         const int generatedTxCount = 10;
         const int policyLimit = 4;
 
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             BlockOptions = new BlockOptions
             {

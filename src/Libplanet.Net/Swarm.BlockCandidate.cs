@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Net
@@ -86,7 +86,7 @@ namespace Libplanet.Net
         }
 
         private void AppendBranch(
-            BlockChain blockChain,
+            Blockchain blockChain,
             Branch candidate,
             CancellationToken cancellationToken = default)
         {
@@ -209,7 +209,7 @@ namespace Libplanet.Net
 
         private async Task<bool> BlockCandidateDownload(
             BoundPeer peer,
-            BlockChain blockChain,
+            Blockchain blockChain,
             int logSessionId,
             CancellationToken cancellationToken)
         {

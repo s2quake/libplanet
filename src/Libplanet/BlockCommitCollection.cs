@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, BlockCommit>
 {

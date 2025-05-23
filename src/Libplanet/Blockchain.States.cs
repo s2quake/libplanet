@@ -3,9 +3,9 @@ using Libplanet.State;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
-public partial class BlockChain
+public partial class Blockchain
 {
     public World GetWorld() => GetWorld(Tip.BlockHash);
 

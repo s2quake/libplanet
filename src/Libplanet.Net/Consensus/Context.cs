@@ -2,8 +2,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using Caching;
-using Libplanet.Blockchain;
-using Libplanet.Blockchain.Extensions;
+using Libplanet;
+using Libplanet.Extensions;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
@@ -18,7 +18,7 @@ public partial class Context : IDisposable
 {
     private readonly ContextOption _contextOption;
 
-    private readonly BlockChain _blockChain;
+    private readonly Blockchain _blockChain;
     private readonly ImmutableSortedSet<Validator> _validatorSet;
     private readonly Channel<ConsensusMsg> _messageRequests;
     private readonly Channel<System.Action> _mutationRequests;
@@ -48,7 +48,7 @@ public partial class Context : IDisposable
     private readonly BlockCommit _lastCommit;
 
     public Context(
-        BlockChain blockChain,
+        Blockchain blockChain,
         int height,
         BlockCommit lastCommit,
         PrivateKey privateKey,
@@ -68,7 +68,7 @@ public partial class Context : IDisposable
     }
 
     private Context(
-        BlockChain blockChain,
+        Blockchain blockChain,
         int height,
         BlockCommit lastCommit,
         PrivateKey privateKey,

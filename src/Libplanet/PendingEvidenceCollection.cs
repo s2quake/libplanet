@@ -3,15 +3,15 @@ using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data;
 using Libplanet.Types.Evidence;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
-public sealed class PendingEvidenceCollection(Repository repository, BlockChainOptions options)
+public sealed class PendingEvidenceCollection(Repository repository, BlockchainOptions options)
     : IReadOnlyDictionary<EvidenceId, EvidenceBase>
 {
     private readonly PendingEvidenceStore _store = repository.PendingEvidences;
 
     public PendingEvidenceCollection(Repository repository)
-        : this(repository, new BlockChainOptions())
+        : this(repository, new BlockchainOptions())
     {
     }
 

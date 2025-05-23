@@ -1,10 +1,10 @@
 using Libplanet.State;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
-public sealed record class BlockChainOptions
+public sealed record class BlockchainOptions
 {
-    public static BlockChainOptions Empty { get; } = new();
+    public static BlockchainOptions Empty { get; } = new();
 
     public SystemActions PolicyActions { get; init; } = SystemActions.Empty;
 

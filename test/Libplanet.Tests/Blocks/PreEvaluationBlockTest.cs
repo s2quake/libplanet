@@ -3,8 +3,8 @@
 // using Libplanet.State.Loader;
 // using Libplanet.State;
 // using Libplanet.State.Tests.Common;
-// using Libplanet.Blockchain;
-// using Libplanet.Blockchain.Policies;
+// using Libplanet;
+// using Libplanet.Policies;
 // using Libplanet.Types;
 // using Libplanet.Types.Crypto;
 // using Libplanet.Tests.Fixtures;

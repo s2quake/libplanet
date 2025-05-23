@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
@@ -18,7 +18,7 @@ namespace Libplanet.Net.Consensus
     {
         private readonly Gossip _gossip;
         private readonly ConsensusContext _consensusContext;
-        private readonly BlockChain _blockChain;
+        private readonly Blockchain _blockChain;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Libplanet.Net.Consensus
         /// configuring a timeout for each <see cref="ConsensusStep"/>.</param>
         public ConsensusReactor(
             ITransport consensusTransport,
-            BlockChain blockChain,
+            Blockchain blockChain,
             PrivateKey privateKey,
             ImmutableList<BoundPeer> validatorPeers,
             ImmutableList<BoundPeer> seedPeers,

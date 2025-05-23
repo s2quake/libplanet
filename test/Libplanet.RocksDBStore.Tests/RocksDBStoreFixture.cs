@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
 
@@ -6,8 +6,8 @@ namespace Libplanet.RocksDBStore.Tests;
 
 public class RocksDBStoreFixture : StoreFixture
 {
-    public RocksDBStoreFixture(BlockChainOptions? options = null)
-        : base(CreateOptions(), options ?? new BlockChainOptions())
+    public RocksDBStoreFixture(BlockchainOptions? options = null)
+        : base(CreateOptions(), options ?? new BlockchainOptions())
     {
         // Path = System.IO.Path.Combine(
         //     System.IO.Path.GetTempPath(),

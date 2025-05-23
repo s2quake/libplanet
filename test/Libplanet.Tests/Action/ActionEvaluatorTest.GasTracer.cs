@@ -1,7 +1,7 @@
 // // using Libplanet.State;
 // using Libplanet.State.Loader;
 // using Libplanet.State;
-// using Libplanet.Blockchain.Policies;
+// using Libplanet.Policies;
 // using Libplanet.Types.Crypto;
 // using Libplanet.Data;
 // using Libplanet.Data.Structures;

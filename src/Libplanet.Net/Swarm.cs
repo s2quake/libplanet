@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 #if NETSTANDARD2_0
 using Libplanet.Types;
 #endif
@@ -55,7 +55,7 @@ namespace Libplanet.Net
         /// <param name="consensusOption"><see cref="ConsensusReactorOption"/> for
         /// initialize <see cref="ConsensusReactor"/>.</param>
         public Swarm(
-            BlockChain blockChain,
+            Blockchain blockChain,
             PrivateKey privateKey,
             ITransport transport,
             SwarmOptions options = null,
@@ -160,7 +160,7 @@ namespace Libplanet.Net
         /// The <see cref="BlockChain"/> instance this <see cref="Swarm"/> instance
         /// synchronizes with.
         /// </summary>
-        public BlockChain BlockChain { get; private set; }
+        public Blockchain BlockChain { get; private set; }
 
         /// <inheritdoc cref="AppProtocolVersionOptions.TrustedAppProtocolVersionSigners"/>
         public IImmutableSet<PublicKey> TrustedAppProtocolVersionSigners =>
@@ -264,7 +264,7 @@ namespace Libplanet.Net
         /// <remarks>If the <see cref="BlockChain"/> has no blocks at all or there are long behind
         /// blocks to caught in the network this method could lead to unexpected behaviors, because
         /// this tries to render <em>all</em> actions in the behind blocks so that there are
-        /// a lot of calls to methods of <see cref="BlockChain.Renderers"/> in a short
+        /// a lot of calls to methods of <see cref="Blockchain.Renderers"/> in a short
         /// period of time.  This can lead a game startup slow.  If you want to omit rendering of
         /// these actions in the behind blocks use
         /// <see cref="PreloadAsync(IProgress{BlockSyncState}, CancellationToken)"/>
@@ -300,7 +300,7 @@ namespace Libplanet.Net
         /// <remarks>If the <see cref="BlockChain"/> has no blocks at all or there are long behind
         /// blocks to caught in the network this method could lead to unexpected behaviors, because
         /// this tries to render <em>all</em> actions in the behind blocks so that there are
-        /// a lot of calls to methods of <see cref="BlockChain.Renderers"/> in a short
+        /// a lot of calls to methods of <see cref="Blockchain.Renderers"/> in a short
         /// period of time.  This can lead a game startup slow.  If you want to omit rendering of
         /// these actions in the behind blocks use
         /// <see cref="PreloadAsync(IProgress{BlockSyncState}, CancellationToken)"/>
@@ -455,7 +455,7 @@ namespace Libplanet.Net
         /// </summary>
         /// <param name="block">The block to broadcast to peers.</param>
         /// <remarks>It does not have to be called manually, because <see cref="Swarm"/> in
-        /// itself watches <see cref="BlockChain"/> for <see cref="BlockChain.Tip"/> changes and
+        /// itself watches <see cref="BlockChain"/> for <see cref="Blockchain.Tip"/> changes and
         /// immediately broadcasts updates if anything changes.</remarks>
         public void BroadcastBlock(Block block)
         {
@@ -998,7 +998,7 @@ namespace Libplanet.Net
         /// </para>
         /// </remarks>
         internal async Task<(BoundPeer, List<BlockHash>)> GetDemandBlockHashes(
-            BlockChain blockChain,
+            Blockchain blockChain,
             IList<(BoundPeer, BlockExcerpt)> peersWithExcerpts,
             CancellationToken cancellationToken = default)
         {
@@ -1051,7 +1051,7 @@ namespace Libplanet.Net
         }
 
         internal async Task<List<BlockHash>> GetDemandBlockHashesFromPeer(
-            BlockChain blockChain,
+            Blockchain blockChain,
             BoundPeer peer,
             BlockExcerpt excerpt,
             CancellationToken cancellationToken = default)
@@ -1308,7 +1308,7 @@ namespace Libplanet.Net
         /// <see cref="BlockExcerpt"/> is needed for <see cref="BlockChain"/>.
         /// </summary>
         /// <param name="target">The <see cref="BlockExcerpt"/> to compare to the current
-        /// <see cref="BlockChain.Tip"/> of <see cref="BlockChain"/>.</param>
+        /// <see cref="Blockchain.Tip"/> of <see cref="BlockChain"/>.</param>
         /// <returns><see langword="true"/> if the corresponding <see cref="Block"/> to
         /// <paramref name="target"/> is needed, otherwise, <see langword="false"/>.</returns>
         private bool IsBlockNeeded(BlockExcerpt target)

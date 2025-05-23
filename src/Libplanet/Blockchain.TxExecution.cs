@@ -3,7 +3,7 @@
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Transactions;
 
-// namespace Libplanet.Blockchain;
+// namespace Libplanet;
 
 // public partial class BlockChain
 // {

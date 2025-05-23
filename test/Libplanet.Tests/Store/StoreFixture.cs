@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
@@ -14,7 +14,7 @@ public abstract class StoreFixture : IDisposable
 {
     private bool disposedValue;
 
-    protected StoreFixture(Repository repository, BlockChainOptions options)
+    protected StoreFixture(Repository repository, BlockchainOptions options)
     {
         Address1 = new Address(
         [
@@ -188,7 +188,7 @@ public abstract class StoreFixture : IDisposable
 
     public IDictionary<string, byte[]> StateKeyValueStore { get; set; }
 
-    public BlockChainOptions Options { get; }
+    public BlockchainOptions Options { get; }
 
     public Transaction MakeTransaction(
         IEnumerable<DumbAction>? actions = null,

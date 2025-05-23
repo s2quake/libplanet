@@ -1,5 +1,5 @@
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Node.Services;
 using Microsoft.Extensions.DependencyInjection;
 

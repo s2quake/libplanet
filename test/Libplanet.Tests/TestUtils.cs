@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;
@@ -492,8 +492,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         return preEval.Sign(proposer);
     }
 
-    public static BlockChain MakeBlockChain(
-        BlockChainOptions? options = null,
+    public static Libplanet.Blockchain MakeBlockChain(
+        BlockchainOptions? options = null,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validatorSet = null,
         PrivateKey? privateKey = null,
@@ -512,9 +512,9 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         .BlockChain;
     }
 
-    public static (BlockChain BlockChain, BlockExecutor ActionEvaluator)
+    public static (Libplanet.Blockchain BlockChain, BlockExecutor ActionEvaluator)
         MakeBlockChainAndActionEvaluator(
-        BlockChainOptions? options,
+        BlockchainOptions? options,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validatorSet = null,
         PrivateKey? privateKey = null,
@@ -522,7 +522,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         Block? genesisBlock = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
     {
-        options ??= new BlockChainOptions();
+        options ??= new BlockchainOptions();
         actions ??= ImmutableArray<IAction>.Empty;
         privateKey ??= GenesisProposer;
 
@@ -555,7 +555,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
             genesisBlock = preEval.Sign(privateKey);
         }
 
-        var chain = new BlockChain(genesisBlock, repository, options);
+        var chain = new Libplanet.Blockchain(genesisBlock, repository, options);
 
         return (chain, actionEvaluator);
     }

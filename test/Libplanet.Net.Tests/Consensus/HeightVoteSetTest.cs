@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -9,12 +9,12 @@ namespace Libplanet.Net.Tests.Consensus
 {
     public class HeightVoteSetTest
     {
-        private readonly BlockChain _blockChain;
+        private readonly Blockchain _blockChain;
         private readonly BlockCommit _lastCommit;
         private readonly HeightVoteSet _heightVoteSet;
 
         /// <summary>
-        /// Sets up a <see cref="BlockChain"/> with tip index of 1, i.e. two blocks.
+        /// Sets up a <see cref="Blockchain"/> with tip index of 1, i.e. two blocks.
         /// </summary>
         public HeightVoteSetTest()
         {

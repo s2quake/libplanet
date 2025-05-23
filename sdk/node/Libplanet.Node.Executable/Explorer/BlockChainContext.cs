@@ -1,5 +1,5 @@
 using System.Reflection;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Net;
@@ -12,7 +12,7 @@ internal sealed class BlockChainContext(
 {
     public bool Preloaded => false;
 
-    public BlockChain BlockChain => blockChainService.BlockChain;
+    public Libplanet.Blockchain BlockChain => blockChainService.BlockChain;
 
 #pragma warning disable S3011 // Reflection should not be used to increase accessibility ...
     public Libplanet.Data.Repository Store
@@ -20,7 +20,7 @@ internal sealed class BlockChainContext(
         get
         {
             var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
-            var propertyInfo = typeof(BlockChain).GetProperty("Store", bindingFlags) ??
+            var propertyInfo = typeof(Libplanet.Blockchain).GetProperty("Store", bindingFlags) ??
                 throw new InvalidOperationException("Store property not found.");
             if (propertyInfo.GetValue(BlockChain) is Libplanet.Data.Repository store)
             {

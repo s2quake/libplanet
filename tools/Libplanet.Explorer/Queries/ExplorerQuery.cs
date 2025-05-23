@@ -1,5 +1,5 @@
 using GraphQL.Types;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Types.Blocks;
@@ -29,7 +29,7 @@ namespace Libplanet.Explorer.Queries
 
         private static IBlockChainContext ChainContext => _chainContext!;
 
-        private static BlockChain Chain => ChainContext.BlockChain;
+        private static Blockchain Chain => ChainContext.BlockChain;
 
         private static Libplanet.Data.Repository Store => ChainContext.Store;
 
@@ -163,7 +163,7 @@ namespace Libplanet.Explorer.Queries
             return null;
         }
 
-        private static IEnumerable<Block> ListBlocks(BlockChain chain, int from, int limit)
+        private static IEnumerable<Block> ListBlocks(Blockchain chain, int from, int limit)
         {
             if (chain.Tip.Height < from)
             {

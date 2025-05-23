@@ -2,7 +2,7 @@ using Libplanet.State;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed record class TransactionSubmission
 {

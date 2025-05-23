@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using GraphQL.Types;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Queries;
 using Libplanet.Net;
@@ -11,7 +11,7 @@ namespace Libplanet.Explorer.Interfaces
     {
         bool Preloaded { get; }
 
-        BlockChain BlockChain { get; }
+        Blockchain BlockChain { get; }
 
         Libplanet.Data.Repository Store { get; }
 

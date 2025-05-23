@@ -1,6 +1,6 @@
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed record class TipChangedInfo(
     Block OldTip,

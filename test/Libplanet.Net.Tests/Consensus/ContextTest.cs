@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
@@ -322,7 +322,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             TimeSpan newHeightDelay = TimeSpan.FromSeconds(1);
 
-            var options = new BlockChainOptions
+            var options = new BlockchainOptions
             {
                 PolicyActions = new SystemActions
                 {

@@ -1,6 +1,6 @@
 // using System.Security.Cryptography;
 // // using Libplanet.State;
-// using Libplanet.Blockchain.Renderers;
+// using Libplanet.Renderers;
 // using Libplanet.Types;
 // using Libplanet.Types.Blocks;
 // using Microsoft.Extensions.Logging;

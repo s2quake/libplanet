@@ -1,10 +1,10 @@
-using Libplanet.Blockchain;
+using Libplanet;
 
 namespace Libplanet.Net.Consensus
 {
     /// <summary>
     /// An exception thrown when a <see cref="ConsensusContext.NewHeight"/> has called with
-    /// height is not the index of <see cref="BlockChain.Tip"/> + 1.
+    /// height is not the index of <see cref="Blockchain.Tip"/> + 1.
     /// </summary>
     public class InvalidHeightIncreasingException : Exception
     {

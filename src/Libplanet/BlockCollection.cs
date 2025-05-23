@@ -5,7 +5,7 @@ using BitFaster.Caching.Lru;
 using Libplanet.Data;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 {

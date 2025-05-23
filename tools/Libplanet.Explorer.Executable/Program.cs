@@ -6,7 +6,7 @@ using Cocona;
 using GraphQL.Server;
 using GraphQL.Utilities;
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.Executable.Exceptions;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
@@ -173,9 +173,9 @@ If omitted (default) explorer only the local blockchain store.")]
                 Libplanet.Data.Repository store = LoadStore(options);
                 StateStore stateStore = new NoOpStateStore();
 
-                BlockChainOptions policy = LoadBlockPolicy(options);
+                BlockchainOptions policy = LoadBlockPolicy(options);
 
-                var blockChain = new BlockChain(await options.GetGenesisBlockAsync(policy), store, options: policy);
+                var blockChain = new Blockchain(await options.GetGenesisBlockAsync(policy), store, options: policy);
                 Startup.PreloadedSingleton = false;
                 Startup.BlockChainSingleton = blockChain;
                 Startup.StoreSingleton = store;
@@ -307,9 +307,9 @@ If omitted (default) explorer only the local blockchain store.")]
             }
         }
 
-        private static BlockChainOptions LoadBlockPolicy(Options options)
+        private static BlockchainOptions LoadBlockPolicy(Options options)
         {
-            return new BlockChainOptions
+            return new BlockchainOptions
             {
                 PolicyActions = SystemActions.Empty,
                 BlockInterval = TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
@@ -387,7 +387,7 @@ If omitted (default) explorer only the local blockchain store.")]
         {
             public bool Preloaded => PreloadedSingleton;
 
-            public BlockChain BlockChain => BlockChainSingleton;
+            public Blockchain BlockChain => BlockChainSingleton;
 
             public Libplanet.Data.Repository Store => StoreSingleton;
 
@@ -401,7 +401,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             internal static bool PreloadedSingleton { get; set; }
 
-            internal static BlockChain BlockChainSingleton { get; set; }
+            internal static Blockchain BlockChainSingleton { get; set; }
 
             internal static Libplanet.Data.Repository StoreSingleton { get; set; }
 
