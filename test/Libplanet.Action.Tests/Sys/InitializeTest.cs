@@ -13,9 +13,9 @@ public class InitializeTest
         Validator.Create(new PrivateKey().Address, BigInteger.One),
     ]);
 
-    private static readonly ImmutableArray<State> _states =
+    private static readonly ImmutableArray<AccountState> _states =
     [
-        new State
+        new AccountState
         {
             Name = $"{SystemAccount}",
             Values = ImmutableSortedDictionary<string, object>.Empty

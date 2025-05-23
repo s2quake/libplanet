@@ -23,7 +23,7 @@ public static partial class RandomUtility
 
     public static TxId TxId()
     {
-        var bytes = Array(Byte, Types.Tx.TxId.Size);
+        var bytes = Array(Byte, Types.Transactions.TxId.Size);
         return new TxId(bytes);
     }
 
