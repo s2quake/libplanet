@@ -1,6 +1,6 @@
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Serialization;
@@ -122,7 +122,7 @@ namespace Libplanet.Explorer.Queries
                     }),
                 resolve: context =>
                 {
-                    BlockChain chain = _context.BlockChain;
+                    Blockchain chain = _context.BlockChain;
                     string plainValueString = context.GetArgument<string>("plainValue");
                     var plainBytes = ByteUtility.ParseHex(plainValueString);
                     var publicKey = PublicKey.Parse(context.GetArgument<string>("publicKey"));
@@ -236,7 +236,7 @@ namespace Libplanet.Explorer.Queries
         }
 
         /// <summary>
-        /// Gets the <see cref="Block"/> from the context <see cref="BlockChain"/> containing
+        /// Gets the <see cref="Block"/> from the context <see cref="Blockchain"/> containing
         /// given <paramref name="txId"/>.
         /// </summary>
         /// <param name="context">The <see cref="IBlockChainContext"/> to use as context.</param>

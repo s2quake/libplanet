@@ -1,4 +1,4 @@
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public interface IValidator<in T>
 {

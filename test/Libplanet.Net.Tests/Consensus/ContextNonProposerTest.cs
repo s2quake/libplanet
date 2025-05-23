@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
@@ -293,7 +293,7 @@ namespace Libplanet.Net.Tests.Consensus
             var timeoutProcessed = false;
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var invalidKey = new PrivateKey();
-            var policy = new BlockChainOptions
+            var policy = new BlockchainOptions
             {
                 PolicyActions = new SystemActions
                 {
@@ -378,7 +378,7 @@ namespace Libplanet.Net.Tests.Consensus
             var nilPreVoteSent = new AsyncAutoResetEvent();
             var nilPreCommitSent = new AsyncAutoResetEvent();
             var txSigner = new PrivateKey();
-            var policy = new BlockChainOptions
+            var policy = new BlockchainOptions
             {
                 PolicyActions = new SystemActions
                 {

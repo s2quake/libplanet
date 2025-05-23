@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
@@ -31,7 +31,7 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlock()
         {
             const int numBlocks = 5;
-            var options = new BlockChainOptions();
+            var options = new BlockchainOptions();
             var genesis = new MemoryStoreFixture(options).GenesisBlock;
 
             var swarmA = await CreateSwarm(
@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests
                 miner,
                 policy: policy,
                 genesis: minerChain.Genesis);
-            BlockChain seedChain = seed.BlockChain;
+            Blockchain seedChain = seed.BlockChain;
 
             var privateKey = new PrivateKey();
             Swarm swarmA = await CreateSwarm(
@@ -166,10 +166,10 @@ namespace Libplanet.Net.Tests
         {
             var receiverKey = new PrivateKey();
             Swarm receiverSwarm = await CreateSwarm(receiverKey);
-            BlockChain receiverChain = receiverSwarm.BlockChain;
+            Blockchain receiverChain = receiverSwarm.BlockChain;
             var seedStateStore = new StateStore();
-            BlockChainOptions policy = receiverChain.Options;
-            BlockChain seedChain = MakeBlockChain(
+            BlockchainOptions policy = receiverChain.Options;
+            Blockchain seedChain = MakeBlockChain(
                 options: policy,
                 privateKey: receiverKey);
             var seedMiner = new PrivateKey();
@@ -201,13 +201,13 @@ namespace Libplanet.Net.Tests
             Swarm a = await CreateSwarm(minerA).ConfigureAwait(false);
             Swarm b = await CreateSwarm(minerB).ConfigureAwait(false);
 
-            BlockChain chainA = a.BlockChain;
-            BlockChain chainB = b.BlockChain;
+            Blockchain chainA = a.BlockChain;
+            Blockchain chainB = b.BlockChain;
 
             Task CreateMiner(
                 PrivateKey miner,
                 Swarm swarm,
-                BlockChain chain,
+                Blockchain chain,
                 int delay,
                 CancellationToken cancellationToken)
             {
@@ -275,9 +275,9 @@ namespace Libplanet.Net.Tests
             Swarm swarmB = await CreateSwarm();
             Swarm swarmC = await CreateSwarm();
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
-            BlockChain chainC = swarmC.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
+            Blockchain chainC = swarmC.BlockChain;
 
             var txKey = new PrivateKey();
             Transaction tx = new TransactionMetadata
@@ -325,8 +325,8 @@ namespace Libplanet.Net.Tests
             var minerC = new PrivateKey();
             Swarm swarmC = await CreateSwarm(minerC);
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainC = swarmC.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainC = swarmC.BlockChain;
 
             var privateKey = new PrivateKey();
             var address = privateKey.Address;
@@ -387,9 +387,9 @@ namespace Libplanet.Net.Tests
             Swarm swarmB = await CreateSwarm();
             Swarm swarmC = await CreateSwarm();
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
-            BlockChain chainC = swarmC.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
+            Blockchain chainC = swarmC.BlockChain;
 
             var txKey = new PrivateKey();
             Transaction tx = new TransactionMetadata
@@ -435,14 +435,14 @@ namespace Libplanet.Net.Tests
             int size = 5;
 
             StoreFixture[] fxs = new StoreFixture[size];
-            BlockChain[] blockChains = new BlockChain[size];
+            Blockchain[] blockChains = new Blockchain[size];
             Swarm[] swarms = new Swarm[size];
 
             for (int i = 0; i < size; i++)
             {
-                var options = new BlockChainOptions();
+                var options = new BlockchainOptions();
                 fxs[i] = new MemoryStoreFixture();
-                blockChains[i] = new BlockChain(fxs[i].Repository, options);
+                blockChains[i] = new Blockchain(fxs[i].Repository, options);
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
             }
 
@@ -517,9 +517,9 @@ namespace Libplanet.Net.Tests
             var swarmC =
                 await CreateSwarm(keyC, options: autoBroadcastDisabled);
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
-            BlockChain chainC = swarmC.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
+            Blockchain chainC = swarmC.BlockChain;
 
             var privateKey = new PrivateKey();
 
@@ -621,9 +621,9 @@ namespace Libplanet.Net.Tests
             var swarmB = await CreateSwarm(keyB);
             var swarmC = await CreateSwarm(keyC);
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
-            BlockChain chainC = swarmC.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
+            Blockchain chainC = swarmC.BlockChain;
 
             foreach (int i in Enumerable.Range(0, 10))
             {
@@ -676,7 +676,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task BroadcastBlockWithSkip()
         {
-            var options = new BlockChainOptions
+            var options = new BlockchainOptions
             {
                 PolicyActions = new SystemActions
                 {
@@ -759,8 +759,8 @@ namespace Libplanet.Net.Tests
             Swarm swarmA = await CreateSwarm(keyA);
             Swarm swarmB = await CreateSwarm(keyB);
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
 
             try
             {
@@ -801,8 +801,8 @@ namespace Libplanet.Net.Tests
             Swarm swarmB =
                 await CreateSwarm(keyB, genesis: swarmA.BlockChain.Genesis);
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
 
             var block = chainA.ProposeBlock(keyA);
             BlockCommit blockCommit = TestUtils.CreateBlockCommit(block);
@@ -855,9 +855,9 @@ namespace Libplanet.Net.Tests
             var swarmB = await CreateSwarm(keyB);
             var swarmC = await CreateSwarm(keyC);
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
-            BlockChain chainC = swarmC.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
+            Blockchain chainC = swarmC.BlockChain;
 
             foreach (int i in Enumerable.Range(0, 5))
             {

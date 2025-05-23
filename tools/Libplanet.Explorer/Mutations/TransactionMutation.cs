@@ -1,6 +1,6 @@
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Serialization;
@@ -30,7 +30,7 @@ namespace Libplanet.Explorer.Mutations
                     }),
                 resolve: context =>
                 {
-                    BlockChain chain = _context.BlockChain;
+                    Blockchain chain = _context.BlockChain;
                     byte[] payload = ByteUtility.ParseHex(context.GetArgument<string>("payload"));
                     Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(payload);
                     if (!chain.StagedTransactions.TryAdd(tx))

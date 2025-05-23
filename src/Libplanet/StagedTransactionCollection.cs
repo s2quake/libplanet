@@ -7,16 +7,16 @@ using Libplanet.Data;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
-public sealed class StagedTransactionCollection(Repository repository, BlockChainOptions options)
+public sealed class StagedTransactionCollection(Repository repository, BlockchainOptions options)
     : IReadOnlyDictionary<TxId, Transaction>
 {
     private readonly PendingTransactionStore _store = repository.PendingTransactions;
     private readonly ConcurrentDictionary<Address, ImmutableSortedSet<long>> _noncesByAddress = new();
 
     public StagedTransactionCollection(Repository repository)
-        : this(repository, new BlockChainOptions())
+        : this(repository, new BlockchainOptions())
     {
         foreach (var transaction in _store.Values)
         {

@@ -1,6 +1,6 @@
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Data;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
@@ -14,7 +14,7 @@ public class GeneratedBlockChainFixture
 {
     public static Currency TestCurrency => Currency.Create("TEST", 0);
 
-    public BlockChain Chain { get; }
+    public Blockchain Chain { get; }
 
     public Repository Repository { get; }
 
@@ -59,7 +59,7 @@ public class GeneratedBlockChainFixture
                 key => ImmutableArray<Transaction>.Empty);
 
         var privateKey = new PrivateKey();
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(1),
             BlockOptions = new BlockOptions
@@ -68,7 +68,7 @@ public class GeneratedBlockChainFixture
                 MaxTransactionsBytes = long.MaxValue,
             },
         };
-        Block genesisBlock = BlockChain.ProposeGenesisBlock(
+        Block genesisBlock = Blockchain.ProposeGenesisBlock(
             proposer: new PrivateKey(),
             transactions: PrivateKeys
                 .OrderBy(pk => pk.Address.ToString("raw", null))
@@ -88,7 +88,7 @@ public class GeneratedBlockChainFixture
                     }.Sign(privateKey))
                 .ToImmutableSortedSet());
         Repository = new Repository();
-        Chain = new BlockChain(Repository, options);
+        Chain = new Blockchain(Repository, options);
         MinedBlocks = MinedBlocks.SetItem(
             Chain.Genesis.Proposer,
             ImmutableArray<Block>.Empty.Add(Chain.Genesis));

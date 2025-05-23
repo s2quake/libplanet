@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Blocks;
 using Serilog;
 using Serilog.Events;
@@ -11,9 +11,9 @@ namespace Libplanet.Tests
             this ILogger logger,
             LogEventLevel logLevel,
             string labelA,
-            BlockChain chainA,
+            Libplanet.Blockchain chainA,
             string labelB,
-            BlockChain chainB)
+            Libplanet.Blockchain chainB)
         =>
             logger.CompareBothChains(
                 logLevel,

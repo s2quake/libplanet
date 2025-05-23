@@ -1,7 +1,7 @@
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
-using Libplanet.Blockchain.Extensions;
+using Libplanet;
+using Libplanet.Extensions;
 using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -167,19 +167,19 @@ public partial class BlockChainTest
     [Fact]
     public void ValidateNextBlockInvalidStateRootHash()
     {
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var genesisBlock = TestUtils.ProposeGenesis(TestUtils.GenesisProposer).Sign(TestUtils.GenesisProposer);
         var repository = new Repository();
 
-        var chain1 = new BlockChain(genesisBlock, repository, options);
+        var chain1 = new Libplanet.Blockchain(genesisBlock, repository, options);
         var endBlockActions = new IAction[]
         {
             new SetStatesAtBlock(default, "foo", default, 0),
         }.ToImmutableArray();
-        var options2 = new BlockChainOptions
+        var options2 = new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -188,7 +188,7 @@ public partial class BlockChainTest
             BlockInterval = options.BlockInterval,
         };
         var repository2 = new Repository();
-        var chain2 = new BlockChain(genesisBlock, repository2, options2);
+        var chain2 = new Libplanet.Blockchain(genesisBlock, repository2, options2);
 
         Block block1 = new RawBlock
         {
@@ -212,7 +212,7 @@ public partial class BlockChainTest
     public void ValidateNextBlockInvalidStateRootHashBeforePostpone()
     {
         var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
-        var options1 = new BlockChainOptions
+        var options1 = new BlockchainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
@@ -225,7 +225,7 @@ public partial class BlockChainTest
             protocolVersion: beforePostponeBPV);
         var preExecution = actionEvaluator.Execute(preGenesis);
         var genesisBlock = preGenesis.Sign(TestUtils.GenesisProposer);
-        var chain1 = new BlockChain(genesisBlock, repository, options1);
+        var chain1 = new Libplanet.Blockchain(genesisBlock, repository, options1);
 
         Block block1 = new RawBlock
         {
@@ -239,7 +239,7 @@ public partial class BlockChainTest
             },
         }.Sign(TestUtils.GenesisProposer);
 
-        var options2 = new BlockChainOptions
+        var options2 = new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -249,7 +249,7 @@ public partial class BlockChainTest
             BlockInterval = options1.BlockInterval,
         };
         var repository2 = new Repository();
-        var chain2 = new BlockChain(genesisBlock, repository2, options2);
+        var chain2 = new Libplanet.Blockchain(genesisBlock, repository2, options2);
 
         Assert.Throws<InvalidOperationException>(() =>
             chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -261,7 +261,7 @@ public partial class BlockChainTest
     public void ValidateNextBlockInvalidStateRootHashOnPostpone()
     {
         var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -278,7 +278,7 @@ public partial class BlockChainTest
             protocolVersion: beforePostponeBPV);
         var rawEvaluation = actionEvaluator.Execute(rawGenesis);
         var genesisBlock = rawGenesis.Sign(TestUtils.GenesisProposer);
-        var chain = new BlockChain(genesisBlock, repository, options);
+        var chain = new Libplanet.Blockchain(genesisBlock, repository, options);
 
         RawBlock preBlock1 = new RawBlock
         {
@@ -591,7 +591,7 @@ public partial class BlockChainTest
         var validator4 = Validator.Create(privateKey4.Address, 1);
         var validatorSet = ImmutableSortedSet.Create(
             [validator1, validator2, validator3, validator4]);
-        BlockChain blockChain = TestUtils.MakeBlockChain(
+        Libplanet.Blockchain blockChain = TestUtils.MakeBlockChain(
             validatorSet: validatorSet);
         Block validNextBlock = new RawBlock
         {
@@ -680,7 +680,7 @@ public partial class BlockChainTest
     public void ValidateNextBlockOnChainRestart()
     {
         var repository = new Repository();
-        var newChain = new BlockChain(_blockChain.Genesis, repository, _blockChain.Options);
+        var newChain = new Libplanet.Blockchain(_blockChain.Genesis, repository, _blockChain.Options);
         newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
         Assert.Equal(newChain.Tip, _validNext);
     }
@@ -691,7 +691,7 @@ public partial class BlockChainTest
         var endBlockActions =
             new IAction[] { new SetStatesAtBlock(default, "foo", default, 0), }
                 .ToImmutableArray();
-        var policyWithBlockAction = new BlockChainOptions
+        var policyWithBlockAction = new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -700,7 +700,7 @@ public partial class BlockChainTest
         };
 
         var repository = new Repository();
-        var newChain = new BlockChain(_blockChain.Genesis, repository, policyWithBlockAction);
+        var newChain = new Libplanet.Blockchain(_blockChain.Genesis, repository, policyWithBlockAction);
 
         Block newValidNext = new RawBlock
         {

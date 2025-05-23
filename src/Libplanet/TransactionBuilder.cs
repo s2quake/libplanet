@@ -4,13 +4,13 @@ using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed record class TransactionBuilder
 {
     public required PrivateKey Signer { get; init; }
 
-    public required BlockChain Blockchain { get; init; }
+    public required Blockchain Blockchain { get; init; }
 
     public IAction[] Actions { get; init; } = [];
 

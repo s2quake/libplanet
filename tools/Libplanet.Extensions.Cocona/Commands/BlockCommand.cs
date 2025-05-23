@@ -3,7 +3,7 @@ using System.Text.Json;
 using global::Cocona;
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types.Blocks;
@@ -147,7 +147,7 @@ public class BlockCommand
         var actionEvaluator = new BlockExecutor(
             new StateStore(new DefaultTable()),
             policyActions);
-        Block genesis = BlockChain.ProposeGenesisBlock(
+        Block genesis = Blockchain.ProposeGenesisBlock(
             proposer: key, transactions: [.. txs]);
         using Stream stream = file == "-"
             ? Console.OpenStandardOutput()

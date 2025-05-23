@@ -1,4 +1,4 @@
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public static class BlockExtensions
 {

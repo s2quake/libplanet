@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Blocks;
 using Serilog;
 
@@ -41,7 +41,7 @@ namespace Libplanet.Net
         /// <paramref name="blockHeader"/> as its key.
         /// </para>
         /// </summary>
-        /// <param name="blockHeader">The header of the <see cref="BlockChain"/>'s
+        /// <param name="blockHeader">The header of the <see cref="Blockchain"/>'s
         /// tip at the time of downloading the blocks.</param>
         /// <param name="branch">The list of downloaded <see cref="Block"/>s and
         /// its <see cref="BlockCommit"/>s.</param>
@@ -77,7 +77,7 @@ namespace Libplanet.Net
         /// <summary>
         /// Get the <see cref="Block"/>s which are in the table by <see cref="BlockHeader"/>.
         /// </summary>
-        /// <param name="thisRoundTip">Canonical <see cref="BlockChain"/>'s
+        /// <param name="thisRoundTip">Canonical <see cref="Blockchain"/>'s
         /// tip of this round.</param>
         /// <returns>A <see cref="List{T}"/> of <see cref="Block"/>s with associated
         /// <see cref="BlockCommit"/>s by

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
@@ -377,7 +377,7 @@ namespace Libplanet.Net.Tests
             var roundChangedToOnes = Enumerable.Range(0, 4).Select(i =>
                 new AsyncAutoResetEvent()).ToList();
             var roundOneProposed = new AsyncAutoResetEvent();
-            var policy = new BlockChainOptions();
+            var policy = new BlockchainOptions();
             var genesis = new MemoryStoreFixture(policy).GenesisBlock;
 
             var consensusPeers = Enumerable.Range(0, 4).Select(i =>
@@ -492,7 +492,7 @@ namespace Libplanet.Net.Tests
             Swarm swarmB =
                 await CreateSwarm(genesis: genesis);
 
-            BlockChain chainA = swarmA.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
 
             Block block1 = chainA.ProposeBlock(keyA);
             chainA.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -540,8 +540,8 @@ namespace Libplanet.Net.Tests
             Swarm swarmB =
                 await CreateSwarm(keyB, genesis: genesis);
 
-            BlockChain chainA = swarmA.BlockChain;
-            BlockChain chainB = swarmB.BlockChain;
+            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
 
             Block block1 = chainA.ProposeBlock(keyA);
             chainA.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -596,7 +596,7 @@ namespace Libplanet.Net.Tests
             Block genesis = swarmA.BlockChain.Genesis;
             Swarm swarmB =
                 await CreateSwarm(keyB, genesis: genesis);
-            BlockChain chainB = swarmB.BlockChain;
+            Blockchain chainB = swarmB.BlockChain;
 
             var txKey = new PrivateKey();
             Transaction tx = new TransactionMetadata
@@ -637,7 +637,7 @@ namespace Libplanet.Net.Tests
         public async Task ThrowArgumentExceptionInConstructor()
         {
             var fx = new MemoryStoreFixture();
-            var policy = new BlockChainOptions();
+            var policy = new BlockchainOptions();
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
             var apv = AppProtocolVersion.Sign(key, 1);
@@ -830,7 +830,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task CannotBlockSyncWithForkedChain()
         {
-            var policy = new BlockChainOptions();
+            var policy = new BlockchainOptions();
             var chain1 = MakeBlockChain(policy);
             var chain2 = MakeBlockChain(policy);
 
@@ -897,7 +897,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            var policy = new BlockChainOptions
+            var policy = new BlockchainOptions
             {
                 TransactionOptions = new TransactionOptions
                 {
@@ -970,7 +970,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            var policy = new BlockChainOptions
+            var policy = new BlockchainOptions
             {
                 TransactionOptions = new TransactionOptions
                 {
@@ -1039,18 +1039,18 @@ namespace Libplanet.Net.Tests
             var actionsB = new[] { DumbAction.Create((signerAddress, "2")) };
 
             var genesisChainA = MakeBlockChain(
-                new BlockChainOptions(),
+                new BlockchainOptions(),
                 actionsA,
                 null,
                 privateKeyA);
             var genesisBlockA = genesisChainA.Genesis;
             var genesisChainB = MakeBlockChain(
-                new BlockChainOptions(),
+                new BlockchainOptions(),
                 actionsB,
                 null,
                 privateKeyB);
             var genesisChainC = MakeBlockChain(
-                new BlockChainOptions(),
+                new BlockchainOptions(),
                 genesisBlock: genesisBlockA);
 
             var swarmA =
@@ -1253,7 +1253,7 @@ namespace Libplanet.Net.Tests
 
             receiver.FindNextHashesChunkSize = 8;
             sender.FindNextHashesChunkSize = 8;
-            BlockChain chain = sender.BlockChain;
+            Blockchain chain = sender.BlockChain;
 
             for (int i = 0; i < 6; i++)
             {
@@ -1292,7 +1292,7 @@ namespace Libplanet.Net.Tests
 
             receiver.FindNextHashesChunkSize = 2;
             sender.FindNextHashesChunkSize = 2;
-            BlockChain chain = sender.BlockChain;
+            Blockchain chain = sender.BlockChain;
 
             for (int i = 0; i < 6; i++)
             {
@@ -1332,7 +1332,7 @@ namespace Libplanet.Net.Tests
 
             receiver.FindNextHashesChunkSize = 3;
             sender.FindNextHashesChunkSize = 3;
-            BlockChain chain = sender.BlockChain;
+            Blockchain chain = sender.BlockChain;
 
             for (int i = 0; i < 6; i++)
             {

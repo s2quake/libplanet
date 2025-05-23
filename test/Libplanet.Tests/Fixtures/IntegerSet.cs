@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
@@ -20,7 +20,7 @@ public sealed class IntegerSet
     public readonly ImmutableSortedSet<Transaction> Txs;
     public readonly PrivateKey Proposer;
     public readonly Block Genesis;
-    public readonly BlockChain Chain;
+    public readonly Libplanet.Blockchain Chain;
     public readonly Repository Repository;
 
     public IntegerSet(int[] initialStates)
@@ -30,7 +30,7 @@ public sealed class IntegerSet
 
     public IntegerSet(
         BigInteger[] initialStates,
-        BlockChainOptions? policy = null)
+        BlockchainOptions? policy = null)
     {
         PrivateKeys = initialStates.Select(_ => new PrivateKey()).ToImmutableArray();
         Addresses = PrivateKeys.Select(key => key.Address).ToImmutableArray();
@@ -51,19 +51,19 @@ public sealed class IntegerSet
             .OrderBy(tx => tx.Id)
             .ToImmutableSortedSet();
         Proposer = new PrivateKey();
-        policy ??= new BlockChainOptions();
+        policy ??= new BlockchainOptions();
         Genesis = TestUtils.ProposeGenesis(
                 Proposer,
                 transactions: Txs,
                 timestamp: DateTimeOffset.UtcNow,
                 protocolVersion: BlockHeader.CurrentProtocolVersion).Sign(Proposer);
         Repository = new Repository(new MemoryDatabase());
-        Chain = new BlockChain(Genesis, Repository, policy);
+        Chain = new Libplanet.Blockchain(Genesis, Repository, policy);
     }
 
     public int Count => Addresses.Count;
 
-    public BlockChainOptions Policy => Chain.Options;
+    public BlockchainOptions Policy => Chain.Options;
 
     public Block Tip => Chain.Tip;
 

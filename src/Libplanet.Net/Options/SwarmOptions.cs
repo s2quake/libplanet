@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
@@ -55,7 +55,7 @@ namespace Libplanet.Net.Options
         /// to its peers.
         /// </summary>
         /// <remarks>
-        /// Broadcasts are also made whenever <see cref="BlockChain.Tip"/> changes in addition
+        /// Broadcasts are also made whenever <see cref="Blockchain.Tip"/> changes in addition
         /// to regular broadcasts determined by this option.
         /// </remarks>
         public TimeSpan BlockBroadcastInterval { get; set; }
@@ -90,7 +90,7 @@ namespace Libplanet.Net.Options
         public int MaximumPollPeers { get; set; } = int.MaxValue;
 
         /// <summary>
-        /// The lifespan of the <see cref="BlockChain.Tip"/>.  When the tip has not been updated
+        /// The lifespan of the <see cref="Blockchain.Tip"/>.  When the tip has not been updated
         /// for the configured lifespan, <see cref="Swarm"/> pulls new blocks from neighbor
         /// peers.
         /// </summary>

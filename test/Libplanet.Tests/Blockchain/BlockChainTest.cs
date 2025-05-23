@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
@@ -21,8 +21,8 @@ public partial class BlockChainTest : IDisposable
 {
     private readonly ILogger _logger;
     private readonly StoreFixture _fx;
-    private readonly BlockChainOptions _options;
-    private BlockChain _blockChain;
+    private readonly BlockchainOptions _options;
+    private Libplanet.Blockchain _blockChain;
     private readonly Block _validNext;
     private readonly StagedTransactionCollection _stagePolicy;
 
@@ -35,7 +35,7 @@ public partial class BlockChainTest : IDisposable
             .CreateLogger()
             .ForContext<BlockChainTest>();
 
-        _options = new BlockChainOptions
+        _options = new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -48,7 +48,7 @@ public partial class BlockChainTest : IDisposable
         };
 
         _fx = GetStoreFixture(_options);
-        _blockChain = new BlockChain(_fx.GenesisBlock, _fx.Repository, _options);
+        _blockChain = new Libplanet.Blockchain(_fx.GenesisBlock, _fx.Repository, _options);
         _stagePolicy = _blockChain.StagedTransactions;
 
         _validNext = new RawBlock
@@ -72,7 +72,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void BaseTest()
     {
-        var blockChain = new BlockChain();
+        var blockChain = new Libplanet.Blockchain();
         Assert.NotEqual(Guid.Empty, blockChain.Id);
         Assert.Empty(blockChain.Blocks);
         Assert.Empty(blockChain.BlockCommits);
@@ -91,8 +91,8 @@ public partial class BlockChainTest : IDisposable
     public void BaseTest_WithGenesis()
     {
         var proposer = new PrivateKey();
-        var genesisBlock = BlockChain.ProposeGenesisBlock(proposer, transactions: []);
-        var blockChain = new BlockChain(genesisBlock);
+        var genesisBlock = Libplanet.Blockchain.ProposeGenesisBlock(proposer, transactions: []);
+        var blockChain = new Libplanet.Blockchain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockChain.Id);
         Assert.Single(blockChain.Blocks);
         Assert.Single(blockChain.BlockCommits);
@@ -115,8 +115,8 @@ public partial class BlockChainTest : IDisposable
         {
             Validators = [new Validator { Address = proposer.Address }],
         };
-        var genesisBlock = BlockChain.ProposeGenesisBlock(proposer, [action]);
-        var blockChain = new BlockChain(genesisBlock);
+        var genesisBlock = Libplanet.Blockchain.ProposeGenesisBlock(proposer, [action]);
+        var blockChain = new Libplanet.Blockchain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockChain.Id);
         Assert.Single(blockChain.Blocks);
         Assert.Single(blockChain.BlockCommits);
@@ -224,10 +224,10 @@ public partial class BlockChainTest : IDisposable
             }.Sign(GenesisProposer))
             .OrderBy(tx => tx.Id)
             .ToImmutableList();
-        var genesis = BlockChain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
+        var genesis = Libplanet.Blockchain.ProposeGenesisBlock(GenesisProposer, transactions: [.. txs]);
         var repository = new Repository();
-        var options = new BlockChainOptions();
-        var chain = new BlockChain(genesis, repository, options);
+        var options = new BlockchainOptions();
+        var chain = new Libplanet.Blockchain(genesis, repository, options);
         Block genesisBlock = chain.Genesis;
 
         IAction[] actions1 =
@@ -328,7 +328,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void ActionRenderersHaveDistinctContexts()
     {
-        var options = new BlockChainOptions();
+        var options = new BlockchainOptions();
         var generatedRandomValueLogs = new List<int>();
         var blockChain = MakeBlockChain(options);
         var privateKey = new PrivateKey();
@@ -355,7 +355,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void RenderActionsAfterBlockIsRendered()
     {
-        var options = new BlockChainOptions();
+        var options = new BlockchainOptions();
         var blockChain = MakeBlockChain(options);
         var privateKey = new PrivateKey();
 
@@ -388,7 +388,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void RenderActionsAfterAppendComplete()
     {
-        var policy = new BlockChainOptions();
+        var policy = new BlockchainOptions();
         var store = new Libplanet.Data.Repository(new MemoryDatabase());
         var stateStore = new StateStore();
 
@@ -405,7 +405,7 @@ public partial class BlockChainTest : IDisposable
         //     },
         // };
         // renderer = new LoggedActionRenderer(renderer, Log.Logger);
-        BlockChain blockChain = MakeBlockChain(policy);
+        Libplanet.Blockchain blockChain = MakeBlockChain(policy);
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));
@@ -544,7 +544,7 @@ public partial class BlockChainTest : IDisposable
     public void GetStatesOnCreatingBlockChain()
     {
         bool invoked = false;
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             BlockOptions = new BlockOptions
             {
@@ -568,7 +568,7 @@ public partial class BlockChainTest : IDisposable
                 }.Sign(txKey),
             ]);
         Block genesisWithTx = genesisRawBlock.Sign(GenesisProposer);
-        var chain = new BlockChain(genesisWithTx, repository, options);
+        var chain = new Libplanet.Blockchain(genesisWithTx, repository, options);
         Assert.False(invoked);
     }
 
@@ -577,9 +577,9 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void GetStateOnlyDrillsDownUntilRequestedAddressesAreFound()
     {
-        var options = new BlockChainOptions();
+        var options = new BlockchainOptions();
         var repository = new Repository();
-        var chain = new BlockChain(_fx.GenesisBlock, repository, options);
+        var chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
 
         Block b = chain.Genesis;
         Address[] addresses = new Address[30];
@@ -630,9 +630,9 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void GetStateReturnsEarlyForNonexistentAccount()
     {
-        var options = new BlockChainOptions();
+        var options = new BlockchainOptions();
         var repository = new Repository();
-        var chain = new BlockChain(_fx.GenesisBlock, repository, options);
+        var chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
         {
@@ -660,9 +660,9 @@ public partial class BlockChainTest : IDisposable
     {
         var privateKeys = Enumerable.Range(1, 10).Select(_ => new PrivateKey()).ToList();
         var addresses = privateKeys.Select(key => key.Address).ToList();
-        var options = new BlockChainOptions();
+        var options = new BlockchainOptions();
         var repository = new Repository();
-        var chain = new BlockChain(_fx.GenesisBlock, repository, options);
+        var chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
 
         Assert.All(
             addresses.Select(
@@ -756,9 +756,9 @@ public partial class BlockChainTest : IDisposable
         using var forkFx = new MemoryStoreFixture(_options);
 
         var emptyRepository = new Repository();
-        var emptyChain = new BlockChain(emptyFx.GenesisBlock, emptyRepository, _blockChain.Options);
+        var emptyChain = new Libplanet.Blockchain(emptyFx.GenesisBlock, emptyRepository, _blockChain.Options);
         var forkRepository = new Repository();
-        var forkChain = new BlockChain(forkFx.GenesisBlock, forkRepository, _blockChain.Options);
+        var forkChain = new Libplanet.Blockchain(forkFx.GenesisBlock, forkRepository, _blockChain.Options);
         forkChain.Append(b1, CreateBlockCommit(b1));
         forkChain.Append(b2, CreateBlockCommit(b2));
         Block b5 = forkChain.ProposeBlock(key);
@@ -1088,7 +1088,7 @@ public partial class BlockChainTest : IDisposable
     /// </summary>
     /// <param name="policyActions">The policy block actions to use.</param>
     /// <returns>The store fixture that every test in this class depends on.</returns>
-    protected virtual StoreFixture GetStoreFixture(BlockChainOptions? options = null)
+    protected virtual StoreFixture GetStoreFixture(BlockchainOptions? options = null)
         => new MemoryStoreFixture(options ?? new());
 
     private (Address[], Transaction[]) MakeFixturesForAppendTests(
@@ -1209,10 +1209,10 @@ public partial class BlockChainTest : IDisposable
                 MaxGasPrice = default,
             }.Sign(proposerKey),
         };
-        var genesisBlock = BlockChain.ProposeGenesisBlock(
+        var genesisBlock = Libplanet.Blockchain.ProposeGenesisBlock(
             proposer: proposerKey,
             transactions: [.. systemTxs.Concat(customTxs)]);
-        var blockChain = new BlockChain(genesisBlock, fx.Repository, fx.Options);
+        var blockChain = new Libplanet.Blockchain(genesisBlock, fx.Repository, fx.Options);
 
         var validator = blockChain
             .GetWorld()
@@ -1235,9 +1235,9 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void ConstructWithUnexpectedGenesisBlock()
     {
-        var options = new BlockChainOptions();
+        var options = new BlockchainOptions();
         var repository = new Repository();
-        Assert.Throws<InvalidOperationException>(() => new BlockChain(repository, options));
+        Assert.Throws<InvalidOperationException>(() => new Libplanet.Blockchain(repository, options));
     }
 
     [Fact]
@@ -1281,7 +1281,7 @@ public partial class BlockChainTest : IDisposable
         //             .GetValue(default);
         //         // ReSharper restore AccessToModifiedClosure
         //     });
-        var options = new BlockChainOptions();
+        var options = new BlockchainOptions();
         var repository = new Repository();
         var genesisTxKey = new PrivateKey();
         var genesisTx = new TransactionMetadata
@@ -1291,7 +1291,7 @@ public partial class BlockChainTest : IDisposable
         }.Sign(genesisTxKey);
         var genesisWithTx = ProposeGenesis(GenesisProposer, transactions: [genesisTx]).Sign(GenesisProposer);
 
-        var chain = new BlockChain(genesisWithTx, repository, options);
+        var chain = new Libplanet.Blockchain(genesisWithTx, repository, options);
 
         var bockTxKey = new PrivateKey();
         var blockTx = new TransactionMetadata
@@ -1348,10 +1348,10 @@ public partial class BlockChainTest : IDisposable
             }.Sign(privateKey))
             .ToImmutableList();
 
-        Block genesis = BlockChain.ProposeGenesisBlock(
+        Block genesis = Libplanet.Blockchain.ProposeGenesisBlock(
             proposer: privateKey,
             transactions: [.. txs]);
-        var blockChain = new BlockChain(genesis, repository, options);
+        var blockChain = new Libplanet.Blockchain(genesis, repository, options);
 
         blockChain.StagedTransactions.Add(submission: new()
         {

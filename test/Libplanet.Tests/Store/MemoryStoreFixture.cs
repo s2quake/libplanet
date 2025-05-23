@@ -1,13 +1,13 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Data;
 
 namespace Libplanet.Tests.Store;
 
-public sealed class MemoryStoreFixture(BlockChainOptions options)
+public sealed class MemoryStoreFixture(BlockchainOptions options)
     : StoreFixture(new Repository(new MemoryDatabase()), options)
 {
     public MemoryStoreFixture()
-        : this(new BlockChainOptions())
+        : this(new BlockchainOptions())
     {
     }
 

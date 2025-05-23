@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
@@ -37,7 +37,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var consensusReactors = new ConsensusReactor[4];
             var stores = new Libplanet.Data.Repository[4];
-            var blockChains = new BlockChain[4];
+            var blockChains = new Blockchain[4];
             var fx = new MemoryStoreFixture();
             var validatorPeers = new List<BoundPeer>();
             var cancellationTokenSource = new CancellationTokenSource();
@@ -52,7 +52,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                 };
                 var repository = new Repository();
-                blockChains[i] = new BlockChain(fx.GenesisBlock, repository, TestUtils.Options);
+                blockChains[i] = new Blockchain(fx.GenesisBlock, repository, TestUtils.Options);
             }
 
             for (var i = 0; i < 4; i++)

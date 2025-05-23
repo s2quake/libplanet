@@ -1,7 +1,7 @@
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain.Extensions;
+namespace Libplanet.Extensions;
 
 public static class BlockCommitExtensions
 {

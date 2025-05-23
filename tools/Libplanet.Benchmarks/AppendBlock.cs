@@ -10,7 +10,7 @@ namespace Libplanet.Benchmarks
 {
     public class AppendBlock
     {
-        private readonly Libplanet.Blockchain.BlockChain _blockChain;
+        private readonly Libplanet.Blockchain _blockChain;
         private readonly PrivateKey _privateKey;
         private BlockCommit _lastCommit;
         private Block _block;
@@ -20,7 +20,7 @@ namespace Libplanet.Benchmarks
         {
             var fx = new MemoryStoreFixture();
             var repository = new Repository();
-            _blockChain = new Blockchain.BlockChain(fx.GenesisBlock, repository, fx.Options);
+            _blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, fx.Options);
             _privateKey = new PrivateKey();
         }
 

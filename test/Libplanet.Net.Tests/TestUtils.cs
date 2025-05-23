@@ -2,7 +2,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
@@ -37,7 +37,7 @@ namespace Libplanet.Net.Tests
         public static readonly ImmutableSortedSet<Validator> Validators
             = Libplanet.Tests.TestUtils.Validators;
 
-        public static readonly BlockChainOptions Options = new()
+        public static readonly BlockchainOptions Options = new()
         {
             PolicyActions = new SystemActions
             {
@@ -87,8 +87,8 @@ namespace Libplanet.Net.Tests
             return privateKey;
         }
 
-        public static BlockChain CreateDummyBlockChain(
-            BlockChainOptions? policy = null,
+        public static Blockchain CreateDummyBlockChain(
+            BlockchainOptions? policy = null,
             Block? genesisBlock = null)
         {
             policy ??= Options;
@@ -245,10 +245,10 @@ namespace Libplanet.Net.Tests
             }
         }
 
-        public static (BlockChain BlockChain, ConsensusContext ConsensusContext)
+        public static (Blockchain BlockChain, ConsensusContext ConsensusContext)
             CreateDummyConsensusContext(
                 TimeSpan newHeightDelay,
-                BlockChainOptions? policy = null,
+                BlockchainOptions? policy = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null)
         {
@@ -276,7 +276,7 @@ namespace Libplanet.Net.Tests
         }
 
         public static Context CreateDummyContext(
-            BlockChain blockChain,
+            Blockchain blockChain,
             int height = 1,
             BlockCommit? lastCommit = null,
             PrivateKey? privateKey = null,
@@ -298,11 +298,11 @@ namespace Libplanet.Net.Tests
             return context;
         }
 
-        public static (BlockChain BlockChain, Context Context)
+        public static (Blockchain BlockChain, Context Context)
             CreateDummyContext(
                 int height = 1,
                 BlockCommit? lastCommit = null,
-                BlockChainOptions? policy = null,
+                BlockchainOptions? policy = null,
                 PrivateKey? privateKey = null,
                 ContextOption? contextOption = null,
                 ImmutableSortedSet<Validator>? validatorSet = null)
@@ -327,7 +327,7 @@ namespace Libplanet.Net.Tests
         }
 
         public static ConsensusReactor CreateDummyConsensusReactor(
-            BlockChain blockChain,
+            Blockchain blockChain,
             PrivateKey? key = null,
             string host = "127.0.0.1",
             int consensusPort = 5101,

@@ -2,7 +2,7 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
@@ -18,7 +18,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task DuplicateVote_Test()
         {
-            var policy = new BlockChainOptions();
+            var policy = new BlockchainOptions();
             var genesisBlock = new MemoryStoreFixture(policy).GenesisBlock;
             var genesisProposer = Libplanet.Tests.TestUtils.GenesisProposer;
             var privateKeys = Libplanet.Tests.TestUtils.ValidatorPrivateKeys.ToArray();
@@ -89,7 +89,7 @@ namespace Libplanet.Net.Tests
 
                 var waitTasks2 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
                 await Task.WhenAll(waitTasks2);
-                foreach (BlockChain blockChain in blockChains)
+                foreach (Blockchain blockChain in blockChains)
                 {
                     Assert.Equal(i + 1, blockChain.Blocks.Count);
                 }
@@ -136,7 +136,7 @@ namespace Libplanet.Net.Tests
         }
 
         private static async Task WaitUntilBlockIndexAsync(
-            BlockChain blockChain,
+            Blockchain blockChain,
             long index)
         {
             if (blockChain.Tip.Height < index)

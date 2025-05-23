@@ -1,8 +1,8 @@
-using Libplanet.Blockchain;
+using Libplanet;
 
 namespace Libplanet.Node.Services;
 
 public interface IBlockChainService
 {
-    BlockChain BlockChain { get; }
+    Blockchain BlockChain { get; }
 }

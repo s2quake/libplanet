@@ -3,7 +3,7 @@
 // using Libplanet.State;
 // using Libplanet.State.Sys;
 // using Libplanet.State.Tests.Common;
-// using Libplanet.Blockchain;
+// using Libplanet;
 // using Libplanet.Serialization;
 // using Libplanet.Data;
 // using Libplanet.Tests.Store;

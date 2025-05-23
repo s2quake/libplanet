@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Node.Options;
 using Libplanet.Types.Crypto;
 using Microsoft.Extensions.Hosting;
@@ -9,7 +9,7 @@ namespace Libplanet.Node.Services;
 
 internal sealed class SoloProposeService : BackgroundService
 {
-    private readonly BlockChain _blockChain;
+    private readonly Blockchain _blockChain;
     private readonly PrivateKey _privateKey;
     private readonly TimeSpan _blockInterval;
     private readonly ILogger<SoloProposeService> _logger;

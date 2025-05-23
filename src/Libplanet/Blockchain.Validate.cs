@@ -2,9 +2,9 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
-public partial class BlockChain
+public partial class Blockchain
 {
     internal static Dictionary<Address, long> ValidateGenesisNonces(Block block)
     {

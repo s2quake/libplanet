@@ -1,6 +1,6 @@
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
@@ -104,20 +104,20 @@ public partial class BlockChainTest
         var options = fx.Options;
         var repository = fx.Repository;
         var genesisKey = new PrivateKey();
-        var genesis = BlockChain.ProposeGenesisBlock(
+        var genesis = Libplanet.Blockchain.ProposeGenesisBlock(
             proposer: genesisKey,
             transactions: [
                 new TransactionMetadata
                 {
                     Nonce = 5, // Invalid nonce,
                     Signer = genesisKey.Address,
-                    Actions = new[]
+                    Actions = (new[]
                     {
                         DumbAction.Create((new PrivateKey().Address, "foo")),
-                    }.ToBytecodes(),
+                    }).ToBytecodes(),
                 }.Sign(genesisKey),
             ]);
-        Assert.Throws<InvalidOperationException>(() => new BlockChain(genesis, repository, options));
+        Assert.Throws<InvalidOperationException>(() => new Libplanet.Blockchain(genesis, repository, options));
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public partial class BlockChainTest
         using var fx = new MemoryStoreFixture();
         var options = fx.Options;
         var repository = new Repository();
-        var blockChain = new BlockChain(fx.GenesisBlock, repository, options);
+        var blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, options);
         var txKey = new PrivateKey();
         var tx = new TransactionMetadata
         {
@@ -338,7 +338,7 @@ public partial class BlockChainTest
         }
 
         using var fx = new MemoryStoreFixture();
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
@@ -346,7 +346,7 @@ public partial class BlockChainTest
             },
         };
         var repository = new Repository();
-        var blockChain = new BlockChain(fx.GenesisBlock, repository, options);
+        var blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, options);
 
         var validTx = new TransactionBuilder
         {
@@ -453,7 +453,7 @@ public partial class BlockChainTest
         var privateKey2 = new PrivateKey();
         var address2 = privateKey2.Address;
 
-        var options = new BlockChainOptions
+        var options = new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -462,7 +462,7 @@ public partial class BlockChainTest
             },
         };
         var repository = new Repository();
-        var blockChain = new BlockChain(_fx.GenesisBlock, repository, options);
+        var blockChain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
 
         var tx = new TransactionBuilder
         {

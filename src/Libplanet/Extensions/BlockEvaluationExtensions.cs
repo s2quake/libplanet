@@ -2,7 +2,7 @@ using Libplanet.State;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Transactions;
 
-namespace Libplanet.Blockchain.Extensions;
+namespace Libplanet.Extensions;
 
 public static class BlockEvaluationExtensions
 {

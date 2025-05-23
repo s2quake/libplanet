@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using global::Cocona;
 using Libplanet.State;
-using Libplanet.Blockchain;
+using Libplanet;
 
 namespace Libplanet.Extensions.Cocona;
 
@@ -34,7 +34,7 @@ public class BlockPolicyParams : ICommandParameterSet
     [Option(
         'F',
         Description = "The qualified name of the factory method to instantiate a " +
-            nameof(BlockChainOptions) + "<T>.  The factory method must be static and " +
+            nameof(BlockchainOptions) + "<T>.  The factory method must be static and " +
             "has no parameters.  An assembly that the factory method and " +
             "the policy type belong to has to be loaded using -A/--load-assembly option.")]
     [HasDefaultValue]
@@ -106,11 +106,11 @@ public class BlockPolicyParams : ICommandParameterSet
                 }
 
                 Type returnType = method.ReturnType;
-                if (!typeof(BlockChainOptions).IsAssignableFrom(returnType))
+                if (!typeof(BlockchainOptions).IsAssignableFrom(returnType))
                 {
                     throw new TypeLoadException(
                         $"The return type of {PolicyFactory}() must be " +
-                        $"{nameof(BlockChainOptions)}.");
+                        $"{nameof(BlockchainOptions)}.");
                 }
 
                 return method.Invoke(null, Array.Empty<object>()) ??
@@ -134,12 +134,12 @@ public class BlockPolicyParams : ICommandParameterSet
 
         PropertyInfo? propertyInfo = policy
             .GetType()
-            .GetProperty(nameof(BlockChainOptions.PolicyActions));
+            .GetProperty(nameof(BlockchainOptions.PolicyActions));
         if (propertyInfo is null)
         {
             var message = $"The policy type "
                 + $"'{policy.GetType().FullName}' does not have a "
-                + $"'{nameof(BlockChainOptions.PolicyActions)}' property.";
+                + $"'{nameof(BlockchainOptions.PolicyActions)}' property.";
             throw new InvalidOperationException(message);
         }
 
@@ -147,7 +147,7 @@ public class BlockPolicyParams : ICommandParameterSet
         if (value is null)
         {
             var message = $"The value of property "
-                + $"'{nameof(BlockChainOptions.PolicyActions)}' of type "
+                + $"'{nameof(BlockchainOptions.PolicyActions)}' of type "
                 + $"'{policy.GetType().FullName}' cannot be null.";
             throw new InvalidOperationException(message);
         }

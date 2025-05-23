@@ -144,7 +144,7 @@ In order to share an Action, Libplanet uses 2 concepts internally: **Block** and
 BlockChain
 ----------
 
-To manage these Blocks, Libplanet offers a class called @"Libplanet.Blockchain.BlockChain`1". This class allows game developers to:
+To manage these Blocks, Libplanet offers a class called @"Libplanet.BlockChain`1". This class allows game developers to:
 
 - Create and register Transactions that contain desired Actions.
 - Mine Blocks with registered Transactions.
@@ -155,7 +155,7 @@ Rendering
 ---------
 
 One way for game developers to reflect the State of the game is by using
-@"Libplanet.Blockchain.BlockChain`1.GetState(Libplanet.Address,System.Nullable{Libplanet.HashDigest{SHA256}},Libplanet.Blockchain.StateCompleter{`0})".
+@"Libplanet.BlockChain`1.GetState(Libplanet.Address,System.Nullable{Libplanet.HashDigest{SHA256}},Libplanet.StateCompleter{`0})".
 
 ```csharp
 public class Game : MonoBehaviour
@@ -175,7 +175,7 @@ public class Game : MonoBehaviour
 }
 ```
 
-State transition occurs after a Block containing an Action is added and confirmed to the chain. The code above is suboptimal because you are polling the @"Libplanet.Blockchain.BlockChain`1" object to see if a specific Action has been reflected.
+State transition occurs after a Block containing an Action is added and confirmed to the chain. The code above is suboptimal because you are polling the @"Libplanet.BlockChain`1" object to see if a specific Action has been reflected.
 
 ```csharp
 public class Game : MonoBehaviour
@@ -205,13 +205,13 @@ Although this method works, there are still some problems because reflecting the
 - If multiple actions were executed in a short period of time, they would not be handled accurately.
 
 Libplanet provides a rendering mechanism called
-@"Libplanet.Blockchain.Renderers.IRenderer`1" and its subtype
-@"Libplanet.Blockchain.Renderers.IActionRenderer`1" to solve this problem.
-@"Libplanet.Blockchain.Renderers.IActionRenderer`1.RenderAction(Libplanet.State.IAction,Libplanet.State.IActionContext,Libplanet.State.IAccountStateDelta)"
+@"Libplanet.Renderers.IRenderer`1" and its subtype
+@"Libplanet.Renderers.IActionRenderer`1" to solve this problem.
+@"Libplanet.Renderers.IActionRenderer`1.RenderAction(Libplanet.State.IAction,Libplanet.State.IActionContext,Libplanet.State.IAccountStateDelta)"
 is called after a @"Libplanet.Blocks.Block`1" with the corresponding
 @"Libplanet.State.IAction"s is confirmed and the state is transitioned.
 The following code has been re-implemented using
-@"Libplanet.Blockchain.Renderers.IActionRenderer`1.RenderAction(Libplanet.State.IAction,Libplanet.State.IActionContext,Libplanet.State.IAccountStateDelta)".
+@"Libplanet.Renderers.IActionRenderer`1.RenderAction(Libplanet.State.IAction,Libplanet.State.IActionContext,Libplanet.State.IAccountStateDelta)".
 
 ```csharp
 public class WinRenderer : IActionRenderer<Win>

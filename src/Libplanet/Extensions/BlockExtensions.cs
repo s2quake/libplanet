@@ -1,15 +1,15 @@
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain.Extensions;
+namespace Libplanet.Extensions;
 
 public static class BlockExtensions
 {
-    public static void Validate(this Block @this, BlockChain blockChain)
+    public static void Validate(this Block @this, Blockchain blockChain)
     {
         var items = new Dictionary<object, object?>
         {
-            { typeof(BlockChain), blockChain }
+            { typeof(Blockchain), blockChain }
         };
 
         ValidationUtility.Validate(@this, items);

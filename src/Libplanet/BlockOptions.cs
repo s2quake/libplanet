@@ -1,7 +1,7 @@
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed record class BlockOptions
 {

@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data;
 using Libplanet.Types.Transactions;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed class TxExecutionCollection(Repository repository)
     : IReadOnlyDictionary<TxId, TxExecution>

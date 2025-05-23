@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Evidence;
 
 namespace Libplanet.Net.Consensus
@@ -6,7 +6,7 @@ namespace Libplanet.Net.Consensus
     /// <summary>
     /// Collects <see cref="EvidenceException"/>s to be occurred during the consensus process.
     /// <para>The collected exceptions are added to the Pending pool using the
-    /// <see cref="BlockChain.AddEvidence" /> method after the blockchain's tip changes.</para>
+    /// <see cref="Blockchain.AddEvidence" /> method after the blockchain's tip changes.</para>
     /// </summary>
     internal sealed class EvidenceExceptionCollector
     {

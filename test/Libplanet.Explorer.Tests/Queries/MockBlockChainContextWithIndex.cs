@@ -1,14 +1,14 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Explorer.Indexing;
 
 namespace Libplanet.Explorer.Tests.Queries;
 
 public class MockBlockChainContextWithIndex : MockBlockChainContext
 {
-    public MockBlockChainContextWithIndex(BlockChain chain)
+    public MockBlockChainContextWithIndex(Blockchain chain)
         : base(chain)
     {
         var indexPath = Path.GetTempFileName();

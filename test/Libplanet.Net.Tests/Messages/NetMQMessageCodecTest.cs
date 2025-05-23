@@ -1,5 +1,5 @@
 using System.Net;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
@@ -71,7 +71,7 @@ namespace Libplanet.Net.Tests.Messages
         {
             var privateKey = new PrivateKey();
             var boundPeer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("127.0.0.1", 1000));
-            BlockChain chain = MakeBlockChain();
+            Blockchain chain = MakeBlockChain();
             Block genesis = chain.Genesis;
             var transaction = chain.StagedTransactions.Add(new TransactionSubmission
             {

@@ -1,4 +1,4 @@
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed record class EvidenceOptions
 {

@@ -1,7 +1,7 @@
 // using System.Security.Cryptography;
 // using GraphQL;
 // using GraphQL.Types;
-// using Libplanet.Blockchain;
+// using Libplanet;
 // using Libplanet.Explorer.GraphTypes;
 // using Libplanet.Types;
 

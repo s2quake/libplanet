@@ -1,4 +1,4 @@
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Tests.Blockchain;
 using Libplanet.Tests.Store;
 using Xunit.Abstractions;
@@ -12,7 +12,7 @@ public class RocksDBStoreBlockChainTest : BlockChainTest
     {
     }
 
-    protected override StoreFixture GetStoreFixture(BlockChainOptions? options = null)
+    protected override StoreFixture GetStoreFixture(BlockchainOptions? options = null)
     {
         try
         {

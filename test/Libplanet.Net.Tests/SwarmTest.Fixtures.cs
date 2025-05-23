@@ -2,7 +2,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
@@ -27,7 +27,7 @@ namespace Libplanet.Net.Tests
 
             if (blocks is null)
             {
-                var policy = new BlockChainOptions
+                var policy = new BlockchainOptions
                 {
                     PolicyActions = new SystemActions
                     {
@@ -79,7 +79,7 @@ namespace Libplanet.Net.Tests
             AppProtocolVersionOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
-            BlockChainOptions? policy = null,
+            BlockchainOptions? policy = null,
             Block? genesis = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
@@ -106,11 +106,11 @@ namespace Libplanet.Net.Tests
             AppProtocolVersionOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
-            BlockChainOptions? policy = null,
+            BlockchainOptions? policy = null,
             Block? genesis = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
-            policy ??= new BlockChainOptions
+            policy ??= new BlockchainOptions
             {
                 PolicyActions = new SystemActions
                 {
@@ -132,7 +132,7 @@ namespace Libplanet.Net.Tests
         }
 
         private async Task<Swarm> CreateSwarm(
-            BlockChain blockChain,
+            Blockchain blockChain,
             PrivateKey? privateKey = null,
             AppProtocolVersionOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,

@@ -1,6 +1,6 @@
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet.Blockchain;
+using Libplanet;
 
 namespace Libplanet.Extensions.Cocona.Tests;
 
@@ -25,7 +25,7 @@ public class BlockPolicyParamsTest
         {
             PolicyFactory = $"{GetType().FullName}.{nameof(BlockPolicyFactory)}",
         };
-        BlockChainOptions blockPolicy = Assert.IsType<BlockChainOptions>(
+        BlockchainOptions blockPolicy = Assert.IsType<BlockchainOptions>(
             blockPolicyParams.GetBlockPolicy(new[] { GetType().Assembly }));
         Assert.Single(blockPolicy.PolicyActions.BeginBlockActions);
         Assert.IsType<NullAction>(blockPolicy.PolicyActions.BeginBlockActions[0]);
@@ -145,8 +145,8 @@ public class BlockPolicyParamsTest
         Assert.IsType<NullAction>(Assert.Single(policyActions.EndTxActions));
     }
 
-    internal static BlockChainOptions BlockPolicyFactory() =>
-        new BlockChainOptions
+    internal static BlockchainOptions BlockPolicyFactory() =>
+        new BlockchainOptions
         {
             PolicyActions = new SystemActions
             {
@@ -157,12 +157,12 @@ public class BlockPolicyParamsTest
             },
         };
 
-    internal static BlockChainOptions BlockPolicyFactoryWithParams(bool param) =>
-        new BlockChainOptions();
+    internal static BlockchainOptions BlockPolicyFactoryWithParams(bool param) =>
+        new BlockchainOptions();
 
     internal static int BlockPolicyFactoryWithWrongReturnType() => 0;
 
-    internal static BlockChainOptions BlockPolicyFactoryReturningNull() => null!;
+    internal static BlockchainOptions BlockPolicyFactoryReturningNull() => null!;
 
-    internal BlockChainOptions BlockPolicyFactoryInstanceMethod() => new BlockChainOptions();
+    internal BlockchainOptions BlockPolicyFactoryInstanceMethod() => new BlockchainOptions();
 }

@@ -1,6 +1,6 @@
 using Libplanet.Types.Transactions;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
 public sealed record class TransactionOptions
 {

@@ -1,7 +1,7 @@
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using Libplanet.State;
-using Libplanet.Blockchain.Extensions;
+using Libplanet.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
@@ -10,9 +10,9 @@ using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.Blockchain;
+namespace Libplanet;
 
-public partial class BlockChain
+public partial class Blockchain
 {
     private readonly Subject<RenderBlockInfo> _blockEvaluating = new();
     private readonly Subject<RenderBlockInfo> _blockEvaluated = new();
@@ -20,27 +20,27 @@ public partial class BlockChain
     private readonly Repository _repository;
     private readonly BlockExecutor _actionEvaluator;
 
-    public BlockChain()
-        : this(new Repository(), BlockChainOptions.Empty)
+    public Blockchain()
+        : this(new Repository(), BlockchainOptions.Empty)
     {
     }
 
-    public BlockChain(BlockChainOptions options)
+    public Blockchain(BlockchainOptions options)
         : this(new Repository(), options)
     {
     }
 
-    public BlockChain(Repository repository)
-        : this(repository, BlockChainOptions.Empty)
+    public Blockchain(Repository repository)
+        : this(repository, BlockchainOptions.Empty)
     {
     }
 
-    public BlockChain(Block genesisBlock)
-        : this(genesisBlock, new Repository(), BlockChainOptions.Empty)
+    public Blockchain(Block genesisBlock)
+        : this(genesisBlock, new Repository(), BlockchainOptions.Empty)
     {
     }
 
-    public BlockChain(Block genesisBlock, Repository repository, BlockChainOptions options)
+    public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
         var evaluation = Evaluate(genesisBlock);
@@ -49,7 +49,7 @@ public partial class BlockChain
         _repository.StateRootHash = evaluation.OutputWorld.Hash;
     }
 
-    public BlockChain(Repository repository, BlockChainOptions options)
+    public Blockchain(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
         // _chain = repository.Chain;
@@ -101,7 +101,7 @@ public partial class BlockChain
     public BlockCommit BlockCommit => Blocks.Count is not 0
         ? _repository.BlockCommit : throw new InvalidOperationException("The chain is empty.");
 
-    public BlockChainOptions Options { get; }
+    public BlockchainOptions Options { get; }
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 

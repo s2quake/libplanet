@@ -6,7 +6,7 @@ namespace Libplanet.Benchmarks
     public class BlockChain
     {
         private readonly StoreFixture _fx;
-        private readonly Libplanet.Blockchain.BlockChain _blockChain;
+        private readonly Libplanet.Blockchain _blockChain;
 
         public BlockChain()
         {
@@ -22,7 +22,7 @@ namespace Libplanet.Benchmarks
         // public void SetupChain()
         // {
         //     _fx = new DefaultStoreFixture();
-        //     _blockChain = Libplanet.Blockchain.new BlockChain(
+        //     _blockChain = Libplanet.new BlockChain(
         //         BlockChainOptions.Empty,
         //         _fx.Store,
         //         _fx.StateStore,

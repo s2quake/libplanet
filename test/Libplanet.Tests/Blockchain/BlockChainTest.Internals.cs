@@ -1,6 +1,6 @@
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Blockchain;
+using Libplanet;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
 
