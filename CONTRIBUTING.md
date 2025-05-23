@@ -108,9 +108,9 @@ on GitHub consists of several projects.  There are two types of projects:
     This is distributed as a distinct NuGet package:
     *[Libplanet.Types][NuGet package]*.
 
- -  *Libplanet.Store*: The store related functionalities for *Libplanet*.
+ -  *Libplanet.Data*: The store related functionalities for *Libplanet*.
     This is distributed as a distinct NuGet package:
-    *[Libplanet.Store][NuGet package]*.
+    *[Libplanet.Data][NuGet package]*.
 
  -  *Libplanet.Action*: The action evaluation layer for *Libplanet*.
     This is distributed as a distinct NuGet package:
@@ -128,12 +128,12 @@ on GitHub consists of several projects.  There are two types of projects:
     (which is written in C), this is distributed as a distinct NuGet package:
     *[Libplanet.Types.Crypto.Secp256k1]*.
 
- -  *Libplanet.RocksDBStore*: The `Libplanet.Store.Store` implementation built on [RocksDB].
+ -  *Libplanet.RocksDBStore*: The `Libplanet.Data.Store` implementation built on [RocksDB].
     As this depends on platform-dependent libraries (which is written in C/C++),
     this is distributed as a distinct NuGet package: *[Libplanet.RocksDBStore]*.
 
- -  *Libplanet.Store.Remote*: The `IKeyValueStore` implementation for use with
-    *Libplanet.Store* to store data in a remote server and communicate using
+ -  *Libplanet.Data.Remote*: The `IKeyValueStore` implementation for use with
+    *Libplanet.Data* to store data in a remote server and communicate using
     [gRPC]. This is cannot be used standalone. Need `IKeyValueStore`
     implementation for local storage like *[Libplanet.RocksDBStore]*.
 
@@ -194,7 +194,7 @@ on GitHub consists of several projects.  There are two types of projects:
  -  *Libplanet.RocksDBStore.Tests*: Unit tests for the *Libplanet.RocksDBStore*
     project.
 
- -  *Libplanet.Store.Remote.Tests*: Unit tests for the *Libplanet.Store.Remote*
+ -  *Libplanet.Data.Remote.Tests*: Unit tests for the *Libplanet.Data.Remote*
     project.
 
  -  *Libplanet.Analyzers.Tests*: Unit tests for the *Libplanet.Analyzers*

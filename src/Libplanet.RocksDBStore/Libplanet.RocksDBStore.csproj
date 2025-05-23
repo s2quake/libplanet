@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Summary>A Libplanet.Libplanet.Store.Store implementation using RocksDB</Summary>
-    <Description>A Libplanet.Libplanet.Store.Store implementation using RocksDB</Description>
+    <Summary>A Libplanet.Libplanet.Data.Store implementation using RocksDB</Summary>
+    <Description>A Libplanet.Libplanet.Data.Store implementation using RocksDB</Description>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Libplanet\Libplanet.csproj" />
-    <ProjectReference Include="..\Libplanet.Store\Libplanet.Store.csproj" />
+    <ProjectReference Include="..\Libplanet.Data\Libplanet.Data.csproj" />
     <!-- FIXME: We should specify the version range when the following NuGet issue
     is addressed: <https://github.com/NuGet/Home/issues/5556>. -->
   </ItemGroup>

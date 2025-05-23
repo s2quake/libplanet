@@ -255,7 +255,7 @@ namespace Libplanet.Explorer.Queries
                 }
             }
 
-            // If not found in index, search Libplanet.Store.Store directly.
+            // If not found in index, search Libplanet.Data.Store directly.
             // var blockHashCandidates = context.Store.TxExecutions[txId].Select(item => item.BlockHash);
             // foreach (var blockHashCandidate in blockHashCandidates)
             // {

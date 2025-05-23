@@ -1,6 +1,6 @@
 using Libplanet.Node.Options;
 using Libplanet.Node.Services;
-using Libplanet.Store;
+using Libplanet.Data;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Libplanet.Node.Tests.Services;

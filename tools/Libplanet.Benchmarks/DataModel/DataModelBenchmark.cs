@@ -41,13 +41,13 @@
 //         }
 
 //         [Benchmark]
-//         public Libplanet.Store.DataModel DecodeRootModel()
+//         public Libplanet.Data.DataModel DecodeRootModel()
 //         {
 //             return new RootModel(_encodedRootModel);
 //         }
 
 //         [Benchmark]
-//         public Libplanet.Store.DataModel DecodeLeafModel()
+//         public Libplanet.Data.DataModel DecodeLeafModel()
 //         {
 //             return new LeafModel(_encodedLeafModel);
 //         }

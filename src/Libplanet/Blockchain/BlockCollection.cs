@@ -2,7 +2,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Blockchain;

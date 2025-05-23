@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Libplanet.Action.State;
-using Libplanet.Store.DataStructures;
+using Libplanet.Data.Structures;
 
 namespace Libplanet.Action;
 

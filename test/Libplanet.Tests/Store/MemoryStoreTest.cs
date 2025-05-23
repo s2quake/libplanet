@@ -22,11 +22,11 @@ public class MemoryStoreTest : StoreTest, IDisposable
     [InlineData("memory://")]
     public void Loader(string uri)
     {
-        // (Libplanet.Store.Store Store, TrieStateStore StateStore)? pair =
+        // (Libplanet.Data.Store Store, TrieStateStore StateStore)? pair =
         //     StoreLoaderAttribute.LoadStore(new Uri(uri));
         // Assert.NotNull(pair);
-        // Libplanet.Store.Store store = pair.Value.Store;
-        // Assert.IsAssignableFrom<Libplanet.Store.Store>(store);
+        // Libplanet.Data.Store store = pair.Value.Store;
+        // Assert.IsAssignableFrom<Libplanet.Data.Store>(store);
         // var stateStore = (TrieStateStore)pair.Value.StateStore;
         // Assert.IsAssignableFrom<MemoryKeyValueStore>(stateStore.StateKeyValueStore);
     }

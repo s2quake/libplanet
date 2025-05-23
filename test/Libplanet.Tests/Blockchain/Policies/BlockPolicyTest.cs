@@ -1,7 +1,7 @@
 using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
@@ -201,7 +201,7 @@ public class BlockPolicyTest : IDisposable
         const int generatedTxCount = 10;
         const int policyLimit = 5;
 
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
+        var store = new Libplanet.Data.Repository(new MemoryDatabase());
         var stateStore = new StateStore();
         var policy = new BlockChainOptions
         {

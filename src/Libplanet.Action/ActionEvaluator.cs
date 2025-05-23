@@ -1,8 +1,8 @@
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using Libplanet.Action.State;
-using Libplanet.Store;
-using Libplanet.Store.DataStructures;
+using Libplanet.Data;
+using Libplanet.Data.Structures;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Tx;
 

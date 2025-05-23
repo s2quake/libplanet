@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using Libplanet.Action;
 using Libplanet.Action.State;
 using Libplanet.Blockchain.Extensions;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;

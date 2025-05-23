@@ -1,6 +1,6 @@
 // using System.Security.Cryptography;
-// using Libplanet.Store;
-// using Libplanet.Store.DataStructures;
+// using Libplanet.Data;
+// using Libplanet.Data.Structures;
 // using Libplanet.Types;
 
 // namespace Libplanet.Tests.Store;

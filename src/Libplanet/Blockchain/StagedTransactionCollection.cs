@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Action;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
 

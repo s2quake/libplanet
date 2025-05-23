@@ -3,7 +3,7 @@
 // using Libplanet.Action.Tests.Common;
 // using Libplanet.Blockchain;
 // using Libplanet.Serialization;
-// using Libplanet.Store;
+// using Libplanet.Data;
 // using Libplanet.Tests.Fixtures;
 // using Libplanet.Tests.Store;
 // using Libplanet.Tests.Tx;
@@ -296,7 +296,7 @@
 
 //     //     var action = new ThrowException { ThrowOnExecution = true };
 
-//     //     var store = new Libplanet.Store.Store(new MemoryDatabase());
+//     //     var store = new Libplanet.Data.Store(new MemoryDatabase());
 //     //     var stateStore = new TrieStateStore();
 //     //     var chain = TestUtils.MakeBlockChain(
 //     //         policy: new BlockPolicy(),
@@ -337,7 +337,7 @@
 //     //         Deterministic = false,
 //     //     };
 
-//     //     var store = new Libplanet.Store.Store(new MemoryDatabase());
+//     //     var store = new Libplanet.Data.Store(new MemoryDatabase());
 //     //     var stateStore =
 //     //         new TrieStateStore();
 //     //     var (chain, actionEvaluator) =

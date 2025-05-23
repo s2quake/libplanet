@@ -1,4 +1,4 @@
-// using Libplanet.Store;
+// using Libplanet.Data;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Extensions;
 // using RocksDbSharp;
@@ -7,7 +7,7 @@
 // {
 //     public partial class LegacyRocksDBStore : StoreBase
 //     {
-//         /// <inheritdoc cref="Libplanet.Store.Store.PruneOutdatedChains"/>
+//         /// <inheritdoc cref="Libplanet.Data.Store.PruneOutdatedChains"/>
 //         public override void PruneOutdatedChains(bool noopWithoutCanon = false)
 //         {
 //             if (!(GetCanonicalChainId() is { } ccid))

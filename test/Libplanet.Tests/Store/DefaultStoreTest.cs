@@ -1,5 +1,5 @@
 using System.IO;
-using Libplanet.Store;
+using Libplanet.Data;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Store;
@@ -30,7 +30,7 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
     public void ConstructorAcceptsRelativePath()
     {
         var path = Path.Combine(Path.GetTempPath(), $"defaultstore_{Guid.NewGuid()}");
-        var store = new Libplanet.Store.Repository(new DefaultDatabase(path));
+        var store = new Libplanet.Data.Repository(new DefaultDatabase(path));
 
         store.PendingTransactions.Add(Fx.Transaction1);
 
@@ -40,7 +40,7 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
 
         // The following `identicalStore' instance should be identical to
         // the `store' instance above, i.e., views the same data.
-        var identicalStore = new Libplanet.Store.Repository(new DefaultDatabase(path));
+        var identicalStore = new Libplanet.Data.Repository(new DefaultDatabase(path));
         Assert.Equal(Fx.Transaction1, identicalStore.PendingTransactions[Fx.Transaction1.Id]);
         Assert.Equal(Fx.Transaction2, identicalStore.PendingTransactions[Fx.Transaction2.Id]);
     }
@@ -53,9 +53,9 @@ public sealed class DefaultStoreTest : StoreTest, IDisposable
     //     File.Delete(tempDirPath);
     //     var uri = new Uri(tempDirPath, UriKind.Absolute);
     //     uri = new Uri("default+" + uri);
-    //     (Libplanet.Store.Store Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
+    //     (Libplanet.Data.Store Store, TrieStateStore StateStore)? pair = StoreLoaderAttribute.LoadStore(uri);
     //     Assert.NotNull(pair);
-    //     Libplanet.Store.Store store = pair.Value.Store;
+    //     Libplanet.Data.Store store = pair.Value.Store;
     //     Assert.IsAssignableFrom<DefaultStore>(store);
     //     var stateStore = (TrieStateStore)pair.Value.StateStore;
     //     Assert.IsAssignableFrom<DefaultTable>(stateStore.StateKeyValueStore);

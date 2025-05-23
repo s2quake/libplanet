@@ -1,5 +1,5 @@
 using System.IO;
-using Libplanet.Store;
+using Libplanet.Data;
 using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore;

@@ -4,7 +4,7 @@
 // using System.Threading;
 // using System.Web;
 // using Libplanet.Serialization;
-// using Libplanet.Store;
+// using Libplanet.Data;
 // using Libplanet.Types;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Crypto;
@@ -1494,7 +1494,7 @@
 //     }
 
 //     [StoreLoader("rocksdb+file")]
-//     private static (Libplanet.Store.Store Store, TrieStateStore StateStore) Loader(Uri storeUri)
+//     private static (Libplanet.Data.Store Store, TrieStateStore StateStore) Loader(Uri storeUri)
 //     {
 //         NameValueCollection query = HttpUtility.ParseQueryString(storeUri.Query);
 //         int blockCacheSize = query.GetInt32("block-cache", 512);

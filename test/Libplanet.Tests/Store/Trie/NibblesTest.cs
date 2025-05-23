@@ -1,5 +1,5 @@
 #pragma warning disable S125 // Sections of code should not be commented out
-using Libplanet.Store.DataStructures;
+using Libplanet.Data.Structures;
 
 namespace Libplanet.Tests.Store.Trie;
 

@@ -1,4 +1,4 @@
-using Libplanet.Store;
+using Libplanet.Data;
 
 namespace Libplanet.Node.Services;
 
