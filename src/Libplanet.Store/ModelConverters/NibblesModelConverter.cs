@@ -15,13 +15,15 @@ internal sealed class NibblesModelConverter : ModelConverterBase<Nibbles>
         {
             throw new EndOfStreamException("Failed to read the expected number of bytes.");
         }
+        var position = stream.ReadInt32();
 
-        return new Nibbles([.. bytes]);
+        return new Nibbles([.. bytes]) { Position = position };
     }
 
     protected override void Serialize(Nibbles obj, Stream stream, ModelOptions options)
     {
         stream.WriteInt32(obj.Length);
         stream.Write(obj.Bytes.AsSpan());
+        stream.WriteInt32(obj.Position);
     }
 }
