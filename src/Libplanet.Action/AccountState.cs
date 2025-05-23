@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Action;
 
 [Model(Version = 1)]
-public sealed record class State : IEquatable<State>
+public sealed record class AccountState : IEquatable<AccountState>
 {
     [Property(0)]
     public required string Name { get; init; } = string.Empty;
@@ -14,5 +14,5 @@ public sealed record class State : IEquatable<State>
 
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
-    public bool Equals(State? other) => ModelResolver.Equals(this, other);
+    public bool Equals(AccountState? other) => ModelResolver.Equals(this, other);
 }

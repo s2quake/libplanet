@@ -8,7 +8,7 @@ namespace Libplanet.Action.Builtin;
 public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 {
     [Property(0)]
-    public ImmutableArray<State> States { get; init; } = [];
+    public ImmutableArray<AccountState> States { get; init; } = [];
 
     [Property(1)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
