@@ -23,17 +23,39 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
 
     public int Length => Bytes.Length;
 
-    public byte this[int index] => Bytes[index];
+    public bool IsEnd => Position == Length;
 
-    public static Nibbles Parse(string hex)
+    public int Position { get; init; }
+
+    public byte Current => _bytes[Position];
+
+    public Nibbles NextNibbles => this[Position..];
+
+    public byte this[Index index] => Bytes[index];
+
+    public Nibbles this[Range range]
     {
-        var builder = ImmutableArray.CreateBuilder<byte>(hex.Length);
-        for (var i = 0; i < hex.Length; i++)
+        get
         {
-            builder.Add((byte)Uri.FromHex(hex[i]));
-        }
+            var (position, length) = range.GetOffsetAndLength(Bytes.Length);
+            if (position < 0 || position > Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(range));
+            }
 
-        return new Nibbles(builder.ToImmutable());
+            if (length < 0 || position + length > Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(range));
+            }
+
+            var builder = ImmutableArray.CreateBuilder<byte>(length);
+            for (var i = 0; i < length; i++)
+            {
+                builder.Add(_bytes[position + i]);
+            }
+
+            return new Nibbles(builder.ToImmutable());
+        }
     }
 
     public static Nibbles Create(string key)
@@ -50,70 +72,38 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
         return new Nibbles(builder.ToImmutable());
     }
 
-    public Nibbles Append(byte @byte) => new(Bytes.Add(@byte));
+    public Nibbles Next(int offset) => offset < 0
+        ? throw new ArgumentOutOfRangeException(nameof(offset))
+        : new Nibbles(_bytes) { Position = Position + offset };
 
-    public Nibbles Append(in Nibbles nibbles) => new(Bytes.AddRange(nibbles.Bytes));
-
-    public Nibbles AppendMany(in ImmutableArray<byte> bytes) => new(Bytes.AddRange(bytes));
-
-    public Nibbles Take(int count)
+    public Nibbles Next(int position, in Nibbles nibbles)
     {
-        if (count < 0)
-        {
-            var message = $"Given {nameof(count)} must be non-negative: {count}";
-            throw new ArgumentOutOfRangeException(nameof(count), message);
-        }
-
-        if (count > Length)
-        {
-            var message = $"Given {nameof(count)} must be less than or equal to {Length}: {count}";
-            throw new ArgumentOutOfRangeException(nameof(count), message);
-        }
-
-        return new Nibbles([.. _bytes.Take(count)]);
-    }
-
-    public Nibbles Take(in Nibbles nibbles)
-    {
-        var minLength = Math.Min(Length, nibbles.Length);
-        var builder = ImmutableArray.CreateBuilder<byte>(minLength);
+        var minLength = Math.Min(Length - position, nibbles.Length);
+        var count = 0;
 
         for (var i = 0; i < minLength; i++)
         {
-            if (Bytes[i] != nibbles.Bytes[i])
+            if (_bytes[i + position] != nibbles[i])
             {
                 break;
             }
 
-            builder.Add(Bytes[i]);
+            count++;
         }
 
-        return new Nibbles(builder.ToImmutable());
+        return Next(count);
     }
 
-    public Nibbles Skip(int count)
-    {
-        if (count < 0)
-        {
-            var message = $"Given {nameof(count)} must be non-negative: {count}";
-            throw new ArgumentOutOfRangeException(nameof(count), message);
-        }
+    public Nibbles Append(byte @byte) => new(Bytes.Add(@byte));
 
-        if (count > Length)
-        {
-            var message = $"Given {nameof(count)} must be less than or equal to {Length}: {count}";
-            throw new ArgumentOutOfRangeException(nameof(count), message);
-        }
-
-        return new Nibbles([.. _bytes.Skip(count)]);
-    }
+    public Nibbles Append(in Nibbles nibbles) => new(Bytes.AddRange(nibbles.Bytes));
 
     public string ToKey()
     {
         var length = Length;
         if (length % 2 != 0)
         {
-            throw new InvalidOperationException("");
+            throw new InvalidOperationException($"The length of nibbles must be even. Length: {length}");
         }
 
         var capacity = length / 2;
@@ -158,7 +148,7 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
             }
         }
 
-        return code;
+        return code ^ Position;
     }
 
     public override string ToString()
@@ -170,7 +160,13 @@ internal readonly record struct Nibbles : IEquatable<Nibbles>, IFormattable
             chars[i] = _hexCharLookup[bytes[i]];
         }
 
-        return new string(chars);
+        var s = new string(chars);
+        if (Position < Length)
+        {
+            s = s.Insert(Position + 1, "\u0332");
+        }
+
+        return s;
     }
 
     public string ToString(string? format, IFormatProvider? formatProvider) => format switch
