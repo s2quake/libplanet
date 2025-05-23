@@ -1,5 +1,5 @@
 // using Libplanet.Types.Crypto;
-// using StoreDataModel = Libplanet.Store.DataModel;
+// using StoreDataModel = Libplanet.Data.DataModel;
 
 // namespace Libplanet.Benchmarks.DataModel
 // {

@@ -1,5 +1,5 @@
 using Libplanet.Blockchain;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Tests.Store;
 
 namespace Libplanet.RocksDBStore.Tests;

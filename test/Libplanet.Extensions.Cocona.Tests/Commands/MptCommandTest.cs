@@ -1,8 +1,8 @@
 using System.IO;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.Extensions.Cocona.Configuration;
-using Libplanet.Store;
-using Libplanet.Store.DataStructures;
+using Libplanet.Data;
+using Libplanet.Data.Structures;
 using Libplanet.Tools.Tests.Services;
 using Libplanet.Types;
 

@@ -3,8 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Libplanet.Store;
-using Libplanet.Store.DataStructures;
+using Libplanet.Data;
+using Libplanet.Data.Structures;
 using RocksDbSharp;
 
 namespace Libplanet.RocksDBStore;

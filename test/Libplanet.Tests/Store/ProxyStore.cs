@@ -1,4 +1,4 @@
-// using Libplanet.Store;
+// using Libplanet.Data;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Crypto;
 // using Libplanet.Types.Evidence;
@@ -6,7 +6,7 @@
 
 // namespace Libplanet.Tests.Store;
 
-// public abstract class ProxyStore(Libplanet.Store.Store store) : Libplanet.Store.Store
+// public abstract class ProxyStore(Libplanet.Data.Store store) : Libplanet.Data.Store
 // {
 //     public virtual void Dispose() => store.Dispose();
 

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Store.DataStructures.Nodes;
+using Libplanet.Data.Structures.Nodes;
 using Libplanet.Types;
 
 namespace Libplanet.Tests.Store.Trie.Nodes;

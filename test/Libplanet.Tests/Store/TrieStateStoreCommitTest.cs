@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using Libplanet.Store;
-using Libplanet.Store.DataStructures;
-using Libplanet.Store.DataStructures.Nodes;
+using Libplanet.Data;
+using Libplanet.Data.Structures;
+using Libplanet.Data.Structures.Nodes;
 using Libplanet.Types;
 
 namespace Libplanet.Tests.Store;

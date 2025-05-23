@@ -1,4 +1,4 @@
-// using Libplanet.Store;
+// using Libplanet.Data;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Crypto;
 // using Libplanet.Types.Evidence;
@@ -6,7 +6,7 @@
 
 // namespace Libplanet.Tests.Store;
 
-// public sealed class StoreTracker(Libplanet.Store.Store store) : BaseTracker, Libplanet.Store.Store
+// public sealed class StoreTracker(Libplanet.Data.Store store) : BaseTracker, Libplanet.Data.Store
 // {
 //     private bool _disposed = false;
 

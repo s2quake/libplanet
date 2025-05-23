@@ -1,6 +1,6 @@
 using Libplanet.Node.Options;
 using Libplanet.RocksDBStore;
-using Libplanet.Store;
+using Libplanet.Data;
 using Microsoft.Extensions.Options;
 
 namespace Libplanet.Node.Services;

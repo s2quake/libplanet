@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Store;
-using Libplanet.Store.DataStructures;
+using Libplanet.Data;
+using Libplanet.Data.Structures;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
 using static Libplanet.Tests.TestUtils;

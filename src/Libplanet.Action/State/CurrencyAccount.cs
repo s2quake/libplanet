@@ -1,4 +1,4 @@
-using Libplanet.Store.DataStructures;
+using Libplanet.Data.Structures;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 

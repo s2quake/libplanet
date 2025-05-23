@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
@@ -121,7 +121,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         await IndexAsyncImpl(blockDigest, txs, null, stoppingToken).ConfigureAwait(false);
 
     async Task IBlockChainIndex.SynchronizeForeverAsync(
-        Libplanet.Store.Repository store, TimeSpan pollInterval, CancellationToken stoppingToken)
+        Libplanet.Data.Repository store, TimeSpan pollInterval, CancellationToken stoppingToken)
     {
         var syncMetadata = await GetSyncMetadata(store).ConfigureAwait(false);
         await CheckIntegrity(store, syncMetadata).ConfigureAwait(false);
@@ -133,7 +133,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         }
     }
 
-    async Task IBlockChainIndex.SynchronizeAsync(Libplanet.Store.Repository store, CancellationToken stoppingToken)
+    async Task IBlockChainIndex.SynchronizeAsync(Libplanet.Data.Repository store, CancellationToken stoppingToken)
     {
         var syncMetadata = await GetSyncMetadata(store).ConfigureAwait(false);
         await CheckIntegrity(store, syncMetadata).ConfigureAwait(false);
@@ -182,7 +182,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     private async Task CheckIntegrity(
-        Libplanet.Store.Repository store,
+        Libplanet.Data.Repository store,
         (
             Guid ChainId,
             int IndexTipIndex,
@@ -240,7 +240,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
     }
 
     private async Task SynchronizeAsyncImpl(
-        Libplanet.Store.Repository store,
+        Libplanet.Data.Repository store,
         (
             Guid ChainId,
             int IndexTipIndex,
@@ -373,7 +373,7 @@ public abstract class BlockChainIndexBase : IBlockChainIndex
         int IndexTipIndex,
         int ChainTipIndex,
         BlockHash? IndexTipHash)>
-        GetSyncMetadata(Libplanet.Store.Repository store)
+        GetSyncMetadata(Libplanet.Data.Repository store)
     {
         var indexTip = await GetTipAsyncImpl().ConfigureAwait(false);
         var indexTipIndex = indexTip?.Index ?? -1;

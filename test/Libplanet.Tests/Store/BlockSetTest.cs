@@ -1,4 +1,4 @@
-// using Libplanet.Store;
+// using Libplanet.Data;
 // using Libplanet.Types.Blocks;
 
 // namespace Libplanet.Tests.Store

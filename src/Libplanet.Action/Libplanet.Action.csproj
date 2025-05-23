@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Libplanet.Types\Libplanet.Types.csproj" />
-    <ProjectReference Include="..\Libplanet.Store\Libplanet.Store.csproj" />
+    <ProjectReference Include="..\Libplanet.Data\Libplanet.Data.csproj" />
   </ItemGroup>
 
 </Project>

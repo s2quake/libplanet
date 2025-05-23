@@ -15,19 +15,19 @@ internal sealed class BlockChainContext(
     public BlockChain BlockChain => blockChainService.BlockChain;
 
 #pragma warning disable S3011 // Reflection should not be used to increase accessibility ...
-    public Libplanet.Store.Repository Store
+    public Libplanet.Data.Repository Store
     {
         get
         {
             var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
             var propertyInfo = typeof(BlockChain).GetProperty("Store", bindingFlags) ??
                 throw new InvalidOperationException("Store property not found.");
-            if (propertyInfo.GetValue(BlockChain) is Libplanet.Store.Repository store)
+            if (propertyInfo.GetValue(BlockChain) is Libplanet.Data.Repository store)
             {
                 return store;
             }
 
-            throw new InvalidOperationException("Store property is not Libplanet.Store.Store.");
+            throw new InvalidOperationException("Store property is not Libplanet.Data.Store.");
         }
     }
 #pragma warning restore S3011

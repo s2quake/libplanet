@@ -13,7 +13,7 @@ namespace Libplanet.Explorer.Interfaces
 
         BlockChain BlockChain { get; }
 
-        Libplanet.Store.Repository Store { get; }
+        Libplanet.Data.Repository Store { get; }
 
         Swarm Swarm { get; }
 

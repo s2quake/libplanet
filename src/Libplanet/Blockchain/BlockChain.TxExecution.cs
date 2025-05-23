@@ -1,5 +1,5 @@
 // using Libplanet.Action;
-// using Libplanet.Store.DataStructures;
+// using Libplanet.Data.Structures;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Tx;
 

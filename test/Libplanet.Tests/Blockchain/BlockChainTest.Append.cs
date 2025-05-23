@@ -5,7 +5,7 @@
 // using Libplanet.Action.Tests.Common;
 // using Libplanet.Blockchain;
 // using Libplanet.Serialization;
-// using Libplanet.Store;
+// using Libplanet.Data;
 // using Libplanet.Tests.Store;
 // using Libplanet.Types;
 // using Libplanet.Types.Blocks;
@@ -392,7 +392,7 @@
 //     // public void AppendWhenActionEvaluationFailed()
 //     // {
 //     //     var policy = BlockPolicy.Empty;
-//     //     var store = new Libplanet.Store.Store(new MemoryDatabase());
+//     //     var store = new Libplanet.Data.Store(new MemoryDatabase());
 //     //     var stateStore =
 //     //         new TrieStateStore();
 //     //     var actionLoader = new SingleActionLoader<ThrowException>();
@@ -722,7 +722,7 @@
 //     {
 //         var beforePostponeBPV = BlockHeader.CurrentProtocolVersion - 1;
 //         var options = new BlockChainOptions();
-//         var store = new Libplanet.Store.Repository(new MemoryDatabase());
+//         var store = new Libplanet.Data.Repository(new MemoryDatabase());
 //         var stateStore = new TrieStateStore();
 //         var actionEvaluator = new ActionEvaluator(
 //             stateStore,

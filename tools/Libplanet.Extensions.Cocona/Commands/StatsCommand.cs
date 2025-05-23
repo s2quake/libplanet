@@ -1,5 +1,5 @@
 using global::Cocona;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.Extensions.Cocona.Commands;
@@ -7,7 +7,7 @@ namespace Libplanet.Extensions.Cocona.Commands;
 public class StatsCommand
 {
     private const string StoreArgumentDescription =
-        "The URI denotes the type and path of concrete class for " + nameof(Libplanet.Store.Repository) + "."
+        "The URI denotes the type and path of concrete class for " + nameof(Libplanet.Data.Repository) + "."
         + "<store-type>://<store-path> (e.g., rocksdb+file:///path/to/store)";
 
     [Command(Description = "Outputs a summary of a stored chain in a CSV format.")]

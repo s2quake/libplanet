@@ -11,8 +11,8 @@
             "tools/Libplanet.Extensions.Cocona/Libplanet.Extensions.Cocona.csproj",
             "src/Libplanet.Net/Libplanet.Net.csproj",
             "src/Libplanet.RocksDBStore/Libplanet.RocksDBStore.csproj",
-            "src/Libplanet.Store/Libplanet.Store.csproj",
-            "src/Libplanet.Store.Remote/Libplanet.Store.Remote.csproj",
+            "src/Libplanet.Data/Libplanet.Data.csproj",
+            "src/Libplanet.Data.Remote/Libplanet.Data.Remote.csproj",
             "src/Libplanet.Types/Libplanet.Types.csproj"
           ],
           "exclude": ["**/bin/**", "**/obj/**"],

@@ -5,7 +5,7 @@ using Libplanet.Action.State;
 using Libplanet.Action.Sys;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
@@ -391,7 +391,7 @@ public partial class BlockChainTest : IDisposable
     public void RenderActionsAfterAppendComplete()
     {
         var policy = new BlockChainOptions();
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
+        var store = new Libplanet.Data.Repository(new MemoryDatabase());
         var stateStore = new StateStore();
 
         // IActionRenderer renderer = new AnonymousActionRenderer

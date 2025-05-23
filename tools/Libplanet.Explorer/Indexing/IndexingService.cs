@@ -5,13 +5,13 @@ using Microsoft.Extensions.Hosting;
 namespace Libplanet.Explorer.Indexing;
 
 /// <summary>
-/// An ASP.NET Core service that indexes blocks added to the given <see cref="Libplanet.Store.Repository"/>
+/// An ASP.NET Core service that indexes blocks added to the given <see cref="Libplanet.Data.Repository"/>
 /// instance to the provided <see cref="IBlockChainIndex"/> instance.
 /// </summary>
 public class IndexingService : BackgroundService
 {
     private readonly IBlockChainIndex _index;
-    private readonly Libplanet.Store.Repository _store;
+    private readonly Libplanet.Data.Repository _store;
     private readonly TimeSpan _pollInterval;
 
     /// <summary>
@@ -19,11 +19,11 @@ public class IndexingService : BackgroundService
     /// to the <paramref name="index"/>.
     /// </summary>
     /// <param name="index">The index object that blocks will be indexed.</param>
-    /// <param name="store">The <see cref="Libplanet.Store.Repository"/> object that will be indexed by the
+    /// <param name="store">The <see cref="Libplanet.Data.Repository"/> object that will be indexed by the
     /// <paramref name="index"/>.</param>
     /// <param name="pollInterval">The interval between index synchronization polls in
     /// <see cref="TimeSpan"/>. Recommended value is about the same as block interval.</param>
-    public IndexingService(IBlockChainIndex index, Libplanet.Store.Repository store, TimeSpan pollInterval)
+    public IndexingService(IBlockChainIndex index, Libplanet.Data.Repository store, TimeSpan pollInterval)
     {
         _index = index;
         _store = store;

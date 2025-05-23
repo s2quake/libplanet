@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Libplanet.Action;
 using Libplanet.Serialization;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;

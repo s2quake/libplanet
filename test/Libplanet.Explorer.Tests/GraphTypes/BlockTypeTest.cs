@@ -6,7 +6,7 @@ using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Serialization;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -90,7 +90,7 @@ public class BlockTypeTest
                     raw
                 }";
 
-        var store = new Libplanet.Store.Repository(new MemoryDatabase());
+        var store = new Libplanet.Data.Repository(new MemoryDatabase());
         var blockType = new BlockType(new MockBlockChainContext(store));
         ExecutionResult result = await ExecuteQueryAsync(
             query,

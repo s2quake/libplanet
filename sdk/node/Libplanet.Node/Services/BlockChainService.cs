@@ -5,7 +5,7 @@ using Libplanet.Action.State;
 using Libplanet.Blockchain;
 using Libplanet.Node.Options;
 using Libplanet.Serialization;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;

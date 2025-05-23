@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Blockchain;
 using Libplanet.Net.Consensus;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Tests.Store;
 using NetMQ;
 using Serilog;
@@ -36,7 +36,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async void StartAsync()
         {
             var consensusReactors = new ConsensusReactor[4];
-            var stores = new Libplanet.Store.Repository[4];
+            var stores = new Libplanet.Data.Repository[4];
             var blockChains = new BlockChain[4];
             var fx = new MemoryStoreFixture();
             var validatorPeers = new List<BoundPeer>();

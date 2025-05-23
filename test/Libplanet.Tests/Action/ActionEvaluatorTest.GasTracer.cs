@@ -3,8 +3,8 @@
 // using Libplanet.Action.State;
 // using Libplanet.Blockchain.Policies;
 // using Libplanet.Types.Crypto;
-// using Libplanet.Store;
-// using Libplanet.Store.DataStructures;
+// using Libplanet.Data;
+// using Libplanet.Data.Structures;
 // using Libplanet.Types.Assets;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Tx;
@@ -31,7 +31,7 @@
 //                 },
 //                 getMaxTransactionsBytes: _ => 50 * 1024);
 
-//             var store = new Libplanet.Store.Store(new MemoryDatabase());
+//             var store = new Libplanet.Data.Store(new MemoryDatabase());
 //             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,
@@ -142,7 +142,7 @@
 //             var gas = Currency.Create("GAS", 18);
 //             var privateKey = new PrivateKey();
 
-//             var store = new Libplanet.Store.Store(new MemoryDatabase());
+//             var store = new Libplanet.Data.Store(new MemoryDatabase());
 //             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,
@@ -183,7 +183,7 @@
 //             var gas = Currency.Create("GAS", 18);
 //             var privateKey = new PrivateKey();
 
-//             var store = new Libplanet.Store.Store(new MemoryDatabase());
+//             var store = new Libplanet.Data.Store(new MemoryDatabase());
 //             var stateStore = new TrieStateStore();
 //             var chain = TestUtils.MakeBlockChain(
 //                 policy: policy,

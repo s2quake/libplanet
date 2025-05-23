@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Store;
+using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Tx;
@@ -188,7 +188,7 @@ public interface IBlockChainIndex
         BlockDigest blockDigest, IEnumerable<Transaction> txs, CancellationToken token);
 
     internal Task SynchronizeForeverAsync(
-        Libplanet.Store.Repository store, TimeSpan pollInterval, CancellationToken stoppingToken);
+        Libplanet.Data.Repository store, TimeSpan pollInterval, CancellationToken stoppingToken);
 
-    internal Task SynchronizeAsync(Libplanet.Store.Repository store, CancellationToken stoppingToken);
+    internal Task SynchronizeAsync(Libplanet.Data.Repository store, CancellationToken stoppingToken);
 }
