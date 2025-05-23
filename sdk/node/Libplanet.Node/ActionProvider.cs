@@ -1,5 +1,4 @@
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Action.Builtin;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
@@ -9,8 +8,6 @@ namespace Libplanet.Node;
 public sealed class ActionProvider : IActionProvider
 {
     public static ActionProvider Default { get; } = new ActionProvider();
-
-    public IActionLoader ActionLoader { get; } = new AggregateTypedActionLoader();
 
     public PolicyActions PolicyActions { get; } = new PolicyActions();
 

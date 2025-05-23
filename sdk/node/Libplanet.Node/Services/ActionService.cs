@@ -1,5 +1,4 @@
 using Libplanet.Action;
-using Libplanet.Action.Loader;
 using Libplanet.Node.Actions;
 using Libplanet.Node.Options;
 using Libplanet.Types.Crypto;
@@ -10,8 +9,6 @@ namespace Libplanet.Node.Services;
 internal sealed class ActionService(IOptions<ActionOptions> options)
     : IActionService
 {
-    public IActionLoader ActionLoader => ActionProvider.ActionLoader;
-
     public PolicyActions PolicyActions => ActionProvider.PolicyActions;
 
     public IActionProvider ActionProvider { get; } = GetActionProvider(options.Value);
