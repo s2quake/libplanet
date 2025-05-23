@@ -86,7 +86,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
 
         if (Validators is { } validators)
         {
-            world[SystemAccount, ValidatorSet] = validators;
+            world[SystemAccount, SystemAddresses.Validators] = validators;
         }
     }
 }

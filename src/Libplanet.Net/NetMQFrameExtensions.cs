@@ -2,7 +2,7 @@ using System.IO;
 using System.Security.Cryptography;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using NetMQ;
 
 namespace Libplanet.Net;

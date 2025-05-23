@@ -1,5 +1,5 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Tx;

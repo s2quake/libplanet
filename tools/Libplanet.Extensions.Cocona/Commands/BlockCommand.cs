@@ -9,7 +9,7 @@ using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Extensions.Cocona.Commands;
 
@@ -144,7 +144,7 @@ public class BlockCommand
             .ToImmutableList();
 
         var policyActions = blockPolicyParams.GetPolicyActions();
-        var actionEvaluator = new ActionEvaluator(
+        var actionEvaluator = new BlockExecutor(
             new StateStore(new DefaultTable()),
             policyActions);
         Block genesis = BlockChain.ProposeGenesisBlock(

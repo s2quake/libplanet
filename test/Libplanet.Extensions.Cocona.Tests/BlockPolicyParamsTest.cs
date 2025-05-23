@@ -148,7 +148,7 @@ public class BlockPolicyParamsTest
     internal static BlockChainOptions BlockPolicyFactory() =>
         new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 BeginBlockActions = [new NullAction()],
                 EndBlockActions = [new NullAction()],

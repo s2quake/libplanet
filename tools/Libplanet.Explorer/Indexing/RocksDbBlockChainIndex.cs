@@ -6,7 +6,7 @@ using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Extensions;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using RocksDbSharp;
 
 namespace Libplanet.Explorer.Indexing;

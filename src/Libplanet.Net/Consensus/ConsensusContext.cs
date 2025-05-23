@@ -345,7 +345,7 @@ public partial class ConsensusContext : IDisposable
         var nextStateRootHash = _blockChain.GetStateRootHash(height - 1);
         ImmutableSortedSet<Validator> validatorSet = _blockChain
             .GetWorld(nextStateRootHash)
-            .GetValidatorSet();
+            .GetValidators();
 
         Context context = new Context(
             _blockChain,
@@ -372,7 +372,7 @@ public partial class ConsensusContext : IDisposable
         {
             try
             {
-                var validatorSet = _blockChain.GetValidatorSet(evidenceException.Height);
+                var validatorSet = _blockChain.GetWorld(evidenceException.Height).GetValidators();
                 var evidenceContext = new EvidenceContext(validatorSet);
                 var evidence = evidenceException.Create(evidenceContext);
                 _blockChain.PendingEvidences.Add(evidence);

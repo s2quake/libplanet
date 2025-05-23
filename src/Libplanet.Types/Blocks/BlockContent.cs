@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Types.Blocks;
 

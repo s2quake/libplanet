@@ -1,7 +1,7 @@
 // using Libplanet.Action;
 // using Libplanet.Data.Structures;
 // using Libplanet.Types.Blocks;
-// using Libplanet.Types.Tx;
+// using Libplanet.Types.Transactions;
 
 // namespace Libplanet.Blockchain;
 

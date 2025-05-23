@@ -12,7 +12,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Nito.AsyncEx;
 using Serilog;
 using Xunit.Abstractions;
@@ -295,7 +295,7 @@ namespace Libplanet.Net.Tests.Consensus
             var invalidKey = new PrivateKey();
             var policy = new BlockChainOptions
             {
-                PolicyActions = new PolicyActions
+                PolicyActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
@@ -380,7 +380,7 @@ namespace Libplanet.Net.Tests.Consensus
             var txSigner = new PrivateKey();
             var policy = new BlockChainOptions
             {
-                PolicyActions = new PolicyActions
+                PolicyActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },

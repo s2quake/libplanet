@@ -7,7 +7,7 @@
 // using Libplanet.Data.Structures;
 // using Libplanet.Types.Assets;
 // using Libplanet.Types.Blocks;
-// using Libplanet.Types.Tx;
+// using Libplanet.Types.Transactions;
 // using Xunit;
 // using static Libplanet.Tests.TestUtils;
 

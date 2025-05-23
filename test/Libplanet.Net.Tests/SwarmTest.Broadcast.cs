@@ -13,7 +13,7 @@ using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Serilog;
 using Serilog.Events;
 using xRetry;
@@ -678,7 +678,7 @@ namespace Libplanet.Net.Tests
         {
             var options = new BlockChainOptions
             {
-                PolicyActions = new PolicyActions
+                PolicyActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },

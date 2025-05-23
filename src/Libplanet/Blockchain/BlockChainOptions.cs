@@ -6,7 +6,7 @@ public sealed record class BlockChainOptions
 {
     public static BlockChainOptions Empty { get; } = new();
 
-    public PolicyActions PolicyActions { get; init; } = PolicyActions.Empty;
+    public SystemActions PolicyActions { get; init; } = SystemActions.Empty;
 
     public TimeSpan BlockInterval { get; init; } = TimeSpan.FromSeconds(5);
 

@@ -2,7 +2,7 @@ using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Tests.Tx;
 

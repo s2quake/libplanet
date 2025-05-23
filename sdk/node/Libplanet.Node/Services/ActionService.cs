@@ -9,7 +9,7 @@ namespace Libplanet.Node.Services;
 internal sealed class ActionService(IOptions<ActionOptions> options)
     : IActionService
 {
-    public PolicyActions PolicyActions => ActionProvider.PolicyActions;
+    public SystemActions PolicyActions => ActionProvider.PolicyActions;
 
     public IActionProvider ActionProvider { get; } = GetActionProvider(options.Value);
 

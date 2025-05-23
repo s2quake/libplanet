@@ -3,26 +3,26 @@ using System.Security.Cryptography;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Action;
 
-public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyActions)
+public sealed class BlockExecutor(StateStore stateStore, SystemActions systemActions)
 {
-    private readonly Subject<ActionEvaluation> _evaluation = new();
-    private readonly Subject<TxEvaluation> _txEvaluation = new();
-    private readonly Subject<BlockEvaluation> _blockEvaluation = new();
+    private readonly Subject<ActionResult> _actionExecutedSubject = new();
+    private readonly Subject<TransactionResult> _txExecutedResult = new();
+    private readonly Subject<BlockResult> _blockExecutedResult = new();
 
-    public ActionEvaluator(StateStore stateStore)
-        : this(stateStore, PolicyActions.Empty)
+    public BlockExecutor(StateStore stateStore)
+        : this(stateStore, SystemActions.Empty)
     {
     }
 
-    public IObservable<ActionEvaluation> ActionEvaluated => _evaluation;
+    public IObservable<ActionResult> ActionExecuted => _actionExecutedSubject;
 
-    public IObservable<TxEvaluation> TxEvaluated => _txEvaluation;
+    public IObservable<TransactionResult> TransactionExecuted => _txExecutedResult;
 
-    public IObservable<BlockEvaluation> Evaluated => _blockEvaluation;
+    public IObservable<BlockResult> BlockExecuted => _blockExecutedResult;
 
     public static int GenerateRandomSeed(ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)
     {
@@ -43,15 +43,15 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
         }
     }
 
-    public BlockEvaluation Evaluate(RawBlock rawBlock)
+    public BlockResult Execute(RawBlock rawBlock)
     {
         var world = new World(stateStore, rawBlock.Header.PreviousStateRootHash);
         var inputWorld = world;
-        var beginEvaluations = EvaluateActions(rawBlock, null, policyActions.BeginBlockActions, ref world);
-        var txEvaluations = EvaluateTxs(rawBlock, ref world);
-        var endEvaluations = EvaluateActions(rawBlock, null, policyActions.EndBlockActions, ref world);
+        var beginEvaluations = ExecuteActions(rawBlock, null, systemActions.BeginBlockActions, ref world);
+        var txEvaluations = ExecuteTransactions(rawBlock, ref world);
+        var endEvaluations = ExecuteActions(rawBlock, null, systemActions.EndBlockActions, ref world);
 
-        var blockEvaluation = new BlockEvaluation
+        var blockEvaluation = new BlockResult
         {
             Block = rawBlock,
             InputWorld = inputWorld,
@@ -60,16 +60,16 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
             Evaluations = txEvaluations,
             EndEvaluations = endEvaluations,
         };
-        _blockEvaluation.OnNext(blockEvaluation);
+        _blockExecutedResult.OnNext(blockEvaluation);
         return blockEvaluation;
     }
 
-    private ImmutableArray<ActionEvaluation> EvaluateActions(
+    private ImmutableArray<ActionResult> ExecuteActions(
         RawBlock rawBlock, Transaction? tx, ImmutableArray<IAction> actions, ref World world)
     {
         var signature = tx?.Signature ?? [];
         var randomSeed = GenerateRandomSeed(rawBlock.Hash.Bytes.AsSpan(), signature);
-        var evaluations = new ActionEvaluation[actions.Length];
+        var evaluations = new ActionResult[actions.Length];
 
         for (var i = 0; i < actions.Length; i++)
         {
@@ -85,7 +85,7 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,
             };
-            var evaluation = EvaluateAction(action, world, actionContext);
+            var evaluation = ExecuteAction(action, world, actionContext);
             evaluations[i] = evaluation;
             world = evaluation.OutputWorld;
 
@@ -98,7 +98,7 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
         return [.. evaluations];
     }
 
-    private ActionEvaluation EvaluateAction(IAction action, World world, ActionContext actionContext)
+    private ActionResult ExecuteAction(IAction action, World world, ActionContext actionContext)
     {
         if (!world.Trie.IsCommitted)
         {
@@ -133,7 +133,7 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
                 $"Failed to record {nameof(Account)}'s {nameof(ITrie)}.");
         }
 
-        var evaluation = new ActionEvaluation
+        var evaluation = new ActionResult
         {
             Action = action,
             InputContext = actionContext,
@@ -142,41 +142,41 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
             Exception = exception,
         };
 
-        _evaluation.OnNext(evaluation);
+        _actionExecutedSubject.OnNext(evaluation);
         return evaluation;
     }
 
-    private ImmutableArray<TxEvaluation> EvaluateTxs(RawBlock rawBlock, ref World world)
+    private ImmutableArray<TransactionResult> ExecuteTransactions(RawBlock rawBlock, ref World world)
     {
         var txs = rawBlock.Content.Transactions;
         var capacity = GetCapacity(rawBlock);
-        var evaluationList = new List<TxEvaluation>(capacity);
+        var evaluationList = new List<TransactionResult>(capacity);
 
         foreach (var tx in txs)
         {
-            evaluationList.Add(EvaluateTx(rawBlock, tx, ref world));
+            evaluationList.Add(ExecuteTransaction(rawBlock, tx, ref world));
         }
 
         return [.. evaluationList];
     }
 
-    private TxEvaluation EvaluateTx(RawBlock rawBlock, Transaction tx, ref World world)
+    private TransactionResult ExecuteTransaction(RawBlock rawBlock, Transaction transaction, ref World world)
     {
-        GasTracer.Initialize(tx.GasLimit is 0 ? long.MaxValue : tx.GasLimit);
+        GasTracer.Initialize(transaction.GasLimit is 0 ? long.MaxValue : transaction.GasLimit);
         var inputWorld = world;
         GasTracer.IsTxAction = true;
-        var beginEvaluations = EvaluateActions(rawBlock, tx, policyActions.BeginTxActions, ref world);
+        var beginEvaluations = ExecuteActions(rawBlock, transaction, systemActions.BeginTxActions, ref world);
         GasTracer.IsTxAction = false;
-        var actions = tx.Actions.Select(item => item.ToAction<IAction>()).ToImmutableArray();
-        var evaluations = EvaluateActions(rawBlock, tx, actions, ref world);
+        var actions = transaction.Actions.Select(item => item.ToAction<IAction>()).ToImmutableArray();
+        var evaluations = ExecuteActions(rawBlock, transaction, actions, ref world);
         GasTracer.IsTxAction = true;
-        var endEvaluations = EvaluateActions(rawBlock, tx, policyActions.EndTxActions, ref world);
+        var endEvaluations = ExecuteActions(rawBlock, transaction, systemActions.EndTxActions, ref world);
         GasTracer.IsTxAction = false;
 
         GasTracer.Release();
-        var txEvaluation = new TxEvaluation
+        var txEvaluation = new TransactionResult
         {
-            Transaction = tx,
+            Transaction = transaction,
             InputWorld = inputWorld,
             OutputWorld = world,
             BeginEvaluations = beginEvaluations,
@@ -184,7 +184,7 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
             EndEvaluations = endEvaluations,
         };
 
-        _txEvaluation.OnNext(txEvaluation);
+        _txExecutedResult.OnNext(txEvaluation);
         return txEvaluation;
     }
 
@@ -192,10 +192,10 @@ public sealed class ActionEvaluator(StateStore stateStore, PolicyActions policyA
     {
         var txCount = rawBlock.Content.Transactions.Count;
         var actionCount = rawBlock.Content.Transactions.Sum(tx => tx.Actions.Length);
-        var blockActionCount = policyActions.BeginBlockActions.Length
-            + policyActions.EndBlockActions.Length;
-        var txActionCount = policyActions.BeginTxActions.Length
-            + policyActions.EndTxActions.Length;
+        var blockActionCount = systemActions.BeginBlockActions.Length
+            + systemActions.EndBlockActions.Length;
+        var txActionCount = systemActions.BeginTxActions.Length
+            + systemActions.EndTxActions.Length;
         var capacity = actionCount + blockActionCount + (txActionCount * txCount);
         return capacity;
     }

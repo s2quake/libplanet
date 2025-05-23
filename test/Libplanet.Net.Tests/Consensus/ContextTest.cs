@@ -13,7 +13,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Nito.AsyncEx;
 using Serilog;
 using Xunit.Abstractions;
@@ -324,7 +324,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var options = new BlockChainOptions
             {
-                PolicyActions = new PolicyActions
+                PolicyActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
@@ -343,7 +343,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.PrivateKeys[0],
                 blockChain
                     .GetWorld(0)
-                    .GetValidatorSet(),
+                    .GetValidators(),
                 contextOption: new ContextOption());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 

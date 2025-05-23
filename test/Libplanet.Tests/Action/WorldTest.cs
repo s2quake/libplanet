@@ -3,7 +3,7 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Tests.Action;
 
@@ -44,7 +44,7 @@ public sealed class WorldTest
             .SetBalance(_addr[0], _currencies[4], 5)
             .SetBalance(_addr[1], _currencies[2], 15)
             .SetBalance(_addr[1], _currencies[3], 20)
-            .SetValidatorSet([.. _keys.Select(key => Validator.Create(key.Address, 1))]);
+            .SetValidators([.. _keys.Select(key => Validator.Create(key.Address, 1))]);
 
         _initContext = CreateContext(_addr[0]);
     }

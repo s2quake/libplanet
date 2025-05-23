@@ -5,7 +5,7 @@ using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Explorer.Tests.Indexing;
 

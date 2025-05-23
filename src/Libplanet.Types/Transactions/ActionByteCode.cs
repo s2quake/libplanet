@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.ModelConverters;
 
-namespace Libplanet.Types.Tx;
+namespace Libplanet.Types.Transactions;
 
 [TypeConverter(typeof(ActionBytecodeTypeConverter))]
 [ModelConverter(typeof(ActionBytecodeModelConverter))]

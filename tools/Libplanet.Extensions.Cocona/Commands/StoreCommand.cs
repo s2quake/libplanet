@@ -2,7 +2,7 @@ using global::Cocona;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Extensions.Cocona.Commands;
 

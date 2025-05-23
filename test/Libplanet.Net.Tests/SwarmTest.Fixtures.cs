@@ -29,7 +29,7 @@ namespace Libplanet.Net.Tests
             {
                 var policy = new BlockChainOptions
                 {
-                    PolicyActions = new PolicyActions
+                    PolicyActions = new SystemActions
                     {
                         EndBlockActions = [new MinerReward(1)],
                     },
@@ -112,7 +112,7 @@ namespace Libplanet.Net.Tests
         {
             policy ??= new BlockChainOptions
             {
-                PolicyActions = new PolicyActions
+                PolicyActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },

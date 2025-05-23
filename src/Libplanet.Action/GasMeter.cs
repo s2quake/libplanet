@@ -1,6 +1,6 @@
 namespace Libplanet.Action;
 
-internal class GasMeter : IGasMeter
+internal class GasMeter
 {
     public GasMeter(long gasLimit)
     {

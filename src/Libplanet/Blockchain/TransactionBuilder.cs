@@ -2,7 +2,7 @@ using Libplanet.Action;
 using Libplanet.Serialization;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Blockchain;
 

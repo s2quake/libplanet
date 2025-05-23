@@ -68,7 +68,7 @@ public class BlockPolicyParams : ICommandParameterSet
     public object? GetBlockPolicy() =>
         GetBlockPolicy(LoadAssemblies());
 
-    public PolicyActions GetPolicyActions() =>
+    public SystemActions GetPolicyActions() =>
         GetPolicyActions(LoadAssemblies());
 
     [SuppressMessage(
@@ -124,12 +124,12 @@ public class BlockPolicyParams : ICommandParameterSet
             string.Join("\n", assemblies.Select(asm => asm.FullName)));
     }
 
-    internal PolicyActions GetPolicyActions(Assembly[] assemblies)
+    internal SystemActions GetPolicyActions(Assembly[] assemblies)
     {
         object? policy = GetBlockPolicy(assemblies);
         if (policy is null)
         {
-            return new PolicyActions();
+            return new SystemActions();
         }
 
         PropertyInfo? propertyInfo = policy
@@ -152,6 +152,6 @@ public class BlockPolicyParams : ICommandParameterSet
             throw new InvalidOperationException(message);
         }
 
-        return (PolicyActions)value;
+        return (SystemActions)value;
     }
 }

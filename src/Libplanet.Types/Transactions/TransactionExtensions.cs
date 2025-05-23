@@ -1,7 +1,7 @@
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Types.Tx;
+namespace Libplanet.Types.Transactions;
 
 public static class TransactionExtensions
 {

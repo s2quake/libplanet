@@ -7,7 +7,7 @@ using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Xunit.Abstractions;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;

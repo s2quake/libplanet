@@ -181,7 +181,7 @@ public partial class BlockChainTest
         }.ToImmutableArray();
         var options2 = new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
@@ -217,13 +217,13 @@ public partial class BlockChainTest
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var repository = new Repository();
-        var actionEvaluator = new ActionEvaluator(
+        var actionEvaluator = new BlockExecutor(
             repository.StateStore,
             options1.PolicyActions);
         var preGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,
             protocolVersion: beforePostponeBPV);
-        var preExecution = actionEvaluator.Evaluate(preGenesis);
+        var preExecution = actionEvaluator.Execute(preGenesis);
         var genesisBlock = preGenesis.Sign(TestUtils.GenesisProposer);
         var chain1 = new BlockChain(genesisBlock, repository, options1);
 
@@ -241,7 +241,7 @@ public partial class BlockChainTest
 
         var options2 = new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 BeginBlockActions = [],
                 EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
@@ -263,20 +263,20 @@ public partial class BlockChainTest
         var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
         var options = new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 BeginBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
             },
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var repository = new Repository();
-        var actionEvaluator = new ActionEvaluator(
+        var actionEvaluator = new BlockExecutor(
             repository.StateStore,
             options.PolicyActions);
         var rawGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,
             protocolVersion: beforePostponeBPV);
-        var rawEvaluation = actionEvaluator.Evaluate(rawGenesis);
+        var rawEvaluation = actionEvaluator.Execute(rawGenesis);
         var genesisBlock = rawGenesis.Sign(TestUtils.GenesisProposer);
         var chain = new BlockChain(genesisBlock, repository, options);
 
@@ -693,7 +693,7 @@ public partial class BlockChainTest
                 .ToImmutableArray();
         var policyWithBlockAction = new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 EndBlockActions = endBlockActions,
             },

@@ -1,7 +1,7 @@
 using GraphQL.Language.AST;
 using GraphQL.Types;
 using Libplanet.Types;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Explorer.GraphTypes
 {

@@ -1,4 +1,4 @@
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Blockchain;
 

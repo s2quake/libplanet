@@ -5,7 +5,7 @@ namespace Libplanet.Node;
 
 public interface IActionProvider
 {
-    PolicyActions PolicyActions { get; }
+    SystemActions PolicyActions { get; }
 
     IAction[] GetGenesisActions(Address genesisAddress, Address[] validators);
 }

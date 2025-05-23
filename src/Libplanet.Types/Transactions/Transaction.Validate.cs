@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
 
-namespace Libplanet.Types.Tx;
+namespace Libplanet.Types.Transactions;
 
 public sealed partial record class Transaction : IValidatableObject
 {

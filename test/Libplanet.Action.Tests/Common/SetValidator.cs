@@ -9,7 +9,7 @@ public sealed record class SetValidator : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        var validatorSet = (ImmutableSortedSet<Validator>)world[ValidatorSet, ValidatorSet];
-        world[ValidatorSet, ValidatorSet] = validatorSet.Add(Validator);
+        var validatorSet = (ImmutableSortedSet<Validator>)world[SystemAccount, Validators];
+        world[SystemAccount, Validators] = validatorSet.Add(Validator);
     }
 }

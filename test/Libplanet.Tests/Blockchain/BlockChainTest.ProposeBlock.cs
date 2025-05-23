@@ -7,7 +7,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using static Libplanet.Action.SystemAddresses;
 using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
@@ -455,7 +455,7 @@ public partial class BlockChainTest
 
         var options = new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 BeginBlockActions = [],
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
