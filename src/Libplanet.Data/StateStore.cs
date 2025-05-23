@@ -40,7 +40,7 @@ public partial class StateStore(ITable table)
             }
 
             // FIXME: Probably not the right place to implement this.
-            // It'd be better to have it in Libplanet.Action.State.
+            // It'd be better to have it in Libplanet.Action.
             if (stateTrie[string.Empty] is { } metadata)
             {
                 foreach (var (path, hash) in stateTrie)

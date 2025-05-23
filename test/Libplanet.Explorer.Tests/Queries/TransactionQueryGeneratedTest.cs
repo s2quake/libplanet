@@ -68,7 +68,7 @@ public class TransactionQueryGeneratedTest
         Assert.Equal(failBlock.Height, queryResult.BlockHeight);
         Assert.Equal(failBlock.BlockHash.ToString(), queryResult.BlockHash);
         Assert.Equal(
-            new string?[] { null, "Libplanet.Action.State.CurrencyPermissionException", null },
+            new string?[] { null, "Libplanet.Action.CurrencyPermissionException", null },
             queryResult.ExceptionNames);
         queryResult = await ExecuteTransactionResultQueryAsync(emptyTx.Id);
         Assert.Equal("INCLUDED", queryResult.TxStatus);

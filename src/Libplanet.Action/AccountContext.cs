@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Data.Structures;
 
 namespace Libplanet.Action;

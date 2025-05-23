@@ -2,7 +2,7 @@ using Libplanet.Data.Structures;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Action.State;
+namespace Libplanet.Action;
 
 public sealed record class CurrencyAccount(ITrie Trie, Address Signer, Currency Currency)
 {

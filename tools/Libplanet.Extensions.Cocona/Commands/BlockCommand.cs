@@ -3,7 +3,7 @@ using System.Text.Json;
 using global::Cocona;
 using ImmutableTrie;
 using Libplanet.Action;
-using Libplanet.Action.Sys;
+using Libplanet.Action.Builtin;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Data;
@@ -122,10 +122,8 @@ public class BlockCommand
         var validatorSet =
             validatorKey
                 .Select(Address.Parse)
-                .Select(k => Validator.Create(k, BigInteger.One))
+                .Select(k => new Validator { Address = k })
                 .ToImmutableSortedSet();
-        var emptyState =
-            ImmutableTrieDictionary<Address, object>.Empty;
         ImmutableList<Transaction> txs = Array.Empty<Transaction>()
 
             // FIXME: Remove this pragma after fixing the following issue:
@@ -142,7 +140,6 @@ public class BlockCommand
                         new Initialize
                         {
                             Validators = validatorSet,
-                            States = emptyState.ToImmutableDictionary(),
                         },
                     }.ToBytecodes(),
                 }.Sign(key))

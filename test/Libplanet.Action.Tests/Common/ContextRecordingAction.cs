@@ -1,6 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests.Common;
 
@@ -20,11 +20,11 @@ public sealed record class ContextRecordingAction : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        world[LegacyAccount, Address] = Value;
-        world[LegacyAccount, Address] = Value;
-        world[LegacyAccount, MinerRecordAddress] = context.Proposer;
-        world[LegacyAccount, SignerRecordAddress] = context.Signer;
-        world[LegacyAccount, BlockIndexRecordAddress] = context.BlockHeight;
-        world[LegacyAccount, RandomRecordAddress] = context.GetRandom().Next();
+        world[SystemAccount, Address] = Value;
+        world[SystemAccount, Address] = Value;
+        world[SystemAccount, MinerRecordAddress] = context.Proposer;
+        world[SystemAccount, SignerRecordAddress] = context.Signer;
+        world[SystemAccount, BlockIndexRecordAddress] = context.BlockHeight;
+        world[SystemAccount, RandomRecordAddress] = context.GetRandom().Next();
     }
 }

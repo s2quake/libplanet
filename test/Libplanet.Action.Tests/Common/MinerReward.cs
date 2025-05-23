@@ -1,6 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests.Common;
 
@@ -24,10 +24,10 @@ public sealed record class MinerReward : ActionBase
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
         var proposer = context.Proposer;
-        var record = world.GetValue(LegacyAccount, RewardRecordAddress, string.Empty);
-        var reward = world.GetValue(LegacyAccount, proposer, 0) + Reward;
+        var record = world.GetValue(SystemAccount, RewardRecordAddress, string.Empty);
+        var reward = world.GetValue(SystemAccount, proposer, 0) + Reward;
         var rewardRecord = record == string.Empty ? $"{proposer}" : $"{record},{proposer}";
-        world[LegacyAccount, RewardRecordAddress] = rewardRecord;
-        world[LegacyAccount, proposer] = reward;
+        world[SystemAccount, RewardRecordAddress] = rewardRecord;
+        world[SystemAccount, proposer] = reward;
     }
 }

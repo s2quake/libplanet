@@ -1,5 +1,5 @@
 using Libplanet.Action;
-using Libplanet.Action.Sys;
+using Libplanet.Action.Builtin;
 using Libplanet.Blockchain;
 using Libplanet.Data;
 using Libplanet.Types.Assets;
@@ -82,8 +82,7 @@ public class GeneratedBlockChainFixture
                         {
                             new Initialize
                             {
-                                Validators = [Validator.Create(pk.Address, 1)],
-                                States = ImmutableDictionary.Create<Address, object>(),
+                                Validators = [new Validator { Address = pk.Address }],
                             },
                         }.ToBytecodes(),
                     }.Sign(privateKey))

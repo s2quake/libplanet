@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Action;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Net.Consensus;
@@ -1088,19 +1088,19 @@ namespace Libplanet.Net.Tests
                     "1",
                     genesisChainA
                         .GetWorld()
-                        .GetAccount(ReservedAddresses.LegacyAccount)
+                        .GetAccount(SystemAddresses.SystemAccount)
                         .GetValue(signerAddress));
                 Assert.Equal(
                     "2",
                     genesisChainB
                         .GetWorld()
-                        .GetAccount(ReservedAddresses.LegacyAccount)
+                        .GetAccount(SystemAddresses.SystemAccount)
                         .GetValue(signerAddress));
                 Assert.Equal(
                     "1",
                     genesisChainC
                         .GetWorld()
-                        .GetAccount(ReservedAddresses.LegacyAccount)
+                        .GetAccount(SystemAddresses.SystemAccount)
                         .GetValue(signerAddress));
             }
             finally

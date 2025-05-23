@@ -3,7 +3,7 @@ using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests.Common;
 
@@ -52,8 +52,8 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
     {
         if (Append is { } append)
         {
-            var items = world.GetValue(LegacyAccount, append.At, string.Empty);
-            world[LegacyAccount, append.At] = items == string.Empty ? append.Item : $"{items},{append.Item}";
+            var items = world.GetValue(SystemAccount, append.At, string.Empty);
+            world[SystemAccount, append.At] = items == string.Empty ? append.Item : $"{items},{append.Item}";
         }
 
         if (Transfer is { } transfer)
@@ -86,7 +86,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
 
         if (Validators is { } validators)
         {
-            world[LegacyAccount, ValidatorSetAddress] = validators;
+            world[SystemAccount, ValidatorSet] = validators;
         }
     }
 }

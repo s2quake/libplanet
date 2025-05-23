@@ -1,6 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests.Common;
 
@@ -15,7 +15,7 @@ public sealed record class UpdateValueAction : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        var value = world.GetValue(LegacyAccount, Address, BigInteger.Zero);
-        world[LegacyAccount, Address] = value + Increment;
+        var value = world.GetValue(SystemAccount, Address, BigInteger.Zero);
+        world[SystemAccount, Address] = value + Increment;
     }
 }

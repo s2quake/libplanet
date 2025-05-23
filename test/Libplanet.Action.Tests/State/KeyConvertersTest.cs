@@ -1,4 +1,4 @@
-// using Libplanet.Action.State;
+// using Libplanet.Action;
 // using Libplanet.Data.Structures;
 // using Libplanet.Types.Assets;
 // using Libplanet.Types.Crypto;

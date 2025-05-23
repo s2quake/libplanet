@@ -1,17 +1,16 @@
 using Libplanet.Serialization;
 using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
-namespace Libplanet.Action.Sys;
+namespace Libplanet.Action.Builtin;
 
 [Model(Version = 1)]
 public sealed record class Initialize : ActionBase, IEquatable<Initialize>
 {
-    public ImmutableDictionary<Address, object> States { get; init; }
-        = ImmutableDictionary<Address, object>.Empty;
-
     [Property(0)]
+    public ImmutableArray<State> States { get; init; } = [];
+
+    [Property(1)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
 
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
@@ -26,11 +25,15 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
                 $"{nameof(Initialize)} action can be executed only genesis block.");
         }
 
-        foreach (var (address, value) in States)
+        foreach (var state in States)
         {
-            world[LegacyAccount, address] = value;
+            var account = world[state.Name];
+            foreach (var (key, value) in state.Values)
+            {
+                account[key] = value;
+            }
         }
 
-        world[ValidatorSetAddress, ValidatorSetAddress] = Validators;
+        world[ValidatorSet, ValidatorSet] = Validators;
     }
 }

@@ -1,11 +1,11 @@
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Serilog;
 using Xunit.Abstractions;
-using static Libplanet.Action.State.ReservedAddresses;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Action.Tests;
 
@@ -47,7 +47,7 @@ public class ActionEvaluationTest
             ],
         };
         var world = new World();
-        world = world.SetValue(LegacyAccount, address, "item");
+        world = world.SetValue(SystemAccount, address, "item");
         var evaluation = new ActionEvaluation
         {
             Action = DumbAction.Create((address, "item")),
@@ -72,8 +72,8 @@ public class ActionEvaluationTest
         Assert.Equal(txid, evaluation.InputContext.TxId);
         Assert.Equal(address, evaluation.InputContext.Proposer);
         Assert.Equal(1, evaluation.InputContext.BlockHeight);
-        Assert.Null(evaluation.InputWorld.GetValueOrDefault(LegacyAccount, address));
-        Assert.Equal("item", evaluation.OutputWorld.GetValue(LegacyAccount, address));
+        Assert.Null(evaluation.InputWorld.GetValueOrDefault(SystemAccount, address));
+        Assert.Equal("item", evaluation.OutputWorld.GetValue(SystemAccount, address));
         Assert.Equal(lastCommit, evaluation.InputContext.LastCommit);
     }
 }

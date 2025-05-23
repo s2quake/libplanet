@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Linq;
 using Libplanet.Action;
 using Libplanet.Action.Loader;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Action.Sys;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Consensus;

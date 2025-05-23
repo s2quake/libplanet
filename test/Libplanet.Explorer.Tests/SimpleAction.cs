@@ -1,5 +1,5 @@
 using Libplanet.Action;
-using Libplanet.Action.State;
+using Libplanet.Action;
 using Libplanet.Serialization;
 
 namespace Libplanet.Explorer.Tests;
