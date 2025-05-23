@@ -59,7 +59,7 @@ public class InitializeTest
 
         var nextWorld = TestUtils.ExecuteAction(initialize, world, context);
 
-        Assert.Equal(_validators, nextWorld.GetValidatorSet());
+        Assert.Equal(_validators, nextWorld.GetValidators());
         Assert.Equal(
             _states[default],
             nextWorld.GetValueOrDefault(SystemAccount, default));

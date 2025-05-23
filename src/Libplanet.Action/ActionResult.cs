@@ -1,6 +1,6 @@
 namespace Libplanet.Action;
 
-public sealed record class ActionEvaluation
+public sealed record class ActionResult
 {
     public required IAction Action { get; init; }
 

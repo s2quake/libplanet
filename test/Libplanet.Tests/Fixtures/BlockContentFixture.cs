@@ -6,7 +6,7 @@
 // using Libplanet.Tests.Blockchain.Evidence;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Evidence;
-// using Libplanet.Types.Tx;
+// using Libplanet.Types.Transactions;
 // using Xunit;
 
 // namespace Libplanet.Tests.Fixtures

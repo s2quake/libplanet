@@ -99,7 +99,7 @@ public sealed record class DumbModernAction : ActionBase
 
         if (Validators is { } validators)
         {
-            world[ValidatorSet, ValidatorSet] = validators;
+            world[SystemAccount, SystemAddresses.Validators] = validators;
         }
     }
 }

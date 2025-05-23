@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 
-namespace Libplanet.Types.Tx;
+namespace Libplanet.Types.Transactions;
 
 [Model(Version = 1)]
 public sealed record class TxExecution : IEquatable<TxExecution>, IHasKey<TxId>

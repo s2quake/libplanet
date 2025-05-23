@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Tests.Blockchain.Policies;
 

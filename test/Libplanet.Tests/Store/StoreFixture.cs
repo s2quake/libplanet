@@ -6,7 +6,7 @@ using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Tests.Store;
 
@@ -92,9 +92,9 @@ public abstract class StoreFixture : IDisposable
         var preEval = TestUtils.ProposeGenesis(
             proposer: Proposer,
             validators: TestUtils.Validators);
-        var actionEvaluator = new ActionEvaluator(repository.StateStore, Options.PolicyActions);
+        var actionEvaluator = new BlockExecutor(repository.StateStore, Options.PolicyActions);
         GenesisBlock = preEval.Sign(Proposer);
-        var evaluation = actionEvaluator.Evaluate((RawBlock)GenesisBlock);
+        var evaluation = actionEvaluator.Execute((RawBlock)GenesisBlock);
         var genesisNextSrh = evaluation.OutputWorld.Trie.Hash;
         stateRootHashes[GenesisBlock.BlockHash] = genesisNextSrh;
         Block1 = TestUtils.ProposeNextBlock(

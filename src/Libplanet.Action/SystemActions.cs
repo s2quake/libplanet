@@ -1,8 +1,8 @@
 namespace Libplanet.Action;
 
-public sealed record class PolicyActions
+public sealed record class SystemActions
 {
-    public static PolicyActions Empty { get; } = new PolicyActions();
+    public static SystemActions Empty { get; } = new SystemActions();
 
     public ImmutableArray<IAction> BeginBlockActions { get; init; } = [];
 

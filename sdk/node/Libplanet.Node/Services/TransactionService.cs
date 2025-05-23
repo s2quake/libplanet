@@ -1,5 +1,5 @@
 using Libplanet.Blockchain;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Node.Services;
 

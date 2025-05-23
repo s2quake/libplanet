@@ -9,7 +9,7 @@ public sealed class ActionProvider : IActionProvider
 {
     public static ActionProvider Default { get; } = new ActionProvider();
 
-    public PolicyActions PolicyActions { get; } = new PolicyActions();
+    public SystemActions PolicyActions { get; } = new SystemActions();
 
     public IAction[] GetGenesisActions(Address genesisAddress, Address[] validators) =>
     [

@@ -4,7 +4,7 @@
 // using Libplanet.Tests.Fixtures;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Evidence;
-// using Libplanet.Types.Tx;
+// using Libplanet.Types.Transactions;
 // using Xunit;
 // using Xunit.Abstractions;
 // using static Libplanet.Tests.TestUtils;

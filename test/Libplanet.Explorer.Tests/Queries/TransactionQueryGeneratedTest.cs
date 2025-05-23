@@ -6,7 +6,7 @@ using Libplanet.Action;
 using Libplanet.Explorer.Queries;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.Queries;

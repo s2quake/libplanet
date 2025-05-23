@@ -4,7 +4,7 @@ using Libplanet.Types.Assets;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Types.Tx;
+namespace Libplanet.Types.Transactions;
 
 [Model(Version = 1)]
 public sealed record class TransactionMetadata : IEquatable<TransactionMetadata>

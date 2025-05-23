@@ -7,7 +7,7 @@ using Libplanet.Data.Structures;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Tests.Fixtures;

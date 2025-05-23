@@ -16,7 +16,7 @@ public class ActionServiceTest(TempDirectoryFixture tempDirectoryFixture)
         var serviceProvider = TestUtility.CreateServiceProvider();
         var actionService = serviceProvider.GetRequiredService<IActionService>();
 
-        Assert.IsType<PolicyActions>(actionService.PolicyActions);
+        Assert.IsType<SystemActions>(actionService.PolicyActions);
     }
 
     [Fact]

@@ -7,7 +7,7 @@ using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 #if NETSTANDARD2_0
 using Libplanet.Types;
 #endif

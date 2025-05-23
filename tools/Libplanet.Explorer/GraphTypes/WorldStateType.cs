@@ -81,7 +81,7 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<IValueType>>(
                 name: "validatorSet",
                 description: "The validator set.",
-                resolve: context => ModelSerializer.SerializeToBytes(context.Source.GetValidatorSet()));
+                resolve: context => ModelSerializer.SerializeToBytes(context.Source.GetValidators()));
         }
     }
 }

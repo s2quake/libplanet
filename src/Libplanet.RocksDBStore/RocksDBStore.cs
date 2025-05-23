@@ -10,7 +10,7 @@
 // using Libplanet.Types.Crypto;
 // using Libplanet.Types.Evidence;
 // using Libplanet.Types.Extensions;
-// using Libplanet.Types.Tx;
+// using Libplanet.Types.Transactions;
 // using LruCacheNet;
 // using RocksDbSharp;
 // using Serilog;

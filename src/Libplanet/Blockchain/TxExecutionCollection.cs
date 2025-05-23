@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Blockchain;
 

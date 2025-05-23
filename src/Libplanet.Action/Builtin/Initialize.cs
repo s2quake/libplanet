@@ -34,6 +34,6 @@ public sealed record class Initialize : ActionBase, IEquatable<Initialize>
             }
         }
 
-        world[ValidatorSet, ValidatorSet] = Validators;
+        world[SystemAccount, SystemAddresses.Validators] = Validators;
     }
 }

@@ -4,7 +4,7 @@ using Libplanet.Blockchain;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Blockchain.Policies;
@@ -169,7 +169,7 @@ public class BlockPolicyTest : IDisposable
 
         var options = new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },

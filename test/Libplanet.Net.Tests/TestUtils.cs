@@ -39,7 +39,7 @@ namespace Libplanet.Net.Tests
 
         public static readonly BlockChainOptions Options = new()
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
@@ -292,7 +292,7 @@ namespace Libplanet.Net.Tests
                 privateKey,
                 validatorSet ?? blockChain
                     .GetWorld(height - 1)
-                    .GetValidatorSet(),
+                    .GetValidators(),
                 contextOption: contextOption ?? new ContextOption());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
             return context;
@@ -319,7 +319,7 @@ namespace Libplanet.Net.Tests
                 privateKey,
                 validatorSet ?? blockChain
                     .GetWorld(height - 1)
-                    .GetValidatorSet(),
+                    .GetValidators(),
                 contextOption: contextOption ?? new ContextOption());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 

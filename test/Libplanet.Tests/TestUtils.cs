@@ -17,7 +17,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 using Random = System.Random;
@@ -512,7 +512,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         .BlockChain;
     }
 
-    public static (BlockChain BlockChain, ActionEvaluator ActionEvaluator)
+    public static (BlockChain BlockChain, BlockExecutor ActionEvaluator)
         MakeBlockChainAndActionEvaluator(
         BlockChainOptions? options,
         IEnumerable<IAction>? actions = null,
@@ -539,7 +539,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         }.ToImmutableSortedSet();
 
         var repository = new Repository();
-        var actionEvaluator = new ActionEvaluator(
+        var actionEvaluator = new BlockExecutor(
             stateStore: repository.StateStore,
             options.PolicyActions);
 
@@ -551,7 +551,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 validators: validatorSet,
                 timestamp: timestamp,
                 protocolVersion: protocolVersion);
-            var evaluation = actionEvaluator.Evaluate(preEval);
+            var evaluation = actionEvaluator.Execute(preEval);
             genesisBlock = preEval.Sign(privateKey);
         }
 

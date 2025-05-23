@@ -1,7 +1,7 @@
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 
 namespace Libplanet.Net.Options
 {

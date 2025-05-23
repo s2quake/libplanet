@@ -14,7 +14,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using NetMQ;
 using Nito.AsyncEx;
 using Nito.AsyncEx.Synchronous;

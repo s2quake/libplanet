@@ -5,7 +5,7 @@ using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;
 using Libplanet.Types.ModelConverters;
 
-namespace Libplanet.Types.Tx;
+namespace Libplanet.Types.Transactions;
 
 [JsonConverter(typeof(TxIdJsonConverter))]
 [TypeConverter(typeof(TxIdTypeConverter))]

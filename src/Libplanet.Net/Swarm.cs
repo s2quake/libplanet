@@ -16,7 +16,7 @@ using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Nito.AsyncEx;
 using Serilog;
 

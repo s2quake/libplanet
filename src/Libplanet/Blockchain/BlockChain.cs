@@ -8,6 +8,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
+using static Libplanet.Action.SystemAddresses;
 
 namespace Libplanet.Blockchain;
 
@@ -17,7 +18,7 @@ public partial class BlockChain
     private readonly Subject<RenderBlockInfo> _blockEvaluated = new();
     private readonly Subject<TipChangedInfo> _tipChangedSubject = new();
     private readonly Repository _repository;
-    private readonly ActionEvaluator _actionEvaluator;
+    private readonly BlockExecutor _actionEvaluator;
 
     public BlockChain()
         : this(new Repository(), BlockChainOptions.Empty)
@@ -52,7 +53,7 @@ public partial class BlockChain
     {
         _repository = repository;
         // _chain = repository.Chain;
-        _actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
+        _actionEvaluator = new BlockExecutor(repository.StateStore, options.PolicyActions);
         Options = options;
         Id = _repository.Id;
         Blocks = new BlockCollection(repository);
@@ -66,7 +67,7 @@ public partial class BlockChain
 
     public IObservable<RenderBlockInfo> RenderBlock => _blockEvaluating;
 
-    public IObservable<ActionEvaluation> RenderAction => _actionEvaluator.ActionEvaluated;
+    public IObservable<ActionResult> RenderAction => _actionEvaluator.ActionExecuted;
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _blockEvaluated;
 
@@ -107,9 +108,9 @@ public partial class BlockChain
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
-    public BlockEvaluation Evaluate(Block block)
+    public BlockResult Evaluate(Block block)
     {
-        var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
+        var evaluation = _actionEvaluator.Execute((RawBlock)block);
         var blockHash = block.BlockHash;
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(blockHash));
         _repository.BlockExecutions.Add(blockHash, evaluation.GetBlockExecution(blockHash));
@@ -150,7 +151,7 @@ public partial class BlockChain
 
         _tipChangedSubject.OnNext(new(oldTip, block));
         _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));
-        var evaluation = _actionEvaluator.Evaluate((RawBlock)block);
+        var evaluation = _actionEvaluator.Execute((RawBlock)block);
         _blockEvaluated.OnNext(new RenderBlockInfo(oldTip, block));
         _repository.StateRootHash = evaluation.OutputWorld.Hash;
         _repository.StateRootHashStore.Add(block.BlockHash, _repository.StateRootHash);
@@ -163,20 +164,10 @@ public partial class BlockChain
     public HashDigest<SHA256> GetStateRootHash(BlockHash blockHash)
         => _repository.StateRootHashStore[blockHash];
 
-    internal ImmutableSortedSet<Validator> GetValidatorSet(int height)
-    {
-        if (height == 0)
-        {
-            IWorldContext worldContext = new WorldStateContext(GetWorld());
-            return (ImmutableSortedSet<Validator>)worldContext[SystemAddresses.ValidatorSet][SystemAddresses.ValidatorSet]; ;
-        }
-
-        var blockCommit = BlockCommits[height];
-        return [.. blockCommit.Votes.Select(CreateValidator)];
-
-        static Validator CreateValidator(Vote vote)
-            => Validator.Create(vote.Validator, vote.ValidatorPower);
-    }
+    // internal ImmutableSortedSet<Validator> GetValidatorSet(int height)
+    // {
+    //     return GetWorld(height).GetValidatorSet();
+    // }
 
     // private static Repository CreateChain(Block genesisBlock, Repository repository)
     // {

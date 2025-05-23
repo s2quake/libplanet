@@ -39,17 +39,17 @@ public static class WorldExtensions
     public static FungibleAssetValue GetTotalSupply(this World @this, Currency currency)
         => @this.GetCurrencyAccount(currency).GetTotalSupply();
 
-    public static ImmutableSortedSet<Validator> GetValidatorSet(this World @this)
+    public static ImmutableSortedSet<Validator> GetValidators(this World @this)
     {
-        var account = @this.GetAccount(ValidatorSet.ToString());
-        return (ImmutableSortedSet<Validator>)account.GetValue(ValidatorSet);
+        var account = @this.GetAccount(SystemAccount);
+        return (ImmutableSortedSet<Validator>)account.GetValue(Validators);
     }
 
-    public static World SetValidatorSet(this World @this, ImmutableSortedSet<Validator> validators)
+    public static World SetValidators(this World @this, ImmutableSortedSet<Validator> validators)
     {
-        var account = @this.GetAccount(ValidatorSet.ToString());
-        account = account.SetValue(ValidatorSet, validators);
-        return @this.SetAccount(ValidatorSet.ToString(), account);
+        var account = @this.GetAccount(SystemAccount);
+        account = account.SetValue(Validators, validators);
+        return @this.SetAccount(SystemAccount, account);
     }
 
     public static object? GetValueOrDefault(this World @this, string name, string key)

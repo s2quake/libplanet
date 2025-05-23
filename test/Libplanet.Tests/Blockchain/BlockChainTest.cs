@@ -10,7 +10,7 @@ using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Tx;
+using Libplanet.Types.Transactions;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
@@ -37,7 +37,7 @@ public partial class BlockChainTest : IDisposable
 
         _options = new BlockChainOptions
         {
-            PolicyActions = new PolicyActions
+            PolicyActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
@@ -163,7 +163,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void Validators()
     {
-        var validatorSet = _blockChain.GetWorld().GetValidatorSet();
+        var validatorSet = _blockChain.GetWorld().GetValidators();
         Assert.Equal(TestUtils.Validators, validatorSet);
     }
 
@@ -348,7 +348,7 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(2, generatedRandomValueLogs.Count);
         Assert.Equal(generatedRandomValueLogs[0], generatedRandomValueLogs[1]);
 
-        void ActionEvaluated(ActionEvaluation evaluation)
+        void ActionEvaluated(ActionResult evaluation)
             => generatedRandomValueLogs.Add(evaluation.InputContext.GetRandom().Next());
     }
 
@@ -1216,7 +1216,7 @@ public partial class BlockChainTest : IDisposable
 
         var validator = blockChain
             .GetWorld()
-            .GetValidatorSet()[0];
+            .GetValidators()[0];
         Assert.Equal(validatorKey.Address, validator.Address);
         Assert.Equal(BigInteger.One, validator.Power);
 
@@ -1456,13 +1456,13 @@ public partial class BlockChainTest : IDisposable
         Assert.Equal(
             blockChain
                 .GetWorld(0)
-                .GetValidatorSet(),
+                .GetValidators(),
             [.. ValidatorPrivateKeys.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
 
         Assert.Equal(
             blockChain
                 .GetWorld(1)
-                .GetValidatorSet(),
+                .GetValidators(),
             [.. newValidators.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
     }
 
