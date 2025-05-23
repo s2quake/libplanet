@@ -3,7 +3,7 @@ using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Consensus;
+namespace Libplanet.Net.Consensus;
 
 public sealed record class ProposalClaim : IEquatable<ProposalClaim>
 {

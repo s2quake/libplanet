@@ -1,4 +1,4 @@
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -70,10 +70,10 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// Validates given <paramref name="message"/> and add it to the message log.
         /// </summary>
-        /// <param name="message">A <see cref="ConsensusMsg"/> to be added.
+        /// <param name="message">A <see cref="ConsensusMessage"/> to be added.
         /// </param>
         /// <remarks>
-        /// If an invalid <see cref="ConsensusMsg"/> is given, this method throws
+        /// If an invalid <see cref="ConsensusMessage"/> is given, this method throws
         /// an <see cref="InvalidConsensusMessageException"/> and handles it <em>internally</em>
         /// while invoking <see cref="ExceptionOccurred"/> event.
         /// An <see cref="InvalidConsensusMessageException"/> can be thrown when
@@ -81,7 +81,7 @@ namespace Libplanet.Net.Consensus
         /// <see cref="HeightVoteSet.AddVote"/> returns <see langword="false"/>.
         /// </remarks>
         /// <seealso cref="HeightVoteSet.AddVote"/>
-        private bool AddMessage(ConsensusMsg message)
+        private bool AddMessage(ConsensusMessage message)
         {
             try
             {
@@ -104,11 +104,11 @@ namespace Libplanet.Net.Consensus
                     AddProposal(proposal.Proposal);
                 }
 
-                if (message is ConsensusVoteMsg voteMsg)
+                if (message is ConsensusVoteMessage voteMsg)
                 {
                     switch (voteMsg)
                     {
-                        case ConsensusPreVoteMsg preVote:
+                        case ConsensusPreVoteMessage preVote:
                             {
                                 _heightVoteSet.AddVote(preVote.PreVote);
                                 var args = (preVote.Round, VoteFlag.PreVote,
@@ -366,9 +366,9 @@ namespace Libplanet.Net.Consensus
         /// Checks the current state to mutate <see cref="Round"/> or to terminate
         /// by setting <see cref="ConsensusStep"/> to <see cref="ConsensusStep.EndCommit"/>.
         /// </summary>
-        /// <param name="message">The <see cref="ConsensusMsg"/> to process.
+        /// <param name="message">The <see cref="ConsensusMessage"/> to process.
         /// Although this is not strictly needed, this is used for optimization.</param>
-        private void ProcessHeightOrRoundUponRules(ConsensusMsg message)
+        private void ProcessHeightOrRoundUponRules(ConsensusMessage message)
         {
             if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
             {
@@ -500,7 +500,7 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// A timeout mutation to run if +2/3 <see cref="ConsensusPreVoteMsg"/>s were received but
+        /// A timeout mutation to run if +2/3 <see cref="ConsensusPreVoteMessage"/>s were received but
         /// is still in <paramref name="round"/> round and <see cref="ConsensusStep.PreVote"/> step
         /// after <see cref="TimeoutPreVote"/>.
         /// </summary>

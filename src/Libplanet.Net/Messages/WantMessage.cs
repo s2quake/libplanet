@@ -1,38 +1,37 @@
-namespace Libplanet.Net.Messages
+using Libplanet.Serialization;
+
+namespace Libplanet.Net.Messages;
+
+[Model(Version = 1)]
+public sealed record class WantMessage : MessageContent
 {
-    /// <summary>
-    /// List of message IDs that the peer want to have.
-    /// </summary>
-    /// <seealso cref="HaveMessage"/>
-    public class WantMessage : MessageContent
-    {
-        public WantMessage(MessageId[] messageIds)
-        {
-            Ids = messageIds;
-        }
+    // public WantMessage(MessageId[] messageIds)
+    // {
+    //     Ids = messageIds;
+    // }
 
-        public WantMessage(byte[][] dataFrames)
-        {
-            int msgCount = BitConverter.ToInt32(dataFrames[0], 0);
-            Ids = dataFrames
-                .Skip(1).Take(msgCount)
-                .Select(ba => new MessageId(ba))
-                .ToList();
-        }
+    // public WantMessage(byte[][] dataFrames)
+    // {
+    //     int msgCount = BitConverter.ToInt32(dataFrames[0], 0);
+    //     Ids = dataFrames
+    //         .Skip(1).Take(msgCount)
+    //         .Select(ba => new MessageId(ba))
+    //         .ToList();
+    // }
 
-        public IEnumerable<MessageId> Ids { get; }
+    [Property(0)]
+    public ImmutableArray<MessageId> Ids { get; init; }
 
-        public override MessageType Type => MessageType.WantMessage;
+    public override MessageType Type => MessageType.WantMessage;
 
-        public override IEnumerable<byte[]> DataFrames
-        {
-            get
-            {
-                var frames = new List<byte[]>();
-                frames.Add(BitConverter.GetBytes(Ids.Count()));
-                frames.AddRange(Ids.Select(id => id.ToByteArray()));
-                return frames;
-            }
-        }
-    }
+    // public override IEnumerable<byte[]> DataFrames
+    // {
+    //     get
+    //     {
+    //         var frames = new List<byte[]>();
+    //         frames.Add(BitConverter.GetBytes(Ids.Count()));
+    //         frames.AddRange(Ids.Select(id => id.ToByteArray()));
+    //         return frames;
+    //     }
+    // }
 }

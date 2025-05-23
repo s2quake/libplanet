@@ -15,7 +15,7 @@ namespace Libplanet.Net.Protocols
         /// <param name="bootstrapPeers">A <see cref="IEnumerable{T}"/> of <see cref="BoundPeer"/>s
         /// to bootstrap.</param>
         /// <param name="dialTimeout">The timeout used when waiting a reply for either
-        /// <see cref="PingMsg"/> or <see cref="FindNeighborsMsg"/>.
+        /// <see cref="PingMessage"/> or <see cref="FindNeighborsMsg"/>.
         /// If <see langword="null"/> is given, the task never halts by itself
         /// even no any response was given from the target seed.</param>
         /// <param name="depth">Recursive operation depth to search peers from network.</param>
@@ -31,10 +31,10 @@ namespace Libplanet.Net.Protocols
 
         /// <summary>
         /// Tries to add given <paramref name="peers"/> to routing table
-        /// by sending <see cref="PingMsg"/>.
+        /// by sending <see cref="PingMessage"/>.
         /// </summary>
         /// <param name="peers">The peers to add.</param>
-        /// <param name="timeout">A timeout of waiting for the reply of <see cref="PingMsg"/>
+        /// <param name="timeout">A timeout of waiting for the reply of <see cref="PingMessage"/>
         /// message sent to <paramref name="peers"/>.
         /// If <see langword="null"/> is given, task never halts by itself
         /// even the target peer gives no any response.</param>
@@ -49,7 +49,7 @@ namespace Libplanet.Net.Protocols
 
         /// <summary>
         /// Checks whether <see cref="BoundPeer"/>s in <see cref="RoutingTable"/> is online by
-        /// sending <see cref="PingMsg"/>.
+        /// sending <see cref="PingMessage"/>.
         /// </summary>
         /// <param name="maxAge">Maximum age of peer to validate.</param>
         /// <param name="cancellationToken">A cancellation token used to propagate notification

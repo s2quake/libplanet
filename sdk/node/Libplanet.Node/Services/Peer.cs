@@ -34,7 +34,7 @@ internal sealed class Peer(ITransport transport, BoundPeer boundPeer)
     {
         try
         {
-            var pingMsg = new PingMsg();
+            var pingMsg = new PingMessage();
             var stopwatch = Stopwatch.StartNew();
             var replyMessage = await _transport.SendMessageAsync(
                 BoundPeer,
@@ -43,7 +43,7 @@ internal sealed class Peer(ITransport transport, BoundPeer boundPeer)
                 cancellationToken);
             var latency = Stopwatch.GetElapsedTime(stopwatch.ElapsedTicks);
 
-            if (replyMessage.Content is PongMsg)
+            if (replyMessage.Content is PongMessage)
             {
                 Latency = latency;
                 return true;

@@ -20,14 +20,14 @@ namespace Libplanet.Net.Tests.Messages
             // Within buffer window is okay.
             messageValidator.ValidateTimestamp(
                 new Message(
-                    new PingMsg(),
+                    new PingMessage(),
                     apvOption.AppProtocolVersion,
                     peer,
                     DateTimeOffset.UtcNow + buffer.Divide(2),
                     null));
             messageValidator.ValidateTimestamp(
                 new Message(
-                    new PingMsg(),
+                    new PingMessage(),
                     apvOption.AppProtocolVersion,
                     peer,
                     DateTimeOffset.UtcNow - buffer.Divide(2),
@@ -37,7 +37,7 @@ namespace Libplanet.Net.Tests.Messages
             Assert.Throws<InvalidMessageTimestampException>(() =>
                 messageValidator.ValidateTimestamp(
                     new Message(
-                        new PingMsg(),
+                        new PingMessage(),
                         apvOption.AppProtocolVersion,
                         peer,
                         DateTimeOffset.UtcNow + buffer.Multiply(2),
@@ -45,7 +45,7 @@ namespace Libplanet.Net.Tests.Messages
             Assert.Throws<InvalidMessageTimestampException>(() =>
                 messageValidator.ValidateTimestamp(
                     new Message(
-                        new PingMsg(),
+                        new PingMessage(),
                         apvOption.AppProtocolVersion,
                         peer,
                         DateTimeOffset.UtcNow - buffer.Multiply(2),
@@ -55,14 +55,14 @@ namespace Libplanet.Net.Tests.Messages
             messageValidator = new MessageValidator(apvOption, null);
             messageValidator.ValidateTimestamp(
                 new Message(
-                    new PingMsg(),
+                    new PingMessage(),
                     apvOption.AppProtocolVersion,
                     peer,
                     DateTimeOffset.MaxValue,
                     null));
             messageValidator.ValidateTimestamp(
                 new Message(
-                    new PingMsg(),
+                    new PingMessage(),
                     apvOption.AppProtocolVersion,
                     peer,
                     DateTimeOffset.MinValue,
@@ -87,14 +87,14 @@ namespace Libplanet.Net.Tests.Messages
             var peer = new BoundPeer(trustedSigner.PublicKey, new DnsEndPoint("0.0.0.0", 0));
 
             // Apv
-            var trustedApv = AppProtocolVersion.Sign(trustedSigner, version1, extra1);
-            var trustedDifferentVersionApv = AppProtocolVersion.Sign(
+            var trustedApv = Protocol.Sign(trustedSigner, version1, extra1);
+            var trustedDifferentVersionApv = Protocol.Sign(
                 trustedSigner, version2, extra1);
-            var trustedDifferentExtraApv = AppProtocolVersion.Sign(trustedSigner, version1, extra2);
-            var unknownApv = AppProtocolVersion.Sign(unknownSigner, version1, extra1);
-            var unknownDifferentVersionApv = AppProtocolVersion.Sign(
+            var trustedDifferentExtraApv = Protocol.Sign(trustedSigner, version1, extra2);
+            var unknownApv = Protocol.Sign(unknownSigner, version1, extra1);
+            var unknownDifferentVersionApv = Protocol.Sign(
                 unknownSigner, version2, extra1);
-            var unknownDifferentExtraApv = AppProtocolVersion.Sign(unknownSigner, version1, extra2);
+            var unknownDifferentExtraApv = Protocol.Sign(unknownSigner, version1, extra2);
 
             // Signer
             ImmutableHashSet<PublicKey>? trustedApvSigners =
@@ -104,37 +104,37 @@ namespace Libplanet.Net.Tests.Messages
 
             // Ping
             var trustedPing = new Message(
-                new PingMsg(),
+                new PingMessage(),
                 trustedApv,
                 peer,
                 DateTimeOffset.UtcNow,
                 null);
             var trustedDifferentVersionPing = new Message(
-                new PingMsg(),
+                new PingMessage(),
                 trustedDifferentVersionApv,
                 peer,
                 DateTimeOffset.UtcNow,
                 null);
             var trustedDifferentExtraPing = new Message(
-                new PingMsg(),
+                new PingMessage(),
                 trustedDifferentExtraApv,
                 peer,
                 DateTimeOffset.UtcNow,
                 null);
             var unknownPing = new Message(
-                new PingMsg(),
+                new PingMessage(),
                 unknownApv,
                 peer,
                 DateTimeOffset.UtcNow,
                 null);
             var unknownDifferentVersionPing = new Message(
-                new PingMsg(),
+                new PingMessage(),
                 unknownDifferentVersionApv,
                 peer,
                 DateTimeOffset.UtcNow,
                 null);
             var unknownDifferentExtraPing = new Message(
-                new PingMsg(),
+                new PingMessage(),
                 unknownDifferentExtraApv,
                 peer,
                 DateTimeOffset.UtcNow,

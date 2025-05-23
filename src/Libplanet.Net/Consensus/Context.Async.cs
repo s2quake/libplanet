@@ -34,10 +34,10 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// Consumes every <see cref="ConsensusMsg"/> in the message queue.
+        /// Consumes every <see cref="ConsensusMessage"/> in the message queue.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token for reading
-        /// <see cref="ConsensusMsg"/>s from the message queue.</param>
+        /// <see cref="ConsensusMessage"/>s from the message queue.</param>
         /// <returns>An awaitable task without value.</returns>
         internal async Task MessageConsumerTask(CancellationToken cancellationToken)
         {
@@ -104,8 +104,8 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// Adds <paramref name="message"/> to the message queue.
         /// </summary>
-        /// <param name="message">A <see cref="ConsensusMsg"/> to be processed.</param>
-        internal void ProduceMessage(ConsensusMsg message)
+        /// <param name="message">A <see cref="ConsensusMessage"/> to be processed.</param>
+        internal void ProduceMessage(ConsensusMessage message)
         {
             _messageRequests.Writer.WriteAsync(message);
         }
@@ -121,7 +121,7 @@ namespace Libplanet.Net.Consensus
 
         private async Task ConsumeMessage(CancellationToken cancellationToken)
         {
-            ConsensusMsg message = await _messageRequests.Reader.ReadAsync(cancellationToken);
+            ConsensusMessage message = await _messageRequests.Reader.ReadAsync(cancellationToken);
             ProduceMutation(() =>
             {
                 if (AddMessage(message))

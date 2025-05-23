@@ -15,20 +15,20 @@ namespace Libplanet.Net.Transports
     public static class BoundPeerExtensions
     {
         /// <summary>
-        /// Queries <see cref="AppProtocolVersion"/> of given <see cref="BoundPeer"/>
+        /// Queries <see cref="Protocol"/> of given <see cref="BoundPeer"/>
         /// specialized for NetMQ based transport.
         /// </summary>
         /// <param name="peer">The <see cref="BoundPeer"/> to query
-        /// <see cref="AppProtocolVersion"/>.</param>
+        /// <see cref="Protocol"/>.</param>
         /// <param name="timeout">Timeout value for request.</param>
-        /// <returns><see cref="AppProtocolVersion"/> of given peer. </returns>
-        public static AppProtocolVersion QueryAppProtocolVersionNetMQ(
+        /// <returns><see cref="Protocol"/> of given peer. </returns>
+        public static Protocol QueryAppProtocolVersionNetMQ(
             this BoundPeer peer,
             TimeSpan? timeout = null)
         {
             using var dealerSocket = new DealerSocket(ToNetMQAddress(peer));
             var privateKey = new PrivateKey();
-            var ping = new PingMsg();
+            var ping = new PingMessage();
             var netMQMessageCodec = new NetMQMessageCodec();
             NetMQMessage request = netMQMessageCodec.Encode(
                 new Message(
@@ -47,7 +47,7 @@ namespace Libplanet.Net.Transports
                     var response = new NetMQMessage();
                     if (dealerSocket.TryReceiveMultipartMessage(timeoutNotNull, ref response))
                     {
-                        return AppProtocolVersion.FromToken(response.First.ConvertToString());
+                        return Protocol.FromToken(response.First.ConvertToString());
                     }
                 }
             }

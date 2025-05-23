@@ -4,10 +4,10 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Consensus;
+namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class VoteSetBitsMetadata
+public sealed record class Maj23Metadata
 {
     [Property(0)]
     [NonNegative]
@@ -32,9 +32,7 @@ public sealed record class VoteSetBitsMetadata
     [DisallowedEnumValues(VoteFlag.Null, VoteFlag.Unknown)]
     public VoteFlag Flag { get; init; }
 
-    public ImmutableArray<bool> VoteBits { get; init; }
-
-    public VoteSetBits Sign(PrivateKey signer)
+    public Maj23 Sign(PrivateKey signer)
     {
         var options = new ModelOptions
         {
@@ -42,6 +40,6 @@ public sealed record class VoteSetBitsMetadata
         };
         var bytes = ModelSerializer.SerializeToBytes(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
-        return new VoteSetBits { Metadata = this, Signature = signature };
+        return new Maj23 { Metadata = this, Signature = signature };
     }
 }

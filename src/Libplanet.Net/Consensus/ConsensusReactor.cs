@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet;
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Types.Crypto;
@@ -25,7 +25,7 @@ namespace Libplanet.Net.Consensus
         /// Initializes a new instance of the <see cref="ConsensusReactor"/> class.
         /// </summary>
         /// <param name="consensusTransport">An <see cref="ITransport"/> for sending the
-        /// <see cref="ConsensusMsg"/>s to validators.</param>
+        /// <see cref="ConsensusMessage"/>s to validators.</param>
         /// <param name="blockChain">A blockchain that will be committed, which
         /// will be voted by consensus, and used for proposing a block.
         /// </param>
@@ -174,7 +174,7 @@ namespace Libplanet.Net.Consensus
 
                     break;
 
-                case ConsensusMaj23Msg maj23Msg:
+                case ConsensusMaj23Message maj23Msg:
                     try
                     {
                         VoteSetBits? voteSetBits = _consensusContext.HandleMaj23(maj23Msg.Maj23);
@@ -223,7 +223,7 @@ namespace Libplanet.Net.Consensus
 
                     break;
 
-                case ConsensusMsg consensusMsg:
+                case ConsensusMessage consensusMsg:
                     _consensusContext.HandleMessage(consensusMsg);
                     break;
             }

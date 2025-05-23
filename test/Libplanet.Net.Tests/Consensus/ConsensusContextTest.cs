@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests;
@@ -416,9 +416,9 @@ public class ConsensusContextTest
                 Flag = VoteFlag.PreVote,
                 VoteBits = [false, false, true, false],
             }.Sign(TestUtils.PrivateKeys[1]);
-        ConsensusMsg[] votes =
+        ConsensusMessage[] votes =
     consensusContext.HandleVoteSetBits(voteSetBits).ToArray();
-        Assert.True(votes.All(vote => vote is ConsensusPreVoteMsg));
+        Assert.True(votes.All(vote => vote is ConsensusPreVoteMessage));
         Assert.Equal(2, votes.Length);
         Assert.Equal(TestUtils.PrivateKeys[0].Address, votes[0].Validator);
         Assert.Equal(TestUtils.PrivateKeys[1].Address, votes[1].Validator);

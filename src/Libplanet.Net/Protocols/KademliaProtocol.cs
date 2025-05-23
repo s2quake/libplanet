@@ -417,11 +417,11 @@ namespace Libplanet.Net.Protocols
                 _logger.Verbose("Trying to ping async to {Peer}", peer);
                 Message reply = await _transport.SendMessageAsync(
                     peer,
-                    new PingMsg(),
+                    new PingMessage(),
                     timeout,
                     cancellationToken)
                 .ConfigureAwait(false);
-                if (!(reply.Content is PongMsg pong))
+                if (!(reply.Content is PongMessage pong))
                 {
                     throw new InvalidMessageContentException(
                         $"Expected pong, but received {reply.Content.Type}.", reply.Content);
@@ -445,7 +445,7 @@ namespace Libplanet.Net.Protocols
         {
             switch (message.Content)
             {
-                case PingMsg ping:
+                case PingMessage ping:
                 {
                     await ReceivePingAsync(message).ConfigureAwait(false);
                     break;
@@ -468,11 +468,11 @@ namespace Libplanet.Net.Protocols
         }
 
         /// <summary>
-        /// Validate peer by send <see cref="PingMsg"/> to <paramref name="peer"/>. If target peer
+        /// Validate peer by send <see cref="PingMessage"/> to <paramref name="peer"/>. If target peer
         /// does not responds, remove it from the table.
         /// </summary>
         /// <param name="peer">A <see cref="BoundPeer"/> to validate.</param>
-        /// <param name="timeout">Timeout for waiting reply of <see cref="PingMsg"/>.</param>
+        /// <param name="timeout">Timeout for waiting reply of <see cref="PingMessage"/>.</param>
         /// <param name="cancellationToken">A cancellation token used to propagate notification
         /// that this operation should be canceled.</param>
         /// <returns>An awaitable task without value.</returns>
@@ -611,7 +611,7 @@ namespace Libplanet.Net.Protocols
                     timeout,
                     cancellationToken)
                 .ConfigureAwait(false);
-                if (!(reply.Content is NeighborsMsg neighbors))
+                if (!(reply.Content is NeighborsMessage neighbors))
                 {
                     throw new InvalidMessageContentException(
                         $"Reply to {nameof(Messages.FindNeighborsMsg)} is invalid.",
@@ -631,13 +631,13 @@ namespace Libplanet.Net.Protocols
         // Send pong back to remote
         private async Task ReceivePingAsync(Message message)
         {
-            var ping = (PingMsg)message.Content;
+            var ping = (PingMessage)message.Content;
             if (message.Remote.Address.Equals(_address))
             {
                 throw new InvalidMessageContentException("Cannot receive ping from self.", ping);
             }
 
-            var pong = new PongMsg();
+            var pong = new PongMessage();
 
             await _transport.ReplyMessageAsync(pong, message.Identity, default)
                 .ConfigureAwait(false);
@@ -768,7 +768,7 @@ namespace Libplanet.Net.Protocols
             IEnumerable<BoundPeer> found =
                 _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
 
-            var neighbors = new NeighborsMsg(found);
+            var neighbors = new NeighborsMessage(found);
 
             await _transport.ReplyMessageAsync(neighbors, message.Identity, default)
                 .ConfigureAwait(false);

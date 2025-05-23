@@ -280,7 +280,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreVoteMsg vote && vote.PreVote.BlockHash.Equals(default))
+                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
                     nilPreVoteSent.Set();
                 }
@@ -298,7 +298,7 @@ namespace Libplanet.Net.Tests.Consensus
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             ConsensusProposalMsg? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
-            ConsensusPreVoteMsg? preVote = null;
+            ConsensusPreVoteMessage? preVote = null;
             var preVoteSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
@@ -317,7 +317,7 @@ namespace Libplanet.Net.Tests.Consensus
                     proposal = proposalMsg;
                     proposalSent.Set();
                 }
-                else if (message is ConsensusPreVoteMsg preVoteMsg)
+                else if (message is ConsensusPreVoteMessage preVoteMsg)
                 {
                     preVote = preVoteMsg;
                     preVoteSent.Set();
@@ -341,7 +341,7 @@ namespace Libplanet.Net.Tests.Consensus
             var privateKey = new PrivateKey();
             ConsensusProposalMsg? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
-            ConsensusPreVoteMsg? preVote = null;
+            ConsensusPreVoteMessage? preVote = null;
             var preVoteSent = new AsyncAutoResetEvent();
 
             var blockChain = TestUtils.CreateDummyBlockChain();
@@ -365,7 +365,7 @@ namespace Libplanet.Net.Tests.Consensus
                     proposal = proposalMsg;
                     proposalSent.Set();
                 }
-                else if (message is ConsensusPreVoteMsg preVoteMsg)
+                else if (message is ConsensusPreVoteMessage preVoteMsg)
                 {
                     preVote = preVoteMsg;
                     preVoteSent.Set();

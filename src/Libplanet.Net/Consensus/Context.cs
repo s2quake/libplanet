@@ -4,7 +4,7 @@ using System.Threading.Channels;
 using Caching;
 using Libplanet;
 using Libplanet.Extensions;
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -20,7 +20,7 @@ public partial class Context : IDisposable
 
     private readonly Blockchain _blockChain;
     private readonly ImmutableSortedSet<Validator> _validatorSet;
-    private readonly Channel<ConsensusMsg> _messageRequests;
+    private readonly Channel<ConsensusMessage> _messageRequests;
     private readonly Channel<System.Action> _mutationRequests;
     private readonly HeightVoteSet _heightVoteSet;
     private readonly PrivateKey _privateKey;
@@ -102,7 +102,7 @@ public partial class Context : IDisposable
         _decision = null;
         _committedRound = -1;
         _blockChain = blockChain;
-        _messageRequests = Channel.CreateUnbounded<ConsensusMsg>();
+        _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
         _mutationRequests = Channel.CreateUnbounded<System.Action>();
         _heightVoteSet = new HeightVoteSet(height, validators);
         _hasTwoThirdsPreVoteFlags = new HashSet<int>();
@@ -218,9 +218,9 @@ public partial class Context : IDisposable
     }
 
     /// <summary>
-    /// Add a <see cref="ConsensusMsg"/> to the context.
+    /// Add a <see cref="ConsensusMessage"/> to the context.
     /// </summary>
-    /// <param name="maj23">A <see cref="ConsensusMsg"/> to add.</param>
+    /// <param name="maj23">A <see cref="ConsensusMessage"/> to add.</param>
     /// <returns>A <see cref="VoteSetBits"/> if given <paramref name="maj23"/> is valid and
     /// required.</returns>
     public VoteSetBits? AddMaj23(Maj23 maj23)
@@ -245,7 +245,7 @@ public partial class Context : IDisposable
         }
     }
 
-    public IEnumerable<ConsensusMsg> GetVoteSetBitsResponse(VoteSetBits voteSetBits)
+    public IEnumerable<ConsensusMessage> GetVoteSetBitsResponse(VoteSetBits voteSetBits)
     {
         IEnumerable<Vote> votes;
         try
@@ -277,8 +277,8 @@ public partial class Context : IDisposable
         return from vote in votes
                select vote.Flag switch
                {
-                   VoteFlag.PreVote => (ConsensusMsg)new ConsensusPreVoteMsg(vote),
-                   VoteFlag.PreCommit => (ConsensusMsg)new ConsensusPreCommitMsg(vote),
+                   VoteFlag.PreVote => (ConsensusMessage)new ConsensusPreVoteMsg(vote),
+                   VoteFlag.PreCommit => (ConsensusMessage)new ConsensusPreCommitMsg(vote),
                    _ => throw new ArgumentException(
                        "VoteFlag should be PreVote or PreCommit.",
                        nameof(vote.Flag)),
@@ -358,11 +358,11 @@ public partial class Context : IDisposable
     }
 
     /// <summary>
-    /// Publish <see cref="ConsensusMsg"/> to validators.
+    /// Publish <see cref="ConsensusMessage"/> to validators.
     /// </summary>
-    /// <param name="message">A <see cref="ConsensusMsg"/> to publish.</param>
-    /// <remarks><see cref="ConsensusMsg"/> should be published to itself.</remarks>
-    private void PublishMessage(ConsensusMsg message) =>
+    /// <param name="message">A <see cref="ConsensusMessage"/> to publish.</param>
+    /// <remarks><see cref="ConsensusMessage"/> should be published to itself.</remarks>
+    private void PublishMessage(ConsensusMessage message) =>
         MessageToPublish?.Invoke(this, message);
 
     /// <summary>
@@ -432,13 +432,13 @@ public partial class Context : IDisposable
     }
 
     /// <summary>
-    /// Creates a signed <see cref="Vote"/> for a <see cref="ConsensusPreVoteMsg"/> or
+    /// Creates a signed <see cref="Vote"/> for a <see cref="ConsensusPreVoteMessage"/> or
     /// a <see cref="ConsensusPreCommitMsg"/>.
     /// </summary>
     /// <param name="round">Current context round.</param>
     /// <param name="hash">Current context locked <see cref="BlockHash"/>.</param>
     /// <param name="flag"><see cref="VoteFlag"/> of <see cref="Vote"/> to create.
-    /// Set to <see cref="VoteFlag.PreVote"/> if message is <see cref="ConsensusPreVoteMsg"/>.
+    /// Set to <see cref="VoteFlag.PreVote"/> if message is <see cref="ConsensusPreVoteMessage"/>.
     /// If message is <see cref="ConsensusPreCommitMsg"/>, Set to
     /// <see cref="VoteFlag.PreCommit"/>.</param>
     /// <returns>Returns a signed <see cref="Vote"/> with consensus private key.</returns>
@@ -466,12 +466,12 @@ public partial class Context : IDisposable
     }
 
     /// <summary>
-    /// Creates a signed <see cref="Maj23"/> for a <see cref="ConsensusMaj23Msg"/>.
+    /// Creates a signed <see cref="Maj23"/> for a <see cref="ConsensusMaj23Message"/>.
     /// </summary>
     /// <param name="round">Current context round.</param>
     /// <param name="hash">Current context locked <see cref="BlockHash"/>.</param>
     /// <param name="flag"><see cref="VoteFlag"/> of <see cref="Maj23"/> to create.
-    /// Set to <see cref="VoteFlag.PreVote"/> if +2/3 <see cref="ConsensusPreVoteMsg"/>
+    /// Set to <see cref="VoteFlag.PreVote"/> if +2/3 <see cref="ConsensusPreVoteMessage"/>
     /// messages that votes to the same block with proposal are collected.
     /// If +2/3 <see cref="ConsensusPreCommitMsg"/> messages that votes to the same block
     /// with proposal are collected, Set to <see cref="VoteFlag.PreCommit"/>.</param>

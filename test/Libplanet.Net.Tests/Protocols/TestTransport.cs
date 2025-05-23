@@ -13,7 +13,7 @@ namespace Libplanet.Net.Tests.Protocols
 {
     internal class TestTransport : ITransport
     {
-        private static readonly AppProtocolVersion _appProtocolVersion =
+        private static readonly Protocol _appProtocolVersion =
             AppProtocolVersion.Sign(new PrivateKey(), 1);
 
         private readonly Dictionary<Address, TestTransport> _transports;
@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests.Protocols
 
         public ConcurrentQueue<Message> MessageHistory { get; }
 
-        public AppProtocolVersion AppProtocolVersion => _appProtocolVersion;
+        public Protocol AppProtocolVersion => _appProtocolVersion;
 
         public IImmutableSet<PublicKey> TrustedAppProtocolVersionSigners =>
             ImmutableHashSet<PublicKey>.Empty;

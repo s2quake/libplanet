@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests.Transports
             {
                 swarmKey.PublicKey,
             };
-            var apv = AppProtocolVersion.Sign(new PrivateKey(), 1);
+            var apv = Protocol.Sign(new PrivateKey(), 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
             string host = IPAddress.Loopback.ToString();
             int port = FreeTcpPort();
@@ -66,7 +66,7 @@ namespace Libplanet.Net.Tests.Transports
                 _ = swarm.StartAsync();
                 try
                 {
-                    AppProtocolVersion receivedAPV = default;
+                    Protocol receivedAPV = default;
                     if (swarm.Transport is NetMQTransport)
                     {
                         receivedAPV = peer.QueryAppProtocolVersionNetMQ(

@@ -1,19 +1,18 @@
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Consensus;
+namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class Maj23 : IEquatable<Maj23>
+public sealed record class Proposal : IEquatable<Proposal>
 {
     [Property(0)]
-    public required Maj23Metadata Metadata { get; init; }
+    public required ProposalMetadata Metadata { get; init; }
 
-    [NotDefault]
     [Property(1)]
+    [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
     public int Height => Metadata.Height;
@@ -24,13 +23,16 @@ public sealed record class Maj23 : IEquatable<Maj23>
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public Address Validator => Metadata.Validator;
+    public Address Validator => Metadata.Proposer;
 
-    public VoteFlag Flag => Metadata.Flag;
+    // public byte[] MarshaledBlock => Metadata.MarshaledBlock;
+    public byte[] MarshaledBlock => throw new NotImplementedException();
+
+    public int ValidRound => Metadata.ValidRound;
 
     public bool Verify()
     {
         var bytes = ModelSerializer.SerializeToBytes(Metadata).ToImmutableArray();
-        return PublicKey.Verify(Metadata.Validator, bytes, Signature);
+        return PublicKey.Verify(Metadata.Proposer, bytes, Signature);
     }
 }

@@ -5,7 +5,7 @@ namespace Libplanet.Net.Messages
     /// <summary>
     /// Message containing request for nearby peers.
     /// </summary>
-    /// <seealso cref="NeighborsMsg"/>
+    /// <seealso cref="NeighborsMessage"/>
     public class FindNeighborsMsg : MessageContent
     {
         // TODO: This message may request exact peer instead of its neighbors.

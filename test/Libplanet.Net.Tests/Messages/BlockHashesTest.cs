@@ -18,10 +18,10 @@ namespace Libplanet.Net.Tests.Messages
         public void Decode()
         {
             BlockHash[] blockHashes = GenerateRandomBlockHashes(100L).ToArray();
-            var messageContent = new BlockHashesMsg(blockHashes);
+            var messageContent = new BlockHashesMessage(blockHashes);
             Assert.Equal(blockHashes, messageContent.Hashes);
             var privateKey = new PrivateKey();
-            AppProtocolVersion apv = AppProtocolVersion.Sign(privateKey, 3);
+            Protocol apv = Protocol.Sign(privateKey, 3);
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 1234));
             var messageCodec = new NetMQMessageCodec();
             NetMQMessage encoded = messageCodec.Encode(
@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests.Messages
                     DateTimeOffset.UtcNow,
                     null),
                 privateKey);
-            BlockHashesMsg restored = (BlockHashesMsg)messageCodec.Decode(encoded, true).Content;
+            BlockHashesMessage restored = (BlockHashesMessage)messageCodec.Decode(encoded, true).Content;
             Assert.Equal(messageContent.Hashes, restored.Hashes);
         }
 

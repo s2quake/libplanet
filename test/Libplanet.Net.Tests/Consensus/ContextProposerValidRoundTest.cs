@@ -54,7 +54,7 @@ namespace Libplanet.Net.Tests.Consensus
                     proposal = proposalMsg;
                     proposalSent.Set();
                 }
-                else if (message is ConsensusPreVoteMsg prevote &&
+                else if (message is ConsensusPreVoteMessage prevote &&
                     prevote.BlockHash is { } hash &&
                     hash.Equals(proposal?.BlockHash) &&
                     prevote.Round == 2)
@@ -160,7 +160,7 @@ namespace Libplanet.Net.Tests.Consensus
                     proposal = proposalMsg;
                     proposalSent.Set();
                 }
-                else if (message is ConsensusPreVoteMsg prevote &&
+                else if (message is ConsensusPreVoteMessage prevote &&
                     prevote.Round == 3 &&
                     prevote.BlockHash.Equals(default))
                 {

@@ -1,6 +1,6 @@
 using System.Net;
 using Libplanet;
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types.Blocks;
@@ -48,7 +48,7 @@ namespace Libplanet.Net.Tests.Messages
             var privateKey = new PrivateKey();
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
             var dateTimeOffset = DateTimeOffset.UtcNow;
-            var apv = new AppProtocolVersion(
+            var apv = new Protocol(
                 1,
                 ModelSerializer.SerializeToBytes(0),
                 ImmutableArray<byte>.Empty,
@@ -80,9 +80,9 @@ namespace Libplanet.Net.Tests.Messages
             switch (type)
             {
                 case MessageContent.MessageType.Ping:
-                    return new PingMsg();
+                    return new PingMessage();
                 case MessageContent.MessageType.Pong:
-                    return new PongMsg();
+                    return new PongMessage();
                 case MessageContent.MessageType.GetBlockHashes:
                     return new GetBlockHashesMsg(chain.Tip.BlockHash);
                 case MessageContent.MessageType.TxIds:
@@ -90,28 +90,28 @@ namespace Libplanet.Net.Tests.Messages
                 case MessageContent.MessageType.GetBlocks:
                     return new GetBlocksMsg(new[] { genesis.BlockHash }, 10);
                 case MessageContent.MessageType.GetTxs:
-                    return new GetTxsMsg(new[] { transaction.Id });
+                    return new GetTransactionMessage(new[] { transaction.Id });
                 case MessageContent.MessageType.Blocks:
-                    return new Libplanet.Net.Messages.BlocksMsg(new[]
+                    return new Libplanet.Net.Messages.BlocksMessage(new[]
                     {
                         BitConverter.GetBytes(2),
                         ModelSerializer.SerializeToBytes(genesis),
                         Array.Empty<byte>(),
                     });
                 case MessageContent.MessageType.Tx:
-                    return new Libplanet.Net.Messages.TxMsg(ModelSerializer.SerializeToBytes(transaction));
+                    return new Libplanet.Net.Messages.TransactionMessage(ModelSerializer.SerializeToBytes(transaction));
                 case MessageContent.MessageType.FindNeighbors:
                     return new FindNeighborsMsg(privateKey.Address);
                 case MessageContent.MessageType.Neighbors:
-                    return new NeighborsMsg(new[] { boundPeer });
+                    return new NeighborsMessage(new[] { boundPeer });
                 case MessageContent.MessageType.BlockHeaderMessage:
-                    return new BlockHeaderMsg(genesis.BlockHash, genesis);
+                    return new BlockHeaderMessage(genesis.BlockHash, genesis);
                 case MessageContent.MessageType.BlockHashes:
-                    return new BlockHashesMsg(new[] { genesis.BlockHash });
+                    return new BlockHashesMessage(new[] { genesis.BlockHash });
                 case MessageContent.MessageType.GetChainStatus:
-                    return new GetChainStatusMsg();
+                    return new GetChainStatusMessage();
                 case MessageContent.MessageType.ChainStatus:
-                    return new ChainStatusMsg(
+                    return new ChainStatusMessage(
                         0,
                         genesis.BlockHash,
                         chain.Tip.Height,

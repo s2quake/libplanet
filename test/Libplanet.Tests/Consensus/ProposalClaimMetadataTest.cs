@@ -1,4 +1,4 @@
-// using Libplanet.Consensus;
+// using Libplanet.Net.Consensus;
 // using Libplanet.Types.Blocks;
 // using Libplanet.Types.Crypto;
 

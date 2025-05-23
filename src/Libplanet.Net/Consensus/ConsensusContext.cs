@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet;
-using Libplanet.Consensus;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
@@ -21,7 +21,7 @@ public partial class ConsensusContext : IDisposable
     private readonly PrivateKey _privateKey;
     private readonly TimeSpan _newHeightDelay;
     private readonly ILogger _logger;
-    private readonly HashSet<ConsensusMsg> _pendingMessages;
+    private readonly HashSet<ConsensusMessage> _pendingMessages;
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
     private readonly IDisposable _tipChangedSubscription;
 
@@ -46,7 +46,7 @@ public partial class ConsensusContext : IDisposable
             _blockChain.Tip.Height + 1,
             _blockChain.BlockCommits[_blockChain.Tip.Height]);
         AttachEventHandlers(_currentContext);
-        _pendingMessages = new HashSet<ConsensusMsg>();
+        _pendingMessages = new HashSet<ConsensusMessage>();
 
         _logger = Log
             .ForContext("Tag", "Consensus")
@@ -170,7 +170,7 @@ public partial class ConsensusContext : IDisposable
         }
     }
 
-    public bool HandleMessage(ConsensusMsg consensusMessage)
+    public bool HandleMessage(ConsensusMessage consensusMessage)
     {
         int height = consensusMessage.Height;
         if (height < Height)
@@ -223,7 +223,7 @@ public partial class ConsensusContext : IDisposable
         return null;
     }
 
-    public IEnumerable<ConsensusMsg> HandleVoteSetBits(VoteSetBits voteSetBits)
+    public IEnumerable<ConsensusMessage> HandleVoteSetBits(VoteSetBits voteSetBits)
     {
         int height = voteSetBits.Height;
         if (height < Height)
@@ -247,7 +247,7 @@ public partial class ConsensusContext : IDisposable
             }
         }
 
-        return Array.Empty<ConsensusMsg>();
+        return Array.Empty<ConsensusMessage>();
     }
 
     public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)

@@ -12,7 +12,7 @@ namespace Libplanet.Net.Tests
             0x9d, 0x39, 0xdf, 0x54, 0x57, 0x9b, 0x13, 0xea, 0x7c, 0x0f,
         });
 
-        private static readonly AppProtocolVersion ValidClaimFixture = new AppProtocolVersion(
+        private static readonly Protocol ValidClaimFixture = new Protocol(
             version: 1,
             extra: null,
             signer: SignerFixture.Address,
@@ -25,7 +25,7 @@ namespace Libplanet.Net.Tests
                 0x7c, 0xf7, 0x7f, 0x11, 0xd1, 0x07, 0x49, 0xa2, 0x1c,
             }.ToImmutableArray());
 
-        private static readonly AppProtocolVersion ValidClaimWExtraFixture = new AppProtocolVersion(
+        private static readonly Protocol ValidClaimWExtraFixture = new Protocol(
             version: 123,
             extra: ModelSerializer.SerializeToBytes("foo"),
             signer: SignerFixture.Address,
@@ -44,21 +44,21 @@ namespace Libplanet.Net.Tests
         {
             var signer = new PrivateKey();
             PublicKey otherParty = new PrivateKey().PublicKey;
-            AppProtocolVersion claim = AppProtocolVersion.Sign(signer, 1, null);
+            Protocol claim = Protocol.Sign(signer, 1, null);
             Assert.Equal(1, claim.Version);
             Assert.Null(claim.Extra);
             Assert.True(claim.Verify(signer.PublicKey));
             Assert.False(claim.Verify(otherParty));
 
-            AppProtocolVersion claimWithExtra =
-                AppProtocolVersion.Sign(signer, 2, ModelSerializer.SerializeToBytes("extra"));
+            Protocol claimWithExtra =
+                Protocol.Sign(signer, 2, ModelSerializer.SerializeToBytes("extra"));
             Assert.Equal(2, claimWithExtra.Version);
             Assert.Equal(ModelSerializer.SerializeToBytes("extra"), claimWithExtra.Extra);
             Assert.True(claimWithExtra.Verify(signer.PublicKey));
             Assert.False(claimWithExtra.Verify(otherParty));
 
             ArgumentNullException exception =
-                Assert.Throws<ArgumentNullException>(() => AppProtocolVersion.Sign(null, 1));
+                Assert.Throws<ArgumentNullException>(() => Protocol.Sign(null, 1));
             Assert.Equal("signer", exception.ParamName);
         }
 
@@ -73,7 +73,7 @@ namespace Libplanet.Net.Tests
             Assert.False(ValidClaimFixture.Verify(otherPartyPublicKey));
 
             // A signature is no more valid for a different version.
-            var invalidVersionClaim = new AppProtocolVersion(
+            var invalidVersionClaim = new Protocol(
                 version: ValidClaimFixture.Version + 1,
                 extra: ValidClaimFixture.Extra,
                 signer: ValidClaimFixture.Signer,
@@ -82,7 +82,7 @@ namespace Libplanet.Net.Tests
             Assert.False(invalidVersionClaim.Verify(otherPartyPublicKey));
 
             // A signature is no more valid for a different extra data.
-            var invalidExtraClaim = new AppProtocolVersion(
+            var invalidExtraClaim = new Protocol(
                 version: ValidClaimFixture.Version,
                 extra: ModelSerializer.SerializeToBytes("invalid extra"),
                 signer: ValidClaimFixture.Signer,
@@ -92,7 +92,7 @@ namespace Libplanet.Net.Tests
 
             // If a signer field does not correspond to an actual private key which signed
             // a signature a claim is invalid even if a signature in itself is valid.
-            var invalidSigner = new AppProtocolVersion(
+            var invalidSigner = new Protocol(
                 version: ValidClaimFixture.Version,
                 extra: ValidClaimFixture.Extra,
                 signer: otherPartyPublicKey.Address,
@@ -105,8 +105,8 @@ namespace Libplanet.Net.Tests
         public void Equality()
         {
             var signer = new PrivateKey();
-            AppProtocolVersion claim =
-                AppProtocolVersion.Sign(signer, 123, ModelSerializer.SerializeToBytes("foo"));
+            Protocol claim =
+                Protocol.Sign(signer, 123, ModelSerializer.SerializeToBytes("foo"));
 
             // Copy to make sure not to use the same reference
             var address = new Address(claim.Signer.Bytes);
@@ -115,62 +115,62 @@ namespace Libplanet.Net.Tests
             var signature = claim.Signature.ToArray().ToImmutableArray();
 
             // Different version
-            var claim2 = new AppProtocolVersion(version + 1, extra, signature, address);
-            Assert.False(((IEquatable<AppProtocolVersion>)claim).Equals(claim2));
+            var claim2 = new Protocol(version + 1, extra, signature, address);
+            Assert.False(((IEquatable<Protocol>)claim).Equals(claim2));
             Assert.False(((object)claim).Equals(claim2));
             Assert.NotEqual(claim.GetHashCode(), claim2.GetHashCode());
             Assert.False(claim == claim2);
             Assert.True(claim != claim2);
 
             // Different extra
-            var claim3 = new AppProtocolVersion(
+            var claim3 = new Protocol(
                 version,
                 ModelSerializer.SerializeToBytes(null),
                 signature,
                 address);
-            Assert.False(((IEquatable<AppProtocolVersion>)claim).Equals(claim3));
+            Assert.False(((IEquatable<Protocol>)claim).Equals(claim3));
             Assert.False(((object)claim).Equals(claim3));
             Assert.NotEqual(claim.GetHashCode(), claim3.GetHashCode());
             Assert.False(claim == claim3);
             Assert.True(claim != claim3);
 
             // Empty signature
-            var claim4 = new AppProtocolVersion(
+            var claim4 = new Protocol(
                 version,
                 extra,
                 ImmutableArray<byte>.Empty,
                 address);
-            Assert.False(((IEquatable<AppProtocolVersion>)claim).Equals(claim4));
+            Assert.False(((IEquatable<Protocol>)claim).Equals(claim4));
             Assert.False(((object)claim).Equals(claim4));
             Assert.NotEqual(claim.GetHashCode(), claim4.GetHashCode());
             Assert.False(claim == claim4);
             Assert.True(claim != claim4);
 
             // Different address
-            var claim5 = new AppProtocolVersion(
+            var claim5 = new Protocol(
                 version,
                 extra,
                 signature,
                 new PrivateKey().Address);
-            Assert.False(((IEquatable<AppProtocolVersion>)claim).Equals(claim5));
+            Assert.False(((IEquatable<Protocol>)claim).Equals(claim5));
             Assert.False(((object)claim).Equals(claim5));
             Assert.NotEqual(claim.GetHashCode(), claim5.GetHashCode());
             Assert.False(claim == claim5);
             Assert.True(claim != claim5);
 
-            var sameClaim = new AppProtocolVersion(
+            var sameClaim = new Protocol(
                 version,
                 extra,
                 signature,
                 address);
-            Assert.True(((IEquatable<AppProtocolVersion>)claim).Equals(sameClaim));
+            Assert.True(((IEquatable<Protocol>)claim).Equals(sameClaim));
             Assert.True(((object)claim).Equals(sameClaim));
             Assert.Equal(claim.GetHashCode(), sameClaim.GetHashCode());
             Assert.True(claim == sameClaim);
             Assert.False(claim != sameClaim);
 
-            AppProtocolVersion claimWithoutExtra = AppProtocolVersion.Sign(signer, 1);
-            var sameClaimWithoutExtra = new AppProtocolVersion(
+            Protocol claimWithoutExtra = Protocol.Sign(signer, 1);
+            var sameClaimWithoutExtra = new Protocol(
                 claimWithoutExtra.Version,
                 claimWithoutExtra.Extra,
                 ImmutableArray.Create(
@@ -179,7 +179,7 @@ namespace Libplanet.Net.Tests
                     claimWithoutExtra.Signature.Length),
                 new Address(claimWithoutExtra.Signer.Bytes));
             Assert.True(
-                ((IEquatable<AppProtocolVersion>)claimWithoutExtra).Equals(sameClaimWithoutExtra));
+                ((IEquatable<Protocol>)claimWithoutExtra).Equals(sameClaimWithoutExtra));
             Assert.True(((object)claimWithoutExtra).Equals(sameClaimWithoutExtra));
             Assert.Equal(claimWithoutExtra.GetHashCode(), sameClaimWithoutExtra.GetHashCode());
             Assert.True(claimWithoutExtra == sameClaimWithoutExtra);
@@ -190,11 +190,11 @@ namespace Libplanet.Net.Tests
         public void String()
         {
             var signer = new PrivateKey();
-            AppProtocolVersion claim = AppProtocolVersion.Sign(signer, 123);
+            Protocol claim = Protocol.Sign(signer, 123);
             Assert.Equal("123", claim.ToString());
 
-            AppProtocolVersion claimWithExtra =
-                AppProtocolVersion.Sign(signer, 456, ModelSerializer.SerializeToBytes("extra"));
+            Protocol claimWithExtra =
+                Protocol.Sign(signer, 456, ModelSerializer.SerializeToBytes("extra"));
             Assert.Equal("456 (Bencodex.Types.Text \"extra\")", claimWithExtra.ToString());
         }
 
@@ -219,48 +219,48 @@ namespace Libplanet.Net.Tests
         {
             Assert.Equal(
                 ValidClaimFixture,
-                AppProtocolVersion.FromToken(
+                Protocol.FromToken(
                     "1/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "xsjBeFLGIQ2X14vd8SZJlBuAi2o6kK1igz70KiIryPQHXr6HMlc0qXccPIckOUpxzF+qiweWv7J8" +
                     "938R0QdJohw="));
             Assert.Equal(
                 ValidClaimWExtraFixture,
-                AppProtocolVersion.FromToken(
+                Protocol.FromToken(
                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
                     "IJlad9IV.b1ZmexcUQ==/dTM6Zm9v"));
 
-            Assert.Throws<ArgumentNullException>(() => AppProtocolVersion.FromToken(null));
+            Assert.Throws<ArgumentNullException>(() => Protocol.FromToken(null));
 
             // No first delimiter
-            Assert.Throws<FormatException>(() => AppProtocolVersion.FromToken("123"));
+            Assert.Throws<FormatException>(() => Protocol.FromToken("123"));
 
             // No second delimiter
             Assert.Throws<FormatException>(() =>
-                AppProtocolVersion.FromToken("123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4"));
+                Protocol.FromToken("123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4"));
 
             // A version is not an integer
             Assert.Throws<FormatException>(() =>
-                AppProtocolVersion.FromToken(
+                Protocol.FromToken(
                     "INCORRECT/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
                     "k9FkhXWoosufldmQuVE="));
 
             // A signer address is incorrect
             Assert.Throws<FormatException>(() =>
-                AppProtocolVersion.FromToken(
+                Protocol.FromToken(
                     "123/INCORRECT/" +
                     "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
                     "k9FkhXWoosufldmQuVE="));
 
             // A signature is not a valid base64 string
             Assert.Throws<FormatException>(() =>
-                AppProtocolVersion.FromToken(
+                Protocol.FromToken(
                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/_INCORRECT_"));
 
             // An extra data is not a valid base64 string
             Assert.Throws<FormatException>(() =>
-                AppProtocolVersion.FromToken(
+                Protocol.FromToken(
                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
                     "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
                     "IJlad9IV.b1ZmexcUQ==/" +
@@ -270,7 +270,7 @@ namespace Libplanet.Net.Tests
         [Fact]
         public void DefaultConstructor()
         {
-            AppProtocolVersion defaultValue = default;
+            Protocol defaultValue = default;
             ImmutableArray<byte> defaultSig = defaultValue.Signature;
             Assert.False(defaultSig.IsDefault);
             Assert.True(defaultSig.IsEmpty);

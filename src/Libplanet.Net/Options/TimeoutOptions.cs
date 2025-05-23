@@ -31,8 +31,8 @@ namespace Libplanet.Net.Options
 
         /// <summary>
         /// Determines how long an <see cref="ITransport"/> should wait before timing out
-        /// when dialing peers for either <see cref="PongMsg"/>, <see cref="NeighborsMsg"/>,
-        /// or <see cref="ChainStatusMsg"/> for a long running process.
+        /// when dialing peers for either <see cref="PongMessage"/>, <see cref="NeighborsMessage"/>,
+        /// or <see cref="ChainStatusMessage"/> for a long running process.
         /// Set to <see cref="DefaultDialTimeout"/> seconds by default.
         /// </summary>
         /// <seealso cref="BootstrapOptions.DialTimeout"/>
@@ -42,15 +42,15 @@ namespace Libplanet.Net.Options
 
         /// <summary>
         /// The timeout used when sending a request with <see cref="GetBlockHashesMsg"/>
-        /// to receive a <see cref="BlockHashesMsg"/> message.
+        /// to receive a <see cref="BlockHashesMessage"/> message.
         /// Set to <see cref="DefaultGetBlockHashesTimeout"/> seconds by default.
         /// </summary>
         public TimeSpan GetBlockHashesTimeout { get; set; }
             = TimeSpan.FromSeconds(DefaultGetBlockHashesTimeout);
 
         /// <summary>
-        /// The base timeout used when sending a request with <see cref="GetBlocksMsg"/>
-        /// to receive <see cref="BlocksMsg"/> messages.
+        /// The base timeout used when sending a request with <see cref="GetBlocksMessage"/>
+        /// to receive <see cref="BlocksMessage"/> messages.
         /// Set to <see cref="DefaultGetBlocksBaseTimeout"/> seconds by default.
         /// </summary>
         /// <seealso cref="GetBlocksPerBlockHashTimeout"/>
@@ -59,7 +59,7 @@ namespace Libplanet.Net.Options
 
         /// <summary>
         /// The additional amount to wait for each <see cref="BlockHash"/> in
-        /// <see cref="GetBlocksMsg"/> to receive <see cref="BlocksMsg"/> messages.
+        /// <see cref="GetBlocksMessage"/> to receive <see cref="BlocksMessage"/> messages.
         /// Set to <see cref="DefaultGetBlocksPerBlockHashTimeout"/> seconds by default.
         /// </summary>
         /// <seealso cref="GetBlocksBaseTimeout"/>
@@ -67,7 +67,7 @@ namespace Libplanet.Net.Options
             = TimeSpan.FromSeconds(DefaultGetBlocksPerBlockHashTimeout);
 
         /// <summary>
-        /// The base timeout used when sending a request with <see cref="GetTxsMsg"/>
+        /// The base timeout used when sending a request with <see cref="GetTransactionMessage"/>
         /// to receive <see cref="Transaction"/> messages.
         /// Set to <see cref="DefaultGetTxsBaseTimeout"/> seconds by default.
         /// </summary>
@@ -76,7 +76,7 @@ namespace Libplanet.Net.Options
             = TimeSpan.FromSeconds(DefaultGetTxsBaseTimeout);
 
         /// <summary>
-        /// The additional amount to wait for each <see cref="TxId"/> in <see cref="GetTxsMsg"/>
+        /// The additional amount to wait for each <see cref="TxId"/> in <see cref="GetTransactionMessage"/>
         /// to receive <see cref="Transaction"/> messages.
         /// Set to <see cref="DefaultGetTxsPerTxIdTimeout"/> seconds by default.
         /// </summary>
