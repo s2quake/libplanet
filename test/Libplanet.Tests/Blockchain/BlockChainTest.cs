@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Libplanet.Action;
-using Libplanet.Action;
 using Libplanet.Action.Builtin;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;

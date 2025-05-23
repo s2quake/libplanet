@@ -1,6 +1,5 @@
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
-using Libplanet.Action;
 using Xunit.Sdk;
 
 namespace Libplanet.Action.Tests;

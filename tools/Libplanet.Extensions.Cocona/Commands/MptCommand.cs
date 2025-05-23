@@ -5,7 +5,6 @@ using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Extensions.Cocona.Services;
 using Libplanet.RocksDBStore;
 using Libplanet.Data;
-using Libplanet.Data.Structures;
 using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Commands;

@@ -1,5 +1,4 @@
 using System.IO;
-using Libplanet.Data.Structures;
 using Libplanet.Tests.Store.Trie;
 using RocksDbSharp;
 

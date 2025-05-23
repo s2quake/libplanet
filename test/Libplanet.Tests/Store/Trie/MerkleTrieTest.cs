@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Text;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Data.Structures;

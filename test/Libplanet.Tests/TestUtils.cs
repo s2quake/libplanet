@@ -12,7 +12,6 @@ using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Data;
-using Libplanet.Data.Structures;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;

@@ -1,4 +1,3 @@
-using Libplanet.Action;
 using Libplanet.Serialization;
 using Libplanet.Types.Crypto;
 

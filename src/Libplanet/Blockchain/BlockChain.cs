@@ -1,7 +1,6 @@
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using Libplanet.Action;
-using Libplanet.Action;
 using Libplanet.Blockchain.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;

@@ -1,6 +1,5 @@
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
-using Libplanet.Action;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
 using Libplanet.Types.Blocks;

@@ -1,4 +1,3 @@
-using Libplanet.Action;
 using Libplanet.Action.Builtin;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;

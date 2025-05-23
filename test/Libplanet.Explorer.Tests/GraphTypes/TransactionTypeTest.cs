@@ -4,6 +4,7 @@ using GraphQL;
 using GraphQL.Execution;
 using GraphQL.Types;
 using Libplanet.Action;
+using Libplanet.Action.Builtin;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Types;

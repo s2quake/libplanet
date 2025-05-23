@@ -1,5 +1,4 @@
 using Libplanet.Action;
-using Libplanet.Action;
 using Libplanet.Action.Tests.Common;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;

@@ -1,4 +1,3 @@
-using Libplanet.Action;
 using Libplanet.Types.Assets;
 using Libplanet.Types.Crypto;
 
