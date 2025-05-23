@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Libplanet.Action;
-using Libplanet.Action;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Data;

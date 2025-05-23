@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Libplanet.Action;
 
 namespace Libplanet.Action;
 

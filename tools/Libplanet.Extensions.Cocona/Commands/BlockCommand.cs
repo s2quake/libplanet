@@ -1,13 +1,11 @@
 using System.IO;
 using System.Text.Json;
 using global::Cocona;
-using ImmutableTrie;
 using Libplanet.Action;
 using Libplanet.Action.Builtin;
 using Libplanet.Blockchain;
 using Libplanet.Serialization;
 using Libplanet.Data;
-using Libplanet.Data.Structures;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;

@@ -1,4 +1,5 @@
 using Libplanet.Action;
+using Libplanet.Action.Builtin;
 using Libplanet.Blockchain;
 
 namespace Libplanet.Extensions.Cocona.Tests;

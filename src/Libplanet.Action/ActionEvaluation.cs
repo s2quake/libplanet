@@ -1,5 +1,3 @@
-using Libplanet.Action;
-
 namespace Libplanet.Action;
 
 public sealed record class ActionEvaluation
