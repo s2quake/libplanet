@@ -58,7 +58,7 @@ namespace Libplanet.Net
 
             foreach (Message message in replies)
             {
-                if (message.Content is EvidenceMsg parsed)
+                if (message.Content is EvidenceMessage parsed)
                 {
                     EvidenceBase evidence
                         = ModelSerializer.DeserializeFromBytes<EvidenceBase>(parsed.Payload);
@@ -125,7 +125,7 @@ namespace Libplanet.Net
 
         private void BroadcastEvidenceIds(Address? except, IEnumerable<EvidenceId> evidenceIds)
         {
-            var message = new EvidenceIdsMsg(evidenceIds);
+            var message = new EvidenceIdsMessage(evidenceIds);
             BroadcastMessage(except, message);
         }
 
@@ -154,7 +154,7 @@ namespace Libplanet.Net
                             continue;
                         }
 
-                        MessageContent response = new EvidenceMsg(
+                        MessageContent response = new EvidenceMessage(
                             ModelSerializer.SerializeToBytes(ev));
                         await Transport.ReplyMessageAsync(response, message.Identity, default);
                     }
@@ -180,10 +180,10 @@ namespace Libplanet.Net
 
         private void ProcessEvidenceIds(Message message)
         {
-            var evidenceIdsMsg = (EvidenceIdsMsg)message.Content;
+            var evidenceIdsMsg = (EvidenceIdsMessage)message.Content;
             _logger.Information(
                 "Received a {MessageType} message with {EvidenceIdCount} evidenceIds",
-                nameof(EvidenceIdsMsg),
+                nameof(EvidenceIdsMessage),
                 evidenceIdsMsg.Ids.Count());
 
             EvidenceCompletion.Demand(message.Remote, evidenceIdsMsg.Ids);

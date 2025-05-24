@@ -45,9 +45,9 @@ public sealed record class BoundPeer : IEquatable<BoundPeer>
 
     public string PeerString => $"{PublicKey},{EndPoint.Host},{EndPoint.Port}";
 
-    public static bool operator ==(BoundPeer left, BoundPeer right) => left.Equals(right);
+    // public static bool operator ==(BoundPeer left, BoundPeer right) => left.Equals(right);
 
-    public static bool operator !=(BoundPeer left, BoundPeer right) => !left.Equals(right);
+    // public static bool operator !=(BoundPeer left, BoundPeer right) => !left.Equals(right);
 
     public static BoundPeer ParsePeer(string peerInfo)
     {
@@ -104,10 +104,10 @@ public sealed record class BoundPeer : IEquatable<BoundPeer>
             EndPoint.Equals(other.EndPoint);
     }
 
-    public override bool Equals(object? obj) => obj is BoundPeer other && Equals(other);
+    // public override bool Equals(object? obj) => obj is BoundPeer other && Equals(other);
 
-    public override int GetHashCode() => HashCode.Combine(
-        HashCode.Combine(PublicKey.GetHashCode(), PublicIPAddress?.GetHashCode()), EndPoint);
+    // public override int GetHashCode() => HashCode.Combine(
+    //     HashCode.Combine(PublicKey.GetHashCode(), PublicIPAddress?.GetHashCode()), EndPoint);
 
     public override string ToString()
     {

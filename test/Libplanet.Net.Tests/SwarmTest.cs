@@ -460,7 +460,7 @@ namespace Libplanet.Net.Tests
                 _ = swarms[1].StartAsync();
                 swarms[2].ConsensusReactor.ConsensusContext.MessagePublished += (_, eventArgs) =>
                 {
-                    if (eventArgs.Message is ConsensusProposalMsg proposalMsg &&
+                    if (eventArgs.Message is ConsensusProposalMessage proposalMsg &&
                         proposalMsg.Round == 1 &&
                         proposalMsg.Validator.Equals(TestUtils.PrivateKeys[2].PublicKey))
                     {

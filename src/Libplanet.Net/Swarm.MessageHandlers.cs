@@ -17,7 +17,7 @@ public partial class Swarm
         switch (message.Content)
         {
             case PingMessage _:
-            case FindNeighborsMsg _:
+            case FindNeighborsMessage _:
                 return Task.CompletedTask;
 
             case GetChainStatusMessage getChainStatus:
@@ -40,13 +40,13 @@ public partial class Swarm
                         default);
                 }
 
-            case GetBlockHashesMsg getBlockHashes:
+            case GetBlockHashesMessage getBlockHashes:
                 {
                     _logger.Debug(
                         "Received a {MessageType} message locator [{LocatorHead}]",
-                        nameof(GetBlockHashesMsg),
-                        getBlockHashes.Locator);
-                    var height = BlockChain.Blocks[getBlockHashes.Locator].Height;
+                        nameof(GetBlockHashesMessage),
+                        getBlockHashes.BlockHash);
+                    var height = BlockChain.Blocks[getBlockHashes.BlockHash].Height;
                     var hashes = BlockChain.Blocks[height..].Select(item => item.BlockHash).ToArray();
 
                     // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
@@ -56,7 +56,7 @@ public partial class Swarm
                         "Found {HashCount} hashes after the branchpoint " +
                         "with locator [{LocatorHead}]",
                         hashes.Length,
-                        getBlockHashes.Locator);
+                        getBlockHashes.BlockHash);
                     var reply = new BlockHashesMessage(hashes);
 
                     return Transport.ReplyMessageAsync(reply, message.Identity, default);
@@ -71,14 +71,14 @@ public partial class Swarm
             case GetEvidenceMessage getTxs:
                 return TransferEvidenceAsync(message);
 
-            case TxIdsMsg txIds:
+            case TxIdsMessage txIds:
                 ProcessTxIds(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
                     message.Identity,
                     default);
 
-            case EvidenceIdsMsg evidenceIds:
+            case EvidenceIdsMessage evidenceIds:
                 ProcessEvidenceIds(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
@@ -234,10 +234,10 @@ public partial class Swarm
 
     private void ProcessTxIds(Message message)
     {
-        var txIdsMsg = (TxIdsMsg)message.Content;
+        var txIdsMsg = (TxIdsMessage)message.Content;
         _logger.Information(
             "Received a {MessageType} message with {TxIdCount} txIds",
-            nameof(TxIdsMsg),
+            nameof(TxIdsMessage),
             txIdsMsg.Ids.Count());
 
         TxCompletion.Demand(message.Remote, txIdsMsg.Ids);

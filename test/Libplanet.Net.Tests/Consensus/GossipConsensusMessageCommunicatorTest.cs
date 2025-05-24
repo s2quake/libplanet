@@ -155,7 +155,7 @@ namespace Libplanet.Net.Tests.Consensus
                         }
                     }
 
-                    if (content is ConsensusPreCommitMsg preCommit)
+                    if (content is ConsensusPreCommitMessage preCommit)
                     {
                         nPreCommitReceived++;
 
@@ -258,7 +258,7 @@ namespace Libplanet.Net.Tests.Consensus
                             VoteFlag.PreVote)));
                 transport2.BroadcastMessage(
                     peer1,
-                    new ConsensusPreCommitMsg(
+                    new ConsensusPreCommitMessage(
                         TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
@@ -270,7 +270,7 @@ namespace Libplanet.Net.Tests.Consensus
                 // Since communicator3 wasn't denied, this message will be received without block.
                 transport3.BroadcastMessage(
                     peer1,
-                    new ConsensusPreCommitMsg(
+                    new ConsensusPreCommitMessage(
                         TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,

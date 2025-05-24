@@ -278,7 +278,7 @@ public partial class Context : IDisposable
                select vote.Flag switch
                {
                    VoteFlag.PreVote => (ConsensusMessage)new ConsensusPreVoteMsg(vote),
-                   VoteFlag.PreCommit => (ConsensusMessage)new ConsensusPreCommitMsg(vote),
+                   VoteFlag.PreCommit => (ConsensusMessage)new ConsensusPreCommitMessage(vote),
                    _ => throw new ArgumentException(
                        "VoteFlag should be PreVote or PreCommit.",
                        nameof(vote.Flag)),
@@ -433,13 +433,13 @@ public partial class Context : IDisposable
 
     /// <summary>
     /// Creates a signed <see cref="Vote"/> for a <see cref="ConsensusPreVoteMessage"/> or
-    /// a <see cref="ConsensusPreCommitMsg"/>.
+    /// a <see cref="ConsensusPreCommitMessage"/>.
     /// </summary>
     /// <param name="round">Current context round.</param>
     /// <param name="hash">Current context locked <see cref="BlockHash"/>.</param>
     /// <param name="flag"><see cref="VoteFlag"/> of <see cref="Vote"/> to create.
     /// Set to <see cref="VoteFlag.PreVote"/> if message is <see cref="ConsensusPreVoteMessage"/>.
-    /// If message is <see cref="ConsensusPreCommitMsg"/>, Set to
+    /// If message is <see cref="ConsensusPreCommitMessage"/>, Set to
     /// <see cref="VoteFlag.PreCommit"/>.</param>
     /// <returns>Returns a signed <see cref="Vote"/> with consensus private key.</returns>
     /// <exception cref="ArgumentException">If <paramref name="flag"/> is either
@@ -473,7 +473,7 @@ public partial class Context : IDisposable
     /// <param name="flag"><see cref="VoteFlag"/> of <see cref="Maj23"/> to create.
     /// Set to <see cref="VoteFlag.PreVote"/> if +2/3 <see cref="ConsensusPreVoteMessage"/>
     /// messages that votes to the same block with proposal are collected.
-    /// If +2/3 <see cref="ConsensusPreCommitMsg"/> messages that votes to the same block
+    /// If +2/3 <see cref="ConsensusPreCommitMessage"/> messages that votes to the same block
     /// with proposal are collected, Set to <see cref="VoteFlag.PreCommit"/>.</param>
     /// <returns>Returns a signed <see cref="Maj23"/> with consensus private key.</returns>
     /// <exception cref="ArgumentException">If <paramref name="flag"/> is either

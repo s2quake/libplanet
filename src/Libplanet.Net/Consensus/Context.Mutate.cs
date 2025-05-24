@@ -48,7 +48,7 @@ namespace Libplanet.Net.Consensus
                         ValidRound = _validRound,
                     }.Sign(_privateKey);
 
-                    PublishMessage(new ConsensusProposalMsg(proposal));
+                    PublishMessage(new ConsensusProposalMessage(proposal));
                 }
                 else
                 {
@@ -99,7 +99,7 @@ namespace Libplanet.Net.Consensus
                         message);
                 }
 
-                if (message is ConsensusProposalMsg proposal)
+                if (message is ConsensusProposalMessage proposal)
                 {
                     AddProposal(proposal.Proposal);
                 }
@@ -117,7 +117,7 @@ namespace Libplanet.Net.Consensus
                                 break;
                             }
 
-                        case ConsensusPreCommitMsg preCommit:
+                        case ConsensusPreCommitMessage preCommit:
                             {
                                 _heightVoteSet.AddVote(preCommit.PreCommit);
                                 var args = (preCommit.Round, VoteFlag.PreCommit,
@@ -344,7 +344,7 @@ namespace Libplanet.Net.Consensus
                         ToString());
                     Proposal = null;
                     PublishMessage(
-                        new ConsensusProposalClaimMsg(
+                        new ConsensusProposalClaimMessage(
                             new ProposalClaimMetadata
                             {
                                 Height = Height,
@@ -377,7 +377,7 @@ namespace Libplanet.Net.Consensus
             }
 
             int round = message.Round;
-            if ((message is ConsensusProposalMsg || message is ConsensusPreCommitMsg) &&
+            if ((message is ConsensusProposalMessage || message is ConsensusPreCommitMessage) &&
                 GetProposal() is (Block block4, _) &&
                 _heightVoteSet.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
                 block4.BlockHash.Equals(hash) &&
@@ -437,7 +437,7 @@ namespace Libplanet.Net.Consensus
                 ToString());
             Step = ConsensusStep.PreCommit;
             PublishMessage(
-                new ConsensusPreCommitMsg(MakeVote(round, hash, VoteFlag.PreCommit)));
+                new ConsensusPreCommitMessage(MakeVote(round, hash, VoteFlag.PreCommit)));
         }
 
         private void EnterEndCommit(int round)
@@ -486,7 +486,7 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// A timeout mutation to run if no <see cref="ConsensusProposalMsg"/> is received in
+        /// A timeout mutation to run if no <see cref="ConsensusProposalMessage"/> is received in
         /// <see cref="TimeoutPropose"/> and is still in <see cref="ConsensusStep.Propose"/> step.
         /// </summary>
         /// <param name="round">A round that the timeout task is scheduled for.</param>
@@ -515,7 +515,7 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// A timeout mutation to run if +2/3 <see cref="ConsensusPreCommitMsg"/>s were received but
+        /// A timeout mutation to run if +2/3 <see cref="ConsensusPreCommitMessage"/>s were received but
         /// is still in <paramref name="round"/> round and <see cref="ConsensusStep.PreCommit"/>
         /// step after <see cref="TimeoutPreCommit"/>.
         /// </summary>

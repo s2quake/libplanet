@@ -197,7 +197,7 @@ public class SeedTest
         // When
         var transport = transports[Random.Shared.Next(length)];
         var replyMessage = await transport.SendMessageAsync(
-            seedBoundPeer, new FindNeighborsMsg(target: default), Timeout, default);
+            seedBoundPeer, new FindNeighborsMessage(target: default), Timeout, default);
 
         // Then
         Assert.Equal(length, seed.Peers.Count);

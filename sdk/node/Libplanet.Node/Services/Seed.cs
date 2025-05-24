@@ -145,7 +145,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
 
         switch (message.Content)
         {
-            case FindNeighborsMsg:
+            case FindNeighborsMessage:
                 var alivePeers = peers.Where(item => item.IsAlive)
                                       .Select(item => item.BoundPeer)
                                       .ToArray();

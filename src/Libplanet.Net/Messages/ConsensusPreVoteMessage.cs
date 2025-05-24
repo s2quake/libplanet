@@ -1,11 +1,15 @@
+using System.ComponentModel.DataAnnotations;
 using Libplanet.Net.Consensus;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
+using Libplanet.Types.Crypto;
 
 namespace Libplanet.Net.Messages;
 
-public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage
+[Model(Version = 1)]
+public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage, IValidatableObject
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsensusPreVoteMessage"/> class.
@@ -37,7 +41,7 @@ public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage
     // {
     // }
 
-    [AllowedEnumValues(VoteFlag.PreVote)]
+    [Property(0)]
     public required Vote PreVote { get; init; }
 
     /// <inheritdoc cref="MessageContent.DataFrames"/>
@@ -45,6 +49,26 @@ public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage
     //     new List<byte[]> { ModelSerializer.SerializeToBytes(PreVote) };
 
     public override MessageType Type => MessageType.ConsensusVote;
+
+    public override BlockHash BlockHash => PreVote.BlockHash;
+
+    public override VoteFlag Flag => PreVote.Flag;
+
+    public override Address Validator => PreVote.Validator;
+
+    public override int Height => PreVote.Height;
+
+    public override int Round => PreVote.Round;
+
+    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+    {
+        if (PreVote.Flag != VoteFlag.PreVote)
+        {
+            yield return new ValidationResult(
+                $"Given {nameof(PreVote)}'s flag must be {VoteFlag.PreVote}.",
+                [nameof(PreVote)]);
+        }
+    }
 
     // public override bool Equals(ConsensusMessage? other)
     // {

@@ -54,7 +54,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg)
+                if (message is ConsensusProposalMessage)
                 {
                     proposalSent.Set();
                 }
@@ -72,7 +72,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task StartAsProposerWithLastCommit()
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
 
             // Assumed that height 1 is already committed.  It will catch a propose to check
@@ -105,7 +105,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
@@ -145,7 +145,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task CanAcceptMessagesAfterCommitFailure()
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
             Block? proposedBlock = null;
             var stepChangedToEndCommit = new AsyncAutoResetEvent();
@@ -178,7 +178,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
@@ -220,7 +220,7 @@ namespace Libplanet.Net.Tests.Consensus
             // Validator 2 will automatically vote its PreCommit.
             foreach (int i in new int[] { 0, 1 })
             {
-                context.ProduceMessage(new ConsensusPreCommitMsg(new VoteMetadata
+                context.ProduceMessage(new ConsensusPreCommitMessage(new VoteMetadata
                 {
                     Height = 2,
                     Round = 0,
@@ -239,7 +239,7 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(3, commit?.Votes.Where(vote => vote.Flag == VoteFlag.PreCommit).Count());
 
             // Context should still accept new votes.
-            context.ProduceMessage(new ConsensusPreCommitMsg(new VoteMetadata
+            context.ProduceMessage(new ConsensusPreCommitMessage(new VoteMetadata
             {
                 Height = 2,
                 Round = 0,
@@ -407,7 +407,7 @@ namespace Libplanet.Net.Tests.Consensus
             foreach (int i in new int[] { 1, 2 })
             {
                 context.ProduceMessage(
-                    new ConsensusPreCommitMsg(
+                    new ConsensusPreCommitMessage(
                         new VoteMetadata
                         {
                             Height = 1,
@@ -431,7 +431,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             // Add the last vote and wait for it to be consumed.
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     new VoteMetadata
                     {
                         Height = 1,
@@ -562,8 +562,8 @@ namespace Libplanet.Net.Tests.Consensus
                 // MarshaledBlock = ModelSerializer.SerializeToBytes(blockB),
                 ValidRound = -1,
             }.Sign(proposer);
-            var proposalAMsg = new ConsensusProposalMsg(proposalA);
-            var proposalBMsg = new ConsensusProposalMsg(proposalB);
+            var proposalAMsg = new ConsensusProposalMessage(proposalA);
+            var proposalBMsg = new ConsensusProposalMessage(proposalB);
             context.ProduceMessage(proposalAMsg);
             await proposalModified.WaitAsync();
             Assert.Equal(proposalA, context.Proposal);
@@ -704,7 +704,7 @@ namespace Libplanet.Net.Tests.Consensus
             foreach (int i in new int[] { 1, 2, 3 })
             {
                 context.ProduceMessage(
-                    new ConsensusPreCommitMsg(
+                    new ConsensusPreCommitMessage(
                         new VoteMetadata
                         {
                             Height = 1,
@@ -758,7 +758,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
                         proposalMsg!.Proposal.MarshaledBlock);

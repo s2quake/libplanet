@@ -150,11 +150,11 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
             case MessageContent.MessageType.Pong:
                 return new PongMessage();
             case MessageContent.MessageType.GetBlockHashes:
-                return new GetBlockHashesMsg(dataframes);
+                return new GetBlockHashesMessage(dataframes);
             case MessageContent.MessageType.TxIds:
-                return new TxIdsMsg(dataframes);
+                return new TxIdsMessage(dataframes);
             case MessageContent.MessageType.EvidenceIds:
-                return new EvidenceIdsMsg(dataframes);
+                return new EvidenceIdsMessage(dataframes);
             case MessageContent.MessageType.GetBlocks:
                 return new GetBlocksMsg(dataframes);
             case MessageContent.MessageType.GetTxs:
@@ -166,9 +166,9 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
             case MessageContent.MessageType.Tx:
                 return new TransactionMessage(dataframes);
             case MessageContent.MessageType.Evidence:
-                return new EvidenceMsg(dataframes);
+                return new EvidenceMessage(dataframes);
             case MessageContent.MessageType.FindNeighbors:
-                return new FindNeighborsMsg(dataframes);
+                return new FindNeighborsMessage(dataframes);
             case MessageContent.MessageType.Neighbors:
                 return new NeighborsMessage(dataframes);
             case MessageContent.MessageType.BlockHeaderMessage:
@@ -180,23 +180,23 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
             case MessageContent.MessageType.ChainStatus:
                 return new ChainStatusMessage(dataframes);
             case MessageContent.MessageType.DifferentVersion:
-                return new DifferentVersionMsg();
+                return new DifferentVersionMessage();
             case MessageContent.MessageType.HaveMessage:
                 return new HaveMessage(dataframes);
             case MessageContent.MessageType.WantMessage:
                 return new WantMessage(dataframes);
             case MessageContent.MessageType.ConsensusProposal:
-                return new ConsensusProposalMsg(dataframes);
+                return new ConsensusProposalMessage(dataframes);
             case MessageContent.MessageType.ConsensusVote:
                 return new ConsensusPreVoteMsg(dataframes);
             case MessageContent.MessageType.ConsensusCommit:
-                return new ConsensusPreCommitMsg(dataframes);
+                return new ConsensusPreCommitMessage(dataframes);
             case MessageContent.MessageType.ConsensusMaj23Msg:
                 return new ConsensusMaj23Msg(dataframes);
             case MessageContent.MessageType.ConsensusVoteSetBitsMsg:
-                return new ConsensusVoteSetBitsMsg(dataframes);
+                return new ConsensusVoteSetBitsMessage(dataframes);
             case MessageContent.MessageType.ConsensusProposalClaimMsg:
-                return new ConsensusProposalClaimMsg(dataframes);
+                return new ConsensusProposalClaimMessage(dataframes);
             default:
                 throw new InvalidCastException($"Given type {type} is not a valid message.");
         }

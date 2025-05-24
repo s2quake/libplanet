@@ -33,7 +33,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task EnterPreCommitNil()
         {
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
-            ConsensusPreCommitMsg? preCommit = null;
+            ConsensusPreCommitMessage? preCommit = null;
             var preCommitSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
@@ -46,7 +46,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreCommitMsg preCommitMsg)
+                if (message is ConsensusPreCommitMessage preCommitMsg)
                 {
                     preCommit = preCommitMsg;
                     preCommitSent.Set();
@@ -93,9 +93,9 @@ namespace Libplanet.Net.Tests.Consensus
         public async void EnterPreCommitBlock()
         {
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
-            ConsensusPreCommitMsg? preCommit = null;
+            ConsensusPreCommitMessage? preCommit = null;
             var preCommitSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
@@ -108,12 +108,12 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
                 }
-                else if (message is ConsensusPreCommitMsg preCommitMsg)
+                else if (message is ConsensusPreCommitMessage preCommitMsg)
                 {
                     preCommit = preCommitMsg;
                     preCommitSent.Set();
@@ -174,7 +174,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             context.Start();
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[0],
                         TestUtils.Validators[0].Power,
@@ -183,7 +183,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteFlag.PreCommit)));
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
                         TestUtils.Validators[2].Power,
@@ -192,7 +192,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteFlag.PreCommit)));
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
                         TestUtils.Validators[3].Power,
@@ -212,7 +212,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var stepChangedToEndCommit = new AsyncAutoResetEvent();
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
@@ -230,7 +230,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
@@ -296,7 +296,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async void EnterPreVoteBlock()
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
             ConsensusPreVoteMessage? preVote = null;
             var preVoteSent = new AsyncAutoResetEvent();
@@ -312,7 +312,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
@@ -339,7 +339,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async void VoteNilOnSelfProposedInvalidBlock()
         {
             var privateKey = new PrivateKey();
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
             ConsensusPreVoteMessage? preVote = null;
             var preVoteSent = new AsyncAutoResetEvent();
@@ -360,7 +360,7 @@ namespace Libplanet.Net.Tests.Consensus
                 validatorSet: TestUtils.Validators);
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();

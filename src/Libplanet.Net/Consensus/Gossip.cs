@@ -331,7 +331,7 @@ namespace Libplanet.Net.Consensus
             switch (msg.Content)
             {
                 case PingMessage _:
-                case FindNeighborsMsg _:
+                case FindNeighborsMessage _:
                     // Ignore protocol related messages, Kadmelia Protocol will handle it.
                     break;
                 case HaveMessage _:
@@ -363,7 +363,7 @@ namespace Libplanet.Net.Consensus
                 {
                     _transport.BroadcastMessage(
                         PeersToBroadcast(_table.Peers, DLazy),
-                        new HaveMessage(ids));
+                        new HaveMessage { Ids = [.. ids] });
                 }
 
                 _ = SendWantAsync(ctx);
@@ -442,7 +442,7 @@ namespace Libplanet.Net.Consensus
                 async pair =>
                 {
                     MessageId[] idsToGet = pair.Value;
-                    var want = new WantMessage(idsToGet);
+                    var want = new WantMessage { Ids = [.. idsToGet] };
                     Message[] replies = (await _transport.SendMessageAsync(
                         pair.Key,
                         want,

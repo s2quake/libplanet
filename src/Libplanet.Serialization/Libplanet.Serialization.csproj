@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn);SA1012</NoWarn>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="1.*" />
     <PackageReference Include="System.Text.Json" Version="6.0.*" />
     <!-- <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" /> -->
     <PackageReference Include="Microsoft.CodeAnalysis" Version="4.14.0" />

@@ -20,7 +20,7 @@ public sealed record class WantMessage : MessageContent
     // }
 
     [Property(0)]
-    public ImmutableArray<MessageId> Ids { get; init; }
+    public ImmutableArray<MessageId> Ids { get; init; } = [];
 
     public override MessageType Type => MessageType.WantMessage;
 

@@ -100,14 +100,14 @@ namespace Libplanet.Net.Tests
             return blockChain;
         }
 
-        public static ConsensusProposalMsg CreateConsensusPropose(
+        public static ConsensusProposalMessage CreateConsensusPropose(
             Block block,
             PrivateKey privateKey,
             int height = 1,
             int round = 0,
             int validRound = -1)
         {
-            return new ConsensusProposalMsg(
+            return new ConsensusProposalMessage(
                 new ProposalMetadata
                 {
                     Height = height,
@@ -141,7 +141,7 @@ namespace Libplanet.Net.Tests
                 }
 
                 consensusContext.HandleMessage(
-                    new ConsensusPreCommitMsg(
+                    new ConsensusPreCommitMessage(
                         new VoteMetadata
                         {
                             Height = consensusContext.Height,
@@ -171,7 +171,7 @@ namespace Libplanet.Net.Tests
                 }
 
                 context.ProduceMessage(
-                    new ConsensusPreCommitMsg(
+                    new ConsensusPreCommitMessage(
                         new VoteMetadata
                         {
                             Height = context.Height,

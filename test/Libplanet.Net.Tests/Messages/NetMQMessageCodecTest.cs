@@ -84,9 +84,9 @@ namespace Libplanet.Net.Tests.Messages
                 case MessageContent.MessageType.Pong:
                     return new PongMessage();
                 case MessageContent.MessageType.GetBlockHashes:
-                    return new GetBlockHashesMsg(chain.Tip.BlockHash);
+                    return new GetBlockHashesMessage(chain.Tip.BlockHash);
                 case MessageContent.MessageType.TxIds:
-                    return new TxIdsMsg(new[] { transaction.Id });
+                    return new TxIdsMessage(new[] { transaction.Id });
                 case MessageContent.MessageType.GetBlocks:
                     return new GetBlocksMsg(new[] { genesis.BlockHash }, 10);
                 case MessageContent.MessageType.GetTxs:
@@ -101,7 +101,7 @@ namespace Libplanet.Net.Tests.Messages
                 case MessageContent.MessageType.Tx:
                     return new Libplanet.Net.Messages.TransactionMessage(ModelSerializer.SerializeToBytes(transaction));
                 case MessageContent.MessageType.FindNeighbors:
-                    return new FindNeighborsMsg(privateKey.Address);
+                    return new FindNeighborsMessage(privateKey.Address);
                 case MessageContent.MessageType.Neighbors:
                     return new NeighborsMessage(new[] { boundPeer });
                 case MessageContent.MessageType.BlockHeaderMessage:
@@ -117,7 +117,7 @@ namespace Libplanet.Net.Tests.Messages
                         chain.Tip.Height,
                         chain.Tip.BlockHash);
                 case MessageContent.MessageType.DifferentVersion:
-                    return new DifferentVersionMsg();
+                    return new DifferentVersionMessage();
                 case MessageContent.MessageType.HaveMessage:
                     return new HaveMessage(
                         new[] { new MessageId(TestUtils.GetRandomBytes(MessageId.Size)) });
@@ -125,7 +125,7 @@ namespace Libplanet.Net.Tests.Messages
                     return new WantMessage(
                         new[] { new MessageId(TestUtils.GetRandomBytes(MessageId.Size)) });
                 case MessageContent.MessageType.ConsensusProposal:
-                    return new ConsensusProposalMsg(
+                    return new ConsensusProposalMessage(
                         new ProposalMetadata
                         {
                             Height = 0,
@@ -148,7 +148,7 @@ namespace Libplanet.Net.Tests.Messages
                                 Flag = VoteFlag.PreVote,
                             }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusCommit:
-                    return new ConsensusPreCommitMsg(
+                    return new ConsensusPreCommitMessage(
                         new VoteMetadata
                         {
                             Height = 0,
@@ -171,7 +171,7 @@ namespace Libplanet.Net.Tests.Messages
                             Flag = VoteFlag.PreVote,
                         }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusVoteSetBitsMsg:
-                    return new ConsensusVoteSetBitsMsg(
+                    return new ConsensusVoteSetBitsMessage(
                         new VoteSetBitsMetadata
                         {
                             Height = 0,
@@ -183,7 +183,7 @@ namespace Libplanet.Net.Tests.Messages
                             VoteBits = [true, true, false, false],
                         }.Sign(privateKey));
                 case MessageContent.MessageType.ConsensusProposalClaimMsg:
-                    return new ConsensusProposalClaimMsg(
+                    return new ConsensusProposalClaimMessage(
                         new ProposalClaimMetadata
                         {
                             Height = 0,

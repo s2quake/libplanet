@@ -41,7 +41,7 @@ namespace Libplanet.Net.Options
             = TimeSpan.FromSeconds(DefaultDialTimeout);
 
         /// <summary>
-        /// The timeout used when sending a request with <see cref="GetBlockHashesMsg"/>
+        /// The timeout used when sending a request with <see cref="GetBlockHashesMessage"/>
         /// to receive a <see cref="BlockHashesMessage"/> message.
         /// Set to <see cref="DefaultGetBlockHashesTimeout"/> seconds by default.
         /// </summary>
