@@ -28,17 +28,17 @@ internal sealed record class ChainStatusMessage : MessageContent
     // }
 
     [Property(0)]
-    public int ProtocolVersion { get; init; }
+    public required int ProtocolVersion { get; init; }
 
     [LogAsScalar]
     [Property(1)]
-    public BlockHash GenesisHash { get; init; }
+    public required BlockHash GenesisHash { get; init; }
 
     [Property(2)]
-    public int TipIndex { get; }
+    public required int TipIndex { get; init; }
 
     [LogAsScalar]
-    public BlockHash TipHash { get; }
+    public required BlockHash TipHash { get; init; }
 
     public override MessageType Type => MessageType.ChainStatus;
 

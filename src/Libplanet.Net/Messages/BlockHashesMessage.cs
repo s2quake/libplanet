@@ -3,12 +3,13 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Net.Messages;
 
+[Model(Version = 1)]
 internal sealed record class BlockHashesMessage : MessageContent
 {
-    public BlockHashesMessage(ImmutableArray<BlockHash> hashes)
-    {
-        Hashes = hashes;
-    }
+    // public BlockHashesMessage(ImmutableArray<BlockHash> hashes)
+    // {
+    //     Hashes = hashes;
+    // }
 
     // public BlockHashesMessage(byte[][] dataFrames)
     // {
@@ -28,7 +29,7 @@ internal sealed record class BlockHashesMessage : MessageContent
     public override MessageType Type => MessageType.BlockHashes;
 
     [Property(0)]
-    public ImmutableArray<BlockHash> Hashes { get; }
+    public ImmutableArray<BlockHash> Hashes { get; init; } = [];
 
 
     // public override IEnumerable<byte[]> DataFrames

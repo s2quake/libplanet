@@ -94,7 +94,12 @@ public class ApvCommand
             // extraValue = dict;
         }
 
-        Protocol v = Protocol.Sign(key, version, extraValue);
+        Protocol v = new ProtocolMetadata
+        {
+            Version = version,
+            Signer = key.Address,
+            Extra = [.. extraValue ?? []],
+        }.Sign(key);
         Console.WriteLine(v.Token);
     }
 
@@ -123,7 +128,7 @@ public class ApvCommand
         {
             foreach (PublicKey pubKey in pubKeys)
             {
-                if (v.Verify(pubKey))
+                if (v.Verify())
                 {
                     Console.Error.WriteLine(
                         "The signature successfully was verified using the {0}.",
@@ -152,7 +157,7 @@ public class ApvCommand
                     keyId,
                     new PassphraseParameters())
                 .PublicKey;
-                if (v.Verify(pubKey))
+                if (v.Verify())
                 {
                     Console.Error.WriteLine(
                         "The signature successfully was verified using the key {0}.",

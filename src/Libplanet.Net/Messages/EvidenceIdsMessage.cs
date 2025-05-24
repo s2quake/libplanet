@@ -7,7 +7,7 @@ namespace Libplanet.Net.Messages;
 internal sealed record class EvidenceIdsMessage : MessageContent
 {
     [Property(0)]
-    public ImmutableArray<EvidenceId> Ids { get; }
+    public ImmutableArray<EvidenceId> Ids { get; init; } = [];
 
     public override MessageType Type => MessageType.EvidenceIds;
 }

@@ -205,31 +205,37 @@ namespace Libplanet.Net.Tests.Consensus
             // Make PreVotes to normally move to PreCommit step.
             foreach (int i in new int[] { 0, 1, 3 })
             {
-                context.ProduceMessage(new ConsensusPreVoteMsg(new VoteMetadata
+                context.ProduceMessage(new ConsensusPreVoteMessage
                 {
-                    Height = 2,
-                    Round = 0,
-                    BlockHash = proposedBlock!.BlockHash,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Validator = TestUtils.PrivateKeys[i].Address,
-                    ValidatorPower = TestUtils.Validators[i].Power,
-                    Flag = VoteFlag.PreVote,
-                }.Sign(TestUtils.PrivateKeys[i])));
+                    PreVote = new VoteMetadata
+                    {
+                        Height = 2,
+                        Round = 0,
+                        BlockHash = proposedBlock!.BlockHash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        Validator = TestUtils.PrivateKeys[i].Address,
+                        ValidatorPower = TestUtils.Validators[i].Power,
+                        Flag = VoteFlag.PreVote,
+                    }.Sign(TestUtils.PrivateKeys[i])
+                });
             }
 
             // Validator 2 will automatically vote its PreCommit.
             foreach (int i in new int[] { 0, 1 })
             {
-                context.ProduceMessage(new ConsensusPreCommitMessage(new VoteMetadata
+                context.ProduceMessage(new ConsensusPreCommitMessage
                 {
-                    Height = 2,
-                    Round = 0,
-                    BlockHash = proposedBlock!.BlockHash,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Validator = TestUtils.PrivateKeys[i].Address,
-                    ValidatorPower = TestUtils.Validators[i].Power,
-                    Flag = VoteFlag.PreCommit,
-                }.Sign(TestUtils.PrivateKeys[i])));
+                    PreCommit = new VoteMetadata
+                    {
+                        Height = 2,
+                        Round = 0,
+                        BlockHash = proposedBlock!.BlockHash,
+                        Timestamp = DateTimeOffset.UtcNow,
+                        Validator = TestUtils.PrivateKeys[i].Address,
+                        ValidatorPower = TestUtils.Validators[i].Power,
+                        Flag = VoteFlag.PreCommit,
+                    }.Sign(TestUtils.PrivateKeys[i])
+                });
             }
 
             await stepChangedToEndCommit.WaitAsync();
@@ -239,16 +245,19 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(3, commit?.Votes.Where(vote => vote.Flag == VoteFlag.PreCommit).Count());
 
             // Context should still accept new votes.
-            context.ProduceMessage(new ConsensusPreCommitMessage(new VoteMetadata
+            context.ProduceMessage(new ConsensusPreCommitMessage
             {
-                Height = 2,
-                Round = 0,
-                BlockHash = proposedBlock!.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[3].Address,
-                ValidatorPower = TestUtils.Validators[3].Power,
-                Flag = VoteFlag.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[3])));
+                PreCommit = new VoteMetadata
+                {
+                    Height = 2,
+                    Round = 0,
+                    BlockHash = proposedBlock!.BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = TestUtils.PrivateKeys[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(TestUtils.PrivateKeys[3])
+            });
 
             await Task.Delay(100);  // Wait for the new message to be added to the message log.
             commit = context.GetBlockCommit();
@@ -299,14 +308,16 @@ namespace Libplanet.Net.Tests.Consensus
             // Reset exception thrown.
             exceptionThrown = null;
             context.ProduceMessage(
-                new ConsensusPreVoteMsg(
-                    TestUtils.CreateVote(
+                new ConsensusPreVoteMessage
+                {
+                    PreVote = TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
                         TestUtils.Validators[2].Power,
                         2,
                         0,
                         block.BlockHash,
-                        VoteFlag.PreVote)));
+                        VoteFlag.PreVote)
+                });
             await exceptionOccurred.WaitAsync();
             Assert.IsType<InvalidConsensusMessageException>(exceptionThrown);
         }
@@ -390,8 +401,9 @@ namespace Libplanet.Net.Tests.Consensus
             foreach (int i in new int[] { 1, 2, 3 })
             {
                 context.ProduceMessage(
-                    new ConsensusPreVoteMsg(
-                        new VoteMetadata
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = new VoteMetadata
                         {
                             Height = 1,
                             Round = 0,
@@ -400,15 +412,17 @@ namespace Libplanet.Net.Tests.Consensus
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
                             Flag = VoteFlag.PreVote,
-                        }.Sign(TestUtils.PrivateKeys[i])));
+                        }.Sign(TestUtils.PrivateKeys[i])
+                    });
             }
 
             // Two additional votes should be enough to reach a consensus.
             foreach (int i in new int[] { 1, 2 })
             {
                 context.ProduceMessage(
-                    new ConsensusPreCommitMessage(
-                        new VoteMetadata
+                    new ConsensusPreCommitMessage
+                    {
+                        PreCommit = new VoteMetadata
                         {
                             Height = 1,
                             Round = 0,
@@ -417,7 +431,8 @@ namespace Libplanet.Net.Tests.Consensus
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
                             Flag = VoteFlag.PreCommit,
-                        }.Sign(TestUtils.PrivateKeys[i])));
+                        }.Sign(TestUtils.PrivateKeys[i])
+                    });
             }
 
             await blockHeightOneAppended.WaitAsync();
@@ -431,8 +446,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             // Add the last vote and wait for it to be consumed.
             context.ProduceMessage(
-                new ConsensusPreCommitMessage(
-                    new VoteMetadata
+                new ConsensusPreCommitMessage
+                {
+                    PreCommit = new VoteMetadata
                     {
                         Height = 1,
                         Round = 0,
@@ -441,7 +457,8 @@ namespace Libplanet.Net.Tests.Consensus
                         Validator = TestUtils.PrivateKeys[3].Address,
                         ValidatorPower = BigInteger.One,
                         Flag = VoteFlag.PreCommit,
-                    }.Sign(TestUtils.PrivateKeys[3])));
+                    }.Sign(TestUtils.PrivateKeys[3])
+                });
             Thread.Sleep(10);
             Assert.Equal(
                 4,
@@ -542,17 +559,19 @@ namespace Libplanet.Net.Tests.Consensus
                 // MarshaledBlock = ModelSerializer.SerializeToBytes(blockA),
                 ValidRound = -1,
             }.Sign(proposer);
-            var preVoteA2 = new ConsensusPreVoteMsg(
-            new VoteMetadata
+            var preVoteA2 = new ConsensusPreVoteMessage
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockA.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = key2.Address,
-                ValidatorPower = power2,
-                Flag = VoteFlag.PreVote,
-            }.Sign(key2));
+                PreVote = new VoteMetadata
+                {
+                    Height = 1,
+                    Round = 0,
+                    BlockHash = blockA.BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = key2.Address,
+                    ValidatorPower = power2,
+                    Flag = VoteFlag.PreVote,
+                }.Sign(key2)
+            };
             var proposalB = new ProposalMetadata
             {
                 Height = 1,
@@ -562,8 +581,8 @@ namespace Libplanet.Net.Tests.Consensus
                 // MarshaledBlock = ModelSerializer.SerializeToBytes(blockB),
                 ValidRound = -1,
             }.Sign(proposer);
-            var proposalAMsg = new ConsensusProposalMessage(proposalA);
-            var proposalBMsg = new ConsensusProposalMessage(proposalB);
+            var proposalAMsg = new ConsensusProposalMessage { Proposal = proposalA };
+            var proposalBMsg = new ConsensusProposalMessage { Proposal = proposalB };
             context.ProduceMessage(proposalAMsg);
             await proposalModified.WaitAsync();
             Assert.Equal(proposalA, context.Proposal);
@@ -586,36 +605,45 @@ namespace Libplanet.Net.Tests.Consensus
             }.Sign(key1);
             context.AddMaj23(maj23);
 
-            var preVoteB0 = new ConsensusPreVoteMsg(new VoteMetadata
+            var preVoteB0 = new ConsensusPreVoteMessage
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockB.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = proposer.Address,
-                ValidatorPower = proposerPower,
-                Flag = VoteFlag.PreVote,
-            }.Sign(proposer));
-            var preVoteB1 = new ConsensusPreVoteMsg(new VoteMetadata
+                PreVote = new VoteMetadata
+                {
+                    Height = 1,
+                    Round = 0,
+                    BlockHash = blockB.BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = proposer.Address,
+                    ValidatorPower = proposerPower,
+                    Flag = VoteFlag.PreVote,
+                }.Sign(proposer)
+            };
+            var preVoteB1 = new ConsensusPreVoteMessage
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockB.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = key1.Address,
-                ValidatorPower = power1,
-                Flag = VoteFlag.PreVote,
-            }.Sign(key1));
-            var preVoteB2 = new ConsensusPreVoteMsg(new VoteMetadata
+                PreVote = new VoteMetadata
+                {
+                    Height = 1,
+                    Round = 0,
+                    BlockHash = blockB.BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = key1.Address,
+                    ValidatorPower = power1,
+                    Flag = VoteFlag.PreVote,
+                }.Sign(key1)
+            };
+            var preVoteB2 = new ConsensusPreVoteMessage
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockB.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = key2.Address,
-                ValidatorPower = power2,
-                Flag = VoteFlag.PreVote,
-            }.Sign(key2));
+                PreVote = new VoteMetadata
+                {
+                    Height = 1,
+                    Round = 0,
+                    BlockHash = blockB.BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = key2.Address,
+                    ValidatorPower = power2,
+                    Flag = VoteFlag.PreVote,
+                }.Sign(key2)
+            };
             context.ProduceMessage(preVoteB0);
             context.ProduceMessage(preVoteB1);
             context.ProduceMessage(preVoteB2);
@@ -688,8 +716,9 @@ namespace Libplanet.Net.Tests.Consensus
             foreach (int i in new int[] { 1, 2, 3 })
             {
                 context.ProduceMessage(
-                    new ConsensusPreVoteMsg(
-                        new VoteMetadata
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = new VoteMetadata
                         {
                             Height = 1,
                             Round = 0,
@@ -698,14 +727,16 @@ namespace Libplanet.Net.Tests.Consensus
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
                             Flag = VoteFlag.PreVote,
-                        }.Sign(TestUtils.PrivateKeys[i])));
+                        }.Sign(TestUtils.PrivateKeys[i])
+                    });
             }
 
             foreach (int i in new int[] { 1, 2, 3 })
             {
                 context.ProduceMessage(
-                    new ConsensusPreCommitMessage(
-                        new VoteMetadata
+                    new ConsensusPreCommitMessage
+                    {
+                        PreCommit = new VoteMetadata
                         {
                             Height = 1,
                             Round = 0,
@@ -714,7 +745,8 @@ namespace Libplanet.Net.Tests.Consensus
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
                             Flag = VoteFlag.PreCommit,
-                        }.Sign(TestUtils.PrivateKeys[i])));
+                        }.Sign(TestUtils.PrivateKeys[i])
+                    });
             }
 
             Assert.Equal(1, consensusContext.Height);
@@ -782,16 +814,19 @@ namespace Libplanet.Net.Tests.Consensus
             for (int i = 0; i < 3; i++)
             {
                 context.ProduceMessage(
-                    new ConsensusPreVoteMsg(new VoteMetadata
+                    new ConsensusPreVoteMessage
                     {
-                        Height = block.Height,
-                        Round = 0,
-                        BlockHash = block.BlockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = TestUtils.PrivateKeys[i].Address,
-                        ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteFlag.PreVote,
-                    }.Sign(TestUtils.PrivateKeys[i])));
+                        PreVote = new VoteMetadata
+                        {
+                            Height = block.Height,
+                            Round = 0,
+                            BlockHash = block.BlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            Validator = TestUtils.PrivateKeys[i].Address,
+                            ValidatorPower = TestUtils.Validators[i].Power,
+                            Flag = VoteFlag.PreVote,
+                        }.Sign(TestUtils.PrivateKeys[i])
+                    });
             }
 
             // Send delayed PreVote message after sending preCommit message
@@ -802,16 +837,19 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     await Task.Delay(preVoteDelay, cts.Token);
                     context.ProduceMessage(
-                        new ConsensusPreVoteMsg(new VoteMetadata
+                        new ConsensusPreVoteMessage
                         {
-                            Height = block.Height,
-                            Round = 0,
-                            BlockHash = block.BlockHash,
-                            Timestamp = DateTimeOffset.UtcNow,
-                            Validator = TestUtils.PrivateKeys[3].Address,
-                            ValidatorPower = TestUtils.Validators[3].Power,
-                            Flag = VoteFlag.PreVote,
-                        }.Sign(TestUtils.PrivateKeys[3])));
+                            PreVote = new VoteMetadata
+                            {
+                                Height = block.Height,
+                                Round = 0,
+                                BlockHash = block.BlockHash,
+                                Timestamp = DateTimeOffset.UtcNow,
+                                Validator = TestUtils.PrivateKeys[3].Address,
+                                ValidatorPower = TestUtils.Validators[3].Power,
+                                Flag = VoteFlag.PreVote,
+                            }.Sign(TestUtils.PrivateKeys[3])
+                        });
                 },
                 cts.Token);
 

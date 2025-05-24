@@ -10,8 +10,7 @@ public sealed record class ConsensusProposalMessage : ConsensusMessage
     [Property(0)]
     public required Proposal Proposal { get; init; }
 
-    [Property(1)]
-    public required BlockHash BlockHash { get; init; }
+    public BlockHash BlockHash => Proposal.BlockHash;
 
     public override MessageType Type => MessageType.ConsensusProposal;
 

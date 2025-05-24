@@ -27,7 +27,7 @@ internal sealed record class GetTransactionMessage : MessageContent, IEquatable<
     // }
 
     [Property(0)]
-    public ImmutableArray<TxId> TxIds { get; }
+    public ImmutableArray<TxId> TxIds { get; init; } = [];
 
     public override MessageType Type => MessageType.GetTxs;
 

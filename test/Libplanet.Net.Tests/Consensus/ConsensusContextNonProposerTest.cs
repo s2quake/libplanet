@@ -69,7 +69,7 @@ namespace Libplanet.Net.Tests.Consensus
                     ValidatorPower = TestUtils.Validators[i].Power,
                     Flag = VoteFlag.PreVote,
                 }.Sign(TestUtils.PrivateKeys[i]);
-                consensusContext.HandleMessage(new ConsensusPreVoteMsg(expectedVotes[i]));
+                consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = expectedVotes[i] });
             }
 
             // Peer2 sends a ConsensusCommit via background process.
@@ -86,7 +86,7 @@ namespace Libplanet.Net.Tests.Consensus
                     ValidatorPower = TestUtils.Validators[i].Power,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(TestUtils.PrivateKeys[i]);
-                consensusContext.HandleMessage(new ConsensusPreCommitMessage(expectedVotes[i]));
+                consensusContext.HandleMessage(new ConsensusPreCommitMessage { PreCommit = expectedVotes[i] });
             }
 
             await heightTwoProposalSent.WaitAsync();
@@ -184,8 +184,9 @@ namespace Libplanet.Net.Tests.Consensus
                 }
 
                 consensusContext.HandleMessage(
-                    new ConsensusPreVoteMsg(
-                        new VoteMetadata
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = new VoteMetadata
                         {
                             Height = 2,
                             Round = 0,
@@ -194,7 +195,8 @@ namespace Libplanet.Net.Tests.Consensus
                             Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
-                        }.Sign(privateKey)));
+                        }.Sign(privateKey)
+                    });
             }
 
             foreach ((PrivateKey privateKey, BigInteger power)
@@ -209,8 +211,9 @@ namespace Libplanet.Net.Tests.Consensus
                 }
 
                 consensusContext.HandleMessage(
-                    new ConsensusPreCommitMessage(
-                        new VoteMetadata
+                    new ConsensusPreCommitMessage
+                    {
+                        PreCommit = new VoteMetadata
                         {
                             Height = 2,
                             Round = 0,
@@ -219,7 +222,8 @@ namespace Libplanet.Net.Tests.Consensus
                             Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
-                        }.Sign(privateKey)));
+                        }.Sign(privateKey)
+                    });
             }
 
             await heightTwoStepChangedToEndCommit.WaitAsync();

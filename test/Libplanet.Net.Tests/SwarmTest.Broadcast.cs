@@ -939,7 +939,7 @@ namespace Libplanet.Net.Tests
                 await swarm1.AddPeersAsync(new[] { swarm2.AsPeer }, null);
 
                 var transport = swarm1.Transport;
-                var msg = new GetTransactionMessage(new[] { tx1.Id, tx2.Id, tx3.Id, tx4.Id });
+                var msg = new GetTransactionMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
                 var replies = (await transport.SendMessageAsync(
                     swarm2.AsPeer,
                     msg,
@@ -1013,9 +1013,11 @@ namespace Libplanet.Net.Tests
                 await mockTransport.WaitForRunningAsync();
 
                 // Send block header for block 1.
-                var blockHeaderMsg1 = new BlockHeaderMessage(
-                    receiver.BlockChain.Genesis.BlockHash,
-                    block1);
+                var blockHeaderMsg1 = new BlockHeaderMessage
+                {
+                    GenesisHash = receiver.BlockChain.Genesis.BlockHash,
+                    Excerpt = block1
+                };
                 await mockTransport.SendMessageAsync(
                     receiver.AsPeer,
                     blockHeaderMsg1,
@@ -1036,9 +1038,11 @@ namespace Libplanet.Net.Tests
                 await Task.Delay(1000);
 
                 // Send block header for block 2, make sure it does not spawn new task.
-                var blockHeaderMsg2 = new BlockHeaderMessage(
-                    receiver.BlockChain.Genesis.BlockHash,
-                    block2);
+                var blockHeaderMsg2 = new BlockHeaderMessage
+                {
+                    GenesisHash = receiver.BlockChain.Genesis.BlockHash,
+                    Excerpt = block2
+                };
                 await mockTransport.SendMessageAsync(
                     receiver.AsPeer,
                     blockHeaderMsg2,

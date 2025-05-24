@@ -79,25 +79,29 @@ namespace Libplanet.Net.Tests.Consensus
 
                 // Add message of higher round to communicator1
                 communicator1.Gossip.AddMessage(
-                    new ConsensusPreVoteMsg(
-                        TestUtils.CreateVote(
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             3,
                             fx.Hash1,
-                            VoteFlag.PreVote)));
+                            VoteFlag.PreVote),
+                    });
 
                 // Add message of same round to communicator1
                 communicator1.Gossip.AddMessage(
-                    new ConsensusPreVoteMsg(
-                        TestUtils.CreateVote(
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             2,
                             fx.Hash1,
-                            VoteFlag.PreVote)));
+                            VoteFlag.PreVote)
+                    });
 
                 await receivedPreVotes.WaitAsync();
                 await Task.Delay(1500);
@@ -197,48 +201,56 @@ namespace Libplanet.Net.Tests.Consensus
                 // This message will be accepted, since its round is valid.
                 transport2.BroadcastMessage(
                     peer1,
-                    new ConsensusPreVoteMsg(
-                        TestUtils.CreateVote(
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             2,
                             fx.Hash1,
-                            VoteFlag.PreVote)));
+                            VoteFlag.PreVote)
+                    });
 
                 // Higher round messages. These will trigger spam filter,
                 // and only two will be received.
                 transport2.BroadcastMessage(
                     peer1,
-                    new ConsensusPreVoteMsg(
-                        TestUtils.CreateVote(
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             3,
                             fx.Hash1,
-                            VoteFlag.PreVote)));
+                            VoteFlag.PreVote)
+                    });
                 transport2.BroadcastMessage(
                     peer1,
-                    new ConsensusPreVoteMsg(
-                        TestUtils.CreateVote(
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             4,
                             fx.Hash1,
-                            VoteFlag.PreVote)));
+                            VoteFlag.PreVote)
+                    });
                 // Higher round message. This will trigger spam filter, if encounter three times.
                 transport2.BroadcastMessage(
                     peer1,
-                    new ConsensusPreVoteMsg(
-                        TestUtils.CreateVote(
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             5,
                             fx.Hash1,
-                            VoteFlag.PreVote)));
+                            VoteFlag.PreVote)
+                    });
 
                 // Wait for third higher round message encounter.
                 await receivedTwoHigherPreVotes.WaitAsync();
@@ -248,36 +260,42 @@ namespace Libplanet.Net.Tests.Consensus
                 // to communicator1, and gossip denies messages from it.
                 transport2.BroadcastMessage(
                     peer1,
-                    new ConsensusPreVoteMsg(
-                        TestUtils.CreateVote(
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             1,
                             fx.Hash1,
-                            VoteFlag.PreVote)));
+                            VoteFlag.PreVote)
+                    });
                 transport2.BroadcastMessage(
                     peer1,
-                    new ConsensusPreCommitMessage(
-                        TestUtils.CreateVote(
+                    new ConsensusPreCommitMessage
+                    {
+                        PreCommit = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             1,
                             fx.Hash1,
-                            VoteFlag.PreCommit)));
+                            VoteFlag.PreCommit)
+                    });
 
                 // Since communicator3 wasn't denied, this message will be received without block.
                 transport3.BroadcastMessage(
                     peer1,
-                    new ConsensusPreCommitMessage(
-                        TestUtils.CreateVote(
+                    new ConsensusPreCommitMessage
+                    {
+                        PreCommit = TestUtils.CreateVote(
                             new PrivateKey(),
                             BigInteger.One,
                             1,
                             2,
                             fx.Hash1,
-                            VoteFlag.PreCommit)));
+                            VoteFlag.PreCommit)
+                    });
 
                 // Wait for message from communicator1's precommit encounter,
                 // but this message will be rejected by spam filter logic.

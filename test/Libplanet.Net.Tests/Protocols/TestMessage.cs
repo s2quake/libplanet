@@ -1,24 +1,14 @@
 using System.Text;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 
-namespace Libplanet.Net.Tests.Protocols
+namespace Libplanet.Net.Tests.Protocols;
+
+[Model(Version = 1)]
+internal sealed record class TestMessage : MessageContent
 {
-    internal class TestMessage : MessageContent
-    {
-        public TestMessage(string data)
-        {
-            Data = data;
-        }
+    [Property(0)]
+    public string Data { get; init; } = string.Empty;
 
-        public TestMessage(byte[][] dataFrames)
-        {
-            Data = Encoding.UTF8.GetString(dataFrames[0]);
-        }
-
-        public string Data { get; }
-
-        public override MessageType Type => MessageType.Ping;
-
-        public override IEnumerable<byte[]> DataFrames => new[] { Encoding.UTF8.GetBytes(Data), };
-    }
+    public override MessageType Type => MessageType.Ping;
 }

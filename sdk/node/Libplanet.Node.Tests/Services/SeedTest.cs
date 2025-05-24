@@ -104,7 +104,7 @@ public class SeedTest
     public async Task MessageReceived_TestAsync()
     {
         // Given
-        var apv = Protocol.Sign(new(), 0);
+        var apv = Protocol.Create(new(), 0);
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
         var remoteBoundPeer = new BoundPeer(remotePrivateKey.PublicKey, remoteEndPoint);
@@ -152,7 +152,7 @@ public class SeedTest
     public async Task GetNeighborsMsg_TestAsync()
     {
         // Given
-        var apv = Protocol.Sign(new(), 0);
+        var apv = Protocol.Create(new(), 0);
         var length = Random.Shared.Next(3, 10);
         var remotePrivateKeys = new RandomPrivateKey[length];
         var remoteEndPoints = new RandomEndPoint[length];
@@ -197,12 +197,12 @@ public class SeedTest
         // When
         var transport = transports[Random.Shared.Next(length)];
         var replyMessage = await transport.SendMessageAsync(
-            seedBoundPeer, new FindNeighborsMessage(target: default), Timeout, default);
+            seedBoundPeer, new FindNeighborsMessage { }, Timeout, default);
 
         // Then
         Assert.Equal(length, seed.Peers.Count);
         Assert.IsType<NeighborsMessage>(replyMessage.Content);
         var neighborsMsg = (NeighborsMessage)replyMessage.Content;
-        Assert.Equal(length, neighborsMsg.Found.Count);
+        Assert.Equal(length, neighborsMsg.Found.Length);
     }
 }

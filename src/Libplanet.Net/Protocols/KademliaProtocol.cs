@@ -602,7 +602,7 @@ namespace Libplanet.Net.Protocols
             TimeSpan? timeout,
             CancellationToken cancellationToken)
         {
-            var findPeer = new FindNeighborsMessage(target);
+            var findPeer = new FindNeighborsMessage { Target = target };
             try
             {
                 Message reply = await _transport.SendMessageAsync(
@@ -768,7 +768,7 @@ namespace Libplanet.Net.Protocols
             IEnumerable<BoundPeer> found =
                 _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
 
-            var neighbors = new NeighborsMessage(found);
+            var neighbors = new NeighborsMessage { Found = [.. found] };
 
             await _transport.ReplyMessageAsync(neighbors, message.Identity, default)
                 .ConfigureAwait(false);

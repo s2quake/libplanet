@@ -20,7 +20,7 @@ namespace Libplanet.Net.Tests.Consensus
             var cache = new MessageCache();
             var messageId = TestUtils.GetRandomBytes(MessageId.Size);
             // Had to use HaveMessage for testing the persistent dataFrame.
-            var msg = new HaveMessage(new[] { messageId });
+            var msg = new HaveMessage { Ids = [new MessageId(messageId)] };
             Assert.Throws<KeyNotFoundException>(() => cache.Get(msg.Id));
             cache.Put(msg);
             var ret = cache.Get(msg.Id);

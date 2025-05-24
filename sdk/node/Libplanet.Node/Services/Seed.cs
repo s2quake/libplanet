@@ -149,7 +149,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                 var alivePeers = peers.Where(item => item.IsAlive)
                                       .Select(item => item.BoundPeer)
                                       .ToArray();
-                var neighborsMsg = new NeighborsMessage(alivePeers);
+                var neighborsMsg = new NeighborsMessage { Found = [..alivePeers] };
                 await transport.ReplyMessageAsync(
                     neighborsMsg,
                     messageIdentity,

@@ -55,32 +55,38 @@ namespace Libplanet.Net.Tests.Consensus
 
             context.Start();
             context.ProduceMessage(
-                new ConsensusPreVoteMsg(
-                    TestUtils.CreateVote(
+                new ConsensusPreVoteMessage
+                {
+                    PreVote = TestUtils.CreateVote(
                         TestUtils.PrivateKeys[0],
                         TestUtils.Validators[0].Power,
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)));
+                        flag: VoteFlag.PreVote)
+                });
             context.ProduceMessage(
-                new ConsensusPreVoteMsg(
-                    TestUtils.CreateVote(
+                new ConsensusPreVoteMessage
+                {
+                    PreVote = TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
                         TestUtils.Validators[2].Power,
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)));
+                        flag: VoteFlag.PreVote)
+                });
             context.ProduceMessage(
-                new ConsensusPreVoteMsg(
-                    TestUtils.CreateVote(
+                new ConsensusPreVoteMessage
+                {
+                    PreVote = TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
                         TestUtils.Validators[3].Power,
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)));
+                        flag: VoteFlag.PreVote)
+                });
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
             Assert.Equal(default(BlockHash), preCommit?.BlockHash);
@@ -127,29 +133,38 @@ namespace Libplanet.Net.Tests.Consensus
             BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
             context.ProduceMessage(
-                new ConsensusPreVoteMsg(TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[0],
-                    TestUtils.Validators[0].Power,
-                    1,
-                    0,
-                    hash: proposedblockHash,
-                    flag: VoteFlag.PreVote)));
+                new ConsensusPreVoteMessage
+                {
+                    PreVote = TestUtils.CreateVote(
+                        TestUtils.PrivateKeys[0],
+                        TestUtils.Validators[0].Power,
+                        1,
+                        0,
+                        hash: proposedblockHash,
+                        flag: VoteFlag.PreVote)
+                });
             context.ProduceMessage(
-                new ConsensusPreVoteMsg(TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[2],
-                    TestUtils.Validators[2].Power,
-                    1,
-                    0,
-                    hash: proposedblockHash,
-                    flag: VoteFlag.PreVote)));
+                new ConsensusPreVoteMessage
+                {
+                    PreVote = TestUtils.CreateVote(
+                        TestUtils.PrivateKeys[2],
+                        TestUtils.Validators[2].Power,
+                        1,
+                        0,
+                        hash: proposedblockHash,
+                        flag: VoteFlag.PreVote)
+                });
             context.ProduceMessage(
-                new ConsensusPreVoteMsg(TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[3],
-                    TestUtils.Validators[3].Power,
-                    1,
-                    0,
-                    hash: proposedblockHash,
-                    flag: VoteFlag.PreVote)));
+                new ConsensusPreVoteMessage
+                {
+                    PreVote = TestUtils.CreateVote(
+                        TestUtils.PrivateKeys[3],
+                        TestUtils.Validators[3].Power,
+                        1,
+                        0,
+                        hash: proposedblockHash,
+                        flag: VoteFlag.PreVote)
+                });
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
             Assert.Equal(proposedblockHash, preCommit?.BlockHash);
@@ -174,32 +189,38 @@ namespace Libplanet.Net.Tests.Consensus
 
             context.Start();
             context.ProduceMessage(
-                new ConsensusPreCommitMessage(
-                    TestUtils.CreateVote(
+                new ConsensusPreCommitMessage
+                {
+                    PreCommit = TestUtils.CreateVote(
                         TestUtils.PrivateKeys[0],
                         TestUtils.Validators[0].Power,
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)));
+                        flag: VoteFlag.PreCommit)
+                });
             context.ProduceMessage(
-                new ConsensusPreCommitMessage(
-                    TestUtils.CreateVote(
+                new ConsensusPreCommitMessage
+                {
+                    PreCommit = TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
                         TestUtils.Validators[2].Power,
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)));
+                        flag: VoteFlag.PreCommit)
+                });
             context.ProduceMessage(
-                new ConsensusPreCommitMessage(
-                    TestUtils.CreateVote(
+                new ConsensusPreCommitMessage
+                {
+                    PreCommit = TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
                         TestUtils.Validators[3].Power,
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)));
+                        flag: VoteFlag.PreCommit)
+                });
 
             await roundChangedToOne.WaitAsync();
             Assert.Equal(1, context.Height);

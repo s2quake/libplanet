@@ -7,7 +7,7 @@ namespace Libplanet.Net.Messages;
 public sealed record class FindNeighborsMessage : MessageContent
 {
     [Property(0)]
-    public required Address Target { get; init; }
+    public Address Target { get; init; }
 
     public override MessageType Type => MessageType.FindNeighbors;
 }

@@ -563,7 +563,7 @@ namespace Libplanet.Net.Tests
 
                 ITransport transport = swarmB.Transport;
 
-                var request = new GetBlocksMsg(hashes, 2);
+                var request = new GetBlocksMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
                 Message[] responses = (await transport.SendMessageAsync(
                     swarmA.AsPeer,
                     request,
@@ -574,11 +574,11 @@ namespace Libplanet.Net.Tests
                 var blockMessage = (BlocksMessage)responses[0].Content;
 
                 Assert.Equal(2, responses.Length);
-                Assert.Equal(4, blockMessage.Payloads.Count);
+                Assert.Equal(4, blockMessage.Payloads.Length);
 
                 blockMessage = (BlocksMessage)responses[1].Content;
 
-                Assert.Equal(2, blockMessage.Payloads.Count);
+                Assert.Equal(2, blockMessage.Payloads.Length);
             }
             finally
             {
@@ -640,7 +640,7 @@ namespace Libplanet.Net.Tests
             var policy = new BlockchainOptions();
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
-            var apv = Protocol.Sign(key, 1);
+            var apv = Protocol.Create(key, 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
             var hostOptions = new HostOptions(
                 IPAddress.Loopback.ToString(), new IceServer[] { });
@@ -1492,7 +1492,7 @@ namespace Libplanet.Net.Tests
                 _ = transport.StartAsync();
                 await transport.WaitForRunningAsync();
                 var tasks = new List<Task>();
-                var content = new GetBlocksMsg(new[] { swarm.BlockChain.Genesis.BlockHash });
+                var content = new GetBlocksMessage { BlockHashes = [swarm.BlockChain.Genesis.BlockHash] };
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(
@@ -1554,7 +1554,7 @@ namespace Libplanet.Net.Tests
                 _ = transport.StartAsync();
                 await transport.WaitForRunningAsync();
                 var tasks = new List<Task>();
-                var content = new GetTransactionMessage(new[] { fx.TxId1 });
+                var content = new GetTransactionMessage { TxIds = [fx.TxId1] };
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(

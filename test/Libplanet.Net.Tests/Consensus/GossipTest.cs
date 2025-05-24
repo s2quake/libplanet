@@ -244,7 +244,7 @@ namespace Libplanet.Net.Tests.Consensus
 
                 await transport2.SendMessageAsync(
                     gossip.AsPeer,
-                    new HaveMessage(Array.Empty<MessageId>()),
+                    new HaveMessage { Ids = [] },
                     TimeSpan.FromSeconds(1),
                     default);
 
@@ -332,12 +332,12 @@ namespace Libplanet.Net.Tests.Consensus
                 var msg2 = new PongMessage();
                 await sender1.SendMessageAsync(
                     receiver.AsPeer,
-                    new HaveMessage(new[] { msg1.Id, msg2.Id }),
+                    new HaveMessage { Ids = [msg1.Id, msg2.Id] },
                     null,
                     default);
                 await sender2.SendMessageAsync(
                     receiver.AsPeer,
-                    new HaveMessage(new[] { msg1.Id, msg2.Id }),
+                    new HaveMessage { Ids = [msg1.Id, msg2.Id] },
                     null,
                     default);
 
@@ -378,7 +378,7 @@ namespace Libplanet.Net.Tests.Consensus
             int? port = null)
         {
             var apvOptions = new AppProtocolVersionOptions
-                { AppProtocolVersion = TestUtils.AppProtocolVersion };
+            { AppProtocolVersion = TestUtils.AppProtocolVersion };
             HostOptions hostOptions;
             if (port is { } p)
             {

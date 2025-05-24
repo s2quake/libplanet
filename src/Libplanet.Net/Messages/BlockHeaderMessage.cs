@@ -18,13 +18,17 @@ internal sealed record class BlockHeaderMessage : MessageContent
     //     HeaderDictionary = dataFrames[1];
     // }
 
+    [Property(0)]
     public required BlockHash GenesisHash { get; init; }
 
+    [Property(1)]
     public required BlockExcerpt Excerpt { get; init; }
 
     // public byte[] HeaderDictionary { get; }
 
-    // public long HeaderIndex => ModelSerializer.DeserializeFromBytes<BlockHeader>(HeaderDictionary).Height;
+    public int HeaderIndex => Excerpt.Height;
+
+    public BlockHash HeaderHash => Excerpt.BlockHash;
 
     // public BlockExcerpt HeaderHash
     //     => ModelSerializer.DeserializeFromBytes<BlockExcerpt>(HeaderDictionary);

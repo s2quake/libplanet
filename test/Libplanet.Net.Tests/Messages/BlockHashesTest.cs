@@ -18,10 +18,10 @@ namespace Libplanet.Net.Tests.Messages
         public void Decode()
         {
             BlockHash[] blockHashes = GenerateRandomBlockHashes(100L).ToArray();
-            var messageContent = new BlockHashesMessage(blockHashes);
+            var messageContent = new BlockHashesMessage { Hashes = [.. blockHashes] };
             Assert.Equal(blockHashes, messageContent.Hashes);
             var privateKey = new PrivateKey();
-            Protocol apv = Protocol.Sign(privateKey, 3);
+            Protocol apv = Protocol.Create(privateKey, 3);
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 1234));
             var messageCodec = new NetMQMessageCodec();
             NetMQMessage encoded = messageCodec.Encode(

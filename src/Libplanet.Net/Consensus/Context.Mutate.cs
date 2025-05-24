@@ -48,7 +48,7 @@ namespace Libplanet.Net.Consensus
                         ValidRound = _validRound,
                     }.Sign(_privateKey);
 
-                    PublishMessage(new ConsensusProposalMessage(proposal));
+                    PublishMessage(new ConsensusProposalMessage { Proposal = proposal });
                 }
                 else
                 {
@@ -312,8 +312,10 @@ namespace Libplanet.Net.Consensus
 
                     // Maybe need to broadcast periodically?
                     PublishMessage(
-                        new ConsensusMaj23Msg(
-                            MakeMaj23(Round, p3.Block.BlockHash, VoteFlag.PreVote)));
+                        new ConsensusMaj23Message
+                        {
+                            Maj23 = MakeMaj23(Round, p3.Block.BlockHash, VoteFlag.PreVote),
+                        });
                 }
 
                 _validValue = p3.Block;
@@ -344,15 +346,17 @@ namespace Libplanet.Net.Consensus
                         ToString());
                     Proposal = null;
                     PublishMessage(
-                        new ConsensusProposalClaimMessage(
-                            new ProposalClaimMetadata
+                        new ConsensusProposalClaimMessage
+                        {
+                            ProposalClaim = new ProposalClaimMetadata
                             {
                                 Height = Height,
                                 Round = Round,
                                 BlockHash = hash3,
                                 Timestamp = DateTimeOffset.UtcNow,
                                 Validator = _privateKey.Address,
-                            }.Sign(_privateKey)));
+                            }.Sign(_privateKey),
+                        });
                 }
             }
 
@@ -388,8 +392,10 @@ namespace Libplanet.Net.Consensus
 
                 // Maybe need to broadcast periodically?
                 PublishMessage(
-                    new ConsensusMaj23Msg(
-                        MakeMaj23(round, block4.BlockHash, VoteFlag.PreCommit)));
+                    new ConsensusMaj23Message
+                    {
+                        Maj23 = MakeMaj23(round, block4.BlockHash, VoteFlag.PreCommit),
+                    });
                 _ = EnterEndCommitWait(Round);
                 return;
             }
@@ -420,7 +426,7 @@ namespace Libplanet.Net.Consensus
 
             Step = ConsensusStep.PreVote;
             PublishMessage(
-                new ConsensusPreVoteMsg(MakeVote(round, hash, VoteFlag.PreVote)));
+                new ConsensusPreVoteMessage { PreVote = MakeVote(round, hash, VoteFlag.PreVote) });
         }
 
         private void EnterPreCommit(int round, BlockHash hash)
@@ -437,7 +443,7 @@ namespace Libplanet.Net.Consensus
                 ToString());
             Step = ConsensusStep.PreCommit;
             PublishMessage(
-                new ConsensusPreCommitMessage(MakeVote(round, hash, VoteFlag.PreCommit)));
+                new ConsensusPreCommitMessage { PreCommit = MakeVote(round, hash, VoteFlag.PreCommit) });
         }
 
         private void EnterEndCommit(int round)

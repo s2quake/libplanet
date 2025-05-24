@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests.Transports
             {
                 swarmKey.PublicKey,
             };
-            var apv = Protocol.Sign(new PrivateKey(), 1);
+            var apv = Protocol.Create(new PrivateKey(), 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
             string host = IPAddress.Loopback.ToString();
             int port = FreeTcpPort();

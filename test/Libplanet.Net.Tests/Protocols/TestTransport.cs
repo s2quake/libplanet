@@ -14,7 +14,7 @@ namespace Libplanet.Net.Tests.Protocols
     internal class TestTransport : ITransport
     {
         private static readonly Protocol _appProtocolVersion =
-            AppProtocolVersion.Sign(new PrivateKey(), 1);
+            Libplanet.Net.Protocol.Create(new PrivateKey(), 1);
 
         private readonly Dictionary<Address, TestTransport> _transports;
         private readonly ILogger _logger;
@@ -308,7 +308,7 @@ namespace Libplanet.Net.Tests.Protocols
                 throw new TransportException("Start transport before use.");
             }
 
-            var message = new TestMessage(data);
+            var message = new TestMessage { Data = data };
             _ignoreTestMessageWithData.Add(data);
             BroadcastMessage(Table.PeersToBroadcast(except), message);
         }
