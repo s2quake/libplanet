@@ -62,7 +62,7 @@ namespace Libplanet.Net.Options
             = TimeSpan.FromMilliseconds(15_000);
 
         /// <summary>
-        /// Determines how often <see cref="Swarm"/> broadcasts <see cref="TxIdsMsg"/>
+        /// Determines how often <see cref="Swarm"/> broadcasts <see cref="TxIdsMessage"/>
         /// to its peers.
         /// </summary>
         /// <remarks>

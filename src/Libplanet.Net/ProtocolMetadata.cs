@@ -4,7 +4,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net;
 
 [Model(Version = 1)]
-private sealed record class ProtocolMetadata
+public sealed record class ProtocolMetadata
 {
     [Property(0)]
     public int Version { get; init; }
@@ -13,7 +13,7 @@ private sealed record class ProtocolMetadata
     public required Address Signer { get; init; }
 
     [Property(3)]
-    public byte[] Extra { get; init; } = [];
+    public ImmutableArray<byte> Extra { get; init; } = [];
 
     public Protocol Sign(PrivateKey signer)
     {

@@ -633,7 +633,7 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Use <see cref="FindNeighborsMsg"/> messages to find a <see cref="BoundPeer"/> with
+        /// Use <see cref="FindNeighborsMessage"/> messages to find a <see cref="BoundPeer"/> with
         /// <see cref="Address"/> of <paramref name="target"/>.
         /// </summary>
         /// <param name="target">The <see cref="Address"/> to find.</param>
@@ -641,7 +641,7 @@ namespace Libplanet.Net
         /// will recursive until the closest <see cref="BoundPeer"/> to the
         /// <paramref name="target"/> is found.</param>
         /// <param name="timeout">
-        /// <see cref="TimeSpan"/> for waiting reply of <see cref="FindNeighborsMsg"/>.
+        /// <see cref="TimeSpan"/> for waiting reply of <see cref="FindNeighborsMessage"/>.
         /// If <see langword="null"/> is given, <see cref="TimeoutException"/> will not be thrown.
         /// </param>
         /// <param name="cancellationToken">A cancellation token used to propagate notification
@@ -719,13 +719,13 @@ namespace Libplanet.Net
             BlockHash blockHash,
             CancellationToken cancellationToken = default)
         {
-            var request = new GetBlockHashesMsg(blockHash);
+            var request = new GetBlockHashesMessage(blockHash);
 
             const string sendMsg =
                 "Sending a {MessageType} message with locator [{LocatorHead}]";
             _logger.Debug(
                 sendMsg,
-                nameof(GetBlockHashesMsg),
+                nameof(GetBlockHashesMessage),
                 blockHash);
 
             Message parsedMessage;
@@ -740,7 +740,7 @@ namespace Libplanet.Net
             catch (CommunicationFailException)
             {
                 _logger.Debug(
-                    "Failed to get a response for " + nameof(GetBlockHashesMsg) +
+                    "Failed to get a response for " + nameof(GetBlockHashesMessage) +
                     " due to a communication failure");
                 return new List<BlockHash>();
             }
@@ -778,7 +778,7 @@ namespace Libplanet.Net
             else
             {
                 _logger.Debug(
-                    "A response for " + nameof(GetBlockHashesMsg) +
+                    "A response for " + nameof(GetBlockHashesMessage) +
                     " is expected to be {ExpectedType}: {ReceivedType}",
                     nameof(BlockHashesMessage),
                     parsedMessage.GetType());
@@ -1299,7 +1299,7 @@ namespace Libplanet.Net
 
         private void BroadcastTxIds(Address? except, IEnumerable<TxId> txIds)
         {
-            var message = new TxIdsMsg(txIds);
+            var message = new TxIdsMessage(txIds);
             BroadcastMessage(except, message);
         }
 

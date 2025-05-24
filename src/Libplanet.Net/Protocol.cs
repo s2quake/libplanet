@@ -7,15 +7,17 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net;
 
 [Model(Version = 1)]
-public readonly record class Protocol
+public sealed record class Protocol
 {
     [Property(0)]
     public required ProtocolMetadata Metadata { get; init; }
 
     [Property(1)]
-    public required ImmutableArray<byte> Signature; { get; init; }
+    public required ImmutableArray<byte> Signature { get; init; }
 
     public Address Signer => Metadata.Signer;
+
+    public int Version => Metadata.Version;
 
     // public Protocol(
     //     int version,

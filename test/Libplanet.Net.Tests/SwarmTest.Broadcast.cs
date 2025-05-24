@@ -989,7 +989,7 @@ namespace Libplanet.Net.Tests
                             default);
                         break;
 
-                    case GetBlockHashesMsg gbhm:
+                    case GetBlockHashesMessage gbhm:
                         requestCount++;
                         break;
                 }

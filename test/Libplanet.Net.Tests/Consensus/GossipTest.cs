@@ -49,7 +49,7 @@ namespace Libplanet.Net.Tests.Consensus
             var gossip1 = CreateGossip(
                 content =>
                 {
-                    if (content is ConsensusProposalMsg)
+                    if (content is ConsensusProposalMessage)
                     {
                         received1 = true;
                     }
@@ -60,7 +60,7 @@ namespace Libplanet.Net.Tests.Consensus
             var gossip2 = CreateGossip(
                 content =>
                 {
-                    if (content is ConsensusProposalMsg)
+                    if (content is ConsensusProposalMessage)
                     {
                         received2 = true;
                         receivedEvent.Set();
@@ -104,7 +104,7 @@ namespace Libplanet.Net.Tests.Consensus
             var gossip1 = CreateGossip(
                 content =>
                 {
-                    if (content is ConsensusProposalMsg)
+                    if (content is ConsensusProposalMessage)
                     {
                         received1 = true;
                     }
@@ -115,7 +115,7 @@ namespace Libplanet.Net.Tests.Consensus
             var gossip2 = CreateGossip(
                 content =>
                 {
-                    if (content is ConsensusProposalMsg)
+                    if (content is ConsensusProposalMessage)
                     {
                         received2 = true;
                         receivedEvent.Set();
@@ -157,7 +157,7 @@ namespace Libplanet.Net.Tests.Consensus
             var gossip1 = CreateGossip(
                 content =>
                 {
-                    if (content is ConsensusProposalMsg)
+                    if (content is ConsensusProposalMessage)
                     {
                         received1++;
                     }
@@ -168,7 +168,7 @@ namespace Libplanet.Net.Tests.Consensus
             var gossip2 = CreateGossip(
                 content =>
                 {
-                    if (content is ConsensusProposalMsg)
+                    if (content is ConsensusProposalMessage)
                     {
                         received2++;
                     }

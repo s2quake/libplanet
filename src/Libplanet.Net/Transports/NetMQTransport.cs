@@ -630,7 +630,7 @@ namespace Libplanet.Net.Transports
                                         message.Content,
                                         message.Remote,
                                         message.Version);
-                                    var diffVersion = new DifferentVersionMsg();
+                                    var diffVersion = new DifferentVersionMessage();
                                     _logger.Debug(
                                         "Replying to Request {RequestId} {Peer} with {Reply}",
                                         reqId,

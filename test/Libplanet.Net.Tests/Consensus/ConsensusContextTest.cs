@@ -33,7 +33,7 @@ public class ConsensusContextTest
     [Fact(Timeout = Timeout)]
     public async void NewHeightIncreasing()
     {
-        ConsensusProposalMsg? proposal = null;
+        ConsensusProposalMessage? proposal = null;
         var proposalMessageSent = new AsyncAutoResetEvent();
         var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
             TimeSpan.FromSeconds(1),
@@ -62,7 +62,7 @@ public class ConsensusContextTest
         };
         consensusContext.MessagePublished += (_, eventArgs) =>
         {
-            if (eventArgs.Message is ConsensusProposalMsg proposalMsg)
+            if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
             {
                 proposal = proposalMsg;
                 proposalMessageSent.Set();
@@ -95,7 +95,7 @@ public class ConsensusContextTest
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
         consensusContext.HandleMessage(
-            new ConsensusPreCommitMsg(
+            new ConsensusPreCommitMessage(
                 TestUtils.CreateVote(
                     TestUtils.PrivateKeys[0],
                     TestUtils.Validators[0].Power,
@@ -104,7 +104,7 @@ public class ConsensusContextTest
                     hash: proposedblockHash,
                     flag: VoteFlag.PreCommit)));
         consensusContext.HandleMessage(
-            new ConsensusPreCommitMsg(
+            new ConsensusPreCommitMessage(
                 TestUtils.CreateVote(
                     TestUtils.PrivateKeys[1],
                     TestUtils.Validators[1].Power,
@@ -113,7 +113,7 @@ public class ConsensusContextTest
                     hash: proposedblockHash,
                     flag: VoteFlag.PreCommit)));
         consensusContext.HandleMessage(
-            new ConsensusPreCommitMsg(
+            new ConsensusPreCommitMessage(
                 TestUtils.CreateVote(
                     TestUtils.PrivateKeys[2],
                     TestUtils.Validators[2].Power,
@@ -194,7 +194,7 @@ public class ConsensusContextTest
     [Fact(Timeout = Timeout)]
     public async void VoteSetGetOnlyProposeCommitHash()
     {
-        ConsensusProposalMsg? proposal = null;
+        ConsensusProposalMessage? proposal = null;
         var heightOneProposalSent = new AsyncAutoResetEvent();
         var heightOneEndCommit = new AsyncAutoResetEvent();
         var votes = new List<Vote>();
@@ -212,7 +212,7 @@ public class ConsensusContextTest
         };
         consensusContext.MessagePublished += (_, eventArgs) =>
         {
-            if (eventArgs.Height == 1 && eventArgs.Message is ConsensusProposalMsg proposalMsg)
+            if (eventArgs.Height == 1 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
             {
                 proposal = proposalMsg;
                 heightOneProposalSent.Set();
@@ -240,7 +240,7 @@ public class ConsensusContextTest
 
         foreach (var vote in votes)
         {
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(vote));
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(vote));
         }
 
         await heightOneEndCommit.WaitAsync();
@@ -327,7 +327,7 @@ public class ConsensusContextTest
             }
         };
 
-        consensusContext.HandleMessage(new ConsensusProposalMsg(proposal));
+        consensusContext.HandleMessage(new ConsensusProposalMessage(proposal));
         consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote1));
         consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote3));
         await stepChanged.WaitAsync();
@@ -395,7 +395,7 @@ public class ConsensusContextTest
             ValidatorPower = TestUtils.Validators[2].Power,
             Flag = VoteFlag.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
-        consensusContext.HandleMessage(new ConsensusProposalMsg(proposal));
+        consensusContext.HandleMessage(new ConsensusProposalMessage(proposal));
         consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote1));
         consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote2));
         do
@@ -453,7 +453,7 @@ public class ConsensusContextTest
             // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
             ValidRound = -1,
         }.Sign(proposer);
-        consensusContext.HandleMessage(new ConsensusProposalMsg(proposal));
+        consensusContext.HandleMessage(new ConsensusProposalMessage(proposal));
         await stepChanged.WaitAsync();
 
         // ProposalClaim expects corresponding proposal if exists

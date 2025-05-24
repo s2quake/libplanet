@@ -38,11 +38,11 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.Options,
                 privateKeys[3]);
 
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
+            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
                 consensusContext: consensusContext,
                 height: 3,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var consensusProposalMsgAt7Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
+            var consensusProposalMsgAt7Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
                 consensusContext: consensusContext,
                 height: 7,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
@@ -57,28 +57,28 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
             var blockHash = consensusProposalMsgAt3.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[1],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[2],
                 power: BigInteger.One,
                 height: 3,
@@ -125,7 +125,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.Options,
                 privateKeys[3]);
 
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
+            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
                 consensusContext: consensusContext,
                 height: 3,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
@@ -140,28 +140,28 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
             var blockHash = consensusProposalMsgAt3.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 4,
                 round: 0,
                 hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[1],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[2],
                 power: BigInteger.One,
                 height: 3,
@@ -186,7 +186,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.Options,
                 TestUtils.PrivateKeys[3]);
 
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
+            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
                 consensusContext: consensusContext,
                 height: 3,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
@@ -201,28 +201,28 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
             var blockHash = consensusProposalMsgAt3.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 1,
                 hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[1],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[2],
                 power: BigInteger.One,
                 height: 3,
@@ -247,7 +247,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.Options,
                 privateKeys[3]);
 
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
+            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
                 consensusContext: consensusContext,
                 height: 3,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
@@ -262,7 +262,7 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
             var blockHash = consensusProposalMsgAt3.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
@@ -276,14 +276,14 @@ namespace Libplanet.Net.Tests.Consensus
                 round: 0,
                 hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
                 flag: VoteFlag.PreVote)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[1],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[2],
                 power: BigInteger.One,
                 height: 3,
@@ -308,7 +308,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.Options,
                 TestUtils.PrivateKeys[3]);
 
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
+            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
                 consensusContext: consensusContext,
                 height: 3,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
@@ -323,28 +323,28 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
             var blockHash = consensusProposalMsgAt3.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[1],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[2],
                 power: BigInteger.One,
                 height: 3,
@@ -369,7 +369,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.Options,
                 privateKeys[3]);
 
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMsg>(
+            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
                 consensusContext: consensusContext,
                 height: 3,
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
@@ -384,28 +384,28 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
             var blockHash = consensusProposalMsgAt3.BlockHash;
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[0],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: default,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[1],
                 power: BigInteger.One,
                 height: 3,
                 round: 0,
                 hash: blockHash,
                 flag: VoteFlag.PreCommit)));
-            consensusContext.HandleMessage(new ConsensusPreCommitMsg(TestUtils.CreateVote(
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage(TestUtils.CreateVote(
                 privateKey: privateKeys[2],
                 power: BigInteger.One,
                 height: 3,

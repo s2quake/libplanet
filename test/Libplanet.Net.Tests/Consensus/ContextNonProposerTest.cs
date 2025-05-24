@@ -84,7 +84,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task EnterPreCommitBlockTwoThird()
         {
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
-            ConsensusPreCommitMsg? preCommit = null;
+            ConsensusPreCommitMessage? preCommit = null;
             var preCommitSent = new AsyncAutoResetEvent();
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -100,7 +100,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreCommitMsg preCommitMsg)
+                if (message is ConsensusPreCommitMessage preCommitMsg)
                 {
                     preCommit = preCommitMsg;
                     preCommitSent.Set();
@@ -185,7 +185,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusPreCommitMsg preCommitMsg &&
+                if (message is ConsensusPreCommitMessage preCommitMsg &&
                     preCommitMsg.BlockHash.Equals(default))
                 {
                     preCommitSent.Set();
@@ -411,7 +411,7 @@ namespace Libplanet.Net.Tests.Consensus
                     nilPreVoteSent.Set();
                 }
                 else if (
-                    message is ConsensusPreCommitMsg commit &&
+                    message is ConsensusPreCommitMessage commit &&
                     commit.PreCommit.BlockHash.Equals(default))
                 {
                     nilPreCommitSent.Set();
@@ -628,7 +628,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             // Two additional votes should be enough to trigger precommit timeout timer.
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
                         TestUtils.Validators[2].Power,
@@ -637,7 +637,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteFlag.PreCommit)));
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
                         TestUtils.Validators[3].Power,
@@ -728,7 +728,7 @@ namespace Libplanet.Net.Tests.Consensus
                     block, TestUtils.PrivateKeys[1], round: 0));
 
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[1],
                         TestUtils.Validators[1].Power,
@@ -737,7 +737,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: block.BlockHash,
                         flag: VoteFlag.PreCommit)));
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
                         TestUtils.Validators[2].Power,
@@ -746,7 +746,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteFlag.PreCommit)));
             context.ProduceMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
                         TestUtils.Validators[3].Power,

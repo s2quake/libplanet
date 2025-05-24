@@ -70,7 +70,7 @@ namespace Libplanet.Net.Tests.Consensus
             await timeoutProcessed.WaitAsync();
 
             consensusContext.HandleMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     TestUtils.CreateVote(
                         TestUtils.PrivateKeys[2],
                         TestUtils.Validators[2].Power,
@@ -80,7 +80,7 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteFlag.PreCommit)));
 
             consensusContext.HandleMessage(
-                new ConsensusPreCommitMsg(
+                new ConsensusPreCommitMessage(
                     vote: TestUtils.CreateVote(
                         TestUtils.PrivateKeys[3],
                         TestUtils.Validators[3].Power,

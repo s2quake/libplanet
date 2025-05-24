@@ -33,7 +33,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async void NewHeightWithLastCommit()
         {
             var tipChanged = new AsyncAutoResetEvent();
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var heightTwoProposalSent = new AsyncAutoResetEvent();
             var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
@@ -42,7 +42,7 @@ namespace Libplanet.Net.Tests.Consensus
             using var _ = blockChain.TipChanged.Subscribe(e => tipChanged.Set());
             consensusContext.MessagePublished += (_, eventArgs) =>
             {
-                if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMsg proposalMsg)
+                if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     heightTwoProposalSent.Set();
@@ -86,7 +86,7 @@ namespace Libplanet.Net.Tests.Consensus
                     ValidatorPower = TestUtils.Validators[i].Power,
                     Flag = VoteFlag.PreCommit,
                 }.Sign(TestUtils.PrivateKeys[i]);
-                consensusContext.HandleMessage(new ConsensusPreCommitMsg(expectedVotes[i]));
+                consensusContext.HandleMessage(new ConsensusPreCommitMessage(expectedVotes[i]));
             }
 
             await heightTwoProposalSent.WaitAsync();
@@ -106,7 +106,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async void HandleMessageFromHigherHeight()
         {
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var heightTwoStepChangedToPreVote = new AsyncAutoResetEvent();
             var heightTwoStepChangedToPreCommit = new AsyncAutoResetEvent();
             var heightTwoStepChangedToEndCommit = new AsyncAutoResetEvent();
@@ -152,7 +152,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             consensusContext.MessagePublished += (_, eventArgs) =>
             {
-                if (eventArgs.Message is ConsensusProposalMsg proposalMsg)
+                if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
@@ -209,7 +209,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
 
                 consensusContext.HandleMessage(
-                    new ConsensusPreCommitMsg(
+                    new ConsensusPreCommitMessage(
                         new VoteMetadata
                         {
                             Height = 2,
@@ -253,7 +253,7 @@ namespace Libplanet.Net.Tests.Consensus
             consensusContext.MessageConsumed += (_, eventArgs) =>
             {
                 if (eventArgs.Height == 2 &&
-                    eventArgs.Message is ConsensusProposalMsg propose)
+                    eventArgs.Message is ConsensusProposalMessage propose)
                 {
                     proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
                         propose!.Proposal.MarshaledBlock);
@@ -296,7 +296,7 @@ namespace Libplanet.Net.Tests.Consensus
             };
             consensusContext.MessagePublished += (_, eventArgs) =>
             {
-                if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMsg)
+                if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage)
                 {
                     heightTwoProposalSent.Set();
                 }

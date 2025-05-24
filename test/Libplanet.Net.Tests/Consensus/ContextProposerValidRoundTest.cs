@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task EnterValidRoundPreVoteBlock()
         {
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
             var roundTwoVoteSent = new AsyncAutoResetEvent();
             var stateChangedToRoundTwoPropose = new AsyncAutoResetEvent();
@@ -49,7 +49,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
@@ -124,7 +124,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async void EnterValidRoundPreVoteNil()
         {
-            ConsensusProposalMsg? proposal = null;
+            ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
             var stateChangedToRoundTwoPropose = new AsyncAutoResetEvent();
             var stateChangedToRoundTwoPreVote = new AsyncAutoResetEvent();
@@ -155,7 +155,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
             context.MessageToPublish += (_, message) =>
             {
-                if (message is ConsensusProposalMsg proposalMsg)
+                if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();

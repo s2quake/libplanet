@@ -15,7 +15,7 @@ namespace Libplanet.Net.Protocols
         /// <param name="bootstrapPeers">A <see cref="IEnumerable{T}"/> of <see cref="BoundPeer"/>s
         /// to bootstrap.</param>
         /// <param name="dialTimeout">The timeout used when waiting a reply for either
-        /// <see cref="PingMessage"/> or <see cref="FindNeighborsMsg"/>.
+        /// <see cref="PingMessage"/> or <see cref="FindNeighborsMessage"/>.
         /// If <see langword="null"/> is given, the task never halts by itself
         /// even no any response was given from the target seed.</param>
         /// <param name="depth">Recursive operation depth to search peers from network.</param>

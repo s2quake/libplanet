@@ -152,7 +152,7 @@ namespace Libplanet.Net.Consensus
         {
             switch (content)
             {
-                case ConsensusVoteSetBitsMsg voteSetBits:
+                case ConsensusVoteSetBitsMessage voteSetBits:
                     // Note: ConsensusVoteSetBitsMsg will not be stored to context's message log.
                     var messages = _consensusContext.HandleVoteSetBits(voteSetBits.VoteSetBits);
                     try
@@ -186,7 +186,7 @@ namespace Libplanet.Net.Consensus
                         var sender = _gossip.Peers.First(
                             peer => peer.PublicKey.Equals(maj23Msg.Validator));
                         _gossip.PublishMessage(
-                            new ConsensusVoteSetBitsMsg(voteSetBits),
+                            new ConsensusVoteSetBitsMessage(voteSetBits),
                             new[] { sender });
                     }
                     catch (InvalidOperationException)
@@ -199,14 +199,14 @@ namespace Libplanet.Net.Consensus
 
                     break;
 
-                case ConsensusProposalClaimMsg proposalClaimMsg:
+                case ConsensusProposalClaimMessage proposalClaimMsg:
                     try
                     {
                         Proposal? proposal = _consensusContext.HandleProposalClaim(
                             proposalClaimMsg.ProposalClaim);
                         if (proposal is { } proposalNotNull)
                         {
-                            var reply = new ConsensusProposalMsg(proposalNotNull);
+                            var reply = new ConsensusProposalMessage(proposalNotNull);
                             var sender = _gossip.Peers.First(
                                 peer => peer.PublicKey.Equals(proposalClaimMsg.Validator));
 

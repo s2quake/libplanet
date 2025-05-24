@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-public sealed record class HaveMessage : MessageContent, IEquatable<HaveMessage
+public sealed record class HaveMessage : MessageContent, IEquatable<HaveMessage>
 {
     // public HaveMessage(MessageId[] messageIds)
     // {
@@ -20,7 +20,7 @@ public sealed record class HaveMessage : MessageContent, IEquatable<HaveMessage
     // }
 
     [Property(0)]
-    public ImmutableArray<MessageId> Ids { get; }
+    public ImmutableArray<MessageId> Ids { get; init; } = [];
 
     public override MessageType Type => MessageType.HaveMessage;
 
