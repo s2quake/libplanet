@@ -277,8 +277,8 @@ public partial class Context : IDisposable
         return from vote in votes
                select vote.Flag switch
                {
-                   VoteFlag.PreVote => (ConsensusMessage)new ConsensusPreVoteMsg(vote),
-                   VoteFlag.PreCommit => (ConsensusMessage)new ConsensusPreCommitMessage(vote),
+                   VoteFlag.PreVote => (ConsensusMessage)new ConsensusPreVoteMessage { PreVote = vote },
+                   VoteFlag.PreCommit => (ConsensusMessage)new ConsensusPreCommitMessage { PreCommit = vote },
                    _ => throw new ArgumentException(
                        "VoteFlag should be PreVote or PreCommit.",
                        nameof(vote.Flag)),

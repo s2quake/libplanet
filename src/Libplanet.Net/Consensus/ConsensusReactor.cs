@@ -186,7 +186,7 @@ namespace Libplanet.Net.Consensus
                         var sender = _gossip.Peers.First(
                             peer => peer.PublicKey.Equals(maj23Msg.Validator));
                         _gossip.PublishMessage(
-                            new ConsensusVoteSetBitsMessage(voteSetBits),
+                            new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits },
                             new[] { sender });
                     }
                     catch (InvalidOperationException)
@@ -206,7 +206,7 @@ namespace Libplanet.Net.Consensus
                             proposalClaimMsg.ProposalClaim);
                         if (proposal is { } proposalNotNull)
                         {
-                            var reply = new ConsensusProposalMessage(proposalNotNull);
+                            var reply = new ConsensusProposalMessage { Proposal = proposalNotNull };
                             var sender = _gossip.Peers.First(
                                 peer => peer.PublicKey.Equals(proposalClaimMsg.Validator));
 

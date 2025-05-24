@@ -134,7 +134,7 @@ public class MessageValidator
         }
 
         bool trusted = !trustedAppProtocolVersionSigners.All(
-            publicKey => !message.Version.Verify(publicKey));
+            publicKey => !message.Version.Verify());
 
         if (trusted)
         {

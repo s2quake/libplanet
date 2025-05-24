@@ -28,11 +28,13 @@ public partial class Swarm
 
                     // This is based on the assumption that genesis block always exists.
                     Block tip = BlockChain.Tip;
-                    var chainStatus = new ChainStatusMessage(
-                        tip.Version,
-                        BlockChain.Genesis.BlockHash,
-                        tip.Height,
-                        tip.BlockHash);
+                    var chainStatus = new ChainStatusMessage
+                    {
+                        ProtocolVersion = tip.Version,
+                        GenesisHash = BlockChain.Genesis.BlockHash,
+                        TipIndex = tip.Height,
+                        TipHash = tip.BlockHash,
+                    };
 
                     return Transport.ReplyMessageAsync(
                         chainStatus,
@@ -57,7 +59,7 @@ public partial class Swarm
                         "with locator [{LocatorHead}]",
                         hashes.Length,
                         getBlockHashes.BlockHash);
-                    var reply = new BlockHashesMessage(hashes);
+                    var reply = new BlockHashesMessage { Hashes = [.. hashes] };
 
                     return Transport.ReplyMessageAsync(reply, message.Identity, default);
                 }
@@ -123,7 +125,7 @@ public partial class Swarm
         BlockExcerpt header;
         try
         {
-            header = blockHeaderMsg.GetHeader();
+            header = blockHeaderMsg.Excerpt;
         }
         catch (InvalidOperationException ibe)
         {
@@ -209,7 +211,7 @@ public partial class Swarm
                         continue;
                     }
 
-                    MessageContent response = new TransactionMessage(ModelSerializer.SerializeToBytes(tx));
+                    MessageContent response = new TransactionMessage { Payload = ModelSerializer.SerializeToBytes(tx) };
                     await Transport.ReplyMessageAsync(response, message.Identity, default);
                 }
                 catch (KeyNotFoundException)
@@ -289,7 +291,7 @@ public partial class Swarm
 
                 if (payloads.Count / 2 == blocksMsg.ChunkSize)
                 {
-                    var response = new BlocksMessage(payloads);
+                    var response = new BlocksMessage { Payloads = [.. payloads] };
                     _logger.Verbose(
                         "Enqueuing a blocks reply (...{Count}/{Total})...",
                         count,
@@ -301,7 +303,7 @@ public partial class Swarm
 
             if (payloads.Any())
             {
-                var response = new BlocksMessage(payloads);
+                var response = new BlocksMessage { Payloads = [.. payloads] };
                 _logger.Verbose(
                     "Enqueuing a blocks reply (...{Count}/{Total}) to {Identity}...",
                     count,
@@ -312,7 +314,7 @@ public partial class Swarm
 
             if (count == 0)
             {
-                var response = new BlocksMessage(payloads);
+                var response = new BlocksMessage { Payloads = [.. payloads] };
                 _logger.Verbose(
                     "Enqueuing a blocks reply (...{Index}/{Total}) to {Identity}...",
                     count,

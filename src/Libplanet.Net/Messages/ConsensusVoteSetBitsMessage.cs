@@ -11,8 +11,7 @@ public sealed record class ConsensusVoteSetBitsMessage : ConsensusMessage
     [Property(0)]
     public required VoteSetBits VoteSetBits { get; init; }
 
-    [Property(1)]
-    public required BlockHash BlockHash { get; init; }
+    public BlockHash BlockHash => VoteSetBits.BlockHash;
 
     public override MessageType Type => MessageType.ConsensusVoteSetBitsMsg;
 

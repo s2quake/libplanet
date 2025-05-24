@@ -1,5 +1,6 @@
 using System.Diagnostics.Contracts;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 
 namespace Libplanet.Net.Consensus
 {
@@ -62,7 +63,7 @@ namespace Libplanet.Net.Consensus
                 {
                     // FIXME: This is a workaround for preventing any message modification in
                     // message dictionary.
-                    return NetMQMessageCodec.CreateMessage(msg.Type, msg.DataFrames.ToArray());
+                    return NetMQMessageCodec.CreateMessage(msg.Type, ModelSerializer.SerializeToBytes(msg));
                 }
 
                 throw new KeyNotFoundException($"A message of id {id} does not exist.");

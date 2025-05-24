@@ -21,7 +21,7 @@ public sealed record class NeighborsMessage : MessageContent
     // }
 
     [Property(0)]
-    public ImmutableArray<BoundPeer> Found { get; init; }
+    public ImmutableArray<BoundPeer> Found { get; init; } = [];
 
     public override MessageType Type => MessageType.Neighbors;
 

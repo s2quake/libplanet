@@ -27,7 +27,7 @@ namespace Libplanet.Net
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var evidenceIdsAsArray = evidenceIds as EvidenceId[] ?? evidenceIds.ToArray();
-            var request = new GetEvidenceMessage(evidenceIdsAsArray);
+            var request = new GetEvidenceMessage { EvidenceIds = [.. evidenceIdsAsArray] };
             int evidenceCount = evidenceIdsAsArray.Count();
 
             _logger.Debug("Required evidence count: {Count}", evidenceCount);
@@ -60,8 +60,7 @@ namespace Libplanet.Net
             {
                 if (message.Content is EvidenceMessage parsed)
                 {
-                    EvidenceBase evidence
-                        = ModelSerializer.DeserializeFromBytes<EvidenceBase>(parsed.Payload);
+                    EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
                     yield return evidence;
                 }
                 else
@@ -125,7 +124,7 @@ namespace Libplanet.Net
 
         private void BroadcastEvidenceIds(Address? except, IEnumerable<EvidenceId> evidenceIds)
         {
-            var message = new EvidenceIdsMessage(evidenceIds);
+            var message = new EvidenceIdsMessage { Ids = [.. evidenceIds] };
             BroadcastMessage(except, message);
         }
 
@@ -154,8 +153,10 @@ namespace Libplanet.Net
                             continue;
                         }
 
-                        MessageContent response = new EvidenceMessage(
-                            ModelSerializer.SerializeToBytes(ev));
+                        MessageContent response = new EvidenceMessage
+                        {
+                            Payload = [.. ModelSerializer.SerializeToBytes(ev)],
+                        };
                         await Transport.ReplyMessageAsync(response, message.Identity, default);
                     }
                     catch (KeyNotFoundException)

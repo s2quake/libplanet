@@ -22,9 +22,9 @@ namespace Libplanet.Net.Tests.Messages
         }
 
         [Fact]
-        public void FromHex()
+        public void Parse()
         {
-            MessageId actual = MessageId.FromHex(
+            MessageId actual = MessageId.Parse(
                 "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
             var expected = new MessageId(
                 new byte[]
@@ -36,21 +36,21 @@ namespace Libplanet.Net.Tests.Messages
                 });
             Assert.Equal(expected, actual);
 
-            Assert.Throws<FormatException>(() => MessageId.FromHex("0g"));
-            Assert.Throws<ArgumentOutOfRangeException>("hex", () => MessageId.FromHex("1"));
+            Assert.Throws<FormatException>(() => MessageId.Parse("0g"));
+            Assert.Throws<ArgumentOutOfRangeException>("hex", () => MessageId.Parse("1"));
             Assert.Throws<ArgumentOutOfRangeException>(
                 "hex",
-                () => MessageId.FromHex(
+                () => MessageId.Parse(
                     "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9c"));
             Assert.Throws<ArgumentOutOfRangeException>(
                 "hex",
                 () =>
-                    MessageId.FromHex(
+                    MessageId.Parse(
                         "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc0"));
             Assert.Throws<ArgumentOutOfRangeException>(
                 "hex",
                 () =>
-                    MessageId.FromHex(
+                    MessageId.Parse(
                         "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc00"));
         }
 
@@ -60,23 +60,9 @@ namespace Libplanet.Net.Tests.Messages
             var bytes = GetRandomBytes(MessageId.Size);
             var messageId = new MessageId(bytes);
 
-            Assert.Equal(bytes, messageId.ToByteArray());
+            Assert.Equal(bytes, messageId.Bytes);
         }
 
-        [Fact]
-        public void ToByteArrayShouldNotExposeContents()
-        {
-            var id = new MessageId(
-                new byte[]
-                {
-                    0x45, 0xa2, 0x21, 0x87, 0xe2, 0xd8, 0x85, 0x0b, 0xb3, 0x57,
-                    0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                    0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
-                    0x9c, 0xcc,
-                });
-            id.ToByteArray()[0] = 0x00;
-            Assert.Equal(0x45, id.ToByteArray()[0]);
-        }
 
         [Fact]
         public void ToHex()
@@ -91,7 +77,7 @@ namespace Libplanet.Net.Tests.Messages
                 });
             Assert.Equal(
                 "45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc",
-                id.ToHex());
+                id.ToString());
         }
 
         [Fact]
@@ -161,8 +147,8 @@ namespace Libplanet.Net.Tests.Messages
             for (int i = 1; i < ids.Length; i++)
             {
                 MessageId left = ids[i - 1], right = ids[i];
-                string leftString = left.ToHex().ToLower(),
-                    rightString = right.ToHex().ToLower();
+                string leftString = left.ToString().ToLower(),
+                    rightString = right.ToString().ToLower();
                 Assert.Equal(
                     Math.Min(Math.Max(left.CompareTo(right), 1), -1),
                     Math.Min(Math.Max(leftString.CompareTo(rightString), 1), -1));

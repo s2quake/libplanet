@@ -107,8 +107,9 @@ namespace Libplanet.Net.Tests
             int round = 0,
             int validRound = -1)
         {
-            return new ConsensusProposalMessage(
-                new ProposalMetadata
+            return new ConsensusProposalMessage
+            {
+                Proposal = new ProposalMetadata
                 {
                     Height = height,
                     Round = round,
@@ -116,7 +117,8 @@ namespace Libplanet.Net.Tests
                     Proposer = privateKey.Address,
                     // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
                     ValidRound = validRound,
-                }.Sign(privateKey));
+                }.Sign(privateKey)
+            };
         }
 
         public static BlockCommit CreateBlockCommit(Block block) =>
@@ -141,8 +143,9 @@ namespace Libplanet.Net.Tests
                 }
 
                 consensusContext.HandleMessage(
-                    new ConsensusPreCommitMessage(
-                        new VoteMetadata
+                    new ConsensusPreCommitMessage
+                    {
+                        PreCommit = new VoteMetadata
                         {
                             Height = consensusContext.Height,
                             Round = consensusContext.Round,
@@ -151,7 +154,8 @@ namespace Libplanet.Net.Tests
                             Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
-                        }.Sign(privateKey)));
+                        }.Sign(privateKey)
+                    });
             }
         }
 
@@ -171,8 +175,9 @@ namespace Libplanet.Net.Tests
                 }
 
                 context.ProduceMessage(
-                    new ConsensusPreCommitMessage(
-                        new VoteMetadata
+                    new ConsensusPreCommitMessage
+                    {
+                        PreCommit = new VoteMetadata
                         {
                             Height = context.Height,
                             Round = context.Round,
@@ -181,7 +186,8 @@ namespace Libplanet.Net.Tests
                             Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreCommit,
-                        }.Sign(privateKey)));
+                        }.Sign(privateKey)
+                    });
             }
         }
 
@@ -201,8 +207,9 @@ namespace Libplanet.Net.Tests
                 }
 
                 context.ProduceMessage(
-                    new ConsensusPreVoteMsg(
-                        new VoteMetadata
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = new VoteMetadata
                         {
                             Height = context.Height,
                             Round = context.Round,
@@ -211,7 +218,8 @@ namespace Libplanet.Net.Tests
                             Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
-                        }.Sign(privateKey)));
+                        }.Sign(privateKey)
+                    });
             }
         }
 
@@ -231,8 +239,9 @@ namespace Libplanet.Net.Tests
                 }
 
                 consensusContext.HandleMessage(
-                    new ConsensusPreVoteMsg(
-                        new VoteMetadata
+                    new ConsensusPreVoteMessage
+                    {
+                        PreVote = new VoteMetadata
                         {
                             Height = consensusContext.Height,
                             Round = consensusContext.Round,
@@ -241,7 +250,8 @@ namespace Libplanet.Net.Tests
                             Validator = privateKey.Address,
                             ValidatorPower = power,
                             Flag = VoteFlag.PreVote,
-                        }.Sign(privateKey)));
+                        }.Sign(privateKey)
+                    });
             }
         }
 

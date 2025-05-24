@@ -13,9 +13,9 @@ namespace Libplanet.Net.Tests
         {
             var signer = new PrivateKey();
             AppProtocolVersionOptions v2 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = Protocol.Sign(signer, 2) };
+                { AppProtocolVersion = Protocol.Create(signer, 2) };
             AppProtocolVersionOptions v3 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = Protocol.Sign(signer, 3) };
+                { AppProtocolVersion = Protocol.Create(signer, 3) };
             var a = await CreateSwarm(appProtocolVersionOptions: v2);
             var b = await CreateSwarm(appProtocolVersionOptions: v3);
             var c = await CreateSwarm(appProtocolVersionOptions: v2);
@@ -57,13 +57,13 @@ namespace Libplanet.Net.Tests
             var signer = new PrivateKey();
             AppProtocolVersionOptions v1 = new AppProtocolVersionOptions()
             {
-                AppProtocolVersion = Protocol.Sign(signer, 1),
+                AppProtocolVersion = Protocol.Create(signer, 1),
                 TrustedAppProtocolVersionSigners =
                     new HashSet<PublicKey>() { signer.PublicKey }.ToImmutableHashSet(),
                 DifferentAppProtocolVersionEncountered = (_, ver, __) => { isCalled = true; },
             };
             AppProtocolVersionOptions v2 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = Protocol.Sign(signer, 2) };
+                { AppProtocolVersion = Protocol.Create(signer, 2) };
             var a = await CreateSwarm(appProtocolVersionOptions: v1);
             var b = await CreateSwarm(appProtocolVersionOptions: v2);
 
@@ -89,12 +89,12 @@ namespace Libplanet.Net.Tests
         public async Task IgnoreUntrustedAppProtocolVersion()
         {
             var signer = new PrivateKey();
-            Protocol older = Protocol.Sign(signer, 2);
-            Protocol newer = Protocol.Sign(signer, 3);
+            Protocol older = Protocol.Create(signer, 2);
+            Protocol newer = Protocol.Create(signer, 3);
 
             var untrustedSigner = new PrivateKey();
-            Protocol untrustedOlder = Protocol.Sign(untrustedSigner, 2);
-            Protocol untrustedNewer = Protocol.Sign(untrustedSigner, 3);
+            Protocol untrustedOlder = Protocol.Create(untrustedSigner, 2);
+            Protocol untrustedNewer = Protocol.Create(untrustedSigner, 3);
 
             _output.WriteLine("Trusted version signer: {0}", signer.Address);
             _output.WriteLine("Untrusted version signer: {0}", untrustedSigner.Address);
@@ -177,7 +177,7 @@ namespace Libplanet.Net.Tests
                         kv.Key,
                         kv.Value.Version,
                         kv.Value.Signer,
-                        kv.Value.Verify(signer.PublicKey) ? "verified" : "not verified");
+                        kv.Value.Verify() ? "verified" : "not verified");
                 }
             }
             finally

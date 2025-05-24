@@ -60,10 +60,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         var netMqMessage = new NetMQMessage();
 
         // Write body (by concrete class)
-        foreach (byte[] frame in message.Content.DataFrames)
-        {
-            netMqMessage.Append(frame);
-        }
+        netMqMessage.Append(ModelSerializer.SerializeToBytes(message.Content));
 
         // Write headers. (inverse order, version-type-peer-timestamp)
         netMqMessage.Push(message.Timestamp.Ticks);
@@ -113,7 +110,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
         MessageContent content = CreateMessage(
             type,
-            body.Select(frame => frame.ToByteArray()).ToArray());
+            body[0].ToByteArray());
 
         var headerWithoutSign = new[]
         {
@@ -141,64 +138,65 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
     internal static MessageContent CreateMessage(
         MessageContent.MessageType type,
-        byte[][] dataframes)
+        byte[] bytes)
     {
-        switch (type)
-        {
-            case MessageContent.MessageType.Ping:
-                return new PingMessage();
-            case MessageContent.MessageType.Pong:
-                return new PongMessage();
-            case MessageContent.MessageType.GetBlockHashes:
-                return new GetBlockHashesMessage(dataframes);
-            case MessageContent.MessageType.TxIds:
-                return new TxIdsMessage(dataframes);
-            case MessageContent.MessageType.EvidenceIds:
-                return new EvidenceIdsMessage(dataframes);
-            case MessageContent.MessageType.GetBlocks:
-                return new GetBlocksMsg(dataframes);
-            case MessageContent.MessageType.GetTxs:
-                return new GetTransactionMessage(dataframes);
-            case MessageContent.MessageType.GetEvidence:
-                return new GetEvidenceMessage(dataframes);
-            case MessageContent.MessageType.Blocks:
-                return new BlocksMessage(dataframes);
-            case MessageContent.MessageType.Tx:
-                return new TransactionMessage(dataframes);
-            case MessageContent.MessageType.Evidence:
-                return new EvidenceMessage(dataframes);
-            case MessageContent.MessageType.FindNeighbors:
-                return new FindNeighborsMessage(dataframes);
-            case MessageContent.MessageType.Neighbors:
-                return new NeighborsMessage(dataframes);
-            case MessageContent.MessageType.BlockHeaderMessage:
-                return new BlockHeaderMessage(dataframes);
-            case MessageContent.MessageType.BlockHashes:
-                return new BlockHashesMessage(dataframes);
-            case MessageContent.MessageType.GetChainStatus:
-                return new GetChainStatusMessage();
-            case MessageContent.MessageType.ChainStatus:
-                return new ChainStatusMessage(dataframes);
-            case MessageContent.MessageType.DifferentVersion:
-                return new DifferentVersionMessage();
-            case MessageContent.MessageType.HaveMessage:
-                return new HaveMessage(dataframes);
-            case MessageContent.MessageType.WantMessage:
-                return new WantMessage(dataframes);
-            case MessageContent.MessageType.ConsensusProposal:
-                return new ConsensusProposalMessage(dataframes);
-            case MessageContent.MessageType.ConsensusVote:
-                return new ConsensusPreVoteMsg(dataframes);
-            case MessageContent.MessageType.ConsensusCommit:
-                return new ConsensusPreCommitMessage(dataframes);
-            case MessageContent.MessageType.ConsensusMaj23Msg:
-                return new ConsensusMaj23Msg(dataframes);
-            case MessageContent.MessageType.ConsensusVoteSetBitsMsg:
-                return new ConsensusVoteSetBitsMessage(dataframes);
-            case MessageContent.MessageType.ConsensusProposalClaimMsg:
-                return new ConsensusProposalClaimMessage(dataframes);
-            default:
-                throw new InvalidCastException($"Given type {type} is not a valid message.");
-        }
+        return ModelSerializer.DeserializeFromBytes<MessageContent>(bytes);
+        // switch (type)
+        // {
+        //     case MessageContent.MessageType.Ping:
+        //         return new PingMessage();
+        //     case MessageContent.MessageType.Pong:
+        //         return new PongMessage();
+        //     case MessageContent.MessageType.GetBlockHashes:
+        //         return new GetBlockHashesMessage(bytes);
+        //     case MessageContent.MessageType.TxIds:
+        //         return new TxIdsMessage(bytes);
+        //     case MessageContent.MessageType.EvidenceIds:
+        //         return new EvidenceIdsMessage(bytes);
+        //     case MessageContent.MessageType.GetBlocks:
+        //         return new GetBlocksMsg(bytes);
+        //     case MessageContent.MessageType.GetTxs:
+        //         return new GetTransactionMessage(bytes);
+        //     case MessageContent.MessageType.GetEvidence:
+        //         return new GetEvidenceMessage(bytes);
+        //     case MessageContent.MessageType.Blocks:
+        //         return new BlocksMessage(bytes);
+        //     case MessageContent.MessageType.Tx:
+        //         return new TransactionMessage(bytes);
+        //     case MessageContent.MessageType.Evidence:
+        //         return new EvidenceMessage(bytes);
+        //     case MessageContent.MessageType.FindNeighbors:
+        //         return new FindNeighborsMessage(bytes);
+        //     case MessageContent.MessageType.Neighbors:
+        //         return new NeighborsMessage(bytes);
+        //     case MessageContent.MessageType.BlockHeaderMessage:
+        //         return new BlockHeaderMessage(bytes);
+        //     case MessageContent.MessageType.BlockHashes:
+        //         return new BlockHashesMessage(bytes);
+        //     case MessageContent.MessageType.GetChainStatus:
+        //         return new GetChainStatusMessage();
+        //     case MessageContent.MessageType.ChainStatus:
+        //         return new ChainStatusMessage(bytes);
+        //     case MessageContent.MessageType.DifferentVersion:
+        //         return new DifferentVersionMessage();
+        //     case MessageContent.MessageType.HaveMessage:
+        //         return new HaveMessage(bytes);
+        //     case MessageContent.MessageType.WantMessage:
+        //         return new WantMessage(bytes);
+        //     case MessageContent.MessageType.ConsensusProposal:
+        //         return new ConsensusProposalMessage(bytes);
+        //     case MessageContent.MessageType.ConsensusVote:
+        //         return new ConsensusPreVoteMsg(bytes);
+        //     case MessageContent.MessageType.ConsensusCommit:
+        //         return new ConsensusPreCommitMessage(bytes);
+        //     case MessageContent.MessageType.ConsensusMaj23Msg:
+        //         return new ConsensusMaj23Msg(bytes);
+        //     case MessageContent.MessageType.ConsensusVoteSetBitsMsg:
+        //         return new ConsensusVoteSetBitsMessage(bytes);
+        //     case MessageContent.MessageType.ConsensusProposalClaimMsg:
+        //         return new ConsensusProposalClaimMessage(bytes);
+        //     default:
+        //         throw new InvalidCastException($"Given type {type} is not a valid message.");
+        // }
     }
 }

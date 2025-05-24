@@ -131,6 +131,27 @@ public sealed record class Protocol
         // return new AppProtocolVersion(version, extra, sig, signer);
     }
 
+    public static Protocol Create(PrivateKey signer, int version)
+    {
+        var metadata = new ProtocolMetadata
+        {
+            Version = version,
+            Signer = signer.Address,
+        };
+        return metadata.Sign(signer);
+    }
+
+    public static Protocol Create(PrivateKey signer, int version, object extra)
+    {
+        var metadata = new ProtocolMetadata
+        {
+            Version = version,
+            Signer = signer.Address,
+            Extra = [.. ModelSerializer.SerializeToBytes(extra)],
+        };
+        return metadata.Sign(signer);
+    }
+
     public bool Verify()
     {
         var bytes = ModelSerializer.SerializeToBytes(Metadata).ToImmutableArray();

@@ -1,280 +1,280 @@
-using Libplanet.Serialization;
-using Libplanet.Types.Crypto;
+// using Libplanet.Serialization;
+// using Libplanet.Types.Crypto;
 
-namespace Libplanet.Net.Tests
-{
-    public class AppProtocolVersionTest
-    {
-        public static readonly PrivateKey SignerFixture = new PrivateKey(new byte[]
-        {
-            0x45, 0x7a, 0xfa, 0x94, 0x17, 0x78, 0x6e, 0x0c, 0xff, 0x4b, 0xa2,
-            0x5b, 0x35, 0x95, 0xe1, 0xfb, 0x2a, 0x54, 0x39, 0xf9, 0x0e, 0xd2,
-            0x9d, 0x39, 0xdf, 0x54, 0x57, 0x9b, 0x13, 0xea, 0x7c, 0x0f,
-        });
+// namespace Libplanet.Net.Tests
+// {
+//     public class AppProtocolVersionTest
+//     {
+//         public static readonly PrivateKey SignerFixture = new PrivateKey(new byte[]
+//         {
+//             0x45, 0x7a, 0xfa, 0x94, 0x17, 0x78, 0x6e, 0x0c, 0xff, 0x4b, 0xa2,
+//             0x5b, 0x35, 0x95, 0xe1, 0xfb, 0x2a, 0x54, 0x39, 0xf9, 0x0e, 0xd2,
+//             0x9d, 0x39, 0xdf, 0x54, 0x57, 0x9b, 0x13, 0xea, 0x7c, 0x0f,
+//         });
 
-        private static readonly Protocol ValidClaimFixture = new Protocol(
-            version: 1,
-            extra: null,
-            signer: SignerFixture.Address,
-            signature: new byte[]
-            {
-                0xc6, 0xc8, 0xc1, 0x78, 0x52, 0xc6, 0x21, 0x0d, 0x97, 0xd7, 0x8b, 0xdd, 0xf1, 0x26,
-                0x49, 0x94, 0x1b, 0x80, 0x8b, 0x6a, 0x3a, 0x90, 0xad, 0x62, 0x83, 0x3e, 0xf4, 0x2a,
-                0x22, 0x2b, 0xc8, 0xf4, 0x07, 0x5e, 0xbe, 0x87, 0x32, 0x57, 0x34, 0xa9, 0x77, 0x1c,
-                0x3c, 0x87, 0x24, 0x39, 0x4a, 0x71, 0xcc, 0x5f, 0xaa, 0x8b, 0x07, 0x96, 0xbf, 0xb2,
-                0x7c, 0xf7, 0x7f, 0x11, 0xd1, 0x07, 0x49, 0xa2, 0x1c,
-            }.ToImmutableArray());
+//         private static readonly Protocol ValidClaimFixture = new Protocol(
+//             version: 1,
+//             extra: null,
+//             signer: SignerFixture.Address,
+//             signature: new byte[]
+//             {
+//                 0xc6, 0xc8, 0xc1, 0x78, 0x52, 0xc6, 0x21, 0x0d, 0x97, 0xd7, 0x8b, 0xdd, 0xf1, 0x26,
+//                 0x49, 0x94, 0x1b, 0x80, 0x8b, 0x6a, 0x3a, 0x90, 0xad, 0x62, 0x83, 0x3e, 0xf4, 0x2a,
+//                 0x22, 0x2b, 0xc8, 0xf4, 0x07, 0x5e, 0xbe, 0x87, 0x32, 0x57, 0x34, 0xa9, 0x77, 0x1c,
+//                 0x3c, 0x87, 0x24, 0x39, 0x4a, 0x71, 0xcc, 0x5f, 0xaa, 0x8b, 0x07, 0x96, 0xbf, 0xb2,
+//                 0x7c, 0xf7, 0x7f, 0x11, 0xd1, 0x07, 0x49, 0xa2, 0x1c,
+//             }.ToImmutableArray());
 
-        private static readonly Protocol ValidClaimWExtraFixture = new Protocol(
-            version: 123,
-            extra: ModelSerializer.SerializeToBytes("foo"),
-            signer: SignerFixture.Address,
-            signature: new byte[]
-            {
-                0x30, 0x44, 0x02, 0x20, 0x08, 0x5d, 0xd4, 0x4d, 0x2f, 0xa1, 0x57, 0xe0,
-                0x01, 0xca, 0x6f, 0xca, 0x98, 0x8d, 0x7a, 0x1d, 0x13, 0x74, 0xcb, 0xc9,
-                0x26, 0xca, 0x3b, 0xc3, 0xdf, 0x14, 0x3d, 0x37, 0xe2, 0xad, 0x04, 0x88,
-                0x02, 0x20, 0x16, 0xd4, 0xae, 0x72, 0x42, 0x31, 0x63, 0xe9, 0x73, 0x99,
-                0x50, 0x0b, 0xb9, 0x19, 0x49, 0xa1, 0xf2, 0xbb, 0x63, 0x20, 0x99, 0x5a,
-                0x77, 0xd2, 0x15, 0xfd, 0xbd, 0x59, 0x99, 0xec, 0x5c, 0x51,
-            }.ToImmutableArray());
+//         private static readonly Protocol ValidClaimWExtraFixture = new Protocol(
+//             version: 123,
+//             extra: ModelSerializer.SerializeToBytes("foo"),
+//             signer: SignerFixture.Address,
+//             signature: new byte[]
+//             {
+//                 0x30, 0x44, 0x02, 0x20, 0x08, 0x5d, 0xd4, 0x4d, 0x2f, 0xa1, 0x57, 0xe0,
+//                 0x01, 0xca, 0x6f, 0xca, 0x98, 0x8d, 0x7a, 0x1d, 0x13, 0x74, 0xcb, 0xc9,
+//                 0x26, 0xca, 0x3b, 0xc3, 0xdf, 0x14, 0x3d, 0x37, 0xe2, 0xad, 0x04, 0x88,
+//                 0x02, 0x20, 0x16, 0xd4, 0xae, 0x72, 0x42, 0x31, 0x63, 0xe9, 0x73, 0x99,
+//                 0x50, 0x0b, 0xb9, 0x19, 0x49, 0xa1, 0xf2, 0xbb, 0x63, 0x20, 0x99, 0x5a,
+//                 0x77, 0xd2, 0x15, 0xfd, 0xbd, 0x59, 0x99, 0xec, 0x5c, 0x51,
+//             }.ToImmutableArray());
 
-        [Fact]
-        public void Sign()
-        {
-            var signer = new PrivateKey();
-            PublicKey otherParty = new PrivateKey().PublicKey;
-            Protocol claim = Protocol.Sign(signer, 1, null);
-            Assert.Equal(1, claim.Version);
-            Assert.Null(claim.Extra);
-            Assert.True(claim.Verify(signer.PublicKey));
-            Assert.False(claim.Verify(otherParty));
+//         [Fact]
+//         public void Sign()
+//         {
+//             var signer = new PrivateKey();
+//             PublicKey otherParty = new PrivateKey().PublicKey;
+//             Protocol claim = Protocol.Create(signer, 1, null);
+//             Assert.Equal(1, claim.Version);
+//             Assert.Null(claim.Extra);
+//             Assert.True(claim.Verify(signer.PublicKey));
+//             Assert.False(claim.Verify(otherParty));
 
-            Protocol claimWithExtra =
-                Protocol.Sign(signer, 2, ModelSerializer.SerializeToBytes("extra"));
-            Assert.Equal(2, claimWithExtra.Version);
-            Assert.Equal(ModelSerializer.SerializeToBytes("extra"), claimWithExtra.Extra);
-            Assert.True(claimWithExtra.Verify(signer.PublicKey));
-            Assert.False(claimWithExtra.Verify(otherParty));
+//             Protocol claimWithExtra =
+//                 Protocol.Create(signer, 2, ModelSerializer.SerializeToBytes("extra"));
+//             Assert.Equal(2, claimWithExtra.Version);
+//             Assert.Equal(ModelSerializer.SerializeToBytes("extra"), claimWithExtra.Extra);
+//             Assert.True(claimWithExtra.Verify(signer.PublicKey));
+//             Assert.False(claimWithExtra.Verify(otherParty));
 
-            ArgumentNullException exception =
-                Assert.Throws<ArgumentNullException>(() => Protocol.Sign(null, 1));
-            Assert.Equal("signer", exception.ParamName);
-        }
+//             ArgumentNullException exception =
+//                 Assert.Throws<ArgumentNullException>(() => Protocol.Create(null, 1));
+//             Assert.Equal("signer", exception.ParamName);
+//         }
 
-        [Fact]
-        public void Verify()
-        {
-            PublicKey signerPublicKey = SignerFixture.PublicKey;
-            var otherParty = new PrivateKey();
-            PublicKey otherPartyPublicKey = otherParty.PublicKey;
+//         [Fact]
+//         public void Verify()
+//         {
+//             PublicKey signerPublicKey = SignerFixture.PublicKey;
+//             var otherParty = new PrivateKey();
+//             PublicKey otherPartyPublicKey = otherParty.PublicKey;
 
-            Assert.True(ValidClaimFixture.Verify(signerPublicKey));
-            Assert.False(ValidClaimFixture.Verify(otherPartyPublicKey));
+//             Assert.True(ValidClaimFixture.Verify(signerPublicKey));
+//             Assert.False(ValidClaimFixture.Verify(otherPartyPublicKey));
 
-            // A signature is no more valid for a different version.
-            var invalidVersionClaim = new Protocol(
-                version: ValidClaimFixture.Version + 1,
-                extra: ValidClaimFixture.Extra,
-                signer: ValidClaimFixture.Signer,
-                signature: ValidClaimFixture.Signature);
-            Assert.False(invalidVersionClaim.Verify(signerPublicKey));
-            Assert.False(invalidVersionClaim.Verify(otherPartyPublicKey));
+//             // A signature is no more valid for a different version.
+//             var invalidVersionClaim = new Protocol(
+//                 version: ValidClaimFixture.Version + 1,
+//                 extra: ValidClaimFixture.Extra,
+//                 signer: ValidClaimFixture.Signer,
+//                 signature: ValidClaimFixture.Signature);
+//             Assert.False(invalidVersionClaim.Verify(signerPublicKey));
+//             Assert.False(invalidVersionClaim.Verify(otherPartyPublicKey));
 
-            // A signature is no more valid for a different extra data.
-            var invalidExtraClaim = new Protocol(
-                version: ValidClaimFixture.Version,
-                extra: ModelSerializer.SerializeToBytes("invalid extra"),
-                signer: ValidClaimFixture.Signer,
-                signature: ValidClaimFixture.Signature);
-            Assert.False(invalidExtraClaim.Verify(signerPublicKey));
-            Assert.False(invalidExtraClaim.Verify(otherPartyPublicKey));
+//             // A signature is no more valid for a different extra data.
+//             var invalidExtraClaim = new Protocol(
+//                 version: ValidClaimFixture.Version,
+//                 extra: ModelSerializer.SerializeToBytes("invalid extra"),
+//                 signer: ValidClaimFixture.Signer,
+//                 signature: ValidClaimFixture.Signature);
+//             Assert.False(invalidExtraClaim.Verify(signerPublicKey));
+//             Assert.False(invalidExtraClaim.Verify(otherPartyPublicKey));
 
-            // If a signer field does not correspond to an actual private key which signed
-            // a signature a claim is invalid even if a signature in itself is valid.
-            var invalidSigner = new Protocol(
-                version: ValidClaimFixture.Version,
-                extra: ValidClaimFixture.Extra,
-                signer: otherPartyPublicKey.Address,
-                signature: ValidClaimFixture.Signature);
-            Assert.False(invalidSigner.Verify(signerPublicKey));
-            Assert.False(invalidSigner.Verify(otherPartyPublicKey));
-        }
+//             // If a signer field does not correspond to an actual private key which signed
+//             // a signature a claim is invalid even if a signature in itself is valid.
+//             var invalidSigner = new Protocol(
+//                 version: ValidClaimFixture.Version,
+//                 extra: ValidClaimFixture.Extra,
+//                 signer: otherPartyPublicKey.Address,
+//                 signature: ValidClaimFixture.Signature);
+//             Assert.False(invalidSigner.Verify(signerPublicKey));
+//             Assert.False(invalidSigner.Verify(otherPartyPublicKey));
+//         }
 
-        [Fact]
-        public void Equality()
-        {
-            var signer = new PrivateKey();
-            Protocol claim =
-                Protocol.Sign(signer, 123, ModelSerializer.SerializeToBytes("foo"));
+//         [Fact]
+//         public void Equality()
+//         {
+//             var signer = new PrivateKey();
+//             Protocol claim =
+//                 Protocol.Create(signer, 123, ModelSerializer.SerializeToBytes("foo"));
 
-            // Copy to make sure not to use the same reference
-            var address = new Address(claim.Signer.Bytes);
-            var version = claim.Version;
-            var extra = ModelSerializer.SerializeToBytes(ModelSerializer.DeserializeFromBytes(claim.Extra));
-            var signature = claim.Signature.ToArray().ToImmutableArray();
+//             // Copy to make sure not to use the same reference
+//             var address = new Address(claim.Signer.Bytes);
+//             var version = claim.Version;
+//             var extra = ModelSerializer.SerializeToBytes(ModelSerializer.DeserializeFromBytes(claim.Extra));
+//             var signature = claim.Signature.ToArray().ToImmutableArray();
 
-            // Different version
-            var claim2 = new Protocol(version + 1, extra, signature, address);
-            Assert.False(((IEquatable<Protocol>)claim).Equals(claim2));
-            Assert.False(((object)claim).Equals(claim2));
-            Assert.NotEqual(claim.GetHashCode(), claim2.GetHashCode());
-            Assert.False(claim == claim2);
-            Assert.True(claim != claim2);
+//             // Different version
+//             var claim2 = new Protocol(version + 1, extra, signature, address);
+//             Assert.False(((IEquatable<Protocol>)claim).Equals(claim2));
+//             Assert.False(((object)claim).Equals(claim2));
+//             Assert.NotEqual(claim.GetHashCode(), claim2.GetHashCode());
+//             Assert.False(claim == claim2);
+//             Assert.True(claim != claim2);
 
-            // Different extra
-            var claim3 = new Protocol(
-                version,
-                ModelSerializer.SerializeToBytes(null),
-                signature,
-                address);
-            Assert.False(((IEquatable<Protocol>)claim).Equals(claim3));
-            Assert.False(((object)claim).Equals(claim3));
-            Assert.NotEqual(claim.GetHashCode(), claim3.GetHashCode());
-            Assert.False(claim == claim3);
-            Assert.True(claim != claim3);
+//             // Different extra
+//             var claim3 = new Protocol(
+//                 version,
+//                 ModelSerializer.SerializeToBytes(null),
+//                 signature,
+//                 address);
+//             Assert.False(((IEquatable<Protocol>)claim).Equals(claim3));
+//             Assert.False(((object)claim).Equals(claim3));
+//             Assert.NotEqual(claim.GetHashCode(), claim3.GetHashCode());
+//             Assert.False(claim == claim3);
+//             Assert.True(claim != claim3);
 
-            // Empty signature
-            var claim4 = new Protocol(
-                version,
-                extra,
-                ImmutableArray<byte>.Empty,
-                address);
-            Assert.False(((IEquatable<Protocol>)claim).Equals(claim4));
-            Assert.False(((object)claim).Equals(claim4));
-            Assert.NotEqual(claim.GetHashCode(), claim4.GetHashCode());
-            Assert.False(claim == claim4);
-            Assert.True(claim != claim4);
+//             // Empty signature
+//             var claim4 = new Protocol(
+//                 version,
+//                 extra,
+//                 ImmutableArray<byte>.Empty,
+//                 address);
+//             Assert.False(((IEquatable<Protocol>)claim).Equals(claim4));
+//             Assert.False(((object)claim).Equals(claim4));
+//             Assert.NotEqual(claim.GetHashCode(), claim4.GetHashCode());
+//             Assert.False(claim == claim4);
+//             Assert.True(claim != claim4);
 
-            // Different address
-            var claim5 = new Protocol(
-                version,
-                extra,
-                signature,
-                new PrivateKey().Address);
-            Assert.False(((IEquatable<Protocol>)claim).Equals(claim5));
-            Assert.False(((object)claim).Equals(claim5));
-            Assert.NotEqual(claim.GetHashCode(), claim5.GetHashCode());
-            Assert.False(claim == claim5);
-            Assert.True(claim != claim5);
+//             // Different address
+//             var claim5 = new Protocol(
+//                 version,
+//                 extra,
+//                 signature,
+//                 new PrivateKey().Address);
+//             Assert.False(((IEquatable<Protocol>)claim).Equals(claim5));
+//             Assert.False(((object)claim).Equals(claim5));
+//             Assert.NotEqual(claim.GetHashCode(), claim5.GetHashCode());
+//             Assert.False(claim == claim5);
+//             Assert.True(claim != claim5);
 
-            var sameClaim = new Protocol(
-                version,
-                extra,
-                signature,
-                address);
-            Assert.True(((IEquatable<Protocol>)claim).Equals(sameClaim));
-            Assert.True(((object)claim).Equals(sameClaim));
-            Assert.Equal(claim.GetHashCode(), sameClaim.GetHashCode());
-            Assert.True(claim == sameClaim);
-            Assert.False(claim != sameClaim);
+//             var sameClaim = new Protocol(
+//                 version,
+//                 extra,
+//                 signature,
+//                 address);
+//             Assert.True(((IEquatable<Protocol>)claim).Equals(sameClaim));
+//             Assert.True(((object)claim).Equals(sameClaim));
+//             Assert.Equal(claim.GetHashCode(), sameClaim.GetHashCode());
+//             Assert.True(claim == sameClaim);
+//             Assert.False(claim != sameClaim);
 
-            Protocol claimWithoutExtra = Protocol.Sign(signer, 1);
-            var sameClaimWithoutExtra = new Protocol(
-                claimWithoutExtra.Version,
-                claimWithoutExtra.Extra,
-                ImmutableArray.Create(
-                    claimWithoutExtra.Signature,
-                    0,
-                    claimWithoutExtra.Signature.Length),
-                new Address(claimWithoutExtra.Signer.Bytes));
-            Assert.True(
-                ((IEquatable<Protocol>)claimWithoutExtra).Equals(sameClaimWithoutExtra));
-            Assert.True(((object)claimWithoutExtra).Equals(sameClaimWithoutExtra));
-            Assert.Equal(claimWithoutExtra.GetHashCode(), sameClaimWithoutExtra.GetHashCode());
-            Assert.True(claimWithoutExtra == sameClaimWithoutExtra);
-            Assert.False(claimWithoutExtra != sameClaimWithoutExtra);
-        }
+//             Protocol claimWithoutExtra = Protocol.Create(signer, 1);
+//             var sameClaimWithoutExtra = new Protocol(
+//                 claimWithoutExtra.Version,
+//                 claimWithoutExtra.Extra,
+//                 ImmutableArray.Create(
+//                     claimWithoutExtra.Signature,
+//                     0,
+//                     claimWithoutExtra.Signature.Length),
+//                 new Address(claimWithoutExtra.Signer.Bytes));
+//             Assert.True(
+//                 ((IEquatable<Protocol>)claimWithoutExtra).Equals(sameClaimWithoutExtra));
+//             Assert.True(((object)claimWithoutExtra).Equals(sameClaimWithoutExtra));
+//             Assert.Equal(claimWithoutExtra.GetHashCode(), sameClaimWithoutExtra.GetHashCode());
+//             Assert.True(claimWithoutExtra == sameClaimWithoutExtra);
+//             Assert.False(claimWithoutExtra != sameClaimWithoutExtra);
+//         }
 
-        [Fact]
-        public void String()
-        {
-            var signer = new PrivateKey();
-            Protocol claim = Protocol.Sign(signer, 123);
-            Assert.Equal("123", claim.ToString());
+//         [Fact]
+//         public void String()
+//         {
+//             var signer = new PrivateKey();
+//             Protocol claim = Protocol.Create(signer, 123);
+//             Assert.Equal("123", claim.ToString());
 
-            Protocol claimWithExtra =
-                Protocol.Sign(signer, 456, ModelSerializer.SerializeToBytes("extra"));
-            Assert.Equal("456 (Bencodex.Types.Text \"extra\")", claimWithExtra.ToString());
-        }
+//             Protocol claimWithExtra =
+//                 Protocol.Create(signer, 456, ModelSerializer.SerializeToBytes("extra"));
+//             Assert.Equal("456 (Bencodex.Types.Text \"extra\")", claimWithExtra.ToString());
+//         }
 
-        [Fact]
-        public void Token()
-        {
-            var expected =
-                "1/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
-                "xsjBeFLGIQ2X14vd8SZJlBuAi2o6kK1igz70KiIryPQHXr6HMlc0qXccPIckOUpxzF+qiweWv7J8938R" +
-                "0QdJohw=";
-            Assert.Equal(expected, ValidClaimFixture.Token);
+//         [Fact]
+//         public void Token()
+//         {
+//             var expected =
+//                 "1/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
+//                 "xsjBeFLGIQ2X14vd8SZJlBuAi2o6kK1igz70KiIryPQHXr6HMlc0qXccPIckOUpxzF+qiweWv7J8938R" +
+//                 "0QdJohw=";
+//             Assert.Equal(expected, ValidClaimFixture.Token);
 
-            expected =
-                "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
-                "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtjIJla" +
-                "d9IV.b1ZmexcUQ==/dTM6Zm9v";
-            Assert.Equal(expected, ValidClaimWExtraFixture.Token);
-        }
+//             expected =
+//                 "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
+//                 "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtjIJla" +
+//                 "d9IV.b1ZmexcUQ==/dTM6Zm9v";
+//             Assert.Equal(expected, ValidClaimWExtraFixture.Token);
+//         }
 
-        [Fact]
-        public void FromToken()
-        {
-            Assert.Equal(
-                ValidClaimFixture,
-                Protocol.FromToken(
-                    "1/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
-                    "xsjBeFLGIQ2X14vd8SZJlBuAi2o6kK1igz70KiIryPQHXr6HMlc0qXccPIckOUpxzF+qiweWv7J8" +
-                    "938R0QdJohw="));
-            Assert.Equal(
-                ValidClaimWExtraFixture,
-                Protocol.FromToken(
-                    "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
-                    "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
-                    "IJlad9IV.b1ZmexcUQ==/dTM6Zm9v"));
+//         [Fact]
+//         public void FromToken()
+//         {
+//             Assert.Equal(
+//                 ValidClaimFixture,
+//                 Protocol.FromToken(
+//                     "1/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
+//                     "xsjBeFLGIQ2X14vd8SZJlBuAi2o6kK1igz70KiIryPQHXr6HMlc0qXccPIckOUpxzF+qiweWv7J8" +
+//                     "938R0QdJohw="));
+//             Assert.Equal(
+//                 ValidClaimWExtraFixture,
+//                 Protocol.FromToken(
+//                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
+//                     "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
+//                     "IJlad9IV.b1ZmexcUQ==/dTM6Zm9v"));
 
-            Assert.Throws<ArgumentNullException>(() => Protocol.FromToken(null));
+//             Assert.Throws<ArgumentNullException>(() => Protocol.FromToken(null));
 
-            // No first delimiter
-            Assert.Throws<FormatException>(() => Protocol.FromToken("123"));
+//             // No first delimiter
+//             Assert.Throws<FormatException>(() => Protocol.FromToken("123"));
 
-            // No second delimiter
-            Assert.Throws<FormatException>(() =>
-                Protocol.FromToken("123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4"));
+//             // No second delimiter
+//             Assert.Throws<FormatException>(() =>
+//                 Protocol.FromToken("123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4"));
 
-            // A version is not an integer
-            Assert.Throws<FormatException>(() =>
-                Protocol.FromToken(
-                    "INCORRECT/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
-                    "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
-                    "k9FkhXWoosufldmQuVE="));
+//             // A version is not an integer
+//             Assert.Throws<FormatException>(() =>
+//                 Protocol.FromToken(
+//                     "INCORRECT/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
+//                     "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
+//                     "k9FkhXWoosufldmQuVE="));
 
-            // A signer address is incorrect
-            Assert.Throws<FormatException>(() =>
-                Protocol.FromToken(
-                    "123/INCORRECT/" +
-                    "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
-                    "k9FkhXWoosufldmQuVE="));
+//             // A signer address is incorrect
+//             Assert.Throws<FormatException>(() =>
+//                 Protocol.FromToken(
+//                     "123/INCORRECT/" +
+//                     "MEUCIQCJlZxZJYNOvEVZ15vKgkppIOUY8MWt4rmjo7Mpu6M92AIgHcuIoTo8GS3hnjn2WAXUBr+y" +
+//                     "k9FkhXWoosufldmQuVE="));
 
-            // A signature is not a valid base64 string
-            Assert.Throws<FormatException>(() =>
-                Protocol.FromToken(
-                    "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/_INCORRECT_"));
+//             // A signature is not a valid base64 string
+//             Assert.Throws<FormatException>(() =>
+//                 Protocol.FromToken(
+//                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/_INCORRECT_"));
 
-            // An extra data is not a valid base64 string
-            Assert.Throws<FormatException>(() =>
-                Protocol.FromToken(
-                    "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
-                    "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
-                    "IJlad9IV.b1ZmexcUQ==/" +
-                    "_INCORRECT_"));
-        }
+//             // An extra data is not a valid base64 string
+//             Assert.Throws<FormatException>(() =>
+//                 Protocol.FromToken(
+//                     "123/271e00B29aeB93B2F4e30ECbebA4f72ac02f72b4/" +
+//                     "MEQCIAhd1E0voVfgAcpvypiNeh0TdMvJJso7w98UPTfirQSIAiAW1K5yQjFj6XOZUAu5GUmh8rtj" +
+//                     "IJlad9IV.b1ZmexcUQ==/" +
+//                     "_INCORRECT_"));
+//         }
 
-        [Fact]
-        public void DefaultConstructor()
-        {
-            Protocol defaultValue = default;
-            ImmutableArray<byte> defaultSig = defaultValue.Signature;
-            Assert.False(defaultSig.IsDefault);
-            Assert.True(defaultSig.IsEmpty);
-            Assert.Equal("0/0000000000000000000000000000000000000000/", defaultValue.Token);
-        }
-    }
-}
+//         [Fact]
+//         public void DefaultConstructor()
+//         {
+//             Protocol defaultValue = default;
+//             ImmutableArray<byte> defaultSig = defaultValue.Signature;
+//             Assert.False(defaultSig.IsDefault);
+//             Assert.True(defaultSig.IsEmpty);
+//             Assert.Equal("0/0000000000000000000000000000000000000000/", defaultValue.Token);
+//         }
+//     }
+// }

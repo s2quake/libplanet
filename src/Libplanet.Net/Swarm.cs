@@ -719,7 +719,7 @@ namespace Libplanet.Net
             BlockHash blockHash,
             CancellationToken cancellationToken = default)
         {
-            var request = new GetBlockHashesMessage(blockHash);
+            var request = new GetBlockHashesMessage { BlockHash = blockHash };
 
             const string sendMsg =
                 "Sending a {MessageType} message with locator [{LocatorHead}]";
@@ -814,7 +814,7 @@ namespace Libplanet.Net
                 blockHashes.Count,
                 peer);
 
-            var request = new GetBlocksMsg(blockHashes);
+            var request = new GetBlocksMessage { BlockHashes = [.. blockHashes] };
             int hashCount = blockHashes.Count;
 
             if (hashCount < 1)
@@ -855,12 +855,12 @@ namespace Libplanet.Net
 
                 if (message.Content is BlocksMessage blockMessage)
                 {
-                    List<byte[]> payloads = blockMessage.Payloads;
+                    var payloads = blockMessage.Payloads;
                     _logger.Information(
                         "Received {Count} blocks from {Peer}",
-                        payloads.Count,
+                        payloads.Length,
                         message.Remote);
-                    for (int i = 0; i < payloads.Count; i += 2)
+                    for (int i = 0; i < payloads.Length; i += 2)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         byte[] blockPayload = payloads[i];
@@ -916,7 +916,7 @@ namespace Libplanet.Net
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var txIdsAsArray = txIds as TxId[] ?? txIds.ToArray();
-            var request = new GetTransactionMessage(txIdsAsArray);
+            var request = new GetTransactionMessage { TxIds = [.. txIdsAsArray] };
             int txCount = txIdsAsArray.Count();
 
             _logger.Debug("Required tx count: {Count}", txCount);
@@ -1101,7 +1101,7 @@ namespace Libplanet.Net
                 "Trying to broadcast block #{Index} {Hash}...",
                 block.Height,
                 block.BlockHash);
-            var message = new BlockHeaderMessage(BlockChain.Genesis.BlockHash, block);
+            var message = new BlockHeaderMessage { GenesisHash = BlockChain.Genesis.BlockHash, Excerpt = block };
             BroadcastMessage(except, message);
         }
 
@@ -1299,7 +1299,7 @@ namespace Libplanet.Net
 
         private void BroadcastTxIds(Address? except, IEnumerable<TxId> txIds)
         {
-            var message = new TxIdsMessage(txIds);
+            var message = new TxIdsMessage { Ids = [.. txIds] };
             BroadcastMessage(except, message);
         }
 

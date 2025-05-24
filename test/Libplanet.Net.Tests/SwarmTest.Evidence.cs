@@ -68,7 +68,7 @@ namespace Libplanet.Net.Tests
                 Assert.NotNull(methodInfo);
 
                 var vote = MakeRandomVote(privateKeys[0], height, round, VoteFlag.PreVote);
-                var args = new object[] { new ConsensusPreVoteMsg(vote) };
+                var args = new object[] { new ConsensusPreVoteMessage { PreVote = vote } };
 
                 await WaitUntilStepAsync(consensusContext, ConsensusStep.PreVote, default);
                 methodInfo.Invoke(context, args);

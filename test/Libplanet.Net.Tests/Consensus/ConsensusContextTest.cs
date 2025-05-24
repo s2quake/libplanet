@@ -95,32 +95,38 @@ public class ConsensusContextTest
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
         consensusContext.HandleMessage(
-            new ConsensusPreCommitMessage(
-                TestUtils.CreateVote(
+            new ConsensusPreCommitMessage
+            {
+                PreCommit = TestUtils.CreateVote(
                     TestUtils.PrivateKeys[0],
                     TestUtils.Validators[0].Power,
                     3,
                     0,
                     hash: proposedblockHash,
-                    flag: VoteFlag.PreCommit)));
+                    flag: VoteFlag.PreCommit)
+            });
         consensusContext.HandleMessage(
-            new ConsensusPreCommitMessage(
-                TestUtils.CreateVote(
+            new ConsensusPreCommitMessage
+            {
+                PreCommit = TestUtils.CreateVote(
                     TestUtils.PrivateKeys[1],
                     TestUtils.Validators[1].Power,
                     3,
                     0,
                     hash: proposedblockHash,
-                    flag: VoteFlag.PreCommit)));
+                    flag: VoteFlag.PreCommit)
+            });
         consensusContext.HandleMessage(
-            new ConsensusPreCommitMessage(
-                TestUtils.CreateVote(
+            new ConsensusPreCommitMessage
+            {
+                PreCommit = TestUtils.CreateVote(
                     TestUtils.PrivateKeys[2],
                     TestUtils.Validators[2].Power,
                     3,
                     0,
                     hash: proposedblockHash,
-                    flag: VoteFlag.PreCommit)));
+                    flag: VoteFlag.PreCommit)
+            });
 
         // Waiting for commit.
         await heightThreeStepChangedToEndCommit.WaitAsync();
@@ -240,7 +246,7 @@ public class ConsensusContextTest
 
         foreach (var vote in votes)
         {
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage(vote));
+            consensusContext.HandleMessage(new ConsensusPreCommitMessage { PreCommit = vote });
         }
 
         await heightOneEndCommit.WaitAsync();
@@ -327,9 +333,9 @@ public class ConsensusContextTest
             }
         };
 
-        consensusContext.HandleMessage(new ConsensusProposalMessage(proposal));
-        consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote1));
-        consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote3));
+        consensusContext.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
+        consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote1 });
+        consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote3 });
         await stepChanged.WaitAsync();
         await committed.WaitAsync();
 
@@ -395,9 +401,9 @@ public class ConsensusContextTest
             ValidatorPower = TestUtils.Validators[2].Power,
             Flag = VoteFlag.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
-        consensusContext.HandleMessage(new ConsensusProposalMessage(proposal));
-        consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote1));
-        consensusContext.HandleMessage(new ConsensusPreVoteMsg(preVote2));
+        consensusContext.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
+        consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote1 });
+        consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote2 });
         do
         {
             await stepChanged.WaitAsync();
@@ -453,7 +459,7 @@ public class ConsensusContextTest
             // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
             ValidRound = -1,
         }.Sign(proposer);
-        consensusContext.HandleMessage(new ConsensusProposalMessage(proposal));
+        consensusContext.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
         await stepChanged.WaitAsync();
 
         // ProposalClaim expects corresponding proposal if exists

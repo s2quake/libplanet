@@ -87,14 +87,14 @@ namespace Libplanet.Net.Tests.Messages
             var peer = new BoundPeer(trustedSigner.PublicKey, new DnsEndPoint("0.0.0.0", 0));
 
             // Apv
-            var trustedApv = Protocol.Sign(trustedSigner, version1, extra1);
-            var trustedDifferentVersionApv = Protocol.Sign(
+            var trustedApv = Protocol.Create(trustedSigner, version1, extra1);
+            var trustedDifferentVersionApv = Protocol.Create(
                 trustedSigner, version2, extra1);
-            var trustedDifferentExtraApv = Protocol.Sign(trustedSigner, version1, extra2);
-            var unknownApv = Protocol.Sign(unknownSigner, version1, extra1);
-            var unknownDifferentVersionApv = Protocol.Sign(
+            var trustedDifferentExtraApv = Protocol.Create(trustedSigner, version1, extra2);
+            var unknownApv = Protocol.Create(unknownSigner, version1, extra1);
+            var unknownDifferentVersionApv = Protocol.Create(
                 unknownSigner, version2, extra1);
-            var unknownDifferentExtraApv = Protocol.Sign(unknownSigner, version1, extra2);
+            var unknownDifferentExtraApv = Protocol.Create(unknownSigner, version1, extra2);
 
             // Signer
             ImmutableHashSet<PublicKey>? trustedApvSigners =
