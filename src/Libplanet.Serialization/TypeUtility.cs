@@ -61,10 +61,6 @@ public static class TypeUtility
     public static bool IsNullableType(Type type)
         => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
-    // public static bool IsBencodableType(Type type) => typeof(IBencodable).IsAssignableFrom(type);
-
-    // public static bool IsBencodexType(Type type) => typeof(IValue).IsAssignableFrom(type);
-
     public static string GetTypeName(Type type)
     {
         var name = GetName(type);

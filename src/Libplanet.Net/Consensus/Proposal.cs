@@ -25,7 +25,6 @@ public sealed record class Proposal : IEquatable<Proposal>
 
     public Address Validator => Metadata.Proposer;
 
-    // public byte[] MarshaledBlock => Metadata.MarshaledBlock;
     public byte[] MarshaledBlock => throw new NotImplementedException();
 
     public int ValidRound => Metadata.ValidRound;

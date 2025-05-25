@@ -6,6 +6,4 @@ namespace Libplanet.Net.Messages;
 public sealed record class PongMessage : MessageContent
 {
     public override MessageType Type => MessageType.Pong;
-
-    // public override IEnumerable<byte[]> DataFrames => new byte[][] { };
 }

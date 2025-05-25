@@ -31,8 +31,6 @@ public sealed record class ProposalMetadata : IValidatableObject
     [Property(4)]
     public Address Proposer { get; init; }
 
-    // public byte[] MarshaledBlock { get; init; } = [];
-
     [Property(6)]
     public int ValidRound { get; init; }
 

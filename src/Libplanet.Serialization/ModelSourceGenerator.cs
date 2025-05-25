@@ -21,12 +21,10 @@ namespace Libplanet.Serialization;
 [Generator]
 public partial class ModelSourceGenerator : Microsoft.CodeAnalysis.ISourceGenerator
 {
-    private const string ModelAttributeFullName = "Libplanet.Serialization.ModelAttribute";
+    public const string ModelAttributeFullName = "Libplanet.Serialization.ModelAttribute";
     
     public void Execute(GeneratorExecutionContext context)
     {
-        // Check if we have a syntax receiver
-        
     }
 
     public void Initialize(GeneratorInitializationContext context)
