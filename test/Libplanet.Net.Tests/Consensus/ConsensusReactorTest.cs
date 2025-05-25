@@ -33,7 +33,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void StartAsync()
+        public async Task StartAsync()
         {
             var consensusReactors = new ConsensusReactor[4];
             var stores = new Libplanet.Data.Repository[4];

@@ -657,7 +657,7 @@ namespace Libplanet.Net.Tests
         }
 
         [Fact(Timeout = Timeout)]
-        public async void CanResolveEndPoint()
+        public async Task CanResolveEndPoint()
         {
             var expected = new DnsEndPoint("1.2.3.4", 5678);
             var hostOptions = new HostOptions("1.2.3.4", new IceServer[] { }, 5678);

@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
@@ -30,7 +31,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void NewHeightWithLastCommit()
+        public async Task NewHeightWithLastCommit()
         {
             var tipChanged = new AsyncAutoResetEvent();
             ConsensusProposalMessage? proposal = null;
@@ -104,7 +105,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void HandleMessageFromHigherHeight()
+        public async Task HandleMessageFromHigherHeight()
         {
             ConsensusProposalMessage? proposal = null;
             var heightTwoStepChangedToPreVote = new AsyncAutoResetEvent();
@@ -245,7 +246,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void UseLastCommitCacheIfHeightContextIsEmpty()
+        public async Task UseLastCommitCacheIfHeightContextIsEmpty()
         {
             var heightTwoProposalSent = new AsyncAutoResetEvent();
             Block? proposedBlock = null;
@@ -280,7 +281,7 @@ namespace Libplanet.Net.Tests.Consensus
 
         // Retry: This calculates delta time.
         [RetryFact(10, Timeout = Timeout)]
-        public async void NewHeightDelay()
+        public async Task NewHeightDelay()
         {
             var newHeightDelay = TimeSpan.FromSeconds(1);
             // The maximum error margin. (macos-netcore-test)

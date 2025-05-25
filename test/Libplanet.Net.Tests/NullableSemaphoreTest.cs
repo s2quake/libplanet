@@ -6,7 +6,7 @@ namespace Libplanet.Net.Tests
     public class NullableSemaphoreTest
     {
         [Fact]
-        public async void WaitAsync()
+        public async Task WaitAsync()
         {
             var semaphore = new NullableSemaphore(3);
             int count = 0;
@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests
         }
 
         [Fact]
-        public async void WaitAsyncZero()
+        public async Task WaitAsyncZero()
         {
             var semaphore = new NullableSemaphore(0);
             int count = 0;
@@ -57,7 +57,7 @@ namespace Libplanet.Net.Tests
         }
 
         [Fact]
-        public async void Release()
+        public async Task Release()
         {
             var semaphore = new NullableSemaphore(3);
             int count = 0;
