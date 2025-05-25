@@ -3,7 +3,7 @@ using global::Cocona;
 using global::Cocona.Help;
 using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Extensions.Cocona.Services;
-using Libplanet.RocksDBStore;
+using Libplanet.Data.RocksDB;
 using Libplanet.Data;
 using Libplanet.Types;
 
@@ -33,7 +33,7 @@ public class MptCommand
             new Dictionary<string, Func<string, ITable>>
             {
                 ["default"] = kvStorePath => new DefaultTable(kvStorePath),
-                ["rocksdb"] = kvStorePath => new RocksDBKeyValueStore(kvStorePath),
+                ["rocksdb"] = kvStorePath => new RocksTable(kvStorePath),
             }.ToImmutableSortedDictionary();
 
     [Command(Description = "Compare two trees via root hash.")]

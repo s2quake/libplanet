@@ -6,19 +6,18 @@ using System.Threading;
 using Libplanet.Data;
 using RocksDbSharp;
 
-namespace Libplanet.RocksDBStore;
+namespace Libplanet.Data.RocksDB;
 
-public sealed class RocksDBKeyValueStore : TableBase, IDisposable
+public sealed class RocksTable : TableBase, IDisposable
 {
     private readonly string _path;
     private readonly RocksDBInstanceType _type;
     private readonly DbOptions _options;
-    private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
     private RocksDb _rocksDb;
     private bool _disposed;
     private int? _count;
 
-    public RocksDBKeyValueStore(
+    public RocksTable(
         string path, RocksDBInstanceType type = RocksDBInstanceType.Primary, DbOptions? options = null)
     {
         _path = path;
@@ -87,7 +86,6 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
         {
             _rocksDb.Dispose();
             _disposed = true;
-            Trace.WriteLine($"Disposing RocksDB instance at {_path}");
             GC.SuppressFinalize(this);
         }
     }
@@ -128,7 +126,6 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
     public override void Clear()
     {
         _rocksDb.Dispose();
-        Trace.WriteLine($"Clearing RocksDB instance at {_path}");
         if (Directory.Exists(_path))
         {
             Directory.Delete(_path, recursive: true);
@@ -149,7 +146,7 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
 
     private static DbOptions CreateDbOptions(DbOptions? options)
     {
-        return new DbOptions()
+        return options ?? new DbOptions()
             .SetCreateIfMissing()
             .SetCreateMissingColumnFamilies()
             .SetAllowConcurrentMemtableWrite(true)
@@ -160,7 +157,6 @@ public sealed class RocksDBKeyValueStore : TableBase, IDisposable
 
     private RocksDb CreateInstance()
     {
-        Trace.WriteLine($"Creating RocksDB instance at {_path}");
         return RocksDBUtils.OpenRocksDb(_options, _path, type: _type);
     }
 }

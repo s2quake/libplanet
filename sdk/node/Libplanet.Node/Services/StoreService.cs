@@ -1,5 +1,5 @@
 using Libplanet.Node.Options;
-using Libplanet.RocksDBStore;
+using Libplanet.Data.RocksDB;
 using Libplanet.Data;
 using Microsoft.Extensions.Options;
 

@@ -1,13 +1,11 @@
 using System.IO;
-using Libplanet.Data;
 using RocksDbSharp;
 
-namespace Libplanet.RocksDBStore;
+namespace Libplanet.Data.RocksDB;
 
-public sealed class RocksDatabase : Database<RocksDBKeyValueStore>
+public sealed class RocksDatabase : Database<RocksTable>
 {
     private readonly DbOptions _options;
-    private readonly ColumnFamilyOptions _colOptions;
     private readonly string _path;
     private readonly RocksDBInstanceType _type;
 
@@ -21,24 +19,20 @@ public sealed class RocksDatabase : Database<RocksDBKeyValueStore>
         _path = path;
         _options = new DbOptions()
             .SetCreateIfMissing();
-        _colOptions = new ColumnFamilyOptions();
 
         if (maxTotalWalSize is ulong maxTotalWalSizeValue)
         {
             _options = _options.SetMaxTotalWalSize(maxTotalWalSizeValue);
-            _colOptions = _colOptions.SetMaxTotalWalSize(maxTotalWalSizeValue);
         }
 
         if (keepLogFileNum is ulong keepLogFileNumValue)
         {
             _options = _options.SetKeepLogFileNum(keepLogFileNumValue);
-            _colOptions = _colOptions.SetKeepLogFileNum(keepLogFileNumValue);
         }
 
         if (maxLogFileSize is ulong maxLogFileSizeValue)
         {
             _options = _options.SetMaxLogFileSize(maxLogFileSizeValue);
-            _colOptions = _colOptions.SetMaxLogFileSize(maxLogFileSizeValue);
         }
 
         _type = type;
@@ -57,12 +51,12 @@ public sealed class RocksDatabase : Database<RocksDBKeyValueStore>
         base.Dispose(disposing);
     }
 
-    protected override RocksDBKeyValueStore Create(string key)
+    protected override RocksTable Create(string key)
     {
-        return new RocksDBKeyValueStore(Path.Combine(_path, key), _type, _options);
+        return new RocksTable(Path.Combine(_path, key), _type, _options);
     }
 
-    protected override void OnRemove(string key, RocksDBKeyValueStore value)
+    protected override void OnRemove(string key, RocksTable value)
     {
         value.Dispose();
         if (Directory.Exists(value.Path))

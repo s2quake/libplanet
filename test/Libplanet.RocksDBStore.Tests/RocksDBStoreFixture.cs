@@ -2,7 +2,7 @@ using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
 
-namespace Libplanet.RocksDBStore.Tests;
+namespace Libplanet.Data.RocksDB.Tests;
 
 public class RocksDBStoreFixture : StoreFixture
 {
@@ -29,7 +29,7 @@ public class RocksDBStoreFixture : StoreFixture
     public StateStore LoadTrieStateStore(string path)
     {
         var stateKeyValueStore =
-            new RocksDBKeyValueStore(System.IO.Path.Combine(path, "states"));
+            new RocksTable(System.IO.Path.Combine(path, "states"));
         return new StateStore(stateKeyValueStore);
     }
 

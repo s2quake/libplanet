@@ -128,14 +128,14 @@ on GitHub consists of several projects.  There are two types of projects:
     (which is written in C), this is distributed as a distinct NuGet package:
     *[Libplanet.Types.Crypto.Secp256k1]*.
 
- -  *Libplanet.RocksDBStore*: The `Libplanet.Data.Store` implementation built on [RocksDB].
+ -  *Libplanet.Data.RocksDB*: The `Libplanet.Data.Store` implementation built on [RocksDB].
     As this depends on platform-dependent libraries (which is written in C/C++),
-    this is distributed as a distinct NuGet package: *[Libplanet.RocksDBStore]*.
+    this is distributed as a distinct NuGet package: *[Libplanet.Data.RocksDB]*.
 
  -  *Libplanet.Data.Remote*: The `IKeyValueStore` implementation for use with
     *Libplanet.Data* to store data in a remote server and communicate using
     [gRPC]. This is cannot be used standalone. Need `IKeyValueStore`
-    implementation for local storage like *[Libplanet.RocksDBStore]*.
+    implementation for local storage like *[Libplanet.Data.RocksDB]*.
 
  -  *Libplanet.Mocks*: A mocking tool to be used for development when
     designing `IAction`s and writing test codes.  This should not be
@@ -191,7 +191,7 @@ on GitHub consists of several projects.  There are two types of projects:
  -  *Libplanet.Types.Crypto.Secp256k1.Tests*: Unit tests for
     the *Libplanet.Types.Crypto.Secp256k1* project.
 
- -  *Libplanet.RocksDBStore.Tests*: Unit tests for the *Libplanet.RocksDBStore*
+ -  *Libplanet.Data.RocksDB.Tests*: Unit tests for the *Libplanet.Data.RocksDB*
     project.
 
  -  *Libplanet.Data.Remote.Tests*: Unit tests for the *Libplanet.Data.Remote*
@@ -220,7 +220,7 @@ on GitHub consists of several projects.  There are two types of projects:
 [gRPC]: https://grpc.io/
 [Libplanet.Stun]: https://www.nuget.org/packages/Libplanet.Stun/
 [Libplanet.Types.Crypto.Secp256k1]: https://www.nuget.org/packages/Libplanet.Types.Crypto.Secp256k1/
-[Libplanet.RocksDBStore]: https://www.nuget.org/packages/Libplanet.RocksDBStore/
+[Libplanet.Data.RocksDB]: https://www.nuget.org/packages/Libplanet.Data.RocksDB/
 [Libplanet.Analyzers]: https://www.nuget.org/packages/Libplanet.Analyzers/
 [Cocona]: https://www.nuget.org/packages/Cocona
 [Libplanet.Node]: https://www.nuget.org/packages/Libplanet.Node

@@ -21,7 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Net\Libplanet.Net.csproj" />
     <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
-    <ProjectReference Include="..\..\src\Libplanet.RocksDBStore\Libplanet.RocksDBStore.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" />
     <!-- FIXME: We should specify the version range when the following NuGet
     issue is addressed: <https://github.com/NuGet/Home/issues/5556>. -->
   </ItemGroup>

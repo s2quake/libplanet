@@ -2,17 +2,17 @@ using System.IO;
 using Libplanet.Tests.Store.Trie;
 using RocksDbSharp;
 
-namespace Libplanet.RocksDBStore.Tests
+namespace Libplanet.Data.RocksDB.Tests
 {
     public class RocksDBKeyValueStoreTest : KeyValueStoreTest, IDisposable
     {
-        private readonly RocksDBKeyValueStore _rocksDbKeyValueStore;
+        private readonly RocksTable _rocksDbKeyValueStore;
 
         public RocksDBKeyValueStoreTest()
         {
             try
             {
-                KeyValueStore = _rocksDbKeyValueStore = new RocksDBKeyValueStore(Path.Combine(
+                KeyValueStore = _rocksDbKeyValueStore = new RocksTable(Path.Combine(
                         Path.GetTempPath(),
                         $"rocksdb_key_value_test_{Guid.NewGuid()}"));
                 InitializePreStoredData();
@@ -29,8 +29,8 @@ namespace Libplanet.RocksDBStore.Tests
             var basePath = Path.Combine(
                 Path.GetTempPath(),
                 $"rocksdb_key_value_test_{Guid.NewGuid()}");
-            var primaryRocksDb = new RocksDBKeyValueStore(basePath);
-            var readonlyRocksDb = new RocksDBKeyValueStore(basePath, RocksDBInstanceType.ReadOnly);
+            var primaryRocksDb = new RocksTable(basePath);
+            var readonlyRocksDb = new RocksTable(basePath, RocksDBInstanceType.ReadOnly);
 
             var key = "new";
             var value = new byte[] { 1, 2, 3 };
@@ -46,8 +46,8 @@ namespace Libplanet.RocksDBStore.Tests
             var basePath = Path.Combine(
                 Path.GetTempPath(),
                 $"rocksdb_key_value_test_{Guid.NewGuid()}");
-            var primaryRocksDb = new RocksDBKeyValueStore(basePath);
-            var secondaryRocksDb = new RocksDBKeyValueStore(
+            var primaryRocksDb = new RocksTable(basePath);
+            var secondaryRocksDb = new RocksTable(
                 basePath,
                 RocksDBInstanceType.Secondary);
 

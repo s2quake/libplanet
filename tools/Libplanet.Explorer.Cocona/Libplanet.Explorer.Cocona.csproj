@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
-    <ProjectReference Include="..\..\src\Libplanet.RocksDBStore\Libplanet.RocksDBStore.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" />
     <ProjectReference Include="..\Libplanet.Explorer\Libplanet.Explorer.csproj" />
     <ProjectReference Include="..\Libplanet.Extensions.Cocona\Libplanet.Extensions.Cocona.csproj" />
   </ItemGroup>

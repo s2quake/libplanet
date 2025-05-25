@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Tests", "test\Lib
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Benchmarks", "tools\Libplanet.Benchmarks\Libplanet.Benchmarks.csproj", "{E010FB5E-0D68-4AF7-B632-5DB6B902F158}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.RocksDBStore", "src\Libplanet.RocksDBStore\Libplanet.RocksDBStore.csproj", "{A5DE942D-912D-4012-8493-1E958E5445F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.Data.RocksDB", "src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj", "{A5DE942D-912D-4012-8493-1E958E5445F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Libplanet.RocksDBStore.Tests", "test\Libplanet.RocksDBStore.Tests\Libplanet.RocksDBStore.Tests.csproj", "{ADCBBAC0-0A87-45B7-BD31-314F136F74D4}"
 EndProject

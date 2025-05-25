@@ -1,7 +1,7 @@
 using System.IO;
 using RocksDbSharp;
 
-namespace Libplanet.RocksDBStore
+namespace Libplanet.Data.RocksDB
 {
     internal static class RocksDBUtils
     {
