@@ -392,23 +392,12 @@ public partial class Context : IDisposable
             try
             {
                 block.Validate(_blockChain);
-                _blockChain.ValidateBlockNonces(
-                    block.Transactions
-                        .Select(tx => tx.Signer)
-                        .Distinct()
-                        .ToDictionary(
-                            signer => signer,
-                            signer => _blockChain.GetNextTxNonce(signer)),
-                    block);
-
                 _blockChain.Options.BlockOptions.Validate(block);
 
                 foreach (var tx in block.Transactions)
                 {
                     _blockChain.Options.TransactionOptions.Validate(tx);
                 }
-
-                // _blockChain.ValidateBlockStateRootHash(block);
             }
             catch (Exception e) when (
                 e is InvalidOperationException)
