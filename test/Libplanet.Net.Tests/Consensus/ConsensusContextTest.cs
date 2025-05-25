@@ -31,7 +31,7 @@ public class ConsensusContextTest
     }
 
     [Fact(Timeout = Timeout)]
-    public async void NewHeightIncreasing()
+    public async Task NewHeightIncreasing()
     {
         ConsensusProposalMessage? proposal = null;
         var proposalMessageSent = new AsyncAutoResetEvent();
@@ -164,7 +164,7 @@ public class ConsensusContextTest
     }
 
     [Fact(Timeout = Timeout)]
-    public async void NewHeightWhenTipChanged()
+    public async Task NewHeightWhenTipChanged()
     {
         var newHeightDelay = TimeSpan.FromSeconds(1);
         var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
@@ -198,7 +198,7 @@ public class ConsensusContextTest
     }
 
     [Fact(Timeout = Timeout)]
-    public async void VoteSetGetOnlyProposeCommitHash()
+    public async Task VoteSetGetOnlyProposeCommitHash()
     {
         ConsensusProposalMessage? proposal = null;
         var heightOneProposalSent = new AsyncAutoResetEvent();

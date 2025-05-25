@@ -137,7 +137,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         [Fact(Timeout = Timeout)]
-        public async void EnterValidRoundPreVoteNil()
+        public async Task EnterValidRoundPreVoteNil()
         {
             ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
