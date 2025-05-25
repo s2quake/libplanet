@@ -19,7 +19,7 @@ public partial class Blockchain
     private readonly Subject<RenderBlockInfo> _blockEvaluated = new();
     private readonly Subject<TipChangedInfo> _tipChangedSubject = new();
     private readonly Repository _repository;
-    private readonly BlockExecutor _actionEvaluator;
+    private readonly BlockExecutor _blockExecutor;
 
     public Blockchain()
         : this(new Repository(), BlockchainOptions.Empty)
@@ -52,7 +52,7 @@ public partial class Blockchain
     public Blockchain(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
-        _actionEvaluator = new BlockExecutor(repository.StateStore, options.PolicyActions);
+        _blockExecutor = new BlockExecutor(repository.StateStore, options.PolicyActions);
         Options = options;
         Id = _repository.Id;
         Blocks = new BlockCollection(repository);
@@ -66,7 +66,7 @@ public partial class Blockchain
 
     public IObservable<RenderBlockInfo> RenderBlock => _blockEvaluating;
 
-    public IObservable<ActionResult> RenderAction => _actionEvaluator.ActionExecuted;
+    public IObservable<ActionResult> RenderAction => _blockExecutor.ActionExecuted;
 
     public IObservable<RenderBlockInfo> RenderBlockEnd => _blockEvaluated;
 
@@ -109,7 +109,7 @@ public partial class Blockchain
 
     public BlockResult Evaluate(Block block)
     {
-        var evaluation = _actionEvaluator.Execute((RawBlock)block);
+        var evaluation = _blockExecutor.Execute((RawBlock)block);
         var blockHash = block.BlockHash;
         _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(blockHash));
         _repository.BlockExecutions.Add(blockHash, evaluation.GetBlockExecution(blockHash));
@@ -139,7 +139,7 @@ public partial class Blockchain
         _repository.Append(block, blockCommit);
         _tipChangedSubject.OnNext(new(oldTip, block));
         _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));
-        var evaluation = _actionEvaluator.Execute((RawBlock)block);
+        var evaluation = _blockExecutor.Execute((RawBlock)block);
         _blockEvaluated.OnNext(new RenderBlockInfo(oldTip, block));
         _repository.StateRootHash = evaluation.OutputWorld.Hash;
         _repository.StateRootHashStore.Add(block.BlockHash, _repository.StateRootHash);

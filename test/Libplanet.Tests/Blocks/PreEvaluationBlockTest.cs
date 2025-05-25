@@ -48,7 +48,7 @@
 
 //             using (var fx = new MemoryStoreFixture())
 //             {
-//                 var actionEvaluator = new ActionEvaluator(
+//                 var blockExecutor = new BlockExecutor(
 //                     policy.PolicyActions,
 //                     fx.StateStore,
 //                     new SingleActionLoader<Arithmetic>());
@@ -64,7 +64,7 @@
 //                     fx.Store,
 //                     fx.StateStore,
 //                     genesis,
-//                     actionEvaluator);
+//                     blockExecutor);
 //                 AssertBencodexEqual(
 //                     (Bencodex.Types.Integer)123,
 //                     blockChain
@@ -124,7 +124,7 @@
 
 //             using (var fx = new MemoryStoreFixture())
 //             {
-//                 var actionEvaluator = new ActionEvaluator(
+//                 var blockExecutor = new BlockExecutor(
 //                     policyActions: policy.PolicyActions,
 //                     stateStore: fx.StateStore,
 //                     actionTypeLoader: new SingleActionLoader<Arithmetic>());
@@ -140,7 +140,7 @@
 //                     fx.Store,
 //                     fx.StateStore,
 //                     genesis,
-//                     actionEvaluator);
+//                     blockExecutor);
 //                 AssertBencodexEqual(
 //                     (Bencodex.Types.Integer)123,
 //                     blockChain

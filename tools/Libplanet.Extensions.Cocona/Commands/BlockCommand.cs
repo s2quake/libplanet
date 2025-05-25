@@ -144,7 +144,7 @@ public class BlockCommand
             .ToImmutableList();
 
         var policyActions = blockPolicyParams.GetPolicyActions();
-        var actionEvaluator = new BlockExecutor(
+        var blockExecutor = new BlockExecutor(
             new StateStore(new DefaultTable()),
             policyActions);
         Block genesis = Blockchain.ProposeGenesisBlock(

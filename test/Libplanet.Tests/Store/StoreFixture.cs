@@ -92,9 +92,9 @@ public abstract class StoreFixture : IDisposable
         var preEval = TestUtils.ProposeGenesis(
             proposer: Proposer,
             validators: TestUtils.Validators);
-        var actionEvaluator = new BlockExecutor(repository.StateStore, Options.PolicyActions);
+        var blockExecutor = new BlockExecutor(repository.StateStore, Options.PolicyActions);
         GenesisBlock = preEval.Sign(Proposer);
-        var evaluation = actionEvaluator.Execute((RawBlock)GenesisBlock);
+        var evaluation = blockExecutor.Execute((RawBlock)GenesisBlock);
         var genesisNextSrh = evaluation.OutputWorld.Trie.Hash;
         stateRootHashes[GenesisBlock.BlockHash] = genesisNextSrh;
         Block1 = TestUtils.ProposeNextBlock(

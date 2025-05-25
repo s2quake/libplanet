@@ -501,7 +501,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         Block? genesisBlock = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
     {
-        return MakeBlockChainAndActionEvaluator(
+        return MakeBlockChainAndBlockExecutor(
             options,
             actions,
             validatorSet,
@@ -512,8 +512,8 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         .BlockChain;
     }
 
-    public static (Libplanet.Blockchain BlockChain, BlockExecutor ActionEvaluator)
-        MakeBlockChainAndActionEvaluator(
+    public static (Libplanet.Blockchain BlockChain, BlockExecutor BlockExecutor)
+        MakeBlockChainAndBlockExecutor(
         BlockchainOptions? options,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validatorSet = null,
@@ -539,7 +539,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
         }.ToImmutableSortedSet();
 
         var repository = new Repository();
-        var actionEvaluator = new BlockExecutor(
+        var blockExecutor = new BlockExecutor(
             stateStore: repository.StateStore,
             options.PolicyActions);
 
@@ -551,13 +551,13 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
                 validators: validatorSet,
                 timestamp: timestamp,
                 protocolVersion: protocolVersion);
-            var evaluation = actionEvaluator.Execute(preEval);
+            var evaluation = blockExecutor.Execute(preEval);
             genesisBlock = preEval.Sign(privateKey);
         }
 
         var chain = new Libplanet.Blockchain(genesisBlock, repository, options);
 
-        return (chain, actionEvaluator);
+        return (chain, blockExecutor);
     }
 
     public static async Task AssertThatEventually(

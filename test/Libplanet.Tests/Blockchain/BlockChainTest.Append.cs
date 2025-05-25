@@ -668,7 +668,7 @@
 //         };
 //         var fx = GetStoreFixture(options);
 //         // var renderer = new ValidatingActionRenderer();
-//         var actionEvaluator = new ActionEvaluator(
+//         var blockExecutor = new BlockExecutor(
 //             stateStore: options.Repository.StateStore,
 //             options.PolicyActions);
 
@@ -706,7 +706,7 @@
 //     };
 //     var genesis = preEvalGenesis.Sign(
 //         fx.Proposer,
-//         actionEvaluator.Evaluate(preEvalGenesis, default)[^1].OutputWorld.Trie.Hash);
+//         blockExecutor.Evaluate(preEvalGenesis, default)[^1].OutputWorld.Trie.Hash);
 //     var blockChain = new BlockChain(
 //         options: options,
 //         genesisBlock: genesis);
@@ -724,7 +724,7 @@
 //         var options = new BlockChainOptions();
 //         var store = new Libplanet.Data.Repository(new MemoryDatabase());
 //         var stateStore = new TrieStateStore();
-//         var actionEvaluator = new ActionEvaluator(
+//         var blockExecutor = new BlockExecutor(
 //             stateStore,
 //             options.PolicyActions);
 
@@ -733,7 +733,7 @@
 //             protocolVersion: beforePostponeBPV);
 //         var genesis = preGenesis.Sign(
 //             TestUtils.GenesisProposer,
-//             actionEvaluator.Evaluate(preGenesis, default)[^1].OutputWorld.Trie.Hash);
+//             blockExecutor.Evaluate(preGenesis, default)[^1].OutputWorld.Trie.Hash);
 //         Assert.Equal(beforePostponeBPV, genesis.Version);
 
 //         var blockChain = TestUtils.MakeBlockChain(
@@ -757,7 +757,7 @@
 //             protocolVersion: beforePostponeBPV);
 //         var blockBeforeBump = preBlockBeforeBump.Sign(
 //             proposer,
-//             actionEvaluator.Evaluate(
+//             blockExecutor.Evaluate(
 //                 preBlockBeforeBump, genesis.StateRootHash)[^1].OutputWorld.Trie.Hash);
 //         Assert.Equal(beforePostponeBPV, blockBeforeBump.Version);
 //         var commitBeforeBump = TestUtils.CreateBlockCommit(blockBeforeBump);
@@ -796,7 +796,7 @@
 //         var commitAfterBump2 = TestUtils.CreateBlockCommit(blockAfterBump2);
 //         blockChain.Append(blockAfterBump2, commitAfterBump2);
 //         Assert.Equal(
-//             actionEvaluator.Evaluate(
+//             blockExecutor.Evaluate(
 //                 (RawBlock)blockAfterBump1, blockAfterBump1.StateRootHash)[^1].OutputWorld.Trie.Hash,
 //             blockAfterBump2.StateRootHash);
 //     }
