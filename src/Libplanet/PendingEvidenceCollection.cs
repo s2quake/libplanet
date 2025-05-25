@@ -5,15 +5,10 @@ using Libplanet.Types.Evidence;
 
 namespace Libplanet;
 
-public sealed class PendingEvidenceCollection(Repository repository, BlockchainOptions options)
+public sealed class PendingEvidenceCollection(Repository repository)
     : IReadOnlyDictionary<EvidenceId, EvidenceBase>
 {
     private readonly PendingEvidenceStore _store = repository.PendingEvidences;
-
-    public PendingEvidenceCollection(Repository repository)
-        : this(repository, new BlockchainOptions())
-    {
-    }
 
     public IEnumerable<EvidenceId> Keys => _store.Keys;
 
@@ -23,16 +18,14 @@ public sealed class PendingEvidenceCollection(Repository repository, BlockchainO
 
     public EvidenceBase this[EvidenceId txId] => _store[txId];
 
-    public bool Add(EvidenceBase evidence)
+    public void Add(EvidenceBase evidence)
     {
-        // if (evidence.Timestamp + lifetime < DateTimeOffset.UtcNow)
-        // {
-        //     return false;
-        // }
-
-        // compare with repository genesis
-
-        return _store.TryAdd(evidence);
+        if (!_store.TryAdd(evidence))
+        {
+            throw new ArgumentException(
+                $"Evidence with ID {evidence.Id} already exists in the collection.",
+                nameof(evidence));
+        }
     }
 
     public bool Remove(EvidenceId txId) => _store.Remove(txId);

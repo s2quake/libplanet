@@ -8,6 +8,7 @@ using Libplanet.Types.Blocks;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
+using Libplanet.Types.Transactions;
 using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet;
@@ -45,14 +46,12 @@ public partial class Blockchain
     {
         var evaluation = Evaluate(genesisBlock);
         _repository.Append(genesisBlock, BlockCommit.Empty);
-        // _chain.Append(genesisBlock, BlockCommit.Empty);
         _repository.StateRootHash = evaluation.OutputWorld.Hash;
     }
 
     public Blockchain(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
-        // _chain = repository.Chain;
         _actionEvaluator = new BlockExecutor(repository.StateStore, options.PolicyActions);
         Options = options;
         Id = _repository.Id;
@@ -121,12 +120,6 @@ public partial class Blockchain
 
     public void Append(Block block, BlockCommit blockCommit)
     {
-        // if (Blocks.Count is 0)
-        // {
-        //     throw new InvalidCastException(
-        //         $"Cannot append block #{block.Height} {block.BlockHash} to an empty chain.");
-        // }
-
         if (_repository.BlockDigests.ContainsKey(block.BlockHash))
         {
             throw new InvalidOperationException(
@@ -143,12 +136,7 @@ public partial class Blockchain
         block.Validate(this);
         blockCommit.Validate(block);
 
-        // ValidateBlockStateRootHash(block);
-
         _repository.Append(block, blockCommit);
-        // _chain.Append(block, blockCommit);
-        // Blocks.AddCache(block);
-
         _tipChangedSubject.OnNext(new(oldTip, block));
         _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));
         var evaluation = _actionEvaluator.Execute((RawBlock)block);
@@ -164,14 +152,101 @@ public partial class Blockchain
     public HashDigest<SHA256> GetStateRootHash(BlockHash blockHash)
         => _repository.StateRootHashStore[blockHash];
 
-    // internal ImmutableSortedSet<Validator> GetValidatorSet(int height)
-    // {
-    //     return GetWorld(height).GetValidatorSet();
-    // }
+    public World GetWorld() => GetWorld(Tip.BlockHash);
 
-    // private static Repository CreateChain(Block genesisBlock, Repository repository)
-    // {
-    //     repository.AddNewChain(genesisBlock);
-    //     return repository;
-    // }
+    public World GetWorld(int height) => GetWorld(Blocks[height].BlockHash);
+
+    public World GetWorld(BlockHash blockHash)
+    {
+        var stateRootHash = _repository.StateRootHashStore[blockHash];
+        return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
+    }
+
+    public World GetWorld(HashDigest<SHA256> stateRootHash)
+    {
+        return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
+    }
+
+    public static Block ProposeGenesisBlock(
+        PrivateKey proposer,
+        ImmutableSortedSet<Transaction> transactions,
+        HashDigest<SHA256> previousStateRootHash = default)
+    {
+        var blockHeader = new BlockHeader
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = proposer.Address,
+            PreviousStateRootHash = previousStateRootHash,
+        };
+        var blockContent = new BlockContent
+        {
+            Transactions = transactions,
+            Evidences = [],
+        };
+        var rawBlock = new RawBlock
+        {
+            Header = blockHeader,
+            Content = blockContent,
+        };
+        return rawBlock.Sign(proposer);
+    }
+
+    public static Block ProposeGenesisBlock(
+        PrivateKey proposer,
+        ImmutableArray<IAction> actions,
+        HashDigest<SHA256> previousStateRootHash = default)
+    {
+        var transaction = new TransactionMetadata
+        {
+            Signer = proposer.Address,
+            Actions = actions.ToBytecodes(),
+            Timestamp = DateTimeOffset.UtcNow,
+        }.Sign(proposer);
+        var blockHeader = new BlockHeader
+        {
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = proposer.Address,
+            PreviousStateRootHash = previousStateRootHash,
+        };
+        var blockContent = new BlockContent
+        {
+            Transactions = [transaction],
+            Evidences = [],
+        };
+        var rawBlock = new RawBlock
+        {
+            Header = blockHeader,
+            Content = blockContent,
+        };
+        return rawBlock.Sign(proposer);
+    }
+
+    public Block ProposeBlock(PrivateKey proposer)
+    {
+        var tip = Tip;
+        var height = tip.Height + 1;
+        var transactions = StagedTransactions.Collect();
+        var evidences = PendingEvidences.Collect();
+        var previousHash = tip.BlockHash;
+        var blockHeader = new BlockHeader
+        {
+            Height = height,
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = proposer.Address,
+            PreviousHash = previousHash,
+            PreviousCommit = BlockCommits[previousHash],
+            PreviousStateRootHash = GetStateRootHash(previousHash),
+        };
+        var blockContent = new BlockContent
+        {
+            Transactions = transactions,
+            Evidences = evidences,
+        };
+        var rawBlock = new RawBlock
+        {
+            Header = blockHeader,
+            Content = blockContent,
+        };
+        return rawBlock.Sign(proposer);
+    }
 }
