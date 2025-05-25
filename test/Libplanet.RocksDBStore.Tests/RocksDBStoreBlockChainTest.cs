@@ -3,7 +3,7 @@ using Libplanet.Tests.Blockchain;
 using Libplanet.Tests.Store;
 using Xunit.Abstractions;
 
-namespace Libplanet.RocksDBStore.Tests;
+namespace Libplanet.Data.RocksDB.Tests;
 
 public class RocksDBStoreBlockChainTest : BlockChainTest
 {

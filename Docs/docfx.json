@@ -10,7 +10,7 @@
             "tools/Libplanet.Explorer.Cocona/Libplanet.Explorer.Cocona.csproj",
             "tools/Libplanet.Extensions.Cocona/Libplanet.Extensions.Cocona.csproj",
             "src/Libplanet.Net/Libplanet.Net.csproj",
-            "src/Libplanet.RocksDBStore/Libplanet.RocksDBStore.csproj",
+            "src/Libplanet.Data.RocksDB/Libplanet.Data.RocksDB.csproj",
             "src/Libplanet.Data/Libplanet.Data.csproj",
             "src/Libplanet.Data.Remote/Libplanet.Data.Remote.csproj",
             "src/Libplanet.Types/Libplanet.Types.csproj"

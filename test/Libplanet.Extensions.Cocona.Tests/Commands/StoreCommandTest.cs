@@ -2,7 +2,7 @@ using System.IO;
 using global::Cocona;
 using Libplanet.State;
 using Libplanet.Extensions.Cocona.Commands;
-using Libplanet.RocksDBStore.Tests;
+using Libplanet.Data.RocksDB.Tests;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types.Blocks;

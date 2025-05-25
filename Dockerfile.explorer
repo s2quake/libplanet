@@ -7,8 +7,8 @@ COPY ./Directory.Build.props ./
 COPY ./src/Directory.Build.props ./src/
 COPY ./tools/Directory.Build.props ./tools/
 RUN dotnet restore src/Libplanet.Stun
-COPY ./src/Libplanet.RocksDBStore/Libplanet.RocksDBStore.csproj ./src/Libplanet.RocksDBStore/
-RUN dotnet restore src/Libplanet.RocksDBStore
+COPY ./src/Libplanet.Data.RocksDB/Libplanet.Data.RocksDB.csproj ./src/Libplanet.Data.RocksDB/
+RUN dotnet restore src/Libplanet.Data.RocksDB
 COPY ./tools/Libplanet.Explorer.Executable/Libplanet.Explorer.Executable.csproj ./tools/Libplanet.Explorer.Executable/
 RUN dotnet restore tools/Libplanet.Explorer.Executable
 COPY ./tools/Libplanet.Explorer/Libplanet.Explorer.csproj ./tools/Libplanet.Explorer/

@@ -1,7 +1,7 @@
 using Libplanet.Tests.Store;
 using Xunit.Abstractions;
 
-namespace Libplanet.RocksDBStore.Tests;
+namespace Libplanet.Data.RocksDB.Tests;
 
 public class RocksDBStoreTest : StoreTest, IDisposable
 {
