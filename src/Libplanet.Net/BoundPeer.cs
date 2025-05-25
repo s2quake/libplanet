@@ -45,10 +45,6 @@ public sealed record class BoundPeer : IEquatable<BoundPeer>
 
     public string PeerString => $"{PublicKey},{EndPoint.Host},{EndPoint.Port}";
 
-    // public static bool operator ==(BoundPeer left, BoundPeer right) => left.Equals(right);
-
-    // public static bool operator !=(BoundPeer left, BoundPeer right) => !left.Equals(right);
-
     public static BoundPeer ParsePeer(string peerInfo)
     {
         string[] tokens = peerInfo.Split(',');
@@ -73,10 +69,7 @@ public sealed record class BoundPeer : IEquatable<BoundPeer>
             var host = tokens[1];
             var port = int.Parse(tokens[2], CultureInfo.InvariantCulture);
 
-            // FIXME: It might be better to make Peer.AppProtocolVersion property nullable...
-            return new BoundPeer(
-                pubKey,
-                new DnsEndPoint(host, port));
+            return new BoundPeer(pubKey, new DnsEndPoint(host, port));
         }
         catch (Exception e)
         {
@@ -86,28 +79,6 @@ public sealed record class BoundPeer : IEquatable<BoundPeer>
                 innerException: e);
         }
     }
-
-    public bool Equals(BoundPeer? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return PublicKey.Equals(other.PublicKey) &&
-            (PublicIPAddress?.Equals(other.PublicIPAddress) ?? other.PublicIPAddress is null) &&
-            EndPoint.Equals(other.EndPoint);
-    }
-
-    // public override bool Equals(object? obj) => obj is BoundPeer other && Equals(other);
-
-    // public override int GetHashCode() => HashCode.Combine(
-    //     HashCode.Combine(PublicKey.GetHashCode(), PublicIPAddress?.GetHashCode()), EndPoint);
 
     public override string ToString()
     {

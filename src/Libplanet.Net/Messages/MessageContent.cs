@@ -65,7 +65,5 @@ public abstract record class MessageContent
     [Property(0, ReadOnly = true)]
     public abstract MessageType Type { get; }
 
-    // public abstract IEnumerable<byte[]> DataFrames { get; }
-
     public MessageId Id => _id ??= new MessageId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 }

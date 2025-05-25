@@ -76,27 +76,4 @@ internal sealed record class ModelData
             Version = stream.ReadInt32(),
         };
     }
-
-    // internal static IValue GetValue(IValue value, string typeName)
-    // {
-    //     try
-    //     {
-    //         var data = GetData(value);
-    //         if (typeName != data.Header.TypeName)
-    //         {
-    //             throw new ModelSerializationException(
-    //                 $"Given type name {data.Header.TypeName} is not {typeName}");
-    //         }
-
-    //         return data.Value;
-    //     }
-    //     catch (ModelSerializationException)
-    //     {
-    //         throw;
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         throw new ModelSerializationException(e.Message, e);
-    //     }
-    // }
 }
