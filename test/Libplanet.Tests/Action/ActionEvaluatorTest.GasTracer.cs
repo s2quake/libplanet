@@ -13,7 +13,7 @@
 
 // namespace Libplanet.Tests.Action
 // {
-//     public partial class ActionEvaluatorTest
+//     public partial class BlockExecutorTest
 //     {
 //         [Theory]
 //         [InlineData(false, 1, 1)]
@@ -60,7 +60,7 @@
 //             var miner = new PrivateKey();
 //             Block block = chain.ProposeBlock(miner);
 //             chain.Append(block, CreateBlockCommit(block));
-//             var evaluations = chain.ActionEvaluator.Evaluate(
+//             var evaluations = chain.BlockExecutor.Evaluate(
 //                 (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
 //             var actualGold = chain.GetNextWorldState().GetBalance(privateKey.Address, gold);
@@ -167,7 +167,7 @@
 //             var miner = new PrivateKey();
 //             Block block = chain.ProposeBlock(miner);
 //             chain.Append(block, CreateBlockCommit(block));
-//             var evaluations = chain.ActionEvaluator.Evaluate(
+//             var evaluations = chain.BlockExecutor.Evaluate(
 //                 (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 //             var exception = (UnexpectedlyTerminatedActionException)evaluations[0].Exception;
 
@@ -211,7 +211,7 @@
 //             var miner = new PrivateKey();
 //             Block block = chain.ProposeBlock(miner);
 //             chain.Append(block, CreateBlockCommit(block));
-//             return chain.ActionEvaluator.Evaluate(
+//             return chain.BlockExecutor.Evaluate(
 //                 (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 //         }
 

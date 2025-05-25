@@ -20,7 +20,7 @@
 
 // namespace Libplanet.Tests.Action;
 
-// public partial class ActionEvaluatorTest
+// public partial class BlockExecutorTest
 // {
 //     private readonly ILogger _logger;
 //     private readonly BlockChainOptions _options;
@@ -32,14 +32,14 @@
 //     private readonly Address _beginTxValueAddress = Address.Parse("0000000000000000000000000000000000000122");
 //     private readonly Address _endTxValueAddress = Address.Parse("0000000000000000000000000000000000000123");
 
-//     public ActionEvaluatorTest(ITestOutputHelper output)
+//     public BlockExecutorTest(ITestOutputHelper output)
 //     {
 //         Log.Logger = _logger = new LoggerConfiguration()
 //             .MinimumLevel.Verbose()
 //             .Enrich.WithThreadId()
 //             .WriteTo.TestOutput(output)
 //             .CreateLogger()
-//             .ForContext<ActionEvaluatorTest>();
+//             .ForContext<BlockExecutorTest>();
 
 //         _options = new BlockChainOptions
 //         {
@@ -111,7 +111,7 @@
 //                 Evidences = [.. evs],
 //             },
 //         };
-//         var actionEvaluator = new ActionEvaluator(stateStore);
+//         var blockExecutor = new BlockExecutor(stateStore);
 //         Block stateRootBlock = noStateRootBlock.Sign(
 //             GenesisProposer,
 //             stateRootHash: default);
@@ -121,11 +121,11 @@
 
 //         for (int i = 0; i < repeatCount; ++i)
 //         {
-//             var actionEvaluations = actionEvaluator.Evaluate(noStateRootBlock, default);
+//             var actionEvaluations = blockExecutor.Evaluate(noStateRootBlock, default);
 //             generatedRandomNumbers.Add(
 //                 (int)World.Create(actionEvaluations[0].OutputWorld.Trie.Hash, stateStore)
 //                         .GetValue(LegacyAccount, ContextRecordingAction.RandomRecordAddress));
-//             actionEvaluations = actionEvaluator.Evaluate((RawBlock)stateRootBlock, default);
+//             actionEvaluations = blockExecutor.Evaluate((RawBlock)stateRootBlock, default);
 //             generatedRandomNumbers.Add(
 //                 (int)World.Create(actionEvaluations[0].OutputWorld.Trie.Hash, stateStore)
 //                         .GetValue(LegacyAccount, ContextRecordingAction.RandomRecordAddress));
@@ -148,7 +148,7 @@
 //         var options = new BlockChainOptions();
 //         var chain = TestUtils.MakeBlockChain(options: options);
 //         var action = new ContextRecordingAction { Address = address, Value = value };
-//         var actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
+//         var blockExecutor = new BlockExecutor(repository.StateStore, options.PolicyActions);
 //         var tx = new TransactionMetadata
 //         {
 //             Nonce = 0,
@@ -162,7 +162,7 @@
 //         var block = chain.ProposeBlock(miner);
 //         chain.Append(block, CreateBlockCommit(block));
 
-//         var evaluations = actionEvaluator.Evaluate(
+//         var evaluations = blockExecutor.Evaluate(
 //             (RawBlock)chain.Tip, chain.Blocks[chain.Tip.PreviousHash].StateRootHash);
 
 //         Assert.Single(evaluations);
@@ -202,7 +202,7 @@
 //     [Fact]
 //     public void EvaluateWithPolicyActions()
 //     {
-//         var (chain, actionEvaluator) = TestUtils.MakeBlockChainAndActionEvaluator(options: _options);
+//         var (chain, blockExecutor) = TestUtils.MakeBlockChainAndBlockExecutor(options: _options);
 
 //         Assert.Equal(
 //             (BigInteger)1,
@@ -219,7 +219,7 @@
 
 //         (_, Transaction[] txs) = MakeFixturesForAppendTests();
 //         var block = chain.ProposeBlock(proposer: GenesisProposer);
-//         var evaluations = actionEvaluator.Evaluate(
+//         var evaluations = blockExecutor.Evaluate(
 //             (RawBlock)block, chain.Tip.StateRootHash).ToArray();
 
 //         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
@@ -272,11 +272,11 @@
 //             },
 //         };
 
-//         var (chain, actionEvaluator) = TestUtils.MakeBlockChainAndActionEvaluator(options: policyWithExceptions);
+//         var (chain, blockExecutor) = TestUtils.MakeBlockChainAndBlockExecutor(options: policyWithExceptions);
 
 //         (_, Transaction[] txs) = MakeFixturesForAppendTests();
 //         var block = chain.ProposeBlock(GenesisProposer);
-//         var evaluations = actionEvaluator.Evaluate(
+//         var evaluations = blockExecutor.Evaluate(
 //             (RawBlock)block, chain.Tip.StateRootHash).ToArray();
 
 //         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
@@ -313,7 +313,7 @@
 //     //     chain.StageTransaction(tx);
 //     //     Block block = chain.ProposeBlock(new PrivateKey());
 //     //     chain.Append(block, CreateBlockCommit(block));
-//     //     var evaluations = chain.ActionEvaluator.Evaluate(
+//     //     var evaluations = chain.BlockExecutor.Evaluate(
 //     //         (RawBlock)chain.Tip, chain.Store.GetStateRootHash(chain.Tip.PreviousHash));
 
 //     //     Assert.False(evaluations[0].InputContext.IsPolicyAction);
@@ -340,8 +340,8 @@
 //     //     var store = new Libplanet.Data.Store(new MemoryDatabase());
 //     //     var stateStore =
 //     //         new TrieStateStore();
-//     //     var (chain, actionEvaluator) =
-//     //         TestUtils.MakeBlockChainAndActionEvaluator(
+//     //     var (chain, blockExecutor) =
+//     //         TestUtils.MakeBlockChainAndBlockExecutor(
 //     //             policy: new BlockPolicy(),
 //     //             store: store,
 //     //             stateStore: stateStore,
@@ -375,12 +375,12 @@
 //     //     World previousState = stateStore.GetWorld(genesis.StateRootHash);
 
 //     //     Assert.Throws<OutOfMemoryException>(
-//     //         () => actionEvaluator.EvaluateTx(
+//     //         () => blockExecutor.EvaluateTx(
 //     //             block: block,
 //     //             tx: tx,
 //     //             world: previousState).ToList());
 //     //     Assert.Throws<OutOfMemoryException>(
-//     //         () => chain.ActionEvaluator.Evaluate(
+//     //         () => chain.BlockExecutor.Evaluate(
 //     //             block, chain.Store.GetStateRootHash(block.PreviousHash)).ToList());
 //     // }
 
@@ -413,7 +413,7 @@
 //         var trie = stateStore.CommitWorld(world).Trie;
 
 //         var genesisBlock = ProposeGenesisBlock(TestUtils.GenesisProposer, stateRootHash: trie.Hash);
-//         var actionEvaluator = new ActionEvaluator(stateStore);
+//         var blockExecutor = new BlockExecutor(stateStore);
 
 //         var block1Txs = ImmutableSortedSet.Create(
 //         [
@@ -457,7 +457,7 @@
 //             GenesisProposer,
 //             block1Txs);
 //         World previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
-//         var evals = actionEvaluator.EvaluateBlock((RawBlock)block1, previousState);
+//         var evals = blockExecutor.EvaluateBlock((RawBlock)block1, previousState);
 //         // Once the BlockHeader.CurrentProtocolVersion gets bumped, expectations may also
 //         // have to be updated, since the order may change due to different RawHash.
 //         (int TxIdx, int ActionIdx, string?[] UpdatedStates, Address Signer)[] expectations =
@@ -513,7 +513,7 @@
 
 //         previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
 //         ActionEvaluation[] evals1 =
-//             actionEvaluator.EvaluateBlock((RawBlock)block1, previousState).ToArray();
+//             blockExecutor.EvaluateBlock((RawBlock)block1, previousState).ToArray();
 //         var output1 = World.Create(evals1[^1].OutputWorld.Trie, stateStore);
 //         Assert.Equal("A", output1.GetValue(LegacyAccount, addresses[0]));
 //         Assert.Equal("B", output1.GetValue(LegacyAccount, addresses[1]));
@@ -583,7 +583,7 @@
 
 //         // Forcefully reset to null delta
 //         previousState = evals1[^1].OutputWorld;
-//         evals = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState);
+//         evals = blockExecutor.EvaluateBlock((RawBlock)block2, previousState);
 
 //         // Once the BlockHeader.CurrentProtocolVersion gets bumped, expectations may also
 //         // have to be updated, since the order may change due to different RawHash.
@@ -638,7 +638,7 @@
 //         }
 
 //         previousState = evals1[^1].OutputWorld;
-//         var evals2 = actionEvaluator.EvaluateBlock((RawBlock)block2, previousState).ToArray();
+//         var evals2 = blockExecutor.EvaluateBlock((RawBlock)block2, previousState).ToArray();
 //         var output2 = World.Create(evals2[^1].OutputWorld.Trie, stateStore);
 //         Assert.Equal("A,D", output2.GetValue(LegacyAccount, addresses[0]));
 //         Assert.Equal("E", output2.GetValue(LegacyAccount, addresses[3]));
@@ -692,9 +692,9 @@
 //             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
 //             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100);
 //         var initTrie = stateStore.CommitWorld(world).Trie;
-//         var actionEvaluator = new ActionEvaluator(stateStore);
+//         var blockExecutor = new BlockExecutor(stateStore);
 //         var previousState = stateStore.GetWorld(initTrie.Hash);
-//         var evaluations = actionEvaluator.EvaluateTx(
+//         var evaluations = blockExecutor.EvaluateTx(
 //             rawBlock: block,
 //             tx: tx,
 //             world: previousState).ToImmutableArray();
@@ -752,7 +752,7 @@
 //         }
 
 //         previousState = stateStore.GetWorld(initTrie.Hash);
-//         World delta = actionEvaluator.EvaluateTx(
+//         World delta = blockExecutor.EvaluateTx(
 //             rawBlock: block,
 //             tx: tx,
 //             world: previousState)[^1].OutputWorld;
@@ -771,7 +771,7 @@
 //         var txs = ImmutableSortedSet.Create(tx);
 //         var hash = new BlockHash(GetRandomBytes(BlockHash.Size));
 //         var stateStore = new TrieStateStore();
-//         var actionEvaluator = new ActionEvaluator(stateStore);
+//         var blockExecutor = new BlockExecutor(stateStore);
 //         var block = new RawBlock
 //         {
 //             Header = new BlockHeader
@@ -789,7 +789,7 @@
 //             },
 //         };
 //         var world = stateStore.GetWorld(default);
-//         var nextWorld = actionEvaluator.EvaluateTx(block, tx, world)[^1].OutputWorld;
+//         var nextWorld = blockExecutor.EvaluateTx(block, tx, world)[^1].OutputWorld;
 
 //         Assert.Empty(nextWorld.Trie.Diff(world.Trie));
 //     }
@@ -798,7 +798,7 @@
 //     public void EvaluateActions()
 //     {
 //         var fx = new IntegerSet([5, 10]);
-//         var actionEvaluator = new ActionEvaluator(fx.StateStore);
+//         var blockExecutor = new BlockExecutor(fx.StateStore);
 
 //         // txA: ((5 + 1) * 2) + 3 = 15
 //         (Transaction txA, var deltaA) = fx.Sign(
@@ -809,7 +809,7 @@
 
 //         Block blockA = fx.Propose();
 //         fx.Append(blockA);
-//         ActionEvaluation[] evalsA = actionEvaluator.EvaluateActions(
+//         ActionEvaluation[] evalsA = blockExecutor.EvaluateActions(
 //             rawBlock: (RawBlock)blockA,
 //             tx: txA,
 //             world: fx.StateStore.GetWorld(blockA.StateRootHash),
@@ -860,7 +860,7 @@
 
 //         Block blockB = fx.Propose();
 //         fx.Append(blockB);
-//         ActionEvaluation[] evalsB = actionEvaluator.EvaluateActions(
+//         ActionEvaluation[] evalsB = blockExecutor.EvaluateActions(
 //             rawBlock: (RawBlock)blockB,
 //             tx: txB,
 //             world: fx.StateStore.GetWorld(blockB.StateRootHash),
@@ -911,7 +911,7 @@
 //     [Fact]
 //     public void EvaluatePolicyBeginBlockActions()
 //     {
-//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
 //             options: _options,
 //             genesisBlock: _storeFx.GenesisBlock,
 //             privateKey: GenesisProposer);
@@ -920,7 +920,7 @@
 //         var block = chain.ProposeBlock(proposer: GenesisProposer);
 
 //         World previousState = chain.GetWorld(stateRootHash: default);
-//         var evaluations = actionEvaluator.EvaluateBeginBlockActions(
+//         var evaluations = blockExecutor.EvaluateBeginBlockActions(
 //             (RawBlock)genesis,
 //             previousState);
 
@@ -933,7 +933,7 @@
 //             (BigInteger)evaluations[0].OutputWorld.GetValue(LegacyAccount, _beginBlockValueAddress));
 
 //         previousState = evaluations[0].OutputWorld;
-//         evaluations = actionEvaluator.EvaluateBeginBlockActions(
+//         evaluations = blockExecutor.EvaluateBeginBlockActions(
 //             (RawBlock)block,
 //             previousState);
 
@@ -949,7 +949,7 @@
 //     [Fact]
 //     public void EvaluatePolicyEndBlockActions()
 //     {
-//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
 //             options: _options,
 //             genesisBlock: _storeFx.GenesisBlock,
 //             privateKey: GenesisProposer);
@@ -958,7 +958,7 @@
 //         var block = chain.ProposeBlock(GenesisProposer);
 
 //         World previousState = chain.GetWorld(stateRootHash: default);
-//         var evaluations = actionEvaluator.EvaluateEndBlockActions(
+//         var evaluations = blockExecutor.EvaluateEndBlockActions(
 //             (RawBlock)genesis,
 //             previousState);
 
@@ -971,7 +971,7 @@
 //             evaluations[0].OutputWorld.GetValue(LegacyAccount, _endBlockValueAddress));
 
 //         previousState = evaluations[0].OutputWorld;
-//         evaluations = actionEvaluator.EvaluateEndBlockActions(
+//         evaluations = blockExecutor.EvaluateEndBlockActions(
 //             (RawBlock)block,
 //             previousState);
 
@@ -987,7 +987,7 @@
 //     [Fact]
 //     public void EvaluatePolicyBeginTxActions()
 //     {
-//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
 //             options: _options,
 //             genesisBlock: _storeFx.GenesisBlock,
 //             privateKey: GenesisProposer);
@@ -996,7 +996,7 @@
 //         var block = chain.ProposeBlock(proposer: GenesisProposer);
 
 //         World previousState = chain.GetWorld(stateRootHash: default);
-//         var evaluations = actionEvaluator.EvaluateBeginTxActions(
+//         var evaluations = blockExecutor.EvaluateBeginTxActions(
 //             (RawBlock)genesis,
 //             txs[0],
 //             previousState);
@@ -1011,7 +1011,7 @@
 //         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
 
 //         previousState = evaluations[0].OutputWorld;
-//         evaluations = actionEvaluator.EvaluateBeginTxActions(
+//         evaluations = blockExecutor.EvaluateBeginTxActions(
 //             (RawBlock)block,
 //             txs[1],
 //             previousState);
@@ -1029,7 +1029,7 @@
 //     [Fact]
 //     public void EvaluatePolicyEndTxActions()
 //     {
-//         var (chain, actionEvaluator) = MakeBlockChainAndActionEvaluator(
+//         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
 //             options: _options,
 //             genesisBlock: _storeFx.GenesisBlock,
 //             privateKey: GenesisProposer);
@@ -1038,7 +1038,7 @@
 //         var block = chain.ProposeBlock(proposer: GenesisProposer);
 
 //         World previousState = chain.GetWorld(stateRootHash: default);
-//         var evaluations = actionEvaluator.EvaluateEndTxActions(
+//         var evaluations = blockExecutor.EvaluateEndTxActions(
 //             (RawBlock)genesis,
 //             txs[0],
 //             previousState);
@@ -1053,7 +1053,7 @@
 //         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
 
 //         previousState = evaluations[0].OutputWorld;
-//         evaluations = actionEvaluator.EvaluateEndTxActions(
+//         evaluations = blockExecutor.EvaluateEndTxActions(
 //             (RawBlock)block,
 //             txs[1],
 //             previousState);
@@ -1094,7 +1094,7 @@
 //         var chain = TestUtils.MakeBlockChain(
 //             options: options,
 //             actions: [freeGasAction]);
-//         var actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
+//         var blockExecutor = new BlockExecutor(repository.StateStore, options.PolicyActions);
 //         var tx = new TransactionMetadata
 //         {
 //             Signer = privateKey.Address,
@@ -1111,7 +1111,7 @@
 //         var miner = new PrivateKey();
 //         Block block = chain.ProposeBlock(miner);
 
-//         var evaluations = actionEvaluator.Evaluate(
+//         var evaluations = blockExecutor.Evaluate(
 //             (RawBlock)block, chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
 //         Assert.Single(evaluations);
@@ -1149,7 +1149,7 @@
 //             {
 //                 freeGasAction,
 //             });
-//         var actionEvaluator = new ActionEvaluator(repository.StateStore, options.PolicyActions);
+//         var blockExecutor = new BlockExecutor(repository.StateStore, options.PolicyActions);
 //         var tx = new TransactionMetadata
 //         {
 //             Signer = privateKey.Address,
@@ -1163,7 +1163,7 @@
 //         var miner = new PrivateKey();
 //         Block block = chain.ProposeBlock(miner);
 
-//         var evaluations = actionEvaluator.Evaluate(
+//         var evaluations = blockExecutor.Evaluate(
 //             (RawBlock)block,
 //             chain.GetNextStateRootHash(block.PreviousHash) ?? default);
 
@@ -1191,7 +1191,7 @@
 //             0x7d, 0x37, 0x67, 0xe1, 0xe9,
 //         ]);
 
-//         int seed = ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, signature);
+//         int seed = BlockExecutor.GenerateRandomSeed(preEvaluationHashBytes, signature);
 //         Assert.Equal(353767086, seed);
 //     }
 
@@ -1199,7 +1199,7 @@
 //     public void CheckRandomSeedInAction()
 //     {
 //         var fx = new IntegerSet([5, 10]);
-//         var actionEvaluator = new ActionEvaluator(fx.StateStore);
+//         var blockExecutor = new BlockExecutor(fx.StateStore);
 
 //         // txA: ((5 + 1) * 2) + 3 = 15
 //         (Transaction tx, var delta) = fx.Sign(
@@ -1210,7 +1210,7 @@
 
 //         var block = fx.Propose();
 //         var rawBlock = (RawBlock)block;
-//         var evaluations = actionEvaluator.EvaluateActions(
+//         var evaluations = blockExecutor.EvaluateActions(
 //             rawBlock: rawBlock,
 //             tx: tx,
 //             world: fx.StateStore.GetWorld(block.StateRootHash),
@@ -1219,7 +1219,7 @@
 //         byte[] preEvaluationHashBytes = rawBlock.Hash.Bytes.ToArray();
 //         var randomSeeds = Enumerable
 //             .Range(0, tx.Actions.Length)
-//             .Select(offset => ActionEvaluator.GenerateRandomSeed(preEvaluationHashBytes, tx.Signature) + offset)
+//             .Select(offset => BlockExecutor.GenerateRandomSeed(preEvaluationHashBytes, tx.Signature) + offset)
 //             .ToArray();
 
 //         for (var i = 0; i < evaluations.Length; i++)

@@ -217,13 +217,13 @@ public partial class BlockChainTest
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var repository = new Repository();
-        var actionEvaluator = new BlockExecutor(
+        var blockExecutor = new BlockExecutor(
             repository.StateStore,
             options1.PolicyActions);
         var preGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,
             protocolVersion: beforePostponeBPV);
-        var preExecution = actionEvaluator.Execute(preGenesis);
+        var preExecution = blockExecutor.Execute(preGenesis);
         var genesisBlock = preGenesis.Sign(TestUtils.GenesisProposer);
         var chain1 = new Libplanet.Blockchain(genesisBlock, repository, options1);
 
@@ -270,13 +270,13 @@ public partial class BlockChainTest
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var repository = new Repository();
-        var actionEvaluator = new BlockExecutor(
+        var blockExecutor = new BlockExecutor(
             repository.StateStore,
             options.PolicyActions);
         var rawGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,
             protocolVersion: beforePostponeBPV);
-        var rawEvaluation = actionEvaluator.Execute(rawGenesis);
+        var rawEvaluation = blockExecutor.Execute(rawGenesis);
         var genesisBlock = rawGenesis.Sign(TestUtils.GenesisProposer);
         var chain = new Libplanet.Blockchain(genesisBlock, repository, options);
 
