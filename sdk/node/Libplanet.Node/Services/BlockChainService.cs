@@ -91,7 +91,16 @@ internal sealed class BlockChainService(
             var actions = actionService.GetGenesisActions(
                 genesisAddress: genesisKey.Address,
                 validators: validatorAddresses);
-            return Blockchain.ProposeGenesisBlock(repository, genesisKey, [.. actions]);
+            return new BlockBuilder
+            {
+                Transactions =
+                [
+                    new TransactionBuilder
+                    {
+                        Actions = actions,
+                    }.Create(genesisKey),
+                ],
+            }.Create(genesisKey, repository);
         }
 
         throw new UnreachableException("Genesis block path is not set.");
@@ -149,6 +158,8 @@ internal sealed class BlockChainService(
         world = world.Commit();
         repository.StateRootHash = world.Hash;
 
-        return Blockchain.ProposeGenesisBlock(repository, genesisKey, []);
+        return new BlockBuilder
+        {
+        }.Create(genesisKey, repository);
     }
 }

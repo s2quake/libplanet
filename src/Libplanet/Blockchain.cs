@@ -168,66 +168,37 @@ public partial class Blockchain
         return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
     }
 
-    public static Block ProposeGenesisBlock(PrivateKey proposer, ImmutableArray<IAction> actions)
-    {
-        var timestamp = DateTimeOffset.UtcNow;
-        var transaction = new TransactionMetadata
-        {
-            Nonce = 0L,
-            Signer = proposer.Address,
-            Actions = actions.ToBytecodes(),
-            Timestamp = timestamp,
-        }.Sign(proposer);
-        var blockHeader = new BlockHeader
-        {
-            Height = 0,
-            Timestamp = timestamp,
-            Proposer = proposer.Address,
-        };
-        var blockContent = new BlockContent
-        {
-            Transactions = [transaction],
-            Evidences = [],
-        };
-        var rawBlock = new RawBlock
-        {
-            Header = blockHeader,
-            Content = blockContent,
-        };
-        return rawBlock.Sign(proposer);
-    }
-
-    public static Block ProposeGenesisBlock(Repository repository, PrivateKey proposer, ImmutableArray<IAction> actions)
-    {
-        var timestamp = DateTimeOffset.UtcNow;
-        var transaction = new TransactionMetadata
-        {
-            Nonce = repository.GetNonce(proposer.Address),
-            Signer = proposer.Address,
-            Actions = actions.ToBytecodes(),
-            Timestamp = timestamp,
-        }.Sign(proposer);
-        var blockHeader = new BlockHeader
-        {
-            Height = repository.Height + 1,
-            Timestamp = timestamp,
-            Proposer = proposer.Address,
-            PreviousHash = repository.BlockHash,
-            PreviousCommit = repository.BlockCommit,
-            PreviousStateRootHash = repository.StateRootHash,
-        };
-        var blockContent = new BlockContent
-        {
-            Transactions = [transaction],
-            Evidences = [],
-        };
-        var rawBlock = new RawBlock
-        {
-            Header = blockHeader,
-            Content = blockContent,
-        };
-        return rawBlock.Sign(proposer);
-    }
+    // public static Block ProposeGenesisBlock(Repository repository, PrivateKey proposer, ImmutableArray<IAction> actions)
+    // {
+    //     var timestamp = DateTimeOffset.UtcNow;
+    //     var transaction = new TransactionMetadata
+    //     {
+    //         Nonce = repository.GetNonce(proposer.Address),
+    //         Signer = proposer.Address,
+    //         Actions = actions.ToBytecodes(),
+    //         Timestamp = timestamp,
+    //     }.Sign(proposer);
+    //     var blockHeader = new BlockHeader
+    //     {
+    //         Height = repository.Height + 1,
+    //         Timestamp = timestamp,
+    //         Proposer = proposer.Address,
+    //         PreviousHash = repository.BlockHash,
+    //         PreviousCommit = repository.BlockCommit,
+    //         PreviousStateRootHash = repository.StateRootHash,
+    //     };
+    //     var blockContent = new BlockContent
+    //     {
+    //         Transactions = [transaction],
+    //         Evidences = [],
+    //     };
+    //     var rawBlock = new RawBlock
+    //     {
+    //         Header = blockHeader,
+    //         Content = blockContent,
+    //     };
+    //     return rawBlock.Sign(proposer);
+    // }
 
     public Block ProposeBlock(PrivateKey proposer)
     {

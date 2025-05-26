@@ -123,9 +123,17 @@ public class BlockCommand
                 .Select(k => new Validator { Address = k })
                 .ToImmutableSortedSet();
         var action = new Initialize { Validators = validatorSet, };
+        var genesis = new BlockBuilder
+        {
+            Transactions =
+            [
+                new TransactionBuilder
+                {
+                    Actions = [action],
+                }.Create(key),
+            ],
+        }.Create(key);
 
-        Block genesis = Blockchain.ProposeGenesisBlock(
-            proposer: key, actions: [action]);
         using Stream stream = file == "-"
             ? Console.OpenStandardOutput()
             : File.Open(file, FileMode.Create);
