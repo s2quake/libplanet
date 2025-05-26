@@ -21,7 +21,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         _ => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(Node)),
     };
 
-    public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;
+    public bool IsCommitted => Node is HashNode;
 
     public bool IsEmpty => Node is NullNode;
 
@@ -51,7 +51,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         var cursor = new KeyCursor(key);
         var valueNode = new ValueNode { Value = value };
         var newNode = NodeInserter.Insert(node, cursor, valueNode);
-        return new Trie(newNode) { IsCommitted = IsCommitted };
+        return new Trie(newNode);
     }
 
     public ITrie Remove(string key)
@@ -126,10 +126,4 @@ public sealed partial record class Trie(INode Node) : ITrie
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    internal static Trie Create(HashDigest<SHA256> hashDigest, ITable table)
-    {
-        var node = new HashNode { Hash = hashDigest, Table = table };
-        return new Trie(node) { IsCommitted = true };
-    }
 }

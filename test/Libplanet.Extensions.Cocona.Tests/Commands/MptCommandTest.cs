@@ -27,11 +27,11 @@ public class MptCommandTest : IDisposable
         var stateStoreA = new StateStore(new DefaultTable(_pathA));
         var stateStoreB = new StateStore(new DefaultTable(_pathB));
         _trieA = stateStoreA.Commit(
-            stateStoreA.GetStateRoot(default)
+            stateStoreA.GetTrie(default)
                 .Set("deleted", null)
                 .Set("common", "before"));
         _trieB = stateStoreB.Commit(
-            stateStoreB.GetStateRoot(default)
+            stateStoreB.GetTrie(default)
                 .Set("created", null)
                 .Set("common", "after"));
     }

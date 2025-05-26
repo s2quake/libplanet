@@ -13,18 +13,18 @@ public class TrieStateStoreCommitTest
     {
         var keyValueStore = new MemoryTable();
         StateStore stateStore = new StateStore();
-        ITrie emptyTrie = stateStore.GetStateRoot(default);
+        ITrie emptyTrie = stateStore.GetTrie(default);
         HashDigest<SHA256> emptyRootHash = emptyTrie.Hash;
 
         Assert.Null(emptyTrie.Node);
-        Assert.True(stateStore.GetStateRoot(emptyRootHash).IsCommitted);
-        Assert.Null(stateStore.GetStateRoot(emptyRootHash).Node);
+        Assert.True(stateStore.GetTrie(emptyRootHash).IsCommitted);
+        Assert.Null(stateStore.GetTrie(emptyRootHash).Node);
         Assert.False(keyValueStore.ContainsKey(emptyRootHash.ToString()));
 
         emptyTrie = stateStore.Commit(emptyTrie);
         Assert.Null(emptyTrie.Node);
         Assert.Equal(emptyRootHash, emptyTrie.Hash);
-        Assert.True(stateStore.GetStateRoot(emptyRootHash).IsCommitted);
+        Assert.True(stateStore.GetTrie(emptyRootHash).IsCommitted);
         Assert.False(keyValueStore.ContainsKey(emptyRootHash.ToString()));
     }
 
@@ -33,7 +33,7 @@ public class TrieStateStoreCommitTest
     {
         var keyValueStore = new MemoryTable();
         StateStore stateStore = new StateStore(keyValueStore);
-        ITrie trie = stateStore.GetStateRoot(default);
+        ITrie trie = stateStore.GetTrie(default);
 
         trie = trie.Set("2c73", "2c73");
         trie = trie.Set("234f", "234f");
@@ -46,12 +46,12 @@ public class TrieStateStoreCommitTest
 
         Assert.NotEqual(hashBeforeCommit, hashAfterCommitOnce);
         Assert.Equal(hashAfterCommitOnce, hashAfterCommitTwice);
-        Assert.False(stateStore.GetStateRoot(hashBeforeCommit).IsCommitted);
-        Assert.True(stateStore.GetStateRoot(hashAfterCommitOnce).IsCommitted);
+        Assert.False(stateStore.GetTrie(hashBeforeCommit).IsCommitted);
+        Assert.True(stateStore.GetTrie(hashAfterCommitOnce).IsCommitted);
         Assert.False(keyValueStore.ContainsKey(hashBeforeCommit.ToString()));
         Assert.True(keyValueStore.ContainsKey(hashAfterCommitOnce.ToString()));
 
-        trie = stateStore.GetStateRoot(hashAfterCommitOnce);
+        trie = stateStore.GetTrie(hashAfterCommitOnce);
         Assert.Equal(2, trie.ToDictionary().Count);
         Assert.Equal("2c73", trie["2c73"]);
         Assert.Equal("234f", trie["234f"]);
@@ -62,11 +62,11 @@ public class TrieStateStoreCommitTest
     {
         var keyValueStore = new MemoryTable();
         StateStore stateStore = new StateStore(keyValueStore);
-        ITrie trie = stateStore.GetStateRoot(default);
+        ITrie trie = stateStore.GetTrie(default);
         trie = trie.Set(string.Empty, 1);
         trie = stateStore.Commit(trie);
         HashNode root = Assert.IsType<HashNode>(trie.Node);
-        trie = stateStore.GetStateRoot(trie.Hash);
+        trie = stateStore.GetTrie(trie.Hash);
         Assert.IsType<HashNode>(trie.Node);
         Assert.Equal(root, trie.Node);
     }

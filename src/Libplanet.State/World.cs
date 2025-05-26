@@ -9,7 +9,7 @@ namespace Libplanet.State;
 public sealed record class World(ITrie Trie, StateStore Statestore)
 {
     public World(StateStore stateStore)
-        : this(stateStore.GetStateRoot(default), stateStore)
+        : this(stateStore.GetTrie(default), stateStore)
     {
     }
 
@@ -19,7 +19,7 @@ public sealed record class World(ITrie Trie, StateStore Statestore)
     }
 
     public World(StateStore stateStore, HashDigest<SHA256> stateRootHash)
-        : this(stateStore.GetStateRoot(stateRootHash), stateStore)
+        : this(stateStore.GetTrie(stateRootHash), stateStore)
     {
     }
 
@@ -43,10 +43,10 @@ public sealed record class World(ITrie Trie, StateStore Statestore)
 
         if (Trie.TryGetValue(name, out var value) && value is ImmutableArray<byte> binary)
         {
-            return new Account(StateStore.GetStateRoot(new HashDigest<SHA256>(binary)));
+            return new Account(StateStore.GetTrie(new HashDigest<SHA256>(binary)));
         }
 
-        return new Account(StateStore.GetStateRoot(default));
+        return new Account(StateStore.GetTrie(default));
     }
 
     public World SetAccount(string name, Account account) => this with

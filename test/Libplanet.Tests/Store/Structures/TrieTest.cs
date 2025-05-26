@@ -361,7 +361,7 @@ public class TrieTest
 
         trie = trie.Remove("0000");
         trie = trie.Remove("0011");
-        trie = stateStore.Commit(trie);
+        trie = trie.IsEmpty ? trie : stateStore.Commit(trie);
         Assert.True(trie.IsEmpty);
     }
 
@@ -423,7 +423,7 @@ public class TrieTest
         trie = trie.Remove(key00);
         Assert.Equal(default, trie.Remove(key0000).Hash);
 
-        trie = stateStore.GetStateRoot(hash);
+        trie = stateStore.GetTrie(hash);
         Assert.Equal(value00, trie["00"]); // Nothing is actually removed from storage.
         Assert.Equal(value0000, trie["0000"]);
 

@@ -157,12 +157,12 @@ public partial class Blockchain
     public World GetWorld(BlockHash blockHash)
     {
         var stateRootHash = _repository.StateRootHashStore[blockHash];
-        return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
+        return new World(_repository.StateStore.GetTrie(stateRootHash), _repository.StateStore);
     }
 
     public World GetWorld(HashDigest<SHA256> stateRootHash)
     {
-        return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
+        return new World(_repository.StateStore.GetTrie(stateRootHash), _repository.StateStore);
     }
 
     public Block ProposeBlock(PrivateKey proposer)
