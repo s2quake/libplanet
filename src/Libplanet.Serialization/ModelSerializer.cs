@@ -138,7 +138,7 @@ public static class ModelSerializer
                 $"Failed to deserialize {typeof(T)} from bytes.");
     }
 
-    public static T Clone<T>(T obj) => Clone<T>(obj, ModelOptions.Empty);
+    public static T Clone<T>(T obj) => Clone(obj, ModelOptions.Empty);
 
     public static T Clone<T>(T obj, ModelOptions options)
     {

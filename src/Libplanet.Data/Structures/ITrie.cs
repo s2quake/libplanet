@@ -12,6 +12,8 @@ public partial interface ITrie : IEnumerable<KeyValuePair<string, object>>
 
     bool IsCommitted { get; }
 
+    bool IsEmpty { get; }
+
     object this[string key] { get; }
 
     ITrie Set(string key, object value);

@@ -55,7 +55,7 @@ internal static class NodeRemover
                 {
                     if (node is NullNode)
                     {
-                        return fullNode.RemoveChild(index);
+                        return ReduceFullNode(fullNode.RemoveChild(index));
                     }
 
                     return fullNode.SetChild(index, node);

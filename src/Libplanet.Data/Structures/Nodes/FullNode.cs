@@ -29,19 +29,10 @@ public sealed record class FullNode
         }
     }
 
-    public INode? GetChild(char index)
-    {
-        return Children.GetValueOrDefault(index);
-    }
+    public INode? GetChild(char index) => Children.GetValueOrDefault(index);
 
     public FullNode SetChild(char index, INode node)
     {
-        // if (index > MaximumIndex)
-        // {
-        //     var message = "The index of FullNode's children should be less than 0x10.";
-        //     throw new ArgumentOutOfRangeException(nameof(index), message);
-        // }
-
         if (node is HashNode)
         {
             var message = "FullNode cannot have a child of HashNode.";
@@ -51,18 +42,7 @@ public sealed record class FullNode
         return this with { Children = Children.SetItem(index, node) };
     }
 
-    public FullNode RemoveChild(char index)
-    {
-        // if (index > MaximumIndex)
-        // {
-        //     var message = "The index of FullNode's children should be less than 0x10.";
-        //     throw new ArgumentOutOfRangeException(nameof(index), message);
-        // }
-
-        return this with { Children = Children.Remove(index) };
-    }
-
-    public FullNode SetValue(INode? value) => this with { Value = value };
+    public FullNode RemoveChild(char index) => this with { Children = Children.Remove(index) };
 
     public bool Equals(FullNode? other) => ModelResolver.Equals(this, other);
 
@@ -70,14 +50,8 @@ public sealed record class FullNode
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        foreach (var (key, value) in Children)
+        foreach (var (_, value) in Children)
         {
-            // if (key > MaximumIndex)
-            // {
-            //     yield return new ValidationResult(
-            //         "The key of FullNode's children should be less than 0x10.", [nameof(Children)]);
-            // }
-
             if (value is HashNode)
             {
                 yield return new ValidationResult(
