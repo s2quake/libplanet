@@ -2,21 +2,19 @@ using Libplanet.Data;
 
 namespace Libplanet.Tests.Store.Structures;
 
-public abstract class KeyValueStoreTest
+public abstract class TableTestBase
 {
     private const int PreStoredDataCount = 10;
 
-    private const int PreStoredDataKeySize = 16;
-
     private const int PreStoredDataValueSize = 32;
 
-    protected IDictionary<string, byte[]> KeyValueStore { get; set; }
+    protected abstract IDictionary<string, byte[]> KeyValueStore { get; }
 
     protected Random Random { get; } = new Random();
 
-    private string[] PreStoredDataKeys { get; set; }
+    private string[] PreStoredDataKeys { get; set; } = [];
 
-    private byte[][] PreStoredDataValues { get; set; }
+    private byte[][] PreStoredDataValues { get; set; } = [];
 
     [Fact]
     public void Get()
