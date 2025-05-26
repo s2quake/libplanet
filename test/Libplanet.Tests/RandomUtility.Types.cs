@@ -9,10 +9,10 @@ namespace Libplanet.Tests;
 
 public static partial class RandomUtility
 {
-    public static HashDigest<T> NextHashDigest<T>()
+    public static HashDigest<T> HashDigest<T>()
         where T : HashAlgorithm
     {
-        return new HashDigest<T>(Array(Byte, HashDigest<T>.Size));
+        return new HashDigest<T>(Array(Byte, Types.HashDigest<T>.Size));
     }
 
     public static Address Address()

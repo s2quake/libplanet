@@ -14,6 +14,7 @@ public static class ModelSerializer
         AddModelConverter(typeof(BigInteger), typeof(BigIntegerModelConverter));
         AddModelConverter(typeof(bool), typeof(BooleanModelConverter));
         AddModelConverter(typeof(byte), typeof(ByteModelConverter));
+        AddModelConverter(typeof(char), typeof(CharModelConverter));
         AddModelConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetModelConverter));
         AddModelConverter(typeof(Guid), typeof(GuidModelConverter));
         AddModelConverter(typeof(int), typeof(Int32ModelConverter));

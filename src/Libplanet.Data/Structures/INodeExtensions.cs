@@ -27,29 +27,29 @@ public static class INodeExtensions
 
     public static IEnumerable<KeyValuePair<string, object>> KeyValues(this INode @this)
     {
-        foreach (var item in GetKeyValues(@this, Nibbles.Empty))
+        foreach (var item in GetKeyValues(@this, string.Empty))
         {
             yield return item;
         }
     }
 
-    private static IEnumerable<KeyValuePair<string, object>> GetKeyValues(INode node, Nibbles nibbles)
+    private static IEnumerable<KeyValuePair<string, object>> GetKeyValues(INode node, string key)
     {
         if (node is FullNode fullNode)
         {
             if (fullNode.Value is not null)
             {
-                foreach (var item in GetKeyValues(fullNode.Value, nibbles))
+                foreach (var item in GetKeyValues(fullNode.Value, key))
                 {
                     yield return item;
                 }
             }
 
-            foreach (var (key, value) in fullNode.Children)
+            foreach (var (k, v) in fullNode.Children)
             {
-                var nodeNibble = nibbles.Append(key);
-                var nodeValue = value;
-                foreach (var item in GetKeyValues(nodeValue, nodeNibble))
+                var nodeKey = key + k;
+                var nodeValue = v;
+                foreach (var item in GetKeyValues(nodeValue, nodeKey))
                 {
                     yield return item;
                 }
@@ -57,23 +57,23 @@ public static class INodeExtensions
         }
         else if (node is ShortNode shortNode)
         {
-            var nodeNibbles = nibbles.Append(shortNode.Key);
+            var nodeKey = key + shortNode.Key;
             var nodeValue = shortNode.Value;
-            foreach (var item in GetKeyValues(nodeValue, nodeNibbles))
+            foreach (var item in GetKeyValues(nodeValue, nodeKey))
             {
                 yield return item;
             }
         }
         else if (node is ValueNode valueNode)
         {
-            var key = nibbles.ToKey();
-            var value = valueNode.Value;
-            yield return new(key, value);
+            var k = key;
+            var v = valueNode.Value;
+            yield return new(k, v);
         }
         else if (node is HashNode hashNode)
         {
             var expandedNode = hashNode.Expand();
-            foreach (var item in GetKeyValues(expandedNode, nibbles))
+            foreach (var item in GetKeyValues(expandedNode, key))
             {
                 yield return item;
             }

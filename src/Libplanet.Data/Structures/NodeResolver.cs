@@ -5,24 +5,24 @@ namespace Libplanet.Data.Structures;
 
 internal static class NodeResolver
 {
-    public static object? ResolveToValue(INode? node, in Nibbles nibbles) => node switch
+    public static object? ResolveToValue(INode? node, in KeyCursor cursor) => node switch
     {
         null => null,
-        ValueNode valueNode => nibbles.IsEnd ? valueNode.Value : null,
-        ShortNode shortNode => nibbles.NextNibbles.StartsWith(shortNode.Key)
-            ? ResolveToValue(shortNode.Value, nibbles.Next(shortNode.Key.Length))
+        ValueNode valueNode => cursor.IsEnd ? valueNode.Value : null,
+        ShortNode shortNode => cursor.NextCursor.StartsWith(shortNode.Key)
+            ? ResolveToValue(shortNode.Value, cursor.Next(shortNode.Key.Length))
             : null,
-        FullNode fullNode => !nibbles.IsEnd
-            ? ResolveToValue(fullNode.GetChild(nibbles.Current), nibbles.Next(1))
-            : ResolveToValue(fullNode.Value, nibbles),
-        HashNode hashNode => ResolveToValue(hashNode.Expand(), nibbles),
+        FullNode fullNode => !cursor.IsEnd
+            ? ResolveToValue(fullNode.GetChild(cursor.Current), cursor.Next(1))
+            : ResolveToValue(fullNode.Value, cursor),
+        HashNode hashNode => ResolveToValue(hashNode.Expand(), cursor),
         NullNode _ => null,
         _ => throw new UnreachableException("An unknown type of node was encountered."),
     };
 
-    public static INode ResolveToNode(INode node, in Nibbles nibbles)
+    public static INode ResolveToNode(INode node, in KeyCursor cursor)
     {
-        if (nibbles.IsEnd)
+        if (cursor.IsEnd)
         {
             return node;
         }
@@ -31,14 +31,14 @@ internal static class NodeResolver
         {
             ValueNode => NullNode.Value,
             ShortNode shortNode
-                => nibbles.NextNibbles.StartsWith(shortNode.Key)
-                    ? ResolveToNode(shortNode.Value, nibbles.Next(shortNode.Key.Length))
+                => cursor.NextCursor.StartsWith(shortNode.Key)
+                    ? ResolveToNode(shortNode.Value, cursor.Next(shortNode.Key.Length))
                     : NullNode.Value,
             FullNode fullNode
-                => fullNode.GetChild(nibbles.Current) is { } child
-                    ? ResolveToNode(child, nibbles.Next(1))
+                => fullNode.GetChild(cursor.Current) is { } child
+                    ? ResolveToNode(child, cursor.Next(1))
                     : NullNode.Value,
-            HashNode hashNode => ResolveToNode(hashNode.Expand(), nibbles),
+            HashNode hashNode => ResolveToNode(hashNode.Expand(), cursor),
             NullNode _ => NullNode.Value,
             _ => throw new UnreachableException("An unknown type of node was encountered."),
         };
