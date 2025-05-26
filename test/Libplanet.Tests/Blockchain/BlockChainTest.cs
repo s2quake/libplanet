@@ -1152,11 +1152,10 @@ public partial class BlockChainTest : IDisposable
     public void CreateWithGenesisBlock()
     {
         using var fx = new MemoryStoreFixture(new());
-        var addresses = ImmutableArray.Create([
+        var addresses = ImmutableArray.Create(
             fx.Address1,
             fx.Address2,
-            fx.Address3,
-        ]);
+            fx.Address3);
 
         var validatorKey = new PrivateKey();
         var proposerKey = new PrivateKey();
@@ -1164,10 +1163,7 @@ public partial class BlockChainTest : IDisposable
         {
             new Initialize
             {
-                Validators =
-                [
-                    new Validator { Address = validatorKey.Address },
-                ],
+                Validators =[new Validator { Address = validatorKey.Address }],
             },
         };
 

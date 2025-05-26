@@ -44,9 +44,7 @@ public partial class Blockchain
     public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
-        var evaluation = Execute(genesisBlock);
-        _repository.Append(genesisBlock, BlockCommit.Empty);
-        _repository.StateRootHash = evaluation.OutputWorld.Hash;
+        Append(genesisBlock, BlockCommit.Empty);
     }
 
     public Blockchain(Repository repository, BlockchainOptions options)

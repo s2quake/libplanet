@@ -122,33 +122,10 @@ public class BlockCommand
                 .Select(Address.Parse)
                 .Select(k => new Validator { Address = k })
                 .ToImmutableSortedSet();
-        ImmutableList<Transaction> txs = Array.Empty<Transaction>()
+        var action = new Initialize { Validators = validatorSet, };
 
-            // FIXME: Remove this pragma after fixing the following issue:
-            // https://github.com/dotnet/platform-compat/blob/master/docs/PC002.md
- #pragma warning disable PC002
-            .Append(new TransactionMetadata
-                {
-    #pragma warning restore PC002
-                    Nonce = 0,
-                    Signer = key.Address,
-                    GenesisHash = default,
-                    Actions = new IAction[]
-                    {
-                        new Initialize
-                        {
-                            Validators = validatorSet,
-                        },
-                    }.ToBytecodes(),
-                }.Sign(key))
-            .ToImmutableList();
-
-        var policyActions = blockPolicyParams.GetPolicyActions();
-        var blockExecutor = new BlockExecutor(
-            new StateStore(new DefaultTable()),
-            policyActions);
         Block genesis = Blockchain.ProposeGenesisBlock(
-            proposer: key, transactions: [.. txs]);
+            proposer: key, actions: [action]);
         using Stream stream = file == "-"
             ? Console.OpenStandardOutput()
             : File.Open(file, FileMode.Create);
