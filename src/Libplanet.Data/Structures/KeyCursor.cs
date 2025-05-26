@@ -1,9 +1,7 @@
 namespace Libplanet.Data.Structures;
 
-internal readonly record struct KeyCursor : IEquatable<KeyCursor>, IFormattable
+internal readonly record struct KeyCursor : IEquatable<KeyCursor>
 {
-    public static readonly KeyCursor Empty = default;
-
     internal KeyCursor(string key) => Key = key;
 
     public string Key { get; }
@@ -39,9 +37,11 @@ internal readonly record struct KeyCursor : IEquatable<KeyCursor>, IFormattable
         }
     }
 
-    public KeyCursor Next(int offset) => offset < 0
-        ? throw new ArgumentOutOfRangeException(nameof(offset))
-        : new KeyCursor(Key) { Position = Position + offset };
+    public KeyCursor Next(int offset)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+        return new KeyCursor(Key) { Position = Position + offset };
+    }
 
     public KeyCursor Next(int position, in KeyCursor cursor)
     {
@@ -61,18 +61,16 @@ internal readonly record struct KeyCursor : IEquatable<KeyCursor>, IFormattable
         return Next(count);
     }
 
-    public bool StartsWith(string key) => StartsWith(new KeyCursor(key));
-
-    public bool StartsWith(in KeyCursor cursor)
+    public bool StartsWith(string key)
     {
-        if (Length < cursor.Length)
+        if (Length < key.Length)
         {
             return false;
         }
 
-        for (var i = 0; i < cursor.Length; i++)
+        for (var i = 0; i < key.Length; i++)
         {
-            if (Key[i] != cursor.Key[i])
+            if (Key[i] != key[i])
             {
                 return false;
             }
@@ -81,7 +79,7 @@ internal readonly record struct KeyCursor : IEquatable<KeyCursor>, IFormattable
         return true;
     }
 
-    public bool Equals(KeyCursor other) => Key.SequenceEqual(other.Key);
+    public bool Equals(KeyCursor other) => Position == other.Position && Key.SequenceEqual(other.Key);
 
     public override int GetHashCode()
     {
@@ -105,14 +103,11 @@ internal readonly record struct KeyCursor : IEquatable<KeyCursor>, IFormattable
         {
             s = s.Insert(Position + 1, "\u0332");
         }
+        else if (Position == Length)
+        {
+            s += "\u0332";
+        }
 
         return s;
     }
-
-    public string ToString(string? format, IFormatProvider? formatProvider) => format switch
-    {
-        "h" => ToString(),
-        "H" => ToString().ToUpperInvariant(),
-        _ => ToString(),
-    };
 }
