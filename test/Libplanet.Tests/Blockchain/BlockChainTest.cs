@@ -1192,9 +1192,10 @@ public partial class BlockChainTest : IDisposable
                 MaxGasPrice = default,
             }.Sign(proposerKey),
         };
-        var genesisBlock = Libplanet.Blockchain.ProposeGenesisBlock(
-            proposer: proposerKey,
-            transactions: [.. systemTxs.Concat(customTxs)]);
+        var genesisBlock = new BlockBuilder
+        {
+            Transactions = [.. systemTxs.Concat(customTxs)],
+        }.Create(proposerKey);
         var blockChain = new Libplanet.Blockchain(genesisBlock, fx.Repository, fx.Options);
 
         var validator = blockChain
@@ -1330,11 +1331,12 @@ public partial class BlockChainTest : IDisposable
                 Actions = new IAction[] { systemAction }.ToBytecodes(),
             }.Sign(privateKey))
             .ToImmutableList();
+        var genesisBlock = new BlockBuilder
+        {
+            Transactions = [.. txs],
+        }.Create(privateKey);
 
-        Block genesis = Libplanet.Blockchain.ProposeGenesisBlock(
-            proposer: privateKey,
-            transactions: [.. txs]);
-        var blockChain = new Libplanet.Blockchain(genesis, repository, options);
+        var blockChain = new Libplanet.Blockchain(genesisBlock, repository, options);
 
         blockChain.StagedTransactions.Add(submission: new()
         {

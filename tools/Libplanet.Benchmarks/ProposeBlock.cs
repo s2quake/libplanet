@@ -51,9 +51,7 @@ namespace Libplanet.Benchmarks
             PreparePropose();
             var tx = new TransactionBuilder
             {
-                Signer = _privateKey,
-                Blockchain = _blockChain,
-            }.Create();
+            }.Create(_privateKey, _blockChain);
             _blockChain.StagedTransactions.Add(tx);
         }
 
@@ -64,9 +62,7 @@ namespace Libplanet.Benchmarks
             {
                 var tx = new TransactionBuilder
                 {
-                    Signer = new PrivateKey(),
-                    Blockchain = _blockChain,
-                }.Create();
+                }.Create(new PrivateKey(), _blockChain);
                 _blockChain.StagedTransactions.Add(tx);
             }
             PreparePropose();
@@ -86,10 +82,8 @@ namespace Libplanet.Benchmarks
             };
             var tx = new TransactionBuilder
             {
-                Signer = privateKey,
-                Blockchain = _blockChain,
                 Actions = actions,
-            }.Create();
+            }.Create(privateKey, _blockChain);
             _blockChain.StagedTransactions.Add(tx);
             PreparePropose();
         }
@@ -110,10 +104,8 @@ namespace Libplanet.Benchmarks
                 };
                 var tx = new TransactionBuilder
                 {
-                    Signer = privateKey,
-                    Blockchain = _blockChain,
                     Actions = actions,
-                }.Create();
+                }.Create(privateKey, _blockChain);
                 _blockChain.StagedTransactions.Add(tx);
             }
             PreparePropose();

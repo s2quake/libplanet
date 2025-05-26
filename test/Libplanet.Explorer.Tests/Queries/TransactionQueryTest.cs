@@ -122,15 +122,11 @@ public class TransactionQueryTest
 
         Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
         {
-            Blockchain = Source.BlockChain,
-            Signer = key1,
-        }.Create());
+        }.Create(key1, Source.BlockChain));
         await AssertNextNonce(1, key1.Address);
         Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
         {
-            Blockchain = Source.BlockChain,
-            Signer = key1,
-        }.Create());
+        }.Create(key1, Source.BlockChain));
         await AssertNextNonce(2, key1.Address);
         var block = Source.BlockChain.ProposeBlock(new PrivateKey());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
@@ -142,9 +138,7 @@ public class TransactionQueryTest
         // staging txs of key2 does not increase nonce of key1
         Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
         {
-            Blockchain = Source.BlockChain,
-            Signer = key2,
-        }.Create());
+        }.Create(key2, Source.BlockChain));
         block = Source.BlockChain.ProposeBlock(new PrivateKey());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
         await AssertNextNonce(1, key2.Address);
@@ -153,15 +147,11 @@ public class TransactionQueryTest
         // unstaging txs decrease nonce
         Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
         {
-            Blockchain = Source.BlockChain,
-            Signer = key1,
-        }.Create());
+        }.Create(key1, Source.BlockChain));
         await AssertNextNonce(3, key1.Address);
         Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
         {
-            Blockchain = Source.BlockChain,
-            Signer = key1,
-        }.Create());
+        }.Create(key1, Source.BlockChain));
         await AssertNextNonce(4, key1.Address);
         Source.BlockChain.StagedTransactions.Keys
             .Select(item => Source.BlockChain.Transactions[item])
