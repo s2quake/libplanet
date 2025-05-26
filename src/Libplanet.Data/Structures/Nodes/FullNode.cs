@@ -29,7 +29,7 @@ public sealed record class FullNode
         }
     }
 
-    public INode? GetChild(char index) => Children.GetValueOrDefault(index);
+    public INode? GetChildOrDefault(char index) => Children.GetValueOrDefault(index);
 
     public FullNode SetChild(char index, INode node)
     {

@@ -24,7 +24,7 @@ internal sealed record class ShortNode : INode, IValidatableObject
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (Key.Length == 0)
+        if (Key == string.Empty)
         {
             yield return new ValidationResult($"Given {nameof(Key)} cannot be empty.", [nameof(Key)]);
         }

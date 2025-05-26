@@ -10,7 +10,7 @@ internal sealed record class HashNode : INode
 {
     public required HashDigest<SHA256> Hash { get; init; }
 
-    public ITable? Table { get; init; }
+    public required ITable Table { get; init; }
 
     IEnumerable<INode> INode.Children
     {
