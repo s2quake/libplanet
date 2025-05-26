@@ -5,31 +5,31 @@ namespace Libplanet.Data.Structures;
 
 internal static class NodeRemover
 {
-    public static INode Remove(INode node, in KeyCursor cursor) => node switch
+    public static INode Remove(INode node, string key) => node switch
     {
-        HashNode hashNode => RemoveFromHashNode(hashNode, cursor),
-        ValueNode valueNode => RemoveFromValueNode(valueNode, cursor),
-        ShortNode shortNode => RemoveFromShortNode(shortNode, cursor),
-        FullNode fullNode => RemoveFromFullNode(fullNode, cursor),
+        HashNode hashNode => RemoveFromHashNode(hashNode, key),
+        ValueNode valueNode => RemoveFromValueNode(valueNode, key),
+        ShortNode shortNode => RemoveFromShortNode(shortNode, key),
+        FullNode fullNode => RemoveFromFullNode(fullNode, key),
         _ => throw new UnreachableException($"Unsupported node value"),
     };
 
-    private static INode RemoveFromHashNode(HashNode hashNode, KeyCursor cursor)
-        => Remove(hashNode.Expand(), cursor);
+    private static INode RemoveFromHashNode(HashNode hashNode, string key)
+        => Remove(hashNode.Expand(), key);
 
-    private static INode RemoveFromValueNode(ValueNode valueNode, KeyCursor cursor)
-        => cursor.IsEnd ? NullNode.Value : valueNode;
+    private static INode RemoveFromValueNode(ValueNode valueNode, string key)
+        => key.Length is 0 ? NullNode.Value : valueNode;
 
-    private static INode RemoveFromShortNode(ShortNode shortNode, KeyCursor cursor)
+    private static INode RemoveFromShortNode(ShortNode shortNode, string key)
     {
-        var key = shortNode.Key;
-        var nextCursor = cursor.Next(cursor.Position, new(key));
-        var commonLength = nextCursor.Position - cursor.Position;
+        var oldKey = shortNode.Key;
+        var prefix = oldKey.GetCommonPrefix(key);
+        var nextCursor = key[prefix.Length..];
 
-        if (commonLength == key.Length)
+        if (prefix.Length == oldKey.Length)
         {
             var node = Remove(shortNode.Value, nextCursor);
-            return Create(key, node);
+            return Create(oldKey, node);
         }
 
         return shortNode;
@@ -44,14 +44,14 @@ internal static class NodeRemover
         };
     }
 
-    private static INode RemoveFromFullNode(FullNode fullNode, KeyCursor cursor)
+    private static INode RemoveFromFullNode(FullNode fullNode, string key)
     {
-        if (!cursor.IsEnd)
+        if (key.Length is not 0)
         {
-            var index = cursor.Current;
+            var index = key[0];
             if (fullNode.Children[index] is { } child)
             {
-                if (Remove(child, cursor.Next(1)) is { } node)
+                if (Remove(child, key[1..]) is { } node)
                 {
                     if (node is NullNode)
                     {

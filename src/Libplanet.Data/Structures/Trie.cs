@@ -48,9 +48,8 @@ public sealed partial record class Trie(INode Node) : ITrie
     public ITrie Set(string key, object value)
     {
         var node = Node;
-        var cursor = new KeyCursor(key);
         var valueNode = new ValueNode { Value = value };
-        var newNode = NodeInserter.Insert(node, cursor, valueNode);
+        var newNode = NodeInserter.Insert(node, key, valueNode);
         return new Trie(newNode);
     }
 
@@ -61,14 +60,12 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new InvalidOperationException("Cannot remove from an empty trie.");
         }
 
-        var cursor = new KeyCursor(key);
-        return new Trie(NodeRemover.Remove(Node, cursor));
+        return new Trie(NodeRemover.Remove(Node, key));
     }
 
     public INode GetNode(string key)
     {
-        var cursor = new KeyCursor(key);
-        var node = NodeResolver.ResolveToNode(Node, cursor);
+        var node = NodeResolver.ResolveToNode(Node, key);
         if (node is NullNode)
         {
             throw new KeyNotFoundException($"Key {key} not found in the trie.");
@@ -79,8 +76,7 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node)
     {
-        var cursor = new KeyCursor(key);
-        node = NodeResolver.ResolveToNode(Node, cursor);
+        node = NodeResolver.ResolveToNode(Node, key);
         if (node is not NullNode)
         {
             return true;
@@ -92,7 +88,7 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value)
     {
-        if (NodeResolver.ResolveToValue(Node, new KeyCursor(key)) is { } v)
+        if (NodeResolver.ResolveToValue(Node, key) is { } v)
         {
             value = v;
             return true;
@@ -106,7 +102,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     {
         try
         {
-            return NodeResolver.ResolveToValue(Node, new KeyCursor(key)) is not null;
+            return NodeResolver.ResolveToValue(Node, key) is not null;
         }
         catch
         {
