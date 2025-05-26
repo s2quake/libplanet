@@ -269,7 +269,7 @@ public static partial class RandomUtility
 
     public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
         Func<TKey> keyGenerator, Func<TValue> valueGenerator)
-         where TKey : notnull
+        where TKey : notnull
     {
         var length = Length();
         var items = new KeyValuePair<TKey, TValue>[length];
@@ -283,7 +283,7 @@ public static partial class RandomUtility
 
     public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
-         where TKey : notnull
+        where TKey : notnull
     {
         var length = Length(random);
         var items = new KeyValuePair<TKey, TValue>[length];
@@ -345,7 +345,7 @@ public static partial class RandomUtility
 
     public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
         Func<TKey> keyGenerator, Func<TValue> valueGenerator)
-         where TKey : notnull
+        where TKey : notnull
     {
         var length = Length();
         var items = new KeyValuePair<TKey, TValue>[length];
@@ -359,7 +359,7 @@ public static partial class RandomUtility
 
     public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
-         where TKey : notnull
+        where TKey : notnull
     {
         var length = Length(random);
         var items = new KeyValuePair<TKey, TValue>[length];
@@ -373,7 +373,7 @@ public static partial class RandomUtility
 
     public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
         Func<TKey> keyGenerator, Func<TValue> valueGenerator)
-         where TKey : notnull
+        where TKey : notnull
     {
         var length = Length();
         var items = new KeyValuePair<TKey, TValue>[length];
@@ -387,7 +387,7 @@ public static partial class RandomUtility
 
     public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
-         where TKey : notnull
+        where TKey : notnull
     {
         var length = Length(random);
         var items = new KeyValuePair<TKey, TValue>[length];

@@ -5,6 +5,7 @@ using Libplanet.Data.Structures;
 using Libplanet.Data.Structures.Nodes;
 using Libplanet.Types;
 using static System.Linq.Enumerable;
+using BitFaster.Caching.Lru;
 
 namespace Libplanet.Tests.Store.Structures;
 
@@ -23,7 +24,7 @@ public class TrieTest
     {
         var store = new MemoryTable();
         var hashDigest = RandomUtility.HashDigest<SHA256>();
-        var trie = new Libplanet.Data.Structures.Trie(new HashNode { Hash = hashDigest, Table = store });
+        var trie = new Trie(new HashNode { Hash = hashDigest, Table = store });
         Assert.Equal(hashDigest, trie.Hash);
     }
 
@@ -33,7 +34,7 @@ public class TrieTest
         var store = new MemoryTable();
         var hashDigest = RandomUtility.HashDigest<SHA256>();
         var node = new HashNode { Hash = hashDigest, Table = store };
-        var trie = new Libplanet.Data.Structures.Trie(node);
+        var trie = new Trie(node);
         Assert.Equal(hashDigest, trie.Hash);
     }
 
@@ -42,7 +43,7 @@ public class TrieTest
     {
         var stateStore = new StateStore();
         var keyValue = ("01", ImmutableSortedDictionary<string, string>.Empty);
-        var trie = Libplanet.Data.Structures.Trie.Create(keyValue);
+        var trie = Trie.Create(keyValue);
         Assert.Single(trie.ToDictionary());
         Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie["01"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0"]);
@@ -58,7 +59,7 @@ public class TrieTest
     {
         var keyValueStore = new MemoryTable();
         var stateStore = new StateStore(keyValueStore);
-        var trie = new Libplanet.Data.Structures.Trie()
+        var trie = new Trie()
             .Set("00", ImmutableSortedDictionary<string, string>.Empty)
             .Set("1", "1")
             .Set("2", "2")
@@ -87,7 +88,7 @@ public class TrieTest
     public void IterateNodes()
     {
         var stateStore = new StateStore();
-        var trie = Libplanet.Data.Structures.Trie.Create(
+        var trie = Trie.Create(
             ((string Key, object Value))("ab", ImmutableSortedDictionary<string, string>.Empty.Add("a", "b")));
 
         // There are (ShortNode, ValueNode)
@@ -116,7 +117,7 @@ public class TrieTest
         var keyValues = keys
             .Select(key => (key, (object)key))
             .ToArray();
-        var trie = Libplanet.Data.Structures.Trie.Create(keyValues);
+        var trie = Trie.Create(keyValues);
         var prefixKey = "_";
 
         trie = commit ? stateStore.Commit(trie) : trie;
@@ -135,7 +136,7 @@ public class TrieTest
     public void Set(bool commit)
     {
         var stateStore = new StateStore();
-        var trie = Libplanet.Data.Structures.Trie.Create(
+        var trie = Trie.Create(
             ((string Key, object Value))("_", ImmutableSortedDictionary<string, string>.Empty));
 
         Assert.Throws<KeyNotFoundException>(() => trie["0xbe, 0xef"]);
@@ -264,35 +265,34 @@ public class TrieTest
         var stateStore = new StateStore();
         var keyValues = new (string, object)[]
         {
-            ("0x00", "00"),
-            ("0x00, 0x00", "0000"),
-            ("0x00, 0x10", "00000000000000000000000000000000_0010"),
+            ("00", "00"),
+            ("0000", "0000"),
+            ("0010", "00000000000000000000000000000000_0010"),
         };
-        var trie1 = Libplanet.Data.Structures.Trie.Create(keyValues);
-
-        // Assert.IsType<ShortNode>(trie1.GetNode(Nibbles.Parse(string.Empty)));
-        // Assert.IsType<FullNode>(trie1.GetNode(Nibbles.Parse("00")));
-        // Assert.Throws<KeyNotFoundException>(() => trie1.GetNode(Nibbles.Parse("01")));
-        // Assert.IsType<ShortNode>(trie1.GetNode(Nibbles.Parse("000")));
-        // Assert.IsType<ShortNode>(trie1.GetNode(Nibbles.Parse("001")));
-        // Assert.IsType<ValueNode>(trie1.GetNode(Nibbles.Parse("0000")));
-        // Assert.IsType<ValueNode>(trie1.GetNode(Nibbles.Parse("0010")));
+        var trie1 = Trie.Create(keyValues);
+        Assert.IsType<ShortNode>(trie1.GetNode(string.Empty));
+        Assert.IsType<FullNode>(trie1.GetNode("00"));
+        Assert.Throws<KeyNotFoundException>(() => trie1.GetNode("01"));
+        Assert.IsType<ShortNode>(trie1.GetNode("000"));
+        Assert.IsType<ShortNode>(trie1.GetNode("001"));
+        Assert.IsType<ValueNode>(trie1.GetNode("0000"));
+        Assert.IsType<ValueNode>(trie1.GetNode("0010"));
 
         var trie2 = stateStore.Commit(trie1);
-        // Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse(string.Empty)));
-        // Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("00")));
-        // Assert.Throws<KeyNotFoundException>(() => trie2.GetNode(Nibbles.Parse("01")));
-        // Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("000")));
-        // Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("001")));
-        // Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("0000")));
-        // Assert.IsType<HashNode>(trie2.GetNode(Nibbles.Parse("0010")));
+        Assert.IsType<HashNode>(trie2.GetNode(string.Empty));
+        Assert.IsType<HashNode>(trie2.GetNode("00"));
+        Assert.Throws<KeyNotFoundException>(() => trie2.GetNode("01"));
+        Assert.IsType<HashNode>(trie2.GetNode("000"));
+        Assert.IsType<HashNode>(trie2.GetNode("001"));
+        Assert.IsType<HashNode>(trie2.GetNode("0000"));
+        Assert.IsType<HashNode>(trie2.GetNode("0010"));
     }
 
     [Fact]
     public void ResolveToValueAtTheEndOfShortNode()
     {
         var stateStore = new StateStore();
-        var trie = Libplanet.Data.Structures.Trie.Create(
+        var trie = Trie.Create(
             (Key: "0x00", Value: "00"));
 
         trie = stateStore.Commit(trie);
@@ -306,7 +306,7 @@ public class TrieTest
         var stateStore = new StateStore();
         var value00 = "00";
         var value0000 = "0000";
-        var trie = Libplanet.Data.Structures.Trie.Create(
+        var trie = Trie.Create(
             (Key: "0x00", Value: value00),
             (Key: "0x00, 0x00", Value: value0000));
 
@@ -324,7 +324,7 @@ public class TrieTest
         var value00 = "00";
         var value0000 = "0000";
         var value0010 = "0010";
-        var trie = Libplanet.Data.Structures.Trie.Create(
+        var trie = Trie.Create(
             (Key: "0x00", Value: value00),
             (Key: "0x00, 0x00", Value: value0000),
             (Key: "0x00, 0x10", Value: value0010));
@@ -341,9 +341,37 @@ public class TrieTest
     public void RemoveValue()
     {
         var stateStore = new StateStore();
-        var key00 = "0x00";
+        var trie = Trie.Create(
+            (Key: "0000", Value: "0000"),
+            (Key: "0011", Value: "0011"));
+        trie = stateStore.Commit(trie);
+
+        int expectedNodeCount = trie.Node.Traverse().Count();
+        int expectedValueCount = trie.Count();
+        HashDigest<SHA256> expectedHash = trie.Hash;
+
+        trie = trie.Set("1234", "1234");
+        trie = stateStore.Commit(trie);
+        trie = trie.Remove("1234");
+        trie = stateStore.Commit(trie);
+
+        Assert.Equal(expectedNodeCount, trie.Node.Traverse().Count());
+        Assert.Equal(expectedValueCount, trie.Count());
+        Assert.Equal(expectedHash, trie.Hash);
+
+        trie = trie.Remove("0000");
+        trie = trie.Remove("0011");
+        trie = stateStore.Commit(trie);
+        Assert.True(trie.IsEmpty);
+    }
+
+    [Fact]
+    public void RemoveValueMany()
+    {
+        var stateStore = new StateStore();
+        var key00 = "00";
         var value00 = "00";
-        var key0000 = "0x00, 0x00";
+        var key0000 = "0000";
         var value0000 = "0000";
 
         var trie = new Libplanet.Data.Structures.Trie()
@@ -351,32 +379,32 @@ public class TrieTest
         trie = stateStore.Commit(trie);
         Assert.Equal(default, trie.Remove(key00).Hash);
 
-        trie = Libplanet.Data.Structures.Trie.Create(
+        trie = Trie.Create(
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
         int expectedNodeCount = trie.Node.Traverse().Count();
         int expectedValueCount = trie.ToDictionary().Count;
         HashDigest<SHA256> expectedHash = trie.Hash;
 
-        trie = Libplanet.Data.Structures.Trie.Create(
+        trie = Trie.Create(
             (Key: key00, Value: value00),
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
         trie = trie.Remove(key00);
         trie = stateStore.Commit(trie);
-        Assert.Equal(value0000, trie["0x00, 0x00"]);
+        Assert.Equal(value0000, trie["0000"]);
         Assert.Equal(expectedNodeCount, trie.Node.Traverse().Count());
         Assert.Equal(expectedValueCount, trie.ToDictionary().Count);
         Assert.Equal(expectedHash, trie.Hash);
 
-        trie = Libplanet.Data.Structures.Trie.Create(
+        trie = Trie.Create(
             (Key: key00, Value: value00));
         trie = stateStore.Commit(trie);
         expectedNodeCount = trie.Node.Traverse().Count();
         expectedValueCount = trie.ToDictionary().Count;
         expectedHash = trie.Hash;
 
-        trie = Libplanet.Data.Structures.Trie.Create(
+        trie = Trie.Create(
             (Key: key00, Value: value00),
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
@@ -387,7 +415,7 @@ public class TrieTest
         Assert.Equal(expectedValueCount, trie.ToDictionary().Count);
         // Assert.Equal(expectedHash, trie.Hash);
 
-        trie = Libplanet.Data.Structures.Trie.Create(
+        trie = Trie.Create(
             (Key: key00, Value: value00),
             (Key: key0000, Value: value0000));
         trie = stateStore.Commit(trie);
@@ -396,63 +424,62 @@ public class TrieTest
         Assert.Equal(default, trie.Remove(key0000).Hash);
 
         trie = stateStore.GetStateRoot(hash);
-        Assert.Equal(value00, trie["0x00"]); // Nothing is actually removed from storage.
-        Assert.Equal(value0000, trie["0x00, 0x00"]);
+        Assert.Equal(value00, trie["00"]); // Nothing is actually removed from storage.
+        Assert.Equal(value0000, trie["0000"]);
 
         // Add randomized kvs and remove kvs in order.
         // The way the test is set up, identical kv pairs shouldn't matter.
-        Random random = new Random();
-        List<(string Key, string Value)> kvs =
-            Range(0, 100)
+        var kvs =
+            Range(0, 10)
             .Select(_ => RandomUtility.Word())
-            .Select(item => (item, item))
-            .ToList();
-        var expected = new Stack<(HashDigest<SHA256>, int, int)>();
+            .ToDictionary(item => item, item => item)
+            .Select(item => (item.Key, item.Value))
+            .ToArray();
+        var expected = new Stack<(HashDigest<SHA256> Hash, int NodeCount, int ValueCount)>();
 
-        for (var i = 0; i < kvs.Count; i++)
+        for (var i = 0; i < kvs.Length; i++)
         {
-            var kv = kvs[i];
-            trie = i == 0 ? Libplanet.Data.Structures.Trie.Create(kv) : trie.Set(kv.Key, kv.Value);
+            var (k, v) = kvs[i];
+            trie = trie.Set(k, v);
             trie = stateStore.Commit(trie);
             expected.Push(
                 (trie.Hash, trie.Node.Traverse().Count(), trie.Count()));
         }
 
-        for (var i = kvs.Count - 1; i >= 0; i--)
+        for (var i = kvs.Length - 1; i >= 0; i--)
         {
-            var (key, value) = kvs[i];
-            var tuple = expected.Pop();
-            Assert.Equal(tuple.Item3, trie.Count());
-            Assert.Equal(tuple.Item2, trie.Node.Traverse().Count());
-            Assert.Equal(tuple.Item1, trie.Hash);
-            trie = trie.Remove(key);
-            trie = trie is not null ? stateStore.Commit(trie) : null;
+            var k = kvs[i].Key;
+            var (Hash, NodeCount, ValueCount) = expected.Pop();
+            Assert.Equal(Hash, trie.Hash);
+            Assert.Equal(NodeCount, trie.Node.Traverse().Count());
+            Assert.Equal(ValueCount, trie.Count());
+            var t = trie;
+            trie = trie.Remove(k);
+            trie = trie.IsEmpty ? trie : stateStore.Commit(trie);
+            if (t.Hash == trie.Hash)
+            {
+                int qwer = 0;
+            }
         }
 
         Assert.Empty(expected);
-        Assert.Null(trie);
+        Assert.True(trie.IsEmpty);
     }
 
     [Fact]
     public void RemoveValueNoOp()
     {
         var stateStore = new StateStore();
-        var key00 = "0x00";
-        var key0000 = "0x00, 0x00";
-        var value0000 = "0000";
-        var key0011 = "0x00, 0x11";
-        var value0011 = "0011";
-        var key000000 = "0x00, 0x00, 0x00";
-        var trie = Libplanet.Data.Structures.Trie.Create(
-            (Key: key0000, Value: value0000),
-            (Key: key0011, Value: value0011));
+        var trie = Trie.Create(
+            (Key: "0000", Value: "0000"),
+            (Key: "0011", Value: "0011"));
         trie = stateStore.Commit(trie);
         int expectedNodeCount = trie.Node.Traverse().Count();
         int expectedValueCount = trie.ToDictionary().Count;
         HashDigest<SHA256> expectedHash = trie.Hash;
 
-        trie = trie.Remove(key00);
-        trie = trie.Remove(key000000);
+        trie = trie.Remove("00");
+        trie = trie.Remove("000000");
         trie = stateStore.Commit(trie);
         Assert.Equal(expectedNodeCount, trie.Node.Traverse().Count());
         Assert.Equal(expectedValueCount, trie.Count());

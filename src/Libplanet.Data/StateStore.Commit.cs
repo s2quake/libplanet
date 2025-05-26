@@ -49,10 +49,7 @@ public partial class StateStore
         var builder = ImmutableSortedDictionary.CreateBuilder<char, INode>();
         foreach (var (index, child) in node.Children)
         {
-            if (child is not null)
-            {
-                builder.Add(index, Commit(child, writeBatch));
-            }
+            builder.Add(index, Commit(child, writeBatch));
         }
 
         var virtualChildren = builder.ToImmutable();

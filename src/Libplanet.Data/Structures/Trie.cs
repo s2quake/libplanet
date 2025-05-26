@@ -23,6 +23,8 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;
 
+    public bool IsEmpty => Node is NullNode;
+
     public object this[string key]
         => NodeResolver.ResolveToValue(Node, new(key))
               ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
@@ -34,13 +36,8 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new ArgumentException("Key values cannot be empty.", nameof(keyValues));
         }
 
-        var cursor = new KeyCursor(keyValues[0].Key);
-        var valueNode = new ValueNode { Value = keyValues[0].Value };
-        var shortNode = new ShortNode { Key = cursor.Key, Value = valueNode };
-
-        ITrie trie = new Trie(shortNode);
-
-        for (var i = 1; i < keyValues.Length; i++)
+        ITrie trie = new Trie();
+        for (var i = 0; i < keyValues.Length; i++)
         {
             trie = trie.Set(keyValues[i].Key, keyValues[i].Value);
         }
