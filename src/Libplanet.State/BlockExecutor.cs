@@ -9,20 +9,20 @@ namespace Libplanet.State;
 
 public sealed class BlockExecutor(StateStore stateStore, SystemActions systemActions)
 {
-    private readonly Subject<ActionResult> _actionExecutedSubject = new();
-    private readonly Subject<TransactionResult> _txExecutedResult = new();
-    private readonly Subject<BlockResult> _blockExecutedResult = new();
+    private readonly Subject<ActionExecutionInfo> _actionExecutedSubject = new();
+    private readonly Subject<TransactionExecutionInfo> _txExecutedResult = new();
+    private readonly Subject<BlockExecutionInfo> _blockExecutedResult = new();
 
     public BlockExecutor(StateStore stateStore)
         : this(stateStore, SystemActions.Empty)
     {
     }
 
-    public IObservable<ActionResult> ActionExecuted => _actionExecutedSubject;
+    public IObservable<ActionExecutionInfo> ActionExecuted => _actionExecutedSubject;
 
-    public IObservable<TransactionResult> TransactionExecuted => _txExecutedResult;
+    public IObservable<TransactionExecutionInfo> TransactionExecuted => _txExecutedResult;
 
-    public IObservable<BlockResult> BlockExecuted => _blockExecutedResult;
+    public IObservable<BlockExecutionInfo> BlockExecuted => _blockExecutedResult;
 
     public static int GenerateRandomSeed(ReadOnlySpan<byte> rawHashBytes, in ImmutableArray<byte> signature)
     {
@@ -43,7 +43,7 @@ public sealed class BlockExecutor(StateStore stateStore, SystemActions systemAct
         }
     }
 
-    public BlockResult Execute(RawBlock rawBlock)
+    public BlockExecutionInfo Execute(RawBlock rawBlock)
     {
         var world = new World(stateStore, rawBlock.Header.PreviousStateRootHash);
         var inputWorld = world;
@@ -51,25 +51,25 @@ public sealed class BlockExecutor(StateStore stateStore, SystemActions systemAct
         var txEvaluations = ExecuteTransactions(rawBlock, ref world);
         var endEvaluations = ExecuteActions(rawBlock, null, systemActions.EndBlockActions, ref world);
 
-        var blockEvaluation = new BlockResult
+        var blockEvaluation = new BlockExecutionInfo
         {
             Block = rawBlock,
             InputWorld = inputWorld,
             OutputWorld = world,
-            BeginEvaluations = beginEvaluations,
-            Evaluations = txEvaluations,
-            EndEvaluations = endEvaluations,
+            BeginExecutions = beginEvaluations,
+            Executions = txEvaluations,
+            EndExecutions = endEvaluations,
         };
         _blockExecutedResult.OnNext(blockEvaluation);
         return blockEvaluation;
     }
 
-    private ImmutableArray<ActionResult> ExecuteActions(
+    private ImmutableArray<ActionExecutionInfo> ExecuteActions(
         RawBlock rawBlock, Transaction? tx, ImmutableArray<IAction> actions, ref World world)
     {
         var signature = tx?.Signature ?? [];
         var randomSeed = GenerateRandomSeed(rawBlock.Hash.Bytes.AsSpan(), signature);
-        var evaluations = new ActionResult[actions.Length];
+        var evaluations = new ActionExecutionInfo[actions.Length];
 
         for (var i = 0; i < actions.Length; i++)
         {
@@ -98,7 +98,7 @@ public sealed class BlockExecutor(StateStore stateStore, SystemActions systemAct
         return [.. evaluations];
     }
 
-    private ActionResult ExecuteAction(IAction action, World world, ActionContext actionContext)
+    private ActionExecutionInfo ExecuteAction(IAction action, World world, ActionContext actionContext)
     {
         if (!world.Trie.IsCommitted)
         {
@@ -133,7 +133,7 @@ public sealed class BlockExecutor(StateStore stateStore, SystemActions systemAct
                 $"Failed to record {nameof(Account)}'s {nameof(ITrie)}.");
         }
 
-        var evaluation = new ActionResult
+        var evaluation = new ActionExecutionInfo
         {
             Action = action,
             InputContext = actionContext,
@@ -146,11 +146,11 @@ public sealed class BlockExecutor(StateStore stateStore, SystemActions systemAct
         return evaluation;
     }
 
-    private ImmutableArray<TransactionResult> ExecuteTransactions(RawBlock rawBlock, ref World world)
+    private ImmutableArray<TransactionExecutionInfo> ExecuteTransactions(RawBlock rawBlock, ref World world)
     {
         var txs = rawBlock.Content.Transactions;
         var capacity = GetCapacity(rawBlock);
-        var evaluationList = new List<TransactionResult>(capacity);
+        var evaluationList = new List<TransactionExecutionInfo>(capacity);
 
         foreach (var tx in txs)
         {
@@ -160,7 +160,7 @@ public sealed class BlockExecutor(StateStore stateStore, SystemActions systemAct
         return [.. evaluationList];
     }
 
-    private TransactionResult ExecuteTransaction(RawBlock rawBlock, Transaction transaction, ref World world)
+    private TransactionExecutionInfo ExecuteTransaction(RawBlock rawBlock, Transaction transaction, ref World world)
     {
         GasTracer.Initialize(transaction.GasLimit is 0 ? long.MaxValue : transaction.GasLimit);
         var inputWorld = world;
@@ -174,14 +174,14 @@ public sealed class BlockExecutor(StateStore stateStore, SystemActions systemAct
         GasTracer.IsTxAction = false;
 
         GasTracer.Release();
-        var txEvaluation = new TransactionResult
+        var txEvaluation = new TransactionExecutionInfo
         {
             Transaction = transaction,
             InputWorld = inputWorld,
             OutputWorld = world,
-            BeginEvaluations = beginEvaluations,
-            Evaluations = evaluations,
-            EndEvaluations = endEvaluations,
+            BeginExecutions = beginEvaluations,
+            Executions = evaluations,
+            EndExecutions = endEvaluations,
         };
 
         _txExecutedResult.OnNext(txEvaluation);

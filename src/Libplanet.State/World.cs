@@ -54,7 +54,7 @@ public sealed record class World(ITrie Trie, StateStore Statestore)
         Delta = Delta.SetItem(name, account),
     };
 
-    internal World Commit()
+    public World Commit()
     {
         var trie = Trie;
         foreach (var (name, account) in Delta)

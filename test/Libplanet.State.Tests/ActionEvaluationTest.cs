@@ -47,7 +47,7 @@ public class ActionEvaluationTest
         };
         var world = new World();
         world = world.SetValue(SystemAccount, address, "item");
-        var evaluation = new ActionResult
+        var evaluation = new ActionExecutionInfo
         {
             Action = DumbAction.Create((address, "item")),
             InputContext = new ActionContext
