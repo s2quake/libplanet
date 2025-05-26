@@ -75,9 +75,9 @@ internal static class NodeRemover
         var children = fullNode.Children;
         if (children.Count == 0)
         {
-            if (fullNode.Value is not null)
+            if (fullNode.Value is HashNode hashNode)
             {
-                return fullNode.Value;
+                return hashNode.Expand();
             }
 
             throw new ArgumentException(

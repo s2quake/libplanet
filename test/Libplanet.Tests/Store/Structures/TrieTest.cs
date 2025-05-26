@@ -121,8 +121,8 @@ public class TrieTest
         var prefixKey = "_";
 
         trie = commit ? stateStore.Commit(trie) : trie;
-        Assert.False(trie.TryGetNode(prefixKey, out _));
-        Assert.False(trie.TryGetNode(prefixKey, out _));
+        Assert.Equal(2, trie.GetNode(prefixKey).Traverse().OfType<ValueNode>().Count());
+        Assert.Equal(2, trie.GetNode(prefixKey).KeyValues().Count());
 
         trie = trie.Set(extraKey, extraKey);
         trie = commit ? stateStore.Commit(trie) : trie;
@@ -374,7 +374,7 @@ public class TrieTest
         var key0000 = "0000";
         var value0000 = "0000";
 
-        var trie = new Libplanet.Data.Structures.Trie()
+        var trie = new Trie()
             .Set(key00, value00);
         trie = stateStore.Commit(trie);
         Assert.Equal(default, trie.Remove(key00).Hash);
@@ -411,9 +411,9 @@ public class TrieTest
         trie = trie.Remove(key0000);
         trie = stateStore.Commit(trie);
         Assert.Equal(value00, Assert.Single(trie.ToDictionary()).Value);
-        // Assert.Equal(expectedNodeCount, trie.IterateNodes().Count());
+        Assert.Equal(expectedNodeCount, trie.Node.Traverse().Count());
         Assert.Equal(expectedValueCount, trie.ToDictionary().Count);
-        // Assert.Equal(expectedHash, trie.Hash);
+        Assert.Equal(expectedHash, trie.Hash);
 
         trie = Trie.Create(
             (Key: key00, Value: value00),
@@ -430,13 +430,14 @@ public class TrieTest
         // Add randomized kvs and remove kvs in order.
         // The way the test is set up, identical kv pairs shouldn't matter.
         var kvs =
-            Range(0, 10)
+            Range(0, 100)
             .Select(_ => RandomUtility.Word())
             .ToDictionary(item => item, item => item)
             .Select(item => (item.Key, item.Value))
             .ToArray();
         var expected = new Stack<(HashDigest<SHA256> Hash, int NodeCount, int ValueCount)>();
 
+        trie = new Trie();
         for (var i = 0; i < kvs.Length; i++)
         {
             var (k, v) = kvs[i];
@@ -453,13 +454,8 @@ public class TrieTest
             Assert.Equal(Hash, trie.Hash);
             Assert.Equal(NodeCount, trie.Node.Traverse().Count());
             Assert.Equal(ValueCount, trie.Count());
-            var t = trie;
             trie = trie.Remove(k);
             trie = trie.IsEmpty ? trie : stateStore.Commit(trie);
-            if (t.Hash == trie.Hash)
-            {
-                int qwer = 0;
-            }
         }
 
         Assert.Empty(expected);
