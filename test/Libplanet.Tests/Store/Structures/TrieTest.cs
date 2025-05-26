@@ -5,7 +5,6 @@ using Libplanet.Data.Structures;
 using Libplanet.Data.Structures.Nodes;
 using Libplanet.Types;
 using static System.Linq.Enumerable;
-using BitFaster.Caching.Lru;
 
 namespace Libplanet.Tests.Store.Structures;
 
