@@ -103,11 +103,30 @@ public partial class BlockChainTest
         using var fx = new MemoryStoreFixture();
         var options = fx.Options;
         var repository = fx.Repository;
-        var action = DumbAction.Create((new PrivateKey().Address, "foo"));
         var genesisKey = new PrivateKey();
-        var genesis = Libplanet.Blockchain.ProposeGenesisBlock(
-            proposer: genesisKey,
-            transactions: [
+        var transaction = new TransactionBuilder
+        {
+            Nonce = 5, // Invalid nonce,
+            Actions = [DumbAction.Create((new PrivateKey().Address, "foo"))],
+        }.Create(genesisKey);
+        var block = new RawBlock
+        {
+            Header = new BlockHeader
+            {
+                Height = 0,
+                Timestamp = DateTimeOffset.UtcNow,
+                Proposer = genesisKey.Address,
+            },
+            Content = new BlockContent
+            {
+                Transactions = [transaction],
+                Evidences = [],
+            },
+        }.Sign(genesisKey);
+        var genesisBlock = new BlockBuilder
+        {
+            Transactions =
+            [
                 new TransactionMetadata
                 {
                     Nonce = 5, // Invalid nonce,
@@ -117,8 +136,9 @@ public partial class BlockChainTest
                         DumbAction.Create((new PrivateKey().Address, "foo")),
                     }).ToBytecodes(),
                 }.Sign(genesisKey),
-            ]);
-        Assert.Throws<InvalidOperationException>(() => new Libplanet.Blockchain(genesis, repository, options));
+            ]
+        }.Create(genesisKey);
+        Assert.Throws<InvalidOperationException>(() => new Libplanet.Blockchain(genesisBlock, repository, options));
     }
 
     [Fact]
@@ -351,15 +371,11 @@ public partial class BlockChainTest
 
         var validTx = new TransactionBuilder
         {
-            Blockchain = _blockChain,
-            Signer = validKey,
-        }.Create();
+        }.Create(validKey, _blockChain);
         _blockChain.StagedTransactions.Add(validTx);
         var invalidTx = new TransactionBuilder
         {
-            Signer = invalidKey,
-            Blockchain = _blockChain,
-        }.Create();
+        }.Create(invalidKey, _blockChain);
         _blockChain.StagedTransactions.Add(invalidTx);
 
         var proposer = new PrivateKey();
@@ -467,10 +483,8 @@ public partial class BlockChainTest
 
         var tx = new TransactionBuilder
         {
-            Blockchain = blockChain,
-            Signer = privateKey2,
             Actions = [DumbAction.Create((address2, "baz"))],
-        }.Create();
+        }.Create(privateKey2, blockChain);
         blockChain.StagedTransactions.Add(tx);
         var block = blockChain.ProposeBlock(privateKey1);
         blockChain.Append(block, CreateBlockCommit(block));

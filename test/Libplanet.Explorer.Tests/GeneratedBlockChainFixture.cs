@@ -68,9 +68,9 @@ public class GeneratedBlockChainFixture
                 MaxTransactionsBytes = long.MaxValue,
             },
         };
-        Block genesisBlock = Blockchain.ProposeGenesisBlock(
-            proposer: new PrivateKey(),
-            transactions: PrivateKeys
+        var genesisBlock = new BlockBuilder
+        {
+            Transactions = PrivateKeys
                 .OrderBy(pk => pk.Address.ToString("raw", null))
                 .Select(
                     (pk, i) => new TransactionMetadata
@@ -86,7 +86,8 @@ public class GeneratedBlockChainFixture
                             },
                         }.ToBytecodes(),
                     }.Sign(privateKey))
-                .ToImmutableSortedSet());
+                .ToImmutableSortedSet(),
+        }.Create(new PrivateKey());
         Repository = new Repository();
         Chain = new Blockchain(Repository, options);
         MinedBlocks = MinedBlocks.SetItem(

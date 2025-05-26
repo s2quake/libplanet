@@ -9,8 +9,6 @@ namespace Libplanet;
 
 public sealed record class TransactionBuilder
 {
-    public required PrivateKey Signer { get; init; }
-
     public long Nonce { get; init; }
 
     public BlockHash GenesisHash { get; init; }
@@ -23,7 +21,7 @@ public sealed record class TransactionBuilder
 
     public long GasLimit { get; init; }
 
-    public Transaction Create()
+    public Transaction Create(PrivateKey signer)
     {
         var options = new ModelOptions
         {
@@ -32,7 +30,7 @@ public sealed record class TransactionBuilder
         var metadata = new TransactionMetadata
         {
             Nonce = Nonce,
-            Signer = Signer.Address,
+            Signer = signer.Address,
             GenesisHash = GenesisHash,
             Actions = Actions.ToBytecodes(),
             Timestamp = Timestamp,
@@ -40,12 +38,22 @@ public sealed record class TransactionBuilder
             GasLimit = GasLimit,
         };
         var bytes = ModelSerializer.SerializeToBytes(metadata, options);
-        var signature = Signer.Sign(bytes).ToImmutableArray();
+        var signature = signer.Sign(bytes).ToImmutableArray();
 
         return new Transaction
         {
             Metadata = metadata,
             Signature = signature,
         };
+    }
+
+    public Transaction Create(PrivateKey signer, Blockchain blockchain)
+    {
+        var builder = this with
+        {
+            Nonce = blockchain.GetNextTxNonce(signer.Address),
+            GenesisHash = blockchain.Genesis.BlockHash,
+        };
+        return builder.Create(signer);
     }
 }

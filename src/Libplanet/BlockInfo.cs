@@ -1,0 +1,18 @@
+using System.Security.Cryptography;
+using Libplanet.Types;
+using Libplanet.Types.Blocks;
+
+namespace Libplanet;
+
+public sealed record class BlockInfo
+{
+    public static BlockInfo Empty { get; } = new BlockInfo();
+
+    public int Height { get; init; }
+
+    public BlockHash BlockHash { get; init; }
+
+    public HashDigest<SHA256> StateRootHash { get; init; }
+
+    public BlockCommit BlockCommit { get; init; } = BlockCommit.Empty;
+}

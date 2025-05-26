@@ -84,9 +84,7 @@ public class BlockPolicyTest : IDisposable
 
         var validTx = new TransactionBuilder
         {
-            Blockchain = _chain,
-            Signer = validKey,
-        }.Create();
+        }.Create(validKey, _chain);
         _chain.StagedTransactions.Add(validTx);
         options.TransactionOptions.Validate(validTx);
 
@@ -94,9 +92,7 @@ public class BlockPolicyTest : IDisposable
         var invalidKey = new PrivateKey();
         var invalidTx = new TransactionBuilder
         {
-            Blockchain = _chain,
-            Signer = invalidKey,
-        }.Create();
+        }.Create(invalidKey, _chain);
         _chain.StagedTransactions.Add(invalidTx);
         options.TransactionOptions.Validate(invalidTx);
     }
@@ -139,9 +135,7 @@ public class BlockPolicyTest : IDisposable
 
         var invalidTx = new TransactionBuilder
         {
-            Blockchain = _chain,
-            Signer = invalidKey,
-        }.Create();
+        }.Create(invalidKey, _chain);
         _chain.StagedTransactions.Add(invalidTx);
         options.TransactionOptions.Validate(invalidTx);
 
@@ -156,9 +150,7 @@ public class BlockPolicyTest : IDisposable
 
         invalidTx = new TransactionBuilder
         {
-            Blockchain = _chain,
-            Signer = invalidKey,
-        }.Create();
+        }.Create(invalidKey, _chain);
         _chain.StagedTransactions.Add(invalidTx);
     }
 
@@ -183,9 +175,7 @@ public class BlockPolicyTest : IDisposable
 
         var tx = new TransactionBuilder
         {
-            Blockchain = chain,
-            Signer = privateKey,
-        }.Create();
+        }.Create(privateKey, chain);
         chain.StagedTransactions.Add(tx);
         Assert.Single(chain.StagedTransactions.Collect());
 
@@ -219,9 +209,7 @@ public class BlockPolicyTest : IDisposable
                 {
                     var tx = new TransactionBuilder
                     {
-                        Blockchain = chain,
-                        Signer = privateKey,
-                    }.Create();
+                    }.Create(privateKey, chain);
                     chain.StagedTransactions.Add(tx);
                     return tx;
                 })
@@ -257,9 +245,7 @@ public class BlockPolicyTest : IDisposable
                 {
                     var tx = new TransactionBuilder
                     {
-                        Blockchain = chain,
-                        Signer = key,
-                    }.Create();
+                    }.Create(key, chain);
                     chain.StagedTransactions.Add(tx);
                     return tx;
                 })

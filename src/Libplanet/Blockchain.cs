@@ -88,6 +88,8 @@ public partial class Blockchain
 
     public TxExecutionCollection TxExecutions { get; }
 
+    public BlockInfo TipInfo { get; private set; } = BlockInfo.Empty;
+
     public Block Tip => Blocks.Count is not 0
         ? Blocks[^1] : throw new InvalidOperationException("The chain is empty.");
 
