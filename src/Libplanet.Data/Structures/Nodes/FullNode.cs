@@ -7,10 +7,8 @@ namespace Libplanet.Data.Structures.Nodes;
 public sealed record class FullNode
     : INode, IEquatable<FullNode>, IValidatableObject
 {
-    public const byte MaximumIndex = 16;
-
     [Property(0)]
-    public required ImmutableSortedDictionary<byte, INode> Children { get; init; }
+    public required ImmutableSortedDictionary<char, INode> Children { get; init; }
 
     [Property(1)]
     public INode? Value { get; init; }
@@ -31,24 +29,18 @@ public sealed record class FullNode
         }
     }
 
-    public INode? GetChild(byte index)
+    public INode? GetChild(char index)
     {
-        if (index > MaximumIndex)
-        {
-            var message = "The index of FullNode's children should be less than 0x10.";
-            throw new ArgumentOutOfRangeException(nameof(index), message);
-        }
-
         return Children.GetValueOrDefault(index);
     }
 
-    public FullNode SetChild(byte index, INode node)
+    public FullNode SetChild(char index, INode node)
     {
-        if (index > MaximumIndex)
-        {
-            var message = "The index of FullNode's children should be less than 0x10.";
-            throw new ArgumentOutOfRangeException(nameof(index), message);
-        }
+        // if (index > MaximumIndex)
+        // {
+        //     var message = "The index of FullNode's children should be less than 0x10.";
+        //     throw new ArgumentOutOfRangeException(nameof(index), message);
+        // }
 
         if (node is HashNode)
         {
@@ -59,13 +51,13 @@ public sealed record class FullNode
         return this with { Children = Children.SetItem(index, node) };
     }
 
-    public FullNode RemoveChild(byte index)
+    public FullNode RemoveChild(char index)
     {
-        if (index > MaximumIndex)
-        {
-            var message = "The index of FullNode's children should be less than 0x10.";
-            throw new ArgumentOutOfRangeException(nameof(index), message);
-        }
+        // if (index > MaximumIndex)
+        // {
+        //     var message = "The index of FullNode's children should be less than 0x10.";
+        //     throw new ArgumentOutOfRangeException(nameof(index), message);
+        // }
 
         return this with { Children = Children.Remove(index) };
     }
@@ -80,11 +72,11 @@ public sealed record class FullNode
     {
         foreach (var (key, value) in Children)
         {
-            if (key > MaximumIndex)
-            {
-                yield return new ValidationResult(
-                    "The key of FullNode's children should be less than 0x10.", [nameof(Children)]);
-            }
+            // if (key > MaximumIndex)
+            // {
+            //     yield return new ValidationResult(
+            //         "The key of FullNode's children should be less than 0x10.", [nameof(Children)]);
+            // }
 
             if (value is HashNode)
             {

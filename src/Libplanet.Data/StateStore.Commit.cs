@@ -46,7 +46,7 @@ public partial class StateStore
     private static INode CommitFullNode(FullNode node, WriteBatch writeBatch)
     {
         var virtualValue = node.Value is null ? null : Commit(node.Value, writeBatch);
-        var builder = ImmutableSortedDictionary.CreateBuilder<byte, INode>();
+        var builder = ImmutableSortedDictionary.CreateBuilder<char, INode>();
         foreach (var (index, child) in node.Children)
         {
             if (child is not null)

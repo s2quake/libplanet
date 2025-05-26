@@ -6,14 +6,14 @@ using Libplanet.Data.Structures.Nodes;
 using Libplanet.Types;
 using static System.Linq.Enumerable;
 
-namespace Libplanet.Tests.Store.Trie;
+namespace Libplanet.Tests.Store.Structures;
 
-public class MerkleTrieTest
+public class TrieTest
 {
     [Fact]
     public void Base_Test()
     {
-        var trie = new Libplanet.Data.Structures.Trie();
+        var trie = new Trie();
         Assert.Equal(default, trie.Hash);
         Assert.IsType<NullNode>(trie.Node);
     }
@@ -22,7 +22,7 @@ public class MerkleTrieTest
     public void ConstructWithHashDigest()
     {
         var store = new MemoryTable();
-        var hashDigest = RandomUtility.NextHashDigest<SHA256>();
+        var hashDigest = RandomUtility.HashDigest<SHA256>();
         var trie = new Libplanet.Data.Structures.Trie(new HashNode { Hash = hashDigest, Table = store });
         Assert.Equal(hashDigest, trie.Hash);
     }
@@ -31,7 +31,7 @@ public class MerkleTrieTest
     public void ConstructWithRootNode()
     {
         var store = new MemoryTable();
-        var hashDigest = RandomUtility.NextHashDigest<SHA256>();
+        var hashDigest = RandomUtility.HashDigest<SHA256>();
         var node = new HashNode { Hash = hashDigest, Table = store };
         var trie = new Libplanet.Data.Structures.Trie(node);
         Assert.Equal(hashDigest, trie.Hash);
@@ -40,14 +40,14 @@ public class MerkleTrieTest
     [Fact]
     public void CreateWithSingleKeyValue()
     {
-        var store = new MemoryTable();
+        var stateStore = new StateStore();
         var keyValue = ("01", ImmutableSortedDictionary<string, string>.Empty);
         var trie = Libplanet.Data.Structures.Trie.Create(keyValue);
         Assert.Single(trie.ToDictionary());
         Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie["01"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0"]);
 
-        trie = new StateStore(store).Commit(trie);
+        trie = stateStore.Commit(trie);
         Assert.Single(trie.ToDictionary());
         Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, trie["01"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0"]);

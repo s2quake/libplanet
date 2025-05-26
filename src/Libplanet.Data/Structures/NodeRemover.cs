@@ -5,53 +5,53 @@ namespace Libplanet.Data.Structures;
 
 internal static class NodeRemover
 {
-    public static INode Remove(INode node, in Nibbles nibbles) => node switch
+    public static INode Remove(INode node, in KeyCursor cursor) => node switch
     {
-        HashNode hashNode => RemoveFromHashNode(hashNode, nibbles),
-        ValueNode valueNode => RemoveFromValueNode(valueNode, nibbles),
-        ShortNode shortNode => RemoveFromShortNode(shortNode, nibbles),
-        FullNode fullNode => RemoveFromFullNode(fullNode, nibbles),
+        HashNode hashNode => RemoveFromHashNode(hashNode, cursor),
+        ValueNode valueNode => RemoveFromValueNode(valueNode, cursor),
+        ShortNode shortNode => RemoveFromShortNode(shortNode, cursor),
+        FullNode fullNode => RemoveFromFullNode(fullNode, cursor),
         _ => throw new UnreachableException($"Unsupported node value"),
     };
 
-    private static INode RemoveFromHashNode(HashNode hashNode, Nibbles nibbles)
-        => Remove(hashNode.Expand(), nibbles);
+    private static INode RemoveFromHashNode(HashNode hashNode, KeyCursor cursor)
+        => Remove(hashNode.Expand(), cursor);
 
-    private static INode RemoveFromValueNode(ValueNode valueNode, Nibbles nibbles)
-        => nibbles.IsEnd ? NullNode.Value : valueNode;
+    private static INode RemoveFromValueNode(ValueNode valueNode, KeyCursor cursor)
+        => cursor.IsEnd ? NullNode.Value : valueNode;
 
-    private static INode RemoveFromShortNode(ShortNode shortNode, Nibbles nibbles)
+    private static INode RemoveFromShortNode(ShortNode shortNode, KeyCursor cursor)
     {
         var key = shortNode.Key;
-        var nextNibbles = nibbles.Next(nibbles.Position, key);
-        var commonLength = nextNibbles.Position - nibbles.Position;
+        var nextCursor = cursor.Next(cursor.Position, new(key));
+        var commonLength = nextCursor.Position - cursor.Position;
 
         if (commonLength == key.Length)
         {
-            var node = Remove(shortNode.Value, nextNibbles);
+            var node = Remove(shortNode.Value, nextCursor);
             return Create(key, node);
         }
 
         return shortNode;
 
-        static INode Create(Nibbles key, INode node) => node switch
+        static INode Create(string key, INode node) => node switch
         {
             ValueNode valueNode => new ShortNode { Key = key, Value = valueNode },
             FullNode fullNode => new ShortNode { Key = key, Value = fullNode },
-            ShortNode shortNode => new ShortNode { Key = key.Append(shortNode.Key), Value = shortNode.Value },
+            ShortNode shortNode => new ShortNode { Key = key + shortNode.Key, Value = shortNode.Value },
             NullNode => node,
             _ => throw new UnreachableException($"Unsupported node value"),
         };
     }
 
-    private static INode RemoveFromFullNode(FullNode fullNode, Nibbles nibbles)
+    private static INode RemoveFromFullNode(FullNode fullNode, KeyCursor cursor)
     {
-        if (!nibbles.IsEnd)
+        if (!cursor.IsEnd)
         {
-            var index = nibbles.Current;
+            var index = cursor.Current;
             if (fullNode.Children[index] is { } child)
             {
-                if (Remove(child, nibbles.Next(1)) is { } node)
+                if (Remove(child, cursor.Next(1)) is { } node)
                 {
                     if (node is NullNode)
                     {
@@ -89,10 +89,10 @@ internal static class NodeRemover
             child = child is HashNode hn ? hn.Expand() : child;
             if (child is ShortNode sn)
             {
-                return new ShortNode { Key = new Nibbles([index]).Append(sn.Key), Value = sn.Value };
+                return new ShortNode { Key = index + sn.Key, Value = sn.Value };
             }
 
-            return new ShortNode { Key = new Nibbles([index]), Value = child };
+            return new ShortNode { Key = index.ToString(), Value = child };
         }
         else
         {

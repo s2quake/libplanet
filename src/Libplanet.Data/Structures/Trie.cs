@@ -24,7 +24,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     public bool IsCommitted { get; private set; } = Node is HashNode or NullNode;
 
     public object this[string key]
-        => NodeResolver.ResolveToValue(Node, Nibbles.Create(key))
+        => NodeResolver.ResolveToValue(Node, new(key))
               ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
     public static ITrie Create(params (string Key, object Value)[] keyValues)
@@ -34,9 +34,9 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new ArgumentException("Key values cannot be empty.", nameof(keyValues));
         }
 
-        var nibbles = Nibbles.Create(keyValues[0].Key);
+        var cursor = new KeyCursor(keyValues[0].Key);
         var valueNode = new ValueNode { Value = keyValues[0].Value };
-        var shortNode = new ShortNode { Key = nibbles, Value = valueNode };
+        var shortNode = new ShortNode { Key = cursor.Key, Value = valueNode };
 
         ITrie trie = new Trie(shortNode);
 
@@ -51,9 +51,9 @@ public sealed partial record class Trie(INode Node) : ITrie
     public ITrie Set(string key, object value)
     {
         var node = Node;
-        var nibbles = Nibbles.Create(key);
+        var cursor = new KeyCursor(key);
         var valueNode = new ValueNode { Value = value };
-        var newNode = NodeInserter.Insert(node, nibbles, valueNode);
+        var newNode = NodeInserter.Insert(node, cursor, valueNode);
         return new Trie(newNode) { IsCommitted = IsCommitted };
     }
 
@@ -64,14 +64,14 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new InvalidOperationException("Cannot remove from an empty trie.");
         }
 
-        var nibbles = Nibbles.Create(key);
-        return new Trie(NodeRemover.Remove(Node, nibbles));
+        var cursor = new KeyCursor(key);
+        return new Trie(NodeRemover.Remove(Node, cursor));
     }
 
     public INode GetNode(string key)
     {
-        var nibbles = Nibbles.Create(key);
-        var node = NodeResolver.ResolveToNode(Node, nibbles);
+        var cursor = new KeyCursor(key);
+        var node = NodeResolver.ResolveToNode(Node, cursor);
         if (node is NullNode)
         {
             throw new KeyNotFoundException($"Key {key} not found in the trie.");
@@ -82,8 +82,8 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool TryGetNode(string key, [MaybeNullWhen(false)] out INode node)
     {
-        var nibbles = Nibbles.Create(key);
-        node = NodeResolver.ResolveToNode(Node, nibbles);
+        var cursor = new KeyCursor(key);
+        node = NodeResolver.ResolveToNode(Node, cursor);
         if (node is not NullNode)
         {
             return true;
@@ -95,7 +95,7 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value)
     {
-        if (NodeResolver.ResolveToValue(Node, Nibbles.Create(key)) is { } v)
+        if (NodeResolver.ResolveToValue(Node, new KeyCursor(key)) is { } v)
         {
             value = v;
             return true;
@@ -109,7 +109,7 @@ public sealed partial record class Trie(INode Node) : ITrie
     {
         try
         {
-            return NodeResolver.ResolveToValue(Node, Nibbles.Create(key)) is not null;
+            return NodeResolver.ResolveToValue(Node, new KeyCursor(key)) is not null;
         }
         catch
         {

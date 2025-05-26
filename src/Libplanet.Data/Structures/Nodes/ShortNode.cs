@@ -7,7 +7,7 @@ namespace Libplanet.Data.Structures.Nodes;
 internal sealed record class ShortNode : INode, IValidatableObject
 {
     [Property(0)]
-    public required Nibbles Key { get; init; }
+    public required string Key { get; init; }
 
     [Property(1)]
     public required INode Value { get; init; }

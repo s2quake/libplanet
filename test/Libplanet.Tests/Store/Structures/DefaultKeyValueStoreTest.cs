@@ -1,6 +1,6 @@
 using Libplanet.Data;
 
-namespace Libplanet.Tests.Store.Trie;
+namespace Libplanet.Tests.Store.Structures;
 
 public class DefaultKeyValueStoreTest : KeyValueStoreTest, IDisposable
 {
