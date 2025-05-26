@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using Libplanet.Data.Structures;
+using Libplanet.Data.Structures.Nodes;
+using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Data;
@@ -18,59 +20,126 @@ public partial class StateStore(ITable table)
     {
     }
 
-    public void CopyStates(
-        IImmutableSet<HashDigest<SHA256>> stateRootHashes, StateStore targetStateStore)
+    public ITrie GetTrie(HashDigest<SHA256> stateRootHash)
     {
-        var targetKeyValueStore = targetStateStore._table;
-        var count = 0L;
-
-        foreach (HashDigest<SHA256> stateRootHash in stateRootHashes)
+        if (!_table.ContainsKey(stateRootHash.ToString()))
         {
-            var stateTrie = (Trie)GetStateRoot(stateRootHash);
-            if (!stateTrie.IsCommitted)
-            {
-                throw new ArgumentException(
-                    $"Failed to find a state root for given state root hash {stateRootHash}.");
-            }
-
-            foreach (var (key, value) in stateTrie)
-            {
-                targetKeyValueStore[key] = _table[key];
-                count++;
-            }
-
-            // FIXME: Probably not the right place to implement this.
-            // It'd be better to have it in Libplanet.State.
-            if (stateTrie[string.Empty] is { } metadata)
-            {
-                foreach (var (path, hash) in stateTrie)
-                {
-                    // Ignore metadata
-                    if (path.Length > 0)
-                    {
-                        // var accountStateRootHash
-                        //     = ModelSerializer.DeserializeFromBytes<HashDigest<SHA256>>(hash);
-                        var accountStateRootHash = (HashDigest<SHA256>)hash;
-                        Trie accountStateTrie =
-                            (Trie)GetStateRoot(accountStateRootHash);
-                        if (!accountStateTrie.IsCommitted)
-                        {
-                            throw new ArgumentException(
-                                $"Failed to find a state root for given " +
-                                $"state root hash {accountStateRootHash}.");
-                        }
-
-                        foreach (var (key, value) in accountStateTrie)
-                        {
-                            targetKeyValueStore[key] = _table[key];
-                            count++;
-                        }
-                    }
-                }
-            }
+            throw new KeyNotFoundException(
+                $"State root hash {stateRootHash} not found in the state store.");
         }
+
+        return new Trie(new HashNode { Hash = stateRootHash, Table = _table });
     }
 
-    public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash)
-        => stateRootHash == default ? new Trie() : Trie.Create(stateRootHash, _table);
+    public ITrie Commit(ITrie trie)
+    {
+        if (trie.Node is NullNode)
+        {
+            throw new ArgumentException("Empty trie cannot be committed.", nameof(trie));
+        }
+
+        var node = trie.Node;
+        var writeBatch = new WriteBatch(_table, 4096);
+        var newNode = Commit(node, writeBatch);
+
+        if (newNode is not HashNode)
+        {
+            var serialized = ModelSerializer.SerializeToBytes(newNode);
+            var hashDigest = HashDigest<SHA256>.Create(serialized);
+
+            writeBatch.Add(hashDigest.ToString(), serialized);
+            newNode = new HashNode { Hash = hashDigest, Table = _table };
+        }
+
+        writeBatch.Flush();
+
+        return new Trie(newNode);
+    }
+
+    private static INode Commit(INode node, WriteBatch writeBatch) => node switch
+    {
+        HashNode _ => node,
+        FullNode fullNode => CommitFullNode(fullNode, writeBatch),
+        ShortNode shortNode => CommitShortNode(shortNode, writeBatch),
+        ValueNode valueNode => CommitValueNode(valueNode, writeBatch),
+        _ => throw new NotSupportedException("Not supported node came."),
+    };
+
+    private static INode CommitFullNode(FullNode node, WriteBatch writeBatch)
+    {
+        var virtualValue = node.Value is null ? null : Commit(node.Value, writeBatch);
+        var builder = ImmutableSortedDictionary.CreateBuilder<char, INode>();
+        foreach (var (index, child) in node.Children)
+        {
+            builder.Add(index, Commit(child, writeBatch));
+        }
+
+        var virtualChildren = builder.ToImmutable();
+        var newNode = new FullNode { Children = virtualChildren, Value = virtualValue };
+        var bytes = ModelSerializer.SerializeToBytes(newNode);
+        if (bytes.Length <= HashDigest<SHA256>.Size)
+        {
+            return newNode;
+        }
+
+        return Write(bytes, writeBatch);
+    }
+
+    private static INode CommitShortNode(ShortNode node, WriteBatch writeBatch)
+    {
+        var committedValueNode = Commit(node.Value, writeBatch);
+        var newNode = new ShortNode { Key = node.Key, Value = committedValueNode };
+        var bytes = ModelSerializer.SerializeToBytes(newNode);
+        if (bytes.Length <= HashDigest<SHA256>.Size)
+        {
+            return newNode;
+        }
+
+        return Write(bytes, writeBatch);
+    }
+
+    private static INode CommitValueNode(ValueNode node, WriteBatch writeBatch)
+    {
+        var bytes = ModelSerializer.SerializeToBytes(node);
+        if (bytes.Length <= HashDigest<SHA256>.Size)
+        {
+            return node;
+        }
+
+        return Write(bytes, writeBatch);
+    }
+
+    private static HashNode Write(byte[] bytes, WriteBatch writeBatch)
+    {
+        var hash = HashDigest<SHA256>.Create(bytes);
+        var key = hash.ToString();
+        HashNodeCache.AddOrUpdate(hash, bytes);
+        writeBatch.Add(key, bytes);
+        return writeBatch.Create(hash);
+    }
+
+    private sealed class WriteBatch(ITable table, int batchSize)
+    {
+        private readonly ITable _table = table;
+        private readonly int _batchSize = batchSize;
+        private readonly Dictionary<string, byte[]> _batch = new(batchSize);
+
+        public void Add(string key, byte[] value)
+        {
+            _batch[key] = value;
+
+            if (_batch.Count == _batchSize)
+            {
+                Flush();
+            }
+        }
+
+        public void Flush()
+        {
+            _table.SetMany(_batch);
+            _batch.Clear();
+        }
+
+        public HashNode Create(HashDigest<SHA256> nodeHash) => new() { Hash = nodeHash, Table = _table };
+    }
 }

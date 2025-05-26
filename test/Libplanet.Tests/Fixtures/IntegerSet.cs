@@ -134,10 +134,10 @@ public sealed class IntegerSet
     {
         if (blockHash != default)
         {
-            return Repository.StateStore.GetStateRoot(Chain.Blocks[blockHash].PreviousStateRootHash);
+            return Repository.StateStore.GetTrie(Chain.Blocks[blockHash].PreviousStateRootHash);
         }
 
-        return Repository.StateStore.GetStateRoot(default);
+        return Repository.StateStore.GetTrie(default);
     }
 
     public struct TxWithContext
