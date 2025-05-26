@@ -103,6 +103,7 @@ public partial class BlockChainTest
         using var fx = new MemoryStoreFixture();
         var options = fx.Options;
         var repository = fx.Repository;
+        var action = DumbAction.Create((new PrivateKey().Address, "foo"));
         var genesisKey = new PrivateKey();
         var genesis = Libplanet.Blockchain.ProposeGenesisBlock(
             proposer: genesisKey,
