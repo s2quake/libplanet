@@ -18,7 +18,12 @@ internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
         }
 
         var hash = new HashDigest<SHA256>(bytes);
-        var table = options.Items.TryGetValue(typeof(ITable), out var value) ? value as ITable : null;
+        if (!options.Items.TryGetValue(typeof(ITable), out var value) || value is not ITable table)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(ITable)} must be provided in {nameof(ModelOptions.Items)}.");
+        }
+
         return new HashNode
         {
             Hash = hash,

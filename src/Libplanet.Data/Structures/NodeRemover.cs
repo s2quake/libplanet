@@ -46,7 +46,7 @@ internal static class NodeRemover
 
     private static INode RemoveFromFullNode(FullNode fullNode, string key)
     {
-        if (key.Length is not 0)
+        if (key != string.Empty)
         {
             var index = key[0];
             if (fullNode.Children[index] is { } child)

@@ -2,14 +2,12 @@ using Libplanet.Data;
 
 namespace Libplanet.Tests.Store.Structures;
 
-public class DefaultKeyValueStoreTest : TableTestBase, IDisposable
+public sealed class DefaultTableTest : TableTestBase, IDisposable
 {
-    private readonly DefaultTable _defaultKeyValueStore;
+    private readonly DefaultTable _defaultKeyValueStore = [];
 
-    public DefaultKeyValueStoreTest()
+    public DefaultTableTest()
     {
-        // Memory mode.
-        _defaultKeyValueStore = new DefaultTable();
         InitializePreStoredData();
     }
 
