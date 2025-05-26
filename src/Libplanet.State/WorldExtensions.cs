@@ -58,11 +58,11 @@ public static class WorldExtensions
     public static object? GetValueOrDefault(this World @this, Address name, Address key)
         => @this.GetAccount(name).GetValueOrDefault(key);
 
-    public static T GetValueOrFallback<T>(this World @this, string name, string key, T fallback)
-        => @this.GetAccount(name).GetValueOrFallback(key, fallback);
+    public static T GetValueOrDefault<T>(this World @this, string name, string key, T defaultValue)
+        => @this.GetAccount(name).GetValueOrDefault(key, defaultValue);
 
-    public static T GetValueOrFallback<T>(this World @this, Address name, Address key, T fallback)
-        => @this.GetAccount(name).GetValueOrFallback(key, fallback);
+    public static T GetValueOrDefault<T>(this World @this, Address name, Address key, T defaultValue)
+        => @this.GetAccount(name).GetValueOrDefault(key, defaultValue);
 
     public static object GetValue(this World @this, string name, string key)
         => @this.GetAccount(name).GetValue(key);

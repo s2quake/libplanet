@@ -11,8 +11,8 @@ public static class AccountExtensions
 
     public static object? GetValueOrDefault(this Account @this, Address key) => @this.GetValueOrDefault(key.ToString());
 
-    public static T GetValueOrFallback<T>(this Account @this, Address key, T fallback)
-        => @this.GetValueOrFallback(key.ToString(), fallback);
+    public static T GetValueOrDefault<T>(this Account @this, Address key, T defaultValue)
+        => @this.GetValueOrDefault(key.ToString(), defaultValue);
 
     public static bool ContainsKey(this Account @this, Address key) => @this.ContainsKey(key.ToString());
 
