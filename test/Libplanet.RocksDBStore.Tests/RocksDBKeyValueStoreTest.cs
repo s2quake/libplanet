@@ -2,68 +2,69 @@ using System.IO;
 using Libplanet.Tests.Store.Structures;
 using RocksDbSharp;
 
-namespace Libplanet.Data.RocksDB.Tests
+namespace Libplanet.Data.RocksDB.Tests;
+
+public class RocksDBKeyValueStoreTest : TableTestBase, IDisposable
 {
-    public class RocksDBKeyValueStoreTest : KeyValueStoreTest, IDisposable
+    private readonly RocksTable _rocksDbKeyValueStore;
+
+    protected override IDictionary<string, byte[]> KeyValueStore => _rocksDbKeyValueStore;
+
+    public RocksDBKeyValueStoreTest()
     {
-        private readonly RocksTable _rocksDbKeyValueStore;
-
-        public RocksDBKeyValueStoreTest()
+        try
         {
-            try
-            {
-                KeyValueStore = _rocksDbKeyValueStore = new RocksTable(Path.Combine(
-                        Path.GetTempPath(),
-                        $"rocksdb_key_value_test_{Guid.NewGuid()}"));
-                InitializePreStoredData();
-            }
-            catch (TypeInitializationException)
-            {
-                throw new SkipException("RocksDB is not available.");
-            }
+            _rocksDbKeyValueStore = new RocksTable(Path.Combine(
+                    Path.GetTempPath(),
+                    $"rocksdb_key_value_test_{Guid.NewGuid()}"));
+            InitializePreStoredData();
         }
-
-        [Fact]
-        public void ReadOnlyRocksDb()
+        catch (TypeInitializationException)
         {
-            var basePath = Path.Combine(
-                Path.GetTempPath(),
-                $"rocksdb_key_value_test_{Guid.NewGuid()}");
-            var primaryRocksDb = new RocksTable(basePath);
-            var readonlyRocksDb = new RocksTable(basePath, RocksDBInstanceType.ReadOnly);
-
-            var key = "new";
-            var value = new byte[] { 1, 2, 3 };
-            primaryRocksDb[key] = value;
-            Assert.Equal(value, primaryRocksDb[key]);
-            Assert.Throws<KeyNotFoundException>(() => readonlyRocksDb[key]);
-            Assert.Throws<RocksDbException>(() => readonlyRocksDb.TryCatchUpWithPrimary());
+            throw new SkipException("RocksDB is not available.");
         }
+    }
 
-        [Fact]
-        public void SecondaryRocksDb()
-        {
-            var basePath = Path.Combine(
-                Path.GetTempPath(),
-                $"rocksdb_key_value_test_{Guid.NewGuid()}");
-            var primaryRocksDb = new RocksTable(basePath);
-            var secondaryRocksDb = new RocksTable(
-                basePath,
-                RocksDBInstanceType.Secondary);
+    [Fact]
+    public void ReadOnlyRocksDb()
+    {
+        var basePath = Path.Combine(
+            Path.GetTempPath(),
+            $"rocksdb_key_value_test_{Guid.NewGuid()}");
+        var primaryRocksDb = new RocksTable(basePath);
+        var readonlyRocksDb = new RocksTable(basePath, RocksDBInstanceType.ReadOnly);
 
-            var key = "new";
-            var value = new byte[] { 1, 2, 3 };
-            primaryRocksDb[key] = value;
-            Assert.Equal(value, primaryRocksDb[key]);
-            Assert.Throws<KeyNotFoundException>(() => secondaryRocksDb[key]);
+        var key = "new";
+        var value = new byte[] { 1, 2, 3 };
+        primaryRocksDb[key] = value;
+        Assert.Equal(value, primaryRocksDb[key]);
+        Assert.Throws<KeyNotFoundException>(() => readonlyRocksDb[key]);
+        Assert.Throws<RocksDbException>(() => readonlyRocksDb.TryCatchUpWithPrimary());
+    }
 
-            secondaryRocksDb.TryCatchUpWithPrimary();
-            Assert.Equal(value, secondaryRocksDb[key]);
-        }
+    [Fact]
+    public void SecondaryRocksDb()
+    {
+        var basePath = Path.Combine(
+            Path.GetTempPath(),
+            $"rocksdb_key_value_test_{Guid.NewGuid()}");
+        var primaryRocksDb = new RocksTable(basePath);
+        var secondaryRocksDb = new RocksTable(
+            basePath,
+            RocksDBInstanceType.Secondary);
 
-        public void Dispose()
-        {
-            _rocksDbKeyValueStore.Dispose();
-        }
+        var key = "new";
+        var value = new byte[] { 1, 2, 3 };
+        primaryRocksDb[key] = value;
+        Assert.Equal(value, primaryRocksDb[key]);
+        Assert.Throws<KeyNotFoundException>(() => secondaryRocksDb[key]);
+
+        secondaryRocksDb.TryCatchUpWithPrimary();
+        Assert.Equal(value, secondaryRocksDb[key]);
+    }
+
+    public void Dispose()
+    {
+        _rocksDbKeyValueStore.Dispose();
     }
 }

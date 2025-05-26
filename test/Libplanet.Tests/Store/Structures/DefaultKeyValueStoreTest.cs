@@ -2,16 +2,18 @@ using Libplanet.Data;
 
 namespace Libplanet.Tests.Store.Structures;
 
-public class DefaultKeyValueStoreTest : KeyValueStoreTest, IDisposable
+public class DefaultKeyValueStoreTest : TableTestBase, IDisposable
 {
     private readonly DefaultTable _defaultKeyValueStore;
 
     public DefaultKeyValueStoreTest()
     {
         // Memory mode.
-        KeyValueStore = _defaultKeyValueStore = new DefaultTable(null);
+        _defaultKeyValueStore = new DefaultTable();
         InitializePreStoredData();
     }
+
+    protected override IDictionary<string, byte[]> KeyValueStore => _defaultKeyValueStore;
 
     public void Dispose()
     {
