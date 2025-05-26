@@ -11,11 +11,11 @@ internal sealed class BlockChainRendererTracer(
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        blockChainService.BlockChain.RenderBlockEnd.Subscribe(
-            info => _logger.LogInformation(
-                "-Pattern2- #{Height} Block end: {Hash}",
-                info.NewTip.Height,
-                info.NewTip.BlockHash));
+        // blockChainService.BlockChain.BlockExecuted.Subscribe(
+        //     info => _logger.LogInformation(
+        //         "-Pattern2- #{Height} Block end: {Hash}",
+        //         info.NewTip.Height,
+        //         info.NewTip.BlockHash));
         return Task.CompletedTask;
     }
 

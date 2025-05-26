@@ -21,16 +21,16 @@ internal sealed class BlockChainService(
     private readonly Blockchain _blockChain = CreateBlockChain(
         actionService: actionService,
         genesisOptions: genesisOptions.Value,
-        store: storeService.Repository);
+        repository: storeService.Repository);
 
     public Blockchain BlockChain => _blockChain;
 
     private static Blockchain CreateBlockChain(
         IActionService actionService,
         GenesisOptions genesisOptions,
-        Repository store)
+        Repository repository)
     {
-        var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, store.StateStore);
+        var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, repository);
         var options = new BlockchainOptions
         {
             PolicyActions = actionService.PolicyActions,
@@ -55,7 +55,7 @@ internal sealed class BlockChainService(
     private static Block CreateGenesisBlock(
         GenesisOptions genesisOptions,
         IActionService actionService,
-        StateStore stateStore)
+        Repository repository)
     {
         if (genesisOptions.GenesisBlockPath != string.Empty)
         {
@@ -81,7 +81,7 @@ internal sealed class BlockChainService(
             return CreateGenesisBlockFromConfiguration(
                 PrivateKey.Parse(genesisOptions.GenesisKey),
                 raw,
-                stateStore);
+                repository);
         }
 
         if (genesisOptions.GenesisKey != string.Empty)
@@ -91,28 +91,10 @@ internal sealed class BlockChainService(
             var actions = actionService.GetGenesisActions(
                 genesisAddress: genesisKey.Address,
                 validators: validatorAddresses);
-            return CreateGenesisBlock(genesisKey, actions);
+            return Blockchain.ProposeGenesisBlock(repository, genesisKey, [.. actions]);
         }
 
         throw new UnreachableException("Genesis block path is not set.");
-    }
-
-    private static Block CreateGenesisBlock(
-        PrivateKey genesisKey, IAction[] actions)
-    {
-        var nonce = 0L;
-        var transaction = new TransactionMetadata
-        {
-            Nonce = nonce,
-            Signer = genesisKey.Address,
-            GenesisHash = default,
-            Actions = actions.ToBytecodes(),
-            Timestamp = DateTimeOffset.MinValue,
-        }.Sign(genesisKey);
-        return Blockchain.ProposeGenesisBlock(
-            proposer: genesisKey,
-            previousStateRootHash: default,
-            transactions: [transaction]);
     }
 
     private static Block LoadGenesisBlock(string genesisBlockPath)
@@ -142,50 +124,31 @@ internal sealed class BlockChainService(
     }
 
     private static Block CreateGenesisBlockFromConfiguration(
-        PrivateKey genesisKey,
-        byte[] config,
-        StateStore stateStore)
+        PrivateKey genesisKey, byte[] config, Repository repository)
     {
-        Dictionary<string, Dictionary<string, object>>? data =
-            JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(config);
-        if (data == null || data.Count == 0)
+        var accountStates = JsonSerializer.Deserialize<AccountState[]>(config)
+            ?? throw new InvalidOperationException(
+                "Failed to deserialize genesis configuration. Ensure it is a valid JSON array of AccountState.");
+
+        var trie = repository.StateStore.GetStateRoot(repository.StateRootHash);
+        var world = new World(trie, repository.StateStore);
+
+        foreach (var accountState in accountStates)
         {
-            return Blockchain.ProposeGenesisBlock(
-                proposer: genesisKey,
-                previousStateRootHash: default,
-                transactions: []);
-        }
+            var name = accountState.Name;
+            var account = world.GetAccount(name);
 
-        var nullTrie = stateStore.GetStateRoot(default);
-        World world = new World(nullTrie, stateStore);
-
-        foreach (var accountKv in data)
-        {
-            var key = accountKv.Key;
-            Account account = world.GetAccount(key);
-
-            foreach (var stateKv in accountKv.Value)
+            foreach (var value in accountState.Values)
             {
-                account = account.SetValue(stateKv.Key, stateKv.Value);
+                account = account.SetValue(value.Key, value.Value);
             }
 
-            world = world.SetAccount(key, account);
+            world = world.SetAccount(name, account);
         }
 
-        throw new NotImplementedException();
-        // var worldTrie = world.Trie;
-        // foreach (var (name, account) in world.Delta)
-        // {
-        //     var accountTrie = stateStore.Commit(account.Trie);
-        //     worldTrie = worldTrie.Set(
-        //         name,
-        //         accountTrie.Hash.Bytes);
-        // }
+        world = world.Commit();
+        repository.StateRootHash = world.Hash;
 
-        // worldTrie = stateStore.Commit(worldTrie);
-        // return BlockChain.ProposeGenesisBlock(
-        //     proposer: genesisKey,
-        //     previousStateRootHash: worldTrie.Hash,
-        //     transactions: []);
+        return Blockchain.ProposeGenesisBlock(repository, genesisKey, []);
     }
 }

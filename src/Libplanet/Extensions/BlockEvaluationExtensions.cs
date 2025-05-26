@@ -6,11 +6,11 @@ namespace Libplanet.Extensions;
 
 public static class BlockEvaluationExtensions
 {
-    public static TxExecution[] GetTxExecutions(this BlockResult @this, BlockHash blockHash)
+    public static TxExecution[] GetTxExecutions(this BlockExecutionInfo @this, BlockHash blockHash)
     {
-        return [.. @this.Evaluations.Select(ToTxExecution)];
+        return [.. @this.Executions.Select(ToTxExecution)];
 
-        TxExecution ToTxExecution(TransactionResult evaluation) => new()
+        TxExecution ToTxExecution(TransactionExecutionInfo evaluation) => new()
         {
             TxId = evaluation.Transaction.Id,
             BlockHash = blockHash,
@@ -19,16 +19,16 @@ public static class BlockEvaluationExtensions
             ExceptionNames = [.. GetActionEvaluations(evaluation).Select(GetExceptionName)],
         };
 
-        static IEnumerable<ActionResult> GetActionEvaluations(TransactionResult txEvaluation)
-            => txEvaluation.BeginEvaluations.Concat(txEvaluation.Evaluations).Concat(txEvaluation.EndEvaluations);
+        static IEnumerable<ActionExecutionInfo> GetActionEvaluations(TransactionExecutionInfo txEvaluation)
+            => txEvaluation.BeginExecutions.Concat(txEvaluation.Executions).Concat(txEvaluation.EndExecutions);
 
-        static string GetExceptionName(ActionResult evaluation)
+        static string GetExceptionName(ActionExecutionInfo evaluation)
             => GetActualException(evaluation.Exception)?.GetType().Name ?? string.Empty;
 
         static Exception? GetActualException(Exception? exception) => exception?.InnerException ?? exception;
     }
 
-    public static BlockExecution GetBlockExecution(this BlockResult @this, BlockHash blockHash) => new()
+    public static BlockExecution GetBlockExecution(this BlockExecutionInfo @this, BlockHash blockHash) => new()
     {
         BlockHash = blockHash,
         InputState = @this.InputWorld.Hash,

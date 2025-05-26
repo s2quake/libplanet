@@ -1,5 +1,6 @@
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
+using System.Reactive;
 using Libplanet.State;
 using Libplanet.Extensions;
 using Libplanet.Data;
@@ -15,8 +16,7 @@ namespace Libplanet;
 
 public partial class Blockchain
 {
-    private readonly Subject<RenderBlockInfo> _blockEvaluating = new();
-    private readonly Subject<RenderBlockInfo> _blockEvaluated = new();
+    private readonly Subject<Unit> _blockExecutingSubject = new();
     private readonly Subject<TipChangedInfo> _tipChangedSubject = new();
     private readonly Repository _repository;
     private readonly BlockExecutor _blockExecutor;
@@ -44,7 +44,7 @@ public partial class Blockchain
     public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
-        var evaluation = Evaluate(genesisBlock);
+        var evaluation = Execute(genesisBlock);
         _repository.Append(genesisBlock, BlockCommit.Empty);
         _repository.StateRootHash = evaluation.OutputWorld.Hash;
     }
@@ -64,11 +64,13 @@ public partial class Blockchain
         TxExecutions = new TxExecutionCollection(repository);
     }
 
-    public IObservable<RenderBlockInfo> RenderBlock => _blockEvaluating;
+    public IObservable<Unit> BlockExecuting => _blockExecutingSubject;
 
-    public IObservable<ActionResult> RenderAction => _blockExecutor.ActionExecuted;
+    public IObservable<ActionExecutionInfo> ActionExecuted => _blockExecutor.ActionExecuted;
 
-    public IObservable<RenderBlockInfo> RenderBlockEnd => _blockEvaluated;
+    public IObservable<TransactionExecutionInfo> TransactionExecuted => _blockExecutor.TransactionExecuted;
+
+    public IObservable<BlockExecutionInfo> BlockExecuted => _blockExecutor.BlockExecuted;
 
     public IObservable<TipChangedInfo> TipChanged => _tipChangedSubject;
 
@@ -107,15 +109,15 @@ public partial class Blockchain
     public bool IsEvidenceExpired(EvidenceBase evidence)
         => evidence.Height + Options.EvidenceOptions.MaxEvidencePendingDuration + evidence.Height < Tip.Height;
 
-    public BlockResult Evaluate(Block block)
+    public BlockExecutionInfo Execute(Block block)
     {
-        var evaluation = _blockExecutor.Execute((RawBlock)block);
+        var execution = _blockExecutor.Execute((RawBlock)block);
         var blockHash = block.BlockHash;
-        _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(blockHash));
-        _repository.BlockExecutions.Add(blockHash, evaluation.GetBlockExecution(blockHash));
+        _repository.TxExecutions.AddRange(execution.GetTxExecutions(blockHash));
+        _repository.BlockExecutions.Add(blockHash, execution.GetBlockExecution(blockHash));
         _repository.StateRootHashStore.Add(blockHash, _repository.StateRootHash);
 
-        return evaluation;
+        return execution;
     }
 
     public void Append(Block block, BlockCommit blockCommit)
@@ -138,12 +140,11 @@ public partial class Blockchain
 
         _repository.Append(block, blockCommit);
         _tipChangedSubject.OnNext(new(oldTip, block));
-        _blockEvaluating.OnNext(new RenderBlockInfo(oldTip, block));
-        var evaluation = _blockExecutor.Execute((RawBlock)block);
-        _blockEvaluated.OnNext(new RenderBlockInfo(oldTip, block));
-        _repository.StateRootHash = evaluation.OutputWorld.Hash;
+        _blockExecutingSubject.OnNext(Unit.Default);
+        var execution = _blockExecutor.Execute((RawBlock)block);
+        _repository.StateRootHash = execution.OutputWorld.Hash;
         _repository.StateRootHashStore.Add(block.BlockHash, _repository.StateRootHash);
-        _repository.TxExecutions.AddRange(evaluation.GetTxExecutions(block.BlockHash));
+        _repository.TxExecutions.AddRange(execution.GetTxExecutions(block.BlockHash));
     }
 
     public HashDigest<SHA256> GetStateRootHash(int height)
@@ -167,20 +168,25 @@ public partial class Blockchain
         return new World(_repository.StateStore.GetStateRoot(stateRootHash), _repository.StateStore);
     }
 
-    public static Block ProposeGenesisBlock(
-        PrivateKey proposer,
-        ImmutableSortedSet<Transaction> transactions,
-        HashDigest<SHA256> previousStateRootHash = default)
+    public static Block ProposeGenesisBlock(PrivateKey proposer, ImmutableArray<IAction> actions)
     {
+        var timestamp = DateTimeOffset.UtcNow;
+        var transaction = new TransactionMetadata
+        {
+            Nonce = 0L,
+            Signer = proposer.Address,
+            Actions = actions.ToBytecodes(),
+            Timestamp = timestamp,
+        }.Sign(proposer);
         var blockHeader = new BlockHeader
         {
-            Timestamp = DateTimeOffset.UtcNow,
+            Height = 0,
+            Timestamp = timestamp,
             Proposer = proposer.Address,
-            PreviousStateRootHash = previousStateRootHash,
         };
         var blockContent = new BlockContent
         {
-            Transactions = transactions,
+            Transactions = [transaction],
             Evidences = [],
         };
         var rawBlock = new RawBlock
@@ -191,22 +197,24 @@ public partial class Blockchain
         return rawBlock.Sign(proposer);
     }
 
-    public static Block ProposeGenesisBlock(
-        PrivateKey proposer,
-        ImmutableArray<IAction> actions,
-        HashDigest<SHA256> previousStateRootHash = default)
+    public static Block ProposeGenesisBlock(Repository repository, PrivateKey proposer, ImmutableArray<IAction> actions)
     {
+        var timestamp = DateTimeOffset.UtcNow;
         var transaction = new TransactionMetadata
         {
+            Nonce = repository.GetNonce(proposer.Address),
             Signer = proposer.Address,
             Actions = actions.ToBytecodes(),
-            Timestamp = DateTimeOffset.UtcNow,
+            Timestamp = timestamp,
         }.Sign(proposer);
         var blockHeader = new BlockHeader
         {
-            Timestamp = DateTimeOffset.UtcNow,
+            Height = repository.Height + 1,
+            Timestamp = timestamp,
             Proposer = proposer.Address,
-            PreviousStateRootHash = previousStateRootHash,
+            PreviousHash = repository.BlockHash,
+            PreviousCommit = repository.BlockCommit,
+            PreviousStateRootHash = repository.StateRootHash,
         };
         var blockContent = new BlockContent
         {
@@ -223,24 +231,19 @@ public partial class Blockchain
 
     public Block ProposeBlock(PrivateKey proposer)
     {
-        var tip = Tip;
-        var height = tip.Height + 1;
-        var transactions = StagedTransactions.Collect();
-        var evidences = PendingEvidences.Collect();
-        var previousHash = tip.BlockHash;
         var blockHeader = new BlockHeader
         {
-            Height = height,
+            Height = _repository.Height + 1,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
-            PreviousHash = previousHash,
-            PreviousCommit = BlockCommits[previousHash],
-            PreviousStateRootHash = GetStateRootHash(previousHash),
+            PreviousHash = _repository.BlockHash,
+            PreviousCommit = _repository.BlockCommit,
+            PreviousStateRootHash = _repository.StateRootHash,
         };
         var blockContent = new BlockContent
         {
-            Transactions = transactions,
-            Evidences = evidences,
+            Transactions = StagedTransactions.Collect(),
+            Evidences = PendingEvidences.Collect(),
         };
         var rawBlock = new RawBlock
         {
