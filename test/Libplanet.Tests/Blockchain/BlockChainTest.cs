@@ -91,7 +91,9 @@ public partial class BlockChainTest : IDisposable
     public void BaseTest_WithGenesis()
     {
         var proposer = new PrivateKey();
-        var genesisBlock = Libplanet.Blockchain.ProposeGenesisBlock(proposer, actions: []);
+        var genesisBlock = new BlockBuilder
+        {
+        }.Create(proposer);
         var blockChain = new Libplanet.Blockchain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockChain.Id);
         Assert.Single(blockChain.Blocks);
@@ -115,7 +117,16 @@ public partial class BlockChainTest : IDisposable
         {
             Validators = [new Validator { Address = proposer.Address }],
         };
-        var genesisBlock = Libplanet.Blockchain.ProposeGenesisBlock(proposer, [action]);
+        var genesisBlock = new BlockBuilder
+        {
+            Transactions =
+            [
+                new TransactionBuilder
+                {
+                    Actions = [action],
+                }.Create(proposer),
+            ],
+        }.Create(proposer);
         var blockChain = new Libplanet.Blockchain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockChain.Id);
         Assert.Single(blockChain.Blocks);
@@ -213,7 +224,17 @@ public partial class BlockChainTest : IDisposable
             new Initialize { Validators = TestUtils.Validators, },
         };
 
-        var genesis = Libplanet.Blockchain.ProposeGenesisBlock(GenesisProposer, [.. actions]);
+        var genesis = new BlockBuilder
+        {
+            Transactions =
+            [
+                new TransactionBuilder
+                {
+                    Actions = actions,
+                }.Create(GenesisProposer),
+            ],
+        }.Create(GenesisProposer);
+
         var chain = new Libplanet.Blockchain(genesis);
         Block genesisBlock = chain.Genesis;
 
