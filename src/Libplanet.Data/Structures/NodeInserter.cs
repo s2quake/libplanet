@@ -35,11 +35,11 @@ internal static class NodeInserter
     {
         var oldKey = shortNode.Key;
         var prefix = oldKey.GetCommonPrefix(key);
-        var nextCursor = key[prefix.Length..];
+        var nextKey = key[prefix.Length..];
 
         if (prefix.Length == oldKey.Length)
         {
-            var node = Insert(shortNode.Value, nextCursor, value);
+            var node = Insert(shortNode.Value, nextKey, value);
             return new ShortNode { Key = oldKey, Value = node };
         }
         else
@@ -57,9 +57,9 @@ internal static class NodeInserter
                 builder[oldKey2[0]] = shortNode.Value;
             }
 
-            if (nextCursor != string.Empty)
+            if (nextKey != string.Empty)
             {
-                builder[nextCursor[0]] = InsertToNullNode(nextCursor[1..], value);
+                builder[nextKey[0]] = InsertToNullNode(nextKey[1..], value);
             }
 
             var fullNode = new FullNode
