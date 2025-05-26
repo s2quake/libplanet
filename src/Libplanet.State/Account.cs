@@ -16,7 +16,8 @@ public sealed record class Account(ITrie Trie)
 
     public object? GetValueOrDefault(string key) => TryGetValue(key, out object? state) ? state : null;
 
-    public T GetValueOrFallback<T>(string key, T fallback) => GetValueOrDefault(key) is T state ? state : fallback;
+    public T GetValueOrDefault<T>(string key, T defaultValue)
+        => GetValueOrDefault(key) is T state ? state : defaultValue;
 
     public bool ContainsKey(string key) => Trie.TryGetValue(key, out _);
 

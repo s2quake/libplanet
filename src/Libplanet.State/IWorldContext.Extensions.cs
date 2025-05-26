@@ -34,17 +34,18 @@ public partial interface IWorldContext
     bool TryGetValue<T>(Address name, Address key, [MaybeNullWhen(false)] out T value)
         => TryGetValue(name.ToString(), key.ToString(), out value);
 
-    T GetValue<T>(string name, string key, T fallback)
+    T GetValueOrDefault<T>(string name, string key, T defaultValue)
     {
         if (this[name].TryGetValue<T>(key, out var obj))
         {
             return obj;
         }
 
-        return fallback;
+        return defaultValue;
     }
 
-    T GetValue<T>(Address name, Address key, T fallback) => GetValue(name.ToString(), key.ToString(), fallback);
+    T GetValueOrDefault<T>(Address name, Address key, T defaultValue)
+        => GetValueOrDefault(name.ToString(), key.ToString(), defaultValue);
 
     bool Contains(string name, string key) => this[name].Contains(key);
 

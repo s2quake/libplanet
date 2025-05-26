@@ -15,7 +15,7 @@ public sealed record class UpdateValueAction : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        var value = world.GetValue(SystemAccount, Address, BigInteger.Zero);
+        var value = world.GetValueOrDefault(SystemAccount, Address, BigInteger.Zero);
         world[SystemAccount, Address] = value + Increment;
     }
 }

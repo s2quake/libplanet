@@ -39,7 +39,7 @@ public sealed record class Arithmetic : ActionBase
             throw new InvalidOperationException(Error);
         }
 
-        var value = world.GetValue(SystemAccount, context.Signer, BigInteger.Zero);
+        var value = world.GetValueOrDefault(SystemAccount, context.Signer, BigInteger.Zero);
         world[SystemAccount, context.Signer] = Operator.Calculate(value, Operand);
     }
 }

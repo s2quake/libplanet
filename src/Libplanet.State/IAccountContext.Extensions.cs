@@ -13,7 +13,10 @@ public partial interface IAccountContext
 
     bool TryGetValue<T>(Address key, [MaybeNullWhen(false)] out T value) => TryGetValue(key.ToString(), out value);
 
-    T GetValue<T>(Address key, T fallback) => GetValue(key.ToString(), fallback);
+    T GetValueOrDefault<T>(string key, T defaultValue)
+        => TryGetValue<T>(key, out var value) ? value : defaultValue;
+
+    T GetValueOrDefault<T>(Address key, T defaultValue) => GetValueOrDefault(key.ToString(), defaultValue);
 
     bool Contains(Address key) => Contains(key.ToString());
 

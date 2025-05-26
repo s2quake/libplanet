@@ -8,8 +8,6 @@ public partial interface IAccountContext
 
     bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value);
 
-    T GetValue<T>(string key, T fallback);
-
     bool Contains(string key);
 
     bool Remove(string key);

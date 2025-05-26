@@ -52,7 +52,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
     {
         if (Append is { } append)
         {
-            var items = world.GetValue(SystemAccount, append.At, string.Empty);
+            var items = world.GetValueOrDefault(SystemAccount, append.At, string.Empty);
             world[SystemAccount, append.At] = items == string.Empty ? append.Item : $"{items},{append.Item}";
         }
 

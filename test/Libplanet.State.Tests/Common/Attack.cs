@@ -17,7 +17,7 @@ public sealed record class Attack : ActionBase
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-        var battleResult = world.GetValue<BattleResult>(SystemAddresses.SystemAccount, TargetAddress, new());
+        var battleResult = world.GetValueOrDefault<BattleResult>(SystemAddresses.SystemAccount, TargetAddress, new());
         world[SystemAddresses.SystemAccount, TargetAddress] = battleResult with
         {
             UsedWeapons = battleResult.UsedWeapons.Add(Weapon),

@@ -79,7 +79,7 @@ public sealed class IntegerSet
             GenesisHash = Genesis.BlockHash,
             Actions = actions.ToBytecodes(),
         }.Sign(signerKey);
-        BigInteger prevState = Chain.GetWorld().GetValueOrFallback(SystemAccount, signer, BigInteger.Zero);
+        BigInteger prevState = Chain.GetWorld().GetValueOrDefault(SystemAccount, signer, BigInteger.Zero);
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.PreviousStateRootHash;
         ITrie prevTrie = GetTrie(Chain.Tip.BlockHash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);

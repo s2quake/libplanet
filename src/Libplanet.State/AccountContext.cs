@@ -33,8 +33,6 @@ internal sealed class AccountContext(Account account, string name, Action<Accoun
     public bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value)
         => _account.TryGetValue(key, out value);
 
-    public T GetValue<T>(string key, T fallback) => TryGetValue<T>(key, out var value) ? value : fallback;
-
     public bool Contains(string key) => _account.GetValueOrDefault(key) is not null;
 
     public bool Remove(string key)

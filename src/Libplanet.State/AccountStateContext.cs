@@ -14,8 +14,6 @@ public sealed class AccountStateContext(Account account, string name) : IAccount
 
     public bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value) => account.TryGetValue(key, out value);
 
-    public T GetValue<T>(string key, T fallback) => TryGetValue<T>(key, out var value) ? value : fallback;
-
     public bool Contains(string key) => account.GetValue(key) is not null;
 
     public bool Remove(string key) => throw new NotSupportedException("Removing state is not supported.");
