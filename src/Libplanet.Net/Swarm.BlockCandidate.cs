@@ -21,15 +21,15 @@ namespace Libplanet.Net
                     BlockHeader tipHeader = BlockChain.Tip.Header;
                     if (BlockCandidateTable.GetCurrentRoundCandidate(BlockChain.Tip) is { } branch)
                     {
-                        var root = branch.Blocks.First();
-                        var tip = branch.Blocks.Last();
+                        var root = branch.Keys.First();
+                        var tip = branch.Keys.Last();
                         _logger.Information(
                             "Consuming branch with root #{RootIndex} {RootHash} " +
                             "and tip #{TipIndex} {TipHash}",
-                            root.Item1.Height,
-                            root.Item1.BlockHash,
-                            tip.Item1.Height,
-                            tip.Item1.BlockHash);
+                            root.Height,
+                            root.BlockHash,
+                            tip.Height,
+                            tip.BlockHash);
                         _ = BlockCandidateProcess(
                             branch,
                             cancellationToken);
@@ -51,7 +51,7 @@ namespace Libplanet.Net
         }
 
         private bool BlockCandidateProcess(
-            Branch candidate,
+            ImmutableSortedDictionary<Block, BlockCommit> candidate,
             CancellationToken cancellationToken)
         {
             try
@@ -87,7 +87,7 @@ namespace Libplanet.Net
 
         private void AppendBranch(
             Blockchain blockChain,
-            Branch candidate,
+            ImmutableSortedDictionary<Block, BlockCommit> candidate,
             CancellationToken cancellationToken = default)
         {
             Block oldTip = blockChain.Tip;
@@ -121,19 +121,19 @@ namespace Libplanet.Net
             }
         }
 
-        private List<(Block, BlockCommit)> ExtractBlocksToAppend(Block branchpoint, Branch branch)
+        private List<(Block, BlockCommit)> ExtractBlocksToAppend(Block branchpoint, ImmutableSortedDictionary<Block, BlockCommit> branch)
         {
             var trimmed = new List<(Block, BlockCommit)>();
             bool matchFound = false;
-            foreach (var pair in branch.Blocks)
+            foreach (var (key, value) in branch)
             {
                 if (matchFound)
                 {
-                    trimmed.Add(pair);
+                    trimmed.Add((key, value));
                 }
                 else
                 {
-                    matchFound = branchpoint.BlockHash.Equals(pair.Item1.BlockHash);
+                    matchFound = branchpoint.BlockHash.Equals(key.BlockHash);
                 }
             }
 
@@ -233,7 +233,10 @@ namespace Libplanet.Net
                 cancellationToken);
             try
             {
-                var branch = new Branch(await blocksAsync.ToArrayAsync(cancellationToken));
+                var items = await blocksAsync.ToArrayAsync(cancellationToken);
+                var branch = items.ToImmutableSortedDictionary(
+                    item => item.Item1,
+                    item => item.Item2);
                 BlockCandidateTable.Add(tip, branch);
                 return true;
             }
