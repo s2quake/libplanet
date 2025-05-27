@@ -114,7 +114,7 @@ namespace Libplanet.Net
                 {
                     try
                     {
-                        var branch = new Branch(blocks);
+                        var branch = blocks.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
                         BlockCandidateTable.Add(BlockChain.Tip, branch);
                         BlockReceived.Set();
                     }

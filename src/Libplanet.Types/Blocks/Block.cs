@@ -7,7 +7,7 @@ using Libplanet.Types.Transactions;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed partial record class Block : IEquatable<Block>
+public sealed partial record class Block : IEquatable<Block>, IComparable<Block>, IComparable
 {
     [Property(0)]
     public required BlockHeader Header { get; init; }
@@ -43,4 +43,17 @@ public sealed partial record class Block : IEquatable<Block>
     public override string ToString() => BlockHash.ToString();
 
     public bool Equals(Block? other) => ModelResolver.Equals(this, other);
+
+    public int CompareTo(object? obj) => obj switch
+    {
+        null => 1,
+        Block other => CompareTo(other),
+        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(Block)}.", nameof(obj)),
+    };
+
+    public int CompareTo(Block? other) => other switch
+    {
+        null => 1,
+        _ => Height.CompareTo(other.Height),
+    };
 }

@@ -17,14 +17,14 @@ namespace Libplanet.Net
     public class BlockCandidateTable
     {
         private readonly ILogger _logger;
-        private readonly ConcurrentDictionary<BlockExcerpt, Branch> _table;
+        private readonly ConcurrentDictionary<BlockExcerpt, ImmutableSortedDictionary<Block, BlockCommit>> _table;
 
         public BlockCandidateTable()
         {
             _logger = Log
                 .ForContext<BlockCandidateTable>()
                 .ForContext("Source", nameof(BlockCandidateTable));
-            _table = new ConcurrentDictionary<BlockExcerpt, Branch>();
+            _table = new ConcurrentDictionary<BlockExcerpt, ImmutableSortedDictionary<Block, BlockCommit>>();
         }
 
         public long Count
@@ -45,12 +45,12 @@ namespace Libplanet.Net
         /// tip at the time of downloading the blocks.</param>
         /// <param name="branch">The list of downloaded <see cref="Block"/>s and
         /// its <see cref="BlockCommit"/>s.</param>
-        public void Add(BlockExcerpt blockHeader, Branch branch)
+        public void Add(BlockExcerpt blockHeader, ImmutableSortedDictionary<Block, BlockCommit> branch)
         {
             if (_table.ContainsKey(blockHeader))
             {
-                var root = branch.Blocks.First().Item1;
-                var tip = branch.Blocks[^1].Item1;
+                var root = branch.Keys.First();
+                var tip = branch.Keys.Last();
                 _logger.Debug(
                     "Given branch with root #{RootIndex} {RootHash} and " +
                     "tip #{TipIndex} {TipHash} will not be added as the table already contains " +
@@ -86,7 +86,7 @@ namespace Libplanet.Net
         /// <see cref="Block.Height"/>.
         /// </returns>
         /// <seealso cref="Add"/>
-        public Branch? GetCurrentRoundCandidate(
+        public ImmutableSortedDictionary<Block, BlockCommit>? GetCurrentRoundCandidate(
             BlockExcerpt thisRoundTip)
         {
             return _table.TryGetValue(thisRoundTip, out var branch)
