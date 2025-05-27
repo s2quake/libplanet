@@ -7,7 +7,7 @@ namespace Libplanet.Extensions.Cocona.Tests.Commands;
 
 public sealed class StatsCommandTest : IDisposable
 {
-    private readonly ImmutableArray<StoreFixture> _storeFixtures;
+    private readonly ImmutableArray<RepositoryFixture> _storeFixtures;
     private readonly StatsCommand _command;
     private readonly TextWriter _originalWriter;
 
@@ -17,7 +17,7 @@ public sealed class StatsCommandTest : IDisposable
         _originalWriter = Console.Out;
         try
         {
-            _storeFixtures = [new MemoryStoreFixture(), new RocksDBStoreFixture()];
+            _storeFixtures = [new MemoryRepositoryFixture(), new RocksDBStoreFixture()];
         }
         catch (TypeInitializationException)
         {

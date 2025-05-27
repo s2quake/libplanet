@@ -29,12 +29,12 @@ namespace Libplanet.Net.Tests
             {
                 var policy = new BlockchainOptions
                 {
-                    PolicyActions = new SystemActions
+                    SystemActions = new SystemActions
                     {
                         EndBlockActions = [new MinerReward(1)],
                     },
                 };
-                using (var storeFx = new MemoryStoreFixture())
+                using (var storeFx = new MemoryRepositoryFixture())
                 {
                     var chain = MakeBlockChain(policy);
                     var miner = new PrivateKey();
@@ -112,12 +112,12 @@ namespace Libplanet.Net.Tests
         {
             policy ??= new BlockchainOptions
             {
-                PolicyActions = new SystemActions
+                SystemActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
             };
-            var fx = new MemoryStoreFixture(policy);
+            var fx = new MemoryRepositoryFixture(policy);
             var blockchain = MakeBlockChain(policy, genesisBlock: genesis);
             appProtocolVersionOptions ??= new AppProtocolVersionOptions();
             hostOptions ??= new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { });

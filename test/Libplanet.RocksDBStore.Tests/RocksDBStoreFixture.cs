@@ -4,7 +4,7 @@ using Libplanet.Tests.Store;
 
 namespace Libplanet.Data.RocksDB.Tests;
 
-public class RocksDBStoreFixture : StoreFixture
+public class RocksDBStoreFixture : RepositoryFixture
 {
     public RocksDBStoreFixture(BlockchainOptions? options = null)
         : base(CreateOptions(), options ?? new BlockchainOptions())

@@ -40,7 +40,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task PublishMessage()
         {
-            MemoryStoreFixture fx = new MemoryStoreFixture();
+            MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
             bool received1 = false;
             bool received2 = false;
             var key1 = new PrivateKey();
@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             // It has no difference with PublishMessage() test,
             // since two methods only has timing difference.
-            MemoryStoreFixture fx = new MemoryStoreFixture();
+            MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
             bool received1 = false;
             bool received2 = false;
             var key1 = new PrivateKey();
@@ -148,7 +148,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task AddMessages()
         {
-            MemoryStoreFixture fx = new MemoryStoreFixture();
+            MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
             int received1 = 0;
             int received2 = 0;
             var key1 = new PrivateKey();

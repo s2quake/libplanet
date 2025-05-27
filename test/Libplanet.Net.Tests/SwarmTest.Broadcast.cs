@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests
         {
             const int numBlocks = 5;
             var options = new BlockchainOptions();
-            var genesis = new MemoryStoreFixture(options).GenesisBlock;
+            var genesis = new MemoryRepositoryFixture(options).GenesisBlock;
 
             var swarmA = await CreateSwarm(
                 privateKey: new PrivateKey(),
@@ -82,7 +82,7 @@ namespace Libplanet.Net.Tests
         public async Task BroadcastBlockToReconnectedPeer()
         {
             var miner = new PrivateKey();
-            var fx = new MemoryStoreFixture();
+            var fx = new MemoryRepositoryFixture();
             var minerChain = MakeBlockChain(fx.Options);
             var policy = fx.Options;
             foreach (int i in Enumerable.Range(0, 10))
@@ -434,14 +434,14 @@ namespace Libplanet.Net.Tests
         {
             int size = 5;
 
-            StoreFixture[] fxs = new StoreFixture[size];
+            RepositoryFixture[] fxs = new RepositoryFixture[size];
             Blockchain[] blockChains = new Blockchain[size];
             Swarm[] swarms = new Swarm[size];
 
             for (int i = 0; i < size; i++)
             {
                 var options = new BlockchainOptions();
-                fxs[i] = new MemoryStoreFixture();
+                fxs[i] = new MemoryRepositoryFixture();
                 blockChains[i] = new Blockchain(fxs[i].Repository, options);
                 swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
             }
@@ -678,16 +678,16 @@ namespace Libplanet.Net.Tests
         {
             var options = new BlockchainOptions
             {
-                PolicyActions = new SystemActions
+                SystemActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
             };
-            var fx1 = new MemoryStoreFixture(options);
+            var fx1 = new MemoryRepositoryFixture(options);
             var blockChain = MakeBlockChain(options);
             var privateKey = new PrivateKey();
             var minerSwarm = await CreateSwarm(blockChain, privateKey);
-            var fx2 = new MemoryStoreFixture();
+            var fx2 = new MemoryRepositoryFixture();
             // var receiverRenderer = new RecordingActionRenderer();
             // var loggedRenderer = new LoggedActionRenderer(
             //     receiverRenderer,

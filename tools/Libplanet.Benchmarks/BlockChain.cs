@@ -5,7 +5,7 @@ namespace Libplanet.Benchmarks
 {
     public class BlockChain
     {
-        private readonly StoreFixture _fx;
+        private readonly RepositoryFixture _fx;
         private readonly Libplanet.Blockchain _blockChain;
 
         public BlockChain()

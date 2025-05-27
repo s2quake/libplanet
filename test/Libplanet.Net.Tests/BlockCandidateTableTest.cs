@@ -6,11 +6,11 @@ namespace Libplanet.Net.Tests
 {
     public class BlockCandidateTableTest
     {
-        private readonly StoreFixture _fx;
+        private readonly RepositoryFixture _fx;
 
         public BlockCandidateTableTest()
         {
-            _fx = new MemoryStoreFixture();
+            _fx = new MemoryRepositoryFixture();
         }
 
         [Fact]

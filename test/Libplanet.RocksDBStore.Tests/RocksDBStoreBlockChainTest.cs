@@ -12,7 +12,7 @@ public class RocksDBStoreBlockChainTest : BlockChainTest
     {
     }
 
-    protected override StoreFixture GetStoreFixture(BlockchainOptions? options = null)
+    protected override RepositoryFixture GetStoreFixture(BlockchainOptions? options = null)
     {
         try
         {

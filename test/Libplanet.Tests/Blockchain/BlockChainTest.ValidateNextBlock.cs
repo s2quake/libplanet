@@ -181,7 +181,7 @@ public partial class BlockChainTest
         }.ToImmutableArray();
         var options2 = new BlockchainOptions
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
@@ -219,7 +219,7 @@ public partial class BlockChainTest
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(
             repository.StateStore,
-            options1.PolicyActions);
+            options1.SystemActions);
         var preGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,
             protocolVersion: beforePostponeBPV);
@@ -241,7 +241,7 @@ public partial class BlockChainTest
 
         var options2 = new BlockchainOptions
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 BeginBlockActions = [],
                 EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
@@ -263,7 +263,7 @@ public partial class BlockChainTest
         var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
         var options = new BlockchainOptions
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 BeginBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
             },
@@ -272,7 +272,7 @@ public partial class BlockChainTest
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(
             repository.StateStore,
-            options.PolicyActions);
+            options.SystemActions);
         var rawGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,
             protocolVersion: beforePostponeBPV);
@@ -693,7 +693,7 @@ public partial class BlockChainTest
                 .ToImmutableArray();
         var policyWithBlockAction = new BlockchainOptions
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 EndBlockActions = endBlockActions,
             },

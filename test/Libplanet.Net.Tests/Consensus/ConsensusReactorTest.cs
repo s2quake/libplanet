@@ -38,7 +38,7 @@ namespace Libplanet.Net.Tests.Consensus
             var consensusReactors = new ConsensusReactor[4];
             var stores = new Libplanet.Data.Repository[4];
             var blockChains = new Blockchain[4];
-            var fx = new MemoryStoreFixture();
+            var fx = new MemoryRepositoryFixture();
             var validatorPeers = new List<BoundPeer>();
             var cancellationTokenSource = new CancellationTokenSource();
 

@@ -31,11 +31,6 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public static ITrie Create(params (string Key, object Value)[] keyValues)
     {
-        if (keyValues.Length == 0)
-        {
-            throw new ArgumentException("Key values cannot be empty.", nameof(keyValues));
-        }
-
         ITrie trie = new Trie();
         for (var i = 0; i < keyValues.Length; i++)
         {

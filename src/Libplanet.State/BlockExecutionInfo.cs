@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using Libplanet.Types;
 using Libplanet.Types.Blocks;
 
 namespace Libplanet.State;
@@ -15,4 +17,6 @@ public sealed record class BlockExecutionInfo
     public ImmutableArray<TransactionExecutionInfo> Executions { get; init; } = [];
 
     public ImmutableArray<ActionExecutionInfo> EndExecutions { get; init; } = [];
+
+    public HashDigest<SHA256> StateRootHash => OutputWorld.Trie.Hash;
 }

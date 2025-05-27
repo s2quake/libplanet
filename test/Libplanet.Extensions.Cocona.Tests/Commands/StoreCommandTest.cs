@@ -15,7 +15,7 @@ namespace Libplanet.Extensions.Cocona.Tests.Commands;
 [Trait("CircleCI", "Skip")]
 public sealed class StoreCommandTest : IDisposable
 {
-    private readonly ImmutableArray<StoreFixture> _storeFixtures;
+    private readonly ImmutableArray<RepositoryFixture> _storeFixtures;
     private readonly ITestOutputHelper _testOutput;
     private readonly TextWriter _originalOut;
     private readonly TextWriter _originalError;
@@ -38,8 +38,8 @@ public sealed class StoreCommandTest : IDisposable
 
         try
         {
-            _storeFixtures = ImmutableArray.Create<StoreFixture>(
-                new MemoryStoreFixture(),
+            _storeFixtures = ImmutableArray.Create<RepositoryFixture>(
+                new MemoryRepositoryFixture(),
                 new RocksDBStoreFixture());
         }
         catch (TypeInitializationException)

@@ -13,13 +13,13 @@ public class BlockPolicyTest : IDisposable
 {
     private readonly ITestOutputHelper _output;
 
-    private readonly StoreFixture _fx;
+    private readonly RepositoryFixture _fx;
     private readonly Libplanet.Blockchain _chain;
     private readonly BlockchainOptions _policy;
 
     public BlockPolicyTest(ITestOutputHelper output)
     {
-        _fx = new MemoryStoreFixture();
+        _fx = new MemoryRepositoryFixture();
         _output = output;
         _policy = new BlockchainOptions
         {
@@ -161,7 +161,7 @@ public class BlockPolicyTest : IDisposable
 
         var options = new BlockchainOptions
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },

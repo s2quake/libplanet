@@ -33,7 +33,7 @@ internal sealed class BlockChainService(
         var genesisBlock = CreateGenesisBlock(genesisOptions, actionService, repository);
         var options = new BlockchainOptions
         {
-            PolicyActions = actionService.PolicyActions,
+            SystemActions = actionService.PolicyActions,
             BlockInterval = TimeSpan.FromSeconds(8),
             BlockOptions = new BlockOptions
             {

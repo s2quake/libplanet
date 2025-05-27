@@ -100,7 +100,7 @@ public partial class BlockChainTest
     [Fact]
     public void CanProposeInvalidGenesisBlock()
     {
-        using var fx = new MemoryStoreFixture();
+        using var fx = new MemoryRepositoryFixture();
         var options = fx.Options;
         var repository = fx.Repository;
         var genesisKey = new PrivateKey();
@@ -144,7 +144,7 @@ public partial class BlockChainTest
     [Fact]
     public void CanProposeInvalidBlock()
     {
-        using var fx = new MemoryStoreFixture();
+        using var fx = new MemoryRepositoryFixture();
         var options = fx.Options;
         var repository = new Repository();
         var blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, options);
@@ -358,7 +358,7 @@ public partial class BlockChainTest
             }
         }
 
-        using var fx = new MemoryStoreFixture();
+        using var fx = new MemoryRepositoryFixture();
         var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
@@ -472,7 +472,7 @@ public partial class BlockChainTest
 
         var options = new BlockchainOptions
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 BeginBlockActions = [],
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
