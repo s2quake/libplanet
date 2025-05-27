@@ -10,7 +10,7 @@ public class InitializeTest
 {
     private static readonly ImmutableSortedSet<Validator> _validators = ImmutableSortedSet.Create(
     [
-        Validator.Create(new PrivateKey().Address, BigInteger.One),
+        new Validator { Address = new PrivateKey().Address },
     ]);
 
     private static readonly ImmutableArray<AccountState> _states =

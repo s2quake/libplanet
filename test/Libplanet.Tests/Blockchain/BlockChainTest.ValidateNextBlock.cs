@@ -585,10 +585,10 @@ public partial class BlockChainTest
         var privateKey2 = new PrivateKey();
         var privateKey3 = new PrivateKey();
         var privateKey4 = new PrivateKey();
-        var validator1 = Validator.Create(privateKey1.Address, 10);
-        var validator2 = Validator.Create(privateKey2.Address, 1);
-        var validator3 = Validator.Create(privateKey3.Address, 1);
-        var validator4 = Validator.Create(privateKey4.Address, 1);
+        var validator1 = new Validator { Address = privateKey1.Address, Power = 10 };
+        var validator2 = new Validator { Address = privateKey2.Address, Power = 1 };
+        var validator3 = new Validator { Address = privateKey3.Address, Power = 1 };
+        var validator4 = new Validator { Address = privateKey4.Address, Power = 1 };
         var validatorSet = ImmutableSortedSet.Create(
             [validator1, validator2, validator3, validator4]);
         Libplanet.Blockchain blockChain = TestUtils.MakeBlockChain(

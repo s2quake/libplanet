@@ -1333,7 +1333,7 @@ public partial class BlockChainTest : IDisposable
             .Append(BigInteger.One).ToArray();
         var initialValidatorSet =
             ValidatorPrivateKeys.Select(
-                pk => Validator.Create(pk.Address, BigInteger.One))
+                pk => new Validator { Address = pk.Address })
             .ToImmutableSortedSet();
         var systemActions = new[]
         {
@@ -1366,7 +1366,7 @@ public partial class BlockChainTest : IDisposable
             [
                 new SetValidator
                 {
-                    Validator = Validator.Create(newValidatorPrivateKey.Address),
+                    Validator = new Validator { Address = newValidatorPrivateKey.Address },
                 },
             ],
         });
@@ -1398,7 +1398,7 @@ public partial class BlockChainTest : IDisposable
             [
                 new SetValidator
                 {
-                    Validator = Validator.Create(new PrivateKey().Address),
+                    Validator = new Validator { Address = new PrivateKey().Address },
                 },
             ],
         });
@@ -1431,7 +1431,7 @@ public partial class BlockChainTest : IDisposable
             {
                 new SetValidator
                 {
-                    Validator = Validator.Create(new PrivateKey().Address),
+                    Validator = new Validator { Address = new PrivateKey().Address },
                 },
             },
         });
@@ -1463,13 +1463,13 @@ public partial class BlockChainTest : IDisposable
             blockChain
                 .GetWorld(0)
                 .GetValidators(),
-            [.. ValidatorPrivateKeys.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
+            [.. ValidatorPrivateKeys.Select(pk => new Validator { Address = pk.Address })]);
 
         Assert.Equal(
             blockChain
                 .GetWorld(1)
                 .GetValidators(),
-            [.. newValidators.Select(pk => Validator.Create(pk.Address, BigInteger.One))]);
+            [.. newValidators.Select(pk => new Validator { Address = pk.Address })]);
     }
 
     // private class

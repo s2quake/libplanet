@@ -16,7 +16,7 @@ public class DuplicateVoteEvidenceTest
         var validatorAddress = privateKey.Address;
         var validators = ImmutableSortedSet.Create(
         [
-            Validator.Create(validatorAddress, BigInteger.One),
+            new Validator { Address = validatorAddress },
         ]);
 
         var voteRef = new VoteMetadata
@@ -54,7 +54,7 @@ public class DuplicateVoteEvidenceTest
         var validatorAddress = privateKey.Address;
         var validatorList = new List<Validator>
         {
-            Validator.Create(validatorAddress, BigInteger.One),
+            new Validator { Address = validatorAddress },
         };
 
         var voteRef = new VoteMetadata
@@ -94,7 +94,7 @@ public class DuplicateVoteEvidenceTest
             new PrivateKey(),
         };
         var validatorAddresses = privateKeys.Select(item => item.Address).ToArray();
-        var validators = validatorAddresses.Select(item => Validator.Create(item, BigInteger.One))
+        var validators = validatorAddresses.Select(item => new Validator { Address = item })
             .ToImmutableSortedSet();
 
         var voteRef = new VoteMetadata
@@ -132,7 +132,7 @@ public class DuplicateVoteEvidenceTest
         var validatorAddress = privateKey.Address;
         var validators = ImmutableSortedSet.Create(
         [
-            Validator.Create(validatorAddress, BigInteger.One),
+            new Validator { Address = validatorAddress },
         ]);
 
         var voteRef = new VoteMetadata
@@ -171,7 +171,7 @@ public class DuplicateVoteEvidenceTest
         var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
         var validatorList = new List<Validator>
         {
-            Validator.Create(validatorAddress, BigInteger.One),
+            new Validator { Address = validatorAddress },
         };
 
         var voteRef = new VoteMetadata
@@ -209,7 +209,7 @@ public class DuplicateVoteEvidenceTest
         var validatorAddress = privateKey.Address;
         var validators = ImmutableSortedSet.Create(
         [
-            Validator.Create(validatorAddress, BigInteger.One),
+            new Validator { Address = validatorAddress },
         ]);
 
         var voteRef = new VoteMetadata

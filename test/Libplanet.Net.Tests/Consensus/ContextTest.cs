@@ -521,10 +521,10 @@ namespace Libplanet.Net.Tests.Consensus
             BlockHash? prevProposal = null;
             var validatorSet = ImmutableSortedSet.Create(
                 [
-                    Validator.Create(privateKeys[0].Address, 1),
-                    Validator.Create(proposer.Address, 1),
-                    Validator.Create(key1.Address, 1),
-                    Validator.Create(key2.Address, 1),
+                    new Validator { Address = privateKeys[0].Address },
+                    new Validator { Address = proposer.Address },
+                    new Validator { Address = key1.Address },
+                    new Validator { Address = key2.Address },
                 ]);
 
             var (blockChain, context) = TestUtils.CreateDummyContext(

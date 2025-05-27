@@ -15,7 +15,7 @@ public sealed class ActionProvider : IActionProvider
     [
         new Initialize
         {
-            Validators = [.. validators.Select(item => Validator.Create(item, new BigInteger(1000)))],
+            Validators = [.. validators.Select(item => new Validator { Address = item, Power = new BigInteger(1000) })],
         },
     ];
 }

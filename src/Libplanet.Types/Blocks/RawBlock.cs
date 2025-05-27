@@ -36,7 +36,11 @@ public sealed record class RawBlock
                 $"The given {nameof(privateKey)} does not match the block proposer.", nameof(privateKey));
         }
 
-        var message = ModelSerializer.SerializeToBytes(this);
+        var options = new ModelOptions
+        {
+            IsValidationEnabled = true,
+        };
+        var message = ModelSerializer.SerializeToBytes(this, options);
         return [.. privateKey.Sign(message)];
     }
 }
