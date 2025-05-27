@@ -6,10 +6,10 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.State;
 
-public sealed record class World(ITrie Trie, StateIndex Statestore)
+public sealed record class World(ITrie Trie, StateIndex States)
 {
-    public World(StateIndex stateStore)
-        : this(stateStore.GetTrie(default), stateStore)
+    public World(StateIndex states)
+        : this(states.GetTrie(default), states)
     {
     }
 
@@ -18,8 +18,8 @@ public sealed record class World(ITrie Trie, StateIndex Statestore)
     {
     }
 
-    public World(StateIndex stateStore, HashDigest<SHA256> stateRootHash)
-        : this(stateStore.GetTrie(stateRootHash), stateStore)
+    public World(StateIndex states, HashDigest<SHA256> stateRootHash)
+        : this(states.GetTrie(stateRootHash), states)
     {
     }
 
@@ -32,7 +32,7 @@ public sealed record class World(ITrie Trie, StateIndex Statestore)
 
     internal ITrie Trie { get; } = Trie;
 
-    internal StateIndex StateStore { get; init; } = Statestore;
+    internal StateIndex States { get; init; } = States;
 
     public Account GetAccount(string name)
     {
@@ -43,10 +43,10 @@ public sealed record class World(ITrie Trie, StateIndex Statestore)
 
         if (Trie.TryGetValue(name, out var value) && value is ImmutableArray<byte> binary)
         {
-            return new Account(StateStore.GetTrie(new HashDigest<SHA256>(binary)));
+            return new Account(States.GetTrie(new HashDigest<SHA256>(binary)));
         }
 
-        return new Account(StateStore.GetTrie(default));
+        return new Account(States.GetTrie(default));
     }
 
     public World SetAccount(string name, Account account) => this with
@@ -59,12 +59,12 @@ public sealed record class World(ITrie Trie, StateIndex Statestore)
         var trie = Trie;
         foreach (var (name, account) in Delta)
         {
-            var accountTrie = StateStore.Commit(account.Trie);
+            var accountTrie = States.Commit(account.Trie);
             var key = name;
             var value = accountTrie.Hash.Bytes;
             trie = trie.Set(key, value);
         }
 
-        return new World(StateStore.Commit(trie), StateStore);
+        return new World(States.Commit(trie), States);
     }
 }
