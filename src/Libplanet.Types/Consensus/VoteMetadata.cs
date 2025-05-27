@@ -14,7 +14,7 @@ public sealed record class VoteMetadata : IValidatableObject
     public required Address Validator { get; init; }
 
     [Property(1)]
-    public HashDigest<SHA256> StateRootHash { get; init; }
+    public BlockHash BlockHash { get; init; }
 
     [Property(2)]
     [NonNegative]
@@ -25,16 +25,13 @@ public sealed record class VoteMetadata : IValidatableObject
     public int Round { get; init; }
 
     [Property(4)]
-    public BlockHash BlockHash { get; init; }
-
-    [Property(5)]
     public DateTimeOffset Timestamp { get; init; }
 
-    [Property(6)]
+    [Property(5)]
     [Positive]
     public BigInteger ValidatorPower { get; init; }
 
-    [Property(7)]
+    [Property(6)]
     public VoteFlag Flag { get; init; }
 
     public bool Verify(ImmutableArray<byte> signature)

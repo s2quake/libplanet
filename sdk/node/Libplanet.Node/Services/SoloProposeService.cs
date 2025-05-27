@@ -1,6 +1,7 @@
 using Libplanet;
 using Libplanet.Node.Options;
 using Libplanet.Types.Blocks;
+using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -58,6 +59,15 @@ internal sealed class SoloProposeService : BackgroundService
         var block = _blockChain.ProposeBlock(_privateKey);
         var blockCommit = new BlockCommit
         {
+            BlockHash = block.BlockHash,
+            Votes =
+            [
+                new VoteMetadata
+                {
+                    Validator = _privateKey.Address,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(_privateKey)
+            ],
         };
         _blockChain.Append(block, blockCommit);
 
