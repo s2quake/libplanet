@@ -41,7 +41,7 @@ public sealed record class TransactionMetadata : IEquatable<TransactionMetadata>
     {
         var options = new ModelOptions
         {
-            IsValidationEnabled = false,
+            IsValidationEnabled = true,
         };
         var bytes = ModelSerializer.SerializeToBytes(this, options);
         var signature = privateKey.Sign(bytes).ToImmutableArray();

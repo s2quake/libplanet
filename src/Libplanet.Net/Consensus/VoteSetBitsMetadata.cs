@@ -38,7 +38,7 @@ public sealed record class VoteSetBitsMetadata
     {
         var options = new ModelOptions
         {
-            IsValidationEnabled = false,
+            IsValidationEnabled = true,
         };
         var bytes = ModelSerializer.SerializeToBytes(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();

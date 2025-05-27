@@ -23,11 +23,10 @@ public static class BlockChainStatesFixture
 
     public static readonly object Value = "Foo";
 
-    public static readonly Validator Validator =
-        Validator.Create(
-            Address.Parse(
-                "032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
-            new BigInteger(1));
+    public static readonly Validator Validator = new()
+    {
+        Address = Address.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
+    };
 
     public static readonly ImmutableSortedSet<Validator> Validators =
         ImmutableSortedSet.Create([Validator]);

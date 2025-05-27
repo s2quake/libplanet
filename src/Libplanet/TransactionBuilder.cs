@@ -25,7 +25,7 @@ public sealed record class TransactionBuilder
     {
         var options = new ModelOptions
         {
-            IsValidationEnabled = false,
+            IsValidationEnabled = true,
         };
         var metadata = new TransactionMetadata
         {

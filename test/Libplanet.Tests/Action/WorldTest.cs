@@ -44,7 +44,7 @@ public sealed class WorldTest
             .SetBalance(_addr[0], _currencies[4], 5)
             .SetBalance(_addr[1], _currencies[2], 15)
             .SetBalance(_addr[1], _currencies[3], 20)
-            .SetValidators([.. _keys.Select(key => Validator.Create(key.Address, 1))]);
+            .SetValidators([.. _keys.Select(key => new Validator { Address = key.Address })]);
 
         _initContext = CreateContext(_addr[0]);
     }

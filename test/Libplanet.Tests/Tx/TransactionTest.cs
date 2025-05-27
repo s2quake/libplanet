@@ -57,7 +57,7 @@ public class TransactionTest
             new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
         var action = new Initialize
         {
-            Validators = [Validator.Create(privateKey.Address, 1)],
+            Validators = [new Validator { Address = privateKey.Address }],
         };
         var tx = new TransactionMetadata
         {

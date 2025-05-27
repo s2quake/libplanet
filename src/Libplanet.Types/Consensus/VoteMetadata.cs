@@ -45,7 +45,12 @@ public sealed record class VoteMetadata : IValidatableObject
 
     public Vote Sign(PrivateKey signer)
     {
-        var signature = signer.Sign(ModelSerializer.SerializeToBytes(this));
+        var options = new ModelOptions
+        {
+            IsValidationEnabled = true,
+        };
+        var message = ModelSerializer.SerializeToBytes(this, options);
+        var signature = signer.Sign(message);
         return new Vote { Metadata = this, Signature = [.. signature] };
     }
 
