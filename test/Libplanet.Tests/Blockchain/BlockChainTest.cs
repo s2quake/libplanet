@@ -398,7 +398,7 @@ public partial class BlockChainTest : IDisposable
     {
         var policy = new BlockchainOptions();
         var store = new Libplanet.Data.Repository(new MemoryDatabase());
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
 
         // IActionRenderer renderer = new AnonymousActionRenderer
         // {

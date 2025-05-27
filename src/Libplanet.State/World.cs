@@ -6,19 +6,19 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.State;
 
-public sealed record class World(ITrie Trie, StateStore Statestore)
+public sealed record class World(ITrie Trie, StateIndex Statestore)
 {
-    public World(StateStore stateStore)
+    public World(StateIndex stateStore)
         : this(stateStore.GetTrie(default), stateStore)
     {
     }
 
     public World()
-        : this(new StateStore())
+        : this(new StateIndex())
     {
     }
 
-    public World(StateStore stateStore, HashDigest<SHA256> stateRootHash)
+    public World(StateIndex stateStore, HashDigest<SHA256> stateRootHash)
         : this(stateStore.GetTrie(stateRootHash), stateStore)
     {
     }
@@ -32,7 +32,7 @@ public sealed record class World(ITrie Trie, StateStore Statestore)
 
     internal ITrie Trie { get; } = Trie;
 
-    internal StateStore StateStore { get; init; } = Statestore;
+    internal StateIndex StateStore { get; init; } = Statestore;
 
     public Account GetAccount(string name)
     {

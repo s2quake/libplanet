@@ -40,7 +40,7 @@ public class TrieTest
     [Fact]
     public void CreateWithSingleKeyValue()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var keyValue = ("01", ImmutableSortedDictionary<string, string>.Empty);
         var trie = Trie.Create(keyValue);
         Assert.Single(trie.ToDictionary());
@@ -57,7 +57,7 @@ public class TrieTest
     public void ToDictionary()
     {
         var keyValueStore = new MemoryTable();
-        var stateStore = new StateStore(keyValueStore);
+        var stateStore = new StateIndex(keyValueStore);
         var trie = new Trie()
             .Set("00", ImmutableSortedDictionary<string, string>.Empty)
             .Set("1", "1")
@@ -86,7 +86,7 @@ public class TrieTest
     [Fact]
     public void IterateNodes()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var trie = Trie.Create(
             ((string Key, object Value))("ab", ImmutableSortedDictionary<string, string>.Empty.Add("a", "b")));
 
@@ -106,7 +106,7 @@ public class TrieTest
     [InlineData(false, "_1ab3_639e")]
     public void IterateSubTrie(bool commit, string extraKey)
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         string[] keys =
         [
             "1b418c98",
@@ -134,7 +134,7 @@ public class TrieTest
     [InlineData(false)]
     public void Set(bool commit)
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var trie = Trie.Create(
             ((string Key, object Value))("_", ImmutableSortedDictionary<string, string>.Empty));
 
@@ -261,7 +261,7 @@ public class TrieTest
     [Fact]
     public void GetNode()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var keyValues = new (string, object)[]
         {
             ("00", "00"),
@@ -290,7 +290,7 @@ public class TrieTest
     [Fact]
     public void ResolveToValueAtTheEndOfShortNode()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var trie = Trie.Create(
             (Key: "0x00", Value: "00"));
 
@@ -302,7 +302,7 @@ public class TrieTest
     [Fact]
     public void SetValueToExtendedKey()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var value00 = "00";
         var value0000 = "0000";
         var trie = Trie.Create(
@@ -319,7 +319,7 @@ public class TrieTest
     [Fact]
     public void SetValueToFullNode()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var value00 = "00";
         var value0000 = "0000";
         var value0010 = "0010";
@@ -339,7 +339,7 @@ public class TrieTest
     [Fact]
     public void RemoveValue()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var trie = Trie.Create(
             (Key: "0000", Value: "0000"),
             (Key: "0011", Value: "0011"));
@@ -367,7 +367,7 @@ public class TrieTest
     [Fact]
     public void RemoveValueMany()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var key00 = "00";
         var value00 = "00";
         var key0000 = "0000";
@@ -464,7 +464,7 @@ public class TrieTest
     [Fact]
     public void RemoveValueNoOp()
     {
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var trie = Trie.Create(
             (Key: "0000", Value: "0000"),
             (Key: "0011", Value: "0011"));

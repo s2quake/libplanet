@@ -3,8 +3,8 @@ using Libplanet.Types.Crypto;
 
 namespace Libplanet.Data;
 
-public sealed class NonceStore(IDatabase database)
-    : StoreBase<Address, long>(database.GetOrAdd("nonces"))
+public sealed class NonceIndex(IDatabase database)
+    : IndexBase<Address, long>(database.GetOrAdd("nonces"))
 {
     public long Increase(Address key, long delta = 1L) => this[key] = this.GetValueOrDefault(key) + delta;
 
@@ -16,7 +16,7 @@ public sealed class NonceStore(IDatabase database)
         }
     }
 
-    public void MergeFrom(NonceStore source)
+    public void MergeFrom(NonceIndex source)
     {
         foreach (var (key, value) in source)
         {

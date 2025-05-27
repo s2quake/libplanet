@@ -9,7 +9,7 @@ namespace Libplanet.Data;
 public sealed class Repository : IDisposable
 {
     private readonly IDatabase _database;
-    private readonly MetadataStore _metadata;
+    private readonly MetadataIndex _metadata;
     private int _genesisHeight = -1;
     private int _height = -1;
     private HashDigest<SHA256> _stateRootHash;
@@ -24,19 +24,19 @@ public sealed class Repository : IDisposable
     public Repository(IDatabase database)
     {
         _database = database;
-        _metadata = new MetadataStore(_database);
-        BlockDigests = new BlockDigestStore(_database);
-        BlockCommits = new BlockCommitStore(_database);
-        StateRootHashStore = new StateRootHashStore(_database);
-        PendingTransactions = new PendingTransactionStore(_database);
-        CommittedTransactions = new CommittedTransactionStore(_database);
-        PendingEvidences = new PendingEvidenceStore(_database);
-        CommittedEvidences = new CommittedEvidenceStore(_database);
-        TxExecutions = new TxExecutionStore(_database);
-        BlockExecutions = new BlockExecutionStore(_database);
-        BlockHashes = new BlockHashStore(database);
-        Nonces = new NonceStore(database);
-        StateStore = new StateStore(_database);
+        _metadata = new MetadataIndex(_database);
+        BlockDigests = new BlockDigestIndex(_database);
+        BlockCommits = new BlockCommitIndex(_database);
+        StateRootHashes = new StateRootHashIndex(_database);
+        PendingTransactions = new PendingTransactionIndex(_database);
+        CommittedTransactions = new CommittedTransactionIndex(_database);
+        PendingEvidences = new PendingEvidenceIndex(_database);
+        CommittedEvidences = new CommittedEvidenceIndex(_database);
+        TxExecutions = new TxExecutionIndex(_database);
+        BlockExecutions = new BlockExecutionIndex(_database);
+        BlockHashes = new BlockHashIndex(database);
+        Nonces = new NonceIndex(database);
+        States = new StateIndex(_database);
         if (_metadata.TryGetValue("genesisHeight", out var genesisHeight))
         {
             _genesisHeight = int.Parse(genesisHeight);
@@ -65,29 +65,29 @@ public sealed class Repository : IDisposable
 
     public Guid Id { get; }
 
-    public PendingEvidenceStore PendingEvidences { get; }
+    public PendingEvidenceIndex PendingEvidences { get; }
 
-    public CommittedEvidenceStore CommittedEvidences { get; }
+    public CommittedEvidenceIndex CommittedEvidences { get; }
 
-    public PendingTransactionStore PendingTransactions { get; }
+    public PendingTransactionIndex PendingTransactions { get; }
 
-    public CommittedTransactionStore CommittedTransactions { get; }
+    public CommittedTransactionIndex CommittedTransactions { get; }
 
-    public BlockCommitStore BlockCommits { get; }
+    public BlockCommitIndex BlockCommits { get; }
 
-    public BlockDigestStore BlockDigests { get; }
+    public BlockDigestIndex BlockDigests { get; }
 
-    public StateRootHashStore StateRootHashStore { get; }
+    public StateRootHashIndex StateRootHashes { get; }
 
-    public TxExecutionStore TxExecutions { get; }
+    public TxExecutionIndex TxExecutions { get; }
 
-    public BlockExecutionStore BlockExecutions { get; }
+    public BlockExecutionIndex BlockExecutions { get; }
 
-    public BlockHashStore BlockHashes { get; }
+    public BlockHashIndex BlockHashes { get; }
 
-    public NonceStore Nonces { get; }
+    public NonceIndex Nonces { get; }
 
-    public StateStore StateStore { get; }
+    public StateIndex States { get; }
 
     public int GenesisHeight
     {

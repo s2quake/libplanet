@@ -6,16 +6,16 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public partial class StateStore(ITable table)
+public partial class StateIndex(ITable table)
 {
     private readonly ITable _table = table;
 
-    public StateStore()
+    public StateIndex()
         : this(new MemoryDatabase())
     {
     }
 
-    public StateStore(IDatabase database)
+    public StateIndex(IDatabase database)
         : this(database.GetOrAdd("trie_state_store"))
     {
     }

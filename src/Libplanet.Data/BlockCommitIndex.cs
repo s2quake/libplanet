@@ -3,8 +3,8 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Data;
 
-public sealed class BlockCommitStore(IDatabase database)
-    : StoreBase<BlockHash, BlockCommit>(database.GetOrAdd("block_commit"))
+public sealed class BlockCommitIndex(IDatabase database)
+    : IndexBase<BlockHash, BlockCommit>(database.GetOrAdd("block_commit"))
 {
     protected override byte[] GetBytes(BlockCommit value) => ModelSerializer.SerializeToBytes(value);
 

@@ -3,8 +3,8 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Data;
 
-public sealed class BlockExecutionStore(IDatabase database)
-    : StoreBase<BlockHash, BlockExecution>(database.GetOrAdd("block_execution"))
+public sealed class BlockExecutionIndex(IDatabase database)
+    : IndexBase<BlockHash, BlockExecution>(database.GetOrAdd("block_execution"))
 {
     protected override byte[] GetBytes(BlockExecution value) => ModelSerializer.SerializeToBytes(value);
 

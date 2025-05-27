@@ -192,7 +192,7 @@ public class BlockPolicyTest : IDisposable
         const int policyLimit = 5;
 
         var store = new Libplanet.Data.Repository(new MemoryDatabase());
-        var stateStore = new StateStore();
+        var stateStore = new StateIndex();
         var policy = new BlockchainOptions
         {
             BlockOptions = new BlockOptions

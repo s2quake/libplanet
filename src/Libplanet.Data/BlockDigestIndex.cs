@@ -3,8 +3,8 @@ using Libplanet.Types.Blocks;
 
 namespace Libplanet.Data;
 
-public sealed class BlockDigestStore(IDatabase database)
-    : StoreBase<BlockHash, BlockDigest>(database.GetOrAdd("block_digest"))
+public sealed class BlockDigestIndex(IDatabase database)
+    : IndexBase<BlockHash, BlockDigest>(database.GetOrAdd("block_digest"))
 {
     public void Add(Block block) => Add((BlockDigest)block);
 

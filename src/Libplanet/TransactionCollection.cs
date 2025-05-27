@@ -8,7 +8,7 @@ namespace Libplanet;
 public sealed class TransactionCollection(Repository repository)
     : IReadOnlyDictionary<TxId, Transaction>
 {
-    private readonly CommittedTransactionStore _store = repository.CommittedTransactions;
+    private readonly CommittedTransactionIndex _store = repository.CommittedTransactions;
 
     public IEnumerable<TxId> Keys => _store.Keys;
 

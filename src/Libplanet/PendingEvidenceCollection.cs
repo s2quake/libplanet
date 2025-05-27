@@ -8,7 +8,7 @@ namespace Libplanet;
 public sealed class PendingEvidenceCollection(Repository repository)
     : IReadOnlyDictionary<EvidenceId, EvidenceBase>
 {
-    private readonly PendingEvidenceStore _store = repository.PendingEvidences;
+    private readonly PendingEvidenceIndex _store = repository.PendingEvidences;
 
     public IEnumerable<EvidenceId> Keys => _store.Keys;
 

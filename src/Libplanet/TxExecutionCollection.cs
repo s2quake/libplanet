@@ -8,7 +8,7 @@ namespace Libplanet;
 public sealed class TxExecutionCollection(Repository repository)
     : IReadOnlyDictionary<TxId, TxExecution>
 {
-    private readonly TxExecutionStore _store = repository.TxExecutions;
+    private readonly TxExecutionIndex _store = repository.TxExecutions;
 
     public IEnumerable<TxId> Keys => _store.Keys;
 

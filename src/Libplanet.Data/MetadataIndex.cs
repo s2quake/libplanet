@@ -2,14 +2,14 @@ using System.Text;
 
 namespace Libplanet.Data;
 
-public sealed class MetadataStore : StoreBase<string, string>
+public sealed class MetadataIndex : IndexBase<string, string>
 {
-    public MetadataStore(IDatabase database)
+    public MetadataIndex(IDatabase database)
         : base(database.GetOrAdd("metadata"))
     {
     }
 
-    public MetadataStore(Guid chainId, IDatabase database)
+    public MetadataIndex(Guid chainId, IDatabase database)
         : base(database.GetOrAdd($"{chainId}_metadata"))
     {
     }

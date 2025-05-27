@@ -26,11 +26,11 @@ public class RocksDBStoreFixture : RepositoryFixture
         return new Repository(new RocksDatabase(path));
     }
 
-    public StateStore LoadTrieStateStore(string path)
+    public StateIndex LoadTrieStateStore(string path)
     {
         var stateKeyValueStore =
             new RocksTable(System.IO.Path.Combine(path, "states"));
-        return new StateStore(stateKeyValueStore);
+        return new StateIndex(stateKeyValueStore);
     }
 
     protected override void Dispose(bool disposing)

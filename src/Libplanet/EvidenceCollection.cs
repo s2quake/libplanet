@@ -8,7 +8,7 @@ namespace Libplanet;
 public sealed class EvidenceCollection(Repository repository)
     : IReadOnlyDictionary<EvidenceId, EvidenceBase>
 {
-    private readonly CommittedEvidenceStore _store = repository.CommittedEvidences;
+    private readonly CommittedEvidenceIndex _store = repository.CommittedEvidences;
 
     public IEnumerable<EvidenceId> Keys => _store.Keys;
 

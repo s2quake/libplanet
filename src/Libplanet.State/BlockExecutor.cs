@@ -7,13 +7,13 @@ using Libplanet.Types.Transactions;
 
 namespace Libplanet.State;
 
-public sealed class BlockExecutor(StateStore stateStore, SystemActions systemActions)
+public sealed class BlockExecutor(StateIndex stateStore, SystemActions systemActions)
 {
     private readonly Subject<ActionExecutionInfo> _actionExecutedSubject = new();
     private readonly Subject<TransactionExecutionInfo> _txExecutedResult = new();
     private readonly Subject<BlockExecutionInfo> _blockExecutedResult = new();
 
-    public BlockExecutor(StateStore stateStore)
+    public BlockExecutor(StateIndex stateStore)
         : this(stateStore, SystemActions.Empty)
     {
     }

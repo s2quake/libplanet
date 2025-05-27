@@ -7,8 +7,8 @@ namespace Libplanet;
 
 public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, BlockCommit>
 {
-    private readonly BlockCommitStore _blockCommits;
-    private readonly BlockHashStore _blockHashes;
+    private readonly BlockCommitIndex _blockCommits;
+    private readonly BlockHashIndex _blockHashes;
 
     internal BlockCommitCollection(Repository repository)
     {
