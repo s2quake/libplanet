@@ -7,14 +7,14 @@ using Libplanet.Types.Transactions;
 
 namespace Libplanet.State;
 
-public sealed class BlockExecutor(StateIndex stateStore, SystemActions systemActions)
+public sealed class BlockExecutor(StateIndex states, SystemActions systemActions)
 {
     private readonly Subject<ActionExecutionInfo> _actionExecutedSubject = new();
     private readonly Subject<TransactionExecutionInfo> _txExecutedResult = new();
     private readonly Subject<BlockExecutionInfo> _blockExecutedResult = new();
 
-    public BlockExecutor(StateIndex stateStore)
-        : this(stateStore, SystemActions.Empty)
+    public BlockExecutor(StateIndex states)
+        : this(states, SystemActions.Empty)
     {
     }
 
@@ -45,7 +45,7 @@ public sealed class BlockExecutor(StateIndex stateStore, SystemActions systemAct
 
     public BlockExecutionInfo Execute(RawBlock rawBlock)
     {
-        var world = new World(stateStore, rawBlock.Header.PreviousStateRootHash);
+        var world = new World(states, rawBlock.Header.PreviousStateRootHash);
         var inputWorld = world;
         var beginEvaluations = ExecuteActions(rawBlock, null, systemActions.BeginBlockActions, ref world);
         var txEvaluations = ExecuteTransactions(rawBlock, ref world);
