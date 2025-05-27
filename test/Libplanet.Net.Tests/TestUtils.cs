@@ -39,7 +39,7 @@ namespace Libplanet.Net.Tests
 
         public static readonly BlockchainOptions Options = new()
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
@@ -92,7 +92,7 @@ namespace Libplanet.Net.Tests
             Block? genesisBlock = null)
         {
             policy ??= Options;
-            var fx = new MemoryStoreFixture(policy);
+            var fx = new MemoryRepositoryFixture(policy);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
                 policy,
                 genesisBlock: genesisBlock);

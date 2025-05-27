@@ -1,20 +1,20 @@
 using System.Security.Cryptography;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
+using Libplanet.State.Builtin;
 
 namespace Libplanet.Tests.Store;
 
-public abstract class StoreFixture : IDisposable
+public abstract class RepositoryFixture : IDisposable
 {
     private bool disposedValue;
 
-    protected StoreFixture(Repository repository, BlockchainOptions options)
+    protected RepositoryFixture(Repository repository, BlockchainOptions options)
     {
         Address1 = new Address(
         [
@@ -84,46 +84,44 @@ public abstract class StoreFixture : IDisposable
             0x9c, 0xee,
         ]);
 
-        var stateRootHashes = new Dictionary<BlockHash, HashDigest<SHA256>>();
         Options = options;
         Repository = repository;
+        BlockExecutor = new BlockExecutor(repository.StateStore, Options.SystemActions);
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
-        var preEval = TestUtils.ProposeGenesis(
-            proposer: Proposer,
-            validators: TestUtils.Validators);
-        var blockExecutor = new BlockExecutor(repository.StateStore, Options.PolicyActions);
-        GenesisBlock = preEval.Sign(Proposer);
-        var evaluation = blockExecutor.Execute((RawBlock)GenesisBlock);
-        var genesisNextSrh = evaluation.OutputWorld.Trie.Hash;
-        stateRootHashes[GenesisBlock.BlockHash] = genesisNextSrh;
+        GenesisBlock = new BlockBuilder
+        {
+            Transactions =
+            [
+                new TransactionBuilder
+                {
+                    Actions = [new Initialize { Validators = TestUtils.Validators }]
+                }.Create(Proposer),
+            ],
+        }.Create(Proposer);
+        GenesisBlockExecutionInfo = BlockExecutor.Execute((RawBlock)GenesisBlock);
+        GenesisStateRootHash = GenesisBlockExecutionInfo.StateRootHash;
         Block1 = TestUtils.ProposeNextBlock(
             GenesisBlock,
             proposer: Proposer,
-            previousStateRootHash: genesisNextSrh,
+            previousStateRootHash: GenesisStateRootHash,
             lastCommit: null);
-        stateRootHashes[Block1.BlockHash] = Block1.PreviousStateRootHash;
         Block2 = TestUtils.ProposeNextBlock(
             Block1,
             proposer: Proposer,
-            previousStateRootHash: genesisNextSrh,
+            previousStateRootHash: GenesisStateRootHash,
             lastCommit: TestUtils.CreateBlockCommit(Block1));
-        stateRootHashes[Block2.BlockHash] = Block2.PreviousStateRootHash;
         Block3 = TestUtils.ProposeNextBlock(
             Block2,
             proposer: Proposer,
-            previousStateRootHash: genesisNextSrh,
+            previousStateRootHash: GenesisStateRootHash,
             lastCommit: TestUtils.CreateBlockCommit(Block2));
-        stateRootHashes[Block3.BlockHash] = Block3.PreviousStateRootHash;
         Block3Alt = TestUtils.ProposeNextBlock(
-            Block2, proposer: Proposer, previousStateRootHash: genesisNextSrh);
-        stateRootHashes[Block3Alt.BlockHash] = Block3Alt.PreviousStateRootHash;
+            Block2, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
         Block4 = TestUtils.ProposeNextBlock(
-            Block3, proposer: Proposer, previousStateRootHash: genesisNextSrh);
-        stateRootHashes[Block4.BlockHash] = Block4.PreviousStateRootHash;
+            Block3, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
         Block5 = TestUtils.ProposeNextBlock(
-            Block4, proposer: Proposer, previousStateRootHash: genesisNextSrh);
-        stateRootHashes[Block5.BlockHash] = Block5.PreviousStateRootHash;
+            Block4, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
 
         Transaction1 = MakeTransaction();
         Transaction2 = MakeTransaction();
@@ -134,7 +132,7 @@ public abstract class StoreFixture : IDisposable
 
     public string Scheme { get; set; } = string.Empty;
 
-    public Guid StoreChainId { get; } = Guid.NewGuid();
+    public Guid Id { get; } = Guid.NewGuid();
 
     public Address Address1 { get; }
 
@@ -164,6 +162,8 @@ public abstract class StoreFixture : IDisposable
 
     public Block GenesisBlock { get; }
 
+    public HashDigest<SHA256> GenesisStateRootHash { get; }
+
     public Block Block1 { get; }
 
     public Block Block2 { get; }
@@ -184,11 +184,11 @@ public abstract class StoreFixture : IDisposable
 
     public Repository Repository { get; }
 
-    public IDictionary<string, byte[]> StateHashKeyValueStore { get; set; }
-
-    public IDictionary<string, byte[]> StateKeyValueStore { get; set; }
-
     public BlockchainOptions Options { get; }
+
+    public BlockExecutor BlockExecutor { get; }
+
+    public BlockExecutionInfo GenesisBlockExecutionInfo { get; }
 
     public Transaction MakeTransaction(
         IEnumerable<DumbAction>? actions = null,
@@ -211,7 +211,6 @@ public abstract class StoreFixture : IDisposable
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
@@ -220,13 +219,7 @@ public abstract class StoreFixture : IDisposable
     {
         if (!disposedValue)
         {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
+            Repository.Dispose();
             disposedValue = true;
         }
     }

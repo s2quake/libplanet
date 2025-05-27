@@ -335,7 +335,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var options = new BlockchainOptions
             {
-                PolicyActions = new SystemActions
+                SystemActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
@@ -344,7 +344,7 @@ namespace Libplanet.Net.Tests.Consensus
                     MaxTransactionsBytes = 50 * 1024,
                 },
             };
-            var fx = new MemoryStoreFixture(options);
+            var fx = new MemoryRepositoryFixture(options);
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
 
             Context context = new Context(
@@ -671,7 +671,7 @@ namespace Libplanet.Net.Tests.Consensus
             TimeSpan newHeightDelay = TimeSpan.FromMilliseconds(100);
             int actionDelay = 2000;
 
-            var fx = new MemoryStoreFixture();
+            var fx = new MemoryRepositoryFixture();
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
 
             var consensusContext = new ConsensusContext(

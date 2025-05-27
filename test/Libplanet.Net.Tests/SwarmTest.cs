@@ -378,7 +378,7 @@ namespace Libplanet.Net.Tests
                 new AsyncAutoResetEvent()).ToList();
             var roundOneProposed = new AsyncAutoResetEvent();
             var policy = new BlockchainOptions();
-            var genesis = new MemoryStoreFixture(policy).GenesisBlock;
+            var genesis = new MemoryRepositoryFixture(policy).GenesisBlock;
 
             var consensusPeers = Enumerable.Range(0, 4).Select(i =>
                 new BoundPeer(
@@ -636,7 +636,7 @@ namespace Libplanet.Net.Tests
         [Fact(Timeout = Timeout)]
         public async Task ThrowArgumentExceptionInConstructor()
         {
-            var fx = new MemoryStoreFixture();
+            var fx = new MemoryRepositoryFixture();
             var policy = new BlockchainOptions();
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
@@ -904,8 +904,8 @@ namespace Libplanet.Net.Tests
                     Validator = new RelayValidator<Transaction>(IsSignerValid),
                 },
             };
-            var fx1 = new MemoryStoreFixture();
-            var fx2 = new MemoryStoreFixture();
+            var fx1 = new MemoryRepositoryFixture();
+            var fx2 = new MemoryRepositoryFixture();
 
             var swarmA = await CreateSwarm(
                 MakeBlockChain(
@@ -977,8 +977,8 @@ namespace Libplanet.Net.Tests
                     Validator = new RelayValidator<Transaction>(IsSignerValid),
                 },
             };
-            var fx1 = new MemoryStoreFixture();
-            var fx2 = new MemoryStoreFixture();
+            var fx1 = new MemoryRepositoryFixture();
+            var fx2 = new MemoryRepositoryFixture();
 
             var swarmA = await CreateSwarm(
                 MakeBlockChain(
@@ -1550,7 +1550,7 @@ namespace Libplanet.Net.Tests
             try
             {
                 await StartAsync(swarm);
-                var fx = new MemoryStoreFixture();
+                var fx = new MemoryRepositoryFixture();
                 _ = transport.StartAsync();
                 await transport.WaitForRunningAsync();
                 var tasks = new List<Task>();

@@ -8,93 +8,69 @@ using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Evidence;
 using Libplanet.Types.Transactions;
-using Serilog;
-using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Store;
 
-public abstract class StoreTest
+public abstract class RepositoryTest
 {
-    private ILogger? _logger = null;
+    protected abstract RepositoryFixture Fx { get; }
 
-    protected abstract ITestOutputHelper TestOutputHelper { get; }
-
-    protected abstract StoreFixture Fx { get; }
-
-    protected abstract Func<StoreFixture> FxConstructor { get; }
-
-    protected ILogger Logger => _logger ??= new LoggerConfiguration()
-        .MinimumLevel.Verbose()
-        .WriteTo.TestOutput(TestOutputHelper)
-        .CreateLogger()
-        .ForContext(this.GetType());
+    protected abstract Func<RepositoryFixture> FxConstructor { get; }
 
     [Fact]
-    public void StoreBlock()
+    public void BlockDigests_Test()
     {
-        var store = Fx.Repository;
-        Assert.Empty(store.BlockDigests.Keys);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block1.BlockHash]);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block2.BlockHash]);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block3.BlockHash]);
-        Assert.False(store.BlockDigests.Remove(Fx.Block1.BlockHash));
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
+        var repository = Fx.Repository;
+        Assert.Empty(repository.BlockDigests.Keys);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block1.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block3.BlockHash]);
+        Assert.False(repository.BlockDigests.Remove(Fx.Block1.BlockHash));
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
 
-        store.BlockDigests.Add(Fx.Block1);
-        Assert.Single(store.BlockDigests);
-        Assert.Equal(
-            [Fx.Block1.BlockHash],
-            store.BlockDigests.Keys);
-        Assert.Equal(
-            Fx.Block1,
-            store.GetBlock(Fx.Block1.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block2.BlockHash]);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block3.BlockHash]);
-        Assert.Equal(Fx.Block1.Height, store.BlockDigests[Fx.Block1.BlockHash].Height);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block2.BlockHash]);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block3.BlockHash]);
-        Assert.True(store.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
+        repository.BlockDigests.Add(Fx.Block1);
+        Assert.Single(repository.BlockDigests);
+        Assert.Equal([Fx.Block1.BlockHash], repository.BlockDigests.Keys);
+        Assert.Equal(Fx.Block1, repository.GetBlock(Fx.Block1.BlockHash));
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block3.BlockHash]);
+        Assert.Equal(Fx.Block1.Height, repository.BlockDigests[Fx.Block1.BlockHash].Height);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block2.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block3.BlockHash]);
+        Assert.True(repository.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
 
-        store.BlockDigests.Add(Fx.Block2);
-        Assert.Equal(2, store.BlockDigests.Count);
+        repository.BlockDigests.Add(Fx.Block2);
+        Assert.Equal(2, repository.BlockDigests.Count);
         Assert.Equal(
             new HashSet<BlockHash> { Fx.Block1.BlockHash, Fx.Block2.BlockHash },
-            [.. store.BlockDigests.Keys]);
-        Assert.Equal(
-            Fx.Block1,
-            store.GetBlock(Fx.Block1.BlockHash));
-        Assert.Equal(
-            Fx.Block2,
-            store.GetBlock(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block3.BlockHash]);
-        Assert.Equal(Fx.Block1.Height, store.BlockDigests[Fx.Block1.BlockHash].Height);
-        Assert.Equal(Fx.Block2.Height, store.BlockDigests[Fx.Block2.BlockHash].Height);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block3.BlockHash]);
-        Assert.True(store.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
-        Assert.True(store.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
+            [.. repository.BlockDigests.Keys]);
+        Assert.Equal(Fx.Block1, repository.GetBlock(Fx.Block1.BlockHash));
+        Assert.Equal(Fx.Block2, repository.GetBlock(Fx.Block2.BlockHash));
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block3.BlockHash]);
+        Assert.Equal(Fx.Block1.Height, repository.BlockDigests[Fx.Block1.BlockHash].Height);
+        Assert.Equal(Fx.Block2.Height, repository.BlockDigests[Fx.Block2.BlockHash].Height);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block3.BlockHash]);
+        Assert.True(repository.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
+        Assert.True(repository.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
 
-        Assert.True(store.BlockDigests.Remove(Fx.Block1.BlockHash));
-        Assert.Single(store.BlockDigests);
-        Assert.Equal(
-            [Fx.Block2.BlockHash],
-            store.BlockDigests.Keys);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block1.BlockHash]);
-        Assert.Equal(
-            Fx.Block2,
-            store.GetBlock(Fx.Block2.BlockHash));
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block3.BlockHash]);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block1.BlockHash]);
-        Assert.Equal(Fx.Block2.Height, store.BlockDigests[Fx.Block2.BlockHash].Height);
-        Assert.Throws<KeyNotFoundException>(() => store.BlockDigests[Fx.Block3.BlockHash]);
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
-        Assert.True(store.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
-        Assert.False(store.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
+        Assert.True(repository.BlockDigests.Remove(Fx.Block1.BlockHash));
+        Assert.Single(repository.BlockDigests);
+        Assert.Equal([Fx.Block2.BlockHash], repository.BlockDigests.Keys);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block1.BlockHash]);
+        Assert.Equal(Fx.Block2, repository.GetBlock(Fx.Block2.BlockHash));
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block3.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block1.BlockHash]);
+        Assert.Equal(Fx.Block2.Height, repository.BlockDigests[Fx.Block2.BlockHash].Height);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockDigests[Fx.Block3.BlockHash]);
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
+        Assert.True(repository.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
+        Assert.False(repository.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
     }
 
     // [Fact]
@@ -215,7 +191,7 @@ public abstract class StoreTest
     // }
 
     [Fact]
-    public void StoreTx()
+    public void PendingTransactions_Test()
     {
         var store = Fx.Repository;
         Assert.Throws<KeyNotFoundException>(() => store.PendingTransactions[Fx.Transaction1.Id]);
@@ -248,7 +224,40 @@ public abstract class StoreTest
     }
 
     [Fact]
-    public void StoreIndex()
+    public void CommittedTransactions_Test()
+    {
+        var store = Fx.Repository;
+        Assert.Throws<KeyNotFoundException>(() => store.CommittedTransactions[Fx.Transaction1.Id]);
+        Assert.Throws<KeyNotFoundException>(() => store.CommittedTransactions[Fx.Transaction2.Id]);
+        Assert.False(store.CommittedTransactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.False(store.CommittedTransactions.ContainsKey(Fx.Transaction2.Id));
+
+        store.CommittedTransactions.Add(Fx.Transaction1);
+        Assert.Equal(
+            Fx.Transaction1,
+            store.CommittedTransactions[Fx.Transaction1.Id]);
+        Assert.Throws<KeyNotFoundException>(() => store.CommittedTransactions[Fx.Transaction2.Id]);
+        Assert.True(store.CommittedTransactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.False(store.CommittedTransactions.ContainsKey(Fx.Transaction2.Id));
+
+        store.CommittedTransactions.Add(Fx.Transaction2);
+        Assert.Equal(
+            Fx.Transaction1,
+            store.CommittedTransactions[Fx.Transaction1.Id]);
+        Assert.Equal(
+            Fx.Transaction2,
+            store.CommittedTransactions[Fx.Transaction2.Id]);
+        Assert.True(store.CommittedTransactions.ContainsKey(Fx.Transaction1.Id));
+        Assert.True(store.CommittedTransactions.ContainsKey(Fx.Transaction2.Id));
+
+        Assert.Equal(
+            Fx.Transaction2,
+            store.CommittedTransactions[Fx.Transaction2.Id]);
+        Assert.True(store.CommittedTransactions.ContainsKey(Fx.Transaction2.Id));
+    }
+
+    [Fact]
+    public void BlockHashes_Test()
     {
         var repository = Fx.Repository;
         Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[0]);
@@ -281,7 +290,7 @@ public abstract class StoreTest
     }
 
     [Fact]
-    public void IterateHeights()
+    public void BlockHashes_Iteration_Test()
     {
         var repository = Fx.Repository;
 
@@ -319,43 +328,43 @@ public abstract class StoreTest
     }
 
     [Fact]
-    public void TxNonce()
+    public void Nonces_Test()
     {
-        var chain = Fx.Repository;
-        Assert.Equal(0, chain.GetNonce(Fx.Transaction1.Signer));
-        Assert.Equal(0, chain.GetNonce(Fx.Transaction2.Signer));
+        var repository = Fx.Repository;
+        Assert.Equal(0, repository.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(0, repository.GetNonce(Fx.Transaction2.Signer));
 
-        chain.Nonces.Increase(Fx.Transaction1.Signer);
-        Assert.Equal(1, chain.GetNonce(Fx.Transaction1.Signer));
-        Assert.Equal(0, chain.GetNonce(Fx.Transaction2.Signer));
+        repository.Nonces.Increase(Fx.Transaction1.Signer);
+        Assert.Equal(1, repository.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(0, repository.GetNonce(Fx.Transaction2.Signer));
         Assert.Equal(
             new Dictionary<Address, long>
             {
                 [Fx.Transaction1.Signer] = 1,
             }.ToImmutableSortedDictionary(),
-            chain.Nonces.ToImmutableSortedDictionary());
+            repository.Nonces.ToImmutableSortedDictionary());
 
-        chain.Nonces.Increase(Fx.Transaction2.Signer, 5);
-        Assert.Equal(1, chain.GetNonce(Fx.Transaction1.Signer));
-        Assert.Equal(5, chain.GetNonce(Fx.Transaction2.Signer));
+        repository.Nonces.Increase(Fx.Transaction2.Signer, 5);
+        Assert.Equal(1, repository.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(5, repository.GetNonce(Fx.Transaction2.Signer));
         Assert.Equal(
             new Dictionary<Address, long>
             {
                 [Fx.Transaction1.Signer] = 1,
                 [Fx.Transaction2.Signer] = 5,
             }.ToImmutableSortedDictionary(),
-            chain.Nonces.ToImmutableSortedDictionary());
+            repository.Nonces.ToImmutableSortedDictionary());
 
-        chain.Nonces.Increase(Fx.Transaction1.Signer, 2);
-        Assert.Equal(3, chain.GetNonce(Fx.Transaction1.Signer));
-        Assert.Equal(5, chain.GetNonce(Fx.Transaction2.Signer));
+        repository.Nonces.Increase(Fx.Transaction1.Signer, 2);
+        Assert.Equal(3, repository.GetNonce(Fx.Transaction1.Signer));
+        Assert.Equal(5, repository.GetNonce(Fx.Transaction2.Signer));
         Assert.Equal(
             new Dictionary<Address, long>
             {
                 [Fx.Transaction1.Signer] = 3,
                 [Fx.Transaction2.Signer] = 5,
             }.ToImmutableSortedDictionary(),
-            chain.Nonces.ToImmutableSortedDictionary());
+            repository.Nonces.ToImmutableSortedDictionary());
     }
 
     [Fact]
@@ -367,32 +376,6 @@ public abstract class StoreTest
         repository.Height = Fx.Block1.Height;
         Assert.Equal(1, repository.Height);
         Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[2]);
-    }
-
-    [Fact]
-    public void ContainsBlockWithoutCache()
-    {
-        var store = Fx.Repository;
-        store.BlockDigests.Add(Fx.Block1);
-        store.BlockDigests.Add(Fx.Block2);
-        store.BlockDigests.Add(Fx.Block3);
-
-        Assert.True(store.BlockDigests.ContainsKey(Fx.Block1.BlockHash));
-        Assert.True(store.BlockDigests.ContainsKey(Fx.Block2.BlockHash));
-        Assert.True(store.BlockDigests.ContainsKey(Fx.Block3.BlockHash));
-    }
-
-    [Fact]
-    public void ContainsTransactionWithoutCache()
-    {
-        var store = Fx.Repository;
-        store.PendingTransactions.Add(Fx.Transaction1);
-        store.PendingTransactions.Add(Fx.Transaction2);
-        store.PendingTransactions.Add(Fx.Transaction3);
-
-        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction1.Id));
-        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction2.Id));
-        Assert.True(store.PendingTransactions.ContainsKey(Fx.Transaction3.Id));
     }
 
     [Fact]
@@ -461,11 +444,6 @@ public abstract class StoreTest
         }
         catch (AggregateException e)
         {
-            foreach (Exception innerException in e.InnerExceptions)
-            {
-                TestOutputHelper.WriteLine(innerException.ToString());
-            }
-
             throw;
         }
     }
@@ -510,7 +488,7 @@ public abstract class StoreTest
     // }
 
     [Fact]
-    public void GetBlock()
+    public void GetBlock_Test()
     {
         using var fx = FxConstructor();
         var store = fx.Repository;
@@ -524,7 +502,7 @@ public abstract class StoreTest
     }
 
     [Fact]
-    public void GetBlockCommit()
+    public void GetBlockCommit_Test()
     {
         using var fx = FxConstructor();
         var store = fx.Repository;

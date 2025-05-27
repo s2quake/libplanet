@@ -20,7 +20,7 @@ namespace Libplanet.Tests.Blockchain;
 public partial class BlockChainTest : IDisposable
 {
     private readonly ILogger _logger;
-    private readonly StoreFixture _fx;
+    private readonly RepositoryFixture _fx;
     private readonly BlockchainOptions _options;
     private Libplanet.Blockchain _blockChain;
     private readonly Block _validNext;
@@ -37,7 +37,7 @@ public partial class BlockChainTest : IDisposable
 
         _options = new BlockchainOptions
         {
-            PolicyActions = new SystemActions
+            SystemActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
@@ -760,8 +760,8 @@ public partial class BlockChainTest : IDisposable
             new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
         var locator = b4.BlockHash;
 
-        using var emptyFx = new MemoryStoreFixture(_options);
-        using var forkFx = new MemoryStoreFixture(_options);
+        using var emptyFx = new MemoryRepositoryFixture(_options);
+        using var forkFx = new MemoryRepositoryFixture(_options);
 
         var emptyRepository = new Repository();
         var emptyChain = new Libplanet.Blockchain(emptyFx.GenesisBlock, emptyRepository, _blockChain.Options);
@@ -1096,8 +1096,8 @@ public partial class BlockChainTest : IDisposable
     /// </summary>
     /// <param name="policyActions">The policy block actions to use.</param>
     /// <returns>The store fixture that every test in this class depends on.</returns>
-    protected virtual StoreFixture GetStoreFixture(BlockchainOptions? options = null)
-        => new MemoryStoreFixture(options ?? new());
+    protected virtual RepositoryFixture GetStoreFixture(BlockchainOptions? options = null)
+        => new MemoryRepositoryFixture(options ?? new());
 
     private (Address[], Transaction[]) MakeFixturesForAppendTests(
         PrivateKey privateKey = null,
@@ -1172,7 +1172,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     public void CreateWithGenesisBlock()
     {
-        using var fx = new MemoryStoreFixture(new());
+        using var fx = new MemoryRepositoryFixture(new());
         var addresses = ImmutableArray.Create(
             fx.Address1,
             fx.Address2,
@@ -1319,7 +1319,7 @@ public partial class BlockChainTest : IDisposable
     [Fact]
     private void ValidateNextBlockCommitOnValidatorSetChange()
     {
-        var storeFixture = new MemoryStoreFixture();
+        var storeFixture = new MemoryRepositoryFixture();
         var options = storeFixture.Options;
         var repository = storeFixture.Repository;
         var addresses = ImmutableList<Address>.Empty

@@ -4,7 +4,7 @@ using Libplanet.Data;
 namespace Libplanet.Tests.Store;
 
 public sealed class DefaultStoreFixture(BlockchainOptions options, bool memory = true)
-    : StoreFixture(CreateRepository(memory), options)
+    : RepositoryFixture(CreateRepository(memory), options)
 {
     public DefaultStoreFixture(bool memory = true)
         : this(new BlockchainOptions(), memory)

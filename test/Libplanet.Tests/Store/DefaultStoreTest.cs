@@ -4,22 +4,19 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Store;
 
-public sealed class DefaultStoreTest : StoreTest, IDisposable
+public sealed class DefaultStoreTest : RepositoryTest, IDisposable
 {
     private readonly DefaultStoreFixture _fx;
 
-    public DefaultStoreTest(ITestOutputHelper testOutputHelper)
+    public DefaultStoreTest()
     {
-        TestOutputHelper = testOutputHelper;
         Fx = _fx = new DefaultStoreFixture(memory: false);
         FxConstructor = () => new DefaultStoreFixture(memory: false);
     }
 
-    protected override ITestOutputHelper TestOutputHelper { get; }
+    protected override RepositoryFixture Fx { get; }
 
-    protected override StoreFixture Fx { get; }
-
-    protected override Func<StoreFixture> FxConstructor { get; }
+    protected override Func<RepositoryFixture> FxConstructor { get; }
 
     public void Dispose()
     {

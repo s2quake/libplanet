@@ -134,12 +134,12 @@ public class BlockPolicyParams : ICommandParameterSet
 
         PropertyInfo? propertyInfo = policy
             .GetType()
-            .GetProperty(nameof(BlockchainOptions.PolicyActions));
+            .GetProperty(nameof(BlockchainOptions.SystemActions));
         if (propertyInfo is null)
         {
             var message = $"The policy type "
                 + $"'{policy.GetType().FullName}' does not have a "
-                + $"'{nameof(BlockchainOptions.PolicyActions)}' property.";
+                + $"'{nameof(BlockchainOptions.SystemActions)}' property.";
             throw new InvalidOperationException(message);
         }
 
@@ -147,7 +147,7 @@ public class BlockPolicyParams : ICommandParameterSet
         if (value is null)
         {
             var message = $"The value of property "
-                + $"'{nameof(BlockchainOptions.PolicyActions)}' of type "
+                + $"'{nameof(BlockchainOptions.SystemActions)}' of type "
                 + $"'{policy.GetType().FullName}' cannot be null.";
             throw new InvalidOperationException(message);
         }

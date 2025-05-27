@@ -50,7 +50,7 @@ public partial class Blockchain
     public Blockchain(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
-        _blockExecutor = new BlockExecutor(repository.StateStore, options.PolicyActions);
+        _blockExecutor = new BlockExecutor(repository.StateStore, options.SystemActions);
         Options = options;
         Id = _repository.Id;
         Blocks = new BlockCollection(repository);

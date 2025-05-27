@@ -12,7 +12,7 @@ public class Store
     private readonly ImmutableArray<Block> _blocks;
     private readonly int BlocksCount = default;
     private readonly ImmutableArray<Transaction> Txs = default;
-    private StoreFixture _fx = null;
+    private RepositoryFixture _fx = null;
     private readonly int TxsCount = default;
     private Libplanet.Data.Repository _store;
     // private Chain _chain;
@@ -54,7 +54,7 @@ public class Store
     [IterationSetup]
     public void InitializeFixture()
     {
-        _fx = new MemoryStoreFixture();
+        _fx = new MemoryRepositoryFixture();
         _store = _fx.Repository;
     }
 

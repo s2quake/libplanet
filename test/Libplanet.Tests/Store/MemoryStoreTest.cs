@@ -2,34 +2,17 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Store;
 
-public class MemoryStoreTest : StoreTest, IDisposable
+public class MemoryStoreTest : RepositoryTest, IDisposable
 {
-    public MemoryStoreTest(ITestOutputHelper testOutputHelper)
+    public MemoryStoreTest()
     {
-        TestOutputHelper = testOutputHelper;
-        Fx = new MemoryStoreFixture();
-        FxConstructor = () => new MemoryStoreFixture();
+        Fx = new MemoryRepositoryFixture();
+        FxConstructor = () => new MemoryRepositoryFixture();
     }
 
-    protected override ITestOutputHelper TestOutputHelper { get; }
+    protected override RepositoryFixture Fx { get; }
 
-    protected override StoreFixture Fx { get; }
-
-    protected override Func<StoreFixture> FxConstructor { get; }
-
-    [Theory]
-    [InlineData("memory:")]
-    [InlineData("memory://")]
-    public void Loader(string uri)
-    {
-        // (Libplanet.Data.Store Store, TrieStateStore StateStore)? pair =
-        //     StoreLoaderAttribute.LoadStore(new Uri(uri));
-        // Assert.NotNull(pair);
-        // Libplanet.Data.Store store = pair.Value.Store;
-        // Assert.IsAssignableFrom<Libplanet.Data.Store>(store);
-        // var stateStore = (TrieStateStore)pair.Value.StateStore;
-        // Assert.IsAssignableFrom<MemoryKeyValueStore>(stateStore.StateKeyValueStore);
-    }
+    protected override Func<RepositoryFixture> FxConstructor { get; }
 
     public void Dispose()
     {

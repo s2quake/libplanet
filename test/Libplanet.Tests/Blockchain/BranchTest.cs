@@ -7,11 +7,11 @@ namespace Libplanet.Tests.Blockchain
 {
     public class BranchTest
     {
-        private readonly StoreFixture _fx;
+        private readonly RepositoryFixture _fx;
 
         public BranchTest()
         {
-            _fx = new MemoryStoreFixture();
+            _fx = new MemoryRepositoryFixture();
         }
 
         [Fact]

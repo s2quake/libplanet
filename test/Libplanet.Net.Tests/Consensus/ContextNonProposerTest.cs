@@ -311,7 +311,7 @@ namespace Libplanet.Net.Tests.Consensus
             var invalidKey = new PrivateKey();
             var policy = new BlockchainOptions
             {
-                PolicyActions = new SystemActions
+                SystemActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
@@ -396,7 +396,7 @@ namespace Libplanet.Net.Tests.Consensus
             var txSigner = new PrivateKey();
             var policy = new BlockchainOptions
             {
-                PolicyActions = new SystemActions
+                SystemActions = new SystemActions
                 {
                     EndBlockActions = [new MinerReward(1)],
                 },
@@ -434,7 +434,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            using var fx = new MemoryStoreFixture();
+            using var fx = new MemoryRepositoryFixture();
 
             // var unsignedInvalidTx = new UnsignedTx
             // {
