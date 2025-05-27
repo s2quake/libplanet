@@ -218,7 +218,7 @@ public partial class BlockChainTest
         };
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(
-            repository.StateStore,
+            repository.States,
             options1.SystemActions);
         var preGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,
@@ -271,7 +271,7 @@ public partial class BlockChainTest
         };
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(
-            repository.StateStore,
+            repository.States,
             options.SystemActions);
         var rawGenesis = TestUtils.ProposeGenesis(
             proposer: TestUtils.GenesisProposer,

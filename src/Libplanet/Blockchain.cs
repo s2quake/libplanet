@@ -50,7 +50,7 @@ public partial class Blockchain
     public Blockchain(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
-        _blockExecutor = new BlockExecutor(repository.StateStore, options.SystemActions);
+        _blockExecutor = new BlockExecutor(repository.States, options.SystemActions);
         Options = options;
         Id = _repository.Id;
         Blocks = new BlockCollection(repository);
@@ -112,7 +112,7 @@ public partial class Blockchain
         var blockHash = block.BlockHash;
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(blockHash));
         _repository.BlockExecutions.Add(blockHash, execution.GetBlockExecution(blockHash));
-        _repository.StateRootHashStore.Add(blockHash, _repository.StateRootHash);
+        _repository.StateRootHashes.Add(blockHash, _repository.StateRootHash);
 
         return execution;
     }
@@ -140,15 +140,15 @@ public partial class Blockchain
         _blockExecutingSubject.OnNext(Unit.Default);
         var execution = _blockExecutor.Execute((RawBlock)block);
         _repository.StateRootHash = execution.OutputWorld.Hash;
-        _repository.StateRootHashStore.Add(block.BlockHash, _repository.StateRootHash);
+        _repository.StateRootHashes.Add(block.BlockHash, _repository.StateRootHash);
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(block.BlockHash));
     }
 
     public HashDigest<SHA256> GetStateRootHash(int height)
-        => _repository.StateRootHashStore[_repository.BlockHashes[height]];
+        => _repository.StateRootHashes[_repository.BlockHashes[height]];
 
     public HashDigest<SHA256> GetStateRootHash(BlockHash blockHash)
-        => _repository.StateRootHashStore[blockHash];
+        => _repository.StateRootHashes[blockHash];
 
     public World GetWorld() => GetWorld(Tip.BlockHash);
 
@@ -156,13 +156,13 @@ public partial class Blockchain
 
     public World GetWorld(BlockHash blockHash)
     {
-        var stateRootHash = _repository.StateRootHashStore[blockHash];
-        return new World(_repository.StateStore.GetTrie(stateRootHash), _repository.StateStore);
+        var stateRootHash = _repository.StateRootHashes[blockHash];
+        return new World(_repository.States.GetTrie(stateRootHash), _repository.States);
     }
 
     public World GetWorld(HashDigest<SHA256> stateRootHash)
     {
-        return new World(_repository.StateStore.GetTrie(stateRootHash), _repository.StateStore);
+        return new World(_repository.States.GetTrie(stateRootHash), _repository.States);
     }
 
     public Block ProposeBlock(PrivateKey proposer)

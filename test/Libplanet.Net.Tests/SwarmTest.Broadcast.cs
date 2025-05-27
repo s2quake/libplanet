@@ -167,7 +167,7 @@ namespace Libplanet.Net.Tests
             var receiverKey = new PrivateKey();
             Swarm receiverSwarm = await CreateSwarm(receiverKey);
             Blockchain receiverChain = receiverSwarm.BlockChain;
-            var seedStateStore = new StateStore();
+            var seedStateStore = new StateIndex();
             BlockchainOptions policy = receiverChain.Options;
             Blockchain seedChain = MakeBlockChain(
                 options: policy,

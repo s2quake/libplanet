@@ -3,8 +3,8 @@ using Libplanet.Types.Transactions;
 
 namespace Libplanet.Data;
 
-public abstract class TransactionStoreBase(IDatabase database, string name)
-    : StoreBase<TxId, Transaction>(database.GetOrAdd(name))
+public abstract class TransactionIndexBase(IDatabase database, string name)
+    : IndexBase<TxId, Transaction>(database.GetOrAdd(name))
 {
     protected override byte[] GetBytes(Transaction value) => ModelSerializer.SerializeToBytes(value);
 

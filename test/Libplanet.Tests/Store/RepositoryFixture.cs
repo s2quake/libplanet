@@ -86,7 +86,7 @@ public abstract class RepositoryFixture : IDisposable
 
         Options = options;
         Repository = repository;
-        BlockExecutor = new BlockExecutor(repository.StateStore, Options.SystemActions);
+        BlockExecutor = new BlockExecutor(repository.States, Options.SystemActions);
         Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         GenesisBlock = new BlockBuilder

@@ -93,7 +93,7 @@ public sealed class IntegerSet
                 BigInteger nextState = a.Operator.ToFunc()(prev.Item1, a.Operand);
                 var updatedRawStates = ImmutableDictionary<string, BigInteger>.Empty
                     .Add(rawStateKey, nextState);
-                HashDigest<SHA256> nextRootHash = Repository.StateStore.Commit(
+                HashDigest<SHA256> nextRootHash = Repository.States.Commit(
                     updatedRawStates.Aggregate(
                         prevTrie,
                         (trie, pair) => trie.Set(pair.Key, ModelSerializer.SerializeToBytes(pair.Value)))).Hash;
@@ -110,7 +110,7 @@ public sealed class IntegerSet
                         a.Operator.ToFunc()(delta[delta.Length - 1].Item1, a.Operand);
                     var updatedRawStates = ImmutableDictionary<string, BigInteger>.Empty
                         .Add(rawStateKey, nextState);
-                    HashDigest<SHA256> nextRootHash = Repository.StateStore.Commit(
+                    HashDigest<SHA256> nextRootHash = Repository.States.Commit(
                         updatedRawStates.Aggregate(
                             prevTrie,
                             (trie, pair) => trie.Set(pair.Key, ModelSerializer.SerializeToBytes(pair.Value)))).Hash;
@@ -134,10 +134,10 @@ public sealed class IntegerSet
     {
         if (blockHash != default)
         {
-            return Repository.StateStore.GetTrie(Chain.Blocks[blockHash].PreviousStateRootHash);
+            return Repository.States.GetTrie(Chain.Blocks[blockHash].PreviousStateRootHash);
         }
 
-        return Repository.StateStore.GetTrie(default);
+        return Repository.States.GetTrie(default);
     }
 
     public struct TxWithContext

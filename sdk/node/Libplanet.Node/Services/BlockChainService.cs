@@ -139,8 +139,8 @@ internal sealed class BlockChainService(
             ?? throw new InvalidOperationException(
                 "Failed to deserialize genesis configuration. Ensure it is a valid JSON array of AccountState.");
 
-        var trie = repository.StateStore.GetTrie(repository.StateRootHash);
-        var world = new World(trie, repository.StateStore);
+        var trie = repository.States.GetTrie(repository.StateRootHash);
+        var world = new World(trie, repository.States);
 
         foreach (var accountState in accountStates)
         {

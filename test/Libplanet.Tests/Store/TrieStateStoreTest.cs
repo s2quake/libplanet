@@ -30,7 +30,7 @@ public class TrieStateStoreTest
     [Fact]
     public void GetStateRoot()
     {
-        var stateStore = new StateStore(_stateKeyValueStore);
+        var stateStore = new StateIndex(_stateKeyValueStore);
         var emptyTrie = stateStore.GetTrie(default);
         Assert.True(emptyTrie.IsCommitted);
         Assert.False(emptyTrie.ContainsKey(KeyFoo));
@@ -184,6 +184,6 @@ public class TrieStateStoreTest
     public void IdempotentDispose()
 #pragma warning restore S2699 // Tests should include assertions
     {
-        _ = new StateStore(_stateKeyValueStore);
+        _ = new StateIndex(_stateKeyValueStore);
     }
 }

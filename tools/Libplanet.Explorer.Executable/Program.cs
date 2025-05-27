@@ -171,7 +171,7 @@ If omitted (default) explorer only the local blockchain store.")]
             try
             {
                 Libplanet.Data.Repository store = LoadStore(options);
-                StateStore stateStore = new NoOpStateStore();
+                StateIndex stateStore = new NoOpStateStore();
 
                 BlockchainOptions policy = LoadBlockPolicy(options);
 
@@ -408,7 +408,7 @@ If omitted (default) explorer only the local blockchain store.")]
             internal static Swarm SwarmSingleton { get; set; }
         }
 
-        private class NoOpStateStore : StateStore
+        private class NoOpStateStore : StateIndex
         {
             public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash) => null;
 

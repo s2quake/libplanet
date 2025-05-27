@@ -12,7 +12,7 @@ namespace Libplanet;
 public sealed class StagedTransactionCollection(Repository repository, BlockchainOptions options)
     : IReadOnlyDictionary<TxId, Transaction>
 {
-    private readonly PendingTransactionStore _store = repository.PendingTransactions;
+    private readonly PendingTransactionIndex _store = repository.PendingTransactions;
     private readonly ConcurrentDictionary<Address, ImmutableSortedSet<long>> _noncesByAddress = new();
 
     public StagedTransactionCollection(Repository repository)

@@ -10,8 +10,8 @@ namespace Libplanet;
 public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 {
     private readonly Repository _repository;
-    private readonly BlockDigestStore _blockDigests;
-    private readonly BlockHashStore _blockHashes;
+    private readonly BlockDigestIndex _blockDigests;
+    private readonly BlockHashIndex _blockHashes;
     private readonly ICache<BlockHash, Block> _cacheByHash;
 
     private readonly ICache<int, Block> _cacheByHeight;

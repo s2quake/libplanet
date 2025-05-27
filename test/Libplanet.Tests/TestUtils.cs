@@ -540,7 +540,7 @@ Actual (C# array lit):   new byte[{actual.LongLength}] {{ {actualRepr} }}";
 
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(
-            stateStore: repository.StateStore,
+            stateStore: repository.States,
             options.SystemActions);
 
         if (genesisBlock is null)

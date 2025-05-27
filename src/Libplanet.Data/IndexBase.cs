@@ -9,25 +9,25 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Data;
 
-public abstract class StoreBase<TKey, TValue>
+public abstract class IndexBase<TKey, TValue>
     : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable
     where TKey : notnull
     where TValue : notnull
 {
     private readonly ICache<TKey, TValue> _cache;
-    private readonly IDictionary<string, byte[]> _dictionary;
+    private readonly ITable _table;
     private readonly ReaderWriterLockSlim _lock = new();
     private readonly TypeConverter _keyConverter = TypeDescriptor.GetConverter(typeof(TKey));
 
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected StoreBase(IDictionary<string, byte[]> dictionary, int cacheSize = 100)
+    protected IndexBase(ITable dictionary, int cacheSize = 100)
     {
         _cache = new ConcurrentLruBuilder<TKey, TValue>()
             .WithCapacity(cacheSize)
             .Build();
-        _dictionary = dictionary;
+        _table = dictionary;
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
     }
@@ -36,7 +36,7 @@ public abstract class StoreBase<TKey, TValue>
 
     public ICollection<TValue> Values => _values;
 
-    public int Count => _dictionary.Count;
+    public int Count => _table.Count;
 
     public bool IsReadOnly => false;
 
@@ -57,7 +57,7 @@ public abstract class StoreBase<TKey, TValue>
                 return value;
             }
 
-            if (_dictionary[GetKeyBytes(key)] is { } bytes)
+            if (_table[GetKeyBytes(key)] is { } bytes)
             {
                 value = GetValue(bytes);
                 _cache.AddOrUpdate(key, value);
@@ -72,7 +72,7 @@ public abstract class StoreBase<TKey, TValue>
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new WriteScope(_lock);
             OnSet(key, value);
-            _dictionary[GetKeyBytes(key)] = GetBytes(value);
+            _table[GetKeyBytes(key)] = GetBytes(value);
             _cache.AddOrUpdate(key, value);
             OnSetComplete(key, value);
         }
@@ -125,13 +125,13 @@ public abstract class StoreBase<TKey, TValue>
             return false;
         }
 
-        if (_dictionary.ContainsKey(GetKeyBytes(key)))
+        if (_table.ContainsKey(GetKeyBytes(key)))
         {
             return false;
         }
 
         OnAdd(key, value);
-        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _table.Add(GetKeyBytes(key), GetBytes(value));
         _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
         return true;
@@ -148,13 +148,13 @@ public abstract class StoreBase<TKey, TValue>
             return false;
         }
 
-        if (_dictionary.ContainsKey(GetKeyBytes(key)))
+        if (_table.ContainsKey(GetKeyBytes(key)))
         {
             return false;
         }
 
         OnAdd(key, value);
-        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _table.Add(GetKeyBytes(key), GetBytes(value));
         _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
         return true;
@@ -166,7 +166,7 @@ public abstract class StoreBase<TKey, TValue>
 
         using var scope = new WriteScope(_lock);
         OnAdd(key, value);
-        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _table.Add(GetKeyBytes(key), GetBytes(value));
         _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
     }
@@ -179,7 +179,7 @@ public abstract class StoreBase<TKey, TValue>
         using var scope = new WriteScope(_lock);
         var key = value.Key;
         OnAdd(key, value);
-        _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+        _table.Add(GetKeyBytes(key), GetBytes(value));
         _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
     }
@@ -194,7 +194,7 @@ public abstract class StoreBase<TKey, TValue>
         {
             var key = value.Key;
             OnAdd(key, value);
-            _dictionary.Add(GetKeyBytes(key), GetBytes(value));
+            _table.Add(GetKeyBytes(key), GetBytes(value));
             _cache.AddOrUpdate(key, value);
             OnAddComplete(key, value);
         }
@@ -209,7 +209,7 @@ public abstract class StoreBase<TKey, TValue>
             return true;
         }
 
-        return _dictionary.ContainsKey(GetKeyBytes(key));
+        return _table.ContainsKey(GetKeyBytes(key));
     }
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
@@ -221,7 +221,7 @@ public abstract class StoreBase<TKey, TValue>
             return true;
         }
 
-        if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
+        if (_table.TryGetValue(GetKeyBytes(key), out var bytes))
         {
             value = GetValue(bytes);
             _cache.AddOrUpdate(key, value);
@@ -238,7 +238,7 @@ public abstract class StoreBase<TKey, TValue>
         using var scope = new WriteScope(_lock);
         OnClear();
         _cache.Clear();
-        _dictionary.Clear();
+        _table.Clear();
         OnClearComplete();
     }
 
@@ -299,7 +299,7 @@ public abstract class StoreBase<TKey, TValue>
 
     protected IEnumerable<TKey> EnumerateKeys()
     {
-        foreach (var key in _dictionary.Keys)
+        foreach (var key in _table.Keys)
         {
             yield return GetKey(key);
         }
@@ -378,7 +378,7 @@ public abstract class StoreBase<TKey, TValue>
             return true;
         }
 
-        return _dictionary.ContainsKey(GetKeyBytes(key));
+        return _table.ContainsKey(GetKeyBytes(key));
     }
 
     private bool RemoveInternal(TKey key)
@@ -386,11 +386,11 @@ public abstract class StoreBase<TKey, TValue>
         OnRemove(key);
         if (_cache.TryRemove(key, out var value))
         {
-            _dictionary.Remove(GetKeyBytes(key));
+            _table.Remove(GetKeyBytes(key));
             OnRemoveComplete(key, value);
             return true;
         }
-        else if (_dictionary.TryGetValue(GetKeyBytes(key), out var bytes))
+        else if (_table.TryGetValue(GetKeyBytes(key), out var bytes))
         {
             value = GetValue(bytes);
             OnRemoveComplete(key, value);
@@ -400,7 +400,7 @@ public abstract class StoreBase<TKey, TValue>
         return false;
     }
 
-    private sealed class KeyCollection(StoreBase<TKey, TValue> owner) : ICollection<TKey>
+    private sealed class KeyCollection(IndexBase<TKey, TValue> owner) : ICollection<TKey>
     {
         public int Count => owner.Count;
 
@@ -445,7 +445,7 @@ public abstract class StoreBase<TKey, TValue>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private sealed class ValueCollection(StoreBase<TKey, TValue> owner) : ICollection<TValue>
+    private sealed class ValueCollection(IndexBase<TKey, TValue> owner) : ICollection<TValue>
     {
         public int Count => owner.Count;
 

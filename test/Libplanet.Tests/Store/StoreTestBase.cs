@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Tests.Store;
 
-public abstract class StoreTestBase<TKey, TValue>(StoreBase<TKey, TValue> store)
+public abstract class StoreTestBase<TKey, TValue>(IndexBase<TKey, TValue> store)
     where TKey : notnull
     where TValue : notnull
 {
