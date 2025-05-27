@@ -1,22 +1,19 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Libplanet.State;
-using Libplanet;
 using Libplanet.Node.Options;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Transactions;
 using Microsoft.Extensions.Options;
 
 namespace Libplanet.Node.Services;
 
 internal sealed class BlockChainService(
     IOptions<GenesisOptions> genesisOptions,
-    IStoreService storeService,
-    IActionService actionService,
-    PolicyService policyService) : IBlockChainService
+    IRepositoryService storeService,
+    IActionService actionService) : IBlockChainService
 {
     private readonly Blockchain _blockChain = CreateBlockChain(
         actionService: actionService,

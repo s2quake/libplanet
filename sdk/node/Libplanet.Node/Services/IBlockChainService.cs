@@ -1,5 +1,3 @@
-using Libplanet;
-
 namespace Libplanet.Node.Services;
 
 public interface IBlockChainService

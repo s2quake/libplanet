@@ -12,10 +12,10 @@ public class StoreServiceTest
     {
         var settings = new Dictionary<string, string?>
         {
-            [$"{StoreOptions.Position}:{nameof(StoreOptions.Type)}"] = $"{StoreType.RocksDB}",
+            [$"{RepositoryOptions.Position}:{nameof(RepositoryOptions.Type)}"] = $"{RepositoryType.RocksDB}",
         };
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
-        var storeService = serviceProvider.GetRequiredService<IStoreService>();
+        var storeService = serviceProvider.GetRequiredService<IRepositoryService>();
 
         Assert.IsType<Repository>(storeService.Repository);
     }
@@ -25,10 +25,10 @@ public class StoreServiceTest
     {
         var settings = new Dictionary<string, string?>
         {
-            [$"{StoreOptions.Position}:{nameof(StoreOptions.Type)}"] = $"{StoreType.InMemory}",
+            [$"{RepositoryOptions.Position}:{nameof(RepositoryOptions.Type)}"] = $"{RepositoryType.InMemory}",
         };
         var serviceProvider = TestUtility.CreateServiceProvider(settings);
-        var storeService = serviceProvider.GetRequiredService<IStoreService>();
+        var storeService = serviceProvider.GetRequiredService<IRepositoryService>();
 
         Assert.IsType<Repository>(storeService.Repository);
     }

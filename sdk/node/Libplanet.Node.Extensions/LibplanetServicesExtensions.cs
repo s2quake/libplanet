@@ -22,9 +22,9 @@ public static class LibplanetServicesExtensions
         services.AddSingleton<IConfigureOptions<GenesisOptions>, GenesisOptionsConfigurator>();
         services.AddSingleton<IValidateOptions<GenesisOptions>, GenesisOptionsValidator>();
 
-        services.AddOptions<StoreOptions>()
-                .Bind(configuration.GetSection(StoreOptions.Position));
-        services.AddSingleton<IConfigureOptions<StoreOptions>, StoreOptionsConfigurator>();
+        services.AddOptions<RepositoryOptions>()
+                .Bind(configuration.GetSection(RepositoryOptions.Position));
+        services.AddSingleton<IConfigureOptions<RepositoryOptions>, RepositoryOptionsConfigurator>();
 
         services.AddOptions<ActionOptions>()
                 .Bind(configuration.GetSection(ActionOptions.Position));
@@ -43,9 +43,8 @@ public static class LibplanetServicesExtensions
                 .Bind(configuration.GetSection(SoloOptions.Position));
         services.AddSingleton<IConfigureOptions<SoloOptions>, SoloOptionsConfigurator>();
 
-        services.AddSingleton<PolicyService>();
-        services.AddSingleton<StoreService>();
-        services.AddSingleton(s => (IStoreService)s.GetRequiredService<StoreService>());
+        services.AddSingleton<RepositoryService>();
+        services.AddSingleton(s => (IRepositoryService)s.GetRequiredService<RepositoryService>());
         services.AddSingleton<ActionService>();
         services.AddSingleton(s => (IActionService)s.GetRequiredService<ActionService>());
         services.AddSingleton<IBlockChainService, BlockChainService>();

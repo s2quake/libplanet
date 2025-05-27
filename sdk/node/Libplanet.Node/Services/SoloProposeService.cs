@@ -1,5 +1,6 @@
 using Libplanet;
 using Libplanet.Node.Options;
+using Libplanet.Types.Blocks;
 using Libplanet.Types.Crypto;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -54,11 +55,11 @@ internal sealed class SoloProposeService : BackgroundService
 
     private void ProposeBlock()
     {
-        var tip = _blockChain.Tip;
         var block = _blockChain.ProposeBlock(_privateKey);
-        _blockChain.Append(
-            block,
-            _blockChain.BlockCommits[tip.BlockHash]);
+        var blockCommit = new BlockCommit
+        {
+        };
+        _blockChain.Append(block, blockCommit);
 
         _logger.LogInformation(
             "Proposed block: {Height}: {Hash}",
