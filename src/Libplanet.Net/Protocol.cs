@@ -2,7 +2,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Net;
 

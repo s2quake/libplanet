@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Tests
 {

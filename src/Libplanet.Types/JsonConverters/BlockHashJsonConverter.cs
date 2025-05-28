@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet.Types.JsonConverters;
 

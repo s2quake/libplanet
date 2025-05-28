@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.Tx
 {

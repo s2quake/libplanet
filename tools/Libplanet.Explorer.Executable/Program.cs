@@ -18,7 +18,7 @@ using Libplanet.Data.RocksDB;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;

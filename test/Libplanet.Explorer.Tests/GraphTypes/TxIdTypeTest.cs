@@ -1,7 +1,7 @@
 using GraphQL.Language.AST;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {

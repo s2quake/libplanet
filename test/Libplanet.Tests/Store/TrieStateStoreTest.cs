@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Store;

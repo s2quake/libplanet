@@ -1,6 +1,6 @@
 using Destructurama.Attributed;
 using Libplanet.Serialization;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 

@@ -6,10 +6,10 @@ using Libplanet.State.Builtin;
 using Libplanet;
 using Libplanet.Serialization;
 using Libplanet.Data;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Commands;
 

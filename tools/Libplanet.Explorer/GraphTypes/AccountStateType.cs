@@ -3,7 +3,7 @@ using GraphQL;
 using GraphQL.Types;
 using Libplanet.State;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes
 {

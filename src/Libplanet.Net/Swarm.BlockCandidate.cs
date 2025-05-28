@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet.Net
 {

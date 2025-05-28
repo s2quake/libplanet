@@ -10,9 +10,9 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 using Random = System.Random;
 
 namespace Libplanet.Net.Tests

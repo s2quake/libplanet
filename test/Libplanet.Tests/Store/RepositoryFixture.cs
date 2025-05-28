@@ -3,9 +3,9 @@ using Libplanet.State;
 using Libplanet.State.Tests.Common;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 using Libplanet.State.Builtin;
 
 namespace Libplanet.Tests.Store;

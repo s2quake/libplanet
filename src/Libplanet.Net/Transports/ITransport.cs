@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Transports
 {

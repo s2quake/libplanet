@@ -1,5 +1,5 @@
 using Libplanet;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Node.Services;
 

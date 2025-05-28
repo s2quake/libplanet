@@ -1,7 +1,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using Libplanet.KeyStore;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.KeyStore
 {

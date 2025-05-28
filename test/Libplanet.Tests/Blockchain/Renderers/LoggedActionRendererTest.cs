@@ -5,7 +5,7 @@
 // using Libplanet.State.Tests.Common;
 // using Libplanet.Serialization;
 // using Libplanet.Types;
-// using Libplanet.Types.Blocks;
+// using Libplanet.Types;
 // using Serilog;
 // using Serilog.Events;
 // using Serilog.Sinks.TestCorrelator;

@@ -1,6 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.State;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Common;

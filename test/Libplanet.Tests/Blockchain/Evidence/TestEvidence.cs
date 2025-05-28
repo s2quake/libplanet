@@ -1,6 +1,6 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Evidence;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.Blockchain.Evidence;
 

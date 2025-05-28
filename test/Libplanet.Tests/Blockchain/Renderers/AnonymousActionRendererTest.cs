@@ -4,7 +4,7 @@
 // using Libplanet.State.Tests.Common;
 // using Libplanet.Serialization;
 // using Libplanet.Types;
-// using Libplanet.Types.Blocks;
+// using Libplanet.Types;
 
 // namespace Libplanet.Tests.Blockchain.Renderers;
 

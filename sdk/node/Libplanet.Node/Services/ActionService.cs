@@ -1,7 +1,7 @@
 using Libplanet.State;
 using Libplanet.Node.Actions;
 using Libplanet.Node.Options;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Microsoft.Extensions.Options;
 
 namespace Libplanet.Node.Services;

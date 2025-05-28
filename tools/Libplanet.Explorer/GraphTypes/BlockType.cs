@@ -1,7 +1,7 @@
 using GraphQL.Types;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Serialization;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes;
 

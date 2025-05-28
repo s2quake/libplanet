@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using Libplanet.Net;
 using Libplanet.Net.Transports;
 using Libplanet.Node.Options;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Node.Services;

@@ -1,5 +1,5 @@
 using Libplanet.KeyStore;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.KeyStore
 {

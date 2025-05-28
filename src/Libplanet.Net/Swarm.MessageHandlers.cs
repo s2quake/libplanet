@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Net;
 

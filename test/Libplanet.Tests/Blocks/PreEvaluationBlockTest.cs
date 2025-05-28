@@ -6,11 +6,11 @@
 // using Libplanet;
 // using Libplanet.Policies;
 // using Libplanet.Types;
-// using Libplanet.Types.Crypto;
+// using Libplanet.Types;
 // using Libplanet.Tests.Fixtures;
 // using Libplanet.Tests.Store;
-// using Libplanet.Types.Blocks;
-// using Libplanet.Types.Evidence;
+// using Libplanet.Types;
+// using Libplanet.Types;
 // using Xunit;
 // using Xunit.Abstractions;
 // using static Libplanet.Tests.TestUtils;

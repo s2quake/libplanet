@@ -1,5 +1,5 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Data;
 

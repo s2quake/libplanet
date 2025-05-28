@@ -8,9 +8,9 @@ using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;

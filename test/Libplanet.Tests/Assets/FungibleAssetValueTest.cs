@@ -1,4 +1,4 @@
-using Libplanet.Types.Assets;
+using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Assets;

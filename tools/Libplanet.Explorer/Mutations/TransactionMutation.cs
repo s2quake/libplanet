@@ -5,7 +5,7 @@ using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Mutations
 {

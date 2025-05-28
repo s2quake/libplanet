@@ -1,7 +1,7 @@
 using System.IO;
 using Libplanet.Serialization;
 using Libplanet.Serialization.Extensions;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Types.ModelConverters;
 

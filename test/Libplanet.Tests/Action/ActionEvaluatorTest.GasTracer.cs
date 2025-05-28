@@ -2,12 +2,11 @@
 // using Libplanet.State.Loader;
 // using Libplanet.State;
 // using Libplanet.Policies;
-// using Libplanet.Types.Crypto;
+// using Libplanet.Types;
 // using Libplanet.Data;
 // using Libplanet.Data.Structures;
-// using Libplanet.Types.Assets;
-// using Libplanet.Types.Blocks;
-// using Libplanet.Types.Transactions;
+// // using Libplanet.Types;
+// using Libplanet.Types;
 // using Xunit;
 // using static Libplanet.Tests.TestUtils;
 

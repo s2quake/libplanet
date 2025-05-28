@@ -1,7 +1,7 @@
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Node;
 

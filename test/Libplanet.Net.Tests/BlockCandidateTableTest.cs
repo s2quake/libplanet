@@ -1,6 +1,6 @@
 using Libplanet;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Tests
 {

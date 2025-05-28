@@ -1,5 +1,5 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Serilog;
 using static Libplanet.State.SystemAddresses;
 

@@ -1,6 +1,6 @@
 using System.Net;
 using Libplanet.Net;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Node.Tests;
 

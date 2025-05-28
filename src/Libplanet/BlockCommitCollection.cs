@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet;
 

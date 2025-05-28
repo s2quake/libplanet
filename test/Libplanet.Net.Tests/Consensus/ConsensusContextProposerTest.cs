@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Types.Consensus;
+using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;
 using Xunit.Abstractions;

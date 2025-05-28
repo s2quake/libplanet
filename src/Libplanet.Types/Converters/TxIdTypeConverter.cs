@@ -1,4 +1,4 @@
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Types.Converters;
 

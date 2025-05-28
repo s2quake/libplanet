@@ -6,10 +6,10 @@
 // using Libplanet;
 // using Libplanet.Tests;
 // using Libplanet.Tests.Store;
-// using Libplanet.Types.Blocks;
-// using Libplanet.Types.Consensus;
-// using Libplanet.Types.Crypto;
-// using Libplanet.Types.Transactions;
+// using Libplanet.Types;
+// using Libplanet.Types;
+// using Libplanet.Types;
+// using Libplanet.Types;
 // using Serilog;
 // using Serilog.Events;
 // using xRetry;

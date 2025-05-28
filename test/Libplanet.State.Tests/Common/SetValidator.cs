@@ -1,4 +1,4 @@
-using Libplanet.Types.Consensus;
+using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Common;

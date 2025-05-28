@@ -2,11 +2,11 @@
 // // using Libplanet.State;
 // using Libplanet.State.Sys;
 // using Libplanet.Types;
-// using Libplanet.Types.Crypto;
+// using Libplanet.Types;
 // using Libplanet.Tests.Blockchain.Evidence;
-// using Libplanet.Types.Blocks;
-// using Libplanet.Types.Evidence;
-// using Libplanet.Types.Transactions;
+// using Libplanet.Types;
+// using Libplanet.Types;
+// using Libplanet.Types;
 // using Xunit;
 
 // namespace Libplanet.Tests.Fixtures

@@ -1,7 +1,7 @@
 using GraphQL;
 using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Queries
 {

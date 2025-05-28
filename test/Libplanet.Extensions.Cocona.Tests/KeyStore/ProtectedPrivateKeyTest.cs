@@ -3,7 +3,7 @@ using System.Text;
 using Libplanet.KeyStore;
 using Libplanet.KeyStore.Ciphers;
 using Libplanet.KeyStore.Kdfs;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Org.BouncyCastle.Crypto.Digests;
 using static Libplanet.Tests.TestUtils;
 

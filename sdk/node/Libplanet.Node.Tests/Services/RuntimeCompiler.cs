@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using Libplanet.State;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 

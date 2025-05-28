@@ -7,7 +7,7 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using NetMQ;
 using Serilog;
 using Xunit.Sdk;

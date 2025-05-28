@@ -7,7 +7,7 @@ using AsyncIO;
 using Dasync.Collections;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using NetMQ;
 using NetMQ.Sockets;
 using Nito.AsyncEx;

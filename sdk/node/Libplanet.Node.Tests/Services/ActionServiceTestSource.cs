@@ -7,8 +7,8 @@ using Libplanet.State;
 using Libplanet.State.Loader;
 using Libplanet.State;
 using Libplanet.State.Sys;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Consensus;
+using Libplanet.Types;
+using Libplanet.Types;
 using Libplanet.Node.Services;
 
 namespace Libplanet.Node.DumbActions;

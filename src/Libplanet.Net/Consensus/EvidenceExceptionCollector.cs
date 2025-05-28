@@ -1,5 +1,5 @@
 using Libplanet;
-using Libplanet.Types.Evidence;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus
 {

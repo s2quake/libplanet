@@ -7,10 +7,9 @@ using Libplanet;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types.Assets;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.Queries;

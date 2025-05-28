@@ -2,7 +2,7 @@
 // // using Libplanet.State;
 // using Libplanet.Renderers;
 // using Libplanet.Types;
-// using Libplanet.Types.Blocks;
+// using Libplanet.Types;
 // using Microsoft.Extensions.Logging;
 // using R3;
 
