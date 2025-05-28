@@ -5,7 +5,7 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockCommitMetadata : IEquatable<BlockCommitMetadata>
+public sealed partial record class BlockCommitMetadata : IEquatable<BlockCommitMetadata>
 {
     [Property(0)]
     public BlockHash BlockHash { get; init; }

@@ -9,7 +9,7 @@ namespace Libplanet.Types.Transactions;
 
 [Model(Version = 1)]
 public sealed partial record class Transaction
-    : IEquatable<Transaction>, IComparable<Transaction>, IComparable, IHasKey<TxId>
+    : IComparable<Transaction>, IComparable, IHasKey<TxId>
 {
     private TxId? _id;
 

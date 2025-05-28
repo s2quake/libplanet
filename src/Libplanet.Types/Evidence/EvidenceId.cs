@@ -10,7 +10,7 @@ namespace Libplanet.Types.Evidence;
 [JsonConverter(typeof(EvidenceIdJsonConverter))]
 [TypeConverter(typeof(EvidenceIdTypeConverter))]
 [ModelConverter(typeof(EvidenceIdModelConverter))]
-public readonly record struct EvidenceId(in ImmutableArray<byte> Bytes)
+public readonly partial record struct EvidenceId(in ImmutableArray<byte> Bytes)
     : IEquatable<EvidenceId>, IComparable<EvidenceId>, IComparable
 {
     public const int Size = 32;

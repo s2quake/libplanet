@@ -7,7 +7,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Transactions;
 
 [Model(Version = 1)]
-public sealed record class TransactionMetadata : IEquatable<TransactionMetadata>
+public sealed partial record class TransactionMetadata
 {
     [Property(0)]
     [NonNegative]
@@ -32,10 +32,6 @@ public sealed record class TransactionMetadata : IEquatable<TransactionMetadata>
     [Property(6)]
     [NonNegative]
     public long GasLimit { get; init; }
-
-    public bool Equals(TransactionMetadata? other) => ModelResolver.Equals(this, other);
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     public Transaction Sign(PrivateKey privateKey)
     {

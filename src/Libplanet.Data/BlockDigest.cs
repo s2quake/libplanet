@@ -8,7 +8,7 @@ using Libplanet.Types.Transactions;
 namespace Libplanet.Data;
 
 [Model(Version = 1)]
-public sealed record class BlockDigest : IEquatable<BlockDigest>, IHasKey<BlockHash>
+public sealed record class BlockDigest : IHasKey<BlockHash>
 {
     [Property(0)]
     public required BlockHash BlockHash { get; init; }
@@ -41,10 +41,6 @@ public sealed record class BlockDigest : IEquatable<BlockDigest>, IHasKey<BlockH
         EvidenceIds = [.. block.Content.Evidences.Select(ev => ev.Id)],
         BlockHash = block.BlockHash,
     };
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
-
-    public bool Equals(BlockDigest? other) => ModelResolver.Equals(this, other);
 
     public Block ToBlock(Func<TxId, Transaction> txGetter, Func<EvidenceId, EvidenceBase> evGetter) => new()
     {

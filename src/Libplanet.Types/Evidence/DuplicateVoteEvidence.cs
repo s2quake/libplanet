@@ -6,7 +6,7 @@ using ValidationResult = System.ComponentModel.DataAnnotations.ValidationResult;
 namespace Libplanet.Types.Evidence;
 
 [Model(Version = 1)]
-public sealed record class DuplicateVoteEvidence : EvidenceBase, IEquatable<DuplicateVoteEvidence>
+public sealed partial record class DuplicateVoteEvidence : EvidenceBase, IEquatable<DuplicateVoteEvidence>
 {
     [Property(0)]
     public required Vote VoteRef { get; init; }

@@ -5,7 +5,7 @@ namespace Libplanet.Data.Structures.Nodes;
 
 [Model(Version = 1)]
 public sealed record class FullNode
-    : INode, IEquatable<FullNode>, IValidatableObject
+    : INode, IValidatableObject
 {
     [Property(0)]
     public required ImmutableSortedDictionary<char, INode> Children { get; init; }
@@ -43,10 +43,6 @@ public sealed record class FullNode
     }
 
     public FullNode RemoveChild(char index) => this with { Children = Children.Remove(index) };
-
-    public bool Equals(FullNode? other) => ModelResolver.Equals(this, other);
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

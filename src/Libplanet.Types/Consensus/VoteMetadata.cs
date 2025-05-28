@@ -8,7 +8,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Consensus;
 
 [Model(Version = 1)]
-public sealed record class VoteMetadata : IValidatableObject
+public sealed partial record class VoteMetadata : IValidatableObject
 {
     [Property(0)]
     public required Address Validator { get; init; }
