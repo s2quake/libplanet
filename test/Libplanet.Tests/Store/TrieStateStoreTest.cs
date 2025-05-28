@@ -12,7 +12,7 @@ public class TrieStateStoreTest
 
     public TrieStateStoreTest()
     {
-        _stateKeyValueStore = new DefaultTable();
+        _stateKeyValueStore = new MemoryTable();
     }
 
     public static string KeyFoo { get; } = "foo";
