@@ -5,7 +5,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Consensus;
 
 [Model(Version = 1)]
-public sealed partial record class Validator : IComparable<Validator>, IComparable
+public sealed record class Validator : IComparable<Validator>, IComparable
 {
     [Property(0)]
     public required Address Address { get; init; }

@@ -7,7 +7,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-public sealed partial record class ConsensusPreVoteMessage : ConsensusVoteMessage, IValidatableObject
+public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage, IValidatableObject
 {
     [Property(0)]
     public required Vote PreVote { get; init; }
