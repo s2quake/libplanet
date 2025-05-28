@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" />
+    <ProjectReference Include="..\Libplanet.Data.Tests\Libplanet.Data.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

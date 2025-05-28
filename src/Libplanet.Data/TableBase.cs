@@ -41,7 +41,18 @@ public abstract class TableBase : ITable
         => TryGetValue(item.Key, out var value) && CompareValue(value, item.Value);
 
     void ICollection<KeyValuePair<string, byte[]>>.CopyTo(KeyValuePair<string, byte[]>[] array, int arrayIndex)
-        => throw new NotSupportedException("CopyTo is not supported.");
+    {
+        if (arrayIndex < 0 || arrayIndex + Count > array.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+        }
+
+        var index = arrayIndex;
+        foreach (var key in Keys)
+        {
+            array[index++] = new KeyValuePair<string, byte[]>(key, this[key]);
+        }
+    }
 
     bool ICollection<KeyValuePair<string, byte[]>>.Remove(KeyValuePair<string, byte[]> item)
     {

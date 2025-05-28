@@ -11,6 +11,22 @@ public sealed class LiteDatabase(string path) : Database<LiteTable>
         return new LiteTable(_db, key);
     }
 
+    protected override void OnRemove(string key, LiteTable value)
+    {
+        base.OnRemove(key, value);
+        value.Dispose();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _db.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
     private static global::LiteDB.LiteDatabase CreateLiteDatabase(string path)
     {
         if (path == string.Empty)
