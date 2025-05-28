@@ -7,7 +7,7 @@ using Libplanet.Types.Transactions;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed partial record class Block : IEquatable<Block>, IComparable<Block>, IComparable
+public sealed partial record class Block : IComparable<Block>, IComparable
 {
     [Property(0)]
     public required BlockHeader Header { get; init; }
@@ -38,11 +38,7 @@ public sealed partial record class Block : IEquatable<Block>, IComparable<Block>
 
     public ImmutableSortedSet<EvidenceBase> Evidences => Content.Evidences;
 
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
-
     public override string ToString() => BlockHash.ToString();
-
-    public bool Equals(Block? other) => ModelResolver.Equals(this, other);
 
     public int CompareTo(object? obj) => obj switch
     {

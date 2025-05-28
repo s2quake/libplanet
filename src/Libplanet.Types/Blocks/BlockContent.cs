@@ -8,7 +8,7 @@ using Libplanet.Types.Transactions;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockContent : IEquatable<BlockContent>, IValidatableObject
+public sealed partial record class BlockContent : IValidatableObject
 {
     [Property(0)]
     public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
@@ -19,10 +19,6 @@ public sealed record class BlockContent : IEquatable<BlockContent>, IValidatable
     public HashDigest<SHA256> TxHash => DeriveTxHash(Transactions);
 
     public HashDigest<SHA256> EvidenceHash => DeriveEvidenceHash(Evidences);
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
-
-    public bool Equals(BlockContent? other) => ModelResolver.Equals(this, other);
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

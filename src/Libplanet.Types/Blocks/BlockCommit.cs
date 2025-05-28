@@ -6,7 +6,7 @@ using Libplanet.Types.Consensus;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed partial record class BlockCommit : IEquatable<BlockCommit>, IHasKey<BlockHash>
+public sealed partial record class BlockCommit : IHasKey<BlockHash>
 {
     public static BlockCommit Empty { get; } = new();
 
@@ -27,10 +27,6 @@ public sealed partial record class BlockCommit : IEquatable<BlockCommit>, IHasKe
     public ImmutableArray<Vote> Votes { get; init; } = [];
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
-
-    public bool Equals(BlockCommit? other) => ModelResolver.Equals(this, other);
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
 }

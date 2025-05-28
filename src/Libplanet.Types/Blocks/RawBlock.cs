@@ -5,7 +5,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class RawBlock
+public sealed partial record class RawBlock
 {
     [Property(0)]
     public required BlockHeader Header { get; init; }

@@ -12,7 +12,7 @@ namespace Libplanet.Types.Crypto;
 [TypeConverter(typeof(PublicKeyTypeConverter))]
 [JsonConverter(typeof(PublicKeyJsonConverter))]
 [ModelConverter(typeof(PublicKeyModelConverter))]
-public sealed record class PublicKey : IEquatable<PublicKey>, IFormattable
+public sealed partial record class PublicKey : IEquatable<PublicKey>, IFormattable
 {
     private readonly ImmutableArray<byte> _bytes;
 

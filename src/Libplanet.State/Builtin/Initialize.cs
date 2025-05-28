@@ -5,17 +5,13 @@ using static Libplanet.State.SystemAddresses;
 namespace Libplanet.State.Builtin;
 
 [Model(Version = 1)]
-public sealed record class Initialize : ActionBase, IEquatable<Initialize>
+public sealed partial record class Initialize : ActionBase
 {
     [Property(0)]
     public ImmutableArray<AccountState> States { get; init; } = [];
 
     [Property(1)]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
-
-    public bool Equals(Initialize? other) => ModelResolver.Equals(this, other);
 
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {

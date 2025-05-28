@@ -7,7 +7,7 @@ namespace Libplanet.Types.Assets;
 
 [JsonConverter(typeof(FungibleAssetValueJsonConverter))]
 [Model(Version = 1)]
-public readonly record struct FungibleAssetValue
+public readonly partial record struct FungibleAssetValue
     : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable, IFormattable
 {
     [Property(0)]

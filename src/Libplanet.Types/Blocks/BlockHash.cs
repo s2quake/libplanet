@@ -11,7 +11,7 @@ namespace Libplanet.Types.Blocks;
 [JsonConverter(typeof(BlockHashJsonConverter))]
 [TypeConverter(typeof(BlockHashTypeConverter))]
 [ModelConverter(typeof(BlockHashModelConverter))]
-public readonly record struct BlockHash(in ImmutableArray<byte> Bytes)
+public readonly partial record struct BlockHash(in ImmutableArray<byte> Bytes)
     : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IFormattable
 {
     public const int Size = 32;

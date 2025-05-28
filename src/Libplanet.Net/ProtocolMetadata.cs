@@ -4,7 +4,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net;
 
 [Model(Version = 1)]
-public sealed record class ProtocolMetadata : IEquatable<ProtocolMetadata>
+public sealed record class ProtocolMetadata
 {
     [Property(0)]
     public int Version { get; init; }
@@ -25,8 +25,4 @@ public sealed record class ProtocolMetadata : IEquatable<ProtocolMetadata>
         var signature = signer.Sign(bytes).ToImmutableArray();
         return new Protocol { Metadata = this, Signature = signature };
     }
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
-    
-    public bool Equals(ProtocolMetadata? other) => ModelResolver.Equals(this, other);
 }

@@ -11,7 +11,7 @@ namespace Libplanet.Types.Assets;
 
 [JsonConverter(typeof(CurrencyJsonConverter))]
 [Model(Version = 1)]
-public readonly record struct Currency : IEquatable<Currency>
+public readonly partial record struct Currency
 {
     public Currency()
     {
@@ -90,10 +90,6 @@ public readonly record struct Currency : IEquatable<Currency>
     }
 
     public override string ToString() => $"{Ticker} ({Hash})";
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
-
-    public bool Equals(Currency other) => ModelResolver.Equals(this, other);
 
     private static SHA1 GetSHA1()
     {

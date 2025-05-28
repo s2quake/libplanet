@@ -11,7 +11,7 @@ namespace Libplanet.Types.Crypto;
 [TypeConverter(typeof(AddressTypeConverter))]
 [JsonConverter(typeof(AddressJsonConverter))]
 [ModelConverter(typeof(AddressModelConverter))]
-public readonly record struct Address(in ImmutableArray<byte> Bytes)
+public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
     : IEquatable<Address>, IComparable<Address>, IComparable, IFormattable
 {
     public const int Size = 20;

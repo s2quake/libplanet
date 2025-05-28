@@ -5,7 +5,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Blocks;
 
 [Model(Version = 1)]
-public sealed record class BlockHeader
+public sealed partial record class BlockHeader
 {
     public const int CurrentProtocolVersion = 0;
 

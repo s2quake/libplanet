@@ -6,7 +6,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Types.Transactions;
 
 [Model(Version = 1)]
-public sealed record class TxExecution : IEquatable<TxExecution>, IHasKey<TxId>
+public sealed partial record class TxExecution : IHasKey<TxId>
 {
     [Property(0)]
     public TxId TxId { get; init; }
@@ -27,8 +27,4 @@ public sealed record class TxExecution : IEquatable<TxExecution>, IHasKey<TxId>
     public bool Fail => ExceptionNames.Length > 0;
 
     TxId IHasKey<TxId>.Key => TxId;
-
-    public bool Equals(TxExecution? other) => ModelResolver.Equals(this, other);
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }

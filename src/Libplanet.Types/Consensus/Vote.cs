@@ -7,7 +7,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Types.Consensus;
 
 [Model(Version = 1)]
-public sealed record class Vote : IEquatable<Vote>, IValidatableObject
+public sealed partial record class Vote : IValidatableObject
 {
     [Property(0)]
     public required VoteMetadata Metadata { get; init; }
@@ -29,10 +29,6 @@ public sealed record class Vote : IEquatable<Vote>, IValidatableObject
     public BigInteger ValidatorPower => Metadata.ValidatorPower;
 
     public VoteFlag Flag => Metadata.Flag;
-
-    public bool Equals(Vote? other) => ModelResolver.Equals(this, other);
-
-    public override int GetHashCode() => ModelResolver.GetHashCode(this);
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
