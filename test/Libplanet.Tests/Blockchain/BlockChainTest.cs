@@ -1163,9 +1163,8 @@ public partial class BlockChainTest : IDisposable
         using var subscription = _blockChain.TipChanged.Subscribe(i => tipChangedInfo = i);
         _blockChain.Append(block, CreateBlockCommit(block));
         Assert.NotNull(tipChangedInfo);
-        Assert.Equal(genesisBlock, tipChangedInfo.OldTip);
-        Assert.Equal(block, tipChangedInfo.NewTip);
-        Assert.Equal(1, tipChangedInfo.NewTip.Height);
+        Assert.Equal(block, tipChangedInfo.Tip);
+        Assert.Equal(1, tipChangedInfo.Tip.Height);
         Assert.Throws<InvalidOperationException>(() => _blockChain.Append(block, blockCommit));
     }
 

@@ -30,6 +30,6 @@ public sealed partial record class Initialize : ActionBase
             }
         }
 
-        world[SystemAccount, SystemAddresses.Validators] = Validators;
+        world[SystemAccount, SystemAddresses.ValidatorsKey] = Validators;
     }
 }

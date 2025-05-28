@@ -23,7 +23,6 @@ public sealed partial record class BlockCommit : IHasKey<BlockHash>
 
     [Property(3)]
     [NotDefault]
-    [NotEmpty]
     public ImmutableArray<Vote> Votes { get; init; } = [];
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;

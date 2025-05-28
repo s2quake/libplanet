@@ -378,7 +378,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
             {
-                if (eventArgs.NewTip.Height == 1L)
+                if (eventArgs.Tip.Height == 1L)
                 {
                     blockHeightOneAppended.Set();
                 }
@@ -685,7 +685,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
             {
-                if (eventArgs.NewTip.Height == 1L)
+                if (eventArgs.Tip.Height == 1L)
                 {
                     onTipChanged.Set();
                 }
