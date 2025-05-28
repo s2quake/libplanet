@@ -9,7 +9,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class ProposalMetadata : IValidatableObject
+public sealed partial record class ProposalMetadata : IValidatableObject
 {
     [Property(0)]
     public BlockHash BlockHash { get; init; }

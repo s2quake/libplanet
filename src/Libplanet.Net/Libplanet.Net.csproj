@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <PackageReference Include="Planetarium.NetMQ" Version="4.0.0.261-planetarium" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.*" />
+    <ProjectReference Include="..\Libplanet.Serialization.Analyzers\Libplanet.Serialization.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

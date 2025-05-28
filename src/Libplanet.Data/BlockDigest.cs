@@ -8,7 +8,7 @@ using Libplanet.Types.Transactions;
 namespace Libplanet.Data;
 
 [Model(Version = 1)]
-public sealed record class BlockDigest : IHasKey<BlockHash>
+public sealed partial record class BlockDigest : IHasKey<BlockHash>
 {
     [Property(0)]
     public required BlockHash BlockHash { get; init; }

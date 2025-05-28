@@ -4,7 +4,7 @@ using Libplanet.Types.Evidence;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-internal sealed record class EvidenceIdsMessage : MessageContent
+internal sealed partial record class EvidenceIdsMessage : MessageContent
 {
     [Property(0)]
     public ImmutableArray<EvidenceId> Ids { get; init; } = [];

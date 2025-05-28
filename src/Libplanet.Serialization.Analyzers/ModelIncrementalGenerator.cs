@@ -142,14 +142,14 @@ public sealed class ModelIncrementalGenerator : IIncrementalGenerator
         {
             if (declaration.IsStruct())
             {
-                tw.WriteLine($"bool System.IEquatable<{name}>.Equals({name} other)");
+                tw.WriteLine($"public bool Equals({name} other)");
                 tw.Indent();
                 tw.WriteLine("=> Libplanet.Serialization.ModelResolver.Equals(this, other);");
                 tw.Unindent();
             }
             else
             {
-                tw.WriteLine($"bool System.IEquatable<{name}>.Equals({name}? other)");
+                tw.WriteLine($"public bool Equals({name}? other)");
                 tw.Indent();
                 tw.WriteLine("=> Libplanet.Serialization.ModelResolver.Equals(this, other);");
                 tw.Unindent();
@@ -225,37 +225,108 @@ public sealed class ModelIncrementalGenerator : IIncrementalGenerator
 
     private static bool IsEquatableMethodDefined(TypeDeclarationSyntax declaration, SemanticModel semanticModel)
     {
-        var symbol = semanticModel.GetDeclaredSymbol(declaration);
-        if (symbol is null)
+        // 문법 트리에서 직접 Equals 메서드 선언을 찾음
+        var methodSyntax = declaration.Members
+            .OfType<MethodDeclarationSyntax>()
+            .FirstOrDefault(m =>
+                m.Identifier.ValueText == "Equals" &&
+                m.ParameterList.Parameters.Count == 1);
+
+        // 메서드가 직접 정의되어 있으면 true 반환
+        if (methodSyntax != null)
         {
-            return false;
-        }
-
-        return symbol.GetMembers("Equals").Any(Predicate);
-
-        bool Predicate(ISymbol symbol)
-        {
-            if (symbol is not IMethodSymbol methodSymbol)
+            // 매개변수 타입 확인 (옵션)
+            var parameterType = methodSyntax.ParameterList.Parameters[0].Type;
+            if (parameterType != null)
             {
-                return false;
-            }
+                var typeName = declaration.GetName();
+                var paramTypeName = parameterType.ToString();
 
-            if (methodSymbol.MethodKind != MethodKind.Ordinary)
-            {
-                return false;
-            }
-
-            if (methodSymbol.Parameters.Length != 1)
-            {
-                return false;
-            }
-
-            if (methodSymbol.Parameters[0].Type.ToDisplayString() != declaration.GetName())
-            {
-                return false;
+                // 클래스인 경우 nullable 검사 추가
+                if (declaration.IsClass())
+                {
+                    return paramTypeName == typeName || paramTypeName == typeName + "?" || paramTypeName.Contains(typeName);
+                }
+                else
+                {
+                    return paramTypeName == typeName || paramTypeName.Contains(typeName);
+                }
             }
 
             return true;
         }
+
+        return false;
+        // var symbol = semanticModel.GetDeclaredSymbol(declaration);
+        // if (symbol is null)
+        // {
+        //     return false;
+        // }
+
+        // if (declaration.GetName() == "FullNode")
+        // {
+        //     // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{declaration.GetName()}\n");
+        //     // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{symbol.GetMembers("Equals").Count()}\n");
+
+        //     var i = 0;
+        //     foreach (var item in symbol.GetMembers("Equals"))
+        //     {
+        //         var methodSymbol = item as IMethodSymbol;
+        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{i++}\n");
+        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{methodSymbol}\n");
+        //         foreach (var location in methodSymbol.Locations)
+        //         {
+        //             File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{location.IsInSource}\n");
+        //         }
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{methodSymbol.Parameters[0].Type}\n");
+        //         // if (symbol is not IMethodSymbol methodSymbol)
+        //         // {
+        //         //     continue;
+        //         // }
+        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsAbstract: {item.IsAbstract}\n");
+        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsAbstract: {item.OriginalDefinition}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsVirtual: {item.IsVirtual}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsOverride: {item.IsOverride}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsSealed: {item.IsSealed}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsStatic: {item.IsStatic}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsExtern: {item.IsExtern}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsImplicitlyDeclared: {item.IsImplicitlyDeclared}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsDefinition: {item.IsDefinition}\n");
+        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"Parameter: {methodSymbol.Parameters[0].ToDisplayString()}\n");
+
+
+        //     }
+
+        // }
+
+        // return symbol.GetMembers("Equals").Any(Predicate);
+
+        // bool Predicate(ISymbol symbol)
+        // {
+        //     if (symbol is not IMethodSymbol methodSymbol)
+        //     {
+        //         return false;
+        //     }
+
+        //     if (methodSymbol.MethodKind != MethodKind.Ordinary)
+        //     {
+        //         return false;
+        //     }
+
+        //     if (methodSymbol.Parameters.Length != 1)
+        //     {
+        //         return false;
+        //     }
+
+        //     var ns = declaration.GetNamespace();
+        //     var name = declaration.IsClass() ? $"{declaration.GetName()}?" : declaration.GetName();
+        //     var fullName = ns != string.Empty ? $"{ns}.{name}" : name;
+        //     if (methodSymbol.Parameters[0].Type.ToDisplayString() != fullName)
+        //     {
+        //         return false;
+        //     }
+
+        //     return true;
+        // }
     }
 }

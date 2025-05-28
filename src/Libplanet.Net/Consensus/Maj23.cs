@@ -7,7 +7,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class Maj23 : IEquatable<Maj23>
+public sealed partial record class Maj23
 {
     [Property(0)]
     public required Maj23Metadata Metadata { get; init; }

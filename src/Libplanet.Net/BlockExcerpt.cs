@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Net;
 
 [Model(Version = 1)]
-public sealed record class BlockExcerpt
+public sealed partial record class BlockExcerpt
 {
     [Property(0)]
     public int ProtocolVersion { get; init; }

@@ -4,7 +4,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Data.Structures.Nodes;
 
 [Model(Version = 1)]
-internal sealed record class ShortNode : INode, IValidatableObject
+internal sealed partial record class ShortNode : INode, IValidatableObject
 {
     [Property(0)]
     public required string Key { get; init; }

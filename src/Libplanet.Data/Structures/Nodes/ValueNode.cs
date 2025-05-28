@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Data.Structures.Nodes;
 
 [Model(Version = 1)]
-internal sealed record class ValueNode : INode
+internal sealed partial record class ValueNode : INode
 {
     IEnumerable<INode> INode.Children => [];
 
