@@ -5,7 +5,7 @@ using Libplanet;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using NetMQ;
 using Xunit.Sdk;
 using static Libplanet.Tests.TestUtils;

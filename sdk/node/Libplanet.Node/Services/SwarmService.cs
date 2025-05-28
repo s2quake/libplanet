@@ -4,7 +4,7 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Transports;
 using Libplanet.Node.Options;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

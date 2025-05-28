@@ -1,7 +1,7 @@
 // using Libplanet.Net.Consensus;
-// using Libplanet.Types.Blocks;
-// using Libplanet.Types.Consensus;
-// using Libplanet.Types.Crypto;
+// using Libplanet.Types;
+// using Libplanet.Types;
+// using Libplanet.Types;
 
 // namespace Libplanet.Tests.Consensus
 // {

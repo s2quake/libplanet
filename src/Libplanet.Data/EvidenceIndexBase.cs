@@ -1,5 +1,5 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Evidence;
+using Libplanet.Types;
 
 namespace Libplanet.Data;
 

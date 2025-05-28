@@ -1,5 +1,5 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Evidence;
+using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Blockchain.Evidence

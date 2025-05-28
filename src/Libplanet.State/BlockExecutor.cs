@@ -2,8 +2,8 @@ using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.State;
 

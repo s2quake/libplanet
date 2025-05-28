@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;
 

@@ -4,8 +4,8 @@ using Libplanet.State;
 using Libplanet.Node.Options;
 using Libplanet.Serialization;
 using Libplanet.Data;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
 using Microsoft.Extensions.Options;
 
 namespace Libplanet.Node.Services;

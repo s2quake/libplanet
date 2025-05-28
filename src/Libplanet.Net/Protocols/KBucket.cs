@@ -1,4 +1,4 @@
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Net.Protocols

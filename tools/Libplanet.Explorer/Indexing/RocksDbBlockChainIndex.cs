@@ -3,10 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Serialization;
 using Libplanet.Data;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
 using Libplanet.Types.Extensions;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 using RocksDbSharp;
 
 namespace Libplanet.Explorer.Indexing;

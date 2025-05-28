@@ -1,6 +1,6 @@
 using Libplanet.Net.Transports;
 using Libplanet.Serialization;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using NetMQ;
 
 namespace Libplanet.Net.Messages;

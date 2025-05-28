@@ -1,6 +1,6 @@
 using System.Net;
 using Libplanet.Serialization;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Tests
 {

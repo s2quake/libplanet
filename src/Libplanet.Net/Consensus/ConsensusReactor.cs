@@ -5,7 +5,7 @@ using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Net.Consensus

@@ -1,5 +1,5 @@
 using Libplanet.Serialization;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.State.Tests.Common;
 

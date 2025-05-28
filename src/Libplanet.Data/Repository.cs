@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Libplanet.Types;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Data;
 

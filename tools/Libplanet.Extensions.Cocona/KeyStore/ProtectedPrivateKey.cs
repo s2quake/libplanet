@@ -6,7 +6,7 @@ using System.Text.Json;
 using Libplanet.KeyStore.Ciphers;
 using Libplanet.KeyStore.Kdfs;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Org.BouncyCastle.Crypto.Digests;
 
 namespace Libplanet.KeyStore

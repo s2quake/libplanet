@@ -1,4 +1,4 @@
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Indexing;
 

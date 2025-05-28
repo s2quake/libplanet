@@ -1,8 +1,8 @@
 using global::Cocona;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Commands;
 

@@ -1,5 +1,5 @@
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

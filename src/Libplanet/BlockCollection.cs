@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using Libplanet.Data;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 
 namespace Libplanet;
 

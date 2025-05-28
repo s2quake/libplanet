@@ -1,6 +1,6 @@
 using GraphQL.Language.AST;
 using GraphQL.Types;
-using Libplanet.Types.Consensus;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes
 {

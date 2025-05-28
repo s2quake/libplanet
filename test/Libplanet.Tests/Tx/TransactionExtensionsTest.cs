@@ -1,8 +1,8 @@
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.Tx;
 

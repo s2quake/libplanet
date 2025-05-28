@@ -1,4 +1,4 @@
-using Libplanet.Types.Evidence;
+using Libplanet.Types;
 
 namespace Libplanet.Types.Converters;
 

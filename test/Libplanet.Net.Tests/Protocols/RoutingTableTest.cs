@@ -1,6 +1,6 @@
 using System.Net;
 using Libplanet.Net.Protocols;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Serilog;
 using Xunit.Abstractions;
 #if NETFRAMEWORK && (NET47 || NET471)

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using Libplanet;
-using Libplanet.Types.Blocks;
+using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Net

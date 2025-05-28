@@ -4,7 +4,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.TestCorrelator;
 using Constants = Serilog.Core.Constants;
-using DumbBlock = Libplanet.Types.Blocks.Block;
+using DumbBlock = Libplanet.Types.Block;
 
 namespace Libplanet.Tests.Blockchain.Renderers
 {

@@ -3,7 +3,7 @@ using GraphQL.Types;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Serialization;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes
 {

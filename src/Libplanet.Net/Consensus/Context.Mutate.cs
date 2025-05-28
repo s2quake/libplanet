@@ -1,7 +1,7 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus
 {

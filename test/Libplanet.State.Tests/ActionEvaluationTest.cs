@@ -1,7 +1,7 @@
 using Libplanet.State.Tests.Common;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.State.SystemAddresses;

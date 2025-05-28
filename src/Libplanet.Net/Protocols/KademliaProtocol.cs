@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Dasync.Collections;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Serilog;
 using Random = System.Random;
 

@@ -1,7 +1,7 @@
 // using System.Security.Cryptography;
 // using Libplanet.Types;
 // using Libplanet.Tests.Fixtures;
-// using Libplanet.Types.Blocks;
+// using Libplanet.Types;
 // using Xunit;
 
 // namespace Libplanet.Tests.Blocks

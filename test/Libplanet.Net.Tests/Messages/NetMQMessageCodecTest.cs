@@ -3,9 +3,9 @@
 // using Libplanet.Net.Consensus;
 // using Libplanet.Net.Messages;
 // using Libplanet.Serialization;
-// using Libplanet.Types.Blocks;
-// using Libplanet.Types.Consensus;
-// using Libplanet.Types.Crypto;
+// using Libplanet.Types;
+// using Libplanet.Types;
+// using Libplanet.Types;
 // using NetMQ;
 // using static Libplanet.Tests.TestUtils;
 

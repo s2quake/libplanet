@@ -4,7 +4,6 @@ using GraphQL.Execution;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types.Assets;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Fixture = Libplanet.Explorer.Tests.Fixtures.BlockChainStatesFixture;
 

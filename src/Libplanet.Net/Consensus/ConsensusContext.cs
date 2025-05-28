@@ -4,10 +4,10 @@ using Libplanet.State;
 using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Evidence;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Net.Consensus;

@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Data;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Indexing;
 

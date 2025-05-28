@@ -7,8 +7,8 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
 using Serilog;
 using static Libplanet.Tests.TestUtils;
 

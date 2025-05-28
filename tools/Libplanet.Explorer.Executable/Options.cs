@@ -4,8 +4,8 @@ using Libplanet;
 using Libplanet.Net;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Explorer.Executable
 {

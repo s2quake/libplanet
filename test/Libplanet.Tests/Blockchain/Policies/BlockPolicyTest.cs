@@ -3,8 +3,8 @@ using Libplanet.State.Tests.Common;
 using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
-using Libplanet.Types.Crypto;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
+using Libplanet.Types;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Blockchain.Policies;

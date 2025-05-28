@@ -3,9 +3,9 @@ using Libplanet.State.Tests.Common;
 using Libplanet;
 using Libplanet.Extensions;
 using Libplanet.Data;
-using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
+using Libplanet.Types;
+using Libplanet.Types;
 
 namespace Libplanet.Tests.Blockchain;
 

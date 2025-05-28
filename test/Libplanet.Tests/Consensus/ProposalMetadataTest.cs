@@ -1,7 +1,7 @@
 // using Libplanet.Net.Consensus;
-// using Libplanet.Types.Crypto;
+// using Libplanet.Types;
 // using Libplanet.Tests.Store;
-// using Libplanet.Types.Blocks;
+// using Libplanet.Types;
 // using Serilog;
 // using Xunit;
 // using Xunit.Abstractions;

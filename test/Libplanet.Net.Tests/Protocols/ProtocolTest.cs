@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Serilog;
 using Xunit.Abstractions;
 #if NETFRAMEWORK && (NET47 || NET471)

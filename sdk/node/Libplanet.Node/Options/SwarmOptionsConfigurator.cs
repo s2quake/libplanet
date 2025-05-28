@@ -1,6 +1,6 @@
 using Libplanet.Net;
 using Libplanet.Types;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Microsoft.Extensions.Logging;
 
 namespace Libplanet.Node.Options;

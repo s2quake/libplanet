@@ -2,7 +2,7 @@ using Libplanet;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
-using Libplanet.Types.Transactions;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Options
 {

@@ -1,6 +1,6 @@
 // using System.Globalization;
 // // using Libplanet.Tests.Fixtures;
-// using Libplanet.Types.Blocks;
+// using Libplanet.Types;
 // using Xunit;
 // using Xunit.Abstractions;
 // using static Libplanet.Tests.TestUtils;

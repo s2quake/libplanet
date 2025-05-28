@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Net;
 using Destructurama.Attributed;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 
 namespace Libplanet.Net;
 

@@ -1,7 +1,7 @@
 using System.IO;
 using System.Reflection;
 using Libplanet.State;
-using Libplanet.Types.Crypto;
+using Libplanet.Types;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
