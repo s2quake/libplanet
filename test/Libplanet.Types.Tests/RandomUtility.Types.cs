@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Libplanet.Types;
 
-namespace Libplanet.Tests;
+namespace Libplanet.Types.Tests;
 
 public static partial class RandomUtility
 {

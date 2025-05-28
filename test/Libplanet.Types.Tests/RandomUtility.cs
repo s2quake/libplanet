@@ -2,7 +2,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace Libplanet.Tests;
+namespace Libplanet.Types.Tests;
 
 public static partial class RandomUtility
 {

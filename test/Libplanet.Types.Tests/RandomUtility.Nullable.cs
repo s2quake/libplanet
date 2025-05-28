@@ -1,6 +1,6 @@
 #pragma warning disable MEN002 // Line is too long
 
-namespace Libplanet.Tests;
+namespace Libplanet.Types.Tests;
 
 public static partial class RandomUtility
 {

@@ -1,5 +1,5 @@
 #pragma warning disable SA1414 // Tuple types in signatures should have element names
-using static Libplanet.Tests.RandomUtility;
+using static Libplanet.Types.Tests.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 

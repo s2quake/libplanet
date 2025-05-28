@@ -1,7 +1,7 @@
 using Libplanet.Data;
 using Libplanet.Types.Tests;
 
-namespace Libplanet.Tests.Store.Structures;
+namespace Libplanet.Data.Tests.Structures;
 
 public abstract class TableTestBase
 {
@@ -35,7 +35,7 @@ public abstract class TableTestBase
     public void Set()
     {
         var key = RandomUtility.Word();
-        byte[] value = Random.NextBytes(PreStoredDataValueSize);
+        byte[] value = RandomUtility.Array(RandomUtility.Byte, PreStoredDataValueSize);
         KeyValueStore[key] = value;
 
         Assert.Equal(value, KeyValueStore[key]);
@@ -47,8 +47,7 @@ public abstract class TableTestBase
         var values = new Dictionary<string, byte[]>();
         foreach (int i in Enumerable.Range(0, 10))
         {
-            values[RandomUtility.Word()] =
-                Random.NextBytes(PreStoredDataValueSize);
+            values[RandomUtility.Word()] = RandomUtility.Array(RandomUtility.Byte, PreStoredDataValueSize);
         }
 
         KeyValueStore.SetMany(values);
@@ -66,7 +65,7 @@ public abstract class TableTestBase
         foreach (var (key, expectedValue) in PreStoredDataKeys.Zip(
             PreStoredDataValues, ValueTuple.Create))
         {
-            var randomValue = Random.NextBytes(PreStoredDataValueSize);
+            var randomValue = RandomUtility.Array(RandomUtility.Byte, PreStoredDataValueSize);
             var actual = KeyValueStore[key];
             Assert.Equal(expectedValue, actual);
 
@@ -138,7 +137,7 @@ public abstract class TableTestBase
         for (int i = 0; i < PreStoredDataCount; ++i)
         {
             PreStoredDataKeys[i] = RandomUtility.Word();
-            PreStoredDataValues[i] = Random.NextBytes(PreStoredDataValueSize);
+            PreStoredDataValues[i] = RandomUtility.Array(RandomUtility.Byte, PreStoredDataValueSize);
             KeyValueStore[PreStoredDataKeys[i]] = PreStoredDataValues[i];
         }
     }
