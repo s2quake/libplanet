@@ -1,5 +1,3 @@
-using Libplanet.Types;
-
 namespace Libplanet.Types;
 
 public sealed class DuplicateVoteException : EvidenceException<DuplicateVoteEvidence>

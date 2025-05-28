@@ -1,4 +1,3 @@
-using Libplanet;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Net;

@@ -1,4 +1,3 @@
-using Libplanet;
 using Libplanet.Tests.Blockchain;
 using Libplanet.Tests.Store;
 using Xunit.Abstractions;

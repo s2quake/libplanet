@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Common;
-using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types;

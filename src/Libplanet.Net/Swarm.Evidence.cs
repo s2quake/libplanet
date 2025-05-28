@@ -1,12 +1,9 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Serialization;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 #if NETSTANDARD2_0
 using Libplanet.Types;

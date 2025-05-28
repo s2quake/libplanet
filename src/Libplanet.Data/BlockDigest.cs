@@ -1,9 +1,5 @@
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Data;
 

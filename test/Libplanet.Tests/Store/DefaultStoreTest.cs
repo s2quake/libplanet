@@ -1,6 +1,5 @@
 using System.IO;
 using Libplanet.Data;
-using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Store;
 

@@ -1,4 +1,3 @@
-using Libplanet;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus

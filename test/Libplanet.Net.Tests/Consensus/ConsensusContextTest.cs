@@ -1,10 +1,7 @@
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
-using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;

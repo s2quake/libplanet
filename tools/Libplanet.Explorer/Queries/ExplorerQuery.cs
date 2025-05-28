@@ -1,10 +1,6 @@
 using GraphQL.Types;
-using Libplanet;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Interfaces;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 
 namespace Libplanet.Explorer.Queries

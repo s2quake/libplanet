@@ -1,5 +1,4 @@
 using Libplanet.Serialization;
-using Libplanet.Types;
 using ValidationContext = System.ComponentModel.DataAnnotations.ValidationContext;
 using ValidationResult = System.ComponentModel.DataAnnotations.ValidationResult;
 

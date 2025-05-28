@@ -1,6 +1,5 @@
 using Libplanet.Net;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Node.Tests;
 

@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
-using Libplanet.Types;
 
 namespace Libplanet.Types;
 

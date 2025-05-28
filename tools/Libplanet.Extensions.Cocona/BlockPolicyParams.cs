@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using global::Cocona;
 using Libplanet.State;
-using Libplanet;
 
 namespace Libplanet.Extensions.Cocona;
 

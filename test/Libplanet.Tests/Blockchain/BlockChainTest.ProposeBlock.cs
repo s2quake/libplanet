@@ -1,12 +1,8 @@
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 using static Libplanet.Tests.TestUtils;

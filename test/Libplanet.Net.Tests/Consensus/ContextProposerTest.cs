@@ -3,8 +3,6 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;
 using Xunit.Abstractions;

@@ -1,6 +1,3 @@
-using Libplanet.Types;
-using Libplanet.Types;
-
 namespace Libplanet.Types;
 
 public static class ImmutableSortedSetExtensions

@@ -1,6 +1,3 @@
-using Libplanet.Net.Consensus;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using Serilog;
 

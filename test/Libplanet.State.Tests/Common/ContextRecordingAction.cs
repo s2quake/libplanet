@@ -1,5 +1,4 @@
 using Libplanet.Serialization;
-using Libplanet.State;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 

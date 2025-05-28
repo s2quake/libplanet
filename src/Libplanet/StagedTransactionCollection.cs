@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using Libplanet.State;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet;
 

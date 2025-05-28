@@ -4,9 +4,6 @@ using GraphQL.Execution;
 using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;

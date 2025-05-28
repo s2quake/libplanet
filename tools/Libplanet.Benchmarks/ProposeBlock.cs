@@ -1,10 +1,8 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.State.Tests.Common;
-using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
-using Libplanet.Types;
 using Libplanet.Types;
 
 namespace Libplanet.Benchmarks

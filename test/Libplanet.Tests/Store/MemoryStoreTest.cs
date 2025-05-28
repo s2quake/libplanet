@@ -1,5 +1,3 @@
-using Xunit.Abstractions;
-
 namespace Libplanet.Tests.Store;
 
 public class MemoryStoreTest : RepositoryTest, IDisposable

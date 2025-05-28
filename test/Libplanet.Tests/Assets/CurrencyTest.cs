@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Assets;

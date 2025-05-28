@@ -1,5 +1,3 @@
-using Libplanet;
-using Libplanet.Data;
 using Libplanet.Tests.Store;
 
 namespace Libplanet.Data.RocksDB.Tests;

@@ -4,10 +4,6 @@ using Libplanet.State;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Store;

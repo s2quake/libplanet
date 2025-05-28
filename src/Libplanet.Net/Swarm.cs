@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
-using Libplanet;
 #if NETSTANDARD2_0
 using Libplanet.Types;
 #endif
@@ -14,8 +13,6 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.Serialization;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;

@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using GraphQL.Types;
-using Libplanet;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Queries;
 using Libplanet.Net;

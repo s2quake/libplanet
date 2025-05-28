@@ -3,7 +3,6 @@ using Libplanet.Node.Extensions;
 using Libplanet.Node.Services;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

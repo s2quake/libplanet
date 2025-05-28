@@ -6,7 +6,6 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Libplanet.Types;
 using NetMQ;
 using Nito.AsyncEx;
 using Serilog;

@@ -1,7 +1,4 @@
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Net.Consensus;

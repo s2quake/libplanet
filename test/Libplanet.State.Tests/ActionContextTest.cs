@@ -1,7 +1,4 @@
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.State.Tests;
 

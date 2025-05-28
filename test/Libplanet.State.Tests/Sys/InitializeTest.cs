@@ -1,7 +1,5 @@
 using Libplanet.State.Builtin;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Sys;

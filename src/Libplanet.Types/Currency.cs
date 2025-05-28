@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
-using Libplanet.Types;
 using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types;

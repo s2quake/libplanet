@@ -1,8 +1,6 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet;
-using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Types;

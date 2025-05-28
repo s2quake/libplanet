@@ -2,12 +2,9 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using Nito.AsyncEx;
 

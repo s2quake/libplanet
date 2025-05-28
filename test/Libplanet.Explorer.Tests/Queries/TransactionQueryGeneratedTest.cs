@@ -5,8 +5,6 @@ using GraphQL.Execution;
 using Libplanet.State;
 using Libplanet.Explorer.Queries;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.Queries;
