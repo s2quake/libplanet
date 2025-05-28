@@ -127,7 +127,6 @@ public partial class Blockchain
                 $"Block {block.BlockHash} already exists in the store.");
         }
 
-        // var oldTip = Tip;
         block.Validate(this);
         blockCommit.Validate(block);
 
@@ -151,15 +150,10 @@ public partial class Blockchain
     public World GetWorld(int height) => GetWorld(Blocks[height].BlockHash);
 
     public World GetWorld(BlockHash blockHash)
-    {
-        var stateRootHash = _repository.StateRootHashes[blockHash];
-        return new World(_repository.States.GetTrie(stateRootHash), _repository.States);
-    }
+        => new(_repository.States, _repository.StateRootHashes[blockHash]);
 
     public World GetWorld(HashDigest<SHA256> stateRootHash)
-    {
-        return new World(_repository.States.GetTrie(stateRootHash), _repository.States);
-    }
+        => new(_repository.States.GetTrie(stateRootHash), _repository.States);
 
     public Block ProposeBlock(PrivateKey proposer)
     {
