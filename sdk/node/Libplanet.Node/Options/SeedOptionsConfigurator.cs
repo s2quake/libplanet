@@ -1,5 +1,4 @@
 using Libplanet.Types;
-using Libplanet.Types;
 using Microsoft.Extensions.Logging;
 
 namespace Libplanet.Node.Options;

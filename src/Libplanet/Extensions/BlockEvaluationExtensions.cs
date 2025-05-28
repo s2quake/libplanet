@@ -1,6 +1,5 @@
 using Libplanet.State;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Extensions;
 

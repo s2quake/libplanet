@@ -1,12 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.State;
-using Libplanet;
-using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using Serilog;
 

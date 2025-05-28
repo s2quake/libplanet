@@ -2,8 +2,6 @@ using GraphQL;
 using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Explorer.Queries
 {

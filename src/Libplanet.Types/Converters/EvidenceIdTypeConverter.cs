@@ -1,5 +1,3 @@
-using Libplanet.Types;
-
 namespace Libplanet.Types.Converters;
 
 internal sealed class EvidenceIdTypeConverter : TypeConverterBase<EvidenceId>

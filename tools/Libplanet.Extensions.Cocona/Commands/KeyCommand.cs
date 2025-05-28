@@ -2,7 +2,6 @@ using System.IO;
 using global::Cocona;
 using Libplanet.KeyStore;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Commands;
 

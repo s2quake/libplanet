@@ -1,6 +1,5 @@
 using System.IO;
 using Libplanet.Serialization;
-using Libplanet.Types;
 
 namespace Libplanet.Types.ModelConverters;
 

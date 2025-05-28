@@ -1,8 +1,4 @@
 using System.Security.Cryptography;
-using Libplanet;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 
 namespace Libplanet.Explorer.Tests.Fixtures;

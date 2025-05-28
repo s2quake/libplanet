@@ -6,8 +6,6 @@ using Libplanet.Data.RocksDB.Tests;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Xunit.Abstractions;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;

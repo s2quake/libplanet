@@ -1,6 +1,5 @@
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
-using Libplanet.Types;
 
 namespace Libplanet.Types;
 

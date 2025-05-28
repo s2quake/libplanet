@@ -1,6 +1,5 @@
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet;
 
 namespace Libplanet.Extensions.Cocona.Tests;
 

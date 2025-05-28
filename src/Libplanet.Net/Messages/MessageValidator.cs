@@ -2,7 +2,6 @@ using System.Globalization;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 

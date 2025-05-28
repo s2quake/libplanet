@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus
 {

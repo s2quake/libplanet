@@ -3,12 +3,8 @@ using GraphQL;
 using GraphQL.Execution;
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 

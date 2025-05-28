@@ -1,4 +1,3 @@
-using System.Text;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 

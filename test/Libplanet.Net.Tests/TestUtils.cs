@@ -2,16 +2,12 @@ using System.Net;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Common;
-using Libplanet;
-using Libplanet.Net.Consensus;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types;
 using Random = System.Random;
 

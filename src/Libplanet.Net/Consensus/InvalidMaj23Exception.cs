@@ -1,5 +1,3 @@
-using Libplanet.Net.Consensus;
-
 namespace Libplanet.Net.Consensus
 {
     /// <summary>

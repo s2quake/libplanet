@@ -6,7 +6,6 @@ using Libplanet.KeyStore;
 using Libplanet.Net;
 using Libplanet.Net.Transports;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Commands;
 

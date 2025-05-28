@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.State;
 

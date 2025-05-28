@@ -4,9 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.Types.Extensions;
-using Libplanet.Types;
 using RocksDbSharp;
 
 namespace Libplanet.Explorer.Indexing;

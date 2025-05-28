@@ -1,5 +1,4 @@
 using Libplanet.Serialization;
-using Libplanet.State;
 using Libplanet.Types;
 
 namespace Libplanet.State.Tests.Common;

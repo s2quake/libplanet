@@ -1,7 +1,5 @@
-using Libplanet;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
-using Libplanet.Types;
 using Libplanet.Types;
 
 namespace Libplanet.Tests.Blockchain.Policies;

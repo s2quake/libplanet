@@ -2,9 +2,6 @@ using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Common;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Tx;

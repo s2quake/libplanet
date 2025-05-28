@@ -4,7 +4,6 @@ using Libplanet.Data;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Benchmarks
 {

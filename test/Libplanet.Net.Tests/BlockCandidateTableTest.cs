@@ -1,4 +1,3 @@
-using Libplanet;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 

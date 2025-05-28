@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Globalization;
-using Libplanet.Types;
 
 namespace Libplanet.Types.Converters;
 

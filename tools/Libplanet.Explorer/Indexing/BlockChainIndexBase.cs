@@ -2,8 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Serilog;
 
 namespace Libplanet.Explorer.Indexing;

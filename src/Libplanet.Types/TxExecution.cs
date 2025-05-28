@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types;
 
 namespace Libplanet.Types;
 

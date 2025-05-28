@@ -4,8 +4,6 @@ using Libplanet.Explorer.Indexing;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 
 namespace Libplanet.Explorer.Tests.Indexing;
 

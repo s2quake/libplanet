@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Libplanet.Types;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Net.Tests.Consensus.ConsensusContextUtils;

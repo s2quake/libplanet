@@ -8,9 +8,6 @@ using Libplanet.State.Builtin;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 
 namespace Libplanet.Explorer.Tests.GraphTypes

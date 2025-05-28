@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Libplanet;
 using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;

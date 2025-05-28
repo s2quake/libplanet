@@ -3,9 +3,6 @@ using Libplanet.State;
 using Libplanet.State.Tests.Common;
 using Libplanet.Data;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using Libplanet.State.Builtin;
 
 namespace Libplanet.Tests.Store;

@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 

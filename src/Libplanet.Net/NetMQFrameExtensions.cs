@@ -1,8 +1,6 @@
 using System.IO;
 using System.Security.Cryptography;
 using Libplanet.Types;
-using Libplanet.Types;
-using Libplanet.Types;
 using NetMQ;
 
 namespace Libplanet.Net;
