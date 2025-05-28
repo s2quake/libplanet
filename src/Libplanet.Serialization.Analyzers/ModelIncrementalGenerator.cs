@@ -29,7 +29,13 @@ public sealed class ModelIncrementalGenerator : IIncrementalGenerator
                 return;
             }
 
-            if (declaration.Modifiers.Any(SyntaxKind.PartialKeyword))
+            if (!ContainsEnumerableProperty(declaration, semanticModel))
+            {
+                return;
+            }
+
+            var isPartial = declaration.Modifiers.Any(SyntaxKind.PartialKeyword);
+            if (isPartial)
             {
                 var identifier = declaration.Identifier.ValueText;
                 var sourceName = $"{identifier}.g.cs";
@@ -138,7 +144,7 @@ public sealed class ModelIncrementalGenerator : IIncrementalGenerator
             tw.WriteLine();
         }
 
-        if (!IsEquatableMethodDefined(declaration, semanticModel))
+        if (!IsEquatableMethodDefined(declaration))
         {
             if (declaration.IsStruct())
             {
@@ -223,26 +229,22 @@ public sealed class ModelIncrementalGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static bool IsEquatableMethodDefined(TypeDeclarationSyntax declaration, SemanticModel semanticModel)
+    private static bool IsEquatableMethodDefined(TypeDeclarationSyntax declaration)
     {
-        // 문법 트리에서 직접 Equals 메서드 선언을 찾음
         var methodSyntax = declaration.Members
             .OfType<MethodDeclarationSyntax>()
             .FirstOrDefault(m =>
                 m.Identifier.ValueText == "Equals" &&
                 m.ParameterList.Parameters.Count == 1);
 
-        // 메서드가 직접 정의되어 있으면 true 반환
         if (methodSyntax != null)
         {
-            // 매개변수 타입 확인 (옵션)
             var parameterType = methodSyntax.ParameterList.Parameters[0].Type;
             if (parameterType != null)
             {
                 var typeName = declaration.GetName();
                 var paramTypeName = parameterType.ToString();
 
-                // 클래스인 경우 nullable 검사 추가
                 if (declaration.IsClass())
                 {
                     return paramTypeName == typeName || paramTypeName == typeName + "?" || paramTypeName.Contains(typeName);
@@ -257,76 +259,69 @@ public sealed class ModelIncrementalGenerator : IIncrementalGenerator
         }
 
         return false;
-        // var symbol = semanticModel.GetDeclaredSymbol(declaration);
-        // if (symbol is null)
-        // {
-        //     return false;
-        // }
+    }
 
-        // if (declaration.GetName() == "FullNode")
-        // {
-        //     // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{declaration.GetName()}\n");
-        //     // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{symbol.GetMembers("Equals").Count()}\n");
+    private static bool IsSerializableProperty(PropertyDeclarationSyntax propertyDeclaration, SemanticModel semanticModel)
+    {
+        if (propertyDeclaration.AttributeLists.Count == 0)
+        {
+            return false;
+        }
 
-        //     var i = 0;
-        //     foreach (var item in symbol.GetMembers("Equals"))
-        //     {
-        //         var methodSymbol = item as IMethodSymbol;
-        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{i++}\n");
-        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{methodSymbol}\n");
-        //         foreach (var location in methodSymbol.Locations)
-        //         {
-        //             File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{location.IsInSource}\n");
-        //         }
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"{methodSymbol.Parameters[0].Type}\n");
-        //         // if (symbol is not IMethodSymbol methodSymbol)
-        //         // {
-        //         //     continue;
-        //         // }
-        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsAbstract: {item.IsAbstract}\n");
-        //         File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsAbstract: {item.OriginalDefinition}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsVirtual: {item.IsVirtual}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsOverride: {item.IsOverride}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsSealed: {item.IsSealed}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsStatic: {item.IsStatic}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsExtern: {item.IsExtern}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsImplicitlyDeclared: {item.IsImplicitlyDeclared}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"IsDefinition: {item.IsDefinition}\n");
-        //         // File.AppendAllText("/Users/s2quake-mac/Projects/log.txt", $"Parameter: {methodSymbol.Parameters[0].ToDisplayString()}\n");
+        var query = from attributeList in propertyDeclaration.AttributeLists
+                    from attribute in attributeList.Attributes
+                    let symbol = semanticModel.GetSymbolInfo(attribute).Symbol as IMethodSymbol
+                    where symbol != null
+                    let attributeType = symbol.ContainingType
+                    where attributeType.ToDisplayString() == "Libplanet.Serialization.PropertyAttribute"
+                    select attributeType;
 
+        return query.Any();
+    }
 
-        //     }
+    private static bool IsEnumerableProperty(PropertyDeclarationSyntax propertyDeclaration, SemanticModel semanticModel)
+    {
+        var typeInfo = semanticModel.GetTypeInfo(propertyDeclaration.Type);
+        if (typeInfo.Type == null)
+        {
+            return false;
+        }
 
-        // }
+        if (typeInfo.Type.ToDisplayString() == "string" ||
+            typeInfo.Type.ToDisplayString() == "System.String")
+        {
+            return false;
+        }
 
-        // return symbol.GetMembers("Equals").Any(Predicate);
+        if (typeInfo.Type.ToDisplayString() == "System.Collections.IEnumerable")
+        {
+            return true;
+        }
 
-        // bool Predicate(ISymbol symbol)
-        // {
-        //     if (symbol is not IMethodSymbol methodSymbol)
-        //     {
-        //         return false;
-        //     }
+        foreach (var item in typeInfo.Type.AllInterfaces)
+        {
+            if (item.ToDisplayString() == "System.Collections.IEnumerable")
+            {
+                return true;
+            }
+        }
 
-        //     if (methodSymbol.MethodKind != MethodKind.Ordinary)
-        //     {
-        //         return false;
-        //     }
+        return false;
+    }
 
-        //     if (methodSymbol.Parameters.Length != 1)
-        //     {
-        //         return false;
-        //     }
+    private static bool ContainsEnumerableProperty(TypeDeclarationSyntax declaration, SemanticModel semanticModel)
+    {
+        var properties = declaration.Members.OfType<PropertyDeclarationSyntax>();
 
-        //     var ns = declaration.GetNamespace();
-        //     var name = declaration.IsClass() ? $"{declaration.GetName()}?" : declaration.GetName();
-        //     var fullName = ns != string.Empty ? $"{ns}.{name}" : name;
-        //     if (methodSymbol.Parameters[0].Type.ToDisplayString() != fullName)
-        //     {
-        //         return false;
-        //     }
+        foreach (var property in properties)
+        {
+            if (IsSerializableProperty(property, semanticModel) &&
+                IsEnumerableProperty(property, semanticModel))
+            {
+                return true;
+            }
+        }
 
-        //     return true;
-        // }
+        return false;
     }
 }

@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-internal sealed partial record class BlockHeaderMessage : MessageContent
+internal sealed record class BlockHeaderMessage : MessageContent
 {
     [Property(0)]
     public required BlockHash GenesisHash { get; init; }

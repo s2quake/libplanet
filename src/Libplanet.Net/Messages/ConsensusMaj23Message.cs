@@ -5,7 +5,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-public sealed partial record class ConsensusMaj23Message : ConsensusMessage
+public sealed record class ConsensusMaj23Message : ConsensusMessage
 {
     [Property(0)]
     public required Maj23 Maj23 { get; init; }
