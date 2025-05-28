@@ -199,7 +199,7 @@ namespace Libplanet.Net
         {
             if (Running)
             {
-                BroadcastBlock(e.NewTip);
+                BroadcastBlock(e.Tip);
             }
         }
     }

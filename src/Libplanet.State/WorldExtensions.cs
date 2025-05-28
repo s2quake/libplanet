@@ -42,13 +42,13 @@ public static class WorldExtensions
     public static ImmutableSortedSet<Validator> GetValidators(this World @this)
     {
         var account = @this.GetAccount(SystemAccount);
-        return (ImmutableSortedSet<Validator>)account.GetValue(Validators);
+        return (ImmutableSortedSet<Validator>)account.GetValue(ValidatorsKey);
     }
 
     public static World SetValidators(this World @this, ImmutableSortedSet<Validator> validators)
     {
         var account = @this.GetAccount(SystemAccount);
-        account = account.SetValue(Validators, validators);
+        account = account.SetValue(ValidatorsKey, validators);
         return @this.SetAccount(SystemAccount, account);
     }
 

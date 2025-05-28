@@ -22,10 +22,14 @@ public partial class StateIndex(ITable table)
 
     public ITrie GetTrie(HashDigest<SHA256> stateRootHash)
     {
+        if (stateRootHash == default)
+        {
+            return new Trie();
+        }
+
         if (!_table.ContainsKey(stateRootHash.ToString()))
         {
-            throw new KeyNotFoundException(
-                $"State root hash {stateRootHash} not found in the state store.");
+            throw new KeyNotFoundException($"State root hash {stateRootHash} not found in the state store.");
         }
 
         return new Trie(new HashNode { Hash = stateRootHash, Table = _table });

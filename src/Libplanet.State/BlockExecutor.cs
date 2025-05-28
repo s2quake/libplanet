@@ -100,7 +100,7 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
 
     private ActionExecutionInfo ExecuteAction(IAction action, World world, ActionContext actionContext)
     {
-        if (!world.Trie.IsCommitted)
+        if (!world.Trie.IsCommitted && !world.Trie.IsEmpty)
         {
             throw new InvalidOperationException(
                 $"Given {nameof(actionContext)} must have its previous state's " +

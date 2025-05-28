@@ -70,7 +70,7 @@ public class ConsensusContextTest
         };
         using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
         {
-            if (eventArgs.NewTip.Height == 3L)
+            if (eventArgs.Tip.Height == 3L)
             {
                 onTipChangedToThree.Set();
             }

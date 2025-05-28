@@ -4,6 +4,7 @@ using Libplanet.Types.Assets;
 using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
 using Libplanet.Types.Transactions;
+using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.Tests.Action;
 
@@ -210,7 +211,6 @@ public sealed class WorldTest
             _initWorld.MintAsset(_addr[0], Value(0, -1)));
 
         World delta0 = _initWorld;
-        IActionContext context0 = _initContext;
         // currencies[0] (AAA) allows everyone to mint
         delta0 = delta0.MintAsset(_addr[2], Value(0, 10));
         Assert.Equal(Value(0, 10), delta0.GetBalance(_addr[2], _currencies[0]));
@@ -228,7 +228,6 @@ public sealed class WorldTest
             () => _initWorld.MintAsset(_addr[0], Value(5, 200)));
 
         World delta1 = _initWorld with { Signer = _addr[1] };
-        IActionContext context1 = CreateContext(_addr[1]);
         // currencies[0] (DDD) allows everyone to mint
         delta1 = delta1.MintAsset(_addr[2], Value(0, 10));
         Assert.Equal(Value(0, 10), delta1.GetBalance(_addr[2], _currencies[0]));
@@ -250,7 +249,6 @@ public sealed class WorldTest
         Assert.Throws<InsufficientBalanceException>(() => _initWorld.BurnAsset(_addr[0], Value(0, 6)));
 
         World delta0 = _initWorld;
-        IActionContext context0 = _initContext;
         // currencies[0] (AAA) allows everyone to burn
         delta0 = delta0.BurnAsset(_addr[0], Value(0, 2));
         Assert.Equal(Value(0, 3), delta0.GetBalance(_addr[0], _currencies[0]));
@@ -264,7 +262,6 @@ public sealed class WorldTest
         Assert.Equal(Value(3, 12), delta0.GetBalance(_addr[1], _currencies[3]));
 
         World delta1 = _initWorld with { Signer = _addr[1] };
-        IActionContext context1 = CreateContext(_addr[1]);
         // currencies[0] (AAA) allows everyone to burn
         delta1 = delta1.BurnAsset(_addr[0], Value(0, 2));
         Assert.Equal(Value(0, 3), delta1.GetBalance(_addr[0], _currencies[0]));
@@ -279,46 +276,32 @@ public sealed class WorldTest
     }
 
     [Fact]
-    public void SetValidatorSet()
+    public void SetValidators()
     {
-        // const int newValidatorCount = 6;
-        // var world = _initWorld;
-        // var keys = Enumerable
-        //     .Range(0, newValidatorCount)
-        //     .Select(i => new PrivateKey())
-        //     .ToList();
+        const int newValidatorCount = 6;
+        var world = _initWorld;
+        var keys = Enumerable
+            .Range(0, newValidatorCount)
+            .Select(i => new PrivateKey())
+            .ToList();
 
-        // var validatorSet =
-        //     keys.Select(key => Validator.Create(key.PublicKey, 1)).ToImmutableSortedSet();
-        // world = world.SetValidatorSet(validatorSet);
-        // Assert.Equal(newValidatorCount, world.GetValidatorSet().Count);
-        // Assert.NotEqual(_initWorld.GetValidatorSet(), world.GetValidatorSet());
-        // var oldValidatorSetRawValue = world
-        //     .GetAccount(ReservedAddresses.LegacyAccount)
-        //     .Trie[KeyConverters.ValidatorSetKey];
-        // var newValidatorSetRawValue = world
-        //     .GetAccount(ReservedAddresses.ValidatorSetAccount)
-        //     .Trie[KeyConverters.ToStateKey(ValidatorSetAccount.ValidatorSetAddress)];
-        // Assert.Null(oldValidatorSetRawValue);
-        // Assert.NotNull(newValidatorSetRawValue);
+        var validatorSet = keys.Select(key => new Validator { Address = key.Address }).ToImmutableSortedSet();
+        world = world.SetValidators(validatorSet);
+        Assert.Equal(newValidatorCount, world.GetValidators().Count);
+        Assert.NotEqual(_initWorld.GetValidators(), world.GetValidators());
+        var expectedValue = (ImmutableSortedSet<Validator>)world.GetAccount(SystemAccount).Trie[$"{ValidatorsKey}"];
+        Assert.Equal(world.GetValidators(), expectedValue);
 
-        // world = world.SetValidatorSet([]);
-        // Assert.Empty(world.GetValidatorSet());
-        // oldValidatorSetRawValue =
-        //     world.GetAccount(ReservedAddresses.LegacyAccount).Trie[
-        //         KeyConverters.ValidatorSetKey];
-        // newValidatorSetRawValue =
-        //     world.GetAccount(ReservedAddresses.ValidatorSetAccount).Trie[
-        //         KeyConverters.ToStateKey(ValidatorSetAccount.ValidatorSetAddress)];
-        // Assert.Null(oldValidatorSetRawValue);
-        // Assert.NotNull(newValidatorSetRawValue);
+        world = world.SetValidators([]);
+        Assert.Empty(world.GetValidators());
+        expectedValue = (ImmutableSortedSet<Validator>)world.GetAccount(SystemAccount).Trie[$"{ValidatorsKey}"];
+        Assert.Equal(world.GetValidators(), expectedValue);
     }
 
     [Fact]
     public void TotalSupplyTracking()
     {
         World world = _initWorld;
-        IActionContext context = _initContext;
 
         Assert.Equal(
             Value(0, 5),

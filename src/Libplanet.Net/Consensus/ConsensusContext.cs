@@ -306,7 +306,7 @@ public partial class ConsensusContext : IDisposable
                 await Task.Delay(_newHeightDelay, _newHeightCts.Token);
 
                 // Delay further until evaluation is ready.
-                while (_blockChain.GetStateRootHash(e.NewTip.Height) == default)
+                while (_blockChain.GetStateRootHash(e.Tip.Height) == default)
                 {
                     // FIXME: Maybe interval should be adjustable?
                     await Task.Delay(100, _newHeightCts.Token);
@@ -317,8 +317,8 @@ public partial class ConsensusContext : IDisposable
                     try
                     {
                         HandleEvidenceExceptions();
-                        AddEvidenceToBlockChain(e.NewTip);
-                        NewHeight(e.NewTip.Height + 1);
+                        AddEvidenceToBlockChain(e.Tip);
+                        NewHeight(e.Tip.Height + 1);
                     }
                     catch (Exception exc)
                     {
@@ -334,7 +334,7 @@ public partial class ConsensusContext : IDisposable
                         "Did not invoke {FName}() for height " +
                         "#{Height} because cancellation is requested",
                         nameof(NewHeight),
-                        e.NewTip.Height + 1);
+                        e.Tip.Height + 1);
                 }
             },
             _newHeightCts.Token);

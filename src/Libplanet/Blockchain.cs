@@ -6,11 +6,7 @@ using Libplanet.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Blocks;
-using Libplanet.Types.Consensus;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.Evidence;
-using Libplanet.Types.Transactions;
-using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet;
 
@@ -131,12 +127,12 @@ public partial class Blockchain
                 $"Block {block.BlockHash} already exists in the store.");
         }
 
-        var oldTip = Tip;
+        // var oldTip = Tip;
         block.Validate(this);
         blockCommit.Validate(block);
 
         _repository.Append(block, blockCommit);
-        _tipChangedSubject.OnNext(new(oldTip, block));
+        _tipChangedSubject.OnNext(new(block));
         _blockExecutingSubject.OnNext(Unit.Default);
         var execution = _blockExecutor.Execute((RawBlock)block);
         _repository.StateRootHash = execution.OutputWorld.Hash;

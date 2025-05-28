@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
@@ -46,7 +47,7 @@ public sealed record class World(ITrie Trie, StateIndex States)
             return new Account(States.GetTrie(new HashDigest<SHA256>(binary)));
         }
 
-        return new Account(States.GetTrie(default));
+        return new Account();
     }
 
     public World SetAccount(string name, Account account) => this with

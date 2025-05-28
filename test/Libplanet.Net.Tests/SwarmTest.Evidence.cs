@@ -160,7 +160,7 @@ namespace Libplanet.Net.Tests
 
                 void BlockChain_TipChanged(TipChangedInfo e)
                 {
-                    if (e.NewTip.Height >= index)
+                    if (e.Tip.Height >= index)
                     {
                         manualResetEvent.Set();
                     }
