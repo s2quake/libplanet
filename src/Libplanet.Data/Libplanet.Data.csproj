@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU1904</NoWarn>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Libplanet.Types\Libplanet.Types.csproj" />
+    <ProjectReference Include="..\Libplanet.Serialization.Analyzers\Libplanet.Serialization.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

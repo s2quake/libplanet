@@ -7,7 +7,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class VoteSetBitsMetadata
+public sealed partial record class VoteSetBitsMetadata
 {
     [Property(0)]
     [NonNegative]

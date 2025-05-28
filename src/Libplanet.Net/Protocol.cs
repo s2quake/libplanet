@@ -7,7 +7,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net;
 
 [Model(Version = 1)]
-public sealed record class Protocol
+public sealed partial record class Protocol
 {
     [Property(0)]
     public required ProtocolMetadata Metadata { get; init; }

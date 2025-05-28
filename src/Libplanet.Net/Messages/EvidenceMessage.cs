@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-internal sealed record class EvidenceMessage : MessageContent
+internal sealed partial record class EvidenceMessage : MessageContent
 {
     [Property(0)]
     public ImmutableArray<byte> Payload { get; init; } = [];

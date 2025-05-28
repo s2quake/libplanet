@@ -4,8 +4,7 @@ using Libplanet.Serialization;
 namespace Libplanet.Data.Structures.Nodes;
 
 [Model(Version = 1)]
-public sealed record class FullNode
-    : INode, IValidatableObject
+public sealed partial record class FullNode : INode, IValidatableObject
 {
     [Property(0)]
     public required ImmutableSortedDictionary<char, INode> Children { get; init; }
@@ -55,4 +54,14 @@ public sealed record class FullNode
             }
         }
     }
+
+    // public bool Equals(FullNode? other)
+    // {
+    //     if (other is null)
+    //     {
+    //         return false;
+    //     }
+
+    //     return Children.Equals(other.Children) && Equals(Value, other.Value);
+    // }
 }

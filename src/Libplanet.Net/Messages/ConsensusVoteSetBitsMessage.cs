@@ -6,7 +6,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-public sealed record class ConsensusVoteSetBitsMessage : ConsensusMessage
+public sealed partial record class ConsensusVoteSetBitsMessage : ConsensusMessage
 {
     [Property(0)]
     public required VoteSetBits VoteSetBits { get; init; }

@@ -6,7 +6,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class ProposalClaimMetadata
+public sealed partial record class ProposalClaimMetadata
 {
     [Property(0)]
     [NonNegative]

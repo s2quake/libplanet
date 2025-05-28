@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-internal sealed record class GetBlocksMessage : MessageContent
+internal sealed partial record class GetBlocksMessage : MessageContent
 {
     [Property(0)]
     public ImmutableArray<BlockHash> BlockHashes { get; init; }

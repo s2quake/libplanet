@@ -4,7 +4,7 @@ using Libplanet.Types.Blocks;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-internal sealed record class BlockHashesMessage : MessageContent
+internal sealed partial record class BlockHashesMessage : MessageContent
 {
     public override MessageType Type => MessageType.BlockHashes;
 

@@ -4,7 +4,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net;
 
 [Model(Version = 1)]
-public sealed record class ProtocolMetadata
+public sealed partial record class ProtocolMetadata
 {
     [Property(0)]
     public int Version { get; init; }

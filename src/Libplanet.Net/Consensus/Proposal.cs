@@ -6,7 +6,7 @@ using Libplanet.Types.Crypto;
 namespace Libplanet.Net.Consensus;
 
 [Model(Version = 1)]
-public sealed record class Proposal : IEquatable<Proposal>
+public sealed partial record class Proposal
 {
     [Property(0)]
     public required ProposalMetadata Metadata { get; init; }

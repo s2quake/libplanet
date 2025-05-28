@@ -4,7 +4,7 @@ using Libplanet.Types.Transactions;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1)]
-internal sealed record class TxIdsMessage : MessageContent
+internal sealed partial record class TxIdsMessage : MessageContent
 {
     [Property(0)]
     public ImmutableArray<TxId> Ids { get; init; } = [];
