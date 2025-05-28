@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Text;
 using LiteDB;
 
 namespace Libplanet.Data.LiteDB;
@@ -26,27 +24,34 @@ public sealed class LiteTable(global::LiteDB.LiteDatabase db, string name) : Tab
         {
             var doc = new BsonDocument
             {
-                ["key"] = key,
+                ["_id"] = key,
                 ["value"] = new BsonValue(value),
             };
             _collection.Upsert(doc);
         }
     }
 
-    public override int Count => throw new NotImplementedException();
+    public override int Count => _collection.Count();
 
     public override void Add(string key, byte[] value)
     {
-        _collection.Insert(new BsonDocument
+        try
         {
-            ["key"] = key,
-            ["value"] = new BsonValue(value),
-        });
+            _collection.Insert(new BsonDocument
+            {
+                ["_id"] = key,
+                ["value"] = new BsonValue(value),
+            });
+        }
+        catch (LiteException ex) when (ex.ErrorCode == LiteException.INDEX_DUPLICATE_KEY)
+        {
+            throw new ArgumentException($"Key '{key}' already exists.", nameof(key));
+        }
     }
 
     public override void Clear()
     {
-
+        _collection.DeleteAll();
     }
 
     public override bool ContainsKey(string key)
@@ -61,19 +66,27 @@ public sealed class LiteTable(global::LiteDB.LiteDatabase db, string name) : Tab
 
     public override bool Remove(string key)
     {
-        throw new NotImplementedException();
+        return _collection.Delete(new BsonValue(key));
     }
 
     public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
     {
-        throw new NotImplementedException();
+        var doc = _collection.FindById(new BsonValue(key));
+        if (doc is not null && doc.TryGetValue("value", out BsonValue bsonValue) && bsonValue.IsBinary)
+        {
+            value = bsonValue.AsBinary;
+            return true;
+        }
+
+        value = null;
+        return false;
     }
 
     protected override IEnumerable<string> EnumerateKeys()
     {
         foreach (var doc in _collection.FindAll())
         {
-            if (doc.TryGetValue("key", out BsonValue keyValue) && keyValue.IsString)
+            if (doc.TryGetValue("_id", out BsonValue keyValue) && keyValue.IsString)
             {
                 yield return keyValue.AsString;
             }
@@ -83,10 +96,10 @@ public sealed class LiteTable(global::LiteDB.LiteDatabase db, string name) : Tab
     private static ILiteCollection<BsonDocument> CreateCollection(global::LiteDB.LiteDatabase db, string name)
     {
         var collection = db.GetCollection<BsonDocument>(name);
-        if (!collection.EnsureIndex("key"))
-        {
-            throw new InvalidOperationException($"Failed to ensure index for collection '{name}'.");
-        }
+        // if (!collection.EnsureIndex("key"))
+        // {
+        //     throw new InvalidOperationException($"Failed to ensure index for collection '{name}'.");
+        // }
 
         return collection;
     }
