@@ -7,7 +7,7 @@ using Libplanet.Types;
 using Libplanet.Types.Tests;
 using static System.Linq.Enumerable;
 
-namespace Libplanet.Tests.Store.Structures;
+namespace Libplanet.Data.Tests.Structures;
 
 public class TrieTest
 {

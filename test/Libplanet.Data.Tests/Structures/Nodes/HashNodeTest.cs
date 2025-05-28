@@ -4,7 +4,7 @@ using Libplanet.Data.Structures.Nodes;
 using Libplanet.Data;
 using Libplanet.Types.Tests;
 
-namespace Libplanet.Tests.Store.Structures.Nodes;
+namespace Libplanet.Data.Tests.Structures.Nodes;
 
 public class HashNodeTest
 {

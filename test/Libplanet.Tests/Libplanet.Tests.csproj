@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Types\Libplanet.Types.csproj" />
     <ProjectReference Include="..\Libplanet.State.Tests\Libplanet.State.Tests.csproj" />
+    <ProjectReference Include="..\Libplanet.Types.Tests\Libplanet.Types.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

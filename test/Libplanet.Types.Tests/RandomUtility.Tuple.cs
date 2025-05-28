@@ -1,6 +1,6 @@
 #pragma warning disable MEN002 // Line is too long
 #pragma warning disable SA1414 // Tuple types in signatures should have element names
-namespace Libplanet.Tests;
+namespace Libplanet.Types.Tests;
 
 public static partial class RandomUtility
 {
