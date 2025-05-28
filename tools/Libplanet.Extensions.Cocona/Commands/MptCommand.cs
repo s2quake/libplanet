@@ -32,7 +32,7 @@ public class MptCommand
         _kvStoreConstructors =
             new Dictionary<string, Func<string, ITable>>
             {
-                ["default"] = kvStorePath => new DefaultTable(kvStorePath),
+                // ["default"] = kvStorePath => new DefaultTable(kvStorePath),
                 ["rocksdb"] = kvStorePath => new RocksTable(kvStorePath),
             }.ToImmutableSortedDictionary();
 

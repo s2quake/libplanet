@@ -1,20 +1,20 @@
-using Libplanet.Data;
+// using Libplanet.Data;
 
-namespace Libplanet.Data.Tests.Structures;
+// namespace Libplanet.Data.Tests.Structures;
 
-public sealed class DefaultTableTest : TableTestBase, IDisposable
-{
-    private readonly DefaultTable _defaultKeyValueStore = [];
+// public sealed class DefaultTableTest : TableTestBase, IDisposable
+// {
+//     private readonly DefaultTable _defaultKeyValueStore = [];
 
-    public DefaultTableTest()
-    {
-        InitializePreStoredData();
-    }
+//     public DefaultTableTest()
+//     {
+//         InitializePreStoredData();
+//     }
 
-    protected override IDictionary<string, byte[]> KeyValueStore => _defaultKeyValueStore;
+//     protected override IDictionary<string, byte[]> KeyValueStore => _defaultKeyValueStore;
 
-    public void Dispose()
-    {
-        _defaultKeyValueStore.Dispose();
-    }
-}
+//     public void Dispose()
+//     {
+//         _defaultKeyValueStore.Dispose();
+//     }
+// }

@@ -292,8 +292,7 @@ If omitted (default) explorer only the local blockchain store.")]
                       maxTotalWalSize: 16 * 1024 * 1024,
                       keepLogFileNum: 1));
                 case "default":
-                    return new Repository(new DefaultDatabase(
-                        options.StorePath));
+                    return new Repository(new MemoryDatabase());
                 default:
                     // FIXME: give available store type as argument hint without code duplication.
                     var availableStoreTypes = new[] { "rocksdb", "default" };
