@@ -14,7 +14,11 @@ public sealed class MetadataIndex : IndexBase<string, string>
     {
     }
 
-    protected override byte[] GetBytes(string value) => Encoding.UTF8.GetBytes(value);
+    protected override byte[] ValueToBytes(string value) => Encoding.UTF8.GetBytes(value);
 
-    protected override string GetValue(byte[] bytes) => Encoding.UTF8.GetString(bytes);
+    protected override string BytesToValue(byte[] bytes) => Encoding.UTF8.GetString(bytes);
+
+    protected override string KeyToString(string key) => key;
+
+    protected override string StringToKey(string key) => key;
 }

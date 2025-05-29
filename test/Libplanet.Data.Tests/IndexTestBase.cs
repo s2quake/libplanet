@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
@@ -221,6 +222,300 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         index.Clear();
         Assert.Empty(index);
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Count(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        Assert.Empty(index);
+
+        var keyValues = CreateKeyValues(random, 10);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        Assert.Equal(10, index.Count);
+
+        index.Clear();
+        Assert.Empty(index);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Keys(bool useCache)
+    {
+        // Keys
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 5);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        // ICollection<TKey>.Count
+        Assert.Equal(5, index.Keys.Count);
+
+        // ICollection<TKey>.IsReadOnly
+        Assert.True(index.Keys.IsReadOnly);
+
+        // ICollection<TKey>.Contains
+        foreach (var (key, _) in keyValues)
+        {
+            Assert.True(index.Keys.Contains(key));
+        }
+        var nonExistentKey = CreateKey(random, item => !keyValues.Select(kv => kv.Item1).Contains(item));
+        Assert.False(index.Keys.Contains(nonExistentKey));
+
+        // ICollection<TKey>.CopyTo
+        var array = new TKey[5];
+        index.Keys.CopyTo(array, 0);
+        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, array));
+
+        // ICollection<TKey>.GetEnumerator
+        var keys = index.Keys.ToList();
+        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, keys));
+
+        // ICollection<TKey>.Add, Clear, Remove는 NotSupportedException
+        Assert.Throws<NotSupportedException>(() => index.Keys.Add(nonExistentKey));
+        Assert.Throws<NotSupportedException>(() => index.Keys.Clear());
+        Assert.Throws<NotSupportedException>(() => index.Keys.Remove(keyValues[0].Item1));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Values(bool useCache)
+    {
+        // Values
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 5);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        // ICollection<TValue>.Count
+        Assert.Equal(5, index.Values.Count);
+
+        // ICollection<TValue>.IsReadOnly
+        Assert.True(index.Values.IsReadOnly);
+
+        // ICollection<TValue>.CopyTo
+        var array = new TValue[5];
+        index.Values.CopyTo(array, 0);
+        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, array));
+
+        // ICollection<TValue>.GetEnumerator
+        var values = index.Values.ToList();
+        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, values));
+
+        // ICollection<TValue>.Add, Clear, Remove, Contains는 NotSupportedException
+        var nonExistentValue = CreateValue(random, item => !keyValues.Select(kv => kv.Item2).Contains(item));
+        Assert.Throws<NotSupportedException>(() => index.Values.Add(nonExistentValue));
+        Assert.Throws<NotSupportedException>(() => index.Values.Clear());
+        Assert.Throws<NotSupportedException>(() => index.Values.Remove(keyValues[0].Item2));
+        Assert.Throws<NotSupportedException>(() => index.Values.Contains(keyValues[0].Item2));
+    }
+
+    [Fact]
+    public void IsReadOnly()
+    {
+        var index = CreateIndex(false);
+        Assert.False(index.IsReadOnly);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void IReadOnlyDictionary_Keys(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 5);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        var keys = ((IReadOnlyDictionary<TKey, TValue>)index).Keys;
+        foreach (var (key, _) in keyValues)
+        {
+            Assert.Contains(key, keys);
+        }
+
+        var nonExistentKey = CreateKey(random, item => !keyValues.Select(kv => kv.Item1).Contains(item));
+        Assert.DoesNotContain(nonExistentKey, keys);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void IReadOnlyDictionary_Values(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 5);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        var values = ((IReadOnlyDictionary<TKey, TValue>)index).Values;
+        foreach (var (_, value) in keyValues)
+        {
+            Assert.Contains(value, values);
+        }
+
+        var nonExistentValue = CreateValue(random, item => !keyValues.Select(kv => kv.Item2).Contains(item));
+        Assert.DoesNotContain(nonExistentValue, values);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ICollection_Add(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var (key, value) = CreateKeyValue(random);
+
+        var collection = (ICollection<KeyValuePair<TKey, TValue>>)index;
+        collection.Add(new KeyValuePair<TKey, TValue>(key, value));
+        Assert.Equal(value, index[key]);
+
+        Assert.Throws<ArgumentException>(() => collection.Add(new KeyValuePair<TKey, TValue>(key, value)));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ICollection_Contains(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var (key, value) = CreateKeyValue(random);
+        index[key] = value;
+
+        var collection = (ICollection<KeyValuePair<TKey, TValue>>)index;
+        Assert.True(collection.Contains(new KeyValuePair<TKey, TValue>(key, value)));
+
+        var nonExistentKey = CreateKey(random, item => !Equals(item, key));
+        Assert.False(collection.Contains(new KeyValuePair<TKey, TValue>(nonExistentKey, value)));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ICollection_CopyTo(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 5);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        var array = new KeyValuePair<TKey, TValue>[5];
+        var collection = (ICollection<KeyValuePair<TKey, TValue>>)index;
+        collection.CopyTo(array, 0);
+
+        foreach (var item in array)
+        {
+            Assert.Equal(item.Value, index[item.Key]);
+        }
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.CopyTo(array, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => collection.CopyTo(array, 5));
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => collection.CopyTo(new KeyValuePair<TKey, TValue>[1], 0));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ICollection_Remove(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var (key, value) = CreateKeyValue(random);
+        index[key] = value;
+
+        var collection = (ICollection<KeyValuePair<TKey, TValue>>)index;
+        Assert.True(collection.Remove(new KeyValuePair<TKey, TValue>(key, value)));
+        Assert.Throws<KeyNotFoundException>(() => index[key]);
+
+        var nonExistentKey = CreateKey(random, item => !Equals(item, key));
+        Assert.False(collection.Remove(new KeyValuePair<TKey, TValue>(nonExistentKey, value)));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void IEnumerable_Generic_GetEnumerator(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 5);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        var enumerator = ((IEnumerable<KeyValuePair<TKey, TValue>>)index).GetEnumerator();
+        var keyList = new List<TKey>();
+        var valueList = new List<TValue>();
+        while( enumerator.MoveNext())
+        {
+            var (key, value) = enumerator.Current;
+            keyList.Add(key);
+            valueList.Add(value);
+        }
+
+        foreach(var (key, value) in keyValues)
+        {
+            Assert.Contains(key, keyList);
+            Assert.Contains(value, valueList);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void IEnumerable_GetEnumerator(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 5);
+        foreach (var (key, value) in keyValues)
+        {
+            index[key] = value;
+        }
+
+        var enumerator = ((IEnumerable)index).GetEnumerator();
+        var keyList = new List<TKey>();
+        var valueList = new List<TValue>();
+        while (enumerator.MoveNext())
+        {
+            var kvp = (KeyValuePair<TKey, TValue>)enumerator.Current;
+            keyList.Add(kvp.Key);
+            valueList.Add(kvp.Value);
+        }
+
+        foreach (var (key, value) in keyValues)
+        {
+            Assert.Contains(key, keyList);
+            Assert.Contains(value, valueList);
+        }
+    }
+
 
     protected static Random GetRandom(ITestOutputHelper output)
     {
