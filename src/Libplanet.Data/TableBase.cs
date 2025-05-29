@@ -1,3 +1,4 @@
+#pragma warning disable S1133 // Deprecated code should be removed
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
@@ -16,7 +17,8 @@ public abstract class TableBase : ITable
 
     public ICollection<string> Keys => _keys;
 
-    ICollection<byte[]> IDictionary<string, byte[]>.Values => _values;
+    [Obsolete("This property is inefficient. Consider using Keys instead.", error: false)]
+    public ICollection<byte[]> Values => _values;
 
     public abstract int Count { get; }
 
@@ -97,7 +99,19 @@ public abstract class TableBase : ITable
         public bool Contains(string item) => owner.ContainsKey(item);
 
         public void CopyTo(string[] array, int arrayIndex)
-            => throw new NotSupportedException("CopyTo is not supported.");
+        {
+            if (arrayIndex < 0 || arrayIndex + Count > array.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+
+            }
+
+            var index = arrayIndex;
+            foreach (var key in owner.EnumerateKeys())
+            {
+                array[index++] = key;
+            }
+        }
 
         public IEnumerator<string> GetEnumerator()
         {
@@ -122,10 +136,22 @@ public abstract class TableBase : ITable
 
         public void Clear() => throw new NotSupportedException("Clear is not supported.");
 
-        public bool Contains(byte[] item) => throw new NotSupportedException("Contains is not supported.");
+        [Obsolete("This method is inefficient. Consider using alternative approaches.", error: false)]
+        public bool Contains(byte[] item) => owner.EnumerateKeys().Any(key => owner[key].SequenceEqual(item));
 
         public void CopyTo(byte[][] array, int arrayIndex)
-            => throw new NotSupportedException("CopyTo is not supported.");
+        {
+            if (arrayIndex < 0 || arrayIndex + Count > array.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+            }
+
+            var index = arrayIndex;
+            foreach (var key in owner.EnumerateKeys())
+            {
+                array[index++] = owner[key];
+            }
+        }
 
         public IEnumerator<byte[]> GetEnumerator()
         {
