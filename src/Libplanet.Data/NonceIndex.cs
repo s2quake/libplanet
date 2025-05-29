@@ -30,7 +30,11 @@ public sealed class NonceIndex(IDatabase database)
         }
     }
 
-    protected override byte[] GetBytes(long value) => BitConverter.GetBytes(value);
+    protected override byte[] ValueToBytes(long value) => BitConverter.GetBytes(value);
 
-    protected override long GetValue(byte[] bytes) => BitConverter.ToInt64(bytes, 0);
+    protected override long BytesToValue(byte[] bytes) => BitConverter.ToInt64(bytes, 0);
+
+    protected override string KeyToString(Address key) => key.ToString();
+
+    protected override Address StringToKey(string key) => Address.Parse(key);
 }

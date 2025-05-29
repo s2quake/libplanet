@@ -151,8 +151,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     [InlineData(true)]
     public void Remove(bool commit)
     {
-        // var seed = RandomUtility.Int32();
-        var seed = -1012117357;
+        var seed = RandomUtility.Int32();
         output.WriteLine($"Seed: {seed}");
         var random = new Random(seed);
         var states = new StateIndex();

@@ -60,7 +60,12 @@ public sealed class BlockHashIndex(IDatabase database, int cacheSize = 100)
         Height = Math.Max(Height, key);
     }
 
-    protected override byte[] GetBytes(BlockHash value) => [.. value.Bytes];
+    protected override string KeyToString(int key) => key.ToString("R");
 
-    protected override BlockHash GetValue(byte[] bytes) => new(bytes);
+    protected override int StringToKey(string key) => int.Parse(key);
+
+    protected override byte[] ValueToBytes(BlockHash value) => [.. value.Bytes];
+
+    protected override BlockHash BytesToValue(byte[] bytes) => new(bytes);
+
 }

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using BitFaster.Caching;
@@ -16,7 +15,6 @@ public abstract class IndexBase<TKey, TValue>
     private readonly ICache<TKey, TValue>? _cache;
     private readonly ITable _table;
     private readonly ReaderWriterLockSlim _lock = new();
-    private readonly TypeConverter _keyConverter = TypeDescriptor.GetConverter(typeof(TKey));
 
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
@@ -60,8 +58,8 @@ public abstract class IndexBase<TKey, TValue>
                 return value;
             }
 
-            var bytes = _table[GetKeyBytes(key)];
-            value = GetValue(bytes);
+            var bytes = _table[KeyToString(key)];
+            value = BytesToValue(bytes);
             _cache?.AddOrUpdate(key, value);
             return value;
         }
@@ -71,7 +69,7 @@ public abstract class IndexBase<TKey, TValue>
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new WriteScope(_lock);
             OnSet(key, value);
-            _table[GetKeyBytes(key)] = GetBytes(value);
+            _table[KeyToString(key)] = ValueToBytes(value);
             _cache?.AddOrUpdate(key, value);
             OnSetComplete(key, value);
         }
@@ -104,13 +102,13 @@ public abstract class IndexBase<TKey, TValue>
             return false;
         }
 
-        if (_table.ContainsKey(GetKeyBytes(key)))
+        if (_table.ContainsKey(KeyToString(key)))
         {
             return false;
         }
 
         OnAdd(key, value);
-        _table.Add(GetKeyBytes(key), GetBytes(value));
+        _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
         OnAddComplete(key, value);
         return true;
@@ -122,7 +120,7 @@ public abstract class IndexBase<TKey, TValue>
 
         using var scope = new WriteScope(_lock);
         OnAdd(key, value);
-        _table.Add(GetKeyBytes(key), GetBytes(value));
+        _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
         OnAddComplete(key, value);
     }
@@ -136,7 +134,7 @@ public abstract class IndexBase<TKey, TValue>
             return true;
         }
 
-        return _table.ContainsKey(GetKeyBytes(key));
+        return _table.ContainsKey(KeyToString(key));
     }
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
@@ -148,9 +146,9 @@ public abstract class IndexBase<TKey, TValue>
             return true;
         }
 
-        if (_table.TryGetValue(GetKeyBytes(key), out var bytes))
+        if (_table.TryGetValue(KeyToString(key), out var bytes))
         {
-            value = GetValue(bytes);
+            value = BytesToValue(bytes);
             _cache?.AddOrUpdate(key, value);
             return true;
         }
@@ -182,7 +180,18 @@ public abstract class IndexBase<TKey, TValue>
         => TryGetValue(item.Key, out var value) && CompareValue(value, item.Value);
 
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-        => throw new NotSupportedException("CopyTo is not supported.");
+    {
+        if (arrayIndex < 0 || arrayIndex + Count > array.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+        }
+
+        var index = arrayIndex;
+        foreach (var key in EnumerateKeys())
+        {
+            array[index++] = new KeyValuePair<TKey, TValue>(key, this[key]);
+        }
+    }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
@@ -214,35 +223,19 @@ public abstract class IndexBase<TKey, TValue>
     {
         foreach (var key in _table.Keys)
         {
-            yield return GetKey(key);
+            yield return StringToKey(key);
         }
     }
 
     protected virtual bool CompareValue(TValue value1, TValue value2) => value1.Equals(value2);
 
-    protected string GetKeyBytes(TKey key)
-    {
-        if (_keyConverter.ConvertToInvariantString(key) is not string s)
-        {
-            throw new InvalidOperationException($"Cannot convert {key} to string.");
-        }
+    protected abstract string KeyToString(TKey key);
 
-        return s;
-    }
+    protected abstract TKey StringToKey(string key);
 
-    protected TKey GetKey(string s)
-    {
-        if (_keyConverter.ConvertFromInvariantString(s) is not TKey key)
-        {
-            throw new InvalidOperationException($"Cannot convert {s} to {typeof(TKey)}.");
-        }
+    protected abstract byte[] ValueToBytes(TValue value);
 
-        return key;
-    }
-
-    protected abstract byte[] GetBytes(TValue value);
-
-    protected abstract TValue GetValue(byte[] bytes);
+    protected abstract TValue BytesToValue(byte[] bytes);
 
     protected virtual void OnClear()
     {
@@ -291,7 +284,7 @@ public abstract class IndexBase<TKey, TValue>
             return true;
         }
 
-        return _table.ContainsKey(GetKeyBytes(key));
+        return _table.ContainsKey(KeyToString(key));
     }
 
     private bool RemoveInternal(TKey key)
@@ -299,16 +292,16 @@ public abstract class IndexBase<TKey, TValue>
         OnRemove(key);
         if (_cache?.TryRemove(key, out var value) is true)
         {
-            _table.Remove(GetKeyBytes(key));
+            _table.Remove(KeyToString(key));
             OnRemoveComplete(key, value);
             return true;
         }
         else
         {
-            var keyBytes = GetKeyBytes(key);
+            var keyBytes = KeyToString(key);
             if (_table.TryGetValue(keyBytes, out var bytes))
             {
-                value = GetValue(bytes);
+                value = BytesToValue(bytes);
                 _table.Remove(keyBytes);
                 OnRemoveComplete(key, value);
                 return true;
@@ -332,16 +325,9 @@ public abstract class IndexBase<TKey, TValue>
 
         public void CopyTo(TKey[] array, int arrayIndex)
         {
-            if (arrayIndex < 0)
+            if (arrayIndex < 0 || arrayIndex + Count > array.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-            }
-
-            if (Count > array.Length + arrayIndex)
-            {
-                var message = "The number of elements in the source KeyCollection is greater than the " +
-                              "available space from arrayIndex to the end of the destination array.";
-                throw new ArgumentException(message, nameof(array));
             }
 
             foreach (var key in owner.EnumerateKeys())
@@ -377,12 +363,9 @@ public abstract class IndexBase<TKey, TValue>
 
         public void CopyTo(TValue[] array, int arrayIndex)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
-            if (Count > array.Length + arrayIndex)
+            if (arrayIndex < 0 || arrayIndex + Count > array.Length)
             {
-                var message = "The number of elements in the source ValueCollection is greater than the " +
-                              "available space from arrayIndex to the end of the destination array.";
-                throw new ArgumentException(message, nameof(array));
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
             }
 
             foreach (var key in owner.EnumerateKeys())
