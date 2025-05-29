@@ -8,7 +8,7 @@ using Libplanet.Types.Threading;
 namespace Libplanet.Data;
 
 public abstract class IndexBase<TKey, TValue>
-    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable
+    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {
@@ -45,13 +45,10 @@ public abstract class IndexBase<TKey, TValue>
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _values;
 
-    protected bool IsDisposed { get; private set; }
-
     public TValue this[TKey key]
     {
         get
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new ReadScope(_lock);
             if (_cache?.TryGet(key, out var value) is true)
             {
@@ -66,7 +63,6 @@ public abstract class IndexBase<TKey, TValue>
 
         set
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new WriteScope(_lock);
             OnSet(key, value);
             _table[KeyToString(key)] = ValueToBytes(value);
@@ -77,14 +73,12 @@ public abstract class IndexBase<TKey, TValue>
 
     public bool Remove(TKey key)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         return RemoveInternal(key);
     }
 
     public void RemoveRange(IEnumerable<TKey> keys)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         var items = keys.Where(ContainsKeyInternal).ToArray();
         foreach (var item in items)
@@ -95,7 +89,6 @@ public abstract class IndexBase<TKey, TValue>
 
     public bool TryAdd(TKey key, TValue value)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         if (_cache?.TryGet(key, out _) is true)
         {
@@ -116,8 +109,6 @@ public abstract class IndexBase<TKey, TValue>
 
     public void Add(TKey key, TValue value)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
-
         using var scope = new WriteScope(_lock);
         OnAdd(key, value);
         _table.Add(KeyToString(key), ValueToBytes(value));
@@ -127,7 +118,6 @@ public abstract class IndexBase<TKey, TValue>
 
     public bool ContainsKey(TKey key)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new ReadScope(_lock);
         if (_cache?.TryGet(key, out _) is true)
         {
@@ -139,7 +129,6 @@ public abstract class IndexBase<TKey, TValue>
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new ReadScope(_lock);
         if (_cache?.TryGet(key, out value) is true && value is not null)
         {
@@ -159,7 +148,6 @@ public abstract class IndexBase<TKey, TValue>
 
     public void Clear()
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         OnClear();
         _cache?.Clear();
@@ -167,10 +155,10 @@ public abstract class IndexBase<TKey, TValue>
         OnClearComplete();
     }
 
-    public void Dispose()
+    public void ClearCache()
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        using var scope = new WriteScope(_lock);
+        _cache?.Clear();
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
@@ -267,14 +255,6 @@ public abstract class IndexBase<TKey, TValue>
 
     protected virtual void OnSetComplete(TKey key, TValue item)
     {
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!IsDisposed)
-        {
-            IsDisposed = true;
-        }
     }
 
     private bool ContainsKeyInternal(TKey key)

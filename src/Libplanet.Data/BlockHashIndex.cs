@@ -11,25 +11,14 @@ public sealed class BlockHashIndex(IDatabase database, int cacheSize = 100)
 
     public BlockHash this[Index index]
     {
-        get
-        {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
-            return base[index.GetOffset(Height + 1)];
-        }
-
-        set
-        {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
-            base[index.GetOffset(Height + 1)] = value;
-        }
+        get => base[index.GetOffset(Height + 1)];
+        set => base[index.GetOffset(Height + 1)] = value;
     }
 
     public IEnumerable<BlockHash> this[Range range]
     {
         get
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
-
             var (offset, length) = range.GetOffsetAndLength(Height + 1);
             var start = offset;
             var end = offset + length;
