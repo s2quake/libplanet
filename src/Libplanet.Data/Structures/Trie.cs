@@ -55,7 +55,14 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new InvalidOperationException("Cannot remove from an empty trie.");
         }
 
-        return new Trie(NodeRemover.Remove(Node, key));
+        try
+        {
+            return new Trie(NodeRemover.Remove(Node, key));
+        }
+        catch (KeyNotFoundException e)
+        {
+            throw new KeyNotFoundException($"Key {key} not found in the trie.", e);
+        }
     }
 
     public INode GetNode(string key)
@@ -95,14 +102,12 @@ public sealed partial record class Trie(INode Node) : ITrie
 
     public bool ContainsKey(string key)
     {
-        try
-        {
-            return NodeResolver.ResolveToValue(Node, key) is not null;
-        }
-        catch
+        if (IsEmpty)
         {
             return false;
         }
+
+        return NodeResolver.ResolveToValue(Node, key) is not null;
     }
 
     public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
