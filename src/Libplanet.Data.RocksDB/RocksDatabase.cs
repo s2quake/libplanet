@@ -3,11 +3,12 @@ using RocksDbSharp;
 
 namespace Libplanet.Data.RocksDB;
 
-public sealed class RocksDatabase : Database<RocksTable>
+public sealed class RocksDatabase : Database<RocksTable>, IDisposable
 {
     private readonly DbOptions _options;
     private readonly string _path;
     private readonly RocksDBInstanceType _type;
+    private bool _disposed;
 
     public RocksDatabase(
         string path,
@@ -38,30 +39,30 @@ public sealed class RocksDatabase : Database<RocksTable>
         _type = type;
     }
 
-    protected override void Dispose(bool disposing)
+    public void Dispose()
     {
-        if (disposing)
+        if (!_disposed)
         {
             foreach (var value in Values)
             {
                 value.Dispose();
             }
+            _disposed = true;
+            GC.SuppressFinalize(this);
         }
-
-        base.Dispose(disposing);
     }
 
-    protected override RocksTable Create(string key)
-    {
-        return new RocksTable(Path.Combine(_path, key), _type, _options);
-    }
+    protected override RocksTable Create(string key) => new(Path.Combine(_path, key), _type, _options);
 
     protected override void OnRemove(string key, RocksTable value)
     {
-        value.Dispose();
-        if (Directory.Exists(value.Path))
+        if (!_disposed)
         {
-            Directory.Delete(value.Path, recursive: true);
+            value.Dispose();
+            if (Directory.Exists(value.Path))
+            {
+                Directory.Delete(value.Path, recursive: true);
+            }
         }
     }
 }

@@ -2,29 +2,22 @@ using System.IO;
 
 namespace Libplanet.Data.LiteDB;
 
-public sealed class LiteDatabase(string path) : Database<LiteTable>
+public sealed class LiteDatabase(string path) : Database<LiteTable>, IDisposable
 {
     private readonly global::LiteDB.LiteDatabase _db = CreateLiteDatabase(path);
+    private bool _disposed;
 
-    protected override LiteTable Create(string key)
-    {
-        return new LiteTable(_db, key);
-    }
+    public string Path { get; } = path;
+
+    protected override LiteTable Create(string key) => new(_db, key);
 
     protected override void OnRemove(string key, LiteTable value)
     {
         base.OnRemove(key, value);
-        value.Dispose();
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
+        if (!_disposed)
         {
-            _db.Dispose();
+            value.Dispose();
         }
-
-        base.Dispose(disposing);
     }
 
     private static global::LiteDB.LiteDatabase CreateLiteDatabase(string path)
@@ -34,7 +27,7 @@ public sealed class LiteDatabase(string path) : Database<LiteTable>
             return new global::LiteDB.LiteDatabase(new MemoryStream());
         }
 
-        if (!Path.IsPathRooted(path))
+        if (!System.IO.Path.IsPathRooted(path))
         {
             throw new ArgumentException("The path must be an absolute path.", nameof(path));
         }
@@ -44,6 +37,16 @@ public sealed class LiteDatabase(string path) : Database<LiteTable>
             Directory.CreateDirectory(path);
         }
 
-        return new global::LiteDB.LiteDatabase(Path.Combine(path, "database.db"));
+        return new global::LiteDB.LiteDatabase(System.IO.Path.Combine(path, "database.db"));
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _db.Dispose();
+            _disposed = true;
+            GC.SuppressFinalize(this);
+        }
     }
 }

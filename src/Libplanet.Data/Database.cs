@@ -9,7 +9,6 @@ public abstract class Database<TTable> : IDatabase
 {
     private readonly object _lock = new();
     private readonly ConcurrentDictionary<string, TTable> _tableByKey = new();
-    private bool _disposedValue;
 
     public IEnumerable<string> Keys => _tableByKey.Keys;
 
@@ -45,7 +44,7 @@ public abstract class Database<TTable> : IDatabase
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out TTable value)
         => _tableByKey.TryGetValue(key, out value);
 
-    public bool Remove(string key)
+    public bool TryRemove(string key)
     {
         lock (_lock)
         {
@@ -59,14 +58,7 @@ public abstract class Database<TTable> : IDatabase
         }
     }
 
-    public IEnumerator<KeyValuePair<string, TTable>> GetEnumerator()
-        => _tableByKey.GetEnumerator();
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
+    public IEnumerator<KeyValuePair<string, TTable>> GetEnumerator() => _tableByKey.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => _tableByKey.GetEnumerator();
 
@@ -96,18 +88,5 @@ public abstract class Database<TTable> : IDatabase
 
     protected virtual void OnRemove(string key, TTable value)
     {
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposedValue)
-        {
-            if (disposing)
-            {
-                // Do nothing here.
-            }
-
-            _disposedValue = true;
-        }
     }
 }

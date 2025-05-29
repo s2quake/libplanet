@@ -1,8 +1,8 @@
 namespace Libplanet.Data;
 
-public interface IDatabase : IReadOnlyDictionary<string, ITable>, IDisposable
+public interface IDatabase : IReadOnlyDictionary<string, ITable>
 {
     ITable GetOrAdd(string key);
 
-    public bool Remove(string key);
+    bool TryRemove(string key);
 }
