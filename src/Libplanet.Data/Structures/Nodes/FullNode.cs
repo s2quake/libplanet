@@ -32,10 +32,9 @@ public sealed partial record class FullNode : INode, IValidatableObject
 
     public FullNode SetChild(char index, INode node)
     {
-        if (node is HashNode)
+        if (node is not ValueNode and not FullNode and not ShortNode)
         {
-            var message = "FullNode cannot have a child of HashNode.";
-            throw new ArgumentException(message, nameof(node));
+            throw new ArgumentException("Unexpected node type", nameof(node));
         }
 
         return this with { Children = Children.SetItem(index, node) };
@@ -47,21 +46,11 @@ public sealed partial record class FullNode : INode, IValidatableObject
     {
         foreach (var (_, value) in Children)
         {
-            if (value is HashNode)
+            if (value is not ValueNode and not FullNode and not ShortNode)
             {
                 yield return new ValidationResult(
                     "FullNode cannot have a child of HashNode.", [nameof(Children)]);
             }
         }
     }
-
-    // public bool Equals(FullNode? other)
-    // {
-    //     if (other is null)
-    //     {
-    //         return false;
-    //     }
-
-    //     return Children.Equals(other.Children) && Equals(Value, other.Value);
-    // }
 }

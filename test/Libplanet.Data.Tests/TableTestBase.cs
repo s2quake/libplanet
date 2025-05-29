@@ -5,7 +5,7 @@ namespace Libplanet.Data.Tests;
 
 public abstract class TableTestBase
 {
-    public abstract ITable CreateTable(string key);
+    public abstract ITable CreateTable(string name);
 
     [Fact]
     public void Get_After_Add()
