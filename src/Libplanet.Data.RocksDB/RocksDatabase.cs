@@ -6,7 +6,6 @@ namespace Libplanet.Data.RocksDB;
 public sealed class RocksDatabase : Database<RocksTable>, IDisposable
 {
     private readonly DbOptions _options;
-    private readonly string _path;
     private readonly RocksDBInstanceType _type;
     private bool _disposed;
 
@@ -17,7 +16,7 @@ public sealed class RocksDatabase : Database<RocksTable>, IDisposable
         ulong? maxLogFileSize = null,
         RocksDBInstanceType type = RocksDBInstanceType.Primary)
     {
-        _path = path;
+        Path = path;
         _options = new DbOptions()
             .SetCreateIfMissing();
 
@@ -39,6 +38,8 @@ public sealed class RocksDatabase : Database<RocksTable>, IDisposable
         _type = type;
     }
 
+    public string Path { get; }
+
     public void Dispose()
     {
         if (!_disposed)
@@ -52,7 +53,7 @@ public sealed class RocksDatabase : Database<RocksTable>, IDisposable
         }
     }
 
-    protected override RocksTable Create(string key) => new(Path.Combine(_path, key), _type, _options);
+    protected override RocksTable Create(string key) => new(System.IO.Path.Combine(Path, key), _type, _options);
 
     protected override void OnRemove(string key, RocksTable value)
     {

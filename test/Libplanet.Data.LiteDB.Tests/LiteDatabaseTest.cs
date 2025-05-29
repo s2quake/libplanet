@@ -28,4 +28,18 @@ public sealed class LiteDatabaseTest : DatabaseTestBase<LiteDatabase>, IDisposab
             }
         }
     }
+
+    [Fact]
+    public void EmptyPath()
+    {
+        using var database = new LiteDatabase(string.Empty);
+        Assert.Equal(string.Empty, database.Path);
+    }
+
+    [Fact]
+    public void RelativePath_Throw()
+    {
+        Assert.Throws<ArgumentException>(() => new LiteDatabase("relative path"));
+    }
+
 }
