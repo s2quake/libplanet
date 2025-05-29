@@ -18,7 +18,7 @@ public sealed class MemoryDatabaseTest : DatabaseTestBase<MemoryDatabase>
 
         database.TryRemove("table1");
         Assert.Single(database.Values);
-        Assert.DoesNotContain(table1, database.Values);
+        Assert.False(database.Values.Contains(table1));
         Assert.Contains(table2, database.Values);
     }
 
@@ -53,5 +53,31 @@ public sealed class MemoryDatabaseTest : DatabaseTestBase<MemoryDatabase>
         Assert.Equal(table2, value2);
 
         Assert.False(database.TryGetValue("nonexistent_table", out _));
+    }
+
+    [Fact]
+    public void Database_GetEnumerator()
+    {
+        var database = CreateDatabase(nameof(Database_GetEnumerator));
+        Assert.Empty(database);
+
+        var table1 = database.GetOrAdd("table1");
+        var table2 = database.GetOrAdd("table2");
+
+        var enumerator = database.GetEnumerator();
+        var keyList = new List<string>();
+        var valueList = new List<MemoryTable>();
+        while (enumerator.MoveNext())
+        {
+            keyList.Add(enumerator.Current.Key);
+            valueList.Add(enumerator.Current.Value);
+        }
+
+        Assert.Contains("table1", keyList);
+        Assert.Contains("table2", keyList);
+        Assert.Contains(table1, valueList);
+        Assert.Contains(table2, valueList);
+        Assert.Equal(2, keyList.Count);
+        Assert.Equal(2, valueList.Count);
     }
 }
