@@ -259,7 +259,6 @@ public sealed class Repository : IDisposable
     {
         if (!_disposed)
         {
-            _database.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
