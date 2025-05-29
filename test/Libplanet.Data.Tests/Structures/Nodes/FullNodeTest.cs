@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Libplanet.Data.Structures;
 using Libplanet.Data.Structures.Nodes;
 using Libplanet.Serialization;
@@ -219,10 +218,5 @@ public class FullNodeTest
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('C', NullNode.Value),
         };
         ValidationUtility.Throws(invalidNode3, nameof(FullNode.Children));
-    }
-
-    private sealed record class UnexpectedNode : INode
-    {
-        public IEnumerable<INode> Children => throw new NotImplementedException();
     }
 }

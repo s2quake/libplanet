@@ -4,4 +4,8 @@
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\words.txt" />
+  </ItemGroup>
+
 </Project>
