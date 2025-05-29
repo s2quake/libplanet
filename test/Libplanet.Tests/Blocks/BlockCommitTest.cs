@@ -55,7 +55,7 @@ public sealed class BlockCommitTest
             }.Sign(key));
 
         // Negative height is not allowed.
-        var exception1 = TestValidator.Throws(
+        var exception1 = ValidationUtility.Throws(
             new BlockCommit
             {
                 Height = -1,
@@ -66,7 +66,7 @@ public sealed class BlockCommitTest
         Assert.Contains(nameof(BlockCommit.Height), exception1.ValidationResult.MemberNames);
 
         // Negative round is not allowed.
-        var exception2 = TestValidator.Throws(
+        var exception2 = ValidationUtility.Throws(
             new BlockCommit
             {
                 Height = 0,
@@ -81,7 +81,7 @@ public sealed class BlockCommitTest
     public void VotesCannotBeEmpty()
     {
         var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
-        var exception1 = TestValidator.Throws(
+        var exception1 = ValidationUtility.Throws(
             new BlockCommit
             {
                 Height = 0,
@@ -91,7 +91,7 @@ public sealed class BlockCommitTest
             });
         Assert.Contains(nameof(BlockCommit.Votes), exception1.ValidationResult.MemberNames);
 
-        var exception2 = TestValidator.Throws(
+        var exception2 = ValidationUtility.Throws(
             new BlockCommit
             {
                 Height = 0,
@@ -123,7 +123,7 @@ public sealed class BlockCommitTest
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
 
-        var exception1 = TestValidator.Throws(
+        var exception1 = ValidationUtility.Throws(
             new BlockCommit
             {
                 Height = height,
@@ -146,7 +146,7 @@ public sealed class BlockCommitTest
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
 
-        var exception2 = TestValidator.Throws(
+        var exception2 = ValidationUtility.Throws(
             new BlockCommit
             {
                 Height = height,
@@ -178,7 +178,7 @@ public sealed class BlockCommitTest
                 Flag = VoteFlag.PreCommit,
             }.Sign(key));
 
-        var exception1 = TestValidator.Throws(
+        var exception1 = ValidationUtility.Throws(
             new BlockCommit
             {
                 Height = height,

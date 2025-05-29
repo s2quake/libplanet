@@ -46,10 +46,10 @@ public class CurrencyTest
         Assert.Equal(100, quux.MaximumSupply);
         Assert.Empty(quux.Minters);
 
-        TestValidator.Throws(Currency.Create(string.Empty, 0), nameof(Currency.Ticker));
-        TestValidator.Throws(Currency.Create("   \n", 1), nameof(Currency.Ticker));
-        TestValidator.Throws(Currency.Create("bar", 1), nameof(Currency.Ticker));
-        TestValidator.Throws(Currency.Create("TEST", 1, -100, []), nameof(Currency.MaximumSupply));
+        ValidationUtility.Throws(Currency.Create(string.Empty, 0), nameof(Currency.Ticker));
+        ValidationUtility.Throws(Currency.Create("   \n", 1), nameof(Currency.Ticker));
+        ValidationUtility.Throws(Currency.Create("bar", 1), nameof(Currency.Ticker));
+        ValidationUtility.Throws(Currency.Create("TEST", 1, -100, []), nameof(Currency.MaximumSupply));
     }
 
     [Fact]

@@ -26,7 +26,7 @@ public class TransactionTest
         Assert.Equal(_fx.Tx, tx);
 
         var wrongTx = _fx.Tx with { Signature = _fx.TxWithActions.Signature };
-        TestValidator.Throws(wrongTx, nameof(Transaction.Signature));
+        ValidationUtility.Throws(wrongTx, nameof(Transaction.Signature));
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class TransactionTest
         Assert.Equal(_fx.Tx, tx);
 
         var wrongKey = new PrivateKey();
-        TestValidator.Throws(_fx.Tx.Metadata.Sign(wrongKey), nameof(Transaction.Signature));
+        ValidationUtility.Throws(_fx.Tx.Metadata.Sign(wrongKey), nameof(Transaction.Signature));
     }
 
     [Fact]

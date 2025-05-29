@@ -1,4 +1,7 @@
 using System.Collections;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Data.Tests;
 
@@ -166,5 +169,20 @@ public abstract class DatabaseTestBase<TDatabase>
         Assert.Single(database);
         Assert.Contains("test", database.Keys);
         Assert.Contains(table, database.Values);
+    }
+
+    [Fact]
+    public void GetOrAdd_Parallels()
+    {
+        var database = CreateDatabase(nameof(GetOrAdd_Parallels));
+        var keys = RandomUtility.Array(RandomUtility.Word, 20);
+        var tables = new ConcurrentBag<ITable>();
+
+        Parallel.ForEach(keys, (key) =>
+        {
+            tables.Add(database.GetOrAdd(key));
+        });
+
+        Assert.Equal(keys.Length, tables.Count);
     }
 }

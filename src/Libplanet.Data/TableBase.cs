@@ -10,10 +10,18 @@ public abstract class TableBase : ITable
     private readonly ValueCollection _values;
 
     protected TableBase()
+        : this(string.Empty)
+    {
+    }
+
+    protected TableBase(string name)
     {
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
+        Name = name;
     }
+
+    public string Name { get; }
 
     public ICollection<string> Keys => _keys;
 

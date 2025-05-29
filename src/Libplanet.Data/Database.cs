@@ -29,28 +29,28 @@ public abstract class Database<TTable> : IDatabase
 
     ITable IReadOnlyDictionary<string, ITable>.this[string key] => _tableByKey[key];
 
-    public TTable this[string key] => _tableByKey[key];
+    public TTable this[string name] => _tableByKey[name];
 
-    public TTable GetOrAdd(string key)
+    public TTable GetOrAdd(string name)
     {
         lock (_lock)
         {
-            return _tableByKey.GetOrAdd(key, (k, _) => Create(k), string.Empty);
+            return _tableByKey.GetOrAdd(name, (k, _) => Create(k), string.Empty);
         }
     }
 
-    public bool ContainsKey(string key) => _tableByKey.ContainsKey(key);
+    public bool ContainsKey(string name) => _tableByKey.ContainsKey(name);
 
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out TTable value)
-        => _tableByKey.TryGetValue(key, out value);
+    public bool TryGetValue(string name, [MaybeNullWhen(false)] out TTable value)
+        => _tableByKey.TryGetValue(name, out value);
 
-    public bool TryRemove(string key)
+    public bool TryRemove(string name)
     {
         lock (_lock)
         {
-            if (_tableByKey.TryRemove(key, out var value))
+            if (_tableByKey.TryRemove(name, out var value))
             {
-                OnRemove(key, value);
+                OnRemove(name, value);
                 return true;
             }
 
@@ -62,7 +62,7 @@ public abstract class Database<TTable> : IDatabase
 
     IEnumerator IEnumerable.GetEnumerator() => _tableByKey.GetEnumerator();
 
-    ITable IDatabase.GetOrAdd(string key) => GetOrAdd(key);
+    ITable IDatabase.GetOrAdd(string name) => GetOrAdd(name);
 
     bool IReadOnlyDictionary<string, ITable>.TryGetValue(string key, out ITable value)
     {
