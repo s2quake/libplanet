@@ -26,12 +26,17 @@ internal static class NodeRemover
         var prefix = oldKey.GetCommonPrefix(key);
         var nextCursor = key[prefix.Length..];
 
+        if (!key.StartsWith(shortNode.Key))
+        {
+            throw new KeyNotFoundException(
+                $"Key '{key}' does not start with the short node key '{shortNode.Key}'.");
+        }
+
         if (prefix.Length == oldKey.Length)
         {
             var node = Remove(shortNode.Value, nextCursor);
             return Create(oldKey, node);
         }
-
         return shortNode;
 
         static INode Create(string key, INode node) => node switch
