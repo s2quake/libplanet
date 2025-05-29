@@ -4,16 +4,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
+using Libplanet.Types;
 using Libplanet.Types.Threading;
 
 namespace Libplanet.Data;
 
-public abstract class IndexBase<TKey, TValue>
+public abstract class KeyedIndexBase<TKey, TValue>
     : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable
     where TKey : notnull
-    where TValue : notnull
+    where TValue : IHasKey<TKey>
 {
-    private readonly ICache<TKey, TValue>? _cache;
+    private readonly ICache<TKey, TValue> _cache;
     private readonly ITable _table;
     private readonly ReaderWriterLockSlim _lock = new();
     private readonly TypeConverter _keyConverter = TypeDescriptor.GetConverter(typeof(TKey));
@@ -21,15 +22,11 @@ public abstract class IndexBase<TKey, TValue>
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected IndexBase(ITable dictionary, int cacheSize = 100)
+    protected KeyedIndexBase(ITable dictionary, int cacheSize = 100)
     {
-        if (cacheSize > 0)
-        {
-            _cache = new ConcurrentLruBuilder<TKey, TValue>()
-                .WithCapacity(cacheSize)
-                .Build();
-        }
-
+        _cache = new ConcurrentLruBuilder<TKey, TValue>()
+            .WithCapacity(cacheSize)
+            .Build();
         _table = dictionary;
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
@@ -55,14 +52,14 @@ public abstract class IndexBase<TKey, TValue>
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new ReadScope(_lock);
-            if (_cache?.TryGet(key, out var value) is true)
+            if (_cache.TryGet(key, out var value))
             {
                 return value;
             }
 
             var bytes = _table[GetKeyBytes(key)];
             value = GetValue(bytes);
-            _cache?.AddOrUpdate(key, value);
+            _cache.AddOrUpdate(key, value);
             return value;
         }
 
@@ -70,9 +67,15 @@ public abstract class IndexBase<TKey, TValue>
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new WriteScope(_lock);
+
+            if (!Equals(key, value.Key))
+            {
+                throw new ArgumentException("Key and Value must match.", nameof(value));
+            }
+
             OnSet(key, value);
             _table[GetKeyBytes(key)] = GetBytes(value);
-            _cache?.AddOrUpdate(key, value);
+            _cache.AddOrUpdate(key, value);
             OnSetComplete(key, value);
         }
     }
@@ -82,6 +85,13 @@ public abstract class IndexBase<TKey, TValue>
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         return RemoveInternal(key);
+    }
+
+    public bool Remove(TValue value)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+        return RemoveInternal(value.Key);
     }
 
     public void RemoveRange(IEnumerable<TKey> keys)
@@ -95,11 +105,23 @@ public abstract class IndexBase<TKey, TValue>
         }
     }
 
-    public bool TryAdd(TKey key, TValue value)
+    public void RemoveRange(IEnumerable<TValue> values)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
-        if (_cache?.TryGet(key, out _) is true)
+        var items = values.Where(item => ContainsKeyInternal(item.Key)).ToArray();
+        foreach (var item in items)
+        {
+            RemoveInternal(item.Key);
+        }
+    }
+
+    public bool TryAdd(TValue value)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+        var key = value.Key;
+        if (_cache.TryGet(key, out _))
         {
             return false;
         }
@@ -111,27 +133,43 @@ public abstract class IndexBase<TKey, TValue>
 
         OnAdd(key, value);
         _table.Add(GetKeyBytes(key), GetBytes(value));
-        _cache?.AddOrUpdate(key, value);
+        _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
         return true;
     }
 
-    public void Add(TKey key, TValue value)
+    public void Add(TValue value)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
         using var scope = new WriteScope(_lock);
+        var key = value.Key;
         OnAdd(key, value);
         _table.Add(GetKeyBytes(key), GetBytes(value));
-        _cache?.AddOrUpdate(key, value);
+        _cache.AddOrUpdate(key, value);
         OnAddComplete(key, value);
+    }
+
+    public void AddRange(IEnumerable<TValue> values)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+
+        using var scope = new WriteScope(_lock);
+        foreach (var value in values)
+        {
+            var key = value.Key;
+            OnAdd(key, value);
+            _table.Add(GetKeyBytes(key), GetBytes(value));
+            _cache.AddOrUpdate(key, value);
+            OnAddComplete(key, value);
+        }
     }
 
     public bool ContainsKey(TKey key)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new ReadScope(_lock);
-        if (_cache?.TryGet(key, out _) is true)
+        if (_cache.TryGet(key, out _))
         {
             return true;
         }
@@ -143,7 +181,7 @@ public abstract class IndexBase<TKey, TValue>
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new ReadScope(_lock);
-        if (_cache?.TryGet(key, out value) is true && value is not null)
+        if (_cache.TryGet(key, out value) && value is not null)
         {
             return true;
         }
@@ -151,7 +189,7 @@ public abstract class IndexBase<TKey, TValue>
         if (_table.TryGetValue(GetKeyBytes(key), out var bytes))
         {
             value = GetValue(bytes);
-            _cache?.AddOrUpdate(key, value);
+            _cache.AddOrUpdate(key, value);
             return true;
         }
 
@@ -164,9 +202,23 @@ public abstract class IndexBase<TKey, TValue>
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         OnClear();
-        _cache?.Clear();
+        _cache.Clear();
         _table.Clear();
         OnClearComplete();
+    }
+
+    public void Clear(Func<TValue, bool> validator)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        using var scope = new WriteScope(_lock);
+
+        foreach (var (key, value) in this.ToArray())
+        {
+            if (!validator(value))
+            {
+                RemoveInternal(key);
+            }
+        }
     }
 
     public void Dispose()
@@ -175,18 +227,37 @@ public abstract class IndexBase<TKey, TValue>
         GC.SuppressFinalize(this);
     }
 
+    void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
+    {
+        if (!Equals(key, value.Key))
+        {
+            throw new ArgumentException("Key and Value must match.", nameof(value));
+        }
+
+        Add(value);
+    }
+
     void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
-        => Add(item.Key, item.Value);
+    {
+        if (!Equals(item.Key, item.Value.Key))
+        {
+            throw new ArgumentException("Key and Value must match.", nameof(item));
+        }
+
+        Add(item.Value);
+    }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
-        => TryGetValue(item.Key, out var value) && CompareValue(value, item.Value);
+    {
+        return TryGetValue(item.Key, out var value) && Equals(item.Key, value.Key) && CompareValue(value, item.Value);
+    }
 
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         => throw new NotSupportedException("CopyTo is not supported.");
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
-        if (TryGetValue(item.Key, out var value) && CompareValue(value, item.Value))
+        if (Equals(item.Key, item.Value.Key) && TryGetValue(item.Key, out var value) && CompareValue(value, item.Value))
         {
             return Remove(item.Key);
         }
@@ -286,7 +357,7 @@ public abstract class IndexBase<TKey, TValue>
 
     private bool ContainsKeyInternal(TKey key)
     {
-        if (_cache?.TryGet(key, out _) is true)
+        if (_cache.TryGet(key, out _))
         {
             return true;
         }
@@ -297,28 +368,23 @@ public abstract class IndexBase<TKey, TValue>
     private bool RemoveInternal(TKey key)
     {
         OnRemove(key);
-        if (_cache?.TryRemove(key, out var value) is true)
+        if (_cache.TryRemove(key, out var value))
         {
             _table.Remove(GetKeyBytes(key));
             OnRemoveComplete(key, value);
             return true;
         }
-        else
+        else if (_table.TryGetValue(GetKeyBytes(key), out var bytes))
         {
-            var keyBytes = GetKeyBytes(key);
-            if (_table.TryGetValue(keyBytes, out var bytes))
-            {
-                value = GetValue(bytes);
-                _table.Remove(keyBytes);
-                OnRemoveComplete(key, value);
-                return true;
-            }
+            value = GetValue(bytes);
+            OnRemoveComplete(key, value);
+            return true;
         }
 
         return false;
     }
 
-    private sealed class KeyCollection(IndexBase<TKey, TValue> owner) : ICollection<TKey>
+    private sealed class KeyCollection(KeyedIndexBase<TKey, TValue> owner) : ICollection<TKey>
     {
         public int Count => owner.Count;
 
@@ -363,7 +429,7 @@ public abstract class IndexBase<TKey, TValue>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private sealed class ValueCollection(IndexBase<TKey, TValue> owner) : ICollection<TValue>
+    private sealed class ValueCollection(KeyedIndexBase<TKey, TValue> owner) : ICollection<TValue>
     {
         public int Count => owner.Count;
 

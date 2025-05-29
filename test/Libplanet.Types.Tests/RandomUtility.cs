@@ -243,6 +243,17 @@ public static partial class RandomUtility
         return items;
     }
 
+    public static T[] Array<T>(Random random, Func<Random, T> generator, int length)
+    {
+        var items = new T[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = generator(random);
+        }
+
+        return items;
+    }
+
     public static List<T> List<T>(Func<T> generator)
     {
         var length = Length();
@@ -343,6 +354,30 @@ public static partial class RandomUtility
         return System.Collections.Immutable.ImmutableList.Create(items);
     }
 
+    public static ImmutableSortedSet<T> ImmutableSortedSet<T>(Func<T> generator)
+    {
+        var length = Length();
+        var items = new T[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = generator();
+        }
+
+        return System.Collections.Immutable.ImmutableSortedSet.Create(items);
+    }
+
+    public static ImmutableSortedSet<T> ImmutableSortedSet<T>(Random random, Func<Random, T> generator)
+    {
+        var length = Length(random);
+        var items = new T[length];
+        for (var i = 0; i < length; i++)
+        {
+            items[i] = generator(random);
+        }
+
+        return System.Collections.Immutable.ImmutableSortedSet.Create(items);
+    }
+
     public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
         Func<TKey> keyGenerator, Func<TValue> valueGenerator)
         where TKey : notnull
@@ -425,6 +460,20 @@ public static partial class RandomUtility
         }
 
         return RandomOrDefault(enumerable, predicate)!;
+    }
+
+    public static T Try<T>(Random random, Func<Random, T> generator, Func<T, bool> predicate)
+    {
+        for (var i = 0; i < AttemptCount; i++)
+        {
+            var item = generator(random);
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        throw new InvalidOperationException("No value was found that matches the condition.");
     }
 
     private static string[] GetWords()

@@ -4,7 +4,7 @@ using Libplanet.Types;
 namespace Libplanet.Data;
 
 public sealed class BlockDigestIndex(IDatabase database)
-    : IndexBase<BlockHash, BlockDigest>(database.GetOrAdd("block_digest"))
+    : KeyedIndexBase<BlockHash, BlockDigest>(database.GetOrAdd("block_digest"))
 {
     public void Add(Block block) => Add((BlockDigest)block);
 
