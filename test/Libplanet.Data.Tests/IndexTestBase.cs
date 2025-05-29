@@ -81,6 +81,9 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
 
         Assert.Equal(value, index[key]);
 
+        index.ClearCache();
+        Assert.Equal(value, index[key]);
+
         var nonExistentKey = CreateKey(random, item => !Equals(item, key));
         Assert.Throws<KeyNotFoundException>(() => index[nonExistentKey]);
     }
@@ -258,33 +261,54 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             index[key] = value;
         }
 
+        var keys = index.Keys;
+
         // ICollection<TKey>.Count
-        Assert.Equal(5, index.Keys.Count);
+        Assert.Equal(5, keys.Count);
 
         // ICollection<TKey>.IsReadOnly
-        Assert.True(index.Keys.IsReadOnly);
+        Assert.True(keys.IsReadOnly);
 
         // ICollection<TKey>.Contains
         foreach (var (key, _) in keyValues)
         {
-            Assert.True(index.Keys.Contains(key));
+            Assert.Contains(key, keys);
         }
         var nonExistentKey = CreateKey(random, item => !keyValues.Select(kv => kv.Item1).Contains(item));
-        Assert.False(index.Keys.Contains(nonExistentKey));
+        Assert.False(keys.Contains(nonExistentKey));
 
         // ICollection<TKey>.CopyTo
         var array = new TKey[5];
-        index.Keys.CopyTo(array, 0);
+        keys.CopyTo(array, 0);
         Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, array));
+        Assert.Throws<ArgumentOutOfRangeException>(() => keys.CopyTo(array, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => keys.CopyTo(array, 5));
+        Assert.Throws<ArgumentOutOfRangeException>(() => keys.CopyTo(new TKey[1], 0));
 
         // ICollection<TKey>.GetEnumerator
-        var keys = index.Keys.ToList();
-        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, keys));
+        var keyList1 = new List<TKey>();
+        var enumerator1 = keys.GetEnumerator();
+        while (enumerator1.MoveNext())
+        {
+            keyList1.Add(enumerator1.Current);
+        }
+
+        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, keyList1));
+
+        // IEnumerable.GetEnumerator
+        var keyList2 = new List<TKey>();
+        var enumerator2 = ((IEnumerable)keys).GetEnumerator();
+        while (enumerator2.MoveNext())
+        {
+            keyList2.Add((TKey)enumerator2.Current);
+        }
+
+        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, keyList2));
 
         // ICollection<TKey>.Add, Clear, Remove는 NotSupportedException
-        Assert.Throws<NotSupportedException>(() => index.Keys.Add(nonExistentKey));
-        Assert.Throws<NotSupportedException>(() => index.Keys.Clear());
-        Assert.Throws<NotSupportedException>(() => index.Keys.Remove(keyValues[0].Item1));
+        Assert.Throws<NotSupportedException>(() => keys.Add(nonExistentKey));
+        Assert.Throws<NotSupportedException>(() => keys.Clear());
+        Assert.Throws<NotSupportedException>(() => keys.Remove(keyValues[0].Item1));
     }
 
     [Theory]
@@ -301,27 +325,48 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             index[key] = value;
         }
 
+        var values = index.Values;
+
         // ICollection<TValue>.Count
-        Assert.Equal(5, index.Values.Count);
+        Assert.Equal(5, values.Count);
 
         // ICollection<TValue>.IsReadOnly
-        Assert.True(index.Values.IsReadOnly);
+        Assert.True(values.IsReadOnly);
 
         // ICollection<TValue>.CopyTo
         var array = new TValue[5];
-        index.Values.CopyTo(array, 0);
+        values.CopyTo(array, 0);
         Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, array));
+        Assert.Throws<ArgumentOutOfRangeException>(() => values.CopyTo(array, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => values.CopyTo(array, 5));
+        Assert.Throws<ArgumentOutOfRangeException>(() => values.CopyTo(new TValue[1], 0));
 
         // ICollection<TValue>.GetEnumerator
-        var values = index.Values.ToList();
-        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, values));
+        var valueList1 = new List<TValue>();
+        var enumerator1 = values.GetEnumerator();
+        while (enumerator1.MoveNext())
+        {
+            valueList1.Add(enumerator1.Current);
+        }
+
+        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, valueList1));
+
+        // IEnumerable.GetEnumerator
+        var valueList2 = new List<TValue>();
+        var enumerator2 = ((IEnumerable)values).GetEnumerator();
+        while (enumerator2.MoveNext())
+        {
+            valueList2.Add((TValue)enumerator2.Current);
+        }
+
+        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, valueList2));
 
         // ICollection<TValue>.Add, Clear, Remove, Contains는 NotSupportedException
         var nonExistentValue = CreateValue(random, item => !keyValues.Select(kv => kv.Item2).Contains(item));
-        Assert.Throws<NotSupportedException>(() => index.Values.Add(nonExistentValue));
-        Assert.Throws<NotSupportedException>(() => index.Values.Clear());
-        Assert.Throws<NotSupportedException>(() => index.Values.Remove(keyValues[0].Item2));
-        Assert.Throws<NotSupportedException>(() => index.Values.Contains(keyValues[0].Item2));
+        Assert.Throws<NotSupportedException>(() => values.Add(nonExistentValue));
+        Assert.Throws<NotSupportedException>(() => values.Clear());
+        Assert.Throws<NotSupportedException>(() => values.Remove(keyValues[0].Item2));
+        Assert.Throws<NotSupportedException>(() => values.Contains(keyValues[0].Item2));
     }
 
     [Fact]
@@ -472,14 +517,14 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         var enumerator = ((IEnumerable<KeyValuePair<TKey, TValue>>)index).GetEnumerator();
         var keyList = new List<TKey>();
         var valueList = new List<TValue>();
-        while( enumerator.MoveNext())
+        while (enumerator.MoveNext())
         {
             var (key, value) = enumerator.Current;
             keyList.Add(key);
             valueList.Add(value);
         }
 
-        foreach(var (key, value) in keyValues)
+        foreach (var (key, value) in keyValues)
         {
             Assert.Contains(key, keyList);
             Assert.Contains(value, valueList);
