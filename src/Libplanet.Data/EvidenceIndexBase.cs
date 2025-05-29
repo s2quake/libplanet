@@ -4,7 +4,7 @@ using Libplanet.Types;
 namespace Libplanet.Data;
 
 public abstract class EvidenceIndexBase(IDatabase database, string name)
-    : IndexBase<EvidenceId, EvidenceBase>(database.GetOrAdd(name))
+    : KeyedIndexBase<EvidenceId, EvidenceBase>(database.GetOrAdd(name))
 {
     protected override byte[] GetBytes(EvidenceBase value) => ModelSerializer.SerializeToBytes(value);
 

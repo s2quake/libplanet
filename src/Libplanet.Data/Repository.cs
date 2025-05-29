@@ -181,7 +181,7 @@ public sealed class Repository : IDisposable
     public void Append(Block block, BlockCommit blockCommit)
     {
         BlockDigests.Add(block);
-        BlockCommits.Add(block.BlockHash, blockCommit);
+        BlockCommits.Add(blockCommit);
         BlockHashes.Add(block);
         Nonces.Increase(block);
         PendingTransactions.RemoveRange(block.Transactions);

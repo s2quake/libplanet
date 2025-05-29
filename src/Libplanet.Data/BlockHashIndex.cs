@@ -2,8 +2,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public sealed class BlockHashIndex(IDatabase database)
-    : IndexBase<int, BlockHash>(database.GetOrAdd("block_hash"))
+public sealed class BlockHashIndex(IDatabase database, int cacheSize = 100)
+    : IndexBase<int, BlockHash>(database.GetOrAdd("block_hash"), cacheSize)
 {
     public int GenesisHeight { get; internal set; }
 

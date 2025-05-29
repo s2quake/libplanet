@@ -105,7 +105,7 @@ public partial class Blockchain
         var execution = _blockExecutor.Execute((RawBlock)block);
         var blockHash = block.BlockHash;
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(blockHash));
-        _repository.BlockExecutions.Add(blockHash, execution.GetBlockExecution(blockHash));
+        _repository.BlockExecutions.Add(execution.GetBlockExecution(blockHash));
         _repository.StateRootHashes.Add(blockHash, _repository.StateRootHash);
 
         return execution;

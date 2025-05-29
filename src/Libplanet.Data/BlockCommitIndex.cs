@@ -4,7 +4,7 @@ using Libplanet.Types;
 namespace Libplanet.Data;
 
 public sealed class BlockCommitIndex(IDatabase database)
-    : IndexBase<BlockHash, BlockCommit>(database.GetOrAdd("block_commit"))
+    : KeyedIndexBase<BlockHash, BlockCommit>(database.GetOrAdd("block_commit"))
 {
     protected override byte[] GetBytes(BlockCommit value) => ModelSerializer.SerializeToBytes(value);
 
