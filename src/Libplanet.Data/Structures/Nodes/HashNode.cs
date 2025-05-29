@@ -24,12 +24,6 @@ internal sealed record class HashNode : INode
 
     public INode Expand()
     {
-        if (Table is not { } table)
-        {
-            throw new InvalidOperationException(
-                $"{nameof(Table)} must be set before calling {nameof(Expand)}.");
-        }
-
         byte[] intermediateValue;
         if (HashNodeCache.TryGetValue(Hash, out var value))
         {
@@ -38,7 +32,7 @@ internal sealed record class HashNode : INode
         else
         {
             var key = Hash.ToString();
-            if (table.TryGetValue(key, out var valueBytes))
+            if (Table.TryGetValue(key, out var valueBytes))
             {
                 intermediateValue = valueBytes;
                 HashNodeCache.AddOrUpdate(Hash, valueBytes);
@@ -51,8 +45,7 @@ internal sealed record class HashNode : INode
 
         var context = new ModelOptions
         {
-            Items = ImmutableDictionary<object, object?>.Empty.Add(
-                typeof(ITable), table),
+            Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(ITable), Table),
         };
 
         var node = ModelSerializer.DeserializeFromBytes<INode>(intermediateValue, context);

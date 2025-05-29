@@ -24,8 +24,4 @@
     <ProjectReference Include="..\Libplanet.Types.Tests\Libplanet.Types.Tests.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\words.txt" />
-  </ItemGroup>
-
 </Project>

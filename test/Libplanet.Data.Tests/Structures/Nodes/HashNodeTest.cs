@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Data.Structures.Nodes;
-using Libplanet.Data;
 using Libplanet.Types.Tests;
 
 namespace Libplanet.Data.Tests.Structures.Nodes;
@@ -9,7 +8,7 @@ namespace Libplanet.Data.Tests.Structures.Nodes;
 public class HashNodeTest
 {
     [Fact]
-    public void SerializationTest()
+    public void Serialization()
     {
         var table = new MemoryTable();
         var expectedNode = new HashNode
@@ -26,7 +25,7 @@ public class HashNodeTest
     }
 
     [Fact]
-    public void SerializationThrowTest()
+    public void Serialization_Throw()
     {
         var table = new MemoryTable();
         var expectedNode = new HashNode
