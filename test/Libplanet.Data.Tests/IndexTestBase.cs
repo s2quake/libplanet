@@ -1,5 +1,4 @@
 using System.Collections;
-using System.ComponentModel;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
@@ -39,14 +38,14 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         return [.. valueList];
     }
 
-    protected (TKey, TValue) CreateKeyValue(Random random)
-        => (CreateKeys(random, 1)[0], CreateValues(random, 1)[0]);
+    protected KeyValuePair<TKey, TValue> CreateKeyValue(Random random)
+        => new (CreateKeys(random, 1)[0], CreateValues(random, 1)[0]);
 
-    protected (TKey, TValue)[] CreateKeyValues(Random random, int length)
+    protected KeyValuePair<TKey, TValue>[] CreateKeyValues(Random random, int length)
     {
         var keys = CreateKeys(random, length);
         var values = CreateValues(random, length);
-        return [.. keys.Zip(values, (k, v) => (k, v))];
+        return [.. keys.Zip(values, (k, v) => new KeyValuePair<TKey, TValue>(k, v))];
     }
 
     protected TKey CreateKey(Random random, Func<TKey, bool> predicate)
@@ -114,15 +113,15 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     {
         var random = GetRandom(output);
         var index = CreateIndex(useCache);
-        var keyValues = CreateKeyValues(random, 10);
+        var keyValues = CreateKeyValues(random, 12);
         foreach (var (key, value) in keyValues)
         {
             index[key] = value;
         }
 
-        var keysToRemove = keyValues.Take(5).Select(kv => kv.Item1).ToArray();
-        index.RemoveRange(keysToRemove);
-        Assert.Equal(5, index.Count);
+        var keysToRemove = keyValues.Take(5).Select(kv => kv.Key).ToArray();
+        Assert.Equal(5, index.RemoveRange(keysToRemove));
+        Assert.Equal(7, index.Count);
 
         foreach (var (key, _) in keyValues)
         {
@@ -132,9 +131,12 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             }
             else
             {
-                Assert.Equal(index[key], keyValues.First(kv => kv.Item1.Equals(key)).Item2);
+                Assert.Equal(index[key], keyValues.First(kv => kv.Key.Equals(key)).Value);
             }
         }
+
+        Assert.Equal(7, index.RemoveRange(keyValues.Select(kv => kv.Key)));
+        Assert.Empty(index);
     }
 
     [Theory]
@@ -168,11 +170,69 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         index.Add(key, value);
         Assert.Equal(value, index[key]);
 
-        // Adding the same key again should throw an exception
         Assert.Throws<ArgumentException>(() => index.Add(key, value));
 
         var nonExistentKey = CreateKey(random, item => !Equals(item, key));
         Assert.Throws<KeyNotFoundException>(() => index[nonExistentKey]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddRange(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 10);
+
+        var keyValuesToAdd1 = keyValues.Take(5).ToArray();
+        index.AddRange(keyValuesToAdd1);
+        Assert.Equal(5, index.Count);
+
+        foreach (var (key, value) in keyValuesToAdd1)
+        {
+            Assert.Equal(value, index[key]);
+        }
+
+        Assert.Throws<ArgumentException>(() => index.AddRange(keyValues));
+        var keyValuesToAdd2 = keyValues.Skip(5).ToArray();
+        index.AddRange(keyValuesToAdd2);
+        Assert.Equal(10, index.Count);
+
+        foreach (var (key, value) in keyValuesToAdd2)
+        {
+            Assert.Equal(value, index[key]);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UpsertRange(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateKeyValues(random, 10);
+
+        // Upsert existing keys
+        var existingKeyValues = keyValues.Take(5).ToArray();
+        index.UpsertRange(existingKeyValues);
+        Assert.Equal(5, index.Count);
+
+        foreach (var (key, value) in existingKeyValues)
+        {
+            Assert.Equal(value, index[key]);
+        }
+
+        // Upsert new keys
+        var newKeyValues = keyValues.Skip(5).ToArray();
+        index.UpsertRange(newKeyValues);
+        Assert.Equal(10, index.Count);
+
+        foreach (var (key, value) in newKeyValues)
+        {
+            Assert.Equal(value, index[key]);
+        }
     }
 
     [Theory]
@@ -274,13 +334,13 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         {
             Assert.Contains(key, keys);
         }
-        var nonExistentKey = CreateKey(random, item => !keyValues.Select(kv => kv.Item1).Contains(item));
+        var nonExistentKey = CreateKey(random, item => !keyValues.Select(kv => kv.Key).Contains(item));
         Assert.False(keys.Contains(nonExistentKey));
 
         // ICollection<TKey>.CopyTo
         var array = new TKey[5];
         keys.CopyTo(array, 0);
-        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, array));
+        Assert.All(keyValues.Select(kv => kv.Key), k => Assert.Contains(k, array));
         Assert.Throws<ArgumentOutOfRangeException>(() => keys.CopyTo(array, -1));
         Assert.Throws<ArgumentOutOfRangeException>(() => keys.CopyTo(array, 5));
         Assert.Throws<ArgumentOutOfRangeException>(() => keys.CopyTo(new TKey[1], 0));
@@ -293,7 +353,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             keyList1.Add(enumerator1.Current);
         }
 
-        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, keyList1));
+        Assert.All(keyValues.Select(kv => kv.Key), k => Assert.Contains(k, keyList1));
 
         // IEnumerable.GetEnumerator
         var keyList2 = new List<TKey>();
@@ -303,12 +363,12 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             keyList2.Add((TKey)enumerator2.Current);
         }
 
-        Assert.All(keyValues.Select(kv => kv.Item1), k => Assert.Contains(k, keyList2));
+        Assert.All(keyValues.Select(kv => kv.Key), k => Assert.Contains(k, keyList2));
 
         // ICollection<TKey>.Add, Clear, Remove는 NotSupportedException
         Assert.Throws<NotSupportedException>(() => keys.Add(nonExistentKey));
         Assert.Throws<NotSupportedException>(() => keys.Clear());
-        Assert.Throws<NotSupportedException>(() => keys.Remove(keyValues[0].Item1));
+        Assert.Throws<NotSupportedException>(() => keys.Remove(keyValues[0].Key));
     }
 
     [Theory]
@@ -336,7 +396,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         // ICollection<TValue>.CopyTo
         var array = new TValue[5];
         values.CopyTo(array, 0);
-        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, array));
+        Assert.All(keyValues.Select(kv => kv.Value), v => Assert.Contains(v, array));
         Assert.Throws<ArgumentOutOfRangeException>(() => values.CopyTo(array, -1));
         Assert.Throws<ArgumentOutOfRangeException>(() => values.CopyTo(array, 5));
         Assert.Throws<ArgumentOutOfRangeException>(() => values.CopyTo(new TValue[1], 0));
@@ -349,7 +409,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             valueList1.Add(enumerator1.Current);
         }
 
-        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, valueList1));
+        Assert.All(keyValues.Select(kv => kv.Value), v => Assert.Contains(v, valueList1));
 
         // IEnumerable.GetEnumerator
         var valueList2 = new List<TValue>();
@@ -359,14 +419,14 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             valueList2.Add((TValue)enumerator2.Current);
         }
 
-        Assert.All(keyValues.Select(kv => kv.Item2), v => Assert.Contains(v, valueList2));
+        Assert.All(keyValues.Select(kv => kv.Value), v => Assert.Contains(v, valueList2));
 
         // ICollection<TValue>.Add, Clear, Remove, Contains는 NotSupportedException
-        var nonExistentValue = CreateValue(random, item => !keyValues.Select(kv => kv.Item2).Contains(item));
+        var nonExistentValue = CreateValue(random, item => !keyValues.Select(kv => kv.Value).Contains(item));
         Assert.Throws<NotSupportedException>(() => values.Add(nonExistentValue));
         Assert.Throws<NotSupportedException>(() => values.Clear());
-        Assert.Throws<NotSupportedException>(() => values.Remove(keyValues[0].Item2));
-        Assert.Throws<NotSupportedException>(() => values.Contains(keyValues[0].Item2));
+        Assert.Throws<NotSupportedException>(() => values.Remove(keyValues[0].Value));
+        Assert.Throws<NotSupportedException>(() => values.Contains(keyValues[0].Value));
     }
 
     [Fact]
@@ -395,7 +455,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             Assert.Contains(key, keys);
         }
 
-        var nonExistentKey = CreateKey(random, item => !keyValues.Select(kv => kv.Item1).Contains(item));
+        var nonExistentKey = CreateKey(random, item => !keyValues.Select(kv => kv.Key).Contains(item));
         Assert.DoesNotContain(nonExistentKey, keys);
     }
 
@@ -418,7 +478,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
             Assert.Contains(value, values);
         }
 
-        var nonExistentValue = CreateValue(random, item => !keyValues.Select(kv => kv.Item2).Contains(item));
+        var nonExistentValue = CreateValue(random, item => !keyValues.Select(kv => kv.Value).Contains(item));
         Assert.DoesNotContain(nonExistentValue, values);
     }
 

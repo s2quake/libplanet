@@ -37,15 +37,9 @@ public sealed class BlockHashIndex(IDatabase database, int cacheSize = 100)
 
     internal static string GetKey(Guid chainId) => $"{chainId}_block_hash";
 
-    protected override void OnAddComplete(int key, BlockHash item)
+    protected override void OnUpdated(int key, BlockHash item)
     {
-        base.OnAddComplete(key, item);
-        Height = Math.Max(Height, key);
-    }
-
-    protected override void OnSetComplete(int key, BlockHash item)
-    {
-        base.OnSetComplete(key, item);
+        base.OnUpdated(key, item);
         Height = Math.Max(Height, key);
     }
 

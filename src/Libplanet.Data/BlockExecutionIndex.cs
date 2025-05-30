@@ -6,8 +6,12 @@ namespace Libplanet.Data;
 public sealed class BlockExecutionIndex(IDatabase database)
     : KeyedIndexBase<BlockHash, BlockExecution>(database.GetOrAdd("block_execution"))
 {
-    protected override byte[] GetBytes(BlockExecution value) => ModelSerializer.SerializeToBytes(value);
+    protected override byte[] ValueToBytes(BlockExecution value) => ModelSerializer.SerializeToBytes(value);
 
-    protected override BlockExecution GetValue(byte[] bytes)
+    protected override BlockExecution BytesToValue(byte[] bytes)
         => ModelSerializer.DeserializeFromBytes<BlockExecution>(bytes);
+
+    protected override string KeyToString(BlockHash key) => key.ToString();
+
+    protected override BlockHash StringToKey(string key) => BlockHash.Parse(key);
 }
