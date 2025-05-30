@@ -3,9 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Data;
 
-public sealed class MemoryTable : TableBase
+public sealed class MemoryTable(string name) : TableBase(name)
 {
     private readonly ConcurrentDictionary<string, byte[]> _dictionary = new();
+
+    public MemoryTable()
+        : this(string.Empty)
+    {
+    }
 
     public override int Count => _dictionary.Count;
 
@@ -40,3 +45,4 @@ public sealed class MemoryTable : TableBase
         }
     }
 }
+

@@ -3,9 +3,10 @@ using System.Collections;
 
 namespace Libplanet.Data.Tests;
 
-public abstract class TableTestBase
+public abstract class TableTestBase<TTable>
+    where TTable : ITable
 {
-    public abstract ITable CreateTable(string name);
+    public abstract TTable CreateTable(string name);
 
     [Fact]
     public void Get_After_Add()
@@ -374,7 +375,7 @@ public abstract class TableTestBase
 
         // IsReadOnly
         Assert.True(keys is ICollection<string> collection && collection.IsReadOnly);
-        
+
         // Exception tests
         Assert.Throws<NotSupportedException>(() => keys.Add("newKey"));
         Assert.Throws<NotSupportedException>(() => keys.Remove(key1));
@@ -402,7 +403,7 @@ public abstract class TableTestBase
         var key2 = "key2";
         var value2 = new byte[] { 4, 5, 6 };
         table.Add(key2, value2);
-        
+
         var keys = table.Keys;
 
         var array1 = new string[2];
@@ -428,20 +429,20 @@ public abstract class TableTestBase
         var value2 = new byte[] { 4, 5, 6 };
         var key3 = "key3";
         var value3 = new byte[] { 7, 8, 9 };
-        
+
         table.Add(key1, value1);
         table.Add(key2, value2);
         table.Add(key3, value3);
-        
+
         var keys = table.Keys;
-        
+
         var exactArray = new string[3];
         keys.CopyTo(exactArray, 0);
         Assert.Equal(3, exactArray.Length);
         Assert.Contains(key1, exactArray);
         Assert.Contains(key2, exactArray);
         Assert.Contains(key3, exactArray);
-        
+
         var largerArray = new string[5];
         largerArray[3] = "extra1";
         largerArray[4] = "extra2";
@@ -452,7 +453,7 @@ public abstract class TableTestBase
         Assert.Contains(key3, largerArray);
         Assert.Equal("extra1", largerArray[3]);
         Assert.Equal("extra2", largerArray[4]);
-        
+
         var offsetArray = new string[5];
         offsetArray[0] = "before1";
         offsetArray[1] = "before2";
@@ -546,7 +547,7 @@ public abstract class TableTestBase
         var key2 = "key2";
         var value2 = new byte[] { 4, 5, 6 };
         table.Add(key2, value2);
-        
+
         var values = table.Values;
 
         var array1 = new byte[2][];
@@ -572,20 +573,20 @@ public abstract class TableTestBase
         var value2 = new byte[] { 4, 5, 6 };
         var key3 = "key3";
         var value3 = new byte[] { 7, 8, 9 };
-        
+
         table.Add(key1, value1);
         table.Add(key2, value2);
         table.Add(key3, value3);
-        
+
         var values = table.Values;
-        
+
         var exactArray = new byte[3][];
         values.CopyTo(exactArray, 0);
         Assert.Equal(3, exactArray.Length);
         Assert.Contains(value1, exactArray);
         Assert.Contains(value2, exactArray);
         Assert.Contains(value3, exactArray);
-        
+
         var largerArray = new byte[5][];
         var extraValue1 = new byte[] { 10, 11, 12 };
         var extraValue2 = new byte[] { 13, 14, 15 };
@@ -598,7 +599,7 @@ public abstract class TableTestBase
         Assert.Contains(value3, largerArray);
         Assert.Equal(extraValue1, largerArray[3]);
         Assert.Equal(extraValue2, largerArray[4]);
-        
+
         var offsetArray = new byte[5][];
         var beforeValue1 = new byte[] { 16, 17, 18 };
         var beforeValue2 = new byte[] { 19, 20, 21 };
