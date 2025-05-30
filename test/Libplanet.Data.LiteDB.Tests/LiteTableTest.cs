@@ -5,14 +5,14 @@ using LiteDB;
 
 namespace Libplanet.Data.LiteDB.Tests;
 
-public sealed class LiteTableTest : TableTestBase, IDisposable
+public sealed class LiteTableTest : TableTestBase<LiteTable>, IDisposable
 {
     private readonly global::LiteDB.LiteDatabase _db = CreateLiteDatabase();
     private readonly ConcurrentBag<LiteTable> _tables = [];
 
-    public override ITable CreateTable(string key)
+    public override LiteTable CreateTable(string name)
     {
-        var table = new LiteTable(_db, key);
+        var table = new LiteTable(_db, name);
         _tables.Add(table);
         return table;
     }

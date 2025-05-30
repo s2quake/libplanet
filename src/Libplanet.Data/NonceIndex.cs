@@ -15,21 +15,6 @@ public sealed class NonceIndex(IDatabase database, int cacheSize = 100)
         }
     }
 
-    public void MergeFrom(NonceIndex source)
-    {
-        foreach (var (key, value) in source)
-        {
-            if (TryGetValue(key, out var nonce))
-            {
-                this[key] = Math.Max(nonce, value);
-            }
-            else
-            {
-                this[key] = value;
-            }
-        }
-    }
-
     protected override byte[] ValueToBytes(long value) => BitConverter.GetBytes(value);
 
     protected override long BytesToValue(byte[] bytes) => BitConverter.ToInt64(bytes, 0);
