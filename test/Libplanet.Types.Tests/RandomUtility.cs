@@ -104,6 +104,22 @@ public static partial class RandomUtility
 
     public static BigInteger BigInteger(Random random) => new(random.NextInt64());
 
+    public static int Positive() => Positive(System.Random.Shared);
+
+    public static int Positive(Random random) => Int32(random, 0, int.MaxValue) + 1;
+
+    public static int Negative() => Negative(System.Random.Shared);
+
+    public static int Negative(Random random) => Int32(random, int.MinValue, 0);
+
+    public static int NonPositive() => NonPositive(System.Random.Shared);
+
+    public static int NonPositive(Random random) => Int32(random, int.MinValue, 1);
+
+    public static int NonNegative() => NonNegative(System.Random.Shared);
+
+    public static int NonNegative(Random random) => Int32(random, -1, int.MaxValue) + 1;
+
     public static string Word() => Word(System.Random.Shared);
 
     public static string Word(Func<string, bool> predicate)

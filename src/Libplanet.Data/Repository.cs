@@ -147,40 +147,39 @@ public class Repository
         }
     }
 
-    public BlockHash GenesisBlockHash
-    {
-        get
-        {
-            if (_genesisHeight == -1)
-            {
-                throw new InvalidOperationException("Genesis block hash is not set.");
-            }
+    public BlockHash GenesisBlockHash => _genesisHeight == -1 ? default : BlockHashes[_genesisHeight];
 
-            return BlockHashes[_genesisHeight];
-        }
-    }
+    public BlockHash BlockHash => _height == -1 ? default : BlockHashes[_height];
 
-    public BlockHash BlockHash
-    {
-        get
-        {
-            if (_height == -1)
-            {
-                throw new InvalidOperationException("Block hash is not set.");
-            }
-
-            return BlockHashes[_height];
-        }
-    }
-
-    public BlockCommit BlockCommit => BlockCommits[BlockHash];
+    public BlockCommit BlockCommit => BlockCommits.GetValueOrDefault(BlockHash, BlockCommit.Empty);
 
     protected IDatabase Database { get; }
 
     public void Append(Block block, BlockCommit blockCommit)
     {
+        if (blockCommit != BlockCommit.Empty)
+        {
+            if (blockCommit.BlockHash != block.BlockHash)
+            {
+                throw new ArgumentException(
+                    "Block commit's block hash does not match the block's hash.",
+                    nameof(blockCommit));
+            }
+
+            if (blockCommit.Height != block.Height)
+            {
+                throw new ArgumentException(
+                    "Block commit's height does not match the block's height.",
+                    nameof(blockCommit));
+            }
+        }
+
         BlockDigests.Add(block);
-        BlockCommits.Add(blockCommit);
+        if (blockCommit != BlockCommit.Empty)
+        {
+            BlockCommits.Add(blockCommit);
+        }
+
         BlockHashes.Add(block);
         Nonces.Increase(block);
         PendingTransactions.RemoveRange(block.Transactions);
