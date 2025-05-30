@@ -140,7 +140,11 @@ public partial class StateIndex(ITable table)
 
         public void Flush()
         {
-            _table.SetMany(_batch);
+            foreach (var (key, value) in _batch)
+            {
+                _table[key] = value;
+            }
+
             _batch.Clear();
         }
 

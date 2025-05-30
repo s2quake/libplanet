@@ -7,7 +7,7 @@ namespace Libplanet.Data.Tests;
 public class BlockHashIndexTest(ITestOutputHelper output)
     : IndexTestBase<int, BlockHash, BlockHashIndex>(output)
 {
-    protected override BlockHashIndex CreateIndex(bool useCache)
+    protected override BlockHashIndex CreateIndex(string name, bool useCache)
         => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override int CreateKey(Random random) => RandomUtility.Int32(random);
@@ -18,7 +18,7 @@ public class BlockHashIndexTest(ITestOutputHelper output)
     public void AddBlock()
     {
         var random = GetRandom();
-        var index = CreateIndex(useCache: true);
+        var index = CreateIndex(nameof(AddBlock), useCache: true);
         var signer = RandomUtility.PrivateKey(random);
         var block0 = new BlockBuilder
         {

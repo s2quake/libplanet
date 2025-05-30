@@ -7,7 +7,7 @@ namespace Libplanet.Data.Tests;
 public class BlockExecutionIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<BlockHash, BlockExecution, BlockExecutionIndex>(output)
 {
-    protected override BlockExecutionIndex CreateIndex(bool useCache)
+    protected override BlockExecutionIndex CreateIndex(string name, bool useCache)
         => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);

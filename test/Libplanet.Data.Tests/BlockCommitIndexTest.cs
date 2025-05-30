@@ -7,7 +7,7 @@ namespace Libplanet.Data.Tests;
 public class BlockCommitIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<BlockHash, BlockCommit, BlockCommitIndex>(output)
 {
-    protected override BlockCommitIndex CreateIndex(bool useCache)
+    protected override BlockCommitIndex CreateIndex(string name, bool useCache)
         => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);

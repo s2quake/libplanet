@@ -7,7 +7,7 @@ namespace Libplanet.Data.Tests;
 public class CommittedTransactionIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<TxId, Transaction, CommittedTransactionIndex>(output)
 {
-    protected override CommittedTransactionIndex CreateIndex(bool useCache)
+    protected override CommittedTransactionIndex CreateIndex(string name, bool useCache)
         => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override TxId CreateKey(Random random) => RandomUtility.TxId(random);
