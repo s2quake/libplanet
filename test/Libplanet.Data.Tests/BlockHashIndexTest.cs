@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class BlockHashIndexTest(ITestOutputHelper output)
+public class BlockHashIndexTest(ITestOutputHelper output)
     : IndexTestBase<int, BlockHash, BlockHashIndex>(output)
 {
     protected override BlockHashIndex CreateIndex(bool useCache)

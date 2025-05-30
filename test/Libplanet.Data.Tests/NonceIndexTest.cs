@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class NonceIndexTest(ITestOutputHelper output)
+public class NonceIndexTest(ITestOutputHelper output)
     : IndexTestBase<Address, long, NonceIndex>(output)
 {
     protected override NonceIndex CreateIndex(bool useCache)

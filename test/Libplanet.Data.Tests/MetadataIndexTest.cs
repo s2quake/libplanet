@@ -3,7 +3,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class MetadataIndexTest(ITestOutputHelper output)
+public class MetadataIndexTest(ITestOutputHelper output)
     : IndexTestBase<string, string, MetadataIndex>(output)
 {
     protected override MetadataIndex CreateIndex(bool useCache)

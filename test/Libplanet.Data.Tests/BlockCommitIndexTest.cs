@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class BlockCommitIndexTest(ITestOutputHelper output)
+public class BlockCommitIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<BlockHash, BlockCommit, BlockCommitIndex>(output)
 {
     protected override BlockCommitIndex CreateIndex(bool useCache)

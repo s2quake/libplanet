@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class BlockDigestIndexTest(ITestOutputHelper output)
+public class BlockDigestIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<BlockHash, BlockDigest, BlockDigestIndex>(output)
 {
     protected override BlockDigestIndex CreateIndex(bool useCache)

@@ -82,7 +82,10 @@ public sealed class StatsCommandTest : IDisposable
     {
         foreach (var storeFixture in _storeFixtures)
         {
-            storeFixture.Repository.Dispose();
+            if (storeFixture.Repository is IDisposable disposableRepository)
+            {
+                disposableRepository.Dispose();
+            }
         }
 
         Console.SetOut(_originalWriter);

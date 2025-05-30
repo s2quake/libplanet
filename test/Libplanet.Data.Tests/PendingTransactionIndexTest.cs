@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class PendingTransactionIndexTest(ITestOutputHelper output)
+public class PendingTransactionIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<TxId, Transaction, PendingTransactionIndex>(output)
 {
     protected override PendingTransactionIndex CreateIndex(bool useCache)
