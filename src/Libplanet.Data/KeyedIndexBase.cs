@@ -70,10 +70,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
                 throw new ArgumentException("Key and Value must match.", nameof(value));
             }
 
-            OnSet(key, value);
-            _table[KeyToString(key)] = ValueToBytes(value);
-            _cache?.AddOrUpdate(key, value);
-            OnSetComplete(key, value);
+            UpsertInternal(value);
         }
     }
 
@@ -92,35 +89,35 @@ public abstract class KeyedIndexBase<TKey, TValue>
     public int RemoveRange(IEnumerable<TKey> keys)
     {
         using var scope = new WriteScope(_lock);
-        var items = keys.Where(ContainsKeyInternal).ToArray();
-        int removedCount = 0;
-        
+        var items = keys.ToArray();
+        int count = 0;
+
         foreach (var item in items)
         {
             if (RemoveInternal(item))
             {
-                removedCount++;
+                count++;
             }
         }
-        
-        return removedCount;
+
+        return count;
     }
 
     public int RemoveRange(IEnumerable<TValue> values)
     {
         using var scope = new WriteScope(_lock);
-        var items = values.Where(item => ContainsKeyInternal(item.Key)).ToArray();
-        int removedCount = 0;
-        
+        var items = values.ToArray();
+        var count = 0;
+
         foreach (var item in items)
         {
             if (RemoveInternal(item.Key))
             {
-                removedCount++;
+                count++;
             }
         }
-        
-        return removedCount;
+
+        return count;
     }
 
     public bool TryAdd(TValue value)
@@ -137,10 +134,9 @@ public abstract class KeyedIndexBase<TKey, TValue>
             return false;
         }
 
-        OnAdd(key, value);
         _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
-        OnAddComplete(key, value);
+        OnUpdated(value);
         return true;
     }
 
@@ -148,42 +144,41 @@ public abstract class KeyedIndexBase<TKey, TValue>
     {
         using var scope = new WriteScope(_lock);
         var key = value.Key;
-        OnAdd(key, value);
         _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
-        OnAddComplete(key, value);
+        OnUpdated(value);
     }
 
     public void AddRange(IEnumerable<TValue> values)
     {
-        // 한 번만 열거하도록 배열로 변환
-        TValue[] valuesArray = values.ToArray();
-        
-        if (valuesArray.Length == 0)
-        {
-            return;
-        }
-
         using var scope = new WriteScope(_lock);
-        
-        // 먼저 모든 키에 대해 중복 검사
-        foreach (var value in valuesArray)
+        var items = values.ToArray();
+
+        foreach (var item in items)
         {
-            var key = value.Key;
-            if (_cache?.TryGet(key, out _) is true || _table.ContainsKey(KeyToString(key)))
+            if (ContainsKeyInternal(item.Key))
             {
-                throw new ArgumentException($"An item with the same key has already been added. Key: {key}");
+                throw new ArgumentException($"Key '{item.Key}' already exists in the index.", nameof(values));
             }
         }
-        
-        // 모든 키가 중복이 아닌 경우에만 항목 추가
-        foreach (var value in valuesArray)
+
+        foreach (var item in items)
         {
-            var key = value.Key;
-            OnAdd(key, value);
+            var key = item.Key;
+            var value = item;
             _table.Add(KeyToString(key), ValueToBytes(value));
             _cache?.AddOrUpdate(key, value);
-            OnAddComplete(key, value);
+            OnUpdated(value);
+        }
+    }
+
+    public void UpsertRange(IEnumerable<TValue> values)
+    {
+        using var scope = new WriteScope(_lock);
+        var items = values.ToArray();
+        foreach (var item in items)
+        {
+            UpsertInternal(item);
         }
     }
 
@@ -220,10 +215,9 @@ public abstract class KeyedIndexBase<TKey, TValue>
     public void Clear()
     {
         using var scope = new WriteScope(_lock);
-        OnClear();
         _cache?.Clear();
         _table.Clear();
-        OnClearComplete();
+        OnCleared();
     }
 
     public void ClearCache()
@@ -316,35 +310,15 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     protected abstract TValue BytesToValue(byte[] bytes);
 
-    protected virtual void OnClear()
+    protected virtual void OnCleared()
     {
     }
 
-    protected virtual void OnClearComplete()
+    protected virtual void OnUpdated(TValue item)
     {
     }
 
-    protected virtual void OnAdd(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnAddComplete(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnRemove(TKey key)
-    {
-    }
-
-    protected virtual void OnRemoveComplete(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnSet(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnSetComplete(TKey key, TValue item)
+    protected virtual void OnRemoved(TValue item)
     {
     }
 
@@ -360,11 +334,10 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     private bool RemoveInternal(TKey key)
     {
-        OnRemove(key);
         if (_cache?.TryRemove(key, out var value) is true)
         {
             _table.Remove(KeyToString(key));
-            OnRemoveComplete(key, value);
+            OnRemoved(value);
             return true;
         }
         else
@@ -374,12 +347,20 @@ public abstract class KeyedIndexBase<TKey, TValue>
             {
                 value = BytesToValue(bytes);
                 _table.Remove(keyBytes);
-                OnRemoveComplete(key, value);
+                OnRemoved(value);
                 return true;
             }
         }
 
         return false;
+    }
+
+    private void UpsertInternal(TValue value)
+    {
+        var key = value.Key;
+        _table[KeyToString(key)] = ValueToBytes(value);
+        _cache?.AddOrUpdate(key, value);
+        OnUpdated(value);
     }
 
     private sealed class KeyCollection(KeyedIndexBase<TKey, TValue> owner) : ICollection<TKey>

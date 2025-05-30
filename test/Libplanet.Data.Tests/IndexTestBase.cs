@@ -114,10 +114,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         var random = GetRandom(output);
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 12);
-        foreach (var (key, value) in keyValues)
-        {
-            index[key] = value;
-        }
+        index.UpsertRange(keyValues);
 
         var keysToRemove = keyValues.Take(5).Select(kv => kv.Key).ToArray();
         Assert.Equal(5, index.RemoveRange(keysToRemove));
@@ -261,8 +258,11 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         var (key, value) = CreateKeyValue(random);
         index[key] = value;
 
-        Assert.True(index.TryGetValue(key, out var actualValue));
-        Assert.Equal(value, actualValue);
+        Assert.True(index.TryGetValue(key, out var actualValue1));
+        Assert.Equal(value, actualValue1);
+        index.ClearCache();
+        Assert.True(index.TryGetValue(key, out var actualValue2));
+        Assert.Equal(value, actualValue2);
 
         var nonExistentKey = CreateKey(random, item => !Equals(item, key));
         Assert.False(index.TryGetValue(nonExistentKey, out _));
