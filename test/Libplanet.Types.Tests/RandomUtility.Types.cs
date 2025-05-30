@@ -53,6 +53,8 @@ public static partial class RandomUtility
         EvidenceIds = ImmutableSortedSet(random, EvidenceId),
     };
 
+    public static BlockCommit BlockCommit() => BlockCommit(System.Random.Shared);
+
     public static BlockCommit BlockCommit(Random random) => new()
     {
         BlockHash = BlockHash(random),
@@ -134,7 +136,7 @@ public static partial class RandomUtility
 
     public static EvidenceBase Evidence(Random random) => new TestEvidence
     {
-        Height = Try(random, Int32, item => item >= 0),
+        Height = NonNegative(random),
         TargetAddress = Address(random),
         Timestamp = DateTimeOffset(random),
     };
