@@ -8,8 +8,6 @@ namespace Libplanet.Types;
 public sealed partial record class Transaction
     : IComparable<Transaction>, IComparable, IHasKey<TxId>
 {
-    private TxId? _id;
-
     [Property(0)]
     public required TransactionMetadata Metadata { get; init; }
 
@@ -17,7 +15,7 @@ public sealed partial record class Transaction
     [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
-    public TxId Id => _id ??= new TxId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
+    public TxId Id => new(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 
     public long Nonce => Metadata.Nonce;
 

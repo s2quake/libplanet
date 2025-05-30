@@ -5,10 +5,10 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class CommittedEvidenceIndexTest(ITestOutputHelper output)
-    : KeyedIndexTestBase<EvidenceId, EvidenceBase>(output)
+    : KeyedIndexTestBase<EvidenceId, EvidenceBase, CommittedEvidenceIndex>(output)
 {
-    protected override KeyedIndexBase<EvidenceId, EvidenceBase> CreateIndex(bool useCache)
-        => new CommittedEvidenceIndex(new MemoryDatabase(), useCache ? 100 : 0);
+    protected override CommittedEvidenceIndex CreateIndex(bool useCache)
+        => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override EvidenceId CreateKey(Random random) => RandomUtility.EvidenceId(random);
 

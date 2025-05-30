@@ -5,10 +5,10 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class NonceIndexTest(ITestOutputHelper output)
-    : IndexTestBase<Address, long>(output)
+    : IndexTestBase<Address, long, NonceIndex>(output)
 {
-    protected override IndexBase<Address, long> CreateIndex(bool useCache)
-        => new NonceIndex(new MemoryDatabase(), useCache ? 100 : 0);
+    protected override NonceIndex CreateIndex(bool useCache)
+        => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override Address CreateKey(Random random) => RandomUtility.Address(random);
 

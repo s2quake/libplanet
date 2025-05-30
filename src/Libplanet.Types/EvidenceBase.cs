@@ -8,8 +8,6 @@ namespace Libplanet.Types;
 public abstract record class EvidenceBase
     : IEquatable<EvidenceBase>, IComparable<EvidenceBase>, IComparable, IValidatableObject, IHasKey<EvidenceId>
 {
-    private EvidenceId? _id;
-
     [Property(0)]
     [NonNegative]
     public int Height { get; init; }
@@ -21,9 +19,13 @@ public abstract record class EvidenceBase
     [Property(2)]
     public DateTimeOffset Timestamp { get; init; }
 
-    public EvidenceId Id => _id ??= new EvidenceId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
+    public EvidenceId Id => new(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 
     EvidenceId IHasKey<EvidenceId>.Key => Id;
+
+    public override int GetHashCode() => Id.GetHashCode();
+
+    bool IEquatable<EvidenceBase>.Equals(EvidenceBase? other) => Id.Equals(other?.Id);
 
     public int CompareTo(EvidenceBase? other) => Id.CompareTo(other?.Id);
 

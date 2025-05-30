@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Libplanet.Data;
-using Libplanet.Types;
 
 namespace Libplanet.Types.Tests;
 
@@ -36,8 +35,8 @@ public static partial class RandomUtility
 
     public static BlockHeader BlockHeader(Random random) => new()
     {
-        Version = Int32(random),
-        Height = Int32(random),
+        Version = Try(random, Int32, item => item >= 0),
+        Height = Try(random, Int32, item => item >= 0),
         Timestamp = DateTimeOffset(random),
         Proposer = Address(random),
         PreviousHash = BlockHash(random),
@@ -158,5 +157,22 @@ public static partial class RandomUtility
         BlockHash = BlockHash(random),
         InputState = HashDigest<SHA256>(random),
         OutputState = HashDigest<SHA256>(random),
+    };
+
+    public static BlockContent BlockContent() => BlockContent(System.Random.Shared);
+
+public static BlockContent BlockContent(Random random) => new()
+    {
+        Transactions = ImmutableSortedSet(random, Transaction),
+        Evidences = ImmutableSortedSet(random, Evidence),
+    };
+
+    public static Block Block() => Block(System.Random.Shared);
+
+    public static Block Block(Random random) => new()
+    {
+        Header = BlockHeader(random),
+        Content = BlockContent(random),
+        Signature = ImmutableArray(random, Byte),
     };
 }

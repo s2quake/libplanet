@@ -4,15 +4,16 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
+public abstract class IndexTestBase<TKey, TValue, TIndex>(ITestOutputHelper output)
     where TKey : notnull
     where TValue : notnull
+    where TIndex : IndexBase<TKey, TValue>
 {
     protected abstract TKey CreateKey(Random random);
 
     protected abstract TValue CreateValue(Random random);
 
-    protected abstract IndexBase<TKey, TValue> CreateIndex(bool useCache);
+    protected abstract TIndex CreateIndex(bool useCache);
 
     protected TKey[] CreateKeys(Random random, int length)
     {
@@ -73,7 +74,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void Get(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
         index[key] = value;
@@ -92,7 +93,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void Remove(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
         index[key] = value;
@@ -111,7 +112,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void RemoveRange(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 12);
         index.UpsertRange(keyValues);
@@ -141,7 +142,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void TryAdd(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
 
@@ -160,7 +161,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void Add(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
 
@@ -178,7 +179,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void AddRange(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 10);
 
@@ -207,7 +208,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void UpsertRange(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 10);
 
@@ -237,7 +238,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void ContainsKey(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
         index[key] = value;
@@ -253,7 +254,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void TryGetValue(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
         index[key] = value;
@@ -273,7 +274,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void Clear(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 10);
         foreach (var (key, value) in keyValues)
@@ -291,7 +292,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void Count(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         Assert.Empty(index);
 
@@ -313,7 +314,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     public void Keys(bool useCache)
     {
         // Keys
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 5);
         foreach (var (key, value) in keyValues)
@@ -377,7 +378,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     public void Values(bool useCache)
     {
         // Values
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 5);
         foreach (var (key, value) in keyValues)
@@ -441,7 +442,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void IReadOnlyDictionary_Keys(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 5);
         foreach (var (key, value) in keyValues)
@@ -464,7 +465,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void IReadOnlyDictionary_Values(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 5);
         foreach (var (key, value) in keyValues)
@@ -487,7 +488,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void ICollection_Add(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
 
@@ -503,7 +504,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void ICollection_Contains(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
         index[key] = value;
@@ -520,7 +521,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void ICollection_CopyTo(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 5);
         foreach (var (key, value) in keyValues)
@@ -548,7 +549,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void ICollection_Remove(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var (key, value) = CreateKeyValue(random);
         index[key] = value;
@@ -566,7 +567,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void IEnumerable_Generic_GetEnumerator(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 5);
         foreach (var (key, value) in keyValues)
@@ -596,7 +597,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [InlineData(true)]
     public void IEnumerable_GetEnumerator(bool useCache)
     {
-        var random = GetRandom(output);
+        var random = GetRandom();
         var index = CreateIndex(useCache);
         var keyValues = CreateKeyValues(random, 5);
         foreach (var (key, value) in keyValues)
@@ -621,8 +622,7 @@ public abstract class IndexTestBase<TKey, TValue>(ITestOutputHelper output)
         }
     }
 
-
-    protected static Random GetRandom(ITestOutputHelper output)
+    protected Random GetRandom()
     {
         var seed = RandomUtility.Int32();
         output.WriteLine($"Random seed: {seed}");

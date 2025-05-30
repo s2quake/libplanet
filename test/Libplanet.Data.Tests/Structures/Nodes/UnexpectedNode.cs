@@ -4,5 +4,5 @@ namespace Libplanet.Data.Tests.Structures.Nodes;
 
 public sealed record class UnexpectedNode : INode
 {
-    public IEnumerable<INode> Children => throw new NotImplementedException();
+    public IEnumerable<INode> Children { get; } = [];
 }

@@ -5,10 +5,10 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class BlockExecutionIndexTest(ITestOutputHelper output)
-    : KeyedIndexTestBase<BlockHash, BlockExecution>(output)
+    : KeyedIndexTestBase<BlockHash, BlockExecution, BlockExecutionIndex>(output)
 {
-    protected override KeyedIndexBase<BlockHash, BlockExecution> CreateIndex(bool useCache)
-        => new BlockExecutionIndex(new MemoryDatabase(), useCache ? 100 : 0);
+    protected override BlockExecutionIndex CreateIndex(bool useCache)
+        => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
 

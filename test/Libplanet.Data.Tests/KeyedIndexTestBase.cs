@@ -1,20 +1,20 @@
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 using System.Collections;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public abstract class KeyedIndexTestBase<TKey, TValue>(ITestOutputHelper output)
+public abstract class KeyedIndexTestBase<TKey, TValue, TIndex>(ITestOutputHelper output)
     where TKey : notnull
     where TValue : IHasKey<TKey>
+    where TIndex : KeyedIndexBase<TKey, TValue>
 {
     protected abstract TKey CreateKey(Random random);
 
     protected abstract TValue CreateValue(Random random);
 
-    protected abstract KeyedIndexBase<TKey, TValue> CreateIndex(bool useCache);
+    protected abstract TIndex CreateIndex(bool useCache);
 
     protected TKey[] CreateKeys(Random random, int length)
     {
