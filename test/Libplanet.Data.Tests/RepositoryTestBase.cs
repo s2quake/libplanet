@@ -189,10 +189,17 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
 
         repository.Append(block, BlockCommit.Empty);
 
-        var actualBlock = repository.GetBlock(block.BlockHash);
-        Assert.Equal(block, actualBlock);
+        var actualBlock1 = repository.GetBlock(block.BlockHash);
+        Assert.Equal(block, actualBlock1);
+        Assert.True(repository.TryGetBlock(block.BlockHash, out var actualBlock2));
+        Assert.Equal(block, actualBlock2);
+        var actualBlock3 = repository.GetBlockOrDefault(block.BlockHash);
+        Assert.Equal(block, actualBlock3);
 
-        Assert.Throws<KeyNotFoundException>(() => repository.GetBlock(RandomUtility.BlockHash(random)));
+        var nonExistentBlockHash = RandomUtility.BlockHash(random);
+        Assert.Throws<KeyNotFoundException>(() => repository.GetBlock(nonExistentBlockHash));
+        Assert.False(repository.TryGetBlock(nonExistentBlockHash, out _));
+        Assert.Null(repository.GetBlockOrDefault(nonExistentBlockHash));
     }
 
     [Fact]
@@ -204,11 +211,33 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
 
         repository.Append(block, BlockCommit.Empty);
 
-        var actualBlock = repository.GetBlock(block.Height);
-        Assert.Equal(block, actualBlock);
+        var actualBlock1 = repository.GetBlock(block.Height);
+        Assert.Equal(block, actualBlock1);
+        Assert.True(repository.TryGetBlock(block.Height, out var actualBlock2));
+        Assert.Equal(block, actualBlock2);
+        var actualBlock3 = repository.GetBlockOrDefault(block.Height);
+        Assert.Equal(block, actualBlock3);
 
         var nonExistentHeight = RandomUtility.Try(random, RandomUtility.NonNegative, item => item != block.Height);
         Assert.Throws<KeyNotFoundException>(() => repository.GetBlock(nonExistentHeight));
+        Assert.False(repository.TryGetBlock(nonExistentHeight, out _));
+        Assert.Null(repository.GetBlockOrDefault(nonExistentHeight));
+    }
+
+    [Fact]
+    public void GetNonce()
+    {
+        var random = GetRandom();
+        var repository = CreateRepository();
+        var address = RandomUtility.Address(random);
+        var nonce = RandomUtility.Int32(random);
+
+        Assert.Equal(0, repository.GetNonce(address));
+
+        repository.Nonces[address] = nonce;
+        Assert.Equal(nonce, repository.GetNonce(address));
+
+        Assert.Equal(0, repository.GetNonce(RandomUtility.Address(random)));
     }
 
     protected Random GetRandom()

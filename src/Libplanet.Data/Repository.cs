@@ -204,7 +204,7 @@ public class Repository
     {
         if (BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            block = blockDigest.ToBlock(item => PendingTransactions[item], item => CommittedEvidences[item]);
+            block = blockDigest.ToBlock(item => CommittedTransactions[item], item => CommittedEvidences[item]);
             return true;
         }
 
@@ -227,7 +227,7 @@ public class Repository
     {
         if (BlockDigests.TryGetValue(blockHash, out var blockDigest))
         {
-            return blockDigest.ToBlock(item => PendingTransactions[item], item => CommittedEvidences[item]);
+            return blockDigest.ToBlock(item => CommittedTransactions[item], item => CommittedEvidences[item]);
         }
 
         return null;
