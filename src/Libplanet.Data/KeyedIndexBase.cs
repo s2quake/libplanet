@@ -1,5 +1,4 @@
 using System.Collections;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using BitFaster.Caching;
@@ -10,23 +9,26 @@ using Libplanet.Types.Threading;
 namespace Libplanet.Data;
 
 public abstract class KeyedIndexBase<TKey, TValue>
-    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable
+    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     where TKey : notnull
     where TValue : IHasKey<TKey>
 {
-    private readonly ICache<TKey, TValue> _cache;
+    private readonly ICache<TKey, TValue>? _cache;
     private readonly ITable _table;
     private readonly ReaderWriterLockSlim _lock = new();
-    private readonly TypeConverter _keyConverter = TypeDescriptor.GetConverter(typeof(TKey));
 
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
     protected KeyedIndexBase(ITable dictionary, int cacheSize = 100)
     {
-        _cache = new ConcurrentLruBuilder<TKey, TValue>()
-            .WithCapacity(cacheSize)
-            .Build();
+        if (cacheSize > 0)
+        {
+            _cache = new ConcurrentLruBuilder<TKey, TValue>()
+                .WithCapacity(cacheSize)
+                .Build();
+        }
+
         _table = dictionary;
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
@@ -44,152 +46,170 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _values;
 
-    protected bool IsDisposed { get; private set; }
-
     public TValue this[TKey key]
     {
         get
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new ReadScope(_lock);
-            if (_cache.TryGet(key, out var value))
+            if (_cache?.TryGet(key, out var value) is true)
             {
                 return value;
             }
 
-            var bytes = _table[GetKeyBytes(key)];
-            value = GetValue(bytes);
-            _cache.AddOrUpdate(key, value);
+            var bytes = _table[KeyToString(key)];
+            value = BytesToValue(bytes);
+            _cache?.AddOrUpdate(key, value);
             return value;
         }
 
         set
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
             using var scope = new WriteScope(_lock);
-
             if (!Equals(key, value.Key))
             {
                 throw new ArgumentException("Key and Value must match.", nameof(value));
             }
 
             OnSet(key, value);
-            _table[GetKeyBytes(key)] = GetBytes(value);
-            _cache.AddOrUpdate(key, value);
+            _table[KeyToString(key)] = ValueToBytes(value);
+            _cache?.AddOrUpdate(key, value);
             OnSetComplete(key, value);
         }
     }
 
     public bool Remove(TKey key)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         return RemoveInternal(key);
     }
 
     public bool Remove(TValue value)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         return RemoveInternal(value.Key);
     }
 
-    public void RemoveRange(IEnumerable<TKey> keys)
+    public int RemoveRange(IEnumerable<TKey> keys)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         var items = keys.Where(ContainsKeyInternal).ToArray();
+        int removedCount = 0;
+        
         foreach (var item in items)
         {
-            RemoveInternal(item);
+            if (RemoveInternal(item))
+            {
+                removedCount++;
+            }
         }
+        
+        return removedCount;
     }
 
-    public void RemoveRange(IEnumerable<TValue> values)
+    public int RemoveRange(IEnumerable<TValue> values)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         var items = values.Where(item => ContainsKeyInternal(item.Key)).ToArray();
+        int removedCount = 0;
+        
         foreach (var item in items)
         {
-            RemoveInternal(item.Key);
+            if (RemoveInternal(item.Key))
+            {
+                removedCount++;
+            }
         }
+        
+        return removedCount;
     }
 
     public bool TryAdd(TValue value)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         var key = value.Key;
-        if (_cache.TryGet(key, out _))
+        if (_cache?.TryGet(key, out _) is true)
         {
             return false;
         }
 
-        if (_table.ContainsKey(GetKeyBytes(key)))
+        if (_table.ContainsKey(KeyToString(key)))
         {
             return false;
         }
 
         OnAdd(key, value);
-        _table.Add(GetKeyBytes(key), GetBytes(value));
-        _cache.AddOrUpdate(key, value);
+        _table.Add(KeyToString(key), ValueToBytes(value));
+        _cache?.AddOrUpdate(key, value);
         OnAddComplete(key, value);
         return true;
     }
 
     public void Add(TValue value)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
-
         using var scope = new WriteScope(_lock);
         var key = value.Key;
         OnAdd(key, value);
-        _table.Add(GetKeyBytes(key), GetBytes(value));
-        _cache.AddOrUpdate(key, value);
+        _table.Add(KeyToString(key), ValueToBytes(value));
+        _cache?.AddOrUpdate(key, value);
         OnAddComplete(key, value);
     }
 
     public void AddRange(IEnumerable<TValue> values)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        // 한 번만 열거하도록 배열로 변환
+        TValue[] valuesArray = values.ToArray();
+        
+        if (valuesArray.Length == 0)
+        {
+            return;
+        }
 
         using var scope = new WriteScope(_lock);
-        foreach (var value in values)
+        
+        // 먼저 모든 키에 대해 중복 검사
+        foreach (var value in valuesArray)
+        {
+            var key = value.Key;
+            if (_cache?.TryGet(key, out _) is true || _table.ContainsKey(KeyToString(key)))
+            {
+                throw new ArgumentException($"An item with the same key has already been added. Key: {key}");
+            }
+        }
+        
+        // 모든 키가 중복이 아닌 경우에만 항목 추가
+        foreach (var value in valuesArray)
         {
             var key = value.Key;
             OnAdd(key, value);
-            _table.Add(GetKeyBytes(key), GetBytes(value));
-            _cache.AddOrUpdate(key, value);
+            _table.Add(KeyToString(key), ValueToBytes(value));
+            _cache?.AddOrUpdate(key, value);
             OnAddComplete(key, value);
         }
     }
 
     public bool ContainsKey(TKey key)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new ReadScope(_lock);
-        if (_cache.TryGet(key, out _))
+        if (_cache?.TryGet(key, out _) is true)
         {
             return true;
         }
 
-        return _table.ContainsKey(GetKeyBytes(key));
+        return _table.ContainsKey(KeyToString(key));
     }
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new ReadScope(_lock);
-        if (_cache.TryGet(key, out value) && value is not null)
+        if (_cache?.TryGet(key, out value) is true && value is not null)
         {
             return true;
         }
 
-        if (_table.TryGetValue(GetKeyBytes(key), out var bytes))
+        if (_table.TryGetValue(KeyToString(key), out var bytes))
         {
-            value = GetValue(bytes);
-            _cache.AddOrUpdate(key, value);
+            value = BytesToValue(bytes);
+            _cache?.AddOrUpdate(key, value);
             return true;
         }
 
@@ -199,33 +219,19 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     public void Clear()
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
         OnClear();
-        _cache.Clear();
+        _cache?.Clear();
         _table.Clear();
         OnClearComplete();
     }
 
-    public void Clear(Func<TValue, bool> validator)
+    public void ClearCache()
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
         using var scope = new WriteScope(_lock);
-
-        foreach (var (key, value) in this.ToArray())
-        {
-            if (!validator(value))
-            {
-                RemoveInternal(key);
-            }
-        }
+        _cache?.Clear();
     }
 
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
 
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
@@ -253,7 +259,18 @@ public abstract class KeyedIndexBase<TKey, TValue>
     }
 
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-        => throw new NotSupportedException("CopyTo is not supported.");
+    {
+        if (arrayIndex < 0 || arrayIndex + Count > array.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+        }
+
+        var index = arrayIndex;
+        foreach (var key in EnumerateKeys())
+        {
+            array[index++] = new KeyValuePair<TKey, TValue>(key, this[key]);
+        }
+    }
 
     bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
     {
@@ -285,35 +302,19 @@ public abstract class KeyedIndexBase<TKey, TValue>
     {
         foreach (var key in _table.Keys)
         {
-            yield return GetKey(key);
+            yield return StringToKey(key);
         }
     }
 
     protected virtual bool CompareValue(TValue value1, TValue value2) => value1.Equals(value2);
 
-    protected string GetKeyBytes(TKey key)
-    {
-        if (_keyConverter.ConvertToInvariantString(key) is not string s)
-        {
-            throw new InvalidOperationException($"Cannot convert {key} to string.");
-        }
+    protected abstract string KeyToString(TKey key);
 
-        return s;
-    }
+    protected abstract TKey StringToKey(string key);
 
-    protected TKey GetKey(string s)
-    {
-        if (_keyConverter.ConvertFromInvariantString(s) is not TKey key)
-        {
-            throw new InvalidOperationException($"Cannot convert {s} to {typeof(TKey)}.");
-        }
+    protected abstract byte[] ValueToBytes(TValue value);
 
-        return key;
-    }
-
-    protected abstract byte[] GetBytes(TValue value);
-
-    protected abstract TValue GetValue(byte[] bytes);
+    protected abstract TValue BytesToValue(byte[] bytes);
 
     protected virtual void OnClear()
     {
@@ -347,38 +348,35 @@ public abstract class KeyedIndexBase<TKey, TValue>
     {
     }
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!IsDisposed)
-        {
-            IsDisposed = true;
-        }
-    }
-
     private bool ContainsKeyInternal(TKey key)
     {
-        if (_cache.TryGet(key, out _))
+        if (_cache?.TryGet(key, out _) is true)
         {
             return true;
         }
 
-        return _table.ContainsKey(GetKeyBytes(key));
+        return _table.ContainsKey(KeyToString(key));
     }
 
     private bool RemoveInternal(TKey key)
     {
         OnRemove(key);
-        if (_cache.TryRemove(key, out var value))
+        if (_cache?.TryRemove(key, out var value) is true)
         {
-            _table.Remove(GetKeyBytes(key));
+            _table.Remove(KeyToString(key));
             OnRemoveComplete(key, value);
             return true;
         }
-        else if (_table.TryGetValue(GetKeyBytes(key), out var bytes))
+        else
         {
-            value = GetValue(bytes);
-            OnRemoveComplete(key, value);
-            return true;
+            var keyBytes = KeyToString(key);
+            if (_table.TryGetValue(keyBytes, out var bytes))
+            {
+                value = BytesToValue(bytes);
+                _table.Remove(keyBytes);
+                OnRemoveComplete(key, value);
+                return true;
+            }
         }
 
         return false;
@@ -398,16 +396,9 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
         public void CopyTo(TKey[] array, int arrayIndex)
         {
-            if (arrayIndex < 0)
+            if (arrayIndex < 0 || arrayIndex + Count > array.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-            }
-
-            if (Count > array.Length + arrayIndex)
-            {
-                var message = "The number of elements in the source KeyCollection is greater than the " +
-                              "available space from arrayIndex to the end of the destination array.";
-                throw new ArgumentException(message, nameof(array));
             }
 
             foreach (var key in owner.EnumerateKeys())
@@ -443,12 +434,9 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
         public void CopyTo(TValue[] array, int arrayIndex)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
-            if (Count > array.Length + arrayIndex)
+            if (arrayIndex < 0 || arrayIndex + Count > array.Length)
             {
-                var message = "The number of elements in the source ValueCollection is greater than the " +
-                              "available space from arrayIndex to the end of the destination array.";
-                throw new ArgumentException(message, nameof(array));
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
             }
 
             foreach (var key in owner.EnumerateKeys())

@@ -7,7 +7,8 @@ namespace Libplanet.Data.Tests;
 public sealed class BlockDigestIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<BlockHash, BlockDigest>(output)
 {
-    protected override KeyedIndexBase<BlockHash, BlockDigest> CreateIndex() => new BlockDigestIndex(new MemoryDatabase());
+    protected override KeyedIndexBase<BlockHash, BlockDigest> CreateIndex(bool useCache)
+        => new BlockDigestIndex(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
 

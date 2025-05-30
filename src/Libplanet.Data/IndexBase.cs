@@ -64,10 +64,7 @@ public abstract class IndexBase<TKey, TValue>
         set
         {
             using var scope = new WriteScope(_lock);
-            OnSet(key, value);
-            _table[KeyToString(key)] = ValueToBytes(value);
-            _cache?.AddOrUpdate(key, value);
-            OnSetComplete(key, value);
+            UpsertInternal(key, value);
         }
     }
 
@@ -77,14 +74,20 @@ public abstract class IndexBase<TKey, TValue>
         return RemoveInternal(key);
     }
 
-    public void RemoveRange(IEnumerable<TKey> keys)
+    public int RemoveRange(IEnumerable<TKey> keys)
     {
         using var scope = new WriteScope(_lock);
         var items = keys.Where(ContainsKeyInternal).ToArray();
+        var count = 0;
         foreach (var item in items)
         {
-            RemoveInternal(item);
+            if (RemoveInternal(item))
+            {
+                count++;
+            }
         }
+
+        return count;
     }
 
     public bool TryAdd(TKey key, TValue value)
@@ -100,20 +103,50 @@ public abstract class IndexBase<TKey, TValue>
             return false;
         }
 
-        OnAdd(key, value);
         _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
-        OnAddComplete(key, value);
+        OnUpdated(key, value);
         return true;
     }
 
     public void Add(TKey key, TValue value)
     {
         using var scope = new WriteScope(_lock);
-        OnAdd(key, value);
         _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
-        OnAddComplete(key, value);
+        OnUpdated(key, value);
+    }
+
+    public void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> keyValues)
+    {
+        using var scope = new WriteScope(_lock);
+        var items = keyValues.ToArray();
+        foreach (var item in items)
+        {
+            if (ContainsKeyInternal(item.Key))
+            {
+                throw new ArgumentException($"Key '{item.Key}' already exists in the index.", nameof(keyValues));
+            }
+        }
+
+        foreach (var item in items)
+        {
+            var key = item.Key;
+            var value = item.Value;
+            _table.Add(KeyToString(key), ValueToBytes(value));
+            _cache?.AddOrUpdate(key, value);
+            OnUpdated(key, value);
+        }
+    }
+
+    public void UpsertRange(IEnumerable<KeyValuePair<TKey, TValue>> keyValues)
+    {
+        using var scope = new WriteScope(_lock);
+        var items = keyValues.ToArray();
+        foreach (var item in items)
+        {
+            UpsertInternal(item.Key, item.Value);
+        }
     }
 
     public bool ContainsKey(TKey key)
@@ -149,10 +182,9 @@ public abstract class IndexBase<TKey, TValue>
     public void Clear()
     {
         using var scope = new WriteScope(_lock);
-        OnClear();
         _cache?.Clear();
         _table.Clear();
-        OnClearComplete();
+        OnCleared();
     }
 
     public void ClearCache()
@@ -225,35 +257,15 @@ public abstract class IndexBase<TKey, TValue>
 
     protected abstract TValue BytesToValue(byte[] bytes);
 
-    protected virtual void OnClear()
+    protected virtual void OnCleared()
     {
     }
 
-    protected virtual void OnClearComplete()
+    protected virtual void OnUpdated(TKey key, TValue item)
     {
     }
 
-    protected virtual void OnAdd(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnAddComplete(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnRemove(TKey key)
-    {
-    }
-
-    protected virtual void OnRemoveComplete(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnSet(TKey key, TValue item)
-    {
-    }
-
-    protected virtual void OnSetComplete(TKey key, TValue item)
+    protected virtual void OnRemoved(TKey key, TValue item)
     {
     }
 
@@ -269,11 +281,10 @@ public abstract class IndexBase<TKey, TValue>
 
     private bool RemoveInternal(TKey key)
     {
-        OnRemove(key);
         if (_cache?.TryRemove(key, out var value) is true)
         {
             _table.Remove(KeyToString(key));
-            OnRemoveComplete(key, value);
+            OnRemoved(key, value);
             return true;
         }
         else
@@ -283,12 +294,19 @@ public abstract class IndexBase<TKey, TValue>
             {
                 value = BytesToValue(bytes);
                 _table.Remove(keyBytes);
-                OnRemoveComplete(key, value);
+                OnRemoved(key, value);
                 return true;
             }
         }
 
         return false;
+    }
+
+    private void UpsertInternal(TKey key, TValue value)
+    {
+        _table[KeyToString(key)] = ValueToBytes(value);
+        _cache?.AddOrUpdate(key, value);
+        OnUpdated(key, value);
     }
 
     private sealed class KeyCollection(IndexBase<TKey, TValue> owner) : ICollection<TKey>
