@@ -122,10 +122,7 @@ public abstract class KeyedIndexTestBase<TKey, TValue>(ITestOutputHelper output)
         var random = GetRandom(output);
         var index = CreateIndex(useCache);
         var keyValues = CreateValues(random, 10);
-        foreach (var keyValue in keyValues)
-        {
-            index.Add(keyValue);
-        }
+        index.UpsertRange(keyValues);
 
         var keysToRemove = keyValues.Take(5).Select(v => v.Key).ToArray();
         var valuesToRemove2 = keyValues.Skip(5).ToArray();
@@ -189,23 +186,56 @@ public abstract class KeyedIndexTestBase<TKey, TValue>(ITestOutputHelper output)
     {
         var random = GetRandom(output);
         var index = CreateIndex(useCache);
-        var values = CreateValues(random, 10);
+        var keyValues = CreateValues(random, 10);
 
-        index.AddRange(values);
-        Assert.Equal(10, index.Count);
+        var keyValuesToAdd1 = keyValues.Take(5).ToArray();
+        index.AddRange(keyValuesToAdd1);
+        Assert.Equal(5, index.Count);
 
-        foreach (var value in values)
+        foreach (var item in keyValuesToAdd1)
         {
-            Assert.Equal(value, index[value.Key]);
+            Assert.Equal(item, index[item.Key]);
         }
 
-        Assert.Throws<ArgumentException>(() => index.AddRange(values));
+        Assert.Throws<ArgumentException>(() => index.AddRange(keyValues));
+        var keyValuesToAdd2 = keyValues.Skip(5).ToArray();
+        index.AddRange(keyValuesToAdd2);
+        Assert.Equal(10, index.Count);
 
-        var newValue = CreateValue(random, item => !values.Contains(item));
-        TValue[] valuesToAdd = [newValue, .. values];
+        foreach (var item in keyValuesToAdd2)
+        {
+            Assert.Equal(item, index[item.Key]);
+        }
+    }
 
-        Assert.Throws<ArgumentException>(() => index.AddRange(valuesToAdd));
-        Assert.Equal(11, index.Count);
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UpsertRange(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValues = CreateValues(random, 10);
+
+        // Upsert existing keys
+        var existingKeyValues = keyValues.Take(5).ToArray();
+        index.UpsertRange(existingKeyValues);
+        Assert.Equal(5, index.Count);
+
+        foreach (var item in existingKeyValues)
+        {
+            Assert.Equal(item, index[item.Key]);
+        }
+
+        // Upsert new keys
+        var newKeyValues = keyValues.Skip(5).ToArray();
+        index.UpsertRange(newKeyValues);
+        Assert.Equal(10, index.Count);
+
+        foreach (var item in newKeyValues)
+        {
+            Assert.Equal(item, index[item.Key]);
+        }
     }
 
     [Theory]
@@ -232,11 +262,14 @@ public abstract class KeyedIndexTestBase<TKey, TValue>(ITestOutputHelper output)
         var random = GetRandom(output);
         var index = CreateIndex(useCache);
         var value = CreateValue(random);
-        index.Add(value);
+        index[value.Key] = value;
 
-        Assert.True(index.TryGetValue(value.Key, out var actualValue));
-        Assert.Equal(value, actualValue);
-
+        Assert.True(index.TryGetValue(value.Key, out var actualValue1));
+        Assert.Equal(value, actualValue1);
+        index.ClearCache();
+        Assert.True(index.TryGetValue(value.Key, out var actualValue2));
+        Assert.Equal(value, actualValue2);
+        
         var nonExistentKey = CreateKey(random, item => !Equals(item, value.Key));
         Assert.False(index.TryGetValue(nonExistentKey, out _));
     }
@@ -457,6 +490,24 @@ public abstract class KeyedIndexTestBase<TKey, TValue>(ITestOutputHelper output)
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void IDictionary_Add(bool useCache)
+    {
+        var random = GetRandom(output);
+        var index = CreateIndex(useCache);
+        var keyValue = CreateValue(random);
+
+        var dictionary = (IDictionary<TKey, TValue>)index;
+        dictionary.Add(keyValue.Key, keyValue);
+        Assert.Equal(keyValue, index[keyValue.Key]);
+
+        var invalidKey = CreateKey(random, item => !Equals(item, keyValue.Key));
+        Assert.Throws<ArgumentException>(() => dictionary.Add(keyValue.Key, keyValue));
+        Assert.Throws<ArgumentException>(() => dictionary.Add(invalidKey, keyValue));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void ICollection_Add(bool useCache)
     {
         var random = GetRandom(output);
@@ -467,7 +518,9 @@ public abstract class KeyedIndexTestBase<TKey, TValue>(ITestOutputHelper output)
         collection.Add(new KeyValuePair<TKey, TValue>(keyValue.Key, keyValue));
         Assert.Equal(keyValue, index[keyValue.Key]);
 
+        var invalidKey = CreateKey(random, item => !Equals(item, keyValue.Key));
         Assert.Throws<ArgumentException>(() => collection.Add(new KeyValuePair<TKey, TValue>(keyValue.Key, keyValue)));
+        Assert.Throws<ArgumentException>(() => collection.Add(new KeyValuePair<TKey, TValue>(invalidKey, keyValue)));
     }
 
     [Theory]

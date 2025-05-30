@@ -77,7 +77,7 @@ public abstract class IndexBase<TKey, TValue>
     public int RemoveRange(IEnumerable<TKey> keys)
     {
         using var scope = new WriteScope(_lock);
-        var items = keys.Where(ContainsKeyInternal).ToArray();
+        var items = keys.ToArray();
         var count = 0;
         foreach (var item in items)
         {
