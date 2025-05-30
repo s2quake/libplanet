@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public sealed class TxExecutionIndex(IDatabase database)
-    : KeyedIndexBase<TxId, TxExecution>(database.GetOrAdd("tx_execution"))
+public sealed class TxExecutionIndex(IDatabase database, int cacheSize = 100)
+    : KeyedIndexBase<TxId, TxExecution>(database.GetOrAdd("tx_execution"), cacheSize)
 {
     protected override byte[] ValueToBytes(TxExecution value) => ModelSerializer.SerializeToBytes(value);
 

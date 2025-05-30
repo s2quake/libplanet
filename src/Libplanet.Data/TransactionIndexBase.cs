@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public abstract class TransactionIndexBase(IDatabase database, string name)
-    : KeyedIndexBase<TxId, Transaction>(database.GetOrAdd(name))
+public abstract class TransactionIndexBase(IDatabase database, string name, int cacheSize = 100)
+    : KeyedIndexBase<TxId, Transaction>(database.GetOrAdd(name), cacheSize)
 {
     protected override byte[] ValueToBytes(Transaction value) => ModelSerializer.SerializeToBytes(value);
 

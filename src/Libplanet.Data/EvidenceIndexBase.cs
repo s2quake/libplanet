@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public abstract class EvidenceIndexBase(IDatabase database, string name)
-    : KeyedIndexBase<EvidenceId, EvidenceBase>(database.GetOrAdd(name))
+public abstract class EvidenceIndexBase(IDatabase database, string name, int cacheSize = 100)
+    : KeyedIndexBase<EvidenceId, EvidenceBase>(database.GetOrAdd(name), cacheSize)
 {
     protected override byte[] ValueToBytes(EvidenceBase value) => ModelSerializer.SerializeToBytes(value);
 

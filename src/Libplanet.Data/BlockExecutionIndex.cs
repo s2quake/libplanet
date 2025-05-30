@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public sealed class BlockExecutionIndex(IDatabase database)
-    : KeyedIndexBase<BlockHash, BlockExecution>(database.GetOrAdd("block_execution"))
+public sealed class BlockExecutionIndex(IDatabase database, int cacheSize = 100)
+    : KeyedIndexBase<BlockHash, BlockExecution>(database.GetOrAdd("block_execution"), cacheSize)
 {
     protected override byte[] ValueToBytes(BlockExecution value) => ModelSerializer.SerializeToBytes(value);
 
