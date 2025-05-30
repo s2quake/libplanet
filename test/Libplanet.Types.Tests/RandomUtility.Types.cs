@@ -14,29 +14,21 @@ public static partial class RandomUtility
         where T : HashAlgorithm
         => new(Array(random, Byte, Types.HashDigest<T>.Size));
 
+    public static PrivateKey PrivateKey() => PrivateKey(System.Random.Shared);
+
+    public static PrivateKey PrivateKey(Random random) => new(Array(random, Byte, Types.PrivateKey.Size));
+
     public static Address Address() => Address(System.Random.Shared);
 
-    public static Address Address(Random random)
-    {
-        var bytes = Array(random, Byte, Types.Address.Size);
-        return new Address(bytes);
-    }
+    public static Address Address(Random random) => new(Array(random, Byte, Types.Address.Size));
 
     public static TxId TxId() => TxId(System.Random.Shared);
 
     public static TxId TxId(Random random) => new(Array(random, Byte, Types.TxId.Size));
 
-    public static BlockHash BlockHash()
-    {
-        var bytes = Array(Byte, Types.BlockHash.Size);
-        return new BlockHash(bytes);
-    }
+    public static BlockHash BlockHash() => BlockHash(System.Random.Shared);
 
-    public static BlockHash BlockHash(Random random)
-    {
-        var bytes = Array(random, Byte, Types.BlockHash.Size);
-        return new BlockHash(bytes);
-    }
+    public static BlockHash BlockHash(Random random) => new BlockHash(Array(random, Byte, Types.BlockHash.Size));
 
     public static EvidenceId EvidenceId() => EvidenceId(System.Random.Shared);
 
@@ -85,5 +77,86 @@ public static partial class RandomUtility
         Timestamp = DateTimeOffset(random),
         ValidatorPower = BigInteger(random),
         Flag = Enum<VoteFlag>(random),
+    };
+
+    public static string Ticker() => Ticker(System.Random.Shared);
+
+    public static string Ticker(Random random)
+    {
+        var length = Int32(random, 3, 6);
+        var items = Array(() => (char)Int32(random, 'A', 'Z' + 1), length);
+        return new string(items);
+    }
+
+    public static Currency Currency() => Currency(System.Random.Shared);
+
+    public static Currency Currency(Random random) => new()
+    {
+        Ticker = Ticker(random),
+        DecimalPlaces = Byte(random),
+        MaximumSupply = Try(random, BigInteger, item => item > 0),
+        Minters = ImmutableSortedSet(random, Address),
+    };
+
+    public static FungibleAssetValue FungibleAssetValue() => FungibleAssetValue(System.Random.Shared);
+
+    public static FungibleAssetValue FungibleAssetValue(Random random) => new()
+    {
+        Currency = Currency(random),
+        RawValue = Try(random, BigInteger, item => item >= 0),
+    };
+
+    public static ActionBytecode ActionBytecode() => ActionBytecode(System.Random.Shared);
+
+    public static ActionBytecode ActionBytecode(Random random) => new(Array(random, Byte));
+
+    public static TransactionMetadata TransactionMetadata() => TransactionMetadata(System.Random.Shared);
+
+    public static TransactionMetadata TransactionMetadata(Random random) => new()
+    {
+        Nonce = Int64(random),
+        Signer = Address(random),
+        GenesisHash = BlockHash(random),
+        Actions = ImmutableArray(random, ActionBytecode),
+        Timestamp = DateTimeOffset(random),
+        MaxGasPrice = Nullable(random, FungibleAssetValue),
+        GasLimit = Try(random, Int64, item => item >= 0),
+    };
+
+    public static Transaction Transaction() => Transaction(System.Random.Shared);
+
+    public static Transaction Transaction(Random random) => new()
+    {
+        Metadata = TransactionMetadata(random),
+        Signature = ImmutableArray(random, Byte),
+    };
+
+    public static EvidenceBase Evidence() => Evidence(System.Random.Shared);
+
+    public static EvidenceBase Evidence(Random random) => new TestEvidence
+    {
+        Height = Try(random, Int32, item => item >= 0),
+        TargetAddress = Address(random),
+        Timestamp = DateTimeOffset(random),
+    };
+
+    public static TxExecution Txexecution() => TxExecution(System.Random.Shared);
+
+    public static TxExecution TxExecution(Random random) => new()
+    {
+        TxId = TxId(random),
+        BlockHash = BlockHash(random),
+        InputState = HashDigest<SHA256>(random),
+        OutputState = HashDigest<SHA256>(random),
+        ExceptionNames = ImmutableArray(random, String),
+    };
+
+    public static BlockExecution BlockExecution() => BlockExecution(System.Random.Shared);
+
+    public static BlockExecution BlockExecution(Random random) => new()
+    {
+        BlockHash = BlockHash(random),
+        InputState = HashDigest<SHA256>(random),
+        OutputState = HashDigest<SHA256>(random),
     };
 }

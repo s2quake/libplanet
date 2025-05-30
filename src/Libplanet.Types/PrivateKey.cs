@@ -7,7 +7,7 @@ namespace Libplanet.Types;
 public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatable<PrivateKey>
 {
     internal static readonly object _lock = new();
-    private const int KeyByteSize = 32;
+    public const int Size = 32;
     private PublicKey? _publicKey;
 
     public PrivateKey()
@@ -45,10 +45,10 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
 
     public static PrivateKey Parse(string hex)
     {
-        if (hex.Length != KeyByteSize * 2)
+        if (hex.Length != Size * 2)
         {
             throw new FormatException(
-                $"Expected {KeyByteSize * 2} hexadecimal characters, but got {hex.Length}.");
+                $"Expected {Size * 2} hexadecimal characters, but got {hex.Length}.");
         }
 
         try
@@ -146,11 +146,11 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
         lock (_lock)
         {
             using var secp256k1 = new Secp256k1();
-            if (bytes.Length != KeyByteSize)
+            if (bytes.Length != Size)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(bytes),
-                    $"Private key needs to be {KeyByteSize} bytes!");
+                    $"Private key needs to be {Size} bytes!");
             }
 
             if (!secp256k1.SecretKeyVerify(bytes.ToArray()))

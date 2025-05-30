@@ -2,8 +2,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public sealed class NonceIndex(IDatabase database)
-    : IndexBase<Address, long>(database.GetOrAdd("nonces"))
+public sealed class NonceIndex(IDatabase database, int cacheSize = 100)
+    : IndexBase<Address, long>(database.GetOrAdd("nonces"), cacheSize)
 {
     public long Increase(Address key, long delta = 1L) => this[key] = this.GetValueOrDefault(key) + delta;
 

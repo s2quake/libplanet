@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public sealed class StateRootHashIndex(IDatabase database)
-    : IndexBase<BlockHash, HashDigest<SHA256>>(database.GetOrAdd("state_root_hash"))
+public sealed class StateRootHashIndex(IDatabase database, int cacheSize = 100)
+    : IndexBase<BlockHash, HashDigest<SHA256>>(database.GetOrAdd("state_root_hash"), cacheSize)
 {
     protected override byte[] ValueToBytes(HashDigest<SHA256> value) => [.. value.Bytes];
 
