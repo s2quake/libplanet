@@ -4,15 +4,12 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-public sealed class Repository : IDisposable
+public class Repository
 {
-    private readonly IDatabase _database;
     private readonly MetadataIndex _metadata;
     private int _genesisHeight = -1;
     private int _height = -1;
     private HashDigest<SHA256> _stateRootHash;
-
-    private bool _disposed;
 
     public Repository()
         : this(new MemoryDatabase())
@@ -21,20 +18,20 @@ public sealed class Repository : IDisposable
 
     public Repository(IDatabase database)
     {
-        _database = database;
-        _metadata = new MetadataIndex(_database);
-        BlockDigests = new BlockDigestIndex(_database);
-        BlockCommits = new BlockCommitIndex(_database);
-        StateRootHashes = new StateRootHashIndex(_database);
-        PendingTransactions = new PendingTransactionIndex(_database);
-        CommittedTransactions = new CommittedTransactionIndex(_database);
-        PendingEvidences = new PendingEvidenceIndex(_database);
-        CommittedEvidences = new CommittedEvidenceIndex(_database);
-        TxExecutions = new TxExecutionIndex(_database);
-        BlockExecutions = new BlockExecutionIndex(_database);
+        Database = database;
+        _metadata = new MetadataIndex(Database);
+        BlockDigests = new BlockDigestIndex(Database);
+        BlockCommits = new BlockCommitIndex(Database);
+        StateRootHashes = new StateRootHashIndex(Database);
+        PendingTransactions = new PendingTransactionIndex(Database);
+        CommittedTransactions = new CommittedTransactionIndex(Database);
+        PendingEvidences = new PendingEvidenceIndex(Database);
+        CommittedEvidences = new CommittedEvidenceIndex(Database);
+        TxExecutions = new TxExecutionIndex(Database);
+        BlockExecutions = new BlockExecutionIndex(Database);
         BlockHashes = new BlockHashIndex(database);
         Nonces = new NonceIndex(database);
-        States = new StateIndex(_database);
+        States = new StateIndex(Database);
         if (_metadata.TryGetValue("genesisHeight", out var genesisHeight))
         {
             _genesisHeight = int.Parse(genesisHeight);
@@ -178,6 +175,8 @@ public sealed class Repository : IDisposable
 
     public BlockCommit BlockCommit => BlockCommits[BlockHash];
 
+    protected IDatabase Database { get; }
+
     public void Append(Block block, BlockCommit blockCommit)
     {
         BlockDigests.Add(block);
@@ -254,13 +253,10 @@ public sealed class Repository : IDisposable
 
         return 0;
     }
+}
 
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _disposed = true;
-            GC.SuppressFinalize(this);
-        }
-    }
+public class Repository<TDatabase>(TDatabase database) : Repository(database)
+    where TDatabase : IDatabase
+{
+    public new TDatabase Database => (TDatabase)base.Database;
 }

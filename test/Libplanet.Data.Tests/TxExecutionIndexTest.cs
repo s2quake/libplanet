@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class TxExecutionIndexTest(ITestOutputHelper output)
+public class TxExecutionIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<TxId, TxExecution, TxExecutionIndex>(output)
 {
     protected override TxExecutionIndex CreateIndex(bool useCache)

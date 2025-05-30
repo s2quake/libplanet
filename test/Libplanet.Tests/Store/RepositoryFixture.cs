@@ -216,7 +216,11 @@ public abstract class RepositoryFixture : IDisposable
     {
         if (!disposedValue)
         {
-            Repository.Dispose();
+            if (Repository is IDisposable disposableRepository)
+            {
+                disposableRepository.Dispose();
+            }
+
             disposedValue = true;
         }
     }

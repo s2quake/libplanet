@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class CommittedEvidenceIndexTest(ITestOutputHelper output)
+public class CommittedEvidenceIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<EvidenceId, EvidenceBase, CommittedEvidenceIndex>(output)
 {
     protected override CommittedEvidenceIndex CreateIndex(bool useCache)

@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class CommittedTransactionIndexTest(ITestOutputHelper output)
+public class CommittedTransactionIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<TxId, Transaction, CommittedTransactionIndex>(output)
 {
     protected override CommittedTransactionIndex CreateIndex(bool useCache)

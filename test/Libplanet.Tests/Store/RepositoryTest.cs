@@ -760,9 +760,12 @@ public abstract class RepositoryTest
     [Fact]
     public void IdempotentDispose()
     {
-        var store = Fx.Repository;
-        store.Dispose();
-        store.Dispose();
+        var repository = Fx.Repository;
+        if (repository is IDisposable disposableRepository)
+        {
+            disposableRepository.Dispose();
+            disposableRepository.Dispose();
+        }
 
         Assert.True(true, "Disposing twice should not throw.");
     }

@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class StateRootHashIndexTest(ITestOutputHelper output)
+public class StateRootHashIndexTest(ITestOutputHelper output)
     : IndexTestBase<BlockHash, HashDigest<SHA256>, StateRootHashIndex>(output)
 {
     protected override StateRootHashIndex CreateIndex(bool useCache)

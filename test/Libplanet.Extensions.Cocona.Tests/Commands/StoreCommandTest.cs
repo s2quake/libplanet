@@ -100,7 +100,10 @@ public sealed class StoreCommandTest : IDisposable
             store.BlockDigests.Add(_block4);
             chain.BlockHashes.Add(_block4);
 
-            storeFixture.Repository?.Dispose();
+            if (storeFixture.Repository is IDisposable disposableRepository)
+            {
+                disposableRepository.Dispose();
+            }
         }
     }
 
@@ -326,7 +329,10 @@ public sealed class StoreCommandTest : IDisposable
     {
         foreach (var storeFixture in _storeFixtures)
         {
-            storeFixture.Repository?.Dispose();
+            if (storeFixture.Repository is IDisposable disposableRepository)
+            {
+                disposableRepository.Dispose();
+            }
         }
 
         Console.SetOut(_originalOut);

@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public sealed class PendingEvidenceIndexTest(ITestOutputHelper output)
+public class PendingEvidenceIndexTest(ITestOutputHelper output)
     : KeyedIndexTestBase<EvidenceId, EvidenceBase, PendingEvidenceIndex>(output)
 {
     protected override PendingEvidenceIndex CreateIndex(bool useCache)

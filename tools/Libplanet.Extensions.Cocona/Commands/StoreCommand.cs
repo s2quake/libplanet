@@ -19,15 +19,15 @@ public class StoreCommand
         [Argument("LIMIT", Description = "block height")]
         int limit)
     {
-        Libplanet.Data.Repository store = Utils.LoadStoreFromUri(home);
+        var repository = Utils.LoadStoreFromUri(home);
+        using var _ = new RepositoryDiposer(repository);
         var prev = DateTimeOffset.UtcNow;
-        foreach (var index in BuildTxIdBlockHashIndex(store, offset, limit))
+        foreach (var index in BuildTxIdBlockHashIndex(repository, offset, limit))
         {
             Console.WriteLine($"processing {index}/{offset + limit}...");
         }
 
         Console.WriteLine($"It taken {DateTimeOffset.UtcNow - prev}");
-        store?.Dispose();
     }
 
     [Command(Description = "Query block hashes by transaction id.")]
@@ -37,10 +37,10 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        Libplanet.Data.Repository store = Utils.LoadStoreFromUri(home);
+        var repository = Utils.LoadStoreFromUri(home);
+        using var _ = new RepositoryDiposer(repository);
         // var blockHashes = store.TxExecutions[new TxId(ByteUtility.ParseHex(strTxId))].Select(item => item.BlockHash);
         // Console.WriteLine(Utils.SerializeHumanReadable(blockHashes));
-        store?.Dispose();
     }
 
     [Command(Description = "Query a list of blocks by transaction id.")]
@@ -51,14 +51,15 @@ public class StoreCommand
         string strTxId)
     {
         // using Libplanet.Data.Store store = Utils.LoadStoreFromUri(home);
-        var store = new Libplanet.Data.Repository(new MemoryDatabase());
+        var repository = new Libplanet.Data.Repository(new MemoryDatabase());
+        using var _ = new RepositoryDiposer(repository);
         var txId = TxId.Parse(strTxId);
         // if (!store.TxExecutions.TryGetValue(txId, out var txExecutions) || txExecutions.Length == 0)
         // {
         //     throw Utils.Error($"cannot find the block with the TxId[{txId.ToString()}]");
         // }
 
-        var blocks = IterateBlocks(store, txId).ToImmutableList();
+        var blocks = IterateBlocks(repository, txId).ToImmutableList();
 
         Console.WriteLine(Utils.SerializeHumanReadable(blocks));
     }
@@ -97,10 +98,10 @@ public class StoreCommand
         [Argument("TX-ID", Description = "tx id")]
         string strTxId)
     {
-        Libplanet.Data.Repository store = Utils.LoadStoreFromUri(home);
-        var tx = GetTransaction(store, new TxId(ByteUtility.ParseHex(strTxId)));
+        var repository = Utils.LoadStoreFromUri(home);
+        using var _ = new RepositoryDiposer(repository);
+        var tx = GetTransaction(repository, new TxId(ByteUtility.ParseHex(strTxId)));
         Console.WriteLine(Utils.SerializeHumanReadable(tx));
-        store?.Dispose();
     }
 
     [Command]
@@ -183,5 +184,15 @@ public class StoreCommand
         //         store.TxExecutions.Add(txId, blockHash);
         //     }
         // }
+    }
+
+    private sealed class RepositoryDiposer(Repository repository) : IDisposable
+    {
+        private readonly IDisposable? _repository = repository as IDisposable;
+
+        public void Dispose()
+        {
+            _repository?.Dispose();
+        }
     }
 }
