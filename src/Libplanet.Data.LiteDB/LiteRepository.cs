@@ -5,6 +5,11 @@ public sealed class LiteRepository(string path)
 {
     private bool _disposed;
 
+    public LiteRepository()
+        : this(string.Empty)
+    {
+    }
+
     public void Dispose()
     {
         if (!_disposed)

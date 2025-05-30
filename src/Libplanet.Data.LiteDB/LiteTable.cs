@@ -96,11 +96,6 @@ public sealed class LiteTable(global::LiteDB.LiteDatabase db, string name) : Tab
     private static ILiteCollection<BsonDocument> CreateCollection(global::LiteDB.LiteDatabase db, string name)
     {
         var collection = db.GetCollection<BsonDocument>(name);
-        // if (!collection.EnsureIndex("key"))
-        // {
-        //     throw new InvalidOperationException($"Failed to ensure index for collection '{name}'.");
-        // }
-
         return collection;
     }
 }
