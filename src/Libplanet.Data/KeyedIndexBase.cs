@@ -300,7 +300,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
         }
     }
 
-    protected virtual bool CompareValue(TValue value1, TValue value2) => value1.Equals(value2);
+    protected virtual bool CompareValue(TValue value1, TValue value2) => Equals(value1, value2);
 
     protected abstract string KeyToString(TKey key);
 

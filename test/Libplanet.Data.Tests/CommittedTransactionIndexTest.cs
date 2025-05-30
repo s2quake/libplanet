@@ -5,10 +5,10 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class CommittedTransactionIndexTest(ITestOutputHelper output)
-    : KeyedIndexTestBase<TxId, Transaction>(output)
+    : KeyedIndexTestBase<TxId, Transaction, CommittedTransactionIndex>(output)
 {
-    protected override KeyedIndexBase<TxId, Transaction> CreateIndex(bool useCache)
-        => new CommittedTransactionIndex(new MemoryDatabase(), useCache ? 100 : 0);
+    protected override CommittedTransactionIndex CreateIndex(bool useCache)
+        => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override TxId CreateKey(Random random) => RandomUtility.TxId(random);
 

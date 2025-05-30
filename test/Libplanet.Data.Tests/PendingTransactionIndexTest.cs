@@ -5,10 +5,10 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class PendingTransactionIndexTest(ITestOutputHelper output)
-    : KeyedIndexTestBase<TxId, Transaction>(output)
+    : KeyedIndexTestBase<TxId, Transaction, PendingTransactionIndex>(output)
 {
-    protected override KeyedIndexBase<TxId, Transaction> CreateIndex(bool useCache)
-        => new PendingTransactionIndex(new MemoryDatabase(), useCache ? 100 : 0);
+    protected override PendingTransactionIndex CreateIndex(bool useCache)
+        => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override TxId CreateKey(Random random) => RandomUtility.TxId(random);
 

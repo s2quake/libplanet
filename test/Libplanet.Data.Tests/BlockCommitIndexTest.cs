@@ -5,10 +5,10 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class BlockCommitIndexTest(ITestOutputHelper output)
-    : KeyedIndexTestBase<BlockHash, BlockCommit>(output)
+    : KeyedIndexTestBase<BlockHash, BlockCommit, BlockCommitIndex>(output)
 {
-    protected override KeyedIndexBase<BlockHash, BlockCommit> CreateIndex(bool useCache)
-        => new BlockCommitIndex(new MemoryDatabase(), useCache ? 100 : 0);
+    protected override BlockCommitIndex CreateIndex(bool useCache)
+        => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
 

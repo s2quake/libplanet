@@ -6,7 +6,7 @@ namespace Libplanet.Types.Tests;
 
 public static partial class RandomUtility
 {
-    public const int AttemptCount = 10;
+    public const int AttemptCount = 100;
 
     private static readonly string[] Words = GetWords();
 

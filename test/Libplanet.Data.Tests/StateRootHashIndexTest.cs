@@ -6,10 +6,10 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class StateRootHashIndexTest(ITestOutputHelper output)
-    : IndexTestBase<BlockHash, HashDigest<SHA256>>(output)
+    : IndexTestBase<BlockHash, HashDigest<SHA256>, StateRootHashIndex>(output)
 {
-    protected override IndexBase<BlockHash, HashDigest<SHA256>> CreateIndex(bool useCache)
-        => new StateRootHashIndex(new MemoryDatabase(), useCache ? 100 : 0);
+    protected override StateRootHashIndex CreateIndex(bool useCache)
+        => new(new MemoryDatabase(), useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
 
