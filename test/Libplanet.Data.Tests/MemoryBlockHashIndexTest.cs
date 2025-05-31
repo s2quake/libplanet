@@ -4,12 +4,9 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public class BlockHashIndexTest(ITestOutputHelper output)
-    : IndexTestBase<int, BlockHash, BlockHashIndex>(output)
+public sealed class MemoryBlockHashIndexTest(ITestOutputHelper output)
+    : MemoryIndexTestBase<int, BlockHash, BlockHashIndex>(output)
 {
-    protected override BlockHashIndex CreateIndex(string name, bool useCache)
-        => new(new MemoryDatabase(), useCache ? 100 : 0);
-
     protected override int CreateKey(Random random) => RandomUtility.Int32(random);
 
     protected override BlockHash CreateValue(Random random) => RandomUtility.BlockHash(random);

@@ -4,12 +4,9 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public class TxExecutionIndexTest(ITestOutputHelper output)
-    : KeyedIndexTestBase<TxId, TxExecution, TxExecutionIndex>(output)
+public sealed class MemoryTxExecutionIndexTest(ITestOutputHelper output)
+    : MemoryKeyedIndexTestBase<TxId, TxExecution, TxExecutionIndex>(output)
 {
-    protected override TxExecutionIndex CreateIndex(string name, bool useCache)
-        => new(new MemoryDatabase(), useCache ? 100 : 0);
-
     protected override TxId CreateKey(Random random) => RandomUtility.TxId(random);
 
     protected override TxExecution CreateValue(Random random) => RandomUtility.TxExecution(random);
