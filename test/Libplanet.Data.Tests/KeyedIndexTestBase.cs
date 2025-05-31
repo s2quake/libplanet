@@ -23,6 +23,8 @@ public abstract class KeyedIndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestO
 
     protected abstract TDatabase CreateDatabase(string name);
 
+    protected abstract void DeleteDatabase(TDatabase database);
+
     protected TIndex CreateIndex(string name, bool useCache)
     {
         var database = CreateDatabase(name);
@@ -676,10 +678,7 @@ public abstract class KeyedIndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestO
             {
                 foreach (var database in _databases)
                 {
-                    if (database is IDisposable disposableDatabase)
-                    {
-                        disposableDatabase.Dispose();
-                    }
+                    DeleteDatabase(database);
                 }
 
                 _databases.Clear();

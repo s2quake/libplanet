@@ -1,3 +1,4 @@
+using System.IO;
 using Libplanet.Data.Tests;
 using Libplanet.Types;
 using Xunit.Abstractions;
@@ -10,6 +11,14 @@ public abstract class RocksIndexTestBase<TKey, TValue, TIndex>(ITestOutputHelper
     where TValue : notnull
     where TIndex : IndexBase<TKey, TValue>
 {
-    protected override RocksDatabase CreateDatabase(string name)
-        => RocksDatabaseUtility.CreateDatabase(this, name);
+    protected override RocksDatabase CreateDatabase(string name) => RocksDatabaseUtility.CreateDatabase(this, name);
+
+    protected override void DeleteDatabase(RocksDatabase database)
+    {
+        database.Dispose();
+        if (Directory.Exists(database.Path))
+        {
+            Directory.Delete(database.Path, true);
+        }
+    }
 }

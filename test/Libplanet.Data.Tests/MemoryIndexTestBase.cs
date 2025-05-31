@@ -1,4 +1,3 @@
-using Libplanet.Types;
 using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
@@ -10,4 +9,8 @@ public abstract class MemoryIndexTestBase<TKey, TValue, TIndex>(ITestOutputHelpe
     where TIndex : IndexBase<TKey, TValue>
 {
     protected override MemoryDatabase CreateDatabase(string name) => new();
+
+    protected override void DeleteDatabase(MemoryDatabase database)
+    {
+    }
 }
