@@ -3,7 +3,8 @@ using LiteDB;
 
 namespace Libplanet.Data.LiteDB;
 
-public sealed class LiteTable(global::LiteDB.LiteDatabase db, string name) : TableBase, IDisposable
+public sealed class LiteTable(global::LiteDB.LiteDatabase db, string name)
+    : TableBase($"{name}"), IDisposable
 {
     private readonly ILiteCollection<BsonDocument> _collection = CreateCollection(db, name);
 

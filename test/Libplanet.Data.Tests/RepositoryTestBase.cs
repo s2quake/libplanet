@@ -76,6 +76,11 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         Assert.Equal(default, repository.GenesisBlockHash);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => repository.GenesisHeight = -2);
+
+        var blockHash = RandomUtility.BlockHash(random);
+        repository.GenesisHeight = 0;
+        repository.BlockHashes[0] = blockHash;
+        Assert.Equal(blockHash, repository.GenesisBlockHash);
     }
 
     [Fact]
@@ -97,6 +102,11 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         Assert.Equal(default, repository.BlockHash);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => repository.Height = -2);
+
+        var blockHash = RandomUtility.BlockHash(random);
+        repository.Height = 0;
+        repository.BlockHashes[0] = blockHash;
+        Assert.Equal(blockHash, repository.BlockHash);
     }
 
     [Fact]
