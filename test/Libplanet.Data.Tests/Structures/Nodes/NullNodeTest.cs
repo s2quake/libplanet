@@ -11,4 +11,12 @@ public class NullNodeTest
         Assert.Equal(NullNode.Value, NullNode.Value with { });
         Assert.Empty(((INode)NullNode.Value).Children);
     }
+
+    [Fact]
+    public void UnexpectedNode()
+    {
+        var unexpectedNode = new UnexpectedNode();
+        Assert.Empty(unexpectedNode.Children);
+        Assert.Equal(unexpectedNode, unexpectedNode with { });
+    }
 }

@@ -9,6 +9,13 @@ public abstract class TableTestBase<TTable>
     public abstract TTable CreateTable(string name);
 
     [Fact]
+    public void Name()
+    {
+        var table = CreateTable(nameof(Name));
+        Assert.Equal(nameof(Name), table.Name);
+    }
+
+    [Fact]
     public void Get_After_Add()
     {
         var table = CreateTable(nameof(Get_After_Add));
@@ -41,7 +48,6 @@ public abstract class TableTestBase<TTable>
     [Fact]
     public void Set()
     {
-        Dictionary<string, string> d;
         var table = CreateTable(nameof(Set));
         var key = "testKey";
         var value = new byte[] { 1, 2, 3, 4, 5 };

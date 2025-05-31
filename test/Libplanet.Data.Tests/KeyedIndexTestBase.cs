@@ -33,18 +33,6 @@ public abstract class KeyedIndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestO
         return index;
     }
 
-    protected TKey[] CreateKeys(Random random, int length)
-    {
-        var keyList = new List<TKey>(length);
-        for (int i = 0; i < length; i++)
-        {
-            var key = CreateKey(random, item => !keyList.Contains(item));
-            keyList.Add(key);
-        }
-
-        return [.. keyList];
-    }
-
     protected TValue[] CreateValues(Random random, int length)
     {
         var valueList = new List<TValue>(length);

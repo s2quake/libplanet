@@ -39,11 +39,16 @@ public partial class StateIndex(ITable table)
     {
         if (trie.Node is NullNode)
         {
-            throw new ArgumentException("Empty trie cannot be committed.", nameof(trie));
+            throw new ArgumentException("Empty trie cannot commit.", nameof(trie));
+        }
+
+        if (trie.Node is HashNode)
+        {
+            throw new ArgumentException("Committed trie cannot commit again.", nameof(trie));
         }
 
         var node = trie.Node;
-        var writeBatch = new WriteBatch(_table, 4096);
+        using var writeBatch = new WriteBatch(_table, 4096);
         var newNode = Commit(node, writeBatch);
 
         if (newNode is not HashNode)
@@ -54,8 +59,6 @@ public partial class StateIndex(ITable table)
             writeBatch.Add(hashDigest.ToString(), serialized);
             newNode = new HashNode { Hash = hashDigest, Table = _table };
         }
-
-        writeBatch.Flush();
 
         return new Trie(newNode);
     }
@@ -122,7 +125,7 @@ public partial class StateIndex(ITable table)
         return writeBatch.Create(hash);
     }
 
-    private sealed class WriteBatch(ITable table, int batchSize)
+    private sealed class WriteBatch(ITable table, int batchSize) : IDisposable
     {
         private readonly ITable _table = table;
         private readonly int _batchSize = batchSize;
@@ -149,5 +152,7 @@ public partial class StateIndex(ITable table)
         }
 
         public HashNode Create(HashDigest<SHA256> nodeHash) => new() { Hash = nodeHash, Table = _table };
+
+        public void Dispose() => Flush();
     }
 }

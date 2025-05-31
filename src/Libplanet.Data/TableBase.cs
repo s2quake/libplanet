@@ -9,11 +9,6 @@ public abstract class TableBase : ITable
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected TableBase()
-        : this(string.Empty)
-    {
-    }
-
     protected TableBase(string name)
     {
         _keys = new KeyCollection(this);
