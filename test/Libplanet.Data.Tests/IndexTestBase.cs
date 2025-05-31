@@ -1,19 +1,34 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public abstract class IndexTestBase<TKey, TValue, TIndex>(ITestOutputHelper output)
+public abstract class IndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestOutputHelper output) : IDisposable
     where TKey : notnull
     where TValue : notnull
     where TIndex : IndexBase<TKey, TValue>
+    where TDatabase : IDatabase
 {
+    private readonly ConcurrentBag<TDatabase> _databases = [];
+    private bool _disposedValue;
+
     protected abstract TKey CreateKey(Random random);
 
     protected abstract TValue CreateValue(Random random);
 
-    protected abstract TIndex CreateIndex(string name, bool useCache);
+    protected abstract TIndex CreateIndex(TDatabase database, bool useCache);
+
+    protected abstract TDatabase CreateDatabase(string name);
+
+    protected TIndex CreateIndex(string name, bool useCache)
+    {
+        var database = CreateDatabase(name);
+        var index = CreateIndex(database, useCache);
+        _databases.Add(database);
+        return index;
+    }
 
     protected TKey[] CreateKeys(Random random, int length)
     {
@@ -40,7 +55,7 @@ public abstract class IndexTestBase<TKey, TValue, TIndex>(ITestOutputHelper outp
     }
 
     protected KeyValuePair<TKey, TValue> CreateKeyValue(Random random)
-        => new (CreateKeys(random, 1)[0], CreateValues(random, 1)[0]);
+        => new(CreateKeys(random, 1)[0], CreateValues(random, 1)[0]);
 
     protected KeyValuePair<TKey, TValue>[] CreateKeyValues(Random random, int length)
     {
@@ -627,5 +642,32 @@ public abstract class IndexTestBase<TKey, TValue, TIndex>(ITestOutputHelper outp
         var seed = RandomUtility.Int32();
         output.WriteLine($"Random seed: {seed}");
         return new Random(seed);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                foreach (var database in _databases)
+                {
+                    if (database is IDisposable disposableDatabase)
+                    {
+                        disposableDatabase.Dispose();
+                    }
+                }
+
+                _databases.Clear();
+            }
+
+            _disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

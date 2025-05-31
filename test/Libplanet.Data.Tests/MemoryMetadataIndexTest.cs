@@ -3,12 +3,9 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 
-public class MetadataIndexTest(ITestOutputHelper output)
-    : IndexTestBase<string, string, MetadataIndex>(output)
+public sealed class MemoryMetadataIndexTest(ITestOutputHelper output)
+    : MemoryIndexTestBase<string, string, MetadataIndex>(output)
 {
-    protected override MetadataIndex CreateIndex(string name, bool useCache)
-        => new(new MemoryDatabase(), useCache ? 100 : 0);
-
     protected override string CreateKey(Random random) => RandomUtility.Word(random);
 
     protected override string CreateValue(Random random) => RandomUtility.String(random);
