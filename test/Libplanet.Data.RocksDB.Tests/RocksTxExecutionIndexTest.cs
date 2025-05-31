@@ -2,12 +2,12 @@ using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
-namespace Libplanet.Data.Tests;
+namespace Libplanet.Data.RocksDB.Tests;
 
-public sealed class MemoryTxExecutionIndexTest(ITestOutputHelper output)
-    : MemoryKeyedIndexTestBase<TxId, TxExecution, TxExecutionIndex>(output)
+public sealed class RocksTxExecutionIndexTest(ITestOutputHelper output)
+    : RocksKeyedIndexTestBase<TxId, TxExecution, TxExecutionIndex>(output)
 {
-    protected override TxExecutionIndex CreateIndex(MemoryDatabase database, bool useCache)
+    protected override TxExecutionIndex CreateIndex(RocksDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
     protected override TxId CreateKey(Random random) => RandomUtility.TxId(random);

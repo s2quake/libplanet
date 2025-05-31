@@ -3,12 +3,12 @@ using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
-namespace Libplanet.Data.Tests;
+namespace Libplanet.Data.LiteDB.Tests;
 
-public sealed class MemoryStateRootHashIndexTest(ITestOutputHelper output)
-    : MemoryIndexTestBase<BlockHash, HashDigest<SHA256>, StateRootHashIndex>(output)
+public sealed class LiteStateRootHashIndexTest(ITestOutputHelper output)
+    : LiteIndexTestBase<BlockHash, HashDigest<SHA256>, StateRootHashIndex>(output)
 {
-    protected override StateRootHashIndex CreateIndex(MemoryDatabase database, bool useCache)
+    protected override StateRootHashIndex CreateIndex(LiteDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
