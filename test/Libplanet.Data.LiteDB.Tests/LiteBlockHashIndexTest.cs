@@ -2,12 +2,12 @@ using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
-namespace Libplanet.Data.Tests;
+namespace Libplanet.Data.LiteDB.Tests;
 
-public sealed class MemoryBlockHashIndexTest(ITestOutputHelper output)
-    : MemoryIndexTestBase<int, BlockHash, BlockHashIndex>(output)
+public sealed class LiteBlockHashIndexTest(ITestOutputHelper output)
+    : LiteIndexTestBase<int, BlockHash, BlockHashIndex>(output)
 {
-    protected override BlockHashIndex CreateIndex(MemoryDatabase database, bool useCache)
+    protected override BlockHashIndex CreateIndex(LiteDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
     protected override int CreateKey(Random random) => RandomUtility.Int32(random);

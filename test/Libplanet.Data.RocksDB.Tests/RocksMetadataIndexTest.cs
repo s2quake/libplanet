@@ -1,12 +1,12 @@
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
-namespace Libplanet.Data.Tests;
+namespace Libplanet.Data.RocksDB.Tests;
 
-public sealed class MemoryMetadataIndexTest(ITestOutputHelper output)
-    : MemoryIndexTestBase<string, string, MetadataIndex>(output)
+public sealed class RocksMetadataIndexTest(ITestOutputHelper output)
+    : RocksIndexTestBase<string, string, MetadataIndex>(output)
 {
-    protected override MetadataIndex CreateIndex(MemoryDatabase database, bool useCache)
+    protected override MetadataIndex CreateIndex(RocksDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
     protected override string CreateKey(Random random) => RandomUtility.Word(random);

@@ -2,12 +2,12 @@ using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
-namespace Libplanet.Data.Tests;
+namespace Libplanet.Data.RocksDB.Tests;
 
-public sealed class MemoryNonceIndexTest(ITestOutputHelper output)
-    : MemoryIndexTestBase<Address, long, NonceIndex>(output)
+public sealed class RocksNonceIndexTest(ITestOutputHelper output)
+    : RocksIndexTestBase<Address, long, NonceIndex>(output)
 {
-    protected override NonceIndex CreateIndex(MemoryDatabase database, bool useCache)
+    protected override NonceIndex CreateIndex(RocksDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
     protected override Address CreateKey(Random random) => RandomUtility.Address(random);

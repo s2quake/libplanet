@@ -10,7 +10,4 @@ public abstract class MemoryKeyedIndexTestBase<TKey, TValue, TIndex>(ITestOutput
     where TIndex : KeyedIndexBase<TKey, TValue>
 {
     protected override MemoryDatabase CreateDatabase(string name) => new();
-
-    protected override TIndex CreateIndex(MemoryDatabase database, bool useCache)
-        => (TIndex)Activator.CreateInstance(typeof(TIndex), database, useCache ? 100 : 0)!;
 }
