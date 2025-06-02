@@ -4,21 +4,9 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class DateTimeOffsetModelConverter : ModelConverterBase<DateTimeOffset>
 {
-    protected override DateTimeOffset Deserialize(Stream stream, ModelOptions options)
-    {
-        var length = sizeof(long);
-        Span<byte> bytes = stackalloc byte[length];
-        if (stream.Read(bytes) != length)
-        {
-            throw new EndOfStreamException("Failed to read the expected number of bytes.");
-        }
+    protected override DateTimeOffset Deserialize(BinaryReader reader, ModelOptions options)
+        => new(reader.ReadInt64(), TimeSpan.Zero);
 
-        return new DateTimeOffset(BitConverter.ToInt64(bytes), TimeSpan.Zero);
-    }
-
-    protected override void Serialize(DateTimeOffset obj, Stream stream, ModelOptions options)
-    {
-        var bytes = BitConverter.GetBytes(obj.UtcTicks);
-        stream.Write(bytes, 0, bytes.Length);
-    }
+    protected override void Serialize(DateTimeOffset obj, BinaryWriter writer, ModelOptions options)
+        => writer.Write(obj.UtcTicks);
 }

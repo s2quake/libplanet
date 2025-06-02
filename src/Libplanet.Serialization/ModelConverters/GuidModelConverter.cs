@@ -4,21 +4,9 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class GuidModelConverter : ModelConverterBase<Guid>
 {
-    protected override Guid Deserialize(Stream stream, ModelOptions options)
-    {
-        var length = 16;
-        var bytes = new byte[length];
-        if (stream.Read(bytes, 0, length) != length)
-        {
-            throw new EndOfStreamException("Failed to read the expected number of bytes.");
-        }
+    protected override Guid Deserialize(BinaryReader reader, ModelOptions options)
+        => new(reader.ReadBytes(16));
 
-        return new Guid(bytes);
-    }
-
-    protected override void Serialize(Guid obj, Stream stream, ModelOptions options)
-    {
-        var bytes = obj.ToByteArray();
-        stream.Write(bytes, 0, bytes.Length);
-    }
+    protected override void Serialize(Guid obj, BinaryWriter writer, ModelOptions options)
+        => writer.Write(obj.ToByteArray());
 }

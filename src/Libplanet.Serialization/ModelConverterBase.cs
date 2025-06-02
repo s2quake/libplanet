@@ -1,6 +1,7 @@
 ﻿#pragma warning disable SA1402 // File may only contain a single type
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace Libplanet.Serialization;
 
@@ -21,13 +22,17 @@ public abstract class ModelConverterBase<T> : IModelConverter
     where T : notnull
 {
     object IModelConverter.Deserialize(Stream stream, ModelOptions options)
-        => Deserialize(stream, options);
+    {
+        using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+        return Deserialize(reader, options);
+    }
 
     void IModelConverter.Serialize(object obj, Stream stream, ModelOptions options)
     {
         if (obj is T t)
         {
-            Serialize(t, stream, options);
+            using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+            Serialize(t, writer, options);
         }
         else
         {
@@ -35,7 +40,7 @@ public abstract class ModelConverterBase<T> : IModelConverter
         }
     }
 
-    protected abstract T Deserialize(Stream stream, ModelOptions options);
+    protected abstract T Deserialize(BinaryReader reader, ModelOptions options);
 
-    protected abstract void Serialize(T obj, Stream stream, ModelOptions options);
+    protected abstract void Serialize(T obj, BinaryWriter writer, ModelOptions options);
 }

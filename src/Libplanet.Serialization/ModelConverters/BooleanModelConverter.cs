@@ -4,18 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class BooleanModelConverter : ModelConverterBase<bool>
 {
-    protected override bool Deserialize(Stream stream, ModelOptions options)
-    {
-        var value = stream.ReadByte();
-        return value switch
-        {
-            -1 => throw new EndOfStreamException("Failed to read a byte from the stream."),
-            0 => false,
-            1 => true,
-            _ => throw new InvalidDataException($"Invalid boolean value: {value}. Expected 0 or 1."),
-        };
-    }
+    protected override bool Deserialize(BinaryReader reader, ModelOptions options) => reader.ReadBoolean();
 
-    protected override void Serialize(bool obj, Stream stream, ModelOptions options)
-        => stream.WriteByte(obj ? (byte)1 : (byte)0);
+    protected override void Serialize(bool obj, BinaryWriter writer, ModelOptions options) => writer.Write(obj);
 }

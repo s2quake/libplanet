@@ -1,23 +1,20 @@
 using System.IO;
 using Libplanet.Serialization;
-using Libplanet.Serialization.Extensions;
 
 namespace Libplanet.Types.ModelConverters;
 
 internal sealed class PublicKeyModelConverter : ModelConverterBase<PublicKey>
 {
-    protected override PublicKey Deserialize(Stream stream, ModelOptions options)
+    protected override PublicKey Deserialize(BinaryReader reader, ModelOptions options)
     {
-        var length = stream.ReadInt32();
-        Span<byte> bytes = stackalloc byte[length];
-        if (stream.Read(bytes) != length)
-        {
-            throw new EndOfStreamException("Failed to read the expected number of bytes.");
-        }
-
-        return new PublicKey(bytes);
+        var length = reader.ReadInt32();
+        return new PublicKey(reader.ReadBytes(length));
     }
 
-    protected override void Serialize(PublicKey obj, Stream stream, ModelOptions options)
-        => stream.Write(obj.Bytes.AsSpan());
+    protected override void Serialize(PublicKey obj, BinaryWriter writer, ModelOptions options)
+    {
+        var bytes = obj.Bytes.AsSpan();
+        writer.Write(bytes.Length);
+        writer.Write(bytes);
+    }
 }
