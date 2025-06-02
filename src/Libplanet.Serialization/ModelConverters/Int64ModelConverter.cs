@@ -4,21 +4,7 @@ namespace Libplanet.Serialization.ModelConverters;
 
 internal sealed class Int64ModelConverter : ModelConverterBase<long>
 {
-    protected override long Deserialize(Stream stream, ModelOptions options)
-    {
-        var length = sizeof(long);
-        Span<byte> bytes = stackalloc byte[length];
-        if (stream.Read(bytes) != length)
-        {
-            throw new EndOfStreamException("Failed to read the expected number of bytes.");
-        }
+    protected override long Deserialize(BinaryReader reader, ModelOptions options) => reader.ReadInt64();
 
-        return BitConverter.ToInt64(bytes);
-    }
-
-    protected override void Serialize(long obj, Stream stream, ModelOptions options)
-    {
-        var bytes = BitConverter.GetBytes(obj);
-        stream.Write(bytes, 0, bytes.Length);
-    }
+    protected override void Serialize(long obj, BinaryWriter writer, ModelOptions options) => writer.Write(obj);
 }

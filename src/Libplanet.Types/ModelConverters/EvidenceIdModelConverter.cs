@@ -5,18 +5,9 @@ namespace Libplanet.Types.ModelConverters;
 
 internal sealed class EvidenceIdModelConverter : ModelConverterBase<EvidenceId>
 {
-    protected override EvidenceId Deserialize(Stream stream, ModelOptions options)
-    {
-        var length = EvidenceId.Size;
-        Span<byte> bytes = stackalloc byte[length];
-        if (stream.Read(bytes) != length)
-        {
-            throw new EndOfStreamException("Failed to read the expected number of bytes.");
-        }
+    protected override EvidenceId Deserialize(BinaryReader reader, ModelOptions options)
+        => new(reader.ReadBytes(EvidenceId.Size));
 
-        return new EvidenceId(bytes.ToArray());
-    }
-
-    protected override void Serialize(EvidenceId obj, Stream stream, ModelOptions options)
-        => stream.Write(obj.Bytes.AsSpan());
+    protected override void Serialize(EvidenceId obj, BinaryWriter writer, ModelOptions options)
+        => writer.Write(obj.Bytes.AsSpan());
 }

@@ -1,17 +1,9 @@
 ﻿using System.IO;
-using System.Text;
 
 namespace Libplanet.Serialization.Extensions;
 
 public static class StreamExtensions
 {
-    public static void WriteString(this Stream @this, string value)
-    {
-        var bytes = Encoding.UTF8.GetBytes(value);
-        WriteInt32(@this, bytes.Length);
-        @this.Write(bytes, 0, bytes.Length);
-    }
-
     public static void WriteInt32(this Stream @this, int value)
     {
         var bytes = BitConverter.GetBytes(value);
@@ -36,18 +28,6 @@ public static class StreamExtensions
             @this.WriteByte(0);
             @this.Write(bytes, 0, bytes.Length);
         }
-    }
-
-    public static string ReadString(this Stream @this)
-    {
-        var length = ReadInt32(@this);
-        var bytes = new byte[length];
-        if (@this.Read(bytes, 0, length) != length)
-        {
-            throw new EndOfStreamException("Failed to read string from stream.");
-        }
-
-        return Encoding.UTF8.GetString(bytes);
     }
 
     public static int ReadInt32(this Stream @this)
@@ -76,18 +56,5 @@ public static class StreamExtensions
         return isLong
             ? Enum.ToObject(enumType, BitConverter.ToInt64(bytes))
             : Enum.ToObject(enumType, BitConverter.ToInt32(bytes));
-    }
-
-    public static byte PeekByte(this Stream @this)
-    {
-        var position = @this.Position;
-        var b = @this.ReadByte();
-        if (b == -1)
-        {
-            throw new EndOfStreamException("Failed to peek byte from stream.");
-        }
-
-        @this.Position = position;
-        return checked((byte)b);
     }
 }

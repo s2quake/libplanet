@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using Libplanet.Serialization.Extensions;
+using System.Text;
 
 namespace Libplanet.Serialization;
 
@@ -14,9 +14,10 @@ internal sealed record class ModelData
 
     public void Write(Stream stream)
     {
-        stream.Write(MagicValue);
-        stream.WriteString(TypeName);
-        stream.WriteInt32(Version);
+        using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+        writer.Write(MagicValue);
+        writer.Write(TypeName);
+        writer.Write(Version);
     }
 
     public static bool IsData(Stream stream)
@@ -42,13 +43,14 @@ internal sealed record class ModelData
     {
         try
         {
+            using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
             var bytes = new byte[MagicValue.Length];
-            if (stream.Read(bytes) == bytes.Length && bytes.SequenceEqual(MagicValue))
+            if (reader.Read(bytes) == bytes.Length && bytes.SequenceEqual(MagicValue))
             {
                 data = new ModelData
                 {
-                    TypeName = stream.ReadString(),
-                    Version = stream.ReadInt32(),
+                    TypeName = reader.ReadString(),
+                    Version = reader.ReadInt32(),
                 };
                 return true;
             }
@@ -64,16 +66,17 @@ internal sealed record class ModelData
 
     public static ModelData GetData(Stream stream)
     {
+        using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
         var bytes = new byte[MagicValue.Length];
-        if (stream.Read(bytes) != bytes.Length || !bytes.SequenceEqual(MagicValue))
+        if (reader.Read(bytes) != bytes.Length || !bytes.SequenceEqual(MagicValue))
         {
             throw new ModelSerializationException("Invalid magic value.");
         }
 
         return new ModelData
         {
-            TypeName = stream.ReadString(),
-            Version = stream.ReadInt32(),
+            TypeName = reader.ReadString(),
+            Version = reader.ReadInt32(),
         };
     }
 }

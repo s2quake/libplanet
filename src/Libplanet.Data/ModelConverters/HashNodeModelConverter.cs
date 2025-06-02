@@ -8,16 +8,10 @@ namespace Libplanet.Data.ModelConverters;
 
 internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
 {
-    protected override HashNode Deserialize(Stream stream, ModelOptions options)
+    protected override HashNode Deserialize(BinaryReader reader, ModelOptions options)
     {
         var length = HashDigest<SHA256>.Size;
-        Span<byte> bytes = stackalloc byte[length];
-        if (stream.Read(bytes) != length)
-        {
-            throw new EndOfStreamException("Failed to read the expected number of bytes.");
-        }
-
-        var hash = new HashDigest<SHA256>(bytes);
+        var hash = new HashDigest<SHA256>(reader.ReadBytes(length));
         if (!options.Items.TryGetValue(typeof(ITable), out var value) || value is not ITable table)
         {
             throw new InvalidOperationException(
@@ -31,8 +25,8 @@ internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
         };
     }
 
-    protected override void Serialize(HashNode obj, Stream stream, ModelOptions options)
+    protected override void Serialize(HashNode obj, BinaryWriter writer, ModelOptions options)
     {
-        stream.Write(obj.Hash.Bytes.AsSpan());
+        writer.Write(obj.Hash.Bytes.AsSpan());
     }
 }
