@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Libplanet.Serialization.Descriptors;
+using Libplanet.Serialization.ModelConverters;
 
 namespace Libplanet.Serialization;
 
@@ -17,7 +18,19 @@ public static class ModelResolver
     private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _propertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
     private static readonly ConcurrentDictionary<Type, ModelDescriptor> _descriptorByType = [];
-    private static readonly ConcurrentDictionary<Type, IModelConverter> _converterByType = [];
+    private static readonly ConcurrentDictionary<Type, IModelConverter> _converterByType = new()
+    {
+        [typeof(BigInteger)] = new BigIntegerModelConverter(),
+        [typeof(bool)] = new BooleanModelConverter(),
+        [typeof(byte)] = new ByteModelConverter(),
+        [typeof(char)] = new CharModelConverter(),
+        [typeof(DateTimeOffset)] = new DateTimeOffsetModelConverter(),
+        [typeof(Guid)] = new GuidModelConverter(),
+        [typeof(int)] = new Int32ModelConverter(),
+        [typeof(long)] = new Int64ModelConverter(),
+        [typeof(string)] = new StringModelConverter(),
+        [typeof(TimeSpan)] = new TimeSpanModelConverter(),
+    };
     private static readonly ModelDescriptor[] _descriptors =
     [
         new ArrayModelDescriptor(),
@@ -400,8 +413,7 @@ public static class ModelResolver
 
     private static IModelConverter CreateConverter(Type type)
     {
-        var attributes = TypeDescriptor.GetAttributes(type);
-        if (attributes[typeof(ModelConverterAttribute)] is not ModelConverterAttribute attribute)
+        if (type.GetCustomAttribute<ModelConverterAttribute>() is not { } attribute)
         {
             throw new ArgumentException(
                 $"Type {type} does not have a ModelConverterAttribute", nameof(type));

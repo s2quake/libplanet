@@ -9,25 +9,6 @@ namespace Libplanet.Serialization;
 
 public static class ModelSerializer
 {
-    static ModelSerializer()
-    {
-        AddModelConverter(typeof(BigInteger), typeof(BigIntegerModelConverter));
-        AddModelConverter(typeof(bool), typeof(BooleanModelConverter));
-        AddModelConverter(typeof(byte), typeof(ByteModelConverter));
-        AddModelConverter(typeof(char), typeof(CharModelConverter));
-        AddModelConverter(typeof(DateTimeOffset), typeof(DateTimeOffsetModelConverter));
-        AddModelConverter(typeof(Guid), typeof(GuidModelConverter));
-        AddModelConverter(typeof(int), typeof(Int32ModelConverter));
-        AddModelConverter(typeof(long), typeof(Int64ModelConverter));
-        AddModelConverter(typeof(string), typeof(StringModelConverter));
-        AddModelConverter(typeof(TimeSpan), typeof(TimeSpanModelConverter));
-
-        static void AddModelConverter(Type type, Type converterType)
-        {
-            TypeDescriptor.AddAttributes(type, new ModelConverterAttribute(converterType));
-        }
-    }
-
     private enum DataType : byte
     {
         Null,
