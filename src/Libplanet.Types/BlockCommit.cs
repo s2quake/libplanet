@@ -4,7 +4,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "BlockCommit")]
 public sealed partial record class BlockCommit : IHasKey<BlockHash>
 {
     public static BlockCommit Empty { get; } = new();

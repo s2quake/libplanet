@@ -4,7 +4,7 @@ using ValidationResult = System.ComponentModel.DataAnnotations.ValidationResult;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "DuplicateVoteEvidence")]
 public sealed partial record class DuplicateVoteEvidence : EvidenceBase, IEquatable<DuplicateVoteEvidence>
 {
     [Property(0)]

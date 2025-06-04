@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.State;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "AccountState")]
 public sealed partial record class AccountState
 {
     [Property(0)]

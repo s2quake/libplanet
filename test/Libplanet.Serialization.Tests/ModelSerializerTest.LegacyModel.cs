@@ -12,14 +12,14 @@ public sealed partial class ModelSerializerTest
         Assert.Equal("Hello, World!", actualObject.String);
     }
 
-    [LegacyModel(OriginType = typeof(ModelRecord), AllowSerialization = true)]
+    [OriginModel(Type = typeof(ModelRecord), AllowSerialization = true)]
     public sealed record class Version1_ModelRecord
     {
         [Property(0)]
         public int Int { get; set; }
     }
 
-    [LegacyModel(OriginType = typeof(ModelRecord))]
+    [OriginModel(Type = typeof(ModelRecord))]
     public sealed record class Version2_ModelRecord
     {
         public Version2_ModelRecord()
@@ -39,9 +39,9 @@ public sealed partial class ModelSerializerTest
         public string String { get; set; } = string.Empty;
     }
 
-    [Model(Version = 1, Type = typeof(Version1_ModelRecord))]
-    [Model(Version = 2, Type = typeof(Version2_ModelRecord))]
-    [Model(Version = 3)]
+    [ModelHistory(Version = 1, Type = typeof(Version1_ModelRecord))]
+    [ModelHistory(Version = 2, Type = typeof(Version2_ModelRecord))]
+    [Model(Version = 3, TypeName = "ModelSerializerTest+ModelRecord")]
     public sealed record class ModelRecord
     {
         public ModelRecord()

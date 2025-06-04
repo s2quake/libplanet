@@ -1,8 +1,6 @@
-﻿using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Libplanet.Serialization.Extensions;
-using Libplanet.Serialization.ModelConverters;
 using static Libplanet.Serialization.ModelResolver;
 
 namespace Libplanet.Serialization;
@@ -53,8 +51,7 @@ public static class ModelSerializer
         }
     }
 
-    public static byte[] SerializeToBytes(object? obj)
-        => SerializeToBytes(obj, ModelOptions.Empty);
+    public static byte[] SerializeToBytes(object? obj) => SerializeToBytes(obj, ModelOptions.Empty);
 
     public static byte[] SerializeToBytes(object? obj, ModelOptions options)
     {

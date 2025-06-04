@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Data;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "BlockDigest")]
 public sealed partial record class BlockDigest : IHasKey<BlockHash>
 {
     [Property(0)]

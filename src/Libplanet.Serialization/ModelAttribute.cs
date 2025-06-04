@@ -2,11 +2,12 @@
 
 namespace Libplanet.Serialization;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class ModelAttribute : Attribute
 {
     [NonNegative]
     public required int Version { get; init; }
 
-    public Type? Type { get; init; }
+    [NotEmpty]
+    public required string TypeName { get; init; }
 }

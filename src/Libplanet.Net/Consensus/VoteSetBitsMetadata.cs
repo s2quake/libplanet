@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "VoteSetBitsMetadata")]
 public sealed partial record class VoteSetBitsMetadata
 {
     [Property(0)]

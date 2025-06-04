@@ -75,7 +75,7 @@ public static class ModelResolver
     {
         try
         {
-            if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute)))
+            if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(OriginModelAttribute)))
             {
                 return GetTypes(type).IndexOf(type) + 1;
             }
@@ -114,7 +114,7 @@ public static class ModelResolver
     {
         try
         {
-            if (!type.IsDefined(typeof(ModelAttribute)) && !type.IsDefined(typeof(LegacyModelAttribute)))
+            if (!type.IsDefined(typeof(ModelAttribute)) && !type.IsDefined(typeof(OriginModelAttribute)))
             {
                 throw new ArgumentException(
                     $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
@@ -313,11 +313,21 @@ public static class ModelResolver
 
     private static ImmutableArray<Type> CreateTypes(Type type)
     {
-        var query = from attribute in type.GetCustomAttributes<ModelAttribute>()
+        var query = from attribute in type.GetCustomAttributes<ModelHistoryAttribute>()
                     orderby attribute.Version
                     select attribute;
         var attributes = query.ToArray();
         var builder = ImmutableArray.CreateBuilder<Type>(attributes.Length + 1);
+        var modelAttribute = type.GetCustomAttribute<ModelAttribute>()
+            ?? throw new ArgumentException(
+                $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
+
+        if (modelAttribute.Version != query.Count())
+        {
+            throw new ArgumentException(
+                $"Version of {type} must be equal to the number of {nameof(ModelHistoryAttribute)}",
+                nameof(type));
+        }
 
         Type? previousType = null;
         for (var i = 0; i < attributes.Length; i++)
@@ -332,32 +342,16 @@ public static class ModelResolver
                     $"Version of {type} must be sequential starting from 1", nameof(type));
             }
 
-            if (version == attributes.Length)
+            if (attribute.Type.GetCustomAttribute<OriginModelAttribute>() is not { } originModelAttribute)
             {
-                if (attribute.Type is not null)
-                {
-                    throw new ArgumentException("Last version must not have a type", nameof(type));
-                }
+                throw new ArgumentException(
+                    $"Type {attribute.Type} does not have {nameof(OriginModelAttribute)}",
+                    nameof(type));
             }
-            else
+
+            if (originModelAttribute.Type != type)
             {
-                if (attribute.Type is null)
-                {
-                    throw new ArgumentException(
-                        $"Version {version} of {type} must have a type", nameof(type));
-                }
-
-                if (attribute.Type.GetCustomAttribute<LegacyModelAttribute>() is not { } legacyModelAttribute)
-                {
-                    throw new ArgumentException(
-                        $"Type {attribute.Type} does not have {nameof(LegacyModelAttribute)}",
-                        nameof(type));
-                }
-
-                if (legacyModelAttribute.OriginType != type)
-                {
-                    throw new ArgumentException("OriginType of LegacyModelAttribute is not valid", nameof(type));
-                }
+                throw new ArgumentException("OriginType of OriginModelAttribute is not valid", nameof(type));
             }
 
             var currentType = attribute.Type ?? type;

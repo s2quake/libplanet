@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "BlockExecution")]
 public sealed partial record class BlockHeader
 {
     public const int CurrentProtocolVersion = 0;

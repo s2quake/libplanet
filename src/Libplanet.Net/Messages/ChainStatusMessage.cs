@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "ChainStatusMessage")]
 internal sealed record class ChainStatusMessage : MessageContent
 {
     [Property(0)]

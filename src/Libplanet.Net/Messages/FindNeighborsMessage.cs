@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "FindNeighborsMessage")]
 public sealed record class FindNeighborsMessage : MessageContent
 {
     [Property(0)]

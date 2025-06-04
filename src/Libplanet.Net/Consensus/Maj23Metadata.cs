@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "Maj23Metadata")]
 public sealed partial record class Maj23Metadata
 {
     [Property(0)]

@@ -5,7 +5,7 @@ namespace Libplanet.Serialization.Descriptors;
 internal sealed class ObjectModelDescriptor : ModelDescriptor
 {
     public override bool CanSerialize(Type type)
-        => type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(LegacyModelAttribute));
+        => type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(OriginModelAttribute));
 
     public override Type[] GetTypes(Type type, out bool isArray)
     {
@@ -27,7 +27,7 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
             ModelResolver.Validate(obj, options);
         }
 
-        if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute
+        if (type.GetCustomAttribute<OriginModelAttribute>() is { } legacyModelAttribute
                 && !legacyModelAttribute.AllowSerialization)
         {
             throw new ModelSerializationException("LegacyModelAttribute is not supported");
@@ -62,9 +62,9 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
             propertyInfo.SetValue(obj, value);
         }
 
-        if (type.GetCustomAttribute<LegacyModelAttribute>() is { } legacyModelAttribute)
+        if (type.GetCustomAttribute<OriginModelAttribute>() is { } legacyModelAttribute)
         {
-            var originType = legacyModelAttribute.OriginType;
+            var originType = legacyModelAttribute.Type;
             var originVersion = ModelResolver.GetVersion(originType);
             var version = ModelResolver.GetVersion(type);
             while (version < originVersion)

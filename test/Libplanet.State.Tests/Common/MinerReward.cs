@@ -4,7 +4,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Common;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "Tests+MinerReward")]
 public sealed record class MinerReward : ActionBase
 {
     public static readonly Address RewardRecordAddress = Address.Parse("0000000000000000000000000000000000000000");

@@ -770,7 +770,7 @@ public abstract class RepositoryTest
         Assert.True(true, "Disposing twice should not throw.");
     }
 
-    [Model(Version = 1)]
+    [Model(Version = 1, TypeName = "RepositoryTest+AtomicityTestAction")]
     private sealed record class AtomicityTestAction : ActionBase, IEquatable<AtomicityTestAction>
     {
         [Property(0)]

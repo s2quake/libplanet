@@ -4,7 +4,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "TxExecution")]
 public sealed partial record class TxExecution : IHasKey<TxId>
 {
     [Property(0)]

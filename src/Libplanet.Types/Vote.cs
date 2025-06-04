@@ -4,7 +4,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "Vote")]
 public sealed partial record class Vote : IValidatableObject
 {
     [Property(0)]
