@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "Block")]
 public sealed partial record class Block : IComparable<Block>, IComparable
 {
     [Property(0)]

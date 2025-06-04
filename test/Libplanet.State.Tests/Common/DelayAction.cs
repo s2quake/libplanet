@@ -5,7 +5,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Common;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "Tests+DelayAction")]
 public sealed record class DelayAction : ActionBase
 {
     public static readonly Address TrivialUpdatedAddress = Address.Parse("3d94abf05556fdae0755ff4427869f80afd06b58");

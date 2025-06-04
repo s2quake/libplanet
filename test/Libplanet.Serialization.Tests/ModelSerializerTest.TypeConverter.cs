@@ -34,6 +34,11 @@ public sealed partial class ModelSerializerTest
 
     private sealed class HasModelConverterModelConverter : ModelConverterBase
     {
+        public HasModelConverterModelConverter()
+            : base(typeof(HasModelConverter))
+        {
+        }
+
         protected override object Deserialize(Stream stream, ModelOptions options)
         {
             var length = sizeof(int);

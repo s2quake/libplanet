@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "ProposalClaim")]
 public sealed partial record class ProposalClaim
 {
     [Property(0)]

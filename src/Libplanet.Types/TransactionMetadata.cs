@@ -3,7 +3,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "TransactionMetadata")]
 public sealed partial record class TransactionMetadata
 {
     [Property(0)]

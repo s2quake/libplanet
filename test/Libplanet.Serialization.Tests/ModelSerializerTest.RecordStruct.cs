@@ -70,7 +70,7 @@ public sealed partial class ModelSerializerTest
         Assert.Equal(expectedObject, actualObject);
     }
 
-    [Model(Version = 1)]
+    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+ObjectRecordStruct")]
     public readonly record struct ObjectRecordStruct : IEquatable<ObjectRecordStruct>
     {
         public ObjectRecordStruct()
@@ -122,7 +122,7 @@ public sealed partial class ModelSerializerTest
         public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 
-    [Model(Version = 1)]
+    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+ArrayRecordStruct")]
     public readonly record struct ArrayRecordStruct : IEquatable<ArrayRecordStruct>
     {
         public ArrayRecordStruct()
@@ -170,7 +170,7 @@ public sealed partial class ModelSerializerTest
         public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 
-    [Model(Version = 1)]
+    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+MixedRecordStruct")]
     public readonly record struct MixedRecordStruct : IEquatable<MixedRecordStruct>
     {
         public MixedRecordStruct()

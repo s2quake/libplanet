@@ -9,7 +9,7 @@ using Libplanet.Types.JsonConverters;
 namespace Libplanet.Types;
 
 [JsonConverter(typeof(CurrencyJsonConverter))]
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "Currency")]
 public readonly partial record struct Currency
 {
     public Currency()

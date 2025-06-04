@@ -18,7 +18,9 @@ public sealed partial class ModelSerializerTest
         Assert.Equal(expectedObject, actualObject);
     }
 
-    [Model(Version = 1)]
+    [Model(
+        Version = 1,
+        TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+RecordClassWithImmutableDictionary")]
     public sealed record class RecordClassWithImmutableDictionary
         : IEquatable<RecordClassWithImmutableDictionary>
     {

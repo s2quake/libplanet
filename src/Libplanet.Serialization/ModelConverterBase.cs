@@ -5,8 +5,10 @@ using System.Text;
 
 namespace Libplanet.Serialization;
 
-public abstract class ModelConverterBase : IModelConverter
+public abstract class ModelConverterBase(Type Type) : IModelConverter
 {
+    public Type Type { get; } = Type;
+
     object IModelConverter.Deserialize(Stream stream, ModelOptions options)
         => Deserialize(stream, options);
 
@@ -21,6 +23,8 @@ public abstract class ModelConverterBase : IModelConverter
 public abstract class ModelConverterBase<T> : IModelConverter
     where T : notnull
 {
+    public Type Type { get; } = typeof(T);
+
     object IModelConverter.Deserialize(Stream stream, ModelOptions options)
     {
         using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);

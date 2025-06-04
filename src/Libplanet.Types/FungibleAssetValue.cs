@@ -6,7 +6,7 @@ using Libplanet.Types.JsonConverters;
 namespace Libplanet.Types;
 
 [JsonConverter(typeof(FungibleAssetValueJsonConverter))]
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "FungibleAssetValue")]
 public readonly partial record struct FungibleAssetValue
     : IEquatable<FungibleAssetValue>, IComparable<FungibleAssetValue>, IComparable, IFormattable
 {

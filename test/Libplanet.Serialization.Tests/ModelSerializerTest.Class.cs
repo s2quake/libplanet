@@ -70,7 +70,7 @@ public sealed partial class ModelSerializerTest
         Assert.Equal(expectedObject, actualObject);
     }
 
-    [Model(Version = 1)]
+    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+ObjectClass")]
     public sealed class ObjectClass : IEquatable<ObjectClass>
     {
         public ObjectClass()
@@ -124,7 +124,7 @@ public sealed partial class ModelSerializerTest
         public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 
-    [Model(Version = 1)]
+    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+ArrayClass")]
     public sealed class ArrayClass : IEquatable<ArrayClass>
     {
         public ArrayClass()
@@ -174,7 +174,7 @@ public sealed partial class ModelSerializerTest
         public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 
-    [Model(Version = 1)]
+    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+MixedClass")]
     public sealed class MixedClass : IEquatable<MixedClass>
     {
         public MixedClass()

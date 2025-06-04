@@ -7,7 +7,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types.ModelConverters;
 
-internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase
+internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase(type)
 {
     private static readonly ConcurrentDictionary<Type, PropertyInfo> _bytesPropertyByType = [];
     private static readonly ConcurrentDictionary<Type, int> _sizeByType = [];

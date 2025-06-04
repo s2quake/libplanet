@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[Model(Version = 1)]
+[Model(Version = 1, TypeName = "BlockExcerpt")]
 public sealed partial record class BlockExcerpt
 {
     [Property(0)]
