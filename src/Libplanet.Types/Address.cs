@@ -11,7 +11,7 @@ namespace Libplanet.Types;
 
 [TypeConverter(typeof(AddressTypeConverter))]
 [JsonConverter(typeof(AddressJsonConverter))]
-[ModelConverter(typeof(AddressModelConverter))]
+[ModelConverter(typeof(AddressModelConverter), "addr")]
 public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
     : IEquatable<Address>, IComparable<Address>, IComparable, IFormattable
 {

@@ -4,7 +4,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Data.Structures.Nodes;
 
-[Model(Version = 1, TypeName = "ShortNode")]
+[Model(Version = 1, TypeName = "snode")]
 internal sealed record class ShortNode : INode, IValidatableObject
 {
     [Property(0)]

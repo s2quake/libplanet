@@ -8,18 +8,45 @@ namespace Libplanet.Serialization;
 public static class TypeUtility
 {
     private static readonly ConcurrentDictionary<string, Type> _typeByName = [];
+    private static readonly ConcurrentDictionary<Type, string> _nameByType = [];
     private static readonly ConcurrentDictionary<Type, object> _defaultByType = [];
 
     static TypeUtility()
     {
-        var assembly = typeof(ModelSerializer).Assembly;
-        var types = GetSerializableTypes(assembly);
-        foreach (var type in types)
+        AddType(typeof(BigInteger), "bi");
+        AddType(typeof(bool), "b");
+        AddType(typeof(byte), "by");
+        AddType(typeof(char), "c");
+        AddType(typeof(DateTimeOffset), "dt");
+        AddType(typeof(Guid), "id");
+        AddType(typeof(int), "i");
+        AddType(typeof(long), "l");
+        AddType(typeof(string), "s");
+        AddType(typeof(TimeSpan), "ts");
+        AddType(typeof(Array), "ar");
+        AddType(typeof(ImmutableArray<>), "imar<>");
+        AddType(typeof(ImmutableList<>), "imli<>");
+        AddType(typeof(ImmutableSortedSet<>), "imss<>");
+        AddType(typeof(ImmutableDictionary<,>), "imdi<,>");
+        AddType(typeof(ImmutableSortedDictionary<,>), "imsd<,>");
+
+        InitializeModelTypes();
+    }
+
+    private static void AddType(Type type, string typeName)
+    {
+        if (_typeByName.ContainsKey(typeName))
         {
-            var typeName = type.FullName
-                ?? throw new UnreachableException("Type does not have FullName");
-            _typeByName[typeName] = type;
+            throw new ArgumentException($"Type name '{typeName}' is already registered.", nameof(typeName));
         }
+
+        if (_nameByType.ContainsKey(type))
+        {
+            throw new ArgumentException($"Type '{type.FullName}' is already registered.", nameof(type));
+        }
+
+        _typeByName.TryAdd(typeName, type);
+        _nameByType.TryAdd(type, typeName);
     }
 
     public static Type GetType(string typeName)
@@ -48,26 +75,15 @@ public static class TypeUtility
         return type is not null;
     }
 
-    public static bool IsStandardType(Type type)
-    {
-        if (type.IsEnum)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
     public static bool IsNullableType(Type type)
         => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
     public static string GetTypeName(Type type)
     {
         var name = GetName(type);
-        var ns = type.Namespace
-            ?? throw new UnreachableException("Type does not have FullName");
+        var ns = type.Namespace ?? throw new UnreachableException("Type does not have FullName");
         var assemblyName = type.Assembly.GetName().Name
-             ?? throw new UnreachableException("Assembly does not have Name");
+            ?? throw new UnreachableException("Assembly does not have Name");
 
         return $"{ns}.{name}, {assemblyName}";
     }
@@ -86,7 +102,6 @@ public static class TypeUtility
         }
 
         return value is null;
-
     }
 
     public static object? GetDefault(Type type)
@@ -118,8 +133,25 @@ public static class TypeUtility
 
     private static string GetName(Type type)
     {
-        var name = type.Name ?? throw new UnreachableException("Type does not have FullName");
+        if (type.Name is null)
+        {
+            throw new UnreachableException("Type does not have FullName");
+        }
 
+        if (_nameByType.TryGetValue(type, out var name))
+        {
+            if (type.IsGenericType)
+            {
+                var s = $"<{string.Join(',', type.GetGenericArguments().Length - 1)}>";
+                // If the type is already registered, we can return its name directly.
+                // This avoids unnecessary recomputation of the generic arguments.
+                return name;
+            }
+
+            return name;
+        }
+
+        name = type.Name;
         if (type.IsGenericType)
         {
             var genericArguments = type.GetGenericArguments();
@@ -135,21 +167,35 @@ public static class TypeUtility
 
         if (type.DeclaringType is null)
         {
-            return name;
+            return type.Name;
         }
 
         return $"{GetName(type.DeclaringType)}+{name}";
     }
 
-    private static IEnumerable<Type> GetSerializableTypes(Assembly assembly)
+    private static void InitializeModelTypes()
     {
-        var types = assembly.GetTypes().Where(IsDefined);
-        foreach (var type in types)
-        {
-            yield return type;
-        }
+        var query = from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                    from type in assembly.GetTypes()
+                    where type.IsDefined(typeof(ModelAttribute)) ||
+                          type.IsDefined(typeof(ModelConverterAttribute))
+                    select type;
 
-        static bool IsDefined(Type type) => type.IsDefined(typeof(ModelAttribute));
+        foreach (var item in query)
+        {
+            if (item.IsDefined(typeof(ModelAttribute)))
+            {
+                var attribute = item.GetCustomAttribute<ModelAttribute>()
+                    ?? throw new UnreachableException("ModelAttribute cannot be null");
+                AddType(item, attribute.TypeName);
+            }
+            else if (item.IsDefined(typeof(ModelConverterAttribute)))
+            {
+                var attribute = item.GetCustomAttribute<ModelConverterAttribute>()
+                    ?? throw new UnreachableException("ModelConverterAttribute cannot be null");
+                AddType(item, attribute.TypeName);
+            }
+        }
     }
 
     private static object CreateDefault(Type type)

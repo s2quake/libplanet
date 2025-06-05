@@ -9,7 +9,7 @@ namespace Libplanet.Types;
 
 [JsonConverter(typeof(TxIdJsonConverter))]
 [TypeConverter(typeof(TxIdTypeConverter))]
-[ModelConverter(typeof(TxIdModelConverter))]
+[ModelConverter(typeof(TxIdModelConverter), "txid")]
 public readonly record struct TxId(in ImmutableArray<byte> Bytes)
     : IEquatable<TxId>, IComparable<TxId>, IComparable
 {
