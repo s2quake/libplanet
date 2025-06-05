@@ -10,7 +10,7 @@ namespace Libplanet.Types;
 
 [JsonConverter(typeof(BlockHashJsonConverter))]
 [TypeConverter(typeof(BlockHashTypeConverter))]
-[ModelConverter(typeof(BlockHashModelConverter))]
+[ModelConverter(typeof(BlockHashModelConverter), "blhs")]
 public readonly partial record struct BlockHash(in ImmutableArray<byte> Bytes)
     : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IFormattable
 {

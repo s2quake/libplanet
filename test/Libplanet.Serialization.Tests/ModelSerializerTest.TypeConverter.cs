@@ -21,7 +21,9 @@ public sealed partial class ModelSerializerTest
         Assert.Throws<ModelSerializationException>(() => ModelSerializer.SerializeToBytes(obj1));
     }
 
-    [ModelConverter(typeof(HasModelConverterModelConverter))]
+    [ModelConverter(
+        typeof(HasModelConverterModelConverter),
+        "Libplanet.Serialization.Tests.ModelSerializerTest+HasModelConverter")]
     public sealed record class HasModelConverter
     {
         public int Value { get; init; } = 123;

@@ -9,7 +9,7 @@ namespace Libplanet.Types;
 
 [JsonConverter(typeof(EvidenceIdJsonConverter))]
 [TypeConverter(typeof(EvidenceIdTypeConverter))]
-[ModelConverter(typeof(EvidenceIdModelConverter))]
+[ModelConverter(typeof(EvidenceIdModelConverter), "evid")]
 public readonly partial record struct EvidenceId(in ImmutableArray<byte> Bytes)
     : IEquatable<EvidenceId>, IComparable<EvidenceId>, IComparable
 {

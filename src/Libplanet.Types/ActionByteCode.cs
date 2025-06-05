@@ -6,7 +6,7 @@ using Libplanet.Types.ModelConverters;
 namespace Libplanet.Types;
 
 [TypeConverter(typeof(ActionBytecodeTypeConverter))]
-[ModelConverter(typeof(ActionBytecodeModelConverter))]
+[ModelConverter(typeof(ActionBytecodeModelConverter), "acod")]
 public readonly record struct ActionBytecode(in ImmutableArray<byte> Bytes) : IEquatable<ActionBytecode>
 {
     public ActionBytecode(ReadOnlySpan<byte> bytes)

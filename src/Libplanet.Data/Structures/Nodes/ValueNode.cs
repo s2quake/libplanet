@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Data.Structures.Nodes;
 
-[Model(Version = 1, TypeName = "ValueNode")]
+[Model(Version = 1, TypeName = "vnode")]
 internal sealed partial record class ValueNode : INode
 {
     [Property(0)]

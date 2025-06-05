@@ -13,7 +13,8 @@ namespace Libplanet.Types;
 
 [TypeConverter(typeof(HashDigestTypeConverter))]
 [JsonConverter(typeof(HashDigestJsonConverter))]
-[ModelConverter(typeof(HashDigestModelConverter))]
+[ModelConverter(typeof(HashDigestModelConverter), "hsdg<>")]
+[ModelKnownType(typeof(HashDigest<SHA256>))]
 public readonly partial record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
     : IEquatable<HashDigest<T>>, IFormattable
     where T : HashAlgorithm

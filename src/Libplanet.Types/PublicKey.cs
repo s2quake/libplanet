@@ -12,7 +12,7 @@ namespace Libplanet.Types;
 
 [TypeConverter(typeof(PublicKeyTypeConverter))]
 [JsonConverter(typeof(PublicKeyJsonConverter))]
-[ModelConverter(typeof(PublicKeyModelConverter))]
+[ModelConverter(typeof(PublicKeyModelConverter), "puky")]
 public sealed partial record class PublicKey : IEquatable<PublicKey>, IFormattable
 {
     private readonly ImmutableArray<byte> _bytes;

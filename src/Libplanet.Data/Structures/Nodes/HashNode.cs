@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Data.Structures.Nodes;
 
-[ModelConverter(typeof(HashNodeModelConverter))]
+[ModelConverter(typeof(HashNodeModelConverter), "hnode")]
 internal sealed record class HashNode : INode
 {
     public required HashDigest<SHA256> Hash { get; init; }
