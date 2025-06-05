@@ -6,7 +6,7 @@ public interface IModelConverter
 {
     Type Type { get; }
 
-    void Serialize(object obj, Stream stream, ModelOptions options);
+    void Serialize(object obj, ref ModelWriter writer, ModelOptions options);
 
-    object Deserialize(Stream stream, ModelOptions options);
+    object Deserialize(ref ModelReader reader, ModelOptions options);
 }

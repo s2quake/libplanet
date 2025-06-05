@@ -9,15 +9,15 @@ public abstract class ModelConverterBase(Type Type) : IModelConverter
 {
     public Type Type { get; } = Type;
 
-    object IModelConverter.Deserialize(Stream stream, ModelOptions options)
-        => Deserialize(stream, options);
+    void IModelConverter.Serialize(object obj, ref ModelWriter writer, ModelOptions options)
+        => Serialize(obj, ref writer, options);
 
-    void IModelConverter.Serialize(object obj, Stream stream, ModelOptions options)
-        => Serialize(obj, stream, options);
+    object IModelConverter.Deserialize(ref ModelReader reader, ModelOptions options)
+        => Deserialize(ref reader, options);
 
-    protected abstract object Deserialize(Stream stream, ModelOptions options);
+    protected abstract void Serialize(object obj, ref ModelWriter writer, ModelOptions options);
 
-    protected abstract void Serialize(object obj, Stream stream, ModelOptions options);
+    protected abstract object Deserialize(ref ModelReader reader, ModelOptions options);
 }
 
 public abstract class ModelConverterBase<T> : IModelConverter
@@ -25,18 +25,11 @@ public abstract class ModelConverterBase<T> : IModelConverter
 {
     public Type Type { get; } = typeof(T);
 
-    object IModelConverter.Deserialize(Stream stream, ModelOptions options)
-    {
-        using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
-        return Deserialize(reader, options);
-    }
-
-    void IModelConverter.Serialize(object obj, Stream stream, ModelOptions options)
+    void IModelConverter.Serialize(object obj, ref ModelWriter writer, ModelOptions options)
     {
         if (obj is T t)
         {
-            using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
-            Serialize(t, writer, options);
+            Serialize(t, ref writer, options);
         }
         else
         {
@@ -44,7 +37,12 @@ public abstract class ModelConverterBase<T> : IModelConverter
         }
     }
 
-    protected abstract T Deserialize(BinaryReader reader, ModelOptions options);
+    object IModelConverter.Deserialize(ref ModelReader reader, ModelOptions options)
+    {
+        return Deserialize(ref reader, options);
+    }
 
-    protected abstract void Serialize(T obj, BinaryWriter writer, ModelOptions options);
+    protected abstract void Serialize(T obj, ref ModelWriter writer, ModelOptions options);
+
+    protected abstract T Deserialize(ref ModelReader reader, ModelOptions options);
 }

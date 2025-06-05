@@ -39,14 +39,15 @@ public sealed partial class ModelSerializerTest
         {
         }
 
-        protected override object Deserialize(Stream stream, ModelOptions options)
+        protected override object Deserialize(ref ModelReader reader, ModelOptions options)
         {
-            var length = sizeof(int);
-            Span<byte> bytes = stackalloc byte[length];
-            if (stream.Read(bytes) != length)
-            {
-                throw new EndOfStreamException("Failed to read the expected number of bytes.");
-            }
+            var bytes = reader.ReadBytes();
+            // var length = sizeof(int);
+            // Span<byte> bytes = stackalloc byte[length];
+            // if (stream.Read(bytes) != length)
+            // {
+            //     throw new EndOfStreamException("Failed to read the expected number of bytes.");
+            // }
 
             return new HasModelConverter
             {
@@ -54,11 +55,11 @@ public sealed partial class ModelSerializerTest
             };
         }
 
-        protected override void Serialize(object obj, Stream stream, ModelOptions options)
+        protected override void Serialize(object obj, ref ModelWriter writer, ModelOptions options)
         {
             if (obj is HasModelConverter instance)
             {
-                stream.Write(BitConverter.GetBytes(instance.Value));
+                writer.Write(BitConverter.GetBytes(instance.Value));
             }
             else
             {

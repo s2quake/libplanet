@@ -5,16 +5,14 @@ namespace Libplanet.Types.ModelConverters;
 
 internal sealed class ActionBytecodeModelConverter : ModelConverterBase<ActionBytecode>
 {
-    protected override ActionBytecode Deserialize(BinaryReader reader, ModelOptions options)
+    protected override void Serialize(ActionBytecode obj, ref ModelWriter writer, ModelOptions options)
     {
-        var length = reader.ReadInt32();
-        return new ActionBytecode(reader.ReadBytes(length));
+        writer.Write(obj.Bytes.AsSpan());
     }
 
-    protected override void Serialize(ActionBytecode obj, BinaryWriter writer, ModelOptions options)
+    protected override ActionBytecode Deserialize(ref ModelReader reader, ModelOptions options)
     {
-        var span = obj.Bytes.AsSpan();
-        writer.Write(span.Length);
-        writer.Write(obj.Bytes.AsSpan());
+        var bytes = reader.ReadBytes();
+        return new ActionBytecode(bytes);
     }
 }

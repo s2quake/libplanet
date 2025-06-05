@@ -12,14 +12,29 @@ internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase(t
     private static readonly ConcurrentDictionary<Type, PropertyInfo> _bytesPropertyByType = [];
     private static readonly ConcurrentDictionary<Type, int> _sizeByType = [];
 
-    protected override object Deserialize(Stream stream, ModelOptions options)
+    protected override void Serialize(object obj, ref ModelWriter writer, ModelOptions options)
     {
-        var length = GetSize(type);
-        Span<byte> bytes = stackalloc byte[length];
-        if (stream.Read(bytes) != length)
+        var bytesProperty = GetBytesProperty(type);
+        if (bytesProperty.GetValue(obj) is ImmutableArray<byte> bytes)
         {
-            throw new EndOfStreamException("Failed to read the expected number of bytes.");
+            writer.Write(bytes.AsSpan());
         }
+        else
+        {
+            throw new UnreachableException(
+                $"Failed to get {nameof(HashDigest<SHA1>.Bytes)} property value");
+        }
+    }
+
+    protected override object Deserialize(ref ModelReader reader, ModelOptions options)
+    {
+        var bytes = reader.ReadBytes();
+        // var length = GetSize(type);
+        // Span<byte> bytes = stackalloc byte[length];
+        // if (stream.Read(bytes) != length)
+        // {
+        //     throw new EndOfStreamException("Failed to read the expected number of bytes.");
+        // }
 
         if (Activator.CreateInstance(type, [bytes.ToImmutableArray()]) is not object obj)
         {
@@ -28,20 +43,6 @@ internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase(t
         }
 
         return obj;
-    }
-
-    protected override void Serialize(object obj, Stream stream, ModelOptions options)
-    {
-        var bytesProperty = GetBytesProperty(type);
-        if (bytesProperty.GetValue(obj) is ImmutableArray<byte> bytes)
-        {
-            stream.Write(bytes.AsSpan());
-        }
-        else
-        {
-            throw new UnreachableException(
-                $"Failed to get {nameof(HashDigest<SHA1>.Bytes)} property value");
-        }
     }
 
     private static PropertyInfo GetBytesProperty(Type type)

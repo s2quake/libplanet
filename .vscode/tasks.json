@@ -2,34 +2,14 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "build"
-      ],
+      "type": "dotnet",
+      "task": "build",
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "presentation": {
-        "reveal": "silent"
-      },
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "Test",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "test"
-      ],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
-      },
-      "problemMatcher": "$msCompile"
+      "problemMatcher": [],
+      "label": "dotnet: build"
     }
   ]
 }

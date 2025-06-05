@@ -39,7 +39,7 @@ public sealed partial class ModelSerializerTest
     public void PrimitiveValue_SerializeAndDeserialize_Test(object expectedValue)
     {
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
-        var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
+        var actualValue = ModelSerializer.DeserializeFromBytes(serialized, expectedValue.GetType());
         Assert.Equal(expectedValue, actualValue);
     }
 
@@ -48,7 +48,7 @@ public sealed partial class ModelSerializerTest
     public void PrimitiveDefaultValue_SerializeAndDeserialize_Test(object expectedValue)
     {
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
-        var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
+        var actualValue = ModelSerializer.DeserializeFromBytes(serialized, expectedValue.GetType());
         Assert.True(Equals(expectedValue, actualValue));
     }
 }

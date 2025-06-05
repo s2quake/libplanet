@@ -5,9 +5,9 @@ namespace Libplanet.Types.ModelConverters;
 
 internal sealed class BlockHashModelConverter : ModelConverterBase<BlockHash>
 {
-    protected override BlockHash Deserialize(BinaryReader reader, ModelOptions options)
-        => new(reader.ReadBytes(BlockHash.Size));
-
-    protected override void Serialize(BlockHash obj, BinaryWriter writer, ModelOptions options)
+    protected override void Serialize(BlockHash obj, ref ModelWriter writer, ModelOptions options)
         => writer.Write(obj.Bytes.AsSpan());
+
+    protected override BlockHash Deserialize(ref ModelReader reader, ModelOptions options)
+        => new(reader.ReadBytes());
 }

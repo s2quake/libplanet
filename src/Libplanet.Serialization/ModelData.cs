@@ -1,6 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
+using MessagePack;
 
 namespace Libplanet.Serialization;
 

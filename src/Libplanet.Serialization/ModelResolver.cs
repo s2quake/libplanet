@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Libplanet.Serialization.Descriptors;
-using Libplanet.Serialization.ModelConverters;
 
 namespace Libplanet.Serialization;
 
@@ -20,16 +19,16 @@ public static class ModelResolver
     private static readonly ConcurrentDictionary<Type, ModelDescriptor> _descriptorByType = [];
     private static readonly ConcurrentDictionary<Type, IModelConverter> _converterByType = new()
     {
-        [typeof(BigInteger)] = new BigIntegerModelConverter(),
-        [typeof(bool)] = new BooleanModelConverter(),
-        [typeof(byte)] = new ByteModelConverter(),
-        [typeof(char)] = new CharModelConverter(),
-        [typeof(DateTimeOffset)] = new DateTimeOffsetModelConverter(),
-        [typeof(Guid)] = new GuidModelConverter(),
-        [typeof(int)] = new Int32ModelConverter(),
-        [typeof(long)] = new Int64ModelConverter(),
-        [typeof(string)] = new StringModelConverter(),
-        [typeof(TimeSpan)] = new TimeSpanModelConverter(),
+        // [typeof(BigInteger)] = new BigIntegerModelConverter(),
+        // [typeof(bool)] = new BooleanModelConverter(),
+        // [typeof(byte)] = new ByteModelConverter(),
+        // [typeof(char)] = new CharModelConverter(),
+        // [typeof(DateTimeOffset)] = new DateTimeOffsetModelConverter(),
+        // [typeof(Guid)] = new GuidModelConverter(),
+        // [typeof(int)] = new Int32ModelConverter(),
+        // [typeof(long)] = new Int64ModelConverter(),
+        // [typeof(string)] = new StringModelConverter(),
+        // [typeof(TimeSpan)] = new TimeSpanModelConverter(),
     };
     private static readonly ModelDescriptor[] _descriptors =
     [
