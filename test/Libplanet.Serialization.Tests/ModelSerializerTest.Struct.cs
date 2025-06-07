@@ -182,7 +182,7 @@ public sealed partial class ModelSerializerTest
         public override int GetHashCode() => ModelResolver.GetHashCode(this);
     }
 
-    [Model(Version = 1,TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+MixedStruct")]
+    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+MixedStruct")]
     public readonly struct MixedStruct : IEquatable<MixedStruct>
     {
         public MixedStruct()

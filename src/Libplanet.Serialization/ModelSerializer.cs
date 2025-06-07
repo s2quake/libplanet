@@ -63,7 +63,7 @@ public static class ModelSerializer
     public static object? Deserialize(Stream stream, ModelOptions options)
     {
         var data = ModelData.GetData(stream);
-        var headerType = Type.GetType(data.TypeName)
+        var headerType = TypeUtility.GetType(data.TypeName)
             ?? throw new ModelSerializationException($"Given type name {data.TypeName} is not found");
 
         var modelType = ModelResolver.GetType(headerType, data.Version);
