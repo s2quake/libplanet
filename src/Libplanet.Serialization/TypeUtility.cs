@@ -12,7 +12,6 @@ public static class TypeUtility
     private static readonly ConcurrentDictionary<string, Type> _typeByName = [];
     private static readonly ConcurrentDictionary<Type, string> _nameByType = [];
     private static readonly ConcurrentDictionary<Type, object> _defaultByType = [];
-    // private static readonly Regex ClassNameRegex = new Regex(@"^[A-Z][a-zA-Z0-9_]*$", RegexOptions.Compiled);
 
     static TypeUtility()
     {
@@ -47,6 +46,11 @@ public static class TypeUtility
         if (_nameByType.ContainsKey(type))
         {
             throw new ArgumentException($"Type '{type.FullName}' is already registered.", nameof(type));
+        }
+
+        if (type.IsGenericType)
+        {
+            int wqer = 0;
         }
 
         _typeByName.TryAdd(typeName, type);
@@ -131,12 +135,6 @@ public static class TypeUtility
         }
 
         return _nameByType[type];
-        // var name = GetFullName(type);
-        // var ns = type.Namespace ?? throw new UnreachableException("Type does not have FullName");
-        // var assemblyName = type.Assembly.GetName().Name
-        //     ?? throw new UnreachableException("Assembly does not have Name");
-
-        // return $"{ns}.{name}, {assemblyName}";
     }
 
     public static bool IsDefault(object? value, Type type)
@@ -232,6 +230,15 @@ public static class TypeUtility
                 var attribute = item.GetCustomAttribute<ModelConverterAttribute>()
                     ?? throw new UnreachableException("ModelConverterAttribute cannot be null");
                 AddType(item, attribute.TypeName);
+            }
+
+            if (item.IsDefined(typeof(ModelKnownTypeAttribute)))
+            {
+                var knownTypeAttributes = item.GetCustomAttributes<ModelKnownTypeAttribute>();
+                foreach (var knownTypeAttribute in knownTypeAttributes)
+                {
+                    AddType(knownTypeAttribute.Type, knownTypeAttribute.TypeName);
+                }
             }
         }
     }
