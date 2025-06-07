@@ -9,11 +9,11 @@ public sealed partial class ModelSerializerTest
         C,
     }
 
-    public static IEnumerable<object[]> RandomSeeds =>
+    public static TheoryData<int> RandomSeeds =>
     [
-        [Random.Shared.Next()],
-        [Random.Shared.Next()],
-        [Random.Shared.Next()],
-        [Random.Shared.Next()],
+        Random.Shared.Next(),
+        Random.Shared.Next(),
+        Random.Shared.Next(),
+        Random.Shared.Next(),
     ];
 }

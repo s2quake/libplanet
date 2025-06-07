@@ -2,36 +2,36 @@ namespace Libplanet.Serialization.Tests;
 
 public sealed partial class ModelSerializerTest
 {
-    public static IEnumerable<object[]> PrimitiveValues =>
+    public static TheoryData<object> PrimitiveValues =>
     [
-        [(BigInteger)0],
-        [(BigInteger)1],
-        [true],
-        [false],
-        [Array.Empty<byte>()],
-        [new byte[] { 0, 1, 2, 3 }],
-        [DateTimeOffset.MinValue],
-        [DateTimeOffset.MaxValue],
-        [ImmutableArray<byte>.Empty],
-        [ImmutableArray.Create<byte>(0, 1, 2, 3)],
-        [0],
-        [1],
-        [0L],
-        [1L],
-        [string.Empty],
-        ["Hello, World!"],
-        [TimeSpan.Zero],
-        [TimeSpan.FromSeconds(1)],
+        (BigInteger)0,
+        (BigInteger)1,
+        true,
+        false,
+        Array.Empty<byte>(),
+        new byte[] { 0, 1, 2, 3 },
+        DateTimeOffset.MinValue,
+        DateTimeOffset.MaxValue,
+        ImmutableArray<byte>.Empty,
+        ImmutableArray.Create<byte>(0, 1, 2, 3),
+        0,
+        1,
+        0L,
+        1L,
+        string.Empty,
+        "Hello, World!",
+        TimeSpan.Zero,
+        TimeSpan.FromSeconds(1),
     ];
 
-    public static IEnumerable<object[]> PrimitiveDefaultValues =>
+    public static TheoryData<object> PrimitiveDefaultValues =>
     [
-        [default(BigInteger)],
-        [default(bool)],
-        [default(DateTimeOffset)],
-        [default(int)],
-        [default(long)],
-        [default(TimeSpan)],
+        default(BigInteger),
+        default(bool),
+        default(DateTimeOffset),
+        default(int),
+        default(long),
+        default(TimeSpan),
     ];
 
     [Theory]

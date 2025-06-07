@@ -2,20 +2,24 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Libplanet.Serialization;
 
 public static class TypeUtility
 {
+    private static readonly ConcurrentDictionary<string, Type> _typeByFullName = [];
     private static readonly ConcurrentDictionary<string, Type> _typeByName = [];
     private static readonly ConcurrentDictionary<Type, string> _nameByType = [];
     private static readonly ConcurrentDictionary<Type, object> _defaultByType = [];
+    // private static readonly Regex ClassNameRegex = new Regex(@"^[A-Z][a-zA-Z0-9_]*$", RegexOptions.Compiled);
 
     static TypeUtility()
     {
+        AddType(typeof(object), "o");
         AddType(typeof(BigInteger), "bi");
         AddType(typeof(bool), "b");
-        AddType(typeof(byte), "by");
+        AddType(typeof(byte), "y");
         AddType(typeof(char), "c");
         AddType(typeof(DateTimeOffset), "dt");
         AddType(typeof(Guid), "id");
@@ -51,24 +55,51 @@ public static class TypeUtility
 
     public static Type GetType(string typeName)
     {
-        if (!_typeByName.TryGetValue(typeName, out var type))
-        {
-            type = Type.GetType(typeName)
-                ?? throw new ArgumentException($"Type {typeName} is not found", nameof(typeName));
-            _typeByName[typeName] = type;
-        }
+        var match = Regex.Match(typeName, @"^(?<type>[a-zA-Z][a-zA-Z0-9_]*)(?<generic>\<.+\>)?(?<nullable>\??)$");
+        var isNullable = match.Groups["nullable"].Value == "?";
+        var name = match.Groups["type"].Value;
+        var genericPart = match.Groups["generic"].Value.TrimStart('<').TrimEnd('>');
 
-        return type;
+        if (genericPart != string.Empty)
+        {
+            var genericTypeNames = genericPart.Split(',');
+            var genericTypeList = new List<Type>(genericTypeNames.Length);
+            var separators = string.Empty.PadRight(genericTypeNames.Length - 1, ',');
+            var typeDefinitionName = $"{name}<{separators}>";
+            var typeDefinition = _typeByName[typeDefinitionName];
+            foreach (var genericTypeName in genericTypeNames)
+            {
+                genericTypeList.Add(GetType(genericTypeName));
+            }
+
+            var type = typeDefinition.MakeGenericType([.. genericTypeList]);
+            if (isNullable)
+            {
+                return typeof(Nullable<>).MakeGenericType(type);
+            }
+
+            return type;
+        }
+        else
+        {
+            var type = _typeByName[name];
+            if (isNullable)
+            {
+                return typeof(Nullable<>).MakeGenericType(type);
+            }
+
+            return type;
+        }
     }
 
     public static bool TryGetType(string typeName, [MaybeNullWhen(false)] out Type type)
     {
-        if (!_typeByName.TryGetValue(typeName, out type))
+        if (!_typeByFullName.TryGetValue(typeName, out type))
         {
             type = Type.GetType(typeName);
             if (type is not null)
             {
-                _typeByName[typeName] = type;
+                _typeByFullName[typeName] = type;
             }
         }
 
@@ -80,12 +111,32 @@ public static class TypeUtility
 
     public static string GetTypeName(Type type)
     {
-        var name = GetName(type);
-        var ns = type.Namespace ?? throw new UnreachableException("Type does not have FullName");
-        var assemblyName = type.Assembly.GetName().Name
-            ?? throw new UnreachableException("Assembly does not have Name");
+        if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+        {
+            return $"{GetTypeName(underlyingType)}?";
+        }
+        else if (type.IsGenericType)
+        {
+            var typeDefinition = type.GetGenericTypeDefinition();
+            var typeDefinitionName = _nameByType[typeDefinition];
+            var genericArguments = type.GetGenericArguments();
+            var genericArgumentList = new List<string>(genericArguments.Length);
+            foreach (var genericArgument in genericArguments)
+            {
+                var genericArgumentName = GetTypeName(genericArgument);
+                genericArgumentList.Add(genericArgumentName);
+            }
+            var genericArgumentString = string.Join(',', genericArgumentList);
+            return Regex.Replace(typeDefinitionName, "<.*>", $"<{genericArgumentString}>");
+        }
 
-        return $"{ns}.{name}, {assemblyName}";
+        return _nameByType[type];
+        // var name = GetFullName(type);
+        // var ns = type.Namespace ?? throw new UnreachableException("Type does not have FullName");
+        // var assemblyName = type.Assembly.GetName().Name
+        //     ?? throw new UnreachableException("Assembly does not have Name");
+
+        // return $"{ns}.{name}, {assemblyName}";
     }
 
     public static bool IsDefault(object? value, Type type)
@@ -131,34 +182,21 @@ public static class TypeUtility
         throw new ModelCreationException(type);
     }
 
-    private static string GetName(Type type)
+    public static string GetFullName(Type type)
     {
         if (type.Name is null)
         {
             throw new UnreachableException("Type does not have FullName");
         }
 
-        if (_nameByType.TryGetValue(type, out var name))
-        {
-            if (type.IsGenericType)
-            {
-                var s = $"<{string.Join(',', type.GetGenericArguments().Length - 1)}>";
-                // If the type is already registered, we can return its name directly.
-                // This avoids unnecessary recomputation of the generic arguments.
-                return name;
-            }
-
-            return name;
-        }
-
-        name = type.Name;
+        var name = type.Name;
         if (type.IsGenericType)
         {
             var genericArguments = type.GetGenericArguments();
             var nameList = new List<string>(genericArguments.Length);
             foreach (var genericArgument in genericArguments)
             {
-                var genericArgumentName = $"[{GetTypeName(genericArgument)}]";
+                var genericArgumentName = $"[{GetFullName(genericArgument)}]";
                 nameList.Add(genericArgumentName);
             }
 
@@ -170,7 +208,7 @@ public static class TypeUtility
             return type.Name;
         }
 
-        return $"{GetName(type.DeclaringType)}+{name}";
+        return $"{GetFullName(type.DeclaringType)}+{name}";
     }
 
     private static void InitializeModelTypes()

@@ -132,14 +132,15 @@ public static class ModelResolver
 
     public static bool TryGetConverter(Type type, [MaybeNullWhen(false)] out IModelConverter converter)
     {
-        if (TypeDescriptor.GetAttributes(type)[typeof(ModelConverterAttribute)] is not null)
-        {
-            converter = GetConverter(type);
-            return true;
-        }
+        return _converterByType.TryGetValue(type, out converter);
+        // if (TypeDescriptor.GetAttributes(type)[typeof(ModelConverterAttribute)] is not null)
+        // {
+        //     converter = GetConverter(type);
+        //     return true;
+        // }
 
-        converter = null;
-        return converter is not null;
+        // converter = null;
+        // return converter is not null;
     }
 
     public static bool Equals<T>(T left, T? right) => Equals(left, right, typeof(T));
@@ -322,7 +323,7 @@ public static class ModelResolver
             ?? throw new ArgumentException(
                 $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
 
-        if (modelAttribute.Version != query.Count())
+        if (modelAttribute.Version != (query.Count() + 1))
         {
             throw new ArgumentException(
                 $"Version of {type} must be equal to the number of {nameof(ModelHistoryAttribute)}",
