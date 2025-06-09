@@ -391,9 +391,7 @@ public sealed partial class TrieTest
 
         // Add randomized kvs and remove kvs in order.
         // The way the test is set up, identical kv pairs shouldn't matter.
-        var kvs =
-            Range(0, 100)
-            .Select(_ => RandomUtility.Word())
+        var kvs = RandomUtility.HashSet(RandomUtility.Word, 100)
             .ToDictionary(item => item, item => item)
             .Select(item => (item.Key, item.Value))
             .ToArray();

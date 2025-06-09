@@ -240,28 +240,9 @@ public static partial class RandomUtility
 
     public static T[] Array<T>(Func<T> generator) => Array(generator, Length());
 
-    public static T[] Array<T>(Func<T> generator, int length)
-    {
-        var items = new T[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = generator();
-        }
+    public static T[] Array<T>(Func<T> generator, int length) => Array(System.Random.Shared, _ => generator(), length);
 
-        return items;
-    }
-
-    public static T[] Array<T>(Random random, Func<Random, T> generator)
-    {
-        var length = Length(random);
-        var items = new T[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = generator(random);
-        }
-
-        return items;
-    }
+    public static T[] Array<T>(Random random, Func<Random, T> generator) => Array(random, generator, Length(random));
 
     public static T[] Array<T>(Random random, Func<Random, T> generator, int length)
     {
@@ -274,21 +255,16 @@ public static partial class RandomUtility
         return items;
     }
 
-    public static List<T> List<T>(Func<T> generator)
-    {
-        var length = Length();
-        var items = new T[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = generator();
-        }
+    public static List<T> List<T>(Func<T> generator) => List(generator, Length());
 
-        return [.. items];
-    }
+    public static List<T> List<T>(Func<T> generator, int length)
+        => List(System.Random.Shared, _ => generator(), length);
 
     public static List<T> List<T>(Random random, Func<Random, T> generator)
+        => List(random, generator, Length(random));
+
+    public static List<T> List<T>(Random random, Func<Random, T> generator, int length)
     {
-        var length = Length(random);
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
@@ -298,49 +274,70 @@ public static partial class RandomUtility
         return [.. items];
     }
 
+    public static HashSet<TValue> HashSet<TValue>(Func<TValue> generator) => HashSet(generator, Length());
+
+    public static HashSet<TValue> HashSet<TValue>(Func<TValue> generator, int length)
+        => HashSet(System.Random.Shared, _ => generator(), length);
+
+    public static HashSet<TValue> HashSet<TValue>(Random random, Func<Random, TValue> generator)
+        => HashSet(random, generator, Length(random));
+
+    public static HashSet<TValue> HashSet<TValue>(Random random, Func<Random, TValue> generator, int length)
+    {
+        var itemList = new List<TValue>(length);
+        for (var i = 0; i < length; i++)
+        {
+            var item = Try(random, generator, item => !itemList.Contains(item));
+            itemList.Add(item);
+        }
+
+        return [.. itemList];
+    }
+
     public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
         Func<TKey> keyGenerator, Func<TValue> valueGenerator)
         where TKey : notnull
-    {
-        var length = Length();
-        var items = new KeyValuePair<TKey, TValue>[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = new(keyGenerator(), valueGenerator());
-        }
+        => Dictionary(keyGenerator, valueGenerator, Length());
 
-        return new Dictionary<TKey, TValue>(items);
-    }
+    public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator, int length)
+        where TKey : notnull
+        => Dictionary(System.Random.Shared, _ => keyGenerator(), _ => valueGenerator(), length);
 
     public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
         where TKey : notnull
+        => Dictionary(random, keyGenerator, valueGenerator, Length(random));
+
+
+    public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
+        where TKey : notnull
     {
-        var length = Length(random);
+        var keyList = new List<TKey>(length);
         var items = new KeyValuePair<TKey, TValue>[length];
         for (var i = 0; i < length; i++)
         {
-            items[i] = new(keyGenerator(random), valueGenerator(random));
+            var key = Try(random, keyGenerator, item => !keyList.Contains(item));
+            var value = valueGenerator(random);
+            items[i] = new(key, value);
+            keyList.Add(key);
         }
 
         return new Dictionary<TKey, TValue>(items);
     }
 
     public static ImmutableArray<T> ImmutableArray<T>(Func<T> generator)
-    {
-        var length = Length();
-        var items = new T[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = generator();
-        }
+        => ImmutableArray(generator, Length());
 
-        return System.Collections.Immutable.ImmutableArray.Create(items);
-    }
+    public static ImmutableArray<T> ImmutableArray<T>(Func<T> generator, int length)
+        => ImmutableArray(System.Random.Shared, _ => generator(), length);
 
     public static ImmutableArray<T> ImmutableArray<T>(Random random, Func<Random, T> generator)
+        => ImmutableArray(random, generator, Length(random));
+
+    public static ImmutableArray<T> ImmutableArray<T>(Random random, Func<Random, T> generator, int length)
     {
-        var length = Length(random);
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
@@ -351,20 +348,16 @@ public static partial class RandomUtility
     }
 
     public static ImmutableList<T> ImmutableList<T>(Func<T> generator)
-    {
-        var length = Length();
-        var items = new T[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = generator();
-        }
+        => ImmutableList(generator, Length());
 
-        return System.Collections.Immutable.ImmutableList.Create(items);
-    }
+    public static ImmutableList<T> ImmutableList<T>(Func<T> generator, int length)
+        => ImmutableList(System.Random.Shared, _ => generator(), length);
 
     public static ImmutableList<T> ImmutableList<T>(Random random, Func<Random, T> generator)
+        => ImmutableList(random, generator, Length(random));
+
+    public static ImmutableList<T> ImmutableList<T>(Random random, Func<Random, T> generator, int length)
     {
-        var length = Length(random);
         var items = new T[length];
         for (var i = 0; i < length; i++)
         {
@@ -372,55 +365,77 @@ public static partial class RandomUtility
         }
 
         return System.Collections.Immutable.ImmutableList.Create(items);
+    }
+
+    public static ImmutableHashSet<T> ImmutableHashSet<T>(Func<T> generator)
+        => ImmutableHashSet(generator, Length());
+
+    public static ImmutableHashSet<T> ImmutableHashSet<T>(Func<T> generator, int length)
+        => ImmutableHashSet(System.Random.Shared, _ => generator(), length);
+
+    public static ImmutableHashSet<T> ImmutableHashSet<T>(Random random, Func<Random, T> generator)
+        => ImmutableHashSet(random, generator, Length(random));
+
+    public static ImmutableHashSet<T> ImmutableHashSet<T>(Random random, Func<Random, T> generator, int length)
+    {
+        var itemList = new List<T>(length);
+        for (var i = 0; i < length; i++)
+        {
+            var item = Try(random, generator, item => !itemList.Contains(item));
+            itemList.Add(item);
+        }
+
+        return [.. itemList];
     }
 
     public static ImmutableSortedSet<T> ImmutableSortedSet<T>(Func<T> generator)
-    {
-        var length = Length();
-        var items = new T[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = generator();
-        }
+        => ImmutableSortedSet(generator, Length());
 
-        return System.Collections.Immutable.ImmutableSortedSet.Create(items);
-    }
+    public static ImmutableSortedSet<T> ImmutableSortedSet<T>(Func<T> generator, int length)
+        => ImmutableSortedSet(System.Random.Shared, _ => generator(), length);
 
     public static ImmutableSortedSet<T> ImmutableSortedSet<T>(Random random, Func<Random, T> generator)
+        => ImmutableSortedSet(random, generator, Length(random));
+
+    public static ImmutableSortedSet<T> ImmutableSortedSet<T>(Random random, Func<Random, T> generator, int length)
     {
-        var length = Length(random);
-        var items = new T[length];
+        var itemList = new List<T>(length);
         for (var i = 0; i < length; i++)
         {
-            items[i] = generator(random);
+            var item = Try(random, generator, item => !itemList.Contains(item));
+            itemList.Add(item);
         }
 
-        return System.Collections.Immutable.ImmutableSortedSet.Create(items);
+        return [.. itemList];
     }
 
     public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
         Func<TKey> keyGenerator, Func<TValue> valueGenerator)
         where TKey : notnull
-    {
-        var length = Length();
-        var items = new KeyValuePair<TKey, TValue>[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = new(keyGenerator(), valueGenerator());
-        }
+        => ImmutableDictionary(keyGenerator, valueGenerator, Length());
 
-        return System.Collections.Immutable.ImmutableDictionary.CreateRange(items);
-    }
+    public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator, int length)
+        where TKey : notnull
+        => ImmutableDictionary(System.Random.Shared, _ => keyGenerator(), _ => valueGenerator(), length);
 
     public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
         where TKey : notnull
+        => ImmutableDictionary(random, keyGenerator, valueGenerator, Length(random));
+
+    public static ImmutableDictionary<TKey, TValue> ImmutableDictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
+        where TKey : notnull
     {
-        var length = Length(random);
+        var keyList = new List<TKey>(length);
         var items = new KeyValuePair<TKey, TValue>[length];
         for (var i = 0; i < length; i++)
         {
-            items[i] = new(keyGenerator(random), valueGenerator(random));
+            var key = Try(random, keyGenerator, item => !keyList.Contains(item));
+            var value = valueGenerator(random);
+            items[i] = new(key, value);
+            keyList.Add(key);
         }
 
         return System.Collections.Immutable.ImmutableDictionary.CreateRange(items);
@@ -429,26 +444,30 @@ public static partial class RandomUtility
     public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
         Func<TKey> keyGenerator, Func<TValue> valueGenerator)
         where TKey : notnull
-    {
-        var length = Length();
-        var items = new KeyValuePair<TKey, TValue>[length];
-        for (var i = 0; i < length; i++)
-        {
-            items[i] = new(keyGenerator(), valueGenerator());
-        }
+        => ImmutableSortedDictionary(keyGenerator, valueGenerator, Length());
 
-        return System.Collections.Immutable.ImmutableSortedDictionary.CreateRange(items);
-    }
+    public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator, int length)
+        where TKey : notnull
+        => ImmutableSortedDictionary(System.Random.Shared, _ => keyGenerator(), _ => valueGenerator(), length);
 
     public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
         where TKey : notnull
+        => ImmutableSortedDictionary(random, keyGenerator, valueGenerator, Length(random));
+
+    public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
+        where TKey : notnull
     {
-        var length = Length(random);
+        var keyList = new List<TKey>(length);
         var items = new KeyValuePair<TKey, TValue>[length];
         for (var i = 0; i < length; i++)
         {
-            items[i] = new(keyGenerator(random), valueGenerator(random));
+            var key = Try(random, keyGenerator, item => !keyList.Contains(item));
+            var value = valueGenerator(random);
+            items[i] = new(key, value);
+            keyList.Add(key);
         }
 
         return System.Collections.Immutable.ImmutableSortedDictionary.CreateRange(items);
@@ -482,18 +501,35 @@ public static partial class RandomUtility
         return RandomOrDefault(enumerable, predicate)!;
     }
 
+    public static T Try<T>(Func<T> generator, Func<T, bool> predicate)
+        => Try(System.Random.Shared, _ => generator(), predicate);
+
     public static T Try<T>(Random random, Func<Random, T> generator, Func<T, bool> predicate)
     {
-        for (var i = 0; i < AttemptCount; i++)
+        var countByValue = new Dictionary<object, int>();
+        while (true)
         {
             var item = generator(random);
             if (predicate(item))
             {
                 return item;
             }
-        }
 
-        throw new InvalidOperationException("No value was found that matches the condition.");
+            var key = item is null ? (object)DBNull.Value : item;
+            if (!countByValue.TryGetValue(key, out var count))
+            {
+                countByValue[key] = count = 0;
+            }
+
+            count++;
+            if (count >= AttemptCount)
+            {
+                throw new InvalidOperationException(
+                $"No value was found that matches the condition after {AttemptCount} attempts.");
+            }
+
+            countByValue[key] = count;
+        }
     }
 
     private static string[] GetWords()

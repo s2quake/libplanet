@@ -9,18 +9,10 @@ public sealed partial record class FullNode : INode, IValidatableObject
     [Property(0)]
     public required ImmutableSortedDictionary<char, INode> Children { get; init; }
 
-    [Property(1)]
-    public INode? Value { get; init; }
-
     IEnumerable<INode> INode.Children
     {
         get
         {
-            if (Value is not null)
-            {
-                yield return Value;
-            }
-
             foreach (var child in Children)
             {
                 yield return child.Value;

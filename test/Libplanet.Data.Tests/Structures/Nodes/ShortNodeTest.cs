@@ -66,7 +66,6 @@ public class ShortNodeTest
             Value = new FullNode
             {
                 Children = ImmutableSortedDictionary<char, INode>.Empty,
-                Value = valueNode,
             },
         };
         ValidationUtility.Validate(node2);
