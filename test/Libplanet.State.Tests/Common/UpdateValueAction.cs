@@ -4,7 +4,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Common;
 
-[Model(Version = 1, TypeName = "Tests+UpdateValueAction")]
+[Model(Version = 1, TypeName = "Tests_UpdateValueAction")]
 public sealed record class UpdateValueAction : ActionBase
 {
     [Property(0)]

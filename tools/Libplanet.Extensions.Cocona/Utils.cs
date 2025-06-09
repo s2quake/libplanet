@@ -237,7 +237,7 @@ public static class Utils
         }
     }
 
-    [Model(Version = 1, TypeName = "Libplanet.Extensions.Cocona.Utils+DummyAction")]
+    [Model(Version = 1, TypeName = "Libplanet_Extensions_Cocona_Utils_DummyAction")]
     public sealed record class DummyAction : ActionBase
     {
         protected override void OnExecute(IWorldContext world, IActionContext context)

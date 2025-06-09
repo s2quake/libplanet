@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.State.Tests.Common;
 
-[Model(Version = 1, TypeName = "Tests+Attack")]
+[Model(Version = 1, TypeName = "Tests_Attack")]
 public sealed record class Attack : ActionBase
 {
     [Property(0)]
