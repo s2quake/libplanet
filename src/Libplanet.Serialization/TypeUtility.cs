@@ -9,29 +9,31 @@ namespace Libplanet.Serialization;
 public static class TypeUtility
 {
     private static readonly ConcurrentDictionary<string, Type> _typeByFullName = [];
-    private static readonly TypeResolver _typeResolver = new();
-    private static readonly ConcurrentDictionary<Type, TypeResolver> _knownTypeResolvers = [];
+    private static readonly KnownTypes _knownTypes = new();
+    private static readonly ConcurrentDictionary<Type, KnownTypes> _knownTypesByType = [];
     private static readonly ConcurrentDictionary<Type, object> _defaultByType = [];
 
     static TypeUtility()
     {
-        _typeResolver.AddType(typeof(object), "o");
-        _typeResolver.AddType(typeof(BigInteger), "bi");
-        _typeResolver.AddType(typeof(bool), "b");
-        _typeResolver.AddType(typeof(byte), "y");
-        _typeResolver.AddType(typeof(char), "c");
-        _typeResolver.AddType(typeof(DateTimeOffset), "dt");
-        _typeResolver.AddType(typeof(Guid), "id");
-        _typeResolver.AddType(typeof(int), "i");
-        _typeResolver.AddType(typeof(long), "l");
-        _typeResolver.AddType(typeof(string), "s");
-        _typeResolver.AddType(typeof(TimeSpan), "ts");
-        _typeResolver.AddType(typeof(Array), "ar");
-        _typeResolver.AddType(typeof(ImmutableArray<>), "imar<>");
-        _typeResolver.AddType(typeof(ImmutableList<>), "imli<>");
-        _typeResolver.AddType(typeof(ImmutableSortedSet<>), "imss<>");
-        _typeResolver.AddType(typeof(ImmutableDictionary<,>), "imdi<,>");
-        _typeResolver.AddType(typeof(ImmutableSortedDictionary<,>), "imsd<,>");
+        _knownTypes.AddType(typeof(object), "o");
+        _knownTypes.AddType(typeof(BigInteger), "bi");
+        _knownTypes.AddType(typeof(bool), "b");
+        _knownTypes.AddType(typeof(byte), "y");
+        _knownTypes.AddType(typeof(char), "c");
+        _knownTypes.AddType(typeof(DateTimeOffset), "dt");
+        _knownTypes.AddType(typeof(Guid), "id");
+        _knownTypes.AddType(typeof(int), "i");
+        _knownTypes.AddType(typeof(long), "l");
+        _knownTypes.AddType(typeof(string), "s");
+        _knownTypes.AddType(typeof(TimeSpan), "ts");
+        _knownTypes.AddType(typeof(Array), "ar");
+        _knownTypes.AddType(typeof(List<>), "li<>");
+        _knownTypes.AddType(typeof(Dictionary<,>), "di<>");
+        _knownTypes.AddType(typeof(ImmutableArray<>), "imar<>");
+        _knownTypes.AddType(typeof(ImmutableList<>), "imli<>");
+        _knownTypes.AddType(typeof(ImmutableSortedSet<>), "imss<>");
+        _knownTypes.AddType(typeof(ImmutableDictionary<,>), "imdi<,>");
+        _knownTypes.AddType(typeof(ImmutableSortedDictionary<,>), "imsd<,>");
 
         InitializeModelTypes();
     }
@@ -49,7 +51,7 @@ public static class TypeUtility
             var genericArgumentList = new List<Type>(genericArgumentNames.Length);
             var separators = string.Empty.PadRight(genericArgumentNames.Length - 1, ',');
             var typeDefinitionName = $"{name}<{separators}>";
-            var typeDefinition = _typeResolver.GetType(typeDefinitionName);
+            var typeDefinition = _knownTypes.GetType(typeDefinitionName);
             foreach (var genericArgumentName in genericArgumentNames)
             {
                 var genericArgument = GetGenericArgument(typeDefinition, genericArgumentName);
@@ -66,7 +68,7 @@ public static class TypeUtility
         }
         else
         {
-            var type = _typeResolver.GetType(name);
+            var type = _knownTypes.GetType(name);
             if (isNullable)
             {
                 return typeof(Nullable<>).MakeGenericType(type);
@@ -102,7 +104,7 @@ public static class TypeUtility
         else if (type.IsGenericType)
         {
             var typeDefinition = type.GetGenericTypeDefinition();
-            var typeDefinitionName = _typeResolver.GetTypeName(typeDefinition);
+            var typeDefinitionName = _knownTypes.GetTypeName(typeDefinition);
             var genericArguments = type.GetGenericArguments();
             var genericArgumentList = new List<string>(genericArguments.Length);
             foreach (var genericArgument in genericArguments)
@@ -114,7 +116,7 @@ public static class TypeUtility
             return Regex.Replace(typeDefinitionName, "<.*>", $"<{genericArgumentString}>");
         }
 
-        return _typeResolver.GetTypeName(type);
+        return _knownTypes.GetTypeName(type);
     }
 
     public static bool IsDefault(object? value, Type type)
@@ -203,22 +205,22 @@ public static class TypeUtility
             {
                 var attribute = item.GetCustomAttribute<ModelAttribute>()
                     ?? throw new UnreachableException("ModelAttribute cannot be null");
-                _typeResolver.AddType(item, attribute.TypeName);
+                _knownTypes.AddType(item, attribute.TypeName);
             }
             else if (item.IsDefined(typeof(ModelConverterAttribute)))
             {
                 var attribute = item.GetCustomAttribute<ModelConverterAttribute>()
                     ?? throw new UnreachableException("ModelConverterAttribute cannot be null");
-                _typeResolver.AddType(item, attribute.TypeName);
+                _knownTypes.AddType(item, attribute.TypeName);
             }
 
             if (item.IsDefined(typeof(ModelKnownTypeAttribute)))
             {
                 var knownTypeAttributes = item.GetCustomAttributes<ModelKnownTypeAttribute>();
-                if (!_knownTypeResolvers.TryGetValue(item, out var typeResolver))
+                if (!_knownTypesByType.TryGetValue(item, out var typeResolver))
                 {
-                    typeResolver = new TypeResolver();
-                    _knownTypeResolvers[item] = typeResolver;
+                    typeResolver = new KnownTypes();
+                    _knownTypesByType[item] = typeResolver;
                 }
 
                 foreach (var knownTypeAttribute in knownTypeAttributes)
@@ -234,7 +236,7 @@ public static class TypeUtility
 
     private static string GetGenericArgumentName(Type typeDefinition, Type genericArgument)
     {
-        if (_knownTypeResolvers.TryGetValue(typeDefinition, out var typeResolver)
+        if (_knownTypesByType.TryGetValue(typeDefinition, out var typeResolver)
             && typeResolver.TryGetTypeName(genericArgument, out var genericArgumentName))
         {
             return genericArgumentName;
@@ -245,7 +247,7 @@ public static class TypeUtility
 
     private static Type GetGenericArgument(Type typeDefinition, string genericArgumentName)
     {
-        if (_knownTypeResolvers.TryGetValue(typeDefinition, out var typeResolver)
+        if (_knownTypesByType.TryGetValue(typeDefinition, out var typeResolver)
             && typeResolver.TryGetType(genericArgumentName, out var genericArgumentType))
         {
             return genericArgumentType;

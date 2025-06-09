@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Serialization;
 
-internal sealed class TypeResolver
+internal sealed class KnownTypes
 {
     private readonly ConcurrentDictionary<string, Type> _typeByName = [];
     private readonly ConcurrentDictionary<Type, string> _nameByType = [];

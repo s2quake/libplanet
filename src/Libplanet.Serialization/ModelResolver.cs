@@ -132,6 +132,11 @@ public static class ModelResolver
 
     public static bool TryGetConverter(Type type, [MaybeNullWhen(false)] out IModelConverter converter)
     {
+        if (_converterByType.TryGetValue(type, out converter))
+        {
+            return true;
+        }
+
         if (type.IsDefined(typeof(ModelConverterAttribute)))
         {
             converter = GetConverter(type);
