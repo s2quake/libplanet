@@ -27,8 +27,10 @@ internal static class NodeInserter
 
         var builder = ImmutableSortedDictionary.CreateBuilder<char, INode>();
         var nextKey = key[1..];
+        builder[char.MinValue] = valueNode;
         builder[key[0]] = InsertToNullNode(nextKey, value);
-        return new FullNode { Children = builder.ToImmutable(), Value = valueNode };
+
+        return new FullNode { Children = builder.ToImmutable() };
     }
 
     private static INode InsertToShortNode(ShortNode shortNode, string key, ValueNode value)
@@ -62,10 +64,14 @@ internal static class NodeInserter
                 builder[nextKey[0]] = InsertToNullNode(nextKey[1..], value);
             }
 
+            if (key.Length == prefix.Length)
+            {
+                builder[char.MinValue] = value;
+            }
+
             var fullNode = new FullNode
             {
                 Children = builder.ToImmutable(),
-                Value = key.Length == prefix.Length ? value : null,
             };
 
             return prefix.Length == 0 ? fullNode : new ShortNode { Key = prefix, Value = fullNode };
@@ -76,7 +82,7 @@ internal static class NodeInserter
     {
         if (key == string.Empty)
         {
-            return new FullNode { Children = fullNode.Children, Value = value };
+            return new FullNode { Children = fullNode.Children.Add(char.MinValue, value) };
         }
 
         var index = key[0];

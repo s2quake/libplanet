@@ -13,7 +13,6 @@ public class FullNodeTest
         var expectedNode = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty,
-            Value = new ValueNode { Value = "123" },
         };
         var actualNode = ModelSerializer.Clone(expectedNode);
         Assert.Equal(expectedNode, actualNode);
@@ -49,36 +48,14 @@ public class FullNodeTest
     }
 
     [Fact]
-    public void Value()
-    {
-        var valueNode = new ValueNode { Value = "test" };
-        var node1 = new FullNode
-        {
-            Children = ImmutableSortedDictionary<char, INode>.Empty,
-            Value = valueNode,
-        };
-
-        Assert.Equal(valueNode, node1.Value);
-
-        var node2 = node1 with
-        {
-            Value = null,
-        };
-
-        Assert.Null(node2.Value);
-    }
-
-    [Fact]
     public void INode_Children()
     {
-        var valueNode = new ValueNode { Value = "test" };
         var node1 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty,
-            Value = valueNode,
         };
 
-        Assert.Equal([valueNode], ((INode)node1).Children);
+        Assert.Equal([], ((INode)node1).Children);
 
         var childNodeA = new ValueNode { Value = "childA" };
         var node2 = node1 with
@@ -86,7 +63,7 @@ public class FullNodeTest
             Children = node1.Children.SetItem('A', childNodeA),
         };
 
-        Assert.Equal([valueNode, childNodeA], ((INode)node2).Children);
+        Assert.Equal([childNodeA], ((INode)node2).Children);
 
         var childNode0 = new ValueNode { Value = "child0" };
         var node3 = node2 with
@@ -94,9 +71,9 @@ public class FullNodeTest
             Children = node2.Children.SetItem('0', childNode0),
         };
 
-        Assert.Equal([valueNode, childNode0, childNodeA], ((INode)node3).Children);
+        Assert.Equal([childNode0, childNodeA], ((INode)node3).Children);
 
-        var node4 = node3 with { Value = null };
+        var node4 = node3 with { };
         Assert.Equal([childNode0, childNodeA], ((INode)node4).Children);
     }
 
@@ -171,7 +148,6 @@ public class FullNodeTest
         var node1 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty,
-            Value = new ValueNode { Value = "test" },
         };
         ValidationUtility.Validate(node1);
 

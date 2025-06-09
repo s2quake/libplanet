@@ -13,7 +13,7 @@ internal static class NodeResolver
             ? ResolveToValue(shortNode.Value, key[shortNode.Key.Length..])
             : null,
         FullNode fullNode => key.Length is 0
-            ? ResolveToValue(fullNode.Value, key)
+            ? ResolveToValue(fullNode.GetChildOrDefault(char.MinValue), key)
             : ResolveToValue(fullNode.GetChildOrDefault(key[0]), key[1..]),
         HashNode hashNode => ResolveToValue(hashNode.Expand(), key),
         NullNode _ => null,

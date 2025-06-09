@@ -74,7 +74,6 @@ public partial class StateIndex(ITable table)
 
     private static INode CommitFullNode(FullNode node, WriteBatch writeBatch)
     {
-        var virtualValue = node.Value is null ? null : Commit(node.Value, writeBatch);
         var builder = ImmutableSortedDictionary.CreateBuilder<char, INode>();
         foreach (var (index, child) in node.Children)
         {
@@ -82,7 +81,7 @@ public partial class StateIndex(ITable table)
         }
 
         var virtualChildren = builder.ToImmutable();
-        var newNode = new FullNode { Children = virtualChildren, Value = virtualValue };
+        var newNode = new FullNode { Children = virtualChildren };
         var bytes = ModelSerializer.SerializeToBytes(newNode);
         if (bytes.Length <= HashDigest<SHA256>.Size)
         {

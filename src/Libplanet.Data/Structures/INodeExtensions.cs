@@ -37,14 +37,6 @@ public static class INodeExtensions
     {
         if (node is FullNode fullNode)
         {
-            if (fullNode.Value is not null)
-            {
-                foreach (var item in GetKeyValues(fullNode.Value, key))
-                {
-                    yield return item;
-                }
-            }
-
             foreach (var (k, v) in fullNode.Children)
             {
                 var nodeKey = key + k;

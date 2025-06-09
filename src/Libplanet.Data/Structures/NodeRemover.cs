@@ -72,25 +72,35 @@ internal static class NodeRemover
             return fullNode;
         }
 
-        return ReduceFullNode(new FullNode { Children = fullNode.Children });
+        return ReduceFullNode(fullNode.RemoveChild(char.MinValue));
     }
 
     private static INode ReduceFullNode(FullNode fullNode)
     {
         var children = fullNode.Children;
-        if (children.Count == 0)
+        if (children.Count is 0)
         {
-            if (fullNode.Value is HashNode hashNode)
-            {
-                return hashNode.Expand();
-            }
+            // if (fullNode.Value is HashNode hashNode)
+            // {
+            //     return hashNode.Expand();
+            // }
 
             throw new ArgumentException(
                 $"Given {nameof(fullNode)} must have at least 1 child: {children.Count}", nameof(fullNode));
         }
-        else if (children.Count == 1)
+        else if (children.Count is 1)
         {
             var (index, child) = children.Single();
+            if (index == char.MinValue)
+            {
+                if (child is HashNode hashNode)
+                {
+                    return hashNode.Expand();
+                }
+
+                return child;
+            }
+
             child = child is HashNode hn ? hn.Expand() : child;
             if (child is ShortNode sn)
             {
