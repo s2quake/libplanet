@@ -40,10 +40,17 @@ public static class TypeUtility
 
     public static Type GetType(string typeName)
     {
-        var match = Regex.Match(typeName, @"^(?<type>[a-zA-Z][a-zA-Z0-9_]*)(?<generic>\<.+\>)?(?<nullable>\??)$");
+        var match = Regex.Match(
+            typeName, @"^(?<type>[a-zA-Z][a-zA-Z0-9_]*)(?:(?<array>\[,*\])|(?<generic>\<.+\>))?(?<nullable>\??)$");
+        if (!match.Success)
+        {
+            throw new ArgumentException($"Invalid type name: {typeName}", nameof(typeName));
+        }
+
         var isNullable = match.Groups["nullable"].Value == "?";
         var name = match.Groups["type"].Value;
         var genericPart = match.Groups["generic"].Value.TrimStart('<').TrimEnd('>');
+        var arrayPart = match.Groups["array"].Value;
 
         if (genericPart != string.Empty)
         {
@@ -65,6 +72,18 @@ public static class TypeUtility
             }
 
             return type;
+        }
+        else if (arrayPart != string.Empty)
+        {
+            var elementTypeName = name;
+            var elementType = _knownTypes.GetType(elementTypeName);
+            if (isNullable)
+            {
+                elementType = typeof(Nullable<>).MakeGenericType(elementType);
+            }
+
+            var rank = arrayPart.Count(c => c == ',') + 1;
+            return Array.CreateInstance(elementType, new int[rank]).GetType();
         }
         else
         {
@@ -115,8 +134,26 @@ public static class TypeUtility
             var genericArgumentString = string.Join(',', genericArgumentList);
             return Regex.Replace(typeDefinitionName, "<.*>", $"<{genericArgumentString}>");
         }
+        else if (type.IsArray)
+        {
+            var elementType = type.GetElementType()
+                ?? throw new UnreachableException("Array type does not have an element type");
+            var elementTypeName = GetTypeName(elementType);
+            var rank = type.GetArrayRank();
+            return $"{elementTypeName}[{new string(',', rank - 1)}]";
+        }
+        else if (_knownTypes.TryGetTypeName(type, out var typeName))
+        {
+            return typeName;
+        }
+        else if (type.IsDefined(typeof(OriginModelAttribute)))
+        {
+            var attribute = type.GetCustomAttribute<OriginModelAttribute>()!;
+            return GetTypeName(attribute.Type);
+        }
 
-        return _knownTypes.GetTypeName(type);
+        throw new NotSupportedException(
+            $"Type '{type.FullName}' is not supported or not registered in known types.");
     }
 
     public static bool IsDefault(object? value, Type type)

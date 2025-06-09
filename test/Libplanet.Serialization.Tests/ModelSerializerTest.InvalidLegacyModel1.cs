@@ -24,13 +24,13 @@ public sealed partial class ModelSerializerTest
     }
 
     // Last version should be equal to the count of ModelAttribute
-    [Model(Version = 3, TypeName = "ModelSerializerTest+InvalidModelRecord2")]
+    [Model(Version = 3, TypeName = "ModelSerializerTest_InvalidModelRecord2")]
     public sealed record class InvalidModelRecord2
     {
     }
 
     [ModelHistory(Version = 1, Type = typeof(Version1))]
-    [Model(Version = 2, TypeName = "ModelSerializerTest+InvalidModelRecord3")]
+    [Model(Version = 2, TypeName = "ModelSerializerTest_InvalidModelRecord3")]
     public sealed record class InvalidModelRecord3
     {
         // Previous version should have a LegacyModelAttribute
@@ -40,7 +40,7 @@ public sealed partial class ModelSerializerTest
     }
 
     [ModelHistory(Version = 1, Type = typeof(Version1))]
-    [Model(Version = 2, TypeName = "ModelSerializerTest+InvalidModelRecord4")]
+    [Model(Version = 2, TypeName = "ModelSerializerTest_InvalidModelRecord4")]
     public sealed record class InvalidModelRecord4
     {
         public InvalidModelRecord4()
@@ -61,7 +61,7 @@ public sealed partial class ModelSerializerTest
     // Each version of the model must be in order.
     [ModelHistory(Version = 1, Type = typeof(Version1))]
     [ModelHistory(Version = 100, Type = typeof(Version2))]
-    [Model(Version = 3, TypeName = "ModelSerializerTest+InvalidModelRecord5")]
+    [Model(Version = 3, TypeName = "ModelSerializerTest_InvalidModelRecord5")]
     public sealed record class InvalidModelRecord5
     {
         public InvalidModelRecord5()
@@ -93,7 +93,7 @@ public sealed partial class ModelSerializerTest
     // Same type cannot be registered multiple times.
     [ModelHistory(Version = 1, Type = typeof(Version1))]
     [ModelHistory(Version = 2, Type = typeof(Version1))]
-    [Model(Version = 3, TypeName = "ModelSerializerTest+InvalidModelRecord6")]
+    [Model(Version = 3, TypeName = "ModelSerializerTest_InvalidModelRecord6")]
     public sealed record class InvalidModelRecord6
     {
         public InvalidModelRecord6()
@@ -125,7 +125,7 @@ public sealed partial class ModelSerializerTest
     // The constructor that takes the previous version type as a parameter must be defined.
     [ModelHistory(Version = 1, Type = typeof(Version1))]
     [ModelHistory(Version = 2, Type = typeof(Version2))]
-    [Model(Version = 3, TypeName = "ModelSerializerTest+InvalidModelRecord7")]
+    [Model(Version = 3, TypeName = "ModelSerializerTest_InvalidModelRecord7")]
     public sealed record class InvalidModelRecord7
     {
         [OriginModel(Type = typeof(InvalidModelRecord7))]
@@ -149,7 +149,7 @@ public sealed partial class ModelSerializerTest
     // If there is an older version, a default constructor must be defined.
     [ModelHistory(Version = 1, Type = typeof(Version1))]
     [ModelHistory(Version = 2, Type = typeof(Version2))]
-    [Model(Version = 3, TypeName = "ModelSerializerTest+InvalidModelRecord8")]
+    [Model(Version = 3, TypeName = "ModelSerializerTest_InvalidModelRecord8")]
     public sealed record class InvalidModelRecord8
     {
         public InvalidModelRecord8()

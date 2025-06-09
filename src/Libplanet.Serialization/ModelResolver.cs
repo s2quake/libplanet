@@ -256,7 +256,15 @@ public static class ModelResolver
         return builder.ToImmutable();
     }
 
-    private static ImmutableArray<Type> GetTypes(Type type) => _typesByType.GetOrAdd(type, CreateTypes);
+    private static ImmutableArray<Type> GetTypes(Type type)
+    {
+        if (type.GetCustomAttribute<OriginModelAttribute>() is { } originModelAttribute)
+        {
+            return _typesByType.GetOrAdd(originModelAttribute.Type, CreateTypes);
+        }
+
+        return _typesByType.GetOrAdd(type, CreateTypes);
+    }
 
     private static void ValidateAsEquatable(Type type)
     {
@@ -327,63 +335,71 @@ public static class ModelResolver
             ?? throw new ArgumentException(
                 $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
 
-        if (modelAttribute.Version != (query.Count() + 1))
-        {
-            throw new ArgumentException(
-                $"Version of {type} must be equal to the number of {nameof(ModelHistoryAttribute)}",
-                nameof(type));
-        }
+        // if (modelAttribute.Version != (query.Count() + 1))
+        // {
+        //     throw new ArgumentException(
+        //         $"Version of {type} must be equal to the number of {nameof(ModelHistoryAttribute)}",
+        //         nameof(type));
+        // }
 
         Type? previousType = null;
+        var previousVersion = 0;
         for (var i = 0; i < attributes.Length; i++)
         {
             var attribute = attributes[i];
-            var validationContext = new ValidationContext(attribute);
-            Validator.ValidateObject(attribute, validationContext, validateAllProperties: true);
-            var version = attribute.Version;
-            if (version != i + 1)
+            var attributeType = attribute.Type;
+            var attributeVersion = attribute.Version;
+            attribute.Validate(type, previousVersion, previousType);
+
+            // var validationContext = new ValidationContext(attribute);
+            // Validator.ValidateObject(attribute, validationContext, validateAllProperties: true);
+            // var version = attribute.Version;
+            // if (version != i + 1)
+            // {
+            //     throw new ArgumentException(
+            //         $"Version of {type} must be sequential starting from 1", nameof(type));
+            // }
+
+            // if (attribute.Type.GetCustomAttribute<OriginModelAttribute>() is not { } originModelAttribute)
+            // {
+            //     throw new ArgumentException(
+            //         $"Type {attribute.Type} does not have {nameof(OriginModelAttribute)}",
+            //         nameof(type));
+            // }
+
+            // if (originModelAttribute.Type != type)
+            // {
+            //     throw new ArgumentException("OriginType of OriginModelAttribute is not valid", nameof(type));
+            // }
+
+            // var currentType = attribute.Type ?? type;
+            // if (previousType is not null)
+            // {
+            //     if (currentType.GetConstructor([previousType]) is null)
+            //     {
+            //         throw new ArgumentException(
+            //             $"Type {currentType} does not have a constructor with {previousType}", nameof(type));
+            //     }
+
+            //     if (currentType.GetConstructor([]) is null)
+            //     {
+            //         throw new ArgumentException(
+            //             $"Type {currentType} does not have a default constructor", nameof(type));
+            //     }
+            // }
+
+            if (builder.Contains(attributeType))
             {
                 throw new ArgumentException(
-                    $"Version of {type} must be sequential starting from 1", nameof(type));
+                    $"Type {attributeType} is already registered", nameof(type));
             }
 
-            if (attribute.Type.GetCustomAttribute<OriginModelAttribute>() is not { } originModelAttribute)
-            {
-                throw new ArgumentException(
-                    $"Type {attribute.Type} does not have {nameof(OriginModelAttribute)}",
-                    nameof(type));
-            }
-
-            if (originModelAttribute.Type != type)
-            {
-                throw new ArgumentException("OriginType of OriginModelAttribute is not valid", nameof(type));
-            }
-
-            var currentType = attribute.Type ?? type;
-            if (previousType is not null)
-            {
-                if (currentType.GetConstructor([previousType]) is null)
-                {
-                    throw new ArgumentException(
-                        $"Type {currentType} does not have a constructor with {previousType}", nameof(type));
-                }
-
-                if (currentType.GetConstructor([]) is null)
-                {
-                    throw new ArgumentException(
-                        $"Type {currentType} does not have a default constructor", nameof(type));
-                }
-            }
-
-            if (builder.Contains(currentType))
-            {
-                throw new ArgumentException(
-                    $"Type {currentType} is already registered", nameof(type));
-            }
-
-            builder.Add(currentType);
-            previousType = currentType;
+            builder.Add(attributeType);
+            previousType = attributeType;
+            previousVersion = attributeVersion;
         }
+
+        modelAttribute.Validate(type, previousVersion, previousType);
 
         builder.Add(type);
 

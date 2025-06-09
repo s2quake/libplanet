@@ -107,7 +107,7 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
         foreach (var property in properties)
         {
             var value = property.GetValue(obj);
-            hash.Add(value);
+            hash.Add(ModelResolver.GetHashCode(value, property.PropertyType));
         }
 
         return hash.ToHashCode();

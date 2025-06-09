@@ -18,7 +18,7 @@ public sealed partial class ModelSerializerTest
         Assert.Equal(expectedObject, actualObject);
     }
 
-    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+RecordClassWithNullableProperty")]
+    [Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithNullableProperty")]
     public sealed record class RecordClassWithNullableProperty : IEquatable<RecordClassWithNullableProperty>
     {
         public RecordClassWithNullableProperty()
