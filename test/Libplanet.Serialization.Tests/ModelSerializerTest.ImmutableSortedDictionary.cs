@@ -21,7 +21,7 @@ public sealed partial class ModelSerializerTest
 
     [Model(
         Version = 1, 
-        TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+RecordClassWithImmutableSortedDictionary")]
+        TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithImmutableSortedDictionary")]
     public sealed record class RecordClassWithImmutableSortedDictionary
         : IEquatable<RecordClassWithImmutableSortedDictionary>
     {

@@ -23,7 +23,7 @@ public sealed partial class ModelSerializerTest
 
     [ModelConverter(
         typeof(HasModelConverterModelConverter),
-        "Libplanet.Serialization.Tests.ModelSerializerTest+HasModelConverter")]
+        "Libplanet_Serialization_Tests_ModelSerializerTest_HasModelConverter")]
     public sealed record class HasModelConverter
     {
         public int Value { get; init; } = 123;

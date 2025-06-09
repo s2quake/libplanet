@@ -18,7 +18,7 @@ public sealed partial class ModelSerializerTest
         Assert.Equal(expectedObject, actualObject);
     }
 
-    [Model(Version = 1, TypeName = "Libplanet.Serialization.Tests.ModelSerializerTest+RecordClassWithTuple")]
+    [Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithTuple")]
     public sealed record class RecordClassWithTuple : IEquatable<RecordClassWithTuple>
     {
         public RecordClassWithTuple()

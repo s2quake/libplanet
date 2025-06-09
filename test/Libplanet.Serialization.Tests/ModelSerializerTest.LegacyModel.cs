@@ -41,7 +41,7 @@ public sealed partial class ModelSerializerTest
 
     [ModelHistory(Version = 1, Type = typeof(Version1_ModelRecord))]
     [ModelHistory(Version = 2, Type = typeof(Version2_ModelRecord))]
-    [Model(Version = 3, TypeName = "ModelSerializerTest+ModelRecord")]
+    [Model(Version = 3, TypeName = "ModelSerializerTest_ModelRecord")]
     public sealed record class ModelRecord
     {
         public ModelRecord()
