@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.State.Tests.Common;
 
-[Model(Version = 1, TypeName = "Tests+ThrowException")]
+[Model(Version = 1, TypeName = "Tests_ThrowException")]
 public sealed record class ThrowException : ActionBase
 {
     [Property(0)]
