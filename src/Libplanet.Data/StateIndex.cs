@@ -120,7 +120,7 @@ public partial class StateIndex(ITable table)
     {
         var hash = HashDigest<SHA256>.Create(bytes);
         var key = hash.ToString();
-        HashNodeCache.AddOrUpdate(hash, bytes);
+        HashNode.AddOrUpdate(hash, bytes);
         writeBatch.Add(key, bytes);
         return writeBatch.Create(hash);
     }

@@ -22,7 +22,6 @@ internal sealed record class ShortNode : INode, IValidatableObject
         {
             yield return new ValidationResult(
                 $"Given {nameof(Value)} is unexpected type: {Value.GetType().Name}.", [nameof(Value)]);
-                
         }
     }
 }
