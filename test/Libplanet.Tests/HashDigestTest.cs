@@ -7,6 +7,7 @@ namespace Libplanet.Tests;
 public partial class HashDigestTest
 {
     [Theory]
+    [InlineData(0)]
     [ClassData(typeof(RandomSeedsData))]
     public void SerializeAndDeserialize_SHA256(int seed)
     {

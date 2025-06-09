@@ -132,15 +132,14 @@ public static class ModelResolver
 
     public static bool TryGetConverter(Type type, [MaybeNullWhen(false)] out IModelConverter converter)
     {
-        return _converterByType.TryGetValue(type, out converter);
-        // if (TypeDescriptor.GetAttributes(type)[typeof(ModelConverterAttribute)] is not null)
-        // {
-        //     converter = GetConverter(type);
-        //     return true;
-        // }
-
-        // converter = null;
-        // return converter is not null;
+        if (type.IsDefined(typeof(ModelConverterAttribute)))
+        {
+            converter = GetConverter(type);
+            return true;
+        }
+        
+        converter = null;
+        return converter is not null;
     }
 
     public static bool Equals<T>(T left, T? right) => Equals(left, right, typeof(T));
