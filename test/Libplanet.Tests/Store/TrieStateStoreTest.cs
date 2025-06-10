@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Store;
@@ -42,8 +43,8 @@ public class TrieStateStoreTest
         string bazKey = "baz";
         string quxKey = "qux";
         var values = ImmutableDictionary<string, object>.Empty
-            .Add(fooKey, GetRandomBytes(32))
-            .Add(barKey, ByteUtility.Hex(GetRandomBytes(32)))
+            .Add(fooKey, RandomUtility.Bytes(32))
+            .Add(barKey, ByteUtility.Hex(RandomUtility.Bytes(32)))
             .Add(bazKey, false)
             .Add(quxKey, null);
         Trie trie = stateStore.Commit(

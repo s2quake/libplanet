@@ -1,5 +1,6 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -15,7 +16,7 @@ public class VoteSetTest
         Assert.False(voteSet.TwoThirdsMajority(out var hash0));
         Assert.Equal(default, hash0);
 
-        var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         voteSet.AddVote(new VoteMetadata
         {
             Height = 0,
@@ -52,7 +53,7 @@ public class VoteSetTest
         {
             Height = 0,
             Round = 0,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,

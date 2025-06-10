@@ -115,7 +115,7 @@
 //             Random random = new Random();
 //             int height = 3;
 //             int round = 5;
-//             BlockHash hash = random.NextBlockHash();
+//             BlockHash hash = RandomUtility.BlockHash(random);
 
 //             var unorderedPrivateKeys = Enumerable
 //                 .Range(0, 10)

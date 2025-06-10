@@ -13,7 +13,7 @@
 //         [Fact]
 //         public void Sign()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var privateKey = new PrivateKey();
 //             var voteMetadata = new VoteMetadata(
 //                 1,
@@ -46,7 +46,7 @@
 //         [Fact]
 //         public void CannotSignWithWrongPrivateKey()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var validatorPublicKey = new PrivateKey().PublicKey;
 //             var key = new PrivateKey();
 //             var voteMetadata = new VoteMetadata(
@@ -71,7 +71,7 @@
 //         [Fact]
 //         public void EmptySignatureNotAllowedForPreVoteAndPreCommit()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var key = new PrivateKey();
 //             var preVoteMetadata = new VoteMetadata(
 //                 height: 2,
@@ -105,7 +105,7 @@
 //         [Fact]
 //         public void NonEmptySignatureNotAllowedForNullAndUnknown()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var key = new PrivateKey();
 //             var nullMetadata = new VoteMetadata(
 //                 height: 2,
@@ -157,7 +157,7 @@
 //         [Fact]
 //         public void Bencoded()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var key = new PrivateKey();
 //             var expected = new VoteMetadata(
 //                 1,

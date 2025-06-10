@@ -10,6 +10,7 @@ using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;
 using Xunit.Abstractions;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Net.Tests.Consensus
 {
@@ -459,7 +460,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = TestUtils.PrivateKeys[1].Address,
                 PreviousHash = blockChain.Genesis.BlockHash,
-                PreviousStateRootHash = HashDigest<SHA256>.Create(TestUtils.GetRandomBytes(1024)),
+                PreviousStateRootHash = HashDigest<SHA256>.Create(RandomUtility.Bytes(1024)),
             };
             var preEval = new RawBlock
             {

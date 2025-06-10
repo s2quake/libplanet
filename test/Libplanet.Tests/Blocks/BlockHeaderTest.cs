@@ -20,9 +20,9 @@
 //         {
 //             var preEval = fx.RawBlock.Header with { };
 //             var header = new BlockHeader(preEval, fx.StateRootHash, fx.Signature, fx.Hash);
-//             AssertBytesEqual(header.BlockHash, fx.Hash);
+//             Assert.Equal(header.BlockHash, fx.Hash);
 //             AssertPreEvaluationBlockHeadersEqual(fx, header);
-//             AssertBytesEqual(fx.StateRootHash, header.StateRootHash);
+//             Assert.Equal(fx.StateRootHash, header.StateRootHash);
 
 //             Assert.Throws<InvalidOperationException>(() =>
 //                 new BlockHeader(preEval, (fx.StateRootHash, fx.Signature, default))

@@ -28,6 +28,19 @@ public static partial class RandomUtility
         return bytes[0];
     }
 
+    public static byte[] Bytes() => Bytes(System.Random.Shared);
+
+    public static byte[] Bytes(int length) => Bytes(System.Random.Shared, length);
+
+    public static byte[] Bytes(Random random) => Bytes(random, Length(random));
+
+    public static byte[] Bytes(Random random, int length)
+    {
+        var bytes = new byte[length];
+        random.NextBytes(bytes);
+        return bytes;
+    }
+
     public static short Int16() => Int16(System.Random.Shared);
 
     public static short Int16(Random random)
@@ -544,6 +557,12 @@ public static partial class RandomUtility
 
         return random.NextDouble() < probability;
     }
+
+    public static IOrderedEnumerable<T> Shuffle<T>(IEnumerable<T> source)
+        => Shuffle(System.Random.Shared, source);
+
+    public static IOrderedEnumerable<T> Shuffle<T>(Random random, IEnumerable<T> source)
+        => source.OrderBy(_ => random.Next());
 
     private static string[] GetWords()
     {

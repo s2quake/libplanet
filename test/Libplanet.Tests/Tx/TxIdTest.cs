@@ -17,7 +17,7 @@ public class TxIdTest
                 continue;
             }
 
-            var bytes = GetRandomBytes(size);
+            var bytes = RandomUtility.Bytes(size);
             var immutableBytes = bytes.ToImmutableArray();
             Assert.Throws<ArgumentOutOfRangeException>("bytes", () => new TxId(immutableBytes));
             Assert.Throws<ArgumentOutOfRangeException>("bytes", () => new TxId(bytes));
@@ -51,7 +51,7 @@ public class TxIdTest
     [Fact]
     public void ToByteArray()
     {
-        var bytes = GetRandomBytes(TxId.Size);
+        var bytes = RandomUtility.Bytes(TxId.Size);
         var txId = new TxId(bytes);
 
         Assert.Equal(bytes, txId.Bytes);

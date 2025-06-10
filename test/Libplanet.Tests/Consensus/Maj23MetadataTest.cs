@@ -11,7 +11,7 @@
 //         [Fact]
 //         public void VoteFlagShouldBePreVoteOrPreCommit()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 
 //             // Works with PreVote and PreCommit vote flags.
 //             _ = new Maj23Metadata(
@@ -39,7 +39,7 @@
 //         [Fact]
 //         public void Bencoded()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var key = new PrivateKey();
 //             var expected = new Maj23Metadata(
 //                 1,

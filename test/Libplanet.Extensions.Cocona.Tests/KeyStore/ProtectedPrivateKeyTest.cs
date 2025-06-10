@@ -104,7 +104,7 @@ namespace Libplanet.Tests.KeyStore
             Assert.Equal(AddressFixture2, Fixture2.Unprotect(PassphraseFixture).Address);
             var incorrectPassphraseException = Assert.Throws<IncorrectPassphraseException>(
                 () => Fixture.Unprotect("wrong passphrase"));
-            TestUtils.AssertBytesEqual(
+            Assert.Equal(
                 MacFixture.ToImmutableArray(),
                 incorrectPassphraseException.ExpectedMac);
             Assert.NotEqual(MacFixture, incorrectPassphraseException.InputMac);
@@ -128,7 +128,7 @@ namespace Libplanet.Tests.KeyStore
         {
             PrivateKey privKey = new PrivateKey();
             ProtectedPrivateKey protectedKey = ProtectedPrivateKey.Protect(privKey, passphrase);
-            AssertBytesEqual(
+            Assert.Equal(
                 privKey.Bytes,
                 protectedKey.Unprotect(passphrase).Bytes);
             Assert.Throws<IncorrectPassphraseException>(() => protectedKey.Unprotect("WRONG"));
@@ -164,7 +164,7 @@ namespace Libplanet.Tests.KeyStore
                 Address.Parse("d80d933db45cc0cf69e9632090f8aaff635dc8e5"),
                 key.Address);
             Assert.IsType<Aes128Ctr>(key.Cipher);
-            AssertBytesEqual(
+            Assert.Equal(
                 new byte[]
                 {
                     0x53, 0x5b, 0xab, 0x75, 0xc1, 0x12, 0xfe, 0x32, 0x7d, 0xc2, 0xe2,
@@ -173,7 +173,7 @@ namespace Libplanet.Tests.KeyStore
                 }.ToImmutableArray(),
                 key.Ciphertext);
             Assert.IsType<Pbkdf2<Sha256Digest>>(key.Kdf);
-            AssertBytesEqual(
+            Assert.Equal(
                 new byte[]
                 {
                     0xd8, 0x6a, 0xb9, 0xef, 0xf2, 0x3f, 0x28, 0x21, 0x0d, 0xc0, 0x10,
@@ -209,7 +209,7 @@ namespace Libplanet.Tests.KeyStore
                 Address.Parse("8e5f4b9b8f84ff90c559c6a4deb3c1febe551f29"),
                 key2.Address);
             Assert.IsType<Aes128Ctr>(key2.Cipher);
-            AssertBytesEqual(
+            Assert.Equal(
                 new byte[]
                 {
                     0x45, 0xa5, 0xb8, 0x0f, 0xd3, 0xea, 0x8f, 0x4f, 0x0d, 0xb8, 0x24,
@@ -218,7 +218,7 @@ namespace Libplanet.Tests.KeyStore
                 }.ToImmutableArray(),
                 key2.Ciphertext);
             Assert.IsType<Scrypt>(key2.Kdf);
-            AssertBytesEqual(
+            Assert.Equal(
                 new byte[]
                 {
                     0x44, 0x5c, 0x0b, 0xbc, 0x6c, 0x31, 0x0d, 0x1f, 0xca, 0xbf, 0x7d,

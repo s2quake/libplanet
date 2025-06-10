@@ -1,5 +1,6 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Net.Tests.Consensus
 {
@@ -18,7 +19,7 @@ namespace Libplanet.Net.Tests.Consensus
         public void Get()
         {
             var cache = new MessageCache();
-            var messageId = TestUtils.GetRandomBytes(MessageId.Size);
+            var messageId = RandomUtility.Bytes(MessageId.Size);
             // Had to use HaveMessage for testing the persistent dataFrame.
             var msg = new HaveMessage { Ids = [new MessageId(messageId)] };
             Assert.Throws<KeyNotFoundException>(() => cache.Get(msg.Id));

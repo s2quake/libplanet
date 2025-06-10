@@ -9,6 +9,7 @@ using Libplanet.Types;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -752,7 +753,7 @@ public partial class BlockChainTest : IDisposable
 
         var emptyLocator = _blockChain.Genesis.BlockHash;
         var invalidLocator =
-            new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+            new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var locator = b4.BlockHash;
 
         using var emptyFx = new MemoryRepositoryFixture(_options);

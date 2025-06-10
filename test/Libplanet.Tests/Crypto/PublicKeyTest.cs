@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Crypto;
@@ -33,12 +34,12 @@ public class PublicKeyTest(ITestOutputHelper output)
             "03b5a24aa2112720423bad39a0205182379d6f2b33e3487c9ab6cc8fc496f8a548");
 
         var key = new PublicKey(bytes);
-        TestUtils.AssertBytesEqual(bytes, key.ToByteArray(compress: false));
-        TestUtils.AssertBytesEqual(compressed, key.ToByteArray(compress: true));
-        TestUtils.AssertBytesEqual(
+        Assert.Equal(bytes, key.ToByteArray(compress: false));
+        Assert.Equal(compressed, key.ToByteArray(compress: true));
+        Assert.Equal(
             bytes.ToImmutableArray(),
             key.ToImmutableArray(compress: false));
-        TestUtils.AssertBytesEqual(
+        Assert.Equal(
             compressed.ToImmutableArray(),
             key.ToImmutableArray(compress: true));
     }
@@ -103,7 +104,7 @@ public class PublicKeyTest(ITestOutputHelper output)
     [Fact]
     public void VerifyShouldNotCrashForAnyInputs()
     {
-        var random = new Random();
+        var random = RandomUtility.GetRandom(output);
         var key = PublicKey.Parse(
             "04b5a24aa2112720423bad39a0205182379d6f2b33e3487c9ab6cc8fc496f8a54" +
             "83440efbbef0657ac2ef6c6ee05db06a94532fda7ddc44a1695e5ce1a3d3c76db");
@@ -162,8 +163,8 @@ public class PublicKeyTest(ITestOutputHelper output)
 
         for (int i = 0; i < 100; i++)
         {
-            byte[] message = random.NextBytes(64);
-            byte[] sig = random.NextBytes(71);
+            byte[] message = RandomUtility.Bytes(64);
+            byte[] sig = RandomUtility.Bytes(71);
             bool validity;
             try
             {
@@ -198,11 +199,11 @@ public class PublicKeyTest(ITestOutputHelper output)
         var bs = Encoding.ASCII.GetBytes("hello world");
 
         var encrypted = pubKey.Encrypt(bs);
-        TestUtils.AssertBytesEqual(bs, prvKey.Decrypt(encrypted));
+        Assert.Equal(bs, prvKey.Decrypt(encrypted));
 
         ImmutableArray<byte> immutable = bs.ToImmutableArray();
         var encryptedImmutable = pubKey.Encrypt(immutable);
-        TestUtils.AssertBytesEqual(immutable, prvKey.Decrypt(encryptedImmutable));
+        Assert.Equal(immutable, prvKey.Decrypt(encryptedImmutable));
     }
 
     [Fact]

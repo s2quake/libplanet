@@ -16,5 +16,5 @@ public readonly record struct ActionBytecode(in ImmutableArray<byte> Bytes) : IE
 
     public bool Equals(ActionBytecode other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtility.CalculateHashCode(Bytes);
+    public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
 }

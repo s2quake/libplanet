@@ -90,7 +90,7 @@
 //                 HashDigest<SHA256> b1StateRootHash =
 //                     blockChain.DetermineNextBlockStateRootHash(genesis, out _);
 //                 Block block1 = blockChain.EvaluateAndSign(preEval1, _contents.Block1Key);
-//                 AssertBytesEqual(b1StateRootHash, block1.StateRootHash);
+//                 Assert.Equal(b1StateRootHash, block1.StateRootHash);
 //                 AssertPreEvaluationBlocksEqual(preEval1, block1);
 //                 _output.WriteLine("#1: {0}", block1);
 
@@ -165,7 +165,7 @@
 
 //                 HashDigest<SHA256> b1StateRootHash =
 //                     blockChain.DetermineNextBlockStateRootHash(genesis, out _);
-//                 AssertBytesEqual(
+//                 Assert.Equal(
 //                     b1StateRootHash, blockChain.GetNextStateRootHash(genesis.Hash));
 
 //                 _output.WriteLine("#1 StateRootHash: {0}", b1StateRootHash);

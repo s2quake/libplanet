@@ -22,7 +22,7 @@ public class PrivateKeyTest
         Assert.Throws<FormatException>(() => PrivateKey.Parse("zz"));
         var actual = PrivateKey.Parse(
             "e07107ca4b0d19147fa1152a0f2c7884705d59cbb6318e2f901bd28dd9ff78e3");
-        AssertBytesEqual(
+        Assert.Equal(
             new byte[]
             {
                 0xe0, 0x71, 0x07, 0xca, 0x4b, 0x0d, 0x19, 0x14, 0x7f, 0xa1, 0x15,
@@ -297,7 +297,7 @@ public class PrivateKeyTest
         Assert.Throws<FormatException>(() => PrivateKey.Parse("zz"));
         var actual = PrivateKey.Parse(
             "e07107ca4b0d19147fa1152a0f2c7884705d59cbb6318e2f901bd28dd9ff78e3");
-        AssertBytesEqual(
+        Assert.Equal(
             new byte[]
             {
                 0xe0, 0x71, 0x07, 0xca, 0x4b, 0x0d, 0x19, 0x14, 0x7f, 0xa1, 0x15,

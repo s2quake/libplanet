@@ -1,5 +1,6 @@
 using Libplanet.Serialization;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Tests.Blockchain.Evidence;
 
@@ -20,7 +21,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -30,7 +31,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 2,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -58,7 +59,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -68,7 +69,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 3,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -98,7 +99,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddresses[0],
             ValidatorPower = BigInteger.One,
@@ -108,7 +109,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddresses[1],
             ValidatorPower = BigInteger.One,
@@ -136,7 +137,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -146,7 +147,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -165,7 +166,7 @@ public class DuplicateVoteEvidenceTest
         // Given
         var privateKey = new PrivateKey();
         var validatorAddress = privateKey.Address;
-        var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var validatorList = new List<Validator>
         {
             new Validator { Address = validatorAddress },
@@ -213,7 +214,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -223,7 +224,7 @@ public class DuplicateVoteEvidenceTest
         {
             Height = 1,
             Round = 2,
-            BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,

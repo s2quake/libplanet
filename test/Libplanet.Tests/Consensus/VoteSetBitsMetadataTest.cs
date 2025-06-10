@@ -10,7 +10,7 @@
 //         [Fact]
 //         public void Bencoded()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var key = new PrivateKey();
 //             var voteBits = new[] { true, true, false, false };
 //             var expected = new VoteSetBitsMetadata(

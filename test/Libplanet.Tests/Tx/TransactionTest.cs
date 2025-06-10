@@ -2,6 +2,7 @@ using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Types;
+using Nethereum.Util;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Tx;
@@ -65,10 +66,10 @@ public class TransactionTest
             Timestamp = timestamp,
         }.Sign(privateKey);
 
-        AssertBytesEqual(privateKey.Address, tx.Signer);
+        Assert.Equal(privateKey.Address, tx.Signer);
         Assert.Equal(privateKey.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
-        AssertBytesEqual(
+        Assert.Equal(
             new byte[]
             {
                 0x08, 0xef, 0x2a, 0x58, 0x52, 0x8b, 0x15, 0xe5, 0xc3, 0x25, 0xe1, 0x59, 0x2a,
@@ -78,7 +79,7 @@ public class TransactionTest
                 0x31, 0x31, 0x7f, 0x53, 0x39, 0x25, 0xe4, 0x1c, 0xdf, 0x3d, 0x55, 0x61, 0x1b,
             },
             tx.Signature);
-        AssertBytesEqual(
+        Assert.Equal(
             TxId.Parse("babd317f0ce9961a528d9c923022fa4e0a360df0437463af7267ac40c5a889e6"),
             tx.Id);
     }
@@ -112,11 +113,12 @@ public class TransactionTest
             tx.Signer);
         Assert.Equal(privateKey.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
-        AssertBytesEqual(
-            "20687120cb1d510e954cb506af5e92d9b4e19cf1ddf509ba104863db202a5e2b7" +
-            "77d056be4e09f044182af2ebb79c449a4f619b5c77f5bd34567400e6dfcab881c",
+        Assert.Equal(
+            ByteUtility.ParseHex(
+                "20687120cb1d510e954cb506af5e92d9b4e19cf1ddf509ba104863db202a5e2b7" +
+                "77d056be4e09f044182af2ebb79c449a4f619b5c77f5bd34567400e6dfcab881c"),
             tx.Signature);
-        AssertBytesEqual(
+        Assert.Equal(
             new TxId(ByteUtility.ParseHex(
                 "6b377f828e6e310d986f5812caa732f00841ebaf66ace2b2aab6fe417ee1b84d")),
             tx.Id);
@@ -174,10 +176,10 @@ public class TransactionTest
             tx.Signer);
         Assert.Equal(privateKey.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
-        AssertBytesEqual(
+        Assert.Equal(
             signature,
             tx.Signature);
-        AssertBytesEqual(
+        Assert.Equal(
             new TxId(
                 new byte[]
                 {

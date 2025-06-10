@@ -297,8 +297,8 @@
 //     {
 //         _blockChain = TestUtils.MakeBlockChain();
 //         var genesis = _blockChain.Genesis;
-//         var address1 = new Address([.. TestUtils.GetRandomBytes(20)]);
-//         var address2 = new Address([.. TestUtils.GetRandomBytes(20)]);
+//         var address1 = new Address([.. RandomUtility.Bytes(20)]);
+//         var address2 = new Address([.. RandomUtility.Bytes(20)]);
 //         var proposer = new PrivateKey();
 //         var action1 = DumbModernAction.Create((address1, "foo"));
 //         var action2 = DumbModernAction.Create((address2, "bar"));
@@ -742,7 +742,7 @@
 
 //         // Append block before state root hash postpone
 //         var proposer = new PrivateKey();
-//         var action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "foo"));
+//         var action = DumbAction.Create((new Address([.. RandomUtility.Bytes(20)]), "foo"));
 //         var tx = new TransactionMetadata
 //         {
 //             Nonce = 0,
@@ -764,7 +764,7 @@
 //         blockChain.Append(blockBeforeBump, commitBeforeBump);
 
 //         // Append block after state root hash postpone - previous block is not bumped
-//         action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "bar"));
+//         action = DumbAction.Create((new Address([.. RandomUtility.Bytes(20)]), "bar"));
 //         tx = new TransactionMetadata
 //         {
 //             Nonce = 1,
@@ -781,7 +781,7 @@
 //         Assert.Equal(blockBeforeBump.StateRootHash, blockAfterBump1.StateRootHash);
 
 //         // Append block after state root hash postpone - previous block is bumped
-//         action = DumbAction.Create((new Address([.. TestUtils.GetRandomBytes(20)]), "baz"));
+//         action = DumbAction.Create((new Address([.. RandomUtility.Bytes(20)]), "baz"));
 //         tx = new TransactionMetadata
 //         {
 //             Nonce = 2,

@@ -2,6 +2,7 @@ using System.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 using NetMQ;
 using static Libplanet.Tests.TestUtils;
 
@@ -98,7 +99,7 @@ public class MessageTest
     [Fact]
     public void InvalidVoteFlagConsensus()
     {
-        var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 
         var preVote = TestUtils.CreateVote(
             TestUtils.PrivateKeys[0],

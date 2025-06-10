@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using Libplanet.Serialization;
 using Libplanet.Tests;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Benchmarks
 {
@@ -24,7 +25,7 @@ namespace Libplanet.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            _blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+            _blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
             SetupKeys();
             SetupVotes();
         }

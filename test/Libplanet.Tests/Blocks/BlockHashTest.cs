@@ -10,8 +10,8 @@ public class BlockHashTest
     public void DefaultConstructor()
     {
         BlockHash def = default;
-        AssertBytesEqual(new byte[32].ToImmutableArray(), def.Bytes);
-        AssertBytesEqual(new byte[32], def.Bytes.ToArray());
+        Assert.Equal(new byte[32].ToImmutableArray(), def.Bytes);
+        Assert.Equal(new byte[32], def.Bytes);
     }
 
     [Fact]
@@ -71,11 +71,11 @@ public class BlockHashTest
     public void DeriveFrom()
     {
         byte[] foo = { 0x66, 0x6f, 0x6f }, bar = { 0x62, 0x61, 0x72 };
-        AssertBytesEqual(
+        Assert.Equal(
             BlockHash.Parse(
                 "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"),
             BlockHash.Create(foo));
-        AssertBytesEqual(
+        Assert.Equal(
             BlockHash.Parse(
                 "fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"),
             BlockHash.Create(bar));

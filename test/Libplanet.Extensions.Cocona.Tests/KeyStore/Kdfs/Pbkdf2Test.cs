@@ -39,7 +39,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
             ");
             Assert.Equal(10240, kdf.Iterations);
             Assert.Equal(32, kdf.KeyLength);
-            TestUtils.AssertBytesEqual(
+            Assert.Equal(
                 new byte[]
                 {
                     0x3e, 0xea, 0xaf, 0x35, 0xda, 0x70, 0x92, 0x83, 0x87, 0xca, 0xe1,

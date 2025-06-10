@@ -1,4 +1,5 @@
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Tests
 {
@@ -61,14 +62,14 @@ namespace Libplanet.Tests
                 0x88, 0x69, 0x58, 0xbc, 0x3e, 0x85, 0x60, 0x92, 0x9c, 0xcc,
             };
 
-            Assert.Equal(-1026516859, ByteUtility.CalculateHashCode(bytes));
+            Assert.Equal(-1026516859, ByteUtility.GetHashCode(bytes));
 
-            var otherBytes = TestUtils.GetRandomBytes(20);
+            var otherBytes = RandomUtility.Bytes(20);
             otherBytes[19] = 0xdd;
 
             Assert.NotEqual(
-                ByteUtility.CalculateHashCode(bytes),
-                ByteUtility.CalculateHashCode(otherBytes));
+                ByteUtility.GetHashCode(bytes),
+                ByteUtility.GetHashCode(otherBytes));
         }
 
         [Fact]

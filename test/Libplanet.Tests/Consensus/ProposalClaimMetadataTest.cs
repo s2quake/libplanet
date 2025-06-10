@@ -9,7 +9,7 @@
 //         [Fact]
 //         public void Bencoded()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             var key = new PrivateKey();
 //             var expected = new ProposalClaimMetadata(
 //                 1,

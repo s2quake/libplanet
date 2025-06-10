@@ -162,24 +162,24 @@ public partial class BlockChainTest
     //     {
     //         BlockHash = _fx.Hash1,
     //         TxId = _fx.TxId1,
-    //         InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-    //         OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         InputState = new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
     //         ExceptionNames = [],
     //     };
     //     var inputB = new TxExecution
     //     {
     //         BlockHash = _fx.Hash1,
     //         TxId = _fx.TxId2,
-    //         InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-    //         OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         InputState = new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
     //         ExceptionNames = ["AnExceptionName"],
     //     };
     //     var inputC = new TxExecution
     //     {
     //         BlockHash = _fx.Hash2,
     //         TxId = _fx.TxId1,
-    //         InputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
-    //         OutputState = new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+    //         InputState = new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
+    //         OutputState = new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
     //         ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
     //     };
     //     _blockChain.TxExecutions.AddRange([inputA, inputB, inputC]);

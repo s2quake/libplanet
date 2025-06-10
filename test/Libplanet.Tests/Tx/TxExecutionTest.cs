@@ -1,21 +1,23 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
+using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Tx
 {
-    public class TxExecutionTest
+    public class TxExecutionTest(ITestOutputHelper output)
     {
         [Theory]
         [InlineData("")]
         [InlineData("SomeException")]
         public void Constructor(string exceptionName)
         {
-            var random = new Random();
-            var blockHash = random.NextBlockHash();
-            var txId = random.NextTxId();
-            var inputState = random.NextHashDigest<SHA256>();
-            var outputState = random.NextHashDigest<SHA256>();
+            var random = RandomUtility.GetRandom(output);
+            var blockHash = RandomUtility.BlockHash(random);
+            var txId = RandomUtility.TxId(random);
+            var inputState = RandomUtility.HashDigest<SHA256>(random);
+            var outputState = RandomUtility.HashDigest<SHA256>(random);
             var exceptionNames = new List<string>() { exceptionName };
             var execution = new TxExecution
             {
@@ -35,13 +37,13 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void EncodeDecode()
         {
-            var random = new Random();
+            var random = RandomUtility.GetRandom(output);
             var execution = new TxExecution
             {
-                BlockHash = random.NextBlockHash(),
-                TxId = random.NextTxId(),
-                InputState = random.NextHashDigest<SHA256>(),
-                OutputState = random.NextHashDigest<SHA256>(),
+                BlockHash = RandomUtility.BlockHash(random),
+                TxId = RandomUtility.TxId(random),
+                InputState = RandomUtility.HashDigest<SHA256>(random),
+                OutputState = RandomUtility.HashDigest<SHA256>(random),
                 ExceptionNames = ["SomeException", "AnotherException"],
             };
             var encoded = ModelSerializer.SerializeToBytes(execution);
@@ -58,11 +60,11 @@ namespace Libplanet.Tests.Tx
         [Fact]
         public void ConstructorWithExceptions()
         {
-            var random = new Random();
-            var blockHash = random.NextBlockHash();
-            var txId = random.NextTxId();
-            var inputState = random.NextHashDigest<SHA256>();
-            var outputState = random.NextHashDigest<SHA256>();
+            var random = RandomUtility.GetRandom(output);
+            var blockHash = RandomUtility.BlockHash(random);
+            var txId = RandomUtility.TxId(random);
+            var inputState = RandomUtility.HashDigest<SHA256>(random);
+            var outputState = RandomUtility.HashDigest<SHA256>(random);
             var exceptions = new List<Exception>() { new ArgumentException("Message") };
             var execution = new TxExecution
             {

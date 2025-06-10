@@ -383,7 +383,7 @@ public partial class BlockChainTest
     //     {
     //         Height = blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
@@ -393,7 +393,7 @@ public partial class BlockChainTest
     //     {
     //         Height = blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
@@ -429,7 +429,7 @@ public partial class BlockChainTest
     //     {
     //         Height = blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
@@ -439,7 +439,7 @@ public partial class BlockChainTest
     //     {
     //         Height = blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
@@ -466,7 +466,7 @@ public partial class BlockChainTest
     //     {
     //         Height = _blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
@@ -476,7 +476,7 @@ public partial class BlockChainTest
     //     {
     //         Height = _blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
@@ -506,7 +506,7 @@ public partial class BlockChainTest
     //     {
     //         Height = blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
@@ -516,7 +516,7 @@ public partial class BlockChainTest
     //     {
     //         Height = blockChain.Tip.Height,
     //         Round = 2,
-    //         BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,

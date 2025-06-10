@@ -3,6 +3,7 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -491,7 +492,7 @@ public partial class BlockChainTest
             _blockChain.Append(
                 validNextBlock,
                 TestUtils.CreateBlockCommit(
-                    new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     1,
                     0)));
     }

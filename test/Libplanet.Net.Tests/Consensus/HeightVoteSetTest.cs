@@ -1,5 +1,6 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Net.Tests.Consensus
 {
@@ -91,7 +92,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 2,
                 Round = 0,
-                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,
@@ -111,7 +112,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Height = 2,
                 Round = 0,
-                BlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,

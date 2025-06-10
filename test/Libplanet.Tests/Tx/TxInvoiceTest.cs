@@ -18,7 +18,7 @@
 //         public void ConstructorGasConditions()
 //         {
 //             var random = new System.Random();
-//             var genesisHash = random.NextBlockHash();
+//             var genesisHash = RandomUtility.BlockHash(random);
 //             var timestamp = DateTimeOffset.UtcNow;
 //             var actions = ImmutableArray<IAction>.Empty.ToBytecodes();
 
@@ -77,7 +77,7 @@
 //         public void PlainConstructor()
 //         {
 //             var random = new System.Random();
-//             var genesisHash = random.NextBlockHash();
+//             var genesisHash = RandomUtility.BlockHash(random);
 //             var updatedAddresses = ImmutableSortedSet.Create(
 //                 random.NextAddress(),
 //                 random.NextAddress());
@@ -115,7 +115,7 @@
 //         public void CopyConstructor()
 //         {
 //             var random = new System.Random();
-//             var genesisHash = random.NextBlockHash();
+//             var genesisHash = RandomUtility.BlockHash(random);
 //             var updatedAddresses = ImmutableSortedSet.Create(
 //                 random.NextAddress(),
 //                 random.NextAddress());

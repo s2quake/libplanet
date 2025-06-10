@@ -120,10 +120,10 @@
 //                     return new DifferentVersionMessage();
 //                 case MessageContent.MessageType.HaveMessage:
 //                     return new HaveMessage(
-//                         new[] { new MessageId(TestUtils.GetRandomBytes(MessageId.Size)) });
+//                         new[] { new MessageId(RandomUtility.Bytes(MessageId.Size)) });
 //                 case MessageContent.MessageType.WantMessage:
 //                     return new WantMessage(
-//                         new[] { new MessageId(TestUtils.GetRandomBytes(MessageId.Size)) });
+//                         new[] { new MessageId(RandomUtility.Bytes(MessageId.Size)) });
 //                 case MessageContent.MessageType.ConsensusProposal:
 //                     return new ConsensusProposalMessage(
 //                         new ProposalMetadata
