@@ -1,4 +1,4 @@
-using Libplanet.Types.Tests;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Serialization.Tests;
 

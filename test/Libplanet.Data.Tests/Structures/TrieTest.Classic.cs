@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 using Libplanet.Data.Structures;
 using Libplanet.Data.Structures.Nodes;
 using Libplanet.Types;
-using Libplanet.Types.Tests;
+using Libplanet.TestUtilities;
 using static System.Linq.Enumerable;
 
 namespace Libplanet.Data.Tests.Structures;

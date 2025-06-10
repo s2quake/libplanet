@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Libplanet.Types\Libplanet.Types.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\words.txt" />
+  </ItemGroup>
+
+</Project>

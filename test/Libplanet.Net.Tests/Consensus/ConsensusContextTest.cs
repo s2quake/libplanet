@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Nito.AsyncEx;

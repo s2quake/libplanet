@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Text;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;

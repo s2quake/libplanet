@@ -17,8 +17,7 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
 {
     public const int Size = 20;
 
-    private static readonly ImmutableArray<byte> _defaultByteArray
-        = ImmutableArray.Create(new byte[Size]);
+    private static readonly ImmutableArray<byte> _defaultByteArray = ImmutableArray.Create(new byte[Size]);
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
@@ -108,12 +107,7 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
     private static string ToChecksumAddress(string hex)
     {
         var value = new Nethereum.Util.AddressUtil().ConvertToChecksumAddress(hex);
-        if (value.StartsWith("0x"))
-        {
-            return value[2..];
-        }
-
-        return value;
+        return value[2..]; // Remove "0x" prefix
     }
 
     private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
@@ -162,14 +156,6 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
             throw new ArgumentException("Address checksum is invalid", nameof(hex));
         }
 
-        try
-        {
-            return ByteUtility.ParseHexToImmutable(hex);
-        }
-        catch (FormatException e)
-        {
-            throw new ArgumentException(
-                "Address hex must only consist of ASCII characters", nameof(hex), e);
-        }
+        return ByteUtility.ParseHexToImmutable(hex);
     }
 }

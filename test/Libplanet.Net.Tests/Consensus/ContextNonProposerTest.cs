@@ -11,6 +11,7 @@ using Nito.AsyncEx;
 using Serilog;
 using Xunit.Abstractions;
 using Libplanet.Types.Tests;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Consensus
 {

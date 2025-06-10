@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
+using Libplanet.TestUtilities;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 

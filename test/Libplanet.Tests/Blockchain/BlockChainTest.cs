@@ -10,6 +10,7 @@ using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.Types.Tests;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Tests.Blockchain;
 

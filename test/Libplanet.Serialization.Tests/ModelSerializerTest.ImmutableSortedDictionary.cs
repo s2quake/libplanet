@@ -1,5 +1,5 @@
 #pragma warning disable SA1414 // Tuple types in signatures should have element names
-using static Libplanet.Types.Tests.RandomUtility;
+using static Libplanet.TestUtilities.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
@@ -20,7 +20,7 @@ public sealed partial class ModelSerializerTest
     }
 
     [Model(
-        Version = 1, 
+        Version = 1,
         TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithImmutableSortedDictionary")]
     public sealed record class RecordClassWithImmutableSortedDictionary
         : IEquatable<RecordClassWithImmutableSortedDictionary>

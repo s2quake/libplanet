@@ -18,16 +18,13 @@ public static class ByteUtility
     {
         if (hex.Length % 2 > 0)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(hex),
-                "A length of a hexadecimal string must be an even number.");
+            throw new FormatException("A length of a hexadecimal string must be an even number.");
         }
 
         var bytes = new byte[hex.Length / 2];
         for (var i = 0; i < hex.Length / 2; i++)
         {
-            bytes[i] = byte.Parse(
-                hex.Substring(i * 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            bytes[i] = byte.Parse(hex.AsSpan(i * 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
         }
 
         return bytes;

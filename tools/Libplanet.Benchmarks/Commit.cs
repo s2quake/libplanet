@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Serialization;
 using Libplanet.Tests;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 

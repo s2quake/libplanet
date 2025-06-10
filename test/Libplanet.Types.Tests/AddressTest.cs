@@ -1,11 +1,30 @@
-using System.ComponentModel;
+using System.Reflection;
 using Libplanet.Serialization;
+using Libplanet.TestUtilities;
 using Xunit.Abstractions;
 
 namespace Libplanet.Types.Tests;
 
 public sealed partial class AddressTest(ITestOutputHelper output)
 {
+    [Fact]
+    public void Attribute()
+    {
+        var attribute = typeof(Address).GetCustomAttribute<ModelConverterAttribute>();
+        Assert.NotNull(attribute);
+        Assert.Equal("addr", attribute.TypeName);
+    }
+
+    [Fact]
+    public void SerializeAndDeserialize()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var address1 = RandomUtility.Address(random);
+        var serialized = ModelSerializer.SerializeToBytes(address1);
+        var address2 = ModelSerializer.DeserializeFromBytes(serialized);
+        Assert.Equal(address1, address2);
+    }
+
     [Fact]
     public void Ctor()
     {
@@ -122,5 +141,17 @@ public sealed partial class AddressTest(ITestOutputHelper output)
         Assert.Equal("0x04ec8128E2024865f78e13622F1396e117912D04", address.ToString());
         Assert.Equal("0x04ec8128E2024865f78e13622F1396e117912D04", address.ToString(null, null));
         Assert.Equal("04ec8128E2024865f78e13622F1396e117912D04", address.ToString("raw", null));
+    }
+
+    [Fact]
+    public void CompareTo_Test()
+    {
+        var address1 = Address.Parse("0000000000000000000000000000000000000000");
+        var address2 = Address.Parse("0000000000000000000000000000000000000001");
+        Assert.True(address1.CompareTo(address2) < 0);
+        Assert.True(address2.CompareTo(address1) > 0);
+        Assert.Equal(0, address1.CompareTo(address1));
+        Assert.Equal(1, address1.CompareTo(null));
+        Assert.Throws<ArgumentException>(() => address1.CompareTo("not an address"));
     }
 }
