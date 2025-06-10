@@ -407,11 +407,11 @@ If omitted (default) explorer only the local blockchain store.")]
 
         private class NoOpStateStore : StateIndex
         {
-            public ITrie GetStateRoot(HashDigest<SHA256> stateRootHash) => null;
+            public Trie GetStateRoot(HashDigest<SHA256> stateRootHash) => null;
 
-            public ITrie Commit(ITrie trie) => null;
+            public Trie Commit(Trie trie) => null;
 
-            public ITrie Update(ITrie trie) => null;
+            public Trie Update(Trie trie) => null;
 
             public void Dispose()
             {

@@ -77,7 +77,7 @@ public sealed class IntegerSet
         }.Sign(signerKey);
         BigInteger prevState = Chain.GetWorld().GetValueOrDefault(SystemAccount, signer, BigInteger.Zero);
         HashDigest<SHA256> prevStateRootHash = Chain.Tip.PreviousStateRootHash;
-        ITrie prevTrie = GetTrie(Chain.Tip.BlockHash);
+        Trie prevTrie = GetTrie(Chain.Tip.BlockHash);
         (BigInteger, HashDigest<SHA256>) prevPair = (prevState, prevStateRootHash);
         (BigInteger, HashDigest<SHA256>) stagedStates = Chain.StagedTransactions.Collect()
             .Where(t => t.Signer.Equals(signer))
@@ -126,7 +126,7 @@ public sealed class IntegerSet
 
     public void Append(Block block) => Chain.Append(block, TestUtils.CreateBlockCommit(block));
 
-    public ITrie GetTrie(BlockHash blockHash)
+    public Trie GetTrie(BlockHash blockHash)
     {
         if (blockHash != default)
         {

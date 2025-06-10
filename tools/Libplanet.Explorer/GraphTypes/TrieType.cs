@@ -4,7 +4,7 @@ using Libplanet.Data.Structures;
 
 namespace Libplanet.Explorer.GraphTypes
 {
-    public class TrieType : ObjectGraphType<ITrie>
+    public class TrieType : ObjectGraphType<Trie>
     {
         public TrieType()
         {

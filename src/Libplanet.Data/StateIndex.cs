@@ -20,7 +20,7 @@ public partial class StateIndex(ITable table)
     {
     }
 
-    public ITrie GetTrie(HashDigest<SHA256> stateRootHash)
+    public Trie GetTrie(HashDigest<SHA256> stateRootHash)
     {
         if (stateRootHash == default)
         {
@@ -35,7 +35,7 @@ public partial class StateIndex(ITable table)
         return new Trie(new HashNode { Hash = stateRootHash, Table = _table });
     }
 
-    public ITrie Commit(ITrie trie)
+    public Trie Commit(Trie trie)
     {
         if (trie.Node is NullNode)
         {

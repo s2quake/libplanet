@@ -7,7 +7,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Data.Structures;
 
-public sealed partial record class Trie(INode Node) : ITrie
+public sealed partial record class Trie(INode Node) : IEnumerable<KeyValuePair<string, object>>
 {
     public Trie()
         : this(NullNode.Value)
@@ -48,8 +48,6 @@ public sealed partial record class Trie(INode Node) : ITrie
         return new Trie(newNode);
     }
 
-    ITrie ITrie.Set(string key, object value) => Set(key, value);
-
     public Trie Remove(string key)
     {
         if (Node is NullNode)
@@ -66,8 +64,6 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new KeyNotFoundException($"Key {key} not found in the trie.", e);
         }
     }
-
-    ITrie ITrie.Remove(string key) => Remove(key);
 
     public INode GetNode(string key)
     {

@@ -3,7 +3,7 @@ using Libplanet.Data.Structures;
 
 namespace Libplanet.State;
 
-public sealed record class Account(ITrie Trie)
+public sealed record class Account(Trie Trie)
 {
     public Account()
         : this(new Trie())

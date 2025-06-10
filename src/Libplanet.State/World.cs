@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.State;
 
-public sealed record class World(ITrie Trie, StateIndex States)
+public sealed record class World(Trie Trie, StateIndex States)
 {
     public World(StateIndex states)
         : this(states.GetTrie(default), states)
@@ -29,7 +29,7 @@ public sealed record class World(ITrie Trie, StateIndex States)
     public ImmutableDictionary<string, Account> Delta { get; private init; }
         = ImmutableDictionary<string, Account>.Empty;
 
-    internal ITrie Trie { get; } = Trie;
+    internal Trie Trie { get; } = Trie;
 
     internal StateIndex States { get; init; } = States;
 
