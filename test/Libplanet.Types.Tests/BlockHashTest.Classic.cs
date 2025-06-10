@@ -1,17 +1,16 @@
 using System.Security.Cryptography;
 using Libplanet.Types;
-using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests.Blocks;
+namespace Libplanet.Types.Tests;
 
-public class BlockHashTest
+public sealed partial class BlockHashTest
 {
     [Fact]
     public void DefaultConstructor()
     {
         BlockHash def = default;
-        Assert.Equal(new byte[32].ToImmutableArray(), def.Bytes);
         Assert.Equal(new byte[32], def.Bytes);
+        Assert.True(ImmutableArrayExtensions.SequenceEqual(new byte[32].ToImmutableArray(), def.Bytes));
     }
 
     [Fact]
@@ -24,7 +23,7 @@ public class BlockHashTest
     }
 
     [Fact]
-    public void Parse()
+    public void ParseTest()
     {
         byte[] b =
         [
@@ -59,12 +58,12 @@ public class BlockHashTest
             0x57, 0x2a, 0xd5, 0x8d, 0x1c, 0x37, 0x05, 0xc8, 0xcb, 0xfc,
         };
         var expected = new BlockHash(b);
-        BlockHash actual = BlockHash.Create(new HashDigest<SHA256>(b));
+        var actual = new BlockHash(new HashDigest<SHA256>(b).Bytes);
         Assert.Equal(expected, actual);
 
         Assert.Equal(
             new BlockHash(new byte[32]),
-            BlockHash.Create((HashDigest<SHA256>)default));
+            new BlockHash(((HashDigest<SHA256>)default).Bytes));
     }
 
     [Fact]
@@ -74,11 +73,11 @@ public class BlockHashTest
         Assert.Equal(
             BlockHash.Parse(
                 "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"),
-            BlockHash.Create(foo));
+            BlockHash.HashData(foo));
         Assert.Equal(
             BlockHash.Parse(
                 "fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"),
-            BlockHash.Create(bar));
+            BlockHash.HashData(bar));
     }
 
     [Fact]
@@ -100,10 +99,8 @@ public class BlockHashTest
     [Fact]
     public void JsonSerialization()
     {
-        BlockHash hash = BlockHash.Parse(
-            "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae");
-        AssertJsonSerializable(
-            hash,
-            "\"2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae\"");
+        var hash = BlockHash.Parse("2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae");
+        var json = JsonUtility.Serialize(hash);
+        Assert.Equal("\"2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae\"", json);
     }
 }

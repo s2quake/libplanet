@@ -34,7 +34,7 @@ public sealed class BlockCommitTest
         };
 
         var commitHash = blockCommit.ToHash();
-        var expected = HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(blockCommit));
+        var expected = HashDigest<SHA256>.HashData(ModelSerializer.SerializeToBytes(blockCommit));
 
         Assert.Equal(commitHash, expected);
     }

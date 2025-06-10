@@ -17,7 +17,7 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
 {
     public const int Size = 20;
 
-    private static readonly ImmutableArray<byte> _defaultByteArray = ImmutableArray.Create(new byte[Size]);
+    private static readonly ImmutableArray<byte> _defaultBytes = ImmutableArray.Create(new byte[Size]);
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
@@ -31,7 +31,7 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
     {
     }
 
-    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultByteArray : _bytes;
+    public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultBytes : _bytes;
 
     public static Address Parse(string hex)
     {

@@ -26,5 +26,5 @@ public sealed partial record class BlockCommit : IHasKey<BlockHash>
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
 
-    public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.HashData(ModelSerializer.SerializeToBytes(this));
 }
