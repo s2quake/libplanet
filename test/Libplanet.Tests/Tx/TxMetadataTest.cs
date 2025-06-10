@@ -43,7 +43,7 @@
 //         var meta = new TxMetadata { Signer = _key1.Address };
 //         DateTimeOffset after = DateTimeOffset.UtcNow;
 //         Assert.Equal(0L, meta.Nonce);
-//         AssertBytesEqual(_key1.Address, meta.Signer);
+//         Assert.Equal(_key1.Address, meta.Signer);
 //         Assert.Empty(meta.UpdatedAddresses);
 //         Assert.InRange(meta.Timestamp, before, after);
 //         Assert.Equal(_key1.Address, meta.Signer);
@@ -61,7 +61,7 @@
 //             .Add(new byte[] { 0x70 }, _key1.PublicKey.ToImmutableArray(compress: false));
 //         var meta1 = ModelSerializer.Deserialize<TxMetadata>(dict1);
 //         Assert.Equal(123L, meta1.Nonce);
-//         AssertBytesEqual(_key1.Address, meta1.Signer);
+//         Assert.Equal(_key1.Address, meta1.Signer);
 //         Assert.Empty(meta1.UpdatedAddresses);
 //         Assert.Equal(
 //             new DateTimeOffset(2022, 5, 23, 10, 2, 0, default),
@@ -85,7 +85,7 @@
 //                     "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"));
 //         var meta2 = ModelSerializer.Deserialize<TxMetadata>(dict2);
 //         Assert.Equal(0L, meta2.Nonce);
-//         AssertBytesEqual(_key2.Address, meta2.Signer);
+//         Assert.Equal(_key2.Address, meta2.Signer);
 //         Assert.Equal(
 //             new[] { _key1.Address, _key2.Address }.ToImmutableHashSet(),
 //             meta2.UpdatedAddresses);
@@ -93,7 +93,7 @@
 //             new DateTimeOffset(2022, 1, 12, 4, 56, 7, 890, default),
 //             meta2.Timestamp);
 //         Assert.Equal(_key2.Address, meta2.Signer);
-//         AssertBytesEqual(
+//         Assert.Equal(
 //             BlockHash.Parse(
 //                 "83915317ebdbf870c567b263dd2e61ec9dca7fb381c592d80993291b6ffe5ad5"),
 //             meta2.GenesisHash);

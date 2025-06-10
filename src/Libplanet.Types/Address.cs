@@ -60,15 +60,13 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
 
     public bool Equals(Address other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtility.CalculateHashCode(ToByteArray());
+    public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
 
-    public byte[] ToByteArray() => [.. Bytes];
-
-    public override string ToString() => $"0x{ToChecksumAddress(ByteUtility.Hex(ToByteArray()))}";
+    public override string ToString() => $"0x{ToChecksumAddress(ByteUtility.Hex(Bytes))}";
 
     public string ToString(string? format, IFormatProvider? formatProvider) => format switch
     {
-        "raw" => ToChecksumAddress(ByteUtility.Hex(ToByteArray())),
+        "raw" => ToChecksumAddress(ByteUtility.Hex(Bytes)),
         _ => ToString(),
     };
 

@@ -1,6 +1,7 @@
 using GraphQL.Language.AST;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {
@@ -11,7 +12,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseLiteral(new NullValue()));
 
-            var bytes = TestUtils.GetRandomBytes(BlockHash.Size);
+            var bytes = RandomUtility.Bytes(BlockHash.Size);
             var blockHash = new BlockHash(bytes);
             var hex = ByteUtility.Hex(bytes);
             Assert.Equal(
@@ -29,7 +30,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseValue(null));
 
-            var bytes = TestUtils.GetRandomBytes(BlockHash.Size);
+            var bytes = RandomUtility.Bytes(BlockHash.Size);
             var blockHash = new BlockHash(bytes);
             var hex = ByteUtility.Hex(bytes);
             Assert.Equal(blockHash, _type.ParseValue(hex));
@@ -42,7 +43,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         [Fact]
         public void Serialize()
         {
-            var bytes = TestUtils.GetRandomBytes(BlockHash.Size);
+            var bytes = RandomUtility.Bytes(BlockHash.Size);
             var blockHash = new BlockHash(bytes);
             var hex = ByteUtility.Hex(bytes);
             Assert.Equal(hex, _type.Serialize(blockHash));

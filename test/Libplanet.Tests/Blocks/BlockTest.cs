@@ -27,15 +27,15 @@
 //         {
 //             var contents = new BlockContentFixture();
 //             var random = new System.Random();
-//             var stateRootHash = random.NextHashDigest<SHA256>();
+//             var stateRootHash = RandomUtility.HashDigest<SHA256>(random);
 //             RawBlock preEval = contents.GenesisContent.Propose();
 //             ImmutableArray<byte> signature =
 //                 preEval.Header.MakeSignature(contents.GenesisKey, stateRootHash);
 //             var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
 //             var block = new Block(preEval, (stateRootHash, signature, hash));
 //             AssertPreEvaluationBlocksEqual(preEval, block);
-//             AssertBytesEqual(stateRootHash, block.StateRootHash);
-//             AssertBytesEqual(signature, block.Signature?.ToArray());
+//             Assert.Equal(stateRootHash, block.StateRootHash);
+//             Assert.Equal(signature, block.Signature?.ToArray());
 //         }
 
 //         [Fact]

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Net.Tests.Consensus.ConsensusContextUtils;
@@ -73,7 +74,7 @@ namespace Libplanet.Net.Tests.Consensus
                     power: BigInteger.One,
                     height: 3,
                     round: 0,
-                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     flag: VoteFlag.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
@@ -168,7 +169,7 @@ namespace Libplanet.Net.Tests.Consensus
                     power: BigInteger.One,
                     height: 4,
                     round: 0,
-                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     flag: VoteFlag.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
@@ -241,7 +242,7 @@ namespace Libplanet.Net.Tests.Consensus
                     power: BigInteger.One,
                     height: 3,
                     round: 1,
-                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     flag: VoteFlag.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
@@ -314,7 +315,7 @@ namespace Libplanet.Net.Tests.Consensus
                     power: BigInteger.One,
                     height: 3,
                     round: 0,
-                    hash: new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     flag: VoteFlag.PreVote)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage

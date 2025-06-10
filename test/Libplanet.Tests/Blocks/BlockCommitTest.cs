@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Tests.Blocks;
 
@@ -9,7 +10,7 @@ public sealed class BlockCommitTest
     [Fact]
     public void ToHash()
     {
-        var randomHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var randomHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
         var votes = keys.Select((key, index) =>
                 new VoteMetadata
@@ -40,7 +41,7 @@ public sealed class BlockCommitTest
     [Fact]
     public void HeightAndRoundMustNotBeNegative()
     {
-        var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var key = new PrivateKey();
         var votes = ImmutableArray.Create(
             new VoteMetadata
@@ -80,7 +81,7 @@ public sealed class BlockCommitTest
     [Fact]
     public void VotesCannotBeEmpty()
     {
-        var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var exception1 = ValidationUtility.Throws(
             new BlockCommit
             {
@@ -107,7 +108,7 @@ public sealed class BlockCommitTest
     {
         var height = 2;
         var round = 3;
-        var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var key = new PrivateKey();
 
         // Vote with different height is not allowed.
@@ -162,8 +163,8 @@ public sealed class BlockCommitTest
     {
         var height = 2;
         var round = 3;
-        var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
-        var badHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
+        var badHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var key = new PrivateKey();
 
         var votes = ImmutableArray.Create(
@@ -194,7 +195,7 @@ public sealed class BlockCommitTest
     {
         var height = 2;
         var round = 3;
-        var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
         var preCommitVotes = keys.Select(
                 key => new VoteMetadata

@@ -20,7 +20,7 @@ public sealed record class SymmetricKey(ImmutableArray<byte> Key) : IEquatable<S
     public bool Equals(SymmetricKey? other)
         => other is not null && Key.SequenceEqual(other.Key);
 
-    public override int GetHashCode() => ByteUtility.CalculateHashCode(Key);
+    public override int GetHashCode() => ByteUtility.GetHashCode(Key);
 
     public byte[] Encrypt(byte[] message, byte[] nonSecret)
     {

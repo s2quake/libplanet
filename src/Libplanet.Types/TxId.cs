@@ -41,7 +41,7 @@ public readonly record struct TxId(in ImmutableArray<byte> Bytes)
 
     public bool Equals(TxId other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtility.CalculateHashCode(Bytes);
+    public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
 
     public override string ToString() => ByteUtility.Hex(Bytes);
 

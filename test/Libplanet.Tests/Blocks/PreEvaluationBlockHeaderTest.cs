@@ -75,7 +75,7 @@
 //                 _contents.GenesisMetadata,
 //                 _contents.GenesisMetadata.DerivePreEvaluationHash());
 //             AssertBencodexEqual(expectedGenesis, genesis.MakeCandidateData(default));
-//             HashDigest<SHA256> stateRootHash = random.NextHashDigest<SHA256>();
+//             HashDigest<SHA256> stateRootHash = RandomUtility.HashDigest<SHA256>(random);
 //             AssertBencodexEqual(
 //                 expectedGenesis.SetItem("state_root_hash", stateRootHash.ByteArray),
 //                 genesis.MakeCandidateData(stateRootHash)
@@ -113,7 +113,7 @@
 //                 _contents.Block1Metadata,
 //                 _contents.Block1Metadata.DerivePreEvaluationHash());
 //             AssertBencodexEqual(expectedBlock1, block1.MakeCandidateData(default));
-//             stateRootHash = random.NextHashDigest<SHA256>();
+//             stateRootHash = RandomUtility.HashDigest<SHA256>(random);
 //             AssertBencodexEqual(
 //                 expectedBlock1.SetItem("state_root_hash", stateRootHash.ByteArray),
 //                 block1.MakeCandidateData(stateRootHash)
@@ -178,7 +178,7 @@
 //             ImmutableArray<byte> validSig = ByteUtil.ParseHexToImmutable(
 //                 "e50d22ff371bc82a57e0bf821d1628b00689b028f21bd1148c9c1851fa5e63746" +
 //                 "6d120d3fbfc0d3a42fc2825837bdc0ae058d5e75e4875f32420f0629a7af1e51b");
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 validSig,
 //                 block1.MakeSignature(_contents.Block1Key, arbitraryHash));
 //             Assert.True(block1.VerifySignature(validSig, arbitraryHash));
@@ -209,22 +209,22 @@
 //             var genesis = new RawBlockHeader(
 //                 _contents.GenesisMetadata,
 //                 _contents.GenesisMetadata.DerivePreEvaluationHash());
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("c08f58b8ed3e8c50cf7d3415191dd97dda4438d459eb8da93cb1e1c7449716c0"),
 //                 genesis.DeriveBlockHash(default, null)
 //             );
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("85864e96e55112ba7a93923802cdfa419fad920f511f458ee33ddb0b51cce275"),
 //                 genesis.DeriveBlockHash(
 //                     default,
 //                     genesis.MakeSignature(_contents.GenesisKey, default)
 //                 )
 //             );
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("d4f75f2a59ad25469abf5499d1458cad0b4390087b2c81318cacc3b495e5692a"),
 //                 genesis.DeriveBlockHash(arbitraryHash, null)
 //             );
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("d22ae31924a68ac6d17e894fea437c3861c8cc2d1e24a657a2ef3e4331b6f639"),
 //                 genesis.DeriveBlockHash(
 //                     arbitraryHash,
@@ -234,19 +234,19 @@
 //             var block1 = new RawBlockHeader(
 //                 _contents.Block1Metadata,
 //                 _contents.Block1Metadata.DerivePreEvaluationHash());
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("b0b8bc62b85baa02cf941a5ea33db60ee890b098a197377af5ece82afadb4bb2"),
 //                 block1.DeriveBlockHash(default, null)
 //             );
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("31c8d60dcbff7a8a119ed25f239a829116f079074cf274613f599cc6dfe835d6"),
 //                 block1.DeriveBlockHash(default, block1.MakeSignature(_contents.Block1Key, default))
 //             );
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("6ce7bfd2a8d35876f7f0e1dfe974b206e8ac8ceee5cca3691350354bb2c08a84"),
 //                 block1.DeriveBlockHash(arbitraryHash, null)
 //             );
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 fromHex("1026b747d6ad2f0096ca2aed76165814c18522693edac1f752a8e81fae569820"),
 //                 block1.DeriveBlockHash(
 //                     arbitraryHash, block1.MakeSignature(_contents.Block1Key, arbitraryHash)

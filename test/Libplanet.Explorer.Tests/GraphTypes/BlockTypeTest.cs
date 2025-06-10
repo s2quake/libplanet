@@ -9,6 +9,7 @@ using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Explorer.Tests.GraphTypes;
 
@@ -18,7 +19,7 @@ public class BlockTypeTest
     public async Task Query()
     {
         var privateKey = new PrivateKey();
-        var lastBlockHash = new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
+        var lastBlockHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size));
         var lastVotes = ImmutableArray.Create(
             new VoteMetadata
             {
@@ -49,7 +50,7 @@ public class BlockTypeTest
             },
         };
         var stateRootHash =
-            new HashDigest<SHA256>(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size));
+            new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size));
         // var signature = RawBlock.MakeSignature(privateKey, stateRootHash);
         // var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
         // var block = new Block { Header = new BlockHeader(), Content = new BlockContent() };

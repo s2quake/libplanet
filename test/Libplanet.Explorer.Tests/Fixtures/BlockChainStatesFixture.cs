@@ -40,7 +40,7 @@ public static class BlockChainStatesFixture
         // account = account.SetValue(Address, Value);
         // mock = mock.SetAccount(ReservedAddresses.LegacyAccount, account);
 
-        // var blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+        // var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         // var stateRootHash = mock.Trie.Hash;
         // mockBlockChainStates.AttachBlockHashToStateRootHash(blockHash, stateRootHash);
         // return (mockBlockChainStates, blockHash, stateRootHash);

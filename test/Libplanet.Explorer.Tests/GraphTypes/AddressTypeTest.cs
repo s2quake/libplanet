@@ -1,6 +1,7 @@
 using GraphQL.Language.AST;
 using Libplanet.Explorer.GraphTypes;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {
@@ -11,7 +12,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseLiteral(new NullValue()));
 
-            var bytes = TestUtils.GetRandomBytes(Address.Size);
+            var bytes = RandomUtility.Bytes(Address.Size);
             var address = new Address([.. bytes]);
             var hex = ByteUtility.Hex(bytes);
             var prefixedHex = address.ToString();
@@ -33,7 +34,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseValue(null));
 
-            var bytes = TestUtils.GetRandomBytes(Address.Size);
+            var bytes = RandomUtility.Bytes(Address.Size);
             var address = new Address([.. bytes]);
             var hex = ByteUtility.Hex(bytes);
             var prefixedHex = address.ToString();
@@ -50,7 +51,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.Serialize(null));
 
-            var bytes = TestUtils.GetRandomBytes(Address.Size);
+            var bytes = RandomUtility.Bytes(Address.Size);
             var address = new Address([.. bytes]);
             var hex = ByteUtility.Hex(bytes);
             var prefixedHex = address.ToString();

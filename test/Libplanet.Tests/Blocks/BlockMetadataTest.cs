@@ -204,7 +204,7 @@
 //             ImmutableArray<byte> FromHex(string hex) => ParseHexToImmutable(hex);
 
 //             HashDigest<SHA256> hash = GenesisMetadata.DerivePreEvaluationHash();
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 FromHex("79c69838bb150cd31c77bf0a10db1f088dbd1509613b33db1081f2b39a6974e0"),
 //                 hash.ByteArray);
 //         }
@@ -215,8 +215,8 @@
 //             var validatorA = new PrivateKey();
 //             var validatorB = new PrivateKey();
 //             var validatorC = new PrivateKey();
-//             BlockHash blockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
-//             BlockHash invalidBlockHash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             BlockHash blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
+//             BlockHash invalidBlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 //             DateTimeOffset timestamp = DateTimeOffset.UtcNow;
 
 //             // Height of the last commit is invalid.

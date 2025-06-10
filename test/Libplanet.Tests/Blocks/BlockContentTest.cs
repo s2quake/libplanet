@@ -238,7 +238,7 @@
 //                 0xcf, 0x80, 0xa1, 0x7c, 0x51, 0x4d, 0xa1, 0x0d, 0x70, 0x26, 0x06, 0xcc, 0x41, 0xf2,
 //                 0x33, 0x87, 0xba, 0xdb,
 //             });
-//             AssertBytesEqual(expected, Block1Content.TxHash);
+//             Assert.Equal(expected, Block1Content.TxHash);
 //             Assert.Null(GenesisContentPv0.TxHash);
 //         }
 
@@ -248,7 +248,7 @@
 //             Assert.Null(
 //                 BlockContent.DeriveTxHash([])
 //             );
-//             AssertBytesEqual(
+//             Assert.Equal(
 //                 Block1Metadata.TxHash,
 //                 BlockContent.DeriveTxHash(Block1Content.Transactions)
 //             );

@@ -41,7 +41,9 @@ public static class ByteUtility
         return movedImmutableArray;
     }
 
-    public static string Hex(byte[] bytes)
+    public static string Hex(in ImmutableArray<byte> bytes) => Hex(bytes.AsSpan());
+
+    public static string Hex(ReadOnlySpan<byte> bytes)
     {
 #if NETSTANDARD2_0
         char[] chars = new char[bytes.Length * 2];
@@ -67,44 +69,13 @@ public static class ByteUtility
 #endif
     }
 
-    public static string Hex(in ImmutableArray<byte> bytes) => Hex(bytes.IsDefaultOrEmpty ? [] : [.. bytes]);
+    public static int GetHashCode(in ImmutableArray<byte> bytes) => GetHashCode(bytes.AsSpan());
 
-    public static int CalculateHashCode(byte[] bytes)
+    public static int GetHashCode(ReadOnlySpan<byte> bytes)
     {
-        if (bytes == null)
-        {
-            throw new ArgumentNullException(nameof(bytes));
-        }
-
-        int code = 0;
-        unchecked
-        {
-            foreach (byte b in bytes)
-            {
-                code = (code * 397) ^ b.GetHashCode();
-            }
-        }
-
-        return code;
-    }
-
-    public static int CalculateHashCode(in ImmutableArray<byte> bytes)
-    {
-        if (bytes.IsDefaultOrEmpty)
-        {
-            return 0;
-        }
-
-        var code = 0;
-        unchecked
-        {
-            foreach (var @byte in bytes)
-            {
-                code = (code * 397) ^ @byte.GetHashCode();
-            }
-        }
-
-        return code;
+        HashCode code = new();
+        code.AddBytes(bytes);
+        return code.ToHashCode();
     }
 
     public static bool TimingSafelyCompare(IReadOnlyList<byte> left, IReadOnlyList<byte> right)

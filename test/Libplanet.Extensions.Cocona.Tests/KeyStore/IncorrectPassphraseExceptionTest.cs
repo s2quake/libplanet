@@ -20,8 +20,8 @@ namespace Libplanet.Tests.KeyStore
                 "Some message.\nExpected MAC: 00010203\nInput MAC: 04050607",
                 e.Message);
             Assert.Equal("paramName", e.ParamName);
-            AssertBytesEqual(expectedMac, e.ExpectedMac);
-            AssertBytesEqual(inputMac, e.InputMac);
+            Assert.Equal(expectedMac, e.ExpectedMac);
+            Assert.Equal(inputMac, e.InputMac);
         }
     }
 }

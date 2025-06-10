@@ -48,7 +48,7 @@ namespace Libplanet.Tests.KeyStore.Ciphers
             Aes128Ctr cipher = Load(@"{
                 ""iv"": ""bc7f2ca23bfee0dd9725228ab2b0d98a"",
             }");
-            TestUtils.AssertBytesEqual(
+            Assert.Equal(
                 new byte[]
                 {
                     0xbc, 0x7f, 0x2c, 0xa2, 0x3b, 0xfe, 0xe0, 0xdd,

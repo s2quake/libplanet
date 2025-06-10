@@ -9,6 +9,7 @@ using Libplanet.Explorer.GraphTypes;
 using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {
@@ -23,7 +24,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             {
                 Nonce = 0,
                 Signer = privateKey.Address,
-                GenesisHash = new BlockHash(TestUtils.GetRandomBytes(HashDigest<SHA256>.Size)),
+                GenesisHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
                 Actions = new[] { new NullAction() }.ToBytecodes(),
             }.Sign(privateKey);
             var query =

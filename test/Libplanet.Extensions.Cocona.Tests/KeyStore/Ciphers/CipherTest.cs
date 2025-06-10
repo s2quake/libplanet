@@ -20,7 +20,7 @@ namespace Libplanet.Tests.KeyStore.Ciphers
             T c = Cipher;
             ImmutableArray<byte> encrypted = c.Encrypt(key, value);
             ImmutableArray<byte> decrypted = c.Decrypt(key, encrypted);
-            TestUtils.AssertBytesEqual(value, decrypted);
+            Assert.Equal(value, decrypted);
         }
     }
 }

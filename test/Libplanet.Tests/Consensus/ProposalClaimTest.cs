@@ -9,7 +9,7 @@
 //         [Fact]
 //         public void InvalidSignature()
 //         {
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 
 //             ProposalClaimMetadata metadata = new ProposalClaimMetadata(
 //                 1,
@@ -27,7 +27,7 @@
 //             // Invalid Signature
 //             var invSigBencodex = metadata.Encoded.Add(
 //                 ProposalClaim.SignatureKey,
-//                 new PrivateKey().Sign(TestUtils.GetRandomBytes(20)));
+//                 new PrivateKey().Sign(RandomUtility.Bytes(20)));
 //             Assert.Throws<ArgumentException>(() => new ProposalClaim(invSigBencodex));
 //         }
 
@@ -35,7 +35,7 @@
 //         public void Sign()
 //         {
 //             var key = new PrivateKey();
-//             var hash = new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size));
+//             var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 
 //             ProposalClaimMetadata metadata = new ProposalClaimMetadata(
 //                 1,
@@ -45,7 +45,7 @@
 //                 key.PublicKey);
 //             ProposalClaim claim = metadata.Sign(key);
 
-//             TestUtils.AssertBytesEqual(claim.Signature, key.Sign(metadata.ByteArray));
+//             Assert.Equal(claim.Signature, key.Sign(metadata.ByteArray));
 //             Assert.True(key.PublicKey.Verify(metadata.ByteArray, claim.Signature));
 //         }
 //     }

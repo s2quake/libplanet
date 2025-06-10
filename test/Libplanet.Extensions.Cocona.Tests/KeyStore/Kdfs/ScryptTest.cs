@@ -60,7 +60,7 @@ namespace Libplanet.Tests.KeyStore.Kdfs
             Assert.Equal(32, kdf.KeyLength);
             Assert.Equal(1, kdf.Parallelization);
             Assert.Equal(8, kdf.BlockSize);
-            TestUtils.AssertBytesEqual(
+            Assert.Equal(
                 new byte[]
                 {
                     0x3a, 0xda, 0x4b, 0xad, 0x70, 0x33, 0xfd, 0xaa, 0x65, 0x68, 0x4e,

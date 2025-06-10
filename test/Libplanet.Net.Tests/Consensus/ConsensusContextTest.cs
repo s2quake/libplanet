@@ -3,6 +3,7 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
 using Nito.AsyncEx;
 using Serilog;
 using Xunit.Abstractions;
@@ -231,7 +232,7 @@ public class ConsensusContextTest
             TestUtils.Validators[0].Power,
             1,
             0,
-            new BlockHash(TestUtils.GetRandomBytes(BlockHash.Size)),
+            new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             VoteFlag.PreCommit));
         votes.AddRange(Enumerable.Range(1, 3).Select(x => TestUtils.CreateVote(
             TestUtils.PrivateKeys[x],
@@ -253,12 +254,11 @@ public class ConsensusContextTest
         Assert.NotEqual(votes[0], blockCommit!.Votes.First(x =>
             x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
 
-        var actualVotesWithoutInvalid =
-            HashSetExtensions.ToHashSet(blockCommit.Votes.Where(x =>
-                !x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
+        var actualVotesWithoutInvalid
+            = blockCommit.Votes.Where(x => !x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)).ToHashSet();
 
-        var expectedVotes = HashSetExtensions.ToHashSet(votes.Where(x =>
-            !x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
+        var expectedVotes
+            = votes.Where(x => !x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)).ToHashSet();
 
         Assert.Equal(expectedVotes, actualVotesWithoutInvalid);
     }

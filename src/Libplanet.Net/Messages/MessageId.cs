@@ -33,7 +33,7 @@ public readonly record struct MessageId(in ImmutableArray<byte> Bytes)
 
     public bool Equals(MessageId other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtility.CalculateHashCode(Bytes);
+    public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
 
     public override string ToString() => ByteUtility.Hex(Bytes);
 

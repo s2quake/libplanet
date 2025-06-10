@@ -7,6 +7,7 @@ using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -543,8 +544,7 @@ public partial class BlockChainTest
             .ToArray();
 
         var random = new Random();
-        Transaction[] txs =
-            txsA.Concat(txsB).Concat(txsC).Shuffle(random).ToArray();
+        Transaction[] txs = [.. RandomUtility.Shuffle(random, txsA.Concat(txsB).Concat(txsC))];
         _blockChain.StagedTransactions.AddRange(txs);
         Assert.Equal(txs.Length, _blockChain.StagedTransactions.Collect().Count);
 

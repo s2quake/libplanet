@@ -57,7 +57,7 @@ public readonly partial record struct EvidenceId(in ImmutableArray<byte> Bytes)
 
     public bool Equals(EvidenceId other) => Bytes.SequenceEqual(other.Bytes);
 
-    public override int GetHashCode() => ByteUtility.CalculateHashCode(Bytes);
+    public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
 
     public override string ToString() => ByteUtility.Hex(Bytes);
 
