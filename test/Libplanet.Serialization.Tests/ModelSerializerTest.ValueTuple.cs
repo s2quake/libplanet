@@ -29,17 +29,17 @@ public sealed partial class ModelSerializerTest
         public RecordClassWithValueTuple(Random random)
         {
             Value1 = ValueTuple(random, Int32, Boolean);
-            Value2 = MaybeValueTuple(random, Int32, Boolean);
-            Value3 = ValueTuple(random, MaybeInt32, MaybeBoolean);
-            Value4 = MaybeValueTuple(random, MaybeInt32, MaybeBoolean);
+            Value2 = NullableValueTuple(random, Int32, Boolean);
+            Value3 = ValueTuple(random, NullableInt32, NullableBoolean);
+            Value4 = NullableValueTuple(random, NullableInt32, NullableBoolean);
             Value5 = ImmutableArray(random, random => ValueTuple(random, Int32, Boolean));
-            Value6 = MaybeImmutableArray(random, random => ValueTuple(random, Int32, Boolean));
-            Value7 = ImmutableArray(random, random => ValueTuple(random, MaybeInt32, MaybeBoolean));
-            Value8 = MaybeImmutableArray(random, random => ValueTuple(random, MaybeInt32, MaybeBoolean));
-            Value9 = ImmutableArray(random, random => MaybeValueTuple(random, Int32, Boolean));
-            Value10 = MaybeImmutableArray(random, random => MaybeValueTuple(random, Int32, Boolean));
-            Value11 = ImmutableArray(random, random => MaybeValueTuple(random, MaybeInt32, MaybeBoolean));
-            Value12 = MaybeImmutableArray(random, random => MaybeValueTuple(random, MaybeInt32, MaybeBoolean));
+            Value6 = NullableImmutableArray(random, random => ValueTuple(random, Int32, Boolean));
+            Value7 = ImmutableArray(random, random => ValueTuple(random, NullableInt32, NullableBoolean));
+            Value8 = NullableImmutableArray(random, random => ValueTuple(random, NullableInt32, NullableBoolean));
+            Value9 = ImmutableArray(random, random => NullableValueTuple(random, Int32, Boolean));
+            Value10 = NullableImmutableArray(random, random => NullableValueTuple(random, Int32, Boolean));
+            Value11 = ImmutableArray(random, random => NullableValueTuple(random, NullableInt32, NullableBoolean));
+            Value12 = NullableImmutableArray(random, random => NullableValueTuple(random, NullableInt32, NullableBoolean));
         }
 
         [Property(0)]

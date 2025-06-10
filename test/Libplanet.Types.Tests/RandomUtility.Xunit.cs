@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using Libplanet.Data;
 using Xunit.Abstractions;
 
 namespace Libplanet.Types.Tests;

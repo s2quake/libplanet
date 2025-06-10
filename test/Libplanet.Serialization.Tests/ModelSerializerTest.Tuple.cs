@@ -28,17 +28,17 @@ public sealed partial class ModelSerializerTest
         public RecordClassWithTuple(Random random)
         {
             Value1 = Tuple(random, Int32, Boolean);
-            Value2 = MaybeTuple(random, Int32, Boolean);
-            Value3 = Tuple(random, MaybeInt32, MaybeBoolean);
-            Value4 = MaybeTuple(random, MaybeInt32, MaybeBoolean);
+            Value2 = NullableTuple(random, Int32, Boolean);
+            Value3 = Tuple(random, NullableInt32, NullableBoolean);
+            Value4 = NullableTuple(random, NullableInt32, NullableBoolean);
             Value5 = ImmutableArray(random, random => Tuple(random, Int32, Boolean));
-            Value6 = MaybeImmutableArray(random, random => Tuple(random, Int32, Boolean));
-            Value7 = ImmutableArray(random, random => Tuple(random, MaybeInt32, MaybeBoolean));
-            Value8 = MaybeImmutableArray(random, random => Tuple(random, MaybeInt32, MaybeBoolean));
-            Value9 = ImmutableArray(random, random => MaybeTuple(random, Int32, Boolean));
-            Value10 = MaybeImmutableArray(random, random => MaybeTuple(random, Int32, Boolean));
-            Value11 = ImmutableArray(random, random => MaybeTuple(random, MaybeInt32, MaybeBoolean));
-            Value12 = MaybeImmutableArray(random, random => MaybeTuple(random, MaybeInt32, MaybeBoolean));
+            Value6 = NullableImmutableArray(random, random => Tuple(random, Int32, Boolean));
+            Value7 = ImmutableArray(random, random => Tuple(random, NullableInt32, NullableBoolean));
+            Value8 = NullableImmutableArray(random, random => Tuple(random, NullableInt32, NullableBoolean));
+            Value9 = ImmutableArray(random, random => NullableTuple(random, Int32, Boolean));
+            Value10 = NullableImmutableArray(random, random => NullableTuple(random, Int32, Boolean));
+            Value11 = ImmutableArray(random, random => NullableTuple(random, NullableInt32, NullableBoolean));
+            Value12 = NullableImmutableArray(random, random => NullableTuple(random, NullableInt32, NullableBoolean));
         }
 
         [Property(0)]

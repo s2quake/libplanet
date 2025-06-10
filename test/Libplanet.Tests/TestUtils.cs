@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;

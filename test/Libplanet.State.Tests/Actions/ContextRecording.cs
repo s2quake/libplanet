@@ -2,10 +2,10 @@ using Libplanet.Serialization;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_ContextRecordingAction")]
-public sealed record class ContextRecordingAction : ActionBase
+[Model(Version = 1, TypeName = "Tests_ContextRecording")]
+public sealed record class ContextRecording : ActionBase
 {
     public static readonly Address MinerRecordAddress = Address.Parse("1000000000000000000000000000000000000001");
     public static readonly Address SignerRecordAddress = Address.Parse("1000000000000000000000000000000000000002");

@@ -29,9 +29,9 @@ public sealed partial record class Trie(INode Node) : ITrie
         => NodeResolver.ResolveToValue(Node, new(key))
               ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
-    public static ITrie Create(params (string Key, object Value)[] keyValues)
+    public static Trie Create(params (string Key, object Value)[] keyValues)
     {
-        ITrie trie = new Trie();
+        var trie = new Trie();
         for (var i = 0; i < keyValues.Length; i++)
         {
             trie = trie.Set(keyValues[i].Key, keyValues[i].Value);
@@ -40,7 +40,7 @@ public sealed partial record class Trie(INode Node) : ITrie
         return trie;
     }
 
-    public ITrie Set(string key, object value)
+    public Trie Set(string key, object value)
     {
         var node = Node;
         var valueNode = new ValueNode { Value = value };
@@ -48,7 +48,9 @@ public sealed partial record class Trie(INode Node) : ITrie
         return new Trie(newNode);
     }
 
-    public ITrie Remove(string key)
+    ITrie ITrie.Set(string key, object value) => Set(key, value);
+
+    public Trie Remove(string key)
     {
         if (Node is NullNode)
         {
@@ -64,6 +66,8 @@ public sealed partial record class Trie(INode Node) : ITrie
             throw new KeyNotFoundException($"Key {key} not found in the trie.", e);
         }
     }
+
+    ITrie ITrie.Remove(string key) => Remove(key);
 
     public INode GetNode(string key)
     {

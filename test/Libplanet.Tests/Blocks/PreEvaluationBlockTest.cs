@@ -2,7 +2,7 @@
 // using Libplanet.State;
 // using Libplanet.State.Loader;
 // using Libplanet.State;
-// using Libplanet.State.Tests.Common;
+// using Libplanet.State.Tests.Actions;
 // using Libplanet;
 // using Libplanet.Policies;
 // using Libplanet.Types;

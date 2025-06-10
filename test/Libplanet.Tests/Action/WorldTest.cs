@@ -1,5 +1,5 @@
 using Libplanet.State;
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 

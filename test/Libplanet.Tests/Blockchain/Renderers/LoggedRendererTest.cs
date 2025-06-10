@@ -1,5 +1,5 @@
 using System.Globalization;
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.TestCorrelator;

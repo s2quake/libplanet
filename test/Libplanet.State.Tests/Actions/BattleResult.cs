@@ -1,6 +1,6 @@
 using Libplanet.Serialization;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
 [Model(Version = 1, TypeName = "Tests_BattleResult")]
 public sealed record class BattleResult : IEquatable<BattleResult>
