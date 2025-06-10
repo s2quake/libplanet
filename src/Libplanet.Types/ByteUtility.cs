@@ -3,7 +3,6 @@ using System.Buffers;
 #endif
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 namespace Libplanet.Types;
 
@@ -14,14 +13,6 @@ public static class ByteUtility
         '0', '1', '2', '3', '4', '5', '6', '7',
         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
     ];
-
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        WriteIndented = true,
-        Converters =
-        {
-        },
-    };
 
     public static byte[] ParseHex(string hex)
     {
@@ -157,14 +148,4 @@ public static class ByteUtility
         var result = new BigInteger(digestArray);
         return result < target;
     }
-
-    // public static byte[] CreateMessage(IValue value)
-    // {
-    //     using var ms = new MemoryStream();
-    //     using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true });
-    //     BencodexJsonConverter.Write(writer, value, SerializerOptions);
-    //     ms.Position = 0;
-    //     using var sr = new StreamReader(ms);
-    //     return Encoding.UTF8.GetBytes(sr.ReadToEnd());
-    // }
 }
