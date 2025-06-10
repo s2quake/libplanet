@@ -182,6 +182,14 @@ public static partial class RandomUtility
         throw new InvalidOperationException("No value was found that matches the condition.");
     }
 
+    public static string Hex() => Hex(System.Random.Shared);
+
+    public static string Hex(int length) => Hex(System.Random.Shared, length);
+
+    public static string Hex(Random random) => Hex(random, Length(random));
+
+    public static string Hex(Random random, int length) => Convert.ToHexString(Bytes(random, length)).ToLower();
+
     public static char Char() => Char(System.Random.Shared);
 
     public static char Char(Random random) => (char)UInt16(random);

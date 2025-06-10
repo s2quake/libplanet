@@ -15,7 +15,7 @@ public sealed partial record class Block : IComparable<Block>, IComparable
     [Property(2)]
     public required ImmutableArray<byte> Signature { get; init; }
 
-    public BlockHash BlockHash => BlockHash.Create(ModelSerializer.SerializeToBytes(this));
+    public BlockHash BlockHash => BlockHash.HashData(ModelSerializer.SerializeToBytes(this));
 
     public int Height => Header.Height;
 

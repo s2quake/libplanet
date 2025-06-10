@@ -68,7 +68,7 @@ public readonly partial record struct HashDigest<T>(in ImmutableArray<byte> Byte
         return new HashDigest<T>(ByteUtility.ParseHexToImmutable(hex));
     }
 
-    public static HashDigest<T> Create(ReadOnlySpan<byte> bytes)
+    public static HashDigest<T> HashData(ReadOnlySpan<byte> bytes)
     {
         Span<byte> buffer = stackalloc byte[Size];
         Algorithm.Value!.TryComputeHash(bytes, buffer, out _);

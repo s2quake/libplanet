@@ -461,7 +461,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = TestUtils.PrivateKeys[1].Address,
                 PreviousHash = blockChain.Genesis.BlockHash,
-                PreviousStateRootHash = HashDigest<SHA256>.Create(RandomUtility.Bytes(1024)),
+                PreviousStateRootHash = HashDigest<SHA256>.HashData(RandomUtility.Bytes(1024)),
             };
             var preEval = new RawBlock
             {

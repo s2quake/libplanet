@@ -54,7 +54,7 @@ public partial class StateIndex(ITable table)
         if (newNode is not HashNode)
         {
             var serialized = ModelSerializer.SerializeToBytes(newNode);
-            var hashDigest = HashDigest<SHA256>.Create(serialized);
+            var hashDigest = HashDigest<SHA256>.HashData(serialized);
 
             writeBatch.Add(hashDigest.ToString(), serialized);
             newNode = new HashNode { Hash = hashDigest, Table = _table };
@@ -103,7 +103,7 @@ public partial class StateIndex(ITable table)
             return node;
         }
 
-        var hash = HashDigest<SHA256>.Create(bytes);
+        var hash = HashDigest<SHA256>.HashData(bytes);
         var key = hash.ToString();
         HashNode.AddOrUpdate(hash, node);
         writeBatch.Add(key, bytes);

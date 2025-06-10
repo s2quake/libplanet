@@ -16,7 +16,7 @@ public readonly partial record struct BlockHash(in ImmutableArray<byte> Bytes)
 {
     public const int Size = 32;
 
-    private static readonly ImmutableArray<byte> _defaultBytes = new byte[Size].ToImmutableArray();
+    private static readonly ImmutableArray<byte> _defaultBytes = ImmutableArray.Create(new byte[Size]);
 
     private readonly ImmutableArray<byte> _bytes = ValidateBytes(Bytes);
 
@@ -40,54 +40,20 @@ public readonly partial record struct BlockHash(in ImmutableArray<byte> Bytes)
         }
     }
 
-    public static BlockHash Create(HashDigest<SHA256> hashDigest) => new(hashDigest.Bytes);
+    public static BlockHash HashData(ReadOnlySpan<byte> bytes) => new(SHA256.HashData(bytes));
 
-    public static BlockHash Create(ReadOnlySpan<byte> bytes) => new(SHA256.HashData(bytes));
+    public bool Equals(BlockHash other) => Bytes.SequenceEqual(other.Bytes);
 
-    public bool Equals(BlockHash other)
-    {
-        if (_bytes.IsDefaultOrEmpty && other._bytes.IsDefaultOrEmpty)
-        {
-            return true;
-        }
-        else if (Bytes.Length != other.Bytes.Length)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < Bytes.Length; i++)
-        {
-            if (!Bytes[i].Equals(other.Bytes[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public override int GetHashCode()
-    {
-        var code = 0;
-        unchecked
-        {
-            var bytes = Bytes;
-            foreach (var @byte in bytes)
-            {
-                code = (code * 397) ^ @byte.GetHashCode();
-            }
-        }
-
-        return code;
-    }
+    public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
 
     public int CompareTo(BlockHash other)
     {
-        ImmutableArray<byte> self = Bytes, operand = other.Bytes;
+        var self = Bytes;
+        var operand = other.Bytes;
 
-        for (int i = 0; i < Size; i++)
+        for (var i = 0; i < Size; i++)
         {
-            int cmp = ((IComparable<byte>)self[i]).CompareTo(operand[i]);
+            var cmp = self[i].CompareTo(operand[i]);
             if (cmp != 0)
             {
                 return cmp;

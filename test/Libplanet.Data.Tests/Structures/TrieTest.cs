@@ -42,7 +42,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.Equal(hash, trie2.Hash);
 
         var valueNode = new ValueNode { Value = "test" };
-        var valueHash = HashDigest<SHA256>.Create(ModelSerializer.SerializeToBytes(valueNode));
+        var valueHash = HashDigest<SHA256>.HashData(ModelSerializer.SerializeToBytes(valueNode));
         var trie3 = new Trie(valueNode);
         Assert.Equal(valueHash, trie3.Hash);
     }
