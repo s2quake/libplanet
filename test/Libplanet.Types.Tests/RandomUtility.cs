@@ -158,16 +158,6 @@ public static partial class RandomUtility
 
     public static char Char(Random random) => (char)UInt16(random);
 
-    public static DateTime DateTime() => DateTime(System.Random.Shared);
-
-    public static DateTime DateTime(Random random)
-    {
-        var minValue = System.DateTime.UnixEpoch.Ticks;
-        var maxValue = new DateTime(2050, 12, 31, 0, 0, 0, DateTimeKind.Utc).Ticks;
-        var value = random.NextInt64(minValue, maxValue) / 10000000L * 10000000L;
-        return new DateTime(value, DateTimeKind.Utc);
-    }
-
     public static DateTimeOffset DateTimeOffset() => DateTimeOffset(System.Random.Shared);
 
     public static DateTimeOffset DateTimeOffset(Random random)
