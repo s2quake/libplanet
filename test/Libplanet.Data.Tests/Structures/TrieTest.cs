@@ -31,6 +31,44 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     }
 
     [Fact]
+    public void Test()
+    {
+        var stateIndex = new StateIndex();
+        ITrie trie = new Trie();
+        // trie = trie.Set("key", "value");
+        // var hash1 = trie.Hash;
+        // trie = stateIndex.Commit(trie);
+        // trie = trie.Set("key1", "value1");
+        // var hash2 = trie.Hash;
+        // trie = stateIndex.Commit(trie);
+        // trie = trie.Remove("key1");
+        // var hash3 = trie.Hash;
+        // trie = stateIndex.Commit(trie);
+        // trie = trie.Set("key1", "value1");
+        // var hash4 = trie.Hash;
+        // trie = stateIndex.Commit(trie);
+        // trie = trie.Remove("key");
+        // var hash5 = trie.Hash;
+        // trie = stateIndex.Commit(trie);
+        // trie = trie.Set("key", "value");
+        // var hash6 = trie.Hash;
+        // trie = stateIndex.Commit(trie);
+        // trie = trie.Remove("key1");
+        // var hash = trie.Hash;
+
+        trie = new Trie();
+        trie = trie.Set("key", "value");
+        trie = trie.Set("key1", "value1");
+        trie = trie.Set("key2", "value2");
+        trie = trie.Set("key23", "value2");
+        trie = trie.Remove("key2");
+
+        trie = trie.Remove("key1");
+        trie = trie.Remove("key");
+        trie = trie.Remove("key23");
+    }
+
+    [Fact]
     public void Hash()
     {
         var trie1 = new Trie();
@@ -169,7 +207,6 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.NotEqual(trie1.Hash, trie2.Hash);
 
         Assert.Throws<KeyNotFoundException>(() => trie2.Remove("nonexistent"));
-
         Assert.Throws<InvalidOperationException>(() => new Trie().Remove("nonexistent"));
     }
 

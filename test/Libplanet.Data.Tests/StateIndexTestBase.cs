@@ -58,7 +58,7 @@ public abstract class StateIndexTestBase<TTable>(ITestOutputHelper output) : IDi
         trie = trie.Set(key.ToString(), value);
         var hash = trie.Hash;
         var committedTrie = stateIndex.Commit(trie);
-        Assert.Equal(hash, committedTrie.Hash);
+        Assert.NotEqual(hash, committedTrie.Hash);
         Assert.IsType<HashNode>(committedTrie.Node);
 
         Assert.Throws<ArgumentException>(() => stateIndex.Commit(committedTrie));

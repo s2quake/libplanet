@@ -13,8 +13,8 @@ internal sealed record class HashNode : INode
 {
     private const int _cacheSize = 524_288;
 
-    private static readonly ICache<HashDigest<SHA256>, byte[]> _cache
-        = new ConcurrentLruBuilder<HashDigest<SHA256>, byte[]>()
+    private static readonly ICache<HashDigest<SHA256>, INode> _cache
+        = new ConcurrentLruBuilder<HashDigest<SHA256>, INode>()
             .WithMetrics()
             .WithExpireAfterAccess(TimeSpan.FromMinutes(10))
             .WithCapacity(_cacheSize)
@@ -36,13 +36,17 @@ internal sealed record class HashNode : INode
 
     public INode Expand()
     {
-        if (!TryGetValue(Hash, out var bytes))
+        if (!TryGetNode(Hash, out var node))
         {
             var key = Hash.ToString();
-            if (Table.TryGetValue(key, out var valueBytes))
+            if (Table.TryGetValue(key, out var bytes))
             {
-                bytes = valueBytes;
-                AddOrUpdate(Hash, valueBytes);
+                var context = new ModelOptions
+                {
+                    Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(ITable), Table),
+                };
+                node = ModelSerializer.DeserializeFromBytes<INode>(bytes, context);
+                AddOrUpdate(Hash, node);
             }
             else
             {
@@ -50,18 +54,12 @@ internal sealed record class HashNode : INode
             }
         }
 
-        var context = new ModelOptions
-        {
-            Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(ITable), Table),
-        };
-
-        var node = ModelSerializer.DeserializeFromBytes<INode>(bytes, context);
         return node;
     }
 
-    public static bool TryGetValue(HashDigest<SHA256> hash, [MaybeNullWhen(false)] out byte[] value)
-        => _cache.TryGet(hash, out value);
+    public static bool TryGetNode(HashDigest<SHA256> hash, [MaybeNullWhen(false)] out INode node)
+        => _cache.TryGet(hash, out node);
 
-    public static void AddOrUpdate(HashDigest<SHA256> hash, byte[] value)
-        => _cache.AddOrUpdate(hash, value);
+    public static void AddOrUpdate(HashDigest<SHA256> hash, INode node)
+        => _cache.AddOrUpdate(hash, node);
 }

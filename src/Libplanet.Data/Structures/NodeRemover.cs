@@ -14,8 +14,7 @@ internal static class NodeRemover
         _ => throw new UnreachableException($"Unsupported node value"),
     };
 
-    private static INode RemoveFromHashNode(HashNode hashNode, string key)
-        => Remove(hashNode.Expand(), key);
+    private static INode RemoveFromHashNode(HashNode hashNode, string key) => Remove(hashNode.Expand(), key);
 
     private static INode RemoveFromValueNode(ValueNode valueNode, string key)
         => key.Length is 0 ? NullNode.Value : valueNode;
@@ -37,6 +36,7 @@ internal static class NodeRemover
             var node = Remove(shortNode.Value, nextCursor);
             return Create(oldKey, node);
         }
+
         return shortNode;
 
         static INode Create(string key, INode node) => node switch
@@ -54,22 +54,14 @@ internal static class NodeRemover
         if (key != string.Empty)
         {
             var index = key[0];
-            if (fullNode.Children[index] is { } child)
+            var child = fullNode.Children[index];
+            var node = Remove(child, key[1..]);
+            if (node is NullNode)
             {
-                if (Remove(child, key[1..]) is { } node)
-                {
-                    if (node is NullNode)
-                    {
-                        return ReduceFullNode(fullNode.RemoveChild(index));
-                    }
-
-                    return fullNode.SetChild(index, node);
-                }
-
                 return ReduceFullNode(fullNode.RemoveChild(index));
             }
 
-            return fullNode;
+            return fullNode.SetChild(index, node);
         }
 
         return ReduceFullNode(fullNode.RemoveChild(char.MinValue));
@@ -80,13 +72,7 @@ internal static class NodeRemover
         var children = fullNode.Children;
         if (children.Count is 0)
         {
-            // if (fullNode.Value is HashNode hashNode)
-            // {
-            //     return hashNode.Expand();
-            // }
-
-            throw new ArgumentException(
-                $"Given {nameof(fullNode)} must have at least 1 child: {children.Count}", nameof(fullNode));
+            throw new UnreachableException("FullNode should not have zero children.");
         }
         else if (children.Count is 1)
         {
