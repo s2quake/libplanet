@@ -1,4 +1,4 @@
-using static Libplanet.Types.Tests.RandomUtility;
+using static Libplanet.TestUtilities.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 

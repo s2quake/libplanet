@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using Libplanet.Data.Structures;
 using Libplanet.Data.Structures.Nodes;
+using Libplanet.TestUtilities;
 using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 

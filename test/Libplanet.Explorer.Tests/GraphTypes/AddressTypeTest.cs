@@ -1,5 +1,6 @@
 using GraphQL.Language.AST;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 

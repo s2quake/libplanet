@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
     <ProjectReference Include="..\Libplanet.Types.Tests\Libplanet.Types.Tests.csproj" />
+    <ProjectReference Include="..\Libplanet.TestUtilities\Libplanet.TestUtilities.csproj" />
   </ItemGroup>
 
 </Project>

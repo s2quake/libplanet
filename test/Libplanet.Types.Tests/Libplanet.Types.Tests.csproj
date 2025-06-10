@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
+    <ProjectReference Include="..\Libplanet.Serialization.Tests\Libplanet.Serialization.Tests.csproj" />
+    <ProjectReference Include="..\Libplanet.TestUtilities\Libplanet.TestUtilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 using Libplanet.Serialization;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 
