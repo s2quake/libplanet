@@ -4,8 +4,12 @@ using Libplanet.Types;
 namespace Libplanet.Net;
 
 [Model(Version = 1, TypeName = "ProtocolMetadata")]
-public sealed partial record class ProtocolMetadata
+public readonly partial record struct ProtocolMetadata
 {
+    public ProtocolMetadata()
+    {
+    }
+
     [Property(0)]
     public int Version { get; init; }
 
