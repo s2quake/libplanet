@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Data;
 
-public abstract class TableBase : ITable
+public abstract class TableBase : ITable, IEquatable<ITable>
 {
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
@@ -84,6 +84,8 @@ public abstract class TableBase : ITable
             yield return new KeyValuePair<string, byte[]>(key, this[key]);
         }
     }
+
+    bool IEquatable<ITable>.Equals(ITable? other) => ReferenceEquals(this, other);
 
     protected abstract IEnumerable<string> EnumerateKeys();
 

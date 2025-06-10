@@ -18,7 +18,7 @@ public sealed class MemoryDatabaseTest : DatabaseTestBase<MemoryDatabase>
 
         database.TryRemove("table1");
         Assert.Single(database.Values);
-        Assert.False(database.Values.Contains(table1));
+        Assert.DoesNotContain(table1, database.Values);
         Assert.Contains(table2, database.Values);
     }
 
