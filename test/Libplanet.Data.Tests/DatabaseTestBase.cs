@@ -84,7 +84,7 @@ public abstract class DatabaseTestBase<TDatabase>
         Assert.Contains(table1, database.Values);
         Assert.Contains(table2, database.Values);
         database.TryRemove("test1");
-        Assert.False(database.Values.Contains(table1));
+        Assert.DoesNotContain(table1, database.Values);
     }
 
     [Fact]

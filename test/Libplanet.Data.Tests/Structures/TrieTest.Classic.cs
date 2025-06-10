@@ -137,9 +137,11 @@ public sealed partial class TrieTest
 
         trie = trie.Set("0xbe, 0xef", "null");
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse("3b6414adc582fcc2d44c0f85be521aad6a98b88d5b685006eb4b37ca314df23d"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "0f629bfaa6a91eef0ff4abc4656282dc03dc2ec04b3657c5c089f68bd0dd347b"
+                : "a390cb3d31ce0f310204072d36abee200fc4fa8cadc00a6a7850c1d7ca93a47e"),
+            trie.Hash);
         Assert.Equal("null", trie["0xbe, 0xef"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0x11, 0x22"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0xaa, 0xbb"]);
@@ -147,9 +149,11 @@ public sealed partial class TrieTest
 
         trie = trie.Set("0xbe, 0xef", true);
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse("5af9a61e8f0d48e4f76b920ae0a279008dfce6abb1c99fa8dfbd23b723949ed4"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "d843063e618a85d6f3bdc44eb50fd90f08e4bfec388cc4e36eca5a710b9a1178"
+                : "32bc454aea4f116eaf55eeea7fc997cef8b3e617640e7b08e55f12ef5eec21c3"),
+            trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Throws<KeyNotFoundException>(() => trie["0x11, 0x22"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0xaa, 0xbb"]);
@@ -157,9 +161,11 @@ public sealed partial class TrieTest
 
         trie = trie.Set("0x11, 0x22", new List<string>());
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse("129d5b1ce5ff32577ac015678388984a0ffbd1beb5a38dac9880ceed9de50731"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "a7861e19487071409d67460633d7b90d5fe1f561220e92b3c4a9bdefb76ecc8e"
+                : "c6eb8995a83d9f9c14b01dd2671bdb6a930c1f5c3ee54b0bcec523bbd764bb4f"),
+            trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0xaa, 0xbb"]);
@@ -167,9 +173,11 @@ public sealed partial class TrieTest
 
         trie = trie.Set("0xaa, 0xbb", "hello world");
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse("7f3e9047e58bfa31edcf4bf3053de808565f0673063fa80c3442b791635a33b3"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "5669b367c51a123727c4617e10ccf98681ff05f6435f6ec878c67c1f63c09744"
+                : "b8b7c0a190abdb04c6f2715197ff27d04c88079af94149ad5339aab33c0c3ae8"),
+            trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
         Assert.Equal("hello world", trie["0xaa, 0xbb"]);
@@ -180,11 +188,11 @@ public sealed partial class TrieTest
         var longText = string.Join("\n", Range(0, 1000).Select(i => $"long str {i}"));
         trie = trie.Set("0xaa, 0xbb", longText);
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse(commit
-        //         ? "56e5a39a726acba1f7631a6520ae92e20bb93ca3992a7b7d3542c6daee68e56d"
-        //         : "200481e87f2cc1c0729beb4526de7c54e065e0892e58667e0cbd530b85c4e728"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "5c914a620e58eb66d9bc9611a09bca1e37962f8ba6ee05c80c17ff67e15a74a1"
+                : "d869a6da787ea7625e0bcb377c40ab6169630251cdd8cde1efaaa25cb75c2be5"),
+            trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
         Assert.Equal(longText, trie["0xaa, 0xbb"]);
@@ -192,11 +200,11 @@ public sealed partial class TrieTest
 
         trie = trie.Set("0x12, 0x34", ImmutableSortedDictionary<string, string>.Empty);
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse(commit
-        //         ? "88d6375097fd03e6c30a129eb0030d938caeaa796643971ca938fbd27ff5e057"
-        //         : "18532d2ee8484a65b102668715c97decf1a3218b23bfb11933748018179cb5cf"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "a613f0344a6384d420767f66ce49ac8f74a0283f4f0a1d69276b92b0ef9f4c76"
+                : "e8876c98e212b063ccf5111785bf7d96c8d00755a2b08be7450c656628689495"),
+            trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
         Assert.Equal(longText, trie["0xaa, 0xbb"]);
@@ -213,11 +221,11 @@ public sealed partial class TrieTest
             .Add(new List<string>(Range(0, 1000).Select(i => $"long str {i}")));
         trie = trie.Set("0x11, 0x22", complexList);
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse(commit
-        //         ? "f29820df65c1d1a66b69a59b9fe3e21911bbd2d97a9f298853c529804bf84a26"
-        //         : "408037f213067c016c09466e75edcb80b2ad5de738be376ee80a364b4cab575a"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "892d300adc43befc6b57348bdbe4674ab0272f3604deaada851865e8e67516f6"
+                : "960b217880c33e07c74af077e0b26bd0e636dc34a9b04bc139925601ab97691a"),
+            trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.True(ModelResolver.Equals(complexList, (ImmutableList<object>)trie["0x11, 0x22"]));
         Assert.Equal(longText, trie["0xaa, 0xbb"]);
@@ -239,11 +247,11 @@ public sealed partial class TrieTest
                     .Add("uvwx", ImmutableSortedDictionary<string, object?>.Empty));
         trie = trie.Set("0x12, 0x34", complexDict);
         trie = commit ? stateStore.Commit(trie) : trie;
-        // Assert.Equal(
-        //     Parse(commit
-        //         ? "1dabec2c0fea02af0182e9fee6c7ce7ad1a9d9bcfaa2cd80c2971bbce5272655"
-        //         : "4783d18dfc8a2d4d98f722a935e45bd7fc1d0197fb4d33e62f734bfde968af39"),
-        //     trie.Hash);
+        Assert.Equal(
+            HashDigest<SHA256>.Parse(commit
+                ? "ea933057a8d953e4e88191a495442dc45359862cc2d8871ab3ead88942f599a9"
+                : "f09781287f2160aba0153473d3ccea45c4df929c1af4e155480c498a75199af8"),
+            trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal(complexList, trie["0x11, 0x22"]);
         Assert.Equal(longText, trie["0xaa, 0xbb"]);
