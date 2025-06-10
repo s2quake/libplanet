@@ -82,29 +82,20 @@ public partial class StateIndex(ITable table)
 
         var virtualChildren = builder.ToImmutable();
         var newNode = new FullNode { Children = virtualChildren };
-        var bytes = ModelSerializer.SerializeToBytes(newNode);
-        if (bytes.Length <= HashDigest<SHA256>.Size)
-        {
-            return newNode;
-        }
-
-        return Write(bytes, writeBatch);
+        return Write(newNode, writeBatch);
     }
 
     private static INode CommitShortNode(ShortNode node, WriteBatch writeBatch)
     {
         var committedValueNode = Commit(node.Value, writeBatch);
         var newNode = new ShortNode { Key = node.Key, Value = committedValueNode };
-        var bytes = ModelSerializer.SerializeToBytes(newNode);
-        if (bytes.Length <= HashDigest<SHA256>.Size)
-        {
-            return newNode;
-        }
-
-        return Write(bytes, writeBatch);
+        return Write(newNode, writeBatch);
     }
 
     private static INode CommitValueNode(ValueNode node, WriteBatch writeBatch)
+        => Write(node, writeBatch);
+
+    private static INode Write(INode node, WriteBatch writeBatch)
     {
         var bytes = ModelSerializer.SerializeToBytes(node);
         if (bytes.Length <= HashDigest<SHA256>.Size)
@@ -112,14 +103,9 @@ public partial class StateIndex(ITable table)
             return node;
         }
 
-        return Write(bytes, writeBatch);
-    }
-
-    private static HashNode Write(byte[] bytes, WriteBatch writeBatch)
-    {
         var hash = HashDigest<SHA256>.Create(bytes);
         var key = hash.ToString();
-        HashNode.AddOrUpdate(hash, bytes);
+        HashNode.AddOrUpdate(hash, node);
         writeBatch.Add(key, bytes);
         return writeBatch.Create(hash);
     }
