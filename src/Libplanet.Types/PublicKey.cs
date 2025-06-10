@@ -17,7 +17,7 @@ public sealed partial record class PublicKey : IEquatable<PublicKey>, IFormattab
 {
     private readonly ImmutableArray<byte> _bytes;
 
-    public PublicKey(ImmutableArray<byte> bytes)
+    public PublicKey(in ImmutableArray<byte> bytes)
         : this(bytes, verify: true)
     {
     }

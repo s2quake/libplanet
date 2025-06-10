@@ -31,10 +31,10 @@ public sealed partial record class VoteMetadata : IValidatableObject
     [Property(6)]
     public VoteFlag Flag { get; init; }
 
-    public bool Verify(ImmutableArray<byte> signature)
+    public bool Verify(ReadOnlySpan<byte> signature)
     {
         var message = ModelSerializer.SerializeToBytes(this);
-        return Validator.Verify([.. message], signature);
+        return Validator.Verify(message, signature);
     }
 
     public Vote Sign(PrivateKey signer)

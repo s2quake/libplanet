@@ -64,7 +64,7 @@ public sealed partial record class Protocol
 
     public bool Verify()
     {
-        var bytes = ModelSerializer.SerializeToBytes(Metadata).ToImmutableArray();
-        return Signer.Verify(bytes, Signature);
+        var bytes = ModelSerializer.SerializeToBytes(Metadata);
+        return Signer.Verify(bytes, Signature.AsSpan());
     }
 }

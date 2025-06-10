@@ -46,11 +46,11 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
         }
     }
 
-    public bool Verify(ImmutableArray<byte> message, ImmutableArray<byte> signature)
+    public bool Verify(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature)
     {
         try
         {
-            return CryptoConfig.CryptoBackend.Verify([.. message], [.. signature], this);
+            return CryptoConfig.CryptoBackend.Verify(message, signature, this);
         }
         catch (Exception)
         {
@@ -126,12 +126,11 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
 
     private static ImmutableArray<byte> DeriveAddress(PublicKey publicKey)
     {
-        var initaddr = new Nethereum.Util.Sha3Keccack().CalculateHash(
-            GetPubKeyNoPrefix(publicKey, false));
+        var initaddr = new Nethereum.Util.Sha3Keccack().CalculateHash(GetPubKeyNoPrefix(publicKey, false));
         var bytes = new byte[initaddr.Length - 12];
         Array.Copy(initaddr, 12, bytes, 0, initaddr.Length - 12);
-        var address = ToChecksumAddress(
-            Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(bytes));
+        var hex = Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(bytes);
+        var address = ToChecksumAddress(hex);
         return ByteUtility.ParseHexToImmutable(address);
     }
 

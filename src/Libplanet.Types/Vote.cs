@@ -30,7 +30,7 @@ public sealed partial record class Vote : IValidatableObject
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (!Metadata.Verify(Signature))
+        if (!Metadata.Verify(Signature.AsSpan()))
         {
             yield return new ValidationResult($"Given {nameof(Signature)} is invalid.", [nameof(Signature)]);
         }
