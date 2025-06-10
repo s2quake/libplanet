@@ -4,21 +4,17 @@ using Xunit.Abstractions;
 
 namespace Libplanet.State.Tests;
 
-public class ActionContextTest
+public class ActionContextTest(ITestOutputHelper output)
 {
-    private readonly System.Random _random;
-    private readonly Address _address;
-    private readonly TxId _txid;
-    private readonly BlockCommit _lastCommit;
-
-    public ActionContextTest(ITestOutputHelper output)
+    [Fact]
+    public void RandomShouldBeDeterministic()
     {
-        _random = RandomUtility.GetRandom(output);
-        _address = RandomUtility.Address(_random);
-        _txid = RandomUtility.TxId(_random);
-        var key = new PrivateKey();
-        var hash = RandomUtility.BlockHash(_random);
-        _lastCommit = new BlockCommit
+        var random = RandomUtility.GetRandom(output);
+        var address = RandomUtility.Address(random);
+        var txId = RandomUtility.TxId(random);
+        var key = RandomUtility.PrivateKey(random);
+        var hash = RandomUtility.BlockHash(random);
+        var lastCommit = new BlockCommit
         {
             BlockHash = hash,
             Votes =
@@ -33,11 +29,6 @@ public class ActionContextTest
                 }.Sign(key),
             ],
         };
-    }
-
-    [Fact]
-    public void RandomShouldBeDeterministic()
-    {
         (int Seed, int Expected)[] testCases =
         [
             (0, 1559595546),
@@ -47,62 +38,77 @@ public class ActionContextTest
         {
             var context = new ActionContext
             {
-                Signer = _address,
-                TxId = _txid,
-                Proposer = _address,
+                Signer = address,
+                TxId = txId,
+                Proposer = address,
                 BlockHeight = 1,
                 BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-                LastCommit = _lastCommit,
+                LastCommit = lastCommit,
                 RandomSeed = seed,
             };
-            IRandom random = context.GetRandom();
-            Assert.Equal(expected, random.Next());
+            Assert.Equal(expected, context.GetRandom().Next());
         }
     }
 
     [Fact]
     public void GuidShouldBeDeterministic()
     {
+        var random = RandomUtility.GetRandom(output);
+        var address = RandomUtility.Address(random);
+        var txId = RandomUtility.TxId(random);
+        var key = RandomUtility.PrivateKey(random);
+        var hash = RandomUtility.BlockHash(random);
+        var lastCommit = new BlockCommit
+        {
+            BlockHash = hash,
+            Votes =
+            [
+                new VoteMetadata
+                {
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = key.Address,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key),
+            ],
+        };
         var actionContext1 = new ActionContext
         {
-            Signer = _address,
-            TxId = _txid,
-            Proposer = _address,
+            Signer = address,
+            TxId = txId,
+            Proposer = address,
             BlockHeight = 1,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            LastCommit = _lastCommit,
+            LastCommit = lastCommit,
             RandomSeed = 0,
         };
 
         var actionContext2 = new ActionContext
         {
-            Signer = _address,
-            TxId = _txid,
-            Proposer = _address,
+            Signer = address,
+            TxId = txId,
+            Proposer = address,
             BlockHeight = 1,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            LastCommit = _lastCommit,
+            LastCommit = lastCommit,
         };
 
         var actionContext3 = new ActionContext
         {
-            Signer = _address,
-            TxId = _txid,
-            Proposer = _address,
+            Signer = address,
+            TxId = txId,
+            Proposer = address,
             BlockHeight = 1,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            LastCommit = _lastCommit,
+            LastCommit = lastCommit,
             RandomSeed = 1,
         };
 
         (Guid Expected, Guid Diff)[] testCases =
         [
-            (
-                new Guid("6f460c1a-755d-48e4-ad67-65d5f519dbc8"),
-                new Guid("8286d046-9740-43e4-95cf-ff46699c73c4")),
-            (
-                new Guid("3b347c2b-f837-4085-ac5e-64005393b30d"),
-                new Guid("3410cda1-5b13-434e-af84-a54adf7a0ea0")),
+            (new Guid("6f460c1a-755d-48e4-ad67-65d5f519dbc8"), new Guid("8286d046-9740-43e4-95cf-ff46699c73c4")),
+            (new Guid("3b347c2b-f837-4085-ac5e-64005393b30d"), new Guid("3410cda1-5b13-434e-af84-a54adf7a0ea0")),
         ];
 
         var random1 = actionContext1.GetRandom();
@@ -119,16 +125,36 @@ public class ActionContextTest
     [Fact]
     public void GuidVersionAndVariant()
     {
+        var random = RandomUtility.GetRandom(output);
+        var address = RandomUtility.Address(random);
+        var txId = RandomUtility.TxId(random);
+        var key = RandomUtility.PrivateKey(random);
+        var hash = RandomUtility.BlockHash(random);
+        var lastCommit = new BlockCommit
+        {
+            BlockHash = hash,
+            Votes =
+            [
+                new VoteMetadata
+                {
+                    BlockHash = hash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = key.Address,
+                    ValidatorPower = BigInteger.One,
+                    Flag = VoteFlag.PreCommit,
+                }.Sign(key),
+            ],
+        };
         for (var i = 0; i < 100; i++)
         {
             var context = new ActionContext
             {
-                Signer = _address,
-                TxId = _txid,
-                Proposer = _address,
+                Signer = address,
+                TxId = txId,
+                Proposer = address,
                 BlockHeight = 1,
                 BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-                LastCommit = _lastCommit,
+                LastCommit = lastCommit,
                 RandomSeed = i,
             };
             var guid = context.GetRandom().NextGuid().ToString();

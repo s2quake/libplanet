@@ -5,10 +5,10 @@ using Libplanet.Types;
 
 namespace Libplanet.State;
 
-public sealed record class World(Trie Trie, StateIndex States)
+public sealed record class World(Trie Trie, StateIndex StateIndex)
 {
-    public World(StateIndex states)
-        : this(states.GetTrie(default), states)
+    public World(StateIndex stateIndex)
+        : this(stateIndex.GetTrie(default), stateIndex)
     {
     }
 
@@ -17,8 +17,8 @@ public sealed record class World(Trie Trie, StateIndex States)
     {
     }
 
-    public World(StateIndex states, HashDigest<SHA256> stateRootHash)
-        : this(states.GetTrie(stateRootHash), states)
+    public World(StateIndex stateIndex, HashDigest<SHA256> stateRootHash)
+        : this(stateIndex.GetTrie(stateRootHash), stateIndex)
     {
     }
 
@@ -31,7 +31,7 @@ public sealed record class World(Trie Trie, StateIndex States)
 
     internal Trie Trie { get; } = Trie;
 
-    internal StateIndex States { get; init; } = States;
+    internal StateIndex StateIndex { get; init; } = StateIndex;
 
     public Account GetAccount(string name)
     {
@@ -42,7 +42,7 @@ public sealed record class World(Trie Trie, StateIndex States)
 
         if (Trie.TryGetValue(name, out var value) && value is ImmutableArray<byte> binary)
         {
-            return new Account(States.GetTrie(new HashDigest<SHA256>(binary)));
+            return new Account(StateIndex.GetTrie(new HashDigest<SHA256>(binary)));
         }
 
         return new Account();
@@ -58,12 +58,12 @@ public sealed record class World(Trie Trie, StateIndex States)
         var trie = Trie;
         foreach (var (name, account) in Delta)
         {
-            var accountTrie = States.Commit(account.Trie);
+            var accountTrie = StateIndex.Commit(account.Trie);
             var key = name;
             var value = accountTrie.Hash.Bytes;
             trie = trie.Set(key, value);
         }
 
-        return new World(States.Commit(trie), States);
+        return new World(StateIndex.Commit(trie), StateIndex);
     }
 }

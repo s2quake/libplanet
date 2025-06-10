@@ -36,6 +36,9 @@ public sealed partial class ModelSerializerTest
         // Previous version should have a LegacyModelAttribute
         public sealed record class Version1
         {
+            public Version1()
+            {
+            }
         }
     }
 
