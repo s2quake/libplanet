@@ -5,8 +5,6 @@ namespace Libplanet.Net.Messages;
 
 public abstract record class MessageContent
 {
-    private MessageId? _id;
-
     public enum MessageType : byte
     {
         Ping = 0x01,
@@ -65,5 +63,5 @@ public abstract record class MessageContent
     [Property(0, ReadOnly = true)]
     public abstract MessageType Type { get; }
 
-    public MessageId Id => _id ??= new MessageId(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
+    public MessageId Id => new(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
 }

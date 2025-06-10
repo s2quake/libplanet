@@ -324,12 +324,13 @@ namespace Libplanet.Net.Transports
             {
                 var req = new MessageRequest(
                     reqId,
-                    new Message(
-                        content,
-                        _appProtocolVersionOptions.AppProtocolVersion,
-                        AsPeer,
-                        DateTimeOffset.UtcNow,
-                        null),
+                    new Message
+                    {
+                        Content = content,
+                        Protocol = _appProtocolVersionOptions.AppProtocolVersion,
+                        Remote = AsPeer,
+                        Timestamp = DateTimeOffset.UtcNow,
+                    },
                     peer,
                     expectedResponses,
                     channel,
@@ -510,12 +511,13 @@ namespace Libplanet.Net.Transports
             _replyQueue!.Enqueue(
                 (
                     ev,
-                    new Message(
-                        content,
-                        _appProtocolVersionOptions.AppProtocolVersion,
-                        AsPeer,
-                        DateTimeOffset.UtcNow,
-                        identity)));
+                    new Message
+                    {
+                        Content = content,
+                        Protocol = _appProtocolVersionOptions.AppProtocolVersion,
+                        Remote = AsPeer,
+                        Timestamp = DateTimeOffset.UtcNow,
+                    }));
 
             await ev.WaitAsync(cancellationToken);
         }
@@ -629,7 +631,7 @@ namespace Libplanet.Net.Transports
                                         reqId,
                                         message.Content,
                                         message.Remote,
-                                        message.Version);
+                                        message.Protocol);
                                     var diffVersion = new DifferentVersionMessage();
                                     _logger.Debug(
                                         "Replying to Request {RequestId} {Peer} with {Reply}",

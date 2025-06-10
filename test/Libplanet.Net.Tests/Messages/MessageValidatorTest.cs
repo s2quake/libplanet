@@ -19,54 +19,60 @@ namespace Libplanet.Net.Tests.Messages
 
             // Within buffer window is okay.
             messageValidator.ValidateTimestamp(
-                new Message(
-                    new PingMessage(),
-                    apvOption.AppProtocolVersion,
-                    peer,
-                    DateTimeOffset.UtcNow + buffer.Divide(2),
-                    null));
+                new Message
+                {
+                    Content = new PingMessage(),
+                    Protocol = apvOption.AppProtocolVersion,
+                    Remote = peer,
+                    Timestamp = DateTimeOffset.UtcNow + buffer.Divide(2),
+                });
             messageValidator.ValidateTimestamp(
-                new Message(
-                    new PingMessage(),
-                    apvOption.AppProtocolVersion,
-                    peer,
-                    DateTimeOffset.UtcNow - buffer.Divide(2),
-                    null));
+                new Message
+                {
+                    Content = new PingMessage(),
+                    Protocol = apvOption.AppProtocolVersion,
+                    Remote = peer,
+                    Timestamp = DateTimeOffset.UtcNow - buffer.Divide(2),
+                });
 
             // Outside buffer throws an exception.
             Assert.Throws<InvalidMessageTimestampException>(() =>
                 messageValidator.ValidateTimestamp(
-                    new Message(
-                        new PingMessage(),
-                        apvOption.AppProtocolVersion,
-                        peer,
-                        DateTimeOffset.UtcNow + buffer.Multiply(2),
-                        null)));
+                    new Message
+                    {
+                        Content = new PingMessage(),
+                        Protocol = apvOption.AppProtocolVersion,
+                        Remote = peer,
+                        Timestamp = DateTimeOffset.UtcNow + buffer.Multiply(2),
+                    }));
             Assert.Throws<InvalidMessageTimestampException>(() =>
                 messageValidator.ValidateTimestamp(
-                    new Message(
-                        new PingMessage(),
-                        apvOption.AppProtocolVersion,
-                        peer,
-                        DateTimeOffset.UtcNow - buffer.Multiply(2),
-                        null)));
+                    new Message
+                    {
+                        Content = new PingMessage(),
+                        Protocol = apvOption.AppProtocolVersion,
+                        Remote = peer,
+                        Timestamp = DateTimeOffset.UtcNow - buffer.Multiply(2),
+                    }));
 
             // If buffer is null, no exception gets thrown.
             messageValidator = new MessageValidator(apvOption, null);
             messageValidator.ValidateTimestamp(
-                new Message(
-                    new PingMessage(),
-                    apvOption.AppProtocolVersion,
-                    peer,
-                    DateTimeOffset.MaxValue,
-                    null));
+                new Message
+                {
+                    Content = new PingMessage(),
+                    Protocol = apvOption.AppProtocolVersion,
+                    Remote = peer,
+                    Timestamp = DateTimeOffset.MaxValue,
+                });
             messageValidator.ValidateTimestamp(
-                new Message(
-                    new PingMessage(),
-                    apvOption.AppProtocolVersion,
-                    peer,
-                    DateTimeOffset.MinValue,
-                    null));
+                new Message
+                {
+                    Content = new PingMessage(),
+                    Protocol = apvOption.AppProtocolVersion,
+                    Remote = peer,
+                    Timestamp = DateTimeOffset.MinValue,
+                });
         }
 
         [Fact]
@@ -103,42 +109,48 @@ namespace Libplanet.Net.Tests.Messages
                 new HashSet<PublicKey>() { }.ToImmutableHashSet();
 
             // Ping
-            var trustedPing = new Message(
-                new PingMessage(),
-                trustedApv,
-                peer,
-                DateTimeOffset.UtcNow,
-                null);
-            var trustedDifferentVersionPing = new Message(
-                new PingMessage(),
-                trustedDifferentVersionApv,
-                peer,
-                DateTimeOffset.UtcNow,
-                null);
-            var trustedDifferentExtraPing = new Message(
-                new PingMessage(),
-                trustedDifferentExtraApv,
-                peer,
-                DateTimeOffset.UtcNow,
-                null);
-            var unknownPing = new Message(
-                new PingMessage(),
-                unknownApv,
-                peer,
-                DateTimeOffset.UtcNow,
-                null);
-            var unknownDifferentVersionPing = new Message(
-                new PingMessage(),
-                unknownDifferentVersionApv,
-                peer,
-                DateTimeOffset.UtcNow,
-                null);
-            var unknownDifferentExtraPing = new Message(
-                new PingMessage(),
-                unknownDifferentExtraApv,
-                peer,
-                DateTimeOffset.UtcNow,
-                null);
+            var trustedPing = new Message
+            {
+                Content = new PingMessage(),
+                Protocol = trustedApv,
+                Remote = peer,
+                Timestamp = DateTimeOffset.UtcNow,
+            };
+            var trustedDifferentVersionPing = new Message
+            {
+                Content = new PingMessage(),
+                Protocol = trustedDifferentVersionApv,
+                Remote = peer,
+                Timestamp = DateTimeOffset.UtcNow,
+            };
+            var trustedDifferentExtraPing = new Message
+            {
+                Content = new PingMessage(),
+                Protocol = trustedDifferentExtraApv,
+                Remote = peer,
+                Timestamp = DateTimeOffset.UtcNow,
+            };
+            var unknownPing = new Message
+            {
+                Content = new PingMessage(),
+                Protocol = unknownApv,
+                Remote = peer,
+                Timestamp = DateTimeOffset.UtcNow,
+            };
+            var unknownDifferentVersionPing = new Message
+            {
+                Content = new PingMessage(),
+                Protocol = unknownDifferentVersionApv,
+                Remote = peer,
+                Timestamp = DateTimeOffset.UtcNow,
+            };
+            var unknownDifferentExtraPing = new Message
+            {
+                Content = new PingMessage(),
+                Protocol = unknownDifferentExtraApv,
+                Remote = peer,
+                Timestamp = DateTimeOffset.UtcNow,
+            };
 
             DifferentAppProtocolVersionException exception;
             AppProtocolVersionOptions appProtocolVersionOptions;

@@ -35,8 +35,11 @@ namespace Libplanet.Net.Tests.Transports
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
             string host = IPAddress.Loopback.ToString();
             int port = FreeTcpPort();
-            var hostOptions = new HostOptions(
-                IPAddress.Loopback.ToString(), new IceServer[] { }, port);
+            var hostOptions = new HostOptions
+            {
+                Host = IPAddress.Loopback.ToString(),
+                Port = port,
+            };
             var option = new SwarmOptions();
             var transport = await NetMQTransport.Create(
                 swarmKey,

@@ -44,7 +44,13 @@ public class PeerTest
         var pongMsg = new PongMessage();
         var apv = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
-        var message = new Message(pongMsg, apv, messageBoundPeer, DateTimeOffset.Now, []);
+        var message = new Message
+        {
+            Content = pongMsg,
+            Protocol = apv,
+            Remote = messageBoundPeer,
+            Timestamp = DateTimeOffset.Now,
+        };
         var transportMock = new Mock<ITransport>();
 
         transportMock.Setup(item => item.SendMessageAsync(
@@ -70,7 +76,13 @@ public class PeerTest
         var pongMsg = new PongMessage();
         var apv = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
-        var message = new Message(pongMsg, apv, messageBoundPeer, DateTimeOffset.Now, []);
+        var message = new Message
+        {
+            Content = pongMsg,
+            Protocol = apv,
+            Remote = messageBoundPeer,
+            Timestamp = DateTimeOffset.Now,
+        };
         var transportMock = new Mock<ITransport>();
 
         async Task<Message> SendMessageAsync(

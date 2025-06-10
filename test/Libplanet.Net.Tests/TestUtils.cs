@@ -346,7 +346,11 @@ namespace Libplanet.Net.Tests
 
             var apvOption = new AppProtocolVersionOptions
             { AppProtocolVersion = AppProtocolVersion };
-            var hostOption = new HostOptions(host, Array.Empty<IceServer>(), consensusPort);
+            var hostOption = new HostOptions
+            {
+                Host = host,
+                Port = consensusPort,
+            };
             var consensusTransport = NetMQTransport.Create(
                 key,
                 apvOption,

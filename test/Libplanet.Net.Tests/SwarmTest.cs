@@ -290,10 +290,8 @@ namespace Libplanet.Net.Tests
         public async Task MaintainStaticPeers()
         {
             var keyA = new PrivateKey();
-            var hostOptionsA = new HostOptions(
-                IPAddress.Loopback.ToString(), new IceServer[] { }, 20_000);
-            var hostOptionsB = new HostOptions(
-                IPAddress.Loopback.ToString(), new IceServer[] { }, 20_001);
+            var hostOptionsA = new HostOptions { Host = IPAddress.Loopback.ToString(), Port = 20_000 };
+            var hostOptionsB = new HostOptions { Host = IPAddress.Loopback.ToString(), Port = 20_001 };
 
             Swarm swarmA =
                 await CreateSwarm(keyA, hostOptions: hostOptionsA);
@@ -395,10 +393,11 @@ namespace Libplanet.Net.Tests
             {
                 swarms.Add(await CreateSwarm(
                     privateKey: TestUtils.PrivateKeys[i],
-                    hostOptions: new HostOptions(
-                        "127.0.0.1",
-                        Array.Empty<IceServer>(),
-                        9000 + i),
+                    hostOptions: new HostOptions
+                    {
+                        Host = "127.0.0.1",
+                        Port = 9000 + i,
+                    },
                     policy: policy,
                     genesis: genesis,
                     consensusReactorOption: reactorOpts[i]));
@@ -638,8 +637,10 @@ namespace Libplanet.Net.Tests
             var key = new PrivateKey();
             var apv = Protocol.Create(key, 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
-            var hostOptions = new HostOptions(
-                IPAddress.Loopback.ToString(), new IceServer[] { });
+            var hostOptions = new HostOptions
+            {
+                Host = IPAddress.Loopback.ToString(),
+            };
             var transport = await NetMQTransport.Create(
                 key,
                 apvOptions,
@@ -656,7 +657,11 @@ namespace Libplanet.Net.Tests
         public async Task CanResolveEndPoint()
         {
             var expected = new DnsEndPoint("1.2.3.4", 5678);
-            var hostOptions = new HostOptions("1.2.3.4", new IceServer[] { }, 5678);
+            var hostOptions = new HostOptions
+            {
+                Host = "1.2.3.4",
+                Port = 5678,
+            };
             Swarm s = await CreateSwarm(hostOptions: hostOptions);
             Assert.Equal(expected, s.EndPoint);
             Assert.Equal(expected, s.AsPeer?.EndPoint);
@@ -698,8 +703,14 @@ namespace Libplanet.Net.Tests
         public async Task ExchangeWithIceServer()
         {
             var iceServers = FactOnlyTurnAvailableAttribute.GetIceServers();
-            var seedHostOptions = new HostOptions("127.0.0.1", ImmutableList<IceServer>.Empty, 0);
-            var swarmHostOptions = new HostOptions(null, iceServers);
+            var seedHostOptions = new HostOptions
+            {
+                Host = "127.0.0.1",
+            };
+            var swarmHostOptions = new HostOptions
+            {
+                Host = string.Empty,
+            };
             var seed = await CreateSwarm(hostOptions: seedHostOptions).ConfigureAwait(false);
             var swarmA = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
             var swarmB = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
@@ -757,8 +768,11 @@ namespace Libplanet.Net.Tests
             var proxyTask = TurnProxy(port, turnUrl, cts.Token);
 
             var seedKey = new PrivateKey();
-            var seedHostOptions = new HostOptions("127.0.0.1", ImmutableList<IceServer>.Empty, 0);
-            var swarmHostOptions = new HostOptions(null, iceServers, 0);
+            var seedHostOptions = new HostOptions
+            {
+                Host = "127.0.0.1",
+            };
+            var swarmHostOptions = new HostOptions { };
             var seed =
                 await CreateSwarm(seedKey, hostOptions: seedHostOptions).ConfigureAwait(false);
             var swarmA =
@@ -1480,7 +1494,7 @@ namespace Libplanet.Net.Tests
             NetMQTransport transport = await NetMQTransport.Create(
                 key,
                 apvOptions,
-                new HostOptions("localhost", Enumerable.Empty<IceServer>()));
+                new HostOptions { Host = "localhost" });
 
             try
             {
@@ -1541,7 +1555,7 @@ namespace Libplanet.Net.Tests
             NetMQTransport transport = await NetMQTransport.Create(
                 key,
                 apvOptions,
-                new HostOptions("localhost", Enumerable.Empty<IceServer>()));
+                new HostOptions { Host = "localhost" });
 
             try
             {

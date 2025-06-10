@@ -58,7 +58,10 @@ namespace Libplanet.Net.Tests.Transports
                 NetMQTransport transport = await NetMQTransport.Create(
                     new PrivateKey(),
                     new AppProtocolVersionOptions(),
-                    new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { }, 0));
+                    new HostOptions
+                    {
+                        Host = IPAddress.Loopback.ToString(),
+                    });
                 transport.ProcessMessageHandler.Register(
                     async m =>
                     {

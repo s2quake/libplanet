@@ -7,8 +7,7 @@ namespace Libplanet.Net.Messages;
 
 public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 {
-    public static readonly int CommonFrames =
-        Enum.GetValues(typeof(MessageFrame)).Length;
+    public static readonly int CommonFrames = Enum.GetValues(typeof(MessageFrame)).Length;
 
     public NetMQMessageCodec()
     {
@@ -16,33 +15,17 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
     public enum MessageFrame
     {
-        /// <summary>
-        /// Frame containing <see cref="Protocol"/>.
-        /// </summary>
         Version = 0,
 
-        /// <summary>
-        /// Frame containing the type of the message.
-        /// </summary>
         Type = 1,
 
-        /// <summary>
-        /// Frame containing the sender <see cref="BoundPeer"/> of the<see cref="Message"/>.
-        /// </summary>
         Peer = 2,
 
-        /// <summary>
-        /// Frame containing the datetime when the <see cref="Message"/> is created.
-        /// </summary>
         Timestamp = 3,
 
-        /// <summary>
-        /// Frame containing signature of the <see cref="Message"/>.
-        /// </summary>
         Sign = 4,
     }
 
-    /// <inheritdoc cref="IMessageCodec{T}.Encode"/>
     public NetMQMessage Encode(
         Message message,
         PrivateKey privateKey)
@@ -66,7 +49,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         netMqMessage.Push(message.Timestamp.Ticks);
         netMqMessage.Push(ModelSerializer.SerializeToBytes(message.Remote));
         netMqMessage.Push((int)message.Content.Type);
-        netMqMessage.Push(message.Version.Token);
+        netMqMessage.Push(message.Protocol.Token);
 
         // Make and insert signature
         byte[] signature = privateKey.Sign(netMqMessage.ToByteArray());
@@ -131,9 +114,16 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
                 signature);
         }
 
-        byte[]? identity = reply ? null : encoded[0].Buffer.ToArray();
+        byte[] identity = reply ? [] : encoded[0].Buffer.ToArray();
 
-        return new Message(content, version, remote, timestamp, identity);
+        return new Message
+        {
+            Content = content,
+            Protocol = version,
+            Remote = remote,
+            Timestamp = timestamp,
+            Identity = identity,
+        };
     }
 
     internal static MessageContent CreateMessage(

@@ -189,7 +189,7 @@ internal sealed class SwarmService(
             AppProtocolVersion = appProtocolVersion,
             TrustedAppProtocolVersionSigners = [.. trustedAppProtocolVersionSigners],
         };
-        var hostOptions = new Net.Options.HostOptions(endPoint.Host, [], endPoint.Port);
+        var hostOptions = new Net.Options.HostOptions { Host = endPoint.Host, Port = endPoint.Port };
         return await NetMQTransport.Create(
             privateKey,
             appProtocolVersionOptions,

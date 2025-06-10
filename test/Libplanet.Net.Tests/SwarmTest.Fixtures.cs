@@ -118,7 +118,10 @@ namespace Libplanet.Net.Tests
             var fx = new MemoryRepositoryFixture(policy);
             var blockchain = MakeBlockChain(policy, genesisBlock: genesis);
             appProtocolVersionOptions ??= new AppProtocolVersionOptions();
-            hostOptions ??= new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { });
+            hostOptions ??= new HostOptions
+            {
+                Host = IPAddress.Loopback.ToString(),
+            };
 
             return await CreateSwarm(
                 blockchain,
@@ -138,7 +141,10 @@ namespace Libplanet.Net.Tests
             ConsensusReactorOption? consensusReactorOption = null)
         {
             appProtocolVersionOptions ??= new AppProtocolVersionOptions();
-            hostOptions ??= new HostOptions(IPAddress.Loopback.ToString(), new IceServer[] { });
+            hostOptions ??= new HostOptions
+            {
+                Host = IPAddress.Loopback.ToString(),
+            };
             options ??= new SwarmOptions();
             privateKey ??= new PrivateKey();
             var transport = await NetMQTransport.Create(
@@ -149,10 +155,11 @@ namespace Libplanet.Net.Tests
             ITransport consensusTransport = null;
             if (consensusReactorOption is { } option)
             {
-                var consensusHostOptions = new HostOptions(
-                    hostOptions.Host,
-                    hostOptions.IceServers,
-                    option.ConsensusPort);
+                var consensusHostOptions = new HostOptions
+                {
+                    Host = hostOptions.Host,
+                    Port = option.ConsensusPort
+                };
                 consensusTransport = await NetMQTransport.Create(
                     privateKey,
                     appProtocolVersionOptions,

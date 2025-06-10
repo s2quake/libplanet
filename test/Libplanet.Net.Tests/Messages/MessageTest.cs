@@ -22,7 +22,13 @@ public class MessageTest
         var messageContent = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };
         var codec = new NetMQMessageCodec();
         NetMQMessage raw = codec.Encode(
-            new Message(messageContent, apv, peer, dateTimeOffset, null), privateKey);
+            new Message
+            {
+                Content = messageContent,
+                Protocol = apv,
+                Remote = peer,
+                Timestamp = dateTimeOffset,
+            }, privateKey);
         var parsed = codec.Decode(raw, true);
         Assert.Equal(peer, parsed.Remote);
     }
@@ -39,7 +45,13 @@ public class MessageTest
         var codec = new NetMQMessageCodec();
         Assert.Throws<InvalidCredentialException>(() =>
             codec.Encode(
-                new Message(ping, apv, peer, timestamp, null), badPrivateKey));
+                new Message
+                {
+                    Content = ping,
+                    Protocol = apv,
+                    Remote = peer,
+                    Timestamp = timestamp
+                }, badPrivateKey));
     }
 
     [Fact]
@@ -49,16 +61,28 @@ public class MessageTest
         var privateKey = new PrivateKey();
         var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
         var timestamp = DateTimeOffset.UtcNow;
-       var apv = Protocol.Create(new PrivateKey(), 1);
+        var apv = Protocol.Create(new PrivateKey(), 1);
         var ping = new PingMessage();
         var codec = new NetMQMessageCodec();
         var netMqMessage = codec.Encode(
-            new Message(ping, apv, peer, timestamp, null), privateKey).ToArray();
+            new Message
+            {
+                Content = ping,
+                Protocol = apv,
+                Remote = peer,
+                Timestamp = timestamp
+            }, privateKey).ToArray();
 
         // Attacker
         var fakePeer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("1.2.3.4", 0));
         var fakeMessage = codec.Encode(
-            new Message(ping, apv, fakePeer, timestamp, null), privateKey).ToArray();
+            new Message
+            {
+                Content = ping,
+                Protocol = apv,
+                Remote = fakePeer,
+                Timestamp = timestamp,
+            }, privateKey).ToArray();
 
         var frames = new NetMQMessage();
         frames.Push(netMqMessage[4]);
@@ -87,7 +111,7 @@ public class MessageTest
     {
         var privateKey = new PrivateKey();
         var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("1.2.3.4", 1234));
-       var apv = Protocol.Create(new PrivateKey(), 1);
+        var apv = Protocol.Create(new PrivateKey(), 1);
         var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);
         Block genesis = ProposeGenesisBlock(GenesisProposer);
         var message = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };

@@ -440,8 +440,10 @@ namespace Libplanet.Net.Tests.Transports
             return TransportConstructor(
                 privateKey,
                 appProtocolVersionOptions ?? new AppProtocolVersionOptions(),
-                hostOptions ?? new HostOptions(
-                    IPAddress.Loopback.ToString(), new IceServer[] { }, 0),
+                hostOptions ?? new HostOptions
+                {
+                    Host = IPAddress.Loopback.ToString(),
+                },
                 messageTimestampBuffer);
         }
 
