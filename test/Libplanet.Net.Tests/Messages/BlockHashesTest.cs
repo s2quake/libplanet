@@ -24,12 +24,13 @@ namespace Libplanet.Net.Tests.Messages
             var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 1234));
             var messageCodec = new NetMQMessageCodec();
             NetMQMessage encoded = messageCodec.Encode(
-                new Message(
-                    messageContent,
-                    apv,
-                    peer,
-                    DateTimeOffset.UtcNow,
-                    null),
+                new Message
+                {
+                    Content = messageContent,
+                    Protocol = apv,
+                    Remote = peer,
+                    Timestamp = DateTimeOffset.UtcNow,
+                },
                 privateKey);
             BlockHashesMessage restored = (BlockHashesMessage)messageCodec.Decode(encoded, true).Content;
             Assert.Equal(messageContent.Hashes, restored.Hashes);

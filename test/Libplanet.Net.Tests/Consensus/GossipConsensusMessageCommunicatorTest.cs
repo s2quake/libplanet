@@ -330,11 +330,11 @@ namespace Libplanet.Net.Tests.Consensus
             HostOptions hostOptions;
             if (port is { } p)
             {
-                hostOptions = new HostOptions("127.0.0.1", Array.Empty<IceServer>(), p);
+                hostOptions = new HostOptions { Host = "127.0.0.1", Port = p };
             }
             else
             {
-                hostOptions = new HostOptions("127.0.0.1", Array.Empty<IceServer>());
+                hostOptions = new HostOptions { Host = "127.0.0.1" };
             }
 
             return NetMQTransport.Create(

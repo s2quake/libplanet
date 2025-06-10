@@ -4,7 +4,7 @@ using Libplanet.Types;
 namespace Libplanet.Net;
 
 [Model(Version = 1, TypeName = "Protocol")]
-public sealed partial record class Protocol
+public readonly partial record struct Protocol
 {
     [Property(0)]
     public required ProtocolMetadata Metadata { get; init; }
@@ -15,18 +15,6 @@ public sealed partial record class Protocol
     public Address Signer => Metadata.Signer;
 
     public int Version => Metadata.Version;
-
-    // public Protocol(
-    //     int version,
-    //     byte[]? extra,
-    //     ImmutableArray<byte> signature,
-    //     Address signer)
-    // {
-    //     Version = version;
-    //     Extra = extra;
-    //     Signature = signature;
-    //     Signer = signer;
-    // }
 
     public string Token
     {

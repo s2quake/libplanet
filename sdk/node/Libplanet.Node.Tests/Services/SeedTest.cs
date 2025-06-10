@@ -108,7 +108,11 @@ public class SeedTest
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
         var remoteBoundPeer = new BoundPeer(remotePrivateKey.PublicKey, remoteEndPoint);
-        var remoteHostOptions = new HostOptions(remoteEndPoint.Host, [], remoteEndPoint.Port);
+        var remoteHostOptions = new HostOptions
+        {
+            Host = remoteEndPoint.Host,
+            Port = remoteEndPoint.Port,
+        };
         var remoteAPVOptions = new AppProtocolVersionOptions
         {
             AppProtocolVersion = apv,
@@ -170,7 +174,7 @@ public class SeedTest
             transports[i] = await NetMQTransport.Create(
                 privateKey: remotePrivateKeys[i],
                 appProtocolVersionOptions: remoteAPVOptions,
-                hostOptions: new(remoteEndPoints[i].Host, [], remoteEndPoints[i].Port));
+                hostOptions: new HostOptions { Host = remoteEndPoints[i].Host, Port = remoteEndPoints[i].Port });
         }
 
         using var d1 = new DisposerCollection(remoteEndPoints);

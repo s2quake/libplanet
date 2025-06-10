@@ -97,14 +97,14 @@ public class MessageValidator
     /// </summary>
     /// <param name="message">The <see cref="Message"/> to validate.</param>
     /// <remarks>
-    /// If <see cref="Message.Version"/> of <paramref name="message"/> is not valid but
+    /// If <see cref="Message.Protocol"/> of <paramref name="message"/> is not valid but
     /// is signed by a trusted signer, then <see cref="DifferentApvEncountered"/> is called.
     /// </remarks>
     /// <exception cref="NullReferenceException">Thrown when <see cref="Message.Remote"/> is
     /// <see langword="null"/> for <paramref name="message"/>.</exception>
     /// <exception cref="DifferentAppProtocolVersionException">Thrown when
     /// local version does not match with given <paramref name="message"/>'s
-    /// <see cref="Message.Version"/>.</exception>
+    /// <see cref="Message.Protocol"/>.</exception>
     /// <seealso cref="Apv"/>
     /// <seealso cref="TrustedApvSigners"/>
     /// <seealso cref="DifferentApvEncountered"/>
@@ -127,33 +127,33 @@ public class MessageValidator
         DifferentAppProtocolVersionEncountered differentAppProtocolVersionEncountered,
         Message message)
     {
-        if (message.Version.Equals(appProtocolVersion))
+        if (message.Protocol.Equals(appProtocolVersion))
         {
             return;
         }
 
         bool trusted = !trustedAppProtocolVersionSigners.All(
-            publicKey => !message.Version.Verify());
+            publicKey => !message.Protocol.Verify());
 
         if (trusted)
         {
             differentAppProtocolVersionEncountered(
-                message.Remote, message.Version, appProtocolVersion);
+                message.Remote, message.Protocol, appProtocolVersion);
         }
 
-        if (!trusted || !message.Version.Version.Equals(appProtocolVersion.Version))
+        if (!trusted || !message.Protocol.Version.Equals(appProtocolVersion.Version))
         {
             throw new DifferentAppProtocolVersionException(
                 $"The APV of a received message is invalid:\n" +
                 $"Expected: APV {appProtocolVersion} with " +
                 $"signature {ByteUtility.Hex(appProtocolVersion.Signature)} by " +
                 $"signer {appProtocolVersion.Signer}\n" +
-                $"Actual: APV {message.Version} with " +
-                $"signature: {ByteUtility.Hex(message.Version.Signature)} by " +
-                $"signer: {message.Version.Signer}\n" +
+                $"Actual: APV {message.Protocol} with " +
+                $"signature: {ByteUtility.Hex(message.Protocol.Signature)} by " +
+                $"signer: {message.Protocol.Signer}\n" +
                 $"Signed by a trusted signer: {trusted}",
                 appProtocolVersion,
-                message.Version,
+                message.Protocol,
                 trusted);
         }
     }

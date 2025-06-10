@@ -969,9 +969,10 @@ namespace Libplanet.Net.Tests
             ITransport mockTransport = await NetMQTransport.Create(
                 new PrivateKey(),
                 apv,
-                new HostOptions(
-                    IPAddress.Loopback.ToString(),
-                    Array.Empty<IceServer>()));
+                new HostOptions
+                {
+                    Host = IPAddress.Loopback.ToString(),
+                });
             int requestCount = 0;
 
             async Task MessageHandler(Message message)

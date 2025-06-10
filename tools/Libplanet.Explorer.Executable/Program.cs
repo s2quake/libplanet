@@ -214,7 +214,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     {
                         BootstrapOptions = new BootstrapOptions
                         {
-                            SeedPeers = options.Seeds.ToImmutableList(),
+                            SeedPeers = options.Seeds.ToImmutableHashSet(),
                         },
                         TimeoutOptions = new TimeoutOptions
                         {
@@ -229,7 +229,7 @@ If omitted (default) explorer only the local blockchain store.")]
                             : default,
                     };
 
-                    var hostOptions = new HostOptions(null, new[] { options.IceServer });
+                    var hostOptions = new HostOptions {};
 
                     var transport = await NetMQTransport.Create(
                         privateKey,

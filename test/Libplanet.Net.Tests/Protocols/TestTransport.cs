@@ -358,12 +358,14 @@ namespace Libplanet.Net.Tests.Protocols
             await _requests.AddAsync(
                 new Request
                 {
-                    Message = new Message(
-                        content,
-                        AppProtocolVersion,
-                        AsPeer,
-                        sendTime,
-                        identity),
+                    Message = new Message
+                    {
+                        Content = content,
+                        Protocol = AppProtocolVersion,
+                        Remote = AsPeer,
+                        Timestamp = sendTime,
+                        Identity = identity,
+                    },
                     Target = peer,
                 },
                 cancellationToken);
@@ -446,12 +448,14 @@ namespace Libplanet.Net.Tests.Protocols
             }
 
             _logger.Debug("Replying {Content}...", content);
-            var message = new Message(
-                content,
-                AppProtocolVersion,
-                AsPeer,
-                DateTimeOffset.UtcNow,
-                identity);
+            var message = new Message
+            {
+                Content = content,
+                Protocol = AppProtocolVersion,
+                Remote = AsPeer,
+                Timestamp = DateTimeOffset.UtcNow,
+                Identity = identity,
+            };
             await Task.Delay(_networkDelay, cancellationToken);
             _transports[_peersToReply[identity]].ReceiveReply(message);
             _peersToReply.TryRemove(identity, out Address addr);

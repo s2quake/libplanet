@@ -109,7 +109,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         var endPoint = (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint);
         var host = endPoint.Host;
         var port = endPoint.Port;
-        var hostOptions = new HostOptions(host, [], port);
+        var hostOptions = new HostOptions { Host = host, Port = port };
         return await NetMQTransport.Create(privateKey, appProtocolVersionOptions, hostOptions);
     }
 

@@ -1,28 +1,14 @@
 namespace Libplanet.Net.Messages;
 
-public class Message
+public sealed record class Message
 {
-    public Message(
-        MessageContent content,
-        Protocol version,
-        BoundPeer remote,
-        DateTimeOffset timestamp,
-        byte[]? identity)
-    {
-        Content = content;
-        Version = version;
-        Remote = remote;
-        Timestamp = timestamp;
-        Identity = identity;
-    }
+    public required MessageContent Content { get; init; }
 
-    public MessageContent Content { get; }
+    public required Protocol Protocol { get; init; }
 
-    public Protocol Version { get; }
+    public required BoundPeer Remote { get; init; }
 
-    public BoundPeer Remote { get; }
+    public DateTimeOffset Timestamp { get; init; }
 
-    public DateTimeOffset Timestamp { get; }
-
-    public byte[]? Identity { get; }
+    public byte[] Identity { get; init; } = [];
 }
