@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.State;
 
-public sealed record class CurrencyAccount(ITrie Trie, Address Signer, Currency Currency)
+public sealed record class CurrencyAccount(Trie Trie, Address Signer, Currency Currency)
 {
     public static readonly Address TotalSupplyAddress = Address.Parse("1000000000000000000000000000000000000000");
 

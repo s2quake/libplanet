@@ -46,12 +46,12 @@ public class TrieStateStoreTest
             .Add(barKey, ByteUtility.Hex(GetRandomBytes(32)))
             .Add(bazKey, false)
             .Add(quxKey, null);
-        ITrie trie = stateStore.Commit(
+        Trie trie = stateStore.Commit(
             values.Aggregate(
                 stateStore.GetTrie(default),
                 (prev, kv) => prev.Set(kv.Key, kv.Value)));
         HashDigest<SHA256> hash = trie.Hash;
-        ITrie found = stateStore.GetTrie(hash);
+        Trie found = stateStore.GetTrie(hash);
         Assert.True(found.IsCommitted);
         Assert.Equal(values[fooKey], found[KeyFoo]);
         Assert.Equal(values[barKey], found[KeyBar]);

@@ -13,8 +13,8 @@ public class MptCommandTest : IDisposable
     private readonly MptCommand _command;
     private readonly string _pathA;
     private readonly string _pathB;
-    private readonly ITrie _trieA;
-    private readonly ITrie _trieB;
+    private readonly Trie _trieA;
+    private readonly Trie _trieB;
 
     public MptCommandTest()
     {

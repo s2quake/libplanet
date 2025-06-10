@@ -103,7 +103,7 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         {
             throw new InvalidOperationException(
                 $"Given {nameof(actionContext)} must have its previous state's " +
-                $"{nameof(ITrie)} recorded.");
+                $"{nameof(Trie)} recorded.");
         }
 
         var inputWorld = world;
@@ -128,8 +128,7 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
 
         if (!world.Trie.IsCommitted)
         {
-            throw new InvalidOperationException(
-                $"Failed to record {nameof(Account)}'s {nameof(ITrie)}.");
+            throw new InvalidOperationException($"Failed to record {nameof(Account)}'s {nameof(Trie)}.");
         }
 
         var evaluation = new ActionExecutionInfo
