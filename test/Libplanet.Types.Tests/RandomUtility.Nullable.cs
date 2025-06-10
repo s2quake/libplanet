@@ -62,10 +62,6 @@ public static partial class RandomUtility
 
     public static char? NullableChar(Random random) => Nullable(random, Char);
 
-    public static DateTime? NullableDateTime() => Nullable(DateTime);
-
-    public static DateTime? NullableDateTime(Random random) => Nullable(random, DateTime);
-
     public static DateTimeOffset? NullableDateTimeOffset() => Nullable(DateTimeOffset);
 
     public static DateTimeOffset? NullableDateTimeOffset(Random random) => Nullable(random, DateTimeOffset);
@@ -304,99 +300,17 @@ public static partial class RandomUtility
 
     public static T? Nullable<T>(Func<T> generator)
         where T : struct
-    {
-        if (Boolean())
-        {
-            return generator();
-        }
-
-        return null;
-    }
+        => Chance(66) ? generator() : null;
 
     public static T? Nullable<T>(Random random, Func<Random, T> generator)
         where T : struct
-    {
-        if (Boolean(random))
-        {
-            return generator(random);
-        }
-
-        return null;
-    }
+        => Chance(random, 66) ? generator(random) : null;
 
     public static T? NullableObject<T>(Func<T> generator)
         where T : notnull
-    {
-        if (Chance(66))
-        {
-            return generator();
-        }
-
-        return default;
-    }
+        => Chance(66) ? generator() : default;
 
     public static T? NullableObject<T>(Random random, Func<Random, T> generator)
         where T : notnull
-    {
-        if (Chance(random, 66))
-        {
-            return generator(random);
-        }
-
-        return default;
-    }
-
-    // public static T?[] NullableArray<T>(Func<T> generator)
-    //     where T : struct
-    // {
-    //     if (Boolean())
-    //     {
-    //         return [];
-    //     }
-
-    //     var length = Length();
-    //     var items = new T?[length];
-    //     for (var i = 0; i < length; i++)
-    //     {
-    //         items[i] = Nullable(generator);
-    //     }
-
-    //     return items;
-    // }
-
-    // public static T?[] NullableArray<T>(Random random, Func<Random, T> generator)
-    //     where T : struct
-    // {
-    //     if (Boolean(random))
-    //     {
-    //         return [];
-    //     }
-
-    //     var length = Length(random);
-    //     var items = new T?[length];
-    //     for (var i = 0; i < length; i++)
-    //     {
-    //         items[i] = Nullable(random, generator);
-    //     }
-
-    //     return items;
-    // }
-
-    // public static T?[] NullableObjectArray<T>(Func<T> generator)
-    //     where T : struct
-    // {
-    //     if (Boolean())
-    //     {
-    //         return [];
-    //     }
-
-    //     var length = Length();
-    //     var items = new T?[length];
-    //     for (var i = 0; i < length; i++)
-    //     {
-    //         items[i] = NullableObject(generator);
-    //     }
-
-    //     return items;
-    // }
+        => Chance(random, 66) ? generator(random) : default;
 }
