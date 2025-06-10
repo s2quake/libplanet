@@ -1,15 +1,17 @@
 using Libplanet.State.Builtin;
 using Libplanet.Types;
+using Libplanet.Types.Tests;
+using Xunit.Abstractions;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Sys;
+namespace Libplanet.State.Tests.Builtin;
 
-public class InitializeTest
+public sealed class InitializeTest(ITestOutputHelper output)
 {
-    private static readonly ImmutableSortedSet<Validator> _validators = ImmutableSortedSet.Create(
+    private static readonly ImmutableSortedSet<Validator> _validators =
     [
         new Validator { Address = new PrivateKey().Address },
-    ]);
+    ];
 
     private static readonly ImmutableArray<AccountState> _states =
     [
@@ -36,15 +38,14 @@ public class InitializeTest
     [Fact]
     public void Execute()
     {
-        var random = new System.Random();
-        Address signer = random.NextAddress();
+        var random = RandomUtility.GetRandom(output);
+        var signer = RandomUtility.Address(random);
         var world = new World();
-        BlockHash genesisHash = random.NextBlockHash();
         var context = new ActionContext
         {
             Signer = signer,
-            TxId = random.NextTxId(),
-            Proposer = random.NextAddress(),
+            TxId = RandomUtility.TxId(random),
+            Proposer = RandomUtility.Address(random),
             BlockHeight = 0,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
             RandomSeed = 123,
@@ -55,22 +56,22 @@ public class InitializeTest
             Validators = _validators,
         };
 
-        var nextWorld = TestUtils.ExecuteAction(initialize, world, context);
+        var nextWorld = ActionUtility.Execute(initialize, world, context);
 
         Assert.Equal(_validators, nextWorld.GetValidators());
         Assert.Equal(
-            _states[default],
-            nextWorld.GetValueOrDefault(SystemAccount, default));
+            _states[0].Values["a"],
+            nextWorld.GetValueOrDefault($"{SystemAccount}", "a"));
     }
 
     [Fact]
     public void ExecuteInNonGenesis()
     {
-        var random = new System.Random();
-        Address signer = random.NextAddress();
+        var random = RandomUtility.GetRandom(output);
+        var signer = RandomUtility.Address(random);
         var world = new World();
-        var key = new PrivateKey();
-        var hash = random.NextBlockHash();
+        var key = RandomUtility.PrivateKey(random);
+        var hash = RandomUtility.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             Height = 0,
@@ -93,8 +94,8 @@ public class InitializeTest
         var context = new ActionContext
         {
             Signer = signer,
-            TxId = random.NextTxId(),
-            Proposer = random.NextAddress(),
+            TxId = RandomUtility.TxId(random),
+            Proposer = RandomUtility.Address(random),
             BlockHeight = 10,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
             LastCommit = lastCommit,
@@ -107,6 +108,6 @@ public class InitializeTest
         };
 
         Assert.Throws<InvalidOperationException>(
-            () => TestUtils.ExecuteAction(initialize, world, context));
+            () => ActionUtility.Execute(initialize, world, context));
     }
 }

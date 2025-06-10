@@ -1,6 +1,6 @@
 using Libplanet.Types;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
 public static class Currencies
 {

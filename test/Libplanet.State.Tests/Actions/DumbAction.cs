@@ -3,7 +3,7 @@ using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
 [Model(Version = 1, TypeName = "Tests_DumbAction")]
 public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>

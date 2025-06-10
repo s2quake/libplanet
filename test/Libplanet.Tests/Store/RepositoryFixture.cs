@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.State;
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.State.Builtin;

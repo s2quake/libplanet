@@ -2,7 +2,7 @@
 // using System.Threading.Tasks;
 // using Libplanet.State;
 // using Libplanet.State;
-// using Libplanet.State.Tests.Common;
+// using Libplanet.State.Tests.Actions;
 // using Libplanet;
 // using Libplanet.Tests;
 // using Libplanet.Tests.Store;

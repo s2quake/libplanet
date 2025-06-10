@@ -1,7 +1,7 @@
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
 public sealed record class SetValidator : ActionBase
 {

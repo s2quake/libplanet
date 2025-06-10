@@ -1,33 +1,21 @@
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Libplanet.Types;
-using Serilog;
+using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests;
 
-public class ActionEvaluationTest
+public class ActionEvaluationTest(ITestOutputHelper output)
 {
-    private readonly ILogger _logger;
-
-    public ActionEvaluationTest(ITestOutputHelper output)
-    {
-        Log.Logger = _logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .Enrich.WithThreadId()
-            .WriteTo.TestOutput(output)
-            .CreateLogger()
-            .ForContext<ActionEvaluationTest>();
-    }
-
     [Fact]
     public void Constructor()
     {
-        var random = new System.Random();
-        var txid = random.NextTxId();
+        var random = RandomUtility.GetRandom(output);
+        var txid = RandomUtility.TxId(random);
         var address = new PrivateKey().Address;
         var key = new PrivateKey();
-        var hash = random.NextBlockHash();
+        var hash = RandomUtility.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             BlockHash = hash,

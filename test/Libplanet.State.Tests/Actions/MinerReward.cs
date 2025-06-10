@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
 [Model(Version = 1, TypeName = "Tests_MinerReward")]
 public sealed record class MinerReward : ActionBase

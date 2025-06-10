@@ -3,7 +3,7 @@ using Libplanet.Types;
 using Serilog;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
 [Model(Version = 1, TypeName = "Tests_DelayAction")]
 public sealed record class DelayAction : ActionBase

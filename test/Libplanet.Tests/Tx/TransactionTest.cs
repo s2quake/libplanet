@@ -1,6 +1,6 @@
 using Libplanet.State;
 using Libplanet.State.Builtin;
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 

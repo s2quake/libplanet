@@ -41,7 +41,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void ExistedRepository()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository1 = CreateRepository();
         repository1.GenesisHeight = RandomUtility.NonNegative(random);
         repository1.Height = RandomUtility.NonNegative(random);
@@ -60,7 +60,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GenesisHeight()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var genesisHeight = RandomUtility.NonNegative(random);
         repository.GenesisHeight = genesisHeight;
@@ -86,7 +86,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void Height()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var height = RandomUtility.NonNegative(random);
         repository.Height = height;
@@ -112,7 +112,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void StateRootHash()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var stateRootHash = RandomUtility.HashDigest<SHA256>(random);
         repository.StateRootHash = stateRootHash;
@@ -127,7 +127,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void Append()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var block1 = RandomUtility.Block(random);
         var block2 = RandomUtility.Block(random);
@@ -171,7 +171,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void Append_Throw()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var block1 = RandomUtility.Block(random);
         var block2 = RandomUtility.Try(random, RandomUtility.Block, item => item.Height != block1.Height);
@@ -193,7 +193,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GetBlock_ByBlockHash()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var block = RandomUtility.Block(random);
 
@@ -215,7 +215,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GetBlock_ByHeight()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var block = RandomUtility.Block(random);
 
@@ -237,7 +237,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GetNonce()
     {
-        var random = GetRandom();
+        var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
         var address = RandomUtility.Address(random);
         var nonce = RandomUtility.Int32(random);
@@ -248,12 +248,5 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         Assert.Equal(nonce, repository.GetNonce(address));
 
         Assert.Equal(0, repository.GetNonce(RandomUtility.Address(random)));
-    }
-
-    protected Random GetRandom()
-    {
-        var seed = RandomUtility.Int32();
-        output.WriteLine($"Random seed: {seed}");
-        return new Random(seed);
     }
 }

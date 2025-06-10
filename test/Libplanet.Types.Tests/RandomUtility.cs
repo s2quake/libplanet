@@ -309,7 +309,6 @@ public static partial class RandomUtility
         where TKey : notnull
         => Dictionary(random, keyGenerator, valueGenerator, Length(random));
 
-
     public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
         where TKey : notnull
@@ -530,6 +529,30 @@ public static partial class RandomUtility
 
             countByValue[key] = count;
         }
+    }
+
+    public static bool Chance(int probability) => Chance(System.Random.Shared, probability);
+
+    public static bool Chance(Random random, int probability)
+    {
+        if (probability < 0 || probability > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(probability), "Probability must be between 0 and 100.");
+        }
+
+        return random.Next(0, 100) < probability;
+    }
+
+    public static bool Chance(double probability) => Chance(System.Random.Shared, probability);
+
+    public static bool Chance(Random random, double probability)
+    {
+        if (probability < 0.0 || probability > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(probability), "Probability must be between 0 and 1.");
+        }
+
+        return random.NextDouble() < probability;
     }
 
     private static string[] GetWords()

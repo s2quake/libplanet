@@ -1,4 +1,4 @@
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Libplanet.Types;
 
 namespace Libplanet.Tests.Blockchain;

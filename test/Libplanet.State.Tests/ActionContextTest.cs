@@ -1,4 +1,6 @@
 using Libplanet.Types;
+using Libplanet.Types.Tests;
+using Xunit.Abstractions;
 
 namespace Libplanet.State.Tests;
 
@@ -9,13 +11,13 @@ public class ActionContextTest
     private readonly TxId _txid;
     private readonly BlockCommit _lastCommit;
 
-    public ActionContextTest()
+    public ActionContextTest(ITestOutputHelper output)
     {
-        _random = new System.Random();
-        _address = _random.NextAddress();
-        _txid = _random.NextTxId();
+        _random = RandomUtility.GetRandom(output);
+        _address = RandomUtility.Address(_random);
+        _txid = RandomUtility.TxId(_random);
         var key = new PrivateKey();
-        var hash = _random.NextBlockHash();
+        var hash = RandomUtility.BlockHash(_random);
         _lastCommit = new BlockCommit
         {
             BlockHash = hash,

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Libplanet.State;
-using Libplanet.State.Tests.Common;
+using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;

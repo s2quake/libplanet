@@ -1,7 +1,7 @@
 using Libplanet.Serialization;
 using Libplanet.Types;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
 [Model(Version = 1, TypeName = "Tests_Attack")]
 public sealed record class Attack : ActionBase

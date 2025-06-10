@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.State\Libplanet.State.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
+    <ProjectReference Include="..\Libplanet.Types.Tests\Libplanet.Types.Tests.csproj" />
   </ItemGroup>
 
 </Project>

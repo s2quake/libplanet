@@ -2,12 +2,12 @@ using Libplanet.Serialization;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Common;
+namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_DumbModernAction")]
-public sealed record class DumbModernAction : ActionBase
+[Model(Version = 1, TypeName = "Tests_DumbModern")]
+public sealed record class DumbModern : ActionBase
 {
-    public static readonly DumbModernAction NoOp = DumbModernAction.Create();
+    public static readonly DumbModern NoOp = DumbModern.Create();
 
     public static readonly Address DumbModernAddress =
         Address.Parse("0123456789abcdef0123456789abcdef12345678");
@@ -23,7 +23,7 @@ public sealed record class DumbModernAction : ActionBase
     [Property(2)]
     public ImmutableSortedSet<Validator>? Validators { get; init; }
 
-    public static DumbModernAction Create(
+    public static DumbModern Create(
         (Address At, string Item)? append = null,
         (Address? From, Address? To, BigInteger Amount)? transfer = null,
         ImmutableSortedSet<Validator>? validators = null,
@@ -36,7 +36,7 @@ public sealed record class DumbModernAction : ActionBase
                 $"{nameof(transfer)} is not null: {transfer}");
         }
 
-        return new DumbModernAction()
+        return new DumbModern()
         {
             Append = append,
             Transfer = transfer,
@@ -57,7 +57,7 @@ public sealed record class DumbModernAction : ActionBase
         string validators = Validators is { } vs && vs.Any()
             ? string.Join(",", vs.Select(v => v.Address))
             : E;
-        return $"{nameof(DumbModernAction)} {{ " +
+        return $"{nameof(DumbModern)} {{ " +
             $"{nameof(Append)} = {append}, " +
             $"{nameof(Transfer)} = {transfer}, " +
             $"{nameof(Validators)} = {validators} " +
