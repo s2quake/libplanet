@@ -35,10 +35,8 @@ public static class ByteUtility
 
     public static ImmutableArray<byte> ParseHexToImmutable(string hex)
     {
-        byte[] bytes = ParseHex(hex);
-        ImmutableArray<byte> movedImmutableArray =
-            Unsafe.As<byte[], ImmutableArray<byte>>(ref bytes);
-        return movedImmutableArray;
+        var bytes = ParseHex(hex);
+        return Unsafe.As<byte[], ImmutableArray<byte>>(ref bytes);
     }
 
     public static string Hex(in ImmutableArray<byte> bytes) => Hex(bytes.AsSpan());

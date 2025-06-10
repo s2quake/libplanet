@@ -8,7 +8,7 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
 {
     private const int Offset = 27;
 
-    public byte[] Sign(byte[] message, PrivateKey privateKey)
+    public byte[] Sign(ReadOnlySpan<byte> message, PrivateKey privateKey)
     {
         lock (PrivateKey._lock)
         {
@@ -34,10 +34,10 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
         }
     }
 
-    public bool Verify(byte[] message, byte[] signature, PublicKey publicKey)
+    public bool Verify(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature, PublicKey publicKey)
         => Verify(message, signature, publicKey.Address);
 
-    public bool Verify(byte[] message, byte[] signature, Address signer)
+    public bool Verify(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature, Address signer)
     {
         lock (PrivateKey._lock)
         {
@@ -48,7 +48,7 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
             var recoverId = signature[signature.Length - 1] - Offset;
 
             var sig2 = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
-            if (!secp.RecoverableSignatureParseCompact(sig2, signature, recoverId))
+            if (!secp.RecoverableSignatureParseCompact(sig2, signature.ToArray(), recoverId))
             {
                 return false;
             }
@@ -67,7 +67,7 @@ public sealed class DefaultCryptoBackend : ICryptoBackend
         }
     }
 
-    private static byte[] HashPrefixedMessage(byte[] message)
+    private static byte[] HashPrefixedMessage(ReadOnlySpan<byte> message)
     {
         var bytePrefix = ByteUtility.ParseHex("19");
         var textBytePrefix = Encoding.UTF8.GetBytes(

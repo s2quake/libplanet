@@ -2,7 +2,7 @@ namespace Libplanet.Types.Crypto;
 
 public interface ICryptoBackend
 {
-    byte[] Sign(byte[] message, PrivateKey privateKey);
+    byte[] Sign(ReadOnlySpan<byte> message, PrivateKey privateKey);
 
-    bool Verify(byte[] message, byte[] signature, Address signer);
+    bool Verify(ReadOnlySpan<byte> message, ReadOnlySpan<byte> signature, Address signer);
 }

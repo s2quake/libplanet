@@ -1,12 +1,9 @@
 using System.ComponentModel;
 using Libplanet.Serialization;
-using Libplanet.Types;
-using Libplanet.Types.Tests;
-using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests;
+namespace Libplanet.Types.Tests;
 
-public class AddressTest
+public sealed partial class AddressTest
 {
     [Fact]
     public void ConstructWithImmutableArray()
@@ -225,6 +222,7 @@ public class AddressTest
     public void JsonSerialization()
     {
         var address = Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
-        AssertJsonSerializable(address, "\"0123456789ABcdefABcdEfABcdEFabcDEFabCDEF\"");
+        var json = JsonUtility.Serialize(address);
+        Assert.Equal("\"0123456789ABcdefABcdEfABcdEFabcDEFabCDEF\"", json);
     }
 }
