@@ -1,26 +1,17 @@
-using Libplanet.Net.Messages;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Transports
+namespace Libplanet.Net.Transports;
+
+public class InvalidCredentialException : Exception
 {
-    /// <summary>
-    /// An <see cref="Exception"/> that is thrown when a provided credential is invalid
-    /// when signing an encoded <see cref="Message"/>.
-    /// </summary>
-    public class InvalidCredentialException : Exception
+    internal InvalidCredentialException(string message, PublicKey expected, PublicKey actual)
+        : base(message)
     {
-        internal InvalidCredentialException(
-            string message,
-            PublicKey expected,
-            PublicKey actual)
-            : base(message)
-        {
-            Expected = expected;
-            Actual = actual;
-        }
-
-        public PublicKey Expected { get; private set; }
-
-        public PublicKey Actual { get; private set; }
+        Expected = expected;
+        Actual = actual;
     }
+
+    public PublicKey Expected { get; }
+
+    public PublicKey Actual { get; }
 }
