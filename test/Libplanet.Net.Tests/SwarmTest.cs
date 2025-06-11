@@ -469,8 +469,8 @@ namespace Libplanet.Net.Tests
 
                 await roundOneProposed.WaitAsync();
 
-                await AssertThatEventually(() => swarms[0].BlockChain.Tip.Height == 1, int.MaxValue);
-                Assert.Equal(1, swarms[0].BlockChain.BlockCommits[1].Round);
+                await AssertThatEventually(() => swarms[0].Blockchain.Tip.Height == 1, int.MaxValue);
+                Assert.Equal(1, swarms[0].Blockchain.BlockCommits[1].Round);
             }
             finally
             {
@@ -487,11 +487,11 @@ namespace Libplanet.Net.Tests
 
             Swarm swarmA =
                 await CreateSwarm(keyA);
-            Block genesis = swarmA.BlockChain.Genesis;
+            Block genesis = swarmA.Blockchain.Genesis;
             Swarm swarmB =
                 await CreateSwarm(genesis: genesis);
 
-            Blockchain chainA = swarmA.BlockChain;
+            Blockchain chainA = swarmA.Blockchain;
 
             Block block1 = chainA.ProposeBlock(keyA);
             chainA.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -535,12 +535,12 @@ namespace Libplanet.Net.Tests
             var keyB = new PrivateKey();
 
             Swarm swarmA = await CreateSwarm(keyA);
-            Block genesis = swarmA.BlockChain.Genesis;
+            Block genesis = swarmA.Blockchain.Genesis;
             Swarm swarmB =
                 await CreateSwarm(keyB, genesis: genesis);
 
-            Blockchain chainA = swarmA.BlockChain;
-            Blockchain chainB = swarmB.BlockChain;
+            Blockchain chainA = swarmA.Blockchain;
+            Blockchain chainB = swarmB.Blockchain;
 
             Block block1 = chainA.ProposeBlock(keyA);
             chainA.Append(block1, TestUtils.CreateBlockCommit(block1));
@@ -592,10 +592,10 @@ namespace Libplanet.Net.Tests
             var keyB = new PrivateKey();
 
             Swarm swarmA = await CreateSwarm();
-            Block genesis = swarmA.BlockChain.Genesis;
+            Block genesis = swarmA.Blockchain.Genesis;
             Swarm swarmB =
                 await CreateSwarm(keyB, genesis: genesis);
-            Blockchain chainB = swarmB.BlockChain;
+            Blockchain chainB = swarmB.Blockchain;
 
             var txKey = new PrivateKey();
             Transaction tx = new TransactionMetadata
@@ -639,8 +639,8 @@ namespace Libplanet.Net.Tests
             var policy = new BlockchainOptions();
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
-            var apv = ProtocolVersion.Create(key, 1);
-            var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
+            var apv = Protocol.Create(key, 1);
+            var apvOptions = new ProtocolOptions() { Protocol = apv };
             var hostOptions = new HostOptions
             {
                 Host = IPAddress.Loopback.ToString(),
@@ -802,8 +802,8 @@ namespace Libplanet.Net.Tests
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var block = seed.BlockChain.ProposeBlock(seedKey);
-                    seed.BlockChain.Append(block, TestUtils.CreateBlockCommit(block));
+                    var block = seed.Blockchain.ProposeBlock(seedKey);
+                    seed.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
                     seed.BroadcastBlock(block);
                     await Task.Delay(1000, cancellationToken);
                 }
@@ -829,10 +829,10 @@ namespace Libplanet.Net.Tests
                 cts.Cancel();
                 await Task.Delay(1000);
 
-                Assert.NotEqual(swarmA.BlockChain.Genesis, swarmA.BlockChain.Tip);
+                Assert.NotEqual(swarmA.Blockchain.Genesis, swarmA.Blockchain.Tip);
                 Assert.Contains(
-                    swarmA.BlockChain.Tip.BlockHash,
-                    seed.BlockChain.Blocks.Keys);
+                    swarmA.Blockchain.Tip.BlockHash,
+                    seed.Blockchain.Blocks.Keys);
             }
             finally
             {
@@ -858,30 +858,30 @@ namespace Libplanet.Net.Tests
             var addr = miner1.Address;
             var item = "foo";
 
-            miner1.BlockChain.StagedTransactions.Add(submission: new()
+            miner1.Blockchain.StagedTransactions.Add(submission: new()
             {
                 Signer = privKey,
                 Actions = [DumbAction.Create((addr, item))],
             });
-            Block block1 = miner1.BlockChain.ProposeBlock(key1);
-            miner1.BlockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
-            var miner1TipHash = miner1.BlockChain.Tip.BlockHash;
+            Block block1 = miner1.Blockchain.ProposeBlock(key1);
+            miner1.Blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
+            var miner1TipHash = miner1.Blockchain.Tip.BlockHash;
 
-            miner2.BlockChain.StagedTransactions.Add(submission: new()
+            miner2.Blockchain.StagedTransactions.Add(submission: new()
             {
                 Signer = privKey,
                 Actions = [DumbAction.Create((addr, item))],
             });
-            Block block2 = miner2.BlockChain.ProposeBlock(key2);
-            miner2.BlockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
+            Block block2 = miner2.Blockchain.ProposeBlock(key2);
+            miner2.Blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
 
-            miner2.BlockChain.StagedTransactions.Add(submission: new()
+            miner2.Blockchain.StagedTransactions.Add(submission: new()
             {
                 Signer = privKey,
                 Actions = [DumbAction.Create((addr, item))],
             });
-            var latest = miner2.BlockChain.ProposeBlock(key2);
-            miner2.BlockChain.Append(latest, TestUtils.CreateBlockCommit(latest));
+            var latest = miner2.Blockchain.ProposeBlock(key2);
+            miner2.Blockchain.Append(latest, TestUtils.CreateBlockCommit(latest));
 
             await StartAsync(miner1);
             await StartAsync(miner2);
@@ -891,7 +891,7 @@ namespace Libplanet.Net.Tests
             miner2.BroadcastBlock(latest);
 
             await Task.Delay(5_000);
-            Assert.Equal(miner1TipHash, miner1.BlockChain.Tip.BlockHash);
+            Assert.Equal(miner1TipHash, miner1.Blockchain.Tip.BlockHash);
 
             CleaningSwarm(miner1);
             CleaningSwarm(miner2);
@@ -936,11 +936,11 @@ namespace Libplanet.Net.Tests
 
             try
             {
-                var validTx = swarmA.BlockChain.StagedTransactions.Add(submission: new()
+                var validTx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
                     Signer = validKey,
                 });
-                var invalidTx = swarmA.BlockChain.StagedTransactions.Add(submission: new()
+                var invalidTx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
                     Signer = invalidKey,
                 });
@@ -953,12 +953,12 @@ namespace Libplanet.Net.Tests
                 swarmA.BroadcastTxs(new[] { validTx, invalidTx });
                 await swarmB.TxReceived.WaitAsync();
 
-                Assert.Equal(swarmB.BlockChain.Transactions[validTx.Id], validTx);
+                Assert.Equal(swarmB.Blockchain.Transactions[validTx.Id], validTx);
                 Assert.Throws<KeyNotFoundException>(
-                    () => swarmB.BlockChain.Transactions[invalidTx.Id]);
+                    () => swarmB.Blockchain.Transactions[invalidTx.Id]);
 
-                Assert.Contains(validTx.Id, swarmB.BlockChain.StagedTransactions.Keys);
-                Assert.DoesNotContain(invalidTx.Id, swarmB.BlockChain.StagedTransactions.Keys);
+                Assert.Contains(validTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
+                Assert.DoesNotContain(invalidTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
             }
             finally
             {
@@ -1007,7 +1007,7 @@ namespace Libplanet.Net.Tests
 
             try
             {
-                var tx = swarmA.BlockChain.StagedTransactions.Add(submission: new()
+                var tx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
                     Signer = validKey,
                 });
@@ -1020,8 +1020,8 @@ namespace Libplanet.Net.Tests
                 swarmA.BroadcastTxs(new[] { tx });
                 await swarmB.TxReceived.WaitAsync();
 
-                Assert.Throws<KeyNotFoundException>(() => swarmB.BlockChain.Transactions[tx.Id]);
-                Assert.DoesNotContain(tx.Id, swarmB.BlockChain.StagedTransactions.Keys);
+                Assert.Throws<KeyNotFoundException>(() => swarmB.Blockchain.Transactions[tx.Id]);
+                Assert.DoesNotContain(tx.Id, swarmB.Blockchain.StagedTransactions.Keys);
             }
             finally
             {
@@ -1082,8 +1082,8 @@ namespace Libplanet.Net.Tests
                 await swarmB.AddPeersAsync(new[] { swarmA.AsPeer }, null);
                 await swarmC.AddPeersAsync(new[] { swarmA.AsPeer }, null);
 
-                var block = swarmA.BlockChain.ProposeBlock(privateKeyA);
-                swarmA.BlockChain.Append(block, TestUtils.CreateBlockCommit(block));
+                var block = swarmA.Blockchain.ProposeBlock(privateKeyA);
+                swarmA.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
 
                 Task.WaitAll(new[]
                 {
@@ -1267,7 +1267,7 @@ namespace Libplanet.Net.Tests
 
             receiver.FindNextHashesChunkSize = 8;
             sender.FindNextHashesChunkSize = 8;
-            Blockchain chain = sender.BlockChain;
+            Blockchain chain = sender.Blockchain;
 
             for (int i = 0; i < 6; i++)
             {
@@ -1275,19 +1275,19 @@ namespace Libplanet.Net.Tests
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Height);
+            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.Blockchain.Tip.Height);
 
             try
             {
                 await BootstrapAsync(sender, receiver.AsPeer);
 
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
                 Assert.Equal(
                     7,
-                    receiver.BlockChain.Blocks.Count);
+                    receiver.Blockchain.Blocks.Count);
             }
             finally
             {
@@ -1306,7 +1306,7 @@ namespace Libplanet.Net.Tests
 
             receiver.FindNextHashesChunkSize = 2;
             sender.FindNextHashesChunkSize = 2;
-            Blockchain chain = sender.BlockChain;
+            Blockchain chain = sender.Blockchain;
 
             for (int i = 0; i < 6; i++)
             {
@@ -1314,20 +1314,20 @@ namespace Libplanet.Net.Tests
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Height);
+            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.Blockchain.Tip.Height);
 
             try
             {
                 await BootstrapAsync(sender, receiver.AsPeer);
 
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
+                Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
                 Assert.Equal(
                     2,
-                    receiver.BlockChain.Blocks.Count);
+                    receiver.Blockchain.Blocks.Count);
             }
             finally
             {
@@ -1346,7 +1346,7 @@ namespace Libplanet.Net.Tests
 
             receiver.FindNextHashesChunkSize = 3;
             sender.FindNextHashesChunkSize = 3;
-            Blockchain chain = sender.BlockChain;
+            Blockchain chain = sender.Blockchain;
 
             for (int i = 0; i < 6; i++)
             {
@@ -1354,41 +1354,41 @@ namespace Libplanet.Net.Tests
                 chain.Append(block, TestUtils.CreateBlockCommit(block));
             }
 
-            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.BlockChain.Tip.Height);
+            Log.Debug("Sender's BlockChain Tip index: #{index}", sender.Blockchain.Tip.Height);
 
             try
             {
                 await BootstrapAsync(sender, receiver.AsPeer);
 
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
                 Assert.Equal(
                     3,
-                    receiver.BlockChain.Blocks.Count);
+                    receiver.Blockchain.Blocks.Count);
 
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
                 Assert.Equal(
                     5,
-                    receiver.BlockChain.Blocks.Count);
+                    receiver.Blockchain.Blocks.Count);
 
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
 
                 await receiver.BlockReceived.WaitAsync();
                 await receiver.BlockAppended.WaitAsync();
-                Log.Debug("Count: {Count}", receiver.BlockChain.Blocks.Count);
-                sender.BroadcastBlock(sender.BlockChain.Tip);
+                Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
+                sender.BroadcastBlock(sender.Blockchain.Tip);
                 Assert.Equal(
                     7,
-                    receiver.BlockChain.Blocks.Count);
+                    receiver.Blockchain.Blocks.Count);
             }
             finally
             {
@@ -1423,8 +1423,8 @@ namespace Libplanet.Net.Tests
                     new PeerChainState(swarm2.AsPeer, 0),
                     peerChainState.First());
 
-                Block block = swarm2.BlockChain.ProposeBlock(key2);
-                swarm2.BlockChain.Append(block, TestUtils.CreateBlockCommit(block));
+                Block block = swarm2.Blockchain.ProposeBlock(key2);
+                swarm2.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
                 peerChainState = await swarm1.GetPeerChainStateAsync(
                     TimeSpan.FromSeconds(1), default);
                 Assert.Equal(
@@ -1488,7 +1488,7 @@ namespace Libplanet.Net.Tests
                     MaxTransferBlocksTaskCount = 3,
                 },
             };
-            var apvOptions = new AppProtocolVersionOptions();
+            var apvOptions = new ProtocolOptions();
 
             var key = new PrivateKey();
             Swarm swarm = await CreateSwarm(
@@ -1506,7 +1506,7 @@ namespace Libplanet.Net.Tests
                 _ = transport.StartAsync();
                 await transport.WaitForRunningAsync();
                 var tasks = new List<Task>();
-                var content = new GetBlocksMessage { BlockHashes = [swarm.BlockChain.Genesis.BlockHash] };
+                var content = new GetBlocksMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(
@@ -1549,7 +1549,7 @@ namespace Libplanet.Net.Tests
                     MaxTransferTxsTaskCount = 3,
                 },
             };
-            var apvOptions = new AppProtocolVersionOptions();
+            var apvOptions = new ProtocolOptions();
 
             var key = new PrivateKey();
             Swarm swarm = await CreateSwarm(

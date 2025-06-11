@@ -26,11 +26,11 @@ public partial class Swarm
                         nameof(GetChainStatusMessage));
 
                     // This is based on the assumption that genesis block always exists.
-                    Block tip = BlockChain.Tip;
+                    Block tip = Blockchain.Tip;
                     var chainStatus = new ChainStatusMessage
                     {
                         ProtocolVersion = tip.Version,
-                        GenesisHash = BlockChain.Genesis.BlockHash,
+                        GenesisHash = Blockchain.Genesis.BlockHash,
                         TipIndex = tip.Height,
                         TipHash = tip.BlockHash,
                     };
@@ -47,8 +47,8 @@ public partial class Swarm
                         "Received a {MessageType} message locator [{LocatorHead}]",
                         nameof(GetBlockHashesMessage),
                         getBlockHashes.BlockHash);
-                    var height = BlockChain.Blocks[getBlockHashes.BlockHash].Height;
-                    var hashes = BlockChain.Blocks[height..].Select(item => item.BlockHash).ToArray();
+                    var height = Blockchain.Blocks[getBlockHashes.BlockHash].Height;
+                    var hashes = Blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
 
                     // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
                     //     getBlockHashes.Locator,
@@ -109,7 +109,7 @@ public partial class Swarm
     private void ProcessBlockHeader(Message message)
     {
         var blockHeaderMsg = (BlockHeaderMessage)message.Content;
-        if (!blockHeaderMsg.GenesisHash.Equals(BlockChain.Genesis.BlockHash))
+        if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
         {
             _logger.Debug(
                 "{MessageType} message was sent from a peer {Peer} with " +
@@ -166,7 +166,6 @@ public partial class Swarm
                 header.BlockHash,
                 message.Remote);
             BlockDemandTable.Add(
-                BlockChain,
                 IsBlockNeeded,
                 new BlockDemand(header, message.Remote, DateTimeOffset.UtcNow));
             return;
@@ -179,8 +178,8 @@ public partial class Swarm
                 header.Height,
                 header.BlockHash,
                 message.Remote,
-                BlockChain.Tip.Height,
-                BlockChain.Tip.BlockHash);
+                Blockchain.Tip.Height,
+                Blockchain.Tip.BlockHash);
             return;
         }
     }
@@ -203,7 +202,7 @@ public partial class Swarm
             {
                 try
                 {
-                    Transaction tx = BlockChain.Transactions[txid];
+                    Transaction tx = Blockchain.Transactions[txid];
 
                     if (tx is null)
                     {
@@ -277,11 +276,11 @@ public partial class Swarm
             foreach (BlockHash hash in hashes)
             {
                 _logger.Verbose(logMsg, count, total, hash, reqId);
-                if (BlockChain.Blocks.TryGetValue(hash, out var block))
+                if (Blockchain.Blocks.TryGetValue(hash, out var block))
                 {
                     byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
                     payloads.Add(blockPayload);
-                    byte[] commitPayload = BlockChain.BlockCommits[block.BlockHash] is { } commit
+                    byte[] commitPayload = Blockchain.BlockCommits[block.BlockHash] is { } commit
                         ? ModelSerializer.SerializeToBytes(commit)
                         : Array.Empty<byte>();
                     payloads.Add(commitPayload);

@@ -93,7 +93,7 @@ public class ApvCommand
             // extraValue = dict;
         }
 
-        ProtocolVersion v = new ProtocolVersionMetadata
+        Protocol v = new ProtocolMetadata
         {
             Version = version,
             Signer = key.Address,
@@ -121,7 +121,7 @@ public class ApvCommand
                 "but only -p/--public-key options.")]
         bool noKeyStore = false)
     {
-        ProtocolVersion v = ParseAppProtocolVersionToken(token);
+        Protocol v = ParseAppProtocolVersionToken(token);
 
         if (publicKeys is { } pubKeys)
         {
@@ -183,7 +183,7 @@ public class ApvCommand
         [Option(Description = "Print information of given token as JSON.")]
         bool json = false)
     {
-        ProtocolVersion v = ParseAppProtocolVersionToken(token);
+        Protocol v = ParseAppProtocolVersionToken(token);
 
         var data = new List<(string, string)>
         {
@@ -275,7 +275,7 @@ public class ApvCommand
         string peerInfo)
     {
         Peer peer;
-        ProtocolVersion apv;
+        Protocol apv;
 
         try
         {
@@ -300,7 +300,7 @@ public class ApvCommand
         Console.WriteLine(apv.Token);
     }
 
-    private ProtocolVersion ParseAppProtocolVersionToken(string? token)
+    private Protocol ParseAppProtocolVersionToken(string? token)
     {
         if (token is null)
         {
@@ -309,7 +309,7 @@ public class ApvCommand
 
         try
         {
-            return ProtocolVersion.FromToken(token.Trim());
+            return Protocol.FromToken(token.Trim());
         }
         catch (FormatException e)
         {

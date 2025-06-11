@@ -5,9 +5,9 @@ using Libplanet.Types;
 namespace Libplanet.Net;
 
 [Model(Version = 1, TypeName = "ProtocolMetadata")]
-public readonly partial record struct ProtocolVersionMetadata
+public readonly partial record struct ProtocolMetadata
 {
-    public ProtocolVersionMetadata()
+    public ProtocolMetadata()
     {
     }
 
@@ -23,7 +23,7 @@ public readonly partial record struct ProtocolVersionMetadata
     [NotDefault]
     public ImmutableArray<byte> Extra { get; init; } = [];
 
-    public ProtocolVersion Sign(PrivateKey signer)
+    public Protocol Sign(PrivateKey signer)
     {
         var options = new ModelOptions
         {
@@ -31,6 +31,6 @@ public readonly partial record struct ProtocolVersionMetadata
         };
         var bytes = ModelSerializer.SerializeToBytes(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
-        return new ProtocolVersion { Metadata = this, Signature = signature };
+        return new Protocol { Metadata = this, Signature = signature };
     }
 }

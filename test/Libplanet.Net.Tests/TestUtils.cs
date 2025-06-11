@@ -45,7 +45,7 @@ namespace Libplanet.Net.Tests
             },
         };
 
-        public static ProtocolVersion AppProtocolVersion = ProtocolVersion.FromToken(
+        public static Protocol AppProtocolVersion = Protocol.FromToken(
             "1/54684Ac4ee5B933e72144C4968BEa26056880d71/MEQCICGonYW" +
             ".X8y4JpPIyccPYWGrsCXWA95sBfextucz3lOyAiBUoY5t8aYNPT0lwYwC0MSkK3HT7T" +
             ".lGJJW13dJi+06nw==");
@@ -344,8 +344,8 @@ namespace Libplanet.Net.Tests
             key ??= PrivateKeys[1];
             validatorPeers ??= Peers;
 
-            var apvOption = new AppProtocolVersionOptions
-            { AppProtocolVersion = AppProtocolVersion };
+            var apvOption = new ProtocolOptions
+            { Protocol = AppProtocolVersion };
             var hostOption = new HostOptions
             {
                 Host = host,

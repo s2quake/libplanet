@@ -44,7 +44,7 @@ namespace Libplanet.Net.Tests
                     genesis: genesisBlock,
                     consensusReactorOption: reactorOptions[index]));
             var swarms = await Task.WhenAll(swarmTasks);
-            var blockChains = swarms.Select(item => item.BlockChain).ToArray();
+            var blockChains = swarms.Select(item => item.Blockchain).ToArray();
 
             try
             {

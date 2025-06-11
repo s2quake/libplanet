@@ -16,7 +16,7 @@ public class MessageTest
     {
         var privateKey = new PrivateKey();
         var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
-        var apv = ProtocolVersion.Create(new PrivateKey(), 1);
+        var apv = Protocol.Create(new PrivateKey(), 1);
         var dateTimeOffset = DateTimeOffset.UtcNow;
         Block genesis = ProposeGenesisBlock(GenesisProposer);
         var messageContent = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };
@@ -38,7 +38,7 @@ public class MessageTest
     {
         var ping = new PingMessage();
         var privateKey = new PrivateKey();
-        var apv = ProtocolVersion.Create(new PrivateKey(), 1);
+        var apv = Protocol.Create(new PrivateKey(), 1);
         var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
         var timestamp = DateTimeOffset.UtcNow;
         var badPrivateKey = new PrivateKey();
@@ -61,7 +61,7 @@ public class MessageTest
         var privateKey = new PrivateKey();
         var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
         var timestamp = DateTimeOffset.UtcNow;
-        var apv = ProtocolVersion.Create(new PrivateKey(), 1);
+        var apv = Protocol.Create(new PrivateKey(), 1);
         var ping = new PingMessage();
         var codec = new NetMQMessageCodec();
         var netMqMessage = codec.Encode(
@@ -101,7 +101,7 @@ public class MessageTest
         var codec = new NetMQMessageCodec();
         var message = new PingMessage();
         var privateKey = new PrivateKey();
-        var apv = ProtocolVersion.Create(new PrivateKey(), 1);
+        var apv = Protocol.Create(new PrivateKey(), 1);
         Assert.Throws<ArgumentException>(
             () => codec.Decode(new NetMQMessage(), true));
     }
@@ -111,7 +111,7 @@ public class MessageTest
     {
         var privateKey = new PrivateKey();
         var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("1.2.3.4", 1234) };
-        var apv = ProtocolVersion.Create(new PrivateKey(), 1);
+        var apv = Protocol.Create(new PrivateKey(), 1);
         var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);
         Block genesis = ProposeGenesisBlock(GenesisProposer);
         var message = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };

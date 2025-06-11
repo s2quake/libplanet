@@ -42,7 +42,7 @@ public class PeerTest
     public async Task PingAsync_TestAsync()
     {
         var pongMsg = new PongMessage();
-        var apv = ProtocolVersion.Create(new(), 0);
+        var apv = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new Message
         {
@@ -74,7 +74,7 @@ public class PeerTest
     public async Task PingAsync_Cancel_TestAsync()
     {
         var pongMsg = new PongMessage();
-        var apv = ProtocolVersion.Create(new(), 0);
+        var apv = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new Message
         {

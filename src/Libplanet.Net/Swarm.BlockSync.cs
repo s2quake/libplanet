@@ -12,11 +12,11 @@ namespace Libplanet.Net
         /// It is empty when the <see cref="Swarm"/> does not have any block to demand.
         /// <seealso cref="BlockDemandTable"/>
         /// </summary>
-        public BlockDemandTable BlockDemandTable { get; private set; }
+        public BlockDemandDictionary BlockDemandTable { get; private set; }
 
         /// <summary>
         /// This is a table of waiting <see cref="Block"/>s
-        /// to enter the <see cref="BlockChain"/>.
+        /// to enter the <see cref="Blockchain"/>.
         /// <seealso cref="BlockCandidateTable"/>
         /// </summary>
         public BlockCandidateTable BlockCandidateTable { get; private set; }
@@ -66,14 +66,14 @@ namespace Libplanet.Net
             }
 
             long totalBlocksToDownload = 0L;
-            Block tempTip = BlockChain.Tip;
+            Block tempTip = Blockchain.Tip;
             var blocks = new List<(Block, BlockCommit)>();
 
             try
             {
                 // NOTE: demandBlockHashes is always non-empty.
                 (var peer, var demandBlockHashes) = await GetDemandBlockHashes(
-                    BlockChain,
+                    Blockchain,
                     peersWithBlockExcerpt,
                     cancellationToken);
                 totalBlocksToDownload = demandBlockHashes.Count;
@@ -114,7 +114,7 @@ namespace Libplanet.Net
                     try
                     {
                         var branch = blocks.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
-                        BlockCandidateTable.Add(BlockChain.Tip, branch);
+                        BlockCandidateTable.Add(Blockchain.Tip, branch);
                         BlockReceived.Set();
                     }
                     catch (ArgumentException ae)
@@ -142,8 +142,8 @@ namespace Libplanet.Net
                     _logger.Debug(
                         "{MethodName}() blockDemand count: {BlockDemandCount}",
                         nameof(FillBlocksAsync),
-                        BlockDemandTable.Demands.Count);
-                    foreach (var blockDemand in BlockDemandTable.Demands.Values)
+                        BlockDemandTable.Count);
+                    foreach (var blockDemand in BlockDemandTable.Values)
                     {
                         BlockDemandTable.Remove(blockDemand.Peer);
                         _ = ProcessBlockDemandAsync(
@@ -157,7 +157,7 @@ namespace Libplanet.Net
                     continue;
                 }
 
-                BlockDemandTable.Cleanup(BlockChain, IsBlockNeeded);
+                BlockDemandTable.Cleanup(IsBlockNeeded);
             }
 
             _logger.Debug("{MethodName}() has finished", nameof(FillBlocksAsync));
@@ -169,14 +169,14 @@ namespace Libplanet.Net
             int maximumPollPeers,
             CancellationToken cancellationToken)
         {
-            BlockExcerpt lastTip = BlockChain.Tip;
+            BlockExcerpt lastTip = Blockchain.Tip;
             DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (!lastTip.BlockHash.Equals(BlockChain.Tip.BlockHash))
+                if (!lastTip.BlockHash.Equals(Blockchain.Tip.BlockHash))
                 {
                     lastUpdated = DateTimeOffset.UtcNow;
-                    lastTip = BlockChain.Tip;
+                    lastTip = Blockchain.Tip;
                 }
                 else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
                 {

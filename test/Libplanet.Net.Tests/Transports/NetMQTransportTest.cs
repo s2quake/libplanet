@@ -57,7 +57,7 @@ namespace Libplanet.Net.Tests.Transports
                 NetMQConfig.MaxSockets = 12;
                 NetMQTransport transport = await NetMQTransport.Create(
                     new PrivateKey(),
-                    new AppProtocolVersionOptions(),
+                    new ProtocolOptions(),
                     new HostOptions
                     {
                         Host = IPAddress.Loopback.ToString(),
@@ -135,7 +135,7 @@ namespace Libplanet.Net.Tests.Transports
 
         private Task<NetMQTransport> CreateNetMQTransport(
             PrivateKey privateKey,
-            AppProtocolVersionOptions appProtocolVersionOptions,
+            ProtocolOptions appProtocolVersionOptions,
             HostOptions hostOptions,
             TimeSpan? messageTimestampBuffer)
         {

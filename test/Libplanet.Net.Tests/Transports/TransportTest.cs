@@ -22,7 +22,7 @@ namespace Libplanet.Net.Tests.Transports
         protected ILogger Logger { get; set; }
 
         #pragma warning disable MEN002
-        protected Func<PrivateKey, AppProtocolVersionOptions, HostOptions, TimeSpan?, Task<ITransport>> TransportConstructor { get; set; }
+        protected Func<PrivateKey, ProtocolOptions, HostOptions, TimeSpan?, Task<ITransport>> TransportConstructor { get; set; }
         #pragma warning restore MEN002
 
         [SkippableFact(Timeout = Timeout)]
@@ -429,7 +429,7 @@ namespace Libplanet.Net.Tests.Transports
 
         private Task<ITransport> CreateTransportAsync(
             PrivateKey privateKey = null,
-            AppProtocolVersionOptions appProtocolVersionOptions = null,
+            ProtocolOptions appProtocolVersionOptions = null,
             HostOptions hostOptions = null,
             TimeSpan? messageTimestampBuffer = null)
         {
@@ -441,7 +441,7 @@ namespace Libplanet.Net.Tests.Transports
             privateKey = privateKey ?? new PrivateKey();
             return TransportConstructor(
                 privateKey,
-                appProtocolVersionOptions ?? new AppProtocolVersionOptions(),
+                appProtocolVersionOptions ?? new ProtocolOptions(),
                 hostOptions ?? new HostOptions
                 {
                     Host = IPAddress.Loopback.ToString(),

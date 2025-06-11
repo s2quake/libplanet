@@ -79,7 +79,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
         var versionToken = remains[(int)MessageFrame.Version].ConvertToString();
 
-        ProtocolVersion version = ProtocolVersion.FromToken(versionToken);
+        Protocol version = Protocol.FromToken(versionToken);
         var remote = ModelSerializer.DeserializeFromBytes<Peer>(remains[(int)MessageFrame.Peer].ToByteArray());
 
         var type =

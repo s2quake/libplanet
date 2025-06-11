@@ -20,7 +20,7 @@ namespace Libplanet.Net.Tests.Messages
             var messageContent = new BlockHashesMessage { Hashes = [.. blockHashes] };
             Assert.Equal(blockHashes, messageContent.Hashes);
             var privateKey = new PrivateKey();
-            ProtocolVersion apv = ProtocolVersion.Create(privateKey, 3);
+            Protocol apv = Protocol.Create(privateKey, 3);
             var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
             var messageCodec = new NetMQMessageCodec();
             NetMQMessage encoded = messageCodec.Encode(

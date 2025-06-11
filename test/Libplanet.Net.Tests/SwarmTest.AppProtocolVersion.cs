@@ -12,10 +12,10 @@ namespace Libplanet.Net.Tests
         public async Task DetectAppProtocolVersion()
         {
             var signer = new PrivateKey();
-            AppProtocolVersionOptions v2 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = ProtocolVersion.Create(signer, 2) };
-            AppProtocolVersionOptions v3 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = ProtocolVersion.Create(signer, 3) };
+            ProtocolOptions v2 = new ProtocolOptions()
+                { Protocol = Protocol.Create(signer, 2) };
+            ProtocolOptions v3 = new ProtocolOptions()
+                { Protocol = Protocol.Create(signer, 3) };
             var a = await CreateSwarm(appProtocolVersionOptions: v2);
             var b = await CreateSwarm(appProtocolVersionOptions: v3);
             var c = await CreateSwarm(appProtocolVersionOptions: v2);
@@ -55,15 +55,14 @@ namespace Libplanet.Net.Tests
             var isCalled = false;
 
             var signer = new PrivateKey();
-            AppProtocolVersionOptions v1 = new AppProtocolVersionOptions()
+            ProtocolOptions v1 = new ProtocolOptions()
             {
-                AppProtocolVersion = ProtocolVersion.Create(signer, 1),
-                TrustedAppProtocolVersionSigners =
-                    new HashSet<PublicKey>() { signer.PublicKey }.ToImmutableHashSet(),
+                Protocol = Protocol.Create(signer, 1),
+                AllowedSigners = [signer.Address],
                 DifferentAppProtocolVersionEncountered = (_, ver, __) => { isCalled = true; },
             };
-            AppProtocolVersionOptions v2 = new AppProtocolVersionOptions()
-                { AppProtocolVersion = ProtocolVersion.Create(signer, 2) };
+            ProtocolOptions v2 = new ProtocolOptions()
+                { Protocol = Protocol.Create(signer, 2) };
             var a = await CreateSwarm(appProtocolVersionOptions: v1);
             var b = await CreateSwarm(appProtocolVersionOptions: v2);
 
@@ -89,63 +88,63 @@ namespace Libplanet.Net.Tests
         public async Task IgnoreUntrustedAppProtocolVersion()
         {
             var signer = new PrivateKey();
-            ProtocolVersion older = ProtocolVersion.Create(signer, 2);
-            ProtocolVersion newer = ProtocolVersion.Create(signer, 3);
+            Protocol older = Protocol.Create(signer, 2);
+            Protocol newer = Protocol.Create(signer, 3);
 
             var untrustedSigner = new PrivateKey();
-            ProtocolVersion untrustedOlder = ProtocolVersion.Create(untrustedSigner, 2);
-            ProtocolVersion untrustedNewer = ProtocolVersion.Create(untrustedSigner, 3);
+            Protocol untrustedOlder = Protocol.Create(untrustedSigner, 2);
+            Protocol untrustedNewer = Protocol.Create(untrustedSigner, 3);
 
             _output.WriteLine("Trusted version signer: {0}", signer.Address);
             _output.WriteLine("Untrusted version signer: {0}", untrustedSigner.Address);
 
-            var logs = new ConcurrentDictionary<Peer, ProtocolVersion>();
+            var logs = new ConcurrentDictionary<Peer, Protocol>();
 
             void DifferentAppProtocolVersionEncountered(
                 Peer peer,
-                ProtocolVersion peerVersion,
-                ProtocolVersion localVersion)
+                Protocol peerVersion,
+                Protocol localVersion)
             {
                 logs[peer] = peerVersion;
             }
 
-            var trustedSigners = new[] { signer.PublicKey }.ToImmutableHashSet();
-            var untrustedSigners = new[] { untrustedSigner.PublicKey }.ToImmutableHashSet();
-            var optionsA = new AppProtocolVersionOptions()
+            var trustedSigners = new[] { signer.Address }.ToImmutableSortedSet();
+            var untrustedSigners = new[] { untrustedSigner.Address }.ToImmutableSortedSet();
+            var optionsA = new ProtocolOptions()
             {
-                AppProtocolVersion = older,
-                TrustedAppProtocolVersionSigners = trustedSigners,
+                Protocol = older,
+                AllowedSigners = trustedSigners,
                 DifferentAppProtocolVersionEncountered = DifferentAppProtocolVersionEncountered,
             };
             var a = await CreateSwarm(appProtocolVersionOptions: optionsA);
-            var optionsB = new AppProtocolVersionOptions()
+            var optionsB = new ProtocolOptions()
             {
-                AppProtocolVersion = newer,
-                TrustedAppProtocolVersionSigners = trustedSigners,
+                Protocol = newer,
+                AllowedSigners = trustedSigners,
             };
             var b = await CreateSwarm(appProtocolVersionOptions: optionsB);
-            var optionsC = new AppProtocolVersionOptions()
+            var optionsC = new ProtocolOptions()
             {
-                AppProtocolVersion = older,
-                TrustedAppProtocolVersionSigners = trustedSigners,
+                Protocol = older,
+                AllowedSigners = trustedSigners,
             };
             var c = await CreateSwarm(appProtocolVersionOptions: optionsC);
-            var optionsD = new AppProtocolVersionOptions()
+            var optionsD = new ProtocolOptions()
             {
-                AppProtocolVersion = newer,
-                TrustedAppProtocolVersionSigners = trustedSigners,
+                Protocol = newer,
+                AllowedSigners = trustedSigners,
             };
             var d = await CreateSwarm(appProtocolVersionOptions: optionsD);
-            var optionsE = new AppProtocolVersionOptions()
+            var optionsE = new ProtocolOptions()
             {
-                AppProtocolVersion = untrustedOlder,
-                TrustedAppProtocolVersionSigners = untrustedSigners,
+                Protocol = untrustedOlder,
+                AllowedSigners = untrustedSigners,
             };
             var e = await CreateSwarm(appProtocolVersionOptions: optionsE);
-            var optionsF = new AppProtocolVersionOptions()
+            var optionsF = new ProtocolOptions()
             {
-                AppProtocolVersion = untrustedNewer,
-                TrustedAppProtocolVersionSigners = untrustedSigners,
+                Protocol = untrustedNewer,
+                AllowedSigners = untrustedSigners,
             };
             var f = await CreateSwarm(appProtocolVersionOptions: optionsF);
 
@@ -170,7 +169,7 @@ namespace Libplanet.Net.Tests
                 Assert.Equal(new[] { d.AsPeer }, b.Peers.ToArray());
 
                 _output.WriteLine("Logged encountered peers:");
-                foreach (KeyValuePair<Peer, ProtocolVersion> kv in logs)
+                foreach (KeyValuePair<Peer, Protocol> kv in logs)
                 {
                     _output.WriteLine(
                         "{0}; {1}; {2} -> {3}",

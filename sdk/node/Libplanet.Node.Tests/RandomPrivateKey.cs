@@ -16,8 +16,8 @@ internal sealed class RandomPrivateKey
 
     public override string ToString() => ByteUtility.Hex(_privateKey.Bytes);
 
-    public ProtocolVersion ToAppProtocolVersion(int version)
+    public Protocol ToAppProtocolVersion(int version)
     {
-        return ProtocolVersion.Create(_privateKey, version);
+        return Protocol.Create(_privateKey, version);
     }
 }
