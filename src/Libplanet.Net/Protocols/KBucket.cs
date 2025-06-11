@@ -55,9 +55,9 @@ namespace Libplanet.Net.Protocols
 
         public void AddPeer(BoundPeer peer, DateTimeOffset updated)
         {
-            if (!_peerStates.AddOrUpdate(peer, new PeerState(peer, updated)))
+            if (!_peerStates.AddOrUpdate(peer, new PeerState { Peer = peer, LastUpdated = updated }))
             {
-                ReplacementCache.AddOrUpdate(peer, new PeerState(peer, updated));
+                ReplacementCache.AddOrUpdate(peer, new PeerState { Peer = peer, LastUpdated = updated });
             }
         }
 
@@ -123,8 +123,11 @@ namespace Libplanet.Net.Protocols
         {
             if (_peerStates.Get(peer.Address) is PeerState peerState)
             {
-                peerState.LastChecked = start;
-                peerState.Latency = end - start;
+                _peerStates.AddOrUpdate(peer.Address, peerState with
+                {
+                    LastChecked = start,
+                    Latency = end - start
+                });
             }
         }
     }

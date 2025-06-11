@@ -241,7 +241,7 @@ public partial class Swarm
             nameof(TxIdsMessage),
             txIdsMsg.Ids.Count());
 
-        TxCompletion.Demand(message.Remote, txIdsMsg.Ids);
+        TxCompletion.DemandMany(message.Remote, txIdsMsg.Ids);
     }
 
     private async Task TransferBlocksAsync(Message message)

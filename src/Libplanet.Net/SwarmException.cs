@@ -1,19 +1,18 @@
-namespace Libplanet.Net
+namespace Libplanet.Net;
+
+public class SwarmException : Exception
 {
-    public class SwarmException : Exception
+    public SwarmException()
     {
-        public SwarmException()
-        {
-        }
+    }
 
-        public SwarmException(string message)
-            : base(message)
-        {
-        }
+    public SwarmException(string message)
+        : base(message)
+    {
+    }
 
-        public SwarmException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+    public SwarmException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }
