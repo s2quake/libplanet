@@ -30,7 +30,7 @@ internal sealed class SwarmOptionsConfigurator(
         {
             var privateKey = PrivateKey.Parse(options.PrivateKey);
             var version = 0;
-            var protocol = new ProtocolMetadata
+            var protocol = new ProtocolVersionMetadata
             {
                 Version = version,
                 Signer = privateKey.Address,

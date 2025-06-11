@@ -5,7 +5,7 @@ namespace Libplanet.Net;
 public readonly record struct BlockDemand(
     BlockExcerpt BlockExcerpt, Peer Peer, DateTimeOffset Timestamp)
 {
-    public long Index => BlockExcerpt.Height;
+    public long Height => BlockExcerpt.Height;
 
     public BlockHash Hash => BlockExcerpt.BlockHash;
 

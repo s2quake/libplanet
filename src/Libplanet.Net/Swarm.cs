@@ -164,7 +164,7 @@ namespace Libplanet.Net
             Transport.TrustedAppProtocolVersionSigners;
 
         /// <inheritdoc cref="AppProtocolVersionOptions.AppProtocolVersion"/>
-        public Protocol AppProtocolVersion =>
+        public ProtocolVersion AppProtocolVersion =>
             Transport.AppProtocolVersion;
 
         internal RoutingTable RoutingTable { get; }

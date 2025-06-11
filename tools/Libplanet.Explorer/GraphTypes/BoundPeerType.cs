@@ -18,10 +18,6 @@ namespace Libplanet.Explorer.GraphTypes
                 name: "endPoint",
                 description: "The endpoint of the peer.",
                 resolve: ctx => ctx.Source.EndPoint.ToString());
-            Field<StringGraphType>(
-                name: "publicIpAddress",
-                description: "The address of the miner.",
-                resolve: ctx => ctx.Source.PublicIPAddress?.ToString());
         }
     }
 }
