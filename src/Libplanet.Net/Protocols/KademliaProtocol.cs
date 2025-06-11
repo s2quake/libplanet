@@ -36,14 +36,14 @@ public sealed class KademliaProtocol : IProtocol
     }
 
     public async Task BootstrapAsync(
-        IEnumerable<BoundPeer> bootstrapPeers,
+        IEnumerable<Peer> bootstrapPeers,
         TimeSpan? dialTimeout,
         int depth,
         CancellationToken cancellationToken)
     {
         var findPeerTasks = new List<Task>();
-        var history = new ConcurrentBag<BoundPeer>();
-        var dialHistory = new ConcurrentBag<BoundPeer>();
+        var history = new ConcurrentBag<Peer>();
+        var dialHistory = new ConcurrentBag<Peer>();
 
         if (!bootstrapPeers.Any())
         {
@@ -52,7 +52,7 @@ public sealed class KademliaProtocol : IProtocol
                 $"{nameof(BootstrapAsync)}() only when there are seed peers.");
         }
 
-        foreach (BoundPeer peer in bootstrapPeers.Where(peer => !peer.Address.Equals(_address)))
+        foreach (Peer peer in bootstrapPeers.Where(peer => !peer.Address.Equals(_address)))
         {
             // Guarantees at least one connection (seed peer)
             try
@@ -99,14 +99,14 @@ public sealed class KademliaProtocol : IProtocol
     }
 
     public async Task AddPeersAsync(
-        IEnumerable<BoundPeer> peers,
+        IEnumerable<Peer> peers,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
         try
         {
             var tasks = new List<Task>();
-            foreach (BoundPeer peer in peers)
+            foreach (Peer peer in peers)
             {
                 tasks.Add(PingAsync(
                     peer,
@@ -133,7 +133,7 @@ public sealed class KademliaProtocol : IProtocol
         // TODO: Add timeout parameter for this method
         try
         {
-            IReadOnlyList<BoundPeer> peers = _table.PeersToRefresh(maxAge);
+            IReadOnlyList<Peer> peers = _table.PeersToRefresh(maxAge);
 
             await peers.ParallelForEachAsync(
                 async peer =>
@@ -173,8 +173,8 @@ public sealed class KademliaProtocol : IProtocol
     {
         var buffer = new byte[20];
         var tasks = new List<Task>();
-        var history = new ConcurrentBag<BoundPeer>();
-        var dialHistory = new ConcurrentBag<BoundPeer>();
+        var history = new ConcurrentBag<Peer>();
+        var dialHistory = new ConcurrentBag<Peer>();
         for (int i = 0; i < _findConcurrency; i++)
         {
             _random.NextBytes(buffer);
@@ -208,9 +208,9 @@ public sealed class KademliaProtocol : IProtocol
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
     {
-        foreach (IEnumerable<BoundPeer> cache in _table.CachesToCheck)
+        foreach (IEnumerable<Peer> cache in _table.CachesToCheck)
         {
-            foreach (BoundPeer replacement in cache)
+            foreach (Peer replacement in cache)
             {
                 try
                 {
@@ -225,13 +225,13 @@ public sealed class KademliaProtocol : IProtocol
         }
     }
 
-    public async Task<BoundPeer?> FindSpecificPeerAsync(
+    public async Task<Peer?> FindSpecificPeerAsync(
         Address target,
         int depth,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
-        if (_table.GetPeer(target) is BoundPeer boundPeer)
+        if (_table.GetPeer(target) is Peer boundPeer)
         {
             try
             {
@@ -247,28 +247,28 @@ public sealed class KademliaProtocol : IProtocol
             return boundPeer;
         }
 
-        HashSet<BoundPeer> history = new HashSet<BoundPeer>();
-        Queue<Tuple<BoundPeer, int>> peersToFind = new Queue<Tuple<BoundPeer, int>>();
-        foreach (BoundPeer peer in _table.Neighbors(target, _findConcurrency, false))
+        HashSet<Peer> history = new HashSet<Peer>();
+        Queue<Tuple<Peer, int>> peersToFind = new Queue<Tuple<Peer, int>>();
+        foreach (Peer peer in _table.Neighbors(target, _findConcurrency, false))
         {
-            peersToFind.Enqueue(new Tuple<BoundPeer, int>(peer, 0));
+            peersToFind.Enqueue(new Tuple<Peer, int>(peer, 0));
         }
 
         while (peersToFind.Any())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            peersToFind.Dequeue().Deconstruct(out BoundPeer viaPeer, out int curDepth);
+            peersToFind.Dequeue().Deconstruct(out Peer viaPeer, out int curDepth);
             if (depth != -1 && curDepth >= depth)
             {
                 continue;
             }
 
             history.Add(viaPeer);
-            IEnumerable<BoundPeer> foundPeers =
+            IEnumerable<Peer> foundPeers =
                 await GetNeighbors(viaPeer, target, timeout, cancellationToken)
                 .ConfigureAwait(false);
-            IEnumerable<BoundPeer> filteredPeers = foundPeers
+            IEnumerable<Peer> filteredPeers = foundPeers
                 .Where(peer =>
                     !history.Contains(peer) &&
                     !peersToFind.Any(t => t.Item1.Equals(peer)) &&
@@ -286,7 +286,7 @@ public sealed class KademliaProtocol : IProtocol
                         return found;
                     }
 
-                    peersToFind.Enqueue(new Tuple<BoundPeer, int>(found, curDepth + 1));
+                    peersToFind.Enqueue(new Tuple<Peer, int>(found, curDepth + 1));
 
                     if (count++ >= _findConcurrency)
                     {
@@ -313,7 +313,7 @@ public sealed class KademliaProtocol : IProtocol
     }
 
     internal async Task PingAsync(
-        BoundPeer peer,
+        Peer peer,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
@@ -377,7 +377,7 @@ public sealed class KademliaProtocol : IProtocol
     }
 
     private async Task ValidateAsync(
-        BoundPeer peer,
+        Peer peer,
         TimeSpan timeout,
         CancellationToken cancellationToken = default)
     {
@@ -394,21 +394,21 @@ public sealed class KademliaProtocol : IProtocol
         }
     }
 
-    private void AddPeer(BoundPeer peer)
+    private void AddPeer(Peer peer)
     {
         _table.AddPeer(peer);
     }
 
-    private void RemovePeer(BoundPeer peer)
+    private void RemovePeer(Peer peer)
     {
         _table.RemovePeer(peer);
     }
 
     private async Task FindPeerAsync(
-        ConcurrentBag<BoundPeer> history,
-        ConcurrentBag<BoundPeer> dialHistory,
+        ConcurrentBag<Peer> history,
+        ConcurrentBag<Peer> dialHistory,
         Address target,
-        BoundPeer? viaPeer,
+        Peer? viaPeer,
         int depth,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
@@ -418,7 +418,7 @@ public sealed class KademliaProtocol : IProtocol
             return;
         }
 
-        IEnumerable<BoundPeer> found;
+        IEnumerable<Peer> found;
         if (viaPeer is null)
         {
             found = await QueryNeighborsAsync(history, target, timeout, cancellationToken)
@@ -445,14 +445,14 @@ public sealed class KademliaProtocol : IProtocol
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<IEnumerable<BoundPeer>> QueryNeighborsAsync(
-        ConcurrentBag<BoundPeer> history,
+    private async Task<IEnumerable<Peer>> QueryNeighborsAsync(
+        ConcurrentBag<Peer> history,
         Address target,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
-        List<BoundPeer> neighbors = _table.Neighbors(target, _table.BucketSize, false).ToList();
-        var found = new List<BoundPeer>();
+        List<Peer> neighbors = _table.Neighbors(target, _table.BucketSize, false).ToList();
+        var found = new List<Peer>();
         int count = Math.Min(neighbors.Count, _findConcurrency);
         for (var i = 0; i < count; i++)
         {
@@ -466,8 +466,8 @@ public sealed class KademliaProtocol : IProtocol
         return found;
     }
 
-    private async Task<IEnumerable<BoundPeer>> GetNeighbors(
-        BoundPeer peer,
+    private async Task<IEnumerable<Peer>> GetNeighbors(
+        Peer peer,
         Address target,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
@@ -493,7 +493,7 @@ public sealed class KademliaProtocol : IProtocol
         catch (CommunicationFailException cfe)
         {
             RemovePeer(peer);
-            return ImmutableArray<BoundPeer>.Empty;
+            return ImmutableArray<Peer>.Empty;
         }
     }
 
@@ -512,15 +512,15 @@ public sealed class KademliaProtocol : IProtocol
     }
 
     private async Task ProcessFoundAsync(
-        ConcurrentBag<BoundPeer> history,
-        ConcurrentBag<BoundPeer> dialHistory,
-        IEnumerable<BoundPeer> found,
+        ConcurrentBag<Peer> history,
+        ConcurrentBag<Peer> dialHistory,
+        IEnumerable<Peer> found,
         Address target,
         int depth,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
-        List<BoundPeer> peers = found.Where(
+        List<Peer> peers = found.Where(
             peer =>
                 !peer.Address.Equals(_address) &&
                 !_table.Contains(peer) &&
@@ -533,7 +533,7 @@ public sealed class KademliaProtocol : IProtocol
 
         peers = Kademlia.SortByDistance(peers, target).ToList();
 
-        IReadOnlyList<BoundPeer> closestCandidate =
+        IReadOnlyList<Peer> closestCandidate =
             _table.Neighbors(target, _table.BucketSize, false);
 
         List<Task> tasks = peers
@@ -563,7 +563,7 @@ public sealed class KademliaProtocol : IProtocol
         }
 
         var findPeerTasks = new List<Task>();
-        BoundPeer? closestKnownPeer = closestCandidate.FirstOrDefault();
+        Peer? closestKnownPeer = closestCandidate.FirstOrDefault();
         var count = 0;
         foreach (var peer in peers)
         {
@@ -606,7 +606,7 @@ public sealed class KademliaProtocol : IProtocol
     private async Task ReceiveFindPeerAsync(Message message)
     {
         var findNeighbors = (FindNeighborsMessage)message.Content;
-        IEnumerable<BoundPeer> found =
+        IEnumerable<Peer> found =
             _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
 
         var neighbors = new NeighborsMessage { Found = [.. found] };

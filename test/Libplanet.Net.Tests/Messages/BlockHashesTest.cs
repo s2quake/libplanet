@@ -21,7 +21,7 @@ namespace Libplanet.Net.Tests.Messages
             Assert.Equal(blockHashes, messageContent.Hashes);
             var privateKey = new PrivateKey();
             Protocol apv = Protocol.Create(privateKey, 3);
-            var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 1234));
+            var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
             var messageCodec = new NetMQMessageCodec();
             NetMQMessage encoded = messageCodec.Encode(
                 new Message

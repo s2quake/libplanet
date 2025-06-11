@@ -6,16 +6,16 @@ namespace Libplanet.Node.Tests;
 
 internal sealed class RandomBoundPeer : IDisposable
 {
-    private readonly BoundPeer _boundPeer;
+    private readonly Peer _boundPeer;
     private readonly PrivateKey _privateKey = new();
     private readonly RandomEndPoint _endPoint = new();
 
-    public RandomBoundPeer() => _boundPeer = new BoundPeer(PublicKey, _endPoint);
+    public RandomBoundPeer() => _boundPeer = new Peer { Address = PublicKey.Address, EndPoint = _endPoint };
 
     public RandomBoundPeer(PrivateKey privateKey)
     {
         _privateKey = privateKey;
-        _boundPeer = new BoundPeer(PublicKey, _endPoint);
+        _boundPeer = new Peer { Address = PublicKey.Address, EndPoint = _endPoint };
     }
 
     public PrivateKey PrivateKey => _privateKey;
@@ -24,7 +24,7 @@ internal sealed class RandomBoundPeer : IDisposable
 
     public EndPoint EndPoint => _endPoint;
 
-    public static implicit operator BoundPeer(RandomBoundPeer randomBoundPeer)
+    public static implicit operator Peer(RandomBoundPeer randomBoundPeer)
         => randomBoundPeer._boundPeer;
 
     public override string ToString() => $"{PublicKey}, {_endPoint}";

@@ -68,11 +68,13 @@ namespace Libplanet.Net.Tests.Protocols
 
         public Address Address => _privateKey.Address;
 
-        public BoundPeer AsPeer => new BoundPeer(
-            _privateKey.PublicKey,
-            new DnsEndPoint("127.0.0.1", 1234));
+        public Peer AsPeer => new Peer
+        {
+            Address = _privateKey.Address,
+            EndPoint = new DnsEndPoint("127.0.0.1", 1234),
+        };
 
-        public IReadOnlyList<BoundPeer> Peers => Table.Peers;
+        public IReadOnlyList<Peer> Peers => Table.Peers;
 
         public DateTimeOffset? LastMessageTimestamp { get; private set; }
 
@@ -163,7 +165,7 @@ namespace Libplanet.Net.Tests.Protocols
 
 #pragma warning disable S4457 // Cannot split the method since method is in interface
         public async Task BootstrapAsync(
-            IEnumerable<BoundPeer> bootstrapPeers,
+            IEnumerable<Peer> bootstrapPeers,
             TimeSpan? pingSeedTimeout = null,
             int depth = 3,
             CancellationToken cancellationToken = default)
@@ -191,7 +193,7 @@ namespace Libplanet.Net.Tests.Protocols
         }
 
         public Task SendMessageAsync(
-            BoundPeer peer,
+            Peer peer,
             MessageContent content,
             CancellationToken cancellationToken)
             => SendMessageAsync(
@@ -201,7 +203,7 @@ namespace Libplanet.Net.Tests.Protocols
                 cancellationToken);
 
         public Task AddPeersAsync(
-            IEnumerable<BoundPeer> peers,
+            IEnumerable<Peer> peers,
             TimeSpan? timeout,
             CancellationToken cancellationToken = default)
         {
@@ -229,7 +231,7 @@ namespace Libplanet.Net.Tests.Protocols
                     var tasks = new List<Task>();
                     foreach (var peer in peers)
                     {
-                        if (peer is BoundPeer boundPeer)
+                        if (peer is Peer boundPeer)
                         {
                             tasks.Add(
                                 kp.PingAsync(
@@ -275,7 +277,7 @@ namespace Libplanet.Net.Tests.Protocols
             return DoAddPeersAsync();
         }
 
-        public void SendPing(BoundPeer peer, TimeSpan? timeSpan = null)
+        public void SendPing(Peer peer, TimeSpan? timeSpan = null)
         {
             if (_disposed)
             {
@@ -313,7 +315,7 @@ namespace Libplanet.Net.Tests.Protocols
             BroadcastMessage(Table.PeersToBroadcast(except), message);
         }
 
-        public void BroadcastMessage(IEnumerable<BoundPeer> peers, MessageContent content)
+        public void BroadcastMessage(IEnumerable<Peer> peers, MessageContent content)
         {
             if (_disposed)
             {
@@ -335,7 +337,7 @@ namespace Libplanet.Net.Tests.Protocols
 
 #pragma warning disable S4457 // Cannot split the method since method is in interface
         public async Task<Message> SendMessageAsync(
-            BoundPeer peer,
+            Peer peer,
             MessageContent content,
             TimeSpan? timeout,
             CancellationToken cancellationToken)
@@ -419,7 +421,7 @@ namespace Libplanet.Net.Tests.Protocols
 #pragma warning restore S4457 // Cannot split the method since method is in interface
 
         public async Task<IEnumerable<Message>> SendMessageAsync(
-            BoundPeer peer,
+            Peer peer,
             MessageContent content,
             TimeSpan? timeout,
             int expectedResponses,
@@ -569,7 +571,7 @@ namespace Libplanet.Net.Tests.Protocols
 
         private struct Request
         {
-            public BoundPeer Target;
+            public Peer Target;
 
             public Message Message;
         }

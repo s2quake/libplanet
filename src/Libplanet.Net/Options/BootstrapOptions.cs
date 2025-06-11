@@ -8,7 +8,7 @@ public sealed record class BootstrapOptions
 
     public TimeSpan DialTimeout { get; init; } = TimeSpan.FromSeconds(DefaultDialTimeout);
 
-    public ImmutableHashSet<BoundPeer> SeedPeers { get; init; } = [];
+    public ImmutableHashSet<Peer> SeedPeers { get; init; } = [];
 
     public int SearchDepth { get; init; } = Kademlia.MaxDepth;
 }

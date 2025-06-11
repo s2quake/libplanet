@@ -2,16 +2,10 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Transports;
 
-public class InvalidCredentialException : Exception
+public class InvalidCredentialException(string message, Address expected, Address actual)
+    : Exception(message)
 {
-    internal InvalidCredentialException(string message, PublicKey expected, PublicKey actual)
-        : base(message)
-    {
-        Expected = expected;
-        Actual = actual;
-    }
+    public Address Expected { get; } = expected;
 
-    public PublicKey Expected { get; }
-
-    public PublicKey Actual { get; }
+    public Address Actual { get; } = actual;
 }

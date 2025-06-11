@@ -56,7 +56,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 key1,
                 6001,
-                new[] { new BoundPeer(key2.PublicKey, new DnsEndPoint("127.0.0.1", 6002)) });
+                new[] { new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) } });
             var gossip2 = CreateGossip(
                 content =>
                 {
@@ -68,7 +68,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 key2,
                 6002,
-                new[] { new BoundPeer(key1.PublicKey, new DnsEndPoint("127.0.0.1", 6001)) });
+                new[] { new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) } });
             try
             {
                 _ = gossip1.StartAsync(default);
@@ -111,7 +111,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 key1,
                 6001,
-                new[] { new BoundPeer(key2.PublicKey, new DnsEndPoint("127.0.0.1", 6002)) });
+                [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
             var gossip2 = CreateGossip(
                 content =>
                 {
@@ -123,7 +123,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 key2,
                 6002,
-                new[] { new BoundPeer(key1.PublicKey, new DnsEndPoint("127.0.0.1", 6001)) });
+                [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
             try
             {
                 _ = gossip1.StartAsync(default);
@@ -164,7 +164,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 key1,
                 6001,
-                new[] { new BoundPeer(key2.PublicKey, new DnsEndPoint("127.0.0.1", 6002)) });
+                [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
             var gossip2 = CreateGossip(
                 content =>
                 {
@@ -180,7 +180,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 key2,
                 6002,
-                new[] { new BoundPeer(key1.PublicKey, new DnsEndPoint("127.0.0.1", 6001)) });
+                new[] { new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) } });
             try
             {
                 _ = gossip1.StartAsync(default);
@@ -229,8 +229,8 @@ namespace Libplanet.Net.Tests.Consensus
             transport1.ProcessMessageHandler.Register(HandleMessage);
             var gossip = new Gossip(
                 transport1,
-                ImmutableArray<BoundPeer>.Empty,
-                ImmutableArray<BoundPeer>.Empty,
+                ImmutableArray<Peer>.Empty,
+                ImmutableArray<Peer>.Empty,
                 _ => { },
                 _ => { },
                 _ => { });
@@ -360,14 +360,14 @@ namespace Libplanet.Net.Tests.Consensus
             Action<MessageContent> processMessage,
             PrivateKey? privateKey = null,
             int? port = null,
-            IEnumerable<BoundPeer>? peers = null,
-            IEnumerable<BoundPeer>? seeds = null)
+            IEnumerable<Peer>? peers = null,
+            IEnumerable<Peer>? seeds = null)
         {
             var transport = CreateTransport(privateKey, port);
             return new Gossip(
                 transport,
-                peers?.ToImmutableArray() ?? ImmutableArray<BoundPeer>.Empty,
-                seeds?.ToImmutableArray() ?? ImmutableArray<BoundPeer>.Empty,
+                peers?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
+                seeds?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
                 _ => { },
                 _ => { },
                 processMessage);

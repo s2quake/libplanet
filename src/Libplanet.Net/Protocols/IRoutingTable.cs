@@ -4,11 +4,11 @@ public interface IRoutingTable
 {
     int Count { get; }
 
-    IReadOnlyList<BoundPeer> Peers { get; }
+    IReadOnlyList<Peer> Peers { get; }
 
-    void AddPeer(BoundPeer peer);
+    void AddPeer(Peer peer);
 
-    bool RemovePeer(BoundPeer peer);
+    bool RemovePeer(Peer peer);
 
-    bool Contains(BoundPeer peer);
+    bool Contains(Peer peer);
 }

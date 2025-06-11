@@ -11,7 +11,7 @@ namespace Libplanet.Net.Transports;
 public static class BoundPeerExtensions
 {
     public static Protocol QueryAppProtocolVersionNetMQ(
-        this BoundPeer peer,
+        this Peer peer,
         TimeSpan? timeout = null)
     {
         using var dealerSocket = new DealerSocket(ToNetMQAddress(peer));
@@ -23,7 +23,7 @@ public static class BoundPeerExtensions
             {
                 Content = ping,
                 Protocol = default,
-                Remote = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0)),
+                Remote = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
                 Timestamp = DateTimeOffset.UtcNow,
             },
             privateKey);
@@ -49,12 +49,12 @@ public static class BoundPeerExtensions
             $"Peer[{peer}] didn't respond within the specified time[{timeout}].");
     }
 
-    internal static string ToNetMQAddress(this BoundPeer peer)
+    internal static string ToNetMQAddress(this Peer peer)
     {
         return $"tcp://{peer.EndPoint.Host}:{peer.EndPoint.Port}";
     }
 
-    internal static async Task<string> ResolveNetMQAddressAsync(this BoundPeer peer)
+    internal static async Task<string> ResolveNetMQAddressAsync(this Peer peer)
     {
         string addr = peer.EndPoint.Host;
 

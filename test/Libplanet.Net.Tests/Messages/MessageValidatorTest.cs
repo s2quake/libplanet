@@ -12,7 +12,7 @@ namespace Libplanet.Net.Tests.Messages
         [Fact]
         public void ValidateTimestamp()
         {
-            var peer = new BoundPeer(new PrivateKey().PublicKey, new DnsEndPoint("0.0.0.0", 0));
+            var peer = new Peer { Address = new PrivateKey().Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
             var buffer = TimeSpan.FromSeconds(1);
             var apvOption = new AppProtocolVersionOptions();
             var messageValidator = new MessageValidator(apvOption, buffer);
@@ -90,7 +90,7 @@ namespace Libplanet.Net.Tests.Messages
             var extra2 = ModelSerializer.SerializeToBytes(17);
 
             DifferentAppProtocolVersionEncountered callback = (p, pv, lv) => { called = true; };
-            var peer = new BoundPeer(trustedSigner.PublicKey, new DnsEndPoint("0.0.0.0", 0));
+            var peer = new Peer { Address = trustedSigner.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
 
             // Apv
             var trustedApv = Protocol.Create(trustedSigner, version1, extra1);

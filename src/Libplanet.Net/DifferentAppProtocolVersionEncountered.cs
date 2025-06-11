@@ -5,7 +5,7 @@ namespace Libplanet.Net
     /// a peer with a different <see cref="Protocol"/> signed by
     /// a trusted signer in the network.
     /// </summary>
-    /// <param name="peer">The encountered <see cref="BoundPeer"/> with
+    /// <param name="peer">The encountered <see cref="Peer"/> with
     /// a different <see cref="Protocol"/>.
     /// </param>
     /// <param name="peerVersion">The encountered different <see cref="Protocol"/>.
@@ -13,7 +13,7 @@ namespace Libplanet.Net
     /// <param name="localVersion">The currently running application's
     /// <see cref="Protocol"/>.</param>
     public delegate void DifferentAppProtocolVersionEncountered(
-        BoundPeer peer,
+        Peer peer,
         Protocol peerVersion,
         Protocol localVersion);
 }

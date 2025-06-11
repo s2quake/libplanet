@@ -9,7 +9,7 @@ public interface ITransport : IDisposable
 {
     AsyncDelegate<Message> ProcessMessageHandler { get; }
 
-    BoundPeer AsPeer { get; }
+    Peer AsPeer { get; }
 
     DateTimeOffset? LastMessageTimestamp { get; }
 
@@ -30,20 +30,20 @@ public interface ITransport : IDisposable
     Task WaitForRunningAsync();
 
     Task<Message> SendMessageAsync(
-        BoundPeer peer,
+        Peer peer,
         MessageContent content,
         TimeSpan? timeout,
         CancellationToken cancellationToken);
 
     Task<IEnumerable<Message>> SendMessageAsync(
-        BoundPeer peer,
+        Peer peer,
         MessageContent content,
         TimeSpan? timeout,
         int expectedResponses,
         bool returnWhenTimeout,
         CancellationToken cancellationToken);
 
-    void BroadcastMessage(IEnumerable<BoundPeer> peers, MessageContent content);
+    void BroadcastMessage(IEnumerable<Peer> peers, MessageContent content);
 
     Task ReplyMessageAsync(
         MessageContent content,

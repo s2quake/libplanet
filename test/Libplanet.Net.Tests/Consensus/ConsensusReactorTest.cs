@@ -38,15 +38,17 @@ namespace Libplanet.Net.Tests.Consensus
             var stores = new Libplanet.Data.Repository[4];
             var blockChains = new Blockchain[4];
             var fx = new MemoryRepositoryFixture();
-            var validatorPeers = new List<BoundPeer>();
+            var validatorPeers = new List<Peer>();
             var cancellationTokenSource = new CancellationTokenSource();
 
             for (var i = 0; i < 4; i++)
             {
                 validatorPeers.Add(
-                    new BoundPeer(
-                        TestUtils.PrivateKeys[i].PublicKey,
-                        new DnsEndPoint("127.0.0.1", 6000 + i)));
+                    new Peer
+                    {
+                        Address = TestUtils.PrivateKeys[i].Address,
+                        EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
+                    });
                 var options = TestUtils.Options with
                 {
                 };

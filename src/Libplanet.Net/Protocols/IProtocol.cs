@@ -6,13 +6,13 @@ namespace Libplanet.Net.Protocols;
 public interface IProtocol
 {
     Task BootstrapAsync(
-        IEnumerable<BoundPeer> bootstrapPeers,
+        IEnumerable<Peer> bootstrapPeers,
         TimeSpan? dialTimeout,
         int depth,
         CancellationToken cancellationToken);
 
     Task AddPeersAsync(
-        IEnumerable<BoundPeer> peers,
+        IEnumerable<Peer> peers,
         TimeSpan? timeout,
         CancellationToken cancellationToken);
 

@@ -51,7 +51,7 @@ namespace Libplanet.Net.Tests.Transports
                 transport,
                 options: option))
             {
-                var peer = new BoundPeer(swarmKey.PublicKey, new DnsEndPoint(host, port));
+                var peer = new Peer { Address = swarmKey.Address, EndPoint = new DnsEndPoint(host, port) };
                 // Before swarm starting...
                 Assert.Throws<TimeoutException>(() =>
                 {
@@ -96,9 +96,11 @@ namespace Libplanet.Net.Tests.Transports
         [InlineData("127.0.0.1", 3000, new[] { "tcp://127.0.0.1:3000", "tcp://::1:3000" })]
         public async Task ResolveNetMQAddressAsync(string host, int port, string[] expected)
         {
-            var bp = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint(host, port));
+            var bp = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint(host, port),
+            };
             var addr = await bp.ResolveNetMQAddressAsync();
 
             Assert.Contains(addr, expected);
@@ -108,9 +110,11 @@ namespace Libplanet.Net.Tests.Transports
         public async Task ResolveNetMQAddressAsyncFails()
         {
             string hostDoesNotExist = $"{Guid.NewGuid()}.com";
-            var bp = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint(hostDoesNotExist, 3000));
+            var bp = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint(hostDoesNotExist, 3000),
+            };
             await Assert.ThrowsAnyAsync<SocketException>(async () =>
             {
                 await bp.ResolveNetMQAddressAsync();

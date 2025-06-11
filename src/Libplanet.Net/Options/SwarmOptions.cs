@@ -12,7 +12,7 @@ public sealed record class SwarmOptions
 
     public TimeSpan RefreshLifespan { get; init; } = TimeSpan.FromSeconds(60);
 
-    public ImmutableHashSet<BoundPeer> StaticPeers { get; init; } = [];
+    public ImmutableHashSet<Peer> StaticPeers { get; init; } = [];
 
     public TimeSpan StaticPeersMaintainPeriod { get; init; } = TimeSpan.FromSeconds(10);
 

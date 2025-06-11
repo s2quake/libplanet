@@ -28,7 +28,7 @@ namespace Libplanet.Net
         internal AsyncAutoResetEvent ProcessFillBlocksFinished { get; } = new AsyncAutoResetEvent();
 
         /// <summary>
-        /// Fill blocks from the <see cref="BoundPeer"/>s in the
+        /// Fill blocks from the <see cref="Peer"/>s in the
         /// <see cref="Swarm.RoutingTable"/>.
         /// </summary>
         /// <param name="timeout">
@@ -49,14 +49,14 @@ namespace Libplanet.Net
                 return;
             }
 
-            List<(BoundPeer, BlockExcerpt)> peersWithBlockExcerpt =
+            List<(Peer, BlockExcerpt)> peersWithBlockExcerpt =
                 await GetPeersWithExcerpts(
                     timeout, maximumPollPeers, cancellationToken);
             await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
         }
 
         private async Task PullBlocksAsync(
-            List<(BoundPeer, BlockExcerpt)> peersWithBlockExcerpt,
+            List<(Peer, BlockExcerpt)> peersWithBlockExcerpt,
             CancellationToken cancellationToken)
         {
             if (!peersWithBlockExcerpt.Any())

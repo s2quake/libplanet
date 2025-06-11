@@ -80,9 +80,11 @@ namespace Libplanet.Net.Tests.Transports
                 Assert.True(transport.Running);
                 await transport.StopAsync(TimeSpan.FromMilliseconds(100));
                 transport.Dispose();
-                var boundPeer = new BoundPeer(
-                    new PrivateKey().PublicKey,
-                    new DnsEndPoint("127.0.0.1", 1234));
+                var boundPeer = new Peer
+                {
+                    Address = new PrivateKey().Address,
+                    EndPoint = new DnsEndPoint("127.0.0.1", 1234),
+                };
                 var message = new PingMessage();
                 await Assert.ThrowsAsync<ObjectDisposedException>(
                     async () => await transport.StartAsync());
@@ -287,7 +289,7 @@ namespace Libplanet.Net.Tests.Transports
 
         [SkippableTheory(Timeout = Timeout)]
         [ClassData(typeof(TransportTestInvalidPeers))]
-        public async Task SendMessageToInvalidPeerAsync(BoundPeer invalidPeer)
+        public async Task SendMessageToInvalidPeerAsync(Peer invalidPeer)
         {
             ITransport transport = await CreateTransportAsync().ConfigureAwait(false);
 
@@ -459,9 +461,11 @@ namespace Libplanet.Net.Tests.Transports
 
                 yield return new[]
                 {
-                    new BoundPeer(
-                        new PrivateKey().PublicKey,
-                        new DnsEndPoint("0.0.0.0", port)),
+                    new Peer
+                    {
+                        Address = new PrivateKey().Address,
+                        EndPoint = new DnsEndPoint("0.0.0.0", port),
+                    },
                 };
             }
 

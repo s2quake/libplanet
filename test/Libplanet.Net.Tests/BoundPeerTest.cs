@@ -9,8 +9,11 @@ namespace Libplanet.Net.Tests
         [Fact]
         public void Bencoded()
         {
-            var expected = new BoundPeer(
-                new PrivateKey().PublicKey, new DnsEndPoint("0.0.0.0", 1234));
+            var expected = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
             var deserialized = ModelSerializer.Clone(expected);
             Assert.Equal(expected, deserialized);
         }
@@ -20,11 +23,13 @@ namespace Libplanet.Net.Tests
         {
 #pragma warning disable MEN002 // Line is too long
             var peerInfo = "032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1,3333";
-            var expected = new BoundPeer(
-                PublicKey.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
-                new DnsEndPoint("192.168.0.1", 3333));
+            var expected = new Peer
+            {
+                Address = PublicKey.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233").Address,
+                EndPoint = new DnsEndPoint("192.168.0.1", 3333)
+            };
 #pragma warning restore MEN002 // Line is too long
-            Assert.Equal(expected, BoundPeer.ParsePeer(peerInfo));
+            Assert.Equal(expected, Peer.Parse(peerInfo));
         }
 
         [Fact]
@@ -32,22 +37,24 @@ namespace Libplanet.Net.Tests
         {
 #pragma warning disable MEN002 // Line is too long
             var expected = "032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1,3333";
-            var boundPeer = new BoundPeer(
-                PublicKey.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"),
-                new DnsEndPoint("192.168.0.1", 3333));
+            var boundPeer = new Peer
+            {
+                Address = PublicKey.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233").Address,
+                EndPoint = new DnsEndPoint("192.168.0.1", 3333)
+            };
 #pragma warning restore MEN002 // Line is too long
-            Assert.Equal(expected, boundPeer.PeerString);
+            Assert.Equal(expected, boundPeer.ToString());
         }
 
         [Fact]
         public void ParsePeerException()
         {
-            Assert.Throws<ArgumentException>(() => BoundPeer.ParsePeer(string.Empty));
+            Assert.Throws<ArgumentException>(() => Peer.Parse(string.Empty));
 #pragma warning disable MEN002 // Line is too long
-            Assert.Throws<ArgumentException>(() => BoundPeer.ParsePeer("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"));
-            Assert.Throws<ArgumentException>(() => BoundPeer.ParsePeer("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1"));
-            Assert.Throws<ArgumentException>(() => BoundPeer.ParsePeer("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1,999999"));
-            Assert.Throws<ArgumentException>(() => BoundPeer.ParsePeer("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,.ninodes.com,31234"));
+            Assert.Throws<ArgumentException>(() => Peer.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233"));
+            Assert.Throws<ArgumentException>(() => Peer.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1"));
+            Assert.Throws<ArgumentException>(() => Peer.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,192.168.0.1,999999"));
+            Assert.Throws<ArgumentException>(() => Peer.Parse("032038e153d344773986c039ba5dbff12ae70cfdf6ea8beb7c5ea9b361a72a9233,.ninodes.com,31234"));
 #pragma warning restore MEN002 // Line is too long
         }
 
@@ -55,7 +62,7 @@ namespace Libplanet.Net.Tests
         public void InvalidHostname()
         {
             Assert.Throws<ArgumentException>(() =>
-                new BoundPeer(new PrivateKey().PublicKey, new DnsEndPoint(".ninodes.com", 31234)));
+                new Peer { Address = new PrivateKey().Address, EndPoint = new DnsEndPoint(".ninodes.com", 31234) });
         }
     }
 }

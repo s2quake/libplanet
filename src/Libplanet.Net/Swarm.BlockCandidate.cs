@@ -7,7 +7,7 @@ namespace Libplanet.Net
 {
     public partial class Swarm
     {
-        private readonly ConcurrentDictionary<BoundPeer, int> _processBlockDemandSessions;
+        private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions;
 
         private async Task ConsumeBlockCandidates(
             TimeSpan? checkInterval = null,
@@ -143,7 +143,7 @@ namespace Libplanet.Net
             BlockDemand demand,
             CancellationToken cancellationToken)
         {
-            BoundPeer peer = demand.Peer;
+            Peer peer = demand.Peer;
 
             if (_processBlockDemandSessions.ContainsKey(peer))
             {
@@ -207,7 +207,7 @@ namespace Libplanet.Net
         }
 
         private async Task<bool> BlockCandidateDownload(
-            BoundPeer peer,
+            Peer peer,
             Blockchain blockChain,
             int logSessionId,
             CancellationToken cancellationToken)

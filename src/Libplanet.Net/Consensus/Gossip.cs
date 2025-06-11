@@ -24,23 +24,23 @@ namespace Libplanet.Net.Consensus
         private readonly Action<Message> _validateMessageToReceive;
         private readonly Action<MessageContent> _validateMessageToSend;
         private readonly Action<MessageContent> _processMessage;
-        private readonly IEnumerable<BoundPeer> _seeds;
+        private readonly IEnumerable<Peer> _seeds;
         private readonly ILogger _logger;
 
         private TaskCompletionSource<object?> _runningEvent;
         private CancellationTokenSource? _cancellationTokenSource;
         private readonly RoutingTable _table;
-        private readonly HashSet<BoundPeer> _denySet;
+        private readonly HashSet<Peer> _denySet;
         private readonly IProtocol _protocol;
-        private ConcurrentDictionary<BoundPeer, HashSet<MessageId>> _haveDict;
+        private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict;
 
         /// <summary>
         /// Creates a <see cref="Gossip"/> instance.
         /// </summary>
         /// <param name="transport">
         /// An <see cref="ITransport"/> used for communicating messages.</param>
-        /// <param name="peers">A list of <see cref="BoundPeer"/> composing network.</param>
-        /// <param name="seeds">A list of <see cref="BoundPeer"/> for lookup network.</param>
+        /// <param name="peers">A list of <see cref="Peer"/> composing network.</param>
+        /// <param name="seeds">A list of <see cref="Peer"/> for lookup network.</param>
         /// <param name="validateMessageToReceive">Action to be called to validate
         /// a received message to add. Validates on <see cref="HandleMessageAsync"/>.</param>
         /// <param name="validateMessageToSend">Action to be called to validate a new message
@@ -48,8 +48,8 @@ namespace Libplanet.Net.Consensus
         /// <param name="processMessage">Action to be called when receiving a new message.</param>
         public Gossip(
             ITransport transport,
-            ImmutableArray<BoundPeer> peers,
-            ImmutableArray<BoundPeer> seeds,
+            ImmutableArray<Peer> peers,
+            ImmutableArray<Peer> seeds,
             Action<Message> validateMessageToReceive,
             Action<MessageContent> validateMessageToSend,
             Action<MessageContent> processMessage)
@@ -62,7 +62,7 @@ namespace Libplanet.Net.Consensus
             _table = new RoutingTable(transport.AsPeer.Address);
 
             // FIXME: Dumb way to add peer.
-            foreach (BoundPeer peer in peers.Where(p => p.Address != transport.AsPeer.Address))
+            foreach (Peer peer in peers.Where(p => p.Address != transport.AsPeer.Address))
             {
                 _table.AddPeer(peer);
             }
@@ -71,8 +71,8 @@ namespace Libplanet.Net.Consensus
             _seeds = seeds;
 
             _runningEvent = new TaskCompletionSource<object?>();
-            _haveDict = new ConcurrentDictionary<BoundPeer, HashSet<MessageId>>();
-            _denySet = new HashSet<BoundPeer>();
+            _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
+            _denySet = new HashSet<Peer>();
             Running = false;
 
             _logger = Log
@@ -104,19 +104,19 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// <see cref="BoundPeer"/> representation of transport used in <see cref="Gossip"/>.
+        /// <see cref="Peer"/> representation of transport used in <see cref="Gossip"/>.
         /// </summary>
-        public BoundPeer AsPeer => _transport.AsPeer;
+        public Peer AsPeer => _transport.AsPeer;
 
         /// <summary>
-        /// The list of <see cref="BoundPeer"/>s in the <see cref="Gossip"/>'s table.
+        /// The list of <see cref="Peer"/>s in the <see cref="Gossip"/>'s table.
         /// </summary>
-        public IEnumerable<BoundPeer> Peers => _table.Peers;
+        public IEnumerable<Peer> Peers => _table.Peers;
 
         /// <summary>
-        /// The list of <see cref="BoundPeer"/>s written in <see cref="_denySet"/>.
+        /// The list of <see cref="Peer"/>s written in <see cref="_denySet"/>.
         /// </summary>
-        public IEnumerable<BoundPeer> DeniedPeers => _denySet.ToList();
+        public IEnumerable<Peer> DeniedPeers => _denySet.ToList();
 
         /// <summary>
         /// Start the <see cref="Gossip"/> instance.
@@ -201,8 +201,8 @@ namespace Libplanet.Net.Consensus
         /// Publish given <see cref="MessageContent"/> to given <paramref name="targetPeers"/>.
         /// </summary>
         /// <param name="content">A <see cref="MessageContent"/> instance to publish.</param>
-        /// <param name="targetPeers"><see cref="BoundPeer"/>s to publish to.</param>
-        public void PublishMessage(MessageContent content, IEnumerable<BoundPeer> targetPeers)
+        /// <param name="targetPeers"><see cref="Peer"/>s to publish to.</param>
+        public void PublishMessage(MessageContent content, IEnumerable<Peer> targetPeers)
         {
             AddMessage(content);
             _transport.BroadcastMessage(targetPeers, content);
@@ -257,8 +257,8 @@ namespace Libplanet.Net.Consensus
         /// Adds <paramref name="peer"/> to the <see cref="_denySet"/> to reject
         /// <see cref="Message"/>s from.
         /// </summary>
-        /// <param name="peer"><see cref="BoundPeer"/> to deny.</param>
-        public void DenyPeer(BoundPeer peer)
+        /// <param name="peer"><see cref="Peer"/> to deny.</param>
+        public void DenyPeer(Peer peer)
         {
             _denySet.Add(peer);
         }
@@ -267,14 +267,14 @@ namespace Libplanet.Net.Consensus
         /// Remove <paramref name="peer"/> frin the <see cref="_denySet"/> to allow
         /// <see cref="Message"/>s from.
         /// </summary>
-        /// <param name="peer"><see cref="BoundPeer"/> to allow.</param>
-        public void AllowPeer(BoundPeer peer)
+        /// <param name="peer"><see cref="Peer"/> to allow.</param>
+        public void AllowPeer(Peer peer)
         {
             _denySet.Remove(peer);
         }
 
         /// <summary>
-        /// Clear <see cref="_denySet"/> to allow all <see cref="BoundPeer"/>.
+        /// Clear <see cref="_denySet"/> to allow all <see cref="Peer"/>.
         /// </summary>
         public void ClearDenySet()
         {
@@ -282,14 +282,14 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// Selects <paramref name="count"/> <see cref="BoundPeer"/>s from <paramref name="peers"/>.
+        /// Selects <paramref name="count"/> <see cref="Peer"/>s from <paramref name="peers"/>.
         /// </summary>
-        /// <param name="peers">A <see cref="BoundPeer"/> pool.</param>
-        /// <param name="count">Number of <see cref="BoundPeer"/> to choose.</param>
+        /// <param name="peers">A <see cref="Peer"/> pool.</param>
+        /// <param name="count">Number of <see cref="Peer"/> to choose.</param>
         /// <returns>
-        /// An enumerable <see cref="BoundPeer"/>'s of length <paramref name="count"/>.</returns>
-        private IEnumerable<BoundPeer> PeersToBroadcast(
-            IEnumerable<BoundPeer> peers,
+        /// An enumerable <see cref="Peer"/>'s of length <paramref name="count"/>.</returns>
+        private IEnumerable<Peer> PeersToBroadcast(
+            IEnumerable<Peer> peers,
             int count)
         {
             var rnd = new Random();
@@ -411,14 +411,14 @@ namespace Libplanet.Net.Consensus
         {
             // TODO: To optimize WantMessage count to minimum, should remove duplications.
             var copy = _haveDict.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
-            _haveDict = new ConcurrentDictionary<BoundPeer, HashSet<MessageId>>();
-            var optimized = new Dictionary<BoundPeer, MessageId[]>();
+            _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
+            var optimized = new Dictionary<Peer, MessageId[]>();
             while (copy.Any())
             {
                 var longest = copy.OrderBy(pair => pair.Value.Length).Last();
                 optimized.Add(longest.Key, longest.Value);
                 copy.Remove(longest.Key);
-                var removeCandidate = new List<BoundPeer>();
+                var removeCandidate = new List<Peer>();
                 foreach (var pair in copy)
                 {
                     var clean = pair.Value.Where(id => !longest.Value.Contains(id)).ToArray();

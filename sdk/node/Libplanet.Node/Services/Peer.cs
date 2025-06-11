@@ -6,13 +6,13 @@ using Libplanet.Types;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class Peer(ITransport transport, BoundPeer boundPeer)
+internal sealed class Peer(ITransport transport, Net.Peer boundPeer)
 {
     private readonly ITransport _transport = transport;
 
     public Address Address => BoundPeer.Address;
 
-    public BoundPeer BoundPeer { get; } = boundPeer;
+    public Net.Peer BoundPeer { get; } = boundPeer;
 
     public DateTimeOffset LastUpdated { get; private set; }
 

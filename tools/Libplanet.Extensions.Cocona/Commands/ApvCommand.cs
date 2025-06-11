@@ -274,12 +274,12 @@ public class ApvCommand
                 "9c.planetarium.dev,31236)")]
         string peerInfo)
     {
-        BoundPeer peer;
+        Peer peer;
         Protocol apv;
 
         try
         {
-            peer = BoundPeer.ParsePeer(peerInfo);
+            peer = Peer.Parse(peerInfo);
         }
         catch
         {

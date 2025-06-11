@@ -30,7 +30,7 @@ public class RoutingTableTest
     {
         var pubKey = new PrivateKey().PublicKey;
         var table = new RoutingTable(pubKey.Address);
-        var peer = new BoundPeer(pubKey, new DnsEndPoint("0.0.0.0", 1234));
+        var peer = new Peer { Address = pubKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         Assert.Throws<ArgumentException>(() => table.AddPeer(peer));
     }
 
@@ -42,16 +42,16 @@ public class RoutingTableTest
         var pubKey2 = new PrivateKey().PublicKey;
         var pubKey3 = new PrivateKey().PublicKey;
         var table = new RoutingTable(pubKey0.Address, 1, 2);
-        var peer1 = new BoundPeer(pubKey1, new DnsEndPoint("0.0.0.0", 1234));
-        var peer2 = new BoundPeer(pubKey2, new DnsEndPoint("0.0.0.0", 1234));
-        var peer3 = new BoundPeer(pubKey3, new DnsEndPoint("0.0.0.0", 1234));
+        var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
+        var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
+        var peer3 = new Peer { Address = pubKey3.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         table.AddPeer(peer1);
         table.AddPeer(peer2);
         table.AddPeer(peer3);
         table.AddPeer(peer1);
         table.AddPeer(peer3);
         Assert.Equal(
-            new HashSet<BoundPeer> { peer1, peer2 },
+            new HashSet<Peer> { peer1, peer2 },
             table.Peers.ToHashSet());
     }
 
@@ -61,8 +61,8 @@ public class RoutingTableTest
         var pubKey1 = new PrivateKey().PublicKey;
         var pubKey2 = new PrivateKey().PublicKey;
         var table = new RoutingTable(pubKey1.Address, 1, 2);
-        var peer1 = new BoundPeer(pubKey1, new DnsEndPoint("0.0.0.0", 1234));
-        var peer2 = new BoundPeer(pubKey2, new DnsEndPoint("0.0.0.0", 1234));
+        var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
+        var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
 
         Assert.Throws<ArgumentException>(() => table.RemovePeer(peer1));
 
@@ -107,7 +107,7 @@ public class RoutingTableTest
 
         var table = new RoutingTable(publicKey.Address);
         var peers = publicKeys
-            .Select(pk => new BoundPeer(pk, new DnsEndPoint("0.0.0.0", 1234)))
+            .Select(pk => new Peer { Address = pk.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) })
             .ToArray();
         Assert.Equal(10, peers.Length);
         for (var i = 0; i < peers.Length; i++)
@@ -135,11 +135,13 @@ public class RoutingTableTest
         var (publicKey, publicKeys) = GeneratePeersDifferentBuckets();
         var table = new RoutingTable(publicKey.Address);
         int peerCount = publicKeys.Length;
-        BoundPeer[] peers = publicKeys
+        Peer[] peers = publicKeys
             .Select(
-                key => new BoundPeer(
-                    key,
-                    new DnsEndPoint("0.0.0.0", 1234)))
+                key => new Peer
+                {
+                    Address = key.Address,
+                    EndPoint = new DnsEndPoint("0.0.0.0", 1234),
+                })
             .ToArray();
         for (var i = 0; i < peerCount; i++)
         {
@@ -162,11 +164,13 @@ public class RoutingTableTest
         var publicKey = new PrivateKey().PublicKey;
         var table = new RoutingTable(publicKey.Address, 1);
         const int peerCount = 10;
-        BoundPeer[] peers = Enumerable.Range(0, peerCount)
+        Peer[] peers = Enumerable.Range(0, peerCount)
             .Select(
-                i => new BoundPeer(
-                    new PrivateKey().PublicKey,
-                    new DnsEndPoint("0.0.0.0", 1000 + i)))
+                i => new Peer
+                {
+                    Address = new PrivateKey().Address,
+                    EndPoint = new DnsEndPoint("0.0.0.0", 1000 + i),
+                })
             .ToArray();
         for (int i = 0; i < peerCount; i++)
         {

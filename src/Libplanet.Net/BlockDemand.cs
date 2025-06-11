@@ -3,7 +3,7 @@ using Libplanet.Types;
 namespace Libplanet.Net;
 
 public readonly record struct BlockDemand(
-    BlockExcerpt BlockExcerpt, BoundPeer Peer, DateTimeOffset Timestamp)
+    BlockExcerpt BlockExcerpt, Peer Peer, DateTimeOffset Timestamp)
 {
     public long Index => BlockExcerpt.Height;
 

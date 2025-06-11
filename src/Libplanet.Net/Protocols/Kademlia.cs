@@ -47,8 +47,8 @@ public static class Kademlia
         return (Address.Size * 8) - CommonPrefixLength(left, right);
     }
 
-    public static IEnumerable<BoundPeer> SortByDistance(
-        IEnumerable<BoundPeer> peers,
+    public static IEnumerable<Peer> SortByDistance(
+        IEnumerable<Peer> peers,
         Address target)
     {
         return peers.OrderBy(peer => CalculateDistance(target, peer.Address));

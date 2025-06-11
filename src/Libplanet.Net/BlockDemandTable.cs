@@ -7,15 +7,15 @@ namespace Libplanet.Net
     public class BlockDemandTable
     {
         private readonly TimeSpan _blockDemandLifespan;
-        private readonly ConcurrentDictionary<BoundPeer, BlockDemand> _blockDemands;
+        private readonly ConcurrentDictionary<Peer, BlockDemand> _blockDemands;
 
         public BlockDemandTable(TimeSpan blockDemandLifespan)
         {
             _blockDemandLifespan = blockDemandLifespan;
-            _blockDemands = new ConcurrentDictionary<BoundPeer, BlockDemand>();
+            _blockDemands = new ConcurrentDictionary<Peer, BlockDemand>();
         }
 
-        public IDictionary<BoundPeer, BlockDemand> Demands =>
+        public IDictionary<Peer, BlockDemand> Demands =>
             _blockDemands.ToDictionary(pair => pair.Key, pair => pair.Value);
 
         public bool Any() => _blockDemands.Any();
@@ -44,7 +44,7 @@ namespace Libplanet.Net
             }
         }
 
-        public void Remove(BoundPeer peer)
+        public void Remove(Peer peer)
         {
             _blockDemands.TryRemove(peer, out _);
         }

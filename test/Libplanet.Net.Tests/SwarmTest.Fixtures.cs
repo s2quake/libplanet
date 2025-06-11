@@ -90,8 +90,8 @@ namespace Libplanet.Net.Tests
                 genesis,
                 consensusReactorOption ?? new ConsensusReactorOption
                 {
-                    SeedPeers = ImmutableList<BoundPeer>.Empty,
-                    ConsensusPeers = ImmutableList<BoundPeer>.Empty,
+                    SeedPeers = ImmutableList<Peer>.Empty,
+                    ConsensusPeers = ImmutableList<Peer>.Empty,
                     ConsensusPort = 0,
                     ConsensusPrivateKey = new PrivateKey(),
                     ConsensusWorkers = 100,

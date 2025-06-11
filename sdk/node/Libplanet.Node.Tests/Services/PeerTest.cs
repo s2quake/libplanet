@@ -13,7 +13,7 @@ public class PeerTest
     {
         var transportMock = new Mock<ITransport>();
         using var boundPeer = new RandomBoundPeer();
-        var peer = new Peer(transportMock.Object, boundPeer);
+        var peer = new Node.Services.Peer(transportMock.Object, boundPeer);
 
         Assert.Equal(boundPeer.PublicKey.Address, peer.Address);
         Assert.Equal(boundPeer, peer.BoundPeer);
@@ -29,7 +29,7 @@ public class PeerTest
     {
         var transportMock = new Mock<ITransport>();
         using var boundPeer = new RandomBoundPeer();
-        var peer = new Peer(transportMock.Object, boundPeer);
+        var peer = new Node.Services.Peer(transportMock.Object, boundPeer);
         var now = DateTimeOffset.UtcNow;
         peer.Update();
 
@@ -54,7 +54,7 @@ public class PeerTest
         var transportMock = new Mock<ITransport>();
 
         transportMock.Setup(item => item.SendMessageAsync(
-            It.IsAny<BoundPeer>(),
+            It.IsAny<Net.Peer>(),
             It.IsAny<PingMessage>(),
             It.IsAny<TimeSpan>(),
             It.IsAny<CancellationToken>()))
@@ -62,7 +62,7 @@ public class PeerTest
 
         using var boundPeer = new RandomBoundPeer();
         var timeout = TimeSpan.FromSeconds(1);
-        var peer = new Peer(transportMock.Object, boundPeer);
+        var peer = new Node.Services.Peer(transportMock.Object, boundPeer);
 
         var result = await peer.PingAsync(timeout, cancellationToken: default);
 
@@ -86,7 +86,7 @@ public class PeerTest
         var transportMock = new Mock<ITransport>();
 
         async Task<Message> SendMessageAsync(
-            BoundPeer peer,
+            Net.Peer peer,
             MessageContent content,
             TimeSpan? timeout,
             CancellationToken cancellationToken)
@@ -97,7 +97,7 @@ public class PeerTest
 
         transportMock
             .Setup(item => item.SendMessageAsync(
-                It.IsAny<BoundPeer>(),
+                It.IsAny<Net.Peer>(),
                 It.IsAny<PingMessage>(),
                 It.IsAny<TimeSpan>(),
                 It.IsAny<CancellationToken>()))
@@ -105,7 +105,7 @@ public class PeerTest
 
         using var boundPeer = new RandomBoundPeer();
         var timeout = TimeSpan.FromSeconds(1);
-        var peer = new Peer(transportMock.Object, boundPeer);
+        var peer = new Node.Services.Peer(transportMock.Object, boundPeer);
         using var cancellationTokenSource = new CancellationTokenSource(1);
 
         var result = await peer.PingAsync(timeout, cancellationTokenSource.Token);
