@@ -1,19 +1,18 @@
-namespace Libplanet.Net.Transports
+namespace Libplanet.Net.Transports;
+
+public class TransportException : Exception
 {
-    public class TransportException : Exception
+    public TransportException()
     {
-        public TransportException()
-        {
-        }
+    }
 
-        public TransportException(string message)
-            : base(message)
-        {
-        }
+    public TransportException(string message)
+        : base(message)
+    {
+    }
 
-        public TransportException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+    public TransportException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

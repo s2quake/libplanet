@@ -1,383 +1,129 @@
-using System.Threading;
-using Libplanet.Types;
-using Serilog;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Libplanet.Net.Protocols
+namespace Libplanet.Net.Protocols;
+
+internal sealed class KBucketDictionary : IReadOnlyDictionary<BoundPeer, PeerState>
 {
-    /// <summary>
-    /// <para>
-    /// An internal dictionary with a size limit used for <see cref="KBucket"/>s.
-    /// </para>
-    /// <para>
-    /// Purposely designed with the following features:
-    /// <list type="bullet">
-    ///     <item><description>
-    ///         Fixed maximum size.
-    ///     </description></item>
-    ///     <item><description>
-    ///         Exception free.
-    ///     </description></item>
-    ///     <item><description>
-    ///         Enforced concurrency.
-    ///     </description></item>
-    /// </list>
-    /// </para>
-    /// </summary>
-    internal class KBucketDictionary
+    private readonly int _size;
+    private readonly bool _replace;
+    private readonly ConcurrentDictionary<BoundPeer, PeerState> _stateByPeer;
+
+    public KBucketDictionary(int size, bool replace)
     {
-        private readonly ReaderWriterLockSlim _lock;
-        private readonly int _size;
-        private readonly bool _replace;
-        private readonly ILogger _logger;
-        private Dictionary<Address, PeerState> _dictionary;
-
-        /// <summary>
-        /// Creates an instance with a size limit given by <paramref name="size"/>.
-        /// </summary>
-        /// <param name="size">The maximum number of elements the dictionary can hold.</param>
-        /// <param name="replace">Whether to replace the oldest <see cref="PeerState"/>,
-        /// i.e. <see cref="Tail"/>, if the dictionary is already full.</param>
-        /// <param name="logger">The <see cref="ILogger"/> to write log messages to.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="size"/>
-        /// is not positive..</exception>
-        public KBucketDictionary(int size, bool replace, ILogger logger)
+        if (size <= 0)
         {
-            if (size <= 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(size),
+                $"The value of {nameof(size)} must be positive.");
+        }
+
+        _size = size;
+        _replace = replace;
+        _stateByPeer = [];
+    }
+
+    public int Count => _stateByPeer.Count;
+
+    public PeerState? Head { get; private set; }
+
+    public PeerState? Tail { get; private set; }
+
+    public IEnumerable<BoundPeer> Keys => _stateByPeer.Keys;
+
+    public IEnumerable<PeerState> Values => _stateByPeer.Values;
+
+    public PeerState this[BoundPeer key] => _stateByPeer[key];
+
+    public bool AddOrUpdate(BoundPeer peer)
+        => AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
+
+    public bool AddOrUpdate(PeerState peerState)
+    {
+        var peer = peerState.Peer;
+        if (_stateByPeer.ContainsKey(peer))
+        {
+            _stateByPeer[peer] = peerState;
+            UpdateHeadAndTail();
+            return true;
+        }
+        else
+        {
+            if (_stateByPeer.Count < _size)
             {
-                throw new ArgumentOutOfRangeException(
-                    nameof(size),
-                    $"The value of {nameof(size)} must be positive.");
+                _stateByPeer[peer] = peerState;
+                UpdateHeadAndTail();
+                return true;
             }
-
-            _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-            _size = size;
-            _replace = replace;
-            _dictionary = new Dictionary<Address, PeerState>();
-            _logger = logger;
-        }
-
-        public List<BoundPeer> Peers
-        {
-            get
+            else
             {
-                return PeerStates.Select(peerState => peerState.Peer).ToList();
-            }
-        }
-
-        public List<PeerState> PeerStates
-        {
-            get
-            {
-                _lock.EnterReadLock();
-                try
+                if (_replace)
                 {
-                    return _dictionary.Values.ToList();
-                }
-                finally
-                {
-                    _lock.ExitReadLock();
-                }
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                _lock.EnterReadLock();
-                try
-                {
-                    return _dictionary.Count;
-                }
-                finally
-                {
-                    _lock.ExitReadLock();
-                }
-            }
-        }
-
-        /// <summary>
-        /// The <see cref="PeerState"/> updated most recently. <see langword="null"/>
-        /// if the dictionary is empty.
-        /// </summary>
-        public PeerState? Head
-        {
-            get
-            {
-                _lock.EnterReadLock();
-                try
-                {
-#pragma warning disable S3358   // Extract this nested ternary operation.
-                    return _dictionary.Values.Count > 0
-                        ? _dictionary.Values.Aggregate((candidate, ps) =>
-                            candidate.LastUpdated < ps.LastUpdated ? ps : candidate)
-                        : null;
-#pragma warning restore S3358
-                }
-                finally
-                {
-                    _lock.ExitReadLock();
-                }
-            }
-        }
-
-        /// <summary>
-        /// The <see cref="PeerState"/> updated least recently. <see langword="null"/>
-        /// if the dictionary is empty.
-        /// </summary>
-        public PeerState? Tail
-        {
-            get
-            {
-                _lock.EnterReadLock();
-                try
-                {
-#pragma warning disable S3358   // Extract this nested ternary operation.
-                    return _dictionary.Values.Count > 0
-                        ? _dictionary.Values.Aggregate((candidate, ps) =>
-                            candidate.LastUpdated > ps.LastUpdated ? ps : candidate)
-                        : null;
-#pragma warning restore S3358
-                }
-                finally
-                {
-                    _lock.ExitReadLock();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Retrieves the <see cref="BoundPeer"/> associated with <paramref name="peer"/>'s
-        /// <see cref="Address"/>.
-        /// </summary>
-        /// <param name="peer">The <see cref="BoundPeer"/> to check.</param>
-        /// <returns>The <see cref="BoundPeer"/> with its address equal to
-        /// that of the <paramref name="peer"/>'s. <see langword="null"/> if not found.</returns>
-        public PeerState? Get(BoundPeer peer)
-        {
-            return Get(peer.Address);
-        }
-
-        /// <summary>
-        /// Retrievees the <see cref="BoundPeer"/> associated with <paramref name="address"/>.
-        /// </summary>
-        /// <param name="address">The <see cref="Address"/> to check.</param>
-        /// <returns>The <see cref="BoundPeer"/> with its address equal to
-        /// that of <paramref name="address"/>. <see langword="null"/> if not found.</returns>
-        public PeerState? Get(Address address)
-        {
-            _lock.EnterReadLock();
-            try
-            {
-                if (_dictionary.ContainsKey(address))
-                {
-                    return _dictionary[address];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Checks if the dictionary contains <paramref name="peer"/>'s <see cref="Address"/>
-        /// as a key.
-        /// </summary>
-        /// <param name="peer">The <see cref="BoundPeer"/> to check.</param>
-        /// <returns><see langword="true"/> if the <paramref name="peer"/>'s
-        /// <see cref="Address"/> exists, <see langword="false"/> otherwise.</returns>
-        public bool Contains(BoundPeer peer)
-        {
-            return Contains(peer.Address);
-        }
-
-        /// <summary>
-        /// Checks if the dictionary contains <paramref name="address"/> as a key.
-        /// </summary>
-        /// <param name="address">The <see cref="Address"/> to check.</param>
-        /// <returns><see langword="true"/> if <paramref name="address"/> exists,
-        /// <see langword="false"/> otherwise.</returns>
-        public bool Contains(Address address)
-        {
-            _lock.EnterReadLock();
-            try
-            {
-                return _dictionary.ContainsKey(address);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Adds or updates the dictionary with <paramref name="peer"/>.
-        /// </summary>
-        /// <param name="peer">The <see cref="BoundPeer"/> to add or update.</param>
-        /// <returns><see langword="true"/> if <paramref name="peer"/> was either added or updated,
-        /// <see langword="false"/> otherwise.</returns>
-        /// <seealso cref="AddOrUpdate(BoundPeer, PeerState)"/>.
-        public bool AddOrUpdate(BoundPeer peer)
-        {
-            return AddOrUpdate(peer, new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
-        }
-
-        /// <summary>
-        /// Adds or updates the dictionary with a key/value pair.
-        /// </summary>
-        /// <param name="peer">The <see cref="BoundPeer"/> to add or update.</param>
-        /// <param name="peerState">The <see cref="PeerState"/> to use as a value.</param>
-        /// <returns><see langword="true"/> if <paramref name="peer"/> was either added or updated,
-        /// <see langword="false"/> otherwise.</returns>
-        /// <seealso cref="AddOrUpdate(Address, PeerState)"/>.
-        public bool AddOrUpdate(BoundPeer peer, PeerState peerState)
-        {
-            return AddOrUpdate(peer.Address, peerState);
-        }
-
-        /// <summary>
-        /// <para>
-        /// Adds or updates the dictionary with a key/value pair.
-        /// </para>
-        /// <para>
-        /// Internal logic is as follows:
-        /// <list type="bullet">
-        ///     <item><description>
-        ///         If <paramref name="address"/> is found, update its value
-        ///         with <paramref name="peerState"/>.
-        ///     </description></item>
-        ///     <item><description>
-        ///         Else, if the dictionary is not full, i.e. has not reached its limit in size,
-        ///         add <paramref name="address"/> and <paramref name="peerState"/> as
-        ///         a key/value pair.
-        ///     </description></item>
-        ///     <item><description>
-        ///         Else, if the dictionary is full and replace option is set to
-        ///         <see langword="true"/>, replace the oldest <see cref="PeerState"/>, i.e.
-        ///         <see cref="Tail"/>, with <paramref name="peerState"/>.
-        ///     </description></item>
-        ///     <item><description>
-        ///         Else, ignore.
-        ///     </description></item>
-        /// </list>
-        /// </para>
-        /// </summary>
-        /// <param name="address">The <see cref="Address"/> to use as a key.</param>
-        /// <param name="peerState">The <see cref="PeerState"/> to use as a value.</param>
-        /// <returns><see langword="true"/> if the key/value pair was either added or updated,
-        /// <see langword="false"/> otherwise.</returns>
-        /// <remarks>
-        /// This returns <see langword="false"/> only if all following conditions are met:
-        /// <list type="bullet">
-        ///     <item><description>
-        ///         The dictionary does not contain <paramref name="address"/> as a key.
-        ///     </description></item>
-        ///     <item><description>
-        ///         The dictionary is already full.
-        ///     </description></item>
-        ///     <item><description>
-        ///         The replacement option is set to <see langword="false"/> for
-        ///         this <see cref="KBucketDictionary"/> instance.
-        ///     </description></item>
-        /// </list>
-        /// </remarks>
-        public bool AddOrUpdate(Address address, PeerState peerState)
-        {
-            _lock.EnterWriteLock();
-            try
-            {
-                if (_dictionary.ContainsKey(address))
-                {
-                    _dictionary[address] = peerState;
-                    _logger.Verbose(
-                        "{Address} found in the dictionary; updating its state...",
-                        address);
+                    // Tail is never null since the dictionary size is always positive.
+                    _stateByPeer.TryRemove(Tail!.Peer, out var _);
+                    _stateByPeer[peer] = peerState;
+                    UpdateHeadAndTail();
                     return true;
                 }
                 else
                 {
-                    if (_dictionary.Count < _size)
-                    {
-                        _dictionary[address] = peerState;
-                        _logger.Verbose(
-                            "Added {Address} to the dictionary", address);
-                        return true;
-                    }
-                    else
-                    {
-                        if (_replace)
-                        {
-                            // Tail is never null since the dictionary size is always positive.
-                            _dictionary.Remove(Tail!.Peer.Address);
-                            _dictionary[address] = peerState;
-                            return true;
-                        }
-                        else
-                        {
-                            _logger.Verbose(
-                                "Cannot add {Address}; " +
-                                "the dictionary size is already at its limit of {Size}",
-                                address,
-                                _size);
-                            return false;
-                        }
-                    }
+                    return false;
                 }
             }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
         }
+    }
 
-        /// <summary>
-        /// Removes <paramref name="peer"/> from the dictionary.
-        /// </summary>
-        /// <param name="peer">The <see cref="BoundPeer"/> to remove.</param>
-        /// <returns><see langword="true"/> if <paramref name="peer"/> was successfully removed,
-        /// <see langword="false"/> otherwise.</returns>
-        public bool Remove(BoundPeer peer)
+    public bool Remove(BoundPeer peer)
+    {
+        var result = _stateByPeer.TryRemove(peer, out _);
+        UpdateHeadAndTail();
+        return result;
+    }
+
+    public void Clear()
+    {
+        _stateByPeer.Clear();
+        UpdateHeadAndTail();
+    }
+
+    public bool ContainsKey(BoundPeer key) => _stateByPeer.ContainsKey(key);
+
+    public bool TryGetValue(BoundPeer key, [MaybeNullWhen(false)] out PeerState value)
+        => _stateByPeer.TryGetValue(key, out value);
+
+    public IEnumerator<KeyValuePair<BoundPeer, PeerState>> GetEnumerator() => _stateByPeer.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => _stateByPeer.GetEnumerator();
+
+    private void UpdateHeadAndTail()
+    {
+        if (_stateByPeer.Count is 0)
         {
-            return Remove(peer.Address);
+            Head = null;
+            Tail = null;
         }
-
-        /// <summary>
-        /// Removes <paramref name="address"/> from the dictionary.
-        /// </summary>
-        /// <param name="address">The <see cref="Address"/> to remove.</param>
-        /// <returns><see langword="true"/> if <paramref name="address"/> was successfully removed,
-        /// <see langword="false"/> otherwise.</returns>
-        public bool Remove(Address address)
+        else if (_stateByPeer.Count is 1)
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                return _dictionary.Remove(address);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            Head = Tail = _stateByPeer.Values.First();
         }
-
-        /// <summary>
-        /// Empties the dictionary.
-        /// </summary>
-        public void Clear()
+        else
         {
-            _lock.EnterWriteLock();
-            try
+            var maxValue = DateTimeOffset.MaxValue;
+            var minValue = DateTimeOffset.MinValue;
+            foreach (var state in _stateByPeer.Values)
             {
-                _dictionary = new Dictionary<Address, PeerState>();
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
+                if (state.LastUpdated < maxValue)
+                {
+                    minValue = state.LastUpdated;
+                    Head = state;
+                }
+
+                if (state.LastUpdated > minValue)
+                {
+                    maxValue = state.LastUpdated;
+                    Tail = state;
+                }
             }
         }
     }

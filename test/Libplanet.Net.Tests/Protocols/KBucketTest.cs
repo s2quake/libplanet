@@ -14,7 +14,7 @@ namespace Libplanet.Net.Tests.Protocols
         [Fact]
         public void BucketTest()
         {
-            var bucket = new KBucket(4, new System.Random(), Logger.None);
+            var bucket = new KBucket(4, new System.Random());
             var peer1 = new BoundPeer(
                 new PrivateKey().PublicKey,
                 new DnsEndPoint("0.0.0.0", 1234));

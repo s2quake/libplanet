@@ -11,14 +11,14 @@ namespace Libplanet.Net.Tests.Protocols
         public void KBucketDictionary()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                new KBucketDictionary(size: 0, replace: false, logger: Logger.None));
+                new KBucketDictionary(size: 0, replace: false));
         }
 
         [Fact]
         public void MutateWithoutReplacement()
         {
             var kBucketDictionary = new KBucketDictionary(
-                size: 4, replace: false, logger: Logger.None);
+                size: 4, replace: false);
             var peer1 = new BoundPeer(
                 new PrivateKey().PublicKey,
                 new DnsEndPoint("0.0.0.0", 1234));
@@ -49,8 +49,8 @@ namespace Libplanet.Net.Tests.Protocols
             Assert.Equal(4, kBucketDictionary.Count);
             Assert.Equal(peer1.Address, kBucketDictionary.Tail!.Peer.Address);
             Assert.Equal(peer4.Address, kBucketDictionary.Head!.Peer.Address);
-            Assert.True(kBucketDictionary.Contains(peer1));
-            Assert.False(kBucketDictionary.Contains(peer5));
+            Assert.True(kBucketDictionary.ContainsKey(peer1));
+            Assert.False(kBucketDictionary.ContainsKey(peer5));
 
             // Replace one of the peers
             Assert.True(kBucketDictionary.AddOrUpdate(peer2));
@@ -72,7 +72,7 @@ namespace Libplanet.Net.Tests.Protocols
         public void MutateWithReplacement()
         {
             var kBucketDictionary = new KBucketDictionary(
-                size: 4, replace: true, logger: Logger.None);
+                size: 4, replace: true);
             var peer1 = new BoundPeer(
                 new PrivateKey().PublicKey,
                 new DnsEndPoint("0.0.0.0", 1234));
@@ -103,8 +103,8 @@ namespace Libplanet.Net.Tests.Protocols
             Assert.Equal(4, kBucketDictionary.Count);
             Assert.Equal(peer2.Address, kBucketDictionary.Tail!.Peer.Address);
             Assert.Equal(peer5.Address, kBucketDictionary.Head!.Peer.Address);
-            Assert.False(kBucketDictionary.Contains(peer1));
-            Assert.True(kBucketDictionary.Contains(peer5));
+            Assert.False(kBucketDictionary.ContainsKey(peer1));
+            Assert.True(kBucketDictionary.ContainsKey(peer5));
 
             // Replace one of the peers
             Assert.True(kBucketDictionary.AddOrUpdate(peer2));

@@ -1,52 +1,12 @@
-using Libplanet.Net.Messages;
+namespace Libplanet.Net.Transports;
 
-namespace Libplanet.Net.Transports
+public class DifferentAppProtocolVersionException(
+    string message, Protocol expectedAppProtocolVersion, Protocol actualAppProtocolVersion, bool trusted)
+    : Exception(message)
 {
-    /// <summary>
-    /// The exception that is thrown when the version of the
-    /// <see cref="Message"/> that <see cref="Swarm"/> received
-    /// is different.
-    /// </summary>
-    public class DifferentAppProtocolVersionException : Exception
-    {
-        /// <summary>
-        /// Initializes a new instance of the
-        /// <see cref="DifferentAppProtocolVersionException"/> class.
-        /// </summary>
-        /// <param name="message">Specifies an <see cref="Exception.Message"/>.</param>
-        /// <param name="expectedAppProtocolVersion">The protocol version of
-        /// the local <see cref="Swarm"/>.</param>
-        /// <param name="actualAppProtocolVersion">The protocol version of the
-        /// <see cref="BoundPeer"/> that the local <see cref="Swarm"/> is trying to connect
-        /// to.</param>
-        /// <param name="trusted">Whether <paramref name="actualAppProtocolVersion"/>
-        /// is signed by a trusted signer.</param>
-        public DifferentAppProtocolVersionException(
-            string message,
-            Protocol expectedAppProtocolVersion,
-            Protocol actualAppProtocolVersion,
-            bool trusted)
-            : base(message)
-        {
-            ExpectedApv = expectedAppProtocolVersion;
-            ActualApv = actualAppProtocolVersion;
-            Trusted = trusted;
-        }
+    public Protocol ExpectedApv { get; } = expectedAppProtocolVersion;
 
-        /// <summary>
-        /// The protocol version of the current <see cref="Swarm"/>.
-        /// </summary>
-        public Protocol ExpectedApv { get; }
+    public Protocol ActualApv { get; } = actualAppProtocolVersion;
 
-        /// <summary>
-        /// The protocol version of the <see cref="BoundPeer"/> that the
-        /// <see cref="Swarm" /> is trying to connect to.
-        /// </summary>
-        public Protocol ActualApv { get; }
-
-        /// <summary>
-        /// Whether <see cref="ActualApv"/> is signed by a trusted signer.
-        /// </summary>
-        public bool Trusted { get; }
-    }
+    public bool Trusted { get; } = trusted;
 }
