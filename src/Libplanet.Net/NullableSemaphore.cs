@@ -1,42 +1,36 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Libplanet.Net
+namespace Libplanet.Net;
+
+internal sealed class NullableSemaphore(int maxCount) : IDisposable
 {
-    internal class NullableSemaphore : IDisposable
+    private readonly SemaphoreSlim? _sema = maxCount > 0
+        ? new SemaphoreSlim(maxCount, maxCount)
+        : null;
+
+    public void Dispose()
     {
-        private readonly SemaphoreSlim? _sema;
+        _sema?.Dispose();
+    }
 
-        public NullableSemaphore(int maxCount)
+    public async Task<bool> WaitAsync(TimeSpan timeout, CancellationToken cancellationToken)
+    {
+        if (_sema is { } sema)
         {
-            _sema = maxCount > 0
-                ? new SemaphoreSlim(maxCount, maxCount)
-                : null;
+            return await sema.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
         }
 
-        public void Dispose()
+        return true;
+    }
+
+    public int Release()
+    {
+        if (_sema is { } sema)
         {
-            _sema?.Dispose();
+            return sema.Release();
         }
 
-        public async Task<bool> WaitAsync(TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            if (_sema is { } sema)
-            {
-                return await sema.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
-            }
-
-            return true;
-        }
-
-        public int Release()
-        {
-            if (_sema is { } sema)
-            {
-                return sema.Release();
-            }
-
-            return -1;
-        }
+        return -1;
     }
 }

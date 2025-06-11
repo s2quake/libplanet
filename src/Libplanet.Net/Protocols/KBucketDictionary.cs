@@ -224,7 +224,7 @@ namespace Libplanet.Net.Protocols
         /// <seealso cref="AddOrUpdate(BoundPeer, PeerState)"/>.
         public bool AddOrUpdate(BoundPeer peer)
         {
-            return AddOrUpdate(peer, new PeerState(peer, DateTimeOffset.UtcNow));
+            return AddOrUpdate(peer, new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
         }
 
         /// <summary>

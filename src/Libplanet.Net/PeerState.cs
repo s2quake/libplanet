@@ -1,36 +1,12 @@
-namespace Libplanet.Net
+namespace Libplanet.Net;
+
+public sealed record class PeerState
 {
-    /// <summary>
-    /// Represents a <see cref="BoundPeer"/>'s state in the routing table.
-    /// </summary>
-    public class PeerState
-    {
-        internal PeerState(BoundPeer peer, DateTimeOffset lastUpdated)
-        {
-            Peer = peer;
-            LastUpdated = lastUpdated;
-            LastChecked = null;
-            Latency = null;
-        }
+    public required BoundPeer Peer { get; init; }
 
-        /// <summary>
-        /// <see cref="BoundPeer"/> of the state.
-        /// </summary>
-        public BoundPeer Peer { get; set; }
+    public required DateTimeOffset LastUpdated { get; init; }
 
-        /// <summary>
-        /// Last time messages were exchanged.
-        /// </summary>
-        public DateTimeOffset LastUpdated { get; internal set; }
+    public DateTimeOffset LastChecked { get; init; }
 
-        /// <summary>
-        /// Last time the peer was verified.
-        /// </summary>
-        public DateTimeOffset? LastChecked { get; internal set; }
-
-        /// <summary>
-        /// Delay of verification in milliseconds.
-        /// </summary>
-        public TimeSpan? Latency { get; internal set; }
-    }
+    public TimeSpan Latency { get; init; }
 }
