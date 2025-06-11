@@ -2,7 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
 
-public sealed class RoutingTable : IRoutingTable
+public sealed class RoutingTable
 {
     private readonly Address _address;
     private readonly KBucket[] _buckets;
