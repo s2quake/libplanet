@@ -508,7 +508,7 @@ namespace Libplanet.Net
         /// <exception cref="AggregateException">Thrown when the given the block downloading is
         /// failed.</exception>
         public async Task PreloadAsync(
-            IProgress<BlockSyncState> progress = null,
+            IProgress<double> progress = null,
             CancellationToken cancellationToken = default)
         {
             await PreloadAsync(
@@ -548,7 +548,7 @@ namespace Libplanet.Net
         public async Task PreloadAsync(
             TimeSpan? dialTimeout,
             long tipDeltaThreshold,
-            IProgress<BlockSyncState> progress = null,
+            IProgress<double> progress = null,
             CancellationToken cancellationToken = default)
         {
             using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
