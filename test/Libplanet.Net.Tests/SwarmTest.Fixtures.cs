@@ -74,7 +74,7 @@ namespace Libplanet.Net.Tests
 
         private Task<Swarm> CreateConsensusSwarm(
             PrivateKey? privateKey = null,
-            AppProtocolVersionOptions? appProtocolVersionOptions = null,
+            ProtocolOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
@@ -101,7 +101,7 @@ namespace Libplanet.Net.Tests
 
         private async Task<Swarm> CreateSwarm(
             PrivateKey? privateKey = null,
-            AppProtocolVersionOptions? appProtocolVersionOptions = null,
+            ProtocolOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
@@ -117,7 +117,7 @@ namespace Libplanet.Net.Tests
             };
             var fx = new MemoryRepositoryFixture(policy);
             var blockchain = MakeBlockChain(policy, genesisBlock: genesis);
-            appProtocolVersionOptions ??= new AppProtocolVersionOptions();
+            appProtocolVersionOptions ??= new ProtocolOptions();
             hostOptions ??= new HostOptions
             {
                 Host = IPAddress.Loopback.ToString(),
@@ -135,12 +135,12 @@ namespace Libplanet.Net.Tests
         private async Task<Swarm> CreateSwarm(
             Blockchain blockChain,
             PrivateKey? privateKey = null,
-            AppProtocolVersionOptions? appProtocolVersionOptions = null,
+            ProtocolOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
             ConsensusReactorOption? consensusReactorOption = null)
         {
-            appProtocolVersionOptions ??= new AppProtocolVersionOptions();
+            appProtocolVersionOptions ??= new ProtocolOptions();
             hostOptions ??= new HostOptions
             {
                 Host = IPAddress.Loopback.ToString(),

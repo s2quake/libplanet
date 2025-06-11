@@ -377,8 +377,8 @@ namespace Libplanet.Net.Tests.Consensus
             PrivateKey? privateKey = null,
             int? port = null)
         {
-            var apvOptions = new AppProtocolVersionOptions
-            { AppProtocolVersion = TestUtils.AppProtocolVersion };
+            var apvOptions = new ProtocolOptions
+            { Protocol = TestUtils.AppProtocolVersion };
             HostOptions hostOptions;
             if (port is { } p)
             {

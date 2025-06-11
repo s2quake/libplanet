@@ -222,10 +222,10 @@ If omitted (default) explorer only the local blockchain store.")]
                         },
                     };
 
-                    var apvOptions = new AppProtocolVersionOptions()
+                    var apvOptions = new ProtocolOptions()
                     {
-                        AppProtocolVersion = options.AppProtocolVersionToken is string t
-                            ? ProtocolVersion.FromToken(t)
+                        Protocol = options.AppProtocolVersionToken is string t
+                            ? Protocol.FromToken(t)
                             : default,
                     };
 

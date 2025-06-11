@@ -17,8 +17,8 @@ namespace Libplanet.Net
             {
                 if (BlockCandidateTable.Count > 0)
                 {
-                    BlockHeader tipHeader = BlockChain.Tip.Header;
-                    if (BlockCandidateTable.GetCurrentRoundCandidate(BlockChain.Tip) is { } branch)
+                    BlockHeader tipHeader = Blockchain.Tip.Header;
+                    if (BlockCandidateTable.GetCurrentRoundCandidate(Blockchain.Tip) is { } branch)
                     {
                         var root = branch.Keys.First();
                         var tip = branch.Keys.Last();
@@ -59,18 +59,18 @@ namespace Libplanet.Net
                 _logger.Debug(
                     "{MethodName}() starts to append; current tip is #{Index} {Hash}",
                     nameof(BlockCandidateProcess),
-                    BlockChain.Tip.Height,
-                    BlockChain.Tip.BlockHash);
+                    Blockchain.Tip.Height,
+                    Blockchain.Tip.BlockHash);
                 AppendBranch(
-                    blockChain: BlockChain,
+                    blockChain: Blockchain,
                     candidate: candidate,
                     cancellationToken: cancellationToken);
                 ProcessFillBlocksFinished.Set();
                 _logger.Debug(
                     "{MethodName}() finished appending blocks; current tip is #{Index} {Hash}",
                     nameof(BlockCandidateProcess),
-                    BlockChain.Tip.Height,
-                    BlockChain.Tip.BlockHash);
+                    Blockchain.Tip.Height,
+                    Blockchain.Tip.BlockHash);
                 return true;
             }
             catch (Exception e)
@@ -155,7 +155,7 @@ namespace Libplanet.Net
 
             int sessionId = sessionRandom.Next();
 
-            if (demand.Height <= BlockChain.Tip.Height)
+            if (demand.Height <= Blockchain.Tip.Height)
             {
                 return false;
             }
@@ -166,7 +166,7 @@ namespace Libplanet.Net
                 sessionId,
                 peer,
                 demand.Height,
-                demand.Hash,
+                demand.BlockHash,
                 nameof(ProcessBlockDemandAsync));
 
             try
@@ -174,7 +174,7 @@ namespace Libplanet.Net
                 _processBlockDemandSessions.TryAdd(peer, sessionId);
                 var result = await BlockCandidateDownload(
                     peer: peer,
-                    blockChain: BlockChain,
+                    blockChain: Blockchain,
                     logSessionId: sessionId,
                     cancellationToken: cancellationToken);
 

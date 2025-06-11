@@ -15,9 +15,9 @@ public interface ITransport : IDisposable
 
     bool Running { get; }
 
-    ProtocolVersion AppProtocolVersion { get; }
+    Protocol Protocol { get; }
 
-    public IImmutableSet<PublicKey> TrustedAppProtocolVersionSigners { get; }
+    public ImmutableSortedSet<Address> AllowedSigners { get; }
 
     public DifferentAppProtocolVersionEncountered
         DifferentAppProtocolVersionEncountered

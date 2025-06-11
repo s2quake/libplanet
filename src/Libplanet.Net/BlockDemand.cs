@@ -2,23 +2,9 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-public readonly record struct BlockDemand(
-    BlockExcerpt BlockExcerpt, Peer Peer, DateTimeOffset Timestamp)
+public sealed record class BlockDemand(BlockExcerpt BlockExcerpt, Peer Peer, DateTimeOffset Timestamp)
 {
     public long Height => BlockExcerpt.Height;
 
-    public BlockHash Hash => BlockExcerpt.BlockHash;
-
-    public static implicit operator BlockExcerpt(BlockDemand blockDemand)
-        => blockDemand.BlockExcerpt;
-
-    public string ToExcerptString()
-    {
-        return
-            $"{GetType().Name} {{" +
-            $" {nameof(BlockExcerpt.ProtocolVersion)} = {BlockExcerpt.ProtocolVersion}," +
-            $" {nameof(BlockExcerpt.Height)} = {BlockExcerpt.Height}," +
-            $" {nameof(BlockExcerpt.BlockHash)} = {BlockExcerpt.BlockHash}," +
-            " }";
-    }
+    public BlockHash BlockHash => BlockExcerpt.BlockHash;
 }

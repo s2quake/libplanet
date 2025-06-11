@@ -59,7 +59,7 @@ namespace Libplanet.Net
             ITransport consensusTransport = null,
             ConsensusReactorOption? consensusOption = null)
         {
-            BlockChain = blockChain ?? throw new ArgumentNullException(nameof(blockChain));
+            Blockchain = blockChain ?? throw new ArgumentNullException(nameof(blockChain));
             _privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
             LastSeenTimestamps =
                 new ConcurrentDictionary<Peer, DateTimeOffset>();
@@ -76,10 +76,10 @@ namespace Libplanet.Net
                 .ForContext("SwarmId", loggerId);
 
             Options = options ?? new SwarmOptions();
-            TxCompletion = new TxCompletion<Peer>(BlockChain, GetTxsAsync, BroadcastTxs);
+            TxCompletion = new TxCompletion<Peer>(Blockchain, GetTxsAsync, BroadcastTxs);
             EvidenceCompletion =
                 new EvidenceCompletion<Peer>(
-                    BlockChain, GetEvidenceAsync, BroadcastEvidence);
+                    Blockchain, GetEvidenceAsync, BroadcastEvidence);
             RoutingTable = new RoutingTable(Address, Options.TableSize, Options.BucketSize);
 
             // FIXME: after the initialization of NetMQTransport is fully converted to asynchronous
@@ -90,7 +90,7 @@ namespace Libplanet.Net
             _processBlockDemandSessions = new ConcurrentDictionary<Peer, int>();
             Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
             PeerDiscovery = new KademliaProtocol(RoutingTable, Transport, Address);
-            BlockDemandTable = new BlockDemandTable(Options.BlockDemandLifespan);
+            BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
             BlockCandidateTable = new BlockCandidateTable();
 
             // Regulate heavy tasks. Treat negative value as 0.
@@ -107,7 +107,7 @@ namespace Libplanet.Net
             {
                 _consensusReactor = new ConsensusReactor(
                     consensusTransport,
-                    BlockChain,
+                    Blockchain,
                     consensusReactorOption.ConsensusPrivateKey,
                     consensusReactorOption.ConsensusPeers,
                     consensusReactorOption.SeedPeers,
@@ -154,18 +154,17 @@ namespace Libplanet.Net
         public IReadOnlyList<Peer> Validators => _consensusReactor?.Validators;
 
         /// <summary>
-        /// The <see cref="BlockChain"/> instance this <see cref="Swarm"/> instance
+        /// The <see cref="Blockchain"/> instance this <see cref="Swarm"/> instance
         /// synchronizes with.
         /// </summary>
-        public Blockchain BlockChain { get; private set; }
+        public Blockchain Blockchain { get; private set; }
 
-        /// <inheritdoc cref="AppProtocolVersionOptions.TrustedAppProtocolVersionSigners"/>
-        public IImmutableSet<PublicKey> TrustedAppProtocolVersionSigners =>
-            Transport.TrustedAppProtocolVersionSigners;
+        /// <inheritdoc cref="ProtocolOptions.AllowedSigners"/>
+        public ImmutableSortedSet<Address> TrustedAppProtocolVersionSigners => Transport.AllowedSigners;
 
-        /// <inheritdoc cref="AppProtocolVersionOptions.AppProtocolVersion"/>
-        public ProtocolVersion AppProtocolVersion =>
-            Transport.AppProtocolVersion;
+        /// <inheritdoc cref="ProtocolOptions.Protocol"/>
+        public Protocol AppProtocolVersion =>
+            Transport.Protocol;
 
         internal RoutingTable RoutingTable { get; }
 
@@ -229,7 +228,7 @@ namespace Libplanet.Net
             TimeSpan waitFor,
             CancellationToken cancellationToken = default)
         {
-            _logger.Debug("Stopping watching " + nameof(BlockChain) + " for tip changes...");
+            _logger.Debug("Stopping watching " + nameof(Blockchain) + " for tip changes...");
             _tipChangedSubscription?.Dispose();
             _tipChangedSubscription = null;
 
@@ -243,13 +242,13 @@ namespace Libplanet.Net
                 }
             }
 
-            BlockDemandTable = new BlockDemandTable(Options.BlockDemandLifespan);
+            BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
             BlockCandidateTable = new BlockCandidateTable();
             _logger.Debug($"{nameof(Swarm)} stopped");
         }
 
         /// <summary>
-        /// Starts to periodically synchronize the <see cref="BlockChain"/>.
+        /// Starts to periodically synchronize the <see cref="Blockchain"/>.
         /// </summary>
         /// <param name="cancellationToken">
         /// A cancellation token used to propagate notification that this
@@ -258,7 +257,7 @@ namespace Libplanet.Net
         /// <returns>An awaitable task without value.</returns>
         /// <exception cref="SwarmException">Thrown when this <see cref="Swarm"/> instance is
         /// already <see cref="Running"/>.</exception>
-        /// <remarks>If the <see cref="BlockChain"/> has no blocks at all or there are long behind
+        /// <remarks>If the <see cref="Blockchain"/> has no blocks at all or there are long behind
         /// blocks to caught in the network this method could lead to unexpected behaviors, because
         /// this tries to render <em>all</em> actions in the behind blocks so that there are
         /// a lot of calls to methods of <see cref="Blockchain.Renderers"/> in a short
@@ -276,7 +275,7 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Starts to periodically synchronize the <see cref="BlockChain"/>.
+        /// Starts to periodically synchronize the <see cref="Blockchain"/>.
         /// </summary>
         /// <param name="dialTimeout">
         /// When the <see cref="Swarm"/> tries to dial each peer in <see cref="Peers"/>,
@@ -294,7 +293,7 @@ namespace Libplanet.Net
         /// <returns>An awaitable task without value.</returns>
         /// <exception cref="SwarmException">Thrown when this <see cref="Swarm"/> instance is
         /// already <see cref="Running"/>.</exception>
-        /// <remarks>If the <see cref="BlockChain"/> has no blocks at all or there are long behind
+        /// <remarks>If the <see cref="Blockchain"/> has no blocks at all or there are long behind
         /// blocks to caught in the network this method could lead to unexpected behaviors, because
         /// this tries to render <em>all</em> actions in the behind blocks so that there are
         /// a lot of calls to methods of <see cref="Blockchain.Renderers"/> in a short
@@ -324,8 +323,8 @@ namespace Libplanet.Net
                 _logger.Debug("Starting swarm...");
                 _logger.Debug("Peer information : {Peer}", AsPeer);
 
-                _logger.Debug("Watching the " + nameof(BlockChain) + " for tip changes...");
-                _tipChangedSubscription = BlockChain.TipChanged.Subscribe(OnBlockChainTipChanged);
+                _logger.Debug("Watching the " + nameof(Blockchain) + " for tip changes...");
+                _tipChangedSubscription = Blockchain.TipChanged.Subscribe(OnBlockChainTipChanged);
 
                 var tasks = new List<Func<Task>>
                 {
@@ -452,7 +451,7 @@ namespace Libplanet.Net
         /// </summary>
         /// <param name="block">The block to broadcast to peers.</param>
         /// <remarks>It does not have to be called manually, because <see cref="Swarm"/> in
-        /// itself watches <see cref="BlockChain"/> for <see cref="Blockchain.Tip"/> changes and
+        /// itself watches <see cref="Blockchain"/> for <see cref="Blockchain.Tip"/> changes and
         /// immediately broadcasts updates if anything changes.</remarks>
         public void BroadcastBlock(Block block)
         {
@@ -556,8 +555,8 @@ namespace Libplanet.Net
 
             _logger.Debug(
                 "Tip before preloading: #{TipIndex} {TipHash}",
-                BlockChain.Tip.Height,
-                BlockChain.Tip.BlockHash);
+                Blockchain.Tip.Height,
+                Blockchain.Tip.BlockHash);
 
             // FIXME: Currently `IProgress<PreloadState>` can be rewinded to the previous stage
             // as it starts from the first stage when it's still not close enough to the topmost
@@ -583,7 +582,7 @@ namespace Libplanet.Net
                         Peers.Count);
                 }
 
-                Block localTip = BlockChain.Tip;
+                Block localTip = Blockchain.Tip;
                 BlockExcerpt topmostTip = peersWithExcerpts
                     .Select(pair => pair.Item2)
                     .Aggregate((prev, next) => prev.Height > next.Height ? prev : next);
@@ -964,9 +963,9 @@ namespace Libplanet.Net
         /// Gets all <see cref="BlockHash"/>es for <see cref="Block"/>s needed to be downloaded
         /// by querying <see cref="Peer"/>s.
         /// </summary>
-        /// <param name="blockChain">The <see cref="BlockChain"/> to use as a reference
+        /// <param name="blockChain">The <see cref="Blockchain"/> to use as a reference
         /// for generating a <see cref="BlockLocator"/> when querying.  This may not necessarily
-        /// be <see cref="BlockChain"/>, the canonical <see cref="BlockChain"/> instance held
+        /// be <see cref="Blockchain"/>, the canonical <see cref="Blockchain"/> instance held
         /// by this <see cref="Swarm"/> instance.</param>
         /// <param name="peersWithExcerpts">The <see cref="List{T}"/> of <see cref="Peer"/>s
         /// to query with their tips known.</param>
@@ -1098,7 +1097,7 @@ namespace Libplanet.Net
                 "Trying to broadcast block #{Index} {Hash}...",
                 block.Height,
                 block.BlockHash);
-            var message = new BlockHeaderMessage { GenesisHash = BlockChain.Genesis.BlockHash, Excerpt = block };
+            var message = new BlockHeaderMessage { GenesisHash = Blockchain.Genesis.BlockHash, Excerpt = block };
             BroadcastMessage(except, message);
         }
 
@@ -1135,8 +1134,8 @@ namespace Libplanet.Net
             CancellationToken cancellationToken)
         {
             Random random = new Random();
-            Block tip = BlockChain.Tip;
-            BlockHash genesisHash = BlockChain.Genesis.BlockHash;
+            Block tip = Blockchain.Tip;
+            BlockHash genesisHash = Blockchain.Genesis.BlockHash;
             return (await DialExistingPeers(dialTimeout, maxPeersToDial, cancellationToken))
                 .Where(
                     pair => pair.Item2 is { } chainStatus &&
@@ -1237,7 +1236,7 @@ namespace Libplanet.Net
                 try
                 {
                     await Task.Delay(broadcastBlockInterval, cancellationToken);
-                    BroadcastBlock(BlockChain.Tip);
+                    BroadcastBlock(Blockchain.Tip);
                 }
                 catch (OperationCanceledException e)
                 {
@@ -1265,7 +1264,7 @@ namespace Libplanet.Net
                     await Task.Run(
                         () =>
                         {
-                            List<TxId> txIds = BlockChain
+                            List<TxId> txIds = Blockchain
                                 .StagedTransactions.Keys
                                 .ToList();
 
@@ -1302,15 +1301,15 @@ namespace Libplanet.Net
 
         /// <summary>
         /// Checks if the corresponding <see cref="Block"/> to a given
-        /// <see cref="BlockExcerpt"/> is needed for <see cref="BlockChain"/>.
+        /// <see cref="BlockExcerpt"/> is needed for <see cref="Blockchain"/>.
         /// </summary>
         /// <param name="target">The <see cref="BlockExcerpt"/> to compare to the current
-        /// <see cref="Blockchain.Tip"/> of <see cref="BlockChain"/>.</param>
+        /// <see cref="Blockchain.Tip"/> of <see cref="Blockchain"/>.</param>
         /// <returns><see langword="true"/> if the corresponding <see cref="Block"/> to
         /// <paramref name="target"/> is needed, otherwise, <see langword="false"/>.</returns>
         private bool IsBlockNeeded(BlockExcerpt target)
         {
-            return target.Height > BlockChain.Tip.Height;
+            return target.Height > Blockchain.Tip.Height;
         }
 
         private async Task RefreshTableAsync(

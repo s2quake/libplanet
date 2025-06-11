@@ -78,9 +78,9 @@ internal sealed class SwarmService(
 
         var nodeOptions = _options;
         var privateKey = PrivateKey.Parse(nodeOptions.PrivateKey);
-        var appProtocolVersion = ProtocolVersion.FromToken(nodeOptions.AppProtocolVersion);
+        var appProtocolVersion = Protocol.FromToken(nodeOptions.AppProtocolVersion);
         var trustedAppProtocolVersionSigners = nodeOptions.TrustedAppProtocolVersionSigners
-            .Select(PublicKey.Parse).ToArray();
+            .Select(Address.Parse).ToArray();
         var swarmEndPoint = (DnsEndPoint)EndPointUtility.Parse(nodeOptions.EndPoint);
         var swarmTransport = await CreateTransport(
             privateKey: privateKey,
@@ -181,13 +181,13 @@ internal sealed class SwarmService(
     private static async Task<NetMQTransport> CreateTransport(
         PrivateKey privateKey,
         DnsEndPoint endPoint,
-        ProtocolVersion appProtocolVersion,
-        PublicKey[] trustedAppProtocolVersionSigners)
+        Protocol appProtocolVersion,
+        Address[] allowedSigners)
     {
-        var appProtocolVersionOptions = new Net.Options.AppProtocolVersionOptions
+        var appProtocolVersionOptions = new Net.Options.ProtocolOptions
         {
-            AppProtocolVersion = appProtocolVersion,
-            TrustedAppProtocolVersionSigners = [.. trustedAppProtocolVersionSigners],
+            Protocol = appProtocolVersion,
+            AllowedSigners = [.. allowedSigners],
         };
         var hostOptions = new Net.Options.HostOptions { Host = endPoint.Host, Port = endPoint.Port };
         return await NetMQTransport.Create(
@@ -214,8 +214,8 @@ internal sealed class SwarmService(
 
     private static async Task<NetMQTransport> CreateConsensusTransportAsync(
         PrivateKey privateKey,
-        ProtocolVersion appProtocolVersion,
-        PublicKey[] trustedAppProtocolVersionSigners,
+        Protocol appProtocolVersion,
+        Address[] allowedSigners,
         ValidatorOptions options,
         CancellationToken cancellationToken)
     {
@@ -225,6 +225,6 @@ internal sealed class SwarmService(
             privateKey: privateKey,
             endPoint: consensusEndPoint,
             appProtocolVersion: appProtocolVersion,
-            trustedAppProtocolVersionSigners);
+            allowedSigners);
     }
 }

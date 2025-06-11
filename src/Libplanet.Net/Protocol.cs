@@ -3,11 +3,11 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[Model(Version = 1, TypeName = "ProtocolVersion")]
-public readonly partial record struct ProtocolVersion
+[Model(Version = 1, TypeName = "Protocol")]
+public readonly partial record struct Protocol
 {
     [Property(0)]
-    public required ProtocolVersionMetadata Metadata { get; init; }
+    public required ProtocolMetadata Metadata { get; init; }
 
     [Property(1)]
     public required ImmutableArray<byte> Signature { get; init; }
@@ -24,14 +24,14 @@ public readonly partial record struct ProtocolVersion
         }
     }
 
-    public static ProtocolVersion FromToken(string token)
+    public static Protocol FromToken(string token)
     {
-        return ModelSerializer.DeserializeFromBytes<ProtocolVersion>(ByteUtility.ParseHex(token));
+        return ModelSerializer.DeserializeFromBytes<Protocol>(ByteUtility.ParseHex(token));
     }
 
-    public static ProtocolVersion Create(PrivateKey signer, int version)
+    public static Protocol Create(PrivateKey signer, int version)
     {
-        var metadata = new ProtocolVersionMetadata
+        var metadata = new ProtocolMetadata
         {
             Version = version,
             Signer = signer.Address,
@@ -39,9 +39,9 @@ public readonly partial record struct ProtocolVersion
         return metadata.Sign(signer);
     }
 
-    public static ProtocolVersion Create(PrivateKey signer, int version, object extra)
+    public static Protocol Create(PrivateKey signer, int version, object extra)
     {
-        var metadata = new ProtocolVersionMetadata
+        var metadata = new ProtocolMetadata
         {
             Version = version,
             Signer = signer.Address,

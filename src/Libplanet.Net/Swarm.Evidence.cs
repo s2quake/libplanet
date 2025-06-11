@@ -92,7 +92,7 @@ namespace Libplanet.Net
                     await Task.Run(
                         () =>
                         {
-                            List<EvidenceId> evidenceIds = BlockChain.PendingEvidences.Keys.ToList();
+                            List<EvidenceId> evidenceIds = Blockchain.PendingEvidences.Keys.ToList();
 
                             if (evidenceIds.Any())
                             {
@@ -143,7 +143,7 @@ namespace Libplanet.Net
                 {
                     try
                     {
-                        EvidenceBase? ev = BlockChain.PendingEvidences[txid];
+                        EvidenceBase? ev = Blockchain.PendingEvidences[txid];
 
                         if (ev is null)
                         {

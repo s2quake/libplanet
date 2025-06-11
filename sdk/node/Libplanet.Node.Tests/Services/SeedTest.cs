@@ -104,7 +104,7 @@ public class SeedTest
     public async Task MessageReceived_TestAsync()
     {
         // Given
-        var apv = ProtocolVersion.Create(new(), 0);
+        var apv = Protocol.Create(new(), 0);
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
         var remoteBoundPeer = new Net.Peer { Address = remotePrivateKey.Address, EndPoint = remoteEndPoint };
@@ -113,9 +113,9 @@ public class SeedTest
             Host = remoteEndPoint.Host,
             Port = remoteEndPoint.Port,
         };
-        var remoteAPVOptions = new AppProtocolVersionOptions
+        var remoteAPVOptions = new ProtocolOptions
         {
-            AppProtocolVersion = apv,
+            Protocol = apv,
         };
         using var transport = await NetMQTransport.Create(
             remotePrivateKey, remoteAPVOptions, remoteHostOptions);
@@ -156,14 +156,14 @@ public class SeedTest
     public async Task GetNeighborsMsg_TestAsync()
     {
         // Given
-        var apv = ProtocolVersion.Create(new(), 0);
+        var apv = Protocol.Create(new(), 0);
         var length = Random.Shared.Next(3, 10);
         var remotePrivateKeys = new RandomPrivateKey[length];
         var remoteEndPoints = new RandomEndPoint[length];
         var remoteBoundPeers = new Net.Peer[length];
-        var remoteAPVOptions = new AppProtocolVersionOptions
+        var remoteAPVOptions = new ProtocolOptions
         {
-            AppProtocolVersion = apv,
+            Protocol = apv,
         };
         var transports = new ITransport[length];
         for (var i = 0; i < length; i++)

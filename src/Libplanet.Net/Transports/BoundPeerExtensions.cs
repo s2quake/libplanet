@@ -10,7 +10,7 @@ namespace Libplanet.Net.Transports;
 
 public static class BoundPeerExtensions
 {
-    public static ProtocolVersion QueryAppProtocolVersionNetMQ(
+    public static Protocol QueryAppProtocolVersionNetMQ(
         this Peer peer,
         TimeSpan? timeout = null)
     {
@@ -36,7 +36,7 @@ public static class BoundPeerExtensions
                 var response = new NetMQMessage();
                 if (dealerSocket.TryReceiveMultipartMessage(timeoutNotNull, ref response))
                 {
-                    return ProtocolVersion.FromToken(response.First.ConvertToString());
+                    return Protocol.FromToken(response.First.ConvertToString());
                 }
             }
         }
