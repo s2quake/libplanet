@@ -21,9 +21,11 @@ namespace Libplanet.Net.Tests
             var privateKeys = Libplanet.Tests.TestUtils.ValidatorPrivateKeys.ToArray();
             var count = privateKeys.Length;
             var consensusPeers = Enumerable.Range(0, count).Select(i =>
-                new BoundPeer(
-                    privateKeys[i].PublicKey,
-                    new DnsEndPoint("127.0.0.1", 6000 + i))).ToImmutableList();
+                new Peer
+                {
+                    Address = privateKeys[i].Address,
+                    EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
+                }).ToImmutableList();
             var reactorOptions = Enumerable.Range(0, count).Select(i =>
                 new ConsensusReactorOption
                 {

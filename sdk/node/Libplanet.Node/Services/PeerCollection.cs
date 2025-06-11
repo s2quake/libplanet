@@ -16,7 +16,7 @@ internal sealed class PeerCollection(SeedOptions seedOptions) : IEnumerable<Peer
 
     public int Count => _infoByAddress.Count;
 
-    public void AddOrUpdate(BoundPeer boundPeer, ITransport transport)
+    public void AddOrUpdate(Net.Peer boundPeer, ITransport transport)
     {
         _infoByAddress.AddOrUpdate(
             key: boundPeer.Address,

@@ -10,7 +10,7 @@ internal class SeedServiceBase(SeedOptions seedOptions, ILogger logger)
 {
     private readonly Seed _seed = new(seedOptions);
 
-    public BoundPeer BoundPeer => _seed.BoundPeer;
+    public Net.Peer BoundPeer => _seed.BoundPeer;
 
     public virtual string Name => GetType().Name;
 

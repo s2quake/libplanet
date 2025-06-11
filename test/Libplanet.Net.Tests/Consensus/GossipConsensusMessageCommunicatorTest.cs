@@ -50,7 +50,7 @@ namespace Libplanet.Net.Tests.Consensus
                 content => { },
                 key1,
                 6001,
-                new[] { new BoundPeer(key2.PublicKey, new DnsEndPoint("127.0.0.1", 6002)) });
+                [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
             var communicator2 = CreateGossipConesnsusMessageCommunicator(
                 content =>
                 {
@@ -62,7 +62,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
                 key2,
                 6002,
-                new[] { new BoundPeer(key1.PublicKey, new DnsEndPoint("127.0.0.1", 6001)) });
+                [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
 
             try
             {
@@ -195,7 +195,7 @@ namespace Libplanet.Net.Tests.Consensus
                 communicator1.OnStartHeight(1);
                 communicator1.OnStartRound(2);
 
-                var peer1 = new BoundPeer[] { communicator1.Gossip.AsPeer };
+                var peer1 = new Peer[] { communicator1.Gossip.AsPeer };
 
                 // This message will be accepted, since its round is valid.
                 transport2.BroadcastMessage(
@@ -347,15 +347,15 @@ namespace Libplanet.Net.Tests.Consensus
             Action<MessageContent> processMessage,
             PrivateKey? privateKey = null,
             int? port = null,
-            IEnumerable<BoundPeer>? peers = null,
-            IEnumerable<BoundPeer>? seeds = null)
+            IEnumerable<Peer>? peers = null,
+            IEnumerable<Peer>? seeds = null)
         {
             var transport = CreateTransport(privateKey, port);
 
             return new GossipConsensusMessageCommunicator(
                 transport,
-                peers?.ToImmutableArray() ?? ImmutableArray<BoundPeer>.Empty,
-                seeds?.ToImmutableArray() ?? ImmutableArray<BoundPeer>.Empty,
+                peers?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
+                seeds?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
                 processMessage);
         }
     }

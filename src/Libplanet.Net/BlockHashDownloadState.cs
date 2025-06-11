@@ -19,7 +19,7 @@ namespace Libplanet.Net
         /// <summary>
         /// The peer which sent the block hashes.
         /// </summary>
-        public BoundPeer? SourcePeer { get; internal set; }
+        public Peer? SourcePeer { get; internal set; }
 
         /// <inheritdoc />
         public override int CurrentPhase => 1;

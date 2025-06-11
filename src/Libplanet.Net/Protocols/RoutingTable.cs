@@ -42,13 +42,13 @@ public sealed class RoutingTable : IRoutingTable
 
     public int Count => _buckets.Sum(bucket => bucket.Count);
 
-    public IReadOnlyList<BoundPeer> Peers =>
+    public IReadOnlyList<Peer> Peers =>
         NonEmptyBuckets.SelectMany(bucket => bucket.Peers).ToImmutableArray();
 
     public IReadOnlyList<PeerState> PeerStates =>
         NonEmptyBuckets.SelectMany(bucket => bucket.PeerStates).ToImmutableArray();
 
-    internal IReadOnlyList<IReadOnlyList<BoundPeer>> CachesToCheck
+    internal IReadOnlyList<IReadOnlyList<Peer>> CachesToCheck
     {
         get
         {
@@ -77,9 +77,9 @@ public sealed class RoutingTable : IRoutingTable
         }
     }
 
-    public void AddPeer(BoundPeer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
+    public void AddPeer(Peer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
 
-    public bool RemovePeer(BoundPeer peer)
+    public bool RemovePeer(Peer peer)
     {
         if (peer.Address.Equals(_address))
         {
@@ -91,12 +91,12 @@ public sealed class RoutingTable : IRoutingTable
         return BucketOf(peer).RemovePeer(peer);
     }
 
-    public bool Contains(BoundPeer peer)
+    public bool Contains(Peer peer)
     {
         return BucketOf(peer).Contains(peer);
     }
 
-    public BoundPeer? GetPeer(Address addr) =>
+    public Peer? GetPeer(Address addr) =>
         Peers.FirstOrDefault(peer => peer.Address.Equals(addr));
 
     public void Clear()
@@ -107,10 +107,10 @@ public sealed class RoutingTable : IRoutingTable
         }
     }
 
-    public IReadOnlyList<BoundPeer> Neighbors(BoundPeer target, int k, bool includeTarget)
+    public IReadOnlyList<Peer> Neighbors(Peer target, int k, bool includeTarget)
         => Neighbors(target.Address, k, includeTarget);
 
-    public IReadOnlyList<BoundPeer> Neighbors(Address target, int k, bool includeTarget)
+    public IReadOnlyList<Peer> Neighbors(Address target, int k, bool includeTarget)
     {
         // TODO: Should include static peers?
         var sorted = _buckets
@@ -124,17 +124,17 @@ public sealed class RoutingTable : IRoutingTable
         bool containsTarget = sorted.Any(peer => peer.Address.Equals(target));
         int maxCount = (includeTarget && containsTarget) ? (k * 2) + 1 : k * 2;
 
-        IEnumerable<BoundPeer> peers = includeTarget
+        IEnumerable<Peer> peers = includeTarget
             ? sorted
             : sorted.Where(peer => !peer.Address.Equals(target));
 
         return peers.Take(maxCount).ToArray();
     }
 
-    public void Check(BoundPeer peer, DateTimeOffset start, DateTimeOffset end)
+    public void Check(Peer peer, DateTimeOffset start, DateTimeOffset end)
         => BucketOf(peer).Check(peer, start, end);
 
-    internal void AddPeer(BoundPeer peer, DateTimeOffset updated)
+    internal void AddPeer(Peer peer, DateTimeOffset updated)
     {
         if (peer.Address.Equals(_address))
         {
@@ -146,11 +146,11 @@ public sealed class RoutingTable : IRoutingTable
         BucketOf(peer).AddPeer(peer, updated);
     }
 
-    internal IReadOnlyList<BoundPeer> PeersToBroadcast(Address? except, int min = 10)
+    internal IReadOnlyList<Peer> PeersToBroadcast(Address? except, int min = 10)
     {
-        List<BoundPeer> peers = NonEmptyBuckets
+        List<Peer> peers = NonEmptyBuckets
             .Select(bucket => bucket.GetRandomPeer(except))
-            .OfType<BoundPeer>()
+            .OfType<Peer>()
             .ToList();
         int count = peers.Count;
         if (count < min)
@@ -165,20 +165,20 @@ public sealed class RoutingTable : IRoutingTable
         return peers;
     }
 
-    internal IReadOnlyList<BoundPeer> PeersToRefresh(TimeSpan maxAge) => NonEmptyBuckets
+    internal IReadOnlyList<Peer> PeersToRefresh(TimeSpan maxAge) => NonEmptyBuckets
         .Where(bucket =>
             bucket.Tail is PeerState peerState &&
                 peerState.LastUpdated + maxAge < DateTimeOffset.UtcNow)
         .Select(bucket => bucket.Tail!.Peer)
         .ToList();
 
-    internal bool RemoveCache(BoundPeer peer)
+    internal bool RemoveCache(Peer peer)
     {
         KBucket bucket = BucketOf(peer);
         return bucket.ReplacementCache.Remove(peer);
     }
 
-    internal KBucket BucketOf(BoundPeer peer)
+    internal KBucket BucketOf(Peer peer)
     {
         int index = GetBucketIndexOf(peer.Address);
         return BucketOf(index);

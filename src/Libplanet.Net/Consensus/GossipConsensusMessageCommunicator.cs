@@ -13,7 +13,7 @@ namespace Libplanet.Net.Consensus
         private readonly ILogger _logger;
         private long _height;
         private int _round;
-        private readonly ConcurrentDictionary<BoundPeer, ImmutableHashSet<int>> _peerCatchupRounds;
+        private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GossipConsensusMessageCommunicator"/>
@@ -21,16 +21,16 @@ namespace Libplanet.Net.Consensus
         /// </summary>
         /// <param name="consensusTransport">An <see cref="ITransport"/> for sending the
         /// <see cref="ConsensusMessage"/>s to validators.</param>
-        /// <param name="validatorPeers">A list of validator's <see cref="BoundPeer"/>,
+        /// <param name="validatorPeers">A list of validator's <see cref="Peer"/>,
         /// including itself.
         /// </param>
-        /// <param name="seedPeers">A list of seed's <see cref="BoundPeer"/>.</param>
+        /// <param name="seedPeers">A list of seed's <see cref="Peer"/>.</param>
         /// <param name="processMessage">Action to be called when receiving a new
         /// <see cref="ConsensusMessage"/>.</param>
         public GossipConsensusMessageCommunicator(
             ITransport consensusTransport,
-            ImmutableArray<BoundPeer> validatorPeers,
-            ImmutableArray<BoundPeer> seedPeers,
+            ImmutableArray<Peer> validatorPeers,
+            ImmutableArray<Peer> seedPeers,
             Action<MessageContent> processMessage)
         {
             Gossip = new Gossip(
@@ -43,7 +43,7 @@ namespace Libplanet.Net.Consensus
             _height = 0;
             _round = 0;
             _peerCatchupRounds
-                = new ConcurrentDictionary<BoundPeer, ImmutableHashSet<int>>();
+                = new ConcurrentDictionary<Peer, ImmutableHashSet<int>>();
 
             _logger = Log
                 .ForContext("Tag", "Consensus")
@@ -130,9 +130,9 @@ namespace Libplanet.Net.Consensus
         /// Spam filter logic for higher round <see cref="ConsensusVoteMessage"/>s.
         /// </summary>
         /// <param name="voteMsg"><see cref="ConsensusVoteMessage"/> to filter.</param>
-        /// <param name="peer"><see cref="BoundPeer"/> who sent <paramref name="voteMsg"/>.
+        /// <param name="peer"><see cref="Peer"/> who sent <paramref name="voteMsg"/>.
         /// </param>
-        private void FilterHigherRoundVoteSpam(ConsensusVoteMessage voteMsg, BoundPeer peer)
+        private void FilterHigherRoundVoteSpam(ConsensusVoteMessage voteMsg, Peer peer)
         {
             if (voteMsg.Height == _height &&
                 voteMsg.Round > _round)

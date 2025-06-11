@@ -15,21 +15,31 @@ namespace Libplanet.Net.Tests.Protocols
         public void BucketTest()
         {
             var bucket = new KBucket(4, new System.Random());
-            var peer1 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer2 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer3 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer4 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer5 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
+            var peer1 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer2 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer3 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer4 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer5 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
 
             // Checks for an empty bucket.
             Assert.True(bucket.IsEmpty);
@@ -70,7 +80,7 @@ namespace Libplanet.Net.Tests.Protocols
             Assert.True(bucket.IsFull);
             Assert.Equal(
                 bucket.Peers.ToHashSet(),
-                new HashSet<BoundPeer> { peer1, peer2, peer3, peer4 });
+                new HashSet<Peer> { peer1, peer2, peer3, peer4 });
             Assert.Contains(
                 bucket.GetRandomPeer(),
                 new[] { peer1, peer2, peer3, peer4 });
@@ -78,7 +88,7 @@ namespace Libplanet.Net.Tests.Protocols
             bucket.AddPeer(peer5, DateTimeOffset.UtcNow);
             Assert.Equal(
                 bucket.Peers.ToHashSet(),
-                new HashSet<BoundPeer> { peer1, peer2, peer3, peer4 });
+                new HashSet<Peer> { peer1, peer2, peer3, peer4 });
             Assert.False(bucket.Contains(peer5));
             Assert.Equal(peer4, bucket.Head?.Peer);
             Assert.Equal(peer1, bucket.Tail?.Peer);

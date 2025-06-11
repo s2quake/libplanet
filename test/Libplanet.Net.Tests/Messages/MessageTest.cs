@@ -15,7 +15,7 @@ public class MessageTest
     public void BlockHeaderMsg()
     {
         var privateKey = new PrivateKey();
-        var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
+        var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
         var apv = Protocol.Create(new PrivateKey(), 1);
         var dateTimeOffset = DateTimeOffset.UtcNow;
         Block genesis = ProposeGenesisBlock(GenesisProposer);
@@ -39,7 +39,7 @@ public class MessageTest
         var ping = new PingMessage();
         var privateKey = new PrivateKey();
         var apv = Protocol.Create(new PrivateKey(), 1);
-        var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
+        var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
         var timestamp = DateTimeOffset.UtcNow;
         var badPrivateKey = new PrivateKey();
         var codec = new NetMQMessageCodec();
@@ -59,7 +59,7 @@ public class MessageTest
     {
         // Victim
         var privateKey = new PrivateKey();
-        var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("0.0.0.0", 0));
+        var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
         var timestamp = DateTimeOffset.UtcNow;
         var apv = Protocol.Create(new PrivateKey(), 1);
         var ping = new PingMessage();
@@ -74,7 +74,7 @@ public class MessageTest
             }, privateKey).ToArray();
 
         // Attacker
-        var fakePeer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("1.2.3.4", 0));
+        var fakePeer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("1.2.3.4", 0) };
         var fakeMessage = codec.Encode(
             new Message
             {
@@ -110,7 +110,7 @@ public class MessageTest
     public void GetId()
     {
         var privateKey = new PrivateKey();
-        var peer = new BoundPeer(privateKey.PublicKey, new DnsEndPoint("1.2.3.4", 1234));
+        var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("1.2.3.4", 1234) };
         var apv = Protocol.Create(new PrivateKey(), 1);
         var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);
         Block genesis = ProposeGenesisBlock(GenesisProposer);

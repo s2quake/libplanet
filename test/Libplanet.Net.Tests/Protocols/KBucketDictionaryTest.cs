@@ -19,21 +19,31 @@ namespace Libplanet.Net.Tests.Protocols
         {
             var kBucketDictionary = new KBucketDictionary(
                 size: 4, replace: false);
-            var peer1 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer2 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer3 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer4 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer5 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
+            var peer1 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer2 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer3 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer4 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer5 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
 
             // Initial state
             Assert.Equal(0, kBucketDictionary.Count);
@@ -73,21 +83,31 @@ namespace Libplanet.Net.Tests.Protocols
         {
             var kBucketDictionary = new KBucketDictionary(
                 size: 4, replace: true);
-            var peer1 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer2 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer3 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer4 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
-            var peer5 = new BoundPeer(
-                new PrivateKey().PublicKey,
-                new DnsEndPoint("0.0.0.0", 1234));
+            var peer1 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer2 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer3 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer4 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
+            var peer5 = new Peer
+            {
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint("0.0.0.0", 1234)
+            };
 
             // Initial state
             Assert.Equal(0, kBucketDictionary.Count);

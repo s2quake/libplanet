@@ -528,7 +528,7 @@ namespace Libplanet.Net.Tests.Protocols
                         DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2));
                 }
 
-                IReadOnlyList<BoundPeer> refreshCandidates =
+                IReadOnlyList<Peer> refreshCandidates =
                     transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1));
                 Assert.Equal(peersCount, transport.Peers.Count());
                 Assert.Equal(peersCount / 2, refreshCandidates.Count);

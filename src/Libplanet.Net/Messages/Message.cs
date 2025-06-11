@@ -6,7 +6,7 @@ public sealed record class Message
 
     public required Protocol Protocol { get; init; }
 
-    public required BoundPeer Remote { get; init; }
+    public required Peer Remote { get; init; }
 
     public DateTimeOffset Timestamp { get; init; }
 

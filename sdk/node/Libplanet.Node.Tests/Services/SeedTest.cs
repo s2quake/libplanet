@@ -25,7 +25,7 @@ public class SeedTest
         var seed = new Seed(options);
         Assert.Equal(endPoint.Host, seed.BoundPeer.EndPoint.Host);
         Assert.Equal(endPoint.Port, seed.BoundPeer.EndPoint.Port);
-        Assert.Equal(privateKey.PublicKey, seed.BoundPeer.PublicKey);
+        Assert.Equal(privateKey.Address, seed.BoundPeer.Address);
         Assert.False(seed.IsRunning);
         Assert.Empty(seed.Peers);
     }
@@ -107,7 +107,7 @@ public class SeedTest
         var apv = Protocol.Create(new(), 0);
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
-        var remoteBoundPeer = new BoundPeer(remotePrivateKey.PublicKey, remoteEndPoint);
+        var remoteBoundPeer = new Net.Peer { Address = remotePrivateKey.Address, EndPoint = remoteEndPoint };
         var remoteHostOptions = new HostOptions
         {
             Host = remoteEndPoint.Host,
@@ -122,7 +122,7 @@ public class SeedTest
 
         var seedPrivateKey = new RandomPrivateKey();
         using var seedEndPoint = new RandomEndPoint();
-        var seedBoundPeer = new BoundPeer(seedPrivateKey.PublicKey, seedEndPoint);
+        var seedBoundPeer = new Net.Peer { Address = seedPrivateKey.Address, EndPoint = seedEndPoint };
         var options = new SeedOptions
         {
             PrivateKey = seedPrivateKey.ToString(),
@@ -160,7 +160,7 @@ public class SeedTest
         var length = Random.Shared.Next(3, 10);
         var remotePrivateKeys = new RandomPrivateKey[length];
         var remoteEndPoints = new RandomEndPoint[length];
-        var remoteBoundPeers = new BoundPeer[length];
+        var remoteBoundPeers = new Net.Peer[length];
         var remoteAPVOptions = new AppProtocolVersionOptions
         {
             AppProtocolVersion = apv,
@@ -170,7 +170,7 @@ public class SeedTest
         {
             remotePrivateKeys[i] = new RandomPrivateKey();
             remoteEndPoints[i] = new RandomEndPoint();
-            remoteBoundPeers[i] = new BoundPeer(remotePrivateKeys[i].PublicKey, remoteEndPoints[i]);
+            remoteBoundPeers[i] = new Net.Peer { Address = remotePrivateKeys[i].Address, EndPoint = remoteEndPoints[i] };
             transports[i] = await NetMQTransport.Create(
                 privateKey: remotePrivateKeys[i],
                 appProtocolVersionOptions: remoteAPVOptions,
@@ -182,7 +182,7 @@ public class SeedTest
 
         var seedPrivateKey = new RandomPrivateKey();
         var seedEndPoint = new RandomEndPoint();
-        var seedBoundPeer = new BoundPeer(seedPrivateKey.PublicKey, seedEndPoint);
+        var seedBoundPeer = new Net.Peer { Address = seedPrivateKey.Address, EndPoint = seedEndPoint };
         var options = new SeedOptions
         {
             PrivateKey = seedPrivateKey.ToString(),

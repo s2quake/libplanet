@@ -27,12 +27,12 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// A list of seeds.
         /// </summary>
-        public ImmutableList<BoundPeer> SeedPeers { get; set; }
+        public ImmutableList<Peer> SeedPeers { get; set; }
 
         /// <summary>
         /// A list of validators.
         /// </summary>
-        public ImmutableList<BoundPeer> ConsensusPeers { get; set; }
+        public ImmutableList<Peer> ConsensusPeers { get; set; }
 
         /// <summary>
         /// A time delay in starting the consensus for the next height block.

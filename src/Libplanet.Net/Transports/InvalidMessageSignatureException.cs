@@ -5,18 +5,18 @@ namespace Libplanet.Net.Transports;
 public class InvalidMessageSignatureException : Exception
 {
     internal InvalidMessageSignatureException(
-        string message, BoundPeer peer, PublicKey publicKey, byte[] messageToVerify, byte[] signature)
+        string message, Peer peer, Address address, byte[] messageToVerify, byte[] signature)
         : base(message)
     {
         Peer = peer;
-        PublicKey = publicKey;
+        Address = address;
         MessageToVerify = messageToVerify;
         Signature = signature;
     }
 
-    public BoundPeer Peer { get; }
+    public Peer Peer { get; }
 
-    public PublicKey PublicKey { get; }
+    public Address Address { get; }
 
     public byte[] MessageToVerify { get; }
 

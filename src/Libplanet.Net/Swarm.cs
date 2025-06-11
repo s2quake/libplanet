@@ -62,7 +62,7 @@ namespace Libplanet.Net
             BlockChain = blockChain ?? throw new ArgumentNullException(nameof(blockChain));
             _privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
             LastSeenTimestamps =
-                new ConcurrentDictionary<BoundPeer, DateTimeOffset>();
+                new ConcurrentDictionary<Peer, DateTimeOffset>();
             BlockHeaderReceived = new AsyncAutoResetEvent();
             BlockAppended = new AsyncAutoResetEvent();
             BlockReceived = new AsyncAutoResetEvent();
@@ -76,9 +76,9 @@ namespace Libplanet.Net
                 .ForContext("SwarmId", loggerId);
 
             Options = options ?? new SwarmOptions();
-            TxCompletion = new TxCompletion<BoundPeer>(BlockChain, GetTxsAsync, BroadcastTxs);
+            TxCompletion = new TxCompletion<Peer>(BlockChain, GetTxsAsync, BroadcastTxs);
             EvidenceCompletion =
-                new EvidenceCompletion<BoundPeer>(
+                new EvidenceCompletion<Peer>(
                     BlockChain, GetEvidenceAsync, BroadcastEvidence);
             RoutingTable = new RoutingTable(Address, Options.TableSize, Options.BucketSize);
 
@@ -87,7 +87,7 @@ namespace Libplanet.Net
             // fixed. for context, refer to
             // https://github.com/planetarium/libplanet/discussions/2303.
             Transport = transport;
-            _processBlockDemandSessions = new ConcurrentDictionary<BoundPeer, int>();
+            _processBlockDemandSessions = new ConcurrentDictionary<Peer, int>();
             Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
             PeerDiscovery = new KademliaProtocol(RoutingTable, Transport, Address);
             BlockDemandTable = new BlockDemandTable(Options.BlockDemandLifespan);
@@ -130,11 +130,11 @@ namespace Libplanet.Net
 
         public bool ConsensusRunning => _consensusReactor?.Running ?? false;
 
-        public DnsEndPoint EndPoint => AsPeer is BoundPeer boundPeer ? boundPeer.EndPoint : null;
+        public DnsEndPoint EndPoint => AsPeer is Peer boundPeer ? boundPeer.EndPoint : null;
 
         public Address Address => _privateKey.Address;
 
-        public BoundPeer AsPeer => Transport?.AsPeer;
+        public Peer AsPeer => Transport?.AsPeer;
 
         /// <summary>
         /// The last time when any message was arrived.
@@ -143,15 +143,15 @@ namespace Libplanet.Net
         public DateTimeOffset? LastMessageTimestamp =>
             Running ? Transport.LastMessageTimestamp : (DateTimeOffset?)null;
 
-        public IDictionary<BoundPeer, DateTimeOffset> LastSeenTimestamps { get; private set; }
+        public IDictionary<Peer, DateTimeOffset> LastSeenTimestamps { get; private set; }
 
-        public IReadOnlyList<BoundPeer> Peers => RoutingTable.Peers;
+        public IReadOnlyList<Peer> Peers => RoutingTable.Peers;
 
         /// <summary>
         /// Returns list of the validators that consensus has in its routing table.
         /// If the node is not joining consensus, returns <c>null</c>.
         /// </summary>
-        public IReadOnlyList<BoundPeer> Validators => _consensusReactor?.Validators;
+        public IReadOnlyList<Peer> Validators => _consensusReactor?.Validators;
 
         /// <summary>
         /// The <see cref="BlockChain"/> instance this <see cref="Swarm"/> instance
@@ -173,9 +173,9 @@ namespace Libplanet.Net
 
         internal ITransport Transport { get; }
 
-        internal TxCompletion<BoundPeer> TxCompletion { get; }
+        internal TxCompletion<Peer> TxCompletion { get; }
 
-        internal EvidenceCompletion<BoundPeer> EvidenceCompletion { get; }
+        internal EvidenceCompletion<Peer> EvidenceCompletion { get; }
 
         internal AsyncAutoResetEvent TxReceived => TxCompletion?.TxReceived;
 
@@ -409,14 +409,14 @@ namespace Libplanet.Net
         /// <param name="seedPeers">List of seed peers.</param>
         /// <param name="dialTimeout">Timeout for connecting to peers.</param>
         /// <param name="searchDepth">Maximum recursion depth when finding neighbors of
-        /// current <see cref="BoundPeer"/> from seed peers.</param>
+        /// current <see cref="Peer"/> from seed peers.</param>
         /// <param name="cancellationToken">A cancellation token used to propagate notification
         /// that this operation should be canceled.</param>
         /// <returns>An awaitable task without value.</returns>
         /// <exception cref="SwarmException">Thrown when this <see cref="Swarm"/> instance is
         /// not <see cref="Running"/>.</exception>
         public async Task BootstrapAsync(
-            IEnumerable<BoundPeer> seedPeers,
+            IEnumerable<Peer> seedPeers,
             TimeSpan? dialTimeout,
             int searchDepth,
             CancellationToken cancellationToken = default)
@@ -426,7 +426,7 @@ namespace Libplanet.Net
                 throw new ArgumentNullException(nameof(seedPeers));
             }
 
-            IReadOnlyList<BoundPeer> peersBeforeBootstrap = RoutingTable.Peers;
+            IReadOnlyList<Peer> peersBeforeBootstrap = RoutingTable.Peers;
 
             await PeerDiscovery.BootstrapAsync(
                 seedPeers,
@@ -438,7 +438,7 @@ namespace Libplanet.Net
             {
                 // Mark added peers as stale if bootstrap is called before transport is running
                 // FIXME: Peers added before bootstrap might be updated.
-                foreach (BoundPeer peer in RoutingTable.Peers.Except(peersBeforeBootstrap))
+                foreach (Peer peer in RoutingTable.Peers.Except(peersBeforeBootstrap))
                 {
                     RoutingTable.AddPeer(peer, DateTimeOffset.MinValue);
                 }
@@ -490,7 +490,7 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Preemptively downloads blocks from registered <see cref="BoundPeer"/>s.
+        /// Preemptively downloads blocks from registered <see cref="Peer"/>s.
         /// </summary>
         /// <param name="progress">
         /// An instance that receives progress updates for block downloads.
@@ -519,7 +519,7 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Preemptively downloads blocks from registered <see cref="BoundPeer"/>s.
+        /// Preemptively downloads blocks from registered <see cref="Peer"/>s.
         /// </summary>
         /// <param name="dialTimeout">
         /// When the <see cref="Swarm"/> tries to dial each peer in <see cref="Peers"/>,
@@ -630,12 +630,12 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Use <see cref="FindNeighborsMessage"/> messages to find a <see cref="BoundPeer"/> with
+        /// Use <see cref="FindNeighborsMessage"/> messages to find a <see cref="Peer"/> with
         /// <see cref="Address"/> of <paramref name="target"/>.
         /// </summary>
         /// <param name="target">The <see cref="Address"/> to find.</param>
         /// <param name="depth">Target depth of recursive operation. If -1 is given,
-        /// will recursive until the closest <see cref="BoundPeer"/> to the
+        /// will recursive until the closest <see cref="Peer"/> to the
         /// <paramref name="target"/> is found.</param>
         /// <param name="timeout">
         /// <see cref="TimeSpan"/> for waiting reply of <see cref="FindNeighborsMessage"/>.
@@ -644,10 +644,10 @@ namespace Libplanet.Net
         /// <param name="cancellationToken">A cancellation token used to propagate notification
         /// that this operation should be canceled.</param>
         /// <returns>
-        /// A <see cref="BoundPeer"/> with <see cref="Address"/> of <paramref name="target"/>.
+        /// A <see cref="Peer"/> with <see cref="Address"/> of <paramref name="target"/>.
         /// Returns <see langword="null"/> if the peer with address does not exist.
         /// </returns>
-        public async Task<BoundPeer> FindSpecificPeerAsync(
+        public async Task<Peer> FindSpecificPeerAsync(
             Address target,
             int depth = 3,
             TimeSpan? timeout = null,
@@ -662,7 +662,7 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Validates all <see cref="BoundPeer"/>s in the routing table by sending a simple message.
+        /// Validates all <see cref="Peer"/>s in the routing table by sending a simple message.
         /// </summary>
         /// <param name="timeout">Timeout for this operation. If it is set to
         /// <see langword="null"/>, wait infinitely until the requested operation is finished.
@@ -693,7 +693,7 @@ namespace Libplanet.Net
         /// that this operation should be canceled.</param>
         /// <returns>An awaitable task without value.</returns>
         public Task AddPeersAsync(
-            IEnumerable<BoundPeer> peers,
+            IEnumerable<Peer> peers,
             TimeSpan? timeout,
             CancellationToken cancellationToken = default)
         {
@@ -712,7 +712,7 @@ namespace Libplanet.Net
 
         // FIXME: This would be better if it's merged with GetDemandBlockHashes
         internal async Task<List<BlockHash>> GetBlockHashes(
-            BoundPeer peer,
+            Peer peer,
             BlockHash blockHash,
             CancellationToken cancellationToken = default)
         {
@@ -787,7 +787,7 @@ namespace Libplanet.Net
         /// Download <see cref="Block"/>s corresponding to <paramref name="blockHashes"/>
         /// from <paramref name="peer"/>.
         /// </summary>
-        /// <param name="peer">A <see cref="BoundPeer"/> to request <see cref="Block"/>s from.
+        /// <param name="peer">A <see cref="Peer"/> to request <see cref="Block"/>s from.
         /// </param>
         /// <param name="blockHashes">A <see cref="List{T}"/> of <see cref="BlockHash"/>es
         /// of <see cref="Block"/>s to be downloaded from <paramref name="peer"/>.</param>
@@ -802,7 +802,7 @@ namespace Libplanet.Net
         /// a message other than <see cref="BlocksMessage"/> is received while
         /// trying to get <see cref="Block"/>s from <paramref name="peer"/>.</exception>
         internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
-            BoundPeer peer,
+            Peer peer,
             List<BlockHash> blockHashes,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -908,7 +908,7 @@ namespace Libplanet.Net
         }
 
         internal async IAsyncEnumerable<Transaction> GetTxsAsync(
-            BoundPeer peer,
+            Peer peer,
             IEnumerable<TxId> txIds,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -962,29 +962,29 @@ namespace Libplanet.Net
 
         /// <summary>
         /// Gets all <see cref="BlockHash"/>es for <see cref="Block"/>s needed to be downloaded
-        /// by querying <see cref="BoundPeer"/>s.
+        /// by querying <see cref="Peer"/>s.
         /// </summary>
         /// <param name="blockChain">The <see cref="BlockChain"/> to use as a reference
         /// for generating a <see cref="BlockLocator"/> when querying.  This may not necessarily
         /// be <see cref="BlockChain"/>, the canonical <see cref="BlockChain"/> instance held
         /// by this <see cref="Swarm"/> instance.</param>
-        /// <param name="peersWithExcerpts">The <see cref="List{T}"/> of <see cref="BoundPeer"/>s
+        /// <param name="peersWithExcerpts">The <see cref="List{T}"/> of <see cref="Peer"/>s
         /// to query with their tips known.</param>
         /// <param name="cancellationToken">The cancellation token that should be used to propagate
         /// a notification that this operation should be canceled.</param>
         /// <returns>An <see cref="List{T}"/> of <see cref="BlockHash"/>es together with
-        /// its source <see cref="BoundPeer"/>.  This is guaranteed to always return a non-empty
+        /// its source <see cref="Peer"/>.  This is guaranteed to always return a non-empty
         /// <see cref="List{T}"/> unless an <see cref="Exception"/> is thrown.</returns>
         /// <exception cref="AggregateException">Thrown when failed to download
-        /// <see cref="BlockHash"/>es from a <see cref="BoundPeer"/>.</exception>
+        /// <see cref="BlockHash"/>es from a <see cref="Peer"/>.</exception>
         /// <remarks>
         /// <para>
-        /// This method uses the tip information for each <see cref="BoundPeer"/> provided with
+        /// This method uses the tip information for each <see cref="Peer"/> provided with
         /// <paramref name="peersWithExcerpts"/> whether to make a query in the first place.
         /// </para>
         /// <para>
         /// Returned list of tuples is simply the first successful query result from a
-        /// <see cref="BoundPeer"/> among <paramref name="peersWithExcerpts"/>.
+        /// <see cref="Peer"/> among <paramref name="peersWithExcerpts"/>.
         /// </para>
         /// <para>
         /// This implicitly assumes returned <see cref="BlockHashesMessage"/> is properly
@@ -994,13 +994,13 @@ namespace Libplanet.Net
         /// to download.
         /// </para>
         /// </remarks>
-        internal async Task<(BoundPeer, List<BlockHash>)> GetDemandBlockHashes(
+        internal async Task<(Peer, List<BlockHash>)> GetDemandBlockHashes(
             Blockchain blockChain,
-            IList<(BoundPeer, BlockExcerpt)> peersWithExcerpts,
+            IList<(Peer, BlockExcerpt)> peersWithExcerpts,
             CancellationToken cancellationToken = default)
         {
             var exceptions = new List<Exception>();
-            foreach ((BoundPeer peer, BlockExcerpt excerpt) in peersWithExcerpts)
+            foreach ((Peer peer, BlockExcerpt excerpt) in peersWithExcerpts)
             {
                 if (!IsBlockNeeded(excerpt))
                 {
@@ -1037,7 +1037,7 @@ namespace Libplanet.Net
                 }
             }
 
-            BoundPeer[] peers = peersWithExcerpts.Select(p => p.Item1).ToArray();
+            Peer[] peers = peersWithExcerpts.Select(p => p.Item1).ToArray();
             _logger.Warning(
                 "Failed to fetch demand block hashes from peers: {Peers}",
                 peers);
@@ -1049,7 +1049,7 @@ namespace Libplanet.Net
 
         internal async Task<List<BlockHash>> GetDemandBlockHashesFromPeer(
             Blockchain blockChain,
-            BoundPeer peer,
+            Peer peer,
             BlockExcerpt excerpt,
             CancellationToken cancellationToken = default)
         {
@@ -1102,7 +1102,7 @@ namespace Libplanet.Net
             BroadcastMessage(except, message);
         }
 
-        private void BroadcastTxs(BoundPeer except, IEnumerable<Transaction> txs)
+        private void BroadcastTxs(Peer except, IEnumerable<Transaction> txs)
         {
             List<TxId> txIds = txs.Select(tx => tx.Id).ToList();
             _logger.Information("Broadcasting {Count} txIds...", txIds.Count);
@@ -1117,19 +1117,19 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Gets <see cref="BlockExcerpt"/>es from randomly selected <see cref="BoundPeer"/>s
+        /// Gets <see cref="BlockExcerpt"/>es from randomly selected <see cref="Peer"/>s
         /// from <see cref="Peers"/> with each <see cref="BlockExcerpt"/> tied to
-        /// its originating <see cref="BoundPeer"/>.
+        /// its originating <see cref="Peer"/>.
         /// </summary>
         /// <param name="dialTimeout">Timeout for each dialing operation to
-        /// a <see cref="BoundPeer"/> in <see cref="Peers"/>.  Not having a timeout limit
+        /// a <see cref="Peer"/> in <see cref="Peers"/>.  Not having a timeout limit
         /// is equivalent to setting this value to <see langword="null"/>.</param>
-        /// <param name="maxPeersToDial">Maximum number of <see cref="BoundPeer"/>s to dial.</param>
+        /// <param name="maxPeersToDial">Maximum number of <see cref="Peer"/>s to dial.</param>
         /// <param name="cancellationToken">A cancellation token used to propagate notification
         /// that this operation should be canceled.</param>
         /// <returns>An awaitable task with a <see cref="List{T}"/> of tuples
-        /// of <see cref="BoundPeer"/> and <see cref="BlockExcerpt"/> ordered randomly.</returns>
-        private async Task<List<(BoundPeer, BlockExcerpt)>> GetPeersWithExcerpts(
+        /// of <see cref="Peer"/> and <see cref="BlockExcerpt"/> ordered randomly.</returns>
+        private async Task<List<(Peer, BlockExcerpt)>> GetPeersWithExcerpts(
             TimeSpan? dialTimeout,
             int maxPeersToDial,
             CancellationToken cancellationToken)
@@ -1148,28 +1148,28 @@ namespace Libplanet.Net
         }
 
         /// <summary>
-        /// Gets <see cref="ChainStatusMessage"/>es from randomly selected <see cref="BoundPeer"/>s
+        /// Gets <see cref="ChainStatusMessage"/>es from randomly selected <see cref="Peer"/>s
         /// from <see cref="Peers"/> with each <see cref="ChainStatusMessage"/> tied to
-        /// its originating <see cref="BoundPeer"/>.
+        /// its originating <see cref="Peer"/>.
         /// </summary>
         /// <param name="dialTimeout">Timeout for each dialing operation to
-        /// a <see cref="BoundPeer"/> in <see cref="Peers"/>.  Not having a timeout limit
+        /// a <see cref="Peer"/> in <see cref="Peers"/>.  Not having a timeout limit
         /// is equivalent to setting this value to <see langword="null"/>.</param>
-        /// <param name="maxPeersToDial">Maximum number of <see cref="BoundPeer"/>s to dial.</param>
+        /// <param name="maxPeersToDial">Maximum number of <see cref="Peer"/>s to dial.</param>
         /// <param name="cancellationToken">A cancellation token used to propagate notification
         /// that this operation should be canceled.</param>
         /// <returns>An awaitable task with an <see cref="Array"/> of tuples
-        /// of <see cref="BoundPeer"/> and <see cref="ChainStatusMessage"/> where
+        /// of <see cref="Peer"/> and <see cref="ChainStatusMessage"/> where
         /// <see cref="ChainStatusMessage"/> can be <see langword="null"/> if dialing fails for
-        /// a selected <see cref="BoundPeer"/>.</returns>
-        private Task<(BoundPeer, ChainStatusMessage)[]> DialExistingPeers(
+        /// a selected <see cref="Peer"/>.</returns>
+        private Task<(Peer, ChainStatusMessage)[]> DialExistingPeers(
             TimeSpan? dialTimeout,
             int maxPeersToDial,
             CancellationToken cancellationToken)
         {
             // FIXME: It would be better if it returns IAsyncEnumerable<(BoundPeer, ChainStatus)>
             // instead.
-            void LogException(BoundPeer peer, Task<Message> task)
+            void LogException(Peer peer, Task<Message> task)
             {
                 switch (task.Exception?.InnerException)
                 {
@@ -1189,7 +1189,7 @@ namespace Libplanet.Net
             }
 
             var rnd = new System.Random();
-            IEnumerable<Task<(BoundPeer, ChainStatusMessage)>> tasks = Peers.OrderBy(_ => rnd.Next())
+            IEnumerable<Task<(Peer, ChainStatusMessage)>> tasks = Peers.OrderBy(_ => rnd.Next())
                 .Take(maxPeersToDial)
                 .Select(
                     peer => Transport.SendMessageAsync(
@@ -1197,7 +1197,7 @@ namespace Libplanet.Net
                         new GetChainStatusMessage(),
                         dialTimeout,
                         cancellationToken)
-                    .ContinueWith<(BoundPeer, ChainStatusMessage)>(
+                    .ContinueWith<(Peer, ChainStatusMessage)>(
                         task =>
                         {
                             if (task.IsFaulted || task.IsCanceled ||

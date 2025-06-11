@@ -30,10 +30,10 @@ namespace Libplanet.Net.Consensus
         /// <param name="privateKey">A <see cref="PrivateKey"/> for using in signing a block,
         /// message.
         /// </param>
-        /// <param name="validatorPeers">A list of validator's <see cref="BoundPeer"/>, including
+        /// <param name="validatorPeers">A list of validator's <see cref="Peer"/>, including
         /// itself.
         /// </param>
-        /// <param name="seedPeers">A list of seed's <see cref="BoundPeer"/>.</param>
+        /// <param name="seedPeers">A list of seed's <see cref="Peer"/>.</param>
         /// <param name="newHeightDelay">A time delay in starting the consensus for the next height
         /// block.
         /// </param>
@@ -43,13 +43,13 @@ namespace Libplanet.Net.Consensus
             ITransport consensusTransport,
             Blockchain blockChain,
             PrivateKey privateKey,
-            ImmutableList<BoundPeer> validatorPeers,
-            ImmutableList<BoundPeer> seedPeers,
+            ImmutableList<Peer> validatorPeers,
+            ImmutableList<Peer> seedPeers,
             TimeSpan newHeightDelay,
             ContextOption contextOption)
         {
-            validatorPeers ??= ImmutableList<BoundPeer>.Empty;
-            seedPeers ??= ImmutableList<BoundPeer>.Empty;
+            validatorPeers ??= ImmutableList<Peer>.Empty;
+            seedPeers ??= ImmutableList<Peer>.Empty;
 
             GossipConsensusMessageCommunicator consensusMessageHandler =
                 new GossipConsensusMessageCommunicator(
@@ -88,7 +88,7 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// An <see cref="IEnumerable{BoundPeer}"/> of the validators.
         /// </summary>
-        public IReadOnlyList<BoundPeer> Validators => _gossip.Peers.ToList().AsReadOnly();
+        public IReadOnlyList<Peer> Validators => _gossip.Peers.ToList().AsReadOnly();
 
         // FIXME: This should be exposed in a better way.
         internal ConsensusContext ConsensusContext => _consensusContext;
@@ -156,7 +156,7 @@ namespace Libplanet.Net.Consensus
                     try
                     {
                         var sender = _gossip.Peers.First(
-                            peer => peer.PublicKey.Equals(voteSetBits.Validator));
+                            peer => peer.Address.Equals(voteSetBits.Validator));
                         foreach (var msg in messages)
                         {
                             _gossip.PublishMessage(msg, new[] { sender });
@@ -182,7 +182,7 @@ namespace Libplanet.Net.Consensus
                         }
 
                         var sender = _gossip.Peers.First(
-                            peer => peer.PublicKey.Equals(maj23Msg.Validator));
+                            peer => peer.Address.Equals(maj23Msg.Validator));
                         _gossip.PublishMessage(
                             new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits },
                             new[] { sender });
@@ -206,7 +206,7 @@ namespace Libplanet.Net.Consensus
                         {
                             var reply = new ConsensusProposalMessage { Proposal = proposalNotNull };
                             var sender = _gossip.Peers.First(
-                                peer => peer.PublicKey.Equals(proposalClaimMsg.Validator));
+                                peer => peer.Address.Equals(proposalClaimMsg.Validator));
 
                             _gossip.PublishMessage(reply, new[] { sender });
                         }

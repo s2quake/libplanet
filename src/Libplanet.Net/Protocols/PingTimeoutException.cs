@@ -2,23 +2,23 @@ namespace Libplanet.Net.Protocols;
 
 public class PingTimeoutException : TimeoutException
 {
-    public PingTimeoutException(BoundPeer target)
+    public PingTimeoutException(Peer target)
         : base()
     {
         Target = target;
     }
 
-    public PingTimeoutException(string message, BoundPeer target)
+    public PingTimeoutException(string message, Peer target)
         : base(message)
     {
         Target = target;
     }
 
-    public PingTimeoutException(string message, BoundPeer target, Exception innerException)
+    public PingTimeoutException(string message, Peer target, Exception innerException)
         : base(message, innerException)
     {
         Target = target;
     }
 
-    public BoundPeer Target { get; }
+    public Peer Target { get; }
 }

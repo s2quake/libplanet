@@ -30,14 +30,14 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         Message message,
         PrivateKey privateKey)
     {
-        if (!privateKey.PublicKey.Equals(message.Remote.PublicKey))
+        if (!privateKey.Address.Equals(message.Remote.Address))
         {
             throw new InvalidCredentialException(
                 $"An invalid private key was provided: the provided private key's " +
-                $"expected public key is {message.Remote.PublicKey} " +
-                $"but its actual public key is {privateKey.PublicKey}.",
-                message.Remote.PublicKey,
-                privateKey.PublicKey);
+                $"expected public key is {message.Remote.Address} " +
+                $"but its actual public key is {privateKey.Address}.",
+                message.Remote.Address,
+                privateKey.Address);
         }
 
         var netMqMessage = new NetMQMessage();
@@ -80,7 +80,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         var versionToken = remains[(int)MessageFrame.Version].ConvertToString();
 
         Protocol version = Protocol.FromToken(versionToken);
-        var remote = ModelSerializer.DeserializeFromBytes<BoundPeer>(remains[(int)MessageFrame.Peer].ToByteArray());
+        var remote = ModelSerializer.DeserializeFromBytes<Peer>(remains[(int)MessageFrame.Peer].ToByteArray());
 
         var type =
             (MessageContent.MessageType)remains[(int)MessageFrame.Type].ConvertToInt32();
@@ -104,12 +104,12 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         };
 
         var messageToVerify = headerWithoutSign.Concat(body).ToByteArray();
-        if (!remote.PublicKey.Verify(messageToVerify, signature))
+        if (!remote.Address.Verify(messageToVerify, signature))
         {
             throw new InvalidMessageSignatureException(
                 "The signature of an encoded message is invalid.",
                 remote,
-                remote.PublicKey,
+                remote.Address,
                 messageToVerify,
                 signature);
         }

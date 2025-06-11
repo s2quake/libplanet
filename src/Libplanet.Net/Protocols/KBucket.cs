@@ -34,13 +34,13 @@ internal sealed class KBucket
 
     public PeerState? Tail => _peerStates.Tail;
 
-    public IEnumerable<BoundPeer> Peers => _peerStates.Keys;
+    public IEnumerable<Peer> Peers => _peerStates.Keys;
 
     public IEnumerable<PeerState> PeerStates => _peerStates.Values;
 
     public KBucketDictionary ReplacementCache => _replacementCache;
 
-    public void AddPeer(BoundPeer peer, DateTimeOffset updated)
+    public void AddPeer(Peer peer, DateTimeOffset updated)
     {
         var peerState = new PeerState
         {
@@ -53,7 +53,7 @@ internal sealed class KBucket
         }
     }
 
-    public bool Contains(BoundPeer peer)
+    public bool Contains(Peer peer)
     {
         return _peerStates.ContainsKey(peer);
     }
@@ -63,7 +63,7 @@ internal sealed class KBucket
         _peerStates.Clear();
     }
 
-    public bool RemovePeer(BoundPeer peer)
+    public bool RemovePeer(Peer peer)
     {
         if (_peerStates.Remove(peer))
         {
@@ -75,15 +75,15 @@ internal sealed class KBucket
         }
     }
 
-    public BoundPeer? GetRandomPeer(Address? except = null)
+    public Peer? GetRandomPeer(Address? except = null)
     {
-        List<BoundPeer> peers = _peerStates.Keys
+        List<Peer> peers = _peerStates.Keys
             .Where(p => except is not Address e || !p.Address.Equals(e))
             .ToList();
         return peers.Count > 0 ? peers[_random.Next(peers.Count)] : null;
     }
 
-    public void Check(BoundPeer peer, DateTimeOffset start, DateTimeOffset end)
+    public void Check(Peer peer, DateTimeOffset start, DateTimeOffset end)
     {
         if (_peerStates.TryGetValue(peer, out var peerState))
         {

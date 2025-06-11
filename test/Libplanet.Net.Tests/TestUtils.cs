@@ -22,13 +22,13 @@ namespace Libplanet.Net.Tests
         public static readonly ImmutableList<PrivateKey> PrivateKeys =
             Libplanet.Tests.TestUtils.ValidatorPrivateKeys;
 
-        public static readonly List<BoundPeer> Peers = new List<BoundPeer>()
-        {
-            new BoundPeer(PrivateKeys[0].PublicKey, new DnsEndPoint("1.0.0.0", 1000)),
-            new BoundPeer(PrivateKeys[1].PublicKey, new DnsEndPoint("1.0.0.1", 1001)),
-            new BoundPeer(PrivateKeys[2].PublicKey, new DnsEndPoint("1.0.0.2", 1002)),
-            new BoundPeer(PrivateKeys[3].PublicKey, new DnsEndPoint("1.0.0.3", 1003)),
-        };
+        public static readonly List<Peer> Peers =
+        [
+            new Peer { Address = PrivateKeys[0].Address, EndPoint = new DnsEndPoint("1.0.0.0", 1000)},
+            new Peer { Address = PrivateKeys[1].Address, EndPoint = new DnsEndPoint("1.0.0.1", 1001)},
+            new Peer { Address = PrivateKeys[2].Address, EndPoint = new DnsEndPoint("1.0.0.2", 1002)},
+            new Peer { Address = PrivateKeys[3].Address, EndPoint = new DnsEndPoint("1.0.0.3", 1003)},
+        ];
 
         public static readonly ImmutableSortedSet<Validator> Validators
             = Libplanet.Tests.TestUtils.Validators;
@@ -337,7 +337,7 @@ namespace Libplanet.Net.Tests
             PrivateKey? key = null,
             string host = "127.0.0.1",
             int consensusPort = 5101,
-            List<BoundPeer>? validatorPeers = null,
+            List<Peer>? validatorPeers = null,
             int newHeightDelayMilliseconds = 10_000,
             ContextOption? contextOption = null)
         {
@@ -361,7 +361,7 @@ namespace Libplanet.Net.Tests
                 blockChain,
                 key,
                 validatorPeers.ToImmutableList(),
-                new List<BoundPeer>().ToImmutableList(),
+                new List<Peer>().ToImmutableList(),
                 TimeSpan.FromMilliseconds(newHeightDelayMilliseconds),
                 contextOption: contextOption ?? new ContextOption());
         }

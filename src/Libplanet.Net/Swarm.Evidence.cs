@@ -19,7 +19,7 @@ namespace Libplanet.Net
         }
 
         internal async IAsyncEnumerable<EvidenceBase> GetEvidenceAsync(
-            BoundPeer peer,
+            Peer peer,
             IEnumerable<EvidenceId> evidenceIds,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -72,7 +72,7 @@ namespace Libplanet.Net
             }
         }
 
-        private void BroadcastEvidence(BoundPeer? except, IEnumerable<EvidenceBase> evidence)
+        private void BroadcastEvidence(Peer? except, IEnumerable<EvidenceBase> evidence)
         {
             List<EvidenceId> evidenceIds = evidence.Select(evidence => evidence.Id).ToList();
             _logger.Information("Broadcasting {Count} evidenceIds...", evidenceIds.Count);

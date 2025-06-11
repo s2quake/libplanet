@@ -80,9 +80,11 @@ namespace Libplanet.Net.Tests.Transports
                 {
                     Dns.GetHostEntry(invalidHost);
                 });
-                var invalidPeer = new BoundPeer(
-                    new PrivateKey().PublicKey,
-                    new DnsEndPoint(invalidHost, 0));
+                var invalidPeer = new Peer
+                {
+                    Address = new PrivateKey().Address,
+                    EndPoint = new DnsEndPoint(invalidHost, 0),
+                };
 
                 CommunicationFailException exc =
                     await Assert.ThrowsAsync<CommunicationFailException>(

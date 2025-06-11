@@ -60,7 +60,7 @@ namespace Libplanet.Explorer.Executable
         {
             get
             {
-                return Seeds?.Select(seed => $"{ByteUtility.Hex(seed.PublicKey.ToByteArray(true))}," +
+                return Seeds?.Select(seed => $"{ByteUtility.Hex(seed.Address.Bytes)}," +
                                              $"{seed.EndPoint.Host},{seed.EndPoint.Port}");
             }
 
@@ -78,12 +78,12 @@ namespace Libplanet.Explorer.Executable
                     byte[] pubkeyBytes = ByteUtility.ParseHex(parts[0]);
                     var pubkey = new PublicKey(pubkeyBytes);
                     var endpoint = new DnsEndPoint(parts[1], int.Parse(parts[2]));
-                    return new BoundPeer(pubkey, endpoint);
+                    return new Peer { Address = pubkey.Address, EndPoint = endpoint };
                 });
             }
         }
 
-        public IEnumerable<BoundPeer> Seeds { get; set; }
+        public IEnumerable<Peer> Seeds { get; set; }
 
         public string IceServerUrl
         {

@@ -4,5 +4,5 @@ namespace Libplanet.Node.Services;
 
 public interface IBlocksyncSeedService
 {
-    BoundPeer BoundPeer { get; }
+    Net.Peer BoundPeer { get; }
 }

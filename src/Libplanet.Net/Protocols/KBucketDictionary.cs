@@ -4,11 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class KBucketDictionary : IReadOnlyDictionary<BoundPeer, PeerState>
+internal sealed class KBucketDictionary : IReadOnlyDictionary<Peer, PeerState>
 {
     private readonly int _size;
     private readonly bool _replace;
-    private readonly ConcurrentDictionary<BoundPeer, PeerState> _stateByPeer;
+    private readonly ConcurrentDictionary<Peer, PeerState> _stateByPeer;
 
     public KBucketDictionary(int size, bool replace)
     {
@@ -30,13 +30,13 @@ internal sealed class KBucketDictionary : IReadOnlyDictionary<BoundPeer, PeerSta
 
     public PeerState? Tail { get; private set; }
 
-    public IEnumerable<BoundPeer> Keys => _stateByPeer.Keys;
+    public IEnumerable<Peer> Keys => _stateByPeer.Keys;
 
     public IEnumerable<PeerState> Values => _stateByPeer.Values;
 
-    public PeerState this[BoundPeer key] => _stateByPeer[key];
+    public PeerState this[Peer key] => _stateByPeer[key];
 
-    public bool AddOrUpdate(BoundPeer peer)
+    public bool AddOrUpdate(Peer peer)
         => AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
 
     public bool AddOrUpdate(PeerState peerState)
@@ -74,7 +74,7 @@ internal sealed class KBucketDictionary : IReadOnlyDictionary<BoundPeer, PeerSta
         }
     }
 
-    public bool Remove(BoundPeer peer)
+    public bool Remove(Peer peer)
     {
         var result = _stateByPeer.TryRemove(peer, out _);
         UpdateHeadAndTail();
@@ -87,12 +87,12 @@ internal sealed class KBucketDictionary : IReadOnlyDictionary<BoundPeer, PeerSta
         UpdateHeadAndTail();
     }
 
-    public bool ContainsKey(BoundPeer key) => _stateByPeer.ContainsKey(key);
+    public bool ContainsKey(Peer key) => _stateByPeer.ContainsKey(key);
 
-    public bool TryGetValue(BoundPeer key, [MaybeNullWhen(false)] out PeerState value)
+    public bool TryGetValue(Peer key, [MaybeNullWhen(false)] out PeerState value)
         => _stateByPeer.TryGetValue(key, out value);
 
-    public IEnumerator<KeyValuePair<BoundPeer, PeerState>> GetEnumerator() => _stateByPeer.GetEnumerator();
+    public IEnumerator<KeyValuePair<Peer, PeerState>> GetEnumerator() => _stateByPeer.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => _stateByPeer.GetEnumerator();
 

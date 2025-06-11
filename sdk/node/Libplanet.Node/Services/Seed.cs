@@ -27,9 +27,11 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
 
     public PeerCollection Peers { get; } = new(seedOptions);
 
-    public BoundPeer BoundPeer => new(
-        PrivateKey.Parse(seedOptions.PrivateKey).PublicKey,
-        (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint));
+    public Net.Peer BoundPeer => new Net.Peer
+    {
+        Address = PrivateKey.Parse(seedOptions.PrivateKey).Address,
+        EndPoint = (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint),
+    };
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -165,7 +167,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                 break;
         }
 
-        if (message.Remote is BoundPeer boundPeer)
+        if (message.Remote is Net.Peer boundPeer)
         {
             peers.AddOrUpdate(boundPeer, transport);
         }

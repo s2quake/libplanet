@@ -29,7 +29,7 @@ namespace Libplanet.Net
         /// <summary>
         /// The peer which sent the block.
         /// </summary>
-        public BoundPeer? SourcePeer { get; internal set; }
+        public Peer? SourcePeer { get; internal set; }
 
         public static bool operator ==(BlockDownloadState left, BlockDownloadState right) =>
             left.Equals(right);

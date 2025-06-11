@@ -99,10 +99,10 @@ namespace Libplanet.Net.Tests
             _output.WriteLine("Trusted version signer: {0}", signer.Address);
             _output.WriteLine("Untrusted version signer: {0}", untrustedSigner.Address);
 
-            var logs = new ConcurrentDictionary<BoundPeer, Protocol>();
+            var logs = new ConcurrentDictionary<Peer, Protocol>();
 
             void DifferentAppProtocolVersionEncountered(
-                BoundPeer peer,
+                Peer peer,
                 Protocol peerVersion,
                 Protocol localVersion)
             {
@@ -170,7 +170,7 @@ namespace Libplanet.Net.Tests
                 Assert.Equal(new[] { d.AsPeer }, b.Peers.ToArray());
 
                 _output.WriteLine("Logged encountered peers:");
-                foreach (KeyValuePair<BoundPeer, Protocol> kv in logs)
+                foreach (KeyValuePair<Peer, Protocol> kv in logs)
                 {
                     _output.WriteLine(
                         "{0}; {1}; {2} -> {3}",

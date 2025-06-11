@@ -119,7 +119,7 @@ namespace Libplanet.Net.Transports
 
         public AsyncDelegate<Message> ProcessMessageHandler { get; }
 
-        public BoundPeer AsPeer => new BoundPeer(_privateKey.PublicKey, _hostEndPoint!);
+        public Peer AsPeer => new Peer { Address = _privateKey.Address, EndPoint = _hostEndPoint! };
 
         public DateTimeOffset? LastMessageTimestamp { get; private set; }
 
@@ -266,7 +266,7 @@ namespace Libplanet.Net.Transports
         public Task WaitForRunningAsync() => _runningEvent.WaitAsync();
 
         public async Task<Message> SendMessageAsync(
-        BoundPeer peer,
+        Peer peer,
         MessageContent content,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
@@ -285,7 +285,7 @@ namespace Libplanet.Net.Transports
         }
 
         public async Task<IEnumerable<Message>> SendMessageAsync(
-        BoundPeer peer,
+        Peer peer,
         MessageContent content,
         TimeSpan? timeout,
         int expectedResponses,
@@ -300,7 +300,7 @@ namespace Libplanet.Net.Transports
             using Activity? a = _activitySource
                 .StartActivity(ActivityKind.Producer)?
                 .AddTag("Message", content.Type)
-                .AddTag("Peer", peer.PeerString);
+                .AddTag("Peer", peer.ToString());
 
             using var timerCts = new CancellationTokenSource();
             if (timeout is { } timeoutNotNull)
@@ -461,7 +461,7 @@ namespace Libplanet.Net.Transports
             }
         }
 
-        public void BroadcastMessage(IEnumerable<BoundPeer> peers, MessageContent content)
+        public void BroadcastMessage(IEnumerable<Peer> peers, MessageContent content)
         {
             if (_disposed)
             {
@@ -469,14 +469,14 @@ namespace Libplanet.Net.Transports
             }
 
             CancellationToken ct = _runtimeCancellationTokenSource.Token;
-            List<BoundPeer> boundPeers = peers.ToList();
+            List<Peer> boundPeers = peers.ToList();
             Task.Run(
                 async () =>
                 {
                     using Activity? a = _activitySource
                         .StartActivity(ActivityKind.Producer)?
                         .AddTag("Message", content.Type)
-                        .AddTag("Peers", boundPeers.Select(x => x.PeerString));
+                        .AddTag("Peers", boundPeers.Select(x => x.ToString()));
                     await boundPeers.ParallelForEachAsync(
                         peer => SendMessageAsync(peer, content, TimeSpan.FromSeconds(1), ct),
                         ct);
@@ -909,7 +909,7 @@ namespace Libplanet.Net.Transports
 
         private CommunicationFailException WrapCommunicationFailException(
             Exception innerException,
-            BoundPeer peer,
+            Peer peer,
             MessageContent message)
         {
             return new CommunicationFailException(
@@ -924,7 +924,7 @@ namespace Libplanet.Net.Transports
             public MessageRequest(
                 in Guid id,
                 Message message,
-                BoundPeer peer,
+                Peer peer,
                 in int expectedResponses,
                 Channel<NetMQMessage> channel,
                 CancellationToken cancellationToken)
@@ -941,7 +941,7 @@ namespace Libplanet.Net.Transports
 
             public Message Message { get; }
 
-            public BoundPeer Peer { get; }
+            public Peer Peer { get; }
 
             public int ExpectedResponses { get; }
 

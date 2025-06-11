@@ -3,17 +3,17 @@ using Libplanet.Net;
 
 namespace Libplanet.Explorer.GraphTypes
 {
-    public class BoundPeerType : ObjectGraphType<BoundPeer>
+    public class BoundPeerType : ObjectGraphType<Peer>
     {
         public BoundPeerType()
         {
             Name = "BoundPeer";
 
             // We need multiple row of description for clearer, not confusing explanation of field.
-            Field<NonNullGraphType<PublicKeyType>>(
+            Field<NonNullGraphType<AddressType>>(
                 "publicKey",
                 description: "The public key of the peer.",
-                resolve: ctx => ctx.Source.PublicKey);
+                resolve: ctx => ctx.Source.Address);
             Field<NonNullGraphType<StringGraphType>>(
                 name: "endPoint",
                 description: "The endpoint of the peer.",
