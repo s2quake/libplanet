@@ -30,7 +30,7 @@ namespace Libplanet.Net
                 _blockDemands[demand.Peer] = demand;
                 Log.Debug(
                     "BlockDemand #{Index} {BlockHash} from peer {Peer} updated",
-                    demand.Index,
+                    demand.Height,
                     demand.Hash,
                     demand.Peer);
             }
@@ -38,7 +38,7 @@ namespace Libplanet.Net
             {
                 Log.Debug(
                     "BlockDemand #{Index} {BlockHash} from peer {Peer} ignored",
-                    demand.Index,
+                    demand.Height,
                     demand.Hash,
                     demand.Peer);
             }
@@ -82,7 +82,7 @@ namespace Libplanet.Net
             {
                 if (oldDemand is { } old)
                 {
-                    needed = IsDemandStale(old) || old.Index < demand.Index;
+                    needed = IsDemandStale(old) || old.Height < demand.Height;
                 }
                 else
                 {

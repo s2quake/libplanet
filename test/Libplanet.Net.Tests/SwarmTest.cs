@@ -639,7 +639,7 @@ namespace Libplanet.Net.Tests
             var policy = new BlockchainOptions();
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
-            var apv = Protocol.Create(key, 1);
+            var apv = ProtocolVersion.Create(key, 1);
             var apvOptions = new AppProtocolVersionOptions() { AppProtocolVersion = apv };
             var hostOptions = new HostOptions
             {

@@ -104,7 +104,7 @@ public class SeedTest
     public async Task MessageReceived_TestAsync()
     {
         // Given
-        var apv = Protocol.Create(new(), 0);
+        var apv = ProtocolVersion.Create(new(), 0);
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
         var remoteBoundPeer = new Net.Peer { Address = remotePrivateKey.Address, EndPoint = remoteEndPoint };
@@ -156,7 +156,7 @@ public class SeedTest
     public async Task GetNeighborsMsg_TestAsync()
     {
         // Given
-        var apv = Protocol.Create(new(), 0);
+        var apv = ProtocolVersion.Create(new(), 0);
         var length = Random.Shared.Next(3, 10);
         var remotePrivateKeys = new RandomPrivateKey[length];
         var remoteEndPoints = new RandomEndPoint[length];

@@ -1,12 +1,12 @@
 namespace Libplanet.Net.Transports;
 
 public class DifferentAppProtocolVersionException(
-    string message, Protocol expectedAppProtocolVersion, Protocol actualAppProtocolVersion, bool trusted)
+    string message, ProtocolVersion expectedAppProtocolVersion, ProtocolVersion actualAppProtocolVersion, bool trusted)
     : Exception(message)
 {
-    public Protocol ExpectedApv { get; } = expectedAppProtocolVersion;
+    public ProtocolVersion ExpectedApv { get; } = expectedAppProtocolVersion;
 
-    public Protocol ActualApv { get; } = actualAppProtocolVersion;
+    public ProtocolVersion ActualApv { get; } = actualAppProtocolVersion;
 
     public bool Trusted { get; } = trusted;
 }

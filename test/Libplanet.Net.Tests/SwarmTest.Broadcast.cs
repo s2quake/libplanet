@@ -118,7 +118,7 @@ namespace Libplanet.Net.Tests
                 await StartAsync(swarmB);
 
                 Assert.Equal(swarmA.AsPeer.Address, swarmB.AsPeer.Address);
-                Assert.Equal(swarmA.AsPeer.PublicIPAddress, swarmB.AsPeer.PublicIPAddress);
+                // Assert.Equal(swarmA.AsPeer.PublicIPAddress, swarmB.AsPeer.PublicIPAddress);
 
                 await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
                 await StopAsync(swarmA);

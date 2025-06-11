@@ -155,7 +155,7 @@ namespace Libplanet.Net
 
             int sessionId = sessionRandom.Next();
 
-            if (demand.Index <= BlockChain.Tip.Height)
+            if (demand.Height <= BlockChain.Tip.Height)
             {
                 return false;
             }
@@ -165,7 +165,7 @@ namespace Libplanet.Net
                 "to fetch the block #{BlockHeight} {BlockHash} at {MethodName}()",
                 sessionId,
                 peer,
-                demand.Index,
+                demand.Height,
                 demand.Hash,
                 nameof(ProcessBlockDemandAsync));
 

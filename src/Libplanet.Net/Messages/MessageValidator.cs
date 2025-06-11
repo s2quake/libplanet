@@ -24,7 +24,7 @@ public class MessageValidator
 
     /// <summary>
     /// <para>
-    /// The local <see cref="Protocol"/> used for
+    /// The local <see cref="ProtocolVersion"/> used for
     /// <see cref="IMessageCodec{T}.Encode"/> and <see cref="IMessageCodec{T}.Decode"/> methods.
     /// </para>
     /// <para>
@@ -34,32 +34,32 @@ public class MessageValidator
     ///         When encoding, this value is attached to the encoded output.
     ///     </description></item>
     ///     <item><description>
-    ///         When decoding, the encoded message's <see cref="Protocol"/> must
+    ///         When decoding, the encoded message's <see cref="ProtocolVersion"/> must
     ///         match this value.
     ///     </description></item>
     /// </list>
     /// </para>
     /// </summary>
-    public Protocol Apv => _appProtocolVersionOptions.AppProtocolVersion;
+    public ProtocolVersion Apv => _appProtocolVersionOptions.AppProtocolVersion;
 
     /// <summary>
     /// <para>
     /// An <see cref="IImmutableSet{T}"/> of <see cref="Address"/>es to trust as a signer
-    /// when a different <see cref="Protocol"/> is encountered.
+    /// when a different <see cref="ProtocolVersion"/> is encountered.
     /// </para>
     /// <para>
-    /// Whether to trust an unknown <see cref="Protocol"/>, i.e.
-    /// an <see cref="Protocol"/> that is different
-    /// from <see cref="Apv"/>.  An <see cref="Protocol"/> is trusted if it is signed
+    /// Whether to trust an unknown <see cref="ProtocolVersion"/>, i.e.
+    /// an <see cref="ProtocolVersion"/> that is different
+    /// from <see cref="Apv"/>.  An <see cref="ProtocolVersion"/> is trusted if it is signed
     /// by one of the signers in the set.  In particular, if the set is empty,
-    /// no <see cref="Protocol"/> is trusted.
+    /// no <see cref="ProtocolVersion"/> is trusted.
     /// </para>
     /// </summary>
     public IImmutableSet<PublicKey> TrustedApvSigners =>
         _appProtocolVersionOptions.TrustedAppProtocolVersionSigners;
 
     /// <summary>
-    /// A callback method that gets invoked when a an <see cref="Protocol"/>
+    /// A callback method that gets invoked when a an <see cref="ProtocolVersion"/>
     /// by a <em>trusted</em> signer that is different from <see cref="Apv"/> is encountered.
     /// </summary>
     /// <remarks>
@@ -90,8 +90,8 @@ public class MessageValidator
     public TimeSpan? MessageTimestampBuffer { get; }
 
     /// <summary>
-    /// Validates an <see cref="Protocol"/> against <see cref="Apv"/>.
-    /// Any <see cref="Protocol"/> that is different from <see cref="Apv"/> is
+    /// Validates an <see cref="ProtocolVersion"/> against <see cref="Apv"/>.
+    /// Any <see cref="ProtocolVersion"/> that is different from <see cref="Apv"/> is
     /// considered invalid and an <see cref="DifferentAppProtocolVersionException"/> will be
     /// thrown.
     /// </summary>
@@ -122,7 +122,7 @@ public class MessageValidator
         ValidateTimestamp(MessageTimestampBuffer, DateTimeOffset.UtcNow, message.Timestamp);
 
     private static void ValidateAppProtocolVersion(
-        Protocol appProtocolVersion,
+        ProtocolVersion appProtocolVersion,
         IImmutableSet<PublicKey> trustedAppProtocolVersionSigners,
         DifferentAppProtocolVersionEncountered differentAppProtocolVersionEncountered,
         Message message)

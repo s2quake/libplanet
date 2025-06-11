@@ -4,7 +4,7 @@ namespace Libplanet.Net.Options;
 
 public sealed record class AppProtocolVersionOptions
 {
-    public Protocol AppProtocolVersion { get; init; }
+    public ProtocolVersion AppProtocolVersion { get; init; }
 
     public ImmutableHashSet<PublicKey> TrustedAppProtocolVersionSigners { get; init; } = [];
 
