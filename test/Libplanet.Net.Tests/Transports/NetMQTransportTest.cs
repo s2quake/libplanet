@@ -22,13 +22,11 @@ namespace Libplanet.Net.Tests.Transports
             TransportConstructor = async (
                     privateKey,
                     appProtocolVersionOptions,
-                    hostOptions,
-                    messageTimestampBuffer) =>
+                    hostOptions) =>
                 await CreateNetMQTransport(
                     privateKey,
                     appProtocolVersionOptions,
-                    hostOptions,
-                    messageTimestampBuffer);
+                    hostOptions);
 
             const string outputTemplate =
                 "{Timestamp:HH:mm:ss:ffffff}[{ThreadId}] - {Message}";
@@ -136,15 +134,13 @@ namespace Libplanet.Net.Tests.Transports
         private Task<NetMQTransport> CreateNetMQTransport(
             PrivateKey privateKey,
             ProtocolOptions appProtocolVersionOptions,
-            HostOptions hostOptions,
-            TimeSpan? messageTimestampBuffer)
+            HostOptions hostOptions)
         {
             privateKey = privateKey ?? new PrivateKey();
             return NetMQTransport.Create(
                 privateKey,
                 appProtocolVersionOptions,
-                hostOptions,
-                messageTimestampBuffer);
+                hostOptions);
         }
     }
 }

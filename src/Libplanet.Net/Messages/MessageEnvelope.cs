@@ -14,11 +14,16 @@ public sealed record class MessageEnvelope
 
     public byte[] Identity { get; init; } = [];
 
-    public void Validate(TimeSpan lifetime)
+    public void Validate(Protocol protocol, TimeSpan lifetime)
     {
         if (lifetime < TimeSpan.Zero)
         {
             throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, "Lifetime must be non-negative.");
+        }
+
+        if (!Protocol.Equals(protocol))
+        {
+            throw new InvalidOperationException("The protocol of the message does not match the expected one.");
         }
 
         var timestamp = DateTimeOffset.UtcNow;

@@ -189,8 +189,7 @@ internal sealed class SwarmService(
         return await NetMQTransport.Create(
             privateKey,
             protocolOptions,
-            hostOptions,
-            TimeSpan.FromSeconds(60));
+            hostOptions);
     }
 
     private static ConsensusReactorOption CreateConsensusReactorOption(

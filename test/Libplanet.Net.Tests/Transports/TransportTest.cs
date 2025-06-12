@@ -22,7 +22,7 @@ namespace Libplanet.Net.Tests.Transports
         protected ILogger Logger { get; set; }
 
         #pragma warning disable MEN002
-        protected Func<PrivateKey, ProtocolOptions, HostOptions, TimeSpan?, Task<ITransport>> TransportConstructor { get; set; }
+        protected Func<PrivateKey, ProtocolOptions, HostOptions, Task<ITransport>> TransportConstructor { get; set; }
         #pragma warning restore MEN002
 
         [SkippableFact(Timeout = Timeout)]
@@ -445,8 +445,7 @@ namespace Libplanet.Net.Tests.Transports
                 hostOptions ?? new HostOptions
                 {
                     Host = IPAddress.Loopback.ToString(),
-                },
-                messageTimestampBuffer);
+                });
         }
 
         private class TransportTestInvalidPeers : IEnumerable<object[]>
