@@ -455,7 +455,7 @@ namespace Libplanet.Net
         /// immediately broadcasts updates if anything changes.</remarks>
         public void BroadcastBlock(Block block)
         {
-            BroadcastBlock(null, block);
+            BroadcastBlock(default, block);
         }
 
         public void BroadcastTxs(IEnumerable<Transaction> txs)
@@ -1091,7 +1091,7 @@ namespace Libplanet.Net
             }
         }
 
-        private void BroadcastBlock(Address? except, Block block)
+        private void BroadcastBlock(Address except, Block block)
         {
             _logger.Information(
                 "Trying to broadcast block #{Index} {Hash}...",
@@ -1105,10 +1105,10 @@ namespace Libplanet.Net
         {
             List<TxId> txIds = txs.Select(tx => tx.Id).ToList();
             _logger.Information("Broadcasting {Count} txIds...", txIds.Count);
-            BroadcastTxIds(except?.Address, txIds);
+            BroadcastTxIds(except.Address, txIds);
         }
 
-        private void BroadcastMessage(Address? except, MessageContent message)
+        private void BroadcastMessage(Address except, MessageContent message)
         {
             Transport.BroadcastMessage(
                 RoutingTable.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
@@ -1273,7 +1273,7 @@ namespace Libplanet.Net
                                 _logger.Debug(
                                     "Broadcasting {TxCount} staged transactions...",
                                     txIds.Count);
-                                BroadcastTxIds(null, txIds);
+                                BroadcastTxIds(default, txIds);
                             }
                         },
                         cancellationToken);
@@ -1293,7 +1293,7 @@ namespace Libplanet.Net
             }
         }
 
-        private void BroadcastTxIds(Address? except, IEnumerable<TxId> txIds)
+        private void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
         {
             var message = new TxIdsMessage { Ids = [.. txIds] };
             BroadcastMessage(except, message);

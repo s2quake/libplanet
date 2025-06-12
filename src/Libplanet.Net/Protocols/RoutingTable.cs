@@ -5,7 +5,7 @@ namespace Libplanet.Net.Protocols;
 public sealed class RoutingTable
 {
     private readonly Address _address;
-    private readonly KBucket[] _buckets;
+    private readonly KademliaBucket[] _buckets;
 
     public RoutingTable(
         Address address,
@@ -29,53 +29,38 @@ public sealed class RoutingTable
         BucketSize = bucketSize;
 
         var random = new Random();
-        _buckets = new KBucket[TableSize];
+        _buckets = new KademliaBucket[tableSize];
         for (int i = 0; i < tableSize; i++)
         {
-            _buckets[i] = new KBucket(BucketSize, random);
+            _buckets[i] = new KademliaBucket(BucketSize, random);
         }
     }
-
-    public int TableSize => _buckets.Length;
 
     public int BucketSize { get; }
 
     public int Count => _buckets.Sum(bucket => bucket.Count);
 
-    public IReadOnlyList<Peer> Peers =>
-        NonEmptyBuckets.SelectMany(bucket => bucket.Peers).ToImmutableArray();
+    public ImmutableArray<Peer> Peers
+        => NonEmptyBuckets.SelectMany(bucket => bucket.Peers).ToImmutableArray();
 
-    public IReadOnlyList<PeerState> PeerStates =>
-        NonEmptyBuckets.SelectMany(bucket => bucket.PeerStates).ToImmutableArray();
+    public ImmutableArray<PeerState> PeerStates
+        => NonEmptyBuckets.SelectMany(bucket => bucket.PeerStates).ToImmutableArray();
 
-    internal IReadOnlyList<IReadOnlyList<Peer>> CachesToCheck
+    internal ImmutableArray<ImmutableArray<Peer>> CachesToCheck
     {
         get
         {
-            return NonFullBuckets.Select(
+            return [.. NonFullBuckets.Select(
                 bucket => bucket.ReplacementCache.Values
                     .OrderBy(peerState => peerState.LastUpdated)
                     .Select(peerState => peerState.Peer)
-                    .ToArray())
-            .ToArray();
+                    .ToImmutableArray())];
         }
     }
 
-    internal IReadOnlyList<KBucket> NonFullBuckets
-    {
-        get
-        {
-            return _buckets.Where(bucket => !bucket.IsFull).ToArray();
-        }
-    }
+    internal ImmutableArray<KademliaBucket> NonFullBuckets => [.. _buckets.Where(bucket => !bucket.IsFull)];
 
-    internal IReadOnlyList<KBucket> NonEmptyBuckets
-    {
-        get
-        {
-            return _buckets.Where(bucket => !bucket.IsEmpty).ToArray();
-        }
-    }
+    internal ImmutableArray<KademliaBucket> NonEmptyBuckets => [.. _buckets.Where(bucket => !bucket.IsEmpty)];
 
     public void AddPeer(Peer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
 
@@ -88,12 +73,12 @@ public sealed class RoutingTable
                 nameof(peer));
         }
 
-        return BucketOf(peer).RemovePeer(peer);
+        return GetBucker(peer).Remove(peer);
     }
 
     public bool Contains(Peer peer)
     {
-        return BucketOf(peer).Contains(peer);
+        return GetBucker(peer).Contains(peer);
     }
 
     public Peer? GetPeer(Address addr) =>
@@ -101,24 +86,24 @@ public sealed class RoutingTable
 
     public void Clear()
     {
-        foreach (KBucket bucket in _buckets)
+        foreach (var bucket in _buckets)
         {
             bucket.Clear();
         }
     }
 
-    public IReadOnlyList<Peer> Neighbors(Peer target, int k, bool includeTarget)
+    public ImmutableArray<Peer> Neighbors(Peer target, int k, bool includeTarget)
         => Neighbors(target.Address, k, includeTarget);
 
-    public IReadOnlyList<Peer> Neighbors(Address target, int k, bool includeTarget)
+    public ImmutableArray<Peer> Neighbors(Address target, int k, bool includeTarget)
     {
         // TODO: Should include static peers?
         var sorted = _buckets
             .Where(b => !b.IsEmpty)
             .SelectMany(b => b.Peers)
-            .ToList();
+            .ToImmutableArray();
 
-        sorted = Kademlia.SortByDistance(sorted, target).ToList();
+        sorted = [.. Kademlia.SortByDistance(sorted, target)];
 
         // Select maximum k * 2 peers excluding the target itself.
         bool containsTarget = sorted.Any(peer => peer.Address.Equals(target));
@@ -128,11 +113,11 @@ public sealed class RoutingTable
             ? sorted
             : sorted.Where(peer => !peer.Address.Equals(target));
 
-        return peers.Take(maxCount).ToArray();
+        return [.. peers.Take(maxCount)];
     }
 
     public void Check(Peer peer, DateTimeOffset start, DateTimeOffset end)
-        => BucketOf(peer).Check(peer, start, end);
+        => GetBucker(peer).Check(peer, start, end);
 
     internal void AddPeer(Peer peer, DateTimeOffset updated)
     {
@@ -143,10 +128,10 @@ public sealed class RoutingTable
                 nameof(peer));
         }
 
-        BucketOf(peer).AddPeer(peer, updated);
+        GetBucker(peer).AddPeer(peer, updated);
     }
 
-    internal IReadOnlyList<Peer> PeersToBroadcast(Address? except, int min = 10)
+    internal IReadOnlyList<Peer> PeersToBroadcast(Address except, int min = 10)
     {
         List<Peer> peers = NonEmptyBuckets
             .Select(bucket => bucket.GetRandomPeer(except))
@@ -174,24 +159,24 @@ public sealed class RoutingTable
 
     internal bool RemoveCache(Peer peer)
     {
-        KBucket bucket = BucketOf(peer);
-        return bucket.ReplacementCache.Remove(peer);
+        var bucket = GetBucker(peer);
+        return bucket.RemoveCache(peer);
     }
 
-    internal KBucket BucketOf(Peer peer)
+    internal KademliaBucket GetBucker(Peer peer)
     {
-        int index = GetBucketIndexOf(peer.Address);
-        return BucketOf(index);
+        var index = GetBucketIndexOf(peer.Address);
+        return GetBucker(index);
     }
 
-    internal KBucket BucketOf(int level)
+    internal KademliaBucket GetBucker(int index)
     {
-        return _buckets[level];
+        return _buckets[index];
     }
 
-    internal int GetBucketIndexOf(Address addr)
+    internal int GetBucketIndexOf(Address address)
     {
-        int plength = Kademlia.CommonPrefixLength(addr, _address);
-        return Math.Min(plength, TableSize - 1);
+        int length = Kademlia.CommonPrefixLength(address, _address);
+        return Math.Min(length, _buckets.Length - 1);
     }
 }

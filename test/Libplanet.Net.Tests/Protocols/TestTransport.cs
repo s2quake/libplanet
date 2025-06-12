@@ -297,7 +297,7 @@ internal class TestTransport : ITransport
         }));
     }
 
-    public void BroadcastTestMessage(Address? except, string data)
+    public void BroadcastTestMessage(Address except, string data)
     {
         if (_disposed)
         {
