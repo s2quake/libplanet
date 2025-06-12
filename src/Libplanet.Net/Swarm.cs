@@ -734,7 +734,7 @@ namespace Libplanet.Net
                 nameof(GetBlockHashesMessage),
                 blockHash);
 
-            Message parsedMessage;
+            MessageEnvelope parsedMessage;
             try
             {
                 parsedMessage = await Transport.SendMessageAsync(
@@ -835,7 +835,7 @@ namespace Libplanet.Net
                 blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
             }
 
-            IEnumerable<Message> replies;
+            IEnumerable<MessageEnvelope> replies;
             try
             {
                 replies = await Transport.SendMessageAsync(
@@ -855,7 +855,7 @@ namespace Libplanet.Net
             _logger.Debug("Received replies from {Peer}", peer);
             int count = 0;
 
-            foreach (Message message in replies)
+            foreach (MessageEnvelope message in replies)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -934,7 +934,7 @@ namespace Libplanet.Net
                 txRecvTimeout = Options.TimeoutOptions.MaxTimeout;
             }
 
-            IEnumerable<Message> replies;
+            IEnumerable<MessageEnvelope> replies;
             try
             {
                 replies = await Transport.SendMessageAsync(
@@ -951,7 +951,7 @@ namespace Libplanet.Net
                 yield break;
             }
 
-            foreach (Message message in replies)
+            foreach (MessageEnvelope message in replies)
             {
                 if (message.Content is TransactionMessage parsed)
                 {
@@ -1178,7 +1178,7 @@ namespace Libplanet.Net
         {
             // FIXME: It would be better if it returns IAsyncEnumerable<(BoundPeer, ChainStatus)>
             // instead.
-            void LogException(Peer peer, Task<Message> task)
+            void LogException(Peer peer, Task<MessageEnvelope> task)
             {
                 switch (task.Exception?.InnerException)
                 {

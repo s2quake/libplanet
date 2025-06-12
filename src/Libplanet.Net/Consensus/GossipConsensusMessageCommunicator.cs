@@ -76,10 +76,10 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// Message validator to be called on <see cref="Gossip.HandleMessageAsync"/>.
         /// This will be set as parameter of <see cref="Gossip"/>, and will validate
-        /// <see cref="Message"/>s before it's added to the <see cref="Gossip._cache"/>.
+        /// <see cref="MessageEnvelope"/>s before it's added to the <see cref="Gossip._cache"/>.
         /// </summary>
-        /// <param name="message"><see cref="Message"/> to validate.</param>
-        private void ValidateMessageToReceive(Message message)
+        /// <param name="message"><see cref="MessageEnvelope"/> to validate.</param>
+        private void ValidateMessageToReceive(MessageEnvelope message)
         {
             if (message.Content is ConsensusVoteMessage voteMsg)
             {
@@ -91,7 +91,7 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// Message content validator to be called on <see cref="Gossip.HandleWantAsync"/>.
         /// This will be set as parameter of <see cref="Gossip"/>, and will validate
-        /// <see cref="Message"/>s before respond to peer's <see cref="WantMessage"/>.
+        /// <see cref="MessageEnvelope"/>s before respond to peer's <see cref="WantMessage"/>.
         /// </summary>
         /// <param name="content"><see cref="MessageContent"/> to validate.</param>
         private void ValidateMessageToSend(MessageContent content)

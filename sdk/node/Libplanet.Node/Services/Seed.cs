@@ -133,7 +133,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         }
     }
 
-    private async Task ReceiveMessageAsync(Message message)
+    private async Task ReceiveMessageAsync(MessageEnvelope message)
     {
         if (_transport is null || _cancellationTokenSource is null)
         {

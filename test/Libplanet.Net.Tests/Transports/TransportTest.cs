@@ -165,7 +165,7 @@ namespace Libplanet.Net.Tests.Transports
                 await InitializeAsync(transportA);
                 await InitializeAsync(transportB);
 
-                Message reply = await transportA.SendMessageAsync(
+                MessageEnvelope reply = await transportA.SendMessageAsync(
                     transportB.AsPeer,
                     new PingMessage(),
                     TimeSpan.FromSeconds(3),
@@ -359,15 +359,15 @@ namespace Libplanet.Net.Tests.Transports
             ITransport transportD = await CreateTransportAsync(
                 privateKey: GeneratePrivateKeyOfBucketIndex(address, 2));
 
-            var tcsB = new TaskCompletionSource<Message>();
-            var tcsC = new TaskCompletionSource<Message>();
-            var tcsD = new TaskCompletionSource<Message>();
+            var tcsB = new TaskCompletionSource<MessageEnvelope>();
+            var tcsC = new TaskCompletionSource<MessageEnvelope>();
+            var tcsD = new TaskCompletionSource<MessageEnvelope>();
 
             transportB.ProcessMessageHandler.Register(MessageHandler(tcsB));
             transportC.ProcessMessageHandler.Register(MessageHandler(tcsC));
             transportD.ProcessMessageHandler.Register(MessageHandler(tcsD));
 
-            Func<Message, Task> MessageHandler(TaskCompletionSource<Message> tcs)
+            Func<MessageEnvelope, Task> MessageHandler(TaskCompletionSource<MessageEnvelope> tcs)
             {
                 return async message =>
                 {

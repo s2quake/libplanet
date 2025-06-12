@@ -36,7 +36,7 @@ namespace Libplanet.Net
                 evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
             }
 
-            IEnumerable<Message> replies;
+            IEnumerable<MessageEnvelope> replies;
             try
             {
                 replies = await Transport.SendMessageAsync(
@@ -53,7 +53,7 @@ namespace Libplanet.Net
                 yield break;
             }
 
-            foreach (Message message in replies)
+            foreach (MessageEnvelope message in replies)
             {
                 if (message.Content is EvidenceMessage parsed)
                 {
@@ -125,7 +125,7 @@ namespace Libplanet.Net
             BroadcastMessage(except, message);
         }
 
-        private async Task TransferEvidenceAsync(Message message)
+        private async Task TransferEvidenceAsync(MessageEnvelope message)
         {
             if (!await _transferEvidenceSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
             {
@@ -176,7 +176,7 @@ namespace Libplanet.Net
             }
         }
 
-        private void ProcessEvidenceIds(Message message)
+        private void ProcessEvidenceIds(MessageEnvelope message)
         {
             var evidenceIdsMsg = (EvidenceIdsMessage)message.Content;
             _logger.Information(

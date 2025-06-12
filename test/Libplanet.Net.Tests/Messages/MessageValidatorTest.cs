@@ -19,7 +19,7 @@ namespace Libplanet.Net.Tests.Messages
 
             // Within buffer window is okay.
             messageValidator.ValidateTimestamp(
-                new Message
+                new MessageEnvelope
                 {
                     Content = new PingMessage(),
                     Protocol = apvOption.Protocol,
@@ -27,7 +27,7 @@ namespace Libplanet.Net.Tests.Messages
                     Timestamp = DateTimeOffset.UtcNow + buffer.Divide(2),
                 });
             messageValidator.ValidateTimestamp(
-                new Message
+                new MessageEnvelope
                 {
                     Content = new PingMessage(),
                     Protocol = apvOption.Protocol,
@@ -38,7 +38,7 @@ namespace Libplanet.Net.Tests.Messages
             // Outside buffer throws an exception.
             Assert.Throws<InvalidMessageTimestampException>(() =>
                 messageValidator.ValidateTimestamp(
-                    new Message
+                    new MessageEnvelope
                     {
                         Content = new PingMessage(),
                         Protocol = apvOption.Protocol,
@@ -47,7 +47,7 @@ namespace Libplanet.Net.Tests.Messages
                     }));
             Assert.Throws<InvalidMessageTimestampException>(() =>
                 messageValidator.ValidateTimestamp(
-                    new Message
+                    new MessageEnvelope
                     {
                         Content = new PingMessage(),
                         Protocol = apvOption.Protocol,
@@ -58,7 +58,7 @@ namespace Libplanet.Net.Tests.Messages
             // If buffer is null, no exception gets thrown.
             messageValidator = new MessageValidator(apvOption, null);
             messageValidator.ValidateTimestamp(
-                new Message
+                new MessageEnvelope
                 {
                     Content = new PingMessage(),
                     Protocol = apvOption.Protocol,
@@ -66,7 +66,7 @@ namespace Libplanet.Net.Tests.Messages
                     Timestamp = DateTimeOffset.MaxValue,
                 });
             messageValidator.ValidateTimestamp(
-                new Message
+                new MessageEnvelope
                 {
                     Content = new PingMessage(),
                     Protocol = apvOption.Protocol,
@@ -109,42 +109,42 @@ namespace Libplanet.Net.Tests.Messages
                 new HashSet<Address>() { }.ToImmutableSortedSet();
 
             // Ping
-            var trustedPing = new Message
+            var trustedPing = new MessageEnvelope
             {
                 Content = new PingMessage(),
                 Protocol = trustedApv,
                 Remote = peer,
                 Timestamp = DateTimeOffset.UtcNow,
             };
-            var trustedDifferentVersionPing = new Message
+            var trustedDifferentVersionPing = new MessageEnvelope
             {
                 Content = new PingMessage(),
                 Protocol = trustedDifferentVersionApv,
                 Remote = peer,
                 Timestamp = DateTimeOffset.UtcNow,
             };
-            var trustedDifferentExtraPing = new Message
+            var trustedDifferentExtraPing = new MessageEnvelope
             {
                 Content = new PingMessage(),
                 Protocol = trustedDifferentExtraApv,
                 Remote = peer,
                 Timestamp = DateTimeOffset.UtcNow,
             };
-            var unknownPing = new Message
+            var unknownPing = new MessageEnvelope
             {
                 Content = new PingMessage(),
                 Protocol = unknownApv,
                 Remote = peer,
                 Timestamp = DateTimeOffset.UtcNow,
             };
-            var unknownDifferentVersionPing = new Message
+            var unknownDifferentVersionPing = new MessageEnvelope
             {
                 Content = new PingMessage(),
                 Protocol = unknownDifferentVersionApv,
                 Remote = peer,
                 Timestamp = DateTimeOffset.UtcNow,
             };
-            var unknownDifferentExtraPing = new Message
+            var unknownDifferentExtraPing = new MessageEnvelope
             {
                 Content = new PingMessage(),
                 Protocol = unknownDifferentExtraApv,

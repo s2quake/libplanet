@@ -44,7 +44,7 @@ public class PeerTest
         var pongMsg = new PongMessage();
         var apv = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
-        var message = new Message
+        var message = new MessageEnvelope
         {
             Content = pongMsg,
             Protocol = apv,
@@ -76,7 +76,7 @@ public class PeerTest
         var pongMsg = new PongMessage();
         var apv = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
-        var message = new Message
+        var message = new MessageEnvelope
         {
             Content = pongMsg,
             Protocol = apv,
@@ -85,7 +85,7 @@ public class PeerTest
         };
         var transportMock = new Mock<ITransport>();
 
-        async Task<Message> SendMessageAsync(
+        async Task<MessageEnvelope> SendMessageAsync(
             Net.Peer peer,
             MessageContent content,
             TimeSpan? timeout,

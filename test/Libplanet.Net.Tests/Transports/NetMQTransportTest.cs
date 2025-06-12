@@ -99,7 +99,7 @@ namespace Libplanet.Net.Tests.Transports
                 Assert.IsAssignableFrom<SocketException>(exc.InnerException);
 
                 // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
-                Message reply = await transport.SendMessageAsync(
+                MessageEnvelope reply = await transport.SendMessageAsync(
                     transport.AsPeer,
                     new PingMessage(),
                     TimeSpan.FromSeconds(1),

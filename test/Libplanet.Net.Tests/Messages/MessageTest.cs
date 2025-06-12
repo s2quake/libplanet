@@ -22,7 +22,7 @@ public class MessageTest
         var messageContent = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };
         var codec = new NetMQMessageCodec();
         NetMQMessage raw = codec.Encode(
-            new Message
+            new MessageEnvelope
             {
                 Content = messageContent,
                 Protocol = apv,
@@ -45,7 +45,7 @@ public class MessageTest
         var codec = new NetMQMessageCodec();
         Assert.Throws<InvalidCredentialException>(() =>
             codec.Encode(
-                new Message
+                new MessageEnvelope
                 {
                     Content = ping,
                     Protocol = apv,
@@ -65,7 +65,7 @@ public class MessageTest
         var ping = new PingMessage();
         var codec = new NetMQMessageCodec();
         var netMqMessage = codec.Encode(
-            new Message
+            new MessageEnvelope
             {
                 Content = ping,
                 Protocol = apv,
@@ -76,7 +76,7 @@ public class MessageTest
         // Attacker
         var fakePeer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("1.2.3.4", 0) };
         var fakeMessage = codec.Encode(
-            new Message
+            new MessageEnvelope
             {
                 Content = ping,
                 Protocol = apv,

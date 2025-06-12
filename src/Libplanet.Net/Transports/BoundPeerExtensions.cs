@@ -19,7 +19,7 @@ public static class BoundPeerExtensions
         var ping = new PingMessage();
         var netMQMessageCodec = new NetMQMessageCodec();
         NetMQMessage request = netMQMessageCodec.Encode(
-            new Message
+            new MessageEnvelope
             {
                 Content = ping,
                 Protocol = default,

@@ -356,7 +356,7 @@ public sealed class Kademlia
 
         try
         {
-            Message reply = await _transport.SendMessageAsync(
+            MessageEnvelope reply = await _transport.SendMessageAsync(
                 peer,
                 new PingMessage(),
                 timeout,
@@ -382,7 +382,7 @@ public sealed class Kademlia
         }
     }
 
-    private async Task ProcessMessageHandler(Message message)
+    private async Task ProcessMessageHandler(MessageEnvelope message)
     {
         switch (message.Content)
         {
@@ -507,7 +507,7 @@ public sealed class Kademlia
         var findPeer = new FindNeighborsMessage { Target = target };
         try
         {
-            Message reply = await _transport.SendMessageAsync(
+            MessageEnvelope reply = await _transport.SendMessageAsync(
                 peer,
                 findPeer,
                 timeout,
@@ -529,7 +529,7 @@ public sealed class Kademlia
         }
     }
 
-    private async Task ReceivePingAsync(Message message)
+    private async Task ReceivePingAsync(MessageEnvelope message)
     {
         if (message.Remote.Address.Equals(_address))
         {
@@ -634,7 +634,7 @@ public sealed class Kademlia
         }
     }
 
-    private async Task ReceiveFindPeerAsync(Message message)
+    private async Task ReceiveFindPeerAsync(MessageEnvelope message)
     {
         var findNeighbors = (FindNeighborsMessage)message.Content;
         IEnumerable<Peer> found =

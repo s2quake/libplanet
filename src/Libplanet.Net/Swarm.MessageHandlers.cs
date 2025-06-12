@@ -11,7 +11,7 @@ public partial class Swarm
     private readonly NullableSemaphore _transferTxsSemaphore;
     private readonly NullableSemaphore _transferEvidenceSemaphore;
 
-    private Task ProcessMessageHandlerAsync(Message message)
+    private Task ProcessMessageHandlerAsync(MessageEnvelope message)
     {
         switch (message.Content)
         {
@@ -106,7 +106,7 @@ public partial class Swarm
         }
     }
 
-    private void ProcessBlockHeader(Message message)
+    private void ProcessBlockHeader(MessageEnvelope message)
     {
         var blockHeaderMsg = (BlockHeaderMessage)message.Content;
         if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
@@ -184,7 +184,7 @@ public partial class Swarm
         }
     }
 
-    private async Task TransferTxsAsync(Message message)
+    private async Task TransferTxsAsync(MessageEnvelope message)
     {
         if (!await _transferTxsSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
         {
@@ -232,7 +232,7 @@ public partial class Swarm
         }
     }
 
-    private void ProcessTxIds(Message message)
+    private void ProcessTxIds(MessageEnvelope message)
     {
         var txIdsMsg = (TxIdsMessage)message.Content;
         _logger.Information(
@@ -243,7 +243,7 @@ public partial class Swarm
         TxCompletion.DemandMany(message.Remote, txIdsMsg.Ids);
     }
 
-    private async Task TransferBlocksAsync(Message message)
+    private async Task TransferBlocksAsync(MessageEnvelope message)
     {
         if (!await _transferBlocksSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
         {

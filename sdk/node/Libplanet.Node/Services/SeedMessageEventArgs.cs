@@ -2,7 +2,7 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class SeedMessageEventArgs(Message message) : EventArgs
+internal sealed class SeedMessageEventArgs(MessageEnvelope message) : EventArgs
 {
-    public Message Message { get; } = message;
+    public MessageEnvelope Message { get; } = message;
 }

@@ -219,7 +219,7 @@ namespace Libplanet.Net.Tests.Consensus
             var receivedEvent = new AsyncAutoResetEvent();
             var transport1 = CreateTransport(key1, 6001);
 
-            async Task HandleMessage(Message message)
+            async Task HandleMessage(MessageEnvelope message)
             {
                 received = true;
                 receivedEvent.Set();
@@ -265,7 +265,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task DoNotBroadcastToSeedPeers()
         {
             bool received = false;
-            async Task ProcessMessage(Message msg)
+            async Task ProcessMessage(MessageEnvelope msg)
             {
                 if (msg.Content is HaveMessage)
                 {
@@ -304,7 +304,7 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task DoNotSendDuplicateMessageRequest()
         {
             int received = 0;
-            async Task ProcessMessage(Message msg)
+            async Task ProcessMessage(MessageEnvelope msg)
             {
                 if (msg.Content is WantMessage)
                 {

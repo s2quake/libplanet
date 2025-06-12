@@ -19,7 +19,7 @@ internal class TestTransport : ITransport
     private readonly Dictionary<Address, TestTransport> _transports;
     private readonly ILogger _logger;
     private readonly ConcurrentDictionary<byte[], Address> _peersToReply;
-    private readonly ConcurrentDictionary<byte[], Message> _replyToReceive;
+    private readonly ConcurrentDictionary<byte[], MessageEnvelope> _replyToReceive;
     private readonly AsyncCollection<Request> _requests;
     private readonly List<string> _ignoreTestMessageWithData;
     private readonly PrivateKey _privateKey;
@@ -47,8 +47,8 @@ internal class TestTransport : ITransport
             .ForContext("Address", loggerId);
 
         _peersToReply = new ConcurrentDictionary<byte[], Address>();
-        _replyToReceive = new ConcurrentDictionary<byte[], Message>();
-        ReceivedMessages = new ConcurrentBag<Message>();
+        _replyToReceive = new ConcurrentDictionary<byte[], MessageEnvelope>();
+        ReceivedMessages = new ConcurrentBag<MessageEnvelope>();
         MessageReceived = new AsyncAutoResetEvent();
         _transports = transports;
         _transports[privateKey.Address] = this;
@@ -57,12 +57,12 @@ internal class TestTransport : ITransport
         _ignoreTestMessageWithData = new List<string>();
         _random = new Random();
         Table = new RoutingTable(Address, tableSize, bucketSize);
-        ProcessMessageHandler = new AsyncDelegate<Message>();
+        ProcessMessageHandler = new AsyncDelegate<MessageEnvelope>();
         Kademlia = new Kademlia(Table, this, Address);
-        MessageHistory = new FixedSizedQueue<Message>(30);
+        MessageHistory = new FixedSizedQueue<MessageEnvelope>(30);
     }
 
-    public AsyncDelegate<Message> ProcessMessageHandler { get; }
+    public AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; }
 
     public AsyncAutoResetEvent MessageReceived { get; }
 
@@ -95,7 +95,7 @@ internal class TestTransport : ITransport
         }
     }
 
-    public ConcurrentQueue<Message> MessageHistory { get; }
+    public ConcurrentQueue<MessageEnvelope> MessageHistory { get; }
 
     public Protocol Protocol => _appProtocolVersion;
 
@@ -104,7 +104,7 @@ internal class TestTransport : ITransport
     public DifferentAppProtocolVersionEncountered DifferentAppProtocolVersionEncountered =>
         (peer, peerVersion, localVersion) => { };
 
-    internal ConcurrentBag<Message> ReceivedMessages { get; }
+    internal ConcurrentBag<MessageEnvelope> ReceivedMessages { get; }
 
     internal RoutingTable Table { get; }
 
@@ -335,7 +335,7 @@ internal class TestTransport : ITransport
     }
 
 #pragma warning disable S4457 // Cannot split the method since method is in interface
-    public async Task<Message> SendMessageAsync(
+    public async Task<MessageEnvelope> SendMessageAsync(
         Peer peer,
         MessageContent content,
         TimeSpan? timeout,
@@ -359,7 +359,7 @@ internal class TestTransport : ITransport
         await _requests.AddAsync(
             new Request
             {
-                Message = new Message
+                Message = new MessageEnvelope
                 {
                     Content = content,
                     Protocol = Protocol,
@@ -397,7 +397,7 @@ internal class TestTransport : ITransport
                 $"Operation is canceled during {nameof(SendMessageAsync)}().");
         }
 
-        if (_replyToReceive.TryRemove(identity, out Message reply))
+        if (_replyToReceive.TryRemove(identity, out MessageEnvelope reply))
         {
             _logger.Debug(
                 "Received reply {Content} of message with identity {identity}",
@@ -419,7 +419,7 @@ internal class TestTransport : ITransport
     }
 #pragma warning restore S4457 // Cannot split the method since method is in interface
 
-    public async Task<IEnumerable<Message>> SendMessageAsync(
+    public async Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
         Peer peer,
         MessageContent content,
         TimeSpan? timeout,
@@ -449,7 +449,7 @@ internal class TestTransport : ITransport
         }
 
         _logger.Debug("Replying {Content}...", content);
-        var message = new Message
+        var message = new MessageEnvelope
         {
             Content = content,
             Protocol = Protocol,
@@ -494,7 +494,7 @@ internal class TestTransport : ITransport
             .Any(c => c.Data == data);
     }
 
-    private void ReceiveMessage(Message message)
+    private void ReceiveMessage(MessageEnvelope message)
     {
         if (_swarmCancellationTokenSource.IsCancellationRequested)
         {
@@ -535,7 +535,7 @@ internal class TestTransport : ITransport
         MessageReceived.Set();
     }
 
-    private void ReceiveReply(Message message)
+    private void ReceiveReply(MessageEnvelope message)
     {
         if (message.Identity is null)
         {
@@ -572,6 +572,6 @@ internal class TestTransport : ITransport
     {
         public Peer Target;
 
-        public Message Message;
+        public MessageEnvelope Message;
     }
 }
