@@ -46,7 +46,7 @@ public class PeerTest
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
-            Content = pongMsg,
+            Message = pongMsg,
             Protocol = apv,
             Remote = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
@@ -78,7 +78,7 @@ public class PeerTest
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
-            Content = pongMsg,
+            Message = pongMsg,
             Protocol = apv,
             Remote = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
@@ -87,7 +87,7 @@ public class PeerTest
 
         async Task<MessageEnvelope> SendMessageAsync(
             Net.Peer peer,
-            MessageContent content,
+            IMessage content,
             TimeSpan? timeout,
             CancellationToken cancellationToken)
         {

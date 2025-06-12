@@ -21,7 +21,7 @@ public static class BoundPeerExtensions
         NetMQMessage request = netMQMessageCodec.Encode(
             new MessageEnvelope
             {
-                Content = ping,
+                Message = ping,
                 Protocol = default,
                 Remote = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
                 Timestamp = DateTimeOffset.UtcNow,

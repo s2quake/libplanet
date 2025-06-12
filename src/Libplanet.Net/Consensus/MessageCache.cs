@@ -6,9 +6,9 @@ namespace Libplanet.Net.Consensus;
 public class MessageCache
 {
     private readonly object _lock = new();
-    private readonly Dictionary<MessageId, MessageContent> _messages = [];
+    private readonly Dictionary<MessageId, IMessage> _messages = [];
 
-    public void Put(MessageContent message)
+    public void Put(IMessage message)
     {
         lock (_lock)
         {
@@ -26,13 +26,13 @@ public class MessageCache
         }
     }
 
-    public MessageContent Get(MessageId id)
+    public IMessage Get(MessageId id)
     {
         lock (_lock)
         {
-            if (_messages.TryGetValue(id, out MessageContent? msg))
+            if (_messages.TryGetValue(id, out IMessage? msg))
             {
-                return NetMQMessageCodec.CreateMessage(msg.Type, ModelSerializer.SerializeToBytes(msg));
+                return NetMQMessageCodec.CreateMessage(ModelSerializer.SerializeToBytes(msg));
             }
 
             throw new KeyNotFoundException($"A message of id {id} does not exist.");

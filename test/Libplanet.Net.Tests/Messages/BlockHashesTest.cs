@@ -26,13 +26,13 @@ namespace Libplanet.Net.Tests.Messages
             NetMQMessage encoded = messageCodec.Encode(
                 new MessageEnvelope
                 {
-                    Content = messageContent,
+                    Message = messageContent,
                     Protocol = apv,
                     Remote = peer,
                     Timestamp = DateTimeOffset.UtcNow,
                 },
                 privateKey);
-            BlockHashesMessage restored = (BlockHashesMessage)messageCodec.Decode(encoded, true).Content;
+            BlockHashesMessage restored = (BlockHashesMessage)messageCodec.Decode(encoded, true).Message;
             Assert.Equal(messageContent.Hashes, restored.Hashes);
         }
 

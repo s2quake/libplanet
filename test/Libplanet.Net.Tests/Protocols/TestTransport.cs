@@ -193,7 +193,7 @@ internal class TestTransport : ITransport
 
     public Task SendMessageAsync(
         Peer peer,
-        MessageContent content,
+        IMessage content,
         CancellationToken cancellationToken)
         => SendMessageAsync(
             peer,
@@ -314,7 +314,7 @@ internal class TestTransport : ITransport
         BroadcastMessage(Table.PeersToBroadcast(except), message);
     }
 
-    public void BroadcastMessage(IEnumerable<Peer> peers, MessageContent content)
+    public void BroadcastMessage(IEnumerable<Peer> peers, IMessage content)
     {
         if (_disposed)
         {
@@ -337,7 +337,7 @@ internal class TestTransport : ITransport
 #pragma warning disable S4457 // Cannot split the method since method is in interface
     public async Task<MessageEnvelope> SendMessageAsync(
         Peer peer,
-        MessageContent content,
+        IMessage content,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
@@ -361,7 +361,7 @@ internal class TestTransport : ITransport
             {
                 Message = new MessageEnvelope
                 {
-                    Content = content,
+                    Message = content,
                     Protocol = Protocol,
                     Remote = AsPeer,
                     Timestamp = sendTime,
@@ -384,7 +384,7 @@ internal class TestTransport : ITransport
                     timeout ?? TimeSpan.MaxValue);
                 throw new CommunicationFailException(
                     $"Timeout occurred during {nameof(SendMessageAsync)}().",
-                    content.Type,
+                    content.GetType(),
                     peer);
             }
 
@@ -401,7 +401,7 @@ internal class TestTransport : ITransport
         {
             _logger.Debug(
                 "Received reply {Content} of message with identity {identity}",
-                reply.Content,
+                reply.Message,
                 identity);
             LastMessageTimestamp = DateTimeOffset.UtcNow;
             ReceivedMessages.Add(reply);
@@ -421,7 +421,7 @@ internal class TestTransport : ITransport
 
     public async Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
         Peer peer,
-        MessageContent content,
+        IMessage content,
         TimeSpan? timeout,
         int expectedResponses,
         bool returnWhenTimeout,
@@ -434,7 +434,7 @@ internal class TestTransport : ITransport
     }
 
     public async Task ReplyMessageAsync(
-        MessageContent content,
+        IMessage content,
         byte[] identity,
         CancellationToken cancellationToken)
     {
@@ -451,7 +451,7 @@ internal class TestTransport : ITransport
         _logger.Debug("Replying {Content}...", content);
         var message = new MessageEnvelope
         {
-            Content = content,
+            Message = content,
             Protocol = Protocol,
             Remote = AsPeer,
             Timestamp = DateTimeOffset.UtcNow,
@@ -489,7 +489,7 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        return ReceivedMessages.Select(m => m.Content)
+        return ReceivedMessages.Select(m => m.Message)
             .OfType<TestMessage>()
             .Any(c => c.Data == data);
     }
@@ -502,7 +502,7 @@ internal class TestTransport : ITransport
         }
 
         MessageHistory.Enqueue(message);
-        if (message.Content is TestMessage testMessage)
+        if (message.Message is TestMessage testMessage)
         {
             if (_ignoreTestMessageWithData.Contains(testMessage.Data))
             {
@@ -555,7 +555,7 @@ internal class TestTransport : ITransport
             {
                 _logger.Debug(
                     "Send {Content} with identity {Identity} to {Peer}",
-                    req.Message.Content,
+                    req.Message.Message,
                     req.Message.Identity,
                     req.Target);
                 _transports[req.Target.Address].ReceiveMessage(req.Message);

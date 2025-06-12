@@ -5,7 +5,7 @@ using Libplanet.Types;
 namespace Libplanet.Net.Messages;
 
 [Model(Version = 1, TypeName = "ChainStatusMessage")]
-internal sealed record class ChainStatusMessage : MessageContent
+internal sealed record class ChainStatusMessage : MessageBase
 {
     [Property(0)]
     public required int ProtocolVersion { get; init; }

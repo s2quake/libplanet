@@ -2,7 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-public abstract record class ConsensusMessage : MessageContent
+public abstract record class ConsensusMessage : MessageBase
 {
     public abstract Address Validator { get; }
 

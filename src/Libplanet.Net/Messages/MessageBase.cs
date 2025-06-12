@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
-public abstract record class MessageContent
+public abstract record class MessageBase : IMessage
 {
     public enum MessageType : byte
     {

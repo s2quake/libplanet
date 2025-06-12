@@ -20,7 +20,7 @@ namespace Libplanet.Net.Consensus
         /// </param>
         public InvalidConsensusMessageException(
             string message,
-            MessageContent receivedMessage,
+            MessageBase receivedMessage,
             Exception innerException)
             : base(message, receivedMessage, innerException)
         {
@@ -33,7 +33,7 @@ namespace Libplanet.Net.Consensus
         /// </param>
         /// <param name="receivedMessage">The <see cref="ConsensusMessage"/> that caused this exception.
         /// </param>
-        public InvalidConsensusMessageException(string message, MessageContent receivedMessage)
+        public InvalidConsensusMessageException(string message, MessageBase receivedMessage)
             : base(message, receivedMessage)
         {
         }

@@ -13,7 +13,7 @@ public partial class Swarm
 
     private Task ProcessMessageHandlerAsync(MessageEnvelope message)
     {
-        switch (message.Content)
+        switch (message.Message)
         {
             case PingMessage _:
             case FindNeighborsMessage _:
@@ -101,14 +101,14 @@ public partial class Swarm
 
             default:
                 throw new InvalidMessageContentException(
-                    $"Failed to handle message: {message.Content}",
-                    message.Content);
+                    $"Failed to handle message: {message.Message}",
+                    message.Message);
         }
     }
 
     private void ProcessBlockHeader(MessageEnvelope message)
     {
-        var blockHeaderMsg = (BlockHeaderMessage)message.Content;
+        var blockHeaderMsg = (BlockHeaderMessage)message.Message;
         if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
         {
             _logger.Debug(
@@ -197,7 +197,7 @@ public partial class Swarm
 
         try
         {
-            var getTxsMsg = (GetTransactionMessage)message.Content;
+            var getTxsMsg = (GetTransactionMessage)message.Message;
             foreach (TxId txid in getTxsMsg.TxIds)
             {
                 try
@@ -209,7 +209,7 @@ public partial class Swarm
                         continue;
                     }
 
-                    MessageContent response = new TransactionMessage { Payload = ModelSerializer.SerializeToBytes(tx) };
+                    MessageBase response = new TransactionMessage { Payload = ModelSerializer.SerializeToBytes(tx) };
                     await Transport.ReplyMessageAsync(response, message.Identity, default);
                 }
                 catch (KeyNotFoundException)
@@ -234,7 +234,7 @@ public partial class Swarm
 
     private void ProcessTxIds(MessageEnvelope message)
     {
-        var txIdsMsg = (TxIdsMessage)message.Content;
+        var txIdsMsg = (TxIdsMessage)message.Message;
         _logger.Information(
             "Received a {MessageType} message with {TxIdCount} txIds",
             nameof(TxIdsMessage),
@@ -256,7 +256,7 @@ public partial class Swarm
 
         try
         {
-            var blocksMsg = (GetBlocksMessage)message.Content;
+            var blocksMsg = (GetBlocksMessage)message.Message;
             string reqId = !(message.Identity is null) && message.Identity.Length == 16
                 ? new Guid(message.Identity).ToString()
                 : "unknown";

@@ -950,7 +950,7 @@ namespace Libplanet.Net.Tests
                     new[] { tx1, tx2, tx3 }.ToHashSet(),
                     replies.Select(
                         m => ModelSerializer.DeserializeFromBytes<Transaction>(
-                            ((TransactionMessage)m.Content).Payload)).ToHashSet());
+                            ((TransactionMessage)m.Message).Payload)).ToHashSet());
             }
             finally
             {
@@ -978,7 +978,7 @@ namespace Libplanet.Net.Tests
             async Task MessageHandler(MessageEnvelope message)
             {
                 _logger.Debug("Received message: {Content}", message);
-                switch (message.Content)
+                switch (message.Message)
                 {
                     case PingMessage ping:
                         await mockTransport.ReplyMessageAsync(

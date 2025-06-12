@@ -19,8 +19,8 @@ public sealed class Gossip : IDisposable
     private readonly ITransport _transport;
     private readonly MessageCache _cache;
     private readonly Action<MessageEnvelope> _validateMessageToReceive;
-    private readonly Action<MessageContent> _validateMessageToSend;
-    private readonly Action<MessageContent> _processMessage;
+    private readonly Action<IMessage> _validateMessageToSend;
+    private readonly Action<IMessage> _processMessage;
     private readonly IEnumerable<Peer> _seeds;
 
     private TaskCompletionSource<object?> _runningEvent;
@@ -35,8 +35,8 @@ public sealed class Gossip : IDisposable
         ImmutableArray<Peer> peers,
         ImmutableArray<Peer> seeds,
         Action<MessageEnvelope> validateMessageToReceive,
-        Action<MessageContent> validateMessageToSend,
-        Action<MessageContent> processMessage)
+        Action<IMessage> validateMessageToSend,
+        Action<IMessage> processMessage)
     {
         _transport = transport;
         _cache = new MessageCache();
@@ -127,17 +127,17 @@ public sealed class Gossip : IDisposable
 
     public Task WaitForRunningAsync() => _runningEvent.Task;
 
-    public void PublishMessage(MessageContent content) => PublishMessage(
+    public void PublishMessage(IMessage content) => PublishMessage(
         content,
         PeersToBroadcast(_table.Peers, DLazy));
 
-    public void PublishMessage(MessageContent content, IEnumerable<Peer> targetPeers)
+    public void PublishMessage(IMessage content, IEnumerable<Peer> targetPeers)
     {
         AddMessage(content);
         _transport.BroadcastMessage(targetPeers, content);
     }
 
-    public void AddMessage(MessageContent content)
+    public void AddMessage(IMessage content)
     {
         try
         {
@@ -162,7 +162,7 @@ public sealed class Gossip : IDisposable
         }
     }
 
-    public void AddMessages(IEnumerable<MessageContent> contents)
+    public void AddMessages(IEnumerable<MessageBase> contents)
     {
         contents.AsParallel().ForAll(AddMessage);
     }
@@ -210,7 +210,7 @@ public sealed class Gossip : IDisposable
             return;
         }
 
-        switch (msg.Content)
+        switch (msg.Message)
         {
             case PingMessage _:
             case FindNeighborsMessage _:
@@ -224,7 +224,7 @@ public sealed class Gossip : IDisposable
                 break;
             default:
                 await ReplyMessagePongAsync(msg, ctx);
-                AddMessage(msg.Content);
+                AddMessage(msg.Message);
                 break;
         }
     };
@@ -248,7 +248,7 @@ public sealed class Gossip : IDisposable
 
     private async Task HandleHaveAsync(MessageEnvelope msg, CancellationToken ctx)
     {
-        var haveMessage = (HaveMessage)msg.Content;
+        var haveMessage = (HaveMessage)msg.Message;
 
         await ReplyMessagePongAsync(msg, ctx);
         MessageId[] idsToGet = _cache.DiffFrom(haveMessage.Ids);
@@ -320,7 +320,7 @@ public sealed class Gossip : IDisposable
                         try
                         {
                             _validateMessageToReceive(r);
-                            AddMessage(r.Content);
+                            AddMessage(r.Message);
                         }
                         catch (Exception e)
                         {
@@ -334,8 +334,8 @@ public sealed class Gossip : IDisposable
     private async Task HandleWantAsync(MessageEnvelope msg, CancellationToken ctx)
     {
         // FIXME: Message may have been discarded.
-        var wantMessage = (WantMessage)msg.Content;
-        MessageContent[] contents = wantMessage.Ids.Select(id => _cache.Get(id)).ToArray();
+        var wantMessage = (WantMessage)msg.Message;
+        IMessage[] contents = wantMessage.Ids.Select(id => _cache.Get(id)).ToArray();
         MessageId[] ids = contents.Select(c => c.Id).ToArray();
 
         await contents.ParallelForEachAsync(

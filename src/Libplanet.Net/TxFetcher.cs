@@ -43,7 +43,7 @@ public sealed class TxFetcher(
 
         foreach (MessageEnvelope message in replies)
         {
-            if (message.Content is TransactionMessage parsed)
+            if (message.Message is TransactionMessage parsed)
             {
                 Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload);
                 yield return tx;
@@ -54,7 +54,7 @@ public sealed class TxFetcher(
                     $"Expected {nameof(Transaction)} messages as response of " +
                     $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
                     $"message instead: {message}";
-                throw new InvalidMessageContentException(errorMessage, message.Content);
+                throw new InvalidMessageContentException(errorMessage, message.Message);
             }
         }
     }

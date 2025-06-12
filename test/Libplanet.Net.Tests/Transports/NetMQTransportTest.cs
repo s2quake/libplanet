@@ -104,7 +104,7 @@ namespace Libplanet.Net.Tests.Transports
                     new PingMessage(),
                     TimeSpan.FromSeconds(1),
                     default);
-                Assert.IsType<PongMessage>(reply.Content);
+                Assert.IsType<PongMessage>(reply.Message);
 
                 await transport.StopAsync(TimeSpan.Zero, CancellationToken.None);
             }

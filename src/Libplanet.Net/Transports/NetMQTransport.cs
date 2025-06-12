@@ -22,7 +22,6 @@ namespace Libplanet.Net.Transports;
 public class NetMQTransport : ITransport
 {
     private readonly PrivateKey _privateKey;
-    private readonly ILogger _logger;
     private readonly ProtocolOptions _protocolOptions;
     private readonly HostOptions _hostOptions;
     private readonly MessageValidator _messageValidator;
@@ -52,30 +51,12 @@ public class NetMQTransport : ITransport
         ForceDotNet.Force();
     }
 
-    /// <summary>
-    /// Creates a <see cref="NetMQTransport"/> instance.
-    /// </summary>
-    /// <param name="privateKey"><see cref="PrivateKey"/> of the transport layer.</param>
-    /// <param name="appProtocolVersionOptions">The <see cref="ProtocolOptions"/>
-    /// to use when handling an <see cref="Protocol"/> attached to
-    /// a <see cref="MessageEnvelope"/>.</param>
-    /// <param name="hostOptions">The <see cref="HostOptions"/> to use when binding
-    /// to the network.</param>
-    /// <param name="messageTimestampBuffer">The amount in <see cref="TimeSpan"/>
-    /// that is allowed for the timestamp of a <see cref="MessageEnvelope"/> to differ from
-    /// the current time of a local node.  Every <see cref="MessageEnvelope"/> with its timestamp
-    /// differing greater than <paramref name="messageTimestampBuffer"/> will be ignored.
-    /// If <see langword="null"/>, any timestamp is accepted.</param>
     private NetMQTransport(
         PrivateKey privateKey,
         ProtocolOptions appProtocolVersionOptions,
         HostOptions hostOptions,
         TimeSpan? messageTimestampBuffer = null)
     {
-        _logger = Log
-            .ForContext<NetMQTransport>()
-            .ForContext("Source", nameof(NetMQTransport));
-
         _socketCount = 0;
         _privateKey = privateKey;
         _hostOptions = hostOptions;
@@ -103,10 +84,7 @@ public class NetMQTransport : ITransport
                 catch (Exception e)
                     when (e is NetMQException || e is ObjectDisposedException)
                 {
-                    _logger.Error(
-                        e,
-                        "An exception has occurred while running {TaskName}",
-                        nameof(_runtimeProcessor));
+                    // log
                 }
             },
             runtimeCt,
@@ -132,25 +110,6 @@ public class NetMQTransport : ITransport
     public DifferentAppProtocolVersionEncountered DifferentAppProtocolVersionEncountered =>
     _protocolOptions.DifferentAppProtocolVersionEncountered;
 
-    /// <summary>
-    /// Creates an initialized <see cref="NetMQTransport"/> instance.
-    /// </summary>
-    /// <param name="privateKey"><see cref="PrivateKey"/> of the transport layer.</param>
-    /// <param name="appProtocolVersionOptions">The <see cref="ProtocolOptions"/>
-    /// to use when handling an <see cref="Protocol"/> attached to
-    /// a <see cref="MessageEnvelope"/>.</param>
-    /// <param name="hostOptions">The <see cref="HostOptions"/> to use when binding
-    /// to the network.</param>
-    /// <param name="messageTimestampBuffer">The amount in <see cref="TimeSpan"/>
-    /// that is allowed for the timestamp of a <see cref="MessageEnvelope"/> to differ from
-    /// the current time of a local node.  Every <see cref="MessageEnvelope"/> with its timestamp
-    /// differing greater than <paramref name="messageTimestampBuffer"/> will be ignored.
-    /// If <see langword="null"/>, any timestamp is accepted.</param>
-    /// <returns>
-    /// An awaitable <see cref="Task"/> returning a <see cref="NetMQTransport"/>
-    /// when awaited that is ready to send request <see cref="MessageEnvelope"/>s and
-    /// receive reply <see cref="MessageEnvelope"/>s.
-    /// </returns>
     public static async Task<NetMQTransport> Create(
         PrivateKey privateKey,
         ProtocolOptions appProtocolVersionOptions,
@@ -265,7 +224,7 @@ public class NetMQTransport : ITransport
 
     public async Task<MessageEnvelope> SendMessageAsync(
         Peer peer,
-        MessageContent content,
+        IMessage content,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
@@ -284,7 +243,7 @@ public class NetMQTransport : ITransport
 
     public async Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
         Peer peer,
-        MessageContent content,
+        IMessage content,
         TimeSpan? timeout,
         int expectedResponses,
         bool returnWhenTimeout,
@@ -295,10 +254,10 @@ public class NetMQTransport : ITransport
             throw new ObjectDisposedException(nameof(NetMQTransport));
         }
 
-        using Activity? a = _activitySource
-            .StartActivity(ActivityKind.Producer)?
-            .AddTag("Message", content.Type)
-            .AddTag("Peer", peer.ToString());
+        // using Activity? a = _activitySource
+        //     .StartActivity(ActivityKind.Producer)?
+        //     // .AddTag("Message", content.Type)
+        //     .AddTag("Peer", peer.ToString());
 
         using var timerCts = new CancellationTokenSource();
         if (timeout is { } timeoutNotNull)
@@ -324,7 +283,7 @@ public class NetMQTransport : ITransport
                 reqId,
                 new MessageEnvelope
                 {
-                    Content = content,
+                    Message = content,
                     Protocol = _protocolOptions.Protocol,
                     Remote = AsPeer,
                     Timestamp = DateTimeOffset.UtcNow,
@@ -337,13 +296,7 @@ public class NetMQTransport : ITransport
             await _requests.Writer.WriteAsync(
                 req,
                 linkedCt).ConfigureAwait(false);
-            _logger.Verbose(
-                "Enqueued a request {RequestId} to the peer {Peer}: {@Message}; " +
-                "{LeftRequests} left",
-                reqId,
-                peer,
-                content,
-                Interlocked.Read(ref _requestCount));
+
 
             foreach (var i in Enumerable.Range(0, expectedResponses))
             {
@@ -352,12 +305,6 @@ public class NetMQTransport : ITransport
                     .ConfigureAwait(false);
                 MessageEnvelope reply = _messageCodec.Decode(raw, true);
 
-                _logger.Information(
-                    "Received {Reply} as a reply to request {Request} {RequestId} from {Peer}",
-                    reply.Content.Type,
-                    content.Type,
-                    req.Id,
-                    reply.Remote);
                 try
                 {
                     _messageValidator.ValidateTimestamp(reply);
@@ -365,45 +312,17 @@ public class NetMQTransport : ITransport
                 }
                 catch (InvalidMessageTimestampException imte)
                 {
-                    const string imteMsge =
-                        "Received reply {Reply} from {Peer} to request {Request} " +
-                        "{RequestId} has an invalid timestamp";
-                    _logger.Warning(
-                        imte,
-                        imteMsge,
-                        reply.Content.Type,
-                        reply.Remote,
-                        content.Type,
-                        req.Id);
                     channel.Writer.Complete(imte);
                 }
                 catch (InvalidProtocolException dapve)
                 {
-                    const string dapveMsg =
-                        "Received reply {Reply} from {Peer} to request {Request} " +
-                        "{RequestId} has an invalid APV";
-                    _logger.Warning(
-                        dapve,
-                        dapveMsg,
-                        reply.Content.Type,
-                        reply.Remote,
-                        content.Type,
-                        req.Id);
                     channel.Writer.Complete(dapve);
                 }
 
                 replies.Add(reply);
             }
 
-            _logger.Information(
-                "Received {ReplyMessageCount} reply messages to {Message} {RequestId}" +
-                "from {Peer}: {ReplyMessages}",
-                replies.Count,
-                content.Type,
-                reqId,
-                peer,
-                replies.Select(reply => reply.Content.Type));
-            a?.SetStatus(ActivityStatusCode.Ok);
+            // a?.SetStatus(ActivityStatusCode.Ok);
             return replies;
         }
         catch (OperationCanceledException oce) when (timerCts.IsCancellationRequested)
@@ -413,8 +332,8 @@ public class NetMQTransport : ITransport
                 return replies;
             }
 
-            a?.SetStatus(ActivityStatusCode.Error);
-            a?.AddTag("Exception", nameof(TimeoutException));
+            // a?.SetStatus(ActivityStatusCode.Error);
+            // a?.AddTag("Exception", nameof(TimeoutException));
             throw WrapCommunicationFailException(
                 new TimeoutException(
                     $"The operation was canceled due to timeout {timeout!.ToString()}.",
@@ -427,19 +346,17 @@ public class NetMQTransport : ITransport
             const string dbgMsg =
                 "{MethodName}() was cancelled while waiting for a reply to " +
                 "{Content} {RequestId} from {Peer}";
-            _logger.Debug(
-                oce2, dbgMsg, nameof(SendMessageAsync), content, reqId, peer);
 
-            a?.SetStatus(ActivityStatusCode.Error);
-            a?.AddTag("Exception", nameof(TaskCanceledException));
+            // a?.SetStatus(ActivityStatusCode.Error);
+            // a?.AddTag("Exception", nameof(TaskCanceledException));
 
             // Wrapping to match the previous behavior of `SendMessageAsync()`.
             throw new TaskCanceledException(dbgMsg, oce2);
         }
         catch (ChannelClosedException ce)
         {
-            a?.SetStatus(ActivityStatusCode.Error);
-            a?.AddTag("Exception", nameof(ChannelClosedException));
+            // a?.SetStatus(ActivityStatusCode.Error);
+            // a?.AddTag("Exception", nameof(ChannelClosedException));
             throw WrapCommunicationFailException(ce.InnerException ?? ce, peer, content);
         }
         catch (Exception e)
@@ -447,10 +364,10 @@ public class NetMQTransport : ITransport
             const string errMsg =
                 "{MethodName}() encountered an unexpected exception while waiting for " +
                 "a reply to {Content} {RequestId} from {Peer}";
-            _logger.Error(
-                e, errMsg, nameof(SendMessageAsync), content, reqId, peer.Address);
-            a?.SetStatus(ActivityStatusCode.Error);
-            a?.AddTag("Exception", e.GetType().ToString());
+            // _logger.Error(
+            //     e, errMsg, nameof(SendMessageAsync), content, reqId, peer.Address);
+            // a?.SetStatus(ActivityStatusCode.Error);
+            // a?.AddTag("Exception", e.GetType().ToString());
             throw;
         }
         finally
@@ -459,7 +376,7 @@ public class NetMQTransport : ITransport
         }
     }
 
-    public void BroadcastMessage(IEnumerable<Peer> peers, MessageContent content)
+    public void BroadcastMessage(IEnumerable<Peer> peers, IMessage content)
     {
         if (_disposed)
         {
@@ -471,27 +388,22 @@ public class NetMQTransport : ITransport
         Task.Run(
             async () =>
             {
-                using Activity? a = _activitySource
-                    .StartActivity(ActivityKind.Producer)?
-                    .AddTag("Message", content.Type)
-                    .AddTag("Peers", boundPeers.Select(x => x.ToString()));
+                // using Activity? a = _activitySource
+                //     .StartActivity(ActivityKind.Producer)?
+                //     .AddTag("Message", content.Type)
+                //     .AddTag("Peers", boundPeers.Select(x => x.ToString()));
                 await boundPeers.ParallelForEachAsync(
                     peer => SendMessageAsync(peer, content, TimeSpan.FromSeconds(1), ct),
                     ct);
 
-                a?.SetStatus(ActivityStatusCode.Ok);
+                // a?.SetStatus(ActivityStatusCode.Ok);
             },
             ct);
 
-        _logger.Debug(
-            "Broadcasting message {Message} as {AsPeer} to {PeerCount} peers",
-            content,
-            AsPeer,
-            boundPeers.Count);
     }
 
     public async Task ReplyMessageAsync(
-    MessageContent content,
+    IMessage content,
     byte[] identity,
     CancellationToken cancellationToken)
     {
@@ -503,7 +415,6 @@ public class NetMQTransport : ITransport
         string reqId = !(identity is null) && identity.Length == 16
             ? new Guid(identity).ToString()
             : "unknown";
-        _logger.Debug("Reply {Content} to {Identity}...", content, reqId);
 
         var ev = new AsyncManualResetEvent();
         _replyQueue!.Enqueue(
@@ -511,7 +422,7 @@ public class NetMQTransport : ITransport
                 ev,
                 new MessageEnvelope
                 {
-                    Content = content,
+                    Message = content,
                     Protocol = _protocolOptions.Protocol,
                     Remote = AsPeer,
                     Timestamp = DateTimeOffset.UtcNow,
@@ -522,7 +433,7 @@ public class NetMQTransport : ITransport
 
     /// <summary>
     /// Initializes a <see cref="NetMQTransport"/> as to make it ready to
-    /// send request <see cref="MessageContent"/>s and receive reply <see cref="MessageEnvelope"/>s.
+    /// send request <see cref="MessageBase"/>s and receive reply <see cref="MessageEnvelope"/>s.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token to propagate a notification
     /// that this operation should be canceled.</param>
@@ -542,8 +453,6 @@ public class NetMQTransport : ITransport
             listenPort = _hostOptions.Port;
             _router.Bind($"tcp://*:{listenPort}");
         }
-
-        _logger.Information("Listening on {Port}...", listenPort);
 
         if (_hostOptions.Host is { } host)
         {
@@ -567,10 +476,6 @@ public class NetMQTransport : ITransport
                     break;
                 }
 
-                _logger.Verbose(
-                    "A raw message [frame count: {0}] has received",
-                    raw.FrameCount);
-
                 if (_runtimeCancellationTokenSource.IsCancellationRequested)
                 {
                     return;
@@ -591,14 +496,7 @@ public class NetMQTransport : ITransport
                                 false);
                             string reqId = copied[0].Buffer.Length == 16 ?
                                 new Guid(copied[0].ToByteArray()).ToString() : "unknown";
-                            _logger
-                                .ForContext("Tag", "Metric")
-                                .ForContext("Subtag", "InboundMessageReport")
-                                .Information(
-                                    "Received Request {RequestId} {Message} from {Peer}",
-                                    reqId,
-                                    message,
-                                    message.Remote);
+                            
                             try
                             {
                                 _messageValidator.ValidateTimestamp(message);
@@ -610,32 +508,16 @@ public class NetMQTransport : ITransport
                                 const string logMsg =
                                     "Received {RequestId} {Content} from " +
                                     "{Peer} has an invalid timestamp {Timestamp}";
-                                _logger.Debug(
-                                    imte,
-                                    logMsg,
-                                    reqId,
-                                    message.Content,
-                                    message.Remote,
-                                    message.Timestamp);
+
                             }
                             catch (InvalidProtocolException dapve)
                             {
                                 const string logMsg =
                                     "Received Request {RequestId} {Content} " +
                                     "from {Peer} has an invalid APV {Apv}";
-                                _logger.Debug(
-                                    dapve,
-                                    logMsg,
-                                    reqId,
-                                    message.Content,
-                                    message.Remote,
-                                    message.Protocol);
+
                                 var diffVersion = new DifferentVersionMessage();
-                                _logger.Debug(
-                                    "Replying to Request {RequestId} {Peer} with {Reply}",
-                                    reqId,
-                                    message.Remote,
-                                    diffVersion);
+
                                 await ReplyMessageAsync(
                                     diffVersion,
                                     message.Identity ?? Array.Empty<byte>(),
@@ -644,13 +526,11 @@ public class NetMQTransport : ITransport
                         }
                         catch (InvalidMessageContentException ex)
                         {
-                            _logger.Error(ex, "Could not parse NetMQMessage properly; ignore");
+                            // log
                         }
                         catch (Exception exc)
                         {
-                            _logger.Error(
-                                exc,
-                                "Something went wrong during message processing");
+                            // log
                         }
                     },
                     CancellationToken.None,
@@ -661,10 +541,7 @@ public class NetMQTransport : ITransport
         }
         catch (Exception ex)
         {
-            _logger.Error(
-                ex,
-                "An unexpected exception occurred during {MethodName}()",
-                nameof(ReceiveMessage));
+            // log
         }
     }
 
@@ -682,15 +559,9 @@ public class NetMQTransport : ITransport
         NetMQMessage netMQMessage = _messageCodec.Encode(message, _privateKey);
         if (_router!.TrySendMultipartMessage(TimeSpan.FromSeconds(1), netMQMessage))
         {
-            _logger.Debug(
-                "{Message} as a reply to {Identity} sent", message.Content.Type, reqId);
         }
         else
         {
-            _logger.Debug(
-                "Failed to send {Message} as a reply to {Identity}",
-                message.Content.Type,
-                reqId);
         }
 
         ev.Set();
@@ -701,7 +572,6 @@ public class NetMQTransport : ITransport
         const string waitMsg = "Waiting for a new request...";
         ChannelReader<MessageRequest> reader = _requests.Reader;
 #if NETCOREAPP3_0 || NETCOREAPP3_1 || NET
-        _logger.Verbose(waitMsg);
         await foreach (MessageRequest req in reader.ReadAllAsync(cancellationToken))
         {
 #else
@@ -712,17 +582,11 @@ public class NetMQTransport : ITransport
             MessageRequest req = await reader.ReadAsync(cancellationToken);
 #endif
             long left = Interlocked.Decrement(ref _requestCount);
-            _logger.Debug(
-                "Request {Message} {RequestId} taken for processing; {Count} requests left",
-                req.Message.Content.Type,
-                req.Id,
-                left);
 
             _ = SynchronizationContext.Current.PostAsync(
                 () => ProcessRequest(req, req.CancellationToken));
 
 #if NETCOREAPP3_0 || NETCOREAPP3_1 || NET
-            _logger.Verbose(waitMsg);
 #endif
         }
     }
@@ -732,19 +596,8 @@ public class NetMQTransport : ITransport
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        _logger.Debug(
-            "Request {Message} {RequestId} is ready to be processed in {TimeSpan}",
-            req.Message.Content.Type,
-            req.Id,
-            DateTimeOffset.UtcNow - req.Message.Timestamp);
-
         Channel<NetMQMessage> channel = req.Channel;
 
-        _logger.Debug(
-            "Trying to send request {Message} {RequestId} to {Peer}",
-            req.Message.Content.Type,
-            req.Id,
-            req.Peer);
         int receivedCount = 0;
         long? incrementedSocketCount = null;
 
@@ -758,37 +611,14 @@ public class NetMQTransport : ITransport
             dealer.Options.Identity = req.Id.ToByteArray();
             try
             {
-                _logger.Debug(
-                    "Trying to connect to {Peer} for request {Message} {RequestId}",
-                    req.Peer,
-                    req.Message.Content.Type,
-                    req.Id);
                 dealer.Connect(await req.Peer.ResolveNetMQAddressAsync());
                 incrementedSocketCount = Interlocked.Increment(ref _socketCount);
-                _logger
-                    .ForContext("Tag", "Metric")
-                    .ForContext("Subtag", "SocketCount")
-                    .Debug(
-                        "{SocketCount} sockets open for processing request " +
-                        "{Message} {RequestId}",
-                        incrementedSocketCount,
-                        req.Message.Content.Type,
-                        req.Id);
             }
             catch (NetMQException nme)
             {
                 const string logMsg =
                     "{SocketCount} sockets open for processing requests; " +
                     "failed to create an additional socket for request {Message} {RequestId}";
-                _logger
-                    .ForContext("Tag", "Metric")
-                    .ForContext("Subtag", "SocketCount")
-                    .Debug(
-                        nme,
-                        logMsg,
-                        Interlocked.Read(ref _socketCount),
-                        req.Message.Content.Type,
-                        req.Id);
                 throw;
             }
 
@@ -797,22 +627,12 @@ public class NetMQTransport : ITransport
                 _privateKey);
             if (dealer.TrySendMultipartMessage(netMQMessage))
             {
-                _logger.Debug(
-                    "Request {RequestId} {Message} sent to {Peer}",
-                    req.Id,
-                    req.Message.Content.Type,
-                    req.Peer);
+                // log
             }
             else
             {
-                _logger.Debug(
-                    "Failed to send {RequestId} {Message} to {Peer}",
-                    req.Id,
-                    req.Message.Content.Type,
-                    req.Peer);
-
                 throw new SendMessageFailException(
-                    $"Failed to send {req.Message.Content.Type} to {req.Peer}.",
+                    $"Failed to send {req.Message.Message} to {req.Peer}.",
                     req.Peer);
             }
 
@@ -821,12 +641,6 @@ public class NetMQTransport : ITransport
                 NetMQMessage raw = await dealer.ReceiveMultipartMessageAsync(
                     cancellationToken: cancellationToken);
 
-                _logger.Verbose(
-                    "Received a raw message with {FrameCount} frames as a reply to " +
-                    "request {RequestId} from {Peer}",
-                    raw.FrameCount,
-                    req.Id,
-                    req.Peer);
                 await channel.Writer.WriteAsync(raw, cancellationToken);
                 receivedCount += 1;
             }
@@ -835,11 +649,6 @@ public class NetMQTransport : ITransport
         }
         catch (Exception e)
         {
-            _logger.Error(
-                e,
-                "Failed to process {Message} {RequestId}; discarding it",
-                req.Message.Content.Type,
-                req.Id);
             channel.Writer.TryComplete(e);
         }
         finally
@@ -855,18 +664,6 @@ public class NetMQTransport : ITransport
                 Interlocked.Decrement(ref _socketCount);
             }
 
-            _logger
-                .ForContext("Tag", "Metric")
-                .ForContext("Subtag", "OutboundMessageReport")
-                .Information(
-                    "Request {RequestId} {Message} " +
-                    "processed in {DurationMs} ms with {ReceivedCount} replies received " +
-                    "out of {ExpectedCount} expected replies",
-                    req.Id,
-                    req.Message.Content.Type,
-                    stopwatch.ElapsedMilliseconds,
-                    receivedCount,
-                    req.ExpectedResponses);
         }
     }
 
@@ -887,17 +684,15 @@ public class NetMQTransport : ITransport
                 }
                 catch (TerminatingException)
                 {
-                    _logger.Error("TerminatingException occurred during poller.Run()");
+                    // log
                 }
                 catch (ObjectDisposedException)
                 {
-                    _logger.Error(
-                        "ObjectDisposedException occurred during poller.Run()");
+                    // log
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(
-                        e, "An unexpected exception occurred during poller.Run()");
+                    // log
                 }
             },
             CancellationToken.None,
@@ -908,11 +703,11 @@ public class NetMQTransport : ITransport
     private CommunicationFailException WrapCommunicationFailException(
         Exception innerException,
         Peer peer,
-        MessageContent message)
+        IMessage message)
     {
         return new CommunicationFailException(
             $"Failed to send and receive replies from {peer} for request {message}.",
-            message.Type,
+            message.GetType(),
             peer,
             innerException);
     }

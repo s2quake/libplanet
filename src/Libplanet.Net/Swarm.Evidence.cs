@@ -55,7 +55,7 @@ namespace Libplanet.Net
 
             foreach (MessageEnvelope message in replies)
             {
-                if (message.Content is EvidenceMessage parsed)
+                if (message.Message is EvidenceMessage parsed)
                 {
                     EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
                     yield return evidence;
@@ -67,7 +67,7 @@ namespace Libplanet.Net
                         $"the {nameof(GetEvidenceMessage)} message, but got a " +
                         $"{message.GetType().Name} " +
                         $"message instead: {message}";
-                    throw new InvalidMessageContentException(errorMessage, message.Content);
+                    throw new InvalidMessageContentException(errorMessage, message.Message);
                 }
             }
         }
@@ -138,7 +138,7 @@ namespace Libplanet.Net
 
             try
             {
-                var getEvidenceMsg = (GetEvidenceMessage)message.Content;
+                var getEvidenceMsg = (GetEvidenceMessage)message.Message;
                 foreach (EvidenceId txid in getEvidenceMsg.EvidenceIds)
                 {
                     try
@@ -150,7 +150,7 @@ namespace Libplanet.Net
                             continue;
                         }
 
-                        MessageContent response = new EvidenceMessage
+                        MessageBase response = new EvidenceMessage
                         {
                             Payload = [.. ModelSerializer.SerializeToBytes(ev)],
                         };
@@ -178,7 +178,7 @@ namespace Libplanet.Net
 
         private void ProcessEvidenceIds(MessageEnvelope message)
         {
-            var evidenceIdsMsg = (EvidenceIdsMessage)message.Content;
+            var evidenceIdsMsg = (EvidenceIdsMessage)message.Message;
             _logger.Information(
                 "Received a {MessageType} message with {EvidenceIdCount} evidenceIds",
                 nameof(EvidenceIdsMessage),

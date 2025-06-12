@@ -2,7 +2,7 @@ namespace Libplanet.Net.Messages;
 
 public sealed record class MessageEnvelope
 {
-    public required MessageContent Content { get; init; }
+    public required IMessage Message { get; init; }
 
     public required Protocol Protocol { get; init; }
 

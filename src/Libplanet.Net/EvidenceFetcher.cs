@@ -43,7 +43,7 @@ public sealed class EvidenceFetcher(
 
         foreach (MessageEnvelope message in replies)
         {
-            if (message.Content is EvidenceMessage parsed)
+            if (message.Message is EvidenceMessage parsed)
             {
                 yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>(parsed.Payload.AsSpan());
             }
@@ -53,7 +53,7 @@ public sealed class EvidenceFetcher(
                     $"Expected {nameof(Transaction)} messages as response of " +
                     $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
                     $"message instead: {message}";
-                throw new InvalidMessageContentException(errorMessage, message.Content);
+                throw new InvalidMessageContentException(errorMessage, message.Message);
             }
         }
     }
