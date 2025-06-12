@@ -26,9 +26,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         Sign = 4,
     }
 
-    public NetMQMessage Encode(
-        MessageEnvelope message,
-        PrivateKey privateKey)
+    public NetMQMessage Encode(MessageEnvelope message, PrivateKey privateKey)
     {
         if (!privateKey.Address.Equals(message.Remote.Address))
         {
@@ -65,7 +63,6 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         return netMqMessage;
     }
 
-    /// <inheritdoc cref="IMessageCodec{T}.Decode"/>
     public MessageEnvelope Decode(NetMQMessage encoded, bool reply)
     {
         if (encoded.FrameCount == 0)

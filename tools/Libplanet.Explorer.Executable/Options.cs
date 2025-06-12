@@ -20,7 +20,6 @@ namespace Libplanet.Explorer.Executable
             int maxTransactionsBytes,
             int maxGenesisTransactionsBytes,
             IEnumerable<string> seedStrings,
-            string iceServerUrl,
             string storePath,
             string storeType,
             string genesisBlockPath)
@@ -34,7 +33,6 @@ namespace Libplanet.Explorer.Executable
             MaxTransactionsBytes = maxTransactionsBytes;
             MaxGenesisTransactionsBytes = maxGenesisTransactionsBytes;
             SeedStrings = seedStrings;
-            IceServerUrl = iceServerUrl;
             StorePath = storePath;
             StoreType = storeType;
             GenesisBlockPath = genesisBlockPath;
@@ -85,13 +83,13 @@ namespace Libplanet.Explorer.Executable
 
         public IEnumerable<Peer> Seeds { get; set; }
 
-        public string IceServerUrl
-        {
-            get => IceServer is null ? null : IceServer.Url.ToString();
-            set => IceServer = value is null ? null : new IceServer(value);
-        }
+        // public string IceServerUrl
+        // {
+        //     get => IceServer is null ? null : IceServer.Url.ToString();
+        //     set => IceServer = value is null ? null : new IceServer(value);
+        // }
 
-        public IceServer IceServer { get; set; }
+        // public IceServer IceServer { get; set; }
 
         public string StorePath { get; set; }
 

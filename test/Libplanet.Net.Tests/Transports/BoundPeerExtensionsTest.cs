@@ -101,7 +101,7 @@ namespace Libplanet.Net.Tests.Transports
                 Address = new PrivateKey().Address,
                 EndPoint = new DnsEndPoint(host, port),
             };
-            var addr = await bp.ResolveNetMQAddressAsync();
+            var addr = await bp.ResolveNetMQAddressAsync(default);
 
             Assert.Contains(addr, expected);
         }
@@ -117,7 +117,7 @@ namespace Libplanet.Net.Tests.Transports
             };
             await Assert.ThrowsAnyAsync<SocketException>(async () =>
             {
-                await bp.ResolveNetMQAddressAsync();
+                await bp.ResolveNetMQAddressAsync(default);
             });
         }
 

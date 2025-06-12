@@ -3,17 +3,28 @@ namespace Libplanet.Net.Transports;
 public class InvalidMessageTimestampException : Exception
 {
     internal InvalidMessageTimestampException(
-        string message, DateTimeOffset createdOffset, TimeSpan? buffer, DateTimeOffset currentOffset)
-        : base(message)
+        DateTimeOffset createdTimestamp, TimeSpan lifetime, DateTimeOffset currentTimestamp)
+        : base(GenerateMessage(createdTimestamp, lifetime, currentTimestamp))
     {
-        CreatedOffset = createdOffset;
-        Buffer = buffer;
-        CurrentOffset = currentOffset;
+        CreatedTimestamp = createdTimestamp;
+        Lifetime = lifetime;
+        CurrentTimestamp = currentTimestamp;
     }
 
-    internal DateTimeOffset CreatedOffset { get; }
+    internal DateTimeOffset CreatedTimestamp { get; }
 
-    internal TimeSpan? Buffer { get; }
+    internal TimeSpan Lifetime { get; }
 
-    internal DateTimeOffset CurrentOffset { get; }
+    internal DateTimeOffset CurrentTimestamp { get; }
+
+    private static string GenerateMessage(
+        DateTimeOffset createdTimestamp, TimeSpan timestamp, DateTimeOffset currentTimestamp)
+    {
+        return $"The timestamp of a received message is invalid:\n" +
+               $"Message timestamp buffer: {timestamp}\n" +
+               $"Current timestamp: " +
+               $"{currentTimestamp:o}\n" +
+               $"Message timestamp: " +
+               $"{createdTimestamp:o}";
+    }
 }

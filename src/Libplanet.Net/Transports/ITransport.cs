@@ -17,10 +17,6 @@ public interface ITransport : IDisposable
 
     Protocol Protocol { get; }
 
-    public ImmutableSortedSet<Address> AllowedSigners { get; }
-
-    public DifferentAppProtocolVersionEncountered DifferentAppProtocolVersionEncountered { get; }
-
     Task StartAsync(CancellationToken cancellationToken = default);
 
     Task StopAsync(TimeSpan waitFor, CancellationToken cancellationToken = default);

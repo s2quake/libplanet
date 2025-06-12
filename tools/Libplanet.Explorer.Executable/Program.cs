@@ -134,12 +134,7 @@ in the genesis block.")]
 seed is a comma-separated triple of a peer's hexadecimal public key, host, and port number.
 E.g., `02ed49dbe0f2c34d9dff8335d6dd9097f7a3ef17dfb5f048382eebc7f451a50aa1,example.com,31234'.
 If omitted (default) explorer only the local blockchain store.")]
-            string[] seedStrings = null,
-            [Option(
-                "ice-server",
-                new[] { 'I' },
-                Description = "URL to ICE server (TURN/STUN) to work around NAT.")]
-            string iceServerUrl = null)
+            string[] seedStrings = null)
         {
             Options options = new Options(
                 debug,
@@ -151,7 +146,6 @@ If omitted (default) explorer only the local blockchain store.")]
                 maxTransactionsBytes,
                 maxGenesisTransactionsBytes,
                 seedStrings,
-                iceServerUrl,
                 storePath,
                 storeType,
                 genesisBlockPath);
@@ -196,13 +190,13 @@ If omitted (default) explorer only the local blockchain store.")]
                     // TODO: Take appProtocolVersion as a CLI option
                     // TODO: Take host as a CLI option
                     // TODO: Take listenPort as a CLI option
-                    if (options.IceServer is null)
-                    {
-                        Console.Error.WriteLine(
-                            "error: -s/--seed option requires -I/--ice-server as well.");
-                        Environment.Exit(1);
-                        return;
-                    }
+                    // if (options.IceServer is null)
+                    // {
+                    //     Console.Error.WriteLine(
+                    //         "error: -s/--seed option requires -I/--ice-server as well.");
+                    //     Environment.Exit(1);
+                    //     return;
+                    // }
 
                     Console.Error.WriteLine("Creating Swarm.");
 

@@ -99,11 +99,6 @@ internal class TestTransport : ITransport
 
     public Protocol Protocol => _appProtocolVersion;
 
-    public ImmutableSortedSet<Address> AllowedSigners => ImmutableSortedSet<Address>.Empty;
-
-    public DifferentAppProtocolVersionEncountered DifferentAppProtocolVersionEncountered =>
-        (peer, peerVersion, localVersion) => { };
-
     internal ConcurrentBag<MessageEnvelope> ReceivedMessages { get; }
 
     internal RoutingTable Table { get; }

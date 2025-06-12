@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
@@ -54,16 +55,13 @@ public static class BoundPeerExtensions
         return $"tcp://{peer.EndPoint.Host}:{peer.EndPoint.Port}";
     }
 
-    internal static async Task<string> ResolveNetMQAddressAsync(this Peer peer)
+    internal static async Task<string> ResolveNetMQAddressAsync(this Peer peer, CancellationToken cancellationToken)
     {
-        string addr = peer.EndPoint.Host;
-
-        IPAddress[] addresses = await Dns.GetHostAddressesAsync(addr).ConfigureAwait(false);
-
-        string ipv4 = addresses.FirstOrDefault(
-            addr => addr.AddressFamily is AddressFamily.InterNetwork)?.ToString()
-            ?? throw new TransportException($"Failed to resolve for {addr}");
-        int port = peer.EndPoint.Port;
+        var host = peer.EndPoint.Host;
+        var port = peer.EndPoint.Port;
+        var addresses = await Dns.GetHostAddressesAsync(host, cancellationToken).ConfigureAwait(false);
+        var ipv4 = addresses.FirstOrDefault(addr => addr.AddressFamily is AddressFamily.InterNetwork)
+            ?? throw new TransportException($"Failed to resolve for {host}");
 
         return $"tcp://{ipv4}:{port}";
     }

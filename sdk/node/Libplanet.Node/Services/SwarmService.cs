@@ -85,8 +85,7 @@ internal sealed class SwarmService(
         var swarmTransport = await CreateTransport(
             privateKey: privateKey,
             endPoint: swarmEndPoint,
-            appProtocolVersion: appProtocolVersion,
-            trustedAppProtocolVersionSigners);
+            protocol: appProtocolVersion);
         var blocksyncSeedPeer = Net.Peer.Parse(nodeOptions.BlocksyncSeedPeer);
         var swarmOptions = new Net.Options.SwarmOptions
         {
@@ -101,7 +100,6 @@ internal sealed class SwarmService(
             ? await CreateConsensusTransportAsync(
                 privateKey,
                 appProtocolVersion,
-                trustedAppProtocolVersionSigners,
                 _validatorOptions,
                 cancellationToken)
             : null;
@@ -181,18 +179,16 @@ internal sealed class SwarmService(
     private static async Task<NetMQTransport> CreateTransport(
         PrivateKey privateKey,
         DnsEndPoint endPoint,
-        Protocol appProtocolVersion,
-        Address[] allowedSigners)
+        Protocol protocol)
     {
-        var appProtocolVersionOptions = new Net.Options.ProtocolOptions
+        var protocolOptions = new Net.Options.ProtocolOptions
         {
-            Protocol = appProtocolVersion,
-            AllowedSigners = [.. allowedSigners],
+            Protocol = protocol,
         };
         var hostOptions = new Net.Options.HostOptions { Host = endPoint.Host, Port = endPoint.Port };
         return await NetMQTransport.Create(
             privateKey,
-            appProtocolVersionOptions,
+            protocolOptions,
             hostOptions,
             TimeSpan.FromSeconds(60));
     }
@@ -214,8 +210,7 @@ internal sealed class SwarmService(
 
     private static async Task<NetMQTransport> CreateConsensusTransportAsync(
         PrivateKey privateKey,
-        Protocol appProtocolVersion,
-        Address[] allowedSigners,
+        Protocol protocol,
         ValidatorOptions options,
         CancellationToken cancellationToken)
     {
@@ -224,7 +219,6 @@ internal sealed class SwarmService(
         return await CreateTransport(
             privateKey: privateKey,
             endPoint: consensusEndPoint,
-            appProtocolVersion: appProtocolVersion,
-            allowedSigners);
+            protocol: protocol);
     }
 }

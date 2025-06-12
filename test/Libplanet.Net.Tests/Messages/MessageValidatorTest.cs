@@ -89,7 +89,6 @@ namespace Libplanet.Net.Tests.Messages
             var extra1 = ModelSerializer.SerializeToBytes(13);
             var extra2 = ModelSerializer.SerializeToBytes(17);
 
-            DifferentAppProtocolVersionEncountered callback = (p, pv, lv) => { called = true; };
             var peer = new Peer { Address = trustedSigner.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
 
             // Apv
@@ -103,8 +102,6 @@ namespace Libplanet.Net.Tests.Messages
             var unknownDifferentExtraApv = Protocol.Create(unknownSigner, version1, extra2);
 
             // Signer
-            ImmutableSortedSet<Address>? trustedApvSigners =
-                new HashSet<Address>() { trustedSigner.Address }.ToImmutableSortedSet();
             ImmutableSortedSet<Address>? emptyApvSigners =
                 new HashSet<Address>() { }.ToImmutableSortedSet();
 
@@ -160,8 +157,6 @@ namespace Libplanet.Net.Tests.Messages
             appProtocolVersionOptions = new ProtocolOptions()
             {
                 Protocol = trustedApv,
-                AllowedSigners = trustedApvSigners,
-                DifferentAppProtocolVersionEncountered = callback,
             };
 
             messageValidator = new MessageValidator(appProtocolVersionOptions, null);
@@ -196,8 +191,6 @@ namespace Libplanet.Net.Tests.Messages
             appProtocolVersionOptions = new ProtocolOptions()
             {
                 Protocol = trustedApv,
-                AllowedSigners = emptyApvSigners,
-                DifferentAppProtocolVersionEncountered = callback,
             };
 
             messageValidator = new MessageValidator(appProtocolVersionOptions, null);
