@@ -8,28 +8,27 @@ using Nito.AsyncEx;
 
 namespace Libplanet.Net;
 
-public sealed class TxCompletion<TPeer>(
+public sealed class TxCompletion(
     Blockchain blockchain,
-    TxCompletion<TPeer>.TxFetcher txFetcher,
-    TxCompletion<TPeer>.TxBroadcaster txBroadcaster)
+    TxCompletion.TxFetcher txFetcher,
+    TxCompletion.TxBroadcaster txBroadcaster)
     : IDisposable
-    where TPeer : notnull
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly Blockchain _blockchain = blockchain;
     private readonly TxFetcher _txFetcher = txFetcher;
     private readonly TxBroadcaster _txBroadcaster = txBroadcaster;
-    private readonly ConcurrentDictionary<TPeer, TxFetchJob> _txFetchJobs = new ConcurrentDictionary<TPeer, TxFetchJob>();
+    private readonly ConcurrentDictionary<Peer, TxFetchJob> _txFetchJobs = new();
     private readonly List<IDisposable> _subscriptionList = [];
 
     private bool _disposed;
 
     public delegate IAsyncEnumerable<Transaction> TxFetcher(
-        TPeer peer,
+        Peer peer,
         IEnumerable<TxId> txIds,
         CancellationToken cancellationToken);
 
-    public delegate void TxBroadcaster(TPeer except, IEnumerable<Transaction> txs);
+    public delegate void TxBroadcaster(Peer except, IEnumerable<Transaction> txs);
 
     internal AsyncAutoResetEvent TxReceived { get; } = new AsyncAutoResetEvent();
 
@@ -49,9 +48,9 @@ public sealed class TxCompletion<TPeer>(
         }
     }
 
-    public void Demand(TPeer peer, TxId txId) => DemandMany(peer, [txId]);
+    public void Demand(Peer peer, TxId txId) => DemandMany(peer, [txId]);
 
-    public void DemandMany(TPeer peer, IEnumerable<TxId> txIds)
+    public void DemandMany(Peer peer, IEnumerable<TxId> txIds)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -68,7 +67,7 @@ public sealed class TxCompletion<TPeer>(
         _txFetchJobs[peer].Add(requiredTxIds);
     }
 
-    private void ProcessFetchedTxIds(HashSet<Transaction> txs, TPeer peer)
+    private void ProcessFetchedTxIds(HashSet<Transaction> txs, Peer peer)
     {
         var transactionOptions = _blockchain.Options.TransactionOptions;
         var stageTransactions = _blockchain.StagedTransactions;
@@ -109,7 +108,7 @@ public sealed class TxCompletion<TPeer>(
         return [.. query];
     }
 
-    private sealed class TxFetchJob(TxFetcher txFetcher, TPeer peer)
+    private sealed class TxFetchJob(TxFetcher txFetcher, Peer peer)
     {
         private static readonly object _lock = new();
         private readonly List<TxId> _txIdList = [];
