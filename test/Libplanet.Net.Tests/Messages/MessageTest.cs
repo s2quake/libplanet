@@ -24,7 +24,7 @@ public class MessageTest
         NetMQMessage raw = codec.Encode(
             new MessageEnvelope
             {
-                Content = messageContent,
+                Message = messageContent,
                 Protocol = apv,
                 Remote = peer,
                 Timestamp = dateTimeOffset,
@@ -47,7 +47,7 @@ public class MessageTest
             codec.Encode(
                 new MessageEnvelope
                 {
-                    Content = ping,
+                    Message = ping,
                     Protocol = apv,
                     Remote = peer,
                     Timestamp = timestamp
@@ -67,7 +67,7 @@ public class MessageTest
         var netMqMessage = codec.Encode(
             new MessageEnvelope
             {
-                Content = ping,
+                Message = ping,
                 Protocol = apv,
                 Remote = peer,
                 Timestamp = timestamp
@@ -78,7 +78,7 @@ public class MessageTest
         var fakeMessage = codec.Encode(
             new MessageEnvelope
             {
-                Content = ping,
+                Message = ping,
                 Protocol = apv,
                 Remote = fakePeer,
                 Timestamp = timestamp,

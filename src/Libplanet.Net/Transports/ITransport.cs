@@ -29,22 +29,22 @@ public interface ITransport : IDisposable
 
     Task<MessageEnvelope> SendMessageAsync(
         Peer peer,
-        MessageContent content,
+        IMessage content,
         TimeSpan? timeout,
         CancellationToken cancellationToken);
 
     Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
         Peer peer,
-        MessageContent content,
+        IMessage content,
         TimeSpan? timeout,
         int expectedResponses,
         bool returnWhenTimeout,
         CancellationToken cancellationToken);
 
-    void BroadcastMessage(IEnumerable<Peer> peers, MessageContent content);
+    void BroadcastMessage(IEnumerable<Peer> peers, IMessage content);
 
     Task ReplyMessageAsync(
-        MessageContent content,
+        IMessage content,
         byte[] identity,
         CancellationToken cancellationToken);
 }

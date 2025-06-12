@@ -362,10 +362,10 @@ public sealed class Kademlia
                 timeout,
                 cancellationToken)
             .ConfigureAwait(false);
-            if (reply.Content is not PongMessage pong)
+            if (reply.Message is not PongMessage pong)
             {
                 throw new InvalidMessageContentException(
-                    $"Expected pong, but received {reply.Content.Type}.", reply.Content);
+                    $"Expected pong, but received {reply.Message}.", reply.Message);
             }
             else if (reply.Remote.Address.Equals(_address))
             {
@@ -384,7 +384,7 @@ public sealed class Kademlia
 
     private async Task ProcessMessageHandler(MessageEnvelope message)
     {
-        switch (message.Content)
+        switch (message.Message)
         {
             case PingMessage:
                 {
@@ -513,11 +513,11 @@ public sealed class Kademlia
                 timeout,
                 cancellationToken)
             .ConfigureAwait(false);
-            if (!(reply.Content is NeighborsMessage neighbors))
+            if (!(reply.Message is NeighborsMessage neighbors))
             {
                 throw new InvalidMessageContentException(
                     $"Reply to {nameof(Messages.FindNeighborsMessage)} is invalid.",
-                    reply.Content);
+                    reply.Message);
             }
 
             return neighbors.Found;
@@ -533,7 +533,7 @@ public sealed class Kademlia
     {
         if (message.Remote.Address.Equals(_address))
         {
-            throw new InvalidMessageContentException("Cannot receive ping from self.", message.Content);
+            throw new InvalidMessageContentException("Cannot receive ping from self.", message.Message);
         }
 
         var pong = new PongMessage();
@@ -636,7 +636,7 @@ public sealed class Kademlia
 
     private async Task ReceiveFindPeerAsync(MessageEnvelope message)
     {
-        var findNeighbors = (FindNeighborsMessage)message.Content;
+        var findNeighbors = (FindNeighborsMessage)message.Message;
         IEnumerable<Peer> found =
             _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
 

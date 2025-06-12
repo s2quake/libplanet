@@ -43,12 +43,12 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         var netMqMessage = new NetMQMessage();
 
         // Write body (by concrete class)
-        netMqMessage.Append(ModelSerializer.SerializeToBytes(message.Content));
+        netMqMessage.Append(ModelSerializer.SerializeToBytes(message.Message));
 
         // Write headers. (inverse order, version-type-peer-timestamp)
         netMqMessage.Push(message.Timestamp.Ticks);
         netMqMessage.Push(ModelSerializer.SerializeToBytes(message.Remote));
-        netMqMessage.Push((int)message.Content.Type);
+        // netMqMessage.Push((int)message.Message.Type);
         netMqMessage.Push(message.Protocol.Token);
 
         // Make and insert signature
@@ -82,8 +82,8 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         Protocol version = Protocol.FromToken(versionToken);
         var remote = ModelSerializer.DeserializeFromBytes<Peer>(remains[(int)MessageFrame.Peer].ToByteArray());
 
-        var type =
-            (MessageContent.MessageType)remains[(int)MessageFrame.Type].ConvertToInt32();
+        // var type =
+        //     (MessageBase.MessageType)remains[(int)MessageFrame.Type].ConvertToInt32();
         var ticks = remains[(int)MessageFrame.Timestamp].ConvertToInt64();
         var timestamp = new DateTimeOffset(ticks, TimeSpan.Zero);
 
@@ -91,8 +91,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
         NetMQFrame[] body = remains.Skip(CommonFrames).ToArray();
 
-        MessageContent content = CreateMessage(
-            type,
+        IMessage content = CreateMessage(
             body[0].ToByteArray());
 
         var headerWithoutSign = new[]
@@ -118,7 +117,7 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
         return new MessageEnvelope
         {
-            Content = content,
+            Message = content,
             Protocol = version,
             Remote = remote,
             Timestamp = timestamp,
@@ -126,10 +125,8 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         };
     }
 
-    internal static MessageContent CreateMessage(
-        MessageContent.MessageType type,
-        byte[] bytes)
+    internal static IMessage CreateMessage(byte[] bytes)
     {
-        return ModelSerializer.DeserializeFromBytes<MessageContent>(bytes);
+        return ModelSerializer.DeserializeFromBytes<IMessage>(bytes);
     }
 }

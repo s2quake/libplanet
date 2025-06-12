@@ -751,7 +751,7 @@ namespace Libplanet.Net
                 return new List<BlockHash>();
             }
 
-            if (parsedMessage.Content is BlockHashesMessage blockHashes)
+            if (parsedMessage.Message is BlockHashesMessage blockHashes)
             {
                 if (blockHashes.Hashes.Any())
                 {
@@ -859,7 +859,7 @@ namespace Libplanet.Net
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (message.Content is BlocksMessage blockMessage)
+                if (message.Message is BlocksMessage blockMessage)
                 {
                     var payloads = blockMessage.Payloads;
                     _logger.Information(
@@ -909,7 +909,7 @@ namespace Libplanet.Net
                         $"Expected a {nameof(BlocksMessage)} message as a response of " +
                         $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
                         $"message instead: {message}";
-                    throw new InvalidMessageContentException(errorMessage, message.Content);
+                    throw new InvalidMessageContentException(errorMessage, message.Message);
                 }
             }
 
@@ -953,7 +953,7 @@ namespace Libplanet.Net
 
             foreach (MessageEnvelope message in replies)
             {
-                if (message.Content is TransactionMessage parsed)
+                if (message.Message is TransactionMessage parsed)
                 {
                     Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload);
                     yield return tx;
@@ -964,7 +964,7 @@ namespace Libplanet.Net
                         $"Expected {nameof(Transaction)} messages as response of " +
                         $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
                         $"message instead: {message}";
-                    throw new InvalidMessageContentException(errorMessage, message.Content);
+                    throw new InvalidMessageContentException(errorMessage, message.Message);
                 }
             }
         }
@@ -1118,7 +1118,7 @@ namespace Libplanet.Net
             BroadcastTxIds(except.Address, txIds);
         }
 
-        private void BroadcastMessage(Address except, MessageContent message)
+        private void BroadcastMessage(Address except, MessageBase message)
         {
             Transport.BroadcastMessage(
                 RoutingTable.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
@@ -1210,7 +1210,7 @@ namespace Libplanet.Net
                         task =>
                         {
                             if (task.IsFaulted || task.IsCanceled ||
-                                !(task.Result.Content is ChainStatusMessage chainStatus))
+                                !(task.Result.Message is ChainStatusMessage chainStatus))
                             {
                                 // Log and mark to skip
                                 LogException(peer, task);

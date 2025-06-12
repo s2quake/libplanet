@@ -43,7 +43,7 @@ internal sealed class Peer(ITransport transport, Net.Peer boundPeer)
                 cancellationToken);
             var latency = Stopwatch.GetElapsedTime(stopwatch.ElapsedTicks);
 
-            if (replyMessage.Content is PongMessage)
+            if (replyMessage.Message is PongMessage)
             {
                 Latency = latency;
                 return true;

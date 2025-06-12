@@ -144,7 +144,7 @@ public class SeedTest
             });
 
         // Then
-        Assert.IsType<PingMessage>(args.Arguments.Message.Content);
+        Assert.IsType<PingMessage>(args.Arguments.Message.Message);
         var peer = seed.Peers.Single();
         Assert.Equal(remoteBoundPeer, peer.BoundPeer);
         Assert.True(now <= peer.LastUpdated);
@@ -205,8 +205,8 @@ public class SeedTest
 
         // Then
         Assert.Equal(length, seed.Peers.Count);
-        Assert.IsType<NeighborsMessage>(replyMessage.Content);
-        var neighborsMsg = (NeighborsMessage)replyMessage.Content;
+        Assert.IsType<NeighborsMessage>(replyMessage.Message);
+        var neighborsMsg = (NeighborsMessage)replyMessage.Message;
         Assert.Equal(length, neighborsMsg.Found.Length);
     }
 }

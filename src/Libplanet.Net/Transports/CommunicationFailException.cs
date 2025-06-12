@@ -5,7 +5,7 @@ namespace Libplanet.Net.Transports;
 public class CommunicationFailException : Exception
 {
     public CommunicationFailException(
-        string message, MessageContent.MessageType messageType, Peer peer)
+        string message, Type messageType, Peer peer)
         : base(message)
     {
         Peer = peer;
@@ -13,7 +13,7 @@ public class CommunicationFailException : Exception
     }
 
     public CommunicationFailException(
-        string message, MessageContent.MessageType messageType, Peer peer, Exception innerException)
+        string message, Type messageType, Peer peer, Exception innerException)
         : base(message, innerException)
     {
         Peer = peer;
@@ -22,5 +22,5 @@ public class CommunicationFailException : Exception
 
     public Peer Peer { get; }
 
-    public MessageContent.MessageType MessageType { get; }
+    public Type MessageType { get; }
 }

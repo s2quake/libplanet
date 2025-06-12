@@ -344,7 +344,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         private GossipConsensusMessageCommunicator CreateGossipConesnsusMessageCommunicator(
-            Action<MessageContent> processMessage,
+            Action<IMessage> processMessage,
             PrivateKey? privateKey = null,
             int? port = null,
             IEnumerable<Peer>? peers = null,

@@ -31,7 +31,7 @@ namespace Libplanet.Net.Consensus
             ITransport consensusTransport,
             ImmutableArray<Peer> validatorPeers,
             ImmutableArray<Peer> seedPeers,
-            Action<MessageContent> processMessage)
+            Action<IMessage> processMessage)
         {
             Gossip = new Gossip(
                 consensusTransport,
@@ -81,7 +81,7 @@ namespace Libplanet.Net.Consensus
         /// <param name="message"><see cref="MessageEnvelope"/> to validate.</param>
         private void ValidateMessageToReceive(MessageEnvelope message)
         {
-            if (message.Content is ConsensusVoteMessage voteMsg)
+            if (message.Message is ConsensusVoteMessage voteMsg)
             {
                 FilterDifferentHeightVote(voteMsg);
                 FilterHigherRoundVoteSpam(voteMsg, message.Remote);
@@ -93,8 +93,8 @@ namespace Libplanet.Net.Consensus
         /// This will be set as parameter of <see cref="Gossip"/>, and will validate
         /// <see cref="MessageEnvelope"/>s before respond to peer's <see cref="WantMessage"/>.
         /// </summary>
-        /// <param name="content"><see cref="MessageContent"/> to validate.</param>
-        private void ValidateMessageToSend(MessageContent content)
+        /// <param name="content"><see cref="MessageBase"/> to validate.</param>
+        private void ValidateMessageToSend(IMessage content)
         {
             if (content is ConsensusVoteMessage voteMsg)
             {

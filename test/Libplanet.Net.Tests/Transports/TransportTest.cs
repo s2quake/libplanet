@@ -151,7 +151,7 @@ namespace Libplanet.Net.Tests.Transports
 
             transportB.ProcessMessageHandler.Register(async message =>
             {
-                if (message.Content is PingMessage)
+                if (message.Message is PingMessage)
                 {
                     await transportB.ReplyMessageAsync(
                         new PongMessage(),
@@ -171,7 +171,7 @@ namespace Libplanet.Net.Tests.Transports
                     TimeSpan.FromSeconds(3),
                     CancellationToken.None);
 
-                Assert.IsType<PongMessage>(reply.Content);
+                Assert.IsType<PongMessage>(reply.Message);
             }
             finally
             {
@@ -220,7 +220,7 @@ namespace Libplanet.Net.Tests.Transports
 
             transportB.ProcessMessageHandler.Register(async message =>
             {
-                if (message.Content is PingMessage)
+                if (message.Message is PingMessage)
                 {
                     await transportB.ReplyMessageAsync(
                         new PingMessage(),
@@ -246,8 +246,8 @@ namespace Libplanet.Net.Tests.Transports
                     false,
                     CancellationToken.None)).ToArray();
 
-                Assert.Contains(replies, message => message.Content is PingMessage);
-                Assert.Contains(replies, message => message.Content is PongMessage);
+                Assert.Contains(replies, message => message.Message is PingMessage);
+                Assert.Contains(replies, message => message.Message is PongMessage);
             }
             finally
             {
@@ -371,7 +371,7 @@ namespace Libplanet.Net.Tests.Transports
             {
                 return async message =>
                 {
-                    if (message.Content is PingMessage)
+                    if (message.Message is PingMessage)
                     {
                         tcs.SetResult(message);
                     }
@@ -400,8 +400,8 @@ namespace Libplanet.Net.Tests.Transports
 
                 await Task.WhenAll(tcsB.Task, tcsC.Task);
 
-                Assert.IsType<PingMessage>(tcsB.Task.Result.Content);
-                Assert.IsType<PingMessage>(tcsC.Task.Result.Content);
+                Assert.IsType<PingMessage>(tcsB.Task.Result.Message);
+                Assert.IsType<PingMessage>(tcsC.Task.Result.Message);
                 Assert.False(tcsD.Task.IsCompleted);
 
                 tcsD.SetCanceled();

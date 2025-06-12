@@ -267,7 +267,7 @@ namespace Libplanet.Net.Tests.Consensus
             bool received = false;
             async Task ProcessMessage(MessageEnvelope msg)
             {
-                if (msg.Content is HaveMessage)
+                if (msg.Message is HaveMessage)
                 {
                     received = true;
                 }
@@ -306,7 +306,7 @@ namespace Libplanet.Net.Tests.Consensus
             int received = 0;
             async Task ProcessMessage(MessageEnvelope msg)
             {
-                if (msg.Content is WantMessage)
+                if (msg.Message is WantMessage)
                 {
                     received++;
                 }
@@ -357,7 +357,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         private Gossip CreateGossip(
-            Action<MessageContent> processMessage,
+            Action<IMessage> processMessage,
             PrivateKey? privateKey = null,
             int? port = null,
             IEnumerable<Peer>? peers = null,
