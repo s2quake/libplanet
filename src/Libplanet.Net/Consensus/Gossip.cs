@@ -28,7 +28,7 @@ public sealed class Gossip : IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
     private readonly RoutingTable _table;
     private readonly HashSet<Peer> _denySet;
-    private readonly IProtocol _protocol;
+    private readonly Kademlia _protocol;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict;
 
     public Gossip(
@@ -52,7 +52,7 @@ public sealed class Gossip : IDisposable
             _table.AddPeer(peer);
         }
 
-        _protocol = new KademliaProtocol(_table, _transport, transport.AsPeer.Address);
+        _protocol = new Kademlia(_table, _transport, transport.AsPeer.Address);
         _seeds = seeds;
 
         _runningEvent = new TaskCompletionSource<object?>();
