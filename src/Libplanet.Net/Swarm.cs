@@ -28,10 +28,16 @@ namespace Libplanet.Net
 
         private readonly ILogger _logger;
         private readonly ConsensusReactor _consensusReactor;
+        private readonly TxFetcher _txFetcher;
+        private readonly IDisposable _txFetcherSubscription;
+        private readonly EvidenceFetcher _evidenceFetcher;
+        private readonly IDisposable _evidenceFetcherSubscription;
 
         private CancellationTokenSource _workerCancellationTokenSource;
         private CancellationToken _cancellationToken;
         private IDisposable? _tipChangedSubscription;
+
+
 
         private bool _disposed;
 
@@ -76,7 +82,7 @@ namespace Libplanet.Net
                 .ForContext("SwarmId", loggerId);
 
             Options = options ?? new SwarmOptions();
-            TxCompletion = new TxCompletion<Peer>(Blockchain, GetTxsAsync, BroadcastTxs);
+            TxCompletion = new TxCompletion(Blockchain, GetTxsAsync, BroadcastTxs);
             EvidenceCompletion =
                 new EvidenceCompletion<Peer>(
                     Blockchain, GetEvidenceAsync, BroadcastEvidence);
@@ -87,11 +93,15 @@ namespace Libplanet.Net
             // fixed. for context, refer to
             // https://github.com/planetarium/libplanet/discussions/2303.
             Transport = transport;
+            _txFetcher = new TxFetcher(Blockchain, Transport, Options.TimeoutOptions);
+            _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, Options.TimeoutOptions);
             _processBlockDemandSessions = new ConcurrentDictionary<Peer, int>();
             Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
             PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
             BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
             BlockCandidateTable = new BlockCandidateTable();
+            _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
+            _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer, e.Items));
 
             // Regulate heavy tasks. Treat negative value as 0.
             var taskRegulationOptions = Options.TaskRegulationOptions;
@@ -172,7 +182,7 @@ namespace Libplanet.Net
 
         internal ITransport Transport { get; }
 
-        internal TxCompletion<Peer> TxCompletion { get; }
+        internal TxCompletion TxCompletion { get; }
 
         internal EvidenceCompletion<Peer> EvidenceCompletion { get; }
 

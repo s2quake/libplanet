@@ -7,7 +7,7 @@ internal sealed class KademliaBucket
 {
     private readonly int _size;
     private readonly Random _random;
-    private readonly ConcurrentDictionary<Peer, PeerState> _peerStates = new();
+    private readonly ConcurrentDictionary<Peer, PeerState> _stateByPeer = new();
     private readonly ConcurrentDictionary<Peer, PeerState> _replacementCache = new();
     private PeerState? _head;
     private PeerState? _tail;
@@ -25,19 +25,19 @@ internal sealed class KademliaBucket
         _random = random;
     }
 
-    public int Count => _peerStates.Count;
+    public int Count => _stateByPeer.Count;
 
-    public bool IsEmpty => _peerStates.IsEmpty;
+    public bool IsEmpty => _stateByPeer.IsEmpty;
 
-    public bool IsFull => _peerStates.Count >= _size;
+    public bool IsFull => _stateByPeer.Count >= _size;
 
-    public PeerState Head => _head ??= GetHead(_peerStates);
+    public PeerState Head => _head ??= GetHead(_stateByPeer);
 
-    public PeerState Tail => _tail ??= GetTail(_peerStates);
+    public PeerState Tail => _tail ??= GetTail(_stateByPeer);
 
-    public IEnumerable<Peer> Peers => _peerStates.Keys;
+    public IEnumerable<Peer> Peers => _stateByPeer.Keys;
 
-    public IEnumerable<PeerState> PeerStates => _peerStates.Values;
+    public IEnumerable<PeerState> PeerStates => _stateByPeer.Values;
 
     public IReadOnlyDictionary<Peer, PeerState> ReplacementCache => _replacementCache;
 
@@ -49,9 +49,9 @@ internal sealed class KademliaBucket
             LastUpdated = timestamp,
         };
 
-        if (_peerStates.Count < _size || _peerStates.ContainsKey(peer))
+        if (_stateByPeer.Count < _size || _stateByPeer.ContainsKey(peer))
         {
-            _peerStates.AddOrUpdate(peer, peerState, (_, _) => peerState);
+            _stateByPeer.AddOrUpdate(peer, peerState, (_, _) => peerState);
         }
         else if (_replacementCache.Count < _size || _replacementCache.ContainsKey(peer))
         {
@@ -68,18 +68,18 @@ internal sealed class KademliaBucket
         _tail = null;
     }
 
-    public bool Contains(Peer peer) => _peerStates.ContainsKey(peer);
+    public bool Contains(Peer peer) => _stateByPeer.ContainsKey(peer);
 
     public void Clear()
     {
-        _peerStates.Clear();
+        _stateByPeer.Clear();
         _head = null;
         _tail = null;
     }
 
     public bool Remove(Peer peer)
     {
-        var result = _peerStates.TryRemove(peer, out _);
+        var result = _stateByPeer.TryRemove(peer, out _);
         _head = null;
         _tail = null;
         return result;
@@ -89,7 +89,7 @@ internal sealed class KademliaBucket
 
     public Peer? GetRandomPeer(Address except = default)
     {
-        var peers = _peerStates.Keys.Where(item => item.Address != except).ToArray();
+        var peers = _stateByPeer.Keys.Where(item => item.Address != except).ToArray();
         if (peers.Length == 0)
         {
             return null;
@@ -101,14 +101,14 @@ internal sealed class KademliaBucket
 
     public void Check(Peer peer, DateTimeOffset start, DateTimeOffset end)
     {
-        if (_peerStates.TryGetValue(peer, out var peerState1))
+        if (_stateByPeer.TryGetValue(peer, out var peerState1))
         {
             var peerState2 = peerState1 with
             {
                 LastChecked = start,
                 Latency = end - start
             };
-            _peerStates.TryUpdate(peer, peerState2, peerState1);
+            _stateByPeer.TryUpdate(peer, peerState2, peerState1);
         }
     }
 

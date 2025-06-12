@@ -28,7 +28,7 @@ public sealed class Gossip : IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
     private readonly RoutingTable _table;
     private readonly HashSet<Peer> _denySet;
-    private readonly Kademlia _protocol;
+    private readonly Kademlia _kademlia;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict;
 
     public Gossip(
@@ -52,7 +52,7 @@ public sealed class Gossip : IDisposable
             _table.AddPeer(peer);
         }
 
-        _protocol = new Kademlia(_table, _transport, transport.AsPeer.Address);
+        _kademlia = new Kademlia(_table, _transport, transport.AsPeer.Address);
         _seeds = seeds;
 
         _runningEvent = new TaskCompletionSource<object?>();
@@ -97,7 +97,7 @@ public sealed class Gossip : IDisposable
         await _transport.WaitForRunningAsync();
         try
         {
-            await _protocol.BootstrapAsync(_seeds, TimeSpan.FromSeconds(1), 3, ctx);
+            await _kademlia.BootstrapAsync(_seeds, TimeSpan.FromSeconds(1), 3, ctx);
         }
         catch (PeerDiscoveryException pde)
         {
@@ -414,7 +414,7 @@ public sealed class Gossip : IDisposable
                 _seeds.Select(s => s.Address.ToString("raw", null)));
             try
             {
-                await _protocol.BootstrapAsync(
+                await _kademlia.BootstrapAsync(
                     _seeds,
                     TimeSpan.FromSeconds(1),
                     Kademlia.MaxDepth,
@@ -436,8 +436,8 @@ public sealed class Gossip : IDisposable
         {
             try
             {
-                await _protocol.RefreshTableAsync(_refreshLifespan, ctx);
-                await _protocol.CheckReplacementCacheAsync(ctx);
+                await _kademlia.RefreshTableAsync(_refreshLifespan, ctx);
+                await _kademlia.CheckReplacementCacheAsync(ctx);
                 await Task.Delay(_refreshTableInterval, ctx);
             }
             catch (OperationCanceledException e)
