@@ -89,7 +89,7 @@ namespace Libplanet.Net
             Transport = transport;
             _processBlockDemandSessions = new ConcurrentDictionary<Peer, int>();
             Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
-            PeerDiscovery = new KademliaProtocol(RoutingTable, Transport, Address);
+            PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
             BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
             BlockCandidateTable = new BlockCandidateTable();
 
@@ -168,7 +168,7 @@ namespace Libplanet.Net
 
         internal RoutingTable RoutingTable { get; }
 
-        internal IProtocol PeerDiscovery { get; }
+        internal Kademlia PeerDiscovery { get; }
 
         internal ITransport Transport { get; }
 
@@ -652,7 +652,7 @@ namespace Libplanet.Net
             TimeSpan? timeout = null,
             CancellationToken cancellationToken = default)
         {
-            KademliaProtocol kademliaProtocol = (KademliaProtocol)PeerDiscovery;
+            Kademlia kademliaProtocol = (Kademlia)PeerDiscovery;
             return await kademliaProtocol.FindSpecificPeerAsync(
                 target,
                 depth,
@@ -677,7 +677,7 @@ namespace Libplanet.Net
                 .CreateLinkedTokenSource(cancellationToken, _cancellationToken);
             cancellationToken = cts.Token;
 
-            KademliaProtocol kademliaProtocol = (KademliaProtocol)PeerDiscovery;
+            Kademlia kademliaProtocol = (Kademlia)PeerDiscovery;
             await kademliaProtocol.CheckAllPeersAsync(timeout, cancellationToken);
         }
 

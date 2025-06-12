@@ -150,12 +150,10 @@ public sealed class RoutingTable
         return peers;
     }
 
-    internal IReadOnlyList<Peer> PeersToRefresh(TimeSpan maxAge) => NonEmptyBuckets
-        .Where(bucket =>
-            bucket.Tail is PeerState peerState &&
-                peerState.LastUpdated + maxAge < DateTimeOffset.UtcNow)
-        .Select(bucket => bucket.Tail!.Peer)
-        .ToList();
+    internal ImmutableArray<Peer> PeersToRefresh(TimeSpan maxAge)
+        => [.. NonEmptyBuckets
+        .Where(bucket => bucket.IsEmpty && bucket.Tail.LastUpdated + maxAge < DateTimeOffset.UtcNow)
+        .Select(bucket => bucket.Tail.Peer)];
 
     internal bool RemoveCache(Peer peer)
     {
@@ -176,7 +174,7 @@ public sealed class RoutingTable
 
     internal int GetBucketIndexOf(Address address)
     {
-        int length = Kademlia.CommonPrefixLength(address, _address);
+        var length = Kademlia.CommonPrefixLength(address, _address);
         return Math.Min(length, _buckets.Length - 1);
     }
 }

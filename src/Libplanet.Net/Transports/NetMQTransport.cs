@@ -264,10 +264,10 @@ public class NetMQTransport : ITransport
     public Task WaitForRunningAsync() => _runningEvent.WaitAsync();
 
     public async Task<Message> SendMessageAsync(
-    Peer peer,
-    MessageContent content,
-    TimeSpan? timeout,
-    CancellationToken cancellationToken)
+        Peer peer,
+        MessageContent content,
+        TimeSpan? timeout,
+        CancellationToken cancellationToken)
     {
         IEnumerable<Message> replies =
             await SendMessageAsync(
@@ -283,12 +283,12 @@ public class NetMQTransport : ITransport
     }
 
     public async Task<IEnumerable<Message>> SendMessageAsync(
-    Peer peer,
-    MessageContent content,
-    TimeSpan? timeout,
-    int expectedResponses,
-    bool returnWhenTimeout,
-    CancellationToken cancellationToken)
+        Peer peer,
+        MessageContent content,
+        TimeSpan? timeout,
+        int expectedResponses,
+        bool returnWhenTimeout,
+        CancellationToken cancellationToken)
     {
         if (_disposed)
         {

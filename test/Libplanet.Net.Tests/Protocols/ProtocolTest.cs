@@ -227,7 +227,7 @@ namespace Libplanet.Net.Tests.Protocols
 
             await transportB.StopAsync(TimeSpan.Zero);
             await Task.Delay(100);
-            await transportA.KademliaProtocol.RefreshTableAsync(TimeSpan.Zero, default);
+            await transportA.Kademlia.RefreshTableAsync(TimeSpan.Zero, default);
             Assert.Empty(transportA.Peers);
 
             transportA.Dispose();
@@ -286,8 +286,8 @@ namespace Libplanet.Net.Tests.Protocols
             Assert.DoesNotContain(transportC.AsPeer, transport.Peers);
 
             await transportA.StopAsync(TimeSpan.Zero);
-            await transport.KademliaProtocol.RefreshTableAsync(TimeSpan.Zero, default);
-            await transport.KademliaProtocol.CheckReplacementCacheAsync(default);
+            await transport.Kademlia.RefreshTableAsync(TimeSpan.Zero, default);
+            await transport.Kademlia.CheckReplacementCacheAsync(default);
 
             Assert.Single(transport.Peers);
             Assert.DoesNotContain(transportA.AsPeer, transport.Peers);
@@ -324,8 +324,8 @@ namespace Libplanet.Net.Tests.Protocols
             await transportB.StopAsync(TimeSpan.Zero);
 
             await transportC.AddPeersAsync(new[] { transport.AsPeer }, null);
-            await transport.KademliaProtocol.RefreshTableAsync(TimeSpan.Zero, default);
-            await transport.KademliaProtocol.CheckReplacementCacheAsync(default);
+            await transport.Kademlia.RefreshTableAsync(TimeSpan.Zero, default);
+            await transport.Kademlia.CheckReplacementCacheAsync(default);
 
             Assert.Single(transport.Peers);
             Assert.DoesNotContain(transportA.AsPeer, transport.Peers);
@@ -534,7 +534,7 @@ namespace Libplanet.Net.Tests.Protocols
                 Assert.Equal(peersCount / 2, refreshCandidates.Count);
                 Assert.Equal(peersCount / 2, transport.Table.NonEmptyBuckets.Count());
 
-                await transport.KademliaProtocol.RefreshTableAsync(TimeSpan.FromMinutes(1), default);
+                await transport.Kademlia.RefreshTableAsync(TimeSpan.FromMinutes(1), default);
                 Assert.NotEqual(
                     refreshCandidates.ToHashSet(),
                     transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1)).ToHashSet());
@@ -543,7 +543,7 @@ namespace Libplanet.Net.Tests.Protocols
                     transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1)).Count());
                 Assert.Equal(peersCount / 2, transport.Table.NonEmptyBuckets.Count());
 
-                await transport.KademliaProtocol.RefreshTableAsync(TimeSpan.FromMinutes(1), default);
+                await transport.Kademlia.RefreshTableAsync(TimeSpan.FromMinutes(1), default);
                 Assert.Empty(transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1)));
             }
             finally

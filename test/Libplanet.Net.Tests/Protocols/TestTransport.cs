@@ -58,7 +58,7 @@ internal class TestTransport : ITransport
         _random = new Random();
         Table = new RoutingTable(Address, tableSize, bucketSize);
         ProcessMessageHandler = new AsyncDelegate<Message>();
-        KademliaProtocol = new KademliaProtocol(Table, this, Address);
+        Kademlia = new Kademlia(Table, this, Address);
         MessageHistory = new FixedSizedQueue<Message>(30);
     }
 
@@ -108,7 +108,7 @@ internal class TestTransport : ITransport
 
     internal RoutingTable Table { get; }
 
-    internal IProtocol KademliaProtocol { get; }
+    internal Kademlia Kademlia { get; }
 
     public void Dispose()
     {
@@ -184,7 +184,7 @@ internal class TestTransport : ITransport
             throw new ArgumentNullException(nameof(bootstrapPeers));
         }
 
-        await KademliaProtocol.BootstrapAsync(
+        await Kademlia.BootstrapAsync(
             bootstrapPeers.ToImmutableList(),
             pingSeedTimeout,
             Kademlia.MaxDepth,
@@ -225,7 +225,7 @@ internal class TestTransport : ITransport
         {
             try
             {
-                KademliaProtocol kp = (KademliaProtocol)KademliaProtocol;
+                Kademlia kp = (Kademlia)Kademlia;
 
                 var tasks = new List<Task>();
                 foreach (var peer in peers)
@@ -290,7 +290,7 @@ internal class TestTransport : ITransport
 
         Task.Run((Action)(() =>
         {
-            _ = (this.KademliaProtocol as KademliaProtocol).PingAsync(
+            _ = (this.Kademlia as Kademlia).PingAsync(
                 peer,
                 timeSpan,
                 default);
