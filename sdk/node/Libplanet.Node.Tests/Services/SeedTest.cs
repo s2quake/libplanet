@@ -173,7 +173,7 @@ public class SeedTest
             remoteBoundPeers[i] = new Net.Peer { Address = remotePrivateKeys[i].Address, EndPoint = remoteEndPoints[i] };
             transports[i] = await NetMQTransport.Create(
                 privateKey: remotePrivateKeys[i],
-                appProtocolVersionOptions: remoteAPVOptions,
+                protocolOptions: remoteAPVOptions,
                 hostOptions: new HostOptions { Host = remoteEndPoints[i].Host, Port = remoteEndPoints[i].Port });
         }
 

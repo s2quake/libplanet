@@ -102,17 +102,16 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
     private async Task<NetMQTransport> CreateTransport()
     {
         var privateKey = PrivateKey.Parse(seedOptions.PrivateKey);
-        var appProtocolVersion = Protocol.FromToken(seedOptions.AppProtocolVersion);
-        var appProtocolVersionOptions = new ProtocolOptions
+        var protocol = Protocol.FromToken(seedOptions.AppProtocolVersion);
+        var protocolOptions = new ProtocolOptions
         {
-            Protocol = appProtocolVersion,
-            AllowedSigners = [],
+            Protocol = protocol,
         };
         var endPoint = (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint);
         var host = endPoint.Host;
         var port = endPoint.Port;
         var hostOptions = new HostOptions { Host = host, Port = port };
-        return await NetMQTransport.Create(privateKey, appProtocolVersionOptions, hostOptions);
+        return await NetMQTransport.Create(privateKey, protocolOptions, hostOptions);
     }
 
     private async Task RefreshContinuouslyAsync(CancellationToken cancellationToken)

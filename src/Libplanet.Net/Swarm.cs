@@ -169,12 +169,8 @@ namespace Libplanet.Net
         /// </summary>
         public Blockchain Blockchain { get; private set; }
 
-        /// <inheritdoc cref="ProtocolOptions.AllowedSigners"/>
-        public ImmutableSortedSet<Address> TrustedAppProtocolVersionSigners => Transport.AllowedSigners;
-
         /// <inheritdoc cref="ProtocolOptions.Protocol"/>
-        public Protocol AppProtocolVersion =>
-            Transport.Protocol;
+        public Protocol AppProtocolVersion => Transport.Protocol;
 
         internal RoutingTable RoutingTable { get; }
 

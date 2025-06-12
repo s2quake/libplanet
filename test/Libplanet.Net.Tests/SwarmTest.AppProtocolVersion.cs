@@ -58,8 +58,6 @@ namespace Libplanet.Net.Tests
             ProtocolOptions v1 = new ProtocolOptions()
             {
                 Protocol = Protocol.Create(signer, 1),
-                AllowedSigners = [signer.Address],
-                DifferentAppProtocolVersionEncountered = (_, ver, __) => { isCalled = true; },
             };
             ProtocolOptions v2 = new ProtocolOptions()
                 { Protocol = Protocol.Create(signer, 2) };
@@ -113,38 +111,31 @@ namespace Libplanet.Net.Tests
             var optionsA = new ProtocolOptions()
             {
                 Protocol = older,
-                AllowedSigners = trustedSigners,
-                DifferentAppProtocolVersionEncountered = DifferentAppProtocolVersionEncountered,
             };
             var a = await CreateSwarm(appProtocolVersionOptions: optionsA);
             var optionsB = new ProtocolOptions()
             {
                 Protocol = newer,
-                AllowedSigners = trustedSigners,
             };
             var b = await CreateSwarm(appProtocolVersionOptions: optionsB);
             var optionsC = new ProtocolOptions()
             {
                 Protocol = older,
-                AllowedSigners = trustedSigners,
             };
             var c = await CreateSwarm(appProtocolVersionOptions: optionsC);
             var optionsD = new ProtocolOptions()
             {
                 Protocol = newer,
-                AllowedSigners = trustedSigners,
             };
             var d = await CreateSwarm(appProtocolVersionOptions: optionsD);
             var optionsE = new ProtocolOptions()
             {
                 Protocol = untrustedOlder,
-                AllowedSigners = untrustedSigners,
             };
             var e = await CreateSwarm(appProtocolVersionOptions: optionsE);
             var optionsF = new ProtocolOptions()
             {
                 Protocol = untrustedNewer,
-                AllowedSigners = untrustedSigners,
             };
             var f = await CreateSwarm(appProtocolVersionOptions: optionsF);
 

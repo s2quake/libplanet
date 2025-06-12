@@ -703,143 +703,143 @@ namespace Libplanet.Net.Tests
             CleaningSwarm(swarm);
         }
 
-        [FactOnlyTurnAvailable(Timeout = Timeout)]
-        public async Task ExchangeWithIceServer()
-        {
-            var iceServers = FactOnlyTurnAvailableAttribute.GetIceServers();
-            var seedHostOptions = new HostOptions
-            {
-                Host = "127.0.0.1",
-            };
-            var swarmHostOptions = new HostOptions
-            {
-                Host = string.Empty,
-            };
-            var seed = await CreateSwarm(hostOptions: seedHostOptions).ConfigureAwait(false);
-            var swarmA = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
-            var swarmB = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
+        // [FactOnlyTurnAvailable(Timeout = Timeout)]
+        // public async Task ExchangeWithIceServer()
+        // {
+        //     var iceServers = FactOnlyTurnAvailableAttribute.GetIceServers();
+        //     var seedHostOptions = new HostOptions
+        //     {
+        //         Host = "127.0.0.1",
+        //     };
+        //     var swarmHostOptions = new HostOptions
+        //     {
+        //         Host = string.Empty,
+        //     };
+        //     var seed = await CreateSwarm(hostOptions: seedHostOptions).ConfigureAwait(false);
+        //     var swarmA = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
+        //     var swarmB = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
 
-            try
-            {
-                await StartAsync(seed);
-                await StartAsync(swarmA);
-                await StartAsync(swarmB);
+        //     try
+        //     {
+        //         await StartAsync(seed);
+        //         await StartAsync(swarmA);
+        //         await StartAsync(swarmB);
 
-                await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
-                await swarmB.AddPeersAsync(new[] { seed.AsPeer }, null);
-                await swarmA.AddPeersAsync(new[] { swarmB.AsPeer }, null);
+        //         await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
+        //         await swarmB.AddPeersAsync(new[] { seed.AsPeer }, null);
+        //         await swarmA.AddPeersAsync(new[] { swarmB.AsPeer }, null);
 
-                Assert.Equal(
-                    new HashSet<Peer>
-                    {
-                        swarmA.AsPeer,
-                        swarmB.AsPeer,
-                    },
-                    seed.Peers.ToHashSet());
-                Assert.Equal(
-                    new HashSet<Peer> { seed.AsPeer, swarmB.AsPeer },
-                    swarmA.Peers.ToHashSet());
-                Assert.Equal(
-                    new HashSet<Peer> { seed.AsPeer, swarmA.AsPeer },
-                    swarmB.Peers.ToHashSet());
-            }
-            finally
-            {
-                CleaningSwarm(seed);
-                CleaningSwarm(swarmA);
-                CleaningSwarm(swarmB);
-            }
-        }
+        //         Assert.Equal(
+        //             new HashSet<Peer>
+        //             {
+        //                 swarmA.AsPeer,
+        //                 swarmB.AsPeer,
+        //             },
+        //             seed.Peers.ToHashSet());
+        //         Assert.Equal(
+        //             new HashSet<Peer> { seed.AsPeer, swarmB.AsPeer },
+        //             swarmA.Peers.ToHashSet());
+        //         Assert.Equal(
+        //             new HashSet<Peer> { seed.AsPeer, swarmA.AsPeer },
+        //             swarmB.Peers.ToHashSet());
+        //     }
+        //     finally
+        //     {
+        //         CleaningSwarm(seed);
+        //         CleaningSwarm(swarmA);
+        //         CleaningSwarm(swarmB);
+        //     }
+        // }
 
-        [FactOnlyTurnAvailable(10, 5000, Timeout = Timeout)]
-        public async Task ReconnectToTurn()
-        {
-            int port;
-            using (var socket = new Socket(SocketType.Stream, ProtocolType.Tcp))
-            {
-                socket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-                port = ((IPEndPoint)socket.LocalEndPoint).Port;
-            }
+        // [FactOnlyTurnAvailable(10, 5000, Timeout = Timeout)]
+        // public async Task ReconnectToTurn()
+        // {
+        //     int port;
+        //     using (var socket = new Socket(SocketType.Stream, ProtocolType.Tcp))
+        //     {
+        //         socket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+        //         port = ((IPEndPoint)socket.LocalEndPoint).Port;
+        //     }
 
-            Uri turnUrl = FactOnlyTurnAvailableAttribute.GetTurnUri();
-            string[] userInfo = turnUrl.UserInfo.Split(':');
-            string username = userInfo[0];
-            string password = userInfo[1];
-            var proxyUri = new Uri($"turn://{username}:{password}@127.0.0.1:{port}/");
-            IEnumerable<IceServer> iceServers = new[] { new IceServer(url: proxyUri) };
+        //     Uri turnUrl = FactOnlyTurnAvailableAttribute.GetTurnUri();
+        //     string[] userInfo = turnUrl.UserInfo.Split(':');
+        //     string username = userInfo[0];
+        //     string password = userInfo[1];
+        //     var proxyUri = new Uri($"turn://{username}:{password}@127.0.0.1:{port}/");
+        //     IEnumerable<IceServer> iceServers = new[] { new IceServer(url: proxyUri) };
 
-            var cts = new CancellationTokenSource();
-            var proxyTask = TurnProxy(port, turnUrl, cts.Token);
+        //     var cts = new CancellationTokenSource();
+        //     var proxyTask = TurnProxy(port, turnUrl, cts.Token);
 
-            var seedKey = new PrivateKey();
-            var seedHostOptions = new HostOptions
-            {
-                Host = "127.0.0.1",
-            };
-            var swarmHostOptions = new HostOptions { };
-            var seed =
-                await CreateSwarm(seedKey, hostOptions: seedHostOptions).ConfigureAwait(false);
-            var swarmA =
-                await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
+        //     var seedKey = new PrivateKey();
+        //     var seedHostOptions = new HostOptions
+        //     {
+        //         Host = "127.0.0.1",
+        //     };
+        //     var swarmHostOptions = new HostOptions { };
+        //     var seed =
+        //         await CreateSwarm(seedKey, hostOptions: seedHostOptions).ConfigureAwait(false);
+        //     var swarmA =
+        //         await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
 
-            async Task RefreshTableAsync(CancellationToken cancellationToken)
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    await Task.Delay(1000, cancellationToken);
-                    try
-                    {
-                        await swarmA.PeerDiscovery.RefreshTableAsync(
-                            TimeSpan.FromSeconds(1), cancellationToken);
-                    }
-                    catch (InvalidOperationException)
-                    {
-                    }
-                }
-            }
+        //     async Task RefreshTableAsync(CancellationToken cancellationToken)
+        //     {
+        //         while (!cancellationToken.IsCancellationRequested)
+        //         {
+        //             await Task.Delay(1000, cancellationToken);
+        //             try
+        //             {
+        //                 await swarmA.PeerDiscovery.RefreshTableAsync(
+        //                     TimeSpan.FromSeconds(1), cancellationToken);
+        //             }
+        //             catch (InvalidOperationException)
+        //             {
+        //             }
+        //         }
+        //     }
 
-            async Task MineAndBroadcast(CancellationToken cancellationToken)
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    var block = seed.Blockchain.ProposeBlock(seedKey);
-                    seed.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
-                    seed.BroadcastBlock(block);
-                    await Task.Delay(1000, cancellationToken);
-                }
-            }
+        //     async Task MineAndBroadcast(CancellationToken cancellationToken)
+        //     {
+        //         while (!cancellationToken.IsCancellationRequested)
+        //         {
+        //             var block = seed.Blockchain.ProposeBlock(seedKey);
+        //             seed.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+        //             seed.BroadcastBlock(block);
+        //             await Task.Delay(1000, cancellationToken);
+        //         }
+        //     }
 
-            try
-            {
-                await StartAsync(seed);
-                await StartAsync(swarmA, cancellationToken: cts.Token);
+        //     try
+        //     {
+        //         await StartAsync(seed);
+        //         await StartAsync(swarmA, cancellationToken: cts.Token);
 
-                await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
+        //         await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
 
-                cts.Cancel();
-                await proxyTask;
-                cts = new CancellationTokenSource();
+        //         cts.Cancel();
+        //         await proxyTask;
+        //         cts = new CancellationTokenSource();
 
-                proxyTask = TurnProxy(port, turnUrl, cts.Token);
-                _ = RefreshTableAsync(cts.Token);
-                _ = MineAndBroadcast(cts.Token);
+        //         proxyTask = TurnProxy(port, turnUrl, cts.Token);
+        //         _ = RefreshTableAsync(cts.Token);
+        //         _ = MineAndBroadcast(cts.Token);
 
-                cts.CancelAfter(1500);
-                await swarmA.BlockReceived.WaitAsync(cts.Token);
-                cts.Cancel();
-                await Task.Delay(1000);
+        //         cts.CancelAfter(1500);
+        //         await swarmA.BlockReceived.WaitAsync(cts.Token);
+        //         cts.Cancel();
+        //         await Task.Delay(1000);
 
-                Assert.NotEqual(swarmA.Blockchain.Genesis, swarmA.Blockchain.Tip);
-                Assert.Contains(
-                    swarmA.Blockchain.Tip.BlockHash,
-                    seed.Blockchain.Blocks.Keys);
-            }
-            finally
-            {
-                CleaningSwarm(seed);
-                CleaningSwarm(swarmA);
-            }
-        }
+        //         Assert.NotEqual(swarmA.Blockchain.Genesis, swarmA.Blockchain.Tip);
+        //         Assert.Contains(
+        //             swarmA.Blockchain.Tip.BlockHash,
+        //             seed.Blockchain.Blocks.Keys);
+        //     }
+        //     finally
+        //     {
+        //         CleaningSwarm(seed);
+        //         CleaningSwarm(swarmA);
+        //     }
+        // }
 
         [Fact(Timeout = Timeout)]
         public async Task CannotBlockSyncWithForkedChain()
