@@ -150,8 +150,7 @@ namespace Libplanet.Net.Tests
             var transport = await NetMQTransport.Create(
                 privateKey,
                 appProtocolVersionOptions,
-                hostOptions,
-                options.MessageTimestampBuffer);
+                hostOptions);
             ITransport consensusTransport = null;
             if (consensusReactorOption is { } option)
             {
@@ -163,8 +162,7 @@ namespace Libplanet.Net.Tests
                 consensusTransport = await NetMQTransport.Create(
                     privateKey,
                     appProtocolVersionOptions,
-                    consensusHostOptions,
-                    options.MessageTimestampBuffer);
+                    consensusHostOptions);
             }
 
             var swarm = new Swarm(

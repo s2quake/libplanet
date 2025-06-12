@@ -228,8 +228,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     var transport = await NetMQTransport.Create(
                         privateKey,
                         apvOptions,
-                        hostOptions,
-                        swarmOptions.MessageTimestampBuffer);
+                        hostOptions);
 
                     swarm = new Swarm(
                         blockChain,

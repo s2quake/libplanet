@@ -25,7 +25,6 @@ public class NetMQTransport : ITransport
     private readonly PrivateKey _privateKey;
     private readonly ProtocolOptions _protocolOptions;
     private readonly HostOptions _hostOptions;
-    private readonly MessageValidator _messageValidator;
     private readonly NetMQMessageCodec _messageCodec;
     private readonly Channel<MessageRequest> _requests;
     private readonly Task _runtimeProcessor;
@@ -51,17 +50,12 @@ public class NetMQTransport : ITransport
         ForceDotNet.Force();
     }
 
-    private NetMQTransport(
-        PrivateKey privateKey,
-        ProtocolOptions protocolOptions,
-        HostOptions hostOptions,
-        TimeSpan? messageLifetime = null)
+    private NetMQTransport(PrivateKey privateKey, ProtocolOptions protocolOptions, HostOptions hostOptions)
     {
         _socketCount = 0;
         _privateKey = privateKey;
         _hostOptions = hostOptions;
         _protocolOptions = protocolOptions;
-        _messageValidator = new MessageValidator(_protocolOptions, messageLifetime);
         _messageCodec = new NetMQMessageCodec();
 
         _requests = Channel.CreateUnbounded<MessageRequest>();
@@ -104,17 +98,10 @@ public class NetMQTransport : ITransport
     public Protocol Protocol => _protocolOptions.Protocol;
 
     public static async Task<NetMQTransport> Create(
-        PrivateKey privateKey,
-        ProtocolOptions protocolOptions,
-        HostOptions hostOptions,
-        TimeSpan? messageTimestampBuffer = null)
+        PrivateKey privateKey, ProtocolOptions protocolOptions, HostOptions hostOptions)
     {
-        var transport = new NetMQTransport(
-            privateKey,
-            protocolOptions,
-            hostOptions,
-            messageTimestampBuffer);
-        await transport.Initialize();
+        var transport = new NetMQTransport(privateKey, protocolOptions, hostOptions);
+        transport.Initialize();
         return transport;
     }
 
@@ -284,8 +271,7 @@ public class NetMQTransport : ITransport
 
                 try
                 {
-                    _messageValidator.ValidateTimestamp(reply);
-                    _messageValidator.ValidateProtocol(reply);
+                    reply.Validate(_protocolOptions.Protocol, _protocolOptions.MessageLifetime);
                 }
                 catch (InvalidMessageTimestampException imte)
                 {
@@ -388,14 +374,7 @@ public class NetMQTransport : ITransport
         await ev.WaitAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Initializes a <see cref="NetMQTransport"/> as to make it ready to
-    /// send request <see cref="MessageBase"/>s and receive reply <see cref="MessageEnvelope"/>s.
-    /// </summary>
-    /// <param name="cancellationToken">The cancellation token to propagate a notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An awaitable <see cref="Task"/> without value.</returns>
-    private async Task Initialize(CancellationToken cancellationToken = default)
+    private void Initialize()
     {
         _router = new RouterSocket();
         _router.Options.RouterHandover = true;
@@ -415,8 +394,6 @@ public class NetMQTransport : ITransport
         {
             _hostEndPoint = new DnsEndPoint(host, listenPort);
         }
-
-        await Task.CompletedTask;
     }
 
     private void ReceiveMessage(object? sender, NetMQSocketEventArgs e)
@@ -456,8 +433,7 @@ public class NetMQTransport : ITransport
 
                             try
                             {
-                                _messageValidator.ValidateTimestamp(message);
-                                _messageValidator.ValidateProtocol(message);
+                                message.Validate(_protocolOptions.Protocol, _protocolOptions.MessageLifetime);
                                 await ProcessMessageHandler.InvokeAsync(message);
                             }
                             catch (InvalidMessageTimestampException imte)

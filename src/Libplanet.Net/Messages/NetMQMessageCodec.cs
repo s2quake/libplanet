@@ -5,7 +5,7 @@ using NetMQ;
 
 namespace Libplanet.Net.Messages;
 
-public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
+public sealed class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 {
     public static readonly int CommonFrames = Enum.GetValues(typeof(MessageFrame)).Length;
 
@@ -46,7 +46,6 @@ public class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         // Write headers. (inverse order, version-type-peer-timestamp)
         netMqMessage.Push(message.Timestamp.Ticks);
         netMqMessage.Push(ModelSerializer.SerializeToBytes(message.Remote));
-        // netMqMessage.Push((int)message.Message.Type);
         netMqMessage.Push(message.Protocol.Token);
 
         // Make and insert signature
