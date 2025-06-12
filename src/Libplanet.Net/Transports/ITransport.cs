@@ -19,9 +19,7 @@ public interface ITransport : IDisposable
 
     public ImmutableSortedSet<Address> AllowedSigners { get; }
 
-    public DifferentAppProtocolVersionEncountered
-        DifferentAppProtocolVersionEncountered
-    { get; }
+    public DifferentAppProtocolVersionEncountered DifferentAppProtocolVersionEncountered { get; }
 
     Task StartAsync(CancellationToken cancellationToken = default);
 

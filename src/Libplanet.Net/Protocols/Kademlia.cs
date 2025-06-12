@@ -386,13 +386,13 @@ public sealed class Kademlia
     {
         switch (message.Content)
         {
-            case PingMessage ping:
+            case PingMessage:
                 {
                     await ReceivePingAsync(message).ConfigureAwait(false);
                     break;
                 }
 
-            case FindNeighborsMessage findNeighbors:
+            case FindNeighborsMessage:
                 {
                     await ReceiveFindPeerAsync(message).ConfigureAwait(false);
                     break;
@@ -531,10 +531,9 @@ public sealed class Kademlia
 
     private async Task ReceivePingAsync(Message message)
     {
-        var ping = (PingMessage)message.Content;
         if (message.Remote.Address.Equals(_address))
         {
-            throw new InvalidMessageContentException("Cannot receive ping from self.", ping);
+            throw new InvalidMessageContentException("Cannot receive ping from self.", message.Content);
         }
 
         var pong = new PongMessage();
