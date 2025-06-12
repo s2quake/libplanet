@@ -27,17 +27,17 @@ public sealed class MessageValidator
 
     public TimeSpan? MessageTimestampBuffer { get; }
 
-    public void ValidateProtocol(Message message)
+    public void ValidateProtocol(MessageEnvelope message)
         => ValidateProtocol(Protocol, AllowedSigners, DifferentApvEncountered, message);
 
-    public void ValidateTimestamp(Message message)
+    public void ValidateTimestamp(MessageEnvelope message)
         => ValidateTimestamp(MessageTimestampBuffer, DateTimeOffset.UtcNow, message.Timestamp);
 
     private static void ValidateProtocol(
         Protocol protocol,
         ImmutableSortedSet<Address> allowedSigners,
         DifferentAppProtocolVersionEncountered differentAppProtocolVersionEncountered,
-        Message message)
+        MessageEnvelope message)
     {
         if (message.Protocol.Equals(protocol))
         {

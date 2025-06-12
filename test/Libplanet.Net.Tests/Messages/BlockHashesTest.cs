@@ -24,7 +24,7 @@ namespace Libplanet.Net.Tests.Messages
             var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
             var messageCodec = new NetMQMessageCodec();
             NetMQMessage encoded = messageCodec.Encode(
-                new Message
+                new MessageEnvelope
                 {
                     Content = messageContent,
                     Protocol = apv,

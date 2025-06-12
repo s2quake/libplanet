@@ -32,7 +32,7 @@ public class NetMQTransport : ITransport
     private readonly AsyncManualResetEvent _runningEvent;
     private readonly ActivitySource _activitySource;
 
-    private NetMQQueue<(AsyncManualResetEvent, Message)>? _replyQueue;
+    private NetMQQueue<(AsyncManualResetEvent, MessageEnvelope)>? _replyQueue;
 
     private RouterSocket? _router;
     private NetMQPoller? _routerPoller;
@@ -58,12 +58,12 @@ public class NetMQTransport : ITransport
     /// <param name="privateKey"><see cref="PrivateKey"/> of the transport layer.</param>
     /// <param name="appProtocolVersionOptions">The <see cref="ProtocolOptions"/>
     /// to use when handling an <see cref="Protocol"/> attached to
-    /// a <see cref="Message"/>.</param>
+    /// a <see cref="MessageEnvelope"/>.</param>
     /// <param name="hostOptions">The <see cref="HostOptions"/> to use when binding
     /// to the network.</param>
     /// <param name="messageTimestampBuffer">The amount in <see cref="TimeSpan"/>
-    /// that is allowed for the timestamp of a <see cref="Message"/> to differ from
-    /// the current time of a local node.  Every <see cref="Message"/> with its timestamp
+    /// that is allowed for the timestamp of a <see cref="MessageEnvelope"/> to differ from
+    /// the current time of a local node.  Every <see cref="MessageEnvelope"/> with its timestamp
     /// differing greater than <paramref name="messageTimestampBuffer"/> will be ignored.
     /// If <see langword="null"/>, any timestamp is accepted.</param>
     private NetMQTransport(
@@ -114,10 +114,10 @@ public class NetMQTransport : ITransport
             TaskScheduler.Default);
 
         _runningEvent = new AsyncManualResetEvent();
-        ProcessMessageHandler = new AsyncDelegate<Message>();
+        ProcessMessageHandler = new AsyncDelegate<MessageEnvelope>();
     }
 
-    public AsyncDelegate<Message> ProcessMessageHandler { get; }
+    public AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; }
 
     public Peer AsPeer => new Peer { Address = _privateKey.Address, EndPoint = _hostEndPoint! };
 
@@ -138,18 +138,18 @@ public class NetMQTransport : ITransport
     /// <param name="privateKey"><see cref="PrivateKey"/> of the transport layer.</param>
     /// <param name="appProtocolVersionOptions">The <see cref="ProtocolOptions"/>
     /// to use when handling an <see cref="Protocol"/> attached to
-    /// a <see cref="Message"/>.</param>
+    /// a <see cref="MessageEnvelope"/>.</param>
     /// <param name="hostOptions">The <see cref="HostOptions"/> to use when binding
     /// to the network.</param>
     /// <param name="messageTimestampBuffer">The amount in <see cref="TimeSpan"/>
-    /// that is allowed for the timestamp of a <see cref="Message"/> to differ from
-    /// the current time of a local node.  Every <see cref="Message"/> with its timestamp
+    /// that is allowed for the timestamp of a <see cref="MessageEnvelope"/> to differ from
+    /// the current time of a local node.  Every <see cref="MessageEnvelope"/> with its timestamp
     /// differing greater than <paramref name="messageTimestampBuffer"/> will be ignored.
     /// If <see langword="null"/>, any timestamp is accepted.</param>
     /// <returns>
     /// An awaitable <see cref="Task"/> returning a <see cref="NetMQTransport"/>
-    /// when awaited that is ready to send request <see cref="Message"/>s and
-    /// receive reply <see cref="Message"/>s.
+    /// when awaited that is ready to send request <see cref="MessageEnvelope"/>s and
+    /// receive reply <see cref="MessageEnvelope"/>s.
     /// </returns>
     public static async Task<NetMQTransport> Create(
         PrivateKey privateKey,
@@ -183,7 +183,7 @@ public class NetMQTransport : ITransport
         _turnCancellationTokenSource =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        _replyQueue = new NetMQQueue<(AsyncManualResetEvent, Message)>();
+        _replyQueue = new NetMQQueue<(AsyncManualResetEvent, MessageEnvelope)>();
         _routerPoller = new NetMQPoller { _router!, _replyQueue };
 
         _router!.ReceiveReady += ReceiveMessage!;
@@ -263,13 +263,13 @@ public class NetMQTransport : ITransport
 
     public Task WaitForRunningAsync() => _runningEvent.WaitAsync();
 
-    public async Task<Message> SendMessageAsync(
+    public async Task<MessageEnvelope> SendMessageAsync(
         Peer peer,
         MessageContent content,
         TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
-        IEnumerable<Message> replies =
+        IEnumerable<MessageEnvelope> replies =
             await SendMessageAsync(
                 peer,
                 content,
@@ -277,12 +277,12 @@ public class NetMQTransport : ITransport
                 1,
                 false,
                 cancellationToken).ConfigureAwait(false);
-        Message reply = replies.First();
+        MessageEnvelope reply = replies.First();
 
         return reply;
     }
 
-    public async Task<IEnumerable<Message>> SendMessageAsync(
+    public async Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
         Peer peer,
         MessageContent content,
         TimeSpan? timeout,
@@ -314,7 +314,7 @@ public class NetMQTransport : ITransport
         CancellationToken linkedCt = linkedCts.Token;
 
         Guid reqId = Guid.NewGuid();
-        var replies = new List<Message>();
+        var replies = new List<MessageEnvelope>();
 
         Channel<NetMQMessage> channel = Channel.CreateUnbounded<NetMQMessage>();
 
@@ -322,7 +322,7 @@ public class NetMQTransport : ITransport
         {
             var req = new MessageRequest(
                 reqId,
-                new Message
+                new MessageEnvelope
                 {
                     Content = content,
                     Protocol = _protocolOptions.Protocol,
@@ -350,7 +350,7 @@ public class NetMQTransport : ITransport
                 NetMQMessage raw = await channel.Reader
                     .ReadAsync(linkedCt)
                     .ConfigureAwait(false);
-                Message reply = _messageCodec.Decode(raw, true);
+                MessageEnvelope reply = _messageCodec.Decode(raw, true);
 
                 _logger.Information(
                     "Received {Reply} as a reply to request {Request} {RequestId} from {Peer}",
@@ -509,7 +509,7 @@ public class NetMQTransport : ITransport
         _replyQueue!.Enqueue(
             (
                 ev,
-                new Message
+                new MessageEnvelope
                 {
                     Content = content,
                     Protocol = _protocolOptions.Protocol,
@@ -522,7 +522,7 @@ public class NetMQTransport : ITransport
 
     /// <summary>
     /// Initializes a <see cref="NetMQTransport"/> as to make it ready to
-    /// send request <see cref="MessageContent"/>s and receive reply <see cref="Message"/>s.
+    /// send request <see cref="MessageContent"/>s and receive reply <see cref="MessageEnvelope"/>s.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token to propagate a notification
     /// that this operation should be canceled.</param>
@@ -586,7 +586,7 @@ public class NetMQTransport : ITransport
                     {
                         try
                         {
-                            Message message = _messageCodec.Decode(
+                            MessageEnvelope message = _messageCodec.Decode(
                                 copied,
                                 false);
                             string reqId = copied[0].Buffer.Length == 16 ?
@@ -670,9 +670,9 @@ public class NetMQTransport : ITransport
 
     private void DoReply(
         object? sender,
-        NetMQQueueEventArgs<(AsyncManualResetEvent, Message)> e)
+        NetMQQueueEventArgs<(AsyncManualResetEvent, MessageEnvelope)> e)
     {
-        (AsyncManualResetEvent ev, Message message) = e.Queue.Dequeue();
+        (AsyncManualResetEvent ev, MessageEnvelope message) = e.Queue.Dequeue();
         string reqId = message.Identity is { } identity && identity.Length == 16
             ? new Guid(identity).ToString()
             : "unknown";
@@ -921,7 +921,7 @@ public class NetMQTransport : ITransport
     {
         public MessageRequest(
             in Guid id,
-            Message message,
+            MessageEnvelope message,
             Peer peer,
             in int expectedResponses,
             Channel<NetMQMessage> channel,
@@ -937,7 +937,7 @@ public class NetMQTransport : ITransport
 
         public Guid Id { get; }
 
-        public Message Message { get; }
+        public MessageEnvelope Message { get; }
 
         public Peer Peer { get; }
 

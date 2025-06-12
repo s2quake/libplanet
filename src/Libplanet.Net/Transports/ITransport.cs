@@ -7,7 +7,7 @@ namespace Libplanet.Net.Transports;
 
 public interface ITransport : IDisposable
 {
-    AsyncDelegate<Message> ProcessMessageHandler { get; }
+    AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; }
 
     Peer AsPeer { get; }
 
@@ -27,13 +27,13 @@ public interface ITransport : IDisposable
 
     Task WaitForRunningAsync();
 
-    Task<Message> SendMessageAsync(
+    Task<MessageEnvelope> SendMessageAsync(
         Peer peer,
         MessageContent content,
         TimeSpan? timeout,
         CancellationToken cancellationToken);
 
-    Task<IEnumerable<Message>> SendMessageAsync(
+    Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
         Peer peer,
         MessageContent content,
         TimeSpan? timeout,

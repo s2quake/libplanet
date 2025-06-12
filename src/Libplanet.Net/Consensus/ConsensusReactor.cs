@@ -143,7 +143,7 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// A handler for received <see cref="Message"/>s.
+        /// A handler for received <see cref="MessageEnvelope"/>s.
         /// </summary>
         /// <param name="content">A message to process.</param>
         private void ProcessMessage(MessageContent content)

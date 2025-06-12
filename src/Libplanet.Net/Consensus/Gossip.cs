@@ -18,7 +18,7 @@ public sealed class Gossip : IDisposable
     private readonly TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(1);
     private readonly ITransport _transport;
     private readonly MessageCache _cache;
-    private readonly Action<Message> _validateMessageToReceive;
+    private readonly Action<MessageEnvelope> _validateMessageToReceive;
     private readonly Action<MessageContent> _validateMessageToSend;
     private readonly Action<MessageContent> _processMessage;
     private readonly IEnumerable<Peer> _seeds;
@@ -34,7 +34,7 @@ public sealed class Gossip : IDisposable
         ITransport transport,
         ImmutableArray<Peer> peers,
         ImmutableArray<Peer> seeds,
-        Action<Message> validateMessageToReceive,
+        Action<MessageEnvelope> validateMessageToReceive,
         Action<MessageContent> validateMessageToSend,
         Action<MessageContent> processMessage)
     {
@@ -193,7 +193,7 @@ public sealed class Gossip : IDisposable
             .Take(count);
     }
 
-    private Func<Message, Task> HandleMessageAsync(CancellationToken ctx) => async msg =>
+    private Func<MessageEnvelope, Task> HandleMessageAsync(CancellationToken ctx) => async msg =>
     {
         if (_denySet.Contains(msg.Remote))
         {
@@ -246,7 +246,7 @@ public sealed class Gossip : IDisposable
         }
     }
 
-    private async Task HandleHaveAsync(Message msg, CancellationToken ctx)
+    private async Task HandleHaveAsync(MessageEnvelope msg, CancellationToken ctx)
     {
         var haveMessage = (HaveMessage)msg.Content;
 
@@ -306,7 +306,7 @@ public sealed class Gossip : IDisposable
             {
                 MessageId[] idsToGet = pair.Value;
                 var want = new WantMessage { Ids = [.. idsToGet] };
-                Message[] replies = (await _transport.SendMessageAsync(
+                MessageEnvelope[] replies = (await _transport.SendMessageAsync(
                     pair.Key,
                     want,
                     TimeSpan.FromSeconds(1),
@@ -331,7 +331,7 @@ public sealed class Gossip : IDisposable
             ctx);
     }
 
-    private async Task HandleWantAsync(Message msg, CancellationToken ctx)
+    private async Task HandleWantAsync(MessageEnvelope msg, CancellationToken ctx)
     {
         // FIXME: Message may have been discarded.
         var wantMessage = (WantMessage)msg.Content;
@@ -395,7 +395,7 @@ public sealed class Gossip : IDisposable
         }
     }
 
-    private async Task ReplyMessagePongAsync(Message message, CancellationToken ctx)
+    private async Task ReplyMessagePongAsync(MessageEnvelope message, CancellationToken ctx)
     {
         await _transport.ReplyMessageAsync(new PongMessage(), message.Identity, ctx);
     }

@@ -4,7 +4,7 @@ namespace Libplanet.Net.Messages;
 
 public interface IMessageCodec<T>
 {
-    T Encode(Message message, PrivateKey privateKey);
+    T Encode(MessageEnvelope message, PrivateKey privateKey);
 
-    Message Decode(T encoded, bool reply);
+    MessageEnvelope Decode(T encoded, bool reply);
 }

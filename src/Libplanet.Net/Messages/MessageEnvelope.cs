@@ -1,6 +1,6 @@
 namespace Libplanet.Net.Messages;
 
-public sealed record class Message
+public sealed record class MessageEnvelope
 {
     public required MessageContent Content { get; init; }
 

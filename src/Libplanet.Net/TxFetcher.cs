@@ -24,7 +24,7 @@ public sealed class TxFetcher(
             txRecvTimeout = timeoutOptions.MaxTimeout;
         }
 
-        IEnumerable<Message> replies;
+        IEnumerable<MessageEnvelope> replies;
         try
         {
             replies = await transport.SendMessageAsync(
@@ -41,7 +41,7 @@ public sealed class TxFetcher(
             yield break;
         }
 
-        foreach (Message message in replies)
+        foreach (MessageEnvelope message in replies)
         {
             if (message.Content is TransactionMessage parsed)
             {

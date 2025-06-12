@@ -975,7 +975,7 @@ namespace Libplanet.Net.Tests
                 });
             int requestCount = 0;
 
-            async Task MessageHandler(Message message)
+            async Task MessageHandler(MessageEnvelope message)
             {
                 _logger.Debug("Received message: {Content}", message);
                 switch (message.Content)
