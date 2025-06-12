@@ -22,7 +22,6 @@ public sealed class Gossip : IDisposable
     private readonly Action<MessageContent> _validateMessageToSend;
     private readonly Action<MessageContent> _processMessage;
     private readonly IEnumerable<Peer> _seeds;
-    private readonly ILogger _logger;
 
     private TaskCompletionSource<object?> _runningEvent;
     private CancellationTokenSource? _cancellationTokenSource;
@@ -59,12 +58,6 @@ public sealed class Gossip : IDisposable
         _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
         _denySet = new HashSet<Peer>();
         Running = false;
-
-        _logger = Log
-            .ForContext("Tag", "Consensus")
-            .ForContext("SubTag", "Gossip")
-            .ForContext<Gossip>()
-            .ForContext("Source", nameof(Gossip));
     }
 
     public bool Running
@@ -101,15 +94,10 @@ public sealed class Gossip : IDisposable
         }
         catch (PeerDiscoveryException pde)
         {
-            _logger.Error(
-                pde,
-                "Peer discovery exception occurred during {FName}.",
-                nameof(StartAsync));
+            // do noghing
         }
 
-        _transport.ProcessMessageHandler.Register(
-            HandleMessageAsync(_cancellationTokenSource.Token));
-        _logger.Debug("All peers are alive. Starting gossip...");
+        _transport.ProcessMessageHandler.Register(HandleMessageAsync(_cancellationTokenSource.Token));
         Running = true;
         await Task.WhenAny(
             transportTask,
@@ -157,10 +145,6 @@ public sealed class Gossip : IDisposable
         }
         catch (ArgumentException)
         {
-            _logger.Verbose(
-                "Message of content {Content} with id {Id} seen recently, ignored",
-                content,
-                content.Id);
             return;
         }
         catch (Exception)
@@ -211,11 +195,8 @@ public sealed class Gossip : IDisposable
 
     private Func<Message, Task> HandleMessageAsync(CancellationToken ctx) => async msg =>
     {
-        _logger.Verbose("HandleMessage: {Message}", msg);
-
         if (_denySet.Contains(msg.Remote))
         {
-            _logger.Verbose("Message from denied peer, rejecting: {Message}", msg);
             await ReplyMessagePongAsync(msg, ctx);
             return;
         }
@@ -226,8 +207,6 @@ public sealed class Gossip : IDisposable
         }
         catch (Exception e)
         {
-            _logger.Error(
-                "Invalid message, rejecting: {Message}, {Exception}", msg, e.Message);
             return;
         }
 
@@ -254,7 +233,6 @@ public sealed class Gossip : IDisposable
     {
         while (!ctx.IsCancellationRequested)
         {
-            _logger.Debug("{FName}() has invoked.", nameof(HeartbeatTask));
             MessageId[] ids = _cache.GetGossipIds();
             if (ids.Any())
             {
@@ -274,16 +252,12 @@ public sealed class Gossip : IDisposable
 
         await ReplyMessagePongAsync(msg, ctx);
         MessageId[] idsToGet = _cache.DiffFrom(haveMessage.Ids);
-        _logger.Verbose(
-            "Handle HaveMessage. {Total}/{Count} messages to get.",
-            haveMessage.Ids.Count(),
-            idsToGet.Length);
+
         if (!idsToGet.Any())
         {
             return;
         }
 
-        _logger.Verbose("Ids to receive: {Ids}", idsToGet);
         if (!_haveDict.ContainsKey(msg.Remote))
         {
             _haveDict.TryAdd(msg.Remote, new HashSet<MessageId>(idsToGet));
@@ -339,12 +313,7 @@ public sealed class Gossip : IDisposable
                     idsToGet.Length,
                     true,
                     ctx)).ToArray();
-                _logger.Verbose(
-                    "Received {Expected}/{Count} messages. Messages: {@Messages}, Ids: {Ids}",
-                    idsToGet.Length,
-                    replies.Length,
-                    replies,
-                    replies.Select(m => m.Content.Id).ToArray());
+
                 replies.AsParallel().ForAll(
                     r =>
                     {
@@ -355,10 +324,7 @@ public sealed class Gossip : IDisposable
                         }
                         catch (Exception e)
                         {
-                            _logger.Error(
-                                "Invalid message, rejecting: {Message}, {Exception}",
-                                r,
-                                e.Message);
+                            // do nogthing
                         }
                     });
             },
@@ -372,12 +338,6 @@ public sealed class Gossip : IDisposable
         MessageContent[] contents = wantMessage.Ids.Select(id => _cache.Get(id)).ToArray();
         MessageId[] ids = contents.Select(c => c.Id).ToArray();
 
-        _logger.Debug(
-            "WantMessage: Requests are: {Idr}, Ids are: {Id}, Messages are: {Messages}",
-            wantMessage.Ids,
-            ids,
-            contents.Select(content => (content.Type, content.Id)));
-
         await contents.ParallelForEachAsync(
             async c =>
             {
@@ -388,30 +348,17 @@ public sealed class Gossip : IDisposable
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(
-                        "Invalid message, rejecting: {Message}, {Exception}", msg, e.Message);
+                    // do nothing
                 }
             },
             ctx);
-
-        var id = msg is { Identity: null } ? "unknown" : new Guid(msg.Identity).ToString();
-        _logger.Debug("Finished replying WantMessage. {RequestId}", id);
     }
 
     private async Task RebuildTableAsync(CancellationToken ctx)
     {
-        _logger.Debug(
-            "{FName}: Updating the peer table from seed for every {Time} milliseconds...",
-            nameof(RebuildTableAsync),
-            _rebuildTableInterval.TotalMilliseconds);
-
         while (!ctx.IsCancellationRequested)
         {
             await Task.Delay(_rebuildTableInterval, ctx);
-            _logger.Debug(
-                "{FName}: Updating peer table from seed(s) {Seeds}...",
-                nameof(RebuildTableAsync),
-                _seeds.Select(s => s.Address.ToString("raw", null)));
             try
             {
                 await _kademlia.BootstrapAsync(
@@ -422,10 +369,7 @@ public sealed class Gossip : IDisposable
             }
             catch (Exception e)
             {
-                _logger.Error(
-                    e,
-                    "Peer discovery exception occurred during {FName}.",
-                    nameof(RebuildTableAsync));
+                // do nothing
             }
         }
     }
@@ -442,14 +386,11 @@ public sealed class Gossip : IDisposable
             }
             catch (OperationCanceledException e)
             {
-                _logger.Warning(e, $"{nameof(RefreshTableAsync)}() is cancelled.");
                 throw;
             }
             catch (Exception e)
             {
-                var msg = "Unexpected exception occurred during " +
-                          $"{nameof(RefreshTableAsync)}(): {{0}}";
-                _logger.Warning(e, msg, e);
+                // do nothing
             }
         }
     }
