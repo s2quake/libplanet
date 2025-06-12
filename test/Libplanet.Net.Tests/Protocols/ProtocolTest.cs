@@ -366,7 +366,7 @@ namespace Libplanet.Net.Tests.Protocols
                 var tasks =
                     transports.Select(transport => transport.WaitForTestMessageWithData("foo"));
 
-                seed.BroadcastTestMessage(null, "foo");
+                seed.BroadcastTestMessage(default, "foo");
                 Log.Debug("Broadcast completed");
 
                 await Task.WhenAll(tasks);
@@ -422,7 +422,7 @@ namespace Libplanet.Net.Tests.Protocols
                 var tcs = new CancellationTokenSource();
                 var task = t2.WaitForTestMessageWithData("foo", tcs.Token);
 
-                seed.BroadcastTestMessage(null, "foo");
+                seed.BroadcastTestMessage(default, "foo");
                 Log.Debug("Broadcast \"foo\" completed");
 
                 tcs.CancelAfter(TimeSpan.FromSeconds(5));
@@ -433,7 +433,7 @@ namespace Libplanet.Net.Tests.Protocols
                 tcs = new CancellationTokenSource();
                 task = t2.WaitForTestMessageWithData("bar", tcs.Token);
 
-                seed.BroadcastTestMessage(null, "bar");
+                seed.BroadcastTestMessage(default, "bar");
                 Log.Debug("Broadcast \"bar\" completed");
 
                 tcs.CancelAfter(TimeSpan.FromSeconds(5));
@@ -444,7 +444,7 @@ namespace Libplanet.Net.Tests.Protocols
                 tcs = new CancellationTokenSource();
                 task = t2.WaitForTestMessageWithData("baz", tcs.Token);
 
-                seed.BroadcastTestMessage(null, "baz");
+                seed.BroadcastTestMessage(default, "baz");
                 Log.Debug("Broadcast \"baz\" completed");
 
                 tcs.CancelAfter(TimeSpan.FromSeconds(5));
@@ -455,7 +455,7 @@ namespace Libplanet.Net.Tests.Protocols
                 tcs = new CancellationTokenSource();
                 task = t2.WaitForTestMessageWithData("qux", tcs.Token);
 
-                seed.BroadcastTestMessage(null, "qux");
+                seed.BroadcastTestMessage(default, "qux");
                 Log.Debug("Broadcast \"qux\" completed");
 
                 tcs.CancelAfter(TimeSpan.FromSeconds(5));
@@ -487,7 +487,7 @@ namespace Libplanet.Net.Tests.Protocols
                 await transportA.AddPeersAsync(new[] { transportB.AsPeer }, null);
                 await transportB.AddPeersAsync(new[] { transportC.AsPeer }, null);
 
-                transportA.BroadcastTestMessage(null, "foo");
+                transportA.BroadcastTestMessage(default, "foo");
                 await transportC.WaitForTestMessageWithData("foo");
                 await Task.Delay(100);
 

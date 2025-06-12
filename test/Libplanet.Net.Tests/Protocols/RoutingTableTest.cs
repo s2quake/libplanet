@@ -117,14 +117,14 @@ public class RoutingTableTest
             Assert.Equal(i / 2, table.GetBucketIndexOf(peer.Address));
         }
 
-        var broadcastCandidate = table.PeersToBroadcast(null, 0);
+        var broadcastCandidate = table.PeersToBroadcast(default, 0);
         Assert.Equal(5, broadcastCandidate.Count);
         Assert.Equal(
             new HashSet<int> { 0, 1, 2, 3, 4 },
             broadcastCandidate.Select(peer => table.GetBucketIndexOf(peer.Address))
                 .ToHashSet());
 
-        broadcastCandidate = table.PeersToBroadcast(null, 10);
+        broadcastCandidate = table.PeersToBroadcast(default, 10);
         Assert.Equal(10, broadcastCandidate.Count);
         Assert.Equal(peers.ToHashSet(), broadcastCandidate.ToHashSet());
     }
@@ -150,7 +150,7 @@ public class RoutingTableTest
                 DateTimeOffset.UtcNow - (i % 2 == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes(2)));
         }
 
-        Assert.Equal(peerCount, table.Peers.Count);
+        Assert.Equal(peerCount, table.Peers.Length);
         Assert.Equal(
             Enumerable
                 .Range(0, peerCount / 2)
@@ -179,7 +179,7 @@ public class RoutingTableTest
                 DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(i));
         }
 
-        Assert.Equal(peerCount, table.Peers.Count);
+        Assert.Equal(peerCount, table.Peers.Length);
         for (int i = 0; i < peerCount; i++)
         {
             Assert.Equal(peers[i], table.PeersToRefresh(TimeSpan.FromMinutes(1)).First());

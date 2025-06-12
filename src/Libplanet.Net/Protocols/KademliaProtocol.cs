@@ -330,7 +330,7 @@ public sealed class KademliaProtocol : IProtocol
                 timeout,
                 cancellationToken)
             .ConfigureAwait(false);
-            if (!(reply.Content is PongMessage pong))
+            if (reply.Content is not PongMessage pong)
             {
                 throw new InvalidMessageContentException(
                     $"Expected pong, but received {reply.Content.Type}.", reply.Content);

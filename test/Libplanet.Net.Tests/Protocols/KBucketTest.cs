@@ -14,7 +14,7 @@ namespace Libplanet.Net.Tests.Protocols
         [Fact]
         public void BucketTest()
         {
-            var bucket = new KBucket(4, new System.Random());
+            var bucket = new KademliaBucket(4, new System.Random());
             var peer1 = new Peer
             {
                 Address = new PrivateKey().Address,
@@ -99,8 +99,8 @@ namespace Libplanet.Net.Tests.Protocols
             Assert.Equal(peer1, bucket.Head?.Peer);
             Assert.Equal(peer2, bucket.Tail?.Peer);
 
-            Assert.False(bucket.RemovePeer(peer5));
-            Assert.True(bucket.RemovePeer(peer1));
+            Assert.False(bucket.Remove(peer5));
+            Assert.True(bucket.Remove(peer1));
             Assert.DoesNotContain(peer1, bucket.Peers);
             Assert.Equal(3, bucket.Peers.Count());
 

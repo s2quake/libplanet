@@ -76,7 +76,7 @@ namespace Libplanet.Net
         {
             List<EvidenceId> evidenceIds = evidence.Select(evidence => evidence.Id).ToList();
             _logger.Information("Broadcasting {Count} evidenceIds...", evidenceIds.Count);
-            BroadcastEvidenceIds(except?.Address, evidenceIds);
+            BroadcastEvidenceIds(except?.Address ?? default, evidenceIds);
         }
 
         private async Task BroadcastEvidenceAsync(
@@ -99,7 +99,7 @@ namespace Libplanet.Net
                                 _logger.Debug(
                                     "Broadcasting {EvidenceCount} pending evidence...",
                                     evidenceIds.Count);
-                                BroadcastEvidenceIds(null, evidenceIds);
+                                BroadcastEvidenceIds(default, evidenceIds);
                             }
                         },
                         cancellationToken);
@@ -119,7 +119,7 @@ namespace Libplanet.Net
             }
         }
 
-        private void BroadcastEvidenceIds(Address? except, IEnumerable<EvidenceId> evidenceIds)
+        private void BroadcastEvidenceIds(Address except, IEnumerable<EvidenceId> evidenceIds)
         {
             var message = new EvidenceIdsMessage { Ids = [.. evidenceIds] };
             BroadcastMessage(except, message);
