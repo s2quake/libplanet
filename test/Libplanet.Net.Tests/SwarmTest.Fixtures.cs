@@ -147,7 +147,7 @@ namespace Libplanet.Net.Tests
             };
             options ??= new SwarmOptions();
             privateKey ??= new PrivateKey();
-            var transport = await NetMQTransport.Create(
+            var transport = new NetMQTransport(
                 privateKey,
                 appProtocolVersionOptions,
                 hostOptions);
@@ -159,7 +159,7 @@ namespace Libplanet.Net.Tests
                     Host = hostOptions.Host,
                     Port = option.ConsensusPort
                 };
-                consensusTransport = await NetMQTransport.Create(
+                consensusTransport = new NetMQTransport(
                     privateKey,
                     appProtocolVersionOptions,
                     consensusHostOptions);

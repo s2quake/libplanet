@@ -225,7 +225,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
                     var hostOptions = new HostOptions {};
 
-                    var transport = await NetMQTransport.Create(
+                    var transport = new NetMQTransport(
                         privateKey,
                         apvOptions,
                         hostOptions);

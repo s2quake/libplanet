@@ -42,7 +42,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
 
         _cancellationTokenSource
             = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _transport = await CreateTransport();
+        _transport = CreateTransport();
         _transport.ProcessMessageHandler.Register(ReceiveMessageAsync);
         await _transport.StartAsync(_cancellationTokenSource.Token);
         _refreshTask = RefreshContinuouslyAsync(_cancellationTokenSource.Token);
@@ -98,7 +98,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         _task = Task.CompletedTask;
     }
 
-    private async Task<NetMQTransport> CreateTransport()
+    private NetMQTransport CreateTransport()
     {
         var privateKey = PrivateKey.Parse(seedOptions.PrivateKey);
         var protocol = Protocol.FromToken(seedOptions.AppProtocolVersion);
@@ -110,7 +110,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         var host = endPoint.Host;
         var port = endPoint.Port;
         var hostOptions = new HostOptions { Host = host, Port = port };
-        return await NetMQTransport.Create(privateKey, protocolOptions, hostOptions);
+        return new(privateKey, protocolOptions, hostOptions);
     }
 
     private async Task RefreshContinuouslyAsync(CancellationToken cancellationToken)
@@ -149,7 +149,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                 var alivePeers = peers.Where(item => item.IsAlive)
                                       .Select(item => item.BoundPeer)
                                       .ToArray();
-                var neighborsMsg = new NeighborsMessage { Found = [..alivePeers] };
+                var neighborsMsg = new NeighborsMessage { Found = [.. alivePeers] };
                 await transport.ReplyMessageAsync(
                     neighborsMsg,
                     messageIdentity,

@@ -351,10 +351,10 @@ namespace Libplanet.Net.Tests
                 Host = host,
                 Port = consensusPort,
             };
-            var consensusTransport = NetMQTransport.Create(
+            var consensusTransport = new NetMQTransport(
                 key,
                 apvOption,
-                hostOption).ConfigureAwait(false).GetAwaiter().GetResult();
+                hostOption);
 
             return new ConsensusReactor(
                 consensusTransport,
