@@ -158,7 +158,6 @@ namespace Libplanet.Net.Tests
             Task consumerTask = Task.Run(
                 async () =>
                 {
-                    await swarm.WaitForRunningAsync();
                     Assert.True(swarm.Running);
                 });
 
@@ -224,7 +223,7 @@ namespace Libplanet.Net.Tests
 
             try
             {
-                await Assert.ThrowsAsync<PeerDiscoveryException>(
+                await Assert.ThrowsAsync<InvalidOperationException>(
                     () => swarmB.BootstrapAsync(
                         new[] { swarmA.AsPeer },
                         TimeSpan.FromMilliseconds(3000),
@@ -1503,8 +1502,7 @@ namespace Libplanet.Net.Tests
             try
             {
                 await StartAsync(swarm);
-                _ = transport.StartAsync();
-                await transport.WaitForRunningAsync();
+                await transport.StartAsync(default);
                 var tasks = new List<Task>();
                 var content = new GetBlocksMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
                 for (int i = 0; i < 5; i++)
@@ -1535,7 +1533,7 @@ namespace Libplanet.Net.Tests
             finally
             {
                 CleaningSwarm(swarm);
-                await transport.StopAsync(TimeSpan.Zero);
+                await transport.StopAsync(default);
             }
         }
 
@@ -1565,8 +1563,7 @@ namespace Libplanet.Net.Tests
             {
                 await StartAsync(swarm);
                 var fx = new MemoryRepositoryFixture();
-                _ = transport.StartAsync();
-                await transport.WaitForRunningAsync();
+                await transport.StartAsync(default);
                 var tasks = new List<Task>();
                 var content = new GetTransactionMessage { TxIds = [fx.TxId1] };
                 for (int i = 0; i < 5; i++)
@@ -1597,7 +1594,7 @@ namespace Libplanet.Net.Tests
             finally
             {
                 CleaningSwarm(swarm);
-                await transport.StopAsync(TimeSpan.Zero);
+                await transport.StopAsync(default);
             }
         }
 
@@ -1628,14 +1625,13 @@ namespace Libplanet.Net.Tests
             int millisecondsBroadcastBlockInterval = 15 * 1000,
             CancellationToken cancellationToken = default)
         {
-            Task task = swarm.StartAsync(
+            await swarm.StartAsync(
                 dialTimeout: TimeSpan.FromMilliseconds(200),
                 broadcastBlockInterval:
                     TimeSpan.FromMilliseconds(millisecondsBroadcastBlockInterval),
                 broadcastTxInterval: TimeSpan.FromMilliseconds(200),
                 cancellationToken: cancellationToken);
-            await swarm.WaitForRunningAsync();
-            return task;
+            return Task.CompletedTask;
         }
 
         private Task StopAsync(Swarm swarm)

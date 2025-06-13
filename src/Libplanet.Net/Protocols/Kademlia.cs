@@ -95,7 +95,7 @@ public sealed class Kademlia
 
         if (!bootstrapPeers.Any())
         {
-            throw new PeerDiscoveryException(
+            throw new InvalidOperationException(
                 "No seeds are provided.  If it is intended you should conditionally invoke " +
                 $"{nameof(BootstrapAsync)}() only when there are seed peers.");
         }
@@ -117,7 +117,7 @@ public sealed class Kademlia
                         dialTimeout,
                         cancellationToken));
             }
-            catch (PingTimeoutException)
+            catch (InvalidOperationException)
             {
                 RemovePeer(peer);
             }
@@ -129,12 +129,12 @@ public sealed class Kademlia
 
         if (!_table.Peers.Any())
         {
-            throw new PeerDiscoveryException("All seeds are unreachable.");
+            throw new InvalidOperationException("All seeds are unreachable.");
         }
 
         if (findPeerTasks.Count == 0)
         {
-            throw new PeerDiscoveryException("Bootstrap failed.");
+            throw new InvalidOperationException("Bootstrap failed.");
         }
 
         await Task.WhenAll(findPeerTasks).ConfigureAwait(false);
@@ -151,10 +151,6 @@ public sealed class Kademlia
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-        catch (PingTimeoutException)
-        {
-            // do nothing
         }
         catch (TaskCanceledException)
         {
@@ -247,15 +243,9 @@ public sealed class Kademlia
         {
             foreach (Peer replacement in cache)
             {
-                try
-                {
-                    _table.RemoveCache(replacement);
-                    await PingAsync(replacement, _requestTimeout, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (PingTimeoutException)
-                {
-                }
+                _table.RemoveCache(replacement);
+                await PingAsync(replacement, _requestTimeout, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
     }
@@ -273,7 +263,7 @@ public sealed class Kademlia
                 await PingAsync(boundPeer, _requestTimeout, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (PingTimeoutException)
+            catch (Exception)
             {
                 RemovePeer(boundPeer);
                 return null;
@@ -333,10 +323,6 @@ public sealed class Kademlia
                     throw new TaskCanceledException(
                         $"Task is cancelled during {nameof(FindSpecificPeerAsync)}()");
                 }
-                catch (PingTimeoutException)
-                {
-                    // Ignore peer not responding
-                }
                 finally
                 {
                     history.Add(found);
@@ -354,32 +340,22 @@ public sealed class Kademlia
             return;
         }
 
-        try
-        {
-            MessageEnvelope reply = await _transport.SendMessageAsync(
+        MessageEnvelope reply = await _transport.SendMessageAsync(
                 peer,
                 new PingMessage(),
                 timeout,
                 cancellationToken)
             .ConfigureAwait(false);
-            if (reply.Message is not PongMessage pong)
-            {
-                throw new InvalidMessageContentException(
-                    $"Expected pong, but received {reply.Message}.", reply.Message);
-            }
-            else if (reply.Remote.Address.Equals(_address))
-            {
-                throw new InvalidMessageContentException("Cannot receive pong from self", pong);
-            }
-
-            AddPeer(peer);
-        }
-        catch (CommunicationFailException)
+        if (reply.Message is not PongMessage pong)
         {
-            throw new PingTimeoutException(
-                $"Failed to send Ping to {peer}.",
-                peer);
+            throw new InvalidOperationException($"Expected pong, but received {reply.Message}.");
         }
+        else if (reply.Remote.Address.Equals(_address))
+        {
+            throw new InvalidOperationException("Cannot receive pong from self");
+        }
+
+        AddPeer(peer);
     }
 
     private async Task ProcessMessageHandler(MessageEnvelope message)
@@ -419,10 +395,9 @@ public sealed class Kademlia
             await PingAsync(peer, timeout, cancellationToken).ConfigureAwait(false);
             _table.Check(peer, check, DateTimeOffset.UtcNow);
         }
-        catch (PingTimeoutException)
+        catch
         {
             RemovePeer(peer);
-            throw new TimeoutException($"Timeout occurred during {nameof(ValidateAsync)}");
         }
     }
 
@@ -513,32 +488,30 @@ public sealed class Kademlia
                 timeout,
                 cancellationToken)
             .ConfigureAwait(false);
-            if (!(reply.Message is NeighborsMessage neighbors))
+            if (reply.Message is not NeighborsMessage neighbors)
             {
-                throw new InvalidMessageContentException(
-                    $"Reply to {nameof(Messages.FindNeighborsMessage)} is invalid.",
-                    reply.Message);
+                throw new InvalidOperationException("");
             }
 
             return neighbors.Found;
         }
-        catch (CommunicationFailException cfe)
+        catch (InvalidOperationException cfe)
         {
             RemovePeer(peer);
             return ImmutableArray<Peer>.Empty;
         }
     }
 
-    private async Task ReceivePingAsync(MessageEnvelope message)
+    private async Task ReceivePingAsync(MessageEnvelope messageEnvelope)
     {
-        if (message.Remote.Address.Equals(_address))
+        if (messageEnvelope.Remote.Address.Equals(_address))
         {
-            throw new InvalidMessageContentException("Cannot receive ping from self.", message.Message);
+            throw new InvalidOperationException("Cannot receive ping from self.");
         }
 
-        var pong = new PongMessage();
+        var pongMessage = new PongMessage();
 
-        await _transport.ReplyMessageAsync(pong, message.Identity, default)
+        await _transport.ReplyMessageAsync(pongMessage, messageEnvelope.Id, default)
             .ConfigureAwait(false);
     }
 
@@ -577,21 +550,7 @@ public sealed class Kademlia
                 })
             .ToList();
         Task aggregateTask = Task.WhenAll(tasks);
-        try
-        {
-            await aggregateTask.ConfigureAwait(false);
-        }
-        catch (Exception)
-        {
-            AggregateException aggregateException = aggregateTask.Exception!;
-            foreach (Exception e in aggregateException.InnerExceptions)
-            {
-                if (e is PingTimeoutException pte)
-                {
-                    peers.Remove(pte.Target);
-                }
-            }
-        }
+        await aggregateTask.ConfigureAwait(false);
 
         var findPeerTasks = new List<Task>();
         Peer? closestKnownPeer = closestCandidate.FirstOrDefault();
@@ -642,7 +601,7 @@ public sealed class Kademlia
 
         var neighbors = new NeighborsMessage { Found = [.. found] };
 
-        await _transport.ReplyMessageAsync(neighbors, message.Identity, default)
+        await _transport.ReplyMessageAsync(neighbors, message.Id, default)
             .ConfigureAwait(false);
     }
 }

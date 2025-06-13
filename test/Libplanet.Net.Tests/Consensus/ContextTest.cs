@@ -277,7 +277,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[0]));
             await exceptionOccurred.WaitAsync();
-            Assert.IsType<InvalidConsensusMessageException>(exceptionThrown);
+            Assert.IsType<InvalidOperationException>(exceptionThrown);
         }
 
         [Fact(Timeout = Timeout)]
@@ -298,7 +298,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[2], 2, 2));
             await exceptionOccurred.WaitAsync();
-            Assert.IsType<InvalidConsensusMessageException>(exceptionThrown);
+            Assert.IsType<InvalidOperationException>(exceptionThrown);
 
             // Reset exception thrown.
             exceptionThrown = null;
@@ -314,7 +314,7 @@ namespace Libplanet.Net.Tests.Consensus
                         VoteFlag.PreVote)
                 });
             await exceptionOccurred.WaitAsync();
-            Assert.IsType<InvalidConsensusMessageException>(exceptionThrown);
+            Assert.IsType<InvalidOperationException>(exceptionThrown);
         }
 
         [Fact(Timeout = Timeout)]

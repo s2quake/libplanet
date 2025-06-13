@@ -983,7 +983,7 @@ namespace Libplanet.Net.Tests
                     case PingMessage ping:
                         await mockTransport.ReplyMessageAsync(
                             new PongMessage(),
-                            message.Identity,
+                            message.Id,
                             default);
                         break;
 
@@ -1007,8 +1007,7 @@ namespace Libplanet.Net.Tests
             try
             {
                 await StartAsync(receiver);
-                _ = mockTransport.StartAsync();
-                await mockTransport.WaitForRunningAsync();
+                await  mockTransport.StartAsync(default);
 
                 // Send block header for block 1.
                 var blockHeaderMsg1 = new BlockHeaderMessage
@@ -1054,7 +1053,7 @@ namespace Libplanet.Net.Tests
             finally
             {
                 CleaningSwarm(receiver);
-                await mockTransport.StopAsync(TimeSpan.FromMilliseconds(10));
+                await mockTransport.StopAsync(default);
                 mockTransport.Dispose();
             }
         }

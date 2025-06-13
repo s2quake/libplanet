@@ -4,6 +4,8 @@ namespace Libplanet.Net.Messages;
 
 public sealed record class MessageEnvelope
 {
+    public required Guid Id { get; init; }
+
     public required IMessage Message { get; init; }
 
     public required Protocol Protocol { get; init; }
@@ -11,8 +13,6 @@ public sealed record class MessageEnvelope
     public required Peer Remote { get; init; }
 
     public DateTimeOffset Timestamp { get; init; }
-
-    public byte[] Identity { get; init; } = [];
 
     public void Validate(Protocol protocol, TimeSpan lifetime)
     {
@@ -29,7 +29,7 @@ public sealed record class MessageEnvelope
         var timestamp = DateTimeOffset.UtcNow;
         if ((timestamp - Timestamp) > lifetime)
         {
-            throw new InvalidMessageTimestampException(Timestamp, lifetime, timestamp);
+            throw new InvalidOperationException("");
         }
     }
 }

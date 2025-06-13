@@ -166,9 +166,9 @@ public class PrivateKeyTest
 
         // ImmutableArray<byte> API:
         var imPayload = payload.ToImmutableArray();
-        Assert.False(pubKey.Verify(payload.Skip(1).ToArray(), pk.Sign(imPayload).ToArray()));
-        Assert.False(pubKey.Verify(payload, pk.Sign(imPayload).Skip(1).ToArray()));
-        Assert.False(wrongPubKey.Verify(payload, pk.Sign(imPayload).ToArray()));
+        Assert.False(pubKey.Verify(payload.Skip(1).ToArray(), pk.Sign(imPayload.AsSpan()).ToArray()));
+        Assert.False(pubKey.Verify(payload, pk.Sign(imPayload.AsSpan()).Skip(1).ToArray()));
+        Assert.False(wrongPubKey.Verify(payload, pk.Sign(imPayload.AsSpan()).ToArray()));
     }
 
     [Fact]

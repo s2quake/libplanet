@@ -5,7 +5,7 @@ using NetMQ;
 
 namespace Libplanet.Net.Messages;
 
-public sealed class NetMQMessageCodec : IMessageCodec<NetMQMessage>
+public sealed class NetMQMessageCodec
 {
     public static readonly int CommonFrames = Enum.GetValues(typeof(MessageFrame)).Length;
 
@@ -30,12 +30,10 @@ public sealed class NetMQMessageCodec : IMessageCodec<NetMQMessage>
     {
         if (!privateKey.Address.Equals(message.Remote.Address))
         {
-            throw new InvalidCredentialException(
-                $"An invalid private key was provided: the provided private key's " +
-                $"expected public key is {message.Remote.Address} " +
-                $"but its actual public key is {privateKey.Address}.",
-                message.Remote.Address,
-                privateKey.Address);
+            throw new ArgumentException(
+                $"The provided private key's address {privateKey.Address} does not match " +
+                $"the remote peer's address {message.Remote.Address}.",
+                nameof(privateKey));
         }
 
         var netMqMessage = new NetMQMessage();
@@ -49,20 +47,17 @@ public sealed class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         netMqMessage.Push(message.Protocol.Token);
 
         // Make and insert signature
-        byte[] signature = privateKey.Sign(netMqMessage.ToByteArray());
+        var signature = privateKey.Sign(netMqMessage.ToByteArray());
         List<NetMQFrame> frames = netMqMessage.ToList();
         frames.Insert((int)MessageFrame.Sign, new NetMQFrame(signature));
         netMqMessage = new NetMQMessage(frames);
+        netMqMessage.Push(message.Id.ToByteArray());
 
-        if (message.Identity is { })
-        {
-            netMqMessage.Push(message.Identity);
-        }
 
         return netMqMessage;
     }
 
-    public MessageEnvelope Decode(NetMQMessage encoded, bool reply)
+    public MessageEnvelope Decode(NetMQMessage encoded)
     {
         if (encoded.FrameCount == 0)
         {
@@ -71,7 +66,7 @@ public sealed class NetMQMessageCodec : IMessageCodec<NetMQMessage>
 
         // (reply == true)            [version, type, peer, timestamp, sign, frames...]
         // (reply == false) [identity, version, type, peer, timestamp, sign, frames...]
-        NetMQFrame[] remains = reply ? encoded.ToArray() : encoded.Skip(1).ToArray();
+        NetMQFrame[] remains = [.. encoded];
 
         var versionToken = remains[(int)MessageFrame.Version].ConvertToString();
 
@@ -101,15 +96,8 @@ public sealed class NetMQMessageCodec : IMessageCodec<NetMQMessage>
         var messageToVerify = headerWithoutSign.Concat(body).ToByteArray();
         if (!remote.Address.Verify(messageToVerify, signature))
         {
-            throw new InvalidMessageSignatureException(
-                "The signature of an encoded message is invalid.",
-                remote,
-                remote.Address,
-                messageToVerify,
-                signature);
+            throw new InvalidOperationException("Signature verification failed.");
         }
-
-        byte[] identity = reply ? [] : encoded[0].Buffer.ToArray();
 
         return new MessageEnvelope
         {
@@ -117,7 +105,7 @@ public sealed class NetMQMessageCodec : IMessageCodec<NetMQMessage>
             Protocol = version,
             Remote = remote,
             Timestamp = timestamp,
-            Identity = identity,
+            Id = new Guid(encoded[0].Buffer),
         };
     }
 

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.ServiceModel;
 using System.Threading;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
@@ -36,7 +37,7 @@ public sealed class EvidenceFetcher(
                 cancellationToken)
             .ConfigureAwait(false);
         }
-        catch (CommunicationFailException e) when (e.InnerException is TimeoutException)
+        catch (CommunicationException e) when (e.InnerException is TimeoutException)
         {
             yield break;
         }
@@ -53,7 +54,7 @@ public sealed class EvidenceFetcher(
                     $"Expected {nameof(Transaction)} messages as response of " +
                     $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
                     $"message instead: {message}";
-                throw new InvalidMessageContentException(errorMessage, message.Message);
+                throw new InvalidMessageContractException(errorMessage);
             }
         }
     }

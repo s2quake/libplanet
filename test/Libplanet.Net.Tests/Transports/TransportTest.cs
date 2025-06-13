@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Net;
 using System.Net.Sockets;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -32,13 +33,12 @@ namespace Libplanet.Net.Tests.Transports
 
             try
             {
-                _ = transport.StartAsync();
-                await transport.WaitForRunningAsync();
-                Assert.True(transport.Running);
+                await transport.StartAsync(default);
+                Assert.True(transport.IsRunning);
             }
             finally
             {
-                await transport.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transport.StopAsync(default);
                 transport.Dispose();
             }
         }
@@ -51,16 +51,16 @@ namespace Libplanet.Net.Tests.Transports
             try
             {
                 await InitializeAsync(transport);
-                Assert.True(transport.Running);
-                await transport.StopAsync(TimeSpan.Zero);
-                Assert.False(transport.Running);
+                Assert.True(transport.IsRunning);
+                await transport.StopAsync(default);
+                Assert.False(transport.IsRunning);
 
                 await InitializeAsync(transport);
-                Assert.True(transport.Running);
+                Assert.True(transport.IsRunning);
             }
             finally
             {
-                await transport.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transport.StopAsync(default);
                 transport.Dispose();
                 if (transport is NetMQTransport)
                 {
@@ -77,8 +77,8 @@ namespace Libplanet.Net.Tests.Transports
             try
             {
                 await InitializeAsync(transport);
-                Assert.True(transport.Running);
-                await transport.StopAsync(TimeSpan.FromMilliseconds(100));
+                Assert.True(transport.IsRunning);
+                await transport.StopAsync(default);
                 transport.Dispose();
                 var boundPeer = new Peer
                 {
@@ -87,9 +87,9 @@ namespace Libplanet.Net.Tests.Transports
                 };
                 var message = new PingMessage();
                 await Assert.ThrowsAsync<ObjectDisposedException>(
-                    async () => await transport.StartAsync());
+                    async () => await transport.StartAsync(default));
                 await Assert.ThrowsAsync<ObjectDisposedException>(
-                    async () => await transport.StopAsync(TimeSpan.Zero));
+                    async () => await transport.StopAsync(default));
                 await Assert.ThrowsAsync<ObjectDisposedException>(
                     async () => await transport.SendMessageAsync(
                         boundPeer,
@@ -109,7 +109,7 @@ namespace Libplanet.Net.Tests.Transports
                 await Assert.ThrowsAsync<ObjectDisposedException>(
                     async () => await transport.ReplyMessageAsync(
                         message,
-                        Array.Empty<byte>(),
+                        Guid.NewGuid(),
                         default));
 
                 // To check multiple Dispose() throws error or not.
@@ -131,13 +131,13 @@ namespace Libplanet.Net.Tests.Transports
 
             try
             {
-                var peer = transport.AsPeer;
+                var peer = transport.Peer;
                 Assert.Equal(privateKey.Address, peer.Address);
                 Assert.Equal(host, peer.EndPoint.Host);
             }
             finally
             {
-                await transport.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transport.StopAsync(default);
                 transport.Dispose();
             }
         }
@@ -155,7 +155,7 @@ namespace Libplanet.Net.Tests.Transports
                 {
                     await transportB.ReplyMessageAsync(
                         new PongMessage(),
-                        message.Identity,
+                        message.Id,
                         CancellationToken.None);
                 }
             });
@@ -166,7 +166,7 @@ namespace Libplanet.Net.Tests.Transports
                 await InitializeAsync(transportB);
 
                 MessageEnvelope reply = await transportA.SendMessageAsync(
-                    transportB.AsPeer,
+                    transportB.Peer,
                     new PingMessage(),
                     TimeSpan.FromSeconds(3),
                     CancellationToken.None);
@@ -175,8 +175,8 @@ namespace Libplanet.Net.Tests.Transports
             }
             finally
             {
-                await transportA.StopAsync(TimeSpan.FromMilliseconds(100));
-                await transportB.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportA.StopAsync(default);
+                await transportB.StopAsync(default);
                 transportA.Dispose();
                 transportB.Dispose();
             }
@@ -197,15 +197,15 @@ namespace Libplanet.Net.Tests.Transports
                 cts.CancelAfter(TimeSpan.FromSeconds(1));
                 await Assert.ThrowsAsync<TaskCanceledException>(
                     async () => await transportA.SendMessageAsync(
-                        transportB.AsPeer,
+                        transportB.Peer,
                         new PingMessage(),
                         null,
                         cts.Token));
             }
             finally
             {
-                await transportA.StopAsync(TimeSpan.FromMilliseconds(100));
-                await transportB.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportA.StopAsync(default);
+                await transportB.StopAsync(default);
                 transportA.Dispose();
                 transportB.Dispose();
                 cts.Dispose();
@@ -224,11 +224,11 @@ namespace Libplanet.Net.Tests.Transports
                 {
                     await transportB.ReplyMessageAsync(
                         new PingMessage(),
-                        message.Identity,
+                        message.Id,
                         default);
                     await transportB.ReplyMessageAsync(
                         new PongMessage(),
-                        message.Identity,
+                        message.Id,
                         default);
                 }
             });
@@ -239,7 +239,7 @@ namespace Libplanet.Net.Tests.Transports
                 await InitializeAsync(transportB);
 
                 var replies = (await transportA.SendMessageAsync(
-                    transportB.AsPeer,
+                    transportB.Peer,
                     new PingMessage(),
                     TimeSpan.FromSeconds(3),
                     2,
@@ -251,8 +251,8 @@ namespace Libplanet.Net.Tests.Transports
             }
             finally
             {
-                await transportA.StopAsync(TimeSpan.FromMilliseconds(100));
-                await transportB.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportA.StopAsync(default);
+                await transportB.StopAsync(default);
                 transportA.Dispose();
                 transportB.Dispose();
             }
@@ -270,9 +270,9 @@ namespace Libplanet.Net.Tests.Transports
                 await InitializeAsync(transportA);
                 await InitializeAsync(transportB);
 
-                var e = await Assert.ThrowsAsync<CommunicationFailException>(
+                var e = await Assert.ThrowsAsync<CommunicationException>(
                     async () => await transportA.SendMessageAsync(
-                        transportB.AsPeer,
+                        transportB.Peer,
                         new PingMessage(),
                         TimeSpan.FromSeconds(3),
                         CancellationToken.None));
@@ -280,8 +280,8 @@ namespace Libplanet.Net.Tests.Transports
             }
             finally
             {
-                await transportA.StopAsync(TimeSpan.FromMilliseconds(100));
-                await transportB.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportA.StopAsync(default);
+                await transportB.StopAsync(default);
                 transportA.Dispose();
                 transportB.Dispose();
             }
@@ -304,11 +304,11 @@ namespace Libplanet.Net.Tests.Transports
 
                 // TcpTransport and NetMQTransport fail for different reasons, i.e.
                 // a thrown exception for each case has a different inner exception.
-                await Assert.ThrowsAsync<CommunicationFailException>(async () => await task);
+                await Assert.ThrowsAsync<CommunicationException>(async () => await task);
             }
             finally
             {
-                await transport.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transport.StopAsync(default);
                 transport.Dispose();
             }
         }
@@ -325,7 +325,7 @@ namespace Libplanet.Net.Tests.Transports
                 await InitializeAsync(transportB);
 
                 Task t = transportA.SendMessageAsync(
-                        transportB.AsPeer,
+                        transportB.Peer,
                         new PingMessage(),
                         null,
                         CancellationToken.None);
@@ -333,15 +333,15 @@ namespace Libplanet.Net.Tests.Transports
                 // For context change
                 await Task.Delay(100);
 
-                await transportA.StopAsync(TimeSpan.Zero);
-                Assert.False(transportA.Running);
+                await transportA.StopAsync(default);
+                Assert.False(transportA.IsRunning);
                 await Assert.ThrowsAsync<TaskCanceledException>(async () => await t);
                 Assert.True(t.IsCanceled);
             }
             finally
             {
-                await transportA.StopAsync(TimeSpan.FromMilliseconds(100));
-                await transportB.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportA.StopAsync(default);
+                await transportB.StopAsync(default);
                 transportA.Dispose();
                 transportB.Dispose();
             }
@@ -387,15 +387,15 @@ namespace Libplanet.Net.Tests.Transports
                 await InitializeAsync(transportD);
 
                 var table = new RoutingTable(address, bucketSize: 1);
-                table.AddPeer(transportB.AsPeer);
-                table.AddPeer(transportC.AsPeer);
-                table.AddPeer(transportD.AsPeer);
+                table.AddPeer(transportB.Peer);
+                table.AddPeer(transportC.Peer);
+                table.AddPeer(transportD.Peer);
 
                 transportA = await CreateTransportAsync().ConfigureAwait(false);
                 await InitializeAsync(transportA);
 
                 transportA.BroadcastMessage(
-                    table.PeersToBroadcast(transportD.AsPeer.Address),
+                    table.PeersToBroadcast(transportD.Peer.Address),
                     new PingMessage());
 
                 await Task.WhenAll(tcsB.Task, tcsC.Task);
@@ -408,13 +408,13 @@ namespace Libplanet.Net.Tests.Transports
             }
             finally
             {
-                await transportA?.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportA?.StopAsync(default);
                 transportA?.Dispose();
-                await transportB.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportB.StopAsync(default);
                 transportB.Dispose();
-                await transportC.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportC.StopAsync(default);
                 transportC.Dispose();
-                await transportD.StopAsync(TimeSpan.FromMilliseconds(100));
+                await transportD.StopAsync(default);
                 transportD.Dispose();
             }
         }
@@ -423,8 +423,7 @@ namespace Libplanet.Net.Tests.Transports
             ITransport transport,
             CancellationToken cts = default)
         {
-            _ = transport.StartAsync(cts);
-            await transport.WaitForRunningAsync();
+            await transport.StartAsync(cts);
         }
 
         private Task<ITransport> CreateTransportAsync(

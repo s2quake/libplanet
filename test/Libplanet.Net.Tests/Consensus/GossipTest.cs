@@ -71,10 +71,8 @@ namespace Libplanet.Net.Tests.Consensus
                 new[] { new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) } });
             try
             {
-                _ = gossip1.StartAsync(default);
-                _ = gossip2.StartAsync(default);
-                await gossip1.WaitForRunningAsync();
-                await gossip2.WaitForRunningAsync();
+                await gossip1.StartAsync(default);
+                await gossip2.StartAsync(default);
                 gossip1.PublishMessage(
                     TestUtils.CreateConsensusPropose(fx.Block1, new PrivateKey(), 0));
                 await receivedEvent.WaitAsync();
@@ -83,8 +81,8 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                await gossip1.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await gossip2.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await gossip1.StopAsync(default);
+                await gossip2.StopAsync(default);
                 gossip1.Dispose();
                 gossip2.Dispose();
             }
@@ -126,10 +124,8 @@ namespace Libplanet.Net.Tests.Consensus
                 [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
             try
             {
-                _ = gossip1.StartAsync(default);
-                _ = gossip2.StartAsync(default);
-                await gossip1.WaitForRunningAsync();
-                await gossip2.WaitForRunningAsync();
+                await gossip1.StartAsync(default);
+                await gossip2.StartAsync(default);
                 gossip1.AddMessage(
                     TestUtils.CreateConsensusPropose(fx.Block1, new PrivateKey(), 0));
                 await receivedEvent.WaitAsync();
@@ -138,8 +134,8 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                await gossip1.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await gossip2.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await gossip1.StopAsync(default);
+                await gossip2.StopAsync(default);
                 gossip1.Dispose();
                 gossip2.Dispose();
             }
@@ -183,10 +179,8 @@ namespace Libplanet.Net.Tests.Consensus
                 new[] { new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) } });
             try
             {
-                _ = gossip1.StartAsync(default);
-                _ = gossip2.StartAsync(default);
-                await gossip1.WaitForRunningAsync();
-                await gossip2.WaitForRunningAsync();
+                await gossip1.StartAsync(default);
+                await gossip2.StartAsync(default);
                 PrivateKey key = new PrivateKey();
                 gossip1.AddMessages(
                     new[]
@@ -203,8 +197,8 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                await gossip1.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await gossip2.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await gossip1.StopAsync(default);
+                await gossip2.StopAsync(default);
                 gossip1.Dispose();
                 gossip2.Dispose();
             }
@@ -237,10 +231,8 @@ namespace Libplanet.Net.Tests.Consensus
             var transport2 = CreateTransport(key2, 6002);
             try
             {
-                _ = gossip.StartAsync(default);
-                _ = transport2.StartAsync(default);
-                await gossip.WaitForRunningAsync();
-                await transport2.WaitForRunningAsync();
+                await gossip.StartAsync(default);
+                await transport2.StartAsync(default);
 
                 await transport2.SendMessageAsync(
                     gossip.AsPeer,
@@ -250,12 +242,12 @@ namespace Libplanet.Net.Tests.Consensus
 
                 await receivedEvent.WaitAsync();
                 Assert.True(received);
-                Assert.Contains(transport2.AsPeer, gossip.Peers);
+                Assert.Contains(transport2.Peer, gossip.Peers);
             }
             finally
             {
-                await gossip.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await transport2.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await gossip.StopAsync(default);
+                await transport2.StopAsync(default);
                 gossip.Dispose();
                 transport2.Dispose();
             }
@@ -277,14 +269,12 @@ namespace Libplanet.Net.Tests.Consensus
 
             ITransport seed = CreateTransport();
             seed.ProcessMessageHandler.Register(ProcessMessage);
-            Gossip gossip = CreateGossip(_ => { }, seeds: new[] { seed.AsPeer });
+            Gossip gossip = CreateGossip(_ => { }, seeds: new[] { seed.Peer });
 
             try
             {
-                _ = seed.StartAsync();
-                _ = gossip.StartAsync(default);
-                await seed.WaitForRunningAsync();
-                await gossip.WaitForRunningAsync();
+                await seed.StartAsync(default);
+                await gossip.StartAsync(default);
                 gossip.AddMessage(new PingMessage());
 
                 // Wait heartbeat interval * 2.
@@ -293,8 +283,8 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                await seed.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await gossip.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await seed.StopAsync(default);
+                await gossip.StopAsync(default);
                 seed.Dispose();
                 gossip.Dispose();
             }
@@ -322,12 +312,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             try
             {
-                _ = receiver.StartAsync(default);
-                _ = sender1.StartAsync(default);
-                _ = sender2.StartAsync(default);
-                await receiver.WaitForRunningAsync();
-                await sender1.WaitForRunningAsync();
-                await sender2.WaitForRunningAsync();
+                await receiver.StartAsync(default);
+                await sender1.StartAsync(default);
+                await sender2.StartAsync(default);
                 var msg1 = new PingMessage();
                 var msg2 = new PongMessage();
                 await sender1.SendMessageAsync(
@@ -347,9 +334,9 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                await receiver.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await sender1.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await sender2.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await receiver.StopAsync(default);
+                await sender1.StopAsync(default);
+                await sender2.StopAsync(default);
                 receiver.Dispose();
                 sender1.Dispose();
                 sender2.Dispose();

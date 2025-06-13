@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -18,8 +19,8 @@ internal class TestTransport : ITransport
 
     private readonly Dictionary<Address, TestTransport> _transports;
     private readonly ILogger _logger;
-    private readonly ConcurrentDictionary<byte[], Address> _peersToReply;
-    private readonly ConcurrentDictionary<byte[], MessageEnvelope> _replyToReceive;
+    private readonly ConcurrentDictionary<Guid, Address> _peersToReply;
+    private readonly ConcurrentDictionary<Guid, MessageEnvelope> _replyToReceive;
     private readonly AsyncCollection<Request> _requests;
     private readonly List<string> _ignoreTestMessageWithData;
     private readonly PrivateKey _privateKey;
@@ -46,8 +47,8 @@ internal class TestTransport : ITransport
         _logger = Log.ForContext<TestTransport>()
             .ForContext("Address", loggerId);
 
-        _peersToReply = new ConcurrentDictionary<byte[], Address>();
-        _replyToReceive = new ConcurrentDictionary<byte[], MessageEnvelope>();
+        _peersToReply = new ConcurrentDictionary<Guid, Address>();
+        _replyToReceive = new ConcurrentDictionary<Guid, MessageEnvelope>();
         ReceivedMessages = new ConcurrentBag<MessageEnvelope>();
         MessageReceived = new AsyncAutoResetEvent();
         _transports = transports;
@@ -68,7 +69,7 @@ internal class TestTransport : ITransport
 
     public Address Address => _privateKey.Address;
 
-    public Peer AsPeer => new Peer
+    public Peer Peer => new Peer
     {
         Address = _privateKey.Address,
         EndPoint = new DnsEndPoint("127.0.0.1", 1234),
@@ -78,7 +79,7 @@ internal class TestTransport : ITransport
 
     public DateTimeOffset? LastMessageTimestamp { get; private set; }
 
-    public bool Running
+    public bool IsRunning
     {
         get => _runningEvent.Task.Status == TaskStatus.RanToCompletion;
 
@@ -110,7 +111,7 @@ internal class TestTransport : ITransport
         if (!_disposed)
         {
             _swarmCancellationTokenSource?.Cancel();
-            Running = false;
+            IsRunning = false;
             _disposed = true;
         }
     }
@@ -123,7 +124,7 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        _logger.Debug("Starting transport of {Peer}", AsPeer);
+        _logger.Debug("Starting transport of {Peer}", Peer);
         _swarmCancellationTokenSource = new CancellationTokenSource();
         CancellationToken token = cancellationToken.Equals(CancellationToken.None)
             ? _swarmCancellationTokenSource.Token
@@ -131,27 +132,23 @@ internal class TestTransport : ITransport
                 .CreateLinkedTokenSource(
                     _swarmCancellationTokenSource.Token, cancellationToken)
                 .Token;
-        Running = true;
+        IsRunning = true;
         await ProcessRuntime(token);
     }
 
-    public async Task StopAsync(
-        TimeSpan waitFor,
-        CancellationToken cancellationToken = default)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         if (_disposed)
         {
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (Running)
+        if (IsRunning)
         {
-            _logger.Debug("Stopping transport of {Peer}", AsPeer);
+            _logger.Debug("Stopping transport of {Peer}", Peer);
             _swarmCancellationTokenSource.Cancel();
-            Running = false;
+            IsRunning = false;
         }
-
-        await Task.Delay(waitFor, cancellationToken);
     }
 
     /// <inheritdoc cref="ITransport.WaitForRunningAsync"/>
@@ -169,9 +166,9 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (!Running)
+        if (!IsRunning)
         {
-            throw new TransportException("Start transport before use.");
+            throw new InvalidOperationException("Start transport before use.");
         }
 
         if (bootstrapPeers is null)
@@ -206,9 +203,9 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (!Running)
+        if (!IsRunning)
         {
-            throw new TransportException("Start transport before use.");
+            throw new InvalidOperationException("Start transport before use.");
         }
 
         if (peers is null)
@@ -239,13 +236,13 @@ internal class TestTransport : ITransport
                 await Task.WhenAll(tasks);
                 _logger.Verbose("Update complete");
             }
-            catch (InvalidProtocolException)
-            {
-                _logger.Debug(
-                    "Different version encountered during {MethodName}()",
-                    nameof(AddPeersAsync));
-            }
-            catch (PingTimeoutException)
+            // catch (InvalidProtocolException)
+            // {
+            //     _logger.Debug(
+            //         "Different version encountered during {MethodName}()",
+            //         nameof(AddPeersAsync));
+            // }
+            catch (TimeoutException)
             {
                 var msg =
                     $"Timeout occurred during {nameof(AddPeersAsync)}() after {timeout}";
@@ -278,9 +275,9 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (!Running)
+        if (!IsRunning)
         {
-            throw new TransportException("Start transport before use.");
+            throw new InvalidOperationException("Start transport before use.");
         }
 
         Task.Run((Action)(() =>
@@ -299,9 +296,9 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (!Running)
+        if (!IsRunning)
         {
-            throw new TransportException("Start transport before use.");
+            throw new InvalidOperationException("Start transport before use.");
         }
 
         var message = new TestMessage { Data = data };
@@ -341,15 +338,16 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (!Running)
+        if (!IsRunning)
         {
-            throw new TransportException("Start transport before use.");
+            throw new InvalidOperationException("Start transport before use.");
         }
 
         var bytes = new byte[10];
         _random.NextBytes(bytes);
         var sendTime = DateTimeOffset.UtcNow;
-        var identity = _privateKey.Address.Bytes.Concat(bytes).ToArray();
+        // var identity = _privateKey.Address.Bytes.Concat(bytes).ToArray();
+        var identity = Guid.NewGuid();
         _logger.Debug("Adding request of {Content} of {Identity}", content, identity);
         await _requests.AddAsync(
             new Request
@@ -358,9 +356,9 @@ internal class TestTransport : ITransport
                 {
                     Message = content,
                     Protocol = Protocol,
-                    Remote = AsPeer,
+                    Remote = Peer,
                     Timestamp = sendTime,
-                    Identity = identity,
+                    Id = identity,
                 },
                 Target = peer,
             },
@@ -377,10 +375,8 @@ internal class TestTransport : ITransport
                     content,
                     identity,
                     timeout ?? TimeSpan.MaxValue);
-                throw new CommunicationFailException(
-                    $"Timeout occurred during {nameof(SendMessageAsync)}().",
-                    content.GetType(),
-                    peer);
+                throw new CommunicationException(
+                    $"Timeout occurred during {nameof(SendMessageAsync)}().");
             }
 
             await Task.Delay(10, cancellationToken);
@@ -429,8 +425,8 @@ internal class TestTransport : ITransport
     }
 
     public async Task ReplyMessageAsync(
-        IMessage content,
-        byte[] identity,
+        IMessage message,
+        Guid id,
         CancellationToken cancellationToken)
     {
         if (_disposed)
@@ -438,23 +434,23 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (!Running)
+        if (!IsRunning)
         {
-            throw new TransportException("Start transport before use.");
+            throw new InvalidOperationException("Start transport before use.");
         }
 
-        _logger.Debug("Replying {Content}...", content);
-        var message = new MessageEnvelope
+        _logger.Debug("Replying {Content}...", message);
+        var messageEnvelope = new MessageEnvelope
         {
-            Message = content,
+            Message = message,
             Protocol = Protocol,
-            Remote = AsPeer,
+            Remote = Peer,
             Timestamp = DateTimeOffset.UtcNow,
-            Identity = identity,
+            Id = id,
         };
         await Task.Delay(_networkDelay, cancellationToken);
-        _transports[_peersToReply[identity]].ReceiveReply(message);
-        _peersToReply.TryRemove(identity, out Address addr);
+        _transports[_peersToReply[id]].ReceiveReply(messageEnvelope);
+        _peersToReply.TryRemove(id, out Address addr);
     }
 
     public async Task WaitForTestMessageWithData(
@@ -466,9 +462,9 @@ internal class TestTransport : ITransport
             throw new ObjectDisposedException(nameof(TestTransport));
         }
 
-        if (!Running)
+        if (!IsRunning)
         {
-            throw new TransportException("Start transport before use.");
+            throw new InvalidOperationException("Start transport before use.");
         }
 
         while (!token.IsCancellationRequested && !ReceivedTestMessageOfData(data))
@@ -516,12 +512,7 @@ internal class TestTransport : ITransport
         }
         else
         {
-            if (message.Identity is null)
-            {
-                throw new ArgumentNullException("message.Identity");
-            }
-
-            _peersToReply[message.Identity] = message.Remote.Address;
+            _peersToReply[message.Id] = message.Remote.Address;
         }
 
         LastMessageTimestamp = DateTimeOffset.UtcNow;
@@ -532,12 +523,7 @@ internal class TestTransport : ITransport
 
     private void ReceiveReply(MessageEnvelope message)
     {
-        if (message.Identity is null)
-        {
-            throw new ArgumentNullException("message.Identity");
-        }
-
-        _replyToReceive[message.Identity] = message;
+        _replyToReceive[message.Id] = message;
     }
 
     private async Task ProcessRuntime(CancellationToken cancellationToken)
@@ -551,7 +537,7 @@ internal class TestTransport : ITransport
                 _logger.Debug(
                     "Send {Content} with identity {Identity} to {Peer}",
                     req.Message.Message,
-                    req.Message.Identity,
+                    req.Message.Id,
                     req.Target);
                 _transports[req.Target.Address].ReceiveMessage(req.Message);
             }

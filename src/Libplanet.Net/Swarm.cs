@@ -16,6 +16,7 @@ using Libplanet.Serialization;
 using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;
+using System.ServiceModel;
 
 namespace Libplanet.Net
 {
@@ -136,7 +137,7 @@ namespace Libplanet.Net
             }
         }
 
-        public bool Running => Transport?.Running ?? false;
+        public bool Running => Transport?.IsRunning ?? false;
 
         public bool ConsensusRunning => _consensusReactor?.Running ?? false;
 
@@ -144,7 +145,7 @@ namespace Libplanet.Net
 
         public Address Address => _privateKey.Address;
 
-        public Peer AsPeer => Transport?.AsPeer;
+        public Peer AsPeer => Transport?.Peer;
 
         /// <summary>
         /// The last time when any message was arrived.
@@ -203,14 +204,6 @@ namespace Libplanet.Net
         // FIXME: This should be exposed in a better way.
         internal ConsensusReactor ConsensusReactor => _consensusReactor;
 
-        /// <summary>
-        /// Waits until this <see cref="Swarm"/> instance gets started to run.
-        /// </summary>
-        /// <seealso cref="ITransport.WaitForRunningAsync()"/>
-        /// <returns>A <see cref="Task"/> completed when <see cref="ITransport.Running"/>
-        /// property becomes <see langword="true"/>.</returns>
-        public Task WaitForRunningAsync() => Transport?.WaitForRunningAsync();
-
         public void Dispose()
         {
             if (!_disposed)
@@ -241,7 +234,7 @@ namespace Libplanet.Net
             _logger.Debug($"Stopping {nameof(Swarm)}...");
             using (await _runningMutex.LockAsync())
             {
-                await Transport.StopAsync(waitFor, cancellationToken);
+                await Transport.StopAsync(cancellationToken);
                 if (_consensusReactor is { })
                 {
                     await _consensusReactor.StopAsync(cancellationToken);
@@ -321,7 +314,7 @@ namespace Libplanet.Net
                     _workerCancellationTokenSource.Token, cancellationToken)
                 .Token;
 
-                if (Transport.Running)
+                if (Transport.IsRunning)
                 {
                     throw new SwarmException("Swarm is already running.");
                 }
@@ -367,7 +360,6 @@ namespace Libplanet.Net
                 }
 
                 runner = Task.WhenAny(tasks.Select(CreateLongRunningTask));
-                await Transport.WaitForRunningAsync().ConfigureAwait(false);
             }
 
             try
@@ -439,7 +431,7 @@ namespace Libplanet.Net
                 searchDepth,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!Transport.Running)
+            if (!Transport.IsRunning)
             {
                 // Mark added peers as stale if bootstrap is called before transport is running
                 // FIXME: Peers added before bootstrap might be updated.
@@ -739,7 +731,7 @@ namespace Libplanet.Net
                     timeout: Options.TimeoutOptions.GetBlockHashesTimeout,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
-            catch (CommunicationFailException)
+            catch (CommunicationException)
             {
                 _logger.Debug(
                     "Failed to get a response for " + nameof(GetBlockHashesMessage) +
@@ -803,7 +795,7 @@ namespace Libplanet.Net
         /// Returned <see cref="Block"/>s are guaranteed to correspond to the initial part of
         /// <paramref name="blockHashes"/>, including the empty list and the full list in order.
         /// </returns>
-        /// <exception cref="InvalidMessageContentException">Thrown when
+        /// <exception cref="InvalidMessageContractException">Thrown when
         /// a message other than <see cref="BlocksMessage"/> is received while
         /// trying to get <see cref="Block"/>s from <paramref name="peer"/>.</exception>
         internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
@@ -843,7 +835,7 @@ namespace Libplanet.Net
                     cancellationToken)
                 .ConfigureAwait(false);
             }
-            catch (CommunicationFailException e) when (e.InnerException is TimeoutException)
+            catch (CommunicationException e) when (e.InnerException is TimeoutException)
             {
                 yield break;
             }
@@ -905,7 +897,7 @@ namespace Libplanet.Net
                         $"Expected a {nameof(BlocksMessage)} message as a response of " +
                         $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
                         $"message instead: {message}";
-                    throw new InvalidMessageContentException(errorMessage, message.Message);
+                    throw new InvalidMessageContractException(errorMessage);
                 }
             }
 
@@ -942,7 +934,7 @@ namespace Libplanet.Net
                     cancellationToken)
                 .ConfigureAwait(false);
             }
-            catch (CommunicationFailException e) when (e.InnerException is TimeoutException)
+            catch (CommunicationException e) when (e.InnerException is TimeoutException)
             {
                 yield break;
             }
@@ -960,7 +952,7 @@ namespace Libplanet.Net
                         $"Expected {nameof(Transaction)} messages as response of " +
                         $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
                         $"message instead: {message}";
-                    throw new InvalidMessageContentException(errorMessage, message.Message);
+                    throw new InvalidMessageContractException(errorMessage);
                 }
             }
         }
@@ -1178,7 +1170,7 @@ namespace Libplanet.Net
             {
                 switch (task.Exception?.InnerException)
                 {
-                    case CommunicationFailException cfe:
+                    case CommunicationException cfe:
                         _logger.Debug(
                             cfe,
                             "Failed to dial {Peer}",

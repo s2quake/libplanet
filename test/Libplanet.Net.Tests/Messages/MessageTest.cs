@@ -24,12 +24,13 @@ public class MessageTest
         NetMQMessage raw = codec.Encode(
             new MessageEnvelope
             {
+                Id = Guid.NewGuid(),
                 Message = messageContent,
                 Protocol = apv,
                 Remote = peer,
                 Timestamp = dateTimeOffset,
             }, privateKey);
-        var parsed = codec.Decode(raw, true);
+        var parsed = codec.Decode(raw);
         Assert.Equal(peer, parsed.Remote);
     }
 
@@ -43,10 +44,11 @@ public class MessageTest
         var timestamp = DateTimeOffset.UtcNow;
         var badPrivateKey = new PrivateKey();
         var codec = new NetMQMessageCodec();
-        Assert.Throws<InvalidCredentialException>(() =>
+        Assert.Throws<InvalidOperationException>(() =>
             codec.Encode(
                 new MessageEnvelope
                 {
+                    Id = Guid.NewGuid(),
                     Message = ping,
                     Protocol = apv,
                     Remote = peer,
@@ -67,6 +69,7 @@ public class MessageTest
         var netMqMessage = codec.Encode(
             new MessageEnvelope
             {
+                Id = Guid.NewGuid(),
                 Message = ping,
                 Protocol = apv,
                 Remote = peer,
@@ -78,6 +81,7 @@ public class MessageTest
         var fakeMessage = codec.Encode(
             new MessageEnvelope
             {
+                Id = Guid.NewGuid(),
                 Message = ping,
                 Protocol = apv,
                 Remote = fakePeer,
@@ -91,8 +95,8 @@ public class MessageTest
         frames.Push(netMqMessage[1]);
         frames.Push(netMqMessage[0]);
 
-        Assert.Throws<InvalidMessageSignatureException>(() =>
-            codec.Decode(frames, true));
+        Assert.Throws<InvalidOperationException>(() =>
+            codec.Decode(frames));
     }
 
     [Fact]
@@ -103,7 +107,7 @@ public class MessageTest
         var privateKey = new PrivateKey();
         var apv = Protocol.Create(new PrivateKey(), 1);
         Assert.Throws<ArgumentException>(
-            () => codec.Decode(new NetMQMessage(), true));
+            () => codec.Decode(new NetMQMessage()));
     }
 
     [Fact]

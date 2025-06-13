@@ -75,13 +75,7 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
         return hash.ToHashCode();
     }
 
-    public byte[] Sign(byte[] message) => CryptoConfig.CryptoBackend.Sign(message, this);
-
-    public ImmutableArray<byte> Sign(ImmutableArray<byte> message)
-    {
-        var signature = CryptoConfig.CryptoBackend.Sign([.. message], this);
-        return Unsafe.As<byte[], ImmutableArray<byte>>(ref signature);
-    }
+    public byte[] Sign(ReadOnlySpan<byte> message) => CryptoConfig.CryptoBackend.Sign(message, this);
 
     public byte[] Decrypt(byte[] ciphertext)
     {

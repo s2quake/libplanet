@@ -22,6 +22,7 @@ public static class BoundPeerExtensions
         NetMQMessage request = netMQMessageCodec.Encode(
             new MessageEnvelope
             {
+                Id = Guid.NewGuid(),
                 Message = ping,
                 Protocol = default,
                 Remote = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
@@ -61,7 +62,7 @@ public static class BoundPeerExtensions
         var port = peer.EndPoint.Port;
         var addresses = await Dns.GetHostAddressesAsync(host, cancellationToken).ConfigureAwait(false);
         var ipv4 = addresses.FirstOrDefault(addr => addr.AddressFamily is AddressFamily.InterNetwork)
-            ?? throw new TransportException($"Failed to resolve for {host}");
+            ?? throw new InvalidOperationException($"Failed to resolve for {host}");
 
         return $"tcp://{ipv4}:{port}";
     }
