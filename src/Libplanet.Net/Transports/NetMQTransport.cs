@@ -23,15 +23,15 @@ public sealed class NetMQTransport : ITransport
     private readonly HostOptions _hostOptions;
     private readonly NetMQMessageCodec _messageCodec = new();
     private readonly Channel<MessageRequest> _requests = Channel.CreateUnbounded<MessageRequest>();
-    private readonly Task _runtimeProcessor;
 
     private NetMQQueue<(AsyncManualResetEvent, MessageEnvelope)>? _replyQueue;
 
     private readonly RouterSocket _router = new();
     private readonly int _port;
     private NetMQPoller? _routerPoller;
+    private NetMQRuntime? _runtime;
 
-    private CancellationTokenSource _runtimeCancellationTokenSource = new();
+    private CancellationTokenSource? _cancellationTokenSource = new();
 
     // Used only for logging.
     private long _requestCount;
@@ -53,26 +53,27 @@ public sealed class NetMQTransport : ITransport
         _hostOptions = hostOptions;
         _protocolOptions = protocolOptions;
         _requestCount = 0;
-        CancellationToken runtimeCt = _runtimeCancellationTokenSource.Token;
-        _runtimeProcessor = Task.Factory.StartNew(
-            () =>
-            {
-                // Ignore NetMQ related exceptions during NetMQRuntime.Dispose() to stabilize
-                // tests
-                try
-                {
-                    using var runtime = new NetMQRuntime();
-                    runtime.Run(ProcessRuntimeAsync(runtimeCt));
-                }
-                catch (Exception e)
-                    when (e is NetMQException || e is ObjectDisposedException)
-                {
-                    // log
-                }
-            },
-            runtimeCt,
-            TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        // _netMQRuntime.Run(ProcessRuntimeAsync(runtimeCt))
+        // CancellationToken runtimeCt = _runtimeCancellationTokenSource.Token;
+        // _runtimeProcessor = Task.Factory.StartNew(
+        //     () =>
+        //     {
+        //         // Ignore NetMQ related exceptions during NetMQRuntime.Dispose() to stabilize
+        //         // tests
+        //         try
+        //         {
+        //             using var runtime = new NetMQRuntime();
+        //             runtime.Run(ProcessRuntimeAsync(runtimeCt));
+        //         }
+        //         catch (Exception e)
+        //             when (e is NetMQException || e is ObjectDisposedException)
+        //         {
+        //             // log
+        //         }
+        //     },
+        //     runtimeCt,
+        //     TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
+        //     TaskScheduler.Default);
     }
 
     public AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; } = new AsyncDelegate<MessageEnvelope>();
@@ -98,9 +99,9 @@ public sealed class NetMQTransport : ITransport
             throw new InvalidOperationException("Transport is already running.");
         }
 
-        _runtimeCancellationTokenSource =
-            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
+        _cancellationTokenSource = new CancellationTokenSource();
+        _runtime = new NetMQRuntime();
+        _runtime.Run(ProcessRuntimeAsync(_cancellationTokenSource.Token));
         _replyQueue = new NetMQQueue<(AsyncManualResetEvent, MessageEnvelope)>();
         _routerPoller = [_router, _replyQueue];
 
@@ -125,14 +126,21 @@ public sealed class NetMQTransport : ITransport
             throw new InvalidOperationException("Transport is not running.");
         }
 
-        if (_routerPoller is not null)
+        if (_cancellationTokenSource is not null)
         {
-            _routerPoller.Stop();
-            while (_routerPoller.IsRunning)
-            {
-                await Task.Yield();
-            }
+            await _cancellationTokenSource.CancelAsync();
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = null;
         }
+
+        if (_routerPoller is not null)
+            {
+                _routerPoller.Stop();
+                while (_routerPoller.IsRunning)
+                {
+                    await Task.Yield();
+                }
+            }
 
         if (_replyQueue is not null)
         {
@@ -143,7 +151,12 @@ public sealed class NetMQTransport : ITransport
 
         _router.ReceiveReady -= Router_ReceiveReady!;
 
-        await _runtimeCancellationTokenSource.CancelAsync();
+        if (_runtime is not null)
+        {
+            _runtime.Dispose();
+            _runtime = null;
+        }
+
         IsRunning = false;
     }
 
@@ -157,9 +170,6 @@ public sealed class NetMQTransport : ITransport
         if (!_disposed)
         {
             _requests.Writer.TryComplete();
-            _runtimeCancellationTokenSource.Cancel();
-            _runtimeProcessor.WaitWithoutException();
-            _runtimeCancellationTokenSource.Dispose();
 
             if (_router is { } router && !router.IsDisposed)
             {
@@ -208,7 +218,7 @@ public sealed class NetMQTransport : ITransport
 
         using CancellationTokenSource linkedCts =
             CancellationTokenSource.CreateLinkedTokenSource(
-                _runtimeCancellationTokenSource.Token,
+                _cancellationTokenSource.Token,
                 cancellationToken,
                 timerCts.Token);
         CancellationToken linkedCt = linkedCts.Token;
@@ -275,7 +285,7 @@ public sealed class NetMQTransport : ITransport
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        CancellationToken ct = _runtimeCancellationTokenSource.Token;
+        CancellationToken ct = _cancellationTokenSource.Token;
         List<Peer> boundPeers = peers.ToList();
         Task.Run(
             async () =>
@@ -308,27 +318,6 @@ public sealed class NetMQTransport : ITransport
         await ev.WaitAsync(cancellationToken);
     }
 
-    // private void Initialize()
-    // {
-    //     _router.Options.RouterHandover = true;
-    //     int listenPort = 0;
-
-    //     if (_hostOptions.Port == 0)
-    //     {
-    //         listenPort = _router.BindRandomPort("tcp://*");
-    //     }
-    //     else
-    //     {
-    //         listenPort = _hostOptions.Port;
-    //         _router.Bind($"tcp://*:{listenPort}");
-    //     }
-
-    //     if (_hostOptions.Host is { } host)
-    //     {
-    //         _hostEndPoint = new DnsEndPoint(host, listenPort);
-    //     }
-    // }
-
     private static int Initialize(RouterSocket routerSocket, int port)
     {
         if (port == 0)
@@ -354,7 +343,7 @@ public sealed class NetMQTransport : ITransport
                     break;
                 }
 
-                if (_runtimeCancellationTokenSource.IsCancellationRequested)
+                if (_cancellationTokenSource.IsCancellationRequested)
                 {
                     return;
                 }
@@ -387,7 +376,7 @@ public sealed class NetMQTransport : ITransport
                             await ReplyMessageAsync(
                                 diffVersion,
                                 Guid.NewGuid(),
-                                _runtimeCancellationTokenSource.Token);
+                                _cancellationTokenSource.Token);
                         }
                     },
                     CancellationToken.None,
