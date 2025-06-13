@@ -638,16 +638,13 @@ namespace Libplanet.Net.Tests
             var policy = new BlockchainOptions();
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
-            var apv = Protocol.Create(key, 1);
-            var apvOptions = new ProtocolOptions() { Protocol = apv };
+            var protocol = Protocol.Create(key, 1);
+            var protocolOptions = new ProtocolOptions() { Protocol = protocol };
             var hostOptions = new HostOptions
             {
                 Host = IPAddress.Loopback.ToString(),
             };
-            var transport = await NetMQTransport.Create(
-                key,
-                apvOptions,
-                hostOptions);
+            var transport = new NetMQTransport(key, protocolOptions, hostOptions);
 
             // TODO: Check Consensus Parameters.
             Assert.Throws<ArgumentNullException>(() =>
@@ -1494,7 +1491,7 @@ namespace Libplanet.Net.Tests
                     options: options,
                     appProtocolVersionOptions: apvOptions)
                 .ConfigureAwait(false);
-            NetMQTransport transport = await NetMQTransport.Create(
+            NetMQTransport transport = new NetMQTransport(
                 key,
                 apvOptions,
                 new HostOptions { Host = "localhost" });
@@ -1554,7 +1551,7 @@ namespace Libplanet.Net.Tests
                     options: options,
                     appProtocolVersionOptions: apvOptions)
                 .ConfigureAwait(false);
-            NetMQTransport transport = await NetMQTransport.Create(
+            NetMQTransport transport = new NetMQTransport(
                 key,
                 apvOptions,
                 new HostOptions { Host = "localhost" });

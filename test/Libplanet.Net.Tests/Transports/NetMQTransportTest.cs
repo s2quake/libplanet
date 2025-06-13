@@ -19,14 +19,7 @@ namespace Libplanet.Net.Tests.Transports
 
         public NetMQTransportTest(ITestOutputHelper testOutputHelper)
         {
-            TransportConstructor = async (
-                    privateKey,
-                    appProtocolVersionOptions,
-                    hostOptions) =>
-                await CreateNetMQTransport(
-                    privateKey,
-                    appProtocolVersionOptions,
-                    hostOptions);
+            TransportConstructor = CreateNetMQTransport;
 
             const string outputTemplate =
                 "{Timestamp:HH:mm:ss:ffffff}[{ThreadId}] - {Message}";
@@ -53,7 +46,7 @@ namespace Libplanet.Net.Tests.Transports
             {
                 // An arbitrary number to fit one transport testing.
                 NetMQConfig.MaxSockets = 12;
-                NetMQTransport transport = await NetMQTransport.Create(
+                NetMQTransport transport = new NetMQTransport(
                     new PrivateKey(),
                     new ProtocolOptions(),
                     new HostOptions
@@ -131,13 +124,13 @@ namespace Libplanet.Net.Tests.Transports
             }
         }
 
-        private Task<NetMQTransport> CreateNetMQTransport(
+        private NetMQTransport CreateNetMQTransport(
             PrivateKey privateKey,
             ProtocolOptions appProtocolVersionOptions,
             HostOptions hostOptions)
         {
             privateKey = privateKey ?? new PrivateKey();
-            return NetMQTransport.Create(
+            return new NetMQTransport(
                 privateKey,
                 appProtocolVersionOptions,
                 hostOptions);

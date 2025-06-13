@@ -82,7 +82,7 @@ internal sealed class SwarmService(
         var trustedAppProtocolVersionSigners = nodeOptions.TrustedAppProtocolVersionSigners
             .Select(Address.Parse).ToArray();
         var swarmEndPoint = (DnsEndPoint)EndPointUtility.Parse(nodeOptions.EndPoint);
-        var swarmTransport = await CreateTransport(
+        var swarmTransport = CreateTransport(
             privateKey: privateKey,
             endPoint: swarmEndPoint,
             protocol: appProtocolVersion);
@@ -97,11 +97,7 @@ internal sealed class SwarmService(
         };
 
         var consensusTransport = _validatorOptions.IsEnabled
-            ? await CreateConsensusTransportAsync(
-                privateKey,
-                appProtocolVersion,
-                _validatorOptions,
-                cancellationToken)
+            ? CreateConsensusTransport(privateKey, appProtocolVersion, _validatorOptions)
             : null;
         var consensusReactorOption = _validatorOptions.IsEnabled
             ? CreateConsensusReactorOption(privateKey, _validatorOptions)
@@ -176,7 +172,7 @@ internal sealed class SwarmService(
         }
     }
 
-    private static async Task<NetMQTransport> CreateTransport(
+    private static NetMQTransport CreateTransport(
         PrivateKey privateKey,
         DnsEndPoint endPoint,
         Protocol protocol)
@@ -186,10 +182,7 @@ internal sealed class SwarmService(
             Protocol = protocol,
         };
         var hostOptions = new Net.Options.HostOptions { Host = endPoint.Host, Port = endPoint.Port };
-        return await NetMQTransport.Create(
-            privateKey,
-            protocolOptions,
-            hostOptions);
+        return new(privateKey, protocolOptions, hostOptions);
     }
 
     private static ConsensusReactorOption CreateConsensusReactorOption(
@@ -207,17 +200,10 @@ internal sealed class SwarmService(
         };
     }
 
-    private static async Task<NetMQTransport> CreateConsensusTransportAsync(
-        PrivateKey privateKey,
-        Protocol protocol,
-        ValidatorOptions options,
-        CancellationToken cancellationToken)
+    private static NetMQTransport CreateConsensusTransport(
+        PrivateKey privateKey, Protocol protocol, ValidatorOptions options)
     {
         var consensusEndPoint = (DnsEndPoint)EndPointUtility.Parse(options.EndPoint);
-        await Task.Delay(1, cancellationToken);
-        return await CreateTransport(
-            privateKey: privateKey,
-            endPoint: consensusEndPoint,
-            protocol: protocol);
+        return CreateTransport(privateKey, consensusEndPoint, protocol);
     }
 }

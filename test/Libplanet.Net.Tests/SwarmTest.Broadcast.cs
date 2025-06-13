@@ -966,7 +966,7 @@ namespace Libplanet.Net.Tests
             var apv = new ProtocolOptions();
             Swarm receiver =
                 await CreateSwarm(appProtocolVersionOptions: apv);
-            ITransport mockTransport = await NetMQTransport.Create(
+            ITransport mockTransport = new NetMQTransport(
                 new PrivateKey(),
                 apv,
                 new HostOptions

@@ -22,14 +22,14 @@ namespace Libplanet.Net.Tests.Transports
 
         protected ILogger Logger { get; set; }
 
-        #pragma warning disable MEN002
-        protected Func<PrivateKey, ProtocolOptions, HostOptions, Task<ITransport>> TransportConstructor { get; set; }
-        #pragma warning restore MEN002
+#pragma warning disable MEN002
+        protected Func<PrivateKey, ProtocolOptions, HostOptions, ITransport> TransportConstructor { get; set; }
+#pragma warning restore MEN002
 
         [SkippableFact(Timeout = Timeout)]
         public async Task StartAsync()
         {
-            ITransport transport = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transport = CreateTransport();
 
             try
             {
@@ -46,7 +46,7 @@ namespace Libplanet.Net.Tests.Transports
         [SkippableFact(Timeout = Timeout)]
         public async Task RestartAsync()
         {
-            ITransport transport = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transport = CreateTransport();
 
             try
             {
@@ -72,7 +72,7 @@ namespace Libplanet.Net.Tests.Transports
         [SkippableFact(Timeout = Timeout)]
         public async Task DisposeTest()
         {
-            ITransport transport = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transport = CreateTransport();
 
             try
             {
@@ -126,8 +126,7 @@ namespace Libplanet.Net.Tests.Transports
         {
             var privateKey = new PrivateKey();
             string host = IPAddress.Loopback.ToString();
-            ITransport transport =
-                await CreateTransportAsync(privateKey: privateKey).ConfigureAwait(false);
+            ITransport transport = CreateTransport(privateKey: privateKey);
 
             try
             {
@@ -146,8 +145,8 @@ namespace Libplanet.Net.Tests.Transports
         [SkippableFact(Timeout = Timeout)]
         public async Task SendMessageAsync()
         {
-            ITransport transportA = await CreateTransportAsync().ConfigureAwait(false);
-            ITransport transportB = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transportA = CreateTransport();
+            ITransport transportB = CreateTransport();
 
             transportB.ProcessMessageHandler.Register(async message =>
             {
@@ -185,8 +184,8 @@ namespace Libplanet.Net.Tests.Transports
         [SkippableFact(Timeout = Timeout)]
         public async Task SendMessageCancelAsync()
         {
-            ITransport transportA = await CreateTransportAsync().ConfigureAwait(false);
-            ITransport transportB = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transportA = CreateTransport();
+            ITransport transportB = CreateTransport();
             var cts = new CancellationTokenSource();
 
             try
@@ -215,8 +214,8 @@ namespace Libplanet.Net.Tests.Transports
         [SkippableFact(Timeout = Timeout)]
         public async Task SendMessageMultipleRepliesAsync()
         {
-            ITransport transportA = await CreateTransportAsync().ConfigureAwait(false);
-            ITransport transportB = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transportA = CreateTransport();
+            ITransport transportB = CreateTransport();
 
             transportB.ProcessMessageHandler.Register(async message =>
             {
@@ -262,8 +261,8 @@ namespace Libplanet.Net.Tests.Transports
         [SkippableFact(Timeout = Timeout)]
         public async Task SendMessageAsyncTimeout()
         {
-            ITransport transportA = await CreateTransportAsync().ConfigureAwait(false);
-            ITransport transportB = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transportA = CreateTransport();
+            ITransport transportB = CreateTransport();
 
             try
             {
@@ -291,7 +290,7 @@ namespace Libplanet.Net.Tests.Transports
         [ClassData(typeof(TransportTestInvalidPeers))]
         public async Task SendMessageToInvalidPeerAsync(Peer invalidPeer)
         {
-            ITransport transport = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transport = CreateTransport();
 
             try
             {
@@ -316,8 +315,8 @@ namespace Libplanet.Net.Tests.Transports
         [SkippableFact(Timeout = Timeout)]
         public async Task SendMessageAsyncCancelWhenTransportStop()
         {
-            ITransport transportA = await CreateTransportAsync().ConfigureAwait(false);
-            ITransport transportB = await CreateTransportAsync().ConfigureAwait(false);
+            ITransport transportA = CreateTransport();
+            ITransport transportB = CreateTransport();
 
             try
             {
@@ -352,11 +351,11 @@ namespace Libplanet.Net.Tests.Transports
         {
             var address = new PrivateKey().Address;
             ITransport transportA = null;
-            ITransport transportB = await CreateTransportAsync(
+            ITransport transportB = CreateTransport(
                 privateKey: GeneratePrivateKeyOfBucketIndex(address, 0));
-            ITransport transportC = await CreateTransportAsync(
+            ITransport transportC = CreateTransport(
                 privateKey: GeneratePrivateKeyOfBucketIndex(address, 1));
-            ITransport transportD = await CreateTransportAsync(
+            ITransport transportD = CreateTransport(
                 privateKey: GeneratePrivateKeyOfBucketIndex(address, 2));
 
             var tcsB = new TaskCompletionSource<MessageEnvelope>();
@@ -391,7 +390,7 @@ namespace Libplanet.Net.Tests.Transports
                 table.AddPeer(transportC.Peer);
                 table.AddPeer(transportD.Peer);
 
-                transportA = await CreateTransportAsync().ConfigureAwait(false);
+                transportA = CreateTransport();
                 await InitializeAsync(transportA);
 
                 transportA.BroadcastMessage(
@@ -426,7 +425,7 @@ namespace Libplanet.Net.Tests.Transports
             await transport.StartAsync(cts);
         }
 
-        private Task<ITransport> CreateTransportAsync(
+        private ITransport CreateTransport(
             PrivateKey privateKey = null,
             ProtocolOptions appProtocolVersionOptions = null,
             HostOptions hostOptions = null,

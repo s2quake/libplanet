@@ -41,7 +41,7 @@ namespace Libplanet.Net.Tests.Transports
                 Port = port,
             };
             var option = new SwarmOptions();
-            var transport = await NetMQTransport.Create(
+            var transport = new NetMQTransport(
                 swarmKey,
                 apvOptions,
                 hostOptions);

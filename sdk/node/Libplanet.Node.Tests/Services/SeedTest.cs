@@ -117,7 +117,7 @@ public class SeedTest
         {
             Protocol = apv,
         };
-        using var transport = await NetMQTransport.Create(
+        using var transport = new NetMQTransport(
             remotePrivateKey, remoteAPVOptions, remoteHostOptions);
 
         var seedPrivateKey = new RandomPrivateKey();
@@ -171,7 +171,7 @@ public class SeedTest
             remotePrivateKeys[i] = new RandomPrivateKey();
             remoteEndPoints[i] = new RandomEndPoint();
             remoteBoundPeers[i] = new Net.Peer { Address = remotePrivateKeys[i].Address, EndPoint = remoteEndPoints[i] };
-            transports[i] = await NetMQTransport.Create(
+            transports[i] = new NetMQTransport(
                 privateKey: remotePrivateKeys[i],
                 protocolOptions: remoteAPVOptions,
                 hostOptions: new HostOptions { Host = remoteEndPoints[i].Host, Port = remoteEndPoints[i].Port });

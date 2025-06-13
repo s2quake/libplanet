@@ -376,10 +376,10 @@ namespace Libplanet.Net.Tests.Consensus
                 hostOptions = new HostOptions { Host = "127.0.0.1" };
             }
 
-            return NetMQTransport.Create(
+            return new NetMQTransport(
                 privateKey ?? new PrivateKey(),
                 apvOptions,
-                hostOptions).ConfigureAwait(false).GetAwaiter().GetResult();
+                hostOptions);
         }
     }
 }
