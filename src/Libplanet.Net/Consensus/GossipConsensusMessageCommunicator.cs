@@ -100,14 +100,14 @@ namespace Libplanet.Net.Consensus
             {
                 if (voteMsg.Height != _height)
                 {
-                    throw new InvalidConsensusMessageException(
-                        $"Cannot send vote of height different from context's", voteMsg);
+                    throw new InvalidOperationException(
+                        $"Cannot send vote of height different from context's");
                 }
 
                 if (voteMsg.Round > _round)
                 {
-                    throw new InvalidConsensusMessageException(
-                        $"Cannot send vote of round higher than context's", voteMsg);
+                    throw new InvalidOperationException(
+                        $"Cannot send vote of round higher than context's");
                 }
             }
         }
@@ -120,9 +120,8 @@ namespace Libplanet.Net.Consensus
         {
             if (voteMsg.Height != _height)
             {
-                throw new InvalidConsensusMessageException(
-                    $"Filtered vote from different height: {voteMsg.Height}",
-                    voteMsg);
+                throw new InvalidOperationException(
+                    $"Filtered vote from different height: {voteMsg.Height}");
             }
         }
 
@@ -145,10 +144,9 @@ namespace Libplanet.Net.Consensus
                 if (_peerCatchupRounds.TryGetValue(peer, out var set) && set.Count > 2)
                 {
                     Gossip.DenyPeer(peer);
-                    throw new InvalidConsensusMessageException(
+                    throw new InvalidOperationException(
                         $"Add {peer} to deny set, since repetitively found higher rounds: " +
-                        $"{string.Join(", ", _peerCatchupRounds[peer])}",
-                        voteMsg);
+                        $"{string.Join(", ", _peerCatchupRounds[peer])}");
                 }
             }
         }

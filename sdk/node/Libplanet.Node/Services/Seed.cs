@@ -44,8 +44,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
             = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _transport = await CreateTransport();
         _transport.ProcessMessageHandler.Register(ReceiveMessageAsync);
-        _task = _transport.StartAsync(_cancellationTokenSource.Token);
-        await _transport.WaitForRunningAsync();
+        await _transport.StartAsync(_cancellationTokenSource.Token);
         _refreshTask = RefreshContinuouslyAsync(_cancellationTokenSource.Token);
         IsRunning = true;
     }
@@ -66,7 +65,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
 
         if (_transport is not null)
         {
-            await _transport.StopAsync(TimeSpan.FromSeconds(0), cancellationToken);
+            await _transport.StopAsync(cancellationToken);
             _transport.Dispose();
             _transport = null;
         }
@@ -139,7 +138,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
             throw new InvalidOperationException("Seed node is not running.");
         }
 
-        var messageIdentity = message.Identity;
+        var messageIdentity = message.Id;
         var cancellationToken = _cancellationTokenSource.Token;
         var transport = _transport;
         var peers = Peers;
@@ -160,8 +159,8 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
             default:
                 var pongMsg = new PongMessage();
                 await transport.ReplyMessageAsync(
-                    content: pongMsg,
-                    identity: messageIdentity,
+                    message: pongMsg,
+                    id: messageIdentity,
                     cancellationToken: cancellationToken);
                 break;
         }

@@ -77,7 +77,7 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// Whether this <see cref="ConsensusReactor"/> is running.
         /// </summary>
-        public bool Running => _gossip.Running;
+        public bool Running => _gossip.IsRunning;
 
         /// <summary>
         /// The index of block that <see cref="ConsensusContext"/> is watching. The value can be
@@ -110,10 +110,8 @@ namespace Libplanet.Net.Consensus
         /// <returns>Returns the <see cref="ITransport.StartAsync"/>.</returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            Task task = _gossip.StartAsync(cancellationToken);
-            await _gossip.WaitForRunningAsync();
+            await _gossip.StartAsync(cancellationToken);
             _consensusContext.Start();
-            await task;
         }
 
         /// <summary>
@@ -124,7 +122,7 @@ namespace Libplanet.Net.Consensus
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             _consensusContext.Dispose();
-            await _gossip.StopAsync(TimeSpan.FromMilliseconds(10), cancellationToken);
+            await _gossip.StopAsync(cancellationToken);
         }
 
         /// <summary>

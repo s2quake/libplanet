@@ -23,7 +23,6 @@ public sealed class Gossip : IDisposable
     private readonly Action<IMessage> _processMessage;
     private readonly IEnumerable<Peer> _seeds;
 
-    private TaskCompletionSource<object?> _runningEvent;
     private CancellationTokenSource? _cancellationTokenSource;
     private readonly RoutingTable _table;
     private readonly HashSet<Peer> _denySet;
@@ -43,41 +42,25 @@ public sealed class Gossip : IDisposable
         _validateMessageToReceive = validateMessageToReceive;
         _validateMessageToSend = validateMessageToSend;
         _processMessage = processMessage;
-        _table = new RoutingTable(transport.AsPeer.Address);
+        _table = new RoutingTable(transport.Peer.Address);
 
         // FIXME: Dumb way to add peer.
-        foreach (Peer peer in peers.Where(p => p.Address != transport.AsPeer.Address))
+        foreach (Peer peer in peers.Where(p => p.Address != transport.Peer.Address))
         {
             _table.AddPeer(peer);
         }
 
-        _kademlia = new Kademlia(_table, _transport, transport.AsPeer.Address);
+        _kademlia = new Kademlia(_table, _transport, transport.Peer.Address);
         _seeds = seeds;
 
-        _runningEvent = new TaskCompletionSource<object?>();
         _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
         _denySet = new HashSet<Peer>();
-        Running = false;
+        IsRunning = false;
     }
 
-    public bool Running
-    {
-        get => _runningEvent.Task.Status == TaskStatus.RanToCompletion;
+    public bool IsRunning { get; private set; }
 
-        private set
-        {
-            if (value)
-            {
-                _runningEvent.TrySetResult(null);
-            }
-            else
-            {
-                _runningEvent = new TaskCompletionSource<object?>();
-            }
-        }
-    }
-
-    public Peer AsPeer => _transport.AsPeer;
+    public Peer AsPeer => _transport.Peer;
 
     public IEnumerable<Peer> Peers => _table.Peers;
 
@@ -86,30 +69,33 @@ public sealed class Gossip : IDisposable
     public async Task StartAsync(CancellationToken ctx)
     {
         _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(ctx);
-        Task transportTask = _transport.StartAsync(ctx);
-        await _transport.WaitForRunningAsync();
+        await _transport.StartAsync(ctx);
+
         try
         {
             await _kademlia.BootstrapAsync(_seeds, TimeSpan.FromSeconds(1), 3, ctx);
         }
-        catch (PeerDiscoveryException pde)
+        catch (InvalidOperationException pde)
         {
             // do noghing
         }
 
         _transport.ProcessMessageHandler.Register(HandleMessageAsync(_cancellationTokenSource.Token));
-        Running = true;
+        IsRunning = true;
         await Task.WhenAny(
-            transportTask,
             RefreshTableAsync(_cancellationTokenSource.Token),
             RebuildTableAsync(_cancellationTokenSource.Token),
             HeartbeatTask(_cancellationTokenSource.Token));
     }
 
-    public async Task StopAsync(TimeSpan waitFor, CancellationToken ctx)
+    public async Task StopAsync(CancellationToken ctx)
     {
-        _cancellationTokenSource?.Cancel();
-        await _transport.StopAsync(waitFor, ctx);
+        if (_cancellationTokenSource is not null)
+        {
+            await _cancellationTokenSource.CancelAsync();
+        }
+
+        await _transport.StopAsync(ctx);
     }
 
     public void ClearCache()
@@ -124,8 +110,6 @@ public sealed class Gossip : IDisposable
         _cache.Clear();
         _transport.Dispose();
     }
-
-    public Task WaitForRunningAsync() => _runningEvent.Task;
 
     public void PublishMessage(IMessage content) => PublishMessage(
         content,
@@ -344,7 +328,7 @@ public sealed class Gossip : IDisposable
                 try
                 {
                     _validateMessageToSend(c);
-                    await _transport.ReplyMessageAsync(c, msg.Identity, ctx);
+                    await _transport.ReplyMessageAsync(c, msg.Id, ctx);
                 }
                 catch (Exception e)
                 {
@@ -397,6 +381,6 @@ public sealed class Gossip : IDisposable
 
     private async Task ReplyMessagePongAsync(MessageEnvelope message, CancellationToken ctx)
     {
-        await _transport.ReplyMessageAsync(new PongMessage(), message.Identity, ctx);
+        await _transport.ReplyMessageAsync(new PongMessage(), message.Id, ctx);
     }
 }

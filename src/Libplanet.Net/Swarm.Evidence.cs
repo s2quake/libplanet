@@ -48,7 +48,7 @@ namespace Libplanet.Net
                     cancellationToken)
                 .ConfigureAwait(false);
             }
-            catch (CommunicationFailException e) when (e.InnerException is TimeoutException)
+            catch (InvalidOperationException e) when (e.InnerException is TimeoutException)
             {
                 yield break;
             }
@@ -67,7 +67,7 @@ namespace Libplanet.Net
                         $"the {nameof(GetEvidenceMessage)} message, but got a " +
                         $"{message.GetType().Name} " +
                         $"message instead: {message}";
-                    throw new InvalidMessageContentException(errorMessage, message.Message);
+                    throw new InvalidOperationException(errorMessage);
                 }
             }
         }
@@ -154,7 +154,7 @@ namespace Libplanet.Net
                         {
                             Payload = [.. ModelSerializer.SerializeToBytes(ev)],
                         };
-                        await Transport.ReplyMessageAsync(response, message.Identity, default);
+                        await Transport.ReplyMessageAsync(response, message.Id, default);
                     }
                     catch (KeyNotFoundException)
                     {

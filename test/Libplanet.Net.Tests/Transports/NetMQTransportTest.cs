@@ -65,7 +65,7 @@ namespace Libplanet.Net.Tests.Transports
                     {
                         await transport.ReplyMessageAsync(
                             new PongMessage(),
-                            m.Identity,
+                            m.Id,
                             CancellationToken.None);
                     });
                 await InitializeAsync(transport);
@@ -84,8 +84,8 @@ namespace Libplanet.Net.Tests.Transports
                     EndPoint = new DnsEndPoint(invalidHost, 0),
                 };
 
-                CommunicationFailException exc =
-                    await Assert.ThrowsAsync<CommunicationFailException>(
+                InvalidOperationException exc =
+                    await Assert.ThrowsAsync<InvalidOperationException>(
                         () => transport.SendMessageAsync(
                             invalidPeer,
                             new PingMessage(),
@@ -98,13 +98,13 @@ namespace Libplanet.Net.Tests.Transports
 
                 // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
                 MessageEnvelope reply = await transport.SendMessageAsync(
-                    transport.AsPeer,
+                    transport.Peer,
                     new PingMessage(),
                     TimeSpan.FromSeconds(1),
                     default);
                 Assert.IsType<PongMessage>(reply.Message);
 
-                await transport.StopAsync(TimeSpan.Zero, CancellationToken.None);
+                await transport.StopAsync(CancellationToken.None);
             }
             finally
             {

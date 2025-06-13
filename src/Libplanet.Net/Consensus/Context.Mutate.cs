@@ -72,9 +72,9 @@ namespace Libplanet.Net.Consensus
         /// </param>
         /// <remarks>
         /// If an invalid <see cref="ConsensusMessage"/> is given, this method throws
-        /// an <see cref="InvalidConsensusMessageException"/> and handles it <em>internally</em>
+        /// an <see cref="InvalidOperationException"/> and handles it <em>internally</em>
         /// while invoking <see cref="ExceptionOccurred"/> event.
-        /// An <see cref="InvalidConsensusMessageException"/> can be thrown when
+        /// An <see cref="InvalidOperationException"/> can be thrown when
         /// the internal <see cref="HeightVoteSet"/> does not accept it, i.e.
         /// <see cref="HeightVoteSet.AddVote"/> returns <see langword="false"/>.
         /// </remarks>
@@ -85,16 +85,14 @@ namespace Libplanet.Net.Consensus
             {
                 if (message.Height != Height)
                 {
-                    throw new InvalidConsensusMessageException(
-                        $"Given message's height {message.Height} is invalid",
-                        message);
+                    throw new InvalidOperationException(
+                        $"Given message's height {message.Height} is invalid");
                 }
 
                 if (!_validatorSet.Contains(message.Validator))
                 {
-                    throw new InvalidConsensusMessageException(
-                        $"Given message's validator {message.Validator} is invalid",
-                        message);
+                    throw new InvalidOperationException(
+                        $"Given message's validator {message.Validator} is invalid");
                 }
 
                 if (message is ConsensusProposalMessage proposal)
@@ -143,31 +141,31 @@ namespace Libplanet.Net.Consensus
             }
             catch (InvalidProposalException ipe)
             {
-                var icme = new InvalidConsensusMessageException(
-                    ipe.Message,
-                    message);
-                var msg = $"Failed to add invalid message {message} to the " +
-                          $"{nameof(HeightVoteSet)}";
-                _logger.Error(icme, msg);
-                ExceptionOccurred?.Invoke(this, icme);
+                // var icme = new InvalidOperationException(
+                //     ipe.Message,
+                //     message);
+                // var msg = $"Failed to add invalid message {message} to the " +
+                //           $"{nameof(HeightVoteSet)}";
+                // _logger.Error(icme, msg);
+                ExceptionOccurred?.Invoke(this, ipe);
                 return false;
             }
             catch (InvalidVoteException ive)
             {
-                var icme = new InvalidConsensusMessageException(
-                    ive.Message,
-                    message);
-                var msg = $"Failed to add invalid message {message} to the " +
-                          $"{nameof(HeightVoteSet)}";
-                _logger.Error(icme, msg);
-                ExceptionOccurred?.Invoke(this, icme);
+                // var icme = new InvalidOperationException(
+                //     ive.Message,
+                //     message);
+                // var msg = $"Failed to add invalid message {message} to the " +
+                //           $"{nameof(HeightVoteSet)}";
+                // _logger.Error(icme, msg);
+                ExceptionOccurred?.Invoke(this, ive);
                 return false;
             }
-            catch (InvalidConsensusMessageException icme)
+            catch (Exception icme)
             {
-                var msg = $"Failed to add invalid message {message} to the " +
-                          $"{nameof(HeightVoteSet)}";
-                _logger.Error(icme, msg);
+                // var msg = $"Failed to add invalid message {message} to the " +
+                //           $"{nameof(HeightVoteSet)}";
+                // _logger.Error(icme, msg);
                 ExceptionOccurred?.Invoke(this, icme);
                 return false;
             }

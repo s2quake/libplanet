@@ -42,12 +42,13 @@ public class PeerTest
     public async Task PingAsync_TestAsync()
     {
         var pongMsg = new PongMessage();
-        var apv = Protocol.Create(new(), 0);
+        var protocol = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
+            Id = Guid.NewGuid(),
             Message = pongMsg,
-            Protocol = apv,
+            Protocol = protocol,
             Remote = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };
@@ -73,13 +74,14 @@ public class PeerTest
     [Fact]
     public async Task PingAsync_Cancel_TestAsync()
     {
-        var pongMsg = new PongMessage();
-        var apv = Protocol.Create(new(), 0);
+        var pongMessage = new PongMessage();
+        var protocol = Protocol.Create(new(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
-            Message = pongMsg,
-            Protocol = apv,
+            Id = Guid.NewGuid(),
+            Message = pongMessage,
+            Protocol = protocol,
             Remote = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };

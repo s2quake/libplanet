@@ -66,10 +66,8 @@ namespace Libplanet.Net.Tests.Consensus
 
             try
             {
-                _ = communicator1.Gossip.StartAsync(default);
-                _ = communicator2.Gossip.StartAsync(default);
-                await communicator1.Gossip.WaitForRunningAsync();
-                await communicator2.Gossip.WaitForRunningAsync();
+                await communicator1.Gossip.StartAsync(default);
+                await communicator2.Gossip.StartAsync(default);
 
                 communicator1.OnStartHeight(1);
                 communicator2.OnStartHeight(1);
@@ -111,8 +109,8 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                await communicator1.Gossip.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await communicator2.Gossip.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await communicator1.Gossip.StopAsync(default);
+                await communicator2.Gossip.StopAsync(default);
                 communicator1.Gossip.Dispose();
                 communicator2.Gossip.Dispose();
             }
@@ -180,17 +178,16 @@ namespace Libplanet.Net.Tests.Consensus
                 bool isPeer1Denied = false;
                 while (!isPeer1Denied)
                 {
-                    isPeer1Denied = communicator1.Gossip.DeniedPeers.Contains(transport2.AsPeer);
+                    isPeer1Denied = communicator1.Gossip.DeniedPeers.Contains(transport2.Peer);
                     await Task.Delay(200);
                 }
             }
 
             try
             {
-                _ = communicator1.Gossip.StartAsync(default);
-                _ = transport2.StartAsync();
-                _ = transport3.StartAsync();
-                await communicator1.Gossip.WaitForRunningAsync();
+                await communicator1.Gossip.StartAsync(default);
+                await transport2.StartAsync(default);
+                await transport3.StartAsync(default);
 
                 communicator1.OnStartHeight(1);
                 communicator1.OnStartRound(2);
@@ -312,9 +309,9 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                await communicator1.Gossip.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await transport2.StopAsync(TimeSpan.FromMilliseconds(100), default);
-                await transport3.StopAsync(TimeSpan.FromMilliseconds(100), default);
+                await communicator1.Gossip.StopAsync(default);
+                await transport2.StopAsync(default);
+                await transport3.StopAsync(default);
                 communicator1.Gossip.Dispose();
                 transport2.Dispose();
                 transport3.Dispose();

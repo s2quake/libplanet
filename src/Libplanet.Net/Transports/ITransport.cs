@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Types;
 
 namespace Libplanet.Net.Transports;
 
@@ -9,38 +8,33 @@ public interface ITransport : IDisposable
 {
     AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; }
 
-    Peer AsPeer { get; }
+    Peer Peer { get; }
 
     DateTimeOffset? LastMessageTimestamp { get; }
 
-    bool Running { get; }
+    bool IsRunning { get; }
 
     Protocol Protocol { get; }
 
-    Task StartAsync(CancellationToken cancellationToken = default);
+    Task StartAsync(CancellationToken cancellationToken);
 
-    Task StopAsync(TimeSpan waitFor, CancellationToken cancellationToken = default);
-
-    Task WaitForRunningAsync();
+    Task StopAsync(CancellationToken cancellationToken);
 
     Task<MessageEnvelope> SendMessageAsync(
         Peer peer,
-        IMessage content,
+        IMessage message,
         TimeSpan? timeout,
         CancellationToken cancellationToken);
 
     Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
         Peer peer,
-        IMessage content,
+        IMessage message,
         TimeSpan? timeout,
         int expectedResponses,
         bool returnWhenTimeout,
         CancellationToken cancellationToken);
 
-    void BroadcastMessage(IEnumerable<Peer> peers, IMessage content);
+    void BroadcastMessage(IEnumerable<Peer> peers, IMessage message);
 
-    Task ReplyMessageAsync(
-        IMessage content,
-        byte[] identity,
-        CancellationToken cancellationToken);
+    Task ReplyMessageAsync(IMessage message, Guid id, CancellationToken cancellationToken);
 }

@@ -37,7 +37,7 @@ public partial class Swarm
 
                     return Transport.ReplyMessageAsync(
                         chainStatus,
-                        message.Identity,
+                        message.Id,
                         default);
                 }
 
@@ -60,7 +60,7 @@ public partial class Swarm
                         getBlockHashes.BlockHash);
                     var reply = new BlockHashesMessage { Hashes = [.. hashes] };
 
-                    return Transport.ReplyMessageAsync(reply, message.Identity, default);
+                    return Transport.ReplyMessageAsync(reply, message.Id, default);
                 }
 
             case GetBlocksMessage getBlocksMsg:
@@ -76,14 +76,14 @@ public partial class Swarm
                 ProcessTxIds(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
-                    message.Identity,
+                    message.Id,
                     default);
 
             case EvidenceIdsMessage evidenceIds:
                 ProcessEvidenceIds(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
-                    message.Identity,
+                    message.Id,
                     default);
 
             case BlockHashesMessage _:
@@ -96,13 +96,11 @@ public partial class Swarm
                 ProcessBlockHeader(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
-                    message.Identity,
+                    message.Id,
                     default);
 
             default:
-                throw new InvalidMessageContentException(
-                    $"Failed to handle message: {message.Message}",
-                    message.Message);
+                throw new InvalidOperationException($"Failed to handle message: {message.Message}");
         }
     }
 
@@ -210,7 +208,7 @@ public partial class Swarm
                     }
 
                     MessageBase response = new TransactionMessage { Payload = ModelSerializer.SerializeToBytes(tx) };
-                    await Transport.ReplyMessageAsync(response, message.Identity, default);
+                    await Transport.ReplyMessageAsync(response, message.Id, default);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -257,13 +255,13 @@ public partial class Swarm
         try
         {
             var blocksMsg = (GetBlocksMessage)message.Message;
-            string reqId = !(message.Identity is null) && message.Identity.Length == 16
-                ? new Guid(message.Identity).ToString()
-                : "unknown";
-            _logger.Verbose(
-                "Preparing a {MessageType} message to reply to {Identity}...",
-                nameof(Messages.BlocksMessage),
-                reqId);
+            // string reqId = !(message.Id is null) && message.Id.Length == 16
+            //     ? new Guid(message.Id).ToString()
+            //     : "unknown";
+            // _logger.Verbose(
+            //     "Preparing a {MessageType} message to reply to {Identity}...",
+            //     nameof(Messages.BlocksMessage),
+            //     reqId);
 
             var payloads = new List<byte[]>();
 
@@ -275,7 +273,7 @@ public partial class Swarm
                 "a reply to {Identity}...";
             foreach (BlockHash hash in hashes)
             {
-                _logger.Verbose(logMsg, count, total, hash, reqId);
+                // _logger.Verbose(logMsg, count, total, hash, reqId);
                 if (Blockchain.Blocks.TryGetValue(hash, out var block))
                 {
                     byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
@@ -294,7 +292,7 @@ public partial class Swarm
                         "Enqueuing a blocks reply (...{Count}/{Total})...",
                         count,
                         total);
-                    await Transport.ReplyMessageAsync(response, message.Identity, default);
+                    await Transport.ReplyMessageAsync(response, message.Id, default);
                     payloads.Clear();
                 }
             }
@@ -302,37 +300,37 @@ public partial class Swarm
             if (payloads.Any())
             {
                 var response = new BlocksMessage { Payloads = [.. payloads] };
-                _logger.Verbose(
-                    "Enqueuing a blocks reply (...{Count}/{Total}) to {Identity}...",
-                    count,
-                    total,
-                    reqId);
-                await Transport.ReplyMessageAsync(response, message.Identity, default);
+                // _logger.Verbose(
+                //     "Enqueuing a blocks reply (...{Count}/{Total}) to {Identity}...",
+                //     count,
+                //     total,
+                //     reqId);
+                await Transport.ReplyMessageAsync(response, message.Id, default);
             }
 
             if (count == 0)
             {
                 var response = new BlocksMessage { Payloads = [.. payloads] };
-                _logger.Verbose(
-                    "Enqueuing a blocks reply (...{Index}/{Total}) to {Identity}...",
-                    count,
-                    total,
-                    reqId);
-                await Transport.ReplyMessageAsync(response, message.Identity, default);
+                // _logger.Verbose(
+                //     "Enqueuing a blocks reply (...{Index}/{Total}) to {Identity}...",
+                //     count,
+                //     total,
+                //     reqId);
+                await Transport.ReplyMessageAsync(response, message.Id, default);
             }
 
-            _logger.Debug("{Count} blocks were transferred to {Identity}", count, reqId);
+            // _logger.Debug("{Count} blocks were transferred to {Identity}", count, reqId);
         }
         finally
         {
             int count = _transferBlocksSemaphore.Release();
             if (count >= 0)
             {
-                _logger.Debug(
-                    "{Count}/{Limit} tasks are remaining for handling {FName}",
-                    count,
-                    Options.TaskRegulationOptions.MaxTransferBlocksTaskCount,
-                    nameof(TransferBlocksAsync));
+                // _logger.Debug(
+                //     "{Count}/{Limit} tasks are remaining for handling {FName}",
+                //     count,
+                //     Options.TaskRegulationOptions.MaxTransferBlocksTaskCount,
+                //     nameof(TransferBlocksAsync));
             }
         }
     }
