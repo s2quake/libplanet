@@ -60,8 +60,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    public DateTimeOffset? LastMessageTimestamp { get; private set; }
-
     public bool IsRunning { get; private set; }
 
     public Protocol Protocol => protocolOptions.Protocol;
@@ -319,63 +317,30 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         return port;
     }
 
-    private void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
+    private async void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
     {
         try
         {
-            var raw = new NetMQMessage();
-
-            // execution limit to avoid starvation.
+            var rawMessage = new NetMQMessage();
             for (var i = 0; i < 1_000; i++)
             {
-                if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref raw))
+                if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref rawMessage))
                 {
                     break;
                 }
 
-                if (_cancellationTokenSource.IsCancellationRequested)
+                if (_cancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
 
-                LastMessageTimestamp = DateTimeOffset.UtcNow;
-
-                // Duplicate received message before distributing.
-                var copied = new NetMQMessage(raw.Select(f => f.Duplicate()));
-
-                Task.Factory.StartNew(
-                    async () =>
-                    {
-                        MessageEnvelope message = _messageCodec.Decode(copied);
-                        string reqId = copied[0].Buffer.Length == 16 ?
-                            new Guid(copied[0].ToByteArray()).ToString() : "unknown";
-
-                        try
-                        {
-                            message.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
-                            await ProcessMessageHandler.InvokeAsync(message);
-                        }
-                        catch (InvalidOperationException dapve)
-                        {
-                            const string logMsg =
-                                "Received Request {RequestId} {Content} " +
-                                "from {Peer} has an invalid APV {Apv}";
-
-                            var diffVersion = new DifferentVersionMessage();
-
-                            await ReplyMessageAsync(
-                                diffVersion,
-                                Guid.NewGuid(),
-                                _cancellationTokenSource.Token);
-                        }
-                    },
-                    CancellationToken.None,
-                    TaskCreationOptions.HideScheduler | TaskCreationOptions.DenyChildAttach,
-                    TaskScheduler.Default)
-                .Unwrap();
+                var rawMessage2 = new NetMQMessage(rawMessage.Select(f => f.Duplicate()));
+                var messageEnvelope = _messageCodec.Decode(rawMessage2);
+                messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
+                await ProcessMessageHandler.InvokeAsync(messageEnvelope);
             }
         }
-        catch (Exception ex)
+        catch
         {
             // log
         }

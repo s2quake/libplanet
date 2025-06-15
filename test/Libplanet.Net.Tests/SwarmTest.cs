@@ -1437,35 +1437,6 @@ namespace Libplanet.Net.Tests
             }
         }
 
-        [Fact(Timeout = Timeout)]
-        public async Task LastMessageTimestamp()
-        {
-            Swarm swarm1 = await CreateSwarm();
-            Swarm swarm2 = await CreateSwarm();
-
-            Assert.Null(swarm1.LastMessageTimestamp);
-
-            try
-            {
-                await StartAsync(swarm1);
-                Assert.Null(swarm1.LastMessageTimestamp);
-                DateTimeOffset bootstrappedAt = DateTimeOffset.UtcNow;
-                await BootstrapAsync(swarm2, swarm1.AsPeer);
-                await StartAsync(swarm2);
-
-                Assert.NotNull(swarm1.LastMessageTimestamp);
-                Assert.InRange(
-                    swarm1.LastMessageTimestamp.Value,
-                    bootstrappedAt,
-                    DateTimeOffset.UtcNow);
-            }
-            finally
-            {
-                CleaningSwarm(swarm1);
-                CleaningSwarm(swarm2);
-            }
-        }
-
         [RetryFact(10, Timeout = Timeout)]
         public async Task RegulateGetBlocksMsg()
         {

@@ -147,13 +147,6 @@ namespace Libplanet.Net
 
         public Peer AsPeer => Transport?.Peer;
 
-        /// <summary>
-        /// The last time when any message was arrived.
-        /// It can be <see langword="null"/> if no message has been arrived yet.
-        /// </summary>
-        public DateTimeOffset? LastMessageTimestamp =>
-            Running ? Transport.LastMessageTimestamp : (DateTimeOffset?)null;
-
         public IDictionary<Peer, DateTimeOffset> LastSeenTimestamps { get; private set; }
 
         public IReadOnlyList<Peer> Peers => RoutingTable.Peers;
