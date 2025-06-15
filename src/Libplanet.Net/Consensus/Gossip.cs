@@ -73,7 +73,7 @@ public sealed class Gossip : IDisposable
 
         try
         {
-            await _kademlia.BootstrapAsync(_seeds, TimeSpan.FromSeconds(1), 3, ctx);
+            await _kademlia.BootstrapAsync(_seeds, 3, ctx);
         }
         catch (InvalidOperationException pde)
         {
@@ -293,9 +293,7 @@ public sealed class Gossip : IDisposable
                 MessageEnvelope[] replies = (await _transport.SendMessageAsync(
                     pair.Key,
                     want,
-                    TimeSpan.FromSeconds(1),
                     idsToGet.Length,
-                    true,
                     ctx)).ToArray();
 
                 replies.AsParallel().ForAll(
@@ -347,7 +345,6 @@ public sealed class Gossip : IDisposable
             {
                 await _kademlia.BootstrapAsync(
                     _seeds,
-                    TimeSpan.FromSeconds(1),
                     Kademlia.MaxDepth,
                     ctx);
             }

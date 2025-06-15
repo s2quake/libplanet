@@ -20,19 +20,10 @@ public interface ITransport : IDisposable
 
     Task StopAsync(CancellationToken cancellationToken);
 
-    Task<MessageEnvelope> SendMessageAsync(
-        Peer peer,
-        IMessage message,
-        TimeSpan? timeout,
-        CancellationToken cancellationToken);
+    Task<MessageEnvelope> SendMessageAsync(Peer peer, IMessage message, CancellationToken cancellationToken);
 
     Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
-        Peer peer,
-        IMessage message,
-        TimeSpan? timeout,
-        int expectedResponses,
-        bool returnWhenTimeout,
-        CancellationToken cancellationToken);
+        Peer peer, IMessage message, int expectedResponses, CancellationToken cancellationToken);
 
     void BroadcastMessage(IEnumerable<Peer> peers, IMessage message);
 

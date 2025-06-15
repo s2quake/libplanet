@@ -140,7 +140,7 @@ public class SeedTest
             async () =>
             {
                 await transport.SendMessageAsync(
-                    seedBoundPeer, new PingMessage(), TimeSpan.FromSeconds(10), default);
+                    seedBoundPeer, new PingMessage(), default);
             });
 
         // Then
@@ -195,13 +195,13 @@ public class SeedTest
         await Parallel.ForEachAsync(transports, async (transport, _) =>
         {
             await transport.SendMessageAsync(
-                seedBoundPeer, new PingMessage(), Timeout, default);
+                seedBoundPeer, new PingMessage(), default);
         });
 
         // When
         var transport = transports[Random.Shared.Next(length)];
         var replyMessage = await transport.SendMessageAsync(
-            seedBoundPeer, new FindNeighborsMessage { }, Timeout, default);
+            seedBoundPeer, new FindNeighborsMessage { }, default);
 
         // Then
         Assert.Equal(length, seed.Peers.Count);

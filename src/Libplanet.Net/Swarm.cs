@@ -427,7 +427,6 @@ namespace Libplanet.Net
 
             await PeerDiscovery.BootstrapAsync(
                 seedPeers,
-                dialTimeout,
                 searchDepth,
                 cancellationToken).ConfigureAwait(false);
 
@@ -647,14 +646,12 @@ namespace Libplanet.Net
         public async Task<Peer> FindSpecificPeerAsync(
             Address target,
             int depth = 3,
-            TimeSpan? timeout = null,
             CancellationToken cancellationToken = default)
         {
             Kademlia kademliaProtocol = (Kademlia)PeerDiscovery;
             return await kademliaProtocol.FindSpecificPeerAsync(
                 target,
                 depth,
-                timeout,
                 cancellationToken);
         }
 
@@ -668,7 +665,6 @@ namespace Libplanet.Net
         /// that this operation should be canceled.</param>
         /// <returns>An awaitable task without value.</returns>
         public async Task CheckAllPeersAsync(
-            TimeSpan? timeout = null,
             CancellationToken cancellationToken = default)
         {
             using CancellationTokenSource cts = CancellationTokenSource
@@ -676,7 +672,7 @@ namespace Libplanet.Net
             cancellationToken = cts.Token;
 
             Kademlia kademliaProtocol = (Kademlia)PeerDiscovery;
-            await kademliaProtocol.CheckAllPeersAsync(timeout, cancellationToken);
+            await kademliaProtocol.CheckAllPeersAsync(cancellationToken);
         }
 
         /// <summary>
@@ -691,7 +687,6 @@ namespace Libplanet.Net
         /// <returns>An awaitable task without value.</returns>
         public Task AddPeersAsync(
             IEnumerable<Peer> peers,
-            TimeSpan? timeout,
             CancellationToken cancellationToken = default)
         {
             if (Transport is null)
@@ -704,7 +699,7 @@ namespace Libplanet.Net
                 cancellationToken = _cancellationToken;
             }
 
-            return PeerDiscovery.AddPeersAsync(peers, timeout, cancellationToken);
+            return PeerDiscovery.AddPeersAsync(peers, cancellationToken);
         }
 
         // FIXME: This would be better if it's merged with GetDemandBlockHashes
@@ -728,7 +723,6 @@ namespace Libplanet.Net
                 parsedMessage = await Transport.SendMessageAsync(
                     peer,
                     request,
-                    timeout: Options.TimeoutOptions.GetBlockHashesTimeout,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             catch (CommunicationException)
@@ -829,9 +823,7 @@ namespace Libplanet.Net
                 replies = await Transport.SendMessageAsync(
                     peer,
                     request,
-                    blockRecvTimeout,
                     ((hashCount - 1) / request.ChunkSize) + 1,
-                    false,
                     cancellationToken)
                 .ConfigureAwait(false);
             }
@@ -928,9 +920,7 @@ namespace Libplanet.Net
                 replies = await Transport.SendMessageAsync(
                     peer,
                     request,
-                    txRecvTimeout,
                     txCount,
-                    true,
                     cancellationToken)
                 .ConfigureAwait(false);
             }
@@ -1192,7 +1182,6 @@ namespace Libplanet.Net
                     peer => Transport.SendMessageAsync(
                         peer,
                         new GetChainStatusMessage(),
-                        dialTimeout,
                         cancellationToken)
                     .ContinueWith<(Peer, ChainStatusMessage)>(
                         task =>
@@ -1379,7 +1368,7 @@ namespace Libplanet.Net
                     {
                         try
                         {
-                            await AddPeersAsync(new[] { peer }, timeout, cancellationToken);
+                            await AddPeersAsync(new[] { peer }, cancellationToken);
                         }
                         catch (TimeoutException)
                         {

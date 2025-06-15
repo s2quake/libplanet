@@ -30,7 +30,7 @@ internal sealed class Peer(ITransport transport, Net.Peer boundPeer)
         LifeTime = LastUpdated + LifeTimeSpan;
     }
 
-    public async Task<bool> PingAsync(TimeSpan timeout, CancellationToken cancellationToken)
+    public async Task<bool> PingAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -39,7 +39,6 @@ internal sealed class Peer(ITransport transport, Net.Peer boundPeer)
             var replyMessage = await _transport.SendMessageAsync(
                 BoundPeer,
                 pingMsg,
-                timeout,
                 cancellationToken);
             var latency = Stopwatch.GetElapsedTime(stopwatch.ElapsedTicks);
 

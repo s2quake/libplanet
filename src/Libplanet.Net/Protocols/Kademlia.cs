@@ -85,7 +85,6 @@ public sealed class Kademlia
 
     public async Task BootstrapAsync(
         IEnumerable<Peer> bootstrapPeers,
-        TimeSpan? dialTimeout,
         int depth,
         CancellationToken cancellationToken)
     {
@@ -105,7 +104,7 @@ public sealed class Kademlia
             // Guarantees at least one connection (seed peer)
             try
             {
-                await PingAsync(peer, dialTimeout, cancellationToken)
+                await PingAsync(peer, cancellationToken)
                     .ConfigureAwait(false);
                 findPeerTasks.Add(
                     FindPeerAsync(
@@ -114,7 +113,6 @@ public sealed class Kademlia
                         _address,
                         peer,
                         depth,
-                        dialTimeout,
                         cancellationToken));
             }
             catch (InvalidOperationException)
@@ -140,14 +138,14 @@ public sealed class Kademlia
         await Task.WhenAll(findPeerTasks).ConfigureAwait(false);
     }
 
-    public async Task AddPeersAsync(IEnumerable<Peer> peers, TimeSpan? timeout, CancellationToken cancellationToken)
+    public async Task AddPeersAsync(IEnumerable<Peer> peers, CancellationToken cancellationToken)
     {
         try
         {
             var tasks = new List<Task>();
             foreach (var peer in peers)
             {
-                tasks.Add(PingAsync(peer, timeout, cancellationToken));
+                tasks.Add(PingAsync(peer, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -170,7 +168,7 @@ public sealed class Kademlia
                 {
                     try
                     {
-                        await ValidateAsync(peer, _requestTimeout, cancellationToken);
+                        await ValidateAsync(peer, cancellationToken);
                     }
                     catch (TimeoutException)
                     {
@@ -184,13 +182,13 @@ public sealed class Kademlia
         }
     }
 
-    public async Task CheckAllPeersAsync(TimeSpan? timeout, CancellationToken cancellationToken)
+    public async Task CheckAllPeersAsync(CancellationToken cancellationToken)
     {
         try
         {
             foreach (var peer in _table.Peers)
             {
-                await ValidateAsync(peer, timeout ?? _requestTimeout, cancellationToken)
+                await ValidateAsync(peer, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
@@ -215,7 +213,6 @@ public sealed class Kademlia
                 new Address([.. buffer]),
                 null,
                 depth,
-                _requestTimeout,
                 cancellationToken));
         }
 
@@ -226,7 +223,6 @@ public sealed class Kademlia
                 _address,
                 null,
                 depth,
-                _requestTimeout,
                 cancellationToken));
         try
         {
@@ -244,8 +240,7 @@ public sealed class Kademlia
             foreach (Peer replacement in cache)
             {
                 _table.RemoveCache(replacement);
-                await PingAsync(replacement, _requestTimeout, cancellationToken)
-                    .ConfigureAwait(false);
+                await PingAsync(replacement, cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -253,14 +248,13 @@ public sealed class Kademlia
     public async Task<Peer?> FindSpecificPeerAsync(
         Address target,
         int depth,
-        TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
         if (_table.GetPeer(target) is Peer boundPeer)
         {
             try
             {
-                await PingAsync(boundPeer, _requestTimeout, cancellationToken)
+                await PingAsync(boundPeer, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception)
@@ -291,7 +285,7 @@ public sealed class Kademlia
 
             history.Add(viaPeer);
             IEnumerable<Peer> foundPeers =
-                await GetNeighbors(viaPeer, target, timeout, cancellationToken)
+                await GetNeighbors(viaPeer, target, cancellationToken)
                 .ConfigureAwait(false);
             IEnumerable<Peer> filteredPeers = foundPeers
                 .Where(peer =>
@@ -304,7 +298,7 @@ public sealed class Kademlia
             {
                 try
                 {
-                    await PingAsync(found, _requestTimeout, cancellationToken)
+                    await PingAsync(found, cancellationToken)
                         .ConfigureAwait(false);
                     if (found.Address.Equals(target))
                     {
@@ -333,7 +327,7 @@ public sealed class Kademlia
         return null;
     }
 
-    internal async Task PingAsync(Peer peer, TimeSpan? timeout, CancellationToken cancellationToken)
+    internal async Task PingAsync(Peer peer, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
         {
@@ -343,7 +337,6 @@ public sealed class Kademlia
         MessageEnvelope reply = await _transport.SendMessageAsync(
                 peer,
                 new PingMessage(),
-                timeout,
                 cancellationToken)
             .ConfigureAwait(false);
         if (reply.Message is not PongMessage pong)
@@ -386,13 +379,12 @@ public sealed class Kademlia
 
     private async Task ValidateAsync(
         Peer peer,
-        TimeSpan timeout,
         CancellationToken cancellationToken = default)
     {
         try
         {
             DateTimeOffset check = DateTimeOffset.UtcNow;
-            await PingAsync(peer, timeout, cancellationToken).ConfigureAwait(false);
+            await PingAsync(peer, cancellationToken).ConfigureAwait(false);
             _table.Check(peer, check, DateTimeOffset.UtcNow);
         }
         catch
@@ -417,7 +409,6 @@ public sealed class Kademlia
         Address target,
         Peer? viaPeer,
         int depth,
-        TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
         if (depth == 0)
@@ -428,12 +419,12 @@ public sealed class Kademlia
         IEnumerable<Peer> found;
         if (viaPeer is null)
         {
-            found = await QueryNeighborsAsync(history, target, timeout, cancellationToken)
+            found = await QueryNeighborsAsync(history, target, cancellationToken)
                 .ConfigureAwait(false);
         }
         else
         {
-            found = await GetNeighbors(viaPeer, target, timeout, cancellationToken)
+            found = await GetNeighbors(viaPeer, target, cancellationToken)
                 .ConfigureAwait(false);
             history.Add(viaPeer);
         }
@@ -448,14 +439,12 @@ public sealed class Kademlia
             found,
             target,
             depth,
-            timeout,
             cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<IEnumerable<Peer>> QueryNeighborsAsync(
         ConcurrentBag<Peer> history,
         Address target,
-        TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
         List<Peer> neighbors = _table.Neighbors(target, _table.BucketSize, false).ToList();
@@ -464,7 +453,7 @@ public sealed class Kademlia
         for (var i = 0; i < count; i++)
         {
             var peers =
-                await GetNeighbors(neighbors[i], target, timeout, cancellationToken)
+                await GetNeighbors(neighbors[i], target, cancellationToken)
                 .ConfigureAwait(false);
             history.Add(neighbors[i]);
             found.AddRange(peers.Where(peer => !found.Contains(peer)));
@@ -476,7 +465,6 @@ public sealed class Kademlia
     private async Task<IEnumerable<Peer>> GetNeighbors(
         Peer peer,
         Address target,
-        TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
         var findPeer = new FindNeighborsMessage { Target = target };
@@ -485,7 +473,6 @@ public sealed class Kademlia
             MessageEnvelope reply = await _transport.SendMessageAsync(
                 peer,
                 findPeer,
-                timeout,
                 cancellationToken)
             .ConfigureAwait(false);
             if (reply.Message is not NeighborsMessage neighbors)
@@ -521,7 +508,6 @@ public sealed class Kademlia
         IEnumerable<Peer> found,
         Address target,
         int depth,
-        TimeSpan? timeout,
         CancellationToken cancellationToken)
     {
         List<Peer> peers = found.Where(
@@ -546,7 +532,7 @@ public sealed class Kademlia
                 peer =>
                 {
                     dialHistory.Add(peer);
-                    return PingAsync(peer, _requestTimeout, cancellationToken);
+                    return PingAsync(peer, cancellationToken);
                 })
             .ToList();
         Task aggregateTask = Task.WhenAll(tasks);
@@ -576,7 +562,6 @@ public sealed class Kademlia
                 target,
                 peer,
                 depth == -1 ? depth : depth - 1,
-                timeout,
                 cancellationToken));
             if (count++ >= _findConcurrency)
             {

@@ -82,7 +82,6 @@ namespace Libplanet.Net.Tests.Transports
                         () => transport.SendMessageAsync(
                             invalidPeer,
                             new PingMessage(),
-                            TimeSpan.FromSeconds(5),
                             default));
 
                 // Expecting SocketException about host resolving since `invalidPeer` has an
@@ -93,7 +92,6 @@ namespace Libplanet.Net.Tests.Transports
                 MessageEnvelope reply = await transport.SendMessageAsync(
                     transport.Peer,
                     new PingMessage(),
-                    TimeSpan.FromSeconds(1),
                     default);
                 Assert.IsType<PongMessage>(reply.Message);
 
