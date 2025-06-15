@@ -42,9 +42,7 @@ namespace Libplanet.Net
                 replies = await Transport.SendMessageAsync(
                     peer,
                     request,
-                    evidenceRecvTimeout,
                     evidenceCount,
-                    true,
                     cancellationToken)
                 .ConfigureAwait(false);
             }

@@ -57,7 +57,6 @@ public class PeerTest
         transportMock.Setup(item => item.SendMessageAsync(
             It.IsAny<Net.Peer>(),
             It.IsAny<PingMessage>(),
-            It.IsAny<TimeSpan>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(message);
 
@@ -65,7 +64,7 @@ public class PeerTest
         var timeout = TimeSpan.FromSeconds(1);
         var peer = new Node.Services.Peer(transportMock.Object, boundPeer);
 
-        var result = await peer.PingAsync(timeout, cancellationToken: default);
+        var result = await peer.PingAsync(cancellationToken: default);
 
         transportMock.Verify();
         Assert.True(result);
@@ -101,7 +100,6 @@ public class PeerTest
             .Setup(item => item.SendMessageAsync(
                 It.IsAny<Net.Peer>(),
                 It.IsAny<PingMessage>(),
-                It.IsAny<TimeSpan>(),
                 It.IsAny<CancellationToken>()))
             .Returns(SendMessageAsync);
 
@@ -110,7 +108,7 @@ public class PeerTest
         var peer = new Node.Services.Peer(transportMock.Object, boundPeer);
         using var cancellationTokenSource = new CancellationTokenSource(1);
 
-        var result = await peer.PingAsync(timeout, cancellationTokenSource.Token);
+        var result = await peer.PingAsync(cancellationTokenSource.Token);
 
         Assert.False(result);
         Assert.Equal(TimeSpan.MinValue, peer.Latency);

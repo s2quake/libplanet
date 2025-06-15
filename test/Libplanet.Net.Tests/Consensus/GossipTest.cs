@@ -237,7 +237,6 @@ namespace Libplanet.Net.Tests.Consensus
                 await transport2.SendMessageAsync(
                     gossip.AsPeer,
                     new HaveMessage { Ids = [] },
-                    TimeSpan.FromSeconds(1),
                     default);
 
                 await receivedEvent.WaitAsync();
@@ -320,12 +319,10 @@ namespace Libplanet.Net.Tests.Consensus
                 await sender1.SendMessageAsync(
                     receiver.AsPeer,
                     new HaveMessage { Ids = [msg1.Id, msg2.Id] },
-                    null,
                     default);
                 await sender2.SendMessageAsync(
                     receiver.AsPeer,
                     new HaveMessage { Ids = [msg1.Id, msg2.Id] },
-                    null,
                     default);
 
                 // Wait heartbeat interval * 2.

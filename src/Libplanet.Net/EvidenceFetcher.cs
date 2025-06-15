@@ -31,9 +31,7 @@ public sealed class EvidenceFetcher(
             replies = await transport.SendMessageAsync(
                 peer,
                 request,
-                txRecvTimeout,
                 count,
-                true,
                 cancellationToken)
             .ConfigureAwait(false);
         }

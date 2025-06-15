@@ -94,15 +94,12 @@ namespace Libplanet.Net.Tests.Transports
                     async () => await transport.SendMessageAsync(
                         boundPeer,
                         message,
-                        null,
                         default));
                 await Assert.ThrowsAsync<ObjectDisposedException>(
                     async () => await transport.SendMessageAsync(
                         boundPeer,
                         message,
-                        null,
                         3,
-                        false,
                         default));
                 Assert.Throws<ObjectDisposedException>(
                     () => transport.BroadcastMessage(null, message));
@@ -167,7 +164,6 @@ namespace Libplanet.Net.Tests.Transports
                 MessageEnvelope reply = await transportA.SendMessageAsync(
                     transportB.Peer,
                     new PingMessage(),
-                    TimeSpan.FromSeconds(3),
                     CancellationToken.None);
 
                 Assert.IsType<PongMessage>(reply.Message);
@@ -198,7 +194,6 @@ namespace Libplanet.Net.Tests.Transports
                     async () => await transportA.SendMessageAsync(
                         transportB.Peer,
                         new PingMessage(),
-                        null,
                         cts.Token));
             }
             finally
@@ -240,9 +235,7 @@ namespace Libplanet.Net.Tests.Transports
                 var replies = (await transportA.SendMessageAsync(
                     transportB.Peer,
                     new PingMessage(),
-                    TimeSpan.FromSeconds(3),
                     2,
-                    false,
                     CancellationToken.None)).ToArray();
 
                 Assert.Contains(replies, message => message.Message is PingMessage);
@@ -273,7 +266,6 @@ namespace Libplanet.Net.Tests.Transports
                     async () => await transportA.SendMessageAsync(
                         transportB.Peer,
                         new PingMessage(),
-                        TimeSpan.FromSeconds(3),
                         CancellationToken.None));
                 Assert.True(e.InnerException is TimeoutException ie);
             }
@@ -298,7 +290,6 @@ namespace Libplanet.Net.Tests.Transports
                 Task task = transport.SendMessageAsync(
                     invalidPeer,
                     new PingMessage(),
-                    TimeSpan.FromSeconds(5),
                     default);
 
                 // TcpTransport and NetMQTransport fail for different reasons, i.e.
@@ -326,7 +317,6 @@ namespace Libplanet.Net.Tests.Transports
                 Task t = transportA.SendMessageAsync(
                         transportB.Peer,
                         new PingMessage(),
-                        null,
                         CancellationToken.None);
 
                 // For context change

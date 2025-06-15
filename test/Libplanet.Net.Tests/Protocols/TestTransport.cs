@@ -1,558 +1,551 @@
-using System.Collections.Concurrent;
-using System.Net;
-using System.ServiceModel;
-using System.Threading;
-using System.Threading.Tasks;
-using Libplanet.Net.Messages;
-using Libplanet.Net.Protocols;
-using Libplanet.Net.Transports;
-using Libplanet.Types;
-using Nito.AsyncEx;
-using Serilog;
-
-namespace Libplanet.Net.Tests.Protocols;
-
-internal class TestTransport : ITransport
-{
-    private static readonly Protocol _appProtocolVersion =
-        Libplanet.Net.Protocol.Create(new PrivateKey(), 1);
-
-    private readonly Dictionary<Address, TestTransport> _transports;
-    private readonly ILogger _logger;
-    private readonly ConcurrentDictionary<Guid, Address> _peersToReply;
-    private readonly ConcurrentDictionary<Guid, MessageEnvelope> _replyToReceive;
-    private readonly AsyncCollection<Request> _requests;
-    private readonly List<string> _ignoreTestMessageWithData;
-    private readonly PrivateKey _privateKey;
-    private readonly Random _random;
-    private readonly bool _blockBroadcast;
-
-    private TaskCompletionSource<object> _runningEvent;
-    private CancellationTokenSource _swarmCancellationTokenSource;
-    private readonly TimeSpan _networkDelay;
-    private bool _disposed;
-
-    public TestTransport(
-        Dictionary<Address, TestTransport> transports,
-        PrivateKey privateKey,
-        bool blockBroadcast,
-        int tableSize,
-        int bucketSize,
-        TimeSpan? networkDelay)
-    {
-        _runningEvent = new TaskCompletionSource<object>();
-        _privateKey = privateKey;
-        _blockBroadcast = blockBroadcast;
-        var loggerId = _privateKey.Address.ToString("raw", null);
-        _logger = Log.ForContext<TestTransport>()
-            .ForContext("Address", loggerId);
-
-        _peersToReply = new ConcurrentDictionary<Guid, Address>();
-        _replyToReceive = new ConcurrentDictionary<Guid, MessageEnvelope>();
-        ReceivedMessages = new ConcurrentBag<MessageEnvelope>();
-        MessageReceived = new AsyncAutoResetEvent();
-        _transports = transports;
-        _transports[privateKey.Address] = this;
-        _networkDelay = networkDelay ?? TimeSpan.Zero;
-        _requests = new AsyncCollection<Request>();
-        _ignoreTestMessageWithData = new List<string>();
-        _random = new Random();
-        Table = new RoutingTable(Address, tableSize, bucketSize);
-        ProcessMessageHandler = new AsyncDelegate<MessageEnvelope>();
-        Kademlia = new Kademlia(Table, this, Address);
-        MessageHistory = new FixedSizedQueue<MessageEnvelope>(30);
-    }
-
-    public AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; }
-
-    public AsyncAutoResetEvent MessageReceived { get; }
-
-    public Address Address => _privateKey.Address;
-
-    public Peer Peer => new Peer
-    {
-        Address = _privateKey.Address,
-        EndPoint = new DnsEndPoint("127.0.0.1", 1234),
-    };
-
-    public IReadOnlyList<Peer> Peers => Table.Peers;
-
-    public DateTimeOffset? LastMessageTimestamp { get; private set; }
-
-    public bool IsRunning
-    {
-        get => _runningEvent.Task.Status == TaskStatus.RanToCompletion;
-
-        private set
-        {
-            if (value)
-            {
-                _runningEvent.TrySetResult(null);
-            }
-            else
-            {
-                _runningEvent = new TaskCompletionSource<object>();
-            }
-        }
-    }
-
-    public ConcurrentQueue<MessageEnvelope> MessageHistory { get; }
-
-    public Protocol Protocol => _appProtocolVersion;
-
-    internal ConcurrentBag<MessageEnvelope> ReceivedMessages { get; }
-
-    internal RoutingTable Table { get; }
-
-    internal Kademlia Kademlia { get; }
-
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _swarmCancellationTokenSource?.Cancel();
-            IsRunning = false;
-            _disposed = true;
-        }
-    }
-
-    public async Task StartAsync(
-        CancellationToken cancellationToken = default)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        _logger.Debug("Starting transport of {Peer}", Peer);
-        _swarmCancellationTokenSource = new CancellationTokenSource();
-        CancellationToken token = cancellationToken.Equals(CancellationToken.None)
-            ? _swarmCancellationTokenSource.Token
-            : CancellationTokenSource
-                .CreateLinkedTokenSource(
-                    _swarmCancellationTokenSource.Token, cancellationToken)
-                .Token;
-        IsRunning = true;
-        await ProcessRuntime(token);
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (IsRunning)
-        {
-            _logger.Debug("Stopping transport of {Peer}", Peer);
-            _swarmCancellationTokenSource.Cancel();
-            IsRunning = false;
-        }
-    }
-
-    /// <inheritdoc cref="ITransport.WaitForRunningAsync"/>
-    public Task WaitForRunningAsync() => _runningEvent.Task;
-
-#pragma warning disable S4457 // Cannot split the method since method is in interface
-    public async Task BootstrapAsync(
-        IEnumerable<Peer> bootstrapPeers,
-        TimeSpan? pingSeedTimeout = null,
-        int depth = 3,
-        CancellationToken cancellationToken = default)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Start transport before use.");
-        }
-
-        if (bootstrapPeers is null)
-        {
-            throw new ArgumentNullException(nameof(bootstrapPeers));
-        }
-
-        await Kademlia.BootstrapAsync(
-            bootstrapPeers.ToImmutableList(),
-            pingSeedTimeout,
-            Kademlia.MaxDepth,
-            cancellationToken);
-    }
-
-    public Task SendMessageAsync(
-        Peer peer,
-        IMessage content,
-        CancellationToken cancellationToken)
-        => SendMessageAsync(
-            peer,
-            content,
-            TimeSpan.FromSeconds(3),
-            cancellationToken);
-
-    public Task AddPeersAsync(
-        IEnumerable<Peer> peers,
-        TimeSpan? timeout,
-        CancellationToken cancellationToken = default)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Start transport before use.");
-        }
-
-        if (peers is null)
-        {
-            throw new ArgumentNullException(nameof(peers));
-        }
-
-        async Task DoAddPeersAsync()
-        {
-            try
-            {
-                Kademlia kp = (Kademlia)Kademlia;
-
-                var tasks = new List<Task>();
-                foreach (var peer in peers)
-                {
-                    if (peer is Peer boundPeer)
-                    {
-                        tasks.Add(
-                            kp.PingAsync(
-                                boundPeer,
-                                timeout: timeout,
-                                cancellationToken: cancellationToken));
-                    }
-                }
-
-                _logger.Verbose("Trying to ping all {PeersNumber} peers", tasks.Count);
-                await Task.WhenAll(tasks);
-                _logger.Verbose("Update complete");
-            }
-            // catch (InvalidProtocolException)
-            // {
-            //     _logger.Debug(
-            //         "Different version encountered during {MethodName}()",
-            //         nameof(AddPeersAsync));
-            // }
-            catch (TimeoutException)
-            {
-                var msg =
-                    $"Timeout occurred during {nameof(AddPeersAsync)}() after {timeout}";
-                _logger.Debug(msg);
-                throw new TimeoutException(msg);
-            }
-            catch (TaskCanceledException)
-            {
-                _logger.Debug(
-                    "Task was cancelled during {MethodName}()",
-                    nameof(AddPeersAsync));
-            }
-            catch (Exception e)
-            {
-                _logger.Error(
-                    e,
-                    "Unexpected exception occurred during {MethodName}()",
-                    nameof(AddPeersAsync));
-                throw;
-            }
-        }
-
-        return DoAddPeersAsync();
-    }
-
-    public void SendPing(Peer peer, TimeSpan? timeSpan = null)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Start transport before use.");
-        }
-
-        Task.Run((Action)(() =>
-        {
-            _ = (this.Kademlia as Kademlia).PingAsync(
-                peer,
-                timeSpan,
-                default);
-        }));
-    }
-
-    public void BroadcastTestMessage(Address except, string data)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Start transport before use.");
-        }
-
-        var message = new TestMessage { Data = data };
-        _ignoreTestMessageWithData.Add(data);
-        BroadcastMessage(Table.PeersToBroadcast(except), message);
-    }
-
-    public void BroadcastMessage(IEnumerable<Peer> peers, IMessage content)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        var peersList = peers.ToList();
-        var peersString = string.Join(", ", peersList.Select(peer => peer.Address));
-        _logger.Debug(
-            "Broadcasting test message {Data} to {Count} peers which are: {Peers}",
-            ((TestMessage)content).Data,
-            peersList.Count,
-            peersString);
-        foreach (var peer in peersList)
-        {
-            _ = SendMessageAsync(peer, content, null, _swarmCancellationTokenSource.Token);
-        }
-    }
-
-#pragma warning disable S4457 // Cannot split the method since method is in interface
-    public async Task<MessageEnvelope> SendMessageAsync(
-        Peer peer,
-        IMessage content,
-        TimeSpan? timeout,
-        CancellationToken cancellationToken)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Start transport before use.");
-        }
-
-        var bytes = new byte[10];
-        _random.NextBytes(bytes);
-        var sendTime = DateTimeOffset.UtcNow;
-        // var identity = _privateKey.Address.Bytes.Concat(bytes).ToArray();
-        var identity = Guid.NewGuid();
-        _logger.Debug("Adding request of {Content} of {Identity}", content, identity);
-        await _requests.AddAsync(
-            new Request
-            {
-                Message = new MessageEnvelope
-                {
-                    Message = content,
-                    Protocol = Protocol,
-                    Remote = Peer,
-                    Timestamp = sendTime,
-                    Id = identity,
-                },
-                Target = peer,
-            },
-            cancellationToken);
-
-        while (!cancellationToken.IsCancellationRequested &&
-               !_replyToReceive.ContainsKey(identity))
-        {
-            if (DateTimeOffset.UtcNow - sendTime > (timeout ?? TimeSpan.MaxValue))
-            {
-                _logger.Error(
-                    "Reply of {Content} of {identity} did not received in " +
-                    "expected timespan {TimeSpan}",
-                    content,
-                    identity,
-                    timeout ?? TimeSpan.MaxValue);
-                throw new CommunicationException(
-                    $"Timeout occurred during {nameof(SendMessageAsync)}().");
-            }
-
-            await Task.Delay(10, cancellationToken);
-        }
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            throw new OperationCanceledException(
-                $"Operation is canceled during {nameof(SendMessageAsync)}().");
-        }
-
-        if (_replyToReceive.TryRemove(identity, out MessageEnvelope reply))
-        {
-            _logger.Debug(
-                "Received reply {Content} of message with identity {identity}",
-                reply.Message,
-                identity);
-            LastMessageTimestamp = DateTimeOffset.UtcNow;
-            ReceivedMessages.Add(reply);
-            MessageHistory.Enqueue(reply);
-            MessageReceived.Set();
-            return reply;
-        }
-        else
-        {
-            _logger.Error(
-                "Unexpected error occurred during " +
-                $"{nameof(SendMessageAsync)}()");
-            throw new SwarmException();
-        }
-    }
-#pragma warning restore S4457 // Cannot split the method since method is in interface
-
-    public async Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
-        Peer peer,
-        IMessage content,
-        TimeSpan? timeout,
-        int expectedResponses,
-        bool returnWhenTimeout,
-        CancellationToken cancellationToken = default)
-    {
-        return new[]
-        {
-            await SendMessageAsync(peer, content, timeout, cancellationToken),
-        };
-    }
-
-    public async Task ReplyMessageAsync(
-        IMessage message,
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Start transport before use.");
-        }
-
-        _logger.Debug("Replying {Content}...", message);
-        var messageEnvelope = new MessageEnvelope
-        {
-            Message = message,
-            Protocol = Protocol,
-            Remote = Peer,
-            Timestamp = DateTimeOffset.UtcNow,
-            Id = id,
-        };
-        await Task.Delay(_networkDelay, cancellationToken);
-        _transports[_peersToReply[id]].ReceiveReply(messageEnvelope);
-        _peersToReply.TryRemove(id, out Address addr);
-    }
-
-    public async Task WaitForTestMessageWithData(
-        string data,
-        CancellationToken token = default)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Start transport before use.");
-        }
-
-        while (!token.IsCancellationRequested && !ReceivedTestMessageOfData(data))
-        {
-            await Task.Delay(10, token);
-        }
-    }
-
-    public bool ReceivedTestMessageOfData(string data)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(TestTransport));
-        }
-
-        return ReceivedMessages.Select(m => m.Message)
-            .OfType<TestMessage>()
-            .Any(c => c.Data == data);
-    }
-
-    private void ReceiveMessage(MessageEnvelope message)
-    {
-        if (_swarmCancellationTokenSource.IsCancellationRequested)
-        {
-            return;
-        }
-
-        MessageHistory.Enqueue(message);
-        if (message.Message is TestMessage testMessage)
-        {
-            if (_ignoreTestMessageWithData.Contains(testMessage.Data))
-            {
-                _logger.Debug("Ignore received test message {Data}", testMessage.Data);
-            }
-            else
-            {
-                _logger.Debug("Received test message with {Data}", testMessage.Data);
-                _ignoreTestMessageWithData.Add(testMessage.Data);
-                // If this transport is blocked for testing, do not broadcast.
-                if (!_blockBroadcast)
-                {
-                    BroadcastTestMessage(message.Remote.Address, testMessage.Data);
-                }
-            }
-        }
-        else
-        {
-            _peersToReply[message.Id] = message.Remote.Address;
-        }
-
-        LastMessageTimestamp = DateTimeOffset.UtcNow;
-        ReceivedMessages.Add(message);
-        _ = ProcessMessageHandler.InvokeAsync(message);
-        MessageReceived.Set();
-    }
-
-    private void ReceiveReply(MessageEnvelope message)
-    {
-        _replyToReceive[message.Id] = message;
-    }
-
-    private async Task ProcessRuntime(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            Request req = await _requests.TakeAsync(cancellationToken);
-
-            if (req.Message.Timestamp + _networkDelay <= DateTimeOffset.UtcNow)
-            {
-                _logger.Debug(
-                    "Send {Content} with identity {Identity} to {Peer}",
-                    req.Message.Message,
-                    req.Message.Id,
-                    req.Target);
-                _transports[req.Target.Address].ReceiveMessage(req.Message);
-            }
-            else
-            {
-                await _requests.AddAsync(req, cancellationToken);
-                await Task.Delay(10, cancellationToken);
-            }
-        }
-    }
-
-    private struct Request
-    {
-        public Peer Target;
-
-        public MessageEnvelope Message;
-    }
-}
+// using System.Collections.Concurrent;
+// using System.Net;
+// using System.ServiceModel;
+// using System.Threading;
+// using System.Threading.Tasks;
+// using Libplanet.Net.Messages;
+// using Libplanet.Net.Protocols;
+// using Libplanet.Net.Transports;
+// using Libplanet.Types;
+// using Nito.AsyncEx;
+// using Serilog;
+
+// namespace Libplanet.Net.Tests.Protocols;
+
+// internal class TestTransport : ITransport
+// {
+//     private static readonly Protocol _appProtocolVersion =
+//         Libplanet.Net.Protocol.Create(new PrivateKey(), 1);
+
+//     private readonly Dictionary<Address, TestTransport> _transports;
+//     private readonly ILogger _logger;
+//     private readonly ConcurrentDictionary<Guid, Address> _peersToReply;
+//     private readonly ConcurrentDictionary<Guid, MessageEnvelope> _replyToReceive;
+//     private readonly AsyncCollection<Request> _requests;
+//     private readonly List<string> _ignoreTestMessageWithData;
+//     private readonly PrivateKey _privateKey;
+//     private readonly Random _random;
+//     private readonly bool _blockBroadcast;
+
+//     private TaskCompletionSource<object> _runningEvent;
+//     private CancellationTokenSource _swarmCancellationTokenSource;
+//     private readonly TimeSpan _networkDelay;
+//     private bool _disposed;
+
+//     public TestTransport(
+//         Dictionary<Address, TestTransport> transports,
+//         PrivateKey privateKey,
+//         bool blockBroadcast,
+//         int tableSize,
+//         int bucketSize,
+//         TimeSpan? networkDelay)
+//     {
+//         _runningEvent = new TaskCompletionSource<object>();
+//         _privateKey = privateKey;
+//         _blockBroadcast = blockBroadcast;
+//         var loggerId = _privateKey.Address.ToString("raw", null);
+//         _logger = Log.ForContext<TestTransport>()
+//             .ForContext("Address", loggerId);
+
+//         _peersToReply = new ConcurrentDictionary<Guid, Address>();
+//         _replyToReceive = new ConcurrentDictionary<Guid, MessageEnvelope>();
+//         ReceivedMessages = new ConcurrentBag<MessageEnvelope>();
+//         MessageReceived = new AsyncAutoResetEvent();
+//         _transports = transports;
+//         _transports[privateKey.Address] = this;
+//         _networkDelay = networkDelay ?? TimeSpan.Zero;
+//         _requests = new AsyncCollection<Request>();
+//         _ignoreTestMessageWithData = new List<string>();
+//         _random = new Random();
+//         Table = new RoutingTable(Address, tableSize, bucketSize);
+//         ProcessMessageHandler = new AsyncDelegate<MessageEnvelope>();
+//         Kademlia = new Kademlia(Table, this, Address);
+//         MessageHistory = new FixedSizedQueue<MessageEnvelope>(30);
+//     }
+
+//     public AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; }
+
+//     public AsyncAutoResetEvent MessageReceived { get; }
+
+//     public Address Address => _privateKey.Address;
+
+//     public Peer Peer => new Peer
+//     {
+//         Address = _privateKey.Address,
+//         EndPoint = new DnsEndPoint("127.0.0.1", 1234),
+//     };
+
+//     public IReadOnlyList<Peer> Peers => Table.Peers;
+
+//     public DateTimeOffset? LastMessageTimestamp { get; private set; }
+
+//     public bool IsRunning
+//     {
+//         get => _runningEvent.Task.Status == TaskStatus.RanToCompletion;
+
+//         private set
+//         {
+//             if (value)
+//             {
+//                 _runningEvent.TrySetResult(null);
+//             }
+//             else
+//             {
+//                 _runningEvent = new TaskCompletionSource<object>();
+//             }
+//         }
+//     }
+
+//     public ConcurrentQueue<MessageEnvelope> MessageHistory { get; }
+
+//     public Protocol Protocol => _appProtocolVersion;
+
+//     internal ConcurrentBag<MessageEnvelope> ReceivedMessages { get; }
+
+//     internal RoutingTable Table { get; }
+
+//     internal Kademlia Kademlia { get; }
+
+//     public void Dispose()
+//     {
+//         if (!_disposed)
+//         {
+//             _swarmCancellationTokenSource?.Cancel();
+//             IsRunning = false;
+//             _disposed = true;
+//         }
+//     }
+
+//     public async Task StartAsync(
+//         CancellationToken cancellationToken = default)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         _logger.Debug("Starting transport of {Peer}", Peer);
+//         _swarmCancellationTokenSource = new CancellationTokenSource();
+//         CancellationToken token = cancellationToken.Equals(CancellationToken.None)
+//             ? _swarmCancellationTokenSource.Token
+//             : CancellationTokenSource
+//                 .CreateLinkedTokenSource(
+//                     _swarmCancellationTokenSource.Token, cancellationToken)
+//                 .Token;
+//         IsRunning = true;
+//         await ProcessRuntime(token);
+//     }
+
+//     public async Task StopAsync(CancellationToken cancellationToken)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (IsRunning)
+//         {
+//             _logger.Debug("Stopping transport of {Peer}", Peer);
+//             _swarmCancellationTokenSource.Cancel();
+//             IsRunning = false;
+//         }
+//     }
+
+//     /// <inheritdoc cref="ITransport.WaitForRunningAsync"/>
+//     public Task WaitForRunningAsync() => _runningEvent.Task;
+
+// #pragma warning disable S4457 // Cannot split the method since method is in interface
+//     public async Task BootstrapAsync(
+//         IEnumerable<Peer> bootstrapPeers,
+//         int depth = 3,
+//         CancellationToken cancellationToken = default)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (!IsRunning)
+//         {
+//             throw new InvalidOperationException("Start transport before use.");
+//         }
+
+//         if (bootstrapPeers is null)
+//         {
+//             throw new ArgumentNullException(nameof(bootstrapPeers));
+//         }
+
+//         await Kademlia.BootstrapAsync(
+//             bootstrapPeers.ToImmutableList(),
+//             Kademlia.MaxDepth,
+//             cancellationToken);
+//     }
+
+//     public Task SendMessageAsync(
+//         Peer peer,
+//         IMessage content,
+//         CancellationToken cancellationToken)
+//         => SendMessageAsync(
+//             peer,
+//             content,
+//             TimeSpan.FromSeconds(3),
+//             cancellationToken);
+
+//     public Task AddPeersAsync(
+//         IEnumerable<Peer> peers,
+//         CancellationToken cancellationToken = default)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (!IsRunning)
+//         {
+//             throw new InvalidOperationException("Start transport before use.");
+//         }
+
+//         if (peers is null)
+//         {
+//             throw new ArgumentNullException(nameof(peers));
+//         }
+
+//         async Task DoAddPeersAsync()
+//         {
+//             try
+//             {
+//                 Kademlia kp = (Kademlia)Kademlia;
+
+//                 var tasks = new List<Task>();
+//                 foreach (var peer in peers)
+//                 {
+//                     if (peer is Peer boundPeer)
+//                     {
+//                         tasks.Add(
+//                             kp.PingAsync(
+//                                 boundPeer,
+//                                 cancellationToken: cancellationToken));
+//                     }
+//                 }
+
+//                 _logger.Verbose("Trying to ping all {PeersNumber} peers", tasks.Count);
+//                 await Task.WhenAll(tasks);
+//                 _logger.Verbose("Update complete");
+//             }
+//             // catch (InvalidProtocolException)
+//             // {
+//             //     _logger.Debug(
+//             //         "Different version encountered during {MethodName}()",
+//             //         nameof(AddPeersAsync));
+//             // }
+//             catch (TimeoutException)
+//             {
+//                 var msg =
+//                     $"Timeout occurred during {nameof(AddPeersAsync)}()";
+//                 _logger.Debug(msg);
+//                 throw new TimeoutException(msg);
+//             }
+//             catch (TaskCanceledException)
+//             {
+//                 _logger.Debug(
+//                     "Task was cancelled during {MethodName}()",
+//                     nameof(AddPeersAsync));
+//             }
+//             catch (Exception e)
+//             {
+//                 _logger.Error(
+//                     e,
+//                     "Unexpected exception occurred during {MethodName}()",
+//                     nameof(AddPeersAsync));
+//                 throw;
+//             }
+//         }
+
+//         return DoAddPeersAsync();
+//     }
+
+//     public void SendPing(Peer peer)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (!IsRunning)
+//         {
+//             throw new InvalidOperationException("Start transport before use.");
+//         }
+
+//         Task.Run((Action)(() =>
+//         {
+//             _ = (this.Kademlia as Kademlia).PingAsync(
+//                 peer,
+//                 default);
+//         }));
+//     }
+
+//     public void BroadcastTestMessage(Address except, string data)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (!IsRunning)
+//         {
+//             throw new InvalidOperationException("Start transport before use.");
+//         }
+
+//         var message = new TestMessage { Data = data };
+//         _ignoreTestMessageWithData.Add(data);
+//         BroadcastMessage(Table.PeersToBroadcast(except), message);
+//     }
+
+//     public void BroadcastMessage(IEnumerable<Peer> peers, IMessage content)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         var peersList = peers.ToList();
+//         var peersString = string.Join(", ", peersList.Select(peer => peer.Address));
+//         _logger.Debug(
+//             "Broadcasting test message {Data} to {Count} peers which are: {Peers}",
+//             ((TestMessage)content).Data,
+//             peersList.Count,
+//             peersString);
+//         foreach (var peer in peersList)
+//         {
+//             _ = SendMessageAsync(peer, content, _swarmCancellationTokenSource.Token);
+//         }
+//     }
+
+// #pragma warning disable S4457 // Cannot split the method since method is in interface
+//     public async Task<MessageEnvelope> SendMessageAsync(
+//         Peer peer,
+//         IMessage content,
+//         CancellationToken cancellationToken)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (!IsRunning)
+//         {
+//             throw new InvalidOperationException("Start transport before use.");
+//         }
+
+//         var bytes = new byte[10];
+//         _random.NextBytes(bytes);
+//         var sendTime = DateTimeOffset.UtcNow;
+//         // var identity = _privateKey.Address.Bytes.Concat(bytes).ToArray();
+//         var identity = Guid.NewGuid();
+//         _logger.Debug("Adding request of {Content} of {Identity}", content, identity);
+//         await _requests.AddAsync(
+//             new Request
+//             {
+//                 Message = new MessageEnvelope
+//                 {
+//                     Message = content,
+//                     Protocol = Protocol,
+//                     Remote = Peer,
+//                     Timestamp = sendTime,
+//                     Id = identity,
+//                 },
+//                 Target = peer,
+//             },
+//             cancellationToken);
+
+//         while (!cancellationToken.IsCancellationRequested &&
+//                !_replyToReceive.ContainsKey(identity))
+//         {
+//             if (DateTimeOffset.UtcNow - sendTime > (timeout ?? TimeSpan.MaxValue))
+//             {
+//                 _logger.Error(
+//                     "Reply of {Content} of {identity} did not received in " +
+//                     "expected timespan {TimeSpan}",
+//                     content,
+//                     identity,
+//                     timeout ?? TimeSpan.MaxValue);
+//                 throw new CommunicationException(
+//                     $"Timeout occurred during {nameof(SendMessageAsync)}().");
+//             }
+
+//             await Task.Delay(10, cancellationToken);
+//         }
+
+//         if (cancellationToken.IsCancellationRequested)
+//         {
+//             throw new OperationCanceledException(
+//                 $"Operation is canceled during {nameof(SendMessageAsync)}().");
+//         }
+
+//         if (_replyToReceive.TryRemove(identity, out MessageEnvelope reply))
+//         {
+//             _logger.Debug(
+//                 "Received reply {Content} of message with identity {identity}",
+//                 reply.Message,
+//                 identity);
+//             LastMessageTimestamp = DateTimeOffset.UtcNow;
+//             ReceivedMessages.Add(reply);
+//             MessageHistory.Enqueue(reply);
+//             MessageReceived.Set();
+//             return reply;
+//         }
+//         else
+//         {
+//             _logger.Error(
+//                 "Unexpected error occurred during " +
+//                 $"{nameof(SendMessageAsync)}()");
+//             throw new SwarmException();
+//         }
+//     }
+// #pragma warning restore S4457 // Cannot split the method since method is in interface
+
+//     public async Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
+//         Peer peer,
+//         IMessage content,
+//         TimeSpan? timeout,
+//         int expectedResponses,
+//         CancellationToken cancellationToken = default)
+//     {
+//         return new[]
+//         {
+//             await SendMessageAsync(peer, content, timeout, cancellationToken),
+//         };
+//     }
+
+//     public async Task ReplyMessageAsync(
+//         IMessage message,
+//         Guid id,
+//         CancellationToken cancellationToken)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (!IsRunning)
+//         {
+//             throw new InvalidOperationException("Start transport before use.");
+//         }
+
+//         _logger.Debug("Replying {Content}...", message);
+//         var messageEnvelope = new MessageEnvelope
+//         {
+//             Message = message,
+//             Protocol = Protocol,
+//             Remote = Peer,
+//             Timestamp = DateTimeOffset.UtcNow,
+//             Id = id,
+//         };
+//         await Task.Delay(_networkDelay, cancellationToken);
+//         _transports[_peersToReply[id]].ReceiveReply(messageEnvelope);
+//         _peersToReply.TryRemove(id, out Address addr);
+//     }
+
+//     public async Task WaitForTestMessageWithData(
+//         string data,
+//         CancellationToken token = default)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         if (!IsRunning)
+//         {
+//             throw new InvalidOperationException("Start transport before use.");
+//         }
+
+//         while (!token.IsCancellationRequested && !ReceivedTestMessageOfData(data))
+//         {
+//             await Task.Delay(10, token);
+//         }
+//     }
+
+//     public bool ReceivedTestMessageOfData(string data)
+//     {
+//         if (_disposed)
+//         {
+//             throw new ObjectDisposedException(nameof(TestTransport));
+//         }
+
+//         return ReceivedMessages.Select(m => m.Message)
+//             .OfType<TestMessage>()
+//             .Any(c => c.Data == data);
+//     }
+
+//     private void ReceiveMessage(MessageEnvelope message)
+//     {
+//         if (_swarmCancellationTokenSource.IsCancellationRequested)
+//         {
+//             return;
+//         }
+
+//         MessageHistory.Enqueue(message);
+//         if (message.Message is TestMessage testMessage)
+//         {
+//             if (_ignoreTestMessageWithData.Contains(testMessage.Data))
+//             {
+//                 _logger.Debug("Ignore received test message {Data}", testMessage.Data);
+//             }
+//             else
+//             {
+//                 _logger.Debug("Received test message with {Data}", testMessage.Data);
+//                 _ignoreTestMessageWithData.Add(testMessage.Data);
+//                 // If this transport is blocked for testing, do not broadcast.
+//                 if (!_blockBroadcast)
+//                 {
+//                     BroadcastTestMessage(message.Remote.Address, testMessage.Data);
+//                 }
+//             }
+//         }
+//         else
+//         {
+//             _peersToReply[message.Id] = message.Remote.Address;
+//         }
+
+//         LastMessageTimestamp = DateTimeOffset.UtcNow;
+//         ReceivedMessages.Add(message);
+//         _ = ProcessMessageHandler.InvokeAsync(message);
+//         MessageReceived.Set();
+//     }
+
+//     private void ReceiveReply(MessageEnvelope message)
+//     {
+//         _replyToReceive[message.Id] = message;
+//     }
+
+//     private async Task ProcessRuntime(CancellationToken cancellationToken)
+//     {
+//         while (!cancellationToken.IsCancellationRequested)
+//         {
+//             Request req = await _requests.TakeAsync(cancellationToken);
+
+//             if (req.Message.Timestamp + _networkDelay <= DateTimeOffset.UtcNow)
+//             {
+//                 _logger.Debug(
+//                     "Send {Content} with identity {Identity} to {Peer}",
+//                     req.Message.Message,
+//                     req.Message.Id,
+//                     req.Target);
+//                 _transports[req.Target.Address].ReceiveMessage(req.Message);
+//             }
+//             else
+//             {
+//                 await _requests.AddAsync(req, cancellationToken);
+//                 await Task.Delay(10, cancellationToken);
+//             }
+//         }
+//     }
+
+//     private struct Request
+//     {
+//         public Peer Target;
+
+//         public MessageEnvelope Message;
+//     }
+// }

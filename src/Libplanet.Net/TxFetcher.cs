@@ -31,9 +31,7 @@ public sealed class TxFetcher(
             replies = await transport.SendMessageAsync(
                 peer,
                 request,
-                txRecvTimeout,
                 txCount,
-                true,
                 cancellationToken)
             .ConfigureAwait(false);
         }

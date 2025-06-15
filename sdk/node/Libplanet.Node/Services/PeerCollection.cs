@@ -43,7 +43,7 @@ internal sealed class PeerCollection(SeedOptions seedOptions) : IEnumerable<Peer
         var updatedCount = 0;
         await Parallel.ForEachAsync(_infoByAddress.Values, cancellationToken, async (peer, ct) =>
         {
-            if (await peer.PingAsync(pingTimeout, ct))
+            if (await peer.PingAsync(ct))
             {
                 Interlocked.Increment(ref updatedCount);
             }

@@ -52,8 +52,7 @@ namespace Libplanet.Net.Tests
                 await Task.WhenAll(startTasks);
                 var addPeerTasks = swarms.Select(
                     (swarm, index) => swarm.AddPeersAsync(
-                        swarms.Where((_, i) => i != index).Select(item => item.AsPeer),
-                        null));
+                        swarms.Where((_, i) => i != index).Select(item => item.AsPeer)));
                 await Task.WhenAll(addPeerTasks);
 
                 var consensusContext = swarms[0].ConsensusReactor.ConsensusContext;
