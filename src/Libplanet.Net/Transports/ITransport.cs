@@ -10,8 +10,6 @@ public interface ITransport : IDisposable
 
     Peer Peer { get; }
 
-    DateTimeOffset? LastMessageTimestamp { get; }
-
     bool IsRunning { get; }
 
     Protocol Protocol { get; }
