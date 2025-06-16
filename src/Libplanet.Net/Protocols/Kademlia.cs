@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Dasync.Collections;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Types;
@@ -163,8 +162,9 @@ public sealed class Kademlia
         {
             IReadOnlyList<Peer> peers = _table.PeersToRefresh(maxAge);
 
-            await peers.ParallelForEachAsync(
-                async peer =>
+            await Parallel.ForEachAsync(peers,
+                cancellationToken,
+                async (peer, cancellationToken) =>
                 {
                     try
                     {
@@ -172,13 +172,14 @@ public sealed class Kademlia
                     }
                     catch (TimeoutException)
                     {
+                        // do nothing
                     }
-                },
-                cancellationToken);
+                });
             cancellationToken.ThrowIfCancellationRequested();
         }
         catch (TimeoutException)
         {
+            // do nothing
         }
     }
 

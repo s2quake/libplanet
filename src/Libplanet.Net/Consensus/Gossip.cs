@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Dasync.Collections;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
@@ -285,8 +284,10 @@ public sealed class Gossip : IDisposable
             }
         }
 
-        await optimized.ParallelForEachAsync(
-            async pair =>
+        await Parallel.ForEachAsync(
+            optimized,
+            ctx,
+            async (pair, cancellationToken) =>
             {
                 MessageId[] idsToGet = pair.Value;
                 var want = new WantMessage { Ids = [.. idsToGet] };
@@ -294,7 +295,7 @@ public sealed class Gossip : IDisposable
                     pair.Key,
                     want,
                     idsToGet.Length,
-                    ctx)).ToArray();
+                    cancellationToken)).ToArray();
 
                 replies.AsParallel().ForAll(
                     r =>
@@ -309,8 +310,7 @@ public sealed class Gossip : IDisposable
                             // do nogthing
                         }
                     });
-            },
-            ctx);
+            });
     }
 
     private async Task HandleWantAsync(MessageEnvelope msg, CancellationToken ctx)
@@ -320,20 +320,21 @@ public sealed class Gossip : IDisposable
         IMessage[] contents = wantMessage.Ids.Select(id => _cache.Get(id)).ToArray();
         MessageId[] ids = contents.Select(c => c.Id).ToArray();
 
-        await contents.ParallelForEachAsync(
-            async c =>
+        await Parallel.ForEachAsync(
+            contents,
+            ctx,
+            async (c, cancellationToken) =>
             {
                 try
                 {
                     _validateMessageToSend(c);
-                    await _transport.ReplyMessageAsync(c, msg.Id, ctx);
+                    await _transport.ReplyMessageAsync(c, msg.Id, cancellationToken);
                 }
                 catch (Exception e)
                 {
                     // do nothing
                 }
-            },
-            ctx);
+            });
     }
 
     private async Task RebuildTableAsync(CancellationToken ctx)

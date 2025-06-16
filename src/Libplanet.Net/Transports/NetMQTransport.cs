@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using AsyncIO;
-using Dasync.Collections;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Types;
@@ -145,6 +144,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             _router = null;
         }
 
+        _requestCount = 0;
         IsRunning = false;
     }
 
@@ -158,11 +158,9 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
 
-            if (_routerPoller is not null)
-            {
-                _routerPoller.Stop();
-                _routerPoller.Dispose();
-            }
+            _routerPoller?.Stop();
+            _routerPoller?.Dispose();
+            _routerPoller = null;
 
             if (_replyQueue is not null)
             {
@@ -171,11 +169,8 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 _replyQueue = null;
             }
 
-            if (_runtime is not null)
-            {
-                _runtime.Dispose();
-                _runtime = null;
-            }
+            _runtime?.Dispose();
+            _runtime = null;
 
             if (_router is not null)
             {
@@ -206,6 +201,11 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         Peer peer, IMessage message, int expectedResponses, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!IsRunning)
+        {
+            throw new InvalidOperationException("Transport is not running.");
+        }
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
@@ -262,14 +262,19 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        if (!IsRunning)
+        {
+            throw new InvalidOperationException("Transport is not running.");
+        }
+
         try
         {
             using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                 _cancellationToken);
             cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
-            await peers.ParallelForEachAsync(
-                peer => SendMessageAsync(peer, message, cancellationTokenSource.Token),
-                cancellationTokenSource.Token);
+            await Parallel.ForEachAsync(peers,
+                cancellationTokenSource.Token,
+                async (peer, cancellationToken) => await SendMessageAsync(peer, message, cancellationToken));
         }
         catch
         {
@@ -281,13 +286,13 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_cancellationTokenSource is null)
+        if (!IsRunning)
         {
             throw new InvalidOperationException("Transport is not running.");
         }
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationTokenSource.Token, cancellationToken);
+            _cancellationToken, cancellationToken);
 
         var messageReply = new MessageReply
         {
@@ -393,10 +398,10 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
             for (var i = 0; i < request.ExpectedResponses; i++)
             {
-                NetMQMessage raw = await dealerSocket.ReceiveMultipartMessageAsync(
+                var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
                     cancellationToken: cancellationToken);
 
-                await writer.WriteAsync(raw, cancellationToken);
+                await writer.WriteAsync(receivedRawMessage, cancellationToken);
             }
 
             writer.Complete();
