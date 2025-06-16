@@ -23,7 +23,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
     private RouterSocket? _router;
     private int _port;
     private NetMQPoller? _routerPoller;
-    private NetMQRuntime? _runtime;
+    // private NetMQRuntime? _runtime;
     private NetMQQueue<MessageReply>? _replyQueue;
     private Peer? _peer;
 
@@ -78,8 +78,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         _router.Options.RouterHandover = true;
         _port = Initialize(_router, hostOptions.Port);
 
-        _runtime = new NetMQRuntime();
-        _ = Task.Run(() => _runtime.Run(ProcessRuntimeAsync(_cancellationTokenSource.Token)), cancellationToken);
+        _ = RunProcessAsync(_cancellationTokenSource.Token);
         _replyQueue = new();
         _routerPoller = [_router, _replyQueue];
 
@@ -131,11 +130,11 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             _replyQueue = null;
         }
 
-        if (_runtime is not null)
-        {
-            _runtime.Dispose();
-            _runtime = null;
-        }
+        // if (_runtime is not null)
+        // {
+        //     _runtime.Dispose();
+        //     _runtime = null;
+        // }
 
         if (_router is not null)
         {
@@ -169,8 +168,8 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 _replyQueue = null;
             }
 
-            _runtime?.Dispose();
-            _runtime = null;
+            // _runtime?.Dispose();
+            // _runtime = null;
 
             if (_router is not null)
             {
@@ -428,6 +427,16 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 Interlocked.Decrement(ref _socketCount);
             }
         }
+    }
+
+    private async Task RunProcessAsync(CancellationToken cancellationToken)
+    {
+        await Task.Run(() =>
+        {
+            using var runtime = new NetMQRuntime();
+            var task = ProcessRuntimeAsync(cancellationToken);
+            runtime.Run(task);
+        }, cancellationToken);
     }
 
     private sealed record class MessageRequest

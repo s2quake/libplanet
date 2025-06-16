@@ -53,8 +53,7 @@ public static class ModelResolver
         }
         catch (Exception e)
         {
-            throw new ModelSerializationException(
-                $"Failed to get type for {type} with version {version}", e);
+            throw new ModelSerializationException($"Failed to get type for {type} with version {version}", e);
         }
     }
 
@@ -145,6 +144,8 @@ public static class ModelResolver
         converter = null;
         return converter is not null;
     }
+
+    public static void AddConverter(Type type, IModelConverter converter) => _converterByType.TryAdd(type, converter);
 
     public static bool Equals<T>(T left, T? right) => Equals(left, right, typeof(T));
 
