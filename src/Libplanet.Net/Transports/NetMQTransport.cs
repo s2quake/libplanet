@@ -79,14 +79,14 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         _port = Initialize(_router, hostOptions.Port);
 
         _runtime = new NetMQRuntime();
-        _runtime.Run(ProcessRuntimeAsync(_cancellationTokenSource.Token));
+        _ = Task.Run(() => _runtime.Run(ProcessRuntimeAsync(_cancellationTokenSource.Token)), cancellationToken);
         _replyQueue = new();
         _routerPoller = [_router, _replyQueue];
 
         _router.ReceiveReady += Router_ReceiveReady;
         _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
 
-        _routerPoller.Run();
+        _ = Task.Run(_routerPoller.Run, cancellationToken);
         while (!_routerPoller.IsRunning)
         {
             await Task.Yield();
@@ -175,6 +175,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             if (_router is not null)
             {
                 _router.ReceiveReady -= Router_ReceiveReady!;
+                // _router.Unbind($"tcp://*:{_port}");
                 _router.Dispose();
                 _router = null;
             }
@@ -258,7 +259,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    public async void BroadcastMessage(IEnumerable<Peer> peers, IMessage message)
+    public void BroadcastMessage(IEnumerable<Peer> peers, IMessage message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -267,18 +268,23 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             throw new InvalidOperationException("Transport is not running.");
         }
 
-        try
+        Invoke();
+
+        async void Invoke()
         {
-            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-                _cancellationToken);
-            cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
-            await Parallel.ForEachAsync(peers,
-                cancellationTokenSource.Token,
-                async (peer, cancellationToken) => await SendMessageAsync(peer, message, cancellationToken));
-        }
-        catch
-        {
-            // do nothing
+            try
+            {
+                using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                    _cancellationToken);
+                cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
+                await Parallel.ForEachAsync(peers,
+                    cancellationTokenSource.Token,
+                    async (peer, cancellationToken) => await SendMessageAsync(peer, message, cancellationToken));
+            }
+            catch
+            {
+                // do nothing
+            }
         }
     }
 
