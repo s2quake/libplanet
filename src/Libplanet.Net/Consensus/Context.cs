@@ -1,7 +1,8 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
-using Caching;
+using BitFaster.Caching;
+using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
@@ -30,7 +31,7 @@ public partial class Context : IDisposable
     private readonly CancellationTokenSource _cancellationTokenSource;
 
     private readonly ILogger _logger;
-    private readonly LRUCache<BlockHash, bool> _blockValidationCache;
+    private readonly ICache<BlockHash, bool> _blockValidationCache;
 
     private Proposal? _proposal;
     private Block? _proposalBlock;
@@ -107,8 +108,9 @@ public partial class Context : IDisposable
         _endCommitWaitFlags = new HashSet<int>();
         _validatorSet = validators;
         _cancellationTokenSource = new CancellationTokenSource();
-        _blockValidationCache =
-            new LRUCache<BlockHash, bool>(cacheSize, Math.Max(cacheSize / 64, 8));
+        _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
+            .WithCapacity(cacheSize)
+            .Build();
 
         _contextOption = contextOption ?? new ContextOption();
 
@@ -380,7 +382,7 @@ public partial class Context : IDisposable
 
             if (block.Height != Height)
             {
-                _blockValidationCache.AddReplace(block.BlockHash, false);
+                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
                 return false;
             }
 
@@ -402,7 +404,7 @@ public partial class Context : IDisposable
                     "Block #{Index} {Hash} is invalid",
                     block.Height,
                     block.BlockHash);
-                _blockValidationCache.AddReplace(block.BlockHash, false);
+                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
                 return false;
             }
             finally
@@ -410,7 +412,7 @@ public partial class Context : IDisposable
                 // _blockChain._rwlock.ExitUpgradeableReadLock();
             }
 
-            _blockValidationCache.AddReplace(block.BlockHash, true);
+            _blockValidationCache.AddOrUpdate(block.BlockHash, true);
             return true;
         }
     }
