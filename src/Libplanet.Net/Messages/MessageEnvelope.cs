@@ -1,17 +1,23 @@
-using Libplanet.Net.Transports;
+using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
+[Model(Version = 1, TypeName = "MessageEnvelope")]
 public sealed record class MessageEnvelope
 {
+    [Property(0)]
     public required Guid Id { get; init; }
 
+    [Property(1)]
     public required IMessage Message { get; init; }
 
+    [Property(2)]
     public required Protocol Protocol { get; init; }
 
+    [Property(3)]
     public required Peer Remote { get; init; }
 
+    [Property(4)]
     public DateTimeOffset Timestamp { get; init; }
 
     public void Validate(Protocol protocol, TimeSpan lifetime)

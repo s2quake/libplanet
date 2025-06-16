@@ -5,19 +5,14 @@ using Libplanet.Types;
 namespace Libplanet.Net;
 
 [Model(Version = 1, TypeName = "ProtocolMetadata")]
-public readonly partial record struct ProtocolMetadata
+public sealed partial record class ProtocolMetadata
 {
-    public ProtocolMetadata()
-    {
-    }
-
     [Property(0)]
     [NonNegative]
     public int Version { get; init; }
 
     [Property(1)]
-    [NotDefault]
-    public required Address Signer { get; init; }
+    public Address Signer { get; init; }
 
     [Property(2)]
     [NotDefault]

@@ -10,11 +10,11 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
     public override Type[] GetTypes(Type type, out bool isArray)
     {
         isArray = false;
-        var propertyInfos = ModelResolver.GetProperties(type);
-        var types = new Type[propertyInfos.Length];
-        for (var i = 0; i < propertyInfos.Length; i++)
+        var properties = ModelResolver.GetProperties(type);
+        var types = new Type[properties.Length];
+        for (var i = 0; i < properties.Length; i++)
         {
-            types[i] = propertyInfos[i].PropertyType;
+            types[i] = properties[i].PropertyType;
         }
 
         return types;
@@ -33,12 +33,12 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
             throw new ModelSerializationException("LegacyModelAttribute is not supported");
         }
 
-        var propertyInfos = ModelResolver.GetProperties(type);
-        var values = new object?[propertyInfos.Length];
-        for (var i = 0; i < propertyInfos.Length; i++)
+        var properties = ModelResolver.GetProperties(type);
+        var values = new object?[properties.Length];
+        for (var i = 0; i < properties.Length; i++)
         {
-            var propertyInfo = propertyInfos[i];
-            var value = propertyInfo.GetValue(obj);
+            var property = properties[i];
+            var value = property.GetValue(obj);
             values[i] = value;
         }
 
@@ -48,18 +48,21 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
     public override object Deserialize(Type type, object?[] values, ModelOptions options)
     {
         var obj = TypeUtility.CreateInstance(type);
-        var propertyInfos = ModelResolver.GetProperties(type);
-        if (propertyInfos.Length != values.Length)
+        var properties = ModelResolver.GetProperties(type);
+        if (properties.Length != values.Length)
         {
             throw new ModelSerializationException(
-                $"The number of properties ({propertyInfos.Length}) does not match the number of values ({values.Length})");
+                $"The number of properties ({properties.Length}) does not match the number of values ({values.Length})");
         }
 
-        for (var i = 0; i < propertyInfos.Length; i++)
+        for (var i = 0; i < properties.Length; i++)
         {
-            var propertyInfo = propertyInfos[i];
-            var value = values[i];
-            propertyInfo.SetValue(obj, value);
+            var property = properties[i];
+            if (!property.ReadOnly)
+            {
+                var value = values[i];
+                property.SetValue(obj, value);
+            }
         }
 
         if (type.GetCustomAttribute<OriginModelAttribute>() is { } legacyModelAttribute)

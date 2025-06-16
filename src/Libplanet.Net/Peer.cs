@@ -1,19 +1,19 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Net;
+using Libplanet.Net.ModelConverters;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
 
 namespace Libplanet.Net;
 
+[ModelConverter(typeof(PeerModelConverter), typeName: "peer")]
 public sealed record class Peer : IValidatableObject
 {
     [NotDefault]
     public required Address Address { get; init; }
 
-    // [RegularExpression(@"^(?:(?:25[0-5]|(?:2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")]
     public required DnsEndPoint EndPoint { get; init; }
 
     public static Peer Parse(string s)

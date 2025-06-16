@@ -20,10 +20,9 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
     private readonly NetMQMessageCodec _messageCodec = new();
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
 
-    private RouterSocket? _router;
+    private RouterSocket _router = new RouterSocket();
     private int _port;
-    private NetMQPoller? _routerPoller;
-    // private NetMQRuntime? _runtime;
+    private NetMQPoller? _poller;
     private NetMQQueue<MessageReply>? _replyQueue;
     private Peer? _peer;
 
@@ -74,19 +73,18 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
         _cancellationTokenSource = new CancellationTokenSource();
 
-        _router = new RouterSocket();
-        _router.Options.RouterHandover = true;
+        // _router = new RouterSocket();
+        // _router.Options.RouterHandover = true;
         _port = Initialize(_router, hostOptions.Port);
-
         _ = RunProcessAsync(_cancellationTokenSource.Token);
         _replyQueue = new();
-        _routerPoller = [_router, _replyQueue];
+        _poller = [_router, _replyQueue];
 
         _router.ReceiveReady += Router_ReceiveReady;
         _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
 
-        _ = Task.Run(_routerPoller.Run, cancellationToken);
-        while (!_routerPoller.IsRunning)
+        _ = Task.Run(_poller.Run, cancellationToken);
+        while (!_poller.IsRunning)
         {
             await Task.Yield();
         }
@@ -112,15 +110,15 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             _cancellationTokenSource = null;
         }
 
-        if (_routerPoller is not null)
+        if (_poller is not null)
         {
-            _routerPoller.Stop();
-            while (_routerPoller.IsRunning)
+            _poller.Stop();
+            while (_poller.IsRunning)
             {
                 await Task.Yield();
             }
-            _routerPoller.Dispose();
-            _routerPoller = null;
+            _poller.Dispose();
+            _poller = null;
         }
 
         if (_replyQueue is not null)
@@ -129,12 +127,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             _replyQueue.Dispose();
             _replyQueue = null;
         }
-
-        // if (_runtime is not null)
-        // {
-        //     _runtime.Dispose();
-        //     _runtime = null;
-        // }
 
         if (_router is not null)
         {
@@ -157,9 +149,9 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
 
-            _routerPoller?.Stop();
-            _routerPoller?.Dispose();
-            _routerPoller = null;
+            _poller?.Stop();
+            _poller?.Dispose();
+            _poller = null;
 
             if (_replyQueue is not null)
             {
@@ -168,13 +160,10 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 _replyQueue = null;
             }
 
-            // _runtime?.Dispose();
-            // _runtime = null;
-
             if (_router is not null)
             {
                 _router.ReceiveReady -= Router_ReceiveReady!;
-                // _router.Unbind($"tcp://*:{_port}");
+                _router.Unbind($"tcp://*:{_port}");
                 _router.Dispose();
                 _router = null;
             }
@@ -291,7 +280,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!IsRunning)
+        if (!IsRunning || _replyQueue is null)
         {
             throw new InvalidOperationException("Transport is not running.");
         }
@@ -311,7 +300,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 Timestamp = DateTimeOffset.UtcNow,
             },
         };
-        _replyQueue!.Enqueue(messageReply);
+        _replyQueue.Enqueue(messageReply);
 
         await messageReply.WaitAsync(cancellationTokenSource.Token);
     }
@@ -356,33 +345,35 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    private void ReplyQueue_ReceiveReady(object? sender, NetMQQueueEventArgs<MessageReply> e)
+    private async void ReplyQueue_ReceiveReady(object? sender, NetMQQueueEventArgs<MessageReply> e)
     {
         var messageReply = e.Queue.Dequeue();
         var messageEnvelope = messageReply.MessageEnvelope;
         var rawMessage = _messageCodec.Encode(messageEnvelope, privateKey);
-        if (_router is not null && _router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage))
+        if (_router?.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage) is true)
         {
-            messageReply.Set();
+
         }
+
+        messageReply.Set();
     }
 
     private async Task ProcessRuntimeAsync(CancellationToken cancellationToken)
     {
-        var reader = _requestChannel.Reader;
+        var requestReader = _requestChannel.Reader;
         var synchronizationContext = SynchronizationContext.Current;
-        await foreach (var request in reader.ReadAllAsync(cancellationToken))
+        await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
         {
             Interlocked.Decrement(ref _requestCount);
-            _ = synchronizationContext.PostAsync(
+            await synchronizationContext.PostAsync(
                 () => ProcessRequestAsync(request, request.CancellationToken));
         }
     }
 
     private async Task ProcessRequestAsync(MessageRequest request, CancellationToken cancellationToken)
     {
-        var channel = request.Channel;
-        var writer = channel.Writer;
+        var requestChannel = request.Channel;
+        var requestWriter = requestChannel.Writer;
         long? incrementedSocketCount = null;
 
         try
@@ -404,16 +395,17 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             for (var i = 0; i < request.ExpectedResponses; i++)
             {
                 var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
+                    expectedFrameCount: 3,
                     cancellationToken: cancellationToken);
 
-                await writer.WriteAsync(receivedRawMessage, cancellationToken);
+                await requestWriter.WriteAsync(receivedRawMessage, cancellationToken);
             }
 
-            writer.Complete();
+            requestWriter.Complete();
         }
         catch (Exception e)
         {
-            writer.TryComplete(e);
+            requestWriter.TryComplete(e);
         }
         finally
         {

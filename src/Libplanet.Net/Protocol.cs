@@ -4,8 +4,14 @@ using Libplanet.Types;
 namespace Libplanet.Net;
 
 [Model(Version = 1, TypeName = "Protocol")]
-public readonly partial record struct Protocol
+public sealed partial record class Protocol
 {
+    public static Protocol Empty { get; } = new Protocol
+    {
+        Metadata = new ProtocolMetadata(),
+        Signature = [],
+    };
+
     [Property(0)]
     public required ProtocolMetadata Metadata { get; init; }
 
