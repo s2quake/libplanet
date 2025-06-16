@@ -13,8 +13,8 @@ namespace Libplanet.Serialization;
 public static class ModelResolver
 {
     private static readonly object _lock = new();
-    private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _declaredPropertiesByType = [];
-    private static readonly ConcurrentDictionary<Type, ImmutableArray<PropertyInfo>> _propertiesByType = [];
+    private static readonly ConcurrentDictionary<Type, ImmutableArray<ModelProperty>> _declaredPropertiesByType = [];
+    private static readonly ConcurrentDictionary<Type, ImmutableArray<ModelProperty>> _propertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
     private static readonly ConcurrentDictionary<Type, ModelDescriptor> _descriptorByType = [];
     private static readonly ConcurrentDictionary<Type, IModelConverter> _converterByType = new()
@@ -108,7 +108,7 @@ public static class ModelResolver
         return descriptor is not null;
     }
 
-    public static ImmutableArray<PropertyInfo> GetProperties(Type type)
+    public static ImmutableArray<ModelProperty> GetProperties(Type type)
     {
         try
         {
@@ -205,9 +205,9 @@ public static class ModelResolver
             validateAllProperties: true);
     }
 
-    private static ImmutableArray<PropertyInfo> CreateProperties(Type type)
+    private static ImmutableArray<ModelProperty> CreateProperties(Type type)
     {
-        var builder = ImmutableArray.CreateBuilder<PropertyInfo>();
+        var builder = ImmutableArray.CreateBuilder<ModelProperty>();
         var currentType = type;
         while (currentType is not null)
         {
@@ -219,18 +219,18 @@ public static class ModelResolver
         return builder.ToImmutable();
     }
 
-    private static ImmutableArray<PropertyInfo> CreateDeclaredProperties(Type type)
+    private static ImmutableArray<ModelProperty> CreateDeclaredProperties(Type type)
     {
         var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
         var query = from propertyInfo in type.GetProperties(bindingFlags)
                     let propertyAttribute = propertyInfo.GetCustomAttribute<PropertyAttribute>()
                     where propertyAttribute is not null
                     orderby propertyAttribute.Index
-                    select (propertyInfo, propertyAttribute);
+                    select (propertyAttribute, propertyInfo);
         var items = query.ToArray();
-        var builder = ImmutableArray.CreateBuilder<PropertyInfo>(items.Length);
+        var builder = ImmutableArray.CreateBuilder<ModelProperty>(items.Length);
         var hasArrayProperty = false;
-        foreach (var (propertyInfo, propertyAttribute) in items)
+        foreach (var (propertyAttribute, propertyInfo) in items)
         {
             var index = propertyAttribute.Index;
             var propertyType = propertyInfo.PropertyType;
@@ -245,7 +245,7 @@ public static class ModelResolver
                 hasArrayProperty = true;
             }
 
-            builder.Add(propertyInfo);
+            builder.Add(new(propertyAttribute, propertyInfo));
         }
 
         if (hasArrayProperty)

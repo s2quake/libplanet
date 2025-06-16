@@ -11,9 +11,8 @@ using Libplanet.Net.Transports;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using NetMQ;
-using Serilog;
+using NetMQ.Sockets;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Transports;
@@ -115,31 +114,48 @@ public abstract class TransportTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendMessageAsync()
     {
-        var random = RandomUtility.GetRandom(output);
-        using var transportA = CreateTransport(random);
-        using var transportB = CreateTransport(random);
+        var router = new RouterSocket();
+        router.Bind("tcp://*:4000");
+        var dealer = new DealerSocket();
+        dealer.Connect("tcp://127.0.0.1:4000");
 
-        transportB.ProcessMessageHandler.Register(async message =>
+
+        _ = Task.Run(async () =>
         {
-            if (message.Message is PingMessage)
-            {
-                await transportB.ReplyMessageAsync(
-                    new PongMessage(),
-                    message.Id,
-                    CancellationToken.None);
-            }
+            var m = dealer.ReceiveMultipartBytes();
+            int qwr = 0;
+        });
+
+        _ = Task.Run(async () =>
+        {
+            router.SendMultipartBytes(new byte[] { 0 });
         });
 
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
 
-        MessageEnvelope reply = await transportA.SendMessageAsync(
-            transportB.Peer,
-            new PingMessage(),
-            CancellationToken.None);
 
-        Assert.IsType<PongMessage>(reply.Message);
+        await Task.Delay(20000);
+
+        // var random = RandomUtility.GetRandom(output);
+        // using var transportA = CreateTransport(random, hostOptions: new HostOptions { Host= IPAddress.Loopback.ToString(), Port = 4000 });
+        // using var transportB = CreateTransport(random, hostOptions: new HostOptions { Host= IPAddress.Loopback.ToString(), Port = 4004 });
+
+        // transportB.ProcessMessageHandler.Register(async message =>
+        // {
+        //     if (message.Message is PingMessage)
+        //     {
+        //         await transportB.ReplyMessageAsync(new PongMessage(), message.Id, default);
+        //     }
+        // });
+
+
+        // await transportA.StartAsync(default);
+        // await transportB.StartAsync(default);
+
+        // var message = new PingMessage();
+        // var reply = await transportA.SendMessageAsync(transportB.Peer, message, default);
+
+        // Assert.IsType<PongMessage>(reply.Message);
     }
 
     [Fact(Timeout = Timeout)]

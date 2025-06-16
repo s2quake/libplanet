@@ -83,5 +83,5 @@
       "source.organizeImports.rome": "explicit"
     }
   },
-  "csharp.debug.justMyCode": true
+  "csharp.debug.justMyCode": false
 }
